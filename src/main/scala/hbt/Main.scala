@@ -2,11 +2,12 @@ package hbt
 import java.io.FileOutputStream
 
 import collection.JavaConverters._
-import java.nio.file.{Path => JPath}
+import java.nio.{file => jnio}
+
 import java.util.jar.JarEntry
 import sourcecode.Enclosing
 sealed trait Target[T]{
-  def path: String
+  def label: String
   def map[V](f: T => V)(implicit path: Enclosing) = {
     Target.Mapped(this, f, path.value)
   }
@@ -24,28 +25,28 @@ object Target{
   def traverse[T](source: Seq[Target[T]])(implicit path: Enclosing) = {
     Traverse(source, path.value)
   }
-  case class Traverse[T](source: Seq[Target[T]], path: String) extends Target[Seq[T]]
+  case class Traverse[T](source: Seq[Target[T]], label: String) extends Target[Seq[T]]
   case class Mapped[T, V](source: Target[T], f: T => V,
-                          path: String) extends Target[V]
+                          label: String) extends Target[V]
   case class Zipped[T, V](source: Target[T],
                           source2: Target[V],
-                          path: String) extends Target[(T, V)]
-  case class Path(path: String) extends Target[JPath]
-  case class Command(inputs: Seq[Target[JPath]],
-                     output: Seq[Target[JPath]],
-                     path: String) extends Target[Command.Result]
+                          label: String) extends Target[(T, V)]
+  case class Path(path: jnio.Path, label: String) extends Target[jnio.Path]
+  case class Command(inputs: Seq[Target[jnio.Path]],
+                     output: Seq[Target[jnio.Path]],
+                     label: String) extends Target[Command.Result]
   object Command{
     case class Result(stdout: String,
                       stderr: String,
-                      writtenFiles: Seq[JPath])
+                      writtenFiles: Seq[jnio.Path])
   }
 }
 object Main{
-  def compileAll(sources: Target[Seq[JPath]])
-                (implicit path: Enclosing): Target[JPath] = {
+  def compileAll(sources: Target[Seq[jnio.Path]])
+                (implicit path: Enclosing): Target[jnio.Path] = {
     for(sources0 <- sources) yield {
-      val output = java.nio.file.Paths.get(path.value)
-      java.nio.file.Files.createDirectories(output)
+      val output = jnio.Paths.get(path.value)
+      jnio.Files.createDirectories(output)
       val command =
         Seq("scalac") ++
         sources0.map(_.toString) ++
@@ -62,27 +63,28 @@ object Main{
     }
   }
 
-  def list(root: Target[JPath]): Target[Seq[JPath]] = {
-    root.map(java.nio.file.Files.list(_).iterator().asScala.toArray[JPath])
+  def list(root: Target[jnio.Path]): Target[Seq[jnio.Path]] = {
+    root.map(jnio.Files.list(_).iterator().asScala.toArray[jnio.Path])
   }
-  def jarUp(roots: Target[JPath]*)(implicit path: Enclosing): Target[JPath] = {
+  def jarUp(roots: Target[jnio.Path]*)(implicit path: Enclosing): Target[jnio.Path] = {
     for(rootsValue <- Target.traverse(roots)) yield {
       val output = new java.util.jar.JarOutputStream(new FileOutputStream(path.value))
       for{
         root <- rootsValue
-        path <- java.nio.file.Files.list(root).iterator().asScala
+        path <- jnio.Files.list(root).iterator().asScala
       }{
         val relative = root.relativize(path)
         output.putNextEntry(new JarEntry(relative.toString))
-        output.write(java.nio.file.Files.readAllBytes(path))
+        output.write(jnio.Files.readAllBytes(path))
       }
-      java.nio.file.Paths.get(path.value)
+      jnio.Paths.get(path.value)
     }
   }
   def main(args: Array[String]): Unit = {
-    val sourceRoot: Target[JPath] = ???
-    val resourceRoot: Target[JPath] = ???
-    val classFiles: Target[JPath] = compileAll(list(sourceRoot))
-    val jar: Target[JPath] = jarUp(resourceRoot, classFiles)
+    val sourceRoot = Target.Path(jnio.Paths.get("test/src"), "sourceRoot")
+    val resourceRoot = Target.Path(jnio.Paths.get("test/resources"), "resourceRoot")
+    val allSources = list(sourceRoot)
+    val classFiles = compileAll(allSources)
+    val jar = jarUp(resourceRoot, classFiles)
   }
 }
