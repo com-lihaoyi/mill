@@ -4,6 +4,9 @@ name := "hbt"
 
 organization := "com.lihaoyi"
 
+libraryDependencies += "com.lihaoyi" %% "utest" % "0.5.4" % "test"
+
+testFrameworks += new TestFramework("utest.runner.Framework")
 
 libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.1.4"
 
