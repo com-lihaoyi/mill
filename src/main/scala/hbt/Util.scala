@@ -10,43 +10,52 @@ import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 object Util{
-  def compileAll(sources: Target[Seq[jnio.Path]])
-                (implicit path: Enclosing): Target[jnio.Path] = {
-    for(sources0 <- sources) yield {
-      val output = jnio.Paths.get(path.value)
-      jnio.Files.createDirectories(output)
+  case class compileAll(sources: Target[Seq[jnio.Path]])
+                       (implicit path: Enclosing) extends Target[jnio.Path]{
+    val label = path.value
+    val inputs = Seq(sources)
+    def evaluate(args: Args): jnio.Path = {
+
+      jnio.Files.createDirectories(args.dest)
       val command =
         Seq("scalac") ++
-        sources0.map(_.toString) ++
-        Seq("-d", path.value)
+        args[Seq[jnio.Path]](0).map(_.toString) ++
+        Seq("-d", args.dest.toString)
 
-
-
-      new java.lang.ProcessBuilder()
+      val result = new java.lang.ProcessBuilder()
         .command(command: _*)
         .start()
         .waitFor()
 
-      output
+      args.dest
     }
   }
 
   def list(root: Target[jnio.Path]): Target[Seq[jnio.Path]] = {
     root.map(jnio.Files.list(_).iterator().asScala.toArray[jnio.Path])
   }
-  def jarUp(roots: Target[jnio.Path]*)(implicit path: Enclosing): Target[jnio.Path] = {
-    for(rootsValue <- Target.traverse(roots)) yield {
-      val output = new java.util.jar.JarOutputStream(new FileOutputStream(path.value))
+  case class jarUp(roots: Target[jnio.Path]*)(implicit path: Enclosing) extends Target[jnio.Path]{
+    val label = path.value
+    val inputs = roots
+    def evaluate(args: Args): jnio.Path = {
+
+      val output = new java.util.jar.JarOutputStream(new FileOutputStream(args.dest.toFile))
       for{
-        root <- rootsValue
-        path <- jnio.Files.list(root).iterator().asScala
+        root0 <- args.args
+        root = root0.asInstanceOf[jnio.Path]
+
+        path <- jnio.Files.walk(root).iterator().asScala
+        if jnio.Files.isRegularFile(path)
       }{
         val relative = root.relativize(path)
         output.putNextEntry(new JarEntry(relative.toString))
         output.write(jnio.Files.readAllBytes(path))
       }
-      jnio.Paths.get(path.value)
+      output.close()
+      args.dest
     }
+
+
   }
 
 

@@ -8,7 +8,10 @@ libraryDependencies += "com.lihaoyi" %% "utest" % "0.5.4" % "test"
 
 testFrameworks += new TestFramework("utest.runner.Framework")
 
-libraryDependencies += "com.lihaoyi" %% "sourcecode" % "0.1.4"
+libraryDependencies ++= Seq(
+  "com.lihaoyi" %% "sourcecode" % "0.1.4",
+  "com.lihaoyi" %% "pprint" % "0.5.3"
+)
 
 sourceGenerators in Compile += Def.task {
   val dir = (sourceManaged in Compile).value
