@@ -8,6 +8,6 @@ object Main{
     val allSources = list(sourceRoot)
     val classFiles = compileAll(allSources)
     val jar = jarUp(resourceRoot, classFiles)
-    Hbt.evaluateTargetGraph(jar)
+    Evaluator.apply(jar, jnio.Paths.get("target/workspace"))
   }
 }
