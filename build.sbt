@@ -10,7 +10,8 @@ testFrameworks += new TestFramework("utest.runner.Framework")
 
 libraryDependencies ++= Seq(
   "com.lihaoyi" %% "sourcecode" % "0.1.4",
-  "com.lihaoyi" %% "pprint" % "0.5.3"
+  "com.lihaoyi" %% "pprint" % "0.5.3",
+  "com.lihaoyi" %% "ammonite-ops" % "1.0.2"
 )
 
 sourceGenerators in Compile += Def.task {

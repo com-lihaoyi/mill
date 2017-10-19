@@ -1,5 +1,6 @@
 package hbt
 
+import java.io.InputStreamReader
 import java.nio.{file => jnio}
 
 import sourcecode.Enclosing
@@ -50,12 +51,20 @@ object Target{
     def evaluate(args: Args) = path
     val inputs = Nil
   }
-//  case class Command(inputs: Seq[Target[jnio.Path]],
-//                     output: Seq[Target[jnio.Path]],
-//                     label: String) extends Target[Command.Result]
-//  object Command{
-//    case class Result(stdout: String,
-//                      stderr: String,
-//                      writtenFiles: Seq[jnio.Path])
-//  }
+  case class Subprocess(inputs: Seq[Target[_]],
+                        command: Args => Seq[String],
+                        label: String) extends Target[Subprocess.Result] {
+
+    def evaluate(args: Args) = {
+      jnio.Files.createDirectories(args.dest)
+      import ammonite.ops._
+      implicit val path = ammonite.ops.Path(args.dest, pwd)
+      val output = %%(command(args))
+      assert(output.exitCode == 0)
+      Subprocess.Result(output, args.dest)
+    }
+  }
+  object Subprocess{
+    case class Result(result: ammonite.ops.CommandResult, dest: jnio.Path)
+  }
 }
