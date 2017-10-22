@@ -26,18 +26,29 @@ object ForgeTests extends TestSuite{
     val down = noop(noop(up), noop(up))
   }
   val tests = Tests{
-    'singleton - {
-      evaluator.apply(Singleton.single)
+    'topoSortedTransitiveTargets - {
+      def check(targets: Seq[Target[_]], expected: Seq[Target[_]]) = {
+        val result = evaluator.topoSortedTransitiveTargets(targets)
+        assert(result == expected)
+      }
+      'singleton - check(
+        targets = Seq(Singleton.single),
+        expected = Seq(Singleton.single)
+      )
+      'pair - check(
+        targets = Seq(Pair.down),
+        expected = Seq(Pair.up, Pair.down)
+      )
+      'diamond - check(
+        targets = Seq(Diamond.down),
+        expected = Seq(Diamond.up, Diamond.right, Diamond.left, Diamond.down)
+      )
+      'anonDiamond - check(
+        targets = Seq(Diamond.down),
+        expected = Seq(Diamond.up, Diamond.down.inputs(1), Diamond.down.inputs(0), Diamond.down)
+      )
     }
-    'pair - {
-      evaluator.prepareTransitiveTargets(Seq(Pair.down))
-    }
-    'diamond - {
-      evaluator.apply(Diamond.down)
-    }
-    'anonDiamond - {
-      evaluator.apply(AnonymousDiamond.down)
-    }
+
 //    'full - {
 //      val sourceRoot = Target.path(jnio.Paths.get("src/test/resources/example/src"))
 //      val resourceRoot = Target.path(jnio.Paths.get("src/test/resources/example/resources"))

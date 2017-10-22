@@ -12,7 +12,7 @@ class Evaluator(workspacePath: jnio.Path,
   /**
     * Takes the given targets, finds
     */
-  def prepareTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
+  def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
     val transitiveTargetSet = mutable.Set.empty[Target[_]]
     def rec(t: Target[_]): Unit = {
       if (transitiveTargetSet.contains(t)) () // do nothing
@@ -33,18 +33,16 @@ class Evaluator(workspacePath: jnio.Path,
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    (transitiveTargets, sortedClusters.flatten)
+    sortedClusters.flatten.map(transitiveTargets)
   }
 
   def apply[T](t: Target[T])
               (implicit enclosing: Enclosing): T = {
     jnio.Files.createDirectories(workspacePath)
 
-    val (transitiveTargets, sortedTargetIndices) = prepareTransitiveTargets(Seq(t))
+    val sortedTargets = topoSortedTransitiveTargets(Seq(t))
     val results = mutable.Map.empty[Target[_], Any]
-    for (index <- sortedTargetIndices){
-
-      val target = transitiveTargets(index)
+    for (target <- sortedTargets){
       val inputResults = target.inputs.map(results)
 
       val targetDestPath = target.defCtx.staticEnclosing match{
