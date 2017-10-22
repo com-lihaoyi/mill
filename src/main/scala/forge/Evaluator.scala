@@ -48,11 +48,14 @@ class Evaluator(workspacePath: jnio.Path,
       val target = transitiveTargets(index)
       val inputResults = target.inputs.map(results)
 
-      for(enclosing <- target.defCtx.staticEnclosing){
-        val targetDestPath = workspacePath.resolve(
-          jnio.Paths.get(enclosing.stripSuffix(enclosingBase.staticEnclosing.getOrElse("")))
-        )
-        deleteRec(targetDestPath)
+      val targetDestPath = target.defCtx.staticEnclosing match{
+        case Some(enclosing) =>
+          val targetDestPath = workspacePath.resolve(
+            jnio.Paths.get(enclosing.stripSuffix(enclosingBase.staticEnclosing.getOrElse("")))
+          )
+          deleteRec(targetDestPath)
+          targetDestPath
+        case None => jnio.Files.createTempDirectory(null)
       }
 
 

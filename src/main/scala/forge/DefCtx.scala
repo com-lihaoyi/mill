@@ -23,7 +23,7 @@ object DefCtx{
     def applyImpl(c: Context): c.Expr[StaticContext] = {
       import c.universe._
       val staticContext = rec(c)(c.internal.enclosingOwner)
-      c.Expr[StaticContext](q"hbt.DefCtx.StaticContext($staticContext)")
+      c.Expr[StaticContext](q"forge.DefCtx.StaticContext($staticContext)")
     }
   }
 

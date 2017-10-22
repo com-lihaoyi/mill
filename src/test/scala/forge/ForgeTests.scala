@@ -2,8 +2,12 @@ package forge
 
 import utest._
 import Target.noop
-
+import java.nio.{file => jnio}
 object ForgeTests extends TestSuite{
+  val evaluator = new Evaluator(
+    jnio.Paths.get("target/workspace"),
+    implicitly
+  )
   object Singleton {
     val single = noop()
   }
