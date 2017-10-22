@@ -1,6 +1,6 @@
 scalaVersion := "2.12.3"
 
-name := "hbt"
+name := "forge"
 
 organization := "com.lihaoyi"
 
@@ -32,7 +32,7 @@ sourceGenerators in Compile += Def.task {
           """
   }
   val output = s"""
-          package hbt
+          package forge
           trait SequencerGen[Sequencer[_, _, _]] extends LowestPriSequencer[Sequencer]{
             protected[this] def Sequencer0[A, B, C](f: (A, B) => C): Sequencer[A, B, C]
             ${tuples.mkString("\n")}

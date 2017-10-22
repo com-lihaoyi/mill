@@ -1,4 +1,4 @@
-package hbt
+package forge
 
 import java.io.FileOutputStream
 import java.nio.{file => jnio}

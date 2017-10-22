@@ -1,4 +1,4 @@
-package hbt
+package forge
 import utest._
 object TarjanTests extends TestSuite{
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {
