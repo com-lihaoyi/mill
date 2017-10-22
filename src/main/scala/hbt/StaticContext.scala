@@ -6,7 +6,7 @@ import scala.reflect.macros._
 
 case class StaticContext(value: Boolean)
 object StaticContext {
-  implicit def apply: StaticContext = macro applyImpl
+  implicit def default: StaticContext = macro applyImpl
   def rec(c: Context)(expr: c.Symbol): Boolean = {
     import c.universe._
     // Classes and traits and such
@@ -21,5 +21,13 @@ object StaticContext {
     import c.universe._
     val staticContext = rec(c)(c.internal.enclosingOwner)
     c.Expr[StaticContext](q"hbt.StaticContext($staticContext)")
+  }
+}
+case class DefCtx(staticEnclosing: Option[String])
+object DefCtx{
+  implicit def default(implicit enc: sourcecode.Enclosing,
+                       sc: StaticContext) = {
+    if (sc.value) DefCtx(Some(enc.value))
+    else DefCtx(None)
   }
 }

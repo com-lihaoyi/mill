@@ -10,22 +10,22 @@ import scala.collection.JavaConverters._
 
 object Util{
   def compileAll(sources: Target[Seq[jnio.Path]])
-                (implicit path: Enclosing) = {
+                (implicit defCtx: DefCtx) = {
     Target.Subprocess(
       Seq(sources),
       args =>
         Seq("javac") ++
         args[Seq[jnio.Path]](0).map(_.toAbsolutePath.toString) ++
         Seq("-d", args.dest.toAbsolutePath.toString),
-      path.value
+      defCtx
     ).map(_.dest)
   }
 
-  def list(root: Target[jnio.Path]): Target[Seq[jnio.Path]] = {
+  def list(root: Target[jnio.Path])(implicit defCtx: DefCtx): Target[Seq[jnio.Path]] = {
     root.map(jnio.Files.list(_).iterator().asScala.toArray[jnio.Path])
   }
-  case class jarUp(roots: Target[jnio.Path]*)(implicit path: Enclosing) extends Target[jnio.Path]{
-    val label = path.value
+  case class jarUp(roots: Target[jnio.Path]*)(implicit val defCtx: DefCtx) extends Target[jnio.Path]{
+
     val inputs = roots
     def evaluate(args: Args): jnio.Path = {
 

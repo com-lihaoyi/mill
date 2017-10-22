@@ -17,9 +17,10 @@ object Evaluator{
     def rec(t: Target[_], path: List[String]): Unit = {
       if (targetPaths.contains(t)) () // do nothing
       else {
-        val currentPath =
-          if (!t.label.startsWith(enclosing.value)) path.reverse
-          else t.label.stripPrefix(enclosing.value).drop(1).split('.').toList
+        val currentPath = t.defCtx.staticEnclosing match{
+          case None => path.reverse
+          case Some(s) => s.stripPrefix(enclosing.value).drop(1).split('.').toList
+        }
 
         targetPaths(t) = currentPath
         t.inputs.zipWithIndex.foreach{case (c, i) => rec(c, i.toString :: currentPath)}
