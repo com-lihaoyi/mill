@@ -4,9 +4,9 @@ name := "forge"
 
 organization := "com.lihaoyi"
 
-libraryDependencies += "com.lihaoyi" %% "utest" % "0.5.4" % "test"
+libraryDependencies += "com.lihaoyi" %% "utest" % "0.6.0" % "test"
 
-testFrameworks += new TestFramework("utest.runner.Framework")
+testFrameworks += new TestFramework("forge.Framework")
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
