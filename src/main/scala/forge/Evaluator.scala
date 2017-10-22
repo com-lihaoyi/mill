@@ -12,10 +12,7 @@ class Evaluator(workspacePath: jnio.Path,
   /**
     * Takes the given targets, finds
     */
-  def prepareTransitiveTargets(targets: Seq[Target[_]]) = {
-
-    val targetIndices = targets.zipWithIndex.toMap
-
+  def prepareTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
     val transitiveTargetSet = mutable.Set.empty[Target[_]]
     def rec(t: Target[_]): Unit = {
       if (transitiveTargetSet.contains(t)) () // do nothing
@@ -25,11 +22,13 @@ class Evaluator(workspacePath: jnio.Path,
       }
     }
 
-    targets.foreach(rec)
+    sourceTargets.foreach(rec)
     val transitiveTargets = transitiveTargetSet.toVector
+    val targetIndices = transitiveTargets.zipWithIndex.toMap
+
     val numberedEdges =
       for(i <- transitiveTargets.indices)
-      yield targets(i).inputs.map(targetIndices)
+      yield transitiveTargets(i).inputs.map(targetIndices)
 
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
@@ -49,9 +48,9 @@ class Evaluator(workspacePath: jnio.Path,
       val inputResults = target.inputs.map(results)
 
       val targetDestPath = target.defCtx.staticEnclosing match{
-        case Some(enclosing) =>
+        case Some(enclosingStr) =>
           val targetDestPath = workspacePath.resolve(
-            jnio.Paths.get(enclosing.stripSuffix(enclosingBase.staticEnclosing.getOrElse("")))
+            jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.staticEnclosing.getOrElse("")))
           )
           deleteRec(targetDestPath)
           targetDestPath
