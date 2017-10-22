@@ -22,6 +22,10 @@ trait Target[T]{
 }
 
 object Target{
+  def noop(inputs: Target[_]*)(implicit defCtx: DefCtx) = NoopTarget(inputs, defCtx)
+  case class NoopTarget(inputs: Seq[Target[_]], defCtx: DefCtx) extends Target[Unit]{
+    def evaluate(args: Args) = ()
+  }
   def traverse[T](source: Seq[Target[T]])(implicit defCtx: DefCtx) = {
     Traverse[T](source, defCtx)
   }

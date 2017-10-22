@@ -1,5 +1,5 @@
 package hbt
-
+import DefCtx.StaticContext
 import utest._
 class Helper{
   val static = implicitly[StaticContext]
