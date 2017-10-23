@@ -30,6 +30,11 @@ object ForgeTests extends TestSuite{
       val down = T{ test(test(up), test(up)) }
     }
 
+    'neg - {
+      compileError("T{ 123 }")
+      compileError("T{ println() }")
+      ()
+    }
     'topoSortedTransitiveTargets - {
       def check(targets: Seq[Target[_]], expected: Seq[Target[_]]) = {
         val result = Evaluator.topoSortedTransitiveTargets(targets)
