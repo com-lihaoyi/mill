@@ -15,13 +15,17 @@ object ForgeTests extends TestSuite{
       val up = test()
       val down = test(up)
     }
+    object AnonTriple{
+      val up = test()
+      val down = test(test(up))
+    }
     object Diamond{
       val up = test()
       val left = test(up)
       val right = test(up)
       val down = test(left, right)
     }
-    object AnonymousDiamond{
+    object AnonDiamond{
       val up = test()
       val down = test(test(up), test(up))
     }
@@ -38,6 +42,10 @@ object ForgeTests extends TestSuite{
       'pair - check(
         targets = Seq(Pair.down),
         expected = Seq(Pair.up, Pair.down)
+      )
+      'anonTriple - check(
+        targets = Seq(AnonTriple.down),
+        expected = Seq(AnonTriple.up, AnonTriple.down.inputs(0), AnonTriple.down)
       )
       'diamond - check(
         targets = Seq(Diamond.down),
@@ -70,15 +78,39 @@ object ForgeTests extends TestSuite{
           check(Seq(single), values = Seq(0), evaluated = Seq(single))
           // Second time the value is already cached, so no evaluation needed
           check(Seq(single), values = Seq(0), evaluated = Seq())
-          Singleton.single.counter += 1
+          single.counter += 1
           // After incrementing the counter, it forces re-evaluation
           check(Seq(single), values = Seq(1), evaluated = Seq(single))
           // Then it's cached again
           check(Seq(single), values = Seq(1), evaluated = Seq())
         }
-//        'pair - {
-//
-//        }
+        'pair - {
+          import Pair._
+          check(Seq(down), values = Seq(0), evaluated = Seq(up, down))
+          check(Seq(down), values = Seq(0), evaluated = Seq())
+
+          down.counter += 1
+          check(Seq(down), values = Seq(1), evaluated = Seq(down))
+          check(Seq(down), values = Seq(1), evaluated = Seq())
+
+          up.counter += 1
+          check(Seq(down), values = Seq(2), evaluated = Seq(up, down))
+          check(Seq(down), values = Seq(2), evaluated = Seq())
+        }
+        'anonTriple - {
+          import AnonTriple._
+          val middle = down.inputs(0)
+          check(Seq(down), values = Seq(0), evaluated = Seq(up, middle, down))
+          check(Seq(down), values = Seq(0), evaluated = Seq())
+
+          down.counter += 1
+          check(Seq(down), values = Seq(1), evaluated = Seq(middle, down))
+          check(Seq(down), values = Seq(1), evaluated = Seq())
+
+          up.counter += 1
+          check(Seq(down), values = Seq(2), evaluated = Seq(up, middle, down))
+          check(Seq(down), values = Seq(2), evaluated = Seq())
+        }
       }
     }
 

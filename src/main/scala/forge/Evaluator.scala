@@ -9,7 +9,7 @@ import scala.collection.mutable
 class Evaluator(workspacePath: jnio.Path,
                 enclosingBase: DefCtx){
 
-  val resultCache = mutable.Map.empty[Target[_], (Int, Any)]
+  val resultCache = mutable.Map.empty[String, (Int, Any)]
 
   def evaluate(targets: Seq[Target[_]]): Evaluator.Results = {
     jnio.Files.createDirectories(workspacePath)
@@ -27,17 +27,20 @@ class Evaluator(workspacePath: jnio.Path,
           )
           deleteRec(targetDestPath)
           targetDestPath
+
         case None => jnio.Files.createTempDirectory(null)
       }
 
       val inputsHash = inputResults.hashCode
-      resultCache.get(target) match{
+      target.defCtx.staticEnclosing.flatMap(resultCache.get) match{
         case Some((hash, res)) if hash == inputsHash && !target.dirty =>
           results(target) = res
         case _ =>
           evaluated.append(target)
           val res = target.evaluate(new Args(inputResults, targetDestPath))
-          resultCache(target) = (inputsHash, res)
+          for(label <- target.defCtx.staticEnclosing) {
+            resultCache(label) = (inputsHash, res)
+          }
           results(target) = res
       }
 
