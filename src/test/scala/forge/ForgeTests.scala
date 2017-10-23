@@ -28,7 +28,7 @@ object ForgeTests extends TestSuite{
 
     'topoSortedTransitiveTargets - {
       def check(targets: Seq[Target[_]], expected: Seq[Target[_]]) = {
-        val result = evaluator.topoSortedTransitiveTargets(targets)
+        val result = Evaluator.topoSortedTransitiveTargets(targets)
         assert(result == expected)
       }
       'singleton - check(

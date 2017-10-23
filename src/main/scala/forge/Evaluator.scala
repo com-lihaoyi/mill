@@ -9,38 +9,13 @@ import scala.collection.mutable
 class Evaluator(workspacePath: jnio.Path,
                 enclosingBase: DefCtx){
 
-  /**
-    * Takes the given targets, finds
-    */
-  def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
-    val transitiveTargetSet = mutable.Set.empty[Target[_]]
-    def rec(t: Target[_]): Unit = {
-      if (transitiveTargetSet.contains(t)) () // do nothing
-      else {
-        transitiveTargetSet.add(t)
-        t.inputs.foreach(rec)
-      }
-    }
 
-    sourceTargets.foreach(rec)
-    val transitiveTargets = transitiveTargetSet.toVector
-    val targetIndices = transitiveTargets.zipWithIndex.toMap
-
-    val numberedEdges =
-      for(i <- transitiveTargets.indices)
-      yield transitiveTargets(i).inputs.map(targetIndices)
-
-    val sortedClusters = Tarjans(numberedEdges)
-    val nonTrivialClusters = sortedClusters.filter(_.length > 1)
-    assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    sortedClusters.flatten.map(transitiveTargets)
-  }
 
   def apply[T](t: Target[T])
               (implicit enclosing: Enclosing): T = {
     jnio.Files.createDirectories(workspacePath)
 
-    val sortedTargets = topoSortedTransitiveTargets(Seq(t))
+    val sortedTargets = Evaluator.topoSortedTransitiveTargets(Seq(t))
     val results = mutable.Map.empty[Target[_], Any]
     for (target <- sortedTargets){
       val inputResults = target.inputs.map(results)
@@ -74,5 +49,35 @@ class Evaluator(workspacePath: jnio.Path,
         .reverseIterator
         .map(jnio.Files.deleteIfExists)
     }
+  }
+}
+
+
+object Evaluator{
+  /**
+    * Takes the given targets, finds
+    */
+  def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
+    val transitiveTargetSet = mutable.Set.empty[Target[_]]
+    def rec(t: Target[_]): Unit = {
+      if (transitiveTargetSet.contains(t)) () // do nothing
+      else {
+        transitiveTargetSet.add(t)
+        t.inputs.foreach(rec)
+      }
+    }
+
+    sourceTargets.foreach(rec)
+    val transitiveTargets = transitiveTargetSet.toVector
+    val targetIndices = transitiveTargets.zipWithIndex.toMap
+
+    val numberedEdges =
+      for(i <- transitiveTargets.indices)
+        yield transitiveTargets(i).inputs.map(targetIndices)
+
+    val sortedClusters = Tarjans(numberedEdges)
+    val nonTrivialClusters = sortedClusters.filter(_.length > 1)
+    assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
+    sortedClusters.flatten.map(transitiveTargets)
   }
 }
