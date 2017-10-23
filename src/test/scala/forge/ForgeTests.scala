@@ -52,6 +52,34 @@ object ForgeTests extends TestSuite{
           Diamond.down
         )
       )
+
+      'evaluate - {
+        def check(targets: Seq[Target[_]],
+                  values: Seq[Any],
+                  evaluated: Seq[Target[_]]) = {
+          val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(targets)
+          assert(
+            returnedValues == values,
+            returnedEvaluated == evaluated
+          )
+
+        }
+        'singleton - {
+          import Singleton._
+          // First time the target is evaluated
+          check(Seq(single), values = Seq(0), evaluated = Seq(single))
+          // Second time the value is already cached, so no evaluation needed
+          check(Seq(single), values = Seq(0), evaluated = Seq())
+          Singleton.single.counter += 1
+          // After incrementing the counter, it forces re-evaluation
+          check(Seq(single), values = Seq(1), evaluated = Seq(single))
+          // Then it's cached again
+          check(Seq(single), values = Seq(1), evaluated = Seq())
+        }
+//        'pair - {
+//
+//        }
+      }
     }
 
 //    'full - {

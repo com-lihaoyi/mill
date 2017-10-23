@@ -8,6 +8,8 @@ libraryDependencies += "com.lihaoyi" %% "utest" % "0.6.0" % "test"
 
 testFrameworks += new TestFramework("forge.Framework")
 
+parallelExecution in Test := false
+
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",

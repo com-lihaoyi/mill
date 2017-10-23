@@ -11,7 +11,7 @@ import scala.collection.JavaConverters._
 object Util{
   def compileAll(sources: Target[Seq[jnio.Path]])
                 (implicit defCtx: DefCtx) = {
-    Target.Subprocess(
+    new Target.Subprocess(
       Seq(sources),
       args =>
         Seq("javac") ++

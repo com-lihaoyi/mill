@@ -9,16 +9,16 @@ import scala.collection.mutable
 class Evaluator(workspacePath: jnio.Path,
                 enclosingBase: DefCtx){
 
+  val resultCache = mutable.Map.empty[Target[_], (Int, Any)]
 
-
-  def apply[T](t: Target[T])
-              (implicit enclosing: Enclosing): T = {
+  def evaluate(targets: Seq[Target[_]]): Evaluator.Results = {
     jnio.Files.createDirectories(workspacePath)
 
-    val sortedTargets = Evaluator.topoSortedTransitiveTargets(Seq(t))
+    val sortedTargets = Evaluator.topoSortedTransitiveTargets(targets)
+    val evaluated = mutable.Buffer.empty[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
     for (target <- sortedTargets){
-      val inputResults = target.inputs.map(results)
+      val inputResults = target.inputs.map(results).toIndexedSeq
 
       val targetDestPath = target.defCtx.staticEnclosing match{
         case Some(enclosingStr) =>
@@ -30,15 +30,19 @@ class Evaluator(workspacePath: jnio.Path,
         case None => jnio.Files.createTempDirectory(null)
       }
 
+      val inputsHash = inputResults.hashCode
+      resultCache.get(target) match{
+        case Some((hash, res)) if hash == inputsHash && !target.dirty =>
+          results(target) = res
+        case _ =>
+          evaluated.append(target)
+          val res = target.evaluate(new Args(inputResults, targetDestPath))
+          resultCache(target) = (inputsHash, res)
+          results(target) = res
+      }
 
-
-
-
-      results(target) = target.evaluate(
-        new Args(inputResults.toIndexedSeq, targetDestPath)
-      )
     }
-    results(t).asInstanceOf[T]
+    Evaluator.Results(targets.map(results), evaluated)
   }
   def deleteRec(path: jnio.Path) = {
     if (jnio.Files.exists(path)){
@@ -54,21 +58,23 @@ class Evaluator(workspacePath: jnio.Path,
 
 
 object Evaluator{
+  case class Results(values: Seq[Any], evaluated: Seq[Target[_]])
   /**
     * Takes the given targets, finds
     */
   def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
     val transitiveTargetSet = mutable.Set.empty[Target[_]]
+    val transitiveTargets = mutable.Buffer.empty[Target[_]]
     def rec(t: Target[_]): Unit = {
       if (transitiveTargetSet.contains(t)) () // do nothing
       else {
         transitiveTargetSet.add(t)
+        transitiveTargets.append(t)
         t.inputs.foreach(rec)
       }
     }
 
     sourceTargets.foreach(rec)
-    val transitiveTargets = transitiveTargetSet.toVector
     val targetIndices = transitiveTargets.zipWithIndex.toMap
 
     val numberedEdges =
