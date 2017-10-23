@@ -1,31 +1,31 @@
 package forge
 
 import utest._
-import Target.noop
+import Target.test
 import java.nio.{file => jnio}
 object ForgeTests extends TestSuite{
-  val evaluator = new Evaluator(
-    jnio.Paths.get("target/workspace"),
-    implicitly
-  )
-  object Singleton {
-    val single = noop()
-  }
-  object Pair {
-    val up = noop()
-    val down = noop(up)
-  }
-  object Diamond{
-    val up = noop()
-    val left = noop(up)
-    val right = noop(up)
-    val down = noop(left, right)
-  }
-  object AnonymousDiamond{
-    val up = noop()
-    val down = noop(noop(up), noop(up))
-  }
+
   val tests = Tests{
+    implicit def fakeStaticContext = DefCtx.StaticContext(true)
+    val evaluator = new Evaluator(jnio.Paths.get("target/workspace"), implicitly)
+    object Singleton {
+      val single = test()
+    }
+    object Pair {
+      val up = test()
+      val down = test(up)
+    }
+    object Diamond{
+      val up = test()
+      val left = test(up)
+      val right = test(up)
+      val down = test(left, right)
+    }
+    object AnonymousDiamond{
+      val up = test()
+      val down = test(test(up), test(up))
+    }
+
     'topoSortedTransitiveTargets - {
       def check(targets: Seq[Target[_]], expected: Seq[Target[_]]) = {
         val result = evaluator.topoSortedTransitiveTargets(targets)
@@ -41,11 +41,16 @@ object ForgeTests extends TestSuite{
       )
       'diamond - check(
         targets = Seq(Diamond.down),
-        expected = Seq(Diamond.up, Diamond.right, Diamond.left, Diamond.down)
+        expected = Seq(Diamond.up, Diamond.left, Diamond.right, Diamond.down)
       )
       'anonDiamond - check(
         targets = Seq(Diamond.down),
-        expected = Seq(Diamond.up, Diamond.down.inputs(1), Diamond.down.inputs(0), Diamond.down)
+        expected = Seq(
+          Diamond.up,
+          Diamond.down.inputs(0),
+          Diamond.down.inputs(1),
+          Diamond.down
+        )
       )
     }
 

@@ -5,6 +5,10 @@ import java.nio.{file => jnio}
 trait Target[T]{
   val defCtx: DefCtx
 
+  override def toString = defCtx.staticEnclosing match{
+    case None => this.getClass.getSimpleName + "@" + Integer.toHexString(System.identityHashCode(this))
+    case Some(s) => this.getClass.getName + "@" + s
+  }
   val inputs: Seq[Target[_]]
   def evaluate(args: Args): T
 
@@ -22,9 +26,16 @@ trait Target[T]{
 }
 
 object Target{
-  def noop(inputs: Target[_]*)(implicit defCtx: DefCtx) = NoopTarget(inputs, defCtx)
-  case class NoopTarget(inputs: Seq[Target[_]], defCtx: DefCtx) extends Target[Unit]{
-    def evaluate(args: Args) = ()
+  def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = Test(inputs, defCtx)
+
+  /**
+    * A dummy target that takes any number of inputs, and whose output can be
+    * controlled externally, so you can construct arbitrary dataflow graphs and
+    * test how changes propagate.
+    */
+  case class Test(inputs: Seq[Target[Int]], defCtx: DefCtx) extends Target[Int]{
+    var counter = 1
+    def evaluate(args: Args) = counter + args.args.map(_.asInstanceOf[Int]).sum
   }
   def traverse[T](source: Seq[Target[T]])(implicit defCtx: DefCtx) = {
     Traverse[T](source, defCtx)
