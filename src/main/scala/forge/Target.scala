@@ -14,7 +14,7 @@ trait TargetOps[T]{ this: Target[T] =>
     this.zip(other).map(s.apply _ tupled)
   }
 
-  override def toString = defCtx.staticEnclosing match{
+  override def toString = defCtx.value match{
     case None => this.getClass.getSimpleName + "@" + Integer.toHexString(System.identityHashCode(this))
     case Some(s) => this.getClass.getName + "@" + s
   }

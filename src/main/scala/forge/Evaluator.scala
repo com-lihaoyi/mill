@@ -20,10 +20,10 @@ class Evaluator(workspacePath: jnio.Path,
     for (target <- sortedTargets){
       val inputResults = target.inputs.map(results).toIndexedSeq
 
-      val targetDestPath = target.defCtx.staticEnclosing match{
+      val targetDestPath = target.defCtx.value match{
         case Some(enclosingStr) =>
           val targetDestPath = workspacePath.resolve(
-            jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.staticEnclosing.getOrElse("")))
+            jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.value.getOrElse("")))
           )
           deleteRec(targetDestPath)
           targetDestPath
@@ -32,13 +32,13 @@ class Evaluator(workspacePath: jnio.Path,
       }
 
       val inputsHash = inputResults.hashCode
-      target.defCtx.staticEnclosing.flatMap(resultCache.get) match{
+      target.defCtx.value.flatMap(resultCache.get) match{
         case Some((hash, res)) if hash == inputsHash && !target.dirty =>
           results(target) = res
         case _ =>
           evaluated.append(target)
           val res = target.evaluate(new Args(inputResults, targetDestPath))
-          for(label <- target.defCtx.staticEnclosing) {
+          for(label <- target.defCtx.value) {
             resultCache(label) = (inputsHash, res)
           }
           results(target) = res
