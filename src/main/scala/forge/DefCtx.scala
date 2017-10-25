@@ -1,14 +1,15 @@
 package forge
 
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
-import scala.reflect.macros._
+import scala.reflect.macros.blackbox._
 
 
-sealed abstract class DefCtx(val value: Option[String])
+final case class DefCtx(label: String)
 object DefCtx{
-  implicit object Anonymous extends DefCtx(None)
-  case class Labeled(label: String) extends DefCtx(Some(label))
+  @compileTimeOnly("A DefCtx can only be provided directly within a T{} macro")
+  implicit def dummy: DefCtx with Int = ???
 }
 
 object T{
@@ -16,19 +17,61 @@ object T{
 
   def applyImpl[T: c.WeakTypeTag](c: Context)(expr: c.Expr[T]): c.Expr[T] = {
     import c.universe._
-    val transformed = expr.tree match{
-      case Apply(fun, args) =>
-        var transformed = false
-        val newArgs = args.map{
-          case x if x.tpe == weakTypeOf[DefCtx.Anonymous.type] =>
-            transformed = true
-            q"forge.DefCtx.Labeled(sourcecode.Enclosing())"
-          case x => x
+    var count = 0
+    object transformer extends c.universe.Transformer {
+      override def transform(tree: c.Tree): c.Tree = {
+        if (tree.toString.startsWith("forge.") && tree.toString.endsWith(".DefCtx.dummy")) {
+          count += 1
+          c.typecheck(q"forge.DefCtx(sourcecode.Enclosing() + $count)")
+        }else tree match{
+          case Apply(fun, args) =>
+            val extendedParams = fun.tpe.paramLists.head.padTo(
+              args.length,
+              fun.tpe.paramLists.head.lastOption.getOrElse(null)
+            )
+            val newArgs =
+              for((sym, tree) <- extendedParams.zip(args))
+              yield {
+                if (sym.asTerm.isByNameParam) tree
+                else transform(tree)
+              }
+            treeCopy.Apply(tree, transform(fun), newArgs)
+
+          case t: DefDef => t
+          case t: ClassDef => t
+          case t: Function => t
+          case t: LabelDef => t
+          case t => super.transform(t)
         }
-        assert(transformed)
-        Apply(fun, newArgs)
+
+      }
+    }
+
+
+    def transformTerminal(tree: c.Tree): c.Tree = tree match{
+      case Block(stats, returnExpr) =>
+        treeCopy.Block(
+          tree,
+          stats.map(transformer.transform(_)),
+          transformTerminal(returnExpr)
+        )
+
+      case Apply(fun, args) =>
+        var isTransformed = false
+        val newArgs = for(x <- args) yield {
+          if (x.toString.startsWith("forge.") && x.toString.endsWith(".DefCtx.dummy")) {
+            isTransformed = true
+            c.typecheck(q"forge.DefCtx(sourcecode.Enclosing())")
+          }else transformer.transform(x)
+        }
+
+        assert(isTransformed)
+        treeCopy.Apply(tree, transformer.transform(fun), newArgs)
+
       case _ => ???
     }
+
+    val transformed = transformTerminal(expr.tree)
     c.Expr[T](transformed)
   }
 }
