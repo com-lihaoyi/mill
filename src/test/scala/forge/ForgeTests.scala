@@ -160,55 +160,92 @@ object ForgeTests extends TestSuite{
       }
 
     }
-    'evaluate - {
-      def check(targets: Seq[Target[_]],
-                expectedValues: Seq[Any],
-                expectedEvaluated: Seq[Target[_]]) = {
-        val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(targets)
+    'evaluateSingle - {
+      def check(target: Target[_],
+                expValue: Any,
+                expEvaled: Seq[Target[_]]) = {
+        val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(Seq(target))
         assert(
-          returnedValues == expectedValues,
-          returnedEvaluated == expectedEvaluated
+          returnedValues == Seq(expValue),
+          returnedEvaluated == expEvaled
         )
-
+        // Second time the value is already cached, so no evaluation needed
+        val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(Seq(target))
+        assert(
+          returnedValues2 == returnedValues,
+          returnedEvaluated2 == Nil
+        )
       }
+
       'singleton - {
         import Singleton._
         // First time the target is evaluated
-        check(Seq(single), expectedValues = Seq(0), expectedEvaluated = Seq(single))
-        // Second time the value is already cached, so no evaluation needed
-        check(Seq(single), expectedValues = Seq(0), expectedEvaluated = Seq())
+        check(single, expValue = 0, expEvaled = Seq(single))
+
         single.counter += 1
         // After incrementing the counter, it forces re-evaluation
-        check(Seq(single), expectedValues = Seq(1), expectedEvaluated = Seq(single))
-        // Then it's cached again
-        check(Seq(single), expectedValues = Seq(1), expectedEvaluated = Seq())
+        check(single, expValue = 1, expEvaled = Seq(single))
       }
       'pair - {
         import Pair._
-        check(Seq(down), expectedValues = Seq(0), expectedEvaluated = Seq(up, down))
-        check(Seq(down), expectedValues = Seq(0), expectedEvaluated = Seq())
+        check(down, expValue = 0, expEvaled = Seq(up, down))
 
         down.counter += 1
-        check(Seq(down), expectedValues = Seq(1), expectedEvaluated = Seq(down))
-        check(Seq(down), expectedValues = Seq(1), expectedEvaluated = Seq())
+        check(down, expValue = 1, expEvaled = Seq(down))
 
         up.counter += 1
-        check(Seq(down), expectedValues = Seq(2), expectedEvaluated = Seq(up, down))
-        check(Seq(down), expectedValues = Seq(2), expectedEvaluated = Seq())
+        check(down, expValue = 2, expEvaled = Seq(up, down))
       }
       'anonTriple - {
         import AnonTriple._
         val middle = down.inputs(0)
-        check(Seq(down), expectedValues = Seq(0), expectedEvaluated = Seq(up, middle, down))
-        check(Seq(down), expectedValues = Seq(0), expectedEvaluated = Seq())
+        check(down, expValue = 0, expEvaled = Seq(up, middle, down))
 
         down.counter += 1
-        check(Seq(down), expectedValues = Seq(1), expectedEvaluated = Seq(down))
-        check(Seq(down), expectedValues = Seq(1), expectedEvaluated = Seq())
+        check(down, expValue = 1, expEvaled = Seq(down))
 
         up.counter += 1
-        check(Seq(down), expectedValues = Seq(2), expectedEvaluated = Seq(up, middle, down))
-        check(Seq(down), expectedValues = Seq(2), expectedEvaluated = Seq())
+        check(down, expValue = 2, expEvaled = Seq(up, middle, down))
+
+        middle.asInstanceOf[Target.Test].counter += 1
+
+        check(down, expValue = 3, expEvaled = Seq(middle, down))
+      }
+      'diamond - {
+        import Diamond._
+        check(down, expValue = 0, expEvaled = Seq(up, left, right, down))
+
+        down.counter += 1
+        check(down, expValue = 1, expEvaled = Seq(down))
+
+        up.counter += 1
+        // Increment by 2 because up is referenced twice: once by left once by right
+        check(down, expValue = 3, expEvaled = Seq(up, left, right, down))
+
+        left.counter += 1
+        check(down, expValue = 4, expEvaled = Seq(left, down))
+
+        right.counter += 1
+        check(down, expValue = 5, expEvaled = Seq(right, down))
+      }
+      'anoniamond - {
+        import AnonDiamond._
+        val left = down.inputs(0).asInstanceOf[Target.Test]
+        val right = down.inputs(1).asInstanceOf[Target.Test]
+        check(down, expValue = 0, expEvaled = Seq(up, left, right, down))
+
+        down.counter += 1
+        check(down, expValue = 1, expEvaled = Seq(down))
+
+        up.counter += 1
+        // Increment by 2 because up is referenced twice: once by left once by right
+        check(down, expValue = 3, expEvaled = Seq(up, left, right, down))
+
+        left.counter += 1
+        check(down, expValue = 4, expEvaled = Seq(left, down))
+
+        right.counter += 1
+        check(down, expValue = 5, expEvaled = Seq(right, down))
       }
     }
 
