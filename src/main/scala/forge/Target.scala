@@ -1,22 +1,8 @@
 package forge
 
 import java.nio.{file => jnio}
-trait TargetOps[T]{ this: Target[T] =>
-  val defCtx: DefCtx
-  def map[V](f: T => V)(implicit defCtx: DefCtx) = {
-    new Target.Mapped(this, f, defCtx)
-  }
-  def zip[V](other: Target[V])(implicit defCtx: DefCtx) = {
-    new Target.Zipped(this, other, defCtx)
-  }
-  def ~[V, R](other: Target[V])
-             (implicit s: Implicits.Sequencer[T, V, R], defCtx: DefCtx): Target[R] = {
-    this.zip(other).map(s.apply _ tupled)
-  }
 
-  override def toString = this.getClass.getName + "@" + defCtx.label
-}
-trait Target[T] extends TargetOps[T]{
+trait Target[T] extends Target.Ops[T]{
   /**
     * Where in the Scala codebase was this target defined?
     */
@@ -40,6 +26,21 @@ trait Target[T] extends TargetOps[T]{
 }
 
 object Target{
+  trait Ops[T]{ this: Target[T] =>
+    val defCtx: DefCtx
+    def map[V](f: T => V)(implicit defCtx: DefCtx) = {
+      new Target.Mapped(this, f, defCtx)
+    }
+    def zip[V](other: Target[V])(implicit defCtx: DefCtx) = {
+      new Target.Zipped(this, other, defCtx)
+    }
+    def ~[V, R](other: Target[V])
+               (implicit s: Implicits.Sequencer[T, V, R], defCtx: DefCtx): Target[R] = {
+      this.zip(other).map(s.apply _ tupled)
+    }
+
+    override def toString = this.getClass.getName + "@" + defCtx.label
+  }
   def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = new Test(inputs, defCtx)
 
   /**
