@@ -4,17 +4,6 @@ import collection.mutable
 // Adapted from
 // https://github.com/indy256/codelibrary/blob/c52247216258e84aac442a23273b7d8306ef757b/java/src/SCCTarjan.java
 object Tarjans {
-  def main(args: Array[String]) = {
-    val components = Tarjans(
-      Vector(
-        Vector(1),
-        Vector(0),
-        Vector(0, 1)
-      )
-    )
-    println(components)
-  }
-
   def apply(graph0: Seq[Seq[Int]]): Seq[Seq[Int]] = {
     val graph = graph0.map(_.toArray).toArray
     val n = graph.length
