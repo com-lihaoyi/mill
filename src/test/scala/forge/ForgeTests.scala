@@ -1,13 +1,13 @@
 package forge
 
 import utest._
-import Target.test
+import Target.{test, testPure}
 import java.nio.{file => jnio}
 object ForgeTests extends TestSuite{
 
   val tests = Tests{
-    val baseCtx = DefCtx("forge.ForgeTests.tests ")
-    val evaluator = new Evaluator(jnio.Paths.get("target/workspace"), baseCtx)
+    val baseCtx = DefCtx("forge.ForgeTests.tests ", None)
+
     object Singleton {
       val single = T{ test() }
     }
@@ -29,6 +29,11 @@ object ForgeTests extends TestSuite{
     object AnonDiamond{
       val up = T{ test() }
       val down = T{ test(test(up), test(up)) }
+    }
+
+    object AnonImpureDiamond{
+      val up = T{ test() }
+      val down = T{ test(testPure(up), test(up)) }
     }
 
 
@@ -161,9 +166,9 @@ object ForgeTests extends TestSuite{
 
     }
     'evaluateSingle - {
-      def check(target: Target[_],
-                expValue: Any,
-                expEvaled: Seq[Target[_]]) = {
+      val evaluator = new Evaluator(jnio.Paths.get("target/workspace"), baseCtx)
+
+      def check(target: Target[_], expValue: Any, expEvaled: Seq[Target[_]]) = {
         val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(Seq(target))
         assert(
           returnedValues == Seq(expValue),
@@ -228,7 +233,7 @@ object ForgeTests extends TestSuite{
         right.counter += 1
         check(down, expValue = 5, expEvaled = Seq(right, down))
       }
-      'anoniamond - {
+      'anonDiamond - {
         import AnonDiamond._
         val left = down.inputs(0).asInstanceOf[Target.Test]
         val right = down.inputs(1).asInstanceOf[Target.Test]
@@ -247,6 +252,15 @@ object ForgeTests extends TestSuite{
         right.counter += 1
         check(down, expValue = 5, expEvaled = Seq(right, down))
       }
+//      'anonImpureDiamond - {
+//        import AnonImpureDiamond._
+//        val left = down.inputs(0).asInstanceOf[Target.Test]
+//        val right = down.inputs(1).asInstanceOf[Target.Test]
+//        check(down, expValue = 0, expEvaled = Seq(up, left, right, down))
+//
+//        down.counter += 1
+//        check(down, expValue = 1, expEvaled = Seq(left, down))
+//      }
     }
 
 

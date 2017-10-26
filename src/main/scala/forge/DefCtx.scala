@@ -6,7 +6,9 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox._
 
 
-final case class DefCtx(label: String)
+final case class DefCtx(baseLabel: String, anonId: Option[Int]){
+  def label = baseLabel + anonId.getOrElse("")
+}
 object DefCtx{
   @compileTimeOnly("A DefCtx can only be provided directly within a T{} macro")
   implicit def dummy: DefCtx with Int = ???
@@ -22,7 +24,7 @@ object T{
       override def transform(tree: c.Tree): c.Tree = {
         if (tree.toString.startsWith("forge.") && tree.toString.endsWith(".DefCtx.dummy")) {
           count += 1
-          c.typecheck(q"forge.DefCtx(sourcecode.Enclosing() + $count)")
+          c.typecheck(q"forge.DefCtx(sourcecode.Enclosing(), Some($count))")
         }else tree match{
           case Apply(fun, args) =>
             val extendedParams = fun.tpe.paramLists.head.padTo(
@@ -61,7 +63,7 @@ object T{
         val newArgs = for(x <- args) yield {
           if (x.toString.startsWith("forge.") && x.toString.endsWith(".DefCtx.dummy")) {
             isTransformed = true
-            c.typecheck(q"forge.DefCtx(sourcecode.Enclosing())")
+            c.typecheck(q"forge.DefCtx(sourcecode.Enclosing(), None)")
           }else transformer.transform(x)
         }
 

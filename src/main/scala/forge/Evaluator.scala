@@ -2,6 +2,7 @@ package forge
 
 import java.nio.{file => jnio}
 
+import play.api.libs.json.Json
 import sourcecode.Enclosing
 
 import scala.collection.mutable
@@ -9,8 +10,7 @@ import scala.collection.mutable
 class Evaluator(workspacePath: jnio.Path,
                 enclosingBase: DefCtx){
 
-  val resultCache = mutable.Map.empty[String, (Int, Any)]
-
+  val resultCache = mutable.Map.empty[String, (Int, String)]
   def evaluate(targets: Seq[Target[_]]): Evaluator.Results = {
     jnio.Files.createDirectories(workspacePath)
 
@@ -20,26 +20,29 @@ class Evaluator(workspacePath: jnio.Path,
     for (target <- sortedTargets){
       val inputResults = target.inputs.map(results).toIndexedSeq
 
-      val targetDestPath = {
-        val enclosingStr = target.defCtx.label
-        val targetDestPath = workspacePath.resolve(
-          jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.label))
-        )
-        deleteRec(targetDestPath)
-        targetDestPath
-
-      }
+      val enclosingStr = target.defCtx.label
+      val targetDestPath = workspacePath.resolve(
+        jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.label))
+      )
+      deleteRec(targetDestPath)
 
       val inputsHash = inputResults.hashCode
-      resultCache.get(target.defCtx.label) match{
-        case Some((hash, res)) if hash == inputsHash && !target.dirty =>
-          results(target) = res
+      (target.dirty, resultCache.get(target.defCtx.label)) match{
+        case (Some(dirtyCheck), Some((hash, res)))
+          if hash == inputsHash && !dirtyCheck() =>
+          results(target) = target.formatter.reads(Json.parse(res)).get
+
         case _ =>
           evaluated.append(target)
-          val res = target.evaluate(new Args(inputResults, targetDestPath))
+          if (target.defCtx.anonId.isDefined && target.dirty.isEmpty) {
+            val res = target.evaluate(new Args(inputResults, targetDestPath))
+            results(target) = res
+          }else{
+            val (res, serialized) = target.evaluateAndWrite(new Args(inputResults, targetDestPath))
+            resultCache(target.defCtx.label) = (inputsHash, serialized)
+            results(target) = res
+          }
 
-          resultCache(target.defCtx.label) = (inputsHash, res)
-          results(target) = res
       }
 
     }

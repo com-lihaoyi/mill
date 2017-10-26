@@ -15,7 +15,8 @@ libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   "com.lihaoyi" %% "sourcecode" % "0.1.4",
   "com.lihaoyi" %% "pprint" % "0.5.3",
-  "com.lihaoyi" %% "ammonite-ops" % "1.0.2"
+  "com.lihaoyi" %% "ammonite-ops" % "1.0.2",
+  "com.typesafe.play" %% "play-json" % "2.6.6"
 )
 
 sourceGenerators in Compile += Def.task {

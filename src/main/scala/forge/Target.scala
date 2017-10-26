@@ -2,7 +2,8 @@ package forge
 
 import java.nio.{file => jnio}
 
-trait Target[T] extends Target.Ops[T]{
+import play.api.libs.json.{Format, Json}
+abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**
     * Where in the Scala codebase was this target defined?
     */
@@ -19,62 +20,78 @@ trait Target[T] extends Target.Ops[T]{
 
   /**
     * Even if this target's inputs did not change, does it need to re-evaluate
-    * anyway? e.g. if the files this target represents on disk changed
+    * anyway?
+    *
+    * - None means it never needs to re-evaluate unless its inputs do
+    * - Some(f) contains a function that returns whether or not it should re-evaluate,
+    *   e.g. if the files this target represents on disk changed
     */
-  def dirty: Boolean = false
+  val dirty: Option[() => Boolean] = Some(() => false)
 
 }
 
 object Target{
-  trait Ops[T]{ this: Target[T] =>
+  abstract class Ops[T](implicit val formatter: Format[T]){ this: Target[T] =>
+    def evaluateAndWrite(args: Args): (T, String) = {
+      val res = evaluate(args)
+      val str = formatter.writes(res)
+      (res, Json.stringify(str))
+    }
     val defCtx: DefCtx
-    def map[V](f: T => V)(implicit defCtx: DefCtx) = {
+    def map[V: Format](f: T => V)(implicit defCtx: DefCtx) = {
       new Target.Mapped(this, f, defCtx)
     }
-    def zip[V](other: Target[V])(implicit defCtx: DefCtx) = {
+    def zip[V: Format](other: Target[V])(implicit defCtx: DefCtx) = {
       new Target.Zipped(this, other, defCtx)
     }
-    def ~[V, R](other: Target[V])
+    def ~[V: Format, R: Format](other: Target[V])
                (implicit s: Implicits.Sequencer[T, V, R], defCtx: DefCtx): Target[R] = {
       this.zip(other).map(s.apply _ tupled)
     }
 
     override def toString = this.getClass.getName + "@" + defCtx.label
   }
-  def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = new Test(inputs, defCtx)
+  def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = {
+    new Test(inputs, defCtx, pure = false)
+  }
+  def testPure(inputs: Target[Int]*)(implicit defCtx: DefCtx) = {
+    new Test(inputs, defCtx, pure = true)
+  }
 
   /**
     * A dummy target that takes any number of inputs, and whose output can be
     * controlled externally, so you can construct arbitrary dataflow graphs and
     * test how changes propagate.
     */
-  class Test(val inputs: Seq[Target[Int]], val defCtx: DefCtx) extends Target[Int]{
+  class Test(val inputs: Seq[Target[Int]],
+             val defCtx: DefCtx,
+             val pure: Boolean) extends Target[Int]{
     var counter = 0
     var lastCounter = counter
     def evaluate(args: Args) = {
       lastCounter = counter
-      counter + args.args.map(_.asInstanceOf[Int]).sum
+        counter + args.args.map(_.asInstanceOf[Int]).sum
     }
-    override def dirty = lastCounter != counter
+    override val dirty = if (pure) None else Some(() => lastCounter != counter)
   }
-  def traverse[T](source: Seq[Target[T]])(implicit defCtx: DefCtx) = {
+  def traverse[T: Format](source: Seq[Target[T]])(implicit defCtx: DefCtx) = {
     new Traverse[T](source, defCtx)
   }
-  class Traverse[T](val inputs: Seq[Target[T]], val defCtx: DefCtx) extends Target[Seq[T]]{
+  class Traverse[T: Format](val inputs: Seq[Target[T]], val defCtx: DefCtx) extends Target[Seq[T]]{
     def evaluate(args: Args) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]
     }
 
   }
-  class Mapped[T, V](source: Target[T], f: T => V,
-                     val defCtx: DefCtx) extends Target[V]{
+  class Mapped[T, V: Format](source: Target[T], f: T => V,
+                              val defCtx: DefCtx) extends Target[V]{
     def evaluate(args: Args) = f(args(0))
     val inputs = List(source)
   }
-  class Zipped[T, V](source1: Target[T],
-                     source2: Target[V],
-                     val defCtx: DefCtx) extends Target[(T, V)]{
+  class Zipped[T: Format, V: Format](source1: Target[T],
+                                     source2: Target[V],
+                                     val defCtx: DefCtx) extends Target[(T, V)]{
     def evaluate(args: Args) = (args(0), args(0))
     val inputs = List(source1, source1)
   }
