@@ -7,9 +7,9 @@ import scala.collection.mutable
 
 object TestUtil {
 
-  def checkTopological(targets: Seq[Target[_]]) = {
+  def checkTopological(targets: OSet[Target[_]]) = {
     val seen = mutable.Set.empty[Target[_]]
-    for(t <- targets.reverseIterator){
+    for(t <- targets.items.reverseIterator){
       seen.add(t)
       for(upstream <- t.inputs){
         assert(!seen(upstream))

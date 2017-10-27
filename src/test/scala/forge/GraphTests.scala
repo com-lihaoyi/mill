@@ -75,31 +75,31 @@ object GraphTests extends TestSuite{
 
 
     'topoSortedTransitiveTargets - {
-      def check(targets: Seq[Target[_]], expected: Set[Target[_]]) = {
+      def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
         val result = Evaluator.topoSortedTransitiveTargets(targets).values
         TestUtil.checkTopological(result)
-        assert(result.toSet == expected)
+        assert(result == expected)
       }
 
       'singleton - check(
-        targets = Seq(singleton.single),
-        expected = Set(singleton.single)
+        targets = OSet(singleton.single),
+        expected = OSet(singleton.single)
       )
       'pair - check(
-        targets = Seq(pair.down),
-        expected = Set(pair.up, pair.down)
+        targets = OSet(pair.down),
+        expected = OSet(pair.up, pair.down)
       )
       'anonTriple - check(
-        targets = Seq(anonTriple.down),
-        expected = Set(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
+        targets = OSet(anonTriple.down),
+        expected = OSet(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       'diamond - check(
-        targets = Seq(diamond.down),
-        expected = Set(diamond.up, diamond.left, diamond.right, diamond.down)
+        targets = OSet(diamond.down),
+        expected = OSet(diamond.up, diamond.left, diamond.right, diamond.down)
       )
       'anonDiamond - check(
-        targets = Seq(diamond.down),
-        expected = Set(
+        targets = OSet(diamond.down),
+        expected = OSet(
           diamond.up,
           diamond.down.inputs(0),
           diamond.down.inputs(1),
@@ -107,59 +107,59 @@ object GraphTests extends TestSuite{
         )
       )
       'bigSingleTerminal - {
-        val result = Evaluator.topoSortedTransitiveTargets(Seq(bigSingleTerminal.j)).values
+        val result = Evaluator.topoSortedTransitiveTargets(OSet(bigSingleTerminal.j)).values
         TestUtil.checkTopological(result)
-        assert(result.distinct.length == 28)
+        assert(result.size == 28)
       }
     }
 
     'groupAroundNamedTargets - {
-      def check(target: Target[_], expected: Seq[Set[String]]) = {
+      def check(target: Target[_], expected: OSet[OSet[String]]) = {
         val grouped = Evaluator.groupAroundNamedTargets(
-          Evaluator.topoSortedTransitiveTargets(Seq(target))
+          Evaluator.topoSortedTransitiveTargets(OSet(target))
         )
-        TestUtil.checkTopological(grouped.flatten)
-        val stringified = grouped.map(_.map(_.toString).toSet)
-        assert(stringified == expected.map(_.toSet))
+        TestUtil.checkTopological(grouped.flatMap(_.items))
+        val stringified = grouped.map(_.map(_.toString))
+        assert(stringified == expected)
       }
       'singleton - check(
         singleton.single,
-        Seq(Set("single"))
+        OSet(OSet("single"))
       )
       'pair - check(
         pair.down,
-        Seq(Set("up"), Set("down"))
+        OSet(OSet("up"), OSet("down"))
       )
       'anonTriple - check(
         anonTriple.down,
-        Seq(Set("up"), Set("down1", "down"))
+        OSet(OSet("up"), OSet("down1", "down"))
       )
       'diamond - check(
         diamond.down,
-        Seq(Set("up"), Set("left"), Set("right"), Set("down"))
+        OSet(OSet("up"), OSet("left"), OSet("right"), OSet("down"))
       )
       'anonDiamond - check(
         anonDiamond.down,
-        Seq(
-          Set("up"),
-          Set("down2", "down1", "down")
+        OSet(
+          OSet("up"),
+          OSet("down2", "down1", "down")
         )
       )
       'bigSingleTerminal - check(
         bigSingleTerminal.j,
-        Seq(
-          Set("i1"),
-          Set("e4"),
-          Set("a1"),
-          Set("a2"),
-          Set("a"),
-          Set("b1"),
-          Set("b"),
-          Set("e5", "e2", "e8", "e1", "e7", "e6", "e3", "e"),
-          Set("i2", "i5", "i4", "i3", "i"),
-          Set("f2"),
-          Set("f3", "f1", "f"),
-          Set("j3", "j2", "j1", "j")
+        OSet(
+          OSet("i1"),
+          OSet("e4"),
+          OSet("a1"),
+          OSet("a2"),
+          OSet("a"),
+          OSet("b1"),
+          OSet("b"),
+          OSet("e5", "e2", "e8", "e1", "e7", "e6", "e3", "e"),
+          OSet("i2", "i5", "i4", "i3", "i"),
+          OSet("f2"),
+          OSet("f3", "f1", "f"),
+          OSet("j3", "j2", "j1", "j")
         )
       )
     }
