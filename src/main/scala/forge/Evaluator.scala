@@ -15,6 +15,7 @@ class Evaluator(workspacePath: jnio.Path,
     jnio.Files.createDirectories(workspacePath)
 
     val sortedTargets = Evaluator.topoSortedTransitiveTargets(targets)
+    pprint.log(sortedTargets.values)
     val evaluated = mutable.Buffer.empty[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
     for (target <- sortedTargets.values){
@@ -83,18 +84,19 @@ object Evaluator{
             grouping.add(targetGroup, upstream)
           case Some(upstreamGroup) if upstreamGroup == targetGroup =>
             val upstreamTargets = grouping.removeAll(upstreamGroup)
+
             grouping.addAll(targetGroup, upstreamTargets)
           case _ => //donothing
         }
       }
     }
     val output = mutable.Buffer.empty[Seq[Target[_]]]
-    for(target <- topoSortedTargets.values){
+    for(target <- topoSortedTargets.values.reverseIterator){
       for(targetGroup <- grouping.lookupValueOpt(target)){
         output.append(grouping.removeAll(targetGroup))
       }
     }
-    output
+    output.map(_.sortBy(topoSortedTargets.values.indexOf)).reverse
   }
 
   /**

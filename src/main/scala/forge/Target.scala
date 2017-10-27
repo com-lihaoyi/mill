@@ -49,7 +49,7 @@ object Target{
       this.zip(other).map(s.apply _ tupled)
     }
 
-    override def toString = this.getClass.getName + "@" + defCtx.label
+    override def toString = defCtx.label.split('.').last
   }
   def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = {
     new Test(inputs, defCtx, pure = inputs.nonEmpty)

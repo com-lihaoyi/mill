@@ -19,15 +19,16 @@ class MultiBiMap[K, V](){
     valueToKey(v) = k
     keyToValues(k) = v :: keyToValues.getOrElse(k, Nil)
   }
-  def removeAll(k: K): Seq[V] = {
-    val vs = keyToValues(k)
-    for(v <- vs){
-      valueToKey.remove(v)
-    }
-    vs
+  def removeAll(k: K): Seq[V] = keyToValues.get(k) match {
+    case None => Nil
+    case Some(vs) =>
+      vs.foreach(valueToKey.remove)
+
+      keyToValues.remove(k)
+      vs
   }
   def addAll(k: K, vs: Seq[V]): Unit = {
-    for(v <- vs) valueToKey(v) = k
+    vs.foreach(valueToKey.update(_, k))
     keyToValues(k) = vs ++: keyToValues.getOrElse(k, Nil)
   }
 }
