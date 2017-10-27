@@ -53,7 +53,7 @@ object EvaluationTests extends TestSuite{
         check(down, expValue = 0, expEvaled = OSet(up, middle, down))
 
         down.counter += 1
-        check(down, expValue = 1, expEvaled = OSet(down))
+        check(down, expValue = 1, expEvaled = OSet(middle, down))
 
         up.counter += 1
         check(down, expValue = 2, expEvaled = OSet(up, middle, down))
@@ -86,17 +86,17 @@ object EvaluationTests extends TestSuite{
         check(down, expValue = 0, expEvaled = OSet(up, left, right, down))
 
         down.counter += 1
-        check(down, expValue = 1, expEvaled = OSet(down))
+        check(down, expValue = 1, expEvaled = OSet(left, right, down))
 
         up.counter += 1
         // Increment by 2 because up is referenced twice: once by left once by right
         check(down, expValue = 3, expEvaled = OSet(up, left, right, down))
 
         left.counter += 1
-        check(down, expValue = 4, expEvaled = OSet(left, down))
+        check(down, expValue = 4, expEvaled = OSet(left, right, down))
 
         right.counter += 1
-        check(down, expValue = 5, expEvaled = OSet(right, down))
+        check(down, expValue = 5, expEvaled = OSet(left, right, down))
       }
 //      'anonImpureDiamond - {
 //        import AnonImpureDiamond._

@@ -41,17 +41,17 @@ object TestUtil {
       val down = T{ test(test(up), test(up)) }
     }
 
-    //          x   g-----o
+    //          o   g-----o
     //           \   \     \
-    // x          o   h-----I---o
+    // o          o   h-----I---o
     //  \        / \ / \   / \   \
     //   A---c--o   E   o-o   \   \
     //  / \ / \    / \         o---J
-    // x   d   o--o   o       /   /
+    // o   d   o--o   o       /   /
     //      \ /        \     /   /
     //       o          o---F---o
     //      /          /
-    //  x--B          x
+    //  o--B          o
     object bigSingleTerminal{
       val a = T{ test(test(), test()) }
       val b = T{ test(test()) }

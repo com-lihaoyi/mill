@@ -142,24 +142,18 @@ object GraphTests extends TestSuite{
         anonDiamond.down,
         OSet(
           OSet("up"),
-          OSet("down2", "down1", "down")
+          OSet("down1", "down2", "down")
         )
       )
       'bigSingleTerminal - check(
         bigSingleTerminal.j,
         OSet(
-          OSet("i1"),
-          OSet("e4"),
-          OSet("a1"),
-          OSet("a2"),
-          OSet("a"),
-          OSet("b1"),
-          OSet("b"),
-          OSet("e5", "e2", "e8", "e1", "e7", "e6", "e3", "e"),
-          OSet("i2", "i5", "i4", "i3", "i"),
-          OSet("f2"),
-          OSet("f3", "f1", "f"),
-          OSet("j3", "j2", "j1", "j")
+          OSet("a1", "a2", "a"),
+          OSet("b1", "b"),
+          OSet("e4", "e1", "e5", "e3", "e2", "e8", "e7", "e6", "e"),
+          OSet("i1", "i3", "i2", "i5", "i4", "i"),
+          OSet("f2", "f3", "f1", "f"),
+          OSet("j1", "j2", "j3", "j")
         )
       )
     }

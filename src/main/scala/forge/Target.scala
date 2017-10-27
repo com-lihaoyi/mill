@@ -21,12 +21,8 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**
     * Even if this target's inputs did not change, does it need to re-evaluate
     * anyway?
-    *
-    * - None means it never needs to re-evaluate unless its inputs do
-    * - Some(f) contains a function that returns whether or not it should re-evaluate,
-    *   e.g. if the files this target represents on disk changed
     */
-  val dirty: Option[() => Boolean] = Some(() => false)
+  def dirty: Boolean = false
 
 }
 
@@ -67,9 +63,9 @@ object Target{
     var lastCounter = counter
     def evaluate(args: Args) = {
       lastCounter = counter
-        counter + args.args.map(_.asInstanceOf[Int]).sum
+      counter + args.args.map(_.asInstanceOf[Int]).sum
     }
-    override val dirty = if (pure) None else Some(() => lastCounter != counter)
+    override def dirty = lastCounter != counter
   }
   def traverse[T: Format](source: Seq[Target[T]])(implicit defCtx: DefCtx) = {
     new Traverse[T](source, defCtx)

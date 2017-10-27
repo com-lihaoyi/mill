@@ -50,12 +50,13 @@ class Evaluator(workspacePath: jnio.Path,
     val targetDestPath = workspacePath.resolve(
       jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.label))
     )
+    val anyDirty = group.exists(_.dirty)
     deleteRec(targetDestPath)
 
     val inputsHash = inputResults.hashCode
-    (primeTerminal.dirty, resultCache.get(primeTerminal.defCtx.label)) match{
-      case (Some(dirtyCheck), Some((hash, terminalResults)))
-        if hash == inputsHash && !dirtyCheck() =>
+    resultCache.get(primeTerminal.defCtx.label) match{
+      case Some((hash, terminalResults))
+        if hash == inputsHash && !anyDirty =>
         for((terminal, res) <- terminals.items.zip(terminalResults)){
 
           newResults(terminal) = primeTerminal.formatter.reads(Json.parse(res)).get
@@ -64,14 +65,16 @@ class Evaluator(workspacePath: jnio.Path,
       case _ =>
         val terminalResults = mutable.Buffer.empty[String]
         for(target <- group.items){
-
           newEvaluated.append(target)
-          if (target.defCtx.anonId.isDefined && target.dirty.isEmpty) {
-            val res = target.evaluate(new Args(inputResults, targetDestPath))
+          val targetInputValues = target.inputs.toVector.map(x =>
+            newResults.getOrElse(x, results(x))
+          )
+          if (target.defCtx.anonId.isDefined) {
+            val res = target.evaluate(new Args(targetInputValues, targetDestPath))
             newResults(target) = res
           }else{
             val (res, serialized) = target.evaluateAndWrite(
-              new Args(inputResults, targetDestPath)
+              new Args(targetInputValues, targetDestPath)
             )
             if (!internalInputSet(target)){
               terminalResults.append(serialized)
@@ -117,7 +120,7 @@ object Evaluator{
       val targetGroup = grouping.lookupValue(target)
       for(upstream <- target.inputs){
         grouping.lookupValueOpt(upstream) match{
-          case None if upstream.dirty.isEmpty && upstream.defCtx.anonId.nonEmpty =>
+          case None if upstream.defCtx.anonId.nonEmpty =>
             grouping.add(targetGroup, upstream)
           case Some(upstreamGroup) if upstreamGroup == targetGroup =>
             val upstreamTargets = grouping.removeAll(upstreamGroup)
