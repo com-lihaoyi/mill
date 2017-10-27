@@ -1,7 +1,7 @@
 package forge
 
 import utest._
-import Target.{test, testPure}
+import Target.test
 import java.nio.{file => jnio}
 object ForgeTests extends TestSuite{
 
@@ -33,7 +33,7 @@ object ForgeTests extends TestSuite{
 
     object AnonImpureDiamond{
       val up = T{ test() }
-      val down = T{ test(testPure(up), test(up)) }
+      val down = T{ test(test(up), test(up)) }
     }
 
 
@@ -101,7 +101,7 @@ object ForgeTests extends TestSuite{
 
     'topoSortedTransitiveTargets - {
       def check(targets: Seq[Target[_]], expected: Seq[Target[_]]) = {
-        val result = Evaluator.topoSortedTransitiveTargets(targets)
+        val result = Evaluator.topoSortedTransitiveTargets(targets).values
         assert(result == expected)
       }
 
@@ -131,6 +131,39 @@ object ForgeTests extends TestSuite{
         )
       )
     }
+
+    'groupAroundNamedTargets - {
+      def check(target: Target[_], expected: Seq[Seq[Target[_]]]) = {
+        val grouped = Evaluator.groupAroundNamedTargets(
+          Evaluator.topoSortedTransitiveTargets(Seq(target))
+        )
+        assert(grouped == expected)
+      }
+      'singleton - check(
+        Singleton.single,
+        Seq(Seq(Singleton.single))
+      )
+      'pair - check(
+        Pair.down,
+        Seq(Seq(Pair.up), Seq(Pair.down))
+      )
+      'anonTriple - check(
+        AnonTriple.down,
+        Seq(Seq(AnonTriple.up), Seq(AnonTriple.down.inputs(0), AnonTriple.down))
+      )
+      'diamond - check(
+        Diamond.down,
+        Seq(Seq(Diamond.up), Seq(Diamond.left), Seq(Diamond.right), Seq(Diamond.down))
+      )
+      'anonDiamond - check(
+        AnonDiamond.down,
+        Seq(
+          Seq(AnonDiamond.up),
+          Seq(AnonDiamond.down.inputs(1), AnonDiamond.down.inputs(0), AnonDiamond.down)
+        )
+      )
+    }
+
     'labeling - {
 
       def check(t: Target[_], relPath: String) = {

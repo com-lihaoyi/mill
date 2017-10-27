@@ -7,7 +7,30 @@ import java.util.jar.JarEntry
 import sourcecode.Enclosing
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
 
+class MultiBiMap[K, V](){
+  private[this] val valueToKey = mutable.Map.empty[V, K]
+  private[this] val keyToValues = mutable.Map.empty[K, List[V]]
+  def containsValue(v: V) = valueToKey.contains(v)
+  def lookupValue(v: V) = valueToKey(v)
+  def lookupValueOpt(v: V) = valueToKey.get(v)
+  def add(k: K, v: V): Unit = {
+    valueToKey(v) = k
+    keyToValues(k) = v :: keyToValues.getOrElse(k, Nil)
+  }
+  def removeAll(k: K): Seq[V] = {
+    val vs = keyToValues(k)
+    for(v <- vs){
+      valueToKey.remove(v)
+    }
+    vs
+  }
+  def addAll(k: K, vs: Seq[V]): Unit = {
+    for(v <- vs) valueToKey(v) = k
+    keyToValues(k) = vs ++: keyToValues.getOrElse(k, Nil)
+  }
+}
 object Util{
   def compileAll(sources: Target[Seq[jnio.Path]])
                 (implicit defCtx: DefCtx) = {

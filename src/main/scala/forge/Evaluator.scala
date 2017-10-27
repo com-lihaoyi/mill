@@ -17,7 +17,7 @@ class Evaluator(workspacePath: jnio.Path,
     val sortedTargets = Evaluator.topoSortedTransitiveTargets(targets)
     val evaluated = mutable.Buffer.empty[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
-    for (target <- sortedTargets){
+    for (target <- sortedTargets.values){
       val inputResults = target.inputs.map(results).toIndexedSeq
 
       val enclosingStr = target.defCtx.label
@@ -62,11 +62,45 @@ class Evaluator(workspacePath: jnio.Path,
 
 
 object Evaluator{
+  class TopoSorted private[Evaluator] (val values: Seq[Target[_]])
   case class Results(values: Seq[Any], evaluated: Seq[Target[_]])
+  def groupAroundNamedTargets(topoSortedTargets: TopoSorted): Seq[Seq[Target[_]]] = {
+    val grouping = new MultiBiMap[Int, Target[_]]()
+
+    var groupCount = 0
+
+    for(target <- topoSortedTargets.values.reverseIterator){
+
+      if (!grouping.containsValue(target)){
+        grouping.add(groupCount, target)
+        groupCount += 1
+      }
+
+      val targetGroup = grouping.lookupValue(target)
+      for(upstream <- target.inputs){
+        grouping.lookupValueOpt(upstream) match{
+          case None if upstream.dirty.isEmpty && upstream.defCtx.anonId.nonEmpty =>
+            grouping.add(targetGroup, upstream)
+          case Some(upstreamGroup) if upstreamGroup == targetGroup =>
+            val upstreamTargets = grouping.removeAll(upstreamGroup)
+            grouping.addAll(targetGroup, upstreamTargets)
+          case _ => //donothing
+        }
+      }
+    }
+    val output = mutable.Buffer.empty[Seq[Target[_]]]
+    for(target <- topoSortedTargets.values){
+      for(targetGroup <- grouping.lookupValueOpt(target)){
+        output.append(grouping.removeAll(targetGroup))
+      }
+    }
+    output
+  }
+
   /**
     * Takes the given targets, finds
     */
-  def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]) = {
+  def topoSortedTransitiveTargets(sourceTargets: Seq[Target[_]]): TopoSorted = {
     val transitiveTargetSet = mutable.Set.empty[Target[_]]
     val transitiveTargets = mutable.Buffer.empty[Target[_]]
     def rec(t: Target[_]): Unit = {
@@ -88,6 +122,6 @@ object Evaluator{
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    sortedClusters.flatten.map(transitiveTargets)
+    new TopoSorted(sortedClusters.flatten.map(transitiveTargets))
   }
 }

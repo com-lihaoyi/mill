@@ -52,10 +52,7 @@ object Target{
     override def toString = this.getClass.getName + "@" + defCtx.label
   }
   def test(inputs: Target[Int]*)(implicit defCtx: DefCtx) = {
-    new Test(inputs, defCtx, pure = false)
-  }
-  def testPure(inputs: Target[Int]*)(implicit defCtx: DefCtx) = {
-    new Test(inputs, defCtx, pure = true)
+    new Test(inputs, defCtx, pure = inputs.nonEmpty)
   }
 
   /**
