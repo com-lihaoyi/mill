@@ -110,13 +110,8 @@ object EvaluationTests extends TestSuite{
     }
 
 
-//    'full - {
-//      val sourceRoot = Target.path(jnio.Paths.get("src/test/resources/example/src"))
-//      val resourceRoot = Target.path(jnio.Paths.get("src/test/resources/example/resources"))
-//      val allSources = list(sourceRoot)
-//      val classFiles = compileAll(allSources)
-//      val jar = jarUp(resourceRoot, classFiles)
-//      Evaluator.apply(jar, jnio.Paths.get("target/workspace"))
-//    }
+    'full - {
+
+    }
   }
 }
