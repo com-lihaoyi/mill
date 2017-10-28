@@ -9,9 +9,33 @@ object GraphTests extends TestSuite{
   val tests = Tests{
 
 
-    val (singleton, pair, anonTriple, diamond, anonDiamond, bigSingleTerminal) = TestUtil.makeGraphs()
+    val graphs = new TestUtil.TestGraphs()
+    import graphs._
 
+    'discovery{
+      class CanNest{
+        val single = T{ test() }
+        val invisible: Any = T{ test() }
+      }
+      object outer {
+        val single = T{ test() }
+        val invisible: Any = T{ test() }
+        object nested{
+          val single = T{ test() }
+          val invisible: Any = T{ test() }
 
+        }
+        val classInstance = new CanNest
+
+      }
+      val discovered = Discovered[outer.type].apply(outer)
+      val expected = Seq(
+        (List("classInstance", "single"), outer.classInstance.single),
+        (List("nested", "single"), outer.nested.single),
+        (List("single"), outer.single)
+      )
+      assert(discovered == expected)
+    }
     'syntaxLimits - {
       // Make sure that we properly prohibit cases where a `test()` target can
       // be created more than once with the same `DefCtx`, while still allowing
@@ -114,81 +138,105 @@ object GraphTests extends TestSuite{
     }
 
     'groupAroundNamedTargets - {
-      def check(target: Target[_], expected: OSet[OSet[String]]) = {
+      def check[T: Discovered](base: T,
+                               target: Target.Test,
+                               expected: OSet[(OSet[Target.Test], Int)]) = {
+
         val grouped = Evaluator.groupAroundNamedTargets(
           Evaluator.topoSortedTransitiveTargets(OSet(target))
         )
         TestUtil.checkTopological(grouped.flatMap(_.items))
-        val stringified = grouped.map(_.map(_.toString))
-        assert(stringified == expected)
+        for(((expectedPresent, expectedSize), i) <- expected.items.zipWithIndex){
+          val grouping = grouped.items(i)
+          assert(
+            grouping.size == expectedSize,
+            expectedPresent.forall(grouping.contains)
+          )
+        }
       }
       'singleton - check(
+        singleton,
         singleton.single,
-        OSet(OSet("single"))
+        OSet(OSet(singleton.single) -> 1)
       )
       'pair - check(
+        pair,
         pair.down,
-        OSet(OSet("up"), OSet("down"))
+        OSet(OSet(pair.up) -> 1, OSet(pair.down) -> 1)
       )
       'anonTriple - check(
+        anonTriple,
         anonTriple.down,
-        OSet(OSet("up"), OSet("down1", "down"))
+        OSet(OSet(anonTriple.up) -> 1, OSet(anonTriple.down) -> 2)
       )
       'diamond - check(
+        diamond,
         diamond.down,
-        OSet(OSet("up"), OSet("left"), OSet("right"), OSet("down"))
+        OSet(
+          OSet(diamond.up) -> 1,
+          OSet(diamond.left) -> 1,
+          OSet(diamond.right) -> 1,
+          OSet(diamond.down) -> 1
+        )
       )
       'anonDiamond - check(
+        anonDiamond,
         anonDiamond.down,
         OSet(
-          OSet("up"),
-          OSet("down1", "down2", "down")
+          OSet(anonDiamond.up) -> 1,
+          OSet(anonDiamond.down) -> 3
         )
       )
       'bigSingleTerminal - check(
+        bigSingleTerminal,
         bigSingleTerminal.j,
         OSet(
-          OSet("a1", "a2", "a"),
-          OSet("b1", "b"),
-          OSet("e4", "e1", "e5", "e3", "e2", "e8", "e7", "e6", "e"),
-          OSet("i1", "i3", "i2", "i5", "i4", "i"),
-          OSet("f2", "f3", "f1", "f"),
-          OSet("j1", "j2", "j3", "j")
+          OSet(bigSingleTerminal.a) -> 3,
+          OSet(bigSingleTerminal.b) -> 2,
+          OSet(bigSingleTerminal.e) -> 9,
+          OSet(bigSingleTerminal.i) -> 6,
+          OSet(bigSingleTerminal.f) -> 4,
+          OSet(bigSingleTerminal.j) -> 4
         )
       )
     }
 
     'labeling - {
 
-      def check(t: Target[_], relPath: String) = {
-        val targetLabel = t.defCtx.label.split(' ').last
+      def check[T: Discovered](base: T, t: Target[_], relPath: Option[String]) = {
 
+
+        val names: Seq[(Target[_], Seq[String])] =
+          implicitly[Discovered[T]].apply(base).map(_.swap)
+        val nameMap = names.toMap
+
+        val targetLabel = nameMap.get(t).map(_.mkString("."))
         assert(targetLabel == relPath)
       }
-      'singleton - check(singleton.single, "singleton.single")
+      'singleton - check(singleton, singleton.single, Some("single"))
       'pair - {
-        check(pair.up, "pair.up")
-        check(pair.down, "pair.down")
+        check(pair, pair.up, Some("up"))
+        check(pair, pair.down, Some("down"))
       }
 
       'anonTriple - {
-        check(anonTriple.up, "anonTriple.up")
-        check(anonTriple.down.inputs(0), "anonTriple.down1")
-        check(anonTriple.down, "anonTriple.down")
+        check(anonTriple, anonTriple.up, Some("up"))
+        check(anonTriple, anonTriple.down.inputs(0), None)
+        check(anonTriple, anonTriple.down, Some("down"))
       }
 
       'diamond - {
-        check(diamond.up, "diamond.up")
-        check(diamond.left, "diamond.left")
-        check(diamond.right, "diamond.right")
-        check(diamond.down, "diamond.down")
+        check(diamond, diamond.up, Some("up"))
+        check(diamond, diamond.left, Some("left"))
+        check(diamond, diamond.right, Some("right"))
+        check(diamond, diamond.down, Some("down"))
       }
 
       'anonDiamond - {
-        check(anonDiamond.up, "anonDiamond.up")
-        check(anonDiamond.down.inputs(0), "anonDiamond.down1")
-        check(anonDiamond.down.inputs(1), "anonDiamond.down2")
-        check(anonDiamond.down, "anonDiamond.down")
+        check(anonDiamond, anonDiamond.up, Some("up"))
+        check(anonDiamond, anonDiamond.down.inputs(0), None)
+        check(anonDiamond, anonDiamond.down.inputs(1), None)
+        check(anonDiamond, anonDiamond.down, Some("down"))
       }
 
     }

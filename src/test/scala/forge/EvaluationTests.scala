@@ -10,7 +10,8 @@ object EvaluationTests extends TestSuite{
   val tests = Tests{
     val baseCtx = DefCtx("forge.ForgeTests.tests ", None)
 
-    val (singleton, pair, anonTriple, diamond, anonDiamond, bigSingleTerminal) = TestUtil.makeGraphs()
+    val graphs = new TestUtil.TestGraphs()
+    import graphs._
     'evaluateSingle - {
       val evaluator = new Evaluator(jnio.Paths.get("target/workspace"), baseCtx)
 

@@ -17,7 +17,7 @@ object TestUtil {
     }
   }
 
-  def makeGraphs() = {
+  class TestGraphs(){
     object singleton {
       val single = T{ test() }
     }
