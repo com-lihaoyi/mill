@@ -1,5 +1,4 @@
-package forge
-
+package forge.util
 
 class Args(val args: IndexedSeq[_], val dest: ammonite.ops.Path){
   def length = args.length

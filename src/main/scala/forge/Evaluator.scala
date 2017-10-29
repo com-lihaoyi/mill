@@ -5,7 +5,7 @@ import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import ammonite.ops._
-import forge.util.{MultiBiMap, OSet}
+import forge.util.{Args, MultiBiMap, OSet}
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], Seq[String]]){
 
