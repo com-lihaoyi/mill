@@ -55,6 +55,11 @@ object IntegrationTests extends TestSuite{
       object Build {
         val sourceRootPath =  javacDestPath / 'src
         val resourceRootPath = javacDestPath / 'resources
+
+        // sourceRoot -> allSources -> classFiles
+        //                                |
+        //                                v
+        //           resourceRoot ---->  jar
         val sourceRoot = Target.path(sourceRootPath)
         val resourceRoot = Target.path(resourceRootPath)
         val allSources = list(sourceRoot)
