@@ -2,14 +2,13 @@ package forge
 
 import java.nio.{file => jnio}
 
-import forge.Target.test
 import utest._
 
 object EvaluationTests extends TestSuite{
 
   val workspace = jnio.Paths.get("target/workspace")
   val tests = Tests{
-    val graphs = new TestUtil.TestGraphs()
+    val graphs = new TestGraphs()
     import graphs._
     'evaluateSingle - {
 

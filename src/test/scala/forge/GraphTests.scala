@@ -2,14 +2,13 @@ package forge
 
 import utest._
 import Target.test
-import java.nio.{file => jnio}
 
 object GraphTests extends TestSuite{
 
   val tests = Tests{
 
 
-    val graphs = new TestUtil.TestGraphs()
+    val graphs = new TestGraphs()
     import graphs._
 
     'discovery{
