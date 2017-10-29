@@ -20,6 +20,7 @@ case class PathRef(path: ammonite.ops.Path){
   }
 }
 
+
 trait MultiBiMap[K, V]{
   def containsValue(v: V): Boolean
   def lookupKey(k: K): OSet[V]
@@ -59,8 +60,8 @@ class MutableMultiBiMap[K, V]() extends MultiBiMap[K, V]{
 
 /**
   * A collection with enforced uniqueness, fast contains and deterministic
-  * ordering. When a duplicate happens, it can be configured to either remove
-  * it automatically or to throw an exception and fail loudly
+  * ordering. Raises an exception if a duplicate is found; call
+  * `toSeq.distinct` if you explicitly want to make it swallow duplicates
   */
 trait OSet[V] extends TraversableOnce[V]{
   def contains(v: V): Boolean
@@ -71,8 +72,8 @@ trait OSet[V] extends TraversableOnce[V]{
   def collect[T](f: PartialFunction[V, T]): OSet[T]
   def zipWithIndex: OSet[(V, Int)]
   def reverse: OSet[V]
-
 }
+
 object OSet{
   def apply[V](items: V*) = from(items)
 
@@ -82,18 +83,19 @@ object OSet{
     set
   }
 }
+
 class MutableOSet[V]() extends OSet[V]{
-  private[this] val items0 = mutable.ArrayBuffer.empty[V]
-  private[this] val set0 = mutable.Set.empty[V]
+
+  private[this] val set0 = mutable.LinkedHashSet.empty[V]
   def contains(v: V) = set0.contains(v)
   def append(v: V) = if (!contains(v)){
     set0.add(v)
-    items0.append(v)
+
   }else {
     throw new Exception("Duplicated item inserted into OrderedSet: " + v)
   }
   def appendAll(vs: Seq[V]) = vs.foreach(append)
-  def items: IndexedSeq[V] = items0
+  def items: IndexedSeq[V] = set0.toIndexedSeq
   def set: collection.Set[V] = set0
 
   def map[T](f: V => T): OSet[T] = {
