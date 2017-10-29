@@ -1,10 +1,8 @@
 package forge
 
-import java.nio.file.Path
 import java.nio.{file => jnio}
 
 import play.api.libs.json.Json
-import sourcecode.Enclosing
 
 import scala.collection.mutable
 

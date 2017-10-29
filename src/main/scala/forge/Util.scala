@@ -1,12 +1,6 @@
 package forge
 
-import java.io.FileOutputStream
-import java.nio.{file => jnio}
-import java.util.jar.JarEntry
 
-import sourcecode.Enclosing
-
-import scala.collection.JavaConverters._
 import scala.collection.mutable
 
 class MultiBiMap[K, V](){
