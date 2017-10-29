@@ -1,6 +1,7 @@
 package forge
 
 
+import forge.util.OSet
 import utest._
 import utest.framework.TestPath
 

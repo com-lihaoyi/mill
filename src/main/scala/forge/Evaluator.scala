@@ -1,10 +1,11 @@
 package forge
 
 
-import play.api.libs.json.{JsValue, Json, Reads}
+import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import ammonite.ops._
+import forge.util.{MultiBiMap, OSet}
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], Seq[String]]){
 
@@ -16,7 +17,7 @@ class Evaluator(workspacePath: Path,
       labeling
     )
 
-    val evaluated = new MutableOSet[Target[_]]
+    val evaluated = new OSet.Mutable[Target[_]]
     val results = mutable.LinkedHashMap.empty[Target[_], Any]
 
     for (groupIndex <- sortedGroups.keys()){
@@ -52,7 +53,7 @@ class Evaluator(workspacePath: Path,
     val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
 
     val cached = for{
-      json <- util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
+      json <- scala.util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
       (cachedHash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
       if cachedHash == inputsHash
     } yield terminalResults
@@ -126,7 +127,7 @@ object Evaluator{
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
                               labeling: Map[Target[_], Seq[String]]): MultiBiMap[Int, Target[_]] = {
 
-    val grouping = new MutableMultiBiMap[Int, Target[_]]()
+    val grouping = new MultiBiMap.Mutable[Int, Target[_]]()
 
     var groupCount = 0
 
@@ -151,7 +152,7 @@ object Evaluator{
     }
 
     val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
-    val output = new MutableMultiBiMap[Int, Target[_]]
+    val output = new MultiBiMap.Mutable[Int, Target[_]]
 
     // Sort groups amongst themselves, and sort the contents of each group
     // before aggregating it into the final output
@@ -161,22 +162,12 @@ object Evaluator{
     output
   }
 
-  def checkTopological(targets: OSet[Target[_]]) = {
-    val seen = mutable.Set.empty[Target[_]]
-    for(t <- targets.items.reverseIterator){
-      seen.add(t)
-      for(upstream <- t.inputs){
-        assert(!seen(upstream))
-      }
-    }
-  }
-
   /**
     * Takes the given targets, finds all the targets they transitively depend
     * on, and sort them topologically. Fails if there are dependency cycles
     */
   def topoSortedTransitiveTargets(sourceTargets: OSet[Target[_]]): TopoSorted = {
-    val transitiveTargets = new MutableOSet[Target[_]]
+    val transitiveTargets = new OSet.Mutable[Target[_]]
     def rec(t: Target[_]): Unit = {
       if (transitiveTargets.contains(t)) () // do nothing
       else {

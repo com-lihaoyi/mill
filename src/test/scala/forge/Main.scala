@@ -1,8 +1,10 @@
 package forge
 import java.io.FileOutputStream
 import java.util.jar.JarEntry
+
 import collection.JavaConverters._
 import ammonite.ops._
+import forge.util.{OSet, PathRef}
 object Main{
   val sourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'src)
   val resourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'resources)

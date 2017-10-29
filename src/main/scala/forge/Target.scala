@@ -2,6 +2,7 @@ package forge
 
 
 import ammonite.ops.{ls, mkdir}
+import forge.util.PathRef
 import play.api.libs.json.{Format, JsValue, Json}
 abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**

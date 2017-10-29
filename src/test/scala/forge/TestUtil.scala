@@ -1,5 +1,6 @@
 package forge
 
+import forge.util.OSet
 import utest.assert
 
 import scala.collection.mutable

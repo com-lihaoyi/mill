@@ -2,6 +2,7 @@ package forge
 
 import utest._
 import Target.test
+import forge.util.OSet
 
 object GraphTests extends TestSuite{
 
