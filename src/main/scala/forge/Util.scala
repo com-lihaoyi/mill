@@ -2,29 +2,41 @@ package forge
 
 
 import scala.collection.mutable
-
-class MultiBiMap[K, V](){
-  private[this] val valueToKey = mutable.Map.empty[V, K]
-  private[this] val keyToValues = mutable.Map.empty[K, List[V]]
+trait MultiBiMap[K, V]{
+  def containsValue(v: V): Boolean
+  def lookupKey(k: K): OSet[V]
+  def lookupValue(v: V): K
+  def lookupValueOpt(v: V): Option[K]
+  def add(k: K, v: V): Unit
+  def removeAll(k: K): OSet[V]
+  def addAll(k: K, vs: TraversableOnce[V]): Unit
+  def keys(): Iterator[K]
+  def values(): Iterator[OSet[V]]
+}
+class MutableMultiBiMap[K, V]() extends MultiBiMap[K, V]{
+  private[this] val valueToKey = mutable.LinkedHashMap.empty[V, K]
+  private[this] val keyToValues = mutable.LinkedHashMap.empty[K, MutableOSet[V]]
   def containsValue(v: V) = valueToKey.contains(v)
+  def lookupKey(k: K) = keyToValues(k)
   def lookupValue(v: V) = valueToKey(v)
   def lookupValueOpt(v: V) = valueToKey.get(v)
   def add(k: K, v: V): Unit = {
     valueToKey(v) = k
-    keyToValues(k) = v :: keyToValues.getOrElse(k, Nil)
+    keyToValues.getOrElseUpdate(k, new MutableOSet[V]()).append(v)
   }
-  def removeAll(k: K): Seq[V] = keyToValues.get(k) match {
-    case None => Nil
+  def removeAll(k: K): OSet[V] = keyToValues.get(k) match {
+    case None => OSet()
     case Some(vs) =>
       vs.foreach(valueToKey.remove)
 
       keyToValues.remove(k)
       vs
   }
-  def addAll(k: K, vs: Seq[V]): Unit = {
-    vs.foreach(valueToKey.update(_, k))
-    keyToValues(k) = vs ++: keyToValues.getOrElse(k, Nil)
-  }
+  def addAll(k: K, vs: TraversableOnce[V]): Unit = vs.foreach(this.add(k, _))
+
+  def keys() = keyToValues.keysIterator
+
+  def values() = keyToValues.valuesIterator
 }
 
 /**
@@ -38,7 +50,9 @@ trait OSet[V] extends TraversableOnce[V]{
   def flatMap[T](f: V => TraversableOnce[T]): OSet[T]
   def map[T](f: V => T): OSet[T]
   def filter(f: V => Boolean): OSet[V]
-
+  def collect[T](f: PartialFunction[V, T]): OSet[T]
+  def zipWithIndex: OSet[(V, Int)]
+  def reverse: OSet[V]
 
 }
 object OSet{
@@ -80,6 +94,18 @@ class MutableOSet[V](dedup: Boolean = false) extends OSet[V]{
     for(i <- items) if (f(i)) output.append(i)
     output
   }
+
+  def collect[T](f: PartialFunction[V, T]) = this.filter(f.isDefinedAt).map(x => f(x))
+
+  def zipWithIndex = {
+    var i = 0
+    this.map{ x =>
+      i += 1
+      (x, i-1)
+    }
+  }
+
+  def reverse = OSet.from(items.reverseIterator)
 
   // Members declared in scala.collection.GenTraversableOnce
   def isTraversableAgain: Boolean = items.isTraversableAgain

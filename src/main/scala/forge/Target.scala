@@ -18,7 +18,7 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
     * Even if this target's inputs did not change, does it need to re-evaluate
     * anyway?
     */
-  def externalHash: Int = 0
+  def sideHash: Int = 0
 
 }
 
@@ -55,7 +55,7 @@ object Target{
     def evaluate(args: Args) = {
       counter + args.args.map(_.asInstanceOf[Int]).sum
     }
-    override def externalHash = counter
+    override def sideHash = counter
   }
   def traverse[T: Format](source: Seq[Target[T]]) = {
     new Traverse[T](source)
@@ -81,7 +81,7 @@ object Target{
   class Path(path: ammonite.ops.Path) extends Target[ammonite.ops.Path]{
     def evaluate(args: Args) = path
     val inputs = Nil
-    override def externalHash = ls.rec(path).map(x => (x.toString, x.mtime)).hashCode()
+    override def sideHash = ls.rec(path).map(x => (x.toString, x.mtime)).hashCode()
   }
   class Subprocess(val inputs: Seq[Target[_]],
                    command: Args => Seq[String]) extends Target[Subprocess.Result] {

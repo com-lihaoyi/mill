@@ -81,16 +81,15 @@ object GraphTests extends TestSuite{
                                target: Target.Test,
                                expected: OSet[(OSet[Target.Test], Int)]) = {
 
-        val mapping: Map[Target[_], Seq[String]] = {
-          implicitly[Discovered[T]].apply(base).map(_.swap).toMap
-        }
-        val grouped = Evaluator.groupAroundNamedTargets(
-          Evaluator.topoSortedTransitiveTargets(OSet(target)),
-          mapping
-        )
-        TestUtil.checkTopological(grouped.flatMap(_.items))
+        val mapping = Discovered.mapping(base)
+        val topoSortedTransitive = Evaluator.topoSortedTransitiveTargets(OSet(target))
+
+        val grouped = Evaluator.groupAroundNamedTargets(topoSortedTransitive, mapping)
+        val flattened = OSet.from(grouped.values().flatMap(_.items))
+
+        TestUtil.checkTopological(flattened)
         for(((expectedPresent, expectedSize), i) <- expected.items.zipWithIndex){
-          val grouping = grouped.items(i)
+          val grouping = grouped.lookupKey(i)
           assert(
             grouping.size == expectedSize,
             grouping.filter(mapping.contains) == expectedPresent

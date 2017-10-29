@@ -4,20 +4,17 @@ import java.util.jar.JarEntry
 import collection.JavaConverters._
 import ammonite.ops._
 object Main{
+  val sourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'src)
+  val resourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'resources)
+  val allSources = list(sourceRoot)
+  val classFiles = compileAll(allSources)
+  val jar = jarUp(resourceRoot, classFiles)
 
   def main(args: Array[String]): Unit = {
-
-    val sourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'src)
-    val resourceRoot = Target.path(pwd / 'src / 'test / 'resources / 'example / 'resources)
-    val allSources = list(sourceRoot)
-    val classFiles = compileAll(allSources)
-    val jar = jarUp(resourceRoot, classFiles)
-
-//    val evaluator = new Evaluator(
-//      Paths.get("target/workspace"),
-//      DefCtx("forge.Main ", None)
-//    )
-//    evaluator.evaluate(OSet(jar))
+    val mapping = Discovered.mapping(Main)
+    val evaluator = new Evaluator(pwd / 'target / 'workspace / 'main, mapping)
+    val res = evaluator.evaluate(OSet(jar))
+    println(res.evaluated.collect(mapping))
   }
   def compileAll(sources: Target[Seq[Path]])  = {
     new Target.Subprocess(

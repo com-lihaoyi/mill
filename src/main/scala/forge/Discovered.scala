@@ -4,11 +4,14 @@ import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
 class Discovered[T](val value: Seq[(Seq[String], T => Target[_])]){
-  def apply(t: T) = {
-    value.map{case (a, b) => (a, b(t)) }
-  }
+  def apply(t: T) = value.map{case (a, b) => (a, b(t)) }
+
 }
 object Discovered {
+  def mapping[T: Discovered](t: T): Map[Target[_], Seq[String]] = {
+    implicitly[Discovered[T]].apply(t).map(_.swap).toMap
+  }
+
   implicit def apply[T]: Discovered[T] = macro applyImpl[T]
 
   def applyImpl[T: c.WeakTypeTag](c: Context): c.Expr[Discovered[T]] = {

@@ -4,7 +4,6 @@ package forge
 import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
-import scala.io.Codec
 import ammonite.ops._
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], Seq[String]]){
@@ -19,21 +18,40 @@ class Evaluator(workspacePath: Path,
 
     val evaluated = new MutableOSet[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
-    for (group <- sortedGroups){
-      val (newResults, newEvaluated) = evaluateGroupCached(group, results)
+    val groupHashes = mutable.Map.empty[Int, Int]
+    for (groupIndex <- sortedGroups.keys()){
+      val group = sortedGroups.lookupKey(groupIndex)
+      val (inputsHash, newResults, newEvaluated) = evaluateGroupCached(
+        group,
+        results,
+        groupHashes,
+        sortedGroups
+      )
       evaluated.appendAll(newEvaluated)
       for((k, v) <- newResults) results.put(k, v)
+      groupHashes(groupIndex) = inputsHash
 
     }
+
     Evaluator.Results(targets.items.map(results), evaluated)
   }
 
   def evaluateGroupCached(group: OSet[Target[_]],
-                          results: collection.Map[Target[_], Any]) = {
+                          results: collection.Map[Target[_], Any],
+                          groupHashes: collection.Map[Int, Int],
+                          sortedGroups: MultiBiMap[Int, Target[_]]) = {
 
-    val (inputsHash0, terminals) = partitionGroupInputOutput(group, results)
-    val inputsHash = inputsHash0 + group.toIterator.map(_.externalHash).sum
+    pprint.log(group)
+    val (externalInputs, terminals) = partitionGroupInputOutput(group, results)
+    val upstreamGroupIds = OSet.from(externalInputs.map(sortedGroups.lookupValue), dedup = true)
+
+    val inputsHash =
+      externalInputs.toIterator.map(results).hashCode +
+      group.toIterator.map(_.sideHash).hashCode +
+      upstreamGroupIds.toIterator.map(groupHashes).hashCode
+
     val primeLabel = labeling(terminals.items(0))
+
 
     val targetDestPath = workspacePath / primeLabel
     val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
@@ -41,16 +59,17 @@ class Evaluator(workspacePath: Path,
     val cached = for{
       json <- util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
       (hash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
+      _ = println("cached hash " + hash)
       if hash == inputsHash
-    } yield (hash, terminalResults)
+    } yield terminalResults
 
     cached match{
-      case Some((hash, terminalResults)) =>
+      case Some(terminalResults) =>
         val newResults = mutable.Map.empty[Target[_], Any]
         for((terminal, res) <- terminals.items.zip(terminalResults)){
           newResults(terminal) = terminal.formatter.reads(res).get
         }
-        (newResults, Nil)
+        (inputsHash, newResults, Nil)
 
       case _ =>
         val (newResults, newEvaluated, terminalResults) = {
@@ -60,10 +79,12 @@ class Evaluator(workspacePath: Path,
 
         write.over(
           metadataPath,
-          Json.prettyPrint(Json.toJson((inputsHash , terminalResults))).getBytes(Codec.UTF8.charSet),
+          Json.prettyPrint(
+            Json.toJson((inputsHash , terminalResults))
+          ),
         )
 
-        (newResults, newEvaluated)
+        (inputsHash, newResults, newEvaluated)
     }
   }
 
@@ -72,10 +93,8 @@ class Evaluator(workspacePath: Path,
     val allInputs = group.items.flatMap(_.inputs)
     val (internalInputs, externalInputs) = allInputs.partition(group.contains)
     val internalInputSet = internalInputs.toSet
-    val inputResults = externalInputs.distinct.map(results).toIndexedSeq
-    val inputsHash = inputResults.hashCode
     val terminals = group.filter(!internalInputSet(_))
-    (inputsHash, terminals)
+    (OSet.from(externalInputs, dedup=true), terminals)
   }
 
   def evaluateGroup(group: OSet[Target[_]],
@@ -115,13 +134,13 @@ object Evaluator{
   class TopoSorted private[Evaluator] (val values: OSet[Target[_]])
   case class Results(values: Seq[Any], evaluated: OSet[Target[_]])
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
-                              labeling: Map[Target[_], Seq[String]]): OSet[OSet[Target[_]]] = {
-    val grouping = new MultiBiMap[Int, Target[_]]()
+                              labeling: Map[Target[_], Seq[String]]): MultiBiMap[Int, Target[_]] = {
+
+    val grouping = new MutableMultiBiMap[Int, Target[_]]()
 
     var groupCount = 0
 
     for(target <- topoSortedTargets.values.items.reverseIterator){
-
       if (!grouping.containsValue(target)){
         grouping.add(groupCount, target)
         groupCount += 1
@@ -140,18 +159,14 @@ object Evaluator{
         }
       }
     }
-    val output = mutable.Buffer.empty[OSet[Target[_]]]
-    for(target <- topoSortedTargets.values.items.reverseIterator){
+    val output = new MutableMultiBiMap[Int, Target[_]]
+    for(target <- topoSortedTargets.values.items){
       for(targetGroup <- grouping.lookupValueOpt(target)){
-        output.append(
-          OSet.from(
-            grouping.removeAll(targetGroup)
-              .sortBy(topoSortedTargets.values.items.indexOf)
-          )
-        )
+        val shifted = grouping.removeAll(targetGroup)
+        output.addAll(output.keys().length, shifted.reverse)
       }
     }
-    OSet.from(output.reverse)
+    output
   }
 
   /**
