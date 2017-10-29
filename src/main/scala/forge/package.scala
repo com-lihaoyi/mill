@@ -41,5 +41,5 @@ package object forge {
   }
 
   implicit val crFormat: Format[ammonite.ops.CommandResult] = Json.format
-  implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
+
 }

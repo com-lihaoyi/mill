@@ -1,7 +1,7 @@
 package forge
 
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{JsValue, Json, Reads}
 
 import scala.collection.mutable
 import ammonite.ops._
@@ -17,19 +17,17 @@ class Evaluator(workspacePath: Path,
     )
 
     val evaluated = new MutableOSet[Target[_]]
-    val results = mutable.Map.empty[Target[_], Any]
-    val groupHashes = mutable.Map.empty[Int, Int]
+    val results = mutable.LinkedHashMap.empty[Target[_], Any]
+
     for (groupIndex <- sortedGroups.keys()){
       val group = sortedGroups.lookupKey(groupIndex)
-      val (inputsHash, newResults, newEvaluated) = evaluateGroupCached(
+      val (newResults, newEvaluated) = evaluateGroupCached(
         group,
         results,
-        groupHashes,
         sortedGroups
       )
       evaluated.appendAll(newEvaluated)
       for((k, v) <- newResults) results.put(k, v)
-      groupHashes(groupIndex) = inputsHash
 
     }
 
@@ -38,17 +36,14 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroupCached(group: OSet[Target[_]],
                           results: collection.Map[Target[_], Any],
-                          groupHashes: collection.Map[Int, Int],
-                          sortedGroups: MultiBiMap[Int, Target[_]]) = {
+                          sortedGroups: MultiBiMap[Int, Target[_]]): (collection.Map[Target[_], Any], Seq[Target[_]]) = {
 
-    pprint.log(group)
+
     val (externalInputs, terminals) = partitionGroupInputOutput(group, results)
-    val upstreamGroupIds = OSet.from(externalInputs.map(sortedGroups.lookupValue), dedup = true)
 
     val inputsHash =
-      externalInputs.toIterator.map(results).hashCode +
-      group.toIterator.map(_.sideHash).hashCode +
-      upstreamGroupIds.toIterator.map(groupHashes).hashCode
+      externalInputs.toIterator.map(results).toVector.hashCode +
+      group.toIterator.map(_.sideHash).toVector.hashCode()
 
     val primeLabel = labeling(terminals.items(0))
 
@@ -58,33 +53,30 @@ class Evaluator(workspacePath: Path,
 
     val cached = for{
       json <- util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
-      (hash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
-      _ = println("cached hash " + hash)
-      if hash == inputsHash
+      (cachedHash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
+      if cachedHash == inputsHash
     } yield terminalResults
+
 
     cached match{
       case Some(terminalResults) =>
-        val newResults = mutable.Map.empty[Target[_], Any]
+        val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
         for((terminal, res) <- terminals.items.zip(terminalResults)){
           newResults(terminal) = terminal.formatter.reads(res).get
         }
-        (inputsHash, newResults, Nil)
+        (newResults, Nil)
 
       case _ =>
-        val (newResults, newEvaluated, terminalResults) = {
-          evaluateGroup(group, results, terminals, targetDestPath)
-        }
-
+        val (newResults, newEvaluated, terminalResults) = evaluateGroup(group, results, targetDestPath)
 
         write.over(
           metadataPath,
           Json.prettyPrint(
-            Json.toJson((inputsHash , terminalResults))
+            Json.toJson(inputsHash -> terminals.toList.map(terminalResults))
           ),
         )
 
-        (inputsHash, newResults, newEvaluated)
+        (newResults, newEvaluated)
     }
   }
 
@@ -94,18 +86,17 @@ class Evaluator(workspacePath: Path,
     val (internalInputs, externalInputs) = allInputs.partition(group.contains)
     val internalInputSet = internalInputs.toSet
     val terminals = group.filter(!internalInputSet(_))
-    (OSet.from(externalInputs, dedup=true), terminals)
+    (OSet.from(externalInputs.distinct), terminals)
   }
 
   def evaluateGroup(group: OSet[Target[_]],
                     results: collection.Map[Target[_], Any],
-                    terminals: OSet[Target[_]],
                     targetDestPath: Path) = {
 
     rm(targetDestPath)
-    val terminalResults = mutable.Buffer.empty[JsValue]
+    val terminalResults = mutable.LinkedHashMap.empty[Target[_], JsValue]
     val newEvaluated = mutable.Buffer.empty[Target[_]]
-    val newResults = mutable.Map.empty[Target[_], Any]
+    val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
     for (target <- group.items) {
       newEvaluated.append(target)
       val targetInputValues = target.inputs.toVector.map(x =>
@@ -117,9 +108,8 @@ class Evaluator(workspacePath: Path,
         val (res, serialized) = target.evaluateAndWrite(
           new Args(targetInputValues, targetDestPath)
         )
-        if (terminals.contains(target)) {
-          terminalResults.append(serialized)
-        }
+        terminalResults(target) = serialized
+
         newResults(target) = res
       }
     }

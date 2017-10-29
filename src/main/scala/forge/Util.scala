@@ -1,7 +1,25 @@
 package forge
 
 
+import ammonite.ops.ls
+import play.api.libs.json.{Format, Json}
+
 import scala.collection.mutable
+
+object PathRef{
+  implicit def jsonFormatter: Format[PathRef] = Json.format
+}
+case class PathRef(path: ammonite.ops.Path){
+  override def hashCode() = {
+    if (!path.isDir) path.hashCode() + path.mtime.toMillis.toInt
+    else ls.rec.iter(path)
+          .filter(_.isFile)
+          .map(x => x.toString.hashCode + x.mtime.toMillis)
+          .sum
+          .toInt
+  }
+}
+
 trait MultiBiMap[K, V]{
   def containsValue(v: V): Boolean
   def lookupKey(k: K): OSet[V]
@@ -57,22 +75,21 @@ trait OSet[V] extends TraversableOnce[V]{
 }
 object OSet{
   def apply[V](items: V*) = from(items)
-  def dedup[V](items: V*) = from(items, dedup = true)
 
-  def from[V](items: TraversableOnce[V], dedup: Boolean = false): OSet[V] = {
-    val set = new MutableOSet[V](dedup)
+  def from[V](items: TraversableOnce[V]): OSet[V] = {
+    val set = new MutableOSet[V]()
     items.foreach(set.append)
     set
   }
 }
-class MutableOSet[V](dedup: Boolean = false) extends OSet[V]{
+class MutableOSet[V]() extends OSet[V]{
   private[this] val items0 = mutable.ArrayBuffer.empty[V]
   private[this] val set0 = mutable.Set.empty[V]
   def contains(v: V) = set0.contains(v)
   def append(v: V) = if (!contains(v)){
     set0.add(v)
     items0.append(v)
-  }else if (!dedup) {
+  }else {
     throw new Exception("Duplicated item inserted into OrderedSet: " + v)
   }
   def appendAll(vs: Seq[V]) = vs.foreach(append)

@@ -22,6 +22,7 @@ object EvaluationTests extends TestSuite{
         def apply(target: Target[_], expValue: Any,
                   expEvaled: OSet[Target[_]],
                   extraEvaled: Int = 0) = {
+
           val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))
 
           val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
@@ -31,6 +32,7 @@ object EvaluationTests extends TestSuite{
             matchingReturnedEvaled.toSet == expEvaled.toSet,
             extra.length == extraEvaled
           )
+
           // Second time the value is already cached, so no evaluation needed
           val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(OSet(target))
           assert(

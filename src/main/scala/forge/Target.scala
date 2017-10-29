@@ -55,6 +55,7 @@ object Target{
     def evaluate(args: Args) = {
       counter + args.args.map(_.asInstanceOf[Int]).sum
     }
+
     override def sideHash = counter
   }
   def traverse[T: Format](source: Seq[Target[T]]) = {
@@ -78,11 +79,13 @@ object Target{
   }
 
   def path(path: ammonite.ops.Path) = new Path(path)
-  class Path(path: ammonite.ops.Path) extends Target[ammonite.ops.Path]{
-    def evaluate(args: Args) = path
+  class Path(path: ammonite.ops.Path) extends Target[PathRef]{
+    val handle = PathRef(path)
+    def evaluate(args: Args) = handle
+    override def sideHash = handle.hashCode()
     val inputs = Nil
-    override def sideHash = ls.rec(path).map(x => (x.toString, x.mtime)).hashCode()
   }
+
   class Subprocess(val inputs: Seq[Target[_]],
                    command: Args => Seq[String]) extends Target[Subprocess.Result] {
 
@@ -92,10 +95,13 @@ object Target{
       implicit val path = ammonite.ops.Path(args.dest, pwd)
       val output = %%(command(args))
       assert(output.exitCode == 0)
-      Subprocess.Result(output, args.dest)
+      Subprocess.Result(output, PathRef(args.dest))
     }
   }
   object Subprocess{
-    case class Result(result: ammonite.ops.CommandResult, dest: ammonite.ops.Path)
+    case class Result(result: ammonite.ops.CommandResult, dest: PathRef)
+    object Result{
+      implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
+    }
   }
 }
