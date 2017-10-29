@@ -159,14 +159,26 @@ object Evaluator{
         }
       }
     }
+
+    val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
     val output = new MutableMultiBiMap[Int, Target[_]]
-    for(target <- topoSortedTargets.values.items){
-      for(targetGroup <- grouping.lookupValueOpt(target)){
-        val shifted = grouping.removeAll(targetGroup)
-        output.addAll(output.keys().length, shifted.reverse)
-      }
+
+    // Sort groups amongst themselves, and sort the contents of each group
+    // before aggregating it into the final output
+    for(g <- grouping.values().toArray.sortBy(g => targetOrdering(g.items(0)))){
+      output.addAll(output.keys.length, g.toArray.sortBy(targetOrdering))
     }
     output
+  }
+
+  def checkTopological(targets: OSet[Target[_]]) = {
+    val seen = mutable.Set.empty[Target[_]]
+    for(t <- targets.items.reverseIterator){
+      seen.add(t)
+      for(upstream <- t.inputs){
+        assert(!seen(upstream))
+      }
+    }
   }
 
   /**
