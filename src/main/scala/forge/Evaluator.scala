@@ -1,5 +1,6 @@
 package forge
 
+import java.nio.file.Path
 import java.nio.{file => jnio}
 
 import play.api.libs.json.Json
@@ -27,8 +28,7 @@ class Evaluator(workspacePath: jnio.Path,
     val evaluated = new MutableOSet[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
     for (group <- sortedGroups){
-      println("Evaluating group " + group)
-      val (newResults, newEvaluated) = evaluateGroup(group, results)
+      val (newResults, newEvaluated) = evaluateGroupCached(group, results)
       evaluated.appendAll(newEvaluated)
       for((k, v) <- newResults) results.put(k, v)
 
@@ -36,61 +36,71 @@ class Evaluator(workspacePath: jnio.Path,
     Evaluator.Results(targets.items.map(results), evaluated)
   }
 
-  def evaluateGroup(group: OSet[Target[_]],
-                    results: collection.Map[Target[_], Any]) = {
+  def evaluateGroupCached(group: OSet[Target[_]],
+                          results: collection.Map[Target[_], Any]) = {
+
+    val (inputsHash, terminals) = partitionGroupInputOutput(group, results)
+    val primeLabel = labeling(terminals.items(0)).mkString("/")
+
+    resultCache.get(primeLabel) match{
+      case Some((hash, terminalResults)) if hash == inputsHash && !group.exists(_.dirty) =>
+        val newResults = mutable.Map.empty[Target[_], Any]
+        for((terminal, res) <- terminals.items.zip(terminalResults)){
+          newResults(terminal) = terminal.formatter.reads(Json.parse(res)).get
+        }
+        (newResults, Nil)
+
+      case _ =>
+        val (newResults, newEvaluated, terminalResults) = {
+          evaluateGroup(group, results, terminals, primeLabel)
+        }
+        resultCache(primeLabel) = (inputsHash, terminalResults)
+        (newResults, newEvaluated)
+    }
+  }
+
+  def partitionGroupInputOutput(group: OSet[Target[_]],
+                                results: collection.Map[Target[_], Any]) = {
     val allInputs = group.items.flatMap(_.inputs)
     val (internalInputs, externalInputs) = allInputs.partition(group.contains)
     val internalInputSet = internalInputs.toSet
     val inputResults = externalInputs.distinct.map(results).toIndexedSeq
-
-    val newResults = mutable.Map.empty[Target[_], Any]
-    val newEvaluated = mutable.Buffer.empty[Target[_]]
-
-    val terminals = group.filter(!internalInputSet(_))
-    val primeTerminal = terminals.items(0)
-
-    val primeLabel = labeling(primeTerminal).mkString("/")
-    val targetDestPath = workspacePath.resolve(
-      jnio.Paths.get(primeLabel)
-    )
-    val anyDirty = group.exists(_.dirty)
-    deleteRec(targetDestPath)
-
     val inputsHash = inputResults.hashCode
-    resultCache.get(primeLabel) match{
-      case Some((hash, terminalResults))
-        if hash == inputsHash && !anyDirty =>
-        for((terminal, res) <- terminals.items.zip(terminalResults)){
-          newResults(terminal) = primeTerminal.formatter.reads(Json.parse(res)).get
+    val terminals = group.filter(!internalInputSet(_))
+    (inputsHash, terminals)
+  }
+
+  def evaluateGroup(group: OSet[Target[_]],
+                    results: collection.Map[Target[_], Any],
+                    terminals: OSet[Target[_]],
+                    primeLabel: String) = {
+    val targetDestPath = workspacePath.resolve(jnio.Paths.get(primeLabel))
+    deleteRec(targetDestPath)
+    val terminalResults = mutable.Buffer.empty[String]
+    val newEvaluated = mutable.Buffer.empty[Target[_]]
+    val newResults = mutable.Map.empty[Target[_], Any]
+    for (target <- group.items) {
+      newEvaluated.append(target)
+      val targetInputValues = target.inputs.toVector.map(x =>
+        newResults.getOrElse(x, results(x))
+      )
+      if (!labeling.contains(target)) {
+        newResults(target) = target.evaluate(new Args(targetInputValues, targetDestPath))
+      } else {
+        val (res, serialized) = target.evaluateAndWrite(
+          new Args(targetInputValues, targetDestPath)
+        )
+        if (terminals.contains(target)) {
+          terminalResults.append(serialized)
+
         }
-
-      case _ =>
-        val terminalResults = mutable.Buffer.empty[String]
-        for(target <- group.items){
-          newEvaluated.append(target)
-          val targetInputValues = target.inputs.toVector.map(x =>
-            newResults.getOrElse(x, results(x))
-          )
-          if (!labeling.contains(target)) {
-            val res = target.evaluate(new Args(targetInputValues, targetDestPath))
-            newResults(target) = res
-          }else{
-            val (res, serialized) = target.evaluateAndWrite(
-              new Args(targetInputValues, targetDestPath)
-            )
-            if (!internalInputSet(target)){
-              terminalResults.append(serialized)
-
-            }
-            newResults(target) = res
-          }
-        }
-        resultCache(primeLabel) = (inputsHash, terminalResults)
-
+        newResults(target) = res
+      }
     }
 
-    (newResults, newEvaluated)
+    (newResults, newEvaluated, terminalResults)
   }
+
   def deleteRec(path: jnio.Path) = {
     if (jnio.Files.exists(path)){
       import collection.JavaConverters._
@@ -148,7 +158,8 @@ object Evaluator{
   }
 
   /**
-    * Takes the given targets, finds
+    * Takes the given targets, finds all the targets they transitively depend
+    * on, and sort them topologically. Fails if there are dependency cycles
     */
   def topoSortedTransitiveTargets(sourceTargets: OSet[Target[_]]): TopoSorted = {
     val transitiveTargets = new MutableOSet[Target[_]]
@@ -165,7 +176,7 @@ object Evaluator{
 
     val numberedEdges =
       for(t <- transitiveTargets.items)
-        yield t.inputs.map(targetIndices)
+      yield t.inputs.map(targetIndices)
 
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
