@@ -2,6 +2,11 @@ package forge.util
 
 import scala.collection.mutable
 
+/**
+  * A map from keys to collections of values: you can assign multiple values
+  * to any particular key. Also allows lookups in both directions: what values
+  * are assigned to a key or what key a value is assigned ti.
+  */
 trait MultiBiMap[K, V]{
   def containsValue(v: V): Boolean
   def lookupKey(k: K): OSet[V]
