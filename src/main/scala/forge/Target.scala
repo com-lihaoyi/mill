@@ -1,7 +1,7 @@
 package forge
 
-import java.nio.{file => jnio}
 
+import ammonite.ops.mkdir
 import play.api.libs.json.{Format, JsValue, Json}
 abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**
@@ -79,8 +79,8 @@ object Target{
     val inputs = List(source1, source1)
   }
 
-  def path(path: jnio.Path) = new Path(path)
-  class Path(path: jnio.Path) extends Target[jnio.Path]{
+  def path(path: ammonite.ops.Path) = new Path(path)
+  class Path(path: ammonite.ops.Path) extends Target[ammonite.ops.Path]{
     def evaluate(args: Args) = path
     val inputs = Nil
   }
@@ -88,7 +88,7 @@ object Target{
                    command: Args => Seq[String]) extends Target[Subprocess.Result] {
 
     def evaluate(args: Args) = {
-      jnio.Files.createDirectories(args.dest)
+      mkdir(args.dest)
       import ammonite.ops._
       implicit val path = ammonite.ops.Path(args.dest, pwd)
       val output = %%(command(args))
@@ -97,6 +97,6 @@ object Target{
     }
   }
   object Subprocess{
-    case class Result(result: ammonite.ops.CommandResult, dest: jnio.Path)
+    case class Result(result: ammonite.ops.CommandResult, dest: ammonite.ops.Path)
   }
 }

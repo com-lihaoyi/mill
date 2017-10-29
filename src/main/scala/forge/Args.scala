@@ -1,8 +1,7 @@
 package forge
 
-import java.nio.{file => jnio}
 
-class Args(val args: IndexedSeq[_], val dest: jnio.Path){
+class Args(val args: IndexedSeq[_], val dest: ammonite.ops.Path){
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

@@ -1,18 +1,16 @@
 package forge
 
-import java.nio.charset.Charset
-import java.nio.{file => jnio}
 
 import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
 import scala.io.Codec
-
-class Evaluator(workspacePath: jnio.Path,
+import ammonite.ops._
+class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], Seq[String]]){
 
   def evaluate(targets: OSet[Target[_]]): Evaluator.Results = {
-    jnio.Files.createDirectories(workspacePath)
+    mkdir(workspacePath)
 
     val sortedGroups = Evaluator.groupAroundNamedTargets(
       Evaluator.topoSortedTransitiveTargets(targets),
@@ -34,14 +32,13 @@ class Evaluator(workspacePath: jnio.Path,
                           results: collection.Map[Target[_], Any]) = {
 
     val (inputsHash, terminals) = partitionGroupInputOutput(group, results)
-    val primeLabel = labeling(terminals.items(0)).mkString("/")
+    val primeLabel = labeling(terminals.items(0))
 
-    val targetDestPath = workspacePath.resolve(jnio.Paths.get(primeLabel))
-    val metadataPath = targetDestPath.resolveSibling(
-      targetDestPath.getFileName.toString + ".forge.json"
-    )
+    val targetDestPath = workspacePath / primeLabel
+    val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
+
     val cached = for{
-      json <- util.Try(Json.parse(jnio.Files.newInputStream(metadataPath))).toOption
+      json <- util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
       (hash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
       if hash == inputsHash && !group.exists(_.dirty)
     } yield (hash, terminalResults)
@@ -60,11 +57,9 @@ class Evaluator(workspacePath: jnio.Path,
         }
 
 
-        jnio.Files.write(
+        write.over(
           metadataPath,
           Json.prettyPrint(Json.toJson((inputsHash, terminalResults))).getBytes(Codec.UTF8.charSet),
-          jnio.StandardOpenOption.CREATE,
-          jnio.StandardOpenOption.TRUNCATE_EXISTING
         )
 
         (newResults, newEvaluated)
@@ -85,9 +80,9 @@ class Evaluator(workspacePath: jnio.Path,
   def evaluateGroup(group: OSet[Target[_]],
                     results: collection.Map[Target[_], Any],
                     terminals: OSet[Target[_]],
-                    targetDestPath: jnio.Path) = {
+                    targetDestPath: Path) = {
 
-    deleteRec(targetDestPath)
+    rm(targetDestPath)
     val terminalResults = mutable.Buffer.empty[JsValue]
     val newEvaluated = mutable.Buffer.empty[Target[_]]
     val newResults = mutable.Map.empty[Target[_], Any]
@@ -112,16 +107,6 @@ class Evaluator(workspacePath: jnio.Path,
     (newResults, newEvaluated, terminalResults)
   }
 
-  def deleteRec(path: jnio.Path) = {
-    if (jnio.Files.exists(path)){
-      import collection.JavaConverters._
-      jnio.Files.walk(path).iterator()
-        .asScala
-        .toArray
-        .reverseIterator
-        .map(jnio.Files.deleteIfExists)
-    }
-  }
 }
 
 

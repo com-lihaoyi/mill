@@ -1,21 +1,15 @@
 import play.api.libs.json._
-import java.nio.{file => jnio}
 
-import ammonite.ops.Bytes
+import ammonite.ops.{Bytes, Path}
 
 package object forge {
 
-//  implicit object jsValueFormat extends Format[JsValue]{
-//    def reads(json: JsValue) = JsSuccess(json)
-//    def writes(o: jnio.Path) = JsString(o.toAbsolutePath.toString)
-//  }
-
-  implicit object pathFormat extends Format[jnio.Path]{
+  implicit object pathFormat extends Format[ammonite.ops.Path]{
     def reads(json: JsValue) = json match{
-      case JsString(v) => JsSuccess(jnio.Paths.get(v))
+      case JsString(v) => JsSuccess(Path(v))
       case _ => JsError("Paths must be a String")
     }
-    def writes(o: jnio.Path) = JsString(o.toAbsolutePath.toString)
+    def writes(o: Path) = JsString(o.toString)
   }
 
   implicit object bytesFormat extends Format[Bytes]{
@@ -46,6 +40,6 @@ package object forge {
     }
   }
 
-  implicit val crFormat = Json.format[ammonite.ops.CommandResult]
-  implicit val tsFormat = Json.format[Target.Subprocess.Result]
+  implicit val crFormat: Format[ammonite.ops.CommandResult] = Json.format
+  implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
 }
