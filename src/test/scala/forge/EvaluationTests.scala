@@ -3,18 +3,20 @@ package forge
 import java.nio.{file => jnio}
 
 import utest._
+import utest.framework.TestPath
 
 object EvaluationTests extends TestSuite{
 
-  val workspace = jnio.Paths.get("target/workspace")
   val tests = Tests{
     val graphs = new TestGraphs()
     import graphs._
     'evaluateSingle - {
 
-
-      class Checker[T: Discovered](base: T) {
-        val evaluator = new Evaluator(
+      class Checker[T: Discovered](base: T)(implicit tp: TestPath) {
+        val workspace = jnio.Paths.get("target/workspace", tp.value.mkString("/"))
+        ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
+        // Make sure data is persisted even if we re-create the evaluator each time
+        def evaluator = new Evaluator(
           workspace,
           implicitly[Discovered[T]].apply(base).map(_.swap).toMap
         )

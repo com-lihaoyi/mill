@@ -1,20 +1,16 @@
 package forge
 
+import java.nio.charset.Charset
 import java.nio.{file => jnio}
 
-import play.api.libs.json.Json
+import play.api.libs.json.{JsValue, Json}
 
 import scala.collection.mutable
+import scala.io.Codec
 
 class Evaluator(workspacePath: jnio.Path,
                 labeling: Map[Target[_], Seq[String]]){
 
-  /**
-    * Cache from the ID of the first terminal target in a group to the has of
-    * all the group's distinct inputs, and the results of the possibly-multiple
-    * terminal nodes
-    */
-  val resultCache = mutable.Map.empty[String, (Int, Seq[String])]
   def evaluate(targets: OSet[Target[_]]): Evaluator.Results = {
     jnio.Files.createDirectories(workspacePath)
 
@@ -40,19 +36,37 @@ class Evaluator(workspacePath: jnio.Path,
     val (inputsHash, terminals) = partitionGroupInputOutput(group, results)
     val primeLabel = labeling(terminals.items(0)).mkString("/")
 
-    resultCache.get(primeLabel) match{
-      case Some((hash, terminalResults)) if hash == inputsHash && !group.exists(_.dirty) =>
+    val targetDestPath = workspacePath.resolve(jnio.Paths.get(primeLabel))
+    val metadataPath = targetDestPath.resolveSibling(
+      targetDestPath.getFileName.toString + ".forge.json"
+    )
+    val cached = for{
+      json <- util.Try(Json.parse(jnio.Files.newInputStream(metadataPath))).toOption
+      (hash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
+      if hash == inputsHash && !group.exists(_.dirty)
+    } yield (hash, terminalResults)
+
+    cached match{
+      case Some((hash, terminalResults)) =>
         val newResults = mutable.Map.empty[Target[_], Any]
         for((terminal, res) <- terminals.items.zip(terminalResults)){
-          newResults(terminal) = terminal.formatter.reads(Json.parse(res)).get
+          newResults(terminal) = terminal.formatter.reads(res).get
         }
         (newResults, Nil)
 
       case _ =>
         val (newResults, newEvaluated, terminalResults) = {
-          evaluateGroup(group, results, terminals, primeLabel)
+          evaluateGroup(group, results, terminals, targetDestPath)
         }
-        resultCache(primeLabel) = (inputsHash, terminalResults)
+
+
+        jnio.Files.write(
+          metadataPath,
+          Json.prettyPrint(Json.toJson((inputsHash, terminalResults))).getBytes(Codec.UTF8.charSet),
+          jnio.StandardOpenOption.CREATE,
+          jnio.StandardOpenOption.TRUNCATE_EXISTING
+        )
+
         (newResults, newEvaluated)
     }
   }
@@ -71,10 +85,10 @@ class Evaluator(workspacePath: jnio.Path,
   def evaluateGroup(group: OSet[Target[_]],
                     results: collection.Map[Target[_], Any],
                     terminals: OSet[Target[_]],
-                    primeLabel: String) = {
-    val targetDestPath = workspacePath.resolve(jnio.Paths.get(primeLabel))
+                    targetDestPath: jnio.Path) = {
+
     deleteRec(targetDestPath)
-    val terminalResults = mutable.Buffer.empty[String]
+    val terminalResults = mutable.Buffer.empty[JsValue]
     val newEvaluated = mutable.Buffer.empty[Target[_]]
     val newResults = mutable.Map.empty[Target[_], Any]
     for (target <- group.items) {
@@ -90,7 +104,6 @@ class Evaluator(workspacePath: jnio.Path,
         )
         if (terminals.contains(target)) {
           terminalResults.append(serialized)
-
         }
         newResults(target) = res
       }

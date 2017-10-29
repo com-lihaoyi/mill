@@ -5,6 +5,11 @@ import ammonite.ops.Bytes
 
 package object forge {
 
+//  implicit object jsValueFormat extends Format[JsValue]{
+//    def reads(json: JsValue) = JsSuccess(json)
+//    def writes(o: jnio.Path) = JsString(o.toAbsolutePath.toString)
+//  }
+
   implicit object pathFormat extends Format[jnio.Path]{
     def reads(json: JsValue) = json match{
       case JsString(v) => JsSuccess(jnio.Paths.get(v))

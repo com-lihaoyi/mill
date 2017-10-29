@@ -2,7 +2,7 @@ package forge
 
 import java.nio.{file => jnio}
 
-import play.api.libs.json.{Format, Json}
+import play.api.libs.json.{Format, JsValue, Json}
 abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**
     * What other Targets does this Target depend on?
@@ -24,10 +24,10 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
 
 object Target{
   abstract class Ops[T](implicit val formatter: Format[T]){ this: Target[T] =>
-    def evaluateAndWrite(args: Args): (T, String) = {
+    def evaluateAndWrite(args: Args): (T, JsValue) = {
       val res = evaluate(args)
       val str = formatter.writes(res)
-      (res, Json.stringify(str))
+      (res, str)
     }
     def map[V: Format](f: T => V) = {
       new Target.Mapped(this, f)
