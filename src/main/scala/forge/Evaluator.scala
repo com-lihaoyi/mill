@@ -8,7 +8,7 @@ import sourcecode.Enclosing
 import scala.collection.mutable
 
 class Evaluator(workspacePath: jnio.Path,
-                enclosingBase: DefCtx){
+                labeling: Map[Target[_], Seq[String]]){
 
   /**
     * Cache from the ID of the first terminal target in a group to the has of
@@ -20,12 +20,14 @@ class Evaluator(workspacePath: jnio.Path,
     jnio.Files.createDirectories(workspacePath)
 
     val sortedGroups = Evaluator.groupAroundNamedTargets(
-      Evaluator.topoSortedTransitiveTargets(targets)
+      Evaluator.topoSortedTransitiveTargets(targets),
+      labeling
     )
 
     val evaluated = new MutableOSet[Target[_]]
     val results = mutable.Map.empty[Target[_], Any]
     for (group <- sortedGroups){
+      println("Evaluating group " + group)
       val (newResults, newEvaluated) = evaluateGroup(group, results)
       evaluated.appendAll(newEvaluated)
       for((k, v) <- newResults) results.put(k, v)
@@ -46,19 +48,19 @@ class Evaluator(workspacePath: jnio.Path,
 
     val terminals = group.filter(!internalInputSet(_))
     val primeTerminal = terminals.items(0)
-    val enclosingStr = primeTerminal.defCtx.label
+
+    val primeLabel = labeling(primeTerminal).mkString("/")
     val targetDestPath = workspacePath.resolve(
-      jnio.Paths.get(enclosingStr.stripSuffix(enclosingBase.label))
+      jnio.Paths.get(primeLabel)
     )
     val anyDirty = group.exists(_.dirty)
     deleteRec(targetDestPath)
 
     val inputsHash = inputResults.hashCode
-    resultCache.get(primeTerminal.defCtx.label) match{
+    resultCache.get(primeLabel) match{
       case Some((hash, terminalResults))
         if hash == inputsHash && !anyDirty =>
         for((terminal, res) <- terminals.items.zip(terminalResults)){
-
           newResults(terminal) = primeTerminal.formatter.reads(Json.parse(res)).get
         }
 
@@ -69,7 +71,7 @@ class Evaluator(workspacePath: jnio.Path,
           val targetInputValues = target.inputs.toVector.map(x =>
             newResults.getOrElse(x, results(x))
           )
-          if (target.defCtx.anonId.isDefined) {
+          if (!labeling.contains(target)) {
             val res = target.evaluate(new Args(targetInputValues, targetDestPath))
             newResults(target) = res
           }else{
@@ -83,7 +85,7 @@ class Evaluator(workspacePath: jnio.Path,
             newResults(target) = res
           }
         }
-        resultCache(primeTerminal.defCtx.label) = (inputsHash, terminalResults)
+        resultCache(primeLabel) = (inputsHash, terminalResults)
 
     }
 
@@ -105,7 +107,8 @@ class Evaluator(workspacePath: jnio.Path,
 object Evaluator{
   class TopoSorted private[Evaluator] (val values: OSet[Target[_]])
   case class Results(values: Seq[Any], evaluated: OSet[Target[_]])
-  def groupAroundNamedTargets(topoSortedTargets: TopoSorted): OSet[OSet[Target[_]]] = {
+  def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
+                              labeling: Map[Target[_], Seq[String]]): OSet[OSet[Target[_]]] = {
     val grouping = new MultiBiMap[Int, Target[_]]()
 
     var groupCount = 0
@@ -120,7 +123,7 @@ object Evaluator{
       val targetGroup = grouping.lookupValue(target)
       for(upstream <- target.inputs){
         grouping.lookupValueOpt(upstream) match{
-          case None if upstream.defCtx.anonId.nonEmpty =>
+          case None if !labeling.contains(upstream) =>
             grouping.add(targetGroup, upstream)
           case Some(upstreamGroup) if upstreamGroup == targetGroup =>
             val upstreamTargets = grouping.removeAll(upstreamGroup)

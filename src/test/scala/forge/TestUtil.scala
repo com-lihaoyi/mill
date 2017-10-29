@@ -19,26 +19,26 @@ object TestUtil {
 
   class TestGraphs(){
     object singleton {
-      val single = T{ test() }
+      val single = test()
     }
     object pair {
-      val up = T{ test() }
-      val down = T{ test(up) }
+      val up = test()
+      val down = test(up)
     }
 
     object anonTriple{
-      val up = T{ test() }
-      val down = T{ test(test(up)) }
+      val up = test()
+      val down = test(test(up))
     }
     object diamond{
-      val up = T{ test() }
-      val left = T{ test(up) }
-      val right = T{ test(up) }
-      val down = T{ test(left, right) }
+      val up = test()
+      val left = test(up)
+      val right = test(up)
+      val down = test(left, right)
     }
     object anonDiamond{
-      val up = T{ test() }
-      val down = T{ test(test(up), test(up)) }
+      val up = test()
+      val down = test(test(up), test(up))
     }
 
     //          o   g-----o
@@ -53,24 +53,21 @@ object TestUtil {
     //      /          /
     //  o--B          o
     object bigSingleTerminal{
-      val a = T{ test(test(), test()) }
-      val b = T{ test(test()) }
-      val e = T{
+      val a = test(test(), test())
+      val b = test(test())
+      val e = {
         val c = test(a)
         val d = test(a)
         test(test(test(), test(c)), test(test(c, test(d, b))))
       }
-      val f = T{
-        test(test(test(), test(e)))
-      }
-      val i = T{
+      val f = test(test(test(), test(e)))
+
+      val i = {
         val g = test()
         val h = test(g, e)
         test(test(g), test(test(h)))
       }
-      val j = T{
-        test(test(i), test(i, f), test(f))
-      }
+      val j = test(test(i), test(i, f), test(f))
     }
 
     (singleton, pair, anonTriple, diamond, anonDiamond, bigSingleTerminal)

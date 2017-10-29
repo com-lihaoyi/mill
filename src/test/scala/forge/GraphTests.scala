@@ -14,15 +14,15 @@ object GraphTests extends TestSuite{
 
     'discovery{
       class CanNest{
-        val single = T{ test() }
-        val invisible: Any = T{ test() }
+        val single = test()
+        val invisible: Any = test()
       }
       object outer {
-        val single = T{ test() }
-        val invisible: Any = T{ test() }
+        val single = test()
+        val invisible: Any = test()
         object nested{
-          val single = T{ test() }
-          val invisible: Any = T{ test() }
+          val single = test()
+          val invisible: Any = test()
 
         }
         val classInstance = new CanNest
@@ -35,66 +35,6 @@ object GraphTests extends TestSuite{
         (List("single"), outer.single)
       )
       assert(discovered == expected)
-    }
-    'syntaxLimits - {
-      // Make sure that we properly prohibit cases where a `test()` target can
-      // be created more than once with the same `DefCtx`, while still allowing
-      // cases where the `test()` target is created exactly one time, or even
-      // zero-or-one times (since that's ok, as long as it's not more than once)
-
-      'neg - {
-        'nakedTest - {
-          compileError("test()")
-          ()
-        }
-        'notFunctionCall - {
-          compileError("T{ 123 }")
-          ()
-        }
-        'functionCallWithoutImplicit - {
-          compileError("T{ println() }")
-          ()
-        }
-        // Make sure the snippets without `test()`s compile, but the same snippets
-        // *with* the `test()` calls do not (presumably due to the `@compileTimeOnly`
-        // annotation)
-        //
-        // For some reason, `if(false)` isn't good enough because scalac constant
-        // folds the conditional, eliminates the entire code block, and makes any
-        // `@compileTimeOnly`s annotations disappear...
-
-
-        'canEvaluateMoreThanOnce - {
-          if (math.random() > 10) T{ Seq(1, 2).map(_ => ???); test() }
-          compileError("T{ Seq(1, 2).map(_ => test()); test() }")
-
-          if (math.random() > 10) T{ class Foo{ ??? }; test() }
-          compileError("T{ class Foo{ test() }; test() }")
-
-          if (math.random() > 10) T{ test({while(true){ }; ???}) }
-          compileError("T{ test({while(true){ test() }; ???}) }")
-
-          if (math.random() > 10) T{ do{ } while(true); test() }
-          compileError("T{ do{ test() } while(true); test() }")
-
-          if (math.random() > 10) T{ def foo() = ???; test() }
-          compileError("T{ def foo() = test(); test() }")
-
-          if (math.random() > 10) T{ None.getOrElse(???); test() }
-          if (math.random() > 10) T{ None.contains(test()); test() }
-          compileError("T{ None.getOrElse(test()); test() }")
-
-          ()
-        }
-      }
-      'pos - {
-        T{ test({val x = test(); x}) }
-        T{ test({lazy val x = test(); x}) }
-        T { object foo {val x = test()}; test(foo.x) }
-        T{ test({val x = if (math.random() > 0.5) test() else test(); x}) }
-
-        ()
-      }
     }
 
 
@@ -142,15 +82,19 @@ object GraphTests extends TestSuite{
                                target: Target.Test,
                                expected: OSet[(OSet[Target.Test], Int)]) = {
 
+        val mapping: Map[Target[_], Seq[String]] = {
+          implicitly[Discovered[T]].apply(base).map(_.swap).toMap
+        }
         val grouped = Evaluator.groupAroundNamedTargets(
-          Evaluator.topoSortedTransitiveTargets(OSet(target))
+          Evaluator.topoSortedTransitiveTargets(OSet(target)),
+          mapping
         )
         TestUtil.checkTopological(grouped.flatMap(_.items))
         for(((expectedPresent, expectedSize), i) <- expected.items.zipWithIndex){
           val grouping = grouped.items(i)
           assert(
             grouping.size == expectedSize,
-            expectedPresent.forall(grouping.contains)
+            grouping.filter(mapping.contains) == expectedPresent
           )
         }
       }
