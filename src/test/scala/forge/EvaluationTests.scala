@@ -19,11 +19,17 @@ object EvaluationTests extends TestSuite{
           workspace,
           implicitly[Discovered[T]].apply(base).map(_.swap).toMap
         )
-        def apply(target: Target[_], expValue: Any, expEvaled: OSet[Target[_]]) = {
+        def apply(target: Target[_], expValue: Any,
+                  expEvaled: OSet[Target[_]],
+                  extraEvaled: Int = 0) = {
           val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))
+
+          val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
+
           assert(
             returnedValues == Seq(expValue),
-            returnedEvaluated == expEvaled
+            matchingReturnedEvaled.toSet == expEvaled.toSet,
+            extra.length == extraEvaled
           )
           // Second time the value is already cached, so no evaluation needed
           val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(OSet(target))
@@ -111,11 +117,26 @@ object EvaluationTests extends TestSuite{
         right.counter += 1
         check(down, expValue = 5, expEvaled = OSet(left, right, down))
       }
+
+      'bigSingleTerminal - {
+        import bigSingleTerminal._
+        val check = new Checker(bigSingleTerminal)
+
+        check(j, expValue = 0, expEvaled = OSet(a, b, e, f, i, j), extraEvaled = 22)
+
+        j.counter += 1
+        check(j, expValue = 1, expEvaled = OSet(j), extraEvaled = 3)
+
+        i.counter += 1
+        // increment value by 2 because `i` is used twice on the way to `j`
+        check(j, expValue = 3, expEvaled = OSet(j, i), extraEvaled = 8)
+
+        b.counter += 1
+        // increment value by 4 because `b` is used four times on the way to `j`
+        check(j, expValue = 7, expEvaled = OSet(b, e, f, i, j), extraEvaled = 20)
+      }
     }
 
 
-    'full - {
-
-    }
   }
 }
