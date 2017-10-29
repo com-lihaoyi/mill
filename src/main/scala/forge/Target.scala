@@ -1,7 +1,7 @@
 package forge
 
 
-import ammonite.ops.mkdir
+import ammonite.ops.{ls, mkdir}
 import play.api.libs.json.{Format, JsValue, Json}
 abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
   /**
@@ -18,7 +18,7 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
     * Even if this target's inputs did not change, does it need to re-evaluate
     * anyway?
     */
-  def dirty: Boolean = false
+  def externalHash: Int = 0
 
 }
 
@@ -52,12 +52,10 @@ object Target{
   class Test(val inputs: Seq[Target[Int]],
              val pure: Boolean) extends Target[Int]{
     var counter = 0
-    var lastCounter = counter
     def evaluate(args: Args) = {
-      lastCounter = counter
       counter + args.args.map(_.asInstanceOf[Int]).sum
     }
-    override def dirty = lastCounter != counter
+    override def externalHash = counter
   }
   def traverse[T: Format](source: Seq[Target[T]]) = {
     new Traverse[T](source)
@@ -83,6 +81,7 @@ object Target{
   class Path(path: ammonite.ops.Path) extends Target[ammonite.ops.Path]{
     def evaluate(args: Args) = path
     val inputs = Nil
+    override def externalHash = ls.rec(path).map(x => (x.toString, x.mtime)).hashCode()
   }
   class Subprocess(val inputs: Seq[Target[_]],
                    command: Args => Seq[String]) extends Target[Subprocess.Result] {

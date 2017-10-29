@@ -31,7 +31,8 @@ class Evaluator(workspacePath: Path,
   def evaluateGroupCached(group: OSet[Target[_]],
                           results: collection.Map[Target[_], Any]) = {
 
-    val (inputsHash, terminals) = partitionGroupInputOutput(group, results)
+    val (inputsHash0, terminals) = partitionGroupInputOutput(group, results)
+    val inputsHash = inputsHash0 + group.toIterator.map(_.externalHash).sum
     val primeLabel = labeling(terminals.items(0))
 
     val targetDestPath = workspacePath / primeLabel
@@ -40,7 +41,7 @@ class Evaluator(workspacePath: Path,
     val cached = for{
       json <- util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
       (hash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
-      if hash == inputsHash && !group.exists(_.dirty)
+      if hash == inputsHash
     } yield (hash, terminalResults)
 
     cached match{
@@ -59,7 +60,7 @@ class Evaluator(workspacePath: Path,
 
         write.over(
           metadataPath,
-          Json.prettyPrint(Json.toJson((inputsHash, terminalResults))).getBytes(Codec.UTF8.charSet),
+          Json.prettyPrint(Json.toJson((inputsHash , terminalResults))).getBytes(Codec.UTF8.charSet),
         )
 
         (newResults, newEvaluated)
