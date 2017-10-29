@@ -22,6 +22,7 @@ class Evaluator(workspacePath: Path,
 
     for (groupIndex <- sortedGroups.keys()){
       val group = sortedGroups.lookupKey(groupIndex)
+
       val (newResults, newEvaluated) = evaluateGroupCached(
         group,
         results,
@@ -57,7 +58,6 @@ class Evaluator(workspacePath: Path,
       (cachedHash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
       if cachedHash == inputsHash
     } yield terminalResults
-
 
     cached match{
       case Some(terminalResults) =>

@@ -1,11 +1,9 @@
 package forge
 
 import java.io.FileOutputStream
-import java.nio.file.attribute.FileTime
-import java.time.Instant
 import java.util.jar.JarEntry
 
-import ammonite.ops.{Path, ls, pwd, read}
+import ammonite.ops.{Path, cp, ls, mkdir, pwd, read}
 import forge.util.{Args, OSet, PathRef}
 import utest._
 
@@ -23,6 +21,7 @@ object IntegrationTests extends TestSuite{
   def list(root: Target[PathRef]): Target[Seq[PathRef]] = {
     root.map(x => ls.rec(x.path).map(PathRef(_)))
   }
+
   case class jarUp(roots: Target[PathRef]*) extends Target[PathRef]{
 
     val inputs = roots
@@ -43,14 +42,19 @@ object IntegrationTests extends TestSuite{
       output.close()
       PathRef(args.dest)
     }
-
-
   }
+
   val tests = Tests{
-    'javac{
-      object Build{
-        val sourceRootPath = pwd / 'src / 'test / 'examples / 'javac / 'src
-        val resourceRootPath = pwd / 'src / 'test / 'examples / 'javac / 'resources
+    'javac {
+      val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac
+      val javacDestPath = pwd / 'target / 'workspace / 'javac / 'src
+
+      mkdir(pwd / 'target / 'workspace / 'javac)
+      cp(javacSrcPath, javacDestPath)
+
+      object Build {
+        val sourceRootPath =  javacDestPath / 'src
+        val resourceRootPath = javacDestPath / 'resources
         val sourceRoot = Target.path(sourceRootPath)
         val resourceRoot = Target.path(resourceRootPath)
         val allSources = list(sourceRoot)
@@ -63,48 +67,53 @@ object IntegrationTests extends TestSuite{
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
         val evaluator = new Evaluator(pwd / 'target / 'workspace / 'javac, mapping)
         val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
-        pprint.log(evaluated.map(mapping))
         assert(evaluated == expected)
       }
 
-      def touch(path: Path) = {
-        java.nio.file.Files.setLastModifiedTime(path.toNIO, FileTime.from(Instant.now()))
-      }
+      def append(path: Path, txt: String) = ammonite.ops.write.append(path, txt)
+
 
       check(
         targets = OSet(jar),
         expected = OSet(resourceRoot, sourceRoot, allSources, classFiles, jar)
       )
 
+      // Re-running with no changes results in nothing being evaluated
       check(targets = OSet(jar), expected = OSet())
 
-      touch(Build.resourceRootPath / "hello.txt")
-
-      check(
-        targets = OSet(jar),
-        expected = OSet(resourceRoot, jar)
-      )
-
+      // Appending an empty string gets ignored due to file-content hashing
+      append(sourceRootPath / "Foo.java", "")
       check(targets = OSet(jar), expected = OSet())
 
-      touch(Build.sourceRootPath / "Foo.java")
+      // Appending whitespace forces a recompile, but the classfilesend up
+      // exactly the same so no re-jarring.
+      append(sourceRootPath / "Foo.java", " ")
+      check(targets = OSet(jar), expected = OSet(sourceRoot, allSources, classFiles))
 
-      check(
-        targets = OSet(jar),
-        expected = OSet(sourceRoot, allSources, classFiles)
-      )
+      // Appending a new class changes the classfiles, which forces us to
+      // re-create the final jar
+      append(sourceRootPath / "Foo.java", "\nclass FooTwo{}")
+      check(targets = OSet(jar), expected = OSet(sourceRoot, allSources, classFiles, jar))
 
-      touch(Build.sourceRootPath / "Bar.java")
-      touch(Build.resourceRootPath / "hello.txt")
+      // Tweaking the resources forces rebuild of the final jar, without
+      // recompiling classfiles
+      append(resourceRootPath / "hello.txt", " ")
+      check(targets = OSet(jar), expected = OSet(resourceRoot, jar))
 
-      check(
-        targets = OSet(classFiles),
-        expected = OSet(sourceRoot, allSources, classFiles)
-      )
-      check(
-        targets = OSet(jar),
-        expected = OSet(resourceRoot, jar)
-      )
+      // Asking for an intermediate target forces things to be build up to that
+      // target only; these are re-used for any downstream targets requested
+      append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
+      append(resourceRootPath / "hello.txt", " ")
+      check(targets = OSet(classFiles), expected = OSet(sourceRoot, allSources, classFiles))
+      check(targets = OSet(jar), expected = OSet(resourceRoot, jar))
+      check(targets = OSet(allSources), expected = OSet())
+
+      append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
+      append(resourceRootPath / "hello.txt", " ")
+      check(targets = OSet(resourceRoot), expected = OSet(resourceRoot))
+      check(targets = OSet(allSources), expected = OSet(sourceRoot, allSources))
+      check(targets = OSet(jar), expected = OSet(classFiles, jar))
+
     }
   }
 }

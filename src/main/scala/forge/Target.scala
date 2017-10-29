@@ -81,7 +81,7 @@ object Target{
 
   def path(path: ammonite.ops.Path) = new Path(path)
   class Path(path: ammonite.ops.Path) extends Target[PathRef]{
-    val handle = PathRef(path)
+    def handle = PathRef(path)
     def evaluate(args: Args) = handle
     override def sideHash = handle.hashCode()
     val inputs = Nil
