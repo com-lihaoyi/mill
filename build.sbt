@@ -48,3 +48,12 @@ sourceGenerators in Compile += Def.task {
   IO.write(file, output)
   Seq(file)
 }
+
+test in assembly := {}
+
+assemblyOption in assembly := (assemblyOption in assembly).value.copy(
+  prependShellScript = Some(
+    // G1 Garbage Collector is awesome https://github.com/lihaoyi/Ammonite/issues/216
+    Seq("#!/usr/bin/env sh", """exec java -jar -Xmx500m -XX:+UseG1GC $JAVA_OPTS "$0" "$@"""")
+  )
+)
