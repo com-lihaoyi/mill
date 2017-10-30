@@ -36,10 +36,6 @@ object Target{
     def zip[V: Format](other: Target[V]) = {
       new Target.Zipped(this, other)
     }
-    def ~[V: Format, R: Format](other: Target[V])
-               (implicit s: Implicits.Sequencer[T, V, R]): Target[R] = {
-      this.zip(other).map(s.apply _ tupled)
-    }
   }
   def test(inputs: Target[Int]*) = {
     new Test(inputs, pure = inputs.nonEmpty)
