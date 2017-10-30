@@ -3,7 +3,7 @@ package forge
 import java.io.FileOutputStream
 import java.util.jar.JarEntry
 
-import ammonite.ops.{Path, cp, ls, mkdir, pwd, read}
+import ammonite.ops._
 import forge.util.{Args, OSet, PathRef}
 import utest._
 
@@ -46,8 +46,9 @@ object IntegrationTests extends TestSuite{
 
   val tests = Tests{
     'javac {
+      val workspacePath = pwd / 'target / 'workspace / 'javac
       val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac
-      val javacDestPath = pwd / 'target / 'workspace / 'javac / 'src
+      val javacDestPath = workspacePath / 'src
 
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
@@ -70,7 +71,7 @@ object IntegrationTests extends TestSuite{
       val mapping = Discovered.mapping(Build)
 
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
-        val evaluator = new Evaluator(pwd / 'target / 'workspace / 'javac, mapping)
+        val evaluator = new Evaluator(workspacePath, mapping)
         val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
         assert(evaluated == expected)
       }
@@ -119,6 +120,19 @@ object IntegrationTests extends TestSuite{
       check(targets = OSet(allSources), expected = OSet(sourceRoot, allSources))
       check(targets = OSet(jar), expected = OSet(classFiles, jar))
 
+      val jarContents = %%('jar, "-tf", workspacePath/'jar)(workspacePath).out.string
+      val expectedJarContents =
+        """hello.txt
+          |test/Bar.class
+          |test/BarThree.class
+          |test/BarTwo.class
+          |test/Foo.class
+          |test/FooTwo.class
+          |""".stripMargin
+      assert(jarContents == expectedJarContents)
+
+      val executed = %%('java, "-cp", workspacePath/'jar, "test.Foo")(workspacePath).out.string
+      assert(executed == (31337 + 271828) + "\n")
     }
   }
 }
