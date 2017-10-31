@@ -24,37 +24,25 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
 }
 
 object Target{
+  class Target0[T: Format](t: T) extends Target[T]{
+    val inputs = Nil
+    def evaluate(args: Args)  = t
+  }
+  implicit def apply[T: Format](t: T): Target[T] = new Target0(t)
   abstract class Ops[T](implicit val formatter: Format[T]){ this: Target[T] =>
     def evaluateAndWrite(args: Args): (T, JsValue) = {
       val res = evaluate(args)
       val str = formatter.writes(res)
       (res, str)
     }
-    def map[V: Format](f: T => V) = {
-      new Target.Mapped(this, f)
-    }
-    def zip[V: Format](other: Target[V]) = {
-      new Target.Zipped(this, other)
-    }
-  }
-  def test(inputs: Target[Int]*) = {
-    new Test(inputs, pure = inputs.nonEmpty)
+    def map[V: Format](f: T => V) = new Target.Mapped(this, f)
+
+    def filter(f: T => Boolean) = this
+    def withFilter(f: T => Boolean) = this
+    def zip[V: Format](other: Target[V]) = new Target.Zipped(this, other)
+
   }
 
-  /**
-    * A dummy target that takes any number of inputs, and whose output can be
-    * controlled externally, so you can construct arbitrary dataflow graphs and
-    * test how changes propagate.
-    */
-  class Test(val inputs: Seq[Target[Int]],
-             val pure: Boolean) extends Target[Int]{
-    var counter = 0
-    def evaluate(args: Args) = {
-      counter + args.args.map(_.asInstanceOf[Int]).sum
-    }
-
-    override def sideHash = counter
-  }
   def traverse[T: Format](source: Seq[Target[T]]) = {
     new Traverse[T](source)
   }

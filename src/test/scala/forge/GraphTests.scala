@@ -1,7 +1,7 @@
 package forge
 
 import utest._
-import Target.test
+import TestUtil.test
 import forge.util.OSet
 
 object GraphTests extends TestSuite{
@@ -79,8 +79,8 @@ object GraphTests extends TestSuite{
 
     'groupAroundNamedTargets - {
       def check[T: Discovered](base: T,
-                               target: Target.Test,
-                               expected: OSet[(OSet[Target.Test], Int)]) = {
+                               target: TestUtil.Test,
+                               expected: OSet[(OSet[TestUtil.Test], Int)]) = {
 
         val mapping = Discovered.mapping(base)
         val topoSortedTransitive = Evaluator.topoSortedTransitiveTargets(OSet(target))

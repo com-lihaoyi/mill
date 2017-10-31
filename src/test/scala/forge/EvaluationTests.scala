@@ -78,7 +78,7 @@ object EvaluationTests extends TestSuite{
         up.counter += 1
         check(down, expValue = 2, expEvaled = OSet(up, middle, down))
 
-        middle.asInstanceOf[Target.Test].counter += 1
+        middle.asInstanceOf[TestUtil.Test].counter += 1
 
         check(down, expValue = 3, expEvaled = OSet(middle, down))
       }
@@ -103,8 +103,8 @@ object EvaluationTests extends TestSuite{
       'anonDiamond - {
         import anonDiamond._
         val check = new Checker(anonDiamond)
-        val left = down.inputs(0).asInstanceOf[Target.Test]
-        val right = down.inputs(1).asInstanceOf[Target.Test]
+        val left = down.inputs(0).asInstanceOf[TestUtil.Test]
+        val right = down.inputs(1).asInstanceOf[TestUtil.Test]
         check(down, expValue = 0, expEvaled = OSet(up, left, right, down))
 
         down.counter += 1

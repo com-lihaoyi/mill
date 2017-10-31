@@ -1,7 +1,7 @@
 package forge
 
-import scala.language.experimental.macros
-import scala.reflect.macros.blackbox.Context
+import language.experimental.macros
+import reflect.macros.blackbox.Context
 
 class Discovered[T](val value: Seq[(Seq[String], T => Target[_])]){
   def apply(t: T) = value.map{case (a, b) => (a, b(t)) }

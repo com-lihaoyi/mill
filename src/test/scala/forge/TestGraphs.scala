@@ -1,6 +1,6 @@
 package forge
 
-import forge.Target.test
+import forge.TestUtil.test
 
 class TestGraphs(){
   // single
