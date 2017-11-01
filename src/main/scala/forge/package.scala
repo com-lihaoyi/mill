@@ -1,9 +1,22 @@
 import play.api.libs.json._
-
 import ammonite.ops.{Bytes, Path}
-
+import forge.util.Args
+import forge.{Target => T}
 package object forge {
 
+  def zip[A, B](a: T[A], b: T[B]) = a.zip(b)
+  def zip[A, B, C](a: T[A], b: T[B], c: T[C]) = new Target[(A, B, C)]{
+    val inputs = Seq(a, b, c)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2))
+  }
+  def zip[A, B, C, D](a: T[A], b: T[B], c: T[C], d: T[D]) = new Target[(A, B, C, D)]{
+    val inputs = Seq(a, b, c, d)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3))
+  }
+  def zip[A, B, C, D, E](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E]) = new Target[(A, B, C, D, E)]{
+    val inputs = Seq(a, b, c, d, e)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
+  }
   implicit object pathFormat extends Format[ammonite.ops.Path]{
     def reads(json: JsValue) = json match{
       case JsString(v) => JsSuccess(Path(v))
