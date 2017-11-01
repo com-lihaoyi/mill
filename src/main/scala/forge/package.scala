@@ -1,5 +1,6 @@
 import play.api.libs.json._
 import ammonite.ops.{Bytes, Path}
+import coursier.Dependency
 import forge.util.Args
 package object forge {
 
@@ -56,6 +57,35 @@ package object forge {
 
   implicit val crFormat: Format[ammonite.ops.CommandResult] = Json.format
   implicit val modFormat: Format[coursier.Module] = Json.format
-  implicit val depFormat: Format[coursier.Dependency] = Json.format
+  // https://github.com/playframework/play-json/issues/120
+  // implicit val depFormat: Format[coursier.Dependency] = Json.format
+  implicit val depFormat: Format[coursier.Dependency] =  new Format[coursier.Dependency] {
+    def writes(o: Dependency) = {
+      Json.obj(
+        "module" -> Json.toJson(o.module),
+        "version" -> Json.toJson(o.version),
+        "configuration" -> Json.toJson(o.configuration),
+        "exclusions" -> Json.toJson(o.exclusions),
+        "attributes" -> Json.toJson(o.attributes),
+        "optional" -> Json.toJson(o.optional),
+        "transitive" -> Json.toJson(o.transitive)
+      )
+    }
+
+    def reads(json: JsValue) = json match{
+      case x: JsObject =>
+        JsSuccess(coursier.Dependency(
+          Json.fromJson[coursier.Module](x.value("module")).get,
+          Json.fromJson[String](x.value("version")).get,
+          Json.fromJson[String](x.value("configuration")).get,
+          Json.fromJson[coursier.Attributes](x.value("attributes")).get,
+          Json.fromJson[Set[(String, String)]](x.value("exclusions")).get,
+          Json.fromJson[Boolean](x.value("optional")).get,
+          Json.fromJson[Boolean](x.value("transitive")).get
+        ))
+
+      case _ => JsError("Dep must be an object")
+    }
+  }
   implicit val attrFormat: Format[coursier.Attributes] = Json.format
 }

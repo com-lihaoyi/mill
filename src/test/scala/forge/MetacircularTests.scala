@@ -9,10 +9,9 @@ object MetacircularTests extends TestSuite{
   object Self extends scalaplugin.Subproject {
     val scalaVersion = T{ "2.12.4" }
     override val compileDeps = T{
-//      for(scalaVersion <- scalaVersion) yield Seq(
-//        Dep(Mod("org.scala-lang", "scala-reflect"), scalaVersion, configuration = "provided"),
-//      )
-      Seq(Dep(Mod("org.scala-lang", "scala-reflect"), "2.12.4"))
+      for(scalaVersion <- scalaVersion) yield Seq(
+        Dep(Mod("org.scala-lang", "scala-reflect"), scalaVersion, configuration = "provided"),
+      )
     }
 
     override val deps = T{
@@ -37,6 +36,8 @@ object MetacircularTests extends TestSuite{
       val evaluated1 = evaluator.evaluate(OSet(Self.scalaVersion)).evaluated.collect(mapping)
       val evaluated2 = evaluator.evaluate(OSet(Self.scalaBinaryVersion)).evaluated.collect(mapping)
       val evaluated3 = evaluator.evaluate(OSet(Self.compileDeps)).evaluated.collect(mapping)
+      val evaluated4 = evaluator.evaluate(OSet(Self.deps)).evaluated.collect(mapping)
+//      val evaluated5 = evaluator.evaluate(OSet(Self.compiled)).evaluated.collect(mapping)
       evaluated3
     }
   }
