@@ -65,8 +65,8 @@ object Target{
   }
   class Zipped[T, V](source1: Target[T],
                                      source2: Target[V]) extends Target[(T, V)]{
-    def evaluate(args: Args) = (args(0), args(0))
-    val inputs = List(source1, source1)
+    def evaluate(args: Args) = (args(0), args(1))
+    val inputs = List(source1, source2)
   }
 
   def path(path: ammonite.ops.Path) = new Path(path)

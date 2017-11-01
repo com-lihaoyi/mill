@@ -33,12 +33,12 @@ object MetacircularTests extends TestSuite{
       val workspacePath = pwd / 'target / 'workspace / 'meta
       val mapping = Discovered.mapping(Self)
       val evaluator = new Evaluator(workspacePath, mapping)
-      val evaluated1 = evaluator.evaluate(OSet(Self.scalaVersion)).evaluated.collect(mapping)
-      val evaluated2 = evaluator.evaluate(OSet(Self.scalaBinaryVersion)).evaluated.collect(mapping)
-      val evaluated3 = evaluator.evaluate(OSet(Self.compileDeps)).evaluated.collect(mapping)
-      val evaluated4 = evaluator.evaluate(OSet(Self.deps)).evaluated.collect(mapping)
-//      val evaluated5 = evaluator.evaluate(OSet(Self.compiled)).evaluated.collect(mapping)
-      evaluated3
+//      val evaluated1 = evaluator.evaluate(OSet(Self.scalaVersion)).evaluated.collect(mapping)
+//      val evaluated2 = evaluator.evaluate(OSet(Self.scalaBinaryVersion)).evaluated.collect(mapping)
+//      val evaluated3 = evaluator.evaluate(OSet(Self.compileDeps)).evaluated.collect(mapping)
+//      val evaluated4 = evaluator.evaluate(OSet(Self.deps)).evaluated.collect(mapping)
+      val evaluated5 = evaluator.evaluate(OSet(Self.compiled)).evaluated.collect(mapping)
+//      evaluated3
     }
   }
 }

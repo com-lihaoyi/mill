@@ -22,7 +22,13 @@ object Subproject{
     for((scalaVersion, sources, compileClasspath, outputPath) <- zip(scalaVersion, sources, compileClasspath, outputPath))
     yield {
       val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
-      def grepJar(s: String) = compileClasspath.find(_.toString.endsWith(s)).get.path.toIO
+      def grepJar(s: String) = {
+        compileClasspath
+          .find(_.path.toString.endsWith(s))
+          .getOrElse(throw new Exception("Cannot find " + s))
+          .path
+          .toIO
+      }
       val scalac = ZincUtil.scalaCompiler(
         new ScalaInstance(
           version = scalaVersion,
@@ -35,19 +41,18 @@ object Subproject{
         grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.3.jar")
       )
 
-      val outputDir = pwd/'target/'zinc
-      mkdir(outputDir)
+      mkdir(outputPath)
 
 
       scalac.apply(
-        sources = ls.rec(sources.path).map(_.toIO).toArray,
+        sources = ls.rec(sources.path).filter(_.isFile).map(_.toIO).toArray,
         changes = new DependencyChanges {
           def isEmpty = true
           def modifiedBinaries() = Array[File]()
           def modifiedClasses() = Array[String]()
         },
         classpath = compileClasspath.map(_.path.toIO).toArray,
-        singleOutput = outputDir.toIO,
+        singleOutput = outputPath.toIO,
         options = Array(),
         callback = new xsbti.AnalysisCallback {
           def startSource(source: File) = ()
@@ -111,15 +116,18 @@ abstract class Subproject {
   val compileDepClasspath: T[Seq[PathRef]] = T(
     resolveDependencies(
       repositories,
-      for((scalaVersion, compileDeps) <- zip(scalaVersion, compileDeps))
-      yield compileDeps :+ Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion)
+      for((scalaVersion, scalaBinaryVersion, compileDeps, deps) <- zip(scalaVersion, scalaBinaryVersion, compileDeps, deps))
+      yield deps ++ compileDeps ++ Seq(
+        Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion),
+        Dependency(Module("org.scala-sbt", s"compiler-bridge_$scalaBinaryVersion"), "1.0.3")
+      )
     )
   )
   val runDepClasspath: T[Seq[PathRef]] = T(
     resolveDependencies(
       repositories,
-      for((scalaVersion, runDeps) <- zip(scalaVersion, runDeps))
-      yield runDeps ++ Seq(
+      for((scalaVersion, runDeps, deps) <- zip(scalaVersion, runDeps, deps))
+      yield deps ++ runDeps ++ Seq(
         Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
       )
     )
