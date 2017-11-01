@@ -4,6 +4,8 @@ package forge
 import ammonite.ops.{ls, mkdir}
 import forge.util.{Args, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
+
+import scala.annotation.compileTimeOnly
 abstract class Target[T] extends Target.Ops[T]{
   /**
     * What other Targets does this Target depend on?
@@ -21,14 +23,23 @@ abstract class Target[T] extends Target.Ops[T]{
     */
   def sideHash: Int = 0
 
+  @compileTimeOnly("Target#apply() can only be used with a T{...} block")
+  def apply(): T = ???
 }
 
 object Target{
   class Target0[T](t: T) extends Target[T]{
+    lazy val t0 = t
     val inputs = Nil
-    def evaluate(args: Args)  = t
+    def evaluate(args: Args)  = t0
   }
-  implicit def apply[T](t: T): Target[T] = new Target0(t)
+  class Target1[T](t: => Target[T]) extends Target[T]{
+    lazy val t0 = t
+    val inputs = t0.inputs
+    def evaluate(args: Args)  = t0.evaluate(args)
+  }
+  implicit def toTarget[T](t: T): Target[T] = new Target0(t)
+  implicit def apply[T](t: => Target[T]): Target[T] = new Target1(t)
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
 
@@ -73,6 +84,7 @@ object Target{
       mkdir(args.dest)
       import ammonite.ops._
       implicit val path = ammonite.ops.Path(args.dest, pwd)
+      val toTarget = () // Shadow the implicit conversion :/
       val output = %%(command(args))
       assert(output.exitCode == 0)
       Subprocess.Result(output, PathRef(args.dest))

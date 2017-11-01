@@ -54,7 +54,7 @@ object IntegrationTests extends TestSuite{
       cp(javacSrcPath, javacDestPath)
 
       object Build {
-        val sourceRootPath =  javacDestPath / 'src
+        val sourceRootPath = javacDestPath / 'src
         val resourceRootPath = javacDestPath / 'resources
 
         // sourceRoot -> allSources -> classFiles

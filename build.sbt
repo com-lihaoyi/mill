@@ -12,7 +12,6 @@ parallelExecution in Test := false
 
 libraryDependencies ++= Seq(
   "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
-  "org.scala-lang" % "scala-compiler" % scalaVersion.value % "provided",
   "com.lihaoyi" %% "sourcecode" % "0.1.4",
   "com.lihaoyi" %% "pprint" % "0.5.3",
   "com.lihaoyi" % "ammonite" % "1.0.3" cross CrossVersion.full,

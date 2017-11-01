@@ -5,7 +5,6 @@ import java.io.File
 
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
-import forge.scalaplugin.Compile.getClass
 import forge.{Target => T}
 import forge.util.PathRef
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
@@ -98,37 +97,42 @@ import Subproject._
 abstract class Subproject {
   val scalaVersion: T[String]
 
-  val compileDeps: T[Seq[coursier.Dependency]]
-  val runDeps: T[Seq[coursier.Dependency]]
+  val scalaBinaryVersion = T{ scalaVersion.map(_.split('.').dropRight(1).mkString(".")) }
+  val deps = T{ Seq[coursier.Dependency]() }
+  val compileDeps = T{ Seq[coursier.Dependency]() }
+  val runDeps = T{ Seq[coursier.Dependency]() }
   val basePath: T[Path]
 
-  val repositories: T[Seq[Repository]] = T(
-    Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
+  val repositories: Seq[Repository] = Seq(
+    Cache.ivy2Local,
+    MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  val compileDepClasspath: T[Seq[PathRef]] = resolveDependencies(
-    repositories,
-    for((scalaVersion, compileDeps) <- zip(scalaVersion, compileDeps))
-    yield compileDeps :+ Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion)
+  val compileDepClasspath: T[Seq[PathRef]] = T(
+    resolveDependencies(
+      repositories,
+      for((scalaVersion, compileDeps) <- zip(scalaVersion, compileDeps))
+      yield compileDeps :+ Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion)
+    )
   )
-  val runDepClasspath: T[Seq[PathRef]] = resolveDependencies(
-    repositories,
-    for((scalaVersion, runDeps) <- zip(scalaVersion, runDeps))
-    yield runDeps ++ Seq(
-      Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
+  val runDepClasspath: T[Seq[PathRef]] = T(
+    resolveDependencies(
+      repositories,
+      for((scalaVersion, runDeps) <- zip(scalaVersion, runDeps))
+      yield runDeps ++ Seq(
+        Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
+      )
     )
   )
 
-  val sources: T[PathRef] = basePath.map(p => PathRef(p / 'src))
-  val outputPath: T[Path] = basePath.map(p => p / 'out)
-  val resources: T[PathRef] = basePath.map(p => PathRef(p / 'resources))
-  val compiledPath: T[Path] = outputPath.map(p => p / 'classpath)
-  val compiled: T[PathRef] = compileScala(
-    scalaVersion,
-    sources,
-    compileDepClasspath,
-    outputPath
-  )
-  val classpath: T[Seq[PathRef]] = for((r, c) <- resources.zip(compiled)) yield Seq(r, c)
-  val jar: T[PathRef] = createJar(classpath)
+  val sources = T{ basePath.map(p => PathRef(p / 'src)) }
+  val outputPath = T{ basePath.map(p => p / 'out) }
+  val resources = T{ basePath.map(p => PathRef(p / 'resources)) }
+  val compiledPath = T{ outputPath.map(p => p / 'classpath) }
+  val compiled = T{
+    compileScala(scalaVersion, sources, compileDepClasspath, outputPath)
+  }
+
+  val classpath = T{ for((r, c) <- resources.zip(compiled)) yield Seq(r, c) }
+  val jar = T{ createJar(classpath) }
 }

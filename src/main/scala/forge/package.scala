@@ -1,9 +1,10 @@
 import play.api.libs.json._
 import ammonite.ops.{Bytes, Path}
 import forge.util.Args
-import forge.{Target => T}
 package object forge {
 
+  val T = Target
+  type T[T] = Target[T]
   def zip[A, B](a: T[A], b: T[B]) = a.zip(b)
   def zip[A, B, C](a: T[A], b: T[B], c: T[C]) = new Target[(A, B, C)]{
     val inputs = Seq(a, b, c)
@@ -54,5 +55,7 @@ package object forge {
   }
 
   implicit val crFormat: Format[ammonite.ops.CommandResult] = Json.format
-
+  implicit val depFormat: Format[coursier.Dependency] = Json.format
+  implicit val modFormat: Format[coursier.Module] = Json.format
+  implicit val attrFormat: Format[coursier.Attributes] = Json.format
 }
