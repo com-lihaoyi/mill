@@ -35,7 +35,7 @@ object Target{
   }
   class Target1[T](t: => Target[T]) extends Target[T]{
     lazy val t0 = t
-    val inputs = t0.inputs
+    lazy val inputs = t0.inputs
     def evaluate(args: Args)  = t0.evaluate(args)
   }
   implicit def toTarget[T](t: T): Target[T] = new Target0(t)

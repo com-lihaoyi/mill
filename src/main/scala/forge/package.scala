@@ -55,7 +55,7 @@ package object forge {
   }
 
   implicit val crFormat: Format[ammonite.ops.CommandResult] = Json.format
-  implicit val depFormat: Format[coursier.Dependency] = Json.format
   implicit val modFormat: Format[coursier.Module] = Json.format
+  implicit val depFormat: Format[coursier.Dependency] = Json.format
   implicit val attrFormat: Format[coursier.Attributes] = Json.format
 }

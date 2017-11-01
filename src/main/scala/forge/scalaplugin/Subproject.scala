@@ -134,5 +134,5 @@ abstract class Subproject {
   }
 
   val classpath = T{ for((r, c) <- resources.zip(compiled)) yield Seq(r, c) }
-  val jar = T{ createJar(classpath) }
+//  val jar = T{ createJar(classpath) }
 }
