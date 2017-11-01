@@ -18,7 +18,8 @@ object EvaluationTests extends TestSuite{
         // Make sure data is persisted even if we re-create the evaluator each time
         def evaluator = new Evaluator(
           workspace,
-          implicitly[Discovered[T]].apply(base).map(_.swap).toMap
+
+          Discovered.mapping(base)
         )
         def apply(target: Target[_], expValue: Any,
                   expEvaled: OSet[Target[_]],

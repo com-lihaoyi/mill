@@ -1,13 +1,13 @@
 package forge
 
 
-import play.api.libs.json.{JsValue, Json}
+import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.collection.mutable
 import ammonite.ops._
-import forge.util.{Args, MultiBiMap, OSet}
+import forge.util.{Args, Labelled, MultiBiMap, OSet}
 class Evaluator(workspacePath: Path,
-                labeling: Map[Target[_], Seq[String]]){
+                labeling: Map[Target[_], Labelled[_]]){
 
   def evaluate(targets: OSet[Target[_]]): Evaluator.Results = {
     mkdir(workspacePath)
@@ -47,7 +47,7 @@ class Evaluator(workspacePath: Path,
       externalInputs.toIterator.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
-    val primeLabel = labeling(terminals.items(0))
+    val primeLabel = labeling(terminals.items(0)).segments
 
 
     val targetDestPath = workspacePath / primeLabel
@@ -63,7 +63,7 @@ class Evaluator(workspacePath: Path,
       case Some(terminalResults) =>
         val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
         for((terminal, res) <- terminals.items.zip(terminalResults)){
-          newResults(terminal) = terminal.formatter.reads(res).get
+          newResults(terminal) = labeling(terminal).format.reads(res).get
         }
         (newResults, Nil)
 
@@ -103,16 +103,16 @@ class Evaluator(workspacePath: Path,
       val targetInputValues = target.inputs.toVector.map(x =>
         newResults.getOrElse(x, results(x))
       )
-      if (!labeling.contains(target)) {
-        newResults(target) = target.evaluate(new Args(targetInputValues, targetDestPath))
-      } else {
-        val (res, serialized) = target.evaluateAndWrite(
-          new Args(targetInputValues, targetDestPath)
-        )
-        terminalResults(target) = serialized
 
-        newResults(target) = res
+      val args = new Args(targetInputValues, targetDestPath)
+      val res = target.evaluate(args)
+      for(targetLabel <- labeling.get(target)){
+        terminalResults(target) = targetLabel
+          .format
+          .asInstanceOf[Format[Any]]
+          .writes(res.asInstanceOf[Any])
       }
+      newResults(target) = res
     }
 
     (newResults, newEvaluated, terminalResults)
@@ -125,7 +125,7 @@ object Evaluator{
   class TopoSorted private[Evaluator] (val values: OSet[Target[_]])
   case class Results(values: Seq[Any], evaluated: OSet[Target[_]])
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
-                              labeling: Map[Target[_], Seq[String]]): MultiBiMap[Int, Target[_]] = {
+                              labeling: Map[Target[_], Labelled[_]]): MultiBiMap[Int, Target[_]] = {
 
     val grouping = new MultiBiMap.Mutable[Int, Target[_]]()
 

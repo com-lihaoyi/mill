@@ -4,7 +4,7 @@ package forge
 import ammonite.ops.{ls, mkdir}
 import forge.util.{Args, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
-abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
+abstract class Target[T] extends Target.Ops[T]{
   /**
     * What other Targets does this Target depend on?
     */
@@ -24,40 +24,35 @@ abstract class Target[T](implicit formatter: Format[T]) extends Target.Ops[T]{
 }
 
 object Target{
-  class Target0[T: Format](t: T) extends Target[T]{
+  class Target0[T](t: T) extends Target[T]{
     val inputs = Nil
     def evaluate(args: Args)  = t
   }
-  implicit def apply[T: Format](t: T): Target[T] = new Target0(t)
-  abstract class Ops[T](implicit val formatter: Format[T]){ this: Target[T] =>
-    def evaluateAndWrite(args: Args): (T, JsValue) = {
-      val res = evaluate(args)
-      val str = formatter.writes(res)
-      (res, str)
-    }
-    def map[V: Format](f: T => V) = new Target.Mapped(this, f)
+  implicit def apply[T](t: T): Target[T] = new Target0(t)
+  abstract class Ops[T]{ this: Target[T] =>
+    def map[V](f: T => V) = new Target.Mapped(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
-    def zip[V: Format](other: Target[V]) = new Target.Zipped(this, other)
+    def zip[V](other: Target[V]) = new Target.Zipped(this, other)
 
   }
 
-  def traverse[T: Format](source: Seq[Target[T]]) = {
+  def traverse[T](source: Seq[Target[T]]) = {
     new Traverse[T](source)
   }
-  class Traverse[T: Format](val inputs: Seq[Target[T]]) extends Target[Seq[T]]{
+  class Traverse[T](val inputs: Seq[Target[T]]) extends Target[Seq[T]]{
     def evaluate(args: Args) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]
     }
 
   }
-  class Mapped[T, V: Format](source: Target[T], f: T => V) extends Target[V]{
+  class Mapped[T, V](source: Target[T], f: T => V) extends Target[V]{
     def evaluate(args: Args) = f(args(0))
     val inputs = List(source)
   }
-  class Zipped[T: Format, V: Format](source1: Target[T],
+  class Zipped[T, V](source1: Target[T],
                                      source2: Target[V]) extends Target[(T, V)]{
     def evaluate(args: Args) = (args(0), args(0))
     val inputs = List(source1, source1)

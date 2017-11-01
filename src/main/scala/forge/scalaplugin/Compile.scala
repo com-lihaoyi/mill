@@ -16,6 +16,8 @@ object Compile {
 
   def apply(scalaVersion: Target[String],
             dependencies: Target[OSet[Dependency]]) = {
+    for((s, d) <- scalaVersion.zip(dependencies))
+    yield underlying(s, d)
 
   }
   def underlying(scalaVersion: String,

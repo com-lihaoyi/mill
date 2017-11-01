@@ -1,15 +1,25 @@
 package forge
 
+import forge.util.Labelled
+import play.api.libs.json.Format
+
 import language.experimental.macros
 import reflect.macros.blackbox.Context
 
-class Discovered[T](val value: Seq[(Seq[String], T => Target[_])]){
-  def apply(t: T) = value.map{case (a, b) => (a, b(t)) }
+class Discovered[T](val value: Seq[(Seq[String], Format[_], T => Target[_])]){
+  def apply(t: T) = value.map{case (a, f, b) => (a, f, b(t)) }
 
 }
 object Discovered {
-  def mapping[T: Discovered](t: T): Map[Target[_], Seq[String]] = {
-    implicitly[Discovered[T]].apply(t).map(_.swap).toMap
+  def makeTuple[T, V](path: Seq[String], func: T => Target[V])(implicit f: Format[V]) = {
+    (path, f, func)
+  }
+
+
+  def mapping[T: Discovered](t: T): Map[Target[_], Labelled[_]] = {
+    implicitly[Discovered[T]].apply(t)
+      .map(x => x._3 -> Labelled(x._3, x._2.asInstanceOf[Format[Any]], x._1))
+      .toMap
   }
 
   implicit def apply[T]: Discovered[T] = macro applyImpl[T]
@@ -38,7 +48,8 @@ object Discovered {
       val ident = segments.foldLeft[Tree](base)((prefix, name) =>
         q"$prefix.${TermName(name)}"
       )
-      q"($segments, ($base: $tpe) => $ident)"
+
+      q"forge.Discovered.makeTuple($segments, ($base: $tpe) => $ident)"
     }
 
     c.Expr[Discovered[T]](q"new _root_.forge.Discovered($result)")

@@ -28,7 +28,7 @@ object GraphTests extends TestSuite{
         val classInstance = new CanNest
 
       }
-      val discovered = Discovered[outer.type].apply(outer)
+      val discovered = Discovered[outer.type].apply(outer).map(x => (x._1, x._3))
       val expected = Seq(
         (List("classInstance", "single"), outer.classInstance.single),
         (List("nested", "single"), outer.nested.single),
@@ -149,8 +149,7 @@ object GraphTests extends TestSuite{
       def check[T: Discovered](base: T, t: Target[_], relPath: Option[String]) = {
 
 
-        val names: Seq[(Target[_], Seq[String])] =
-          implicitly[Discovered[T]].apply(base).map(_.swap)
+        val names: Seq[(Target[_], Seq[String])] = Discovered.mapping(base).mapValues(_.segments).toSeq
         val nameMap = names.toMap
 
         val targetLabel = nameMap.get(t).map(_.mkString("."))
