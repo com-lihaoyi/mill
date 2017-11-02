@@ -47,39 +47,33 @@ object Target{
   def raw[T](t: T): Target[T] = macro impl[T]
   def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
-    val bound = collection.mutable.Buffer.empty[(c.Tree, c.TermName)]
-
-    object transformer extends c.universe.Transformer{
-      override def transform(tree: c.Tree): c.Tree = tree match{
-        case q"$fun.apply()" if fun.tpe <:< weakTypeOf[Target[_]] =>
-          val newTerm = TermName(c.freshName())
-          bound.append((fun, newTerm))
-          val ident = Ident(newTerm)
-          ident
+    val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
+    val OptionGet = c.universe.typeOf[Target[_]].member(TermName("apply"))
+    object transformer extends c.universe.Transformer {
+      // Derived from @olafurpg's
+      // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
+      override def transform(tree: c.Tree): c.Tree = tree match {
+        case t @ q"$fun.apply()" if t.symbol == OptionGet =>
+          val tempName = c.freshName(TermName("tmp"))
+          val tempSym = c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
+          c.internal.setInfo(tempSym, t.tpe)
+          val tempIdent = Ident(tempSym)
+          c.internal.setType(tempIdent, t.tpe)
+          bound.append((fun, tempSym))
+          tempIdent
         case _ => super.transform(tree)
       }
     }
-
     val transformed = transformer.transform(t.tree)
-    val (exprs, names) = bound.unzip
-    val embedded = bound.length match{
-      case 0 => transformed
-      case 1 => q"zip(..$exprs).map{ case ${names(0)} => $transformed }"
-      case n =>
+    val (exprs, symbols) = bound.unzip
 
-        // For some reason, pq"(..$names)" doesn't work...
-        val pq = n match{
-          case 2 => pq"(${names(0)}, ${names(1)})"
-          case 3 => pq"(${names(0)}, ${names(1)}, ${names(2)})"
-          case 4 => pq"(${names(0)}, ${names(1)}, ${names(2)}, ${names(3)})"
-          case 5 => pq"(${names(0)}, ${names(1)}, ${names(2)}, ${names(3)}, ${names(4)})"
-        }
-        q"zip(..$exprs).map{ case $pq => $transformed }"
-    }
+    val bindings = symbols.map(c.internal.valDef(_))
 
+    val embedded = q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }"
 
-    c.Expr[Target[T]](c.untypecheck(embedded))
+    c.Expr[Target[T]](embedded)
   }
+
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
 
