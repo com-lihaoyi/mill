@@ -6,6 +6,7 @@ package object forge {
 
   val T = Target
   type T[T] = Target[T]
+  def zip[A](a: T[A]) = a
   def zip[A, B](a: T[A], b: T[B]) = a.zip(b)
   def zip[A, B, C](a: T[A], b: T[B], c: T[C]) = new Target[(A, B, C)]{
     val inputs = Seq(a, b, c)

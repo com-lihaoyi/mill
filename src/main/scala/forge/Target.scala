@@ -6,6 +6,10 @@ import forge.util.{Args, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.annotation.compileTimeOnly
+import language.experimental.macros
+import reflect.macros.blackbox.Context
+import scala.collection.mutable
+
 abstract class Target[T] extends Target.Ops[T]{
   /**
     * What other Targets does this Target depend on?
@@ -40,6 +44,42 @@ object Target{
   }
   implicit def toTarget[T](t: T): Target[T] = new Target0(t)
   implicit def apply[T](t: => Target[T]): Target[T] = new Target1(t)
+  def raw[T](t: T): Target[T] = macro impl[T]
+  def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+    import c.universe._
+    val bound = collection.mutable.Buffer.empty[(c.Tree, c.TermName)]
+
+    object transformer extends c.universe.Transformer{
+      override def transform(tree: c.Tree): c.Tree = tree match{
+        case q"$fun.apply()" if fun.tpe <:< weakTypeOf[Target[_]] =>
+          val newTerm = TermName(c.freshName())
+          bound.append((fun, newTerm))
+          val ident = Ident(newTerm)
+          ident
+        case _ => super.transform(tree)
+      }
+    }
+
+    val transformed = transformer.transform(t.tree)
+    val (exprs, names) = bound.unzip
+    val embedded = bound.length match{
+      case 0 => transformed
+      case 1 => q"zip(..$exprs).map{ case ${names(0)} => $transformed }"
+      case n =>
+
+        // For some reason, pq"(..$names)" doesn't work...
+        val pq = n match{
+          case 2 => pq"(${names(0)}, ${names(1)})"
+          case 3 => pq"(${names(0)}, ${names(1)}, ${names(2)})"
+          case 4 => pq"(${names(0)}, ${names(1)}, ${names(2)}, ${names(3)})"
+          case 5 => pq"(${names(0)}, ${names(1)}, ${names(2)}, ${names(3)}, ${names(4)})"
+        }
+        q"zip(..$exprs).map{ case $pq => $transformed }"
+    }
+
+
+    c.Expr[Target[T]](c.untypecheck(embedded))
+  }
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
 
