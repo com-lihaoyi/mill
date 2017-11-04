@@ -7,7 +7,7 @@ import ammonite.ops._
 import forge.util.{Args, OSet, PathRef}
 import utest._
 
-object IntegrationTests extends TestSuite{
+object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: Target[Seq[PathRef]])  = {
     new Target.Subprocess(
       Seq(sources),
@@ -18,9 +18,6 @@ object IntegrationTests extends TestSuite{
     ).map(_.dest)
   }
 
-  def list(root: Target[PathRef]): Target[Seq[PathRef]] = {
-    root.map(x => ls.rec(x.path).map(PathRef(_)))
-  }
 
   case class jarUp(roots: Target[PathRef]*) extends Target[PathRef]{
 
@@ -63,7 +60,9 @@ object IntegrationTests extends TestSuite{
         //           resourceRoot ---->  jar
         val sourceRoot = Target.path(sourceRootPath)
         val resourceRoot = Target.path(resourceRootPath)
-        val allSources = list(sourceRoot)
+        val allSources = T{
+          ls.rec(sourceRoot().path).map(PathRef(_))
+        }
         val classFiles = compileAll(allSources)
         val jar = jarUp(resourceRoot, classFiles)
       }
