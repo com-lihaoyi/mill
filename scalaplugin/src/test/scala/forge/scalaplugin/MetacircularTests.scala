@@ -36,7 +36,7 @@ object MetacircularTests extends TestSuite{
 
     override def depClasspath = T{ Seq(Core.compiled()) }
     override def ivyDeps = T{ Core.ivyDeps }
-    val basePath = T{ pwd / 'scalaplugin }
+    def basePath = T{ pwd / 'scalaplugin }
     override def sources = T{ PathRef(pwd/'scalaplugin/'src/'main/'scala) }
     override def resources = T{ sources }
   }

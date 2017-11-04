@@ -2,7 +2,7 @@ package forge
 
 
 import ammonite.ops.{ls, mkdir}
-import forge.util.{Args, LocalDef, PathRef}
+import forge.util.{Args, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.annotation.compileTimeOnly
@@ -34,10 +34,8 @@ abstract class Target[T] extends Target.Ops[T]{
 object Target{
   trait Cacher{
     private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
-    protected[this] def T[T](t: T)
-                            (implicit l: LocalDef): Target[T] = macro localDefImpl[T]
-    protected[this] def T[T](t: => Target[T])
-                            (implicit c: sourcecode.Enclosing, l: LocalDef): Target[T] = {
+    protected[this] def cachedTarget[T](t: => Target[T])
+                                      (implicit c: sourcecode.Enclosing): Target[T] = {
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
     }
   }
@@ -46,15 +44,12 @@ object Target{
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  def apply[T](t: Target[T]): Target[T] = t
+  def apply[T](t: Target[T]): Target[T] = macro impl0[T]
   def apply[T](t: T): Target[T] = macro impl[T]
-  def localDefImpl[T: c.WeakTypeTag](c: Context)
-                                    (t: c.Expr[T])
-                                    (l: c.Expr[LocalDef]): c.Expr[Target[T]] = {
-    impl(c)(t)
+  def impl0[T: c.WeakTypeTag](c: Context)(t: c.Expr[Target[T]]): c.Expr[Target[T]] = {
+    wrapCached(c)(t.tree)
   }
-  def impl[T: c.WeakTypeTag](c: Context)
-                            (t: c.Expr[T]): c.Expr[Target[T]] = {
+  def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
     val OptionGet = c.universe.typeOf[Target[_]].member(TermName("apply"))
@@ -78,14 +73,25 @@ object Target{
 
     val bindings = symbols.map(c.internal.valDef(_))
 
-    val newTargetTree = q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }"
+    wrapCached(c)(q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }")
+  }
+  def wrapCached[T](c: Context)(t: c.Tree) = {
+    import c.universe._
+    val owner = c.internal.enclosingOwner
+    val ownerIsCacherClass = owner.owner.asClass.baseClasses.exists(_.fullName == "forge.Target.Cacher")
 
-    val embedded =
-      if (!(c.prefix.tree.tpe <:< typeOf[Cacher])) newTargetTree
-      else q"${c.prefix}.T($newTargetTree)"
+    if (ownerIsCacherClass && !owner.isMethod){
+      c.abort(
+        c.enclosingPosition,
+        "T{} members defined in a Cacher class/trait/object body must be defs"
+      )
+    }else{
+      val embedded =
+        if (!ownerIsCacherClass) t
+        else q"this.cachedTarget($t)"
 
-
-    c.Expr[Target[T]](embedded)
+      c.Expr[Target[T]](embedded)
+    }
   }
 
   abstract class Ops[T]{ this: Target[T] =>
