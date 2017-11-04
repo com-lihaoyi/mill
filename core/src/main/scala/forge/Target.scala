@@ -42,7 +42,7 @@ object Target{
     lazy val inputs = t0.inputs
     def evaluate(args: Args)  = t0.evaluate(args)
   }
-  implicit def apply[T](t: => Target[T]): Target[T] = new Target1(t)
+  def apply[T](t: => Target[T]): Target[T] = new Target1(t)
   def apply[T](t: T): Target[T] = macro impl[T]
   def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
