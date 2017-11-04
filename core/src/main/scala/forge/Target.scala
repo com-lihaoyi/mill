@@ -33,9 +33,9 @@ abstract class Target[T] extends Target.Ops[T]{
 
 object Target{
   trait Cacher{
-    val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
-    def T[T](t: T): Target[T] = macro impl[T]
-    def T[T](t: => Target[T])(implicit c: sourcecode.Enclosing): Target[T] = {
+    private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
+    protected[this] def T[T](t: T): Target[T] = macro impl[T]
+    protected[this] def T[T](t: => Target[T])(implicit c: sourcecode.Enclosing): Target[T] = {
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
     }
   }
