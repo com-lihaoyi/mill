@@ -6,13 +6,13 @@ package object forge {
 
   val T = Target
   type T[T] = Target[T]
-  def zipMap[R]()(f: () => R) = T(f())
+  def zipMap[R]()(f: () => R) = new Target.Target0(f())
   def zipMap[A, R](a: T[A])(f: A => R) = a.map(f)
   def zipMap[A, B, R](a: T[A], b: T[B])(f: (A, B) => R) = zip(a, b).map(f.tupled)
   def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])(f: (A, B, C) => R) = zip(a, b, c).map(f.tupled)
   def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])(f: (A, B, C, D) => R) = zip(a, b, c, d).map(f.tupled)
   def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])(f: (A, B, C, D, E) => R) = zip(a, b, c, d, e).map(f.tupled)
-  def zip() = T(())
+  def zip() =  new Target.Target0(())
   def zip[A](a: T[A]) = a.map(Tuple1(_))
   def zip[A, B](a: T[A], b: T[B]) = a.zip(b)
   def zip[A, B, C](a: T[A], b: T[B], c: T[C]) = new T[(A, B, C)]{

@@ -84,28 +84,26 @@ object Subproject{
     }
   }
   def createJar(sourceDirs: T[Seq[PathRef]]) = ???
-  def resolveDependencies(repositories: T[Seq[Repository]],
-                          deps: T[Seq[coursier.Dependency]]): T[Seq[PathRef]] = {
-    for((repositories, deps) <- zip(repositories, deps)) yield {
-      val start = Resolution(deps.toSet)
-      val fetch = Fetch.from(repositories, Cache.fetch())
-      val resolution = start.process.run(fetch).unsafePerformSync
-      val localArtifacts: Seq[File] = Task.gatherUnordered(
-        resolution.artifacts.map(Cache.file(_).run)
-      ).unsafePerformSync.flatMap(_.toOption)
+  def resolveDependencies(repositories: Seq[Repository],
+                          deps: Seq[coursier.Dependency]): Seq[PathRef] = {
+    val start = Resolution(deps.toSet)
+    val fetch = Fetch.from(repositories, Cache.fetch())
+    val resolution = start.process.run(fetch).unsafePerformSync
+    val localArtifacts: Seq[File] = Task.gatherUnordered(
+      resolution.artifacts.map(Cache.file(_).run)
+    ).unsafePerformSync.flatMap(_.toOption)
 
-      localArtifacts.map(p => PathRef(Path(p)))
-    }
+    localArtifacts.map(p => PathRef(Path(p)))
   }
 }
 import Subproject._
 abstract class Subproject {
   val scalaVersion: T[String]
 
-  val scalaBinaryVersion = T{ scalaVersion.map(_.split('.').dropRight(1).mkString(".")) }
-  val deps = T{ Seq[coursier.Dependency]() }
-  val compileDeps = T{ Seq[coursier.Dependency]() }
-  val runDeps = T{ Seq[coursier.Dependency]() }
+  val scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
+  val ivyDeps = T{ Seq[coursier.Dependency]() }
+  val compileIvyDeps = T{ Seq[coursier.Dependency]() }
+  val runIvyDeps = T{ Seq[coursier.Dependency]() }
   val basePath: T[Path]
 
   val repositories: Seq[Repository] = Seq(
@@ -113,34 +111,33 @@ abstract class Subproject {
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  val compileDepClasspath: T[Seq[PathRef]] = T(
-    resolveDependencies(
+  val depClasspath = T{ Seq.empty[PathRef] }
+  val compileDepClasspath = T[Seq[PathRef]] {
+    depClasspath() ++ resolveDependencies(
       repositories,
-      for((scalaVersion, scalaBinaryVersion, compileDeps, deps) <- zip(scalaVersion, scalaBinaryVersion, compileDeps, deps))
-      yield deps ++ compileDeps ++ Seq(
-        Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion),
-        Dependency(Module("org.scala-sbt", s"compiler-bridge_$scalaBinaryVersion"), "1.0.3")
+      ivyDeps() ++ compileIvyDeps() ++ Seq(
+        Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion()),
+        Dependency(Module("org.scala-sbt", s"compiler-bridge_${scalaBinaryVersion()}"), "1.0.3")
       )
     )
-  )
-  val runDepClasspath: T[Seq[PathRef]] = T(
-    resolveDependencies(
+  }
+  val runDepClasspath =  T[Seq[PathRef]] {
+    depClasspath() ++ resolveDependencies(
       repositories,
-      for((scalaVersion, runDeps, deps) <- zip(scalaVersion, runDeps, deps))
-      yield deps ++ runDeps ++ Seq(
-        Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
+      ivyDeps() ++ runIvyDeps() ++ Seq(
+        Dependency(Module("org.scala-lang", "scala-library"), scalaVersion())
       )
     )
-  )
+  }
 
-  val sources = T{ basePath.map(p => PathRef(p / 'src)) }
-  val outputPath = T{ basePath.map(p => p / 'out) }
-  val resources = T{ basePath.map(p => PathRef(p / 'resources)) }
-  val compiledPath = T{ outputPath.map(p => p / 'classpath) }
+  val sources = T{ PathRef(basePath() / 'src) }
+  val outputPath = T{ basePath() / 'out }
+  val resources = T{ PathRef(basePath() / 'resources) }
+  val compiledPath = T{ outputPath() / 'classpath }
   val compiled = T{
     compileScala(scalaVersion, sources, compileDepClasspath, outputPath)
   }
 
-  val classpath = T{ for((r, c) <- resources.zip(compiled)) yield Seq(r, c) }
+  val classpath = T{ Seq(resources(), compiled()) }
 //  val jar = T{ createJar(classpath) }
 }

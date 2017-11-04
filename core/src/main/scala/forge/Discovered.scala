@@ -18,7 +18,7 @@ object Discovered {
 
   def mapping[T: Discovered](t: T): Map[Target[_], Labelled[_]] = {
     implicitly[Discovered[T]].apply(t)
-      .map(x => x._3 -> Labelled(x._3, x._2.asInstanceOf[Format[Any]], x._1))
+      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Target[Any]], x._2.asInstanceOf[Format[Any]], x._1))
       .toMap
   }
 

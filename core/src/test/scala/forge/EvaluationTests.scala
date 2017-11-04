@@ -59,11 +59,9 @@ object EvaluationTests extends TestSuite{
         val check = new Checker(pair)
         check(down, expValue = 0, expEvaled = OSet(up, down))
 
-        println("=" * 20 + "incrementing down.counter" + "=" * 20)
         down.counter += 1
         check(down, expValue = 1, expEvaled = OSet(down))
 
-        println("=" * 20 + "incrementing up.counter" + "=" * 20)
         up.counter += 1
         check(down, expValue = 2, expEvaled = OSet(up, down))
       }

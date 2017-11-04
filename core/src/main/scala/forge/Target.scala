@@ -42,9 +42,8 @@ object Target{
     lazy val inputs = t0.inputs
     def evaluate(args: Args)  = t0.evaluate(args)
   }
-  implicit def toTarget[T](t: T): Target[T] = new Target0(t)
   implicit def apply[T](t: => Target[T]): Target[T] = new Target1(t)
-  def raw[T](t: T): Target[T] = macro impl[T]
+  def apply[T](t: T): Target[T] = macro impl[T]
   def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
@@ -69,7 +68,7 @@ object Target{
 
     val bindings = symbols.map(c.internal.valDef(_))
 
-    val embedded = q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }"
+    val embedded = q"new forge.Target.Target1(forge.zipMap(..$exprs){ (..$bindings) => $transformed })"
 
     c.Expr[Target[T]](embedded)
   }

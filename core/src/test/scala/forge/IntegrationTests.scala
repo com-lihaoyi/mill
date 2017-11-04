@@ -47,7 +47,7 @@ object IntegrationTests extends TestSuite{
   val tests = Tests{
     'javac {
       val workspacePath = pwd / 'target / 'workspace / 'javac
-      val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac
+      val javacSrcPath = pwd / 'core / 'src / 'test / 'examples / 'javac
       val javacDestPath = workspacePath / 'src
 
       mkdir(pwd / 'target / 'workspace / 'javac)
