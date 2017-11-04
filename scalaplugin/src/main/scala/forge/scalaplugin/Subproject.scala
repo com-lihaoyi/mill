@@ -7,6 +7,7 @@ import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
 import forge.{Target => T}
 import forge.util.PathRef
+import play.api.libs.json._
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
@@ -85,23 +86,59 @@ object Subproject{
   }
   def createJar(sourceDirs: T[Seq[PathRef]]) = ???
   def resolveDependencies(repositories: Seq[Repository],
-                          deps: Seq[coursier.Dependency]): Seq[PathRef] = {
-    val start = Resolution(deps.toSet)
+                          scalaVersion: String,
+                          scalaBinaryVersion: String,
+                          deps: Seq[ScalaDep]): Seq[PathRef] = {
+    val flattened = deps.map{
+      case ScalaDep.Java(dep) => dep
+      case ScalaDep.Scala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
+      case ScalaDep.PointScala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
+    }.toSet
+    val start = Resolution(flattened)
+
     val fetch = Fetch.from(repositories, Cache.fetch())
     val resolution = start.process.run(fetch).unsafePerformSync
-    val localArtifacts: Seq[File] = Task.gatherUnordered(
-      resolution.artifacts.map(Cache.file(_).run)
-    ).unsafePerformSync.flatMap(_.toOption)
+    val localArtifacts: Seq[File] = Task
+      .gatherUnordered(resolution.artifacts.map(Cache.file(_).run))
+      .unsafePerformSync
+      .flatMap(_.toOption)
 
     localArtifacts.map(p => PathRef(Path(p)))
   }
-  def scalaCompilerIvyDeps(scalaVersion: String, scalaBinaryVersion: String) = Seq(
+  def scalaCompilerIvyDeps(scalaVersion: String) = Seq[ScalaDep](
     Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion),
-    Dependency(Module("org.scala-sbt", s"compiler-bridge_$scalaBinaryVersion"), "1.0.3")
+    ScalaDep.Scala(Dependency(Module("org.scala-sbt", s"compiler-bridge"), "1.0.3"))
   )
-  def scalaRuntimeIvyDeps(scalaVersion: String) = Seq(
+  def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[ScalaDep](
     Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
   )
+  sealed trait ScalaDep
+  object ScalaDep{
+    case class Java(dep: coursier.Dependency) extends ScalaDep
+    implicit def default(dep: coursier.Dependency): ScalaDep = new Java(dep)
+    case class Scala(dep: coursier.Dependency) extends ScalaDep
+    case class PointScala(dep: coursier.Dependency) extends ScalaDep
+    implicit def formatter: Format[ScalaDep] = new Format[ScalaDep]{
+      def writes(o: ScalaDep) = o match{
+        case Java(dep) => Json.obj("Java" -> Json.toJson(dep))
+        case Scala(dep) => Json.obj("Scala" -> Json.toJson(dep))
+        case PointScala(dep) => Json.obj("PointScala" -> Json.toJson(dep))
+      }
+
+      def reads(json: JsValue) = json match{
+        case obj: JsObject =>
+          obj.fields match{
+            case Seq(("Java", dep)) => Json.fromJson[coursier.Dependency](dep).map(Java)
+            case Seq(("Scala", dep)) => Json.fromJson[coursier.Dependency](dep).map(Scala)
+            case Seq(("PointScala", dep)) => Json.fromJson[coursier.Dependency](dep).map(PointScala)
+            case _ => JsError("Invalid JSON object to parse ScalaDep")
+          }
+
+
+        case _ => JsError("Expected JSON object to parse ScalaDep")
+      }
+    }
+  }
 }
 import Subproject._
 
@@ -109,9 +146,9 @@ abstract class Subproject {
   val scalaVersion: T[String]
 
   val scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
-  val ivyDeps = T{ Seq[coursier.Dependency]() }
-  val compileIvyDeps = T{ Seq[coursier.Dependency]() }
-  val runIvyDeps = T{ Seq[coursier.Dependency]() }
+  val ivyDeps = T{ Seq[ScalaDep]() }
+  val compileIvyDeps = T{ Seq[ScalaDep]() }
+  val runIvyDeps = T{ Seq[ScalaDep]() }
   val basePath: T[Path]
 
   val repositories: Seq[Repository] = Seq(
@@ -123,13 +160,17 @@ abstract class Subproject {
   val compileDepClasspath = T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
-      ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion(), scalaBinaryVersion())
+      scalaVersion(),
+      scalaBinaryVersion(),
+      ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
     )
   }
 
   val runDepClasspath =  T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
+      scalaVersion(),
+      scalaBinaryVersion(),
       ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
     )
   }
