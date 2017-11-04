@@ -46,5 +46,15 @@ object CacherTests extends TestSuite{
       eval(Terminal, Terminal.value) == 7,
       eval(Terminal, Terminal.overriden) == 1
     )
+    'errors{
+      val expectedMsg =
+        "T{} can only be used directly within a zero-arg method defined in a class body"
+
+      val err1 = compileError("object Foo extends Target.Cacher{ val x = T{1} }")
+      assert(err1.msg == expectedMsg)
+
+      val err2 = compileError("object Foo extends Target.Cacher{ def x = {def y = T{1}} }")
+      assert(err2.msg == expectedMsg)
+    }
   }
 }

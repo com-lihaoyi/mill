@@ -100,3 +100,4 @@ class TestGraphs(){
     val j = test(test(i), test(i, f), test(f))
   }
 }
+

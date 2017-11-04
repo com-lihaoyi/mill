@@ -2,7 +2,7 @@ package forge
 
 
 import ammonite.ops.{ls, mkdir}
-import forge.util.{Args, PathRef}
+import forge.util.{Args, LocalDef, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.annotation.compileTimeOnly
@@ -34,8 +34,10 @@ abstract class Target[T] extends Target.Ops[T]{
 object Target{
   trait Cacher{
     private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
-    protected[this] def T[T](t: T): Target[T] = macro impl[T]
-    protected[this] def T[T](t: => Target[T])(implicit c: sourcecode.Enclosing): Target[T] = {
+    protected[this] def T[T](t: T)
+                            (implicit l: LocalDef): Target[T] = macro localDefImpl[T]
+    protected[this] def T[T](t: => Target[T])
+                            (implicit c: sourcecode.Enclosing, l: LocalDef): Target[T] = {
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
     }
   }
@@ -46,7 +48,13 @@ object Target{
   }
   def apply[T](t: Target[T]): Target[T] = t
   def apply[T](t: T): Target[T] = macro impl[T]
-  def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+  def localDefImpl[T: c.WeakTypeTag](c: Context)
+                                    (t: c.Expr[T])
+                                    (l: c.Expr[LocalDef]): c.Expr[Target[T]] = {
+    impl(c)(t)
+  }
+  def impl[T: c.WeakTypeTag](c: Context)
+                            (t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
     val OptionGet = c.universe.typeOf[Target[_]].member(TermName("apply"))
