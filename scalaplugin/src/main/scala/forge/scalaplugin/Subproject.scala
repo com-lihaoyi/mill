@@ -95,8 +95,16 @@ object Subproject{
 
     localArtifacts.map(p => PathRef(Path(p)))
   }
+  def scalaCompilerIvyDeps(scalaVersion: String, scalaBinaryVersion: String) = Seq(
+    Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion),
+    Dependency(Module("org.scala-sbt", s"compiler-bridge_$scalaBinaryVersion"), "1.0.3")
+  )
+  def scalaRuntimeIvyDeps(scalaVersion: String) = Seq(
+    Dependency(Module("org.scala-lang", "scala-library"), scalaVersion)
+  )
 }
 import Subproject._
+
 abstract class Subproject {
   val scalaVersion: T[String]
 
@@ -115,18 +123,14 @@ abstract class Subproject {
   val compileDepClasspath = T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
-      ivyDeps() ++ compileIvyDeps() ++ Seq(
-        Dependency(Module("org.scala-lang", "scala-compiler"), scalaVersion()),
-        Dependency(Module("org.scala-sbt", s"compiler-bridge_${scalaBinaryVersion()}"), "1.0.3")
-      )
+      ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion(), scalaBinaryVersion())
     )
   }
+
   val runDepClasspath =  T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
-      ivyDeps() ++ runIvyDeps() ++ Seq(
-        Dependency(Module("org.scala-lang", "scala-library"), scalaVersion())
-      )
+      ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
     )
   }
 
