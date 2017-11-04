@@ -105,6 +105,7 @@ class Evaluator(workspacePath: Path,
       )
 
       val args = new Args(targetInputValues, targetDestPath)
+
       val res = target.evaluate(args)
       for(targetLabel <- labeling.get(target)){
         terminalResults(target) = targetLabel

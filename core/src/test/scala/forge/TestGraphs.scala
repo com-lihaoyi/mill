@@ -1,5 +1,6 @@
 package forge
 
+import forge.Target.Cacher
 import forge.TestUtil.test
 
 class TestGraphs(){
@@ -40,6 +41,34 @@ class TestGraphs(){
   object anonDiamond{
     val up = test()
     val down = test(test(up), test(up))
+  }
+
+  object defCachedDiamond extends Cacher{
+    def up = T{ test() }
+    def left = T{ test(up) }
+    def right = T{ test(up) }
+    def down = T{ test(left, right) }
+  }
+
+  object borkedCachedDiamond1 {
+    def up = T{ test() }
+    def left = T{ test(up) }
+    def right = T{ test(up) }
+    def down = T{ test(left, right) }
+  }
+
+  object borkedCachedDiamond2 extends Cacher {
+    def up = test()
+    def left = test(up)
+    def right = test(up)
+    def down = test(left, right)
+  }
+
+  object borkedCachedDiamond3 {
+    def up = test()
+    def left = test(up)
+    def right = test(up)
+    def down = test(left, right)
   }
 
   //          o   g-----o

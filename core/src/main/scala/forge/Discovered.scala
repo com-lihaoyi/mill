@@ -29,7 +29,11 @@ object Discovered {
     val tpe = c.weakTypeTag[T].tpe
     def rec(segments: List[String], t: c.Type): Seq[Seq[String]] = for {
       m <- t.members.toSeq
-      if m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy) || m.isModule
+      if
+        (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
+        m.isModule ||
+        (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Target[_]])
+
       res <- {
         val extendedSegments = m.name.toString :: segments
         val self =

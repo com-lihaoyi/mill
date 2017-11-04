@@ -50,27 +50,26 @@ object JavaCompileJarTests extends TestSuite{
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
 
-      object Build {
-        val sourceRootPath = javacDestPath / 'src
-        val resourceRootPath = javacDestPath / 'resources
+      object Build extends Target.Cacher{
+        def sourceRootPath = javacDestPath / 'src
+        def resourceRootPath = javacDestPath / 'resources
 
         // sourceRoot -> allSources -> classFiles
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        val sourceRoot = Target.path(sourceRootPath)
-        val resourceRoot = Target.path(resourceRootPath)
-        val allSources = T{
-          ls.rec(sourceRoot().path).map(PathRef(_))
-        }
-        val classFiles = compileAll(allSources)
-        val jar = jarUp(resourceRoot, classFiles)
+        def sourceRoot = T{ Target.path(sourceRootPath) }
+        def resourceRoot = T{ Target.path(resourceRootPath) }
+        def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
+        def classFiles = T{ compileAll(allSources) }
+        def jar = T{ jarUp(resourceRoot, classFiles) }
       }
       import Build._
       val mapping = Discovered.mapping(Build)
 
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
+
         val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
         assert(evaluated == expected)
       }
