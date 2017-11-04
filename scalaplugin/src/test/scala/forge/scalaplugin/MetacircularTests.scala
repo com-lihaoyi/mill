@@ -33,17 +33,6 @@ object MetacircularTests extends TestSuite{
   object ScalaPlugin extends Subproject {
     val scalaVersion = T.apply{ "2.12.4" }
 
-    override val ivyDeps = T{
-      Seq(
-        Dep(Mod("com.lihaoyi", "sourcecode_" + scalaBinaryVersion()), "0.1.4"),
-        Dep(Mod("com.lihaoyi", "pprint_" + scalaBinaryVersion()), "0.5.3"),
-        Dep(Mod("com.lihaoyi", "ammonite_" + scalaVersion()), "1.0.3"),
-        Dep(Mod("com.typesafe.play", "play-json_" + scalaBinaryVersion()), "2.6.6"),
-        Dep(Mod("org.scala-sbt", "zinc_" + scalaBinaryVersion()), "1.0.3")
-      )
-    }
-
-
     override val depClasspath = T{ Seq(Core.compiled()) }
     val basePath = T{ pwd / 'scalaplugin }
     override val sources = T{ PathRef(pwd/'scalaplugin/'src/'main/'scala) }
