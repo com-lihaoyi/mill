@@ -31,7 +31,7 @@ object MetacircularTests extends TestSuite{
     override val resources = T{ sources }
   }
   object ScalaPlugin extends Subproject {
-    val scalaVersion = T.apply{ "2.12.4" }
+    val scalaVersion = T{ "2.12.4" }
 
     override val depClasspath = T{ Seq(Core.compiled()) }
     val basePath = T{ pwd / 'scalaplugin }
