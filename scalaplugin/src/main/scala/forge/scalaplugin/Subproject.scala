@@ -5,6 +5,7 @@ import java.io.File
 
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
+import forge.Target.Cacher
 import forge.{Target => T}
 import forge.util.PathRef
 import play.api.libs.json._
@@ -142,22 +143,22 @@ object Subproject{
 }
 import Subproject._
 
-abstract class Subproject {
-  val scalaVersion: T[String]
+abstract class Subproject extends Cacher{
+  def scalaVersion: T[String]
 
-  val scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
-  val ivyDeps = T{ Seq[ScalaDep]() }
-  val compileIvyDeps = T{ Seq[ScalaDep]() }
-  val runIvyDeps = T{ Seq[ScalaDep]() }
-  val basePath: T[Path]
+  def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
+  def ivyDeps = T{ Seq[ScalaDep]() }
+  def compileIvyDeps = T{ Seq[ScalaDep]() }
+  def runIvyDeps = T{ Seq[ScalaDep]() }
+  def basePath: T[Path]
 
   val repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  val depClasspath = T{ Seq.empty[PathRef] }
-  val compileDepClasspath = T[Seq[PathRef]] {
+  def depClasspath = T{ Seq.empty[PathRef] }
+  def compileDepClasspath = T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
       scalaVersion(),
@@ -166,7 +167,7 @@ abstract class Subproject {
     )
   }
 
-  val runDepClasspath =  T[Seq[PathRef]] {
+  def runDepClasspath =  T[Seq[PathRef]] {
     depClasspath() ++ resolveDependencies(
       repositories,
       scalaVersion(),
@@ -175,14 +176,14 @@ abstract class Subproject {
     )
   }
 
-  val sources = T{ PathRef(basePath() / 'src) }
-  val outputPath = T{ basePath() / 'out }
-  val resources = T{ PathRef(basePath() / 'resources) }
-  val compiledPath = T{ outputPath() / 'classpath }
-  val compiled = T{
+  def sources = T{ PathRef(basePath() / 'src) }
+  def outputPath = T{ basePath() / 'out }
+  def resources = T{ PathRef(basePath() / 'resources) }
+  def compiledPath = T{ outputPath() / 'classpath }
+  def compiled = T{
     compileScala(scalaVersion, sources, compileDepClasspath, outputPath)
   }
 
-  val classpath = T{ Seq(resources(), compiled()) }
+  def classpath = T{ Seq(resources(), compiled()) }
 //  val jar = T{ createJar(classpath) }
 }
