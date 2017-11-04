@@ -33,11 +33,10 @@ abstract class Target[T] extends Target.Ops[T]{
 
 object Target{
   trait Cacher{
-    val cacherLazyMap = mutable.Map.empty[(Any, sourcecode.Line, sourcecode.Enclosing), Target[_]]
+    val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
     def T[T](t: T): Target[T] = macro impl[T]
-    def T[T](t: => Target[T])
-            (implicit c: forge.util.Caller, l: sourcecode.Line, e: sourcecode.Enclosing): Target[T] = {
-      cacherLazyMap.getOrElseUpdate((c, l, e), t).asInstanceOf[Target[T]]
+    def T[T](t: => Target[T])(implicit c: sourcecode.Enclosing): Target[T] = {
+      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
     }
   }
   class Target0[T](t: T) extends Target[T]{
@@ -45,12 +44,7 @@ object Target{
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  class Target1[T](t: => Target[T]) extends Target[T]{
-    lazy val t0 = t
-    lazy val inputs = t0.inputs
-    def evaluate(args: Args)  = t0.evaluate(args)
-  }
-  def apply[T](t: => Target[T]): Target[T] = new Target1(t)
+  def apply[T](t: Target[T]): Target[T] = t
   def apply[T](t: T): Target[T] = macro impl[T]
   def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
@@ -76,7 +70,7 @@ object Target{
 
     val bindings = symbols.map(c.internal.valDef(_))
 
-    val newTargetTree = q"new forge.Target.Target1(forge.zipMap(..$exprs){ (..$bindings) => $transformed })"
+    val newTargetTree = q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }"
 
     val embedded =
       if (!(c.prefix.tree.tpe <:< typeOf[Cacher])) newTargetTree
