@@ -6,6 +6,8 @@ import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.file.attribute.BasicFileAttributes
 import java.security.MessageDigest
 import java.nio.{file => jnio}
+
+import ammonite.ops.Path
 import play.api.libs.json.{Format, Json}
 
 
@@ -53,5 +55,6 @@ case class PathRef(path: ammonite.ops.Path){
 }
 
 object PathRef{
+  private implicit val pathFormat: Format[Path] = JsonFormatters.pathFormat
   implicit def jsonFormatter: Format[PathRef] = Json.format
 }

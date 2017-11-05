@@ -1,7 +1,7 @@
 package forge
 
 
-import ammonite.ops.{ls, mkdir}
+import ammonite.ops.{CommandResult, ls, mkdir}
 import forge.util.{Args, PathRef}
 import play.api.libs.json.{Format, JsValue, Json}
 
@@ -166,6 +166,7 @@ object Target{
   object Subprocess{
     case class Result(result: ammonite.ops.CommandResult, dest: PathRef)
     object Result{
+      private implicit val crFormat: Format[CommandResult] = JsonFormatters.crFormat
       implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
     }
   }

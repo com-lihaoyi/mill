@@ -6,7 +6,6 @@ import java.io.File
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
 import forge.Target.Cacher
-import forge.{Target => T}
 import forge.util.PathRef
 import play.api.libs.json._
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
