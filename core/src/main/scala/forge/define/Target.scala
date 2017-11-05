@@ -1,6 +1,7 @@
 package forge.define
 
 import ammonite.ops.{CommandResult, mkdir}
+import forge.define.Applicative.Applyable
 import forge.eval.PathRef
 import forge.util.{Args, JsonFormatters}
 import play.api.libs.json.{Format, Json}
@@ -10,7 +11,7 @@ import scala.collection.mutable
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-abstract class Target[T] extends Target.Ops[T]{
+abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
   /**
     * What other Targets does this Target depend on?
     */
@@ -26,21 +27,18 @@ abstract class Target[T] extends Target.Ops[T]{
     * anyway?
     */
   def sideHash: Int = 0
-
-  @compileTimeOnly("Target#apply() can only be used with a T{...} block")
-  def apply(): T = ???
 }
 
-object Target extends ApplicativeMacros.Zippable[Target]{
+object Target extends Applicative.Applyer[Target]{
 
-  type Cacher = ApplicativeMacros.Cacher[Target[_]]
+  type Cacher = Applicative.Cacher[Target[_]]
   class Target0[T](t: T) extends Target[T]{
     lazy val t0 = t
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  def apply[T](t: Target[T]): Target[T] = macro ApplicativeMacros.impl0[Target, T]
-  def apply[T](t: T): Target[T] = macro ApplicativeMacros.impl[Target, T]
+  def apply[T](t: Target[T]): Target[T] = macro Applicative.impl0[Target, T]
+  def apply[T](t: T): Target[T] = macro Applicative.impl[Target, T]
 
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)

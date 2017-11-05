@@ -2,20 +2,30 @@ package forge.define
 
 import forge.util.Args
 
+import scala.annotation.compileTimeOnly
 import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
-object ApplicativeMacros {
-  trait Zippable[T[_]]{
+object Applicative {
+  trait Applyable[T]{
+    @compileTimeOnly("Target#apply() can only be used with a T{...} block")
+    def apply(): T = ???
+  }
+  trait Applyer[T[_]]{
     def map[A, B](a: T[A], f: A => B): T[B]
     def zipMap[R]()(f: () => R) = map(zip(), (_: Unit) => f())
     def zipMap[A, R](a: T[A])(f: A => R) = map(a, f)
     def zipMap[A, B, R](a: T[A], b: T[B])(f: (A, B) => R) = map(zip(a, b), f.tupled)
-    def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])(f: (A, B, C) => R) = map(zip(a, b, c), f.tupled)
-    def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])(f: (A, B, C, D) => R) = map(zip(a, b, c, d), f.tupled)
-    def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])(f: (A, B, C, D, E) => R) = map(zip(a, b, c, d, e), f.tupled)
-    def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])(cb: (A, B, C, D, E, F) => R) = map(zip(a, b, c, d, e, f), cb.tupled)
-    def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])(cb: (A, B, C, D, E, F, G) => R) = map(zip(a, b, c, d, e, f, g), cb.tupled)
+    def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])
+                          (f: (A, B, C) => R) = map(zip(a, b, c), f.tupled)
+    def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])
+                             (f: (A, B, C, D) => R) = map(zip(a, b, c, d), f.tupled)
+    def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])
+                                (f: (A, B, C, D, E) => R) = map(zip(a, b, c, d, e), f.tupled)
+    def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
+                                   (cb: (A, B, C, D, E, F) => R) = map(zip(a, b, c, d, e, f), cb.tupled)
+    def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
+                                      (cb: (A, B, C, D, E, F, G) => R) = map(zip(a, b, c, d, e, f, g), cb.tupled)
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
     def zip[A, B](a: T[A], b: T[B]): T[(A, B)]
@@ -41,7 +51,7 @@ object ApplicativeMacros {
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
-    val targetApplySym = tt.tpe.member(TermName("apply"))
+    val targetApplySym = typeOf[Applyable[_]].member(TermName("apply"))
 
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
@@ -87,7 +97,7 @@ object ApplicativeMacros {
     val owner = c.internal.enclosingOwner
     val ownerIsCacherClass =
       owner.owner.isClass &&
-        owner.owner.asClass.baseClasses.exists(_.fullName == "forge.define.ApplicativeMacros.Cacher")
+        owner.owner.asClass.baseClasses.exists(_.fullName == "forge.define.Applicative.Cacher")
 
     if (ownerIsCacherClass && !owner.isMethod){
       c.abort(
