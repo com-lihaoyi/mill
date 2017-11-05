@@ -71,15 +71,26 @@ object ApplicativeTests extends TestSuite {
       assert(res == Some("lol hello"))
     }
     'upstreamAlwaysEvaluated - {
-      // Validate the assumption that whether or not control-flow reaches the
-      // Applyable#apply call inside an Opt{...} block, we always evaluate the
-      // LHS of the Applyable#apply because it gets lifted out of any control
-      // flow statements
+      // Whether or not control-flow reaches the Applyable#apply call inside an
+      // Opt{...} block, we always evaluate the LHS of the Applyable#apply
+      // because it gets lifted out of any control flow statements
       val counter = new Counter()
       def up = Opt{ "lol " + counter() }
       val down = Opt{ if ("lol".length > 10) up() else "fail" }
       assert(
         down == Some("fail"),
+        counter.value == 1
+      )
+    }
+    'upstreamEvaluatedOnlyOnce - {
+      // Even if control-flow reaches the Applyable#apply call more than once,
+      // it only gets evaluated once due to its lifting out of the Opt{...} block
+      val counter = new Counter()
+      def up = Opt{ "lol " + counter() }
+      def runTwice[T](t: => T) = (t, t)
+      val down = Opt{ runTwice(up()) }
+      assert(
+        down == Some(("lol 1", "lol 1")),
         counter.value == 1
       )
     }
