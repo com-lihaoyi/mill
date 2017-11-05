@@ -83,6 +83,21 @@ object CacherTests extends TestSuite{
         }""")
         assert(err.msg == expectedMsg)
       }
+      'neg2 - {
+
+        val expectedMsg =
+          "Target#apply() call cannot use `value x` defined within the T{...} block"
+        val err = compileError("""{
+          val a = T{ 1 }
+          val arr = Array(a)
+          val b = {
+            T{
+              arr.map{x => x()}
+            }
+          }
+        }""")
+        assert(err.msg == expectedMsg)
+      }
     }
   }
 }
