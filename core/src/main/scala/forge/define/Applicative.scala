@@ -63,8 +63,8 @@ object Applicative {
       case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
 
         val localDefs = rec(fun).filter(_.isDef).map(_.symbol).toSet
-        val used = rec(t)
-        val banned = used.filter(x => defs(x.symbol) && !localDefs(x.symbol))
+        val banned = rec(t).filter(x => defs(x.symbol) && !localDefs(x.symbol))
+
         if (banned.hasNext){
           val banned0 = banned.next()
           c.abort(
