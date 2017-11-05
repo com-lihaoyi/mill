@@ -116,6 +116,21 @@ object ApplicativeTests extends TestSuite {
       val down = Opt{ Seq(1, 2, 3).map(n => n + up() + up()) }
       assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
+    'appliesEvaluateBeforehand - {
+      // Every Applyable#apply() within a Opt{...} block evaluates before any
+      // other logic within that block, even if they would happen first in the
+      // normal Scala evaluation order
+      val counter = new Counter()
+      def up = Opt{ counter() }
+      val down = Opt{
+        val res = counter()
+        val one = up()
+        val two = up()
+        val three = up()
+        (res, one, two, three)
+      }
+      assert(down == Some((4, 1, 2, 3)))
+    }
   }
 }
 
