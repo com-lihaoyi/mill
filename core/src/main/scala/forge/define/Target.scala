@@ -31,89 +31,16 @@ abstract class Target[T] extends Target.Ops[T]{
   def apply(): T = ???
 }
 
-object Target{
-  trait Cacher{
-    private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
-    protected[this] def cachedTarget[T](t: => Target[T])
-                                      (implicit c: sourcecode.Enclosing): Target[T] = synchronized{
-      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
-    }
-  }
+object Target extends ApplicativeMacros.Zippable[Target]{
+
+  type Cacher = ApplicativeMacros.Cacher[Target[_]]
   class Target0[T](t: T) extends Target[T]{
     lazy val t0 = t
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  def apply[T](t: Target[T]): Target[T] = macro impl0[T]
-  def apply[T](t: T): Target[T] = macro impl[T]
-  def impl0[T: c.WeakTypeTag](c: Context)(t: c.Expr[Target[T]]): c.Expr[Target[T]] = {
-    wrapCached(c)(t.tree)
-  }
-  def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
-    import c.universe._
-    def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
-    val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
-    val targetApplySym = c.universe.typeOf[Target[_]].member(TermName("apply"))
-    // Derived from @olafurpg's
-    // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
-
-    val (startPos, endPos) = rec(t.tree)
-      .map(t => (t.pos.start, t.pos.end))
-      .reduce[(Int, Int)]{ case ((s1, e1), (s2, e2)) => (math.min(s1, s2), math.max(e1, e2))}
-
-    val macroSource = t.tree.pos.source
-    val transformed = c.internal.typingTransform(t.tree) {
-      case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
-
-        val used = rec(t)
-        val banned = used.filter(x =>
-          x.symbol.pos.source == macroSource &&
-          x.symbol.pos.start >= startPos &&
-          x.symbol.pos.end <= endPos
-        )
-        if (banned.hasNext){
-          val banned0 = banned.next()
-          c.abort(
-            banned0.pos,
-            "Target#apply() call cannot use `" + banned0.symbol + "` defined within the T{...} block"
-          )
-        }
-        val tempName = c.freshName(TermName("tmp"))
-        val tempSym = c.internal.newTermSymbol(api.currentOwner, tempName)
-        c.internal.setInfo(tempSym, t.tpe)
-        val tempIdent = Ident(tempSym)
-        c.internal.setType(tempIdent, t.tpe)
-        bound.append((fun, tempSym))
-        tempIdent
-      case (t, api) => api.default(t)
-    }
-
-    val (exprs, symbols) = bound.unzip
-
-    val bindings = symbols.map(c.internal.valDef(_))
-
-    wrapCached(c)(q"forge.zipMap(..$exprs){ (..$bindings) => $transformed }")
-  }
-  def wrapCached[T](c: Context)(t: c.Tree) = {
-    import c.universe._
-    val owner = c.internal.enclosingOwner
-    val ownerIsCacherClass =
-      owner.owner.isClass &&
-      owner.owner.asClass.baseClasses.exists(_.fullName == "forge.define.Target.Cacher")
-
-    if (ownerIsCacherClass && !owner.isMethod){
-      c.abort(
-        c.enclosingPosition,
-        "T{} members defined in a Cacher class/trait/object body must be defs"
-      )
-    }else{
-      val embedded =
-        if (!ownerIsCacherClass) t
-        else q"this.cachedTarget($t)"
-
-      c.Expr[Target[T]](embedded)
-    }
-  }
+  def apply[T](t: Target[T]): Target[T] = macro ApplicativeMacros.impl0[Target, T]
+  def apply[T](t: T): Target[T] = macro ApplicativeMacros.impl[Target, T]
 
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
@@ -171,5 +98,30 @@ object Target{
       private implicit val crFormat: Format[CommandResult] = JsonFormatters.crFormat
       implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
     }
+  }
+
+  def map[A, B](t: Target[A], f: A => B) = t.map(f)
+  def zip() =  new Target.Target0(())
+  def zip[A](a: Target[A]) = a.map(Tuple1(_))
+  def zip[A, B](a: Target[A], b: Target[B]) = a.zip(b)
+  def zip[A, B, C](a: Target[A], b: Target[B], c: Target[C]) = new Target[(A, B, C)]{
+    val inputs = Seq(a, b, c)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2))
+  }
+  def zip[A, B, C, D](a: Target[A], b: Target[B], c: Target[C], d: Target[D]) = new Target[(A, B, C, D)]{
+    val inputs = Seq(a, b, c, d)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3))
+  }
+  def zip[A, B, C, D, E](a: Target[A], b: Target[B], c: Target[C], d: Target[D], e: Target[E]) = new Target[(A, B, C, D, E)]{
+    val inputs = Seq(a, b, c, d, e)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
+  }
+  def zip[A, B, C, D, E, F](a: Target[A], b: Target[B], c: Target[C], d: Target[D], e: Target[E], f: Target[F]) = new Target[(A, B, C, D, E, F)]{
+    val inputs = Seq(a, b, c, d, e, f)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
+  }
+  def zip[A, B, C, D, E, F, G](a: Target[A], b: Target[B], c: Target[C], d: Target[D], e: Target[E], f: Target[F], g: Target[G]) = new Target[(A, B, C, D, E, F, G)]{
+    val inputs = Seq(a, b, c, d, e, f, g)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
   }
 }

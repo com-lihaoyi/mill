@@ -10,9 +10,10 @@ object MacroErrorTests extends TestSuite{
       val expectedMsg =
         "T{} members defined in a Cacher class/trait/object body must be defs"
 
-      val err = compileError("object Foo extends Target.Cacher{ val x = T{1} }")
+      val err = compileError("object Foo extends forge.define.Target.Cacher{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
+
     'badTmacro - {
       // Make sure we can reference values from outside the T{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that

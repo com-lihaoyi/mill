@@ -1,7 +1,6 @@
-import forge.define.ZipTarget
 import forge.util.JsonFormatters
 
-package object forge extends ZipTarget with JsonFormatters{
-  val Target = define.Target
-  type Target[T] = define.Target[T]
+package object forge extends JsonFormatters{
+  val T = define.Target
+  type T[T] = define.Target[T]
 }

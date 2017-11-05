@@ -5,7 +5,7 @@ import java.io.File
 
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
-import forge.Target.Cacher
+import forge.define.Target.Cacher
 import forge.eval.PathRef
 import play.api.libs.json._
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
@@ -20,7 +20,7 @@ object Subproject{
                    sources: T[PathRef],
                    compileClasspath: T[Seq[PathRef]],
                    outputPath: T[Path]): T[PathRef] = {
-    for((scalaVersion, sources, compileClasspath, outputPath) <- zip(scalaVersion, sources, compileClasspath, outputPath))
+    for((scalaVersion, sources, compileClasspath, outputPath) <- T.zip(scalaVersion, sources, compileClasspath, outputPath))
     yield {
       val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
       def grepJar(s: String) = {
