@@ -18,11 +18,11 @@ object MetacircularTests extends TestSuite{
 
     override def ivyDeps = T{
       super.ivyDeps() ++ Seq[ScalaDep](
-        ScalaDep.Scala(Dep(Mod("com.lihaoyi", "sourcecode"), "0.1.4")),
-        ScalaDep.Scala(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
-        ScalaDep.PointScala(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
-        ScalaDep.Scala(Dep(Mod("com.typesafe.play", "play-json"), "2.6.6")),
-        ScalaDep.Scala(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3"))
+        ScalaDep(Dep(Mod("com.lihaoyi", "sourcecode"), "0.1.4")),
+        ScalaDep(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
+        ScalaDep.Point(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
+        ScalaDep(Dep(Mod("com.typesafe.play", "play-json"), "2.6.6")),
+        ScalaDep(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3"))
       )
     }
 

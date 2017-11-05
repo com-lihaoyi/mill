@@ -93,7 +93,7 @@ object Subproject{
     val flattened = deps.map{
       case ScalaDep.Java(dep) => dep
       case ScalaDep.Scala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
-      case ScalaDep.PointScala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
+      case ScalaDep.Point(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
     }.toSet
     val start = Resolution(flattened)
 
@@ -117,13 +117,14 @@ object Subproject{
   object ScalaDep{
     case class Java(dep: coursier.Dependency) extends ScalaDep
     implicit def default(dep: coursier.Dependency): ScalaDep = new Java(dep)
+    def apply(dep: coursier.Dependency) = Scala(dep)
     case class Scala(dep: coursier.Dependency) extends ScalaDep
-    case class PointScala(dep: coursier.Dependency) extends ScalaDep
+    case class Point(dep: coursier.Dependency) extends ScalaDep
     implicit def formatter: Format[ScalaDep] = new Format[ScalaDep]{
       def writes(o: ScalaDep) = o match{
         case Java(dep) => Json.obj("Java" -> Json.toJson(dep))
         case Scala(dep) => Json.obj("Scala" -> Json.toJson(dep))
-        case PointScala(dep) => Json.obj("PointScala" -> Json.toJson(dep))
+        case Point(dep) => Json.obj("PointScala" -> Json.toJson(dep))
       }
 
       def reads(json: JsValue) = json match{
@@ -131,7 +132,7 @@ object Subproject{
           obj.fields match{
             case Seq(("Java", dep)) => Json.fromJson[coursier.Dependency](dep).map(Java)
             case Seq(("Scala", dep)) => Json.fromJson[coursier.Dependency](dep).map(Scala)
-            case Seq(("PointScala", dep)) => Json.fromJson[coursier.Dependency](dep).map(PointScala)
+            case Seq(("PointScala", dep)) => Json.fromJson[coursier.Dependency](dep).map(Point)
             case _ => JsError("Invalid JSON object to parse ScalaDep")
           }
 
