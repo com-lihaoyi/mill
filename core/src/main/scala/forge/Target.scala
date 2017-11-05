@@ -53,22 +53,21 @@ object Target{
     import c.universe._
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
     val OptionGet = c.universe.typeOf[Target[_]].member(TermName("apply"))
-    object transformer extends c.universe.Transformer {
-      // Derived from @olafurpg's
-      // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
-      override def transform(tree: c.Tree): c.Tree = tree match {
-        case t @ q"$fun.apply()" if t.symbol == OptionGet =>
-          val tempName = c.freshName(TermName("tmp"))
-          val tempSym = c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
-          c.internal.setInfo(tempSym, t.tpe)
-          val tempIdent = Ident(tempSym)
-          c.internal.setType(tempIdent, t.tpe)
-          bound.append((fun, tempSym))
-          tempIdent
-        case _ => super.transform(tree)
-      }
+    // Derived from @olafurpg's
+    // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
+
+    val transformed = c.internal.typingTransform(t.tree) {
+      case (t @ q"$fun.apply()", api) if t.symbol == OptionGet =>
+        val tempName = c.freshName(TermName("tmp"))
+        val tempSym = c.internal.newTermSymbol(api.currentOwner, tempName)
+        c.internal.setInfo(tempSym, t.tpe)
+        val tempIdent = Ident(tempSym)
+        c.internal.setType(tempIdent, t.tpe)
+        bound.append((fun, tempSym))
+        tempIdent
+      case (t, api) => api.default(t)
     }
-    val transformed = transformer.transform(t.tree)
+
     val (exprs, symbols) = bound.unzip
 
     val bindings = symbols.map(c.internal.valDef(_))
