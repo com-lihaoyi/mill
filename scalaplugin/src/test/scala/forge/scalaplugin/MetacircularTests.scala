@@ -3,8 +3,10 @@ package scalaplugin
 
 import ammonite.ops.pwd
 import coursier.{Dependency => Dep, Module => Mod}
+import forge.discover.Discovered
+import forge.eval.{Evaluator, PathRef}
 import forge.scalaplugin.Subproject.ScalaDep
-import forge.util.{OSet, PathRef}
+import forge.util.OSet
 import utest._
 
 object MetacircularTests extends TestSuite{

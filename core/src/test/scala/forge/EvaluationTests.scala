@@ -1,6 +1,9 @@
 package forge
 
 
+import forge.define.Target
+import forge.discover.Discovered
+import forge.eval.Evaluator
 import forge.util.OSet
 import utest._
 import utest.framework.TestPath

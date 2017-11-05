@@ -1,4 +1,4 @@
-package forge
+package forge.define
 
 import forge.util.Args
 

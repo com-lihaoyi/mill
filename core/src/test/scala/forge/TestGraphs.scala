@@ -1,6 +1,6 @@
 package forge
 
-import forge.Target.Cacher
+import forge.define.Target.Cacher
 import forge.TestUtil.test
 
 class TestGraphs(){

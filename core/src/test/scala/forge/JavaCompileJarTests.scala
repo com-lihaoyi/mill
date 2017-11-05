@@ -4,7 +4,10 @@ import java.io.FileOutputStream
 import java.util.jar.JarEntry
 
 import ammonite.ops._
-import forge.util.{Args, OSet, PathRef}
+import forge.define.Target
+import forge.discover.Discovered
+import forge.eval.{Evaluator, PathRef}
+import forge.util.{Args, OSet}
 import utest._
 
 object JavaCompileJarTests extends TestSuite{

@@ -1,4 +1,5 @@
 package forge
+import forge.eval.Tarjans
 import utest._
 object TarjanTests extends TestSuite{
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {

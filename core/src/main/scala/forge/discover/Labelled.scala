@@ -1,6 +1,6 @@
-package forge.util
+package forge.discover
 
-import forge.Target
+import forge.define.Target
 import play.api.libs.json.Format
 
 case class Labelled[T](target: Target[T],

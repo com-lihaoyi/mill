@@ -1,4 +1,4 @@
-package forge
+package forge.util
 
 import ammonite.ops.{Bytes, Path}
 import play.api.libs.json._

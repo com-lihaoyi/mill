@@ -1,11 +1,12 @@
-package forge
+package forge.eval
 
-
+import ammonite.ops._
+import forge.define.Target
+import forge.discover.Labelled
+import forge.util.{Args, MultiBiMap, OSet}
 import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.collection.mutable
-import ammonite.ops._
-import forge.util.{Args, Labelled, MultiBiMap, OSet}
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], Labelled[_]]){
 

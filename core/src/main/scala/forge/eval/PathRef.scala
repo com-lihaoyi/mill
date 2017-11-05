@@ -1,13 +1,13 @@
-package forge
-package util
+package forge.eval
 
 import java.io.IOException
-import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.file.attribute.BasicFileAttributes
-import java.security.MessageDigest
+import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.{file => jnio}
+import java.security.MessageDigest
 
 import ammonite.ops.Path
+import forge.util.JsonFormatters
 import play.api.libs.json.{Format, Json}
 
 

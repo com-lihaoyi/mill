@@ -1,7 +1,9 @@
 package forge
 
+import forge.define.Target
 import forge.util.{Args, OSet}
 import utest.assert
+
 import scala.collection.mutable
 
 object TestUtil {

@@ -1,14 +1,14 @@
-package forge
+package forge.define
 
-
-import ammonite.ops.{CommandResult, ls, mkdir}
-import forge.util.{Args, PathRef}
-import play.api.libs.json.{Format, JsValue, Json}
+import ammonite.ops.{CommandResult, mkdir}
+import forge.eval.PathRef
+import forge.util.{Args, JsonFormatters}
+import play.api.libs.json.{Format, Json}
 
 import scala.annotation.compileTimeOnly
-import language.experimental.macros
-import reflect.macros.blackbox.Context
 import scala.collection.mutable
+import scala.language.experimental.macros
+import scala.reflect.macros.blackbox.Context
 
 abstract class Target[T] extends Target.Ops[T]{
   /**
@@ -97,7 +97,9 @@ object Target{
   def wrapCached[T](c: Context)(t: c.Tree) = {
     import c.universe._
     val owner = c.internal.enclosingOwner
-    val ownerIsCacherClass = owner.owner.isClass && owner.owner.asClass.baseClasses.exists(_.fullName == "forge.Target.Cacher")
+    val ownerIsCacherClass =
+      owner.owner.isClass &&
+      owner.owner.asClass.baseClasses.exists(_.fullName == "forge.define.Target.Cacher")
 
     if (ownerIsCacherClass && !owner.isMethod){
       c.abort(

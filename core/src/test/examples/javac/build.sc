@@ -1,11 +1,14 @@
+import forge.define.Target
+import forge.eval.PathRef
+
 object Foo {
 
   import java.io.FileOutputStream
   import java.util.jar.JarEntry
 
   import ammonite.ops.{ls, pwd, read}
-  import forge.{Discovered, Target}
-  import forge.util.{Args, PathRef}
+  import forge.discover.Discovered
+  import forge.util.Args
 
   val workspacePath = pwd / 'target / 'workspace / 'javac
   val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac

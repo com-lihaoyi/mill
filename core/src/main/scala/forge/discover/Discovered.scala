@@ -1,10 +1,11 @@
-package forge
+package forge.discover
 
-import forge.util.Labelled
+import forge.define.Target
+
 import play.api.libs.json.Format
 
-import language.experimental.macros
-import reflect.macros.blackbox.Context
+import scala.language.experimental.macros
+import scala.reflect.macros.blackbox.Context
 
 class Discovered[T](val value: Seq[(Seq[String], Format[_], T => Target[_])]){
   def apply(t: T) = value.map{case (a, f, b) => (a, f, b(t)) }
@@ -53,9 +54,9 @@ object Discovered {
         q"$prefix.${TermName(name)}"
       )
 
-      q"forge.Discovered.makeTuple($segments, ($base: $tpe) => $ident)"
+      q"forge.discover.Discovered.makeTuple($segments, ($base: $tpe) => $ident)"
     }
 
-    c.Expr[Discovered[T]](q"new _root_.forge.Discovered($result)")
+    c.Expr[Discovered[T]](q"new _root_.forge.discover.Discovered($result)")
   }
 }
