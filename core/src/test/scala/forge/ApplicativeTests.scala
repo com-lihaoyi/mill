@@ -94,6 +94,18 @@ object ApplicativeTests extends TestSuite {
         counter.value == 1
       )
     }
+    'evaluationsInsideLambdasWork - {
+      // This required some fiddling with owner chains inside the macro to get
+      // working, so ensure it doesn't regress
+      val counter = new Counter()
+      def up = Opt{ "hello" + counter() }
+      val down1 = Opt{ (() => up())() }
+      val down2 = Opt{ Seq(1, 2, 3).map(n => up() * n) }
+      assert(
+        down1 == Some("hello1"),
+        down2 == Some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
+      )
+    }
   }
 }
 

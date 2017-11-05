@@ -52,7 +52,7 @@ object Applicative {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
-    val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
+    val bound = collection.mutable.Buffer.empty[(c.Tree, ValDef)]
     val targetApplySym = typeOf[Applyable[_]].member(TermName("apply"))
 
     // Derived from @olafurpg's
@@ -73,20 +73,26 @@ object Applicative {
           )
         }
         val tempName = c.freshName(TermName("tmp"))
-        val tempSym = c.internal.newTermSymbol(api.currentOwner, tempName)
+        val tempSym = c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
         c.internal.setInfo(tempSym, t.tpe)
         val tempIdent = Ident(tempSym)
         c.internal.setType(tempIdent, t.tpe)
-        bound.append((q"${c.prefix}.underlying($fun)", tempSym))
+        c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
+        bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
         tempIdent
       case (t, api) => api.default(t)
     }
 
-    val (exprs, symbols) = bound.unzip
+    val (exprs, bindings) = bound.unzip
 
-    val bindings = symbols.map(c.internal.valDef(_))
 
-    wrapCached(c)(q"${c.prefix}.zipMap(..$exprs){ (..$bindings) => $transformed }")
+    val callback = c.typecheck(q"(..$bindings) => $transformed ")
+
+    val res = q"${c.prefix}.zipMap(..$exprs){ $callback }"
+
+    c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
+
+    wrapCached(c)(res)
   }
   def wrapCached[M[_], T](c: Context)(t: c.Tree) = {
     import c.universe._
