@@ -40,6 +40,54 @@ object GraphTests extends TestSuite{
       assert(discovered == expected)
     }
 
+    'failConsistencyChecks - {
+      // Make sure these fail because `def`s without `Cacher` will re-evaluate
+      // each time, returning different sets of targets.
+      //
+      // Maybe later we can convert them into compile errors somehow
+
+      val expected = List(List("down"), List("right"), List("left"), List("up"))
+
+      'diamond - {
+        val inconsistent = Discovered.consistencyCheck(
+          diamond,
+          Discovered[diamond.type]
+        )
+
+        assert(inconsistent == Nil)
+      }
+      'anonDiamond - {
+        val inconsistent = Discovered.consistencyCheck(
+          anonDiamond,
+          Discovered[anonDiamond.type]
+        )
+
+        assert(inconsistent == Nil)
+      }
+      'borkedCachedDiamond1 - {
+        val inconsistent = Discovered.consistencyCheck(
+          borkedCachedDiamond1,
+          Discovered[borkedCachedDiamond1.type]
+        )
+
+        assert(inconsistent == expected)
+      }
+      'borkedCachedDiamond2 - {
+        val inconsistent = Discovered.consistencyCheck(
+          borkedCachedDiamond2,
+          Discovered[borkedCachedDiamond2.type]
+        )
+        assert(inconsistent == expected)
+      }
+      'borkedCachedDiamond3 - {
+        val inconsistent = Discovered.consistencyCheck(
+          borkedCachedDiamond3,
+          Discovered[borkedCachedDiamond3.type]
+        )
+        assert(inconsistent == expected)
+      }
+    }
+
 
     'topoSortedTransitiveTargets - {
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
@@ -82,45 +130,6 @@ object GraphTests extends TestSuite{
           defCachedDiamond.down
         )
       )
-      'borkedCachedDiamond - {
-        // Make sure these fail because `def`s without `Cacher` will re-evaluate
-        // each time, returning different sets of targets.
-        //
-        // Maybe later we can convert them into compile errors somehow
-        * - intercept[Throwable]{
-          check(
-            targets = OSet(borkedCachedDiamond1.down),
-            expected = OSet(
-              borkedCachedDiamond1.up,
-              borkedCachedDiamond1.down.inputs(0),
-              borkedCachedDiamond1.down.inputs(1),
-              borkedCachedDiamond1.down
-            )
-          )
-        }
-        * - intercept[Throwable]{
-          check(
-            targets = OSet(borkedCachedDiamond2.down),
-            expected = OSet(
-              borkedCachedDiamond2.up,
-              borkedCachedDiamond2.down.inputs(0),
-              borkedCachedDiamond2.down.inputs(1),
-              borkedCachedDiamond2.down
-            )
-          )
-        }
-        * - intercept[Throwable]{
-          check(
-            targets = OSet(borkedCachedDiamond3.down),
-            expected = OSet(
-              borkedCachedDiamond3.up,
-              borkedCachedDiamond3.down.inputs(0),
-              borkedCachedDiamond3.down.inputs(1),
-              borkedCachedDiamond3.down
-            )
-          )
-        }
-      }
       'bigSingleTerminal - {
         val result = Evaluator.topoSortedTransitiveTargets(OSet(bigSingleTerminal.j)).values
         TestUtil.checkTopological(result)

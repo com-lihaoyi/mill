@@ -12,6 +12,13 @@ class Discovered[T](val value: Seq[(Seq[String], Format[_], T => Target[_])]){
 
 }
 object Discovered {
+  def consistencyCheck[T](base: T, d: Discovered[T]) = {
+    val inconsistent = for{
+      (path, formatter, targetGen) <- d.value
+      if targetGen(base) ne targetGen(base)
+    } yield path
+    inconsistent
+  }
   def makeTuple[T, V](path: Seq[String], func: T => Target[V])(implicit f: Format[V]) = {
     (path, f, func)
   }
