@@ -11,7 +11,9 @@ object Applicative {
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }
-  trait Applyer[T[_]]{
+  trait Applyer[W[_], T[_]]{
+    def underlying[A](v: W[A]): T[_]
+
     def map[A, B](a: T[A], f: A => B): T[B]
     def zipMap[R]()(f: () => R) = map(zip(), (_: Unit) => f())
     def zipMap[A, R](a: T[A])(f: A => R) = map(a, f)
@@ -55,20 +57,14 @@ object Applicative {
 
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
-    val (startPos, endPos) = rec(t.tree)
-      .map(t => (t.pos.start, t.pos.end))
-      .reduce[(Int, Int)]{ case ((s1, e1), (s2, e2)) => (math.min(s1, s2), math.max(e1, e2))}
+    val defs = rec(t.tree).filter(_.isDef).map(_.symbol).toSet
 
-    val macroSource = t.tree.pos.source
     val transformed = c.internal.typingTransform(t.tree) {
       case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
 
+        val localDefs = rec(fun).filter(_.isDef).map(_.symbol).toSet
         val used = rec(t)
-        val banned = used.filter(x =>
-          x.symbol.pos.source == macroSource &&
-            x.symbol.pos.start >= startPos &&
-            x.symbol.pos.end <= endPos
-        )
+        val banned = used.filter(x => defs(x.symbol) && !localDefs(x.symbol))
         if (banned.hasNext){
           val banned0 = banned.next()
           c.abort(
@@ -81,7 +77,7 @@ object Applicative {
         c.internal.setInfo(tempSym, t.tpe)
         val tempIdent = Ident(tempSym)
         c.internal.setType(tempIdent, t.tpe)
-        bound.append((fun, tempSym))
+        bound.append((q"${c.prefix}.underlying($fun)", tempSym))
         tempIdent
       case (t, api) => api.default(t)
     }

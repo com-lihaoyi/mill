@@ -6,10 +6,7 @@ import forge.eval.PathRef
 import forge.util.{Args, JsonFormatters}
 import play.api.libs.json.{Format, Json}
 
-import scala.annotation.compileTimeOnly
-import scala.collection.mutable
 import scala.language.experimental.macros
-import scala.reflect.macros.blackbox.Context
 
 abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
   /**
@@ -29,8 +26,8 @@ abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
   def sideHash: Int = 0
 }
 
-object Target extends Applicative.Applyer[Target]{
-
+object Target extends Applicative.Applyer[Target, Target]{
+  def underlying[A](v: Target[A]) = v
   type Cacher = Applicative.Cacher[Target[_]]
   class Target0[T](t: T) extends Target[T]{
     lazy val t0 = t
