@@ -51,13 +51,33 @@ object Target{
   }
   def impl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
+    def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
     val bound = collection.mutable.Buffer.empty[(c.Tree, Symbol)]
-    val OptionGet = c.universe.typeOf[Target[_]].member(TermName("apply"))
+    val targetApplySym = c.universe.typeOf[Target[_]].member(TermName("apply"))
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
 
+    val (startPos, endPos) = rec(t.tree)
+      .map(t => (t.pos.start, t.pos.end))
+      .reduce[(Int, Int)]{ case ((s1, e1), (s2, e2)) => (math.min(s1, s2), math.max(e1, e2))}
+
+    val macroSource = t.tree.pos.source
     val transformed = c.internal.typingTransform(t.tree) {
-      case (t @ q"$fun.apply()", api) if t.symbol == OptionGet =>
+      case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
+
+        val used = rec(t)
+        val banned = used.filter(x =>
+          x.symbol.pos.source == macroSource &&
+          x.symbol.pos.start >= startPos &&
+          x.symbol.pos.end <= endPos
+        )
+        if (banned.hasNext){
+          val banned0 = banned.next()
+          c.abort(
+            banned0.pos,
+            "Target#apply() call cannot use `" + banned0.symbol + "` defined within the T{...} block"
+          )
+        }
         val tempName = c.freshName(TermName("tmp"))
         val tempSym = c.internal.newTermSymbol(api.currentOwner, tempName)
         c.internal.setInfo(tempSym, t.tpe)
@@ -77,7 +97,7 @@ object Target{
   def wrapCached[T](c: Context)(t: c.Tree) = {
     import c.universe._
     val owner = c.internal.enclosingOwner
-    val ownerIsCacherClass = owner.owner.asClass.baseClasses.exists(_.fullName == "forge.Target.Cacher")
+    val ownerIsCacherClass = owner.owner.isClass && owner.owner.asClass.baseClasses.exists(_.fullName == "forge.Target.Cacher")
 
     if (ownerIsCacherClass && !owner.isMethod){
       c.abort(
