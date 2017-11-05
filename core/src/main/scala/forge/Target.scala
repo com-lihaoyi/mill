@@ -35,7 +35,7 @@ object Target{
   trait Cacher{
     private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Target[_]]
     protected[this] def cachedTarget[T](t: => Target[T])
-                                      (implicit c: sourcecode.Enclosing): Target[T] = {
+                                      (implicit c: sourcecode.Enclosing): Target[T] = synchronized{
       cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[Target[T]]
     }
   }
