@@ -106,6 +106,16 @@ object ApplicativeTests extends TestSuite {
         down2 == Some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
       )
     }
+    'appliesEvaluatedOncePerLexicalCallsite - {
+      // If you have multiple Applyable#apply() lexically in the source code of
+      // your Opt{...} call, each one gets evaluated once, even if the LHS of each
+      // apply() call is identical. It's up to the downstream zipMap()
+      // implementation to decide if it wants to dedup them or do other things.
+      val counter = new Counter()
+      def up = Opt{ "hello" + counter() }
+      val down = Opt{ Seq(1, 2, 3).map(n => n + up() + up()) }
+      assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
+    }
   }
 }
 
