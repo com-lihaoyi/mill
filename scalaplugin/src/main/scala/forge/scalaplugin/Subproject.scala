@@ -84,7 +84,7 @@ object Subproject{
       PathRef(outputPath)
     }
   }
-  def createJar(sourceDirs: T[Seq[PathRef]]) = ???
+
   def resolveDependencies(repositories: Seq[Repository],
                           scalaVersion: String,
                           scalaBinaryVersion: String,
@@ -185,5 +185,11 @@ abstract class Subproject extends Cacher{
   }
 
   def classpath = T{ Seq(resources(), compiled()) }
-//  val jar = T{ createJar(classpath) }
+  def jar = T{ modules.Jvm.jarUp(resources, compiled) }
+
+  @ammonite.main.Router.main
+  def run(mainClass: String) = {
+//    val cp = forge
+//    modules.Jvm.subprocess(mainClass, )
+  }
 }

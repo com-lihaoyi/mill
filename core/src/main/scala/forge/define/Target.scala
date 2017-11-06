@@ -68,8 +68,7 @@ object Target extends Applicative.Applyer[Target, Target]{
     def evaluate(args: Args) = f(args(0))
     val inputs = List(source)
   }
-  class Zipped[T, V](source1: Target[T],
-                                     source2: Target[V]) extends Target[(T, V)]{
+  class Zipped[T, V](source1: Target[T], source2: Target[V]) extends Target[(T, V)]{
     def evaluate(args: Args) = (args(0), args(1))
     val inputs = List(source1, source2)
   }
