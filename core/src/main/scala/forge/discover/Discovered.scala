@@ -1,15 +1,14 @@
 package forge.discover
 
 import forge.define.Target
-
 import play.api.libs.json.Format
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-class Discovered[T](val value: Seq[(Seq[String], Format[_], T => Target[_])]){
+class Discovered[T](val value: Seq[(Seq[String], Format[_], T => Target[_])],
+                    val mains: Seq[Router.EntryPoint[T]]){
   def apply(t: T) = value.map{case (a, f, b) => (a, f, b(t)) }
-
 }
 object Discovered {
   def consistencyCheck[T](base: T, d: Discovered[T]) = {
@@ -41,7 +40,7 @@ object Discovered {
         (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
         m.isModule ||
         (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Target[_]])
-
+      if !m.fullName.contains('$')
       res <- {
         val extendedSegments = m.name.toString :: segments
         val self =
@@ -57,13 +56,18 @@ object Discovered {
     val result = for(reversedPath <- reversedPaths.toList) yield {
       val base = q"${TermName(c.freshName())}"
       val segments = reversedPath.reverse.toList
-      val ident = segments.foldLeft[Tree](base)((prefix, name) =>
+      val ident = segments.foldLeft[Tree](base) { (prefix, name) =>
         q"$prefix.${TermName(name)}"
-      )
+      }
 
       q"forge.discover.Discovered.makeTuple($segments, ($base: $tpe) => $ident)"
     }
 
-    c.Expr[Discovered[T]](q"new _root_.forge.discover.Discovered($result)")
+    c.Expr[Discovered[T]](q"""
+      new _root_.forge.discover.Discovered(
+        $result,
+        forge.discover.Router.generateRoutes[$tpe]
+      )
+    """)
   }
 }

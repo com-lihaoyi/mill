@@ -5,6 +5,7 @@ import java.io.File
 
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
+import forge.define.Target
 import forge.define.Target.Cacher
 import forge.eval.PathRef
 import play.api.libs.json._
@@ -187,9 +188,9 @@ abstract class Subproject extends Cacher{
   def classpath = T{ Seq(resources(), compiled()) }
   def jar = T{ modules.Jvm.jarUp(resources, compiled) }
 
-  @ammonite.main.Router.main
-  def run(mainClass: String) = {
-//    val cp = forge
-//    modules.Jvm.subprocess(mainClass, )
+  @forge.discover.Router.main
+  def run(mainClass: String) = T.command{
+    import ammonite.ops._, ImplicitWd._
+    %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
   }
 }

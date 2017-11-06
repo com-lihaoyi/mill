@@ -36,6 +36,7 @@ object Target extends Applicative.Applyer[Target, Target]{
     def evaluate(args: Args)  = t0
   }
   def apply[T](t: Target[T]): Target[T] = macro forge.define.Cacher.impl0[Target, T]
+  def command[T](t: T): Target[T] = macro Applicative.impl[Target, T]
   def apply[T](t: T): Target[T] = macro impl[Target, T]
   def impl[M[_], T: c.WeakTypeTag](c: Context)
                                   (t: c.Expr[T])

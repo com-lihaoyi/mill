@@ -18,7 +18,15 @@ val sharedSettings = Seq(
   libraryDependencies += "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided",
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7")
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3" % "test" cross CrossVersion.full,
+
+  sourceGenerators in Test += Def.task {
+    val file = (sourceManaged in Test).value / "amm.scala"
+    IO.write(file, """object amm extends App { ammonite.Main().run() }""")
+    Seq(file)
+  }.taskValue
+
 )
 
 lazy val core = project
