@@ -52,9 +52,9 @@ object MetacircularTests extends TestSuite{
 //      val evaluated2 = evaluator.evaluate(OSet(Self.scalaBinaryVersion)).evaluated.collect(mapping)
 //      val evaluated3 = evaluator.evaluate(OSet(Self.compileDeps)).evaluated.collect(mapping)
 //      val evaluated4 = evaluator.evaluate(OSet(Self.deps)).evaluated.collect(mapping)
-      val evaluated5 = evaluator.evaluate(OSet(Core.compiled)).evaluated.collect(mapping)
-      val evaluated6 = evaluator.evaluate(OSet(ScalaPlugin.compiled)).evaluated.collect(mapping)
-      val evaluated7 = evaluator.evaluate(OSet(ScalaPlugin.jar)).evaluated.collect(mapping)
+//      val evaluated5 = evaluator.evaluate(OSet(Core.compiled)).evaluated.collect(mapping)
+//      val evaluated6 = evaluator.evaluate(OSet(ScalaPlugin.compiled)).evaluated.collect(mapping)
+//      val evaluated7 = evaluator.evaluate(OSet(ScalaPlugin.jar)).evaluated.collect(mapping)
 //      evaluated3
     }
   }

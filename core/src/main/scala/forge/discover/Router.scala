@@ -382,14 +382,10 @@ class Router [C <: Context](val c: C) {
   }
 
   def getAllRoutesForClass(curCls: Type): Iterable[c.universe.Tree] = {
-    pprint.log(curCls)
     for{
       t <- getValsOrMeths(curCls)
-      _ = pprint.log(t)
-      _ = pprint.log(t.annotations)
       if t.annotations.exists(_.tpe =:= typeOf[Router.main])
     } yield {
-      println("Extract!")
       extractMethod(t, curCls)
     }
   }
