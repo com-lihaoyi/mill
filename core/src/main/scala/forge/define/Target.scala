@@ -7,6 +7,7 @@ import forge.util.{Args, JsonFormatters}
 import play.api.libs.json.{Format, Json}
 
 import scala.language.experimental.macros
+import scala.reflect.macros.blackbox.Context
 
 abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
   /**
@@ -28,14 +29,21 @@ abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
 
 object Target extends Applicative.Applyer[Target, Target]{
   def underlying[A](v: Target[A]) = v
-  type Cacher = Applicative.Cacher[Target[_]]
+  type Cacher = forge.define.Cacher[Target[_]]
   class Target0[T](t: T) extends Target[T]{
     lazy val t0 = t
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  def apply[T](t: Target[T]): Target[T] = macro Applicative.impl0[Target, T]
-  def apply[T](t: T): Target[T] = macro Applicative.impl[Target, T]
+  def apply[T](t: Target[T]): Target[T] = macro forge.define.Cacher.impl0[Target, T]
+  def apply[T](t: T): Target[T] = macro impl[Target, T]
+  def impl[M[_], T: c.WeakTypeTag](c: Context)
+                                  (t: c.Expr[T])
+                                  (implicit tt: c.WeakTypeTag[M[_]]): c.Expr[M[T]] = {
+    forge.define.Cacher.wrapCached(c)(
+      Applicative.impl(c)(t)
+    )
+  }
 
   abstract class Ops[T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)

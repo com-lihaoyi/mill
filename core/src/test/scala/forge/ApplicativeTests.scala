@@ -10,7 +10,6 @@ object ApplicativeTests extends TestSuite {
   object Opt extends define.Applicative.Applyer[Opt, Option]{
 
     def underlying[A](v: Opt[A]) = v.o
-    def apply[T](t: Option[T]): Option[T] = macro Applicative.impl0[Option, T]
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T]
 
     type O[+T] = Option[T]

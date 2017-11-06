@@ -37,18 +37,9 @@ object Applicative {
     def zip[A, B, C, D, E, F](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F]): T[(A, B, C, D, E, F)]
     def zip[A, B, C, D, E, F, G](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G]): T[(A, B, C, D, E, F, G)]
   }
-  trait Cacher[C]{
-    private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, C]
-    protected[this] def cachedTarget[T <: C](t: => T)
-                                       (implicit c: sourcecode.Enclosing): T = synchronized{
-      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-    }
-  }
 
-  def impl0[M[_], T: c.WeakTypeTag](c: Context)(t: c.Expr[M[T]]): c.Expr[M[T]] = {
-    wrapCached(c)(t.tree)
-  }
-  def impl[M[_], T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(implicit tt: c.WeakTypeTag[M[_]]): c.Expr[M[T]] = {
+  def impl[M[_], T: c.WeakTypeTag](c: Context)
+                                  (t: c.Expr[T]): c.Expr[M[T]] = {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
@@ -92,26 +83,7 @@ object Applicative {
 
     c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 
-    wrapCached(c)(res)
+    c.Expr[M[T]](res)
   }
-  def wrapCached[M[_], T](c: Context)(t: c.Tree) = {
-    import c.universe._
-    val owner = c.internal.enclosingOwner
-    val ownerIsCacherClass =
-      owner.owner.isClass &&
-        owner.owner.asClass.baseClasses.exists(_.fullName == "forge.define.Applicative.Cacher")
 
-    if (ownerIsCacherClass && !owner.isMethod){
-      c.abort(
-        c.enclosingPosition,
-        "T{} members defined in a Cacher class/trait/object body must be defs"
-      )
-    }else{
-      val embedded =
-        if (!ownerIsCacherClass) t
-        else q"this.cachedTarget($t)"
-
-      c.Expr[M[T]](embedded)
-    }
-  }
 }
