@@ -1,7 +1,7 @@
 package forge.discover
 
 import forge.define.Target
-import forge.discover.Router.EntryPoint
+import forge.discover.Router.{EntryPoint, Result}
 import play.api.libs.json.Format
 
 import scala.language.experimental.macros
@@ -17,7 +17,11 @@ case class Labelled[T](target: Target[T],
                        segments: Seq[String])
 
 
-case class NestedEntry[T, V](path: Seq[String], resolve: T => V, entryPoint: EntryPoint[V])
+case class NestedEntry[T, V](path: Seq[String], resolve: T => V, entryPoint: EntryPoint[V]){
+  def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Target[Any]] = {
+    entryPoint.invoke(resolve(target),groupedArgs)
+  }
+}
 object NestedEntry{
   def make[T, V](path: Seq[String], resolve: T => V)
                 (entryPoint: EntryPoint[V]) = NestedEntry(path, resolve, entryPoint)
@@ -47,6 +51,7 @@ object Discovered {
     import c.universe._
     val tpe = c.weakTypeTag[T].tpe
     def rec(segments: List[String], t: c.Type): (Seq[(Seq[String], Tree)], Seq[Seq[String]]) = {
+
       val r = new Router(c)
       val selfMains =
         for(tree <- r.getAllRoutesForClass(t.asInstanceOf[r.c.Type]).asInstanceOf[Seq[c.Tree]])
@@ -55,17 +60,17 @@ object Discovered {
       val items = for {
         m <- t.members.toSeq
         if
-        (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
+          (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
           m.isModule ||
           (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Target[_]])
-        if !m.fullName.contains('$')
+        if !m.name.toString.contains('$')
       } yield {
         val extendedSegments = m.name.toString :: segments
         val self =
           if (m.typeSignature.resultType <:< c.weakTypeOf[Target[_]]) Seq(extendedSegments)
           else Nil
-        val (mains, children) = rec(extendedSegments, m.typeSignature)
 
+        val (mains, children) = rec(extendedSegments, m.typeSignature)
 
         (mains, self ++ children)
       }
@@ -100,10 +105,12 @@ object Discovered {
       q"forge.discover.NestedEntry.make(Seq(..$segments), ($arg: $tpe) => $select)($entry)"
     }
 
+    pprint.log(result.length)
+    pprint.log(nested.length)
     c.Expr[Discovered[T]](q"""
       new _root_.forge.discover.Discovered(
         $result,
-        _root_.scala.Seq(..$nested)
+        ${nested.toList}
       )
     """)
   }

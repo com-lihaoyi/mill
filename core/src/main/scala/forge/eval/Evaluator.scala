@@ -130,7 +130,7 @@ class Evaluator(workspacePath: Path,
 
 object Evaluator{
   class TopoSorted private[Evaluator] (val values: OSet[Target[_]])
-  case class Results(values: Seq[Any], evaluated: OSet[Target[_]])
+  case class Results(values: Seq[Any], targets: OSet[Target[_]])
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
                               labeling: Map[Target[_], Labelled[_]]): MultiBiMap[Int, Target[_]] = {
 

@@ -56,12 +56,12 @@ object JavaCompileJarTests extends TestSuite{
       def eval[T](t: Target[T]): (T, Int) = {
         val evaluator = new Evaluator(workspacePath, mapping)
         val evaluated = evaluator.evaluate(OSet(t))
-        (evaluated.values(0).asInstanceOf[T], evaluated.evaluated.size)
+        (evaluated.values(0).asInstanceOf[T], evaluated.targets.size)
       }
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
 
-        val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
+        val evaluated = evaluator.evaluate(targets).targets.filter(mapping.contains)
         assert(evaluated == expected)
       }
 

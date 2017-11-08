@@ -193,4 +193,14 @@ abstract class Subproject extends Cacher{
     import ammonite.ops._, ImplicitWd._
     %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
   }
+  @forge.discover.Router.main
+  def console() = T.command{
+    import ammonite.ops._, ImplicitWd._
+    %('java,
+      "-cp",
+      (runDepClasspath().map(_.path) :+ compiled()).mkString(":"),
+      "scala.tools.nsc.MainGenericRunner",
+      "-usejavacp"
+    )
+  }
 }
