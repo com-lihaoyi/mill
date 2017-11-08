@@ -52,8 +52,8 @@ class Evaluator(workspacePath: Path,
       case Some(labeling) =>
         val targetDestPath = workspacePath / labeling.segments
         val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
-        (targetDestPath, Some(metadataPath))
-      case None => (null, None)
+        (Some(targetDestPath), Some(metadataPath))
+      case None => (None, None)
     }
 
     val cached = for{
@@ -98,9 +98,9 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroup(group: OSet[Target[_]],
                     results: collection.Map[Target[_], Any],
-                    targetDestPath: Path) = {
+                    targetDestPath: Option[Path]) = {
 
-    rm(targetDestPath)
+    targetDestPath.foreach(rm)
     val terminalResults = mutable.LinkedHashMap.empty[Target[_], JsValue]
     val newEvaluated = mutable.Buffer.empty[Target[_]]
     val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
@@ -110,7 +110,7 @@ class Evaluator(workspacePath: Path,
         newResults.getOrElse(x, results(x))
       )
 
-      val args = new Args(targetInputValues, targetDestPath)
+      val args = new Args(targetInputValues, targetDestPath.orNull)
 
       val res = target.evaluate(args)
       for(targetLabel <- labeling.get(target)){
