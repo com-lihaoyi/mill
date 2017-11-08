@@ -7,7 +7,7 @@ import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
 object Applicative {
-  trait Applyable[T]{
+  trait Applyable[+T]{
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }

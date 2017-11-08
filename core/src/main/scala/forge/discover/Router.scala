@@ -1,6 +1,7 @@
 package forge.discover
 
 import ammonite.main.Compat
+import forge.define.Target
 import sourcecode.Compat.Context
 
 import scala.annotation.StaticAnnotation
@@ -56,8 +57,8 @@ object Router{
                            argSignatures: Seq[ArgSig[T]],
                            doc: Option[String],
                            varargs: Boolean,
-                           invoke0: (T, Map[String, String], Seq[String]) => Result[Any]){
-    def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Any] = {
+                           invoke0: (T, Map[String, String], Seq[String]) => Result[Target[Any]]){
+    def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Target[Any]] = {
       var remainingArgSignatures = argSignatures.toList
 
 
@@ -375,7 +376,7 @@ class Router [C <: Context](val c: C) {
         forge.discover.Router.validate(Seq(..$readArgs)) match{
           case forge.discover.Router.Result.Success(List(..$argNames)) =>
             forge.discover.Router.Result.Success($arg.${meth.name.toTermName}(..$argNameCasts))
-          case x => x
+          case x: forge.discover.Router.Result.Error => x
         }
     )
     """

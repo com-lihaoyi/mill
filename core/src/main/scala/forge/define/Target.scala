@@ -9,7 +9,7 @@ import play.api.libs.json.{Format, Json}
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
+abstract class Target[+T] extends Target.Ops[T] with Applyable[T]{
   /**
     * What other Targets does this Target depend on?
     */
@@ -27,8 +27,10 @@ abstract class Target[T] extends Target.Ops[T] with Applyable[T]{
   def sideHash: Int = 0
 }
 
+
 object Target extends Applicative.Applyer[Target, Target]{
   def underlying[A](v: Target[A]) = v
+
   type Cacher = forge.define.Cacher[Target[_]]
   class Target0[T](t: T) extends Target[T]{
     lazy val t0 = t
@@ -46,7 +48,7 @@ object Target extends Applicative.Applyer[Target, Target]{
     )
   }
 
-  abstract class Ops[T]{ this: Target[T] =>
+  abstract class Ops[+T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
 
     def filter(f: T => Boolean) = this
@@ -58,18 +60,18 @@ object Target extends Applicative.Applyer[Target, Target]{
   def traverse[T](source: Seq[Target[T]]) = {
     new Traverse[T](source)
   }
-  class Traverse[T](val inputs: Seq[Target[T]]) extends Target[Seq[T]]{
+  class Traverse[+T](val inputs: Seq[Target[T]]) extends Target[Seq[T]]{
     def evaluate(args: Args) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]
     }
 
   }
-  class Mapped[T, V](source: Target[T], f: T => V) extends Target[V]{
+  class Mapped[+T, +V](source: Target[T], f: T => V) extends Target[V]{
     def evaluate(args: Args) = f(args(0))
     val inputs = List(source)
   }
-  class Zipped[T, V](source1: Target[T], source2: Target[V]) extends Target[(T, V)]{
+  class Zipped[+T, +V](source1: Target[T], source2: Target[V]) extends Target[(T, V)]{
     def evaluate(args: Args) = (args(0), args(1))
     val inputs = List(source1, source2)
   }

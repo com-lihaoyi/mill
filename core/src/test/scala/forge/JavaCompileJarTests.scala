@@ -1,7 +1,7 @@
 package forge
 
 
-import ammonite.ops._
+import ammonite.ops._, ImplicitWd._
 import forge.define.Target
 import forge.discover.Discovered
 import forge.eval.{Evaluator, PathRef}
@@ -44,10 +44,20 @@ object JavaCompileJarTests extends TestSuite{
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
+
+        @forge.discover.Router.main
+        def run(mainClsName: String): Target[CommandResult] = T.command{
+          %%('java, "-cp", classFiles().path, mainClsName)
+        }
       }
       import Build._
       val mapping = Discovered.mapping(Build)
 
+      def eval[T](t: Target[T]): (T, Int) = {
+        val evaluator = new Evaluator(workspacePath, mapping)
+        val evaluated = evaluator.evaluate(OSet(t))
+        (evaluated.values(0).asInstanceOf[T], evaluated.evaluated.size)
+      }
       def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
 
@@ -113,6 +123,45 @@ object JavaCompileJarTests extends TestSuite{
 
       val executed = %%('java, "-cp", workspacePath/'jar, "test.Foo")(workspacePath).out.string
       assert(executed == (31337 + 271828) + "\n")
+
+      println("="*20 + "Run Main" + "="*20)
+      for(i <- 0 until 3){
+        // Build.run is not cached, so every time we eval it it has to
+        // re-evaluate
+        val (runOutput, evalCount) = eval(Build.run("test.Foo"))
+        assert(
+          runOutput.out.string == (31337 + 271828) + "\n",
+          evalCount == 1
+        )
+      }
+
+      val ex = intercept[ammonite.ops.ShelloutException]{
+        eval(Build.run("test.BarFour"))
+      }
+      assert(ex.getMessage.contains("Could not find or load main class"))
+
+      append(
+        sourceRootPath / "Bar.java",
+        """
+        class BarFour{
+          public static void main(String[] args){
+            System.out.println("New Cls!");
+          }
+        }
+        """
+      )
+      val (runOutput2, evalCount2) = eval(Build.run("test.BarFour"))
+      assert(
+        runOutput2.out.string == "New Cls!\n",
+        evalCount2 == 5
+      )
+      val (runOutput3, evalCount3) = eval(Build.run("test.BarFour"))
+      assert(
+        runOutput3.out.string == "New Cls!\n",
+        evalCount3 == 1
+      )
+
+
     }
   }
 }

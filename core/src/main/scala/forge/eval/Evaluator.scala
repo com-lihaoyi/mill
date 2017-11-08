@@ -48,13 +48,16 @@ class Evaluator(workspacePath: Path,
       externalInputs.toIterator.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
-    val primeLabel = labeling(terminals.items(0)).segments
-
-
-    val targetDestPath = workspacePath / primeLabel
-    val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
+    val (targetDestPath, metadataPath) = labeling.get(terminals.items(0)) match{
+      case Some(labeling) =>
+        val targetDestPath = workspacePath / labeling.segments
+        val metadataPath = targetDestPath / up / (targetDestPath.last + ".forge.json")
+        (targetDestPath, Some(metadataPath))
+      case None => (null, None)
+    }
 
     val cached = for{
+      metadataPath <- metadataPath
       json <- scala.util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
       (cachedHash, terminalResults) <- Json.fromJson[(Int, Seq[JsValue])](json).asOpt
       if cachedHash == inputsHash
@@ -71,11 +74,13 @@ class Evaluator(workspacePath: Path,
       case _ =>
         val (newResults, newEvaluated, terminalResults) = evaluateGroup(group, results, targetDestPath)
 
-        write.over(
-          metadataPath,
-          Json.prettyPrint(
-            Json.toJson(inputsHash -> terminals.toList.map(terminalResults))
-          ),
+        metadataPath.foreach(
+          write.over(
+            _,
+            Json.prettyPrint(
+              Json.toJson(inputsHash -> terminals.toList.map(terminalResults))
+            ),
+          )
         )
 
         (newResults, newEvaluated)
