@@ -24,9 +24,9 @@ object Main {
         else{
 
           val (obj, discovered) = result.asInstanceOf[Res.Success[(Any, Discovered[Any])]].s
-          val consErrors = Discovered.consistencyCheck(obj, discovered)
-          pprint.log(consErrors)
-          if (consErrors.nonEmpty) println("Failed Discovered.consistencyCheck: " + consErrors)
+          val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
+          pprint.log(consistencyErrors)
+          if (consistencyErrors.nonEmpty) println("Failed Discovered.consistencyCheck: " + consistencyErrors)
           else {
             val mapping = Discovered.mapping(obj)(discovered)
             val workspacePath = pwd / 'out

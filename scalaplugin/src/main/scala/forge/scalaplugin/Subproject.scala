@@ -8,6 +8,7 @@ import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, 
 import forge.define.Target
 import forge.define.Target.Cacher
 import forge.eval.PathRef
+import forge.util.Args
 import play.api.libs.json._
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -17,10 +18,21 @@ import xsbti.compile.DependencyChanges
 
 import scalaz.concurrent.Task
 object Subproject{
-  def compileScala(scalaVersion: String,
-                   sources: PathRef,
-                   compileClasspath: Seq[PathRef],
-                   outputPath: Path): PathRef = {
+  def compileScala(scalaVersion: T[String],
+                   sources: T[PathRef],
+                   compileClasspath: T[Seq[PathRef]]) : T[PathRef] = {
+    new Target[PathRef] {
+      def evaluate(args: Args) = {
+        compileScala0(args[String](0), args[PathRef](1), args[Seq[PathRef]](2), args.dest)
+      }
+
+      val inputs = Seq(scalaVersion, sources, compileClasspath)
+    }
+  }
+  def compileScala0(scalaVersion: String,
+                    sources: PathRef,
+                    compileClasspath: Seq[PathRef],
+                    outputPath: Path): PathRef = {
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
     def grepJar(s: String) = {
       compileClasspath
@@ -175,11 +187,9 @@ abstract class Subproject extends Cacher{
   }
 
   def sources = T{ PathRef(basePath() / 'src) }
-  def outputPath = T{ basePath() / 'out }
   def resources = T{ PathRef(basePath() / 'resources) }
-  def compiledPath = T{ outputPath() / 'classpath }
   def compiled = T{
-    compileScala(scalaVersion(), sources(), compileDepClasspath(), outputPath())
+    compileScala(scalaVersion, sources, compileDepClasspath)
   }
 
   def classpath = T{ Seq(resources(), compiled()) }

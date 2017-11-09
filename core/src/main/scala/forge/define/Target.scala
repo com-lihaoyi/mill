@@ -6,6 +6,7 @@ import forge.eval.PathRef
 import forge.util.{Args, JsonFormatters}
 import play.api.libs.json.{Format, Json}
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
