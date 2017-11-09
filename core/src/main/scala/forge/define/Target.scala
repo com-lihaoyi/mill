@@ -29,7 +29,7 @@ abstract class Target[+T] extends Target.Ops[T] with Applyable[T]{
 }
 
 
-object Target extends Applicative.Applyer[Target, Target]{
+object Target extends Applicative.Applyer[Target, Target, Args]{
   def underlying[A](v: Target[A]) = v
 
   type Cacher = forge.define.Cacher[Target[_]]
@@ -39,18 +39,20 @@ object Target extends Applicative.Applyer[Target, Target]{
     def evaluate(args: Args)  = t0
   }
   def apply[T](t: Target[T]): Target[T] = macro forge.define.Cacher.impl0[Target, T]
-  def command[T](t: T): Target[T] = macro Applicative.impl[Target, T]
-  def apply[T](t: T): Target[T] = macro impl[Target, T]
-  def impl[M[_], T: c.WeakTypeTag](c: Context)
-                                  (t: c.Expr[T])
-                                  (implicit tt: c.WeakTypeTag[M[_]]): c.Expr[M[T]] = {
-    forge.define.Cacher.wrapCached(c)(
-      Applicative.impl(c)(t)
+  def command[T](t: T): Target[T] = macro Applicative.impl[Target, T, Args]
+  def apply[T](t: T): Target[T] = macro impl[Target, T, Args]
+  def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag]
+          (c: Context)
+          (t: c.Expr[T])
+          (implicit tt: c.WeakTypeTag[M[_]]): c.Expr[M[T]] = {
+    forge.define.Cacher.wrapCached[M, T](c)(
+      Applicative.impl[M, T, Ctx](c)(t)
     )
   }
 
   abstract class Ops[+T]{ this: Target[T] =>
     def map[V](f: T => V) = new Target.Mapped(this, f)
+    def mapDest[V](f: (T, Args) => V) = new Target.MappedDest(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
@@ -70,6 +72,10 @@ object Target extends Applicative.Applyer[Target, Target]{
   }
   class Mapped[+T, +V](source: Target[T], f: T => V) extends Target[V]{
     def evaluate(args: Args) = f(args(0))
+    val inputs = List(source)
+  }
+  class MappedDest[+T, +V](source: Target[T], f: (T, Args) => V) extends Target[V]{
+    def evaluate(args: Args) = f(args(0), args)
     val inputs = List(source)
   }
   class Zipped[+T, +V](source1: Target[T], source2: Target[V]) extends Target[(T, V)]{
@@ -106,7 +112,7 @@ object Target extends Applicative.Applyer[Target, Target]{
     }
   }
 
-  def map[A, B](t: Target[A], f: A => B) = t.map(f)
+  def mapCtx[A, B](t: Target[A])(f: (A, Args) => B) = t.mapDest(f)
   def zip() =  new Target.Target0(())
   def zip[A](a: Target[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Target[A], b: Target[B]) = a.zip(b)

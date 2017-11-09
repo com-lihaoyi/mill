@@ -7,13 +7,14 @@ import language.experimental.macros
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
   class Opt[T](val o: Option[T]) extends Applicative.Applyable[T]
-  object Opt extends define.Applicative.Applyer[Opt, Option]{
+  object Opt extends define.Applicative.Applyer[Opt, Option, String]{
 
+    val injectedCtx = "helloooo"
     def underlying[A](v: Opt[A]) = v.o
-    def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T]
+    def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
     type O[+T] = Option[T]
-    def map[A, B](a: O[A], f: A => B) = a.map(f)
+    def mapCtx[A, B](a: O[A])(f: (A, String) => B): Option[B] = a.map(f(_, injectedCtx))
     def zip() = Some(())
     def zip[A](a: O[A]) = a.map(Tuple1(_))
     def zip[A, B](a: O[A], b: O[B]) = {
@@ -52,6 +53,9 @@ object ApplicativeTests extends TestSuite {
       'twoSomes - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
       'singleNone - assert(Opt("lol " + None()) == None)
       'twoNones - assert(Opt("lol " + None() + None()) == None)
+    }
+    'context - {
+      assert(Opt(Opt.ctx() + Some("World")()) == Some("hellooooWorld"))
     }
     'capturing - {
       val lol = "lol "

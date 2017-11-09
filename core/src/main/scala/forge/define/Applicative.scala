@@ -6,28 +6,39 @@ import scala.annotation.compileTimeOnly
 import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
+/**
+  * A generic Applicative-functor macro: translates calls to
+  *
+  * Applier.apply{ ... applyable1.apply() ... applyable2.apply() ... }
+  *
+  * into
+  *
+  * Applier.zipMap(applyable1, applyable2){ (a1, a2, ctx) => ... a1 ... a2 ... }
+  */
 object Applicative {
   trait Applyable[+T]{
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }
-  trait Applyer[W[_], T[_]]{
+  trait Applyer[W[_], T[_], Ctx]{
+    @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
+    def ctx(): Ctx = ???
     def underlying[A](v: W[A]): T[_]
 
-    def map[A, B](a: T[A], f: A => B): T[B]
-    def zipMap[R]()(f: () => R) = map(zip(), (_: Unit) => f())
-    def zipMap[A, R](a: T[A])(f: A => R) = map(a, f)
-    def zipMap[A, B, R](a: T[A], b: T[B])(f: (A, B) => R) = map(zip(a, b), f.tupled)
+    def mapCtx[A, B](a: T[A])(f: (A, Ctx) => B): T[B]
+    def zipMap[R]()(cb: Ctx => R) = mapCtx(zip()){ (_, ctx) => cb(ctx)}
+    def zipMap[A, R](a: T[A])(f: (A, Ctx) => R) = mapCtx(a)(f)
+    def zipMap[A, B, R](a: T[A], b: T[B])(cb: (A, B, Ctx) => R) = mapCtx(zip(a, b)){case ((a, b), x) => cb(a, b, x)}
     def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])
-                          (f: (A, B, C) => R) = map(zip(a, b, c), f.tupled)
+                          (cb: (A, B, C, Ctx) => R) = mapCtx(zip(a, b, c)){case ((a, b, c), x) => cb(a, b, c, x)}
     def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])
-                             (f: (A, B, C, D) => R) = map(zip(a, b, c, d), f.tupled)
+                             (cb: (A, B, C, D, Ctx) => R) = mapCtx(zip(a, b, c, d)){case ((a, b, c, d), x) => cb(a, b, c, d, x)}
     def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])
-                                (f: (A, B, C, D, E) => R) = map(zip(a, b, c, d, e), f.tupled)
+                                (cb: (A, B, C, D, E, Ctx) => R) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
     def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
-                                   (cb: (A, B, C, D, E, F) => R) = map(zip(a, b, c, d, e, f), cb.tupled)
+                                   (cb: (A, B, C, D, E, F, Ctx) => R) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
     def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
-                                      (cb: (A, B, C, D, E, F, G) => R) = map(zip(a, b, c, d, e, f, g), cb.tupled)
+                                      (cb: (A, B, C, D, E, F, G, Ctx) => R) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
     def zip[A, B](a: T[A], b: T[B]): T[(A, B)]
@@ -38,8 +49,8 @@ object Applicative {
     def zip[A, B, C, D, E, F, G](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G]): T[(A, B, C, D, E, F, G)]
   }
 
-  def impl[M[_], T: c.WeakTypeTag](c: Context)
-                                  (t: c.Expr[T]): c.Expr[M[T]] = {
+  def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)
+                                                      (t: c.Expr[T]): c.Expr[M[T]] = {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
@@ -49,6 +60,10 @@ object Applicative {
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
     val defs = rec(t.tree).filter(_.isDef).map(_.symbol).toSet
+
+    val ctxName = TermName(c.freshName("ctx"))
+    val ctxSym = c.internal.newTermSymbol(c.internal.enclosingOwner, ctxName)
+    c.internal.setInfo(ctxSym, weakTypeOf[Ctx])
 
     val transformed = c.internal.typingTransform(t.tree) {
       case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
@@ -71,13 +86,23 @@ object Applicative {
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
         bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
         tempIdent
+      case (t @ q"$prefix.ctx()", api)
+        if prefix.tpe.baseClasses.exists(_.fullName == "forge.define.Applicative.Applyer") =>
+
+        val tempIdent = Ident(ctxSym)
+        c.internal.setType(tempIdent, t.tpe)
+        c.internal.setFlag(ctxSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
+        tempIdent
+
       case (t, api) => api.default(t)
     }
 
     val (exprs, bindings) = bound.unzip
 
 
-    val callback = c.typecheck(q"(..$bindings) => $transformed ")
+    val ctxBinding = c.internal.valDef(ctxSym)
+
+    val callback = c.typecheck(q"(..$bindings, $ctxBinding) => $transformed ")
 
     val res = q"${c.prefix}.zipMap(..$exprs){ $callback }"
 
