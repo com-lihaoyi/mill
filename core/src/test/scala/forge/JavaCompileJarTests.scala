@@ -1,7 +1,8 @@
 package forge
 
 
-import ammonite.ops._, ImplicitWd._
+import ammonite.ops._
+import ImplicitWd._
 import forge.define.Target
 import forge.discover.Discovered
 import forge.eval.{Evaluator, PathRef}
@@ -10,14 +11,12 @@ import forge.util.OSet
 import utest._
 
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(sources: Target[Seq[PathRef]])  = {
-    new Target.Subprocess(
-      Seq(sources),
-      args =>
-        Seq("javac") ++
-          args[Seq[PathRef]](0).map(_.path.toString) ++
-          Seq("-d", args.dest.toString)
-    ).map(_.dest)
+  def compileAll(dest: Path, sources: Seq[PathRef]) = {
+    mkdir(dest)
+    import ammonite.ops._
+    %("javac", sources.map(_.path.toString()), "-d", dest)(wd = dest)
+    PathRef(dest)
+//
   }
 
 
@@ -42,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def sourceRoot = T{ Target.path(sourceRootPath) }
         def resourceRoot = T{ Target.path(resourceRootPath) }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
-        def classFiles = T{ compileAll(allSources) }
+        def classFiles = T{ compileAll(Target.ctx().dest, allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
 
         @forge.discover.Router.main
@@ -153,7 +152,7 @@ object JavaCompileJarTests extends TestSuite{
       val (runOutput2, evalCount2) = eval(Build.run("test.BarFour"))
       assert(
         runOutput2.out.string == "New Cls!\n",
-        evalCount2 == 5
+        evalCount2 == 4
       )
       val (runOutput3, evalCount3) = eval(Build.run("test.BarFour"))
       assert(

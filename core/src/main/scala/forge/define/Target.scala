@@ -91,26 +91,6 @@ object Target extends Applicative.Applyer[Target, Target, Args]{
     val inputs = Nil
   }
 
-  class Subprocess(val inputs: Seq[Target[_]],
-                   command: Args => Seq[String]) extends Target[Subprocess.Result] {
-
-    def evaluate(args: Args) = {
-      mkdir(args.dest)
-      import ammonite.ops._
-      implicit val path = ammonite.ops.Path(args.dest, pwd)
-      val toTarget = () // Shadow the implicit conversion :/
-      val output = %%(command(args))
-      assert(output.exitCode == 0)
-      Subprocess.Result(output, PathRef(args.dest))
-    }
-  }
-  object Subprocess{
-    case class Result(result: ammonite.ops.CommandResult, dest: PathRef)
-    object Result{
-      private implicit val crFormat: Format[CommandResult] = JsonFormatters.crFormat
-      implicit val tsFormat: Format[Target.Subprocess.Result] = Json.format
-    }
-  }
 
   def mapCtx[A, B](t: Target[A])(f: (A, Args) => B) = t.mapDest(f)
   def zip() =  new Target.Target0(())
