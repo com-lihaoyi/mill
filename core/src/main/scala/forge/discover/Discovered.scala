@@ -105,8 +105,6 @@ object Discovered {
       q"forge.discover.NestedEntry.make(Seq(..$segments), ($arg: $tpe) => $select)($entry)"
     }
 
-    pprint.log(result.length)
-    pprint.log(nested.length)
     c.Expr[Discovered[T]](q"""
       new _root_.forge.discover.Discovered(
         $result,

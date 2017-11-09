@@ -17,73 +17,70 @@ import xsbti.compile.DependencyChanges
 
 import scalaz.concurrent.Task
 object Subproject{
-  def compileScala(scalaVersion: T[String],
-                   sources: T[PathRef],
-                   compileClasspath: T[Seq[PathRef]],
-                   outputPath: T[Path]): T[PathRef] = {
-    for((scalaVersion, sources, compileClasspath, outputPath) <- T.zip(scalaVersion, sources, compileClasspath, outputPath))
-    yield {
-      val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
-      def grepJar(s: String) = {
-        compileClasspath
-          .find(_.path.toString.endsWith(s))
-          .getOrElse(throw new Exception("Cannot find " + s))
-          .path
-          .toIO
-      }
-      val scalac = ZincUtil.scalaCompiler(
-        new ScalaInstance(
-          version = scalaVersion,
-          loader = getClass.getClassLoader,
-          libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
-          compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
-          allJars = compileClasspath.toArray.map(_.path.toIO),
-          explicitActual = None
-        ),
-        grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.3.jar")
-      )
-
-      mkdir(outputPath)
-
-
-      scalac.apply(
-        sources = ls.rec(sources.path).filter(_.isFile).map(_.toIO).toArray,
-        changes = new DependencyChanges {
-          def isEmpty = true
-          def modifiedBinaries() = Array[File]()
-          def modifiedClasses() = Array[String]()
-        },
-        classpath = compileClasspath.map(_.path.toIO).toArray,
-        singleOutput = outputPath.toIO,
-        options = Array(),
-        callback = new xsbti.AnalysisCallback {
-          def startSource(source: File) = ()
-          def apiPhaseCompleted() = ()
-          def enabled() = true
-          def binaryDependency(onBinaryEntry: File, onBinaryClassName: String, fromClassName: String, fromSourceFile: File, context: DependencyContext) = ()
-          def generatedNonLocalClass(source: File, classFile: File, binaryClassName: String, srcClassName: String) = ()
-          def problem(what: String, pos: xsbti.Position, msg: String, severity: xsbti.Severity, reported: Boolean) = ()
-          def dependencyPhaseCompleted() = ()
-          def classDependency(onClassName: String, sourceClassName: String, context: DependencyContext) = ()
-          def generatedLocalClass(source: File, classFile: File) = ()
-          def api(sourceFile: File, classApi: ClassLike) = ()
-
-          def mainClass(sourceFile: File, className: String) = ()
-          def usedName(className: String, name: String, useScopes: java.util.EnumSet[xsbti.UseScope]) = ()
-        },
-        maximumErrors = 10,
-        cache = new FreshCompilerCache(),
-        log = {
-          val console = ConsoleOut.systemOut
-          val consoleAppender = MainAppender.defaultScreen(console)
-          val l = LogExchange.logger("Hello")
-          LogExchange.unbindLoggerAppenders("Hello")
-          LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
-          l
-        }
-      )
-      PathRef(outputPath)
+  def compileScala(scalaVersion: String,
+                   sources: PathRef,
+                   compileClasspath: Seq[PathRef],
+                   outputPath: Path): PathRef = {
+    val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+    def grepJar(s: String) = {
+      compileClasspath
+        .find(_.path.toString.endsWith(s))
+        .getOrElse(throw new Exception("Cannot find " + s))
+        .path
+        .toIO
     }
+    val scalac = ZincUtil.scalaCompiler(
+      new ScalaInstance(
+        version = scalaVersion,
+        loader = getClass.getClassLoader,
+        libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
+        compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
+        allJars = compileClasspath.toArray.map(_.path.toIO),
+        explicitActual = None
+      ),
+      grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.3.jar")
+    )
+
+    mkdir(outputPath)
+
+
+    scalac.apply(
+      sources = ls.rec(sources.path).filter(_.isFile).map(_.toIO).toArray,
+      changes = new DependencyChanges {
+        def isEmpty = true
+        def modifiedBinaries() = Array[File]()
+        def modifiedClasses() = Array[String]()
+      },
+      classpath = compileClasspath.map(_.path.toIO).toArray,
+      singleOutput = outputPath.toIO,
+      options = Array(),
+      callback = new xsbti.AnalysisCallback {
+        def startSource(source: File) = ()
+        def apiPhaseCompleted() = ()
+        def enabled() = true
+        def binaryDependency(onBinaryEntry: File, onBinaryClassName: String, fromClassName: String, fromSourceFile: File, context: DependencyContext) = ()
+        def generatedNonLocalClass(source: File, classFile: File, binaryClassName: String, srcClassName: String) = ()
+        def problem(what: String, pos: xsbti.Position, msg: String, severity: xsbti.Severity, reported: Boolean) = ()
+        def dependencyPhaseCompleted() = ()
+        def classDependency(onClassName: String, sourceClassName: String, context: DependencyContext) = ()
+        def generatedLocalClass(source: File, classFile: File) = ()
+        def api(sourceFile: File, classApi: ClassLike) = ()
+
+        def mainClass(sourceFile: File, className: String) = ()
+        def usedName(className: String, name: String, useScopes: java.util.EnumSet[xsbti.UseScope]) = ()
+      },
+      maximumErrors = 10,
+      cache = new FreshCompilerCache(),
+      log = {
+        val console = ConsoleOut.systemOut
+        val consoleAppender = MainAppender.defaultScreen(console)
+        val l = LogExchange.logger("Hello")
+        LogExchange.unbindLoggerAppenders("Hello")
+        LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
+        l
+      }
+    )
+    PathRef(outputPath)
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -182,7 +179,7 @@ abstract class Subproject extends Cacher{
   def resources = T{ PathRef(basePath() / 'resources) }
   def compiledPath = T{ outputPath() / 'classpath }
   def compiled = T{
-    compileScala(scalaVersion, sources, compileDepClasspath, outputPath)
+    compileScala(scalaVersion(), sources(), compileDepClasspath(), outputPath())
   }
 
   def classpath = T{ Seq(resources(), compiled()) }
