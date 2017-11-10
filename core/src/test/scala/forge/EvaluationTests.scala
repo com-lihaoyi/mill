@@ -1,7 +1,9 @@
 package forge
 
 
-import forge.define.Task
+import forge.TestUtil.{Test, test}
+import forge.define.{Target, Task}
+import forge.define.Task.Cacher
 import forge.discover.Discovered
 import forge.eval.Evaluator
 import forge.util.OSet
@@ -9,43 +11,45 @@ import utest._
 import utest.framework.TestPath
 
 object EvaluationTests extends TestSuite{
+  class Checker[T: Discovered](base: T)(implicit tp: TestPath) {
+    val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
+    ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
+    // Make sure data is persisted even if we re-create the evaluator each time
+    def evaluator = new Evaluator(workspace, Discovered.mapping(base))
+
+    def apply(target: Task[_], expValue: Any,
+              expEvaled: OSet[Task[_]],
+              extraEvaled: Int = 0,
+              secondRun: Boolean = true) = {
+
+      val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))
+
+      val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
+
+      assert(
+        returnedValues == Seq(expValue),
+        matchingReturnedEvaled.toSet == expEvaled.toSet,
+        extra.length == extraEvaled
+      )
+
+      // Second time the value is already cached, so no evaluation needed
+      if (secondRun){
+        val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(OSet(target))
+        val expecteSecondRunEvaluated = OSet()
+        assert(
+          returnedValues2 == returnedValues,
+          returnedEvaluated2 == expecteSecondRunEvaluated
+        )
+      }
+    }
+  }
+
 
   val tests = Tests{
     val graphs = new TestGraphs()
     import graphs._
     'evaluateSingle - {
 
-      class Checker[T: Discovered](base: T)(implicit tp: TestPath) {
-        val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-        ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-        // Make sure data is persisted even if we re-create the evaluator each time
-        def evaluator = new Evaluator(
-          workspace,
-
-          Discovered.mapping(base)
-        )
-        def apply(target: Task[_], expValue: Any,
-                  expEvaled: OSet[Task[_]],
-                  extraEvaled: Int = 0) = {
-
-          val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))
-
-          val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
-
-          assert(
-            returnedValues == Seq(expValue),
-            matchingReturnedEvaled.toSet == expEvaled.toSet,
-            extra.length == extraEvaled
-          )
-
-          // Second time the value is already cached, so no evaluation needed
-          val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(OSet(target))
-          assert(
-            returnedValues2 == returnedValues,
-            returnedEvaluated2 == OSet()
-          )
-        }
-      }
 
       'singleton - {
         import singleton._
@@ -142,6 +146,70 @@ object EvaluationTests extends TestSuite{
       }
     }
 
+    'evaluateMixed - {
+      'tasksAreUncached - {
+        //    ___ left ___
+        //   /            \
+        // up    middle -- down
+        //                /
+        //           right
+        object taskDiamond extends Cacher{
+          var leftCount = 0
+          var rightCount = 0
+          var middleCount = 0
+          def up = T{ test() }
+          def left = T.task{ leftCount += 1; up() + 1 }
+          def middle = T.task{ middleCount += 1; 100 }
+          def right = T{ rightCount += 1; 10000 }
+          def down = T{ left() + middle() + right() }
+        }
+
+        import taskDiamond._
+
+        // Ensure task objects themselves are not cached, and recomputed each time
+        assert(
+          up eq up,
+          left ne left,
+          middle ne middle,
+          right eq right,
+          down eq down
+        )
+
+        // During the first evaluation, they get computed normally like any
+        // cached target
+        val check = new Checker(taskDiamond)
+        assert(leftCount == 0, rightCount == 0)
+        check(down, expValue = 10101, expEvaled = OSet(up, right, down), extraEvaled = 8)
+        assert(leftCount == 1, middleCount == 1, rightCount == 1)
+
+        // If the upstream `up` doesn't change, the entire block of tasks
+        // doesn't need to recompute
+        check(down, expValue = 10101, expEvaled = OSet())
+        assert(leftCount == 1, middleCount == 1, rightCount == 1)
+
+        // But if `up` changes, the entire block of downstream tasks needs to
+        // recompute together, including `middle` which doesn't depend on `up`,
+        // because tasks have no cached value that can be used. `right`, which
+        // is a cached Target, does not recompute
+        up.inputs(0).asInstanceOf[Test].counter += 1
+        check(down, expValue = 10102, expEvaled = OSet(up, down), extraEvaled = 6)
+        assert(leftCount == 2, middleCount == 2, rightCount == 1)
+
+        // Running the tasks themselves results in them being recomputed every
+        // single time, even if nothing changes
+        check(left, expValue = 2, expEvaled = OSet(), extraEvaled = 1, secondRun = false)
+        assert(leftCount == 3, middleCount == 2, rightCount == 1)
+        check(left, expValue = 2, expEvaled = OSet(), extraEvaled = 1, secondRun = false)
+        assert(leftCount == 4, middleCount == 2, rightCount == 1)
+
+        check(middle, expValue = 100, expEvaled = OSet(), extraEvaled = 2, secondRun = false)
+        assert(leftCount == 4, middleCount == 3, rightCount == 1)
+        check(middle, expValue = 100, expEvaled = OSet(), extraEvaled = 2, secondRun = false)
+        assert(leftCount == 4, middleCount == 4, rightCount == 1)
+      }
+
+
+    }
 
   }
 }

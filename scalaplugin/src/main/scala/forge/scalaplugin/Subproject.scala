@@ -183,12 +183,12 @@ abstract class Subproject extends Cacher{
   def classpath = T{ Seq(resources(), compiled()) }
   def jar = T{ modules.Jvm.jarUp(resources, compiled) }
 
-  def run(mainClass: String) = T.cmd{
+  def run(mainClass: String) = T.command{
     import ammonite.ops._, ImplicitWd._
     %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
   }
 
-  def console() = T.cmd{
+  def console() = T.command{
     import ammonite.ops._, ImplicitWd._
     %('java,
       "-cp",

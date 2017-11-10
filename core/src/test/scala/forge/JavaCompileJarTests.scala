@@ -44,8 +44,7 @@ object JavaCompileJarTests extends TestSuite{
         def classFiles = T{ compileAll(Task.ctx().dest, allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
 
-        @forge.discover.Router.main
-        def run(mainClsName: String): Task[CommandResult] = T.cmd{
+        def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
         }
       }

@@ -16,10 +16,10 @@ object TestUtil {
     * controlled externally, so you can construct arbitrary dataflow graphs and
     * test how changes propagate.
     */
-  class Test(val inputs: Seq[Task[Int]],
+  class Test(override val inputs: Seq[Task[Int]],
              val pure: Boolean) extends Task[Int]{
     var counter = 0
-    def evaluate(args: Args) = {
+    override def evaluate(args: Args) = {
       counter + args.args.map(_.asInstanceOf[Int]).sum
     }
 

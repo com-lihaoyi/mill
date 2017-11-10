@@ -44,19 +44,24 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     val inputs = Nil
     def evaluate(args: Args)  = t0
   }
-  def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
-
-  def cmd[T](t: T): Command[T] = macro targetCommandImpl[T]
-  def targetCommandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Command[T]] = {
-    import c.universe._
-    c.Expr[Command[T]](
-      q"new forge.define.Command(${Applicative.impl[Task, T, Args](c)(t).tree})"
-    )
-  }
-  def task[T](t: T): Task[T] = macro Applicative.impl[Task, T, Args]
 
   def apply[T](t: T): Target[T] = macro targetCachedImpl[T]
+  def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
 
+  def command[T](t: T): Command[T] = macro targetCommandImpl[T]
+  def command[T](t: Task[T]): Command[T] = new Command(t)
+
+  def task[T](t: T): Task[T] = macro Applicative.impl[Task, T, Args]
+  def task[T](t: Task[T]): Task[T] = t
+
+
+  def targetCommandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Command[T]] = {
+    import c.universe._
+
+    c.Expr[Command[T]](
+      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree})"
+    )
+  }
   def targetCachedImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     c.Expr[Target[T]](
       forge.define.Cacher.wrapCached(c)(
