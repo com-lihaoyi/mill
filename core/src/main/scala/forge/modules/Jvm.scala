@@ -4,7 +4,7 @@ import java.io.FileOutputStream
 import java.util.jar.{JarEntry, JarOutputStream}
 
 import ammonite.ops._
-import forge.define.Target
+import forge.define.Task
 import forge.eval.PathRef
 import forge.util.Args
 
@@ -59,7 +59,7 @@ object Jvm {
       Some(outputPath)
     }
   }
-  case class jarUp(roots: Target[PathRef]*) extends Target[PathRef]{
+  case class jarUp(roots: Task[PathRef]*) extends Task[PathRef]{
 
     val inputs = roots
     def evaluate(args: Args): PathRef = {

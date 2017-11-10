@@ -1,6 +1,6 @@
 package forge
 
-import forge.define.Target.Cacher
+import forge.define.Task.Cacher
 import forge.TestUtil.test
 
 class TestGraphs(){
@@ -50,12 +50,6 @@ class TestGraphs(){
     def down = T{ test(left, right) }
   }
 
-  object borkedCachedDiamond1 {
-    def up = T{ test() }
-    def left = T{ test(up) }
-    def right = T{ test(up) }
-    def down = T{ test(left, right) }
-  }
 
   object borkedCachedDiamond2 extends Cacher {
     def up = test()

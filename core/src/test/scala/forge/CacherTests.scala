@@ -1,6 +1,6 @@
 package forge
 
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Discovered
 import forge.eval.Evaluator
 import forge.util.OSet
@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite{
   object Base extends Base
-  trait Base extends Target.Cacher{
+  trait Base extends Task.Cacher{
     def value = T{ 1 }
   }
   object Middle extends Middle
@@ -25,7 +25,7 @@ object CacherTests extends TestSuite{
   val tests = Tests{
 
 
-    def eval[T: Discovered, V](base: T, v: Target[V])(implicit tp: TestPath) = {
+    def eval[T: Discovered, V](base: T, v: Task[V])(implicit tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
       val evaluator = new Evaluator(workspace, Discovered.mapping(base))
       evaluator.evaluate(OSet(v)).values(0)

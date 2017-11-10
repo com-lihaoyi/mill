@@ -2,7 +2,7 @@ package forge
 
 import utest._
 import TestUtil.test
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Discovered
 import forge.eval.Evaluator
 import forge.util.OSet
@@ -64,14 +64,7 @@ object GraphTests extends TestSuite{
 
         assert(inconsistent == Nil)
       }
-      'borkedCachedDiamond1 - {
-        val inconsistent = Discovered.consistencyCheck(
-          borkedCachedDiamond1,
-          Discovered[borkedCachedDiamond1.type]
-        )
 
-        assert(inconsistent == expected)
-      }
       'borkedCachedDiamond2 - {
         val inconsistent = Discovered.consistencyCheck(
           borkedCachedDiamond2,
@@ -90,7 +83,7 @@ object GraphTests extends TestSuite{
 
 
     'topoSortedTransitiveTargets - {
-      def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
+      def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
         val result = Evaluator.topoSortedTransitiveTargets(targets).values
         TestUtil.checkTopological(result)
         assert(result == expected)
@@ -124,9 +117,13 @@ object GraphTests extends TestSuite{
       'defCachedDiamond - check(
         targets = OSet(defCachedDiamond.down),
         expected = OSet(
+          defCachedDiamond.up.inputs(0),
           defCachedDiamond.up,
+          defCachedDiamond.down.inputs(0).inputs(0).inputs(0),
+          defCachedDiamond.down.inputs(0).inputs(0),
+          defCachedDiamond.down.inputs(0).inputs(1).inputs(0),
+          defCachedDiamond.down.inputs(0).inputs(1),
           defCachedDiamond.down.inputs(0),
-          defCachedDiamond.down.inputs(1),
           defCachedDiamond.down
         )
       )
@@ -138,9 +135,9 @@ object GraphTests extends TestSuite{
     }
 
     'groupAroundNamedTargets - {
-      def check[T: Discovered, R <: Target[Int]](base: T,
-                               target: R,
-                               expected: OSet[(OSet[R], Int)]) = {
+      def check[T: Discovered, R <: Task[Int]](base: T,
+                                               target: R,
+                                               expected: OSet[(OSet[R], Int)]) = {
 
         val mapping = Discovered.mapping(base)
         val topoSortedTransitive = Evaluator.topoSortedTransitiveTargets(OSet(target))
@@ -187,10 +184,10 @@ object GraphTests extends TestSuite{
         defCachedDiamond,
         defCachedDiamond.down,
         OSet(
-          OSet(defCachedDiamond.up) -> 1,
-          OSet(defCachedDiamond.left) -> 1,
-          OSet(defCachedDiamond.right) -> 1,
-          OSet(defCachedDiamond.down) -> 1
+          OSet(defCachedDiamond.up) -> 2,
+          OSet(defCachedDiamond.left) -> 2,
+          OSet(defCachedDiamond.right) -> 2,
+          OSet(defCachedDiamond.down) -> 2
         )
       )
 
@@ -218,10 +215,10 @@ object GraphTests extends TestSuite{
 
     'labeling - {
 
-      def check[T: Discovered](base: T, t: Target[_], relPath: Option[String]) = {
+      def check[T: Discovered](base: T, t: Task[_], relPath: Option[String]) = {
 
 
-        val names: Seq[(Target[_], Seq[String])] = Discovered.mapping(base).mapValues(_.segments).toSeq
+        val names: Seq[(Task[_], Seq[String])] = Discovered.mapping(base).mapValues(_.segments).toSeq
         val nameMap = names.toMap
 
         val targetLabel = nameMap.get(t).map(_.mkString("."))

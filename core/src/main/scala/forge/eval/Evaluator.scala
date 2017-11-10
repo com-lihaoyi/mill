@@ -1,16 +1,16 @@
 package forge.eval
 
 import ammonite.ops._
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Labelled
 import forge.util.{Args, MultiBiMap, OSet}
 import play.api.libs.json.{Format, JsValue, Json}
 
 import scala.collection.mutable
 class Evaluator(workspacePath: Path,
-                labeling: Map[Target[_], Labelled[_]]){
+                labeling: Map[Task[_], Labelled[_]]){
 
-  def evaluate(targets: OSet[Target[_]]): Evaluator.Results = {
+  def evaluate(targets: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
     val sortedGroups = Evaluator.groupAroundNamedTargets(
@@ -18,8 +18,8 @@ class Evaluator(workspacePath: Path,
       labeling
     )
 
-    val evaluated = new OSet.Mutable[Target[_]]
-    val results = mutable.LinkedHashMap.empty[Target[_], Any]
+    val evaluated = new OSet.Mutable[Task[_]]
+    val results = mutable.LinkedHashMap.empty[Task[_], Any]
 
     for (groupIndex <- sortedGroups.keys()){
       val group = sortedGroups.lookupKey(groupIndex)
@@ -37,9 +37,9 @@ class Evaluator(workspacePath: Path,
     Evaluator.Results(targets.items.map(results), evaluated)
   }
 
-  def evaluateGroupCached(group: OSet[Target[_]],
-                          results: collection.Map[Target[_], Any],
-                          sortedGroups: MultiBiMap[Int, Target[_]]): (collection.Map[Target[_], Any], Seq[Target[_]]) = {
+  def evaluateGroupCached(group: OSet[Task[_]],
+                          results: collection.Map[Task[_], Any],
+                          sortedGroups: MultiBiMap[Int, Task[_]]): (collection.Map[Task[_], Any], Seq[Task[_]]) = {
 
 
     val (externalInputs, terminals) = partitionGroupInputOutput(group, results)
@@ -65,7 +65,7 @@ class Evaluator(workspacePath: Path,
 
     cached match{
       case Some(terminalResults) =>
-        val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
+        val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
         for((terminal, res) <- terminals.items.zip(terminalResults)){
           newResults(terminal) = labeling(terminal).format.reads(res).get
         }
@@ -87,8 +87,8 @@ class Evaluator(workspacePath: Path,
     }
   }
 
-  def partitionGroupInputOutput(group: OSet[Target[_]],
-                                results: collection.Map[Target[_], Any]) = {
+  def partitionGroupInputOutput(group: OSet[Task[_]],
+                                results: collection.Map[Task[_], Any]) = {
     val allInputs = group.items.flatMap(_.inputs)
     val (internalInputs, externalInputs) = allInputs.partition(group.contains)
     val internalInputSet = internalInputs.toSet
@@ -96,14 +96,14 @@ class Evaluator(workspacePath: Path,
     (OSet.from(externalInputs.distinct), terminals)
   }
 
-  def evaluateGroup(group: OSet[Target[_]],
-                    results: collection.Map[Target[_], Any],
+  def evaluateGroup(group: OSet[Task[_]],
+                    results: collection.Map[Task[_], Any],
                     targetDestPath: Option[Path]) = {
 
     targetDestPath.foreach(rm)
-    val terminalResults = mutable.LinkedHashMap.empty[Target[_], JsValue]
-    val newEvaluated = mutable.Buffer.empty[Target[_]]
-    val newResults = mutable.LinkedHashMap.empty[Target[_], Any]
+    val terminalResults = mutable.LinkedHashMap.empty[Task[_], JsValue]
+    val newEvaluated = mutable.Buffer.empty[Task[_]]
+    val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
     for (target <- group.items) {
       newEvaluated.append(target)
       val targetInputValues = target.inputs.toVector.map(x =>
@@ -129,12 +129,12 @@ class Evaluator(workspacePath: Path,
 
 
 object Evaluator{
-  class TopoSorted private[Evaluator] (val values: OSet[Target[_]])
-  case class Results(values: Seq[Any], targets: OSet[Target[_]])
+  class TopoSorted private[Evaluator] (val values: OSet[Task[_]])
+  case class Results(values: Seq[Any], targets: OSet[Task[_]])
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
-                              labeling: Map[Target[_], Labelled[_]]): MultiBiMap[Int, Target[_]] = {
+                              labeling: Map[Task[_], Labelled[_]]): MultiBiMap[Int, Task[_]] = {
 
-    val grouping = new MultiBiMap.Mutable[Int, Target[_]]()
+    val grouping = new MultiBiMap.Mutable[Int, Task[_]]()
 
     var groupCount = 0
 
@@ -159,7 +159,7 @@ object Evaluator{
     }
 
     val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
-    val output = new MultiBiMap.Mutable[Int, Target[_]]
+    val output = new MultiBiMap.Mutable[Int, Task[_]]
 
     // Sort groups amongst themselves, and sort the contents of each group
     // before aggregating it into the final output
@@ -173,9 +173,9 @@ object Evaluator{
     * Takes the given targets, finds all the targets they transitively depend
     * on, and sort them topologically. Fails if there are dependency cycles
     */
-  def topoSortedTransitiveTargets(sourceTargets: OSet[Target[_]]): TopoSorted = {
-    val transitiveTargets = new OSet.Mutable[Target[_]]
-    def rec(t: Target[_]): Unit = {
+  def topoSortedTransitiveTargets(sourceTargets: OSet[Task[_]]): TopoSorted = {
+    val transitiveTargets = new OSet.Mutable[Task[_]]
+    def rec(t: Task[_]): Unit = {
       if (transitiveTargets.contains(t)) () // do nothing
       else {
         transitiveTargets.append(t)

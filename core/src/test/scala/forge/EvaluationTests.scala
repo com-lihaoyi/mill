@@ -1,7 +1,7 @@
 package forge
 
 
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Discovered
 import forge.eval.Evaluator
 import forge.util.OSet
@@ -24,8 +24,8 @@ object EvaluationTests extends TestSuite{
 
           Discovered.mapping(base)
         )
-        def apply(target: Target[_], expValue: Any,
-                  expEvaled: OSet[Target[_]],
+        def apply(target: Task[_], expValue: Any,
+                  expEvaled: OSet[Task[_]],
                   extraEvaled: Int = 0) = {
 
           val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))

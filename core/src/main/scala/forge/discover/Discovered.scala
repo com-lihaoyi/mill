@@ -1,24 +1,24 @@
 package forge.discover
 
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Router.{EntryPoint, Result}
 import play.api.libs.json.Format
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-class Discovered[T](val targets: Seq[(Seq[String], Format[_], T => Target[_])],
+class Discovered[T](val targets: Seq[(Seq[String], Format[_], T => Task[_])],
                     val mains: Seq[NestedEntry[T, _]]){
   def apply(t: T) = targets.map{case (a, f, b) => (a, f, b(t)) }
 }
 
-case class Labelled[T](target: Target[T],
+case class Labelled[T](target: Task[T],
                        format: Format[T],
                        segments: Seq[String])
 
 
 case class NestedEntry[T, V](path: Seq[String], resolve: T => V, entryPoint: EntryPoint[V]){
-  def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Target[Any]] = {
+  def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Task[Any]] = {
     entryPoint.invoke(resolve(target),groupedArgs)
   }
 }
@@ -34,14 +34,14 @@ object Discovered {
     } yield path
     inconsistent
   }
-  def makeTuple[T, V](path: Seq[String], func: T => Target[V])(implicit f: Format[V]) = {
+  def makeTuple[T, V](path: Seq[String], func: T => Task[V])(implicit f: Format[V]) = {
     (path, f, func)
   }
 
 
-  def mapping[T: Discovered](t: T): Map[Target[_], Labelled[_]] = {
+  def mapping[T: Discovered](t: T): Map[Task[_], Labelled[_]] = {
     implicitly[Discovered[T]].apply(t)
-      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Target[Any]], x._2.asInstanceOf[Format[Any]], x._1))
+      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Task[Any]], x._2.asInstanceOf[Format[Any]], x._1))
       .toMap
   }
 
@@ -62,12 +62,12 @@ object Discovered {
         if
           (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
           m.isModule ||
-          (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Target[_]])
+          (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Task[_]])
         if !m.name.toString.contains('$')
       } yield {
         val extendedSegments = m.name.toString :: segments
         val self =
-          if (m.typeSignature.resultType <:< c.weakTypeOf[Target[_]]) Seq(extendedSegments)
+          if (m.typeSignature.resultType <:< c.weakTypeOf[Task[_]]) Seq(extendedSegments)
           else Nil
 
         val (mains, children) = rec(extendedSegments, m.typeSignature)

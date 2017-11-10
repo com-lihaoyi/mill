@@ -5,8 +5,8 @@ import java.io.File
 
 import ammonite.ops.{Path, ls, mkdir, pwd}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
-import forge.define.Target
-import forge.define.Target.Cacher
+import forge.define.Task
+import forge.define.Task.Cacher
 import forge.eval.PathRef
 import forge.util.Args
 import play.api.libs.json._
@@ -16,7 +16,6 @@ import sbt.util.LogExchange
 import xsbti.api.{ClassLike, DependencyContext}
 import xsbti.compile.DependencyChanges
 
-import scalaz.concurrent.Task
 object Subproject{
   def compileScala(scalaVersion: String,
                    sources: PathRef,
@@ -97,7 +96,7 @@ object Subproject{
 
     val fetch = Fetch.from(repositories, Cache.fetch())
     val resolution = start.process.run(fetch).unsafePerformSync
-    val localArtifacts: Seq[File] = Task
+    val localArtifacts: Seq[File] = scalaz.concurrent.Task
       .gatherUnordered(resolution.artifacts.map(Cache.file(_).run))
       .unsafePerformSync
       .flatMap(_.toOption)
@@ -178,19 +177,19 @@ abstract class Subproject extends Cacher{
   def sources = T{ PathRef(basePath() / 'src) }
   def resources = T{ PathRef(basePath() / 'resources) }
   def compiled = T{
-    compileScala(scalaVersion(), sources(), compileDepClasspath(), Target.ctx().dest)
+    compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }
 
   def classpath = T{ Seq(resources(), compiled()) }
   def jar = T{ modules.Jvm.jarUp(resources, compiled) }
 
   @forge.discover.Router.main
-  def run(mainClass: String) = T.command{
+  def run(mainClass: String) = T.cmd{
     import ammonite.ops._, ImplicitWd._
     %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
   }
   @forge.discover.Router.main
-  def console() = T.command{
+  def console() = T.cmd{
     import ammonite.ops._, ImplicitWd._
     %('java,
       "-cp",

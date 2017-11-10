@@ -2,7 +2,7 @@ package forge
 
 import ammonite.ops._
 import ammonite.util.{Name, Res}
-import forge.define.Target
+import forge.define.Task
 import forge.discover.{Discovered, NestedEntry}
 import forge.eval.Evaluator
 import forge.util.OSet
@@ -35,7 +35,7 @@ object Main {
             val targetRoutes = discovered.targets.map(x => x._1 -> Right(x))
             val allRoutes = (mainRoutes ++ targetRoutes).toMap[
               Seq[String],
-              Either[NestedEntry[Any, _], (Seq[String], Format[_], Any => Target[_])]
+              Either[NestedEntry[Any, _], (Seq[String], Format[_], Any => Task[_])]
               ]
             allRoutes.get(selector) match{
               case Some(Left(nestedEntryPoint)) =>

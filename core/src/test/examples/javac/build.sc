@@ -1,4 +1,4 @@
-import forge.define.Target
+import forge.define.Task
 import forge.eval.PathRef
 
 object Foo {
@@ -21,14 +21,14 @@ object Foo {
   //                                |
   //                                v
   //           resourceRoot ---->  jar
-  val sourceRoot = Target.path(sourceRootPath)
-  val resourceRoot = Target.path(resourceRootPath)
+  val sourceRoot = Task.path(sourceRootPath)
+  val resourceRoot = Task.path(resourceRootPath)
   val allSources = list(sourceRoot)
   val classFiles = compileAll(allSources)
   val jar = jarUp(resourceRoot, classFiles)
 
-  def compileAll(sources: Target[Seq[PathRef]]) = {
-    new Target.Subprocess(
+  def compileAll(sources: Task[Seq[PathRef]]) = {
+    new Task.Subprocess(
       Seq(sources),
       args =>
         Seq("javac") ++
@@ -37,11 +37,11 @@ object Foo {
     ).map(_.dest)
   }
 
-  def list(root: Target[PathRef]): Target[Seq[PathRef]] = {
+  def list(root: Task[PathRef]): Task[Seq[PathRef]] = {
     root.map(x => ls.rec(x.path).map(PathRef(_)))
   }
 
-  case class jarUp(roots: Target[PathRef]*) extends Target[PathRef] {
+  case class jarUp(roots: Task[PathRef]*) extends Task[PathRef] {
 
     val inputs = roots
 

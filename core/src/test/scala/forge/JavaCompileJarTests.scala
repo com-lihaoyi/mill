@@ -3,7 +3,7 @@ package forge
 
 import ammonite.ops._
 import ImplicitWd._
-import forge.define.Target
+import forge.define.Task
 import forge.discover.Discovered
 import forge.eval.{Evaluator, PathRef}
 import forge.modules.Jvm.jarUp
@@ -30,7 +30,7 @@ object JavaCompileJarTests extends TestSuite{
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
 
-      object Build extends Target.Cacher{
+      object Build extends Task.Cacher{
         def sourceRootPath = javacDestPath / 'src
         def resourceRootPath = javacDestPath / 'resources
 
@@ -38,26 +38,29 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T{ Target.path(sourceRootPath) }
-        def resourceRoot = T{ Target.path(resourceRootPath) }
+        def sourceRoot = T{ Task.path(sourceRootPath) }
+        def resourceRoot = T{ Task.path(resourceRootPath) }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
-        def classFiles = T{ compileAll(Target.ctx().dest, allSources()) }
+        def classFiles = T{ compileAll(Task.ctx().dest, allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
 
         @forge.discover.Router.main
-        def run(mainClsName: String): Target[CommandResult] = T.command{
+        def run(mainClsName: String): Task[CommandResult] = T.cmd{
           %%('java, "-cp", classFiles().path, mainClsName)
         }
       }
       import Build._
       val mapping = Discovered.mapping(Build)
 
-      def eval[T](t: Target[T]): (T, Int) = {
+      def eval[T](t: Task[T]): (T, Int) = {
         val evaluator = new Evaluator(workspacePath, mapping)
         val evaluated = evaluator.evaluate(OSet(t))
-        (evaluated.values(0).asInstanceOf[T], evaluated.targets.size)
+        Tuple2(
+          evaluated.values(0).asInstanceOf[T],
+          evaluated.targets.filter(x => mapping.contains(x) || x.isInstanceOf[forge.define.Command[_]]).size
+        )
       }
-      def check(targets: OSet[Target[_]], expected: OSet[Target[_]]) = {
+      def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
 
         val evaluated = evaluator.evaluate(targets).targets.filter(mapping.contains)
