@@ -16,7 +16,6 @@ import scala.language.experimental.macros
   */
 object Router{
   class doc(s: String) extends StaticAnnotation
-  class main extends StaticAnnotation
   def generateRoutes[T]: Seq[Router.EntryPoint[T]] = macro generateRoutesImpl[T]
   def generateRoutesImpl[T: c.WeakTypeTag](c: Context): c.Expr[Seq[EntryPoint[T]]] = {
     import c.universe._
@@ -385,7 +384,7 @@ class Router [C <: Context](val c: C) {
   def getAllRoutesForClass(curCls: Type): Iterable[c.universe.Tree] = {
     for{
       t <- getValsOrMeths(curCls)
-      if t.annotations.exists(_.tpe =:= typeOf[Router.main])
+      if t.returnType <:< typeOf[forge.define.Command[_]]
     } yield {
       extractMethod(t, curCls)
     }

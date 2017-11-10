@@ -183,12 +183,11 @@ abstract class Subproject extends Cacher{
   def classpath = T{ Seq(resources(), compiled()) }
   def jar = T{ modules.Jvm.jarUp(resources, compiled) }
 
-  @forge.discover.Router.main
   def run(mainClass: String) = T.cmd{
     import ammonite.ops._, ImplicitWd._
     %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
   }
-  @forge.discover.Router.main
+
   def console() = T.cmd{
     import ammonite.ops._, ImplicitWd._
     %('java,
