@@ -3,7 +3,7 @@ val sharedSettings = Seq(
   organization := "com.lihaoyi",
   libraryDependencies += "com.lihaoyi" %% "utest" % "0.6.0" % "test",
 
-  testFrameworks += new TestFramework("forge.UTestFramework"),
+  testFrameworks += new TestFramework("mill.UTestFramework"),
 
   parallelExecution in Test := false,
   test in assembly := {},
@@ -32,7 +32,7 @@ val sharedSettings = Seq(
 lazy val core = project
   .settings(
     sharedSettings,
-    name := "forge-core",
+    name := "mill-core",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
       "com.lihaoyi" %% "sourcecode" % "0.1.4",
@@ -47,5 +47,5 @@ lazy val scalaplugin = project
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     sharedSettings,
-    name := "forge-scalaplugin"
+    name := "mill-scalaplugin"
   )

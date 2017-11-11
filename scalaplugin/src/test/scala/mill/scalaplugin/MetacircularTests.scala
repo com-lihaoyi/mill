@@ -1,16 +1,15 @@
-import $cp.scalaplugin.target.`scala-2.12`.classes
+package mill
+package scalaplugin
+
 import ammonite.ops.pwd
 import coursier.{Dependency => Dep, Module => Mod}
 import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
 import mill.scalaplugin.Subproject.ScalaDep
 import mill.util.OSet
-import mill._
-import mill.scalaplugin._
+import utest._
 
-object Build{
-
-
+object MetacircularTests extends TestSuite{
   object Core extends Subproject {
     def scalaVersion = T{ "2.12.4" }
     override def compileIvyDeps = T{
@@ -43,5 +42,21 @@ object Build{
     override def sources = T{ PathRef(pwd/'scalaplugin/'src/'main/'scala) }
     override def resources = T{ sources }
   }
+
+  val tests = Tests{
+    'scalac {
+      val workspacePath = pwd / 'target / 'workspace / 'meta
+      val mapping = Discovered.mapping(MetacircularTests)
+      val evaluator = new Evaluator(workspacePath, mapping)
+//      val evaluated1 = evaluator.evaluate(OSet(Self.scalaVersion)).evaluated.collect(mapping)
+//      val evaluated2 = evaluator.evaluate(OSet(Self.scalaBinaryVersion)).evaluated.collect(mapping)
+//      val evaluated3 = evaluator.evaluate(OSet(Self.compileDeps)).evaluated.collect(mapping)
+//      val evaluated4 = evaluator.evaluate(OSet(Self.deps)).evaluated.collect(mapping)
+//      val evaluated5 = evaluator.evaluate(OSet(Core.compiled)).evaluated.collect(mapping)
+//      val evaluated6 = evaluator.evaluate(OSet(ScalaPlugin.compiled)).evaluated.collect(mapping)
+//      val evaluated7 = evaluator.evaluate(OSet(ScalaPlugin.jar)).evaluated.collect(mapping)
+//      evaluated3
+    }
+  }
 }
-@main def main(): Any = Build -> mill.discover.Discovered[Build.type]
+

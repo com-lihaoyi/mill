@@ -1,0 +1,115 @@
+package mill.discover
+
+import mill.define.Task
+import mill.discover.Router.{EntryPoint, Result}
+import play.api.libs.json.Format
+
+import scala.language.experimental.macros
+import scala.reflect.macros.blackbox.Context
+
+class Discovered[T](val targets: Seq[(Seq[String], Format[_], T => Task[_])],
+                    val mains: Seq[NestedEntry[T, _]]){
+  def apply(t: T) = targets.map{case (a, f, b) => (a, f, b(t)) }
+}
+
+case class Labelled[T](target: Task[T],
+                       format: Format[T],
+                       segments: Seq[String])
+
+
+case class NestedEntry[T, V](path: Seq[String], resolve: T => V, entryPoint: EntryPoint[V]){
+  def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Task[Any]] = {
+    entryPoint.invoke(resolve(target),groupedArgs)
+  }
+}
+object NestedEntry{
+  def make[T, V](path: Seq[String], resolve: T => V)
+                (entryPoint: EntryPoint[V]) = NestedEntry(path, resolve, entryPoint)
+}
+object Discovered {
+  def consistencyCheck[T](base: T, d: Discovered[T]) = {
+    val inconsistent = for{
+      (path, formatter, targetGen) <- d.targets
+      if targetGen(base) ne targetGen(base)
+    } yield path
+    inconsistent
+  }
+  def makeTuple[T, V](path: Seq[String], func: T => Task[V])(implicit f: Format[V]) = {
+    (path, f, func)
+  }
+
+
+  def mapping[T: Discovered](t: T): Map[Task[_], Labelled[_]] = {
+    implicitly[Discovered[T]].apply(t)
+      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Task[Any]], x._2.asInstanceOf[Format[Any]], x._1))
+      .toMap
+  }
+
+  implicit def apply[T]: Discovered[T] = macro applyImpl[T]
+
+  def applyImpl[T: c.WeakTypeTag](c: Context): c.Expr[Discovered[T]] = {
+    import c.universe._
+    val tpe = c.weakTypeTag[T].tpe
+    def rec(segments: List[String], t: c.Type): (Seq[(Seq[String], Tree)], Seq[Seq[String]]) = {
+
+      val r = new Router(c)
+      val selfMains =
+        for(tree <- r.getAllRoutesForClass(t.asInstanceOf[r.c.Type]).asInstanceOf[Seq[c.Tree]])
+        yield (segments, tree)
+
+      val items = for {
+        m <- t.members.toSeq
+        if
+          (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
+          m.isModule ||
+          (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Task[_]])
+        if !m.name.toString.contains('$')
+      } yield {
+        val extendedSegments = m.name.toString :: segments
+        val self =
+          if (m.typeSignature.resultType <:< c.weakTypeOf[Task[_]]) Seq(extendedSegments)
+          else Nil
+
+        val (mains, children) = rec(extendedSegments, m.typeSignature)
+
+        (mains, self ++ children)
+      }
+
+      val (mains, targets) = items.unzip
+      Tuple2(
+        selfMains ++ mains.flatten,
+        targets.flatten
+      )
+    }
+
+    val (entryPoints, reversedPaths) = rec(Nil, tpe)
+
+    val result = for(reversedPath <- reversedPaths.toList) yield {
+      val base = q"${TermName(c.freshName())}"
+      val segments = reversedPath.reverse.toList
+      val ident = segments.foldLeft[Tree](base) { (prefix, name) =>
+        q"$prefix.${TermName(name)}"
+      }
+
+      q"mill.discover.Discovered.makeTuple($segments, ($base: $tpe) => $ident)"
+    }
+
+    val nested = for{
+      (reversedSegments, entry) <- entryPoints
+    } yield {
+      val segments = reversedSegments.reverse
+      val arg = TermName(c.freshName())
+      val select = segments.foldLeft[Tree](Ident(arg)) { (prefix, name) =>
+        q"$prefix.${TermName(name)}"
+      }
+      q"mill.discover.NestedEntry.make(Seq(..$segments), ($arg: $tpe) => $select)($entry)"
+    }
+
+    c.Expr[Discovered[T]](q"""
+      new _root_.mill.discover.Discovered(
+        $result,
+        ${nested.toList}
+      )
+    """)
+  }
+}

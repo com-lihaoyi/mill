@@ -1,5 +1,5 @@
-import forge.define.Task
-import forge.eval.PathRef
+import mill.define.Task
+import mill.eval.PathRef
 
 object Foo {
 
@@ -7,8 +7,8 @@ object Foo {
   import java.util.jar.JarEntry
 
   import ammonite.ops.{ls, pwd, read}
-  import forge.discover.Discovered
-  import forge.util.Args
+  import mill.discover.Discovered
+  import mill.util.Args
 
   val workspacePath = pwd / 'target / 'workspace / 'javac
   val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac
@@ -66,4 +66,4 @@ object Foo {
 
 }
 
-@main def main(): Any = Foo -> forge.Discovered[Foo.type]
+@main def main(): Any = Foo -> mill.Discovered[Foo.type]
