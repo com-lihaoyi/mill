@@ -2,8 +2,10 @@ package mill
 package scalaplugin
 
 import java.io.File
+import java.lang.annotation.Annotation
+import java.net.URLClassLoader
 
-import ammonite.ops.{Path, ls, mkdir, pwd}
+import ammonite.ops.{Path, ls, mkdir, pwd, up}
 import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.Cacher
@@ -12,11 +14,39 @@ import mill.util.Args
 import play.api.libs.json._
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
 import sbt.internal.util.{ConsoleOut, MainAppender}
+import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.util.LogExchange
 import xsbti.api.{ClassLike, DependencyContext}
 import xsbti.compile.DependencyChanges
 
+
+
 object Subproject{
+  def runTests(frameworkName: String,
+               testClassloader: URLClassLoader) = {
+    val framework = Class.forName(frameworkName)
+      .newInstance()
+      .asInstanceOf[sbt.testing.Framework]
+
+    val fingerprints = framework.fingerprints()
+    val testClasses = for{
+      url <- testClassloader.getURLs
+      path <- ls.rec(ammonite.ops.Path(url.getFile)).toIterator
+      if path.ext == "class"
+      className = (path/up/path.last.stripSuffix(".class")).segments.mkString(".")
+      cls = testClassloader.loadClass(className)
+      if fingerprints.exists{
+        case f: SubclassFingerprint =>
+          cls.isAssignableFrom(cls)
+        case f: AnnotatedFingerprint =>
+          cls.isAnnotationPresent(
+            Class.forName(f.annotationName()).asInstanceOf[Class[Annotation]]
+          )
+      }
+    } yield cls
+
+
+  }
   def compileScala(scalaVersion: String,
                    sources: PathRef,
                    compileClasspath: Seq[PathRef],
