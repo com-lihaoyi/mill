@@ -33,7 +33,7 @@ object CacherTests extends TestSuite{
 
     'simpleDefIsCached - assert(
       Base.value eq Base.value,
-      eval(Base, Base.value) == 1
+      eval(Base, Base.value) == 11
     )
 
     'overridingDefIsAlsoCached - assert(

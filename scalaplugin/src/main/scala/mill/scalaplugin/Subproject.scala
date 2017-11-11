@@ -110,7 +110,7 @@ object Subproject{
         l
       }
     )
-    PathRef(outputPath)
+    outputPath
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -171,7 +171,7 @@ object Subproject{
 }
 import Subproject._
 
-abstract class Subproject extends Cacher{
+trait Subproject extends Cacher{
   def scalaVersion: T[String]
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
@@ -185,9 +185,25 @@ abstract class Subproject extends Cacher{
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
+  def projectDeps = Seq.empty[Subproject]
   def depClasspath = T{ Seq.empty[PathRef] }
-  def compileDepClasspath = T[Seq[PathRef]] {
-    depClasspath() ++ resolveDependencies(
+
+
+  def upstreamRunClasspath = T {
+    Task.traverse(
+      for (p <- projectDeps)
+      yield T.task(p.runDepClasspath() ++ Seq(p.compiled()))
+    )
+  }
+  def upstreamCompileClasspath = T {
+    Task.traverse(
+      for (p <- projectDeps)
+      yield T.task(p.compileDepClasspath() ++ Seq(p.compiled()))
+    )
+  }
+
+  def compileDepClasspath: T[Seq[PathRef]] = T{
+    upstreamCompileClasspath().flatten ++ depClasspath() ++ resolveDependencies(
       repositories,
       scalaVersion(),
       scalaBinaryVersion(),
@@ -195,8 +211,10 @@ abstract class Subproject extends Cacher{
     )
   }
 
-  def runDepClasspath =  T[Seq[PathRef]] {
-    depClasspath() ++ resolveDependencies(
+  def runDepClasspath: T[Seq[PathRef]] = T{
+    upstreamRunClasspath().flatten ++
+    depClasspath() ++
+    resolveDependencies(
       repositories,
       scalaVersion(),
       scalaBinaryVersion(),
@@ -204,8 +222,8 @@ abstract class Subproject extends Cacher{
     )
   }
 
-  def sources = T{ PathRef(basePath() / 'src) }
-  def resources = T{ PathRef(basePath() / 'resources) }
+  def sources = T[PathRef]{ basePath() / 'src }
+  def resources = T[PathRef]{ basePath() / 'resources }
   def compiled = T{
     compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }
@@ -215,16 +233,19 @@ abstract class Subproject extends Cacher{
 
   def run(mainClass: String) = T.command{
     import ammonite.ops._, ImplicitWd._
-    %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled()).mkString(":"), mainClass)
+    %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled().path).mkString(":"), mainClass)
   }
 
   def console() = T.command{
     import ammonite.ops._, ImplicitWd._
     %('java,
       "-cp",
-      (runDepClasspath().map(_.path) :+ compiled()).mkString(":"),
+      (runDepClasspath().map(_.path) :+ compiled().path).mkString(":"),
       "scala.tools.nsc.MainGenericRunner",
       "-usejavacp"
     )
+  }
+  def test() = T.command{
+    TestRunner.apply("mill.UTestFramework", Seq(pwd/'core/'target/"scala-2.12"/"test-classes"))
   }
 }

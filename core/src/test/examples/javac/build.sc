@@ -60,7 +60,7 @@ object Foo {
         output.write(read.bytes(path))
       }
       output.close()
-      PathRef(args.dest)
+      args.dest
     }
   }
 

@@ -30,7 +30,7 @@ object MetacircularTests extends TestSuite{
 
 
     def basePath = T{ pwd / 'core }
-    override def sources = T{ PathRef(pwd/'core/'src/'main/'scala) }
+    override def sources = T{ pwd/'core/'src/'main/'scala }
     override def resources = T{ sources }
   }
   object ScalaPlugin extends Subproject {
@@ -39,7 +39,7 @@ object MetacircularTests extends TestSuite{
     override def depClasspath = T{ Seq(Core.compiled()) }
     override def ivyDeps = T{ Core.ivyDeps }
     def basePath = T{ pwd / 'scalaplugin }
-    override def sources = T{ PathRef(pwd/'scalaplugin/'src/'main/'scala) }
+    override def sources = T{ pwd/'scalaplugin/'src/'main/'scala }
     override def resources = T{ sources }
   }
 

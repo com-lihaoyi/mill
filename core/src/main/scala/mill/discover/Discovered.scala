@@ -1,6 +1,6 @@
 package mill.discover
 
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.discover.Router.{EntryPoint, Result}
 import play.api.libs.json.Format
 

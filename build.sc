@@ -9,10 +9,12 @@ import mill._
 import mill.scalaplugin._
 
 object Build{
-
-
-  object Core extends Subproject {
+  trait MillSubproject extends Subproject{
     def scalaVersion = T{ "2.12.4" }
+  }
+
+  object Core extends MillSubproject {
+
     override def compileIvyDeps = T{
       super.compileIvyDeps() ++ Seq[ScalaDep](
         Dep(Mod("org.scala-lang", "scala-reflect"), scalaVersion(), configuration = "provided")
@@ -25,23 +27,24 @@ object Build{
         ScalaDep(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
         ScalaDep.Point(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
         ScalaDep(Dep(Mod("com.typesafe.play", "play-json"), "2.6.6")),
-        ScalaDep(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3"))
+        ScalaDep(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3")),
+        Dep(Mod("org.scala-sbt", "test-interface"), "1.0")
       )
     }
 
-
     def basePath = T{ pwd / 'core }
-    override def sources = T{ PathRef(pwd/'core/'src/'main/'scala) }
-    override def resources = T{ sources }
+    override def sources = T{ pwd/'core/'src/'main/'scala }
   }
-  object ScalaPlugin extends Subproject {
-    def scalaVersion = T{ "2.12.4" }
-
-    override def depClasspath = T{ Seq(Core.compiled()) }
-    override def ivyDeps = T{ Core.ivyDeps }
+  object CoreTests extends MillSubproject {
+    override def projectDeps = Seq(Core)
     def basePath = T{ pwd / 'scalaplugin }
-    override def sources = T{ PathRef(pwd/'scalaplugin/'src/'main/'scala) }
-    override def resources = T{ sources }
+    override def sources = T{ pwd/'core/'src/'test/'scala }
+  }
+
+  object ScalaPlugin extends MillSubproject {
+    override def projectDeps = Seq(Core)
+    def basePath = T{ pwd / 'scalaplugin }
+    override def sources = T{ pwd/'scalaplugin/'src/'main/'scala }
   }
 }
 @main def main(): Any = Build -> mill.discover.Discovered[Build.type]
