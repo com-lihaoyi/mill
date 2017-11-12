@@ -242,7 +242,4 @@ trait Subproject extends Cacher{
       "-usejavacp"
     )
   }
-  def test() = T.command{
-    TestRunner.apply("mill.UTestFramework", Seq(pwd/'core/'target/"scala-2.12"/"test-classes"))
-  }
 }

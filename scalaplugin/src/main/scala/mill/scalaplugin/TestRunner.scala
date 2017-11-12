@@ -2,6 +2,7 @@ package mill.scalaplugin
 
 import java.io.FileInputStream
 import java.lang.annotation.Annotation
+import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
 
 import ammonite.ops.{Path, ls, pwd}
@@ -15,39 +16,38 @@ object TestRunner {
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
-  def runTests(framework: Framework, classpath: Seq[Path]) = {
+  def runTests(cl: ClassLoader, framework: Framework, classpath: Seq[Path]) = {
 
 
     val fingerprints = framework.fingerprints()
     val testClasses = classpath.flatMap { base =>
       listClassFiles(base).flatMap { path =>
-        val cls = Class.forName(path.stripSuffix(".class").replace('/', '.'))
+        val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
         fingerprints.find {
           case f: SubclassFingerprint =>
-            Class.forName(f.superclassName()).isAssignableFrom(cls)
+            cl.loadClass(f.superclassName()).isAssignableFrom(cls)
           case f: AnnotatedFingerprint =>
             cls.isAnnotationPresent(
-              Class.forName(f.annotationName()).asInstanceOf[Class[Annotation]]
+              cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
             )
         }.map { f => (cls, f) }
       }
     }
     testClasses
   }
-  // "mill.UTestFramework"
-  // Seq(pwd/'core/'target/"scala-2.12"/"test-classes")
-  def apply(frameworkName: String, testClassfilePath: Seq[Path]): Unit = {
 
-    val framework = Class.forName(frameworkName)
+  def apply(frameworkName: String,
+            entireClasspath: Seq[Path],
+            testClassfilePath: Seq[Path]): Unit = {
+    val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
+
+    val framework = cl.loadClass(frameworkName)
       .newInstance()
       .asInstanceOf[sbt.testing.Framework]
 
-    val testClasses = runTests(framework, testClassfilePath)
+    val testClasses = runTests(cl, framework, testClassfilePath)
 
-    pprint.log(testClasses)
-
-    val runner = framework.runner(Array(), Array(), getClass.getClassLoader)
-    println(runner)
+    val runner = framework.runner(Array(), Array(), cl)
 
     val tasks = runner.tasks(
       for((cls, fingerprint) <- testClasses.toArray)
@@ -78,6 +78,7 @@ object TestRunner {
     }
     val doneMsg = runner.done()
     if (doneMsg.trim.nonEmpty){
+      println(doneMsg)
       println(doneMsg)
     }
   }

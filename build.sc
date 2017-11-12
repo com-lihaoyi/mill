@@ -5,8 +5,8 @@ import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
 import mill.scalaplugin.Subproject.ScalaDep
 import mill.util.OSet
-import mill._
-import mill.scalaplugin._
+import mill.{T, _}
+import mill.scalaplugin.{TestRunner, _}
 
 object Build{
   trait MillSubproject extends Subproject{
@@ -16,13 +16,13 @@ object Build{
   object Core extends MillSubproject {
 
     override def compileIvyDeps = T{
-      super.compileIvyDeps() ++ Seq[ScalaDep](
+      Seq[ScalaDep](
         Dep(Mod("org.scala-lang", "scala-reflect"), scalaVersion(), configuration = "provided")
       )
     }
 
     override def ivyDeps = T{
-      super.ivyDeps() ++ Seq[ScalaDep](
+      Seq[ScalaDep](
         ScalaDep(Dep(Mod("com.lihaoyi", "sourcecode"), "0.1.4")),
         ScalaDep(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
         ScalaDep.Point(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
@@ -39,6 +39,19 @@ object Build{
     override def projectDeps = Seq(Core)
     def basePath = T{ pwd / 'scalaplugin }
     override def sources = T{ pwd/'core/'src/'test/'scala }
+    override def ivyDeps = T{
+      Seq[ScalaDep](
+        ScalaDep(Dep(Mod("com.lihaoyi", "utest"), "0.6.0"))
+      )
+    }
+    def test() = T.command{
+      pprint.log(runDepClasspath().map(_.path.toString), height=999)
+      TestRunner.apply(
+        "mill.UTestFramework",
+        runDepClasspath().map(_.path) :+ compiled().path,
+        Seq(compiled().path)
+      )
+    }
   }
 
   object ScalaPlugin extends MillSubproject {
