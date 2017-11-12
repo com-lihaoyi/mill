@@ -165,8 +165,28 @@ object EvaluationTests extends TestSuite{
         val grouped = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
         val groupCount = grouped.keyCount
         assert(groupCount == 1)
-
       }
+      'multiTerminalGroup - {
+        // Make sure the following graph ends up as a single group, since although
+        // `right` depends on `left`, both of them depend on the un-cached `task`
+        // which would force them both to re-compute every time `task` changes
+        //
+        //      _ left
+        //     /
+        // task -------- right
+        object taskTriangle extends Cacher{
+          val task = T.task{ 1 }
+          def left = T{ task() }
+          def right = T{ task() }
+        }
+        val labeling = Discovered.mapping(taskTriangle)
+        val topoSorted = Evaluator.topoSortedTransitiveTargets(OSet(taskTriangle.right, taskTriangle.left))
+        val grouped = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
+        val groupCount = grouped.keyCount
+
+        assert(groupCount == 1)
+      }
+
       'tasksAreUncached - {
         // Make sure the tasks `left` and `middle` re-compute every time, while
         // the target `right` does not

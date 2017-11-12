@@ -41,7 +41,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
   trait Cacher extends mill.define.Cacher[Task, Target]{
     def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
   }
-  class Target0[T](t: T) extends Task[T]{
+  class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t
     val inputs = Nil
     def evaluate(args: Args)  = t0
@@ -116,7 +116,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
 
 
   def mapCtx[A, B](t: Task[A])(f: (A, Args) => B) = t.mapDest(f)
-  def zip() =  new Task.Target0(())
+  def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
   def zip[A, B, C](a: Task[A], b: Task[B], c: Task[C]) = new Task[(A, B, C)]{

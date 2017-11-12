@@ -25,6 +25,7 @@ object MultiBiMap{
     private[this] val keyToValues = mutable.LinkedHashMap.empty[K, OSet.Mutable[V]]
     def containsValue(v: V) = valueToKey.contains(v)
     def lookupKey(k: K) = keyToValues(k)
+    def lookupKeyOpt(k: K) = keyToValues.get(k)
     def lookupValue(v: V) = valueToKey(v)
     def lookupValueOpt(v: V) = valueToKey.get(v)
     def add(k: K, v: V): Unit = {

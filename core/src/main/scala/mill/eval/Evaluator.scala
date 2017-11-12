@@ -147,9 +147,9 @@ object Evaluator{
         grouping.lookupValueOpt(upstream) match{
           case None if !labeling.contains(upstream) =>
             grouping.add(targetGroup, upstream)
-          case Some(upstreamGroup) if upstreamGroup == targetGroup =>
+          case Some(upstreamGroup)
+            if !labeling.contains(upstream) && upstreamGroup != targetGroup =>
             val upstreamTargets = grouping.removeAll(upstreamGroup)
-
             grouping.addAll(targetGroup, upstreamTargets)
           case _ => //donothing
         }
@@ -171,7 +171,9 @@ object Evaluator{
     val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
     val output = new MultiBiMap.Mutable[Int, Task[_]]
     for((groupIndices, i) <- groupOrdering.zipWithIndex){
-      val sortedGroup = OSet.from(groupIndices.flatMap(grouping.lookupKey).sortBy(targetOrdering))
+      val sortedGroup = OSet.from(
+        groupIndices.flatMap(grouping.lookupKeyOpt).flatten.sortBy(targetOrdering)
+      )
       output.addAll(i, sortedGroup)
     }
     output
