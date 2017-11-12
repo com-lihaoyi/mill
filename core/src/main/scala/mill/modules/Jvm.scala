@@ -64,7 +64,7 @@ object Jvm {
     val inputs = roots
     def evaluate(args: Args): PathRef = {
       createJar(args.dest, args.args.map(_.asInstanceOf[PathRef].path))
-      args.dest
+      PathRef(args.dest)
     }
   }
 }

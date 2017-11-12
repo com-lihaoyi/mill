@@ -110,7 +110,7 @@ object Subproject{
         l
       }
     )
-    outputPath
+    PathRef(outputPath)
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -237,8 +237,8 @@ trait Subproject extends Cacher{
     )
   }
 
-  def sources = T[PathRef]{ basePath() / 'src }
-  def resources = T[PathRef]{ basePath() / 'resources }
+  def sources = T{ PathRef(basePath() / 'src) }
+  def resources = T{ PathRef(basePath() / 'resources) }
   def compiled = T{
     compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }

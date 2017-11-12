@@ -55,7 +55,6 @@ case class PathRef(path: ammonite.ops.Path){
 }
 
 object PathRef{
-  implicit def make(p: ammonite.ops.Path): PathRef = PathRef(p)
   private implicit val pathFormat: Format[Path] = JsonFormatters.pathFormat
   implicit def jsonFormatter: Format[PathRef] = Json.format
 }

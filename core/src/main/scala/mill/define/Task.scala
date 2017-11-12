@@ -47,7 +47,8 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     def evaluate(args: Args)  = t0
   }
 
-  def apply[T](t: T): Target[T] = macro targetCachedImpl[T]
+  implicit def apply[T](t: T): Target[T] = macro targetCachedImpl[T]
+
   def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
 
   def command[T](t: T): Command[T] = macro targetCommandImpl[T]
@@ -68,6 +69,17 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     c.Expr[Target[T]](
       mill.define.Cacher.wrapCached(c)(
         Applicative.impl[Task, T, Args](c)(t).tree
+      )
+    )
+  }
+  def targetCachedImpl2[T: c.WeakTypeTag, V: c.WeakTypeTag]
+                       (c: Context)
+                       (t: c.Expr[T])
+                       (f: c.Expr[T => V]): c.Expr[Target[V]] = {
+    import c.universe._
+    c.Expr[Target[V]](
+      mill.define.Cacher.wrapCached(c)(
+      q"""${Applicative.impl[Task, T, Args](c)(t).tree}.map($f)"""
       )
     )
   }
