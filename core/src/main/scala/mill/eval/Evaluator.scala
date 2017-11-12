@@ -13,10 +13,8 @@ class Evaluator(workspacePath: Path,
   def evaluate(targets: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
-    val sortedGroups = Evaluator.groupAroundNamedTargets(
-      Evaluator.topoSortedTransitiveTargets(targets),
-      labeling
-    )
+    val topoSorted = Evaluator.topoSortedTransitiveTargets(targets)
+    val sortedGroups = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
 
     val evaluated = new OSet.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Any]
@@ -158,13 +156,23 @@ object Evaluator{
       }
     }
 
-    val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
-    val output = new MultiBiMap.Mutable[Int, Task[_]]
 
     // Sort groups amongst themselves, and sort the contents of each group
     // before aggregating it into the final output
-    for(g <- grouping.values().toArray.sortBy(g => targetOrdering(g.items(0)))){
-      output.addAll(output.keys.length, g.toArray.sortBy(targetOrdering))
+    val groupGraph = mutable.Buffer.fill[Seq[Int]](groupCount)(Nil)
+    for((groupId, groupTasks) <- grouping.items()){
+      groupGraph(groupId) =
+        groupTasks.toIterator.flatMap(_.inputs).map(grouping.lookupValue).toArray.distinct.toSeq
+    }
+    // Given input topoSortedTargets has no cycles, group graph should not have cycles
+    val groupOrdering = Tarjans.apply(groupGraph)
+
+
+    val targetOrdering = topoSortedTargets.values.items.zipWithIndex.toMap
+    val output = new MultiBiMap.Mutable[Int, Task[_]]
+    for((groupIndices, i) <- groupOrdering.zipWithIndex){
+      val sortedGroup = OSet.from(groupIndices.flatMap(grouping.lookupKey).sortBy(targetOrdering))
+      output.addAll(i, sortedGroup)
     }
     output
   }

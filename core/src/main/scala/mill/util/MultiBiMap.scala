@@ -17,6 +17,7 @@ trait MultiBiMap[K, V]{
   def addAll(k: K, vs: TraversableOnce[V]): Unit
   def keys(): Iterator[K]
   def values(): Iterator[OSet[V]]
+  def keyCount: Int
 }
 object MultiBiMap{
   class Mutable[K, V]() extends MultiBiMap[K, V]{
@@ -43,5 +44,9 @@ object MultiBiMap{
     def keys() = keyToValues.keysIterator
 
     def values() = keyToValues.valuesIterator
+
+    def items() = keyToValues.iterator
+
+    def keyCount = keyToValues.size
   }
 }

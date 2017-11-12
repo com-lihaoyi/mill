@@ -24,9 +24,11 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
   def sideHash: Int = 0
 }
 
-class Target[+T](t: Task[T]) extends Task[T] {
+trait Target[+T] extends Task[T]
+class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
+  override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
 class Command[+T](t: Task[T]) extends Task[T] {
   val inputs = Seq(t)
@@ -37,7 +39,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
   def underlying[A](v: Task[A]) = v
 
   trait Cacher extends mill.define.Cacher[Task, Target]{
-    def wrapCached[T](t: Task[T]): Target[T] = new Target(t)
+    def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
   }
   class Target0[T](t: T) extends Task[T]{
     lazy val t0 = t
@@ -83,7 +85,8 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
   def traverse[T](source: Seq[Task[T]]) = {
     new Traverse[T](source)
   }
-  class Traverse[+T](val inputs: Seq[Task[T]]) extends Task[Seq[T]]{
+  class Traverse[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
+    val inputs = inputs0
     def evaluate(args: Args) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]

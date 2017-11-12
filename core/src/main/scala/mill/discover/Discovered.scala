@@ -62,12 +62,12 @@ object Discovered {
         if
           (m.isTerm && (m.asTerm.isGetter || m.asTerm.isLazy)) ||
           m.isModule ||
-          (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Task[_]])
+          (m.isMethod && m.typeSignature.paramLists.isEmpty && m.typeSignature.resultType <:< c.weakTypeOf[Target[_]])
         if !m.name.toString.contains('$')
       } yield {
         val extendedSegments = m.name.toString :: segments
         val self =
-          if (m.typeSignature.resultType <:< c.weakTypeOf[Task[_]]) Seq(extendedSegments)
+          if (m.typeSignature.resultType <:< c.weakTypeOf[Target[_]]) Seq(extendedSegments)
           else Nil
 
         val (mains, children) = rec(extendedSegments, m.typeSignature)

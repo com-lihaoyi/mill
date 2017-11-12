@@ -1,6 +1,6 @@
 package mill
 
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.util.{Args, OSet}
 import utest.assert
 
@@ -17,7 +17,7 @@ object TestUtil {
     * test how changes propagate.
     */
   class Test(override val inputs: Seq[Task[Int]],
-             val pure: Boolean) extends Task[Int]{
+             val pure: Boolean) extends Target[Int]{
     var counter = 0
     override def evaluate(args: Args) = {
       counter + args.args.map(_.asInstanceOf[Int]).sum

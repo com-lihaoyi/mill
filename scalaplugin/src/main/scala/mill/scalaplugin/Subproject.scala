@@ -189,18 +189,15 @@ trait Subproject extends Cacher{
   def depClasspath = T{ Seq.empty[PathRef] }
 
 
-  def upstreamRunClasspath = T {
-    Task.traverse(
-      for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compiled()))
-    )
-  }
-  def upstreamCompileClasspath = T {
-    Task.traverse(
-      for (p <- projectDeps)
-      yield T.task(p.compileDepClasspath() ++ Seq(p.compiled()))
-    )
-  }
+  def upstreamRunClasspath = Task.traverse(
+    for (p <- projectDeps)
+    yield T.task(p.runDepClasspath() ++ Seq(p.compiled()))
+  )
+
+  def upstreamCompileClasspath = Task.traverse(
+    for (p <- projectDeps)
+    yield T.task(p.compileDepClasspath() ++ Seq(p.compiled()))
+  )
 
   def compileDepClasspath: T[Seq[PathRef]] = T{
     upstreamCompileClasspath().flatten ++ depClasspath() ++ resolveDependencies(
