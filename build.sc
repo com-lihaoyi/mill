@@ -4,7 +4,7 @@ import ammonite.ops.pwd
 import mill._
 import mill.scalaplugin.{Subproject, Dep, TestRunner}
 
-@main def main(args: String*) = mill.Main(args, Build)
+@main def main(args: String*) = mill.Main(args, Build, interp.watch)
 object Build{
   trait MillSubproject extends Subproject{
     def scalaVersion = "2.12.4"
@@ -26,12 +26,12 @@ object Build{
     )
 
     def basePath = pwd / 'core
-    override def sources = PathRef(pwd/'core/'src/'main/'scala)
+    override def sources = pwd/'core/'src/'main/'scala
   }
   object CoreTests extends MillSubproject {
     override def projectDeps = Seq(Core)
     def basePath = pwd / 'scalaplugin
-    override def sources = PathRef(pwd/'core/'src/'test/'scala)
+    override def sources = pwd/'core/'src/'test/'scala
     override def ivyDeps = Seq(
       Dep("com.lihaoyi", "utest", "0.6.0")
     )
@@ -48,7 +48,7 @@ object Build{
   object ScalaPlugin extends MillSubproject {
     override def projectDeps = Seq(Core)
     def basePath = pwd / 'scalaplugin
-    override def sources = PathRef(pwd/'scalaplugin/'src/'main/'scala)
+    override def sources = pwd/'scalaplugin/'src/'main/'scala
   }
 }
 

@@ -13,7 +13,8 @@ class Evaluator(workspacePath: Path,
   def evaluate(targets: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
-    val topoSorted = Evaluator.topoSortedTransitiveTargets(targets)
+    val transitive = Evaluator.transitiveTargets(targets)
+    val topoSorted = Evaluator.topoSorted(transitive)
     val sortedGroups = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
 
     val evaluated = new OSet.Mutable[Task[_]]
@@ -32,7 +33,7 @@ class Evaluator(workspacePath: Path,
 
     }
 
-    Evaluator.Results(targets.items.map(results), evaluated)
+    Evaluator.Results(targets.items.map(results), evaluated, transitive)
   }
 
   def evaluateGroupCached(group: OSet[Task[_]],
@@ -128,7 +129,7 @@ class Evaluator(workspacePath: Path,
 
 object Evaluator{
   class TopoSorted private[Evaluator](val values: OSet[Task[_]])
-  case class Results(values: Seq[Any], targets: OSet[Task[_]])
+  case class Results(values: Seq[Any], evaluated: OSet[Task[_]], transitive: OSet[Task[_]])
   def groupAroundNamedTargets(topoSortedTargets: TopoSorted,
                               labeling: Map[Task[_], Labelled[_]]): MultiBiMap[Int, Task[_]] = {
 
@@ -179,11 +180,7 @@ object Evaluator{
     output
   }
 
-  /**
-    * Takes the given targets, finds all the targets they transitively depend
-    * on, and sort them topologically. Fails if there are dependency cycles
-    */
-  def topoSortedTransitiveTargets(sourceTargets: OSet[Task[_]]): TopoSorted = {
+  def transitiveTargets(sourceTargets: OSet[Task[_]]): OSet[Task[_]] = {
     val transitiveTargets = new OSet.Mutable[Task[_]]
     def rec(t: Task[_]): Unit = {
       if (transitiveTargets.contains(t)) () // do nothing
@@ -194,6 +191,14 @@ object Evaluator{
     }
 
     sourceTargets.items.foreach(rec)
+    transitiveTargets
+  }
+  /**
+    * Takes the given targets, finds all the targets they transitively depend
+    * on, and sort them topologically. Fails if there are dependency cycles
+    */
+  def topoSorted(transitiveTargets: OSet[Task[_]]): TopoSorted = {
+
     val targetIndices = transitiveTargets.items.zipWithIndex.toMap
 
     val numberedEdges =

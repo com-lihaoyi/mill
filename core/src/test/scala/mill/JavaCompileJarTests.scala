@@ -5,7 +5,7 @@ import ammonite.ops._
 import ImplicitWd._
 import mill.define.Task
 import mill.discover.Discovered
-import mill.eval.{Evaluator, PathRef}
+import mill.eval.Evaluator
 import mill.modules.Jvm.jarUp
 import mill.util.OSet
 import utest._
@@ -38,8 +38,8 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T{ Task.path(sourceRootPath) }
-        def resourceRoot = T{ Task.path(resourceRootPath) }
+        def sourceRoot = T.source{ sourceRootPath }
+        def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(Task.ctx().dest, allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
@@ -56,13 +56,13 @@ object JavaCompileJarTests extends TestSuite{
         val evaluated = evaluator.evaluate(OSet(t))
         Tuple2(
           evaluated.values(0).asInstanceOf[T],
-          evaluated.targets.filter(x => mapping.contains(x) || x.isInstanceOf[mill.define.Command[_]]).size
+          evaluated.evaluated.filter(x => mapping.contains(x) || x.isInstanceOf[mill.define.Command[_]]).size
         )
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
 
-        val evaluated = evaluator.evaluate(targets).targets.filter(mapping.contains)
+        val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
         assert(evaluated == expected)
       }
 
@@ -71,7 +71,7 @@ object JavaCompileJarTests extends TestSuite{
 
       check(
         targets = OSet(jar),
-        expected = OSet(resourceRoot, sourceRoot, allSources, classFiles, jar)
+        expected = OSet(allSources, classFiles, jar)
       )
 
       // Re-running with no changes results in nothing being evaluated
@@ -84,30 +84,32 @@ object JavaCompileJarTests extends TestSuite{
       // Appending whitespace forces a recompile, but the classfilesend up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
-      check(targets = OSet(jar), expected = OSet(sourceRoot, allSources, classFiles))
+      // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
+      // list, because they are `Source`s not `Target`s
+      check(targets = OSet(jar), expected = OSet(/*sourceRoot, */allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
       append(sourceRootPath / "Foo.java", "\nclass FooTwo{}")
-      check(targets = OSet(jar), expected = OSet(sourceRoot, allSources, classFiles, jar))
+      check(targets = OSet(jar), expected = OSet(allSources, classFiles, jar))
 
       // Tweaking the resources forces rebuild of the final jar, without
       // recompiling classfiles
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(jar), expected = OSet(resourceRoot, jar))
+      check(targets = OSet(jar), expected = OSet(jar))
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested
       append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(classFiles), expected = OSet(sourceRoot, allSources, classFiles))
-      check(targets = OSet(jar), expected = OSet(resourceRoot, jar))
+      check(targets = OSet(classFiles), expected = OSet(allSources, classFiles))
+      check(targets = OSet(jar), expected = OSet(jar))
       check(targets = OSet(allSources), expected = OSet())
 
       append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(resourceRoot), expected = OSet(resourceRoot))
-      check(targets = OSet(allSources), expected = OSet(sourceRoot, allSources))
+      check(targets = OSet(resourceRoot), expected = OSet())
+      check(targets = OSet(allSources), expected = OSet(allSources))
       check(targets = OSet(jar), expected = OSet(classFiles, jar))
 
       val jarContents = %%('jar, "-tf", workspacePath/'jar)(workspacePath).out.string
@@ -154,7 +156,7 @@ object JavaCompileJarTests extends TestSuite{
       val (runOutput2, evalCount2) = eval(Build.run("test.BarFour"))
       assert(
         runOutput2.out.string == "New Cls!\n",
-        evalCount2 == 4
+        evalCount2 == 3
       )
       val (runOutput3, evalCount3) = eval(Build.run("test.BarFour"))
       assert(

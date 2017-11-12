@@ -10,7 +10,7 @@ import play.api.libs.json.Format
 
 
 object Main {
-  def apply[T: Discovered](args: Seq[String], obj: T) = {
+  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
     val Seq(selectorString, rest @_*) = args
     val selector = selectorString.split('.')
     val discovered = implicitly[Discovered[T]]
@@ -36,7 +36,13 @@ object Main {
             case mill.discover.Router.Result.Success(target) =>
               println("Found target! " + target)
               val evaluated = evaluator.evaluate(OSet(target))
-              pprint.log(evaluated)
+
+              evaluated.transitive.foreach{
+                case t: define.Source =>
+                  println("Watching " + t.handle.path)
+                  watch(t.handle.path)
+                case _ => // do nothing
+              }
           }
 
         case Some(labelled: LabelInfo[T, _]) =>
@@ -46,8 +52,8 @@ object Main {
         case None => println("Unknown selector: " + selector)
       }
     }
-
   }
+
   def main(args: Array[String]): Unit = {
 
     val List(buildFile, rest @_*) = args.toList
@@ -60,7 +66,7 @@ object Main {
         if (!result.isSuccess) println(result)
         else{
           val (obj, discovered) = result.asInstanceOf[Res.Success[(Any, Discovered[Any])]].s
-          apply(rest, obj)(discovered)
+          apply(rest, obj, _ => ())(discovered)
 
         }
     }

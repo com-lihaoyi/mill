@@ -34,9 +34,21 @@ class Command[+T](t: Task[T]) extends Task[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
 }
+object Source{
+  implicit def apply(p: ammonite.ops.Path) = new Source(p)
+}
+class Source(path: ammonite.ops.Path) extends Task[PathRef]{
+  def handle = PathRef(path)
+  def evaluate(args: Args) = handle
+  override def sideHash = handle.hashCode()
+  val inputs = Nil
+}
+
 object Task extends Applicative.Applyer[Task, Task, Args]{
 
   def underlying[A](v: Task[A]) = v
+
+  def source(path: ammonite.ops.Path) = new Source(path)
 
   trait Cacher extends mill.define.Cacher[Task, Target]{
     def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
@@ -47,39 +59,29 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     def evaluate(args: Args)  = t0
   }
 
-  implicit def apply[T](t: T): Target[T] = macro targetCachedImpl[T]
+  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
 
   def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
 
-  def command[T](t: T): Command[T] = macro targetCommandImpl[T]
+  def command[T](t: T): Command[T] = macro commandImpl[T]
+
   def command[T](t: Task[T]): Command[T] = new Command(t)
 
   def task[T](t: T): Task[T] = macro Applicative.impl[Task, T, Args]
   def task[T](t: Task[T]): Task[T] = t
 
-
-  def targetCommandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Command[T]] = {
+  def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Command[T]] = {
     import c.universe._
 
     c.Expr[Command[T]](
       q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree})"
     )
   }
-  def targetCachedImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+
+  def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     c.Expr[Target[T]](
       mill.define.Cacher.wrapCached(c)(
         Applicative.impl[Task, T, Args](c)(t).tree
-      )
-    )
-  }
-  def targetCachedImpl2[T: c.WeakTypeTag, V: c.WeakTypeTag]
-                       (c: Context)
-                       (t: c.Expr[T])
-                       (f: c.Expr[T => V]): c.Expr[Target[V]] = {
-    import c.universe._
-    c.Expr[Target[V]](
-      mill.define.Cacher.wrapCached(c)(
-      q"""${Applicative.impl[Task, T, Args](c)(t).tree}.map($f)"""
       )
     )
   }
@@ -118,13 +120,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     val inputs = List(source1, source2)
   }
 
-  def path(path: ammonite.ops.Path) = new Path(path)
-  class Path(path: ammonite.ops.Path) extends Task[PathRef]{
-    def handle = PathRef(path)
-    def evaluate(args: Args) = handle
-    override def sideHash = handle.hashCode()
-    val inputs = Nil
-  }
+
 
 
   def mapCtx[A, B](t: Task[A])(f: (A, Args) => B) = t.mapDest(f)

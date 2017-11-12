@@ -59,7 +59,7 @@ object Jvm {
       Some(outputPath)
     }
   }
-  case class jarUp(roots: Task[PathRef]*) extends Task[PathRef]{
+  def jarUp(roots: Task[PathRef]*) = new Task[PathRef]{
 
     val inputs = roots
     def evaluate(args: Args): PathRef = {

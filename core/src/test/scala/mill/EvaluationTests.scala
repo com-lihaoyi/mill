@@ -27,7 +27,7 @@ object EvaluationTests extends TestSuite{
               // are directly evaluating tasks which need to re-evaluate every time
               secondRunNoOp: Boolean = true) = {
 
-      val Evaluator.Results(returnedValues, returnedEvaluated) = evaluator.evaluate(OSet(target))
+      val Evaluator.Results(returnedValues, returnedEvaluated, _) = evaluator.evaluate(OSet(target))
 
       val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
 
@@ -39,7 +39,7 @@ object EvaluationTests extends TestSuite{
 
       // Second time the value is already cached, so no evaluation needed
       if (secondRunNoOp){
-        val Evaluator.Results(returnedValues2, returnedEvaluated2) = evaluator.evaluate(OSet(target))
+        val Evaluator.Results(returnedValues2, returnedEvaluated2, _) = evaluator.evaluate(OSet(target))
         val expecteSecondRunEvaluated = OSet()
         assert(
           returnedValues2 == returnedValues,
@@ -50,7 +50,9 @@ object EvaluationTests extends TestSuite{
   }
   def countGroups[T: Discovered](t: T, terminals: Task[_]*) = {
     val labeling = Discovered.mapping(t)
-    val topoSorted = Evaluator.topoSortedTransitiveTargets(OSet.from(terminals))
+    val topoSorted = Evaluator.topoSorted(
+      Evaluator.transitiveTargets(OSet.from(terminals))
+    )
     val grouped = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
     grouped.keyCount
   }

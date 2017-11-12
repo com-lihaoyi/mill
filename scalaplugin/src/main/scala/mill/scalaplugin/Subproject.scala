@@ -150,7 +150,7 @@ trait Subproject extends Cacher{
   def ivyDeps = T{ Seq[Dep]() }
   def compileIvyDeps = T{ Seq[Dep]() }
   def runIvyDeps = T{ Seq[Dep]() }
-  def basePath: T[Path]
+  def basePath: Path
 
   val repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
@@ -191,8 +191,8 @@ trait Subproject extends Cacher{
     )
   }
 
-  def sources = T{ PathRef(basePath() / 'src) }
-  def resources = T{ PathRef(basePath() / 'resources) }
+  def sources = T.source{ basePath / 'src }
+  def resources = T.source{ basePath / 'resources }
   def compiled = T{
     compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }

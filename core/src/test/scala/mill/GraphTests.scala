@@ -84,7 +84,7 @@ object GraphTests extends TestSuite{
 
     'topoSortedTransitiveTargets - {
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val result = Evaluator.topoSortedTransitiveTargets(targets).values
+        val result = Evaluator.topoSorted(Evaluator.transitiveTargets(targets)).values
         TestUtil.checkTopological(result)
         assert(result == expected)
       }
@@ -128,7 +128,7 @@ object GraphTests extends TestSuite{
         )
       )
       'bigSingleTerminal - {
-        val result = Evaluator.topoSortedTransitiveTargets(OSet(bigSingleTerminal.j)).values
+        val result = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(bigSingleTerminal.j))).values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
@@ -140,7 +140,7 @@ object GraphTests extends TestSuite{
                                                expected: OSet[(OSet[R], Int)]) = {
 
         val mapping = Discovered.mapping(base)
-        val topoSortedTransitive = Evaluator.topoSortedTransitiveTargets(OSet(target))
+        val topoSortedTransitive = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(target)))
 
         val grouped = Evaluator.groupAroundNamedTargets(topoSortedTransitive, mapping)
         val flattened = OSet.from(grouped.values().flatMap(_.items))
