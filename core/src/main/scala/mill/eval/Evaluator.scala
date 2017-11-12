@@ -71,6 +71,11 @@ class Evaluator(workspacePath: Path,
         (newResults, Nil)
 
       case _ =>
+
+        val labeled = group.collect(labeling)
+        if (labeled.nonEmpty){
+          println(fansi.Color.Blue("Running " + labeled.map(_.segments.mkString(".")).mkString(", ")))
+        }
         val (newResults, newEvaluated, terminalResults) = evaluateGroup(group, results, targetDestPath)
 
         metadataPath.foreach(
@@ -110,7 +115,6 @@ class Evaluator(workspacePath: Path,
       )
 
       val args = new Args(targetInputValues, targetDestPath.orNull)
-
       val res = target.evaluate(args)
       for(targetLabel <- labeling.get(target)){
         terminalResults(target) = targetLabel

@@ -62,7 +62,6 @@ object EvaluationTests extends TestSuite{
     import graphs._
     'evaluateSingle - {
 
-
       'singleton - {
         import singleton._
         val check = new Checker(singleton)
@@ -284,9 +283,6 @@ object EvaluationTests extends TestSuite{
         check(middle, expValue = 100, expEvaled = OSet(), extraEvaled = 2, secondRunNoOp = false)
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
-
-
     }
-
   }
 }

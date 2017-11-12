@@ -39,8 +39,8 @@ object Build{
     def test() = T.command{
       TestRunner.apply(
         "mill.UTestFramework",
-        runDepClasspath().map(_.path) :+ compiled().path,
-        Seq(compiled().path)
+        runDepClasspath().map(_.path) :+ compile().path,
+        Seq(compile().path)
       )
     }
   }

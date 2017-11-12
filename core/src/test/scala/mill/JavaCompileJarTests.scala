@@ -127,7 +127,6 @@ object JavaCompileJarTests extends TestSuite{
       val executed = %%('java, "-cp", workspacePath/'jar, "test.Foo")(workspacePath).out.string
       assert(executed == (31337 + 271828) + "\n")
 
-      println("="*20 + "Run Main" + "="*20)
       for(i <- 0 until 3){
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate

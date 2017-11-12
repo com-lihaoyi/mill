@@ -161,15 +161,19 @@ trait Subproject extends Cacher{
   def depClasspath = T{ Seq.empty[PathRef] }
 
 
-  def upstreamRunClasspath = Task.traverse(
-    for (p <- projectDeps)
-    yield T.task(p.runDepClasspath() ++ Seq(p.compiled()))
-  )
+  def upstreamRunClasspath = T{
+    Task.traverse(
+      for (p <- projectDeps)
+      yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
+    )
+  }
 
-  def upstreamCompileClasspath = Task.traverse(
-    for (p <- projectDeps)
-    yield T.task(p.compileDepClasspath() ++ Seq(p.compiled()))
-  )
+  def upstreamCompileClasspath = T{
+    Task.traverse(
+      for (p <- projectDeps)
+      yield T.task(p.compileDepClasspath() ++ Seq(p.compile()))
+    )
+  }
 
   def compileDepClasspath: T[Seq[PathRef]] = T{
     upstreamCompileClasspath().flatten ++ depClasspath() ++ resolveDependencies(
@@ -193,23 +197,23 @@ trait Subproject extends Cacher{
 
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
-  def compiled = T{
+  def compile = T{
     compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }
 
-  def classpath = T{ Seq(resources(), compiled()) }
-  def jar = T{ modules.Jvm.jarUp(resources, compiled) }
+  def classpath = T{ Seq(resources(), compile()) }
+  def jar = T{ modules.Jvm.jarUp(resources, compile) }
 
   def run(mainClass: String) = T.command{
     import ammonite.ops._, ImplicitWd._
-    %('java, "-cp", (runDepClasspath().map(_.path) :+ compiled().path).mkString(":"), mainClass)
+    %('java, "-cp", (runDepClasspath().map(_.path) :+ compile().path).mkString(":"), mainClass)
   }
 
   def console() = T.command{
     import ammonite.ops._, ImplicitWd._
     %('java,
       "-cp",
-      (runDepClasspath().map(_.path) :+ compiled().path).mkString(":"),
+      (runDepClasspath().map(_.path) :+ compile().path).mkString(":"),
       "scala.tools.nsc.MainGenericRunner",
       "-usejavacp"
     )
