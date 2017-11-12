@@ -90,7 +90,7 @@ class Evaluator(workspacePath: Path,
     val allInputs = group.items.flatMap(_.inputs)
     val (internalInputs, externalInputs) = allInputs.partition(group.contains)
     val internalInputSet = internalInputs.toSet
-    val terminals = group.filter(!internalInputSet(_))
+    val terminals = group.filter(x => !internalInputSet(x) || labeling.contains(x))
     (OSet.from(externalInputs.distinct), terminals)
   }
 
