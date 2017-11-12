@@ -5,7 +5,7 @@ import ammonite.ops.pwd
 import coursier.{Dependency => Dep, Module => Mod}
 import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
-import mill.scalaplugin.Subproject.ScalaDep
+import mill.scalaplugin.Subproject.Dep
 import mill.util.OSet
 import utest._
 
@@ -13,18 +13,18 @@ object MetacircularTests extends TestSuite{
   object Core extends Subproject {
     def scalaVersion = T{ "2.12.4" }
     override def compileIvyDeps = T{
-      super.compileIvyDeps() ++ Seq[ScalaDep](
+      super.compileIvyDeps() ++ Seq[Dep](
         Dep(Mod("org.scala-lang", "scala-reflect"), scalaVersion(), configuration = "provided")
       )
     }
 
     override def ivyDeps = T{
-      super.ivyDeps() ++ Seq[ScalaDep](
-        ScalaDep(Dep(Mod("com.lihaoyi", "sourcecode"), "0.1.4")),
-        ScalaDep(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
-        ScalaDep.Point(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
-        ScalaDep(Dep(Mod("com.typesafe.play", "play-json"), "2.6.6")),
-        ScalaDep(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3"))
+      super.ivyDeps() ++ Seq[Dep](
+        Dep(Dep(Mod("com.lihaoyi", "sourcecode"), "0.1.4")),
+        Dep(Dep(Mod("com.lihaoyi", "pprint"), "0.5.3")),
+        Dep.Point(Dep(Mod("com.lihaoyi", "ammonite"), "1.0.3")),
+        Dep(Dep(Mod("com.typesafe.play", "play-json"), "2.6.6")),
+        Dep(Dep(Mod("org.scala-sbt", "zinc"), "1.0.3"))
       )
     }
 

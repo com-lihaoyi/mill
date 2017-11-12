@@ -6,36 +6,41 @@ import play.api.libs.json.Format
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
-
-class Discovered[T](val targets: Seq[(Seq[String], Format[_], T => Task[_])],
-                    val mains: Seq[NestedEntry[T, _]]){
-  def apply(t: T) = targets.map{case (a, f, b) => (a, f, b(t)) }
+sealed trait Info[T, V]
+class Discovered[T](val targets: Seq[LabelInfo[T, _]],
+                    val mains: Seq[CommandInfo[T, _]]){
+  def apply(t: T) = targets.map{case LabelInfo(a, f, b) => (a, f, b(t)) }
 }
 
 case class Labelled[T](target: Task[T],
                        format: Format[T],
                        segments: Seq[String])
 
+case class LabelInfo[T, V](path: Seq[String],
+                           format: Format[V],
+                           run: T => Task[V]) extends Info[T, V]
 
-case class NestedEntry[T, V](path: Seq[String], resolve: T => V, entryPoint: EntryPoint[V]){
+case class CommandInfo[T, V](path: Seq[String],
+                             resolve: T => V,
+                             entryPoint: EntryPoint[V]) extends Info[T, V]{
   def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Task[Any]] = {
     entryPoint.invoke(resolve(target),groupedArgs)
   }
 }
-object NestedEntry{
+object CommandInfo{
   def make[T, V](path: Seq[String], resolve: T => V)
-                (entryPoint: EntryPoint[V]) = NestedEntry(path, resolve, entryPoint)
+                (entryPoint: EntryPoint[V]) = CommandInfo(path, resolve, entryPoint)
 }
 object Discovered {
   def consistencyCheck[T](base: T, d: Discovered[T]) = {
     val inconsistent = for{
-      (path, formatter, targetGen) <- d.targets
+      LabelInfo(path, formatter, targetGen) <- d.targets
       if targetGen(base) ne targetGen(base)
     } yield path
     inconsistent
   }
   def makeTuple[T, V](path: Seq[String], func: T => Task[V])(implicit f: Format[V]) = {
-    (path, f, func)
+    LabelInfo(path, f, func)
   }
 
 
@@ -102,7 +107,7 @@ object Discovered {
       val select = segments.foldLeft[Tree](Ident(arg)) { (prefix, name) =>
         q"$prefix.${TermName(name)}"
       }
-      q"mill.discover.NestedEntry.make(Seq(..$segments), ($arg: $tpe) => $select)($entry)"
+      q"mill.discover.CommandInfo.make(Seq(..$segments), ($arg: $tpe) => $select)($entry)"
     }
 
     c.Expr[Discovered[T]](q"""
