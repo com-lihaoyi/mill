@@ -167,9 +167,7 @@ object EvaluationTests extends TestSuite{
         assert(groupCount == 1)
       }
       'multiTerminalGroup - {
-        // Make sure the following graph ends up as a single group, since although
-        // `right` depends on `left`, both of them depend on the un-cached `task`
-        // which would force them both to re-compute every time `task` changes
+        // Make sure the following graph ends up as a single group
         //
         //      _ left
         //     /
