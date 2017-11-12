@@ -1,12 +1,9 @@
 #!/usr/bin/env amm
 import $cp.scalaplugin.target.`scala-2.12`.`mill-scalaplugin-assembly-0.1-SNAPSHOT.jar`
 import ammonite.ops.pwd
-import mill.discover.Discovered
-import mill.eval.{Evaluator, PathRef}
-import mill.scalaplugin.Subproject.Dep
-import mill.util.OSet
-import mill.{T, _}
-import mill.scalaplugin.{TestRunner, _}
+import mill._
+import mill.scalaplugin.{Subproject, Dep, TestRunner}
+
 @main def main(args: String*) = mill.Main(args, Build)
 object Build{
   trait MillSubproject extends Subproject{
