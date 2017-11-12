@@ -39,7 +39,16 @@ object TestRunner {
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],
             testClassfilePath: Seq[Path]): Unit = {
-    val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray, getClass.getClassLoader)
+    val outerClassLoader = getClass.getClassLoader
+    val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray){
+      override def findClass(name: String) = {
+        if (name.startsWith("sbt.testing.")){
+          outerClassLoader.loadClass(name)
+        }else{
+          super.findClass(name)
+        }
+      }
+    }
 
     val framework = cl.loadClass(frameworkName)
       .newInstance()
