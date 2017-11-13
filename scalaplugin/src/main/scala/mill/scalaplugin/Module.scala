@@ -21,7 +21,7 @@ import xsbti.compile.DependencyChanges
 
 
 
-object Subproject{
+object Module{
 
   def compileScala(scalaVersion: String,
                    sources: PathRef,
@@ -117,9 +117,9 @@ object Subproject{
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
 }
-import Subproject._
+import Module._
 
-trait Subproject extends Cacher{
+trait Module extends Cacher{
   def scalaVersion: T[String]
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
@@ -133,7 +133,7 @@ trait Subproject extends Cacher{
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  def projectDeps = Seq.empty[Subproject]
+  def projectDeps = Seq.empty[Module]
   def depClasspath = T{ Seq.empty[PathRef] }
 
 

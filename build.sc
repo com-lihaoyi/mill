@@ -2,16 +2,12 @@
 import $cp.scalaplugin.target.`scala-2.12`.`mill-scalaplugin-assembly-0.1-SNAPSHOT.jar`
 import ammonite.ops.pwd
 import mill._
-import mill.scalaplugin.{Subproject, Dep, TestRunner}
+import mill.scalaplugin.{Module, Dep, TestRunner}
 
 @main def main(args: String*) = mill.Main(args, Build, interp.watch)
 object Build{
-  trait MillSubproject extends Subproject{
+  object Core extends Module {
     def scalaVersion = "2.12.4"
-  }
-
-  object Core extends MillSubproject {
-
     override def compileIvyDeps = Seq(
       Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
     )
@@ -28,7 +24,8 @@ object Build{
     def basePath = pwd / 'core
     override def sources = pwd/'core/'src/'main/'scala
   }
-  object CoreTests extends MillSubproject {
+  object CoreTests extends Module {
+    def scalaVersion = "2.12.4"
     override def projectDeps = Seq(Core)
     def basePath = pwd / 'scalaplugin
     override def sources = pwd/'core/'src/'test/'scala
@@ -45,7 +42,8 @@ object Build{
     }
   }
 
-  object ScalaPlugin extends MillSubproject {
+  object ScalaPlugin extends Module {
+    def scalaVersion = "2.12.4"
     override def projectDeps = Seq(Core)
     def basePath = pwd / 'scalaplugin
     override def sources = pwd/'scalaplugin/'src/'main/'scala
