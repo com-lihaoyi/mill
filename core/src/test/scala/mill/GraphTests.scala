@@ -3,7 +3,7 @@ package mill
 import utest._
 import TestUtil.test
 import mill.define.Task
-import mill.discover.Discovered
+import mill.discover.{Discovered, Hierarchy}
 import mill.eval.Evaluator
 import mill.util.OSet
 
@@ -31,13 +31,27 @@ object GraphTests extends TestSuite{
         val classInstance = new CanNest
 
       }
-      val discovered = Discovered[outer.type].apply(outer).map(x => (x._1, x._3))
+      val discovered = Discovered[outer.type]
+
+      val mapped = discovered.apply(outer).map(x => (x._1, x._3))
+      def flatten(h: Hierarchy[outer.type]): Seq[Any] = {
+        h.node(outer) :: h.children.flatMap(flatten)
+      }
+      val flattenedHierarchy = flatten(discovered.hierarchy)
+
+      val expectedHierarchy = Seq(
+        outer,
+        outer.classInstance,
+        outer.nested,
+      )
+      assert(flattenedHierarchy == expectedHierarchy)
+
       val expected = Seq(
         (List("classInstance", "single"), outer.classInstance.single),
         (List("nested", "single"), outer.nested.single),
         (List("single"), outer.single)
       )
-      assert(discovered == expected)
+      assert(mapped == expected)
     }
 
     'failConsistencyChecks - {

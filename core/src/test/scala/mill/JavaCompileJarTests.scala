@@ -51,6 +51,7 @@ object JavaCompileJarTests extends TestSuite{
       import Build._
       val mapping = Discovered.mapping(Build)
 
+
       def eval[T](t: Task[T]): (T, Int) = {
         val evaluator = new Evaluator(workspacePath, mapping)
         val evaluated = evaluator.evaluate(OSet(t))
