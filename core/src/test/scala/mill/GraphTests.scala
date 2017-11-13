@@ -137,46 +137,46 @@ object GraphTests extends TestSuite{
     'groupAroundNamedTargets - {
       def check[T: Discovered, R <: Task[Int]](base: T,
                                                target: R,
-                                               expected: OSet[(OSet[R], Int)]) = {
+                                               expected: OSet[(R, Int)]) = {
 
         val mapping = Discovered.mapping(base)
         val topoSortedTransitive = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(target)))
 
-        val grouped = Evaluator.groupAroundNamedTargets(topoSortedTransitive, mapping)
+        val grouped = Evaluator.groupAroundImportantTargets(topoSortedTransitive, mapping.contains)
         val flattened = OSet.from(grouped.values().flatMap(_.items))
 
         TestUtil.checkTopological(flattened)
-        for(((expectedPresent, expectedSize), i) <- expected.items.zipWithIndex){
-          val grouping = grouped.lookupKey(i)
+        for((terminal, expectedSize) <- expected){
+          val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.filter(mapping.contains) == expectedPresent
+            grouping.filter(mapping.contains) == OSet(terminal)
           )
         }
       }
       'singleton - check(
         singleton,
         singleton.single,
-        OSet(OSet(singleton.single) -> 1)
+        OSet(singleton.single -> 1)
       )
       'pair - check(
         pair,
         pair.down,
-        OSet(OSet(pair.up) -> 1, OSet(pair.down) -> 1)
+        OSet(pair.up -> 1, pair.down -> 1)
       )
       'anonTriple - check(
         anonTriple,
         anonTriple.down,
-        OSet(OSet(anonTriple.up) -> 1, OSet(anonTriple.down) -> 2)
+        OSet(anonTriple.up -> 1, anonTriple.down -> 2)
       )
       'diamond - check(
         diamond,
         diamond.down,
         OSet(
-          OSet(diamond.up) -> 1,
-          OSet(diamond.left) -> 1,
-          OSet(diamond.right) -> 1,
-          OSet(diamond.down) -> 1
+          diamond.up -> 1,
+          diamond.left -> 1,
+          diamond.right -> 1,
+          diamond.down -> 1
         )
       )
 
@@ -184,10 +184,10 @@ object GraphTests extends TestSuite{
         defCachedDiamond,
         defCachedDiamond.down,
         OSet(
-          OSet(defCachedDiamond.up) -> 2,
-          OSet(defCachedDiamond.left) -> 2,
-          OSet(defCachedDiamond.right) -> 2,
-          OSet(defCachedDiamond.down) -> 2
+          defCachedDiamond.up -> 2,
+          defCachedDiamond.left -> 2,
+          defCachedDiamond.right -> 2,
+          defCachedDiamond.down -> 2
         )
       )
 
@@ -195,20 +195,20 @@ object GraphTests extends TestSuite{
         anonDiamond,
         anonDiamond.down,
         OSet(
-          OSet(anonDiamond.up) -> 1,
-          OSet(anonDiamond.down) -> 3
+          anonDiamond.up -> 1,
+          anonDiamond.down -> 3
         )
       )
       'bigSingleTerminal - check(
         bigSingleTerminal,
         bigSingleTerminal.j,
         OSet(
-          OSet(bigSingleTerminal.a) -> 3,
-          OSet(bigSingleTerminal.b) -> 2,
-          OSet(bigSingleTerminal.e) -> 9,
-          OSet(bigSingleTerminal.i) -> 6,
-          OSet(bigSingleTerminal.f) -> 4,
-          OSet(bigSingleTerminal.j) -> 4
+          bigSingleTerminal.a -> 3,
+          bigSingleTerminal.b -> 2,
+          bigSingleTerminal.e -> 9,
+          bigSingleTerminal.i -> 6,
+          bigSingleTerminal.f -> 4,
+          bigSingleTerminal.j -> 4
         )
       )
     }

@@ -48,12 +48,15 @@ object EvaluationTests extends TestSuite{
       }
     }
   }
-  def countGroups[T: Discovered](t: T, terminals: Task[_]*) = {
+  def countGroups[T: Discovered](t: T, goals: Task[_]*) = {
     val labeling = Discovered.mapping(t)
     val topoSorted = Evaluator.topoSorted(
-      Evaluator.transitiveTargets(OSet.from(terminals))
+      Evaluator.transitiveTargets(OSet.from(goals))
     )
-    val grouped = Evaluator.groupAroundNamedTargets(topoSorted, labeling)
+    val grouped = Evaluator.groupAroundImportantTargets(
+      topoSorted,
+      t => labeling.contains(t) || goals.contains(t)
+    )
     grouped.keyCount
   }
 
@@ -158,6 +161,40 @@ object EvaluationTests extends TestSuite{
     }
 
     'evaluateMixed - {
+      'separateGroups - {
+        // Make sure that `left` and `right` are able to recompute separately,
+        // even though one depends on the other
+        //
+        //        _ left _
+        //       /        \
+        //  task1 -------- right
+        //               _/
+        // change - task2
+        object build extends Cacher{
+          val task1 = T.task{ 1 }
+          def left = T{ task1() }
+          val change = test()
+          val task2 = T.task{ change() }
+          def right = T{ task1() + task2() + left() + 1 }
+
+        }
+        import build._
+        val groupCount = countGroups(build, right, left)
+        assert(groupCount == 3)
+        val checker = new Checker(build)
+        val evaled1 = checker.evaluator.evaluate(OSet(right, left))
+        val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
+        assert(filtered1 == OSet(change, left, right))
+        val evaled2 = checker.evaluator.evaluate(OSet(right, left))
+        val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[Target[_]])
+        assert(filtered2 == OSet())
+        change.counter += 1
+        val evaled3 = checker.evaluator.evaluate(OSet(right, left))
+        val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[Target[_]])
+        assert(filtered3 == OSet(change, right))
+
+
+      }
       'triangleTask - {
         // Make sure the following graph ends up as a single group, since although
         // `right` depends on `left`, both of them depend on the un-cached `task`
@@ -166,17 +203,17 @@ object EvaluationTests extends TestSuite{
         //      _ left _
         //     /        \
         // task -------- right
-        object taskTriangle extends Cacher{
+        object build extends Cacher{
           val task = T.task{ 1 }
           def left = T{ task() }
           def right = T{ task() + left() + 1 }
         }
-
-        val groupCount = countGroups(taskTriangle, taskTriangle.right, taskTriangle.left)
-        assert(groupCount == 1)
-        val checker = new Checker(taskTriangle)
-        checker(taskTriangle.right, 3, OSet(taskTriangle.right), extraEvaled = -1)
-        checker(taskTriangle.left, 1, OSet(taskTriangle.left), extraEvaled = -1)
+        import build._
+        val groupCount = countGroups(build, right, left)
+        assert(groupCount == 2)
+        val checker = new Checker(build)
+        checker(right, 3, OSet(left, right), extraEvaled = -1)
+        checker(left, 1, OSet(), extraEvaled = -1)
 
       }
       'multiTerminalGroup - {
@@ -185,17 +222,17 @@ object EvaluationTests extends TestSuite{
         //      _ left
         //     /
         // task -------- right
-        object taskTriangle extends Cacher{
+        object build extends Cacher{
           val task = T.task{ 1 }
           def left = T{ task() }
           def right = T{ task() }
         }
-        val groupCount = countGroups(taskTriangle, taskTriangle.right, taskTriangle.left)
-        assert(groupCount == 1)
+        val groupCount = countGroups(build, build.right, build.left)
+        assert(groupCount == 2)
 
-        val checker = new Checker(taskTriangle)
-        checker(taskTriangle.right, 1, OSet(taskTriangle.right), extraEvaled = -1)
-        checker(taskTriangle.left, 1, OSet(taskTriangle.left), extraEvaled = -1)
+        val checker = new Checker(build)
+        checker(build.right, 1, OSet(build.right), extraEvaled = -1)
+        checker(build.left, 1, OSet(build.left), extraEvaled = -1)
       }
 
       'multiTerminalBoundary - {
@@ -204,18 +241,18 @@ object EvaluationTests extends TestSuite{
         //       _ left _____________
         //      /        \           \
         // task1 -------- right ----- task2
-        object multiTerminalBoundary extends Cacher{
+        object build extends Cacher{
           val task1 = T.task{ 1 }
           def left = T{ task1() }
           def right = T{ task1() + left() + 1 }
           val task2 = T.task{ left() + right() }
         }
-        import multiTerminalBoundary._
-        val groupCount = countGroups(multiTerminalBoundary, task2)
-        assert(groupCount == 2)
+        import build._
+        val groupCount = countGroups(build, task2)
+        assert(groupCount == 3)
 
 
-        val checker = new Checker(multiTerminalBoundary)
+        val checker = new Checker(build)
         checker(task2, 4, OSet(right, left), extraEvaled = -1, secondRunNoOp = false)
         checker(task2, 4, OSet(), extraEvaled = -1, secondRunNoOp = false)
       }
@@ -229,7 +266,7 @@ object EvaluationTests extends TestSuite{
         // up    middle -- down
         //                /
         //           right
-        object taskDiamond extends Cacher{
+        object build extends Cacher{
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
@@ -240,7 +277,7 @@ object EvaluationTests extends TestSuite{
           def down = T{ left() + middle() + right() }
         }
 
-        import taskDiamond._
+        import build._
 
         // Ensure task objects themselves are not cached, and recomputed each time
         assert(
@@ -253,7 +290,7 @@ object EvaluationTests extends TestSuite{
 
         // During the first evaluation, they get computed normally like any
         // cached target
-        val check = new Checker(taskDiamond)
+        val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
         check(down, expValue = 10101, expEvaled = OSet(up, right, down), extraEvaled = 8)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
