@@ -72,12 +72,13 @@ object GenIdea {
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
-      val Seq(sourcePath: PathRef, outputPath: PathRef) =
-        evaluator.evaluate(OSet(mod.sources, mod.compile)).values
+      val Seq(sourcePath: PathRef) =
+        evaluator.evaluate(OSet(mod.sources)).values
+      val Some((destPath, jsonPath)) = evaluator.resolveDestPaths(mod.compile)
 
       val elem = moduleXmlTemplate(
         sourcePath.path,
-        outputPath.path,
+        Seq(destPath, jsonPath),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
         yield moduleLabels(m).mkString(".").toLowerCase
@@ -138,12 +139,16 @@ object GenIdea {
     </component>
   }
   def moduleXmlTemplate(sourcePath: Path,
-                        outputPath: Path,
+                        outputPaths: Seq[Path],
                         libNames: Seq[String],
                         depNames: Seq[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
-        <output url={"file://$MODULE_DIR$/" + relify(outputPath)} />
+        {
+        for(outputPath <- outputPaths)
+        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath)} />
+        }
+
         <exclude-output />
         <content url={"file://$MODULE_DIR$/" + relify(sourcePath)}>
           <sourceFolder url={"file://$MODULE_DIR$/" + relify(sourcePath)} isTestSource="false" />

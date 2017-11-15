@@ -35,6 +35,16 @@ class Evaluator(workspacePath: Path,
     Evaluator.Results(goals.items.map(results), evaluated, transitive)
   }
 
+  def resolveDestPaths(t: Task[_]): Option[(Path, Path)] = {
+    labeling.get(t) match{
+      case Some(labeling) =>
+        val targetDestPath = workspacePath / labeling.segments
+        val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
+        Some((targetDestPath, metadataPath))
+      case None => None
+    }
+  }
+
   def evaluateGroupCached(terminal: Task[_],
                           group: OSet[Task[_]],
                           results: collection.Map[Task[_], Any]): (collection.Map[Task[_], Any], Seq[Task[_]]) = {
@@ -46,13 +56,8 @@ class Evaluator(workspacePath: Path,
       externalInputs.toIterator.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
-    val (targetDestPath, metadataPath) = labeling.get(terminal) match{
-      case Some(labeling) =>
-        val targetDestPath = workspacePath / labeling.segments
-        val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
-        (Some(targetDestPath), Some(metadataPath))
-      case None => (None, None)
-    }
+    val destPaths = resolveDestPaths(terminal)
+    val (targetDestPath, metadataPath) = (destPaths.map(_._1), destPaths.map(_._2))
 
     val cached = for{
       metadataPath <- metadataPath
