@@ -14,7 +14,13 @@ val sharedSettings = Seq(
       Seq("#!/usr/bin/env sh", """exec java -jar -Xmx500m -XX:+UseG1GC $JAVA_OPTS "$0" "$@"""")
     )
   ),
-
+  assembly in Test := {
+    val dest = target.value/"mill"
+    IO.copyFile(assembly.value, dest)
+    import sys.process._
+    Seq("chmod", "+x", dest.getAbsolutePath).!
+    dest
+  },
   libraryDependencies += "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided",
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
