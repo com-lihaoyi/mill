@@ -108,7 +108,7 @@ object Module{
       .unsafePerformSync
       .flatMap(_.toOption)
 
-    localArtifacts.map(p => PathRef(Path(p)))
+    localArtifacts.map(p => PathRef(Path(p), quick = true))
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
