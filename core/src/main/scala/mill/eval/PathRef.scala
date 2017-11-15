@@ -37,7 +37,6 @@ case class PathRef(path: ammonite.ops.Path, quick: Boolean = false){
             digest.update((value >>> 8).toByte)
             digest.update(value.toByte)
           }else {
-            println("Hashing " + file)
             val is = jnio.Files.newInputStream(file)
 
             def rec(): Unit = {
