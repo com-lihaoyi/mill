@@ -38,7 +38,7 @@ object Main {
             case _ => // do nothing
           }
 
-        case None => println("Unknown selector: " + selector)
+        case None => println("Unknown selector: " + selector.mkString("."))
       }
     }
   }

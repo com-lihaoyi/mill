@@ -9,6 +9,7 @@ import mill.define.Task
 import mill.define.Task.Cacher
 import mill.discover.{Discovered, Hierarchy}
 import mill.eval.{Evaluator, PathRef}
+import mill.modules.Jvm.{createJar, createAssembly}
 import mill.util.OSet
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -195,9 +196,21 @@ trait Module extends Cacher{
   def compile = T{
     compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
   }
+  def assembly = T{
+    val dest = Task.ctx().dest
+    createAssembly(
+      dest,
+      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists)
+    )
+    PathRef(dest)
+  }
 
   def classpath = T{ Seq(resources(), compile()) }
-  def jar = T{ modules.Jvm.jarUp(resources, compile) }
+  def jar = T{
+    val dest = Task.ctx().dest
+    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
+    PathRef(dest)
+  }
 
   def run(mainClass: String) = T.command{
     import ammonite.ops._, ImplicitWd._
