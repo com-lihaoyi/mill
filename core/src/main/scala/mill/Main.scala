@@ -8,7 +8,7 @@ import mill.define.Task
 import mill.discover._
 import mill.eval.Evaluator
 import mill.util.OSet
-import play.api.libs.json.Format
+
 
 import scala.annotation.tailrec
 import ammonite.main.Scripts.pathScoptRead

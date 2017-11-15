@@ -1,7 +1,6 @@
 package mill.util
 
 
-import play.api.libs.json._
 
 import scala.collection.mutable
 
@@ -22,14 +21,11 @@ trait OSet[V] extends TraversableOnce[V]{
 }
 
 object OSet{
-  implicit def jsonFormat[T: Format]: Format[OSet[T]] = new Format[OSet[T]] {
-    def writes(o: OSet[T]) = JsArray(o.items.map(implicitly[Format[T]].writes))
-
-    def reads(json: JsValue) = json match{
-      case x: JsArray => implicitly[Format[Seq[T]]].reads(x).map(OSet.from)
-      case _ => JsError("OSet needs to be an Array")
-    }
-  }
+  implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[OSet[T]] =
+    upickle.default.ReadWriter[OSet[T]] (
+      oset => upickle.default.writeJs(oset.toList),
+      {case json => OSet.from(upickle.default.readJs[Seq[T]](json))}
+    )
   def apply[V](items: V*) = from(items)
 
   def from[V](items: TraversableOnce[V]): OSet[V] = {

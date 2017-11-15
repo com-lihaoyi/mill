@@ -4,7 +4,7 @@ import ammonite.ops._
 import mill.define.Task
 import mill.discover.Labelled
 import mill.util.{Args, MultiBiMap, OSet}
-import play.api.libs.json.{Format, JsValue, Json}
+
 
 import scala.collection.mutable
 class Evaluator(workspacePath: Path,
@@ -61,15 +61,15 @@ class Evaluator(workspacePath: Path,
 
     val cached = for{
       metadataPath <- metadataPath
-      json <- scala.util.Try(Json.parse(read.getInputStream(metadataPath))).toOption
-      (cachedHash, terminalResult) <- Json.fromJson[(Int, JsValue)](json).asOpt
+      json <- scala.util.Try(upickle.json.read(read(metadataPath))).toOption
+      (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
       if cachedHash == inputsHash
     } yield terminalResult
 
     cached match{
       case Some(terminalResult) =>
         val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
-        newResults(terminal) = labeling(terminal).format.reads(terminalResult).get
+        newResults(terminal) = labeling(terminal).format.read(terminalResult)
         (newResults, Nil)
 
       case _ =>
@@ -83,9 +83,7 @@ class Evaluator(workspacePath: Path,
         metadataPath.foreach(
           write.over(
             _,
-            Json.prettyPrint(
-              Json.toJson(inputsHash -> terminalResult)
-            ),
+            upickle.default.write(inputsHash -> terminalResult, indent = 4)
           )
         )
 
@@ -99,7 +97,7 @@ class Evaluator(workspacePath: Path,
                     targetDestPath: Option[Path]) = {
 
     targetDestPath.foreach(rm)
-    var terminalResult: JsValue = null
+    var terminalResult: upickle.Js.Value = null
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
     for (target <- group.items if !results.contains(target)) {
@@ -114,8 +112,8 @@ class Evaluator(workspacePath: Path,
       for(targetLabel <- labeling.get(target)){
         terminalResult = targetLabel
           .format
-          .asInstanceOf[Format[Any]]
-          .writes(res.asInstanceOf[Any])
+          .asInstanceOf[upickle.default.ReadWriter[Any]]
+          .write(res.asInstanceOf[Any])
       }
       newResults(target) = res
     }

@@ -1,7 +1,6 @@
 package mill.scalaplugin
 
-import play.api.libs.json._
-import mill.util.JsonFormatters._
+
 sealed trait Dep
 object Dep{
   def apply(org: String, name: String, version: String): Dep = {
@@ -27,24 +26,5 @@ object Dep{
       Point(coursier.Dependency(coursier.Module(org, name), version))
     }
   }
-  implicit def formatter: Format[Dep] = new Format[Dep]{
-    def writes(o: Dep) = o match{
-      case Java(dep) => Json.obj("Java" -> Json.toJson(dep))
-      case Scala(dep) => Json.obj("Scala" -> Json.toJson(dep))
-      case Point(dep) => Json.obj("PointScala" -> Json.toJson(dep))
-    }
-
-    def reads(json: JsValue) = json match{
-      case obj: JsObject =>
-        obj.fields match{
-          case Seq(("Java", dep)) => Json.fromJson[coursier.Dependency](dep).map(Java(_))
-          case Seq(("Scala", dep)) => Json.fromJson[coursier.Dependency](dep).map(Scala(_))
-          case Seq(("PointScala", dep)) => Json.fromJson[coursier.Dependency](dep).map(Point(_))
-          case _ => JsError("Invalid JSON object to parse ScalaDep")
-        }
-
-
-      case _ => JsError("Expected JSON object to parse ScalaDep")
-    }
-  }
+  implicit def formatter = upickle.default.macroRW[Dep]
 }

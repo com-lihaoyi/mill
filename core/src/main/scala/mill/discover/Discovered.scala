@@ -2,7 +2,6 @@ package mill.discover
 
 import mill.define.{Target, Task}
 import mill.discover.Router.{EntryPoint, Result}
-import play.api.libs.json.Format
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -16,11 +15,11 @@ class Discovered[T](val targets: Seq[LabelInfo[T, _]],
 case class Hierarchy[T](path: Seq[String], node: T => Any, children: List[Hierarchy[T]])
 
 case class Labelled[T](target: Task[T],
-                       format: Format[T],
+                       format: upickle.default.ReadWriter[T],
                        segments: Seq[String])
 
 case class LabelInfo[T, V](path: Seq[String],
-                           format: Format[V],
+                           format: upickle.default.ReadWriter[V],
                            run: T => Task[V]) extends Info[T, V]
 
 case class CommandInfo[T, V](path: Seq[String],
@@ -42,14 +41,14 @@ object Discovered {
     } yield path
     inconsistent
   }
-  def makeTuple[T, V](path: Seq[String], func: T => Task[V])(implicit f: Format[V]) = {
+  def makeTuple[T, V](path: Seq[String], func: T => Task[V])(implicit f: upickle.default.ReadWriter[V]) = {
     LabelInfo(path, f, func)
   }
 
 
   def mapping[T: Discovered](t: T): Map[Task[_], Labelled[_]] = {
     implicitly[Discovered[T]].apply(t)
-      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Task[Any]], x._2.asInstanceOf[Format[Any]], x._1))
+      .map(x => x._3 -> Labelled(x._3.asInstanceOf[Task[Any]], x._2.asInstanceOf[upickle.default.ReadWriter[Any]], x._1))
       .toMap
   }
 

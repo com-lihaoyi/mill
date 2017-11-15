@@ -8,7 +8,6 @@ import java.security.MessageDigest
 
 import ammonite.ops.Path
 import mill.util.JsonFormatters
-import play.api.libs.json.{Format, Json}
 
 
 /**
@@ -55,6 +54,6 @@ case class PathRef(path: ammonite.ops.Path){
 }
 
 object PathRef{
-  private implicit val pathFormat: Format[Path] = JsonFormatters.pathFormat
-  implicit def jsonFormatter: Format[PathRef] = Json.format
+  private implicit val pathFormat: upickle.default.ReadWriter[Path] = JsonFormatters.pathReadWrite
+  implicit def jsonFormatter: upickle.default.ReadWriter[PathRef] = upickle.default.macroRW
 }
