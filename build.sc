@@ -4,7 +4,9 @@ import ammonite.ops.pwd
 import mill._
 import mill.scalaplugin.{Module, Dep, TestRunner}
 
-@main def main(args: String*) = mill.Main(args, Build, interp.watch)
+@main def run(args: String*) = mill.Main(args, Build, interp.watch)
+
+@main def idea() = mill.scalaplugin.GenIdea(Build)
 object Build{
   object Core extends Module {
     def scalaVersion = "2.12.4"

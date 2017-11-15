@@ -2,19 +2,16 @@ package mill
 package scalaplugin
 
 import java.io.File
-import java.lang.annotation.Annotation
-import java.net.URLClassLoader
 
-import ammonite.ops.{Path, ls, mkdir, pwd, up}
-import coursier.{Cache, Dependency, Fetch, MavenRepository, Module, Repository, Resolution}
+import ammonite.ops._
+import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.Cacher
-import mill.eval.PathRef
-import mill.util.Args
-import play.api.libs.json._
+import mill.discover.{Discovered, Hierarchy}
+import mill.eval.{Evaluator, PathRef}
+import mill.util.OSet
 import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
 import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.util.LogExchange
 import xsbti.api.{ClassLike, DependencyContext}
 import xsbti.compile.DependencyChanges
@@ -22,7 +19,6 @@ import xsbti.compile.DependencyChanges
 
 
 object Module{
-
   def compileScala(scalaVersion: String,
                    sources: PathRef,
                    compileClasspath: Seq[PathRef],
@@ -92,7 +88,8 @@ object Module{
   def resolveDependencies(repositories: Seq[Repository],
                           scalaVersion: String,
                           scalaBinaryVersion: String,
-                          deps: Seq[Dep]): Seq[PathRef] = {
+                          deps: Seq[Dep],
+                          sources: Boolean = false): Seq[PathRef] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
@@ -102,8 +99,11 @@ object Module{
 
     val fetch = Fetch.from(repositories, Cache.fetch())
     val resolution = start.process.run(fetch).unsafePerformSync
+    val sourceOrJar =
+      if (sources) resolution.classifiersArtifacts(Seq("sources"))
+      else resolution.artifacts
     val localArtifacts: Seq[File] = scalaz.concurrent.Task
-      .gatherUnordered(resolution.artifacts.map(Cache.file(_).run))
+      .gatherUnordered(sourceOrJar.map(Cache.file(_).run))
       .unsafePerformSync
       .flatMap(_.toOption)
 
@@ -140,35 +140,54 @@ trait Module extends Cacher{
   def upstreamRunClasspath = T{
     Task.traverse(
       for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
+        yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
     )
   }
 
-  def upstreamCompileClasspath = T{
-    Task.traverse(
-      for (p <- projectDeps)
-      yield T.task(p.compileDepClasspath() ++ Seq(p.compile()))
-    )
+  def upstreamCompileDepClasspath = T{
+    Task.traverse(projectDeps.map(_.compileDepClasspath))
+  }
+  def upstreamCompileDepSources = T{
+    Task.traverse(projectDeps.map(_.externalCompileDepSources))
+  }
+  def upstreamCompileOutputClasspath = T{
+    Task.traverse(projectDeps.map(_.compile))
   }
 
+  def externalCompileDepClasspath = T{
+    upstreamCompileDepClasspath().flatten ++
+      resolveDependencies(
+        repositories,
+        scalaVersion(),
+        scalaBinaryVersion(),
+        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
+      )
+  }
+  def externalCompileDepSources: T[Seq[PathRef]] = T{
+    upstreamCompileDepSources().flatten ++
+      resolveDependencies(
+        repositories,
+        scalaVersion(),
+        scalaBinaryVersion(),
+        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()),
+        sources = true
+      )
+  }
   def compileDepClasspath: T[Seq[PathRef]] = T{
-    upstreamCompileClasspath().flatten ++ depClasspath() ++ resolveDependencies(
-      repositories,
-      scalaVersion(),
-      scalaBinaryVersion(),
-      ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
-    )
+    upstreamCompileOutputClasspath() ++
+      depClasspath() ++
+      externalCompileDepClasspath()
   }
 
   def runDepClasspath: T[Seq[PathRef]] = T{
     upstreamRunClasspath().flatten ++
-    depClasspath() ++
-    resolveDependencies(
-      repositories,
-      scalaVersion(),
-      scalaBinaryVersion(),
-      ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
-    )
+      depClasspath() ++
+      resolveDependencies(
+        repositories,
+        scalaVersion(),
+        scalaBinaryVersion(),
+        ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
+      )
   }
 
   def sources = T.source{ basePath / 'src }
