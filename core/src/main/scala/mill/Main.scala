@@ -14,8 +14,15 @@ import scala.annotation.tailrec
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 object Main {
-  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
+  def timed[T](t: => T) = {
     val startTime = System.currentTimeMillis()
+    val res = t
+    val delta = System.currentTimeMillis() - startTime
+    println(fansi.Color.Blue("Finished in " + delta/1000.0 + "s"))
+    res
+  }
+  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
+
     val Seq(selectorString, rest @_*) = args
     val selector = selectorString.split('.')
     val discovered = implicitly[Discovered[T]]
@@ -35,8 +42,7 @@ object Main {
           val evaluator = new Evaluator(workspacePath, mapping)
           val evaluated = evaluator.evaluate(OSet(target))
 
-          val delta = System.currentTimeMillis() - startTime
-          println(fansi.Color.Blue("Finished in " + delta/1000.0 + "s"))
+
           evaluated.transitive.foreach{
             case t: define.Source => watch(t.handle.path)
             case _ => // do nothing
@@ -61,7 +67,7 @@ object Main {
   }
 
 
-  def main(args: Array[String]): Unit = {
+  def main(args: Array[String]): Unit = timed{
     case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
                       colored: Option[Boolean] = None,
                       help: Boolean = false,
