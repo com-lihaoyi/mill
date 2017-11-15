@@ -1,6 +1,6 @@
 #!/usr/bin/env amm
-import $cp.out.ScalaPlugin.assembly
-//import $cp.scalaplugin.target.`scala-2.12`.`mill-scalaplugin-assembly-0.1-SNAPSHOT.jar`
+//import $cp.out.ScalaPlugin.assembly
+import $cp.scalaplugin.target.`scala-2.12`.`mill-scalaplugin-assembly-0.1-SNAPSHOT.jar`
 import ammonite.ops.pwd
 import mill._
 import mill.scalaplugin.{Module, Dep, TestRunner}

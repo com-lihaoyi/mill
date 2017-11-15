@@ -46,7 +46,7 @@ object GenIdea {
       Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
       Tuple2(
         ".idea"/"modules.xml",
-        modulesXmlTemplate(
+        allModulesXmlTemplate(
           for((path, mod) <- modules)
           yield path.mkString(".").toLowerCase
         )
@@ -100,7 +100,7 @@ object GenIdea {
     </project>
   }
 
-  def modulesXmlTemplate(selectors: Seq[String]) = {
+  def allModulesXmlTemplate(selectors: Seq[String]) = {
     <project version="4">
       <component name="ProjectModuleManager">
         <modules>
@@ -130,7 +130,7 @@ object GenIdea {
   }
   def libraryXmlTemplate(name: String, url: String) = {
     <component name="libraryTable">
-      <library name={name}>
+      <library name={name} type={if(name.contains("org_scala-lang_scala-library_")) "Scala" else null}>
         <CLASSES>
           <root url={url}/>
         </CLASSES>
