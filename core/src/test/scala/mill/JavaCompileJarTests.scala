@@ -30,7 +30,7 @@ object JavaCompileJarTests extends TestSuite{
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
 
-      object Build extends Task.Cacher{
+      object Build extends Task.Module{
         def sourceRootPath = javacDestPath / 'src
         def resourceRootPath = javacDestPath / 'resources
 

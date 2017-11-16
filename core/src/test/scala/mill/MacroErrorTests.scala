@@ -10,7 +10,7 @@ object MacroErrorTests extends TestSuite{
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends mill.define.Task.Cacher{ val x = T{1} }")
+      val err = compileError("object Foo extends mill.define.Task.Module{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
 
@@ -35,7 +35,7 @@ object MacroErrorTests extends TestSuite{
 
         val expectedMsg =
           "Target#apply() call cannot use `value n` defined within the T{...} block"
-        val err = compileError("""new mill.define.Task.Cacher{
+        val err = compileError("""new mill.define.Task.Module{
           def a = T{ 1 }
           val arr = Array(a)
           def b = {
@@ -51,7 +51,7 @@ object MacroErrorTests extends TestSuite{
 
         val expectedMsg =
           "Target#apply() call cannot use `value x` defined within the T{...} block"
-        val err = compileError("""new mill.define.Task.Cacher{
+        val err = compileError("""new mill.define.Task.Module{
           def a = T{ 1 }
           val arr = Array(a)
           def b = {

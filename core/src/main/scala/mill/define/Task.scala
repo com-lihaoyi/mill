@@ -50,7 +50,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
 
   def source(path: ammonite.ops.Path) = new Source(path)
 
-  trait Cacher extends mill.define.Cacher[Task, Target]{
+  trait Module extends mill.define.Cacher[Task, Target]{
     def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
   }
   class Task0[T](t: T) extends Task[T]{

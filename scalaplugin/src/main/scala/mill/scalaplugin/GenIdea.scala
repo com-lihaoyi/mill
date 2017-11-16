@@ -19,10 +19,10 @@ object GenIdea {
 
   def xmlFileLayout[T: Discovered](obj: T): Seq[(RelPath, scala.xml.Node)] = {
     val discovered = implicitly[Discovered[T]]
-    def rec(x: Hierarchy[T]): Seq[(Seq[String], Module)] = {
+    def rec(x: Hierarchy[T]): Seq[(Seq[String], ScalaModule)] = {
       val node = x.node(obj)
       val self = node match{
-        case m: Module => Seq(x.path -> m)
+        case m: ScalaModule => Seq(x.path -> m)
         case _ => Nil
       }
 

@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite{
   object Base extends Base
-  trait Base extends Task.Cacher{
+  trait Base extends Task.Module{
     def value = T{ 1 }
   }
   object Middle extends Middle

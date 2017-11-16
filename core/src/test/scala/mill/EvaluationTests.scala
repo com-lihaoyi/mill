@@ -3,7 +3,7 @@ package mill
 
 import mill.TestUtil.{Test, test}
 import mill.define.{Target, Task}
-import mill.define.Task.Cacher
+import mill.define.Task.Module
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -170,7 +170,7 @@ object EvaluationTests extends TestSuite{
         //  task1 -------- right
         //               _/
         // change - task2
-        object build extends Cacher{
+        object build extends Module{
           val task1 = T.task{ 1 }
           def left = T{ task1() }
           val change = test()
@@ -203,7 +203,7 @@ object EvaluationTests extends TestSuite{
         //      _ left _
         //     /        \
         // task -------- right
-        object build extends Cacher{
+        object build extends Module{
           val task = T.task{ 1 }
           def left = T{ task() }
           def right = T{ task() + left() + 1 }
@@ -222,7 +222,7 @@ object EvaluationTests extends TestSuite{
         //      _ left
         //     /
         // task -------- right
-        object build extends Cacher{
+        object build extends Module{
           val task = T.task{ 1 }
           def left = T{ task() }
           def right = T{ task() }
@@ -241,7 +241,7 @@ object EvaluationTests extends TestSuite{
         //       _ left _____________
         //      /        \           \
         // task1 -------- right ----- task2
-        object build extends Cacher{
+        object build extends Module{
           val task1 = T.task{ 1 }
           def left = T{ task1() }
           def right = T{ task1() + left() + 1 }
@@ -266,7 +266,7 @@ object EvaluationTests extends TestSuite{
         // up    middle -- down
         //                /
         //           right
-        object build extends Cacher{
+        object build extends Module{
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0

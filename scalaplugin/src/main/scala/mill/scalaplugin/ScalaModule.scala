@@ -6,7 +6,7 @@ import java.io.File
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
-import mill.define.Task.Cacher
+import mill.define.Task.Module
 import mill.discover.{Discovered, Hierarchy}
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Jvm.{createJar, createAssembly}
@@ -19,7 +19,7 @@ import xsbti.compile.DependencyChanges
 
 
 
-object Module{
+object ScalaModule{
   def compileScala(scalaVersion: String,
                    sources: PathRef,
                    compileClasspath: Seq[PathRef],
@@ -118,9 +118,9 @@ object Module{
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
 }
-import Module._
+import ScalaModule._
 
-trait Module extends Cacher{
+trait ScalaModule extends Module{
   def scalaVersion: T[String]
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
@@ -134,7 +134,7 @@ trait Module extends Cacher{
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  def projectDeps = Seq.empty[Module]
+  def projectDeps = Seq.empty[ScalaModule]
   def depClasspath = T{ Seq.empty[PathRef] }
 
 

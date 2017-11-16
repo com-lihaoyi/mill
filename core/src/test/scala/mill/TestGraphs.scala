@@ -1,6 +1,6 @@
 package mill
 
-import mill.define.Task.Cacher
+import mill.define.Task.Module
 import mill.TestUtil.test
 
 class TestGraphs(){
@@ -43,7 +43,7 @@ class TestGraphs(){
     val down = test(test(up), test(up))
   }
 
-  object defCachedDiamond extends Cacher{
+  object defCachedDiamond extends Module{
     def up = T{ test() }
     def left = T{ test(up) }
     def right = T{ test(up) }
@@ -51,7 +51,7 @@ class TestGraphs(){
   }
 
 
-  object borkedCachedDiamond2 extends Cacher {
+  object borkedCachedDiamond2 extends Module {
     def up = test()
     def left = test(up)
     def right = test(up)
