@@ -1,18 +1,16 @@
 package mill
 
-import ammonite.Main
 import ammonite.main.Scripts
 import ammonite.ops._
-import ammonite.util.{Colors, Name, Res}
+import ammonite.util.Res
 import mill.define.Task
 import mill.discover._
 import mill.eval.Evaluator
 import mill.util.OSet
 
-
-import scala.annotation.tailrec
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
+import mill.discover.Router.EntryPoint
 object Main {
   def timed[T](t: => T) = {
     val startTime = System.currentTimeMillis()
@@ -32,17 +30,29 @@ object Main {
       val mapping = Discovered.mapping(obj)(discovered)
       val workspacePath = pwd / 'out
 
-      val mainRoutes = discovered.mains.map(x => (x.path :+ x.entryPoint.name, x: Info[T, _]))
-      val targetRoutes = discovered.targets.map(x => (x.path, x: Info[T, _]))
-      val routeList: Seq[(Seq[String], Info[T, _])] = mainRoutes ++ targetRoutes
-      val routeMap = routeList.toMap
-      routeMap.get(selector) match{
-        case Some(info) =>
-          val target = getTarget(obj, info, rest.toList)
+      def resolve[V](selector: List[String], hierarchy: Hierarchy[T, V]): Option[Task[Any]] = {
+        selector match{
+          case last :: Nil =>
+
+            def target: Option[Task[Any]] =
+              hierarchy.targets.find(_.label == last).map(_.run(hierarchy.node(obj)))
+            def command: Option[Task[Any]] = hierarchy.commands.find(_.name == last).flatMap(
+              _.invoke(hierarchy.node(obj), ammonite.main.Scripts.groupArgs(rest.toList)) match{
+                case Router.Result.Success(v) => Some(v)
+                case _ => None
+              }
+            )
+            target orElse command
+          case head :: tail =>
+            hierarchy.children
+              .collectFirst{ case (label, child) if label == head => resolve(tail, child) }
+              .flatten
+        }
+      }
+      resolve(selector.toList, discovered.hierarchy) match{
+        case Some(target) =>
           val evaluator = new Evaluator(workspacePath, mapping)
           val evaluated = evaluator.evaluate(OSet(target))
-
-
           evaluated.transitive.foreach{
             case t: define.Source => watch(t.handle.path)
             case _ => // do nothing
@@ -51,19 +61,6 @@ object Main {
         case None => println("Unknown selector: " + selector.mkString("."))
       }
     }
-  }
-
-  def getTarget[T](obj: T, info: Info[T, _], args: List[String]) = info match{
-    case nestedEntryPoint: CommandInfo[T, _] =>
-      nestedEntryPoint.invoke(
-        obj,
-        ammonite.main.Scripts.groupArgs(args)
-      ) match{
-        case error: Router.Result.Error =>
-          throw new Exception("Failed to evaluate main method: " + error)
-        case mill.discover.Router.Result.Success(target) => target
-      }
-    case labelled: LabelInfo[T, _] => labelled.run(obj)
   }
 
 

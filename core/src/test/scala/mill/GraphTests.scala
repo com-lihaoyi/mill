@@ -3,6 +3,7 @@ package mill
 import utest._
 import TestUtil.test
 import mill.define.Task
+import mill.define.Task.Module
 import mill.discover.{Discovered, Hierarchy}
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -14,45 +15,6 @@ object GraphTests extends TestSuite{
 
     val graphs = new TestGraphs()
     import graphs._
-
-    'discovery{
-      class CanNest{
-        val single = test()
-        val invisible: Any = test()
-      }
-      object outer {
-        val single = test()
-        val invisible: Any = test()
-        object nested{
-          val single = test()
-          val invisible: Any = test()
-
-        }
-        val classInstance = new CanNest
-
-      }
-      val discovered = Discovered[outer.type]
-
-      val mapped = discovered.apply(outer).map(x => (x._1, x._3))
-      def flatten(h: Hierarchy[outer.type]): Seq[Any] = {
-        h.node(outer) :: h.children.flatMap(flatten)
-      }
-      val flattenedHierarchy = flatten(discovered.hierarchy)
-
-      val expectedHierarchy = Seq(
-        outer,
-        outer.classInstance,
-        outer.nested,
-      )
-      assert(flattenedHierarchy == expectedHierarchy)
-
-      val expected = Seq(
-        (List("classInstance", "single"), outer.classInstance.single),
-        (List("nested", "single"), outer.nested.single),
-        (List("single"), outer.single)
-      )
-      assert(mapped == expected)
-    }
 
     'failConsistencyChecks - {
       // Make sure these fail because `def`s without `Cacher` will re-evaluate

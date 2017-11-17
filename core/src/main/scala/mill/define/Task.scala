@@ -1,8 +1,10 @@
 package mill.define
 
 import mill.define.Applicative.Applyable
+import mill.define.Task.targetImpl
 import mill.eval.PathRef
 import mill.util.Args
+
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -25,6 +27,9 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
 }
 
 trait Target[+T] extends Task[T]
+object Target{
+  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
+}
 class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
@@ -45,7 +50,7 @@ class Source(path: ammonite.ops.Path) extends Task[PathRef]{
 }
 
 object Task extends Applicative.Applyer[Task, Task, Args]{
-
+  def apply[T](t: T): Target[T] = macro targetImpl[T]
   def underlying[A](v: Task[A]) = v
 
   def source(path: ammonite.ops.Path) = new Source(path)
@@ -59,7 +64,7 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
     def evaluate(args: Args)  = t0
   }
 
-  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
+
 
   def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
 
