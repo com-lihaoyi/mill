@@ -1,8 +1,9 @@
 
+val crossVersions = Cross("2.10.6", "2.11.8", "2.12.0")
 
 val acyclic =
-  for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.0"))
-  yield new ScalaModule{ main =>
+  for(crossVersion <- crossVersions)
+  yield new ScalaModule{
     def organization = "com.lihaoyi"
     def name = "acyclic"
     def scalaVersion = crossVersion
@@ -11,23 +12,25 @@ val acyclic =
     override def compileIvyDeps = Seq(
       Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
     )
-
-    object Tests extends Module{
-      override def projectDeps = Seq(main)
-
-      override def ivyDeps = Seq(
-        Dep("com.lihaoyi", "utest", "0.6.0")
-      )
-      def test() = T.command{
-        TestRunner.apply(
-          "mill.UTestFramework",
-          runDepClasspath().map(_.path) :+ compile().path,
-          Seq(compile().path)
-        )
-      }
-    }
   }
 
+val tests =
+  for(crossVersion <- crossVersions)
+  yield new ScalaModule{
+    override def projectDeps = Seq(acyclic(crossVersion))
+
+    override def ivyDeps = Seq(
+      Dep("com.lihaoyi", "utest", "0.6.0")
+    )
+    def test() = T.command{
+      TestRunner.apply(
+        "mill.UTestFramework",
+        runDepClasspath().map(_.path) :+ compile().path,
+        Seq(compile().path)
+      )
+    }
+  }
+// mill run acyclic(2.10.6)
 
 
 //
