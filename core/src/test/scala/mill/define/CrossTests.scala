@@ -1,6 +1,5 @@
-package mill
+package mill.define
 
-import mill.define.Cross
 import utest._
 
 object CrossTests extends TestSuite{

@@ -1,10 +1,9 @@
-package mill
+package mill.define
 
-import utest._
-import mill.define.{Target, Task}
 import mill.discover.Discovered
 import mill.eval.Evaluator
-import mill.util.OSet
+import mill.util.{OSet, TestGraphs, TestUtil}
+import utest._
 
 object GraphTests extends TestSuite{
 
@@ -13,7 +12,6 @@ object GraphTests extends TestSuite{
 
     val graphs = new TestGraphs()
     import graphs._
-
     'failConsistencyChecks - {
       // Make sure these fail because `def`s without `Cacher` will re-evaluate
       // each time, returning different sets of targets.

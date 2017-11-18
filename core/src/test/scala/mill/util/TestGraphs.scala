@@ -1,7 +1,6 @@
-package mill
-
-import mill.TestUtil.test
-
+package mill.util
+import TestUtil.test
+import mill.{Module, T}
 class TestGraphs(){
   // single
   object singleton {

@@ -1,9 +1,8 @@
-package mill
+package mill.discover
 
 import utest._
-import TestUtil.test
-import mill.discover.{Discovered, Mirror}
-
+import mill.Module
+import mill.util.TestUtil.test
 object DiscoveredTests extends TestSuite{
 
   val tests = Tests{

@@ -1,12 +1,11 @@
-package mill
+package mill.eval
 
-
+import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import ImplicitWd._
 import mill.define.{Target, Task}
 import mill.discover.Discovered
-import mill.eval.{Evaluator, Result}
 import mill.modules.Jvm.jarUp
+import mill.{T, Module}
 import mill.util.OSet
 import utest._
 

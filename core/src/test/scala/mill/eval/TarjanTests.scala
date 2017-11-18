@@ -1,6 +1,7 @@
-package mill
-import mill.eval.Tarjans
+package mill.eval
+
 import utest._
+
 object TarjanTests extends TestSuite{
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {
     val result = Tarjans(input).map(_.sorted)

@@ -1,13 +1,14 @@
-package mill
-import mill.define.Applicative
+package mill.define
+
 import utest._
-import language.experimental.macros
+
+import scala.language.experimental.macros
 
 
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
   class Opt[T](val o: Option[T]) extends Applicative.Applyable[T]
-  object Opt extends define.Applicative.Applyer[Opt, Option, Applicative.Id, String]{
+  object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String]{
 
     val injectedCtx = "helloooo"
     def underlying[A](v: Opt[A]) = v.o

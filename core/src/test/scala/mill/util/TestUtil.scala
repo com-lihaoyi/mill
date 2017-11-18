@@ -1,7 +1,6 @@
-package mill
+package mill.util
 
 import mill.define.{Target, Task}
-import mill.util.{Args, OSet}
 import utest.assert
 
 import scala.collection.mutable

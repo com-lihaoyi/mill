@@ -1,9 +1,9 @@
-package mill
+package mill.define
 
-import mill.define.Task
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.OSet
+import mill.T
 import utest._
 import utest.framework.TestPath
 
