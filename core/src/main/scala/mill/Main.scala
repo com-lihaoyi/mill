@@ -6,21 +6,23 @@ import ammonite.ops._
 import ammonite.util.{Colors, Res}
 import mill.define.Task
 import mill.discover._
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, Result}
 import mill.util.OSet
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 
 object Main {
 
-  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
+  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit): Int = {
 
     val Seq(selectorString, rest @_*) = args
     val selector = selectorString.split('.')
     val discovered = implicitly[Discovered[T]]
     val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
-    if (consistencyErrors.nonEmpty) println("Failed Discovered.consistencyCheck: " + consistencyErrors)
-    else {
+    if (consistencyErrors.nonEmpty) {
+      println("Failed Discovered.consistencyCheck: " + consistencyErrors)
+      1
+    } else {
       val mapping = Discovered.mapping(obj)(discovered)
       val workspacePath = pwd / 'out
 
@@ -53,7 +55,25 @@ object Main {
             case _ => // do nothing
           }
 
-        case None => println("Unknown selector: " + selector.mkString("."))
+          val failing = evaluated.failing.items
+          println(evaluated.failing.keyCount + " targets failed")
+
+          for((k, fs) <- failing){
+            val ks = k match{
+              case Left(t) => t.toString
+              case Right(t) => t.segments.mkString(".")
+            }
+            val fss = fs.map{
+              case Result.Exception(t) => t.toString
+              case Result.Failure(t) => t
+            }
+            println(ks + " " + fss.mkString(", "))
+          }
+
+          if (evaluated.failing.keyCount == 0) 0 else 1
+        case None =>
+          println("Unknown selector: " + selector.mkString("."))
+          1
       }
     }
   }
@@ -105,7 +125,11 @@ object Main {
         if (config.help) {
           val leftMargin = signature.map(ammonite.main.Cli.showArg(_).length).max + 2
           System.err.println(ammonite.main.Cli.formatBlock(signature, leftMargin).mkString("\n"))
-        } else new Main(config).run(leftover, startTime)
+          System.exit(0)
+        } else {
+          val res = new Main(config).run(leftover, startTime)
+          System.exit(res)
+        }
     }
   }
 
@@ -147,8 +171,9 @@ class Main(config: Main.Config){
     case Res.Exit(_) => ???
   }
 
-  def run(leftover: List[String], startTime0: Long) = {
+  def run(leftover: List[String], startTime0: Long): Int = {
 
+    var exitCode = 0
     var startTime = startTime0
     val loop = config.watch
 
@@ -181,8 +206,12 @@ class Main(config: Main.Config){
           interp,
           Scripts.groupArgs(leftover)
         )
+        res match{
+          case Res.Success(v: Int) => exitCode = v
+          case _ => exitCode = 1
+        }
 
-        handleWatchRes(res, true)
+        handleWatchRes(res, false)
         interp.watchedFiles
       }
 
@@ -191,5 +220,6 @@ class Main(config: Main.Config){
       watchAndWait(watchedFiles)
       startTime = System.currentTimeMillis()
     } while(loop)
+    exitCode
   }
 }

@@ -17,10 +17,6 @@ class Discovered[T](val mirror: Mirror[T, T]){
     h.labelled(obj, p)
   }
 
-  def mains = Mirror.traverse(mirror) { (h, p) =>
-    h.commands.map(x => (p, x: EntryPoint[_]))
-  }
-
 }
 
 object Discovered {
@@ -31,7 +27,6 @@ object Discovered {
     } yield t1.segments
     inconsistent
   }
-
 
 
   def mapping[T: Discovered](t: T): Map[Target[_], LabelledTarget[_]] = {

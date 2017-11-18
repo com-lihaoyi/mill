@@ -8,6 +8,8 @@ import java.util.zip.ZipInputStream
 import ammonite.ops.{Path, ls, pwd}
 import sbt.testing._
 
+import scala.collection.mutable
+
 object TestRunner {
   def listClassFiles(base: Path): Iterator[String] = {
     if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
@@ -38,7 +40,7 @@ object TestRunner {
 
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],
-            testClassfilePath: Seq[Path]): Unit = {
+            testClassfilePath: Seq[Path]): mill.eval.Result[Unit] = {
     val outerClassLoader = getClass.getClassLoader
     val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray){
       override def findClass(name: String) = {
@@ -64,10 +66,11 @@ object TestRunner {
         new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array())
       }
     )
+    val events = mutable.Buffer.empty[Status]
     for(t <- tasks){
       t.execute(
         new EventHandler {
-          def handle(event: Event) = ()
+          def handle(event: Event) = events.append(event.status())
         },
         Array(
           new Logger {
@@ -86,9 +89,14 @@ object TestRunner {
       )
     }
     val doneMsg = runner.done()
-    if (doneMsg.trim.nonEmpty){
-      println(doneMsg)
-      println(doneMsg)
-    }
+    val msg =
+      if (doneMsg.trim.nonEmpty)doneMsg
+      else{
+        val grouped = events.groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
+        grouped.map{case (k, v) => k + ": " + v}.mkString(",")
+      }
+    println(msg)
+    if (events.count(Set(Status.Error, Status.Failure)) == 0) mill.eval.Result.Success(())
+    else mill.eval.Result.Failure(msg)
   }
 }

@@ -52,6 +52,10 @@ object Applicative {
 
   def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)
                                                       (t: c.Expr[T]): c.Expr[M[T]] = {
+    impl0(c)(t.tree)(implicitly[c.WeakTypeTag[T]], implicitly[c.WeakTypeTag[Ctx]])
+  }
+  def impl0[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)
+                                                       (t: c.Tree): c.Expr[M[T]] = {
     import c.universe._
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
@@ -60,13 +64,13 @@ object Applicative {
 
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
-    val defs = rec(t.tree).filter(_.isDef).map(_.symbol).toSet
+    val defs = rec(t).filter(_.isDef).map(_.symbol).toSet
 
     val ctxName = TermName(c.freshName("ctx"))
     val ctxSym = c.internal.newTermSymbol(c.internal.enclosingOwner, ctxName)
     c.internal.setInfo(ctxSym, weakTypeOf[Ctx])
 
-    val transformed = c.internal.typingTransform(t.tree) {
+    val transformed = c.internal.typingTransform(t) {
       case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
 
         val localDefs = rec(fun).filter(_.isDef).map(_.symbol).toSet

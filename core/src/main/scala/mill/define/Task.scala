@@ -36,6 +36,8 @@ trait Target[+T] extends Task[T]{
 }
 object Target extends Applicative.Applyer[Task, Task, Result, Args]{
 
+  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
+
   implicit def apply[T](t: Result[T]): Target[T] = macro targetImpl[T]
 
   def apply[T](t: Task[T]): Target[T] = macro targetTaskImpl[T]
@@ -79,7 +81,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
     import c.universe._
     c.Expr[Target[T]](
       mill.define.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree}, _root_.sourcecode.Enclosing())"
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Args](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing())"
       )
     )
   }
