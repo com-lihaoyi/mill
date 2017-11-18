@@ -7,7 +7,7 @@ import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.Module
-import mill.discover.{Discovered, Hierarchy}
+import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Jvm.{createJar, createAssembly}
 import mill.util.OSet

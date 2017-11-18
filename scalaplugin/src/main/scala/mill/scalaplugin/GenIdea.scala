@@ -1,7 +1,7 @@
 package mill.scalaplugin
 
 import ammonite.ops._
-import mill.discover.{Discovered, Hierarchy}
+import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.OSet
 
@@ -19,20 +19,16 @@ object GenIdea {
 
   def xmlFileLayout[T: Discovered](obj: T): Seq[(RelPath, scala.xml.Node)] = {
     val discovered = implicitly[Discovered[T]]
-    def rec(x: Hierarchy[T]): Seq[(Seq[String], ScalaModule)] = {
-      val node = x.node(obj)
-      val self = node match{
-        case m: ScalaModule => Seq(x.path -> m)
-        case _ => Nil
-      }
-
-      self ++ x.children.flatMap(rec)
-    }
     val mapping = Discovered.mapping(obj)(discovered)
     val workspacePath = pwd / 'out
     val evaluator = new Evaluator(workspacePath, mapping)
 
-    val modules = rec(discovered.hierarchy)
+    val modules = Mirror.traverse(discovered.mirror){ (h, p) =>
+      h.node(obj) match {
+        case m: ScalaModule => Seq(p -> m)
+        case _ => Nil
+      }
+    }
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
         evaluator.evaluate(OSet(mod.externalCompileDepClasspath, mod.externalCompileDepSources))

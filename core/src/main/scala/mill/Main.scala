@@ -30,7 +30,7 @@ object Main {
       val mapping = Discovered.mapping(obj)(discovered)
       val workspacePath = pwd / 'out
 
-      def resolve[V](selector: List[String], hierarchy: Hierarchy[T, V]): Option[Task[Any]] = {
+      def resolve[V](selector: List[String], hierarchy: Mirror[T, V]): Option[Task[Any]] = {
         selector match{
           case last :: Nil =>
 
@@ -49,7 +49,7 @@ object Main {
               .flatten
         }
       }
-      resolve(selector.toList, discovered.hierarchy) match{
+      resolve(selector.toList, discovered.mirror) match{
         case Some(target) =>
           val evaluator = new Evaluator(workspacePath, mapping)
           val evaluated = evaluator.evaluate(OSet(target))

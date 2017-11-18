@@ -4,7 +4,7 @@ import utest._
 import TestUtil.test
 import mill.define.Task
 import mill.define.Task.Module
-import mill.discover.{Discovered, Hierarchy}
+import mill.discover.{Discovered, Mirror}
 import mill.eval.Evaluator
 import mill.util.OSet
 

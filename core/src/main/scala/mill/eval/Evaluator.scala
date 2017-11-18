@@ -2,13 +2,12 @@ package mill.eval
 
 import ammonite.ops._
 import mill.define.Task
-import mill.discover.Labelled
+import mill.discover.Mirror.LabelledTarget
 import mill.util.{Args, MultiBiMap, OSet}
-
 
 import scala.collection.mutable
 class Evaluator(workspacePath: Path,
-                labeling: Map[Task[_], Labelled[_]]){
+                labeling: Map[Task[_], LabelledTarget[_]]){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)

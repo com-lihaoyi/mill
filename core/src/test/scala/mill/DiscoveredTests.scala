@@ -3,7 +3,7 @@ package mill
 import utest._
 import TestUtil.test
 import mill.define.Task.Module
-import mill.discover.{Discovered, Hierarchy}
+import mill.discover.{Discovered, Mirror}
 
 object DiscoveredTests extends TestSuite{
 
@@ -29,10 +29,10 @@ object DiscoveredTests extends TestSuite{
       val discovered = Discovered[outer.type]
 
 
-      def flatten(h: Hierarchy[outer.type, _]): Seq[Any] = {
+      def flatten(h: Mirror[outer.type, _]): Seq[Any] = {
         h.node(outer) :: h.children.flatMap{case (label, c) => flatten(c)}
       }
-      val flattenedHierarchy = flatten(discovered.hierarchy)
+      val flattenedHierarchy = flatten(discovered.mirror)
 
       val expectedHierarchy = Seq(
         outer,

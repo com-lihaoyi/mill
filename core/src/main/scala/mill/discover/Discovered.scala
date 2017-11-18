@@ -2,49 +2,23 @@ package mill.discover
 
 import mill.define.Task.Module
 import mill.define.{Target, Task}
+import mill.discover.Mirror.LabelledTarget
 import mill.discover.Router.{EntryPoint, Result}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-class Discovered[T](val hierarchy: Hierarchy[T, _]){
-  def targets(obj: T) = {
-    def rec[V](segmentsRev: List[String], h: Hierarchy[T, V]): Seq[Labelled[_]]= {
-      val self = h.targets.map(t =>
-        t.labelled(h.node(obj), (t.label :: segmentsRev).reverse)
-      )
-      self ++ h.children.flatMap{case (label, c) => rec(label :: segmentsRev, c)}
-    }
-    rec(Nil, hierarchy)
-  }
-  def mains = {
-    def rec[V](segmentsRev: List[String], h: Hierarchy[T, V]): Seq[(Seq[String], EntryPoint[_])]= {
-      h.commands.map((segmentsRev.reverse, _)) ++
-      h.children.flatMap{case (label, c) => rec(label :: segmentsRev, c)}
-    }
-    rec(Nil, hierarchy)
-  }
-}
 
-case class Hierarchy[T, V](node: T => V,
-                           commands: Seq[EntryPoint[V]],
-                           targets: Seq[TargetInfo[V, _]],
-                           children: List[(String, Hierarchy[T, _])])
+class Discovered[T](val mirror: Mirror[T, T]){
 
-case class Labelled[T](target: Task[T],
-                       format: upickle.default.ReadWriter[T],
-                       segments: Seq[String])
-
-case class TargetInfo[T, V](label: String,
-                            format: upickle.default.ReadWriter[V],
-                            run: T => Task[V]) {
-  def labelled(t: T, segments: Seq[String]) = Labelled(run(t), format, segments)
-}
-object TargetInfo{
-  def make[T, V](label: String, func: T => Task[V])
-                (implicit f: upickle.default.ReadWriter[V]) = {
-    TargetInfo(label, f, func)
+  def targets(obj: T) = Mirror.traverse(mirror) { (h, p) =>
+    h.labelled(obj, p)
   }
+
+  def mains = Mirror.traverse(mirror) { (h, p) =>
+    h.commands.map(x => (p, x: EntryPoint[_]))
+  }
+
 }
 
 object Discovered {
@@ -58,7 +32,7 @@ object Discovered {
 
 
 
-  def mapping[T: Discovered](t: T): Map[Task[_], Labelled[_]] = {
+  def mapping[T: Discovered](t: T): Map[Task[_], LabelledTarget[_]] = {
     implicitly[Discovered[T]].targets(t).map(x => x.target -> x).toMap
   }
 
@@ -82,7 +56,10 @@ object Discovered {
            !m.name.toString.contains(' ')
       } yield {
         val x = Ident(TermName(c.freshName()))
-        q"mill.discover.TargetInfo.make(${m.name.toString}, ($x: ${m.typeSignature.resultType}) => $x.${m.name.toTermName})"
+        q"""mill.discover.Mirror.makeTargetPoint(
+          ${m.name.toString},
+          ($x: ${m.typeSignature.resultType}) => $x.${m.name.toTermName}
+        )"""
       }
 
 
@@ -108,7 +85,7 @@ object Discovered {
           .asInstanceOf[Seq[c.Tree]]
           .toList
 
-      q"""mill.discover.Hierarchy[$tpe, $t](
+      q"""mill.discover.Mirror[$tpe, $t](
         $hierarchySelector,
         $commands,
         $targets,
