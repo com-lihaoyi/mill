@@ -62,7 +62,7 @@ object JavaCompileJarTests extends TestSuite{
             }.size
           ))
         }else{
-          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.head)
+          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
         }
 
       }

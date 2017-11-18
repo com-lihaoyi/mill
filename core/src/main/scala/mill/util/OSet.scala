@@ -11,7 +11,8 @@ import scala.collection.mutable
   */
 trait OSet[V] extends TraversableOnce[V]{
   def contains(v: V): Boolean
-  def items: IndexedSeq[V]
+  def items: Iterator[V]
+  def indexed: IndexedSeq[V]
   def flatMap[T](f: V => TraversableOnce[T]): OSet[T]
   def map[T](f: V => T): OSet[T]
   def filter(f: V => Boolean): OSet[V]
@@ -46,7 +47,8 @@ object OSet{
       throw new Exception("Duplicated item inserted into OrderedSet: " + v)
     }
     def appendAll(vs: Seq[V]) = vs.foreach(append)
-    def items: IndexedSeq[V] = set0.toIndexedSeq
+    def items = set0.iterator
+    def indexed: IndexedSeq[V] = items.toIndexedSeq
     def set: collection.Set[V] = set0
 
     def map[T](f: V => T): OSet[T] = {
@@ -75,7 +77,7 @@ object OSet{
       }
     }
 
-    def reverse = OSet.from(items.reverseIterator)
+    def reverse = OSet.from(indexed.reverseIterator)
 
     // Members declared in scala.collection.GenTraversableOnce
     def isTraversableAgain: Boolean = items.isTraversableAgain
@@ -91,11 +93,11 @@ object OSet{
     def hasDefiniteSize: Boolean = items.hasDefiniteSize
     def isEmpty: Boolean = items.isEmpty
     def seq: scala.collection.TraversableOnce[V] = items
-    def toTraversable: Traversable[V] = items
+    def toTraversable: Traversable[V] = items.toTraversable
 
     override def hashCode() = items.hashCode()
     override def equals(other: Any) = other match{
-      case s: OSet[_] => items.equals(s.items)
+      case s: OSet[_] => items.sameElements(s.items)
       case _ => super.equals(other)
     }
     override def toString = items.mkString("OSet(", ", ", ")")

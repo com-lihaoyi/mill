@@ -38,9 +38,9 @@ class Evaluator(workspacePath: Path,
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], LabelledTarget[_]], Result.Failing]
     for((k, vs) <- sortedGroups.items){
-      failing.addAll(k, vs.items.flatMap(results.get(_)).collect{case f: Result.Failing => f})
+      failing.addAll(k, vs.items.flatMap(results.get).collect{case f: Result.Failing => f})
     }
-    Evaluator.Results(goals.items.map(results), evaluated, transitive, failing)
+    Evaluator.Results(goals.indexed.map(results), evaluated, transitive, failing)
   }
 
   def resolveDestPaths(t: LabelledTarget[_]): (Path, Path) = {
@@ -57,7 +57,7 @@ class Evaluator(workspacePath: Path,
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
     val inputsHash =
-      externalInputs.toIterator.map(results).toVector.hashCode +
+      externalInputs.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
     terminal match{
@@ -179,7 +179,8 @@ object Evaluator{
     */
   def topoSorted(transitiveTargets: OSet[Task[_]]): TopoSorted = {
 
-    val targetIndices = transitiveTargets.items.zipWithIndex.toMap
+    val indexed = transitiveTargets.indexed
+    val targetIndices = indexed.zipWithIndex.toMap
 
     val numberedEdges =
       for(t <- transitiveTargets.items)
@@ -188,6 +189,6 @@ object Evaluator{
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    new TopoSorted(OSet.from(sortedClusters.flatten.map(transitiveTargets.items)))
+    new TopoSorted(OSet.from(sortedClusters.flatten.map(indexed)))
   }
 }

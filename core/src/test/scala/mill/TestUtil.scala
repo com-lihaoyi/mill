@@ -27,7 +27,7 @@ object TestUtil {
   }
   def checkTopological(targets: OSet[Task[_]]) = {
     val seen = mutable.Set.empty[Task[_]]
-    for(t <- targets.items.reverseIterator){
+    for(t <- targets.indexed.reverseIterator){
       seen.add(t)
       for(upstream <- t.inputs){
         assert(!seen(upstream))
