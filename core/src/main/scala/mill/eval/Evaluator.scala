@@ -8,7 +8,8 @@ import mill.util.{Args, MultiBiMap, OSet}
 
 import scala.collection.mutable
 class Evaluator(workspacePath: Path,
-                labeling: Map[Target[_], LabelledTarget[_]]){
+                labeling: Map[Target[_], LabelledTarget[_]],
+                log: String => Unit){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
@@ -78,7 +79,7 @@ class Evaluator(workspacePath: Path,
 
           case _ =>
 
-            println(fansi.Color.Blue("Running " + labelledTarget.segments.mkString(".")))
+            log("Running " + labelledTarget.segments.mkString("."))
             if (labelledTarget.target.flushDest) rm(destPath)
             val (newResults, newEvaluated) = evaluateGroup(group, results, Some(destPath))
 

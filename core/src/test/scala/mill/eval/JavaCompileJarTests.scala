@@ -49,7 +49,7 @@ object JavaCompileJarTests extends TestSuite{
       val mapping = Discovered.mapping(Build)
 
       def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping)
+        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
         val evaluated = evaluator.evaluate(OSet(t))
 
         if (evaluated.failing.keyCount == 0){
@@ -66,7 +66,7 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, mapping)
+        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated

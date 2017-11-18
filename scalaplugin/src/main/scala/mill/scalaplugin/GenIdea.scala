@@ -21,7 +21,7 @@ object GenIdea {
     val discovered = implicitly[Discovered[T]]
     val mapping = Discovered.mapping(obj)(discovered)
     val workspacePath = pwd / 'out
-    val evaluator = new Evaluator(workspacePath, mapping)
+    val evaluator = new Evaluator(workspacePath, mapping, _ => ())
 
     val modules = Mirror.traverse(discovered.mirror){ (h, p) =>
       h.node(obj) match {

@@ -13,14 +13,19 @@ import ammonite.repl.Repl
 
 object Main {
 
-  def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit): Int = {
+  def apply[T: Discovered](args: Seq[String],
+                           obj: T,
+                           watch: Path => Unit,
+                           coloredOutput: Boolean): Int = {
+
+    val log = new Logger(coloredOutput)
 
     val Seq(selectorString, rest @_*) = args
     val selector = selectorString.split('.')
     val discovered = implicitly[Discovered[T]]
     val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
     if (consistencyErrors.nonEmpty) {
-      println("Failed Discovered.consistencyCheck: " + consistencyErrors)
+      log.error("Failed Discovered.consistencyCheck: " + consistencyErrors)
       1
     } else {
       val mapping = Discovered.mapping(obj)(discovered)
@@ -48,7 +53,7 @@ object Main {
       }
       resolve(selector.toList, discovered.mirror) match{
         case Some(target) =>
-          val evaluator = new Evaluator(workspacePath, mapping)
+          val evaluator = new Evaluator(workspacePath, mapping, log.info)
           val evaluated = evaluator.evaluate(OSet(target))
           evaluated.transitive.foreach{
             case t: define.Source => watch(t.handle.path)
@@ -56,7 +61,11 @@ object Main {
           }
 
           val failing = evaluated.failing.items
-          println(evaluated.failing.keyCount + " targets failed")
+          evaluated.failing.keyCount match{
+            case 0 => // do nothing
+            case n => log.error(n + " targets failed")
+          }
+
 
           for((k, fs) <- failing){
             val ks = k match{
@@ -67,12 +76,12 @@ object Main {
               case Result.Exception(t) => t.toString
               case Result.Failure(t) => t
             }
-            println(ks + " " + fss.mkString(", "))
+            log.error(ks + " " + fss.mkString(", "))
           }
 
           if (evaluated.failing.keyCount == 0) 0 else 1
         case None =>
-          println("Unknown selector: " + selector.mkString("."))
+          log.error("Unknown selector: " + selector.mkString("."))
           1
       }
     }
@@ -132,19 +141,23 @@ object Main {
         }
     }
   }
-
 }
-class Main(config: Main.Config){
+
+class Logger(coloredOutput: Boolean){
   val colors =
-    if(config.colored.getOrElse(ammonite.Main.isInteractive())) Colors.Default
+    if(coloredOutput) Colors.Default
     else Colors.BlackWhite
 
-  def printInfo(s: String) = System.err.println(colors.info()(s))
-  def printError(s: String) = System.err.println(colors.error()(s))
+  def info(s: String) = System.err.println(colors.info()(s))
+  def error(s: String) = System.err.println(colors.error()(s))
+}
+class Main(config: Main.Config){
+  val coloredOutput = config.colored.getOrElse(ammonite.Main.isInteractive())
+  val log = new Logger(coloredOutput)
 
 
   def watchAndWait(watched: Seq[(Path, Long)]) = {
-    printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    log.info(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       Interpreter.pathSignature(file) == lastMTime
     }
@@ -154,11 +167,11 @@ class Main(config: Main.Config){
 
   def handleWatchRes[T](res: Res[T], printing: Boolean) = res match {
     case Res.Failure(msg) =>
-      printError(msg)
+      log.error(msg)
       false
 
     case Res.Exception(ex, s) =>
-      printError(
+      log.error(
         Repl.showException(ex, fansi.Color.Red, fansi.Attr.Reset, fansi.Color.Green)
       )
       false
@@ -194,7 +207,7 @@ class Main(config: Main.Config){
         val syntheticPath = pwd / 'out / "run.sc"
         write.over(
           syntheticPath,
-          """@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch)
+          s"""@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch, $coloredOutput)
             |
             |@main def idea() = mill.scalaplugin.GenIdea(ammonite.predef.FilePredef)
           """.stripMargin
@@ -216,7 +229,7 @@ class Main(config: Main.Config){
       }
 
       val delta = System.currentTimeMillis() - startTime
-      printInfo("Finished in " + delta/1000.0 + "s")
+      log.info("Finished in " + delta/1000.0 + "s")
       watchAndWait(watchedFiles)
       startTime = System.currentTimeMillis()
     } while(loop)
