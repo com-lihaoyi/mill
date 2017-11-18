@@ -1,8 +1,7 @@
 package mill.define
 
 import mill.define.Applicative.Applyable
-
-import mill.eval.PathRef
+import mill.eval.{PathRef, Result}
 import mill.util.Args
 
 import scala.language.experimental.macros
@@ -17,7 +16,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
   /**
     * Evaluate this target
     */
-  def evaluate(args: Args): T
+  def evaluate(args: Args): Result[T]
 
   /**
     * Even if this target's inputs did not change, does it need to re-evaluate
@@ -35,22 +34,22 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
 trait Target[+T] extends Task[T]{
   override def asTarget = Some(this)
 }
-object Target extends Applicative.Applyer[Task, Task, Args]{
+object Target extends Applicative.Applyer[Task, Task, Result, Args]{
 
-  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
+  implicit def apply[T](t: Result[T]): Target[T] = macro targetImpl[T]
 
   def apply[T](t: Task[T]): Target[T] = macro targetTaskImpl[T]
 
-  def command[T](t: T): Command[T] = macro commandImpl[T]
+  def command[T](t: Result[T]): Command[T] = macro commandImpl[T]
 
   def source(path: ammonite.ops.Path) = new Source(path)
 
   def command[T](t: Task[T]): Command[T] = new Command(t)
 
-  def task[T](t: T): Task[T] = macro Applicative.impl[Task, T, Args]
+  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, Args]
   def task[T](t: Task[T]): Task[T] = t
 
-  def persistent[T](t: T): Target[T] = macro persistentImpl[T]
+  def persistent[T](t: Result[T]): Target[T] = macro persistentImpl[T]
   def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Persistent[T]] = {
     import c.universe._
 
@@ -86,7 +85,7 @@ object Target extends Applicative.Applyer[Task, Task, Args]{
   }
 
   def underlying[A](v: Task[A]) = v
-  def mapCtx[A, B](t: Task[A])(f: (A, Args) => B) = t.mapDest(f)
+  def mapCtx[A, B](t: Task[A])(f: (A, Args) => Result[B]) = t.mapDest(f)
   def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
@@ -155,7 +154,7 @@ object Task {
 
   abstract class Ops[+T]{ this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
-    def mapDest[V](f: (T, Args) => V) = new Task.MappedDest(this, f)
+    def mapDest[V](f: (T, Args) => Result[V]) = new Task.MappedDest(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
@@ -178,7 +177,7 @@ object Task {
     def evaluate(args: Args) = f(args(0))
     val inputs = List(source)
   }
-  class MappedDest[+T, +V](source: Task[T], f: (T, Args) => V) extends Task[V]{
+  class MappedDest[+T, +V](source: Task[T], f: (T, Args) => Result[V]) extends Task[V]{
     def evaluate(args: Args) = f(args(0), args)
     val inputs = List(source)
   }

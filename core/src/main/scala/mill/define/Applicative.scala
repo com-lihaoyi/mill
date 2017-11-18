@@ -20,25 +20,26 @@ object Applicative {
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }
-  trait Applyer[W[_], T[_], Ctx]{
+  type Id[+T] = T
+  trait Applyer[W[_], T[_], Z[_], Ctx]{
     @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
     def ctx(): Ctx = ???
     def underlying[A](v: W[A]): T[_]
 
-    def mapCtx[A, B](a: T[A])(f: (A, Ctx) => B): T[B]
-    def zipMap[R]()(cb: Ctx => R) = mapCtx(zip()){ (_, ctx) => cb(ctx)}
-    def zipMap[A, R](a: T[A])(f: (A, Ctx) => R) = mapCtx(a)(f)
-    def zipMap[A, B, R](a: T[A], b: T[B])(cb: (A, B, Ctx) => R) = mapCtx(zip(a, b)){case ((a, b), x) => cb(a, b, x)}
+    def mapCtx[A, B](a: T[A])(f: (A, Ctx) => Z[B]): T[B]
+    def zipMap[R]()(cb: Ctx => Z[R]) = mapCtx(zip()){ (_, ctx) => cb(ctx)}
+    def zipMap[A, R](a: T[A])(f: (A, Ctx) => Z[R]) = mapCtx(a)(f)
+    def zipMap[A, B, R](a: T[A], b: T[B])(cb: (A, B, Ctx) => Z[R]) = mapCtx(zip(a, b)){case ((a, b), x) => cb(a, b, x)}
     def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])
-                          (cb: (A, B, C, Ctx) => R) = mapCtx(zip(a, b, c)){case ((a, b, c), x) => cb(a, b, c, x)}
+                          (cb: (A, B, C, Ctx) => Z[R]) = mapCtx(zip(a, b, c)){case ((a, b, c), x) => cb(a, b, c, x)}
     def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])
-                             (cb: (A, B, C, D, Ctx) => R) = mapCtx(zip(a, b, c, d)){case ((a, b, c, d), x) => cb(a, b, c, d, x)}
+                             (cb: (A, B, C, D, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d)){case ((a, b, c, d), x) => cb(a, b, c, d, x)}
     def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])
-                                (cb: (A, B, C, D, E, Ctx) => R) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
+                                (cb: (A, B, C, D, E, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
     def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
-                                   (cb: (A, B, C, D, E, F, Ctx) => R) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
+                                   (cb: (A, B, C, D, E, F, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
     def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
-                                      (cb: (A, B, C, D, E, F, G, Ctx) => R) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
+                                      (cb: (A, B, C, D, E, F, G, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
     def zip[A, B](a: T[A], b: T[B]): T[(A, B)]

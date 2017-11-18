@@ -5,7 +5,7 @@ import ammonite.ops._
 import ImplicitWd._
 import mill.define.{Target, Task}
 import mill.discover.Discovered
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, Result}
 import mill.modules.Jvm.jarUp
 import mill.util.OSet
 import utest._
@@ -49,16 +49,22 @@ object JavaCompileJarTests extends TestSuite{
       import Build._
       val mapping = Discovered.mapping(Build)
 
-      def eval[T](t: Task[T]): (T, Int) = {
+      def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
         val evaluator = new Evaluator(workspacePath, mapping)
         val evaluated = evaluator.evaluate(OSet(t))
-        Tuple2(
-          evaluated.values(0).asInstanceOf[T],
-          evaluated.evaluated.collect{
-            case t: Target[_] if mapping.contains(t) => t
-            case t: mill.define.Command[_] => t
-          }.size
-        )
+
+        if (evaluated.failing.keyCount == 0){
+          Right(Tuple2(
+            evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
+            evaluated.evaluated.collect{
+              case t: Target[_] if mapping.contains(t) => t
+              case t: mill.define.Command[_] => t
+            }.size
+          ))
+        }else{
+          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.head)
+        }
+
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
@@ -134,16 +140,15 @@ object JavaCompileJarTests extends TestSuite{
       for(i <- 0 until 3){
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
-        val (runOutput, evalCount) = eval(Build.run("test.Foo"))
+        val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
           runOutput.out.string == (31337 + 271828) + "\n",
           evalCount == 1
         )
       }
 
-      val ex = intercept[ammonite.ops.ShelloutException]{
-        eval(Build.run("test.BarFour"))
-      }
+      val Left(Result.Exception(ex)) = eval(Build.run("test.BarFour"))
+
       assert(ex.getMessage.contains("Could not find or load main class"))
 
       append(
@@ -156,12 +161,12 @@ object JavaCompileJarTests extends TestSuite{
         }
         """
       )
-      val (runOutput2, evalCount2) = eval(Build.run("test.BarFour"))
+      val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput2.out.string == "New Cls!\n",
         evalCount2 == 3
       )
-      val (runOutput3, evalCount3) = eval(Build.run("test.BarFour"))
+      val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput3.out.string == "New Cls!\n",
         evalCount3 == 1

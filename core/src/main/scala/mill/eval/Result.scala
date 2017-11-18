@@ -1,0 +1,14 @@
+package mill.eval
+
+sealed trait Result[+T]
+object Result{
+  implicit def create[T](t: => T): Result[T] = {
+    try Success(t)
+    catch { case e: Throwable => Exception(e) }
+  }
+  case class Success[T](value: T) extends Result[T]
+  case object Skipped extends Result[Nothing]
+  sealed trait Failing extends Result[Nothing]
+  case class Failure(msg: String) extends Failing
+  case class Exception(throwable: Throwable) extends Failing
+}

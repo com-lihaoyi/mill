@@ -3,6 +3,7 @@ package mill.eval
 import ammonite.ops._
 import mill.define.{Target, Task}
 import mill.discover.Mirror.LabelledTarget
+import mill.util
 import mill.util.{Args, MultiBiMap, OSet}
 
 import scala.collection.mutable
@@ -20,7 +21,7 @@ class Evaluator(workspacePath: Path,
     }
 
     val evaluated = new OSet.Mutable[Task[_]]
-    val results = mutable.LinkedHashMap.empty[Task[_], Any]
+    val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
 
     for ((terminal, group)<- sortedGroups.items()){
       val (newResults, newEvaluated) = evaluateGroupCached(
@@ -35,7 +36,11 @@ class Evaluator(workspacePath: Path,
 
     }
 
-    Evaluator.Results(goals.items.map(results), evaluated, transitive)
+    val failing = new util.MultiBiMap.Mutable[Either[Task[_], LabelledTarget[_]], Result.Failing]
+    for((k, vs) <- sortedGroups.items){
+      failing.addAll(k, vs.items.flatMap(results.get(_)).collect{case f: Result.Failing => f})
+    }
+    Evaluator.Results(goals.items.map(results), evaluated, transitive, failing)
   }
 
   def resolveDestPaths(t: LabelledTarget[_]): (Path, Path) = {
@@ -46,7 +51,7 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
                           group: OSet[Task[_]],
-                          results: collection.Map[Task[_], Any]): (collection.Map[Task[_], Any], Seq[Task[_]]) = {
+                          results: collection.Map[Task[_], Result[Any]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -67,7 +72,7 @@ class Evaluator(workspacePath: Path,
 
         cached match{
           case Some(terminalResult) =>
-            val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
+            val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
             newResults(labelledTarget.target) = labelledTarget.format.read(terminalResult)
             (newResults, Nil)
 
@@ -77,12 +82,19 @@ class Evaluator(workspacePath: Path,
             if (labelledTarget.target.flushDest) rm(destPath)
             val (newResults, newEvaluated) = evaluateGroup(group, results, Some(destPath))
 
-            val terminalResult = labelledTarget
-                .format
-                .asInstanceOf[upickle.default.ReadWriter[Any]]
-                .write(newResults(labelledTarget.target))
+            newResults(labelledTarget.target) match{
+              case Result.Success(v) =>
+                val terminalResult = labelledTarget
+                  .format
+                  .asInstanceOf[upickle.default.ReadWriter[Any]]
+                  .write(v)
 
-            write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
+                write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
+              case _ =>
+            }
+
+
+
             (newResults, newEvaluated)
         }
     }
@@ -90,21 +102,25 @@ class Evaluator(workspacePath: Path,
 
 
   def evaluateGroup(group: OSet[Task[_]],
-                    results: collection.Map[Task[_], Any],
+                    results: collection.Map[Task[_], Result[Any]],
                     targetDestPath: Option[Path]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
-    val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
+    val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
     for (target <- group.items if !results.contains(target)) {
 
       newEvaluated.append(target)
-      val targetInputValues = target.inputs.toVector.map(x =>
-        newResults.getOrElse(x, results(x))
-      )
+      val targetInputValues = target.inputs
+        .map(x => newResults.getOrElse(x, results(x)))
+        .collect{ case Result.Success(v) => v }
 
-      val args = new Args(targetInputValues, targetDestPath.orNull)
-      val res = target.evaluate(args)
+      val res =
+        if (targetInputValues.length != target.inputs.length) Result.Skipped
+        else {
+          val args = new Args(targetInputValues.toArray[Any], targetDestPath.orNull)
+          target.evaluate(args)
+        }
 
       newResults(target) = res
     }
@@ -117,7 +133,12 @@ class Evaluator(workspacePath: Path,
 
 object Evaluator{
   class TopoSorted private[Evaluator](val values: OSet[Task[_]])
-  case class Results(values: Seq[Any], evaluated: OSet[Task[_]], transitive: OSet[Task[_]])
+  case class Results(rawValues: Seq[Result[Any]],
+                     evaluated: OSet[Task[_]],
+                     transitive: OSet[Task[_]],
+                     failing: MultiBiMap[Either[Task[_], LabelledTarget[_]], Result.Failing]){
+    def values = rawValues.collect{case Result.Success(v) => v}
+  }
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
                                     (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 

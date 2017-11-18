@@ -26,23 +26,23 @@ object EvaluationTests extends TestSuite{
               // are directly evaluating tasks which need to re-evaluate every time
               secondRunNoOp: Boolean = true) = {
 
-      val Evaluator.Results(returnedValues, returnedEvaluated, _) = evaluator.evaluate(OSet(target))
+      val evaled = evaluator.evaluate(OSet(target))
 
-      val (matchingReturnedEvaled, extra) = returnedEvaluated.items.partition(expEvaled.contains)
+      val (matchingReturnedEvaled, extra) = evaled.evaluated.items.partition(expEvaled.contains)
 
       assert(
-        returnedValues == Seq(expValue),
+        evaled.values == Seq(expValue),
         matchingReturnedEvaled.toSet == expEvaled.toSet,
         extraEvaled == -1 || extra.length == extraEvaled
       )
 
       // Second time the value is already cached, so no evaluation needed
       if (secondRunNoOp){
-        val Evaluator.Results(returnedValues2, returnedEvaluated2, _) = evaluator.evaluate(OSet(target))
+        val evaled2 = evaluator.evaluate(OSet(target))
         val expecteSecondRunEvaluated = OSet()
         assert(
-          returnedValues2 == returnedValues,
-          returnedEvaluated2 == expecteSecondRunEvaluated
+          evaled2.values == evaled.values,
+          evaled2.evaluated == expecteSecondRunEvaluated
         )
       }
     }
