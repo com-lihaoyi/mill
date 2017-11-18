@@ -2,6 +2,7 @@ package mill.discover
 
 import java.io.InputStreamReader
 
+import mill.discover.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
 import mill.util.TestUtil.test
@@ -9,10 +10,12 @@ object DiscoveredTests extends TestSuite{
 
   val tests = Tests{
 
-    'discovery{
+    'targets - {
       class CanNest extends Module{
         val single = test()
         val invisible: Any = test()
+        val invisible2: mill.define.Task[Int] = test()
+        val invisible3: mill.define.Task[_] = test()
       }
       object outer {
         val single = test()
@@ -50,6 +53,45 @@ object DiscoveredTests extends TestSuite{
       )
       assert(mapped.toSet == expected.toSet)
     }
+
+    'commands - {
+      object outer {
+        def hello() = T.command{
+          println("Hello")
+        }
+        def echoPair(prefix: String, suffix: String) = T.command{
+          println(prefix + " " + suffix)
+        }
+        object nested extends Module{
+          def inner(x: Int) = T.command{
+            println(x)
+          }
+        }
+
+      }
+
+      val discovered = Discovered[outer.type]
+      val outerCommands = discovered.mirror.commands
+
+      assertMatch(outerCommands){case Seq(
+        EntryPoint("echoPair",
+          List(ArgSig("prefix", "String", None, None), ArgSig("suffix", "String", None, None)),
+          None,
+          false,
+          _
+        ),
+        EntryPoint("hello", Nil, None, false, _)
+      ) =>}
+
+      val innerCommands = discovered.mirror
+        .children
+        .flatMap(_._2.commands.asInstanceOf[Seq[EntryPoint[_]]])
+
+      assertMatch(innerCommands){case Seq(
+        EntryPoint("inner", _, None, false, _),
+      ) =>}
+    }
+
     'compileError - {
       'unserializableTarget - {
 
