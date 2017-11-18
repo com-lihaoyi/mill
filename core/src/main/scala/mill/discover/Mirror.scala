@@ -35,7 +35,7 @@ object Mirror{
   /**
     * A target after being materialized in a concrete build
     */
-  case class LabelledTarget[V](target: Task[V],
+  case class LabelledTarget[V](target: Target[V],
                                format: upickle.default.ReadWriter[V],
                                segments: Seq[String])
 

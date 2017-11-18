@@ -34,7 +34,7 @@ object Discovered {
 
 
 
-  def mapping[T: Discovered](t: T): Map[Task[_], LabelledTarget[_]] = {
+  def mapping[T: Discovered](t: T): Map[Target[_], LabelledTarget[_]] = {
     implicitly[Discovered[T]].targets(t).map(x => x.target -> x).toMap
   }
 

@@ -52,10 +52,10 @@ object EvaluationTests extends TestSuite{
     val topoSorted = Evaluator.topoSorted(
       Evaluator.transitiveTargets(OSet.from(goals))
     )
-    val grouped = Evaluator.groupAroundImportantTargets(
-      topoSorted,
-      t => labeling.contains(t) || goals.contains(t)
-    )
+    val grouped = Evaluator.groupAroundImportantTargets(topoSorted) {
+      case t: Target[_] if labeling.contains(t) || goals.contains(t) => t
+      case t if goals.contains(t) => t
+    }
     grouped.keyCount
   }
 

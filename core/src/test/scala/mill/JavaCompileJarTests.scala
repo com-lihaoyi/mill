@@ -3,7 +3,7 @@ package mill
 
 import ammonite.ops._
 import ImplicitWd._
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.modules.Jvm.jarUp
@@ -54,13 +54,19 @@ object JavaCompileJarTests extends TestSuite{
         val evaluated = evaluator.evaluate(OSet(t))
         Tuple2(
           evaluated.values(0).asInstanceOf[T],
-          evaluated.evaluated.filter(x => mapping.contains(x) || x.isInstanceOf[mill.define.Command[_]]).size
+          evaluated.evaluated.collect{
+            case t: Target[_] if mapping.contains(t) => t
+            case t: mill.define.Command[_] => t
+          }.size
         )
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
         val evaluator = new Evaluator(workspacePath, mapping)
 
-        val evaluated = evaluator.evaluate(targets).evaluated.filter(mapping.contains)
+        val evaluated = evaluator.evaluate(targets)
+          .evaluated
+          .flatMap(_.asTarget)
+          .filter(mapping.contains)
         assert(evaluated == expected)
       }
 

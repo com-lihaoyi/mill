@@ -1,7 +1,7 @@
 package mill
 
 import utest._
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -109,14 +109,16 @@ object GraphTests extends TestSuite{
     }
 
     'groupAroundNamedTargets - {
-      def check[T: Discovered, R <: Task[Int]](base: T,
-                                               target: R,
-                                               expected: OSet[(R, Int)]) = {
+      def check[T: Discovered, R <: Target[Int]](base: T,
+                                                 target: R,
+                                                 expected: OSet[(R, Int)]) = {
 
         val mapping = Discovered.mapping(base)
-        val topoSortedTransitive = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(target)))
+        val topoSorted = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(target)))
 
-        val grouped = Evaluator.groupAroundImportantTargets(topoSortedTransitive, mapping.contains)
+        val grouped = Evaluator.groupAroundImportantTargets(topoSorted) {
+          case t: Target[_] if mapping.contains(t) => t
+        }
         val flattened = OSet.from(grouped.values().flatMap(_.items))
 
         TestUtil.checkTopological(flattened)
@@ -124,7 +126,7 @@ object GraphTests extends TestSuite{
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.filter(mapping.contains) == OSet(terminal)
+            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(mapping.contains) == OSet(terminal)
           )
         }
       }

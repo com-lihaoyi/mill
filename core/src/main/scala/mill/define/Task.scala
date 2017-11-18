@@ -26,9 +26,15 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
   def sideHash: Int = 0
 
   def flushDest: Boolean = true
+
+  def asTarget: Option[Target[T]] = None
+  def asCommand: Option[Command[T]] = None
+  def asPersistent: Option[Persistent[T]] = None
 }
 
-trait Target[+T] extends Task[T]
+trait Target[+T] extends Task[T]{
+  override def asTarget = Some(this)
+}
 object Target extends Applicative.Applyer[Task, Task, Args]{
 
   implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
@@ -113,11 +119,13 @@ class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
 class Command[+T](t: Task[T]) extends Task[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
+  override def asCommand = Some(this)
 }
 class Persistent[+T](t: Task[T]) extends Target[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
   override def flushDest = false
+  override def asPersistent = Some(this)
 }
 object Source{
   implicit def apply(p: ammonite.ops.Path) = new Source(p)

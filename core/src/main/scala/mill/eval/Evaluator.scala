@@ -1,33 +1,30 @@
 package mill.eval
 
 import ammonite.ops._
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.discover.Mirror.LabelledTarget
 import mill.util.{Args, MultiBiMap, OSet}
 
 import scala.collection.mutable
 class Evaluator(workspacePath: Path,
-                labeling: Map[Task[_], LabelledTarget[_]]){
+                labeling: Map[Target[_], LabelledTarget[_]]){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
     val transitive = Evaluator.transitiveTargets(goals)
     val topoSorted = Evaluator.topoSorted(transitive)
-    val sortedGroups = Evaluator.groupAroundImportantTargets(
-      topoSorted,
-      t => labeling.contains(t) || goals.contains(t)
-    )
+    val sortedGroups = Evaluator.groupAroundImportantTargets(topoSorted){
+      case t: Target[_] if labeling.contains(t) || goals.contains(t) => Right(labeling(t))
+      case t if goals.contains(t) => Left(t)
+    }
 
     val evaluated = new OSet.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Any]
 
     for ((terminal, group)<- sortedGroups.items()){
       val (newResults, newEvaluated) = evaluateGroupCached(
-        labeling.get(terminal) match{
-          case Some(labeled) => Right(labeled)
-          case None => Left(terminal)
-        },
+        terminal,
         group,
         results
       )
@@ -121,23 +118,23 @@ class Evaluator(workspacePath: Path,
 object Evaluator{
   class TopoSorted private[Evaluator](val values: OSet[Task[_]])
   case class Results(values: Seq[Any], evaluated: OSet[Task[_]], transitive: OSet[Task[_]])
-  def groupAroundImportantTargets(topoSortedTargets: TopoSorted,
-                                  important: Task[_] => Boolean): MultiBiMap[Task[_], Task[_]] = {
+  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
+                                    (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 
-    val output = new MultiBiMap.Mutable[Task[_], Task[_]]()
-    for (target <- topoSortedTargets.values if important(target)) {
+    val output = new MultiBiMap.Mutable[T, Task[_]]()
+    for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
 
       val transitiveTargets = new OSet.Mutable[Task[_]]
       def rec(t: Task[_]): Unit = {
         if (transitiveTargets.contains(t)) () // do nothing
-        else if (important(t) && t != target) () // do nothing
+        else if (important.isDefinedAt(t) && t != target) () // do nothing
         else {
           transitiveTargets.append(t)
           t.inputs.foreach(rec)
         }
       }
       rec(target)
-      output.addAll(target, topoSorted(transitiveTargets).values)
+      output.addAll(t, topoSorted(transitiveTargets).values)
     }
     output
   }
