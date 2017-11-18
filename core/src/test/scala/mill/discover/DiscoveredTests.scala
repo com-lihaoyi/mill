@@ -1,7 +1,9 @@
 package mill.discover
 
+import java.io.InputStreamReader
+
 import utest._
-import mill.Module
+import mill.{Module, T}
 import mill.util.TestUtil.test
 object DiscoveredTests extends TestSuite{
 
@@ -47,6 +49,33 @@ object DiscoveredTests extends TestSuite{
         (List("single"), outer.single)
       )
       assert(mapped.toSet == expected.toSet)
+    }
+    'compileError - {
+      'unserializableTarget - {
+
+        object outer extends Module {
+          def single = mill.T{ new InputStreamReader(System.in) }
+        }
+
+        val error = compileError("Discovered[outer.type]")
+        assert(
+          error.msg.contains("could not find implicit value"),
+          error.pos.contains("def single = mill.T{ new InputStreamReader(System.in) }")
+        )
+      }
+
+      'unreadableCommand - {
+        object outer extends Module {
+          def single(in: InputStreamReader) = mill.T.command{ println(123) }
+        }
+
+        val error = compileError("Discovered[outer.type]")
+
+        assert(
+          error.msg.contains("could not find implicit value"),
+          error.pos.contains("def single(in: InputStreamReader) = mill.T.command{ println(123) }")
+        )
+      }
     }
   }
 }

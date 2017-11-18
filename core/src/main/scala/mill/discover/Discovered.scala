@@ -53,10 +53,13 @@ object Discovered {
            !m.name.toString.contains(' ')
       } yield {
         val x = Ident(TermName(c.freshName()))
-        q"""mill.discover.Mirror.makeTargetPoint(
+        val t = q"""mill.discover.Mirror.makeTargetPoint(
           ${m.name.toString},
           ($x: ${m.typeSignature.resultType}) => $x.${m.name.toTermName}
         )"""
+
+        c.internal.setPos(t, m.pos)
+        t
       }
 
 

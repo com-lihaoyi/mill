@@ -5,7 +5,6 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
-import mill.eval.Evaluator
 import mill.util.{OSet, TestUtil}
 import utest._
 import utest.framework.TestPath

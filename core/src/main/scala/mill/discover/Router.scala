@@ -2,6 +2,7 @@ package mill.discover
 
 import ammonite.main.Compat
 import mill.define.Task
+import mill.discover.Router.ArgSig
 import sourcecode.Compat.Context
 
 import scala.annotation.StaticAnnotation
@@ -237,7 +238,18 @@ object Router{
       Result.Success(rights)
     }
   }
+
+  def makeReadCall[T: scopt.Read](dict: Map[String, String],
+                                  default: => Option[Any],
+                                  arg: ArgSig[_]) = {
+    read[T](dict, default, arg, implicitly[scopt.Read[T]].reads(_))
+  }
+  def makeReadVarargsCall[T: scopt.Read](arg: ArgSig[_],
+                             values: Seq[String]) = {
+    readVarargs[T](arg, values, implicitly[scopt.Read[T]].reads(_))
+  }
 }
+
 class Router [C <: Context](val c: C) {
   import c.universe._
   def getValsOrMeths(curCls: Type): Iterable[MethodSymbol] = {
@@ -259,6 +271,8 @@ class Router [C <: Context](val c: C) {
 
     }
   }
+
+
 
   def extractMethod(meth: MethodSymbol, curCls: c.universe.Type): c.universe.Tree = {
     val flattenedArgLists = meth.paramss.flatten
@@ -334,19 +348,18 @@ class Router [C <: Context](val c: C) {
 
       val reader =
         if(vararg) q"""
-          mill.discover.Router.readVarargs[$docUnwrappedType](
+          mill.discover.Router.makeReadVarargsCall[$docUnwrappedType](
             $argSig,
-            $extrasSymbol,
-            implicitly[scopt.Read[$docUnwrappedType]].reads(_)
+            $extrasSymbol
           )
         """ else q"""
-        mill.discover.Router.read[$docUnwrappedType](
+        mill.discover.Router.makeReadCall[$docUnwrappedType](
           $argListSymbol,
           $default,
-          $argSig,
-          implicitly[scopt.Read[$docUnwrappedType]].reads(_)
+          $argSig
         )
         """
+      c.internal.setPos(reader, meth.pos)
       (reader, argSig, vararg)
     }
 
