@@ -70,7 +70,8 @@ object GenIdea {
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
       val Seq(sourcePath: PathRef) =
         evaluator.evaluate(OSet(mod.sources)).values
-      val Some((destPath, jsonPath)) = evaluator.resolveDestPaths(mod.compile)
+
+      val (destPath, jsonPath) = evaluator.resolveDestPaths(mapping(mod.compile))
 
       val elem = moduleXmlTemplate(
         sourcePath.path,

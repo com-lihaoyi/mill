@@ -23,7 +23,14 @@ class Evaluator(workspacePath: Path,
     val results = mutable.LinkedHashMap.empty[Task[_], Any]
 
     for ((terminal, group)<- sortedGroups.items()){
-      val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results)
+      val (newResults, newEvaluated) = evaluateGroupCached(
+        labeling.get(terminal) match{
+          case Some(labeled) => Right(labeled)
+          case None => Left(terminal)
+        },
+        group,
+        results
+      )
       for(ev <- newEvaluated){
         evaluated.append(ev)
       }
@@ -34,17 +41,13 @@ class Evaluator(workspacePath: Path,
     Evaluator.Results(goals.items.map(results), evaluated, transitive)
   }
 
-  def resolveDestPaths(t: Task[_]): Option[(Path, Path)] = {
-    labeling.get(t) match{
-      case Some(labeling) =>
-        val targetDestPath = workspacePath / labeling.segments
-        val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
-        Some((targetDestPath, metadataPath))
-      case None => None
-    }
+  def resolveDestPaths(t: LabelledTarget[_]): (Path, Path) = {
+    val targetDestPath = workspacePath / t.segments
+    val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
+    (targetDestPath, metadataPath)
   }
 
-  def evaluateGroupCached(terminal: Task[_],
+  def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
                           group: OSet[Task[_]],
                           results: collection.Map[Task[_], Any]): (collection.Map[Task[_], Any], Seq[Task[_]]) = {
 
@@ -55,39 +58,36 @@ class Evaluator(workspacePath: Path,
       externalInputs.toIterator.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
-    val destPaths = resolveDestPaths(terminal)
-    val (targetDestPath, metadataPath) = (destPaths.map(_._1), destPaths.map(_._2))
+    terminal match{
+      case Left(task) => evaluateGroup(group, results, None)
+      case Right(labelledTarget) =>
+        val (destPath, metadataPath) = resolveDestPaths(labelledTarget)
+        val cached = for{
+          json <- scala.util.Try(upickle.json.read(read(metadataPath))).toOption
+          (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
+          if cachedHash == inputsHash
+        } yield terminalResult
 
-    val cached = for{
-      metadataPath <- metadataPath
-      json <- scala.util.Try(upickle.json.read(read(metadataPath))).toOption
-      (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
-      if cachedHash == inputsHash
-    } yield terminalResult
+        cached match{
+          case Some(terminalResult) =>
+            val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
+            newResults(labelledTarget.target) = labelledTarget.format.read(terminalResult)
+            (newResults, Nil)
 
-    cached match{
-      case Some(terminalResult) =>
-        val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
-        newResults(terminal) = labeling(terminal).format.read(terminalResult)
-        (newResults, Nil)
+          case _ =>
 
-      case _ =>
+            println(fansi.Color.Blue("Running " + labelledTarget.segments.mkString(".")))
+            if (labelledTarget.target.flushDest) rm(destPath)
+            val (newResults, newEvaluated) = evaluateGroup(group, results, Some(destPath))
 
-        val labeled = group.collect(labeling)
-        if (labeled.nonEmpty){
-          println(fansi.Color.Blue("Running " + labeled.map(_.segments.mkString(".")).mkString(", ")))
+            val terminalResult = labelledTarget
+                .format
+                .asInstanceOf[upickle.default.ReadWriter[Any]]
+                .write(newResults(labelledTarget.target))
+
+            write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
+            (newResults, newEvaluated)
         }
-        if (terminal.flushDest) targetDestPath.foreach(rm)
-        val (newResults, newEvaluated, terminalResult) = evaluateGroup(group, results, targetDestPath)
-
-        metadataPath.foreach(
-          write.over(
-            _,
-            upickle.default.write(inputsHash -> terminalResult, indent = 4)
-          )
-        )
-
-        (newResults, newEvaluated)
     }
   }
 
@@ -97,7 +97,6 @@ class Evaluator(workspacePath: Path,
                     targetDestPath: Option[Path]) = {
 
 
-    var terminalResult: upickle.Js.Value = null
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Any]
     for (target <- group.items if !results.contains(target)) {
@@ -109,16 +108,11 @@ class Evaluator(workspacePath: Path,
 
       val args = new Args(targetInputValues, targetDestPath.orNull)
       val res = target.evaluate(args)
-      for(targetLabel <- labeling.get(target)){
-        terminalResult = targetLabel
-          .format
-          .asInstanceOf[upickle.default.ReadWriter[Any]]
-          .write(res.asInstanceOf[Any])
-      }
+
       newResults(target) = res
     }
 
-    (newResults, newEvaluated, terminalResult)
+    (newResults, newEvaluated)
   }
 
 }
