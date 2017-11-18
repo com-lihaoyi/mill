@@ -1,11 +1,18 @@
 package mill.discover
 
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.discover.Router.EntryPoint
 
 import scala.language.experimental.macros
 
-
+/**
+  * Metadata about a build that is extracted & materialized at compile-time,
+  * letting us use it at run-time without needing to use the heavy weight
+  * scala-reflect library.
+  *
+  * Note that [[Mirror]] allows you to store and inspect metadata of a type
+  * [[T]] even without a concrete instance of [[T]] itself.
+  */
 case class Mirror[-T, V](node: T => V,
                          commands: Seq[EntryPoint[V]],
                          targets: Seq[Mirror.TargetPoint[V, _]],
@@ -25,18 +32,24 @@ object Mirror{
     rec(Nil, hierarchy)
   }
 
-
-  case class LabelledTarget[T](target: Task[T],
-                               format: upickle.default.ReadWriter[T],
+  /**
+    * A target after being materialized in a concrete build
+    */
+  case class LabelledTarget[V](target: Task[V],
+                               format: upickle.default.ReadWriter[V],
                                segments: Seq[String])
 
+  /**
+    * Represents metadata about a particular target, before the target is
+    * materialized for a concrete build
+    */
   case class TargetPoint[T, V](label: String,
                                format: upickle.default.ReadWriter[V],
-                               run: T => Task[V]) {
+                               run: T => Target[V]) {
     def labelled(t: T, segments: Seq[String]) = LabelledTarget(run(t), format, segments :+ label)
   }
 
-  def makeTargetPoint[T, V](label: String, func: T => Task[V])
+  def makeTargetPoint[T, V](label: String, func: T => Target[V])
                 (implicit f: upickle.default.ReadWriter[V]) = {
     TargetPoint(label, f, func)
   }

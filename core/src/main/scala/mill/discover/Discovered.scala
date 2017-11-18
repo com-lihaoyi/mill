@@ -8,7 +8,9 @@ import mill.discover.Router.{EntryPoint, Result}
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-
+/**
+  * Allows you to implicitly summon up a build [[Mirror]] for arbitrary types
+  */
 class Discovered[T](val mirror: Mirror[T, T]){
 
   def targets(obj: T) = Mirror.traverse(mirror) { (h, p) =>
