@@ -3,7 +3,7 @@ package mill
 import ammonite.interp.Interpreter
 import ammonite.main.Scripts
 import ammonite.ops._
-import ammonite.util.Res
+import ammonite.util.{Colors, Res}
 import mill.define.Task
 import mill.discover._
 import mill.eval.Evaluator
@@ -12,13 +12,6 @@ import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 
 object Main {
-  def timed[T](t: => T) = {
-    val startTime = System.currentTimeMillis()
-    val res = t
-    val delta = System.currentTimeMillis() - startTime
-    println(fansi.Color.Blue("Finished in " + delta/1000.0 + "s"))
-    res
-  }
   def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
 
     val Seq(selectorString, rest @_*) = args
@@ -47,6 +40,7 @@ object Main {
             hierarchy.children
               .collectFirst{ case (label, child) if label == head => resolve(tail, child) }
               .flatten
+          case Nil => ???
         }
       }
       resolve(selector.toList, discovered.mirror) match{
@@ -63,13 +57,16 @@ object Main {
     }
   }
 
+  case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
+                    colored: Option[Boolean] = None,
+                    help: Boolean = false,
+                    repl: Boolean = false,
+                    watch: Boolean = false)
 
-  def main(args: Array[String]): Unit = timed{
-    case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
-                      colored: Option[Boolean] = None,
-                      help: Boolean = false,
-                      repl: Boolean = false,
-                      watch: Boolean = false)
+  def main(args: Array[String]): Unit = {
+    val startTime = System.currentTimeMillis()
+
+
     import ammonite.main.Cli.Arg
     val signature = Seq(
       Arg[Config, Path](
@@ -104,49 +101,25 @@ object Main {
     ammonite.main.Cli.groupArgs(args.toList, signature, Config()) match{
       case Left(err) =>
       case Right((config, leftover)) =>
-        val loop = config.watch
-        do {
-          if (config.help) {
-            val leftMargin = signature.map(ammonite.main.Cli.showArg(_).length).max + 2
-            println(ammonite.main.Cli.formatBlock(signature, leftMargin).mkString("\n"))
-          } else if (config.repl) {
-            val repl = ammonite.Main(
-              predefFile = Some(pwd / "build.sc")
-            ).instantiateRepl(remoteLogger = None).right.get
-            repl.interp.initializePredef()
-            repl.run()
-            watchAndWait(repl.interp.watchedFiles)
-          } else {
-            val interp = ammonite.Main(
-              predefFile = Some(pwd / "build.sc")
-            ).instantiateInterpreter().right.get
-
-            interp.initializePredef()
-            val syntheticPath = pwd / 'out / "run.sc"
-            write.over(
-              syntheticPath,
-              """@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch)
-                |
-                |@main def idea() = mill.scalaplugin.GenIdea(ammonite.predef.FilePredef)
-              """.stripMargin
-            )
-
-            val res = ammonite.main.Scripts.runScript(
-              pwd,
-              syntheticPath,
-              interp,
-              Scripts.groupArgs(leftover)
-            )
-
-            handleWatchRes(res, true)
-            watchAndWait(interp.watchedFiles)
-          }
-
-        } while(loop)
+        if (config.help) {
+          val leftMargin = signature.map(ammonite.main.Cli.showArg(_).length).max + 2
+          System.err.println(ammonite.main.Cli.formatBlock(signature, leftMargin).mkString("\n"))
+        } else new Main(config).run(leftover, startTime)
     }
   }
+
+}
+class Main(config: Main.Config){
+  val colors =
+    if(config.colored.getOrElse(ammonite.Main.isInteractive())) Colors.Default
+    else Colors.BlackWhite
+
+  def printInfo(s: String) = System.err.println(colors.info()(s))
+  def printError(s: String) = System.err.println(colors.error()(s))
+
+
   def watchAndWait(watched: Seq[(Path, Long)]) = {
-    println(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       Interpreter.pathSignature(file) == lastMTime
     }
@@ -154,23 +127,67 @@ object Main {
     while(statAll()) Thread.sleep(100)
   }
 
-  def handleWatchRes[T](res: Res[T], printing: Boolean) = {
-    val success = res match {
-      case Res.Failure(msg) =>
-        println(msg)
-        false
-      case Res.Exception(ex, s) =>
-        println(
-          Repl.showException(ex, fansi.Color.Red, fansi.Attr.Reset, fansi.Color.Green)
+  def handleWatchRes[T](res: Res[T], printing: Boolean) = res match {
+    case Res.Failure(msg) =>
+      printError(msg)
+      false
+    case Res.Exception(ex, s) =>
+      printError(
+        Repl.showException(ex, fansi.Color.Red, fansi.Attr.Reset, fansi.Color.Green)
+      )
+      false
+
+    case Res.Success(value) =>
+      if (printing && value != ()) println(pprint.PPrinter.BlackWhite(value))
+      true
+
+    case Res.Skip   => true // do nothing on success, everything's already happened
+    case Res.Exit(_) => ???
+  }
+
+  def run(leftover: List[String], startTime0: Long) = {
+
+    var startTime = startTime0
+    val loop = config.watch
+
+    do {
+      val watchedFiles = if (config.repl) {
+        val repl = ammonite.Main(
+          predefFile = Some(pwd / "build.sc")
+        ).instantiateRepl(remoteLogger = None).right.get
+        repl.interp.initializePredef()
+        repl.run()
+        repl.interp.watchedFiles
+      } else {
+        val interp = ammonite.Main(
+          predefFile = Some(pwd / "build.sc")
+        ).instantiateInterpreter().right.get
+
+        interp.initializePredef()
+        val syntheticPath = pwd / 'out / "run.sc"
+        write.over(
+          syntheticPath,
+          """@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch)
+            |
+            |@main def idea() = mill.scalaplugin.GenIdea(ammonite.predef.FilePredef)
+          """.stripMargin
         )
-        false
 
-      case Res.Success(value) =>
-        if (printing && value != ()) println(pprint.PPrinter.BlackWhite(value))
-        true
+        val res = ammonite.main.Scripts.runScript(
+          pwd,
+          syntheticPath,
+          interp,
+          Scripts.groupArgs(leftover)
+        )
 
-      case Res.Skip   => true // do nothing on success, everything's already happened
-    }
-    success
+        handleWatchRes(res, true)
+        interp.watchedFiles
+      }
+
+      val delta = System.currentTimeMillis() - startTime
+      printInfo("Finished in " + delta/1000.0 + "s")
+      watchAndWait(watchedFiles)
+      startTime = System.currentTimeMillis()
+    } while(loop)
   }
 }
