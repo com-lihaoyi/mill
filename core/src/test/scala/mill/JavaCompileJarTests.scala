@@ -16,10 +16,7 @@ object JavaCompileJarTests extends TestSuite{
     import ammonite.ops._
     %("javac", sources.map(_.path.toString()), "-d", dest)(wd = dest)
     PathRef(dest)
-//
   }
-
-
 
   val tests = Tests{
     'javac {
@@ -48,9 +45,9 @@ object JavaCompileJarTests extends TestSuite{
           %%('java, "-cp", classFiles().path, mainClsName)
         }
       }
+
       import Build._
       val mapping = Discovered.mapping(Build)
-
 
       def eval[T](t: Task[T]): (T, Int) = {
         val evaluator = new Evaluator(workspacePath, mapping)
@@ -163,7 +160,6 @@ object JavaCompileJarTests extends TestSuite{
         runOutput3.out.string == "New Cls!\n",
         evalCount3 == 1
       )
-
     }
   }
 }

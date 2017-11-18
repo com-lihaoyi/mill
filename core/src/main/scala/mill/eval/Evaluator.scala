@@ -77,6 +77,7 @@ class Evaluator(workspacePath: Path,
         if (labeled.nonEmpty){
           println(fansi.Color.Blue("Running " + labeled.map(_.segments.mkString(".")).mkString(", ")))
         }
+        if (terminal.flushDest) targetDestPath.foreach(rm)
         val (newResults, newEvaluated, terminalResult) = evaluateGroup(group, results, targetDestPath)
 
         metadataPath.foreach(
@@ -95,7 +96,7 @@ class Evaluator(workspacePath: Path,
                     results: collection.Map[Task[_], Any],
                     targetDestPath: Option[Path]) = {
 
-    targetDestPath.foreach(rm)
+
     var terminalResult: upickle.Js.Value = null
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Any]

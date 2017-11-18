@@ -24,6 +24,8 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
     * anyway?
     */
   def sideHash: Int = 0
+
+  def flushDest: Boolean = true
 }
 
 trait Target[+T] extends Task[T]
@@ -31,7 +33,7 @@ object Target extends Applicative.Applyer[Task, Task, Args]{
 
   implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
 
-  def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
+  def apply[T](t: Task[T]): Target[T] = macro targetTaskImpl[T]
 
   def command[T](t: T): Command[T] = macro commandImpl[T]
 
@@ -42,6 +44,16 @@ object Target extends Applicative.Applyer[Task, Task, Args]{
   def task[T](t: T): Task[T] = macro Applicative.impl[Task, T, Args]
   def task[T](t: Task[T]): Task[T] = t
 
+  def persistent[T](t: T): Target[T] = macro persistentImpl[T]
+  def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Persistent[T]] = {
+    import c.universe._
+
+    c.Expr[Persistent[T]](
+      mill.define.Cacher.wrapCached(c)(
+        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree})"
+      )
+    )
+  }
   def commandImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Command[T]] = {
     import c.universe._
 
@@ -50,10 +62,19 @@ object Target extends Applicative.Applyer[Task, Task, Args]{
     )
   }
 
-  def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+  def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]]): c.Expr[Target[T]] = {
+    import c.universe._
     c.Expr[Target[T]](
       mill.define.Cacher.wrapCached(c)(
-        Applicative.impl[Task, T, Args](c)(t).tree
+        q"new ${weakTypeOf[TargetImpl[T]]}($t, _root_.sourcecode.Enclosing())"
+      )
+    )
+  }
+  def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+    import c.universe._
+    c.Expr[Target[T]](
+      mill.define.Cacher.wrapCached(c)(
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree}, _root_.sourcecode.Enclosing())"
       )
     )
   }
@@ -93,6 +114,11 @@ class Command[+T](t: Task[T]) extends Task[T] {
   val inputs = Seq(t)
   def evaluate(args: Args) = args[T](0)
 }
+class Persistent[+T](t: Task[T]) extends Target[T] {
+  val inputs = Seq(t)
+  def evaluate(args: Args) = args[T](0)
+  override def flushDest = false
+}
 object Source{
   implicit def apply(p: ammonite.ops.Path) = new Source(p)
 }
@@ -107,8 +133,8 @@ object Task {
 
 
 
-  trait Module extends mill.define.Cacher[Task, Target]{
-    def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
+  trait Module extends mill.define.Cacher[Target]{
+    def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
   }
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t

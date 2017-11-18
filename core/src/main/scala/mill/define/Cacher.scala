@@ -4,12 +4,12 @@ import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
 
-trait Cacher[C[_], V[_]]{
-  private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, V[_]]
-  def wrapCached[T](in: C[T], enclosing: String): V[T]
+trait Cacher[C[_]]{
+  private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, C[_]]
+  def wrapCached[T](in: C[T], enclosing: String): C[T]
   protected[this] def cachedTarget[T](t: => C[T])
-                                     (implicit c: sourcecode.Enclosing): V[T] = synchronized{
-    cacherLazyMap.getOrElseUpdate(c, wrapCached(t, c.value)).asInstanceOf[V[T]]
+                                     (implicit c: sourcecode.Enclosing): C[T] = synchronized{
+    cacherLazyMap.getOrElseUpdate(c, wrapCached(t, c.value)).asInstanceOf[C[T]]
   }
 }
 object Cacher{
@@ -17,6 +17,7 @@ object Cacher{
     c.Expr[M[T]](wrapCached(c)(t.tree))
   }
   def wrapCached(c: Context)(t: c.Tree) = {
+
     import c.universe._
     val owner = c.internal.enclosingOwner
     val ownerIsCacherClass =

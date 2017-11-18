@@ -12,6 +12,7 @@ import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 
 object Main {
+
   def apply[T: Discovered](args: Seq[String], obj: T, watch: Path => Unit) = {
 
     val Seq(selectorString, rest @_*) = args
@@ -131,6 +132,7 @@ class Main(config: Main.Config){
     case Res.Failure(msg) =>
       printError(msg)
       false
+
     case Res.Exception(ex, s) =>
       printError(
         Repl.showException(ex, fansi.Color.Red, fansi.Attr.Reset, fansi.Color.Green)

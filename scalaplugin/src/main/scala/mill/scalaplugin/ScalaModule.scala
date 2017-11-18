@@ -2,88 +2,130 @@ package mill
 package scalaplugin
 
 import java.io.File
+import java.util.Optional
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.Module
-import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
-import mill.modules.Jvm.{createJar, createAssembly}
+import mill.modules.Jvm.{createAssembly, createJar}
 import mill.util.OSet
-import sbt.internal.inc.{FreshCompilerCache, ScalaInstance, ZincUtil}
+import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.util.LogExchange
-import xsbti.api.{ClassLike, DependencyContext}
-import xsbti.compile.DependencyChanges
+import sbt.util.{InterfaceUtil, LogExchange}
+import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+
 
 
 
 object ScalaModule{
+  case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
+    override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
+      am(classpathEntry)
+
+    override def definesClass(classpathEntry: File): DefinesClass =
+      Locate.definesClass(classpathEntry)
+  }
+
+  val compilerCache = new CompilerCache(10)
   def compileScala(scalaVersion: String,
-                   sources: PathRef,
-                   compileClasspath: Seq[PathRef],
+                   sources: Path,
+                   compileClasspath: Seq[Path],
                    outputPath: Path): PathRef = {
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
     def grepJar(s: String) = {
       compileClasspath
-        .find(_.path.toString.endsWith(s))
+        .find(_.toString.endsWith(s))
         .getOrElse(throw new Exception("Cannot find " + s))
-        .path
         .toIO
     }
+    val scalaInstance = new ScalaInstance(
+      version = scalaVersion,
+      loader = getClass.getClassLoader,
+      libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
+      compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
+      allJars = compileClasspath.toArray.map(_.toIO),
+      explicitActual = None
+    )
     val scalac = ZincUtil.scalaCompiler(
-      new ScalaInstance(
-        version = scalaVersion,
-        loader = getClass.getClassLoader,
-        libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
-        compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
-        allJars = compileClasspath.toArray.map(_.path.toIO),
-        explicitActual = None
-      ),
+      scalaInstance,
       grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.3.jar")
     )
 
     mkdir(outputPath)
 
+    val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
-    scalac.apply(
-      sources = ls.rec(sources.path).filter(_.isFile).map(_.toIO).toArray,
-      changes = new DependencyChanges {
-        def isEmpty = true
-        def modifiedBinaries() = Array[File]()
-        def modifiedClasses() = Array[String]()
-      },
-      classpath = compileClasspath.map(_.path.toIO).toArray,
-      singleOutput = outputPath.toIO,
-      options = Array(),
-      callback = new xsbti.AnalysisCallback {
-        def startSource(source: File) = ()
-        def apiPhaseCompleted() = ()
-        def enabled() = true
-        def binaryDependency(onBinaryEntry: File, onBinaryClassName: String, fromClassName: String, fromSourceFile: File, context: DependencyContext) = ()
-        def generatedNonLocalClass(source: File, classFile: File, binaryClassName: String, srcClassName: String) = ()
-        def problem(what: String, pos: xsbti.Position, msg: String, severity: xsbti.Severity, reported: Boolean) = ()
-        def dependencyPhaseCompleted() = ()
-        def classDependency(onClassName: String, sourceClassName: String, context: DependencyContext) = ()
-        def generatedLocalClass(source: File, classFile: File) = ()
-        def api(sourceFile: File, classApi: ClassLike) = ()
+    val logger = {
+      val console = ConsoleOut.systemOut
+      val consoleAppender = MainAppender.defaultScreen(console)
+      val l = LogExchange.logger("Hello")
+      LogExchange.unbindLoggerAppenders("Hello")
+      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
+      l
+    }
+    val compiler = new IncrementalCompilerImpl
 
-        def mainClass(sourceFile: File, className: String) = ()
-        def usedName(className: String, name: String, useScopes: java.util.EnumSet[xsbti.UseScope]) = ()
-      },
-      maximumErrors = 10,
-      cache = new FreshCompilerCache(),
-      log = {
-        val console = ConsoleOut.systemOut
-        val consoleAppender = MainAppender.defaultScreen(console)
-        val l = LogExchange.logger("Hello")
-        LogExchange.unbindLoggerAppenders("Hello")
-        LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
-        l
+
+    val cs = compiler.compilers(scalaInstance, ClasspathOptionsUtil.boot, None, scalac)
+
+    val lookup = MockedLookup(Function.const(Optional.empty[CompileAnalysis]))
+    val reporter = new ManagedLoggedReporter(10, logger)
+    val extra = Array(InterfaceUtil.t2(("key", "value")))
+
+    var lastCompiledUnits: Set[String] = Set.empty
+    val progress = new CompileProgress {
+      override def advance(current: Int, total: Int): Boolean = true
+
+      override def startUnit(phase: String, unitPath: String): Unit = {
+        println(unitPath)
+        lastCompiledUnits += unitPath
       }
+    }
+
+    println("Running Compile")
+    println(outputPath/'zinc)
+    println(exists(outputPath/'zinc))
+    val store = FileAnalysisStore.binary((outputPath/'zinc).toIO)
+    val newResult = ic.compile(
+      ic.inputs(
+        classpath = compileClasspath.map(_.toIO).toArray,
+        sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
+        classesDirectory = (outputPath / 'classes).toIO,
+        scalacOptions = Array(),
+        javacOptions = Array(),
+        maxErrors = 10,
+        sourcePositionMappers = Array(),
+        order = CompileOrder.Mixed,
+        compilers = cs,
+        setup = ic.setup(
+          lookup,
+          skip = false,
+          (outputPath/'zinc_cache).toIO,
+          compilerCache,
+          IncOptions.of(),
+          reporter,
+          Some(progress),
+          extra
+        ),
+        pr = {
+          val prev = store.get()
+          println(prev)
+          PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
+        }
+      ),
+      logger = logger
     )
-    PathRef(outputPath)
+
+    store.set(
+      AnalysisContents.create(
+        newResult.analysis(),
+        newResult.setup()
+      )
+    )
+
+    PathRef(outputPath/'classes)
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -193,8 +235,8 @@ trait ScalaModule extends Module{
 
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
-  def compile = T{
-    compileScala(scalaVersion(), sources(), compileDepClasspath(), T.ctx().dest)
+  def compile = T.persistent{
+    compileScala(scalaVersion(), sources().path, compileDepClasspath().map(_.path), T.ctx().dest)
   }
   def assembly = T{
     val dest = T.ctx().dest
