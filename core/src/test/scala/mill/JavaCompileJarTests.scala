@@ -30,7 +30,7 @@ object JavaCompileJarTests extends TestSuite{
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
 
-      object Build extends Task.Module{
+      object Build extends Module{
         def sourceRootPath = javacDestPath / 'src
         def resourceRootPath = javacDestPath / 'resources
 
@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def sourceRoot = T.source{ sourceRootPath }
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
-        def classFiles = T{ compileAll(Task.ctx().dest, allSources()) }
+        def classFiles = T{ compileAll(T.ctx().dest, allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
 
         def run(mainClsName: String) = T.command{
@@ -163,7 +163,6 @@ object JavaCompileJarTests extends TestSuite{
         runOutput3.out.string == "New Cls!\n",
         evalCount3 == 1
       )
-
 
     }
   }

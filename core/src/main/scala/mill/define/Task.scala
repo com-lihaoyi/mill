@@ -1,7 +1,7 @@
 package mill.define
 
 import mill.define.Applicative.Applyable
-import mill.define.Task.targetImpl
+
 import mill.eval.PathRef
 import mill.util.Args
 
@@ -27,48 +27,15 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
 }
 
 trait Target[+T] extends Task[T]
-object Target{
+object Target extends Applicative.Applyer[Task, Task, Args]{
+
   implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
-}
-class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
-  val inputs = Seq(t)
-  def evaluate(args: Args) = args[T](0)
-  override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
-}
-class Command[+T](t: Task[T]) extends Task[T] {
-  val inputs = Seq(t)
-  def evaluate(args: Args) = args[T](0)
-}
-object Source{
-  implicit def apply(p: ammonite.ops.Path) = new Source(p)
-}
-class Source(path: ammonite.ops.Path) extends Task[PathRef]{
-  def handle = PathRef(path)
-  def evaluate(args: Args) = handle
-  override def sideHash = handle.hashCode()
-  val inputs = Nil
-}
-
-object Task extends Applicative.Applyer[Task, Task, Args]{
-  def apply[T](t: T): Target[T] = macro targetImpl[T]
-  def underlying[A](v: Task[A]) = v
-
-  def source(path: ammonite.ops.Path) = new Source(path)
-
-  trait Module extends mill.define.Cacher[Task, Target]{
-    def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
-  }
-  class Task0[T](t: T) extends Task[T]{
-    lazy val t0 = t
-    val inputs = Nil
-    def evaluate(args: Args)  = t0
-  }
-
-
 
   def apply[T](t: Task[T]): Target[T] = macro Cacher.impl0[Task, T]
 
   def command[T](t: T): Command[T] = macro commandImpl[T]
+
+  def source(path: ammonite.ops.Path) = new Source(path)
 
   def command[T](t: Task[T]): Command[T] = new Command(t)
 
@@ -90,6 +57,67 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
       )
     )
   }
+
+  def underlying[A](v: Task[A]) = v
+  def mapCtx[A, B](t: Task[A])(f: (A, Args) => B) = t.mapDest(f)
+  def zip() =  new Task.Task0(())
+  def zip[A](a: Task[A]) = a.map(Tuple1(_))
+  def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
+  def zip[A, B, C](a: Task[A], b: Task[B], c: Task[C]) = new Task[(A, B, C)]{
+    val inputs = Seq(a, b, c)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2))
+  }
+  def zip[A, B, C, D](a: Task[A], b: Task[B], c: Task[C], d: Task[D]) = new Task[(A, B, C, D)]{
+    val inputs = Seq(a, b, c, d)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3))
+  }
+  def zip[A, B, C, D, E](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E]) = new Task[(A, B, C, D, E)]{
+    val inputs = Seq(a, b, c, d, e)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
+  }
+  def zip[A, B, C, D, E, F](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F]) = new Task[(A, B, C, D, E, F)]{
+    val inputs = Seq(a, b, c, d, e, f)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
+  }
+  def zip[A, B, C, D, E, F, G](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G]) = new Task[(A, B, C, D, E, F, G)]{
+    val inputs = Seq(a, b, c, d, e, f, g)
+    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
+  }
+}
+class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
+  val inputs = Seq(t)
+  def evaluate(args: Args) = args[T](0)
+  override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
+}
+class Command[+T](t: Task[T]) extends Task[T] {
+  val inputs = Seq(t)
+  def evaluate(args: Args) = args[T](0)
+}
+object Source{
+  implicit def apply(p: ammonite.ops.Path) = new Source(p)
+}
+class Source(path: ammonite.ops.Path) extends Task[PathRef]{
+  def handle = PathRef(path)
+  def evaluate(args: Args) = handle
+  override def sideHash = handle.hashCode()
+  val inputs = Nil
+}
+
+object Task {
+
+
+
+  trait Module extends mill.define.Cacher[Task, Target]{
+    def wrapCached[T](t: Task[T], enclosing: String): Target[T] = new TargetImpl(t, enclosing)
+  }
+  class Task0[T](t: T) extends Task[T]{
+    lazy val t0 = t
+    val inputs = Nil
+    def evaluate(args: Args)  = t0
+  }
+
+
+
 
   abstract class Ops[+T]{ this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
@@ -128,28 +156,5 @@ object Task extends Applicative.Applyer[Task, Task, Args]{
 
 
 
-  def mapCtx[A, B](t: Task[A])(f: (A, Args) => B) = t.mapDest(f)
-  def zip() =  new Task.Task0(())
-  def zip[A](a: Task[A]) = a.map(Tuple1(_))
-  def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
-  def zip[A, B, C](a: Task[A], b: Task[B], c: Task[C]) = new Task[(A, B, C)]{
-    val inputs = Seq(a, b, c)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2))
-  }
-  def zip[A, B, C, D](a: Task[A], b: Task[B], c: Task[C], d: Task[D]) = new Task[(A, B, C, D)]{
-    val inputs = Seq(a, b, c, d)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3))
-  }
-  def zip[A, B, C, D, E](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E]) = new Task[(A, B, C, D, E)]{
-    val inputs = Seq(a, b, c, d, e)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
-  }
-  def zip[A, B, C, D, E, F](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F]) = new Task[(A, B, C, D, E, F)]{
-    val inputs = Seq(a, b, c, d, e, f)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
-  }
-  def zip[A, B, C, D, E, F, G](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G]) = new Task[(A, B, C, D, E, F, G)]{
-    val inputs = Seq(a, b, c, d, e, f, g)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
-  }
+
 }

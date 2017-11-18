@@ -1,10 +1,8 @@
 package mill
 
 import utest._
-import TestUtil.test
 import mill.define.Task
-import mill.define.Task.Module
-import mill.discover.{Discovered, Mirror}
+import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.OSet
 

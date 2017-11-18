@@ -2,7 +2,6 @@ package mill
 
 import utest._
 import TestUtil.test
-import mill.define.Task.Module
 import mill.discover.{Discovered, Mirror}
 
 object DiscoveredTests extends TestSuite{

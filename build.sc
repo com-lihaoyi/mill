@@ -3,7 +3,7 @@ import mill._
 import mill.scalaplugin._
 
 
-object Core extends Module {
+object Core extends ScalaModule {
   def scalaVersion = "2.12.4"
   override def compileIvyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
@@ -21,7 +21,7 @@ object Core extends Module {
   def basePath = pwd / 'core
   override def sources = pwd/'core/'src/'main/'scala
 }
-object CoreTests extends Module {
+object CoreTests extends ScalaModule {
   def scalaVersion = "2.12.4"
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
@@ -39,7 +39,7 @@ object CoreTests extends Module {
   }
 }
 
-object ScalaPlugin extends Module {
+object ScalaPlugin extends ScalaModule {
   def scalaVersion = "2.12.4"
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin

@@ -3,7 +3,6 @@ package mill
 
 import mill.TestUtil.{Test, test}
 import mill.define.{Target, Task}
-import mill.define.Task.Module
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.OSet

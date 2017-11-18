@@ -1,6 +1,5 @@
 package mill
 
-import mill.define.Task.Module
 import mill.TestUtil.test
 
 class TestGraphs(){

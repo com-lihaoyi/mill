@@ -1,5 +1,6 @@
 package mill
 
+import ammonite.interp.Interpreter
 import ammonite.main.Scripts
 import ammonite.ops._
 import ammonite.util.Res
@@ -7,10 +8,9 @@ import mill.define.Task
 import mill.discover._
 import mill.eval.Evaluator
 import mill.util.OSet
-
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
-import mill.discover.Router.EntryPoint
+
 object Main {
   def timed[T](t: => T) = {
     val startTime = System.currentTimeMillis()
@@ -100,44 +100,60 @@ object Main {
         (c, v) => c.copy(watch = true)
       )
     )
+
     ammonite.main.Cli.groupArgs(args.toList, signature, Config()) match{
       case Left(err) =>
       case Right((config, leftover)) =>
-        if (config.help){
-          val leftMargin = signature.map(ammonite.main.Cli.showArg(_).length).max + 2
-          println(ammonite.main.Cli.formatBlock(signature, leftMargin).mkString("\n"))
-        }else if (config.repl){
-          val repl = ammonite.Main(
-            predefFile = Some(pwd/"build.sc")
-          ).instantiateRepl(remoteLogger = None)
-          repl.right.get.interp.initializePredef()
-          repl.right.get.run()
-        }else {
-          val interp = ammonite.Main(
-            predefFile = Some(pwd/"build.sc")
-          ).instantiateInterpreter()
+        val loop = config.watch
+        do {
+          if (config.help) {
+            val leftMargin = signature.map(ammonite.main.Cli.showArg(_).length).max + 2
+            println(ammonite.main.Cli.formatBlock(signature, leftMargin).mkString("\n"))
+          } else if (config.repl) {
+            val repl = ammonite.Main(
+              predefFile = Some(pwd / "build.sc")
+            ).instantiateRepl(remoteLogger = None).right.get
+            repl.interp.initializePredef()
+            repl.run()
+            watchAndWait(repl.interp.watchedFiles)
+          } else {
+            val interp = ammonite.Main(
+              predefFile = Some(pwd / "build.sc")
+            ).instantiateInterpreter().right.get
 
-          interp.right.get.initializePredef()
-          val syntheticPath = pwd/'out/"run.sc"
-          write.over(
-            syntheticPath,
-            """@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch)
-              |
-              |@main def idea() = mill.scalaplugin.GenIdea(ammonite.predef.FilePredef)
-            """.stripMargin
-          )
+            interp.initializePredef()
+            val syntheticPath = pwd / 'out / "run.sc"
+            write.over(
+              syntheticPath,
+              """@main def run(args: String*) = mill.Main(args, ammonite.predef.FilePredef, interp.watch)
+                |
+                |@main def idea() = mill.scalaplugin.GenIdea(ammonite.predef.FilePredef)
+              """.stripMargin
+            )
 
-          val res = ammonite.main.Scripts.runScript(
-            pwd,
-            syntheticPath,
-            interp.right.get,
-            Scripts.groupArgs(leftover)
-          )
+            val res = ammonite.main.Scripts.runScript(
+              pwd,
+              syntheticPath,
+              interp,
+              Scripts.groupArgs(leftover)
+            )
 
-          handleWatchRes(res, true)
-        }
+            handleWatchRes(res, true)
+            watchAndWait(interp.watchedFiles)
+          }
+
+        } while(loop)
     }
   }
+  def watchAndWait(watched: Seq[(Path, Long)]) = {
+    println(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    def statAll() = watched.forall{ case (file, lastMTime) =>
+      Interpreter.pathSignature(file) == lastMTime
+    }
+
+    while(statAll()) Thread.sleep(100)
+  }
+
   def handleWatchRes[T](res: Res[T], printing: Boolean) = {
     val success = res match {
       case Res.Failure(msg) =>

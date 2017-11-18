@@ -194,10 +194,10 @@ trait ScalaModule extends Module{
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def compile = T{
-    compileScala(scalaVersion(), sources(), compileDepClasspath(), Task.ctx().dest)
+    compileScala(scalaVersion(), sources(), compileDepClasspath(), T.ctx().dest)
   }
   def assembly = T{
-    val dest = Task.ctx().dest
+    val dest = T.ctx().dest
     createAssembly(
       dest,
       (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists)
@@ -207,7 +207,7 @@ trait ScalaModule extends Module{
 
   def classpath = T{ Seq(resources(), compile()) }
   def jar = T{
-    val dest = Task.ctx().dest
+    val dest = T.ctx().dest
     createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
     PathRef(dest)
   }
