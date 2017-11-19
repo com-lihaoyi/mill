@@ -13,12 +13,15 @@ import scala.language.experimental.macros
   * Note that [[Mirror]] allows you to store and inspect metadata of a type
   * [[T]] even without a concrete instance of [[T]] itself.
   */
-case class Mirror[-T, V](node: T => V,
+case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          commands: Seq[EntryPoint[V]],
                          targets: Seq[Mirror.TargetPoint[V, _]],
-                         children: List[(String, Mirror[T, _])]){
-  def labelled(obj: T, p: Seq[String]) = {
-    targets.map(t => t.labelled(node(obj), p))
+                         children: List[(String, Mirror[T, _])],
+                         crossChildren: Option[(V => List[List[Any]], Mirror[T, _])]){
+  def labelled(obj: T,
+               p: Seq[String],
+               crosses: List[List[Any]]) = {
+    targets.map(t => t.labelled(node(obj, crosses), p))
   }
 }
 

@@ -33,7 +33,7 @@ object DiscoveredTests extends TestSuite{
 
 
       def flatten(h: Mirror[outer.type, _]): Seq[Any] = {
-        h.node(outer) :: h.children.flatMap{case (label, c) => flatten(c)}
+        h.node(outer, Nil) :: h.children.flatMap{case (label, c) => flatten(c)}
       }
       val flattenedHierarchy = flatten(discovered.mirror)
 
@@ -44,7 +44,7 @@ object DiscoveredTests extends TestSuite{
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targets(outer).map(x => x.segments -> x.target)
+      val mapped = discovered.targets(outer, Nil).map(x => x.segments -> x.target)
 
       val expected = Seq(
         (List("classInstance", "single"), outer.classInstance.single),

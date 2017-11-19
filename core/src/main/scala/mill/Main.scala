@@ -13,6 +13,15 @@ import ammonite.repl.Repl
 
 object Main {
 
+  def parseSelector(input: String) = {
+    import fastparse.all._
+    val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! )
+    val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" )
+    val query = P( segment ~ ("." ~ segment.map(Left(_)) | crossSegment.map(Right(_))).rep ~ End ).map{
+      case (h, rest) => Left(h) :: rest.toList
+    }
+    query.parse(input)
+  }
   def apply[T: Discovered](args: Seq[String],
                            obj: T,
                            watch: Path => Unit,
@@ -21,70 +30,85 @@ object Main {
     val log = new Logger(coloredOutput)
 
     val Seq(selectorString, rest @_*) = args
-    val selector = selectorString.split('.')
-    val discovered = implicitly[Discovered[T]]
-    val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
-    if (consistencyErrors.nonEmpty) {
-      log.error("Failed Discovered.consistencyCheck: " + consistencyErrors)
-      1
-    } else {
-      val mapping = Discovered.mapping(obj)(discovered)
-      val workspacePath = pwd / 'out
-
-      def resolve[V](selector: List[String], hierarchy: Mirror[T, V]): Option[Task[Any]] = {
-        selector match{
-          case last :: Nil =>
-
-            def target: Option[Task[Any]] =
-              hierarchy.targets.find(_.label == last).map(_.run(hierarchy.node(obj)))
-            def command: Option[Task[Any]] = hierarchy.commands.find(_.name == last).flatMap(
-              _.invoke(hierarchy.node(obj), ammonite.main.Scripts.groupArgs(rest.toList)) match{
-                case Router.Result.Success(v) => Some(v)
-                case _ => None
-              }
-            )
-            target orElse command
-          case head :: tail =>
-            hierarchy.children
-              .collectFirst{ case (label, child) if label == head => resolve(tail, child) }
-              .flatten
-          case Nil => ???
-        }
-      }
-      resolve(selector.toList, discovered.mirror) match{
-        case Some(target) =>
-          val evaluator = new Evaluator(workspacePath, mapping, log.info)
-          val evaluated = evaluator.evaluate(OSet(target))
-          evaluated.transitive.foreach{
-            case t: define.Source => watch(t.handle.path)
-            case _ => // do nothing
-          }
-
-          val failing = evaluated.failing.items
-          evaluated.failing.keyCount match{
-            case 0 => // do nothing
-            case n => log.error(n + " targets failed")
-          }
-
-
-          for((k, fs) <- failing){
-            val ks = k match{
-              case Left(t) => t.toString
-              case Right(t) => t.segments.mkString(".")
-            }
-            val fss = fs.map{
-              case Result.Exception(t) => t.toString
-              case Result.Failure(t) => t
-            }
-            log.error(ks + " " + fss.mkString(", "))
-          }
-
-          if (evaluated.failing.keyCount == 0) 0 else 1
-        case None =>
-          log.error("Unknown selector: " + selector.mkString("."))
+    parseSelector(selectorString) match{
+      case f: fastparse.all.Parsed.Failure =>
+        log.error(f.msg)
+        1
+      case fastparse.all.Parsed.Success(selector, idx) =>
+        val discovered = implicitly[Discovered[T]]
+        val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
+        if (consistencyErrors.nonEmpty) {
+          log.error("Failed Discovered.consistencyCheck: " + consistencyErrors)
           1
-      }
+        } else {
+          val mapping = Discovered.mapping(obj)(discovered)
+          val workspacePath = pwd / 'out
+
+          val crossSelectors = selector.collect{case Right(x) => x.toList}
+          def resolve[V](selector: List[Either[String, Seq[String]]],
+                         hierarchy: Mirror[T, V]): Option[Task[Any]] = {
+            selector match{
+              case Right(_) :: Nil => ???
+              case Left(last) :: Nil =>
+                def target: Option[Task[Any]] =
+                  hierarchy.targets.find(_.label == last).map(_.run(hierarchy.node(obj, crossSelectors)))
+                def command: Option[Task[Any]] = hierarchy.commands.find(_.name == last).flatMap(
+                  _.invoke(hierarchy.node(obj, crossSelectors), ammonite.main.Scripts.groupArgs(rest.toList)) match{
+                    case Router.Result.Success(v) => Some(v)
+                    case _ => None
+                  }
+                )
+                target orElse command
+              case head :: tail =>
+                head match{
+                  case Left(singleLabel) =>
+                    hierarchy.children
+                      .collectFirst{ case (label, child) if label == singleLabel => resolve(tail, child) }
+                      .flatten
+                  case Right(cross) =>
+                    resolve(tail, hierarchy.crossChildren.get._2)
+                }
+
+              case Nil => ???
+            }
+          }
+          resolve(selector, discovered.mirror) match{
+            case Some(target) =>
+              val evaluator = new Evaluator(workspacePath, mapping, log.info)
+              val evaluated = evaluator.evaluate(OSet(target))
+              evaluated.transitive.foreach{
+                case t: define.Source => watch(t.handle.path)
+                case _ => // do nothing
+              }
+
+              val failing = evaluated.failing.items
+              evaluated.failing.keyCount match{
+                case 0 => // do nothing
+                case n => log.error(n + " targets failed")
+              }
+
+
+              for((k, fs) <- failing){
+                val ks = k match{
+                  case Left(t) => t.toString
+                  case Right(t) => t.segments.mkString(".")
+                }
+                val fss = fs.map{
+                  case Result.Exception(t) => t.toString
+                  case Result.Failure(t) => t
+                }
+                log.error(ks + " " + fss.mkString(", "))
+              }
+
+              if (evaluated.failing.keyCount == 0) 0 else 1
+            case None =>
+              log.error("Unknown selector: " + selector.mkString("."))
+              1
+          }
+        }
     }
+
+
   }
 
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
@@ -230,7 +254,7 @@ class Main(config: Main.Config){
 
       val delta = System.currentTimeMillis() - startTime
       log.info("Finished in " + delta/1000.0 + "s")
-      watchAndWait(watchedFiles)
+      if (loop) watchAndWait(watchedFiles)
       startTime = System.currentTimeMillis()
     } while(loop)
     exitCode
