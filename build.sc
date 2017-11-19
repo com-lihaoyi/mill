@@ -21,11 +21,13 @@ object Core extends ScalaModule {
   def basePath = pwd / 'core
   override def sources = pwd/'core/'src/'main/'scala
 
-  val cross = for(c <- mill.define.Cross("a", "b", "c")) yield new mill.Module{
-    def printIt() = T.command{
-      println("PRINTING IT: " + c)
+  val cross =
+    for(c <- mill.define.Cross("a", "b", "c"))
+    yield new mill.Module{
+      def printIt() = T.command{
+        println("PRINTING IT: " + c)
+      }
     }
-  }
 }
 object CoreTests extends ScalaModule {
   def scalaVersion = "2.12.4"
