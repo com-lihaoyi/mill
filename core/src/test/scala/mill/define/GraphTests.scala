@@ -1,6 +1,7 @@
 package mill.define
 
 
+import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.{OSet, TestGraphs, TestUtil}
 import utest._
@@ -73,14 +74,14 @@ object GraphTests extends TestSuite{
 
         val topoSorted = Graph.topoSorted(Graph.transitiveTargets(OSet(target(base))))
 
-        val important = important0.map(_(base))
+        val important = important0.map(_ (base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
           case t: Target[_] if important.contains(t) => t
         }
         val flattened = OSet.from(grouped.values().flatMap(_.items))
 
         TestUtil.checkTopological(flattened)
-        for((terminal, expectedSize) <- expected){
+        for ((terminal, expectedSize) <- expected) {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
@@ -88,6 +89,7 @@ object GraphTests extends TestSuite{
           )
         }
       }
+
       'singleton - check(singleton)(
         _.single,
         OSet(_.single),
@@ -145,6 +147,51 @@ object GraphTests extends TestSuite{
           bigSingleTerminal.j -> 4
         )
       )
+    }
+    'multiTerminalGroupCounts - {
+      def countGroups[T: Discovered](t: T, goals: Task[_]*) = {
+        val labeling = Discovered.mapping(t)
+        val topoSorted = Graph.topoSorted(
+          Graph.transitiveTargets(OSet.from(goals))
+        )
+        val grouped = Graph.groupAroundImportantTargets(topoSorted) {
+          case t: Target[_] if labeling.contains(t) || goals.contains(t) => t
+          case t if goals.contains(t) => t
+        }
+        grouped.keyCount
+      }
+
+      'separateGroups - {
+        import separateGroups._
+        val groupCount = countGroups(separateGroups, right, left)
+        assert(groupCount == 3)
+      }
+
+      'triangleTask - {
+        // Make sure the following graph ends up as a single group, since although
+        // `right` depends on `left`, both of them depend on the un-cached `task`
+        // which would force them both to re-compute every time `task` changes
+        import triangleTask._
+        val groupCount = countGroups(triangleTask, right, left)
+        assert(groupCount == 2)
+      }
+
+
+      'multiTerminalGroup - {
+        // Make sure the following graph ends up as two groups
+        import multiTerminalGroup._
+        val groupCount = countGroups(multiTerminalGroup, right, left)
+        assert(groupCount == 2)
+      }
+
+
+      'multiTerminalBoundary - {
+        // Make sure the following graph ends up as a three groups: one for
+        // each cached target, and one for the downstream task we are running
+        import multiTerminalBoundary._
+        val groupCount = countGroups(multiTerminalBoundary, task2)
+        assert(groupCount == 3)
+      }
     }
 
 

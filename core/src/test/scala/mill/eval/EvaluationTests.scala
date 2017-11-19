@@ -47,17 +47,7 @@ object EvaluationTests extends TestSuite{
       }
     }
   }
-  def countGroups[T: Discovered](t: T, goals: Task[_]*) = {
-    val labeling = Discovered.mapping(t)
-    val topoSorted = Graph.topoSorted(
-      Graph.transitiveTargets(OSet.from(goals))
-    )
-    val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-      case t: Target[_] if labeling.contains(t) || goals.contains(t) => t
-      case t if goals.contains(t) => t
-    }
-    grouped.keyCount
-  }
+
 
   val tests = Tests{
     val graphs = new mill.util.TestGraphs()
@@ -163,24 +153,9 @@ object EvaluationTests extends TestSuite{
       'separateGroups - {
         // Make sure that `left` and `right` are able to recompute separately,
         // even though one depends on the other
-        //
-        //        _ left _
-        //       /        \
-        //  task1 -------- right
-        //               _/
-        // change - task2
-        object build extends Module{
-          val task1 = T.task{ 1 }
-          def left = T{ task1() }
-          val change = test()
-          val task2 = T.task{ change() }
-          def right = T{ task1() + task2() + left() + 1 }
 
-        }
-        import build._
-        val groupCount = countGroups(build, right, left)
-        assert(groupCount == 3)
-        val checker = new Checker(build)
+        import separateGroups._
+        val checker = new Checker(separateGroups)
         val evaled1 = checker.evaluator.evaluate(OSet(right, left))
         val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered1 == OSet(change, left, right))
@@ -195,63 +170,26 @@ object EvaluationTests extends TestSuite{
 
       }
       'triangleTask - {
-        // Make sure the following graph ends up as a single group, since although
-        // `right` depends on `left`, both of them depend on the un-cached `task`
-        // which would force them both to re-compute every time `task` changes
-        //
-        //      _ left _
-        //     /        \
-        // task -------- right
-        object build extends Module{
-          val task = T.task{ 1 }
-          def left = T{ task() }
-          def right = T{ task() + left() + 1 }
-        }
-        import build._
-        val groupCount = countGroups(build, right, left)
-        assert(groupCount == 2)
-        val checker = new Checker(build)
+
+        import triangleTask._
+        val checker = new Checker(triangleTask)
         checker(right, 3, OSet(left, right), extraEvaled = -1)
         checker(left, 1, OSet(), extraEvaled = -1)
 
       }
       'multiTerminalGroup - {
-        // Make sure the following graph ends up as a single group
-        //
-        //      _ left
-        //     /
-        // task -------- right
-        object build extends Module{
-          val task = T.task{ 1 }
-          def left = T{ task() }
-          def right = T{ task() }
-        }
-        val groupCount = countGroups(build, build.right, build.left)
-        assert(groupCount == 2)
+        import multiTerminalGroup._
 
-        val checker = new Checker(build)
-        checker(build.right, 1, OSet(build.right), extraEvaled = -1)
-        checker(build.left, 1, OSet(build.left), extraEvaled = -1)
+        val checker = new Checker(multiTerminalGroup)
+        checker(right, 1, OSet(right), extraEvaled = -1)
+        checker(left, 1, OSet(left), extraEvaled = -1)
       }
 
       'multiTerminalBoundary - {
-        // Make sure the following graph ends up as a single group
-        //
-        //       _ left _____________
-        //      /        \           \
-        // task1 -------- right ----- task2
-        object build extends Module{
-          val task1 = T.task{ 1 }
-          def left = T{ task1() }
-          def right = T{ task1() + left() + 1 }
-          val task2 = T.task{ left() + right() }
-        }
-        import build._
-        val groupCount = countGroups(build, task2)
-        assert(groupCount == 3)
 
+        import multiTerminalBoundary._
 
-        val checker = new Checker(build)
+        val checker = new Checker(multiTerminalBoundary)
         checker(task2, 4, OSet(right, left), extraEvaled = -1, secondRunNoOp = false)
         checker(task2, 4, OSet(), extraEvaled = -1, secondRunNoOp = false)
       }
