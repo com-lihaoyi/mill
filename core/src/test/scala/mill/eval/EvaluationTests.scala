@@ -2,7 +2,7 @@ package mill.eval
 
 
 import mill.util.TestUtil.{Test, test}
-import mill.define.{Target, Task}
+import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
 import mill.util.{OSet, TestUtil}
@@ -49,10 +49,10 @@ object EvaluationTests extends TestSuite{
   }
   def countGroups[T: Discovered](t: T, goals: Task[_]*) = {
     val labeling = Discovered.mapping(t)
-    val topoSorted = Evaluator.topoSorted(
-      Evaluator.transitiveTargets(OSet.from(goals))
+    val topoSorted = Graph.topoSorted(
+      Graph.transitiveTargets(OSet.from(goals))
     )
-    val grouped = Evaluator.groupAroundImportantTargets(topoSorted) {
+    val grouped = Graph.groupAroundImportantTargets(topoSorted) {
       case t: Target[_] if labeling.contains(t) || goals.contains(t) => t
       case t if goals.contains(t) => t
     }

@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.discover.Discovered
+
 import mill.eval.Evaluator
 import mill.util.{OSet, TestGraphs, TestUtil}
 import utest._
@@ -15,7 +15,7 @@ object GraphTests extends TestSuite{
 
     'topoSortedTransitiveTargets - {
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val result = Evaluator.topoSorted(Evaluator.transitiveTargets(targets)).values
+        val result = Graph.topoSorted(Graph.transitiveTargets(targets)).values
         TestUtil.checkTopological(result)
         assert(result == expected)
       }
@@ -59,22 +59,23 @@ object GraphTests extends TestSuite{
         )
       )
       'bigSingleTerminal - {
-        val result = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(bigSingleTerminal.j))).values
+        val result = Graph.topoSorted(Graph.transitiveTargets(OSet(bigSingleTerminal.j))).values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
     }
 
     'groupAroundNamedTargets - {
-      def check[T: Discovered, R <: Target[Int]](base: T,
-                                                 target: R,
-                                                 expected: OSet[(R, Int)]) = {
+      def check[T, R <: Target[Int]](base: T)
+                                    (target: T => R,
+                                     important0: OSet[T => Target[_]],
+                                     expected: OSet[(R, Int)]) = {
 
-        val mapping = Discovered.mapping(base)
-        val topoSorted = Evaluator.topoSorted(Evaluator.transitiveTargets(OSet(target)))
+        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(OSet(target(base))))
 
-        val grouped = Evaluator.groupAroundImportantTargets(topoSorted) {
-          case t: Target[_] if mapping.contains(t) => t
+        val important = important0.map(_(base))
+        val grouped = Graph.groupAroundImportantTargets(topoSorted) {
+          case t: Target[_] if important.contains(t) => t
         }
         val flattened = OSet.from(grouped.values().flatMap(_.items))
 
@@ -83,28 +84,28 @@ object GraphTests extends TestSuite{
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(mapping.contains) == OSet(terminal)
+            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == OSet(terminal)
           )
         }
       }
-      'singleton - check(
-        singleton,
-        singleton.single,
+      'singleton - check(singleton)(
+        _.single,
+        OSet(_.single),
         OSet(singleton.single -> 1)
       )
-      'pair - check(
-        pair,
-        pair.down,
+      'pair - check(pair)(
+        _.down,
+        OSet(_.up, _.down),
         OSet(pair.up -> 1, pair.down -> 1)
       )
-      'anonTriple - check(
-        anonTriple,
-        anonTriple.down,
+      'anonTriple - check(anonTriple)(
+        _.down,
+        OSet(_.up, _.down),
         OSet(anonTriple.up -> 1, anonTriple.down -> 2)
       )
-      'diamond - check(
-        diamond,
-        diamond.down,
+      'diamond - check(diamond)(
+        _.down,
+        OSet(_.up, _.left, _.right, _.down),
         OSet(
           diamond.up -> 1,
           diamond.left -> 1,
@@ -113,9 +114,9 @@ object GraphTests extends TestSuite{
         )
       )
 
-      'defCachedDiamond - check(
-        defCachedDiamond,
-        defCachedDiamond.down,
+      'defCachedDiamond - check(defCachedDiamond)(
+        _.down,
+        OSet(_.up, _.left, _.right, _.down),
         OSet(
           defCachedDiamond.up -> 2,
           defCachedDiamond.left -> 2,
@@ -124,17 +125,17 @@ object GraphTests extends TestSuite{
         )
       )
 
-      'anonDiamond - check(
-        anonDiamond,
-        anonDiamond.down,
+      'anonDiamond - check(anonDiamond)(
+        _.down,
+        OSet(_.down, _.up),
         OSet(
           anonDiamond.up -> 1,
           anonDiamond.down -> 3
         )
       )
-      'bigSingleTerminal - check(
-        bigSingleTerminal,
-        bigSingleTerminal.j,
+      'bigSingleTerminal - check(bigSingleTerminal)(
+        _.j,
+        OSet(_.a, _.b, _.e, _.f, _.i, _.j),
         OSet(
           bigSingleTerminal.a -> 3,
           bigSingleTerminal.b -> 2,
