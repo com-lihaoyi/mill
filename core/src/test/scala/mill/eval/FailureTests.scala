@@ -8,13 +8,15 @@ import utest.framework.TestPath
 
 object FailureTests extends TestSuite{
 
+  def workspace(implicit tp: TestPath) = {
+    ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
+  }
   val tests = Tests{
     val graphs = new mill.util.TestGraphs()
     import graphs._
     def check[T: Discovered](base: T)
                             (target: T => Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]])
                             (implicit tp: TestPath) = {
-      val workspace = ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
       val evaluator = new Evaluator(workspace, Discovered.mapping(base), _ => ())
       val res = evaluator.evaluate(OSet(target(base)))
       assert(
@@ -24,7 +26,6 @@ object FailureTests extends TestSuite{
 
     }
     'evaluateSingle - {
-      val workspace = ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
 
       check(singleton)(
@@ -61,7 +62,6 @@ object FailureTests extends TestSuite{
       )
     }
     'evaluatePair - {
-      val workspace = ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
 
       check(pair)(
