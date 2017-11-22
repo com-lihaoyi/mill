@@ -67,7 +67,8 @@ class Evaluator(workspacePath: Path,
       group.toIterator.map(_.sideHash).toVector.hashCode()
 
     terminal match{
-      case Left(task) => evaluateGroup(group, results, None)
+      case Left(task) =>
+        evaluateGroup(group, results, targetDestPath = None, maybeTargetLabel = None)
       case Right(labelledTarget) =>
         val (destPath, metadataPath) = resolveDestPaths(labelledTarget)
         val cached = for{
@@ -91,9 +92,12 @@ class Evaluator(workspacePath: Path,
               case Mirror.Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
-            log("Running " + msgParts.mkString)
             if (labelledTarget.target.flushDest) rm(destPath)
-            val (newResults, newEvaluated) = evaluateGroup(group, results, Some(destPath))
+            val (newResults, newEvaluated) = evaluateGroup(
+              group,
+              results,
+              Some(destPath),
+              maybeTargetLabel = Some(msgParts.mkString))
 
             newResults(labelledTarget.target) match{
               case Result.Success(v) =>
@@ -116,12 +120,28 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroup(group: OSet[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
-                    targetDestPath: Option[Path]) = {
+                    targetDestPath: Option[Path],
+                    maybeTargetLabel: Option[String]
+                   ) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
-    for (target <- group.items if !results.contains(target)) {
+
+    val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
+
+    maybeTargetLabel.foreach { targetLabel =>
+      val inputResults = for {
+        target <- nonEvaluatedTargets
+        item <- target.inputs.filterNot(group.contains)
+      } yield results(item)
+
+      val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
+
+      if(logRun) { log("Running " + targetLabel) }
+    }
+
+    for (target <- nonEvaluatedTargets) {
 
       newEvaluated.append(target)
       val targetInputValues = target.inputs
