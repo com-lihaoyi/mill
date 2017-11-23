@@ -23,8 +23,8 @@ object GenIdea {
     val workspacePath = pwd / 'out
     val evaluator = new Evaluator(workspacePath, mapping, _ => ())
 
-    val modules = Mirror.traverse(discovered.mirror){ (h, p) =>
-      h.node(obj, Nil) match {
+    val modules = Mirror.traverse(obj, discovered.mirror){ (h, p) =>
+      h.node(obj, p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList) match {
         case m: ScalaModule => Seq(p -> m)
         case _ => Nil
       }

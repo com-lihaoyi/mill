@@ -2,6 +2,8 @@ package mill.discover
 
 import mill.{Module, T}
 import mill.define.Cross
+import mill.discover.Mirror.{LabelledTarget, Segment}
+import mill.discover.Mirror.Segment.Label
 import utest._
 
 object CrossModuleTests extends TestSuite{
@@ -17,7 +19,9 @@ object CrossModuleTests extends TestSuite{
           }
       }
 
-      val Some((gen, innerMirror)) = Discovered[outer.type]
+      val discovered = Discovered[outer.type]
+
+      val Some((gen, innerMirror)) = discovered
         .mirror
         .children
         .head._2
@@ -68,14 +72,49 @@ object CrossModuleTests extends TestSuite{
         assert(suffix == expected)
       }
     }
-    'crossCommands - {
-      object outer {
-        val cross = for (c <- mill.define.Cross("a", "b", "c")) yield new mill.Module {
-          def printIt() = T.command {
-            println("PRINTING IT: " + c)
-          }
-        }
+    'crossTargetDiscovery - {
+      object outer{
+        val crossed =
+          for(n <- Cross("2.10.6", "2.11.8", "2.12.4"))
+          yield new Module{ def scalaVersion = T{ n } }
       }
+      val discovered = Discovered[outer.type]
+
+      val segments = discovered.targets(outer).map(_.segments)
+      val expectedSegments = List(
+        List(Label("crossed"), Segment.Cross(List("2.10.6")), Label("scalaVersion")),
+        List(Label("crossed"), Segment.Cross(List("2.11.8")), Label("scalaVersion")),
+        List(Label("crossed"), Segment.Cross(List("2.12.4")), Label("scalaVersion"))
+      )
+      assert(segments == expectedSegments)
+      val targets = discovered.targets(outer).map(_.target)
+      val expected = List(
+        outer.crossed(List("2.10.6")).scalaVersion,
+        outer.crossed(List("2.11.8")).scalaVersion,
+        outer.crossed(List("2.12.4")).scalaVersion
+      )
+      assert(targets == expected)
+
+    }
+    'doubleCrossTargetDiscovery - {
+      object outer{
+        val crossed =
+          for{
+            n <- Cross("2.11.8", "2.12.4")
+            platform <- Cross("sjs0.6", "native0.3")
+          } yield new Module{ def suffix = T{ n + "_" + platform } }
+      }
+      val discovered = Discovered[outer.type]
+      val targets = discovered.targets(outer).map(_.target)
+      
+      val expected = List(
+        outer.crossed(List("sjs0.6", "2.11.8")).suffix,
+        outer.crossed(List("native0.3", "2.11.8")).suffix,
+        outer.crossed(List("sjs0.6", "2.12.4")).suffix,
+        outer.crossed(List("native0.3", "2.12.4")).suffix
+      )
+      assert(targets == expected)
+
     }
   }
 }

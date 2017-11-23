@@ -6,6 +6,7 @@ import mill.discover.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
 import mill.util.TestUtil.test
+import mill.discover.Mirror.Segment.Label
 object DiscoveredTests extends TestSuite{
 
   val tests = Tests{
@@ -44,12 +45,12 @@ object DiscoveredTests extends TestSuite{
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targets(outer, Nil).map(x => x.segments -> x.target)
+      val mapped = discovered.targets(outer).map(x => x.segments -> x.target)
 
       val expected = Seq(
-        (List("classInstance", "single"), outer.classInstance.single),
-        (List("nested", "single"), outer.nested.single),
-        (List("single"), outer.single)
+        (List(Label("classInstance"), Label("single")), outer.classInstance.single),
+        (List(Label("nested"), Label("single")), outer.nested.single),
+        (List(Label("single")), outer.single)
       )
       assert(mapped.toSet == expected.toSet)
     }

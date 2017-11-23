@@ -2,6 +2,7 @@ package mill.eval
 
 import ammonite.ops._
 import mill.define.{Graph, Target, Task}
+import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.util
 import mill.util.{Args, MultiBiMap, OSet}
@@ -45,7 +46,11 @@ class Evaluator(workspacePath: Path,
   }
 
   def resolveDestPaths(t: LabelledTarget[_]): (Path, Path) = {
-    val targetDestPath = workspacePath / t.segments
+    val segmentStrings = t.segments.flatMap{
+      case Mirror.Segment.Label(s) => Seq(s)
+      case Mirror.Segment.Cross(values) => values.map(_.toString)
+    }
+    val targetDestPath = workspacePath / segmentStrings
     val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
     (targetDestPath, metadataPath)
   }
@@ -79,7 +84,14 @@ class Evaluator(workspacePath: Path,
 
           case _ =>
 
-            log("Running " + labelledTarget.segments.mkString("."))
+            pprint.log(labelledTarget.segments)
+            val Seq(first, rest @_*) = labelledTarget.segments
+            val msgParts = Seq(first.asInstanceOf[Mirror.Segment.Label].value) ++ rest.map{
+              case Mirror.Segment.Label(s) => "." + s
+              case Mirror.Segment.Cross(s) => "[" + s.mkString(",") + "]"
+            }
+
+            log("Running " + msgParts.mkString)
             if (labelledTarget.target.flushDest) rm(destPath)
             val (newResults, newEvaluated) = evaluateGroup(group, results, Some(destPath))
 

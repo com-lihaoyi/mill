@@ -3,7 +3,7 @@ package mill.discover
 import mill.define.Task
 import mill.util.TestGraphs
 import utest._
-
+import mill.discover.Mirror.Segment.Label
 object LabelingTests extends TestSuite{
 
   val tests = Tests{
@@ -15,10 +15,10 @@ object LabelingTests extends TestSuite{
       def check[T: Discovered](base: T, t: Task[_], relPath: Option[String]) = {
 
 
-        val names: Seq[(Task[_], Seq[String])] = Discovered.mapping(base).mapValues(_.segments).toSeq
+        val names: Seq[(Task[_], Seq[Mirror.Segment])] = Discovered.mapping(base).mapValues(_.segments).toSeq
         val nameMap = names.toMap
 
-        val targetLabel = nameMap.get(t).map(_.mkString("."))
+        val targetLabel = nameMap.get(t).map(_.map{case Label(v) => v}.mkString("."))
         assert(targetLabel == relPath)
       }
       'singleton - check(singleton, singleton.single, Some("single"))

@@ -12,17 +12,15 @@ import scala.reflect.macros.blackbox.Context
   * Allows you to implicitly summon up a build [[Mirror]] for arbitrary types
   */
 class Discovered[T](val mirror: Mirror[T, T]){
-
-  def targets(obj: T, crosses: List[List[Any]]) = Mirror.traverse(mirror) { (h, p) =>
-    h.labelled(obj, p, crosses)
+  def targets(obj: T) = Mirror.traverse(obj, mirror) { (h, p) =>
+    h.labelled(obj, p)
   }
-
 }
 
 object Discovered {
   def consistencyCheck[T](base: T, d: Discovered[T]) = {
     val inconsistent = for{
-      (t1, t2) <- d.targets(base, Nil).zip(d.targets(base, Nil))
+      (t1, t2) <- d.targets(base).zip(d.targets(base))
       if t1.target ne t2.target
     } yield t1.segments
     inconsistent
@@ -30,7 +28,7 @@ object Discovered {
 
 
   def mapping[T: Discovered](t: T): Map[Target[_], LabelledTarget[_]] = {
-    implicitly[Discovered[T]].targets(t, Nil).map(x => x.target -> x).toMap
+    implicitly[Discovered[T]].targets(t).map(x => x.target -> x).toMap
   }
 
   implicit def apply[T]: Discovered[T] = macro applyImpl[T]
@@ -79,13 +77,14 @@ object Discovered {
         q"($name, ${rec(Some(name) :: segments, m.typeSignature)})"
       }
 
+      val crossName = q"${TermName(c.freshName())}"
       val hierarchySelector = {
         val base = q"${TermName(c.freshName())}"
-        val ident = segments.reverse.foldLeft[Tree](base) {
-          case (prefix, Some(name)) => q"$prefix.${TermName(name)}"
-          case (prefix, None) => q"$prefix.apply(crosses.head)"
+        val ident = segments.zipWithIndex.reverse.foldLeft[Tree](base) {
+          case (prefix, (Some(name), i)) => q"$prefix.${TermName(name)}"
+          case (prefix, (None, i)) => q"$prefix.apply($crossName($i))"
         }
-        q"($base: $tpe, crosses: List[List[Any]]) => $ident"
+        q"($base: $tpe, $crossName: List[List[Any]]) => $ident"
       }
 
       val commands =

@@ -1,6 +1,7 @@
 package mill.discover
 
 
+import mill.discover.Mirror.Segment.Label
 import mill.util.TestGraphs
 import utest._
 
@@ -15,7 +16,12 @@ object ConsistencyTests extends TestSuite{
       //
       // Maybe later we can convert them into compile errors somehow
 
-      val expected = List(List("down"), List("right"), List("left"), List("up"))
+      val expected = List(
+        List(Label("down")),
+        List(Label("right")),
+        List(Label("left")),
+        List(Label("up"))
+      )
 
       'diamond - {
         val inconsistent = Discovered.consistencyCheck(
