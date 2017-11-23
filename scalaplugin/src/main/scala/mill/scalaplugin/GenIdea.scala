@@ -79,7 +79,7 @@ object GenIdea {
         Seq(destPath, jsonPath),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
-        yield moduleLabels(m).mkString(".").toLowerCase
+        yield moduleLabels(m).collect{case Segment.Label(v) => v}.mkString(".").toLowerCase
       )
       Tuple2(".idea_modules"/s"${path.collect{case Segment.Label(v) => v}.mkString(".").toLowerCase}.iml", elem)
     }
