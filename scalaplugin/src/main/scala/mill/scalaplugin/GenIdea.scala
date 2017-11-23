@@ -1,6 +1,7 @@
 package mill.scalaplugin
 
 import ammonite.ops._
+import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.OSet
@@ -44,7 +45,7 @@ object GenIdea {
         ".idea"/"modules.xml",
         allModulesXmlTemplate(
           for((path, mod) <- modules)
-          yield path.mkString(".").toLowerCase
+          yield path.collect{case Segment.Label(v) => v}.mkString(".").toLowerCase
         )
       ),
       Tuple2(".idea_modules"/"root.iml", rootXmlTemplate())
@@ -80,7 +81,7 @@ object GenIdea {
         for(m <- mod.projectDeps)
         yield moduleLabels(m).mkString(".").toLowerCase
       )
-      Tuple2(".idea_modules"/s"${path.mkString(".").toLowerCase}.iml", elem)
+      Tuple2(".idea_modules"/s"${path.collect{case Segment.Label(v) => v}.mkString(".").toLowerCase}.iml", elem)
     }
     fixedFiles ++ libraries ++ moduleFiles
   }
