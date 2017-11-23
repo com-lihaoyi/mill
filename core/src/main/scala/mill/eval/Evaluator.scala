@@ -85,7 +85,6 @@ class Evaluator(workspacePath: Path,
 
           case _ =>
 
-            pprint.log(labelledTarget.segments)
             val Seq(first, rest @_*) = labelledTarget.segments
             val msgParts = Seq(first.asInstanceOf[Mirror.Segment.Label].value) ++ rest.map{
               case Mirror.Segment.Label(s) => "." + s
