@@ -59,4 +59,8 @@ object ScalaPlugin extends ScalaModule {
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
   override def sources = pwd/'scalaplugin/'src/'main/'scala
+
+  override def prependShellScript =
+    "#!/usr/bin/env sh\n" +
+    "exec java -cp \"$0\" mill.scalaplugin.Main \"$@\""
 }

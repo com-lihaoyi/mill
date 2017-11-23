@@ -1,7 +1,7 @@
 package mill.modules
 
 import java.io.FileOutputStream
-import java.util.jar.{JarEntry, JarFile, JarInputStream, JarOutputStream}
+import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import mill.define.Task
@@ -65,21 +65,32 @@ object Jvm {
 
   def createAssembly(outputPath: Path,
                      inputPaths: Seq[Path],
-                     mainClass: Option[String] = None): Option[Path] = {
+                     mainClass: Option[String] = None,
+                     prependShellScript: String = "\n"): Option[Path] = {
     rm(outputPath)
 
     if(inputPaths.isEmpty) None
     else {
       mkdir(outputPath/up)
 
+      val output = new FileOutputStream(outputPath.toIO)
+
+      // Prepend shell script
+      output.write((prependShellScript + "\n").getBytes)   
+      if (prependShellScript.nonEmpty) {
+        import ammonite.ops.ImplicitWd._
+        %%("chmod", "+x", outputPath)
+      }
+
       val jar = new JarOutputStream(
-        new FileOutputStream(outputPath.toIO),
+        output,
         createManifest(mainClass)
       )
 
       val seen = mutable.Set("META-INF/MANIFEST.MF")
       try{
         assert(inputPaths.forall(exists(_)))
+
         for{
           p <- inputPaths
 
@@ -106,6 +117,7 @@ object Jvm {
         }
       } finally {
         jar.close()
+        output.close()
       }
 
       Some(outputPath)

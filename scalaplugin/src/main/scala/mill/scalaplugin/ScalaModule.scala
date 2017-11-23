@@ -159,6 +159,11 @@ object ScalaModule{
   def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
+
+  val DefaultShellScript: Seq[String] = Seq(
+    "#!/usr/bin/env sh",
+    "exec java -jar \"$0\" \"$@\""
+  )
 }
 import ScalaModule._
 
@@ -233,6 +238,8 @@ trait ScalaModule extends Module{
       )
   }
 
+  def prependShellScript: T[String] = T{ "" }
+
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def compile = T.persistent{
@@ -242,7 +249,8 @@ trait ScalaModule extends Module{
     val dest = T.ctx().dest
     createAssembly(
       dest,
-      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists)
+      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists),
+      prependShellScript = prependShellScript()
     )
     PathRef(dest)
   }
