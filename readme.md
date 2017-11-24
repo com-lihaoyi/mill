@@ -212,15 +212,6 @@ also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
 same: mutable python which performs global side effects (layer 3 is the same
 dependency-graph evaluator as SBT/mill)
 
-Having the two layers be “just python” is great since people know python, but I
-think unnecessary two have two layers ("evaluating macros" and "evaluating rule
-impls") that are almost exactly the same
-
-Having the python layers “do their work” by calling global side-effecting APIs
-(macros instantiate rules, rule impls instantiate actions, both via
-global-side-effecting bazel APIs that return None) is also not great, and I also
-think it’s not necessary
-
 You end up having to deal with a non-trivial python codebase where everything
 happens via
 
@@ -236,6 +227,12 @@ do_other_thing(dependencies=["blah"])
 ```
 where `"blah"` is a global identifier that is often constructed programmatically
 via string concatenation and passed around. This is quite challenging.
+
+Having the two layers be “just python” is great since people know python, but I
+think unnecessary two have two layers ("evaluating macros" and "evaluating rule
+impls") that are almost exactly the same, and I think making them interact via
+return values rather than via a global namespace of programmatically-constructed
+strings would make it easier to follow.
 
 With Mill, I’m trying to collapse Bazel’s Python layer 1 & 2 into just 1 layer
 of Scala, and have it define it’s dependency graph/hierarchy by returning
