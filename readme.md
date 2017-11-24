@@ -191,6 +191,78 @@ This is similar to SBT's `:=`/`.value` macros, or `scala-async`'s
 their code in a "direct" style and have it "automatically" lifted into a graph
 of `Task`s.
 
+## Prior Work
+
+### SBT
+
+Mill is build as a substitute for SBT, whose problems are
+[described here](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html).
+Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task
+graph with an Applicative "idiom bracket" macro) where it makes sense.
+
+### Bazel
+
+Mill is largely inspired by [Bazel](https://bazel.build/). In particular, the
+single-build-hierarchy, where every Target has an on-disk-cache/output-directory
+according to their position in the hierarchy, comes from Bazel.
+
+Bazel is a bit odd in it’s own right. the underlying data model is good
+(hierarchy + cached dependency graph) but getting there is hell it (like SBT) is
+also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
+same: mutable python which performs global side effects (layer 3 is the same
+dependency-graph evaluator as SBT/mill)
+
+Having the two layers be “just python” is great since people know python, but I
+think unnecessary two have two layers ("evaluating macros" and "evaluating rule
+impls") that are almost exactly the same
+
+Having the python layers “do their work” by calling global side-effecting APIs
+(macros instantiate rules, rule impls instantiate actions, both via
+global-side-effecting bazel APIs that return None) is also not great, and I also
+think it’s not necessary
+
+You end up having to deal with a non-trivial python codebase where everything
+happens via
+
+```python
+do_something(name="blah")
+```
+
+or
+
+```python
+do_other_thing(dependencies=["blah"])
+
+```
+where `"blah"` is a global identifier that is often constructed programmatically
+via string concatenation and passed around. This is quite challenging.
+
+With Mill, I’m trying to collapse Bazel’s Python layer 1 & 2 into just 1 layer
+of Scala, and have it define it’s dependency graph/hierarchy by returning
+values, rather than by calling global-side-effecting APIs I've had trouble
+trying to teach people how-to-bazel at work, and am pretty sure we can make
+something that's easier to use
+
+### Scala.Rx
+
+Mill's "direct-style" applicative syntax is inspired by my old
+[Scala.Rx](https://github.com/lihaoyi/scala.rx) project. While there are
+differences (Mill captures the dependency graph lexically using Macros, Scala.Rx
+captures it at runtime, they are pretty similar.
+
+The end-goal is the same: to write code in a "direct style" and have it
+automatically "lifted" into a dependency graph, which you can introspect and use
+for incremental updates at runtime.
+
+### CBT
+
+Mill looks a lot like [CBT](https://github.com/cvogt/cbt). The inheritance based
+model for customizing `Module`s/`ScalaModule`s comes straight from there, as
+does the "command line path matches Scala selector path" idea. Most other things
+are different though: the reified dependency graph, the execution model, the
+caching module all follow Bazel more than they do CBT
+
+
 ## Mill Goals and Roadmap
 
 The end goal of the Mill project is to develop a new Scala build tool to replace
