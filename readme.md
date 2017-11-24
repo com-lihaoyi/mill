@@ -75,10 +75,14 @@ read through that post to understand where it is coming from!
 Mill's most important abstraction is the dependency graph of `Task`s.
 Constructed using the `T{...}` `T.task{...}` `T.command{...}` syntax, these
 track the dependencies between steps of a build, so those steps can be executed
-in the correct order, queried, or parallelized. When Mill executes, the
-dependency graph is what matters: any other mode of organization (hierarchies,
-modules, inheritence, etc.) is only important to create this dependency graph of
-`Task`s.
+in the correct order, queried, or parallelized.
+
+While Mill provides helpers like `ScalaModule` and other things you can use to
+quickly instantiate a bunch of related tasks (resolve dependencies, find
+sources, compile, package into jar, ...) these are secondary. When Mill
+executes, the dependency graph is what matters: any other mode of organization
+(hierarchies, modules, inheritence, etc.) is only important to create this
+dependency graph of `Task`s.
 
 ### Builds are hierarchical
 
@@ -109,7 +113,7 @@ the "slow" ones like `compile` or `assembly`.
 Caching is keyed on the `.hashCode` of the returned value. For `Target`s
 returning the contents of a file/folder on disk, they return `PathRef` instances
 whose hashcode is based on the hash of the disk contents. Serialization of the
-returned values is for now done using uPickle.
+returned values is tentatively done using uPickle.
 
 ### Short-lived build processes
 
@@ -125,6 +129,12 @@ new process starts, there will be a new instance of `Target` with the same
 implementation code and same position in the build hierarchy: this new `Target`
 can then load the `out/foo/bar/baz.mill.json` file and pick up where the
 previous process left off.
+
+Minimizing startup time means aggressive caching, as well as minimizing the
+total amount of bytecode used: Mill's current 1-2s startup time is dominated by
+JVM classloading. In future, we may have a long lived console or
+nailgun/drip-based server/client models to speed up interactive usage, but we
+should always keep "cold" startup as fast as possible.
 
 ### Static dependency graph and Applicative tasks
 
@@ -177,7 +187,9 @@ def test() = T.command{ T.zipMap(runDepClasspath, compile, compile){
 ```
 
 This is similar to SBT's `:=`/`.value` macros, or `scala-async`'s
-`async`/`await`.
+`async`/`await`. Like those, the `T{...}` macro should let users program most of
+their code in a "direct" style and have it "automatically" lifted into a graph
+of `Task`s.
 
 ## Mill Goals and Roadmap
 
