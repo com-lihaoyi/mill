@@ -1,5 +1,5 @@
 
-# Mill
+# ![Mill Logo](docs/logo.svg) Mill
 
 Your shiny new Scala build tool!
 
