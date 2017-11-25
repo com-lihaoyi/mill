@@ -20,7 +20,7 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])]){
   def labelled(obj: T, p: Seq[Mirror.Segment]) = {
     val crossValues = p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList
-    targets.map(t => t.labelled(node(obj, crossValues.map(_.toList)), p.reverse))
+    targets.map(t => t.labelled(node(obj, crossValues.reverse.map(_.toList)), p.reverse))
   }
 }
 
@@ -39,7 +39,7 @@ object Mirror{
       h.children.flatMap{case (label, c) => rec(Segment.Label(label) :: segmentsRev, c)} ++
       h.crossChildren.toSeq.flatMap{
         case (crossGen, c) =>
-          crossGen(h.node(t, crossValues.map(_.toList))).flatMap(cross =>
+          crossGen(h.node(t, crossValues.reverse.map(_.toList))).flatMap(cross =>
             rec(Segment.Cross(cross) :: segmentsRev, c)
           )
       }

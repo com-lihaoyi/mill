@@ -94,8 +94,8 @@ object CrossModuleTests extends TestSuite{
         outer.crossed(List("2.12.4")).scalaVersion
       )
       assert(targets == expected)
-
     }
+
     'doubleCrossTargetDiscovery - {
       object outer{
         val crossed =
@@ -114,8 +114,6 @@ object CrossModuleTests extends TestSuite{
         outer.crossed(List("native0.3", "2.12.4")).suffix
       )
       assert(targets == expected)
-
     }
   }
 }
-
