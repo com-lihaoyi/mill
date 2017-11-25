@@ -55,8 +55,8 @@ object MainTests extends TestSuite{
               val target = test()
             }
         }
-        'pos1 - check(outer, "cross[jarA].target", Right(outer.cross(List("jarA")).target))
-        'pos2 - check(outer, "cross[jarB].target", Right(outer.cross(List("jarB")).target))
+        'pos1 - check(outer, "cross[jarA].target", Right(outer.cross("jarA").target))
+        'pos2 - check(outer, "cross[jarB].target", Right(outer.cross("jarB").target))
         'neg1 - check(outer, "cross[jarA].doesntExist", Left("Cannot resolve task cross[jarA].doesntExist"))
   //      'neg2 - check(outer, "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
   //      'neg2 - check(outer, "cross[doesntExist].target", Left("Cannot resolve cross cross[doesntExist]"))
@@ -74,12 +74,12 @@ object MainTests extends TestSuite{
         'pos1 - check(
           outer,
           "cross[jvm,jarA].target",
-          Right(outer.cross(List("jvm", "jarA")).target)
+          Right(outer.cross("jvm", "jarA").target)
         )
         'pos2 - check(
           outer,
           "cross[jvm,jarB].target",
-          Right(outer.cross(List("jvm", "jarB")).target)
+          Right(outer.cross("jvm", "jarB").target)
         )
       }
       'nested - {

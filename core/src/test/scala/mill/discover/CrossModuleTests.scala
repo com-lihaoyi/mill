@@ -31,7 +31,7 @@ object CrossModuleTests extends TestSuite{
       val keys = gen(outer.crossed)
       assert(keys == List(List("2.10.6"), List("2.11.8"), List("2.12.4")))
       for(k <- keys){
-        assert(outer.crossed(k).scalaVersion == k.head)
+        assert(outer.crossed(k:_*).scalaVersion == k.head)
       }
     }
     'doubleCross - {
@@ -67,7 +67,7 @@ object CrossModuleTests extends TestSuite{
 
       assert(keys == expectedKeys)
       for(k <- keys){
-        val suffix = outer.crossed(k).suffix
+        val suffix = outer.crossed(k:_*).suffix
         val expected = k.map(_.toString).filter(_.nonEmpty).map("_"+_).mkString
         assert(suffix == expected)
       }
@@ -89,9 +89,9 @@ object CrossModuleTests extends TestSuite{
       assert(segments == expectedSegments)
       val targets = discovered.targets(outer).map(_.target)
       val expected = List(
-        outer.crossed(List("2.10.6")).scalaVersion,
-        outer.crossed(List("2.11.8")).scalaVersion,
-        outer.crossed(List("2.12.4")).scalaVersion
+        outer.crossed("2.10.6").scalaVersion,
+        outer.crossed("2.11.8").scalaVersion,
+        outer.crossed("2.12.4").scalaVersion
       )
       assert(targets == expected)
     }
@@ -108,10 +108,10 @@ object CrossModuleTests extends TestSuite{
       val targets = discovered.targets(outer).map(_.target)
       
       val expected = List(
-        outer.crossed(List("sjs0.6", "2.11.8")).suffix,
-        outer.crossed(List("native0.3", "2.11.8")).suffix,
-        outer.crossed(List("sjs0.6", "2.12.4")).suffix,
-        outer.crossed(List("native0.3", "2.12.4")).suffix
+        outer.crossed("sjs0.6", "2.11.8").suffix,
+        outer.crossed("native0.3", "2.11.8").suffix,
+        outer.crossed("sjs0.6", "2.12.4").suffix,
+        outer.crossed("native0.3", "2.12.4").suffix
       )
       assert(targets == expected)
     }

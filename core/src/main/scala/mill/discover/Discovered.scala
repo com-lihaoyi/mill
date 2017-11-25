@@ -82,7 +82,7 @@ object Discovered {
         val base = q"${TermName(c.freshName())}"
         val ident = segments.reverse.zipWithIndex.foldLeft[Tree](base) {
           case (prefix, (Some(name), i)) => q"$prefix.${TermName(name)}"
-          case (prefix, (None, i)) => q"$prefix.apply($crossName($i))"
+          case (prefix, (None, i)) => q"$prefix.apply($crossName($i):_*)"
         }
         q"($base: $tpe, $crossName: List[List[Any]]) => $ident"
       }
