@@ -272,6 +272,9 @@ The end-goal is the same: to write code in a "direct style" and have it
 automatically "lifted" into a dependency graph, which you can introspect and use
 for incremental updates at runtime.
 
+Scala.Rx is itself build upon the 2010 paper
+[Deprecating the Observer Pattern](https://infoscience.epfl.ch/record/148043/files/DeprecatingObserversTR2010.pdf).
+
 ### CBT
 
 Mill looks a lot like [CBT](https://github.com/cvogt/cbt). The inheritance based
