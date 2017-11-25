@@ -13,6 +13,7 @@ object GraphTests extends TestSuite{
 
     val graphs = new TestGraphs()
     import graphs._
+    import TestGraphs._
 
     'topoSortedTransitiveTargets - {
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {

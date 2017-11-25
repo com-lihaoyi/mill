@@ -34,6 +34,7 @@ object Discovered {
   implicit def apply[T]: Discovered[T] = macro applyImpl[T]
   def tupleLeft[T, V](items: List[(T, V)]) = items.map(_._1)
   def applyImpl[T: c.WeakTypeTag](c: Context): c.Expr[Discovered[T]] = {
+
     import c.universe._
     val tpe = c.weakTypeTag[T].tpe
     def rec(segments: List[Option[String]],
@@ -41,13 +42,11 @@ object Discovered {
 
       val r = new Router(c)
 
-
       val targets = for {
         m <- t.members.toList
         if m.isMethod &&
            m.typeSignature.paramLists.isEmpty &&
            m.typeSignature.resultType <:< c.weakTypeOf[Target[_]] &&
-           !m.name.toString.contains('$') &&
            !m.name.toString.contains(' ')
       } yield {
         val x = Ident(TermName(c.freshName()))
@@ -63,18 +62,19 @@ object Discovered {
       val crossChildren =
         if (!(t <:< c.weakTypeOf[Cross[Module]])) q"None"
         else {
-
           val TypeRef(_, _, Seq(arg)) = t
           val innerMirror = rec(None :: segments, arg)
           q"Some(((c: mill.define.Cross[_]) => mill.discover.Discovered.tupleLeft(c.items), $innerMirror))"
         }
       val childHierarchies = for{
         m <- t.members.toList
-        if (m.typeSignature <:< c.weakTypeOf[Module]) ||
-           (m.typeSignature <:< c.weakTypeOf[Cross[Module]])
+        if m.typeSignature.paramLists.isEmpty && m.isPublic
+        if (m.typeSignature.finalResultType <:< c.weakTypeOf[Module]) ||
+          (m.typeSignature.finalResultType <:< c.weakTypeOf[Cross[Module]])
+
       } yield {
         val name = m.name.toString.trim
-        q"($name, ${rec(Some(name) :: segments, m.typeSignature)})"
+        q"($name, ${rec(Some(name) :: segments, m.typeSignature.finalResultType)})"
       }
 
       val crossName = q"${TermName(c.freshName())}"

@@ -3,6 +3,7 @@ package mill.main
 import mill.Module
 import mill.define.Task
 import mill.discover.{Discovered, Mirror}
+import mill.util.TestGraphs._
 import mill.util.TestUtil.test
 import utest._
 
@@ -28,83 +29,62 @@ object MainTests extends TestSuite{
       'neg3 - check(singleton, "", Left("Selector cannot be empty"))
     }
     'nested - {
-      class CanNest extends Module{
-        val single = test()
-      }
-      object outer {
-        val single = test()
-        object nested extends Module{
-          val single = test()
-        }
-        val classInstance = new CanNest
-      }
-      'pos1 - check(outer, "single", Right(outer.single))
-      'pos2 - check(outer, "nested.single", Right(outer.nested.single))
-      'pos3 - check(outer, "classInstance.single", Right(outer.classInstance.single))
-      'neg1 - check(outer, "doesntExist", Left("Cannot resolve task doesntExist"))
-      'neg2 - check(outer, "single.doesntExist", Left("Cannot resolve module single"))
-      'neg3 - check(outer, "nested.doesntExist", Left("Cannot resolve task nested.doesntExist"))
-      'neg4 - check(outer, "classInstance.doesntExist", Left("Cannot resolve task classInstance.doesntExist"))
+
+      'pos1 - check(nestedModule, "single", Right(nestedModule.single))
+      'pos2 - check(nestedModule, "nested.single", Right(nestedModule.nested.single))
+      'pos3 - check(nestedModule, "classInstance.single", Right(nestedModule.classInstance.single))
+      'neg1 - check(nestedModule, "doesntExist", Left("Cannot resolve task doesntExist"))
+      'neg2 - check(nestedModule, "single.doesntExist", Left("Cannot resolve module single"))
+      'neg3 - check(nestedModule, "nested.doesntExist", Left("Cannot resolve task nested.doesntExist"))
+      'neg4 - check(nestedModule, "classInstance.doesntExist", Left("Cannot resolve task classInstance.doesntExist"))
     }
     'cross - {
       'single - {
-        object outer{
-          val cross =
-            for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
-            yield new mill.Module{
-              val target = test()
-            }
-        }
-        'pos1 - check(outer, "cross[jarA].target", Right(outer.cross("jarA").target))
-        'pos2 - check(outer, "cross[jarB].target", Right(outer.cross("jarB").target))
-        'neg1 - check(outer, "cross[jarA].doesntExist", Left("Cannot resolve task cross[jarA].doesntExist"))
+
+        'pos1 - check(singleCross, "cross[210].suffix", Right(singleCross.cross("210").suffix))
+        'pos2 - check(singleCross, "cross[211].suffix", Right(singleCross.cross("211").suffix))
+        'neg1 - check(singleCross, "cross[210].doesntExist", Left("Cannot resolve task cross[210].doesntExist"))
   //      'neg2 - check(outer, "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
   //      'neg2 - check(outer, "cross[doesntExist].target", Left("Cannot resolve cross cross[doesntExist]"))
       }
       'double - {
-        object outer{
-          val cross =
-            for{
-              jarLabel <- mill.define.Cross("jarA", "jarB", "jarC")
-              tag <- mill.define.Cross("jvm", "js", "native")
-            } yield new mill.Module{
-              val target = test()
-            }
-        }
+
         'pos1 - check(
-          outer,
-          "cross[jvm,jarA].target",
-          Right(outer.cross("jvm", "jarA").target)
+          doubleCross,
+          "cross[jvm,210].suffix",
+          Right(doubleCross.cross("jvm", "210").suffix)
         )
         'pos2 - check(
-          outer,
-          "cross[jvm,jarB].target",
-          Right(outer.cross("jvm", "jarB").target)
+          doubleCross,
+          "cross[jvm,211].suffix",
+          Right(doubleCross.cross("jvm", "211").suffix)
         )
       }
       'nested - {
-        object outer{
-          val cross =
-            for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
-            yield new mill.Module{
-              val cross2 =
-                for(tag <- mill.define.Cross("jvm", "js", "native"))
-                yield new mill.Module{
-                  val target = test()
-                }
-
-            }
+        'indirect - {
+          'pos1 - check(
+            indirectNestedCrosses,
+            "cross[210].cross2[js].suffix",
+            Right(indirectNestedCrosses.cross("210").cross2("js").suffix)
+          )
+          'pos2 - check(
+            indirectNestedCrosses,
+            "cross[211].cross2[jvm].suffix",
+            Right(indirectNestedCrosses.cross("211").cross2("jvm").suffix)
+          )
         }
-//        'pos1 - check(
-//          outer,
-//          "cross[jarA].cross2[js].target",
-//          Right(outer.cross(List("jarA")).cross2(List("js")).target)
-//        )
-//        'pos2 - check(
-//          outer,
-//          "cross[jarB].cross2[jvm].target",
-//          Right(outer.cross(List("jarB")).cross2(List("jvm")).target)
-//        )
+        'direct - {
+          'pos1 - check(
+            nestedCrosses,
+            "cross[210].cross2[js].suffix",
+            Right(nestedCrosses.cross("210").cross2("js").suffix)
+          )
+          'pos2 - check(
+            nestedCrosses,
+            "cross[211].cross2[jvm].suffix",
+            Right(nestedCrosses.cross("211").cross2("jvm").suffix)
+          )
+        }
       }
     }
 

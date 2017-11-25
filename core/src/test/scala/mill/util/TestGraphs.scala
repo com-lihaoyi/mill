@@ -1,6 +1,18 @@
 package mill.util
 import TestUtil.test
 import mill.{Module, T}
+
+/**
+  * Example dependency graphs for us to use in our test suite.
+  *
+  * The graphs using `test()` live in the `class` and need to be instantiated
+  * every time you use them, because they are mutable (you can poke at the
+  * `test`'s `counter`/`failure`/`exception` fields to test various graph
+  * evaluation scenarios.
+  *
+  * The immutable graphs, used for testing discovery & target resolution,
+  * live in the companion object.
+  */
 class TestGraphs(){
   // single
   object singleton {
@@ -91,7 +103,8 @@ class TestGraphs(){
     }
     val j = test(test(i), test(i, f), test(f))
   }
-
+}
+object TestGraphs{
   //        _ left _
   //       /        \
   //  task1 -------- right
@@ -134,5 +147,65 @@ class TestGraphs(){
     def right = T{ task1() + left() + 1 }
     val task2 = T.task{ left() + right() }
   }
-}
 
+
+  class CanNest extends Module{
+    def single = T{ 1 }
+    def invisible: Any = T{ 2 }
+    def invisible2: mill.define.Task[Int] = T{ 3 }
+    def invisible3: mill.define.Task[_] = T{ 4 }
+  }
+  object nestedModule extends Module{
+    def single = T{ 5 }
+    def invisible: Any = T{ 6 }
+    object nested extends Module{
+      def single = T{ 7 }
+      def invisible: Any = T{ 8 }
+
+    }
+    val classInstance = new CanNest
+
+  }
+
+
+  object singleCross{
+    val cross =
+      for(scalaVersion <- mill.define.Cross("210", "211", "212"))
+      yield new mill.Module{
+        def suffix = T{ scalaVersion }
+      }
+  }
+  object doubleCross{
+    val cross =
+      for{
+        scalaVersion <- mill.define.Cross("210", "211", "212")
+        platform <- mill.define.Cross("jvm", "js", "native")
+        if !(platform == "native" && scalaVersion != "212")
+      } yield new Module{
+        def suffix = T{ scalaVersion + "_" + platform }
+      }
+  }
+
+  object indirectNestedCrosses{
+    val cross = mill.define.Cross("210", "211", "212").map(new cross(_))
+    class cross(scalaVersion: String) extends mill.Module{
+      val cross2 =
+        for(platform <- mill.define.Cross("jvm", "js", "native"))
+        yield new mill.Module{
+          def suffix = T{ scalaVersion + "_" + platform }
+        }
+    }
+  }
+
+  object nestedCrosses{
+    val cross =
+      for(scalaVersion <- mill.define.Cross("210", "211", "212"))
+      yield new mill.Module{
+        val cross2 =
+          for(platform <- mill.define.Cross("jvm", "js", "native"))
+          yield new mill.Module{
+            def suffix = T{ scalaVersion + "_" + platform }
+          }
+      }
+  }
+}

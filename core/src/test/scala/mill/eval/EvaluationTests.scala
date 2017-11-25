@@ -5,7 +5,7 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
-import mill.util.{OSet, TestUtil}
+import mill.util.{OSet, TestGraphs, TestUtil}
 import utest._
 import utest.framework.TestPath
 
@@ -50,8 +50,9 @@ object EvaluationTests extends TestSuite{
 
 
   val tests = Tests{
-    val graphs = new mill.util.TestGraphs()
+    val graphs = new TestGraphs()
     import graphs._
+    import TestGraphs._
     'evaluateSingle - {
 
       'singleton - {

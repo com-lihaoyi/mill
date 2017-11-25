@@ -26,7 +26,7 @@ object GenIdea {
 
     val modules = Mirror
       .traverse(obj, discovered.mirror){ (h, p) =>
-        h.node(obj, p.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
+        h.node(obj, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
           case m: ScalaModule => Seq(p -> m)
           case _ => Nil
         }

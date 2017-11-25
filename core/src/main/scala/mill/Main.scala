@@ -96,7 +96,7 @@ object Main {
               case (label, child) if label == singleLabel => child
             } match{
               case Some(child) => resolve(tail, child, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
-              case None => Left("Cannot resolve module " + renderSelector(newRevSelectorsSoFar))
+              case None => Left("Cannot resolve module " + renderSelector(newRevSelectorsSoFar.reverse))
             }
 
           case Mirror.Segment.Cross(cross) =>

@@ -5,52 +5,33 @@ import java.io.InputStreamReader
 import mill.discover.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
-import mill.util.TestUtil.test
 import mill.discover.Mirror.Segment.Label
+import mill.util.TestGraphs.nestedModule
 object DiscoveredTests extends TestSuite{
 
   val tests = Tests{
 
     'targets - {
-      class CanNest extends Module{
-        val single = test()
-        val invisible: Any = test()
-        val invisible2: mill.define.Task[Int] = test()
-        val invisible3: mill.define.Task[_] = test()
-      }
-      object outer {
-        val single = test()
-        val invisible: Any = test()
-        object nested extends Module{
-          val single = test()
-          val invisible: Any = test()
+      val discovered = Discovered[nestedModule.type]
 
-        }
-        val classInstance = new CanNest
-
-      }
-
-      val discovered = Discovered[outer.type]
-
-
-      def flatten(h: Mirror[outer.type, _]): Seq[Any] = {
-        h.node(outer, Nil) :: h.children.flatMap{case (label, c) => flatten(c)}
+      def flatten(h: Mirror[nestedModule.type, _]): Seq[Any] = {
+        h.node(nestedModule, Nil) :: h.children.flatMap{case (label, c) => flatten(c)}
       }
       val flattenedHierarchy = flatten(discovered.mirror)
 
       val expectedHierarchy = Seq(
-        outer,
-        outer.classInstance,
-        outer.nested,
+        nestedModule,
+        nestedModule.classInstance,
+        nestedModule.nested,
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targets(outer).map(x => x.segments -> x.target)
+      val mapped = discovered.targets(nestedModule).map(x => x.segments -> x.target)
 
       val expected = Seq(
-        (List(Label("classInstance"), Label("single")), outer.classInstance.single),
-        (List(Label("nested"), Label("single")), outer.nested.single),
-        (List(Label("single")), outer.single)
+        (List(Label("classInstance"), Label("single")), nestedModule.classInstance.single),
+        (List(Label("nested"), Label("single")), nestedModule.nested.single),
+        (List(Label("single")), nestedModule.single)
       )
       assert(mapped.toSet == expected.toSet)
     }
