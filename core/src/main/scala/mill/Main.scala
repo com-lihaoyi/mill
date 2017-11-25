@@ -24,66 +24,76 @@ object Main {
     query.parse(input)
   }
 
-  def parseArgs(args: Seq[String]): Either[String, List[scala.util.Either[String,Seq[String]]]] = {
+  def renderSelector(selector: List[Either[String, Seq[String]]]) = {
+    val Left(head) :: rest = selector
+    head + rest.map{case Left(s) => "." + s case Right(vs) => "[" + vs.mkString(",") + "]"}.mkString
+  }
+
+  def parseArgs(selectorString: String): Either[String, List[scala.util.Either[String,Seq[String]]]] = {
     import fastparse.all.Parsed
-
-    val Seq(selectorString, rest @_*) = args
-
-    parseSelector(selectorString) match {
+    if (selectorString.isEmpty) Left("Selector cannot be empty")
+    else parseSelector(selectorString) match {
       case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
   }
 
-  def resolve[T, V](selector: List[Either[String, Seq[String]]],
-                    hierarchy: Mirror[T, V])(implicit
+  def resolve[T, V](remainingSelector: List[Either[String, Seq[String]]],
+                    hierarchy: Mirror[T, V],
                     obj: T,
                     rest: Seq[String],
-                    crossSelectors: List[List[String]]): Either[String, Task[Any]] = {
+                    remainingCrossSelectors: List[List[String]],
+                    revSelectorsSoFar: List[Either[String, Seq[String]]]): Either[String, Task[Any]] = {
 
-    selector match{
-      case Right(_) :: Nil => Left("No target or command selected")
+    remainingSelector match{
+      case Right(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Left(last) :: Nil =>
         def target: Option[Task[Any]] =
-          hierarchy.targets.find(_.label == last)
-            .map{x => x.run(hierarchy.node(obj, crossSelectors))}
+          hierarchy.targets
+            .find(_.label == last)
+            .map{x => x.run(hierarchy.node(obj, remainingCrossSelectors))}
 
         def targetModule: Seq[Task[Any]] = for{
           (label, child) <- hierarchy.children
           if label == last
-          node <- child.node(obj, crossSelectors) match{
+          node <- child.node(obj, remainingCrossSelectors) match{
             case x: TaskModule => Some(x)
             case _ => None
           }
-        } yield node.self
+        } yield node.self()
 
-        def command: Either[String, Task[Any]] =
-          hierarchy.commands.find(_.name == last).fold[Either[String, Task[Any]]](
-            Left(s"Command not found $last")
-          ){ x =>
-            Option(hierarchy.node(obj, crossSelectors)).fold[Either[String, Task[Any]]](
-              Left(s"Instance not found for calling $last")
-            ){ inst =>
-              (x.invoke(inst, ammonite.main.Scripts.groupArgs(rest.toList)) match {
-                case Router.Result.Success(v) => Right(v)
-                case _ => Left(s"Method not found $last")
-              })
-            }
+        def command =
+          for(x <- hierarchy.commands.find(_.name == last))
+          yield x.invoke(
+            hierarchy.node(obj, remainingCrossSelectors),
+            ammonite.main.Scripts.groupArgs(rest.toList)
+          ) match {
+            case Router.Result.Success(v) => Right(v)
+            case _ => Left(s"Command failed $last")
           }
 
-        target.map(Right(_)) orElse targetModule.headOption.map(Right(_)) getOrElse command
+        command orElse target.map(Right(_)) orElse targetModule.headOption.map(Right(_)) match{
+          case None =>  Left("Cannot resolve task " + renderSelector((Left(last) :: revSelectorsSoFar).reverse))
+          case Some(either) => either
+        }
+
+
       case head :: tail =>
+        val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Left(singleLabel) =>
             hierarchy.children.collectFirst{
-              case (label, child) if label == singleLabel =>
-                resolve(tail, child)
-            }.getOrElse( Left(s"Single label not found $singleLabel") )
+              case (label, child) if label == singleLabel => child
+            } match{
+              case Some(child) => resolve(tail, child, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+              case None => Left("Cannot resolve module " + renderSelector(newRevSelectorsSoFar))
+            }
+
           case Right(cross) =>
-            resolve(tail, hierarchy.crossChildren.get._2)
+            resolve(tail, hierarchy.crossChildren.get._2, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
         }
 
-      case Nil => Left("Nothing to run")
+      case Nil => Left("Selector cannot be empty")
     }
   }
 
@@ -134,14 +144,14 @@ object Main {
 
     val log = new Logger(coloredOutput)
 
-    val Seq(_, rest @_*) = args
+    val Seq(selectorString, rest @_*) = args
 
     val res =
       for {
-        sel <- parseArgs(args)
+        sel <- parseArgs(selectorString)
         disc <- discoverMirror(obj)
         val crossSelectors = sel.collect{case Right(x) => x.toList}
-        target <- resolve(sel, disc.mirror)(obj, rest, crossSelectors)
+        target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
         val mapping = Discovered.mapping(obj)(disc)
         val workspacePath = pwd / 'out
         val evaluator = new Evaluator(workspacePath, mapping, log.info)
