@@ -23,78 +23,74 @@ object Main {
     query.parse(input)
   }
 
-  def parseArgs(args: Seq[String]): Either[Throwable, List[scala.util.Either[String,Seq[String]]]] = {
+  def parseArgs(args: Seq[String]): Either[String, List[scala.util.Either[String,Seq[String]]]] = {
     import fastparse.all.Parsed
 
     val Seq(selectorString, rest @_*) = args
 
     parseSelector(selectorString) match {
-      case f: Parsed.Failure =>
-        Left(new Exception("Parsing exception"+f.msg))
-      case Parsed.Success(selector, _) =>
-        Right(selector)
+      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
+      case Parsed.Success(selector, _) => Right(selector)
     }
   }
 
-  def resolve[T, V](
-      selector: List[Either[String, Seq[String]]],
-      hierarchy: Mirror[T, V])(implicit
-      obj: T,
-      rest: Seq[String],
-      crossSelectors: List[List[String]]): Either[Throwable, Task[Any]] = {
+  def resolve[T, V](selector: List[Either[String, Seq[String]]],
+                    hierarchy: Mirror[T, V])(implicit
+                    obj: T,
+                    rest: Seq[String],
+                    crossSelectors: List[List[String]]): Either[String, Task[Any]] = {
 
     selector match{
       case Right(_) :: Nil =>
-        Left(new Exception("No target or command selected"))
+        Left("No target or command selected")
       case Left(last) :: Nil =>
         def target: Option[Task[Any]] =
-          hierarchy.targets.find(_.label == last).map(_.run(hierarchy.node(obj, crossSelectors)))
+          hierarchy.targets.find(_.label == last)
+            .map{x => x.run(hierarchy.node(obj, crossSelectors))}
 
-        def command: Either[Throwable, Task[Any]] =
-          hierarchy.commands.find(_.name == last).map{ x =>
-            Option(hierarchy.node(obj, crossSelectors)).map(inst =>
-              x.invoke(inst, ammonite.main.Scripts.groupArgs(rest.toList)) match {
-                case Router.Result.Success(v) =>
-                  Right(v)
-                case _ =>
-                  Left(new Exception(s"Method not found $last"))
-              }
-            ).getOrElse(
-              Left(new Exception(s"Instance not found for calling $last"))
-            )
-          }.getOrElse(Left(new Exception(s"Command not found last")))
+        def command: Either[String, Task[Any]] =
+          hierarchy.commands.find(_.name == last).fold[Either[String, Task[Any]]](
+            Left(s"Command not found last")
+          ){ x =>
+            Option(hierarchy.node(obj, crossSelectors)).fold[Either[String, Task[Any]]](
+              Left(s"Instance not found for calling $last")
+            ){ inst =>
+              (x.invoke(inst, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+                case Router.Result.Success(v) => Right(v)
+                case _ => Left(s"Method not found $last")
+              })
+            }
+          }
 
         target.map(Right(_)) getOrElse command
       case head :: tail =>
         head match{
           case Left(singleLabel) =>
-            hierarchy.children
-              .find{ case (label, child) => label == singleLabel }
-              .map{ case (label, child) => resolve(tail, child) }
-              .getOrElse(
-                Left(new Exception(s"Single label not found $singleLabel"))
-              )
+            hierarchy.children.collectFirst{
+              case (label, child) if label == singleLabel =>
+                resolve(tail, child)
+            }.getOrElse( Left(s"Single label not found $singleLabel") )
           case Right(cross) =>
             resolve(tail, hierarchy.crossChildren.get._2)
         }
 
-      case Nil => Left(new Exception("Nothing to run"))
+      case Nil => Left("Nothing to run")
     }
   }
 
-  def discoverMirror[T: Discovered](obj: T): Either[Throwable, Discovered[T]] = {
+  def discoverMirror[T: Discovered](obj: T): Either[String, Discovered[T]] = {
     val discovered = implicitly[Discovered[T]]
     val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
     if (consistencyErrors.nonEmpty) {
-      Left(new Exception(s"Failed Discovered.consistencyCheck: $consistencyErrors"))
+      Left(s"Failed Discovered.consistencyCheck: $consistencyErrors")
     } else {
       Right(discovered)
     }
   }
 
   def evaluate(evaluator: Evaluator,
-      target: Task[Any],
-      watch: Path => Unit): Either[Throwable, Int] = {
+               target: Task[Any],
+               watch: Path => Unit): Either[String, Int] = {
     val evaluated = evaluator.evaluate(OSet(target))
     evaluated.transitive.foreach {
       case t: define.Source => watch(t.handle.path)
@@ -118,7 +114,7 @@ object Main {
       case 0 =>
         Right(0)
       case n =>
-        Left(new Exception(s"$n targets failed\n$errorStr"))
+        Left(s"$n targets failed\n$errorStr")
     }
   }
 
@@ -131,20 +127,23 @@ object Main {
 
     val Seq(_, rest @_*) = args
 
-    (for {
-      sel <- parseArgs(args)
-      disc <- discoverMirror(obj)
-      val crossSelectors = sel.collect{case Right(x) => x.toList}
-      target <- resolve(sel, disc.mirror)(obj, rest, crossSelectors)
-      val mapping = Discovered.mapping(obj)(disc)
-      val workspacePath = pwd / 'out
-      val evaluator = new Evaluator(workspacePath, mapping, log.info)
-      r <- evaluate(evaluator, target, watch)
-    } yield {
-      r
-    }) match {
+    val res =
+      for {
+        sel <- parseArgs(args)
+        disc <- discoverMirror(obj)
+        val crossSelectors = sel.collect{case Right(x) => x.toList}
+        target <- resolve(sel, disc.mirror)(obj, rest, crossSelectors)
+        val mapping = Discovered.mapping(obj)(disc)
+        val workspacePath = pwd / 'out
+        val evaluator = new Evaluator(workspacePath, mapping, log.info)
+        r <- evaluate(evaluator, target, watch)
+      } yield {
+        r
+      }
+
+    res match {
       case Left(err) =>
-        log.error(err.getMessage)
+        log.error(err)
         1
       case Right(n) =>
         n
