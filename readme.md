@@ -23,7 +23,8 @@ core unit tests
 e.g.:
 ```bash
 ./scalaplugin/target/mill run Core.compile
-./scalaplugin/target/mill run Core.tests.run
+./scalaplugin/target/mill run Core.test.compile
+./scalaplugin/target/mill run Core.test
 ./scalaplugin/target/mill run ScalaPlugin.assembly
 ```
 

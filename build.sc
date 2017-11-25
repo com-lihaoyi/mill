@@ -36,7 +36,7 @@ object Core extends ScalaModule {
       }
     }
 
-  object tests extends this.Tests{
+  object test extends this.Tests{
     def basePath = pwd / 'core
     override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
     override def sources = pwd/'core/'src/'test/'scala

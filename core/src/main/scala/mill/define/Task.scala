@@ -145,6 +145,10 @@ object Task {
   trait Module extends mill.define.Cacher[Target]{
     def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
   }
+  trait TaskModule extends Module {
+    def self(): Task[_]
+  }
+
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t
     val inputs = Nil

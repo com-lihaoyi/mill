@@ -10,6 +10,7 @@ import mill.eval.{Evaluator, Result}
 import mill.util.OSet
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
+import mill.define.Task.TaskModule
 
 object Main {
 
@@ -52,13 +53,23 @@ object Main {
               case Left(last) :: Nil =>
                 def target: Option[Task[Any]] =
                   hierarchy.targets.find(_.label == last).map(_.run(hierarchy.node(obj, crossSelectors)))
+
+                def targetModule: Seq[Task[Any]] = for{
+                  (label, child) <- hierarchy.children
+                  if label == last
+                  node <- child.node(obj, crossSelectors) match{
+                    case x: TaskModule => Some(x)
+                    case _ => None
+                  }
+                } yield node.self
+
                 def command: Option[Task[Any]] = hierarchy.commands.find(_.name == last).flatMap(
                   _.invoke(hierarchy.node(obj, crossSelectors), ammonite.main.Scripts.groupArgs(rest.toList)) match{
                     case Router.Result.Success(v) => Some(v)
                     case _ => None
                   }
                 )
-                target orElse command
+                target orElse command orElse targetModule.headOption
               case head :: tail =>
                 head match{
                   case Left(singleLabel) =>
