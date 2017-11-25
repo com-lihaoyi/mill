@@ -80,7 +80,7 @@ object Discovered {
       val crossName = q"${TermName(c.freshName())}"
       val hierarchySelector = {
         val base = q"${TermName(c.freshName())}"
-        val ident = segments.zipWithIndex.reverse.foldLeft[Tree](base) {
+        val ident = segments.reverse.zipWithIndex.foldLeft[Tree](base) {
           case (prefix, (Some(name), i)) => q"$prefix.${TermName(name)}"
           case (prefix, (None, i)) => q"$prefix.apply($crossName($i))"
         }

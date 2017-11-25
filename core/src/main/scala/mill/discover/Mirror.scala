@@ -20,7 +20,7 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])]){
   def labelled(obj: T, p: Seq[Mirror.Segment]) = {
     val crossValues = p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList
-    targets.map(t => t.labelled(node(obj, crossValues), p.reverse))
+    targets.map(t => t.labelled(node(obj, crossValues.map(_.toList)), p.reverse))
   }
 }
 
@@ -28,7 +28,7 @@ object Mirror{
   sealed trait Segment
   object Segment{
     case class Label(value: String) extends Segment
-    case class Cross(value: List[Any]) extends Segment
+    case class Cross(value: Seq[Any]) extends Segment
   }
   def traverse[T, V, R](t: T, hierarchy: Mirror[T, V])
                        (f: (Mirror[T, _], => Seq[Segment]) => Seq[R]): Seq[R] = {
@@ -39,7 +39,7 @@ object Mirror{
       h.children.flatMap{case (label, c) => rec(Segment.Label(label) :: segmentsRev, c)} ++
       h.crossChildren.toSeq.flatMap{
         case (crossGen, c) =>
-          crossGen(h.node(t, crossValues)).flatMap(cross =>
+          crossGen(h.node(t, crossValues.map(_.toList))).flatMap(cross =>
             rec(Segment.Cross(cross) :: segmentsRev, c)
           )
       }

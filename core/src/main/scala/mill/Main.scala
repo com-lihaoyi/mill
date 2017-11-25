@@ -16,20 +16,28 @@ object Main {
 
   def parseSelector(input: String) = {
     import fastparse.all._
-    val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! )
-    val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" )
-    val query = P( segment ~ ("." ~ segment.map(Left(_)) | crossSegment.map(Right(_))).rep ~ End ).map{
-      case (h, rest) => Left(h) :: rest.toList
+    val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! ).map(
+      Mirror.Segment.Label
+    )
+    val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" ).map(
+      Mirror.Segment.Cross
+    )
+    val query = P( segment ~ ("." ~ segment | crossSegment).rep ~ End ).map{
+      case (h, rest) => h :: rest.toList
     }
     query.parse(input)
   }
 
-  def renderSelector(selector: List[Either[String, Seq[String]]]) = {
-    val Left(head) :: rest = selector
-    head + rest.map{case Left(s) => "." + s case Right(vs) => "[" + vs.mkString(",") + "]"}.mkString
+  def renderSelector(selector: List[Mirror.Segment]) = {
+    val Mirror.Segment.Label(head) :: rest = selector
+    val stringSegments = rest.map{
+      case Mirror.Segment.Label(s) => "." + s
+      case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+    }
+    head + stringSegments.mkString
   }
 
-  def parseArgs(selectorString: String): Either[String, List[scala.util.Either[String,Seq[String]]]] = {
+  def parseArgs(selectorString: String): Either[String, List[Mirror.Segment]] = {
     import fastparse.all.Parsed
     if (selectorString.isEmpty) Left("Selector cannot be empty")
     else parseSelector(selectorString) match {
@@ -38,16 +46,16 @@ object Main {
     }
   }
 
-  def resolve[T, V](remainingSelector: List[Either[String, Seq[String]]],
+  def resolve[T, V](remainingSelector: List[Mirror.Segment],
                     hierarchy: Mirror[T, V],
                     obj: T,
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
-                    revSelectorsSoFar: List[Either[String, Seq[String]]]): Either[String, Task[Any]] = {
+                    revSelectorsSoFar: List[Mirror.Segment]): Either[String, Task[Any]] = {
 
     remainingSelector match{
-      case Right(_) :: Nil => Left("Selector cannot start with a [cross] segment")
-      case Left(last) :: Nil =>
+      case Mirror.Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
+      case Mirror.Segment.Label(last) :: Nil =>
         def target: Option[Task[Any]] =
           hierarchy.targets
             .find(_.label == last)
@@ -73,7 +81,9 @@ object Main {
           }
 
         command orElse target.map(Right(_)) orElse targetModule.headOption.map(Right(_)) match{
-          case None =>  Left("Cannot resolve task " + renderSelector((Left(last) :: revSelectorsSoFar).reverse))
+          case None =>  Left("Cannot resolve task " + renderSelector(
+            (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
+          )
           case Some(either) => either
         }
 
@@ -81,7 +91,7 @@ object Main {
       case head :: tail =>
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
-          case Left(singleLabel) =>
+          case Mirror.Segment.Label(singleLabel) =>
             hierarchy.children.collectFirst{
               case (label, child) if label == singleLabel => child
             } match{
@@ -89,7 +99,7 @@ object Main {
               case None => Left("Cannot resolve module " + renderSelector(newRevSelectorsSoFar))
             }
 
-          case Right(cross) =>
+          case Mirror.Segment.Cross(cross) =>
             resolve(tail, hierarchy.crossChildren.get._2, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
         }
 
@@ -150,7 +160,7 @@ object Main {
       for {
         sel <- parseArgs(selectorString)
         disc <- discoverMirror(obj)
-        val crossSelectors = sel.collect{case Right(x) => x.toList}
+        val crossSelectors = sel.map{case Mirror.Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
         target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
         val mapping = Discovered.mapping(obj)(disc)
         val workspacePath = pwd / 'out
