@@ -35,24 +35,15 @@ object Core extends ScalaModule {
         PathRef(dest)
       }
     }
-}
-object CoreTests extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  override def projectDeps = Seq(Core)
-  def basePath = pwd / 'scalaplugin
-  override def sources = pwd/'core/'src/'test/'scala
-  override def ivyDeps = Seq(
-    Dep("com.lihaoyi", "utest", "0.6.0")
-  )
 
-  def test() = T.command{
-    TestRunner.apply(
-      "mill.UTestFramework",
-      runDepClasspath().map(_.path) :+ compile().path,
-      Seq(compile().path)
-    )
+  object tests extends this.Tests{
+    def basePath = pwd / 'core
+    override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
+    override def sources = pwd/'core/'src/'test/'scala
+    def testFramework = "mill.UTestFramework"
   }
 }
+
 
 object ScalaPlugin extends ScalaModule {
   def scalaVersion = "2.12.4"

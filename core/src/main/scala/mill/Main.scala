@@ -225,7 +225,10 @@ class Main(config: Main.Config){
       } else {
         val interp = ammonite.Main(
           predefFile = Some(pwd / "build.sc")
-        ).instantiateInterpreter().right.get
+        ).instantiateInterpreter()match{
+          case Left(x) => println(x); ???
+          case Right(x) => x
+        }
 
         interp.initializePredef()
         val syntheticPath = pwd / 'out / "run.sc"

@@ -161,8 +161,21 @@ object ScalaModule{
   )
 }
 import ScalaModule._
-
-trait ScalaModule extends Module{
+trait TestScalaModule extends ScalaModule{
+  def testFramework: T[String]
+  def run() = T.command{
+    TestRunner(
+      testFramework(),
+      runDepClasspath().map(_.path) :+ compile().path,
+      Seq(compile().path)
+    )
+  }
+}
+trait ScalaModule extends Module{ outer =>
+  trait Tests extends TestScalaModule{
+    def scalaVersion = outer.scalaVersion()
+    override def projectDeps = Seq(outer)
+  }
   def scalaVersion: T[String]
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }

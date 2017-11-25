@@ -24,12 +24,15 @@ object GenIdea {
     val workspacePath = pwd / 'out
     val evaluator = new Evaluator(workspacePath, mapping, _ => ())
 
-    val modules = Mirror.traverse(obj, discovered.mirror){ (h, p) =>
-      h.node(obj, p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList) match {
-        case m: ScalaModule => Seq(p -> m)
-        case _ => Nil
+    val modules = Mirror
+      .traverse(obj, discovered.mirror){ (h, p) =>
+        h.node(obj, p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList) match {
+          case m: ScalaModule => Seq(p -> m)
+          case _ => Nil
+        }
       }
-    }
+      .map{case (p, v) => (p.reverse, v)}
+
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
         evaluator.evaluate(OSet(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
