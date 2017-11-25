@@ -21,20 +21,20 @@ object Core extends ScalaModule {
   def basePath = pwd / 'core
   override def sources = pwd/'core/'src/'main/'scala
 
-  val cross =
-    for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
-    yield new mill.Module{
-      def printIt() = T.command{
-        println("PRINTING IT: " + jarLabel)
-      }
-      def jar = T{
-        val dest = T.ctx().dest
-        ammonite.ops.mkdir(dest/ammonite.ops.up)
-        ammonite.ops.cp(Core.jar().path, dest)
-
-        PathRef(dest)
-      }
-    }
+//  val cross =
+//    for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
+//    yield new mill.Module{
+//      def printIt() = T.command{
+//        println("PRINTING IT: " + jarLabel)
+//      }
+//      def jar = T{
+//        val dest = T.ctx().dest
+//        ammonite.ops.mkdir(dest/ammonite.ops.up)
+//        ammonite.ops.cp(Core.jar().path, dest)
+//
+//        PathRef(dest)
+//      }
+//    }
 
   object test extends this.Tests{
     def basePath = pwd / 'core

@@ -1,6 +1,7 @@
 package mill.modules
 
 import java.io.FileOutputStream
+import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
@@ -66,7 +67,7 @@ object Jvm {
   def createAssembly(outputPath: Path,
                      inputPaths: Seq[Path],
                      mainClass: Option[String] = None,
-                     prependShellScript: String = "\n"): Option[Path] = {
+                     prependShellScript: String = ""): Option[Path] = {
     rm(outputPath)
 
     if(inputPaths.isEmpty) None
@@ -75,11 +76,14 @@ object Jvm {
 
       val output = new FileOutputStream(outputPath.toIO)
 
-      // Prepend shell script
-      output.write((prependShellScript + "\n").getBytes)   
+      // Prepend shell script and make it executable
       if (prependShellScript.nonEmpty) {
-        import ammonite.ops.ImplicitWd._
-        %%("chmod", "+x", outputPath)
+        output.write((prependShellScript + "\n").getBytes)
+        val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+        perms.add(PosixFilePermission.GROUP_EXECUTE)
+        perms.add(PosixFilePermission.OWNER_EXECUTE)
+        perms.add(PosixFilePermission.OTHERS_EXECUTE)
+        java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
       }
 
       val jar = new JarOutputStream(
