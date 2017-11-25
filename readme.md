@@ -195,7 +195,7 @@ of `Task`s.
 
 ### SBT
 
-Mill is build as a substitute for SBT, whose problems are
+Mill is built as a substitute for SBT, whose problems are
 [described here](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html).
 Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task
 graph with an Applicative "idiom bracket" macro) where it makes sense.
@@ -289,3 +289,26 @@ end of 2017.
 Until then, let's keep Mill private. If someone wants to poke their nose in and
 see what's going on, we should expect them to contribute code!
 
+### Release Criteria
+
+The final milestone before a public release, is for Mill to be able to fully
+substitute SBT in developing the following projects:
+
+- https://github.com/lihaoyi/mill: a single-scala-version, single-platform Scala
+  project
+
+- https://github.com/lihaoyi/acyclic: a Scala project cross-published against
+  Scala {2.10, 2.11, 2.12}
+
+- https://github.com/playframework/play-json: a Scala project with multiple
+  submodules partially-cross-published against Scala {2.10, 2.11, 2.12} X {JVM,
+  JS}
+
+- https://github.com/lihaoyi/utest: a Scala project fully-cross-published
+  against Scala {2.10, 2.11, 2.12} X {JVM, JS, Native}
+
+Each of these are relatively simple projects. Satisfying all of their
+requirements (codegen, building, testing, publishing, etc.) and being happy with
+the Mill code necessary to do so (both in their build code, as well as Mill's
+own implementation). Meeting that baseline is the minimum we should support
+before advertising Mill to the general community
