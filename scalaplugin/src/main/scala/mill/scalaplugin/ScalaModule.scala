@@ -63,7 +63,7 @@ object ScalaModule{
       val consoleAppender = MainAppender.defaultScreen(console)
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
+      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
     val compiler = new IncrementalCompilerImpl
@@ -76,18 +76,11 @@ object ScalaModule{
     val extra = Array(InterfaceUtil.t2(("key", "value")))
 
     var lastCompiledUnits: Set[String] = Set.empty
-    val progress = new CompileProgress {
+    val ignoreProgress = new CompileProgress {
       override def advance(current: Int, total: Int): Boolean = true
-
-      override def startUnit(phase: String, unitPath: String): Unit = {
-        println(unitPath)
-        lastCompiledUnits += unitPath
-      }
+      override def startUnit(phase: String, unitPath: String): Unit = ()
     }
 
-    println("Running Compile")
-    println(outputPath/'zinc)
-    println(exists(outputPath/'zinc))
     val zincFile = (outputPath/'zinc).toIO
     val store = FileAnalysisStore.binary(zincFile)
     val classesDir = (outputPath / 'classes).toIO
@@ -109,12 +102,11 @@ object ScalaModule{
           compilerCache,
           IncOptions.of(),
           reporter,
-          Some(progress),
+          Some(ignoreProgress),
           extra
         ),
         pr = {
           val prev = store.get()
-          println(prev)
           PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
         }
       ),
