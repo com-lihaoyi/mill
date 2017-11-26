@@ -117,7 +117,7 @@ object Main {
 
   def evaluate(evaluator: Evaluator,
                target: Task[Any],
-               watch: Path => Unit): Either[String, Int] = {
+               watch: Path => Unit): Option[String] = {
     val evaluated = evaluator.evaluate(OSet(target))
     evaluated.transitive.foreach {
       case t: define.Source => watch(t.handle.path)
@@ -125,10 +125,10 @@ object Main {
     }
 
     val errorStr =
-      (for((k, fs) <- evaluated.failing.items) yield {
+      (for((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match{
           case Left(t) => t.toString
-          case Right(t) => t.segments.mkString(".")
+          case Right(t) => renderSelector(t.segments.toList)
         }
         val fss = fs.map{
           case Result.Exception(t) => t.toString
@@ -138,10 +138,8 @@ object Main {
       }).mkString("\n")
 
     evaluated.failing.keyCount match {
-      case 0 =>
-        Right(0)
-      case n =>
-        Left(s"$n targets failed\n$errorStr")
+      case 0 => None
+      case n => Some(s"$n targets failed\n$errorStr")
     }
   }
 
@@ -154,26 +152,23 @@ object Main {
 
     val Seq(selectorString, rest @_*) = args
 
-    val res =
-      for {
-        sel <- parseArgs(selectorString)
-        disc <- discoverMirror(obj)
-        val crossSelectors = sel.map{case Mirror.Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
-        target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
-        val mapping = Discovered.mapping(obj)(disc)
-        val workspacePath = pwd / 'out
-        val evaluator = new Evaluator(workspacePath, mapping, log.info)
-        r <- evaluate(evaluator, target, watch)
-      } yield {
-        r
+    val res = for {
+      sel <- parseArgs(selectorString)
+      disc <- discoverMirror(obj)
+      crossSelectors = sel.map{
+        case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
+        case _ => Nil
       }
+      target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
+      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log.info)
+      _ <- evaluate(evaluator, target, watch).toLeft(())
+    } yield ()
 
     res match {
       case Left(err) =>
         log.error(err)
         1
-      case Right(n) =>
-        n
+      case Right(_) => 0
     }
   }
 
