@@ -141,7 +141,9 @@ class Source(path: ammonite.ops.Path) extends Task[PathRef]{
 object Task {
 
 
-
+  trait TaskModule extends Module {
+    def defaultCommandName(): String
+  }
   trait Module extends mill.define.Cacher[Target]{
     def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
   }

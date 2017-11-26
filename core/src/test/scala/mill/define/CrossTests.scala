@@ -14,8 +14,6 @@ object CrossTests extends TestSuite{
       Cross(List((List(1), "1"), (List(2), "2"), (List(3), "3")))
     )
 
-
-
     'double - assertEquals(
       for{
         a <- Cross(1, 2, 3)

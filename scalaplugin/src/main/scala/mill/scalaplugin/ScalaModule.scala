@@ -7,7 +7,7 @@ import java.util.Optional
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
-import mill.define.Task.Module
+import mill.define.Task.{Module, TaskModule}
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.util.OSet
@@ -166,9 +166,10 @@ object ScalaModule{
   )
 }
 import ScalaModule._
-trait TestScalaModule extends ScalaModule {
+trait TestScalaModule extends ScalaModule with TaskModule {
+  override def defaultCommandName() = "test"
   def testFramework: T[String]
-  def run(args: String*) = T.command{
+  def test(args: String*) = T.command{
     TestRunner(
       testFramework(),
       runDepClasspath().map(_.path) :+ compile().path,
@@ -177,7 +178,8 @@ trait TestScalaModule extends ScalaModule {
     )
   }
 }
-trait ScalaModule extends Module{ outer =>
+trait ScalaModule extends Module with TaskModule{ outer =>
+  def defaultCommandName() = "run"
   trait Tests extends TestScalaModule{
     def scalaVersion = outer.scalaVersion()
     override def projectDeps = Seq(outer)
@@ -274,6 +276,11 @@ trait ScalaModule extends Module{ outer =>
     val dest = T.ctx().dest
     createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
     PathRef(dest)
+  }
+
+  def run(mainClass: String) = T.command{
+    import ammonite.ops._, ImplicitWd._
+    %('java, "-cp", (runDepClasspath().map(_.path) :+ compile().path).mkString(":"), mainClass)
   }
 
   def console() = T.command{

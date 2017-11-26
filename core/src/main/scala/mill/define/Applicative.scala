@@ -21,6 +21,7 @@ object Applicative {
     def apply(): T = ???
   }
   type Id[+T] = T
+
   trait Applyer[W[_], T[_], Z[_], Ctx]{
     @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
     def ctx(): Ctx = ???

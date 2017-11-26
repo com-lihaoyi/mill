@@ -10,9 +10,8 @@ import mill.eval.{Evaluator, Result}
 import mill.util.OSet
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
-
+import mill.define.Task.TaskModule
 object Main {
-
   def parseSelector(input: String) = {
     import fastparse.all._
     val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! ).map(
@@ -55,10 +54,10 @@ object Main {
     remainingSelector match{
       case Mirror.Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Mirror.Segment.Label(last) :: Nil =>
-        def target: Option[Task[Any]] =
+        def target =
           hierarchy.targets
             .find(_.label == last)
-            .map{x => x.run(hierarchy.node(obj, remainingCrossSelectors))}
+            .map(x => Right(x.run(hierarchy.node(obj, remainingCrossSelectors))))
 
         def invokeCommand[V](mirror: Mirror[T, V], name: String) = for{
           cmd <- mirror.commands.find(_.name == name)
@@ -70,15 +69,18 @@ object Main {
           case _ => Left(s"Command failed $last")
         }
 
-        def runCommand = for{
+        def runDefault = for{
           (label, child) <- hierarchy.children
           if label == last
-          res <- invokeCommand(child, "run")
+          res <- child.node(obj, remainingCrossSelectors) match{
+            case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
+            case _ => None
+          }
         } yield res
 
         def command = invokeCommand(hierarchy, last)
 
-        command orElse target.map(Right(_)) orElse runCommand.headOption match{
+        command orElse target orElse runDefault.headOption.flatten match{
           case None =>  Left("Cannot resolve task " + renderSelector(
             (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
           )
