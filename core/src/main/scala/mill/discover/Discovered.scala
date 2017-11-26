@@ -36,7 +36,7 @@ object Discovered {
   def applyImpl[T: c.WeakTypeTag](c: Context): c.Expr[Discovered[T]] = {
 
     import c.universe._
-    val tpe = c.weakTypeTag[T].tpe
+    val baseType = c.weakTypeTag[T].tpe
     def rec(segments: List[Option[String]],
             t: c.Type): Tree = {
 
@@ -77,6 +77,7 @@ object Discovered {
         q"($name, ${rec(Some(name) :: segments, m.typeSignature.finalResultType)})"
       }
 
+
       val crossName = q"${TermName(c.freshName())}"
       val hierarchySelector = {
         val base = q"${TermName(c.freshName())}"
@@ -84,7 +85,7 @@ object Discovered {
           case (prefix, (Some(name), i)) => q"$prefix.${TermName(name)}"
           case (prefix, (None, i)) => q"$prefix.apply($crossName($i):_*)"
         }
-        q"($base: $tpe, $crossName: List[List[Any]]) => $ident"
+        q"($base: $baseType, $crossName: List[List[Any]]) => $ident.asInstanceOf[$t]"
       }
 
       val commands =
@@ -92,7 +93,7 @@ object Discovered {
           .asInstanceOf[Seq[c.Tree]]
           .toList
 
-      q"""mill.discover.Mirror[$tpe, $t](
+      q"""mill.discover.Mirror[$baseType, $t](
         $hierarchySelector,
         $commands,
         $targets,
@@ -101,7 +102,7 @@ object Discovered {
       )"""
     }
 
-    val res = q"new _root_.mill.discover.Discovered(${rec(Nil, tpe)})"
+    val res = q"new _root_.mill.discover.Discovered(${rec(Nil, baseType)})"
 //    println(res)
     c.Expr[Discovered[T]](res)
   }

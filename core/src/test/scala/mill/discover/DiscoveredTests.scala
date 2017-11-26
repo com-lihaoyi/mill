@@ -6,7 +6,7 @@ import mill.discover.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
 import mill.discover.Mirror.Segment.Label
-import mill.util.TestGraphs.nestedModule
+import mill.util.TestGraphs.{TraitWithModuleObject, nestedModule}
 object DiscoveredTests extends TestSuite{
 
   val tests = Tests{
@@ -34,6 +34,18 @@ object DiscoveredTests extends TestSuite{
         (List(Label("single")), nestedModule.single)
       )
       assert(mapped.toSet == expected.toSet)
+    }
+
+    'traitWithModule - {
+      val discovered = Discovered[TraitWithModuleObject.type]
+      val mapped = discovered.targets(TraitWithModuleObject).map(x => x.segments -> x.target)
+      val expected = Seq(
+        (
+          List(Label("TraitModule"), Label("testFramework")),
+          TraitWithModuleObject.TraitModule.testFramework
+        )
+      )
+      assert(mapped == expected)
     }
 
     'commands - {

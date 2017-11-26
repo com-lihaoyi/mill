@@ -167,6 +167,17 @@ object TestGraphs{
 
   }
 
+  trait TraitWithModule extends Module{ outer =>
+    object TraitModule extends Module{
+      def testFramework = T{ "mill.UTestFramework" }
+      def test() = T.command{ ()/*donothing*/ }
+    }
+  }
+
+
+  // Make sure nested objects inherited from traits work
+  object TraitWithModuleObject extends TraitWithModule
+
 
   object singleCross{
     val cross =

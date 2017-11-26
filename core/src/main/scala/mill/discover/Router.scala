@@ -264,7 +264,9 @@ class Router [C <: Context](val c: C) {
       if member.isTerm
       memTerm = member.asTerm
       if memTerm.isMethod
+      if !memTerm.isModule
     } yield memTerm.asMethod
+
     extractableMembers flatMap { case memTerm =>
       if (memTerm.isSetter || memTerm.isConstructor || memTerm.isGetter) Nil
       else Seq(memTerm)

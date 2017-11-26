@@ -2,9 +2,18 @@ import ammonite.ops._
 import mill._
 import mill.scalaplugin._
 
-
-object Core extends ScalaModule {
+trait MillModule extends ScalaModule{ outer =>
   def scalaVersion = "2.12.4"
+  override def sources = basePath/'src/'main/'scala
+  object test extends this.Tests{
+    def basePath = outer.basePath
+    override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
+    override def sources = basePath/'src/'test/'scala
+    def testFramework = "mill.UTestFramework"
+  }
+}
+
+object Core extends MillModule {
   override def compileIvyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
   )
@@ -19,7 +28,6 @@ object Core extends ScalaModule {
   )
 
   def basePath = pwd / 'core
-  override def sources = pwd/'core/'src/'main/'scala
 
   val cross =
     for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
@@ -35,22 +43,12 @@ object Core extends ScalaModule {
         PathRef(dest)
       }
     }
-
-  object test extends this.Tests{
-    def basePath = pwd / 'core
-    override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
-    override def sources = pwd/'core/'src/'test/'scala
-    def testFramework = "mill.UTestFramework"
-  }
 }
 
+object ScalaPlugin extends MillModule {
 
-object ScalaPlugin extends ScalaModule {
-  def scalaVersion = "2.12.4"
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
-  override def sources = pwd/'scalaplugin/'src/'main/'scala
-
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
     "exec java -cp \"$0\" mill.scalaplugin.Main \"$@\""
