@@ -33,6 +33,7 @@ object ScalaModule{
                    sources: Path,
                    compileClasspath: Seq[Path],
                    outputPath: Path): PathRef = {
+    val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
     def grepJar(s: String) = {
       compileClasspath
@@ -45,7 +46,7 @@ object ScalaModule{
       loader = getClass.getClassLoader,
       libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
       compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
-      allJars = compileClasspath.toArray.map(_.toIO),
+      allJars = compileClasspathFiles,
       explicitActual = None
     )
     val scalac = ZincUtil.scalaCompiler(
@@ -87,12 +88,14 @@ object ScalaModule{
     println("Running Compile")
     println(outputPath/'zinc)
     println(exists(outputPath/'zinc))
-    val store = FileAnalysisStore.binary((outputPath/'zinc).toIO)
+    val zincFile = (outputPath/'zinc).toIO
+    val store = FileAnalysisStore.binary(zincFile)
+    val classesDir = (outputPath / 'classes).toIO
     val newResult = ic.compile(
       ic.inputs(
-        classpath = compileClasspath.map(_.toIO).toArray,
+        classpath = classesDir +: compileClasspathFiles,
         sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
-        classesDirectory = (outputPath / 'classes).toIO,
+        classesDirectory = classesDir,
         scalacOptions = Array(),
         javacOptions = Array(),
         maxErrors = 10,
@@ -102,7 +105,7 @@ object ScalaModule{
         setup = ic.setup(
           lookup,
           skip = false,
-          (outputPath/'zinc_cache).toIO,
+          zincFile,
           compilerCache,
           IncOptions.of(),
           reporter,
