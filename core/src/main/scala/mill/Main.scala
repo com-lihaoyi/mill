@@ -10,7 +10,6 @@ import mill.eval.{Evaluator, Result}
 import mill.util.OSet
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
-import mill.define.Task.TaskModule
 
 object Main {
 
@@ -61,26 +60,25 @@ object Main {
             .find(_.label == last)
             .map{x => x.run(hierarchy.node(obj, remainingCrossSelectors))}
 
-        def targetModule: Seq[Task[Any]] = for{
+        def invokeCommand[V](mirror: Mirror[T, V], name: String) = for{
+          cmd <- mirror.commands.find(_.name == name)
+        } yield cmd.invoke(
+          mirror.node(obj, remainingCrossSelectors),
+          ammonite.main.Scripts.groupArgs(rest.toList)
+        ) match {
+          case Router.Result.Success(v) => Right(v)
+          case _ => Left(s"Command failed $last")
+        }
+
+        def runCommand = for{
           (label, child) <- hierarchy.children
           if label == last
-          node <- child.node(obj, remainingCrossSelectors) match{
-            case x: TaskModule => Some(x)
-            case _ => None
-          }
-        } yield node.self()
+          res <- invokeCommand(child, "run")
+        } yield res
 
-        def command =
-          for(x <- hierarchy.commands.find(_.name == last))
-          yield x.invoke(
-            hierarchy.node(obj, remainingCrossSelectors),
-            ammonite.main.Scripts.groupArgs(rest.toList)
-          ) match {
-            case Router.Result.Success(v) => Right(v)
-            case _ => Left(s"Command failed $last")
-          }
+        def command = invokeCommand(hierarchy, last)
 
-        command orElse target.map(Right(_)) orElse targetModule.headOption.map(Right(_)) match{
+        command orElse target.map(Right(_)) orElse runCommand.headOption match{
           case None =>  Left("Cannot resolve task " + renderSelector(
             (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
           )

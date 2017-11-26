@@ -40,7 +40,8 @@ object TestRunner {
 
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],
-            testClassfilePath: Seq[Path]): mill.eval.Result[Unit] = {
+            testClassfilePath: Seq[Path],
+            args: Seq[String]): mill.eval.Result[Unit] = {
     val outerClassLoader = getClass.getClassLoader
     val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray){
       override def findClass(name: String) = {
@@ -58,7 +59,7 @@ object TestRunner {
 
     val testClasses = runTests(cl, framework, testClassfilePath)
 
-    val runner = framework.runner(Array(), Array(), cl)
+    val runner = framework.runner(args.toArray, args.toArray, cl)
 
     val tasks = runner.tasks(
       for((cls, fingerprint) <- testClasses.toArray)

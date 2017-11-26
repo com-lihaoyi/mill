@@ -7,7 +7,7 @@ import java.util.Optional
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
-import mill.define.Task.{Module, TaskModule}
+import mill.define.Task.Module
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.util.OSet
@@ -166,16 +166,16 @@ object ScalaModule{
   )
 }
 import ScalaModule._
-trait TestScalaModule extends ScalaModule with TaskModule{
+trait TestScalaModule extends ScalaModule {
   def testFramework: T[String]
-  def run() = T.command{
+  def run(args: String*) = T.command{
     TestRunner(
       testFramework(),
       runDepClasspath().map(_.path) :+ compile().path,
-      Seq(compile().path)
+      Seq(compile().path),
+      args
     )
   }
-  def self() = run()
 }
 trait ScalaModule extends Module{ outer =>
   trait Tests extends TestScalaModule{
@@ -274,13 +274,6 @@ trait ScalaModule extends Module{ outer =>
     val dest = T.ctx().dest
     createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
     PathRef(dest)
-  }
-
-
-
-  def run(mainClass: String) = T.command{
-    import ammonite.ops._, ImplicitWd._
-    %('java, "-cp", (runDepClasspath().map(_.path) :+ compile().path).mkString(":"), mainClass)
   }
 
   def console() = T.command{
