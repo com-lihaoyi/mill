@@ -23,7 +23,7 @@ object Core extends MillModule {
     Dep("com.lihaoyi", "pprint", "0.5.3"),
     Dep.Point("com.lihaoyi", "ammonite", "1.0.3"),
     Dep("com.typesafe.play", "play-json", "2.6.6"),
-    Dep("org.scala-sbt", "zinc", "1.0.3"),
+    Dep("org.scala-sbt", "zinc", "1.0.5"),
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
   )
 
