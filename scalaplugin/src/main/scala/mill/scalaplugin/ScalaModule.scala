@@ -8,9 +8,8 @@ import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
-import mill.eval.{Evaluator, PathRef}
-import mill.modules.Jvm.{createAssembly, createJar}
-import mill.util.OSet
+import mill.eval.PathRef
+import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
@@ -282,17 +281,14 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
 
   def run(mainClass: String) = T.command{
-    import ammonite.ops._, ImplicitWd._
-    %('java, "-cp", (runDepClasspath().map(_.path) :+ compile().path).mkString(":"), mainClass)
+    subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().path)
   }
 
   def console() = T.command{
-    import ammonite.ops._, ImplicitWd._
-    %('java,
-      "-cp",
-      (runDepClasspath().map(_.path) :+ compile().path).mkString(":"),
-      "scala.tools.nsc.MainGenericRunner",
-      "-usejavacp"
+    subprocess(
+      mainClass = "scala.tools.nsc.MainGenericRunner",
+      classPath = externalCompileDepClasspath().map(_.path) :+ compile().path,
+      options = Seq("-usejavacp")
     )
   }
 }

@@ -15,9 +15,10 @@ import scala.collection.mutable
 object Jvm {
 
   def subprocess(mainClass: String,
-                 classPath: Seq[Path]) = {
+                 classPath: Seq[Path],
+                 options: Seq[String] = Seq.empty) = {
     import ammonite.ops.ImplicitWd._
-    %("java", "-cp", classPath.mkString(":"), mainClass)
+    %("java", "-cp", classPath.mkString(":"), mainClass, options)
   }
 
   private def createManifest(mainClass: Option[String]) = {
