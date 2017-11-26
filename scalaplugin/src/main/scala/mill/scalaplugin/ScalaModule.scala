@@ -8,9 +8,8 @@ import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
-import mill.eval.{Evaluator, PathRef}
-import mill.modules.Jvm.{createAssembly, createJar}
-import mill.util.OSet
+import mill.eval.PathRef
+import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
@@ -32,6 +31,8 @@ object ScalaModule{
   def compileScala(scalaVersion: String,
                    sources: Path,
                    compileClasspath: Seq[Path],
+                   scalacOptions: Seq[String],
+                   javacOptions: Seq[String],
                    outputPath: Path): PathRef = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
@@ -63,7 +64,7 @@ object ScalaModule{
       val consoleAppender = MainAppender.defaultScreen(console)
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Warn) :: Nil)
+      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
     val compiler = new IncrementalCompilerImpl
@@ -76,18 +77,11 @@ object ScalaModule{
     val extra = Array(InterfaceUtil.t2(("key", "value")))
 
     var lastCompiledUnits: Set[String] = Set.empty
-    val progress = new CompileProgress {
+    val ignoreProgress = new CompileProgress {
       override def advance(current: Int, total: Int): Boolean = true
-
-      override def startUnit(phase: String, unitPath: String): Unit = {
-        println(unitPath)
-        lastCompiledUnits += unitPath
-      }
+      override def startUnit(phase: String, unitPath: String): Unit = ()
     }
 
-    println("Running Compile")
-    println(outputPath/'zinc)
-    println(exists(outputPath/'zinc))
     val zincFile = (outputPath/'zinc).toIO
     val store = FileAnalysisStore.binary(zincFile)
     val classesDir = (outputPath / 'classes).toIO
@@ -96,8 +90,8 @@ object ScalaModule{
         classpath = classesDir +: compileClasspathFiles,
         sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
         classesDirectory = classesDir,
-        scalacOptions = Array(),
-        javacOptions = Array(),
+        scalacOptions = scalacOptions.toArray,
+        javacOptions = javacOptions.toArray,
         maxErrors = 10,
         sourcePositionMappers = Array(),
         order = CompileOrder.Mixed,
@@ -109,12 +103,11 @@ object ScalaModule{
           compilerCache,
           IncOptions.of(),
           reporter,
-          Some(progress),
+          Some(ignoreProgress),
           extra
         ),
         pr = {
           val prev = store.get()
-          println(prev)
           PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
         }
       ),
@@ -195,6 +188,9 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def runIvyDeps = T{ Seq[Dep]() }
   def basePath: Path
 
+  def scalacOptions = T{ Seq.empty[String] }
+  def javacOptions = T{ Seq.empty[String] }
+
   val repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2")
@@ -262,7 +258,13 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def compile = T.persistent{
-    compileScala(scalaVersion(), sources().path, compileDepClasspath().map(_.path), T.ctx().dest)
+    compileScala(
+      scalaVersion(),
+      sources().path,
+      compileDepClasspath().map(_.path),
+      scalacOptions(),
+      javacOptions(),
+      T.ctx().dest)
   }
   def assembly = T{
     val dest = T.ctx().dest
@@ -282,17 +284,14 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
 
   def run(mainClass: String) = T.command{
-    import ammonite.ops._, ImplicitWd._
-    %('java, "-cp", (runDepClasspath().map(_.path) :+ compile().path).mkString(":"), mainClass)
+    subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().path)
   }
 
   def console() = T.command{
-    import ammonite.ops._, ImplicitWd._
-    %('java,
-      "-cp",
-      (runDepClasspath().map(_.path) :+ compile().path).mkString(":"),
-      "scala.tools.nsc.MainGenericRunner",
-      "-usejavacp"
+    subprocess(
+      mainClass = "scala.tools.nsc.MainGenericRunner",
+      classPath = externalCompileDepClasspath().map(_.path) :+ compile().path,
+      options = Seq("-usejavacp")
     )
   }
 }
