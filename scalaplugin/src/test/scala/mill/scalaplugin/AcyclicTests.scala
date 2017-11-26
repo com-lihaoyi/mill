@@ -21,7 +21,7 @@ object AcyclicBuild{
       def version = "0.1.7"
       override def sources = basePath/'src/'main/'scala
       def scalaVersion = crossVersion
-      override def compileIvyDeps = Seq(
+      override def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
       )
       object test extends this.Tests{
@@ -91,7 +91,7 @@ object AcyclicTests extends TestSuite{
 
       val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
 
-      // Tests can run
+//       Tests can run
 //      val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").test.test())
     }
   }

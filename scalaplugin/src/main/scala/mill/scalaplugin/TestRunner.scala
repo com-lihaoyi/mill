@@ -43,7 +43,9 @@ object TestRunner {
             testClassfilePath: Seq[Path],
             args: Seq[String]): mill.eval.Result[Unit] = {
     val outerClassLoader = getClass.getClassLoader
-    val cl = new URLClassLoader(entireClasspath.map(_.toIO.toURI.toURL).toArray){
+    val cl = new URLClassLoader(
+      entireClasspath.map(_.toIO.toURI.toURL).toArray,
+      ClassLoader.getSystemClassLoader().getParent()){
       override def findClass(name: String) = {
         if (name.startsWith("sbt.testing.")){
           outerClassLoader.loadClass(name)
