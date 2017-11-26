@@ -9,7 +9,7 @@ import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.Module
 import mill.eval.{Evaluator, PathRef}
-import mill.modules.Jvm.{createAssembly, createJar}
+import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import mill.util.OSet
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -277,6 +277,13 @@ trait ScalaModule extends Module{ outer =>
     val dest = T.ctx().dest
     createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
     PathRef(dest)
+  }
+
+  def run(mainClass: String) = T.command {
+    subprocess(
+      mainClass,
+      runDepClasspath().map(_.path) :+ compile().path
+    )
   }
 
   def console() = T.command{
