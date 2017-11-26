@@ -52,7 +52,7 @@ object ScalaModule{
     )
     val scalac = ZincUtil.scalaCompiler(
       scalaInstance,
-      grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.3.jar")
+      grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
     )
 
     mkdir(outputPath)
@@ -150,7 +150,7 @@ object ScalaModule{
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
-    Dep("org.scala-sbt", s"compiler-bridge", "1.0.3")
+    Dep("org.scala-sbt", "compiler-bridge", "1.0.5")
   )
   def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
