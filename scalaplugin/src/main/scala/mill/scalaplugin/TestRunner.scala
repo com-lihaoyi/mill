@@ -37,11 +37,20 @@ object TestRunner {
     }
     testClasses
   }
-
+  def main(args: Array[String]): Unit = {
+    val result = apply(
+      frameworkName = args(0),
+      entireClasspath = args(1).split(" ").map(Path(_)),
+      testClassfilePath = args(2).split(" ").map(Path(_)),
+      args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
+    )
+    val outputPath = args(4)
+    ammonite.ops.write(Path(outputPath), upickle.default.write(result))
+  }
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],
             testClassfilePath: Seq[Path],
-            args: Seq[String]): mill.eval.Result[Unit] = {
+            args: Seq[String]): Option[String] = {
     val outerClassLoader = getClass.getClassLoader
     val cl = new URLClassLoader(
       entireClasspath.map(_.toIO.toURI.toURL).toArray,
@@ -93,13 +102,13 @@ object TestRunner {
     }
     val doneMsg = runner.done()
     val msg =
-      if (doneMsg.trim.nonEmpty)doneMsg
+      if (doneMsg.trim.nonEmpty) doneMsg
       else{
         val grouped = events.groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
         grouped.map{case (k, v) => k + ": " + v}.mkString(",")
       }
     println(msg)
-    if (events.count(Set(Status.Error, Status.Failure)) == 0) mill.eval.Result.Success(())
-    else mill.eval.Result.Failure(msg)
+    if (events.count(Set(Status.Error, Status.Failure)) == 0) None
+    else Some(msg)
   }
 }

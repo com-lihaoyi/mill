@@ -26,6 +26,7 @@ object AcyclicBuild{
       )
       object test extends this.Tests{
         def basePath = AcyclicTests.workspacePath
+        override def forkWorkingDir = pwd/'scalaplugin/'src/'test/'resource/'acyclic
         override def ivyDeps = Seq(
           Dep("com.lihaoyi", "utest", "0.6.0")
         )
@@ -38,28 +39,29 @@ object AcyclicTests extends TestSuite{
   val workspacePath = pwd / 'target / 'workspace / 'acyclic
   val srcPath = pwd / 'scalaplugin / 'src / 'test / 'resource / 'acyclic
   val tests = Tests{
-    'acyclic - {
-      rm(workspacePath)
-      mkdir(workspacePath/up)
-      cp(srcPath, workspacePath)
-      val mapping = Discovered.mapping(AcyclicBuild)
-      def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
-        val evaluated = evaluator.evaluate(OSet(t))
+    rm(workspacePath)
+    mkdir(workspacePath/up)
+    cp(srcPath, workspacePath)
+    val mapping = Discovered.mapping(AcyclicBuild)
+    def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
+      val evaluator = new Evaluator(workspacePath, mapping, _ => ())
+      val evaluated = evaluator.evaluate(OSet(t))
 
-        if (evaluated.failing.keyCount == 0){
-          Right(Tuple2(
-            evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
-            evaluated.evaluated.collect{
-              case t: Target[_] if mapping.contains(t) => t
-              case t: mill.define.Command[_] => t
-            }.size
-          ))
-        }else{
-          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
-        }
+      if (evaluated.failing.keyCount == 0){
+        Right(Tuple2(
+          evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
+          evaluated.evaluated.collect{
+            case t: Target[_] if mapping.contains(t) => t
+            case t: mill.define.Command[_] => t
+          }.size
+        ))
+      }else{
+        Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
       }
+    }
+    val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
 
+    'acyclic - {
       // We can compile
       val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
       val outputPath = pathRef.path
@@ -74,7 +76,6 @@ object AcyclicTests extends TestSuite{
       val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
       assert(evalCount2 == 0)
 
-      val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
       write.append(packageScala, "\n")
 
       // Caches are invalidated if code is changed
@@ -89,10 +90,25 @@ object AcyclicTests extends TestSuite{
 
       write.write(packageScala, read(packageScala).dropRight(3))
 
-      val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").compile)
 
-//       Tests can run
-//      val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").test.test())
+      // Still doesn't work =(
+      // val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+    }
+
+    'tests - {
+      // Tests can run
+      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+
+      // Be broken
+      write.append(packageScala, "\n}}")
+      eval(AcyclicBuild.acyclic("2.12.4").test.compile)
+      val Left(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+
+      // And run again when fixed
+      write.write(packageScala, read(packageScala).dropRight(3))
+
+      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
     }
   }
 }

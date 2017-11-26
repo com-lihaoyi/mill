@@ -16,9 +16,9 @@ object Jvm {
 
   def subprocess(mainClass: String,
                  classPath: Seq[Path],
-                 options: Seq[String] = Seq.empty) = {
-    import ammonite.ops.ImplicitWd._
-    %("java", "-cp", classPath.mkString(":"), mainClass, options)
+                 options: Seq[String] = Seq.empty,
+                 workingDir: Path = ammonite.ops.pwd) = {
+    %("java", "-cp", classPath.mkString(":"), mainClass, options)(workingDir)
   }
 
   private def createManifest(mainClass: Option[String]) = {

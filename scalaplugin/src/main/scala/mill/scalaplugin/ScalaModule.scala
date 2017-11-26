@@ -2,19 +2,21 @@ package mill
 package scalaplugin
 
 import java.io.File
+import java.net.URLClassLoader
 import java.util.Optional
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
 import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
-import mill.eval.PathRef
+import mill.eval.{PathRef, Result}
+import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-
+import mill.util.JsonFormatters._
 
 
 
@@ -165,13 +167,39 @@ import ScalaModule._
 trait TestScalaModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFramework: T[String]
+
+  def forkWorkingDir = ammonite.ops.pwd
+  def forkTest(args: String*) = T.command{
+    val outputPath = tmp.dir()/"out.json"
+    Jvm.subprocess(
+      "mill.scalaplugin.TestRunner",
+      getClass.getClassLoader.asInstanceOf[URLClassLoader].getURLs.toList.map(
+        u => Path(new java.io.File(u.toURI))
+      ),
+      Seq(
+        testFramework(),
+        (runDepClasspath().map(_.path) :+ compile().path).mkString(" "),
+        Seq(compile().path).mkString(" "),
+        args.mkString(" "),
+        outputPath.toString
+      ),
+      workingDir = forkWorkingDir
+    )
+    upickle.default.read[Option[String]](ammonite.ops.read(outputPath)) match{
+      case Some(errMsg) => Result.Failure(errMsg)
+      case None => Result.Success(())
+    }
+  }
   def test(args: String*) = T.command{
     TestRunner(
       testFramework(),
       runDepClasspath().map(_.path) :+ compile().path,
       Seq(compile().path),
       args
-    )
+    ) match{
+      case Some(errMsg) => Result.Failure(errMsg)
+      case None => Result.Success(())
+    }
   }
 }
 trait ScalaModule extends Module with TaskModule{ outer =>
