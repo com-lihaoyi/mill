@@ -31,6 +31,8 @@ object ScalaModule{
   def compileScala(scalaVersion: String,
                    sources: Path,
                    compileClasspath: Seq[Path],
+                   scalacOptions: Seq[String],
+                   javacOptions: Seq[String],
                    outputPath: Path): PathRef = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
@@ -95,8 +97,8 @@ object ScalaModule{
         classpath = classesDir +: compileClasspathFiles,
         sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
         classesDirectory = classesDir,
-        scalacOptions = Array(),
-        javacOptions = Array(),
+        scalacOptions = scalacOptions.toArray,
+        javacOptions = javacOptions.toArray,
         maxErrors = 10,
         sourcePositionMappers = Array(),
         order = CompileOrder.Mixed,
@@ -194,6 +196,9 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def runIvyDeps = T{ Seq[Dep]() }
   def basePath: Path
 
+  def scalacOptions = T{ Seq.empty[String] }
+  def javacOptions = T{ Seq.empty[String] }
+
   val repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2")
@@ -261,7 +266,13 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def compile = T.persistent{
-    compileScala(scalaVersion(), sources().path, compileDepClasspath().map(_.path), T.ctx().dest)
+    compileScala(
+      scalaVersion(),
+      sources().path,
+      compileDepClasspath().map(_.path),
+      scalacOptions(),
+      javacOptions(),
+      T.ctx().dest)
   }
   def assembly = T{
     val dest = T.ctx().dest
