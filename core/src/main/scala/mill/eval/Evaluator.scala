@@ -1,13 +1,14 @@
 package mill.eval
 
 import ammonite.ops._
+import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task}
 import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.util
 import mill.util.{Args, MultiBiMap, OSet}
-
 import scala.collection.mutable
+
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], LabelledTarget[_]],
                 log: String => Unit){
@@ -62,9 +63,16 @@ class Evaluator(workspacePath: Path,
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
+    // check if the build itself has changed
+    val classLoaderSig = Thread.currentThread().getContextClassLoader match {
+      case scl: SpecialClassLoader => scl.classpathSignature
+      case _ => Nil
+    }
+
     val inputsHash =
       externalInputs.map(results).toVector.hashCode +
-      group.toIterator.map(_.sideHash).toVector.hashCode()
+      group.toIterator.map(_.sideHash).toVector.hashCode() +
+      classLoaderSig.hashCode()
 
     terminal match{
       case Left(task) =>
