@@ -100,7 +100,15 @@ object Main {
             }
 
           case Mirror.Segment.Cross(cross) =>
-            resolve(tail, hierarchy.crossChildren.get._2, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+            val Some((crossGen, childMirror)) = hierarchy.crossChildren
+            val crossOptions = crossGen(hierarchy.node(obj, remainingCrossSelectors))
+            if (crossOptions.contains(cross)){
+              resolve(tail, childMirror, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+            }else{
+              Left("Cannot resolve cross " + renderSelector(newRevSelectorsSoFar.reverse))
+            }
+
+
         }
 
       case Nil => Left("Selector cannot be empty")

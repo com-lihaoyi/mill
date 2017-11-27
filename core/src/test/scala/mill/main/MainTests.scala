@@ -44,8 +44,8 @@ object MainTests extends TestSuite{
         'pos1 - check(singleCross, "cross[210].suffix", Right(singleCross.cross("210").suffix))
         'pos2 - check(singleCross, "cross[211].suffix", Right(singleCross.cross("211").suffix))
         'neg1 - check(singleCross, "cross[210].doesntExist", Left("Cannot resolve task cross[210].doesntExist"))
-  //      'neg2 - check(outer, "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
-  //      'neg2 - check(outer, "cross[doesntExist].target", Left("Cannot resolve cross cross[doesntExist]"))
+        'neg2 - check(singleCross, "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
+        'neg2 - check(singleCross, "cross[doesntExist].suffix", Left("Cannot resolve cross cross[doesntExist]"))
       }
       'double - {
 
