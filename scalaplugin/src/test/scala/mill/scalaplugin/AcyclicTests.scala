@@ -31,6 +31,12 @@ object AcyclicBuild{
         )
         override def sources = basePath/'src/'test/'scala
         def testFramework = "utest.runner.Framework"
+
+        override def organization: T[String] = "com.lihaoyi"
+
+        override def name: T[String] = "acyclic-tests"
+
+        override def version: T[String] = "0.1.7"
       }
     }
 }

@@ -10,6 +10,10 @@ trait MillModule extends ScalaModule{ outer =>
     override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
     override def sources = basePath/'src/'test/'scala
     def testFramework = "mill.UTestFramework"
+    
+    def organization = "com.lihaoyi"
+    def name = "mill-test"
+    def version = "0.0.1" 
   }
 }
 
@@ -43,6 +47,11 @@ object Core extends MillModule {
         PathRef(dest)
       }
     }
+
+  def organization = "com.lihaoyi"
+  def name = "mill"
+  def version = "0.0.1"
+  override def useFullScalaVersionForPublish: T[Boolean] = true
 }
 
 object ScalaPlugin extends MillModule {
@@ -52,4 +61,9 @@ object ScalaPlugin extends MillModule {
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
     "exec java -cp \"$0\" mill.scalaplugin.Main \"$@\""
+
+  def organization = "com.lihaoyi"
+  def name = "mill-scala"
+  def version = "0.0.1"
+  override def useFullScalaVersionForPublish: T[Boolean] = true
 }

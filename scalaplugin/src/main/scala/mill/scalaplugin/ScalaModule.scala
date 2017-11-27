@@ -10,6 +10,7 @@ import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
 import mill.eval.PathRef
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.scalaplugin.publish.Dependency
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
@@ -267,7 +268,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       T.ctx().dest)
   }
   def assembly = T{
-    val dest = T.ctx().dest
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
     createAssembly(
       dest,
       (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists),
@@ -278,7 +283,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def classpath = T{ Seq(resources(), compile()) }
   def jar = T{
-    val dest = T.ctx().dest
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
     createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
     PathRef(dest)
   }
@@ -294,4 +303,60 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       options = Seq("-usejavacp")
     )
   }
+
+  def organization: T[String]
+  def name: T[String]
+  def version: T[String]
+  // build artifact name as "mill-2.12.4" instead of "mill-2.12"
+  def useFullScalaVersionForPublish: T[Boolean] = T { false }
+  //def crossScalaVersions: T[Seq[String]] = T { Seq (scalaBinaryVersion()) }
+
+//  def pomSettings = T {
+//    import publish._
+//    PomSettings("mill", "url", Seq.empty, SCM("", ""), Seq.empty)
+//  }
+
+  def publishLocal() = T.command {
+    import publish._
+
+    println("Building jar")
+    val file = jar()
+    val scalaFull = scalaVersion()
+    val scalaBin = scalaBinaryVersion()
+    val useFullVersion = useFullScalaVersionForPublish()
+    val deps = ivyDeps()
+    //TODO: should we check that dependencies are exists for all cross versions?
+
+    val dependencies = deps.map(d => PublishU.convertDep(d, scalaFull, scalaBin))
+    val artScalaVersion = if (useFullVersion) scalaFull else scalaBin
+    val artifact = ScalaArtifact(organization(), name(), version(), artScalaVersion)
+    val r = LocalPublisher.publish(file, artifact, dependencies)
+    println("DONE")
+  }
+
+
+}
+
+object PublishU {
+
+  import publish._
+
+  //TODO more scopes
+  def convertDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
+    dep match {
+      case d: Dep.Java =>
+        import d.dep._
+        val art = JavaArtifact(module.organization, module.name, version)
+        Dependency(art, Scope.Compile)
+      case d: Dep.Scala =>
+        import d.dep._
+        val art = ScalaArtifact(module.organization, module.name, version, scalaBin)
+        Dependency(art, Scope.Compile)
+      case d: Dep.Point =>
+        import d.dep._
+        val art = ScalaArtifact(module.organization, module.name, version, scalaFull)
+        Dependency(art, Scope.Compile)
+    }
+  }
+
 }
