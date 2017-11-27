@@ -292,7 +292,8 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       compileDepClasspath().map(_.path),
       scalacOptions(),
       javacOptions(),
-      T.ctx().dest)
+      T.ctx().dest
+    )
   }
   def assembly = T{
     val dest = T.ctx().dest

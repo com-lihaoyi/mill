@@ -85,30 +85,22 @@ object AcyclicTests extends TestSuite{
       // Compilation can fail on broken code, and work when fixed
       write.append(packageScala, "\n}}")
       val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
-
       assert(ex.isInstanceOf[sbt.internal.inc.CompileFailed])
 
       write.write(packageScala, read(packageScala).dropRight(3))
-
       val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").compile)
 
-      // Still doesn't work =(
-      // val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
-    }
-
-    'tests - {
-      // Tests can run
+      // Tests compile & run
       val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
 
-      // Be broken
+      // Tests can be broken
       write.append(packageScala, "\n}}")
-      eval(AcyclicBuild.acyclic("2.12.4").test.compile)
       val Left(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
 
-      // And run again when fixed
+      // Tests can be fixed
       write.write(packageScala, read(packageScala).dropRight(3))
-
       val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
     }
+
   }
 }
