@@ -6,6 +6,9 @@ trait MillModule extends ScalaModule{ outer =>
   def scalaVersion = "2.12.4"
   override def sources = basePath/'src/'main/'scala
   object test extends this.Tests{
+    override def projectDeps =
+      if (this == Core.test) Seq(Core)
+      else Seq(outer, Core.test)
     def basePath = outer.basePath
     override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
     override def sources = basePath/'src/'test/'scala
@@ -51,5 +54,5 @@ object ScalaPlugin extends MillModule {
   def basePath = pwd / 'scalaplugin
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
-    "exec java -cp \"$0\" mill.scalaplugin.Main \"$@\""
+    """exec java -cp "$0" mill.Main "$@" """
 }

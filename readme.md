@@ -212,6 +212,157 @@ This is similar to SBT's `:=`/`.value` macros, or `scala-async`'s
 their code in a "direct" style and have it "automatically" lifted into a graph
 of `Task`s.
 
+## How Mill aims for Simple
+
+Why should you expect that the Mill build tool can achieve simple, easy &
+flexible, where other build tools in the past have failed?
+
+Build tools inherently encompass a huge number of different concepts:
+
+- What "Tasks" depends on what?
+- How do I define my own tasks?
+- What needs to run in what order to do what I want?
+- What can be parallelized and what can't?
+- How do tasks pass data to each other? What data do they pass?
+- What tasks are cached? Where?
+- How are tasks run from the command line?
+- How do you deal with the repetition inherent a build? (e.g. compile, run &
+  test tasks for every "module")
+- What is a "Module"? How do they relate to "Tasks"?
+- How do you configure a Module to do something different?
+- How are cross-builds (across different configurations) handled?
+
+These are a lot of questions to answer, and we haven't even started talking
+about the actually compiling/running any code yet! If each such facet of a build
+was modelled separately, it's easy to have an explosion of different concepts
+that would make a build tool hard to understand.
+
+Before you continue, take a moment to think: how would you answer to each of
+those questions using an existing build tool you are familiar with? Different
+tools like [SBT](http://www.scala-sbt.org/),
+[Fake](https://fake.build/legacy-index.html), [Gradle](https://gradle.org/) or
+[Grunt](https://gruntjs.com/) have very different answers.
+
+Mill aims to provide the answer to these questions using as few, as familiar
+core concepts as possible. The entire Mill build is oriented around a few
+concepts:
+
+- The Object Hierarchy
+- The Call Graph
+- Instantiating Traits & Classes
+
+These concepts are already familiar to anyone experienced in Scala (or any other
+programming language...), but are enough to answer all of the complicated
+build-related questions listed above.
+
+## The Object Hierarchy
+
+The module hierarchy is the graph of objects, starting from the root of the
+`build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
+the `Target`s you can run.
+
+A `Target`'s position in the module hierarchy tells you many things. For
+example, a `Target` at position `Core.test.compile` would:
+
+- Cache output metadata at `out/Core/test/compile.mill.json`
+
+- Output files to the folder `out/Core/test/compile/`
+
+- Be runnable from the command-line via `mill run Core.test.compile`
+
+- Be referenced programmatically (from other `Target`s) via `Core.test.compile`
+
+From the position of any `Target` within the object hierarchy, you immediately
+know how to run it, find it's output files, find any caches, or refer to it from
+other `Target`s. You know up-front where the `Target`'s data "lives" on disk, and
+are sure that it will never clash with any other `Target`'s data.
+
+## The Call Graph
+
+The Scala call graph of "which target references which other target" is core to
+how Mill operates. This graph is reified via the `T{...}` macro to make it
+available to the Mill execution engine at runtime. The call graph tells you:
+
+- Which `Target`s depend on which other `Target`s
+
+- For a given `Target` to be built, what other `Target`s need to be run and in
+  what order
+
+- Which `Target`s can be evaluated in parallel
+
+- What source files need to be watched when using `--watch` on a given target (by
+  tracing the call graph up to the `Source`s)
+
+- What a given `Target` makes available for other `Target`s to depend on (via
+  it's return value)
+
+- Defining your own task that depends on others is as simple as `def foo =
+  T{...}`
+
+The call graph within your Scala code is essentially a data-flow graph: by
+defining a snippet of code:
+
+```scala
+val b = ...
+val c = ...
+val d = ...
+val a = f(b, c, d)
+```
+
+you are telling everyone that the value `a` depends on the values of `b` `c` and
+`d`, processed by `f`. A build tool needs exactly the same data structure:
+knowing what `Target` depends on what other `Target`s, and what processing it
+does on its inputs!
+
+With Mill, you can take the Scala call graph, wrap everything in the `T{...}`
+macro, and get a `Target`-dependency graph that matches exactly the call-graph
+you already had:
+
+```scala
+val b = T{ ... }
+val c = T{ ... }
+val d = T{ ... }
+val a = T{ f(b(), c(), d()) }
+```
+
+Thus, if you are familiar with how data flows through a normal Scala program,
+you already know how data flows through a Mill build! The Mill build evaluation
+may be incremental, it may cache things, it may read and write from disk, but
+the fundamental syntax, and the data-flow that syntax represents, is unchanged
+from your normal Scala code.
+
+## Instantiating Traits & Classes
+
+Classes and traits are a common way of re-using common data structures in Scala:
+if you have a bunch of fields which are related and you want to make multiple
+copies of those fields, you put them in a class/trait and instantiate it over
+and over.
+
+In Mill, inheriting from traits is the primary way for re-using common parts of
+a build:
+
+- Scala "project"s with multiple related `Target`s within them, are just a
+  `Trait` you instantiate
+
+- Replacing the default `Target`s within a project, making them do new
+  things or depend on new `Target`s, is simply `override`-ing them during
+  inheritence.
+
+- Modifying the default `Target`s within a project, making use of the old value
+  to compute the new value, is simply `override`ing them and using `super.foo()`
+
+- Required configuration parameters within a `project` are `abstract` members.
+
+- Cross-builds are modelled as instantiating a (possibly anonymous) class
+  multiple times, each instance with it's own distinct set of `Target`s
+
+In normal Scala, you bundle up common fields & functionality into a `class` you
+can instantiate over and over, and you can override the things you want to
+customize. Similarly, in Mill, you bundle up common parts of a build into
+`trait`s you can instantiate over and over, and you can override the things you
+want to customize. "Subprojects", "cross-builds", and many other concepts are
+reduced to simply instantiating a `trait` over and over, with tweaks.
+
 ## Prior Work
 
 ### SBT

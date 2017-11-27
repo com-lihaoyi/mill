@@ -62,8 +62,9 @@ object AcyclicTests extends TestSuite{
     val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
 
     'acyclic - {
+      val scalaVersion = "2.12.4"
       // We can compile
-      val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       val outputPath = pathRef.path
       val outputFiles = ls.rec(outputPath)
       assert(
@@ -73,33 +74,33 @@ object AcyclicTests extends TestSuite{
       )
 
       // Compilation is cached
-      val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       assert(evalCount2 == 0)
 
       write.append(packageScala, "\n")
 
       // Caches are invalidated if code is changed
-      val Right((_, evalCount3)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right((_, evalCount3)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       assert(evalCount3 > 0)
 
       // Compilation can fail on broken code, and work when fixed
       write.append(packageScala, "\n}}")
-      val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       assert(ex.isInstanceOf[sbt.internal.inc.CompileFailed])
 
       write.write(packageScala, read(packageScala).dropRight(3))
-      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
 
       // Tests compile & run
-      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+      val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
 
       // Tests can be broken
       write.append(packageScala, "\n}}")
-      val Left(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+      val Left(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
 
       // Tests can be fixed
       write.write(packageScala, read(packageScala).dropRight(3))
-      val Right(_) = eval(AcyclicBuild.acyclic("2.12.4").test.forkTest())
+      val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
     }
 
   }

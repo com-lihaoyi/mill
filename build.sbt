@@ -11,7 +11,7 @@ val sharedSettings = Seq(
   assemblyOption in assembly := (assemblyOption in assembly).value.copy(
     prependShellScript = Some(
       // G1 Garbage Collector is awesome https://github.com/lihaoyi/Ammonite/issues/216
-      Seq("#!/usr/bin/env sh", """exec java -jar -Xmx500m -XX:+UseG1GC $JAVA_OPTS "$0" "$@"""")
+      Seq("#!/usr/bin/env sh", """exec java -cp "$0" mill.Main "$@" """)
     )
   ),
   assembly in Test := {
