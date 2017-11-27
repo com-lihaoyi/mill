@@ -61,8 +61,22 @@ object AcyclicTests extends TestSuite{
     }
     val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
 
-    'acyclic - {
-      val scalaVersion = "2.12.4"
+    'scala210 - check("2.10.6")
+    'scala211 - check("2.11.8")
+    'scala212 - check("2.12.4")
+
+    val allBinaryVersions = Seq("2.10", "2.11", "2.12")
+    def check(scalaVersion: String) = {
+      // Dependencies are right; make sure every dependency is of the correct
+      // binary Scala version, except for the compiler-bridge which is of the
+      // same version as the host classpath.
+      val Right((compileDepClasspath, _)) = eval(AcyclicBuild.acyclic(scalaVersion).compileDepClasspath)
+      val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+      val compileDeps = compileDepClasspath.map(_.path.toString())
+      val offBinaryVersions = allBinaryVersions.filter(_ != binaryScalaVersion)
+      val offVersionedDeps = compileDeps.filter(p => offBinaryVersions.exists(p.contains))
+      assert(offVersionedDeps.forall(_.contains("compiler-bridge")))
+
       // We can compile
       val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       val outputPath = pathRef.path

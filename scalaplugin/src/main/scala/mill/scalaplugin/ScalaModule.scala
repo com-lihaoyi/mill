@@ -44,18 +44,33 @@ object ScalaModule{
         .getOrElse(throw new Exception("Cannot find " + s))
         .toIO
     }
+
+    val outerClassLoader = getClass.getClassLoader
+
+    val compilerBridgeJar = grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
+    val zincClassLoader = new URLClassLoader(
+      compileClasspathFiles.filter(_ != compilerBridgeJar).map(_.toURI.toURL),
+      ClassLoader.getSystemClassLoader.getParent
+    ){
+      override def loadClass(name: String): Class[_] = {
+        Option(findLoadedClass(name)) orElse
+        (try Some(findClass(name)) catch {case e: ClassNotFoundException => None}) getOrElse {
+          // Try to limit `outerClassLoader` to only stuff from the compiler-bridge jar
+          if (name.startsWith("xsbt.")) outerClassLoader.loadClass(name)
+          else super.loadClass(name)
+        }
+      }
+    }
     val scalaInstance = new ScalaInstance(
       version = scalaVersion,
-      loader = getClass.getClassLoader,
+      loader = zincClassLoader,
       libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
       compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
       allJars = compileClasspathFiles,
       explicitActual = None
     )
-    val scalac = ZincUtil.scalaCompiler(
-      scalaInstance,
-      grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
-    )
+
+    val scalac = ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
 
     mkdir(outputPath)
 
@@ -78,7 +93,6 @@ object ScalaModule{
     val reporter = new ManagedLoggedReporter(10, logger)
     val extra = Array(InterfaceUtil.t2(("key", "value")))
 
-    var lastCompiledUnits: Set[String] = Set.empty
     val ignoreProgress = new CompileProgress {
       override def advance(current: Int, total: Int): Boolean = true
       override def startUnit(phase: String, unitPath: String): Unit = ()
@@ -102,7 +116,7 @@ object ScalaModule{
           lookup,
           skip = false,
           zincFile,
-          compilerCache,
+          new FreshCompilerCache(),
           IncOptions.of(),
           reporter,
           Some(ignoreProgress),
@@ -122,6 +136,7 @@ object ScalaModule{
         newResult.setup()
       )
     )
+    zincClassLoader.close()
 
     PathRef(outputPath/'classes)
   }
