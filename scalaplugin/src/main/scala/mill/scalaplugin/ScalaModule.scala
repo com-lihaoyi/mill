@@ -198,13 +198,37 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     Seq(resources(), compile().classes)).map(_.path).filter(exists)
   }
   def assembly = T{
-    createAssembly(assemblyClasspath(), prependShellScript = prependShellScript())
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
+    createAssembly(dest, assemblyClasspath(), prependShellScript = prependShellScript())
   }
 
   def classpath = T{ Seq(resources(), compile().classes) }
 
   def jar = T{
-    createJar(Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
+    createJar(dest, Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
+    PathRef(dest)
+  }
+
+  def sourcesJar = T{
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}-sources.jar"
+    val dest = outDir/jarName
+
+    val inputs = Seq(sources(), resources()).map(_.path).filter(exists)
+
+    createJar(dest, inputs)
+    PathRef(dest)
   }
 
   def run() = T.command{
@@ -223,6 +247,27 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       options = Seq("-usejavacp")
     )
   }
+
+  def organization: T[String] = "acme"
+  def name: T[String] = pwd.last.toString
+  def version: T[String] = "0.0.1-SNAPSHOT"
+
+  // build artifact name as "mill-2.12.4" instead of "mill-2.12"
+  def useFullScalaVersionForPublish: Boolean = false
+
+  def publishLocal() = T.command {
+    import publish._
+    val file = jar()
+    val scalaFull = scalaVersion()
+    val scalaBin = scalaBinaryVersion()
+    val useFullVersion = useFullScalaVersionForPublish
+    val deps = ivyDeps()
+    val dependencies = deps.map(d => Artifact.fromDep(d, scalaFull, scalaBin))
+    val artScalaVersion = if (useFullVersion) scalaFull else scalaBin
+    val artifact = ScalaArtifact(organization(), name(), version(), artScalaVersion)
+    LocalPublisher.publish(file, artifact, dependencies)
+  }
+
 }
 trait SbtScalaModule extends ScalaModule { outer =>
   def basePath: Path

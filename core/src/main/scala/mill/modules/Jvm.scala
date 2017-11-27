@@ -92,9 +92,9 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Seq[Path], mainClass: Option[String] = None)
+  // TODO: outputPath default to ctx.dest
+  def createJar(outputPath: Path, inputPaths: Seq[Path], mainClass: Option[String] = None)
                (implicit ctx: Ctx.DestCtx): PathRef = {
-    val outputPath = ctx.dest
     rm(outputPath)
     if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
@@ -127,11 +127,12 @@ object Jvm {
   }
 
 
-  def createAssembly(inputPaths: Seq[Path],
+  // TODO: outputPath default to ctx.dest
+  def createAssembly(outputPath: Path,
+                      inputPaths: Seq[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")
                     (implicit ctx: Ctx.DestCtx): PathRef = {
-    val outputPath = ctx.dest
     rm(outputPath)
 
     if(inputPaths.nonEmpty) {

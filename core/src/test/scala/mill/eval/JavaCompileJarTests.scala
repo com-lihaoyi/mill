@@ -40,7 +40,7 @@ object JavaCompileJarTests extends TestSuite{
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ Jvm.createJar(Seq(resourceRoot().path, classFiles().path)) }
+        def jar = T{ Jvm.createJar(T.ctx().dest, Seq(resourceRoot().path, classFiles().path)) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
