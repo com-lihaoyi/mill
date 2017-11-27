@@ -254,7 +254,9 @@ class Router [C <: Context](val c: C) {
   import c.universe._
   def getValsOrMeths(curCls: Type): Iterable[MethodSymbol] = {
     def isAMemberOfAnyRef(member: Symbol) = {
-      weakTypeOf[AnyRef].members.exists(_.name == member.name)
+      // AnyRef is an alias symbol, we go to the real "owner" of these methods
+      val anyRefSym = c.mirror.universe.definitions.ObjectClass
+      member.owner == anyRefSym
     }
     val extractableMembers = for {
       member <- curCls.members
