@@ -12,10 +12,9 @@ object AcyclicBuild{
     for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
     yield new SbtScalaModule{outer =>
       def basePath = AcyclicTests.workspacePath
-      def organization = "com.lihaoyi"
-      def name = "acyclic"
-
-      def version = "0.1.7"
+      override def organization = "com.lihaoyi"
+      override def name = "acyclic"
+      override def version = "0.1.7"
       def scalaVersion = crossVersion
       def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())

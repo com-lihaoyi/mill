@@ -72,6 +72,11 @@ object Core extends MillModule {
         PathRef(dest)
       }
     }
+
+  override def organization = "com.lihaoyi"
+  override def name = "mill"
+  override def version = "0.0.1"
+  override def useFullScalaVersionForPublish = true
 }
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
