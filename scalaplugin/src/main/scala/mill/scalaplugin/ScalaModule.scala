@@ -29,29 +29,28 @@ object ScalaModule{
       Locate.definesClass(classpathEntry)
   }
 
-  val compilerCache = new CompilerCache(10)
+  val compilerCache = new CompilerCache(2)
   def compileScala(scalaVersion: String,
                    sources: Path,
                    compileClasspath: Seq[Path],
+                   compilerClasspath: Seq[Path],
+                   compilerBridge: Seq[Path],
                    scalacOptions: Seq[String],
                    javacOptions: Seq[String],
                    outputPath: Path): PathRef = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
-    def grepJar(s: String) = {
-      compileClasspath
+    def grepJar(classPath: Seq[Path], s: String) = {
+      classPath
         .find(_.toString.endsWith(s))
         .getOrElse(throw new Exception("Cannot find " + s))
         .toIO
     }
 
     val outerClassLoader = getClass.getClassLoader
-
-    val compilerBridgeJar = grepJar(s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
-    val zincClassLoader = new URLClassLoader(
-      compileClasspathFiles.filter(_ != compilerBridgeJar).map(_.toURI.toURL),
-      ClassLoader.getSystemClassLoader.getParent
-    ){
+    val compilerJars = compilerClasspath.toArray.map(_.toIO)
+    val compilerBridgeJar = grepJar(compilerBridge, s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
+    val zincClassLoader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null){
       override def loadClass(name: String): Class[_] = {
         Option(findLoadedClass(name)) orElse
         (try Some(findClass(name)) catch {case e: ClassNotFoundException => None}) getOrElse {
@@ -64,9 +63,9 @@ object ScalaModule{
     val scalaInstance = new ScalaInstance(
       version = scalaVersion,
       loader = zincClassLoader,
-      libraryJar = grepJar(s"scala-library-$scalaVersion.jar"),
-      compilerJar = grepJar(s"scala-compiler-$scalaVersion.jar"),
-      allJars = compileClasspathFiles,
+      libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
+      compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+      allJars = compilerJars,
       explicitActual = None
     )
 
@@ -116,7 +115,7 @@ object ScalaModule{
           lookup,
           skip = false,
           zincFile,
-          new FreshCompilerCache(),
+          compilerCache,
           IncOptions.of(),
           reporter,
           Some(ignoreProgress),
@@ -136,7 +135,6 @@ object ScalaModule{
         newResult.setup()
       )
     )
-    zincClassLoader.close()
 
     PathRef(outputPath/'classes)
   }
@@ -148,8 +146,10 @@ object ScalaModule{
                           sources: Boolean = false): Seq[PathRef] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
-      case Dep.Scala(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
-      case Dep.Point(dep) => dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
+      case Dep.Scala(dep) =>
+        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
+      case Dep.Point(dep) =>
+        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
     }.toSet
     val start = Resolution(flattened)
 
@@ -167,7 +167,7 @@ object ScalaModule{
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
-    Dep("org.scala-sbt", "compiler-bridge", "1.0.5")
+    Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
   )
   def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
@@ -246,7 +246,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def upstreamRunClasspath = T{
     Task.traverse(
       for (p <- projectDeps)
-        yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
+      yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
     )
   }
 
@@ -260,40 +260,64 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     Task.traverse(projectDeps.map(_.compile))
   }
 
+  def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false) = T.task{
+    resolveDependencies(
+      repositories,
+      scalaVersion(),
+      scalaBinaryVersion(),
+      deps()
+    )
+  }
   def externalCompileDepClasspath = T{
     upstreamCompileDepClasspath().flatten ++
-      resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
-      )
+    resolveDeps(
+      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
+    )()
   }
   def externalCompileDepSources: T[Seq[PathRef]] = T{
     upstreamCompileDepSources().flatten ++
-      resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()),
-        sources = true
-      )
+    resolveDeps(
+      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
+      sources = true
+    )()
   }
+  /**
+    * Things that need to be on the classpath in order for this code to compile;
+    * might be less than the runtime classpath
+    */
   def compileDepClasspath: T[Seq[PathRef]] = T{
     upstreamCompileOutputClasspath() ++
-      depClasspath() ++
-      externalCompileDepClasspath()
+    depClasspath() ++
+    externalCompileDepClasspath()
   }
 
+  /**
+    * Strange compiler-bridge jar that the Zinc incremental compile needs
+    */
+  def compilerBridgeClasspath: T[Seq[PathRef]] = T{
+    resolveDeps(
+      T.task{Seq(Dep("org.scala-sbt", "compiler-bridge", "1.0.5"))},
+    )()
+  }
+
+  /**
+    * Classpath of the Scala Compiler & any compiler plugins
+    */
+  def scalaCompilerClasspath: T[Seq[PathRef]] = T{
+    resolveDeps(
+      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())},
+    )()
+  }
+
+  /**
+    * Things that need to be on the classpath in order for this code to run
+    */
   def runDepClasspath: T[Seq[PathRef]] = T{
     upstreamRunClasspath().flatten ++
-      depClasspath() ++
-      resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
-      )
+    depClasspath() ++
+    resolveDeps(
+      T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())},
+    )()
   }
 
   def prependShellScript: T[String] = T{ "" }
@@ -305,6 +329,8 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       scalaVersion(),
       sources().path,
       compileDepClasspath().map(_.path),
+      scalaCompilerClasspath().map(_.path),
+      compilerBridgeClasspath().map(_.path),
       scalacOptions(),
       javacOptions(),
       T.ctx().dest
