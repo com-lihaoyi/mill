@@ -327,7 +327,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def compile = T.persistent{
     compileScala(
       scalaVersion(),
-      sources().map(_.path),
+      Task.traverse(sources)().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
@@ -339,7 +339,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def assembly = T{
     val dest = T.ctx().dest
 
-    val allRes = (runDepClasspath().filter(_.path.ext != "pom") ++ resources() :+ compile())
+    val allRes = (runDepClasspath().filter(_.path.ext != "pom") ++ Task.traverse(resources)() :+ compile())
     createAssembly(
       dest,
       allRes.map(_.path).filter(exists),
@@ -348,10 +348,10 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     PathRef(dest)
   }
 
-  def classpath = T{ resources() :+ compile() }
+  def classpath = T{ Task.traverse(resources)() :+ compile() }
   def jar = T{
     val dest = T.ctx().dest
-    createJar(dest, (resources() :+ compile()).map(_.path).filter(exists))
+    createJar(dest, (Task.traverse(resources)() :+ compile()).map(_.path).filter(exists))
     PathRef(dest)
   }
 

@@ -36,9 +36,13 @@ object JavaCompileJarTests extends TestSuite{
         //           resourceRoot ---->  jar
         def sourceRoot = T.sources{ sourceRootPath }
         def resourceRoot = T.sources{ resourceRootPath }
-        def allSources = T{ sourceRoot().map(src => ls.rec(src.path).map(PathRef(_))).flatten }
+        def allSources = T {
+          Task.traverse(sourceRoot).map{x =>
+            x.map(y => ls.rec(y.path).map(PathRef(_)) ).flatten
+          }
+        }
         def classFiles = T{ compileAll(T.ctx().dest, allSources()) }
-        def jar =  T{ jarUp(resourceRoot.unwrapped :+ classFiles) }
+        def jar = T{ jarUp(resourceRoot :+ classFiles) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
@@ -93,7 +97,7 @@ object JavaCompileJarTests extends TestSuite{
 
       append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(resourceRoot), expected = OSet())
+      check(targets = OSet(resourceRoot: _*), expected = OSet())
       check(targets = OSet(allSources), expected = OSet(allSources))
       check(targets = OSet(jar), expected = OSet(classFiles, jar))
 

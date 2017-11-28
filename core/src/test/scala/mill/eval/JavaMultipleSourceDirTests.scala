@@ -29,9 +29,13 @@ object JavaMultipleSourceDirTests extends TestSuite{
 
         def sourceRoot = T.sources(sourceRootPath, sourceRootPath2)
         def resourceRoot = T.sources{ resourceRootPath }
-        def allSources = T{ sourceRoot().map(src => ls.rec(src.path).map(PathRef(_))).flatten }
+        def allSources = T {
+          Task.traverse(sourceRoot).map{x =>
+            x.map(y => ls.rec(y.path).map(PathRef(_)) ).flatten
+          }
+        }
         def classFiles = T{ compileAll(T.ctx().dest, allSources()) }
-        def jar =  T{ jarUp(resourceRoot.unwrapped :+ classFiles) }
+        def jar = T{ jarUp(resourceRoot :+ classFiles) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)

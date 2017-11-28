@@ -8,12 +8,6 @@ import mill.modules.Jvm.jarUp
 import mill.util.OSet
 
 class JavaCompileUtils(path: Path, mapping: Map[mill.define.Target[_],mill.discover.Mirror.LabelledTarget[_]]) {
-  def compileAll(dest: Path, sources: Seq[PathRef]) = {
-    mkdir(dest)
-    import ammonite.ops._
-    %("javac", sources.map(_.path.toString()), "-d", dest)(wd = dest)
-    PathRef(dest)
-  }
 
   def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluator = new Evaluator(path, mapping, _ => ())
