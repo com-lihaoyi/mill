@@ -2,12 +2,9 @@ package mill.scalaplugin
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Cross, Target, Task}
+import mill.define.{Cross,Task}
 import mill.discover.Discovered
-import mill.eval.{Evaluator, PathRef, Result}
-import mill.modules.Jvm.jarUp
-import mill.{Module, T}
-import mill.util.OSet
+import mill.eval.Result
 import utest._
 import mill.util.JsonFormatters._
 object AcyclicBuild{
@@ -43,22 +40,8 @@ object AcyclicTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(AcyclicBuild)
-    def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-      val evaluator = new Evaluator(workspacePath, mapping, _ => ())
-      val evaluated = evaluator.evaluate(OSet(t))
+    def eval[T](t: Task[T]) = TestEvaluator.eval(mapping, workspacePath)(t)
 
-      if (evaluated.failing.keyCount == 0){
-        Right(Tuple2(
-          evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
-          evaluated.evaluated.collect{
-            case t: Target[_] if mapping.contains(t) => t
-            case t: mill.define.Command[_] => t
-          }.size
-        ))
-      }else{
-        Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
-      }
-    }
     val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
 
     'scala210 - check("2.10.6")
