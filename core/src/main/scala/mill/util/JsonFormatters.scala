@@ -13,7 +13,11 @@ trait JsonFormatters {
     o => upickle.Js.Str(o.toString()),
     {case upickle.Js.Str(json) => Path(json)},
   )
-
+  implicit val pathsReadWrite = upickle.default.ReadWriter[Seq[ammonite.ops.Path]](
+    o => upickle.Js.Str(upickle.default.write(o.map(pathReadWrite.write))),
+    {case upickle.Js.Str(json) => upickle.default.read[Seq[upickle.Js.Value]](json).map(pathReadWrite.read)},
+  )
+  
   implicit val bytesReadWrite = upickle.default.ReadWriter[Bytes](
     o => upickle.Js.Str(javax.xml.bind.DatatypeConverter.printBase64Binary(o.array)),
     {case upickle.Js.Str(json) => new Bytes(javax.xml.bind.DatatypeConverter.parseBase64Binary(json))}

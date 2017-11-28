@@ -34,11 +34,11 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T.source{ sourceRootPath }
-        def resourceRoot = T.source{ resourceRootPath }
-        def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
+        def sourceRoot = T.sources{ sourceRootPath }
+        def resourceRoot = T.sources{ resourceRootPath }
+        def allSources = T{ sourceRoot().map(src => ls.rec(src.path).map(PathRef(_))).flatten }
         def classFiles = T{ compileAll(T.ctx().dest, allSources()) }
-        def jar = T{ jarUp(resourceRoot, classFiles) }
+        def jar =  T{ jarUp(resourceRoot.unwrapped :+ classFiles) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
@@ -46,34 +46,10 @@ object JavaCompileJarTests extends TestSuite{
       }
 
       import Build._
-      val mapping = Discovered.mapping(Build)
+      implicit val mapping = Discovered.mapping(Build)
 
-      def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
-        val evaluated = evaluator.evaluate(OSet(t))
-
-        if (evaluated.failing.keyCount == 0){
-          Right(Tuple2(
-            evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
-            evaluated.evaluated.collect{
-              case t: Target[_] if mapping.contains(t) => t
-              case t: mill.define.Command[_] => t
-            }.size
-          ))
-        }else{
-          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
-        }
-
-      }
-      def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
-
-        val evaluated = evaluator.evaluate(targets)
-          .evaluated
-          .flatMap(_.asTarget)
-          .filter(mapping.contains)
-        assert(evaluated == expected)
-      }
+      val jcu = new JavaCompileUtils(workspacePath, mapping)
+      import jcu._
 
       def append(path: Path, txt: String) = ammonite.ops.write.append(path, txt)
 

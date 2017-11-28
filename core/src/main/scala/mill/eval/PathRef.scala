@@ -64,5 +64,11 @@ case class PathRef(path: ammonite.ops.Path, quick: Boolean = false){
 
 object PathRef{
   private implicit val pathFormat: upickle.default.ReadWriter[Path] = JsonFormatters.pathReadWrite
-  implicit def jsonFormatter: upickle.default.ReadWriter[PathRef] = upickle.default.macroRW
+  implicit def pathRefFormatter: upickle.default.ReadWriter[PathRef] = upickle.default.macroRW
+  private implicit val pathsFormat: upickle.default.ReadWriter[Seq[Path]] = JsonFormatters.pathsReadWrite
+  implicit def pathsRefFormatter: upickle.default.ReadWriter[Seq[PathRef]] =
+    upickle.default.ReadWriter[Seq[PathRef]](
+      o => upickle.Js.Str(upickle.default.write(o.map(pathRefFormatter.write))),
+      {case upickle.Js.Str(json) => upickle.default.read[Seq[upickle.Js.Value]](json).map(pathRefFormatter.read)},
+    )
 }

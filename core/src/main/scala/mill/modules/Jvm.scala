@@ -5,7 +5,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
-import mill.define.Task
+import mill.define.{Task, Target}
 import mill.eval.PathRef
 import mill.util.Args
 
@@ -129,7 +129,7 @@ object Jvm {
     }
   }
 
-  def jarUp(roots: Task[PathRef]*) = new Task[PathRef]{
+  def jarUp(roots: Seq[Task[PathRef]]) = new Task[PathRef]{
 
     val inputs = roots
     def evaluate(args: Args) = {
