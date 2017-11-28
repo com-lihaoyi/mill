@@ -31,7 +31,7 @@ object ScalaModule{
 
   val compilerCache = new CompilerCache(2)
   def compileScala(scalaVersion: String,
-                   sources: Path,
+                   sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
@@ -103,7 +103,7 @@ object ScalaModule{
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesDir +: compileClasspathFiles,
-        sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
+        sources = sources.map(s => ls.rec(s)).flatten.filter(_.isFile).map(_.toIO).toArray,
         classesDirectory = classesDir,
         scalacOptions = scalacOptions.toArray,
         javacOptions = javacOptions.toArray,
@@ -322,12 +322,12 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.source{ basePath / 'src }
-  def resources = T.source{ basePath / 'resources }
+  def sources = T.sources{ basePath / 'src }
+  def resources = T.sources{ basePath / 'resources }
   def compile = T.persistent{
     compileScala(
       scalaVersion(),
-      sources().path,
+      Task.traverse(sources)().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
@@ -338,18 +338,20 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
   def assembly = T{
     val dest = T.ctx().dest
+
+    val allRes = (runDepClasspath().filter(_.path.ext != "pom") ++ Task.traverse(resources)() :+ compile())
     createAssembly(
       dest,
-      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists),
+      allRes.map(_.path).filter(exists),
       prependShellScript = prependShellScript()
     )
     PathRef(dest)
   }
 
-  def classpath = T{ Seq(resources(), compile()) }
+  def classpath = T{ Task.traverse(resources)() :+ compile() }
   def jar = T{
     val dest = T.ctx().dest
-    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
+    createJar(dest, (Task.traverse(resources)() :+ compile()).map(_.path).filter(exists))
     PathRef(dest)
   }
 

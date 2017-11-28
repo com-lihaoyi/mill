@@ -73,7 +73,7 @@ object GenIdea {
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
       val Seq(sourcePath: PathRef) =
-        evaluator.evaluate(OSet(mod.sources)).values
+        mod.sources.map(s => evaluator.evaluate(OSet(s)).values).flatten
 
       val (destPath, jsonPath) = evaluator.resolveDestPaths(mapping(mod.compile))
 

@@ -44,7 +44,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
 
   def command[T](t: Result[T]): Command[T] = macro commandImpl[T]
 
-  def source(path: ammonite.ops.Path) = new Source(path)
+  def sources(paths: ammonite.ops.Path*) = paths.map(new Source(_))
 
   def command[T](t: Task[T]): Command[T] = new Command(t)
 
@@ -128,6 +128,7 @@ class Persistent[+T](t: Task[T]) extends Target[T] {
   override def flushDest = false
   override def asPersistent = Some(this)
 }
+
 object Source{
   implicit def apply(p: ammonite.ops.Path) = new Source(p)
 }
