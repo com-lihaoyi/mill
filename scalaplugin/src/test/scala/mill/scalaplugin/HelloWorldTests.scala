@@ -17,6 +17,10 @@ trait HelloWorldModule extends ScalaModule {
 
 object HelloWorld extends HelloWorldModule
 
+object HelloWorldWithMain extends HelloWorldModule {
+  override def mainClass = Some("Main")
+}
+
 object HelloWorldWarnUnused extends HelloWorldModule {
   override def scalacOptions = T(Seq("-Ywarn-unused"))
 }
@@ -200,7 +204,23 @@ object HelloWorldTests extends TestSuite {
           jarFiles.forall(expectedFiles.contains)
         )
       }
-      // TODO: check that we can `java -jar` produced jar
+      'runJar - {
+        val Right((result, evalCount)) =
+          eval(HelloWorldWithMain.jar, Discovered.mapping(HelloWorldWithMain))
+
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+
+        %("scala", result.path)
+
+        val runResult = workspacePath / "hello-mill"
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
     }
   }
 

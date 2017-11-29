@@ -224,6 +224,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     override def projectDeps = Seq(outer)
   }
   def scalaVersion: T[String]
+  def mainClass: T[Option[String]] = None
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
   def ivyDeps = T{ Seq[Dep]() }
@@ -349,7 +350,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def classpath = T{ Seq(resources(), compile()) }
   def jar = T{
     val dest = T.ctx().dest
-    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
+    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists), mainClass())
     PathRef(dest)
   }
 
