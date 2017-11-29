@@ -1,7 +1,5 @@
 package mill.scalaplugin.publish
 
-import scala.xml._
-
 trait IvyFile {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
@@ -15,6 +13,8 @@ trait IvyFile {
     head + xml
   }
 
+  // can't use scala-xml
+  // it escapes '->' inside dependency conf
   def ivyXml(
     artifact: Artifact,
     dependencies: Seq[Dependency],

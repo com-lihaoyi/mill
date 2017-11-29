@@ -292,6 +292,19 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     PathRef(dest)
   }
 
+  def sourcesJar = T{
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}-sources.jar"
+    val dest = outDir/jarName
+
+    val inputs = Seq(sources(), resources()).map(_.path).filter(exists)
+
+    createJar(dest, inputs)
+    PathRef(dest)
+  }
+
   def run(mainClass: String) = T.command{
     subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().path)
   }
@@ -309,54 +322,19 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def version: T[String]
   // build artifact name as "mill-2.12.4" instead of "mill-2.12"
   def useFullScalaVersionForPublish: T[Boolean] = T { false }
-  //def crossScalaVersions: T[Seq[String]] = T { Seq (scalaBinaryVersion()) }
-
-//  def pomSettings = T {
-//    import publish._
-//    PomSettings("mill", "url", Seq.empty, SCM("", ""), Seq.empty)
-//  }
 
   def publishLocal() = T.command {
     import publish._
-
-    println("Building jar")
     val file = jar()
     val scalaFull = scalaVersion()
     val scalaBin = scalaBinaryVersion()
     val useFullVersion = useFullScalaVersionForPublish()
     val deps = ivyDeps()
-    //TODO: should we check that dependencies are exists for all cross versions?
-
-    val dependencies = deps.map(d => PublishU.convertDep(d, scalaFull, scalaBin))
+    val dependencies = deps.map(d => Artifact.fromDep(d, scalaFull, scalaBin))
     val artScalaVersion = if (useFullVersion) scalaFull else scalaBin
     val artifact = ScalaArtifact(organization(), name(), version(), artScalaVersion)
-    val r = LocalPublisher.publish(file, artifact, dependencies)
-    println("DONE")
-  }
-
-
-}
-
-object PublishU {
-
-  import publish._
-
-  //TODO more scopes
-  def convertDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
-    dep match {
-      case d: Dep.Java =>
-        import d.dep._
-        val art = JavaArtifact(module.organization, module.name, version)
-        Dependency(art, Scope.Compile)
-      case d: Dep.Scala =>
-        import d.dep._
-        val art = ScalaArtifact(module.organization, module.name, version, scalaBin)
-        Dependency(art, Scope.Compile)
-      case d: Dep.Point =>
-        import d.dep._
-        val art = ScalaArtifact(module.organization, module.name, version, scalaFull)
-        Dependency(art, Scope.Compile)
-    }
+    LocalPublisher.publish(file, artifact, dependencies)
   }
 
 }
+

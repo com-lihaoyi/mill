@@ -1,5 +1,6 @@
 package mill.scalaplugin.publish
 
+import mill.scalaplugin.Dep
 import mill.util.JsonFormatters
 
 trait Artifact extends Serializable with Product {
@@ -7,6 +8,26 @@ trait Artifact extends Serializable with Product {
   def name: String
   def id: String
   def version: String
+}
+
+object Artifact {
+
+  def fromDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
+    dep match {
+      case d: Dep.Java =>
+        import d.dep._
+        val art = JavaArtifact(module.organization, module.name, version)
+        Dependency(art, Scope.Compile)
+      case d: Dep.Scala =>
+        import d.dep._
+        val art = ScalaArtifact(module.organization, module.name, version, scalaBin)
+        Dependency(art, Scope.Compile)
+      case d: Dep.Point =>
+        import d.dep._
+        val art = ScalaArtifact(module.organization, module.name, version, scalaFull)
+        Dependency(art, Scope.Compile)
+    }
+  }
 }
 
 case class JavaArtifact(
@@ -66,12 +87,4 @@ case class PomSettings(
   scm: SCM,
   developers: Seq[Developer]
 )
-
-//trait PublishSettingsJsonFormatters {
-//
-//  implicit lazy val licenseFormat: upickle.default.ReadWriter[License]= upickle.default.macroRW
-//  implicit lazy val scmFormat: upickle.default.ReadWriter[SCM]= upickle.default.macroRW
-//  implicit lazy val devFormat: upickle.default.ReadWriter[Developer]= upickle.default.macroRW
-//  implicit lazy val pomSettingsFormat: upickle.default.ReadWriter[PomSettings]= upickle.default.macroRW
-//}
 

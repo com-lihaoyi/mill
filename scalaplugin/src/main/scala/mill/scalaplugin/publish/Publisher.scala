@@ -7,24 +7,12 @@ import java.security.MessageDigest
 import ammonite.ops._
 import mill.eval.PathRef
 
-trait Hashes {
-
-  def md5(f: File) = {
-    MessageDigest.getInstance("MD5").digest()
-  }
-}
-
-trait Publisher {
-
-  //def publish()
-}
-
-object LocalPublisher extends Publisher {
+object LocalPublisher {
 
   val root: Path = {
     val ivy2 = {
       // a bit touchy on Windows... - don't try to manually write down the URI with s"file://..."
-      val str = new File(sys.props("user.home") + "/.ivytest2/").toString
+      val str = new File(sys.props("user.home") + "/.ivy2/").toString
       if (str.endsWith("/")) str else str + "/"
     }
     Path(ivy2 + "local/")
