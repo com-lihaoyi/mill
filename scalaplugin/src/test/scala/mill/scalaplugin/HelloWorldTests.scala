@@ -40,6 +40,7 @@ object HelloWorldTests extends TestSuite {
     TestEvaluator.eval(mapping, outputPath)(t)
 
   val helloWorldMapping = Discovered.mapping(HelloWorld)
+  val helloWorldWithMainMapping = Discovered.mapping(HelloWorldWithMain)
 
   def tests: Tests = Tests {
     prepareWorkspace()
@@ -178,6 +179,28 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+    'runMain - {
+      'runIfMainClassProvided - {
+        val Right((_, evalCount)) =
+          eval(HelloWorldWithMain.runMain(), helloWorldWithMainMapping)
+
+        assert(evalCount > 0)
+
+        val runResult = workspacePath / "hello-mill"
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
+      'notRunWithoutMainClass - {
+        val Left(Result.Exception(err)) =
+          eval(HelloWorld.runMain(), helloWorldMapping)
+
+        assert(
+          err.isInstanceOf[RuntimeException]
+        )
+      }
+    }
     'jar - {
       'nonEmpty - {
         val Right((result, evalCount)) =
@@ -206,7 +229,7 @@ object HelloWorldTests extends TestSuite {
       }
       'runJar - {
         val Right((result, evalCount)) =
-          eval(HelloWorldWithMain.jar, Discovered.mapping(HelloWorldWithMain))
+          eval(HelloWorldWithMain.jar, helloWorldWithMainMapping)
 
         assert(
           exists(result.path),
