@@ -354,12 +354,12 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     PathRef(dest)
   }
 
-  def runMain() = T.command{
+  def run() = T.command{
     val main = mainClass().getOrElse(throw new RuntimeException("No mainClass provided!"))
     subprocess(main, runDepClasspath().map(_.path) :+ compile().path)
   }
 
-  def run(mainClass: String) = T.command{
+  def runMain(mainClass: String) = T.command{
     subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().path)
   }
 

@@ -147,10 +147,10 @@ object HelloWorldTests extends TestSuite {
         assert(err.isInstanceOf[CompileFailed])
       }
     }
-    'run - {
+    'runMain - {
       'runMainObject - {
         val Right((_, evalCount)) =
-          eval(HelloWorld.run("Main"), helloWorldMapping)
+          eval(HelloWorld.runMain("Main"), helloWorldMapping)
 
         assert(evalCount > 0)
 
@@ -162,7 +162,7 @@ object HelloWorldTests extends TestSuite {
       }
       'notRunInvalidMainObject - {
         val Left(Result.Exception(err)) =
-          eval(HelloWorld.run("Invalid"), helloWorldMapping)
+          eval(HelloWorld.runMain("Invalid"), helloWorldMapping)
 
         assert(
           err.isInstanceOf[InteractiveShelloutException]
@@ -172,17 +172,17 @@ object HelloWorldTests extends TestSuite {
         write.append(mainObject, "val x: ")
 
         val Left(Result.Exception(err)) =
-          eval(HelloWorld.run("Main"), helloWorldMapping)
+          eval(HelloWorld.runMain("Main"), helloWorldMapping)
 
         assert(
           err.isInstanceOf[CompileFailed]
         )
       }
     }
-    'runMain - {
+    'run - {
       'runIfMainClassProvided - {
         val Right((_, evalCount)) =
-          eval(HelloWorldWithMain.runMain(), helloWorldWithMainMapping)
+          eval(HelloWorldWithMain.run(), helloWorldWithMainMapping)
 
         assert(evalCount > 0)
 
@@ -194,7 +194,7 @@ object HelloWorldTests extends TestSuite {
       }
       'notRunWithoutMainClass - {
         val Left(Result.Exception(err)) =
-          eval(HelloWorld.runMain(), helloWorldMapping)
+          eval(HelloWorld.run(), helloWorldMapping)
 
         assert(
           err.isInstanceOf[RuntimeException]
