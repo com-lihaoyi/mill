@@ -1,0 +1,21 @@
+machine:
+  environment:
+    SBT_GHPAGES_COMMIT_MESSAGE: 'Publishing Scaladoc [ci skip]'
+  java:
+    version: oraclejdk8
+
+test:
+  override:
+    - sbt clean coverage +test
+
+deployment:
+  master:
+    branch: master
+    owner: pathikrit
+    commands:
+      - sbt updateImpactSubmit coverageReport coverageAggregate codacyCoverage
+      - bash <(curl -s https://codecov.io/bash)
+      - git config --global user.email "pathikritbhowmick@msn.com"
+      - git config --global user.name "circle-ci"
+      - git config --global push.default simple
+      - sbt ghpagesPushSite +publish
