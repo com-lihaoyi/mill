@@ -54,5 +54,5 @@ object ScalaPlugin extends MillModule {
   def basePath = pwd / 'scalaplugin
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
-    """exec java -cp "$0" mill.Main "$@" """
+    """exec java $JAVA_OPTS -cp "$0" mill.Main "$@" """
 }
