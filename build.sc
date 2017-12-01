@@ -82,16 +82,13 @@ object ScalaPlugin extends MillModule {
 
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
-  override def compile = T.persistent[mill.eval.PathRef]{
-    super.compile()
-  }
   override def testArgs = T{
     val mapping = Map(
-      "MILL_COMPILER_BRIDGE_2_10_6" -> bridges("2.10.6").compile().path,
-      "MILL_COMPILER_BRIDGE_2_11_8" -> bridges("2.11.8").compile().path,
-      "MILL_COMPILER_BRIDGE_2_11_11" -> bridges("2.11.11").compile().path,
-      "MILL_COMPILER_BRIDGE_2_12_3" -> bridges("2.12.3").compile().path,
-      "MILL_COMPILER_BRIDGE_2_12_4" -> bridges("2.12.4").compile().path,
+      "MILL_COMPILER_BRIDGE_2_10_6"  -> bridges("2.10.6").compile().classes.path,
+      "MILL_COMPILER_BRIDGE_2_11_8"  -> bridges("2.11.8").compile().classes.path,
+      "MILL_COMPILER_BRIDGE_2_11_11" -> bridges("2.11.11").compile().classes.path,
+      "MILL_COMPILER_BRIDGE_2_12_3"  -> bridges("2.12.3").compile().classes.path,
+      "MILL_COMPILER_BRIDGE_2_12_4"  -> bridges("2.12.4").compile().classes.path,
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
   }

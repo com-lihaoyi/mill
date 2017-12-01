@@ -63,7 +63,7 @@ object AcyclicTests extends TestSuite{
 
       // We can compile
       val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
-      val outputPath = pathRef.path
+      val outputPath = pathRef.classes.path
       val outputFiles = ls.rec(outputPath)
       assert(
         evalCount > 0,

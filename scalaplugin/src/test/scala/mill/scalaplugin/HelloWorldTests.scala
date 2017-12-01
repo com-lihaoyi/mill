@@ -95,11 +95,13 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) =
           eval(HelloWorld.compile, helloWorldMapping)
 
-        val outPath = result.path
+        val outPath = result.classes.path
+        val analysisFile = result.analysisFile
         val outputFiles = ls.rec(outPath)
         val expectedClassfiles = compileClassfiles(outputPath / 'compile / 'classes)
         assert(
           outPath == outputPath / 'compile / 'classes,
+          exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
           evalCount > 0

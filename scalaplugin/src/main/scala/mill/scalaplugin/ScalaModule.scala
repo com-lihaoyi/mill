@@ -1,10 +1,9 @@
 package mill
 package scalaplugin
 
-import java.io.{File, PrintStream, PrintWriter, Writer}
+import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
-import java.util.concurrent.Callable
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
@@ -18,11 +17,13 @@ import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import mill.util.JsonFormatters._
-import sbt.librarymanagement.DependencyResolution
-import xsbti.GlobalLock
 
+object CompilationResult {
+  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
+}
 
+// analysisFile is represented by Path, so we won't break caches after file changes
+case class CompilationResult(analysisFile: Path, classes: PathRef)
 
 object ScalaModule{
   case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
@@ -41,8 +42,9 @@ object ScalaModule{
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
                    scalacOptions: Seq[String],
-                   javacOptions: Seq[String])
-                  (implicit ctx: Ctx): PathRef = {
+                   javacOptions: Seq[String],
+                   upstreamCompileOutput: Seq[CompilationResult])
+                  (implicit ctx: Ctx): CompilationResult = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
 
     def grepJar(classPath: Seq[Path], s: String) = {
@@ -89,17 +91,32 @@ object ScalaModule{
       l
     }
 
-    val lookup = MockedLookup(Function.const(Optional.empty[CompileAnalysis]))
+    def analysisMap(f: File): Optional[CompileAnalysis] = {
+      if (f.isFile) {
+        Optional.empty[CompileAnalysis]
+      } else {
+        upstreamCompileOutput.collectFirst {
+          case CompilationResult(zincPath, classFiles) if classFiles.path.toNIO == f.toPath =>
+            FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
+        }.getOrElse(Optional.empty[CompileAnalysis])
+      }
+    }
 
-    val zincFile = (ctx.dest/'zinc).toIO
-    val store = FileAnalysisStore.binary(zincFile)
-    val classesDir = (ctx.dest / 'classes).toIO
+    val lookup = MockedLookup(analysisMap)
+
+    val zincFile = ctx.dest / 'zinc
+    val classesDir = ctx.dest / 'classes
+
+    val zincIOFile = zincFile.toIO
+    val classesIODir = classesDir.toIO
+
+    val store = FileAnalysisStore.binary(zincIOFile)
 
     val newResult = ic.compile(
       ic.inputs(
-        classpath = classesDir +: compileClasspathFiles,
+        classpath = classesIODir +: compileClasspathFiles,
         sources = sources.flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
-        classesDirectory = classesDir,
+        classesDirectory = classesIODir,
         scalacOptions = scalacOptions.toArray,
         javacOptions = javacOptions.toArray,
         maxErrors = 10,
@@ -114,7 +131,7 @@ object ScalaModule{
         setup = ic.setup(
           lookup,
           skip = false,
-          zincFile,
+          zincIOFile,
           new FreshCompilerCache,
           IncOptions.of(),
           new ManagedLoggedReporter(10, logger),
@@ -136,7 +153,7 @@ object ScalaModule{
       )
     )
 
-    PathRef(ctx.dest/'classes)
+    CompilationResult(zincFile, PathRef(classesDir))
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -194,8 +211,8 @@ trait TestScalaModule extends ScalaModule with TaskModule {
       jvmOptions = forkArgs(),
       options = Seq(
         testFramework(),
-        (runDepClasspath().map(_.path) :+ compile().path).mkString(" "),
-        Seq(compile().path).mkString(" "),
+        (runDepClasspath().map(_.path) :+ compile().classes.path).mkString(" "),
+        Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
         outputPath.toString
       ),
@@ -209,8 +226,8 @@ trait TestScalaModule extends ScalaModule with TaskModule {
   def test(args: String*) = T.command{
     TestRunner(
       testFramework(),
-      runDepClasspath().map(_.path) :+ compile().path,
-      Seq(compile().path),
+      runDepClasspath().map(_.path) :+ compile().classes.path,
+      Seq(compile().classes.path),
       args
     ) match{
       case Some(errMsg) => Result.Failure(errMsg)
@@ -248,7 +265,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def upstreamRunClasspath = T{
     Task.traverse(
       for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compile()))
+      yield T.task(p.runDepClasspath() ++ Seq(p.compile().classes))
     )
   }
 
@@ -258,7 +275,8 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def upstreamCompileDepSources = T{
     Task.traverse(projectDeps.map(_.externalCompileDepSources))
   }
-  def upstreamCompileOutputClasspath = T{
+
+  def upstreamCompileOutput = T{
     Task.traverse(projectDeps.map(_.compile))
   }
 
@@ -288,7 +306,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     * might be less than the runtime classpath
     */
   def compileDepClasspath: T[Seq[PathRef]] = T{
-    upstreamCompileOutputClasspath() ++
+    upstreamCompileOutput().map(_.classes) ++
     depClasspath() ++
     externalCompileDepClasspath()
   }
@@ -327,7 +345,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def allSources = T{ Seq(sources()) }
-  def compile = T.persistent{
+  def compile: T[CompilationResult] = T.persistent{
     compileScala(
       scalaVersion(),
       allSources().map(_.path),
@@ -335,35 +353,37 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
       scalacOptions(),
-      javacOptions()
+      javacOptions(),
+      upstreamCompileOutput()
     )
   }
   def assembly = T{
     createAssembly(
       (runDepClasspath().filter(_.path.ext != "pom") ++
-      Seq(resources(), compile())).map(_.path).filter(exists),
+      Seq(resources(), compile().classes)).map(_.path).filter(exists),
       prependShellScript = prependShellScript()
     )
   }
 
-  def classpath = T{ Seq(resources(), compile()) }
+  def classpath = T{ Seq(resources(), compile().classes) }
+
   def jar = T{
-    createJar(Seq(resources(), compile()).map(_.path).filter(exists), mainClass())
+    createJar(Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
   }
 
   def run() = T.command{
     val main = mainClass().getOrElse(throw new RuntimeException("No mainClass provided!"))
-    subprocess(main, runDepClasspath().map(_.path) :+ compile().path)
+    subprocess(main, runDepClasspath().map(_.path) :+ compile().classes.path)
   }
 
   def runMain(mainClass: String) = T.command{
-    subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().path)
+    subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().classes.path)
   }
 
   def console() = T.command{
     subprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
-      classPath = externalCompileDepClasspath().map(_.path) :+ compile().path,
+      classPath = externalCompileDepClasspath().map(_.path) :+ compile().classes.path,
       options = Seq("-usejavacp")
     )
   }
