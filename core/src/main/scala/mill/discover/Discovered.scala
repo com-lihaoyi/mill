@@ -47,7 +47,8 @@ object Discovered {
         if m.isMethod &&
            m.typeSignature.paramLists.isEmpty &&
            m.typeSignature.resultType <:< c.weakTypeOf[Target[_]] &&
-           !m.name.toString.contains(' ')
+           !m.name.toString.contains(' ') &&
+           m.isPublic
       } yield {
         val x = Ident(TermName(c.freshName()))
         val t = q"""mill.discover.Mirror.makeTargetPoint(

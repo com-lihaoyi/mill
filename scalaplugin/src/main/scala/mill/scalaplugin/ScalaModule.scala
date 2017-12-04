@@ -34,7 +34,7 @@ object ScalaModule{
 
   val compilerCache = new CompilerCache(2)
   def compileScala(scalaVersion: String,
-                   sources: Path,
+                   sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
@@ -54,7 +54,8 @@ object ScalaModule{
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
     val compilerBridgeJar = new java.io.File(
-      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
+//      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
+      s"out/bridges/$scalaVersion/compile/classes"
     )
 
     val zincClassLoader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null){
@@ -110,7 +111,7 @@ object ScalaModule{
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesDir +: compileClasspathFiles,
-        sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
+        sources = sources.flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
         classesDirectory = classesDir,
         scalacOptions = scalacOptions.toArray,
         javacOptions = javacOptions.toArray,
@@ -334,10 +335,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
+  def allSources = T{ Seq(sources()) }
   def compile = T.persistent{
     compileScala(
       scalaVersion(),
-      sources().path,
+      allSources().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),

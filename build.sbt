@@ -54,15 +54,8 @@ def bridge(bridgeVersion: String) = Project(
       val url =
         s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
       val curlDest = java.nio.file.Paths.get(target.value.toString, "sources")
-      if (java.nio.file.Files.exists(curlDest)) {
-        java.nio.file.Files.walk(curlDest)
-          .iterator()
-          .asScala
-          .toSeq
-          .reverse
-          .foreach(java.nio.file.Files.delete)
-      }
 
+      Seq("rm", "-rf", curlDest.toString).!
       java.nio.file.Files.createDirectories(curlDest)
 
       Seq("curl", "-L", "-o", curlDest.resolve("bridge.jar").toString, url).!

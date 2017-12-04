@@ -48,10 +48,45 @@ object Core extends MillModule {
     }
 }
 
+
+val bridges = for{
+  crossVersion <- mill.define.Cross("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
+} yield new ScalaModule{
+  def basePath = pwd / 'bridge
+  def scalaVersion = crossVersion
+  override def allSources = T{
+
+    val v = crossVersion.split('.').dropRight(1).mkString(".")
+    val url =
+      s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
+    val curlDest = T.ctx().dest
+    implicit val pwd = curlDest
+    mkdir(curlDest)
+    rm(curlDest/"bridge.jar")
+
+    %("curl", "-L", "-o", curlDest / "bridge.jar", url)
+    %("unzip", curlDest / "bridge.jar" , "-d", curlDest / 'classes)
+
+
+    Seq(PathRef(curlDest / 'classes))
+  }
+  override def ivyDeps = Seq(
+    Dep.Java("org.scala-lang", "scala-compiler", crossVersion),
+    Dep.Java("org.scala-sbt", "compiler-interface", "1.0.5")
+  )
+}
 object ScalaPlugin extends MillModule {
 
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
+  override def compile = T.persistent[mill.eval.PathRef]{
+    bridges("2.10.6").compile()
+    bridges("2.11.8").compile()
+    bridges("2.11.11").compile()
+    bridges("2.12.3").compile()
+    bridges("2.12.4").compile()
+    super.compile()
+  }
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
     """exec java $JAVA_OPTS -cp "$0" mill.Main "$@" """
