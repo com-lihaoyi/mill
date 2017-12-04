@@ -4,6 +4,7 @@ package scalaplugin
 import java.io.File
 import java.net.URLClassLoader
 import java.util.Optional
+import java.util.concurrent.Callable
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
@@ -17,6 +18,8 @@ import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.util.JsonFormatters._
+import sbt.librarymanagement.DependencyResolution
+import xsbti.GlobalLock
 
 
 
@@ -49,7 +52,11 @@ object ScalaModule{
 
     val outerClassLoader = getClass.getClassLoader
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
-    val compilerBridgeJar = grepJar(compilerBridge, s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
+
+    val compilerBridgeJar = new java.io.File(
+      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
+    )
+
     val zincClassLoader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null){
       override def loadClass(name: String): Class[_] = {
         Option(findLoadedClass(name)) orElse
@@ -115,7 +122,8 @@ object ScalaModule{
           lookup,
           skip = false,
           zincFile,
-          compilerCache,
+          new FreshCompilerCache,
+//          compilerCache,
           IncOptions.of(),
           reporter,
           Some(ignoreProgress),
@@ -128,6 +136,8 @@ object ScalaModule{
       ),
       logger = logger
     )
+
+    zincClassLoader.close()
 
     store.set(
       AnalysisContents.create(
