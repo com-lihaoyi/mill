@@ -114,7 +114,7 @@ object HelloWorldTests extends TestSuite {
 
         val Right((_, incCompileCount)) =
           eval(HelloWorld.compile, helloWorldMapping)
-        assert(incCompileCount == 1)
+        assert(incCompileCount > 0, incCompileCount < freshCount)
       }
       'failOnError - {
         write.append(mainObject, "val x: ")
