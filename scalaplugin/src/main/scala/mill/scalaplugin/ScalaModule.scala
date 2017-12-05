@@ -358,9 +358,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def classpath = T{ Seq(resources(), compile()) }
   def jar = T{
-    val dest = T.ctx().dest
-    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists))
-    PathRef(dest)
+    createJar(Seq(resources(), compile()).map(_.path).filter(exists))
   }
 
   def run(mainClass: String) = T.command{

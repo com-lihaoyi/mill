@@ -5,16 +5,17 @@ import ammonite.ops._
 import mill.define.{Target, Task}
 import mill.discover.Discovered
 import mill.modules.Jvm.jarUp
-import mill.{T, Module}
+import mill.util.Ctx.DestCtx
+import mill.{Module, T}
 import mill.util.OSet
 import utest._
 
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(dest: Path, sources: Seq[PathRef]) = {
-    mkdir(dest)
+  def compileAll(sources: Seq[PathRef])(implicit ctx: DestCtx) = {
+    mkdir(ctx.dest)
     import ammonite.ops._
-    %("javac", sources.map(_.path.toString()), "-d", dest)(wd = dest)
-    PathRef(dest)
+    %("javac", sources.map(_.path.toString()), "-d", ctx.dest)(wd = ctx.dest)
+    PathRef(ctx.dest)
   }
 
   val tests = Tests{
@@ -37,7 +38,7 @@ object JavaCompileJarTests extends TestSuite{
         def sourceRoot = T.source{ sourceRootPath }
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
-        def classFiles = T{ compileAll(T.ctx().dest, allSources()) }
+        def classFiles = T{ compileAll(allSources()) }
         def jar = T{ jarUp(resourceRoot, classFiles) }
 
         def run(mainClsName: String) = T.command{

@@ -31,10 +31,11 @@ object Jvm {
     m
   }
 
-  def createJar(outputPath: Path, inputPaths: Seq[Path], mainClass: Option[String] = None): Option[Path] = {
+  def createJar(inputPaths: Seq[Path], mainClass: Option[String] = None)
+               (implicit ctx: Ctx.DestCtx): PathRef = {
+    val outputPath = ctx.dest
     rm(outputPath)
-    if(inputPaths.isEmpty) None
-    else {
+    if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
 
       val jar = new JarOutputStream(
@@ -60,8 +61,8 @@ object Jvm {
         jar.close()
       }
 
-      Some(outputPath)
     }
+    PathRef(outputPath)
   }
 
 
