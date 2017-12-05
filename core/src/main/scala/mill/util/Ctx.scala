@@ -17,7 +17,7 @@ object Ctx{
     def dest: Path
   }
   trait LogCtx{
-    def log: PrintStream
+    def log: Logger
   }
   trait ArgCtx{
     def args: IndexedSeq[_]
@@ -25,7 +25,7 @@ object Ctx{
 }
 class Ctx(val args: IndexedSeq[_],
           val dest: Path,
-          val log: PrintStream) extends DestCtx with LogCtx with ArgCtx{
+          val log: Logger) extends DestCtx with LogCtx with ArgCtx{
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

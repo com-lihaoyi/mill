@@ -130,12 +130,4 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def jarUp(roots: Task[PathRef]*) = new Task[PathRef]{
-
-    val inputs = roots
-    def evaluate(args: Ctx) = {
-      createJar(args.dest, args.args.map(_.asInstanceOf[PathRef].path))
-      PathRef(args.dest)
-    }
-  }
 }

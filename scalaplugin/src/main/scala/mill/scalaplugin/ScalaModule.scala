@@ -1,7 +1,7 @@
 package mill
 package scalaplugin
 
-import java.io.File
+import java.io.{File, PrintStream, PrintWriter, Writer}
 import java.net.URLClassLoader
 import java.util.Optional
 import java.util.concurrent.Callable
@@ -86,7 +86,9 @@ object ScalaModule{
 
     val logger = {
 
-      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(ctx.log))
+      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
+        ctx.log.outputStream
+      ))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
       LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)

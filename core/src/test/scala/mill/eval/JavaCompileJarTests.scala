@@ -4,10 +4,10 @@ import ammonite.ops.ImplicitWd._
 import ammonite.ops._
 import mill.define.{Target, Task}
 import mill.discover.Discovered
-import mill.modules.Jvm.jarUp
+import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
-import mill.util.OSet
+import mill.util.{DummyLogger, OSet}
 import utest._
 
 object JavaCompileJarTests extends TestSuite{
@@ -39,7 +39,7 @@ object JavaCompileJarTests extends TestSuite{
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ jarUp(resourceRoot, classFiles) }
+        def jar = T{ Jvm.createJar(Seq(resourceRoot().path, classFiles().path)) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
@@ -50,7 +50,7 @@ object JavaCompileJarTests extends TestSuite{
       val mapping = Discovered.mapping(Build)
 
       def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
+        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
         val evaluated = evaluator.evaluate(OSet(t))
 
         if (evaluated.failing.keyCount == 0){
@@ -67,7 +67,7 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
+        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated

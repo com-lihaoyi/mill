@@ -7,7 +7,7 @@ import ammonite.util.{Colors, Res}
 import mill.define.Task
 import mill.discover._
 import mill.eval.{Evaluator, Result}
-import mill.util.OSet
+import mill.util.{Logger, OSet, PrintLogger}
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 import mill.define.Task.TaskModule
@@ -151,7 +151,7 @@ object Main {
                            watch: Path => Unit,
                            coloredOutput: Boolean): Int = {
 
-    val log = new Logger(coloredOutput)
+    val log = new PrintLogger(coloredOutput)
 
     val Seq(selectorString, rest @_*) = args
 
@@ -163,7 +163,7 @@ object Main {
         case _ => Nil
       }
       target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
-      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log.info)
+      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log)
       _ <- evaluate(evaluator, target, watch).toLeft(())
     } yield ()
 
@@ -231,17 +231,10 @@ object Main {
   }
 }
 
-class Logger(coloredOutput: Boolean){
-  val colors =
-    if(coloredOutput) Colors.Default
-    else Colors.BlackWhite
 
-  def info(s: String) = System.err.println(colors.info()(s))
-  def error(s: String) = System.err.println(colors.error()(s))
-}
 class Main(config: Main.Config){
   val coloredOutput = config.colored.getOrElse(ammonite.Main.isInteractive())
-  val log = new Logger(coloredOutput)
+  val log = new PrintLogger(coloredOutput)
 
 
   def watchAndWait(watched: Seq[(Path, Long)]) = {
