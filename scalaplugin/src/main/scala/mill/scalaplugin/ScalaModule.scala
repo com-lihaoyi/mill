@@ -13,6 +13,7 @@ import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.util.Ctx
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
@@ -39,10 +40,10 @@ object ScalaModule{
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
                    scalacOptions: Seq[String],
-                   javacOptions: Seq[String],
-                   outputPath: Path): PathRef = {
+                   javacOptions: Seq[String])
+                  (implicit ctx: Ctx): PathRef = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
-    val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+
     def grepJar(classPath: Seq[Path], s: String) = {
       classPath
         .find(_.toString.endsWith(s))
@@ -79,13 +80,13 @@ object ScalaModule{
 
     val scalac = ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
 
-    mkdir(outputPath)
+    mkdir(ctx.dest)
 
     val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
-      val console = ConsoleOut.systemOut
-      val consoleAppender = MainAppender.defaultScreen(console)
+
+      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(ctx.log))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
       LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
@@ -105,9 +106,9 @@ object ScalaModule{
       override def startUnit(phase: String, unitPath: String): Unit = ()
     }
 
-    val zincFile = (outputPath/'zinc).toIO
+    val zincFile = (ctx.dest/'zinc).toIO
     val store = FileAnalysisStore.binary(zincFile)
-    val classesDir = (outputPath / 'classes).toIO
+    val classesDir = (ctx.dest / 'classes).toIO
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesDir +: compileClasspathFiles,
@@ -147,7 +148,7 @@ object ScalaModule{
       )
     )
 
-    PathRef(outputPath/'classes)
+    PathRef(ctx.dest/'classes)
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -344,18 +345,15 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
       scalacOptions(),
-      javacOptions(),
-      T.ctx().dest
+      javacOptions()
     )
   }
   def assembly = T{
-    val dest = T.ctx().dest
     createAssembly(
-      dest,
-      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists),
+      (runDepClasspath().filter(_.path.ext != "pom") ++
+      Seq(resources(), compile())).map(_.path).filter(exists),
       prependShellScript = prependShellScript()
     )
-    PathRef(dest)
   }
 
   def classpath = T{ Seq(resources(), compile()) }

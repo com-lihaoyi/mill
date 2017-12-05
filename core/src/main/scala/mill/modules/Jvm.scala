@@ -7,7 +7,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
-import mill.util.Args
+import mill.util.Ctx
 
 import scala.collection.mutable
 
@@ -65,14 +65,14 @@ object Jvm {
   }
 
 
-  def createAssembly(outputPath: Path,
-                     inputPaths: Seq[Path],
+  def createAssembly(inputPaths: Seq[Path],
                      mainClass: Option[String] = None,
-                     prependShellScript: String = ""): Option[Path] = {
+                     prependShellScript: String = "")
+                    (implicit ctx: Ctx.DestCtx): PathRef = {
+    val outputPath = ctx.dest
     rm(outputPath)
 
-    if(inputPaths.isEmpty) None
-    else {
+    if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
 
       val output = new FileOutputStream(outputPath.toIO)
@@ -125,14 +125,14 @@ object Jvm {
         output.close()
       }
 
-      Some(outputPath)
     }
+    PathRef(outputPath)
   }
 
   def jarUp(roots: Task[PathRef]*) = new Task[PathRef]{
 
     val inputs = roots
-    def evaluate(args: Args) = {
+    def evaluate(args: Ctx) = {
       createJar(args.dest, args.args.map(_.asInstanceOf[PathRef].path))
       PathRef(args.dest)
     }

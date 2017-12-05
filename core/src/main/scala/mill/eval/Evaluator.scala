@@ -6,7 +6,7 @@ import mill.define.{Graph, Target, Task}
 import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.util
-import mill.util.{Args, MultiBiMap, OSet}
+import mill.util.{Ctx, MultiBiMap, OSet}
 import scala.collection.mutable
 
 class Evaluator(workspacePath: Path,
@@ -163,7 +163,11 @@ class Evaluator(workspacePath: Path,
       val res =
         if (targetInputValues.length != target.inputs.length) Result.Skipped
         else {
-          val args = new Args(targetInputValues.toArray[Any], targetDestPath.orNull)
+          val args = new Ctx(
+            targetInputValues.toArray[Any],
+            targetDestPath.orNull,
+            System.out
+          )
           target.evaluate(args)
         }
 
