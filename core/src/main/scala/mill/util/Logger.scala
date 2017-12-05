@@ -12,7 +12,7 @@ trait Logger{
 }
 
 object DummyLogger extends Logger{
-  val outputStream = new PrintStream(new OutputStream {
+  object outputStream extends PrintStream(new OutputStream {
     def write(b: Int) = ()
   })
   def info(s: String) = ()

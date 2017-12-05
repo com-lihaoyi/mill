@@ -170,7 +170,20 @@ class Evaluator(workspacePath: Path,
             targetDestPath.orNull,
             log
           )
-          target.evaluate(args)
+          val out = System.out
+          val err = System.err
+          try{
+            System.setErr(log.outputStream)
+            System.setOut(log.outputStream)
+            Console.withOut(log.outputStream){
+              Console.withErr(log.outputStream){
+                target.evaluate(args)
+              }
+            }
+          }finally{
+            System.setErr(err)
+            System.setOut(out)
+          }
         }
 
       newResults(target) = res

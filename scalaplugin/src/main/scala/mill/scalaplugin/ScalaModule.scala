@@ -53,10 +53,10 @@ object ScalaModule{
 
     val outerClassLoader = getClass.getClassLoader
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
-
+    def binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
     val compilerBridgeJar = new java.io.File(
-//      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
-      s"out/bridges/$scalaVersion/compile/classes"
+      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
+//      s"out/bridges/$scalaVersion/compile/classes"
     )
 
     val zincClassLoader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null){

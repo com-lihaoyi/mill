@@ -9,6 +9,7 @@ import mill.define.Task
 import mill.eval.PathRef
 import mill.util.Ctx
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 
@@ -17,8 +18,40 @@ object Jvm {
   def subprocess(mainClass: String,
                  classPath: Seq[Path],
                  options: Seq[String] = Seq.empty,
-                 workingDir: Path = ammonite.ops.pwd) = {
-    %("java", "-cp", classPath.mkString(":"), mainClass, options)(workingDir)
+                 workingDir: Path = ammonite.ops.pwd)
+                (implicit ctx: Ctx) = {
+    val proc =
+      new java.lang.ProcessBuilder()
+        .directory(workingDir.toIO)
+        .command(Vector("java", "-cp", classPath.mkString(":"), mainClass) ++ options:_*)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start()
+
+    val stdout = proc.getInputStream
+    val stderr = proc.getErrorStream
+    val sources = Seq(stdout , stderr)
+    while(
+    // Process.isAlive doesn't exist on JDK 7 =/
+      util.Try(proc.exitValue).isFailure ||
+        stdout.available() > 0 ||
+        stderr.available() > 0
+    ){
+      var readSomething = false
+      for (std <- sources){
+        while (std.available() > 0){
+          readSomething = true
+          val array = new Array[Byte](std.available())
+          val actuallyRead = std.read(array)
+          ctx.log.outputStream.write(array, 0, actuallyRead)
+        }
+      }
+      // if we did not read anything sleep briefly to avoid spinning
+      if(!readSomething)
+        Thread.sleep(2)
+    }
+
+    if (proc.exitValue() != 0) throw new InteractiveShelloutException()
   }
 
   private def createManifest(mainClass: Option[String]) = {
