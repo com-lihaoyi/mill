@@ -7,7 +7,7 @@ import ammonite.util.{Colors, Res}
 import mill.define.Task
 import mill.discover._
 import mill.eval.{Evaluator, Result}
-import mill.util.OSet
+import mill.util.{Logger, OSet, PrintLogger}
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
 import mill.define.Task.TaskModule
@@ -26,14 +26,7 @@ object Main {
     query.parse(input)
   }
 
-  def renderSelector(selector: List[Mirror.Segment]) = {
-    val Mirror.Segment.Label(head) :: rest = selector
-    val stringSegments = rest.map{
-      case Mirror.Segment.Label(s) => "." + s
-      case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
-    }
-    head + stringSegments.mkString
-  }
+
 
   def parseArgs(selectorString: String): Either[String, List[Mirror.Segment]] = {
     import fastparse.all.Parsed
@@ -81,7 +74,7 @@ object Main {
         def command = invokeCommand(hierarchy, last)
 
         command orElse target orElse runDefault.headOption.flatten match{
-          case None =>  Left("Cannot resolve task " + renderSelector(
+          case None =>  Left("Cannot resolve task " + Mirror.renderSelector(
             (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
           )
           case Some(either) => either
@@ -96,7 +89,7 @@ object Main {
               case (label, child) if label == singleLabel => child
             } match{
               case Some(child) => resolve(tail, child, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
-              case None => Left("Cannot resolve module " + renderSelector(newRevSelectorsSoFar.reverse))
+              case None => Left("Cannot resolve module " + Mirror.renderSelector(newRevSelectorsSoFar.reverse))
             }
 
           case Mirror.Segment.Cross(cross) =>
@@ -105,7 +98,7 @@ object Main {
             if (crossOptions.contains(cross)){
               resolve(tail, childMirror, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
             }else{
-              Left("Cannot resolve cross " + renderSelector(newRevSelectorsSoFar.reverse))
+              Left("Cannot resolve cross " + Mirror.renderSelector(newRevSelectorsSoFar.reverse))
             }
 
 
@@ -119,7 +112,7 @@ object Main {
     val discovered = implicitly[Discovered[T]]
     val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
     if (consistencyErrors.nonEmpty) {
-      Left(s"Failed Discovered.consistencyCheck: $consistencyErrors")
+      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(Mirror.renderSelector)}")
     } else {
       Right(discovered)
     }
@@ -138,7 +131,7 @@ object Main {
       (for((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match{
           case Left(t) => t.toString
-          case Right(t) => renderSelector(t.segments.toList)
+          case Right(t) => Mirror.renderSelector(t.segments.toList)
         }
         val fss = fs.map{
           case Result.Exception(t) => t.toString
@@ -158,7 +151,7 @@ object Main {
                            watch: Path => Unit,
                            coloredOutput: Boolean): Int = {
 
-    val log = new Logger(coloredOutput)
+    val log = new PrintLogger(coloredOutput)
 
     val Seq(selectorString, rest @_*) = args
 
@@ -170,7 +163,7 @@ object Main {
         case _ => Nil
       }
       target <- resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
-      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log.info)
+      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log)
       _ <- evaluate(evaluator, target, watch).toLeft(())
     } yield ()
 
@@ -238,17 +231,10 @@ object Main {
   }
 }
 
-class Logger(coloredOutput: Boolean){
-  val colors =
-    if(coloredOutput) Colors.Default
-    else Colors.BlackWhite
 
-  def info(s: String) = System.err.println(colors.info()(s))
-  def error(s: String) = System.err.println(colors.error()(s))
-}
 class Main(config: Main.Config){
   val coloredOutput = config.colored.getOrElse(ammonite.Main.isInteractive())
-  val log = new Logger(coloredOutput)
+  val log = new PrintLogger(coloredOutput)
 
 
   def watchAndWait(watched: Seq[(Path, Long)]) = {

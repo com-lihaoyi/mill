@@ -8,7 +8,7 @@ object Foo {
 
   import ammonite.ops.{ls, pwd, read}
   import mill.discover.Discovered
-  import mill.util.Args
+  import mill.util.Ctx
 
   val workspacePath = pwd / 'target / 'workspace / 'javac
   val javacSrcPath = pwd / 'src / 'test / 'examples / 'javac
@@ -45,7 +45,7 @@ object Foo {
 
     val inputs = roots
 
-    def evaluate(args: Args): PathRef = {
+    def evaluate(args: Ctx): PathRef = {
 
       val output = new java.util.jar.JarOutputStream(new FileOutputStream(args.dest.toIO))
       for {

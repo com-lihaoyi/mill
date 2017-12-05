@@ -1,7 +1,9 @@
 package mill.define
 
+import mill.define.Applicative.ImplicitStub
 import utest._
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 
 
@@ -44,6 +46,9 @@ object ApplicativeTests extends TestSuite {
       value
     }
   }
+  @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
+  @ImplicitStub
+  implicit def taskCtx: String = ???
 
   val tests = Tests{
 

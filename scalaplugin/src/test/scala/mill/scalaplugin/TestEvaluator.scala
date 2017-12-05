@@ -4,20 +4,19 @@ import ammonite.ops.Path
 import mill.define.{Target, Task}
 import mill.discover.Mirror
 import mill.eval.{Evaluator, Result}
-import mill.util.OSet
+import mill.util.{DummyLogger, OSet, PrintLogger}
 
 object TestEvaluator {
 
-  private val noopLogger: String => Unit = _ => ()
 
   def resolveDestPaths(workspacePath: Path)(t: Mirror.LabelledTarget[_]): (Path, Path) = {
-    new Evaluator(workspacePath, Map.empty, noopLogger).resolveDestPaths(t)
+    new Evaluator(workspacePath, Map.empty, DummyLogger).resolveDestPaths(t)
   }
 
   def eval[T](
       mapping: Map[Target[_], Mirror.LabelledTarget[_]],
       workspacePath: Path)(t: Task[T]): Either[Result.Failing, (T, Int)] = {
-    val evaluator = new Evaluator(workspacePath, mapping, noopLogger)
+    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
     val evaluated = evaluator.evaluate(OSet(t))
 
     if (evaluated.failing.keyCount == 0) {

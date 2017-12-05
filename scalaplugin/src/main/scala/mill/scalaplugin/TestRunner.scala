@@ -6,6 +6,8 @@ import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
 
 import ammonite.ops.{Path, ls, pwd}
+import mill.util.Ctx.LogCtx
+import mill.util.PrintLogger
 import sbt.testing._
 
 import scala.collection.mutable
@@ -43,14 +45,17 @@ object TestRunner {
       entireClasspath = args(1).split(" ").map(Path(_)),
       testClassfilePath = args(2).split(" ").map(Path(_)),
       args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
-    )
+    )(new LogCtx {
+      def log = new PrintLogger(true)
+    })
     val outputPath = args(4)
     ammonite.ops.write(Path(outputPath), upickle.default.write(result))
   }
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],
             testClassfilePath: Seq[Path],
-            args: Seq[String]): Option[String] = {
+            args: Seq[String])
+           (implicit ctx: LogCtx): Option[String] = {
     val outerClassLoader = getClass.getClassLoader
     val cl = new URLClassLoader(
       entireClasspath.map(_.toIO.toURI.toURL).toArray,
@@ -86,17 +91,17 @@ object TestRunner {
         },
         Array(
           new Logger {
-            def debug(msg: String) = println(msg)
+            def debug(msg: String) = ctx.log.info(msg)
 
-            def error(msg: String) = println(msg)
+            def error(msg: String) = ctx.log.error(msg)
 
             def ansiCodesSupported() = true
 
-            def warn(msg: String) = println(msg)
+            def warn(msg: String) = ctx.log.info(msg)
 
-            def trace(t: Throwable) = println(t)
+            def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
 
-            def info(msg: String) = println(msg)
+            def info(msg: String) = ctx.log.info(msg)
         })
       )
     }
@@ -107,7 +112,7 @@ object TestRunner {
         val grouped = events.groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
         grouped.map{case (k, v) => k + ": " + v}.mkString(",")
       }
-    println(msg)
+    ctx.log.info(msg)
     if (events.count(Set(Status.Error, Status.Failure)) == 0) None
     else Some(msg)
   }

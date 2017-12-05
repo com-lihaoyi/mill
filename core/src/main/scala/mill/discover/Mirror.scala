@@ -25,6 +25,15 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
 }
 
 object Mirror{
+  def renderSelector(selector: Seq[Mirror.Segment]) = {
+    val Mirror.Segment.Label(head) :: rest = selector.toList
+    val stringSegments = rest.map{
+      case Mirror.Segment.Label(s) => "." + s
+      case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+    }
+    head + stringSegments.mkString
+  }
+
   sealed trait Segment
   object Segment{
     case class Label(value: String) extends Segment

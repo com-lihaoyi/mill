@@ -4,7 +4,7 @@ import ammonite.ops._
 import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
-import mill.util.OSet
+import mill.util.{OSet, PrintLogger}
 
 object GenIdea {
 
@@ -22,7 +22,7 @@ object GenIdea {
     val discovered = implicitly[Discovered[T]]
     val mapping = Discovered.mapping(obj)(discovered)
     val workspacePath = pwd / 'out
-    val evaluator = new Evaluator(workspacePath, mapping, _ => ())
+    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
 
     val modules = Mirror
       .traverse(obj, discovered.mirror){ (h, p) =>

@@ -2,7 +2,7 @@ package mill.define
 
 import mill.discover.Discovered
 import mill.eval.Evaluator
-import mill.util.OSet
+import mill.util.{DummyLogger, OSet}
 import mill.T
 import utest._
 import utest.framework.TestPath
@@ -27,7 +27,7 @@ object CacherTests extends TestSuite{
 
     def eval[T: Discovered, V](base: T, v: Task[V])(implicit tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-      val evaluator = new Evaluator(workspace, Discovered.mapping(base), _ => ())
+      val evaluator = new Evaluator(workspace, Discovered.mapping(base), DummyLogger)
       evaluator.evaluate(OSet(v)).values(0)
     }
 
