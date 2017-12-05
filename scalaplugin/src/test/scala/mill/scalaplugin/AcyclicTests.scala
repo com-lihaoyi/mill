@@ -9,7 +9,7 @@ import utest._
 import mill.util.JsonFormatters._
 object AcyclicBuild{
   val acyclic =
-    for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.4"))
+    for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
     yield new ScalaModule{outer =>
       def basePath = AcyclicTests.workspacePath
       def organization = "com.lihaoyi"
@@ -46,7 +46,8 @@ object AcyclicTests extends TestSuite{
 
     'scala210 - check("2.10.6")
     'scala211 - check("2.11.8")
-    'scala212 - check("2.12.4")
+    'scala2123 - check("2.12.3")
+    'scala2124 - check("2.12.4")
 
     val allBinaryVersions = Seq("2.10", "2.11", "2.12")
     def check(scalaVersion: String) = {

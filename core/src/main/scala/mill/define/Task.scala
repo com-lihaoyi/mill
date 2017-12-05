@@ -2,7 +2,7 @@ package mill.define
 
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
-import mill.util.Args
+import mill.util.Ctx
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -16,7 +16,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
   /**
     * Evaluate this target
     */
-  def evaluate(args: Args): Result[T]
+  def evaluate(args: Ctx): Result[T]
 
   /**
     * Even if this target's inputs did not change, does it need to re-evaluate
@@ -34,7 +34,8 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
 trait Target[+T] extends Task[T]{
   override def asTarget = Some(this)
 }
-object Target extends Applicative.Applyer[Task, Task, Result, Args]{
+
+object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
 
   implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
 
@@ -48,7 +49,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
 
   def command[T](t: Task[T]): Command[T] = new Command(t)
 
-  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, Args]
+  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, Ctx]
   def task[T](t: Task[T]): Task[T] = t
 
   def persistent[T](t: Result[T]): Target[T] = macro persistentImpl[T]
@@ -57,7 +58,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
 
     c.Expr[Persistent[T]](
       mill.define.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree})"
+        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree})"
       )
     )
   }
@@ -65,7 +66,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
     import c.universe._
 
     c.Expr[Command[T]](
-      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Args](c)(t).tree})"
+      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree})"
     )
   }
 
@@ -81,50 +82,50 @@ object Target extends Applicative.Applyer[Task, Task, Result, Args]{
     import c.universe._
     c.Expr[Target[T]](
       mill.define.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Args](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing())"
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing())"
       )
     )
   }
 
   def underlying[A](v: Task[A]) = v
-  def mapCtx[A, B](t: Task[A])(f: (A, Args) => Result[B]) = t.mapDest(f)
+  def mapCtx[A, B](t: Task[A])(f: (A, Ctx) => Result[B]) = t.mapDest(f)
   def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
   def zip[A, B, C](a: Task[A], b: Task[B], c: Task[C]) = new Task[(A, B, C)]{
     val inputs = Seq(a, b, c)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2))
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2))
   }
   def zip[A, B, C, D](a: Task[A], b: Task[B], c: Task[C], d: Task[D]) = new Task[(A, B, C, D)]{
     val inputs = Seq(a, b, c, d)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3))
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3))
   }
   def zip[A, B, C, D, E](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E]) = new Task[(A, B, C, D, E)]{
     val inputs = Seq(a, b, c, d, e)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
   }
   def zip[A, B, C, D, E, F](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F]) = new Task[(A, B, C, D, E, F)]{
     val inputs = Seq(a, b, c, d, e, f)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
   }
   def zip[A, B, C, D, E, F, G](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G]) = new Task[(A, B, C, D, E, F, G)]{
     val inputs = Seq(a, b, c, d, e, f, g)
-    def evaluate(args: Args) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
   }
 }
 class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
   val inputs = Seq(t)
-  def evaluate(args: Args) = args[T](0)
+  def evaluate(args: Ctx) = args[T](0)
   override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
 class Command[+T](t: Task[T]) extends Task[T] {
   val inputs = Seq(t)
-  def evaluate(args: Args) = args[T](0)
+  def evaluate(args: Ctx) = args[T](0)
   override def asCommand = Some(this)
 }
 class Persistent[+T](t: Task[T]) extends Target[T] {
   val inputs = Seq(t)
-  def evaluate(args: Args) = args[T](0)
+  def evaluate(args: Ctx) = args[T](0)
   override def flushDest = false
   override def asPersistent = Some(this)
 }
@@ -133,7 +134,7 @@ object Source{
 }
 class Source(path: ammonite.ops.Path) extends Task[PathRef]{
   def handle = PathRef(path)
-  def evaluate(args: Args) = handle
+  def evaluate(args: Ctx) = handle
   override def sideHash = handle.hashCode()
   val inputs = Nil
 }
@@ -151,7 +152,7 @@ object Task {
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t
     val inputs = Nil
-    def evaluate(args: Args)  = t0
+    def evaluate(args: Ctx)  = t0
   }
 
 
@@ -159,7 +160,7 @@ object Task {
 
   abstract class Ops[+T]{ this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
-    def mapDest[V](f: (T, Args) => Result[V]) = new Task.MappedDest(this, f)
+    def mapDest[V](f: (T, Ctx) => Result[V]) = new Task.MappedDest(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
@@ -172,22 +173,22 @@ object Task {
   }
   class Traverse[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
     val inputs = inputs0
-    def evaluate(args: Args) = {
+    def evaluate(args: Ctx) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]
     }
 
   }
   class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V]{
-    def evaluate(args: Args) = f(args(0))
+    def evaluate(args: Ctx) = f(args(0))
     val inputs = List(source)
   }
-  class MappedDest[+T, +V](source: Task[T], f: (T, Args) => Result[V]) extends Task[V]{
-    def evaluate(args: Args) = f(args(0), args)
+  class MappedDest[+T, +V](source: Task[T], f: (T, Ctx) => Result[V]) extends Task[V]{
+    def evaluate(args: Ctx) = f(args(0), args)
     val inputs = List(source)
   }
   class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)]{
-    def evaluate(args: Args) = (args(0), args(1))
+    def evaluate(args: Ctx) = (args(0), args(1))
     val inputs = List(source1, source2)
   }
 

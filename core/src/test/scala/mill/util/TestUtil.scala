@@ -21,7 +21,7 @@ object TestUtil {
     var counter = 0
     var failure = Option.empty[String]
     var exception = Option.empty[Throwable]
-    override def evaluate(args: Args) = {
+    override def evaluate(args: Ctx) = {
       failure.map(Result.Failure) orElse
       exception.map(Result.Exception) getOrElse
       Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)

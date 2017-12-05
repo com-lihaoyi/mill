@@ -1,9 +1,7 @@
 package mill.define
 
-import mill.util.Args
 
-import scala.annotation.compileTimeOnly
-import scala.collection.mutable
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox.Context
 
 /**
@@ -20,11 +18,11 @@ object Applicative {
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }
+  class ImplicitStub extends StaticAnnotation
   type Id[+T] = T
 
   trait Applyer[W[_], T[_], Z[_], Ctx]{
-    @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
-    def ctx(): Ctx = ???
+    def ctx()(implicit c: Ctx) = c
     def underlying[A](v: W[A]): T[_]
 
     def mapCtx[A, B](a: T[A])(f: (A, Ctx) => Z[B]): T[B]
@@ -92,8 +90,9 @@ object Applicative {
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
         bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
         tempIdent
-      case (t @ q"$prefix.ctx()", api)
-        if prefix.tpe.baseClasses.exists(_.fullName == "mill.define.Applicative.Applyer") =>
+      case (t, api)
+        if t.symbol != null
+        && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[ImplicitStub]) =>
 
         val tempIdent = Ident(ctxSym)
         c.internal.setType(tempIdent, t.tpe)

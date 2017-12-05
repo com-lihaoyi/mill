@@ -1,9 +1,10 @@
 package mill
 package scalaplugin
 
-import java.io.File
+import java.io.{File, PrintStream, PrintWriter, Writer}
 import java.net.URLClassLoader
 import java.util.Optional
+import java.util.concurrent.Callable
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
@@ -12,11 +13,14 @@ import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.util.Ctx
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.{InterfaceUtil, LogExchange}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.util.JsonFormatters._
+import sbt.librarymanagement.DependencyResolution
+import xsbti.GlobalLock
 
 
 
@@ -31,15 +35,15 @@ object ScalaModule{
 
   val compilerCache = new CompilerCache(2)
   def compileScala(scalaVersion: String,
-                   sources: Path,
+                   sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
                    scalacOptions: Seq[String],
-                   javacOptions: Seq[String],
-                   outputPath: Path): PathRef = {
+                   javacOptions: Seq[String])
+                  (implicit ctx: Ctx): PathRef = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
-    val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+
     def grepJar(classPath: Seq[Path], s: String) = {
       classPath
         .find(_.toString.endsWith(s))
@@ -49,7 +53,12 @@ object ScalaModule{
 
     val outerClassLoader = getClass.getClassLoader
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
-    val compilerBridgeJar = grepJar(compilerBridge, s"compiler-bridge_$binaryScalaVersion-1.0.5.jar")
+    def binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+    val compilerBridgeJar = new java.io.File(
+      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
+//      s"out/bridges/$scalaVersion/compile/classes"
+    )
+
     val zincClassLoader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null){
       override def loadClass(name: String): Class[_] = {
         Option(findLoadedClass(name)) orElse
@@ -71,13 +80,15 @@ object ScalaModule{
 
     val scalac = ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
 
-    mkdir(outputPath)
+    mkdir(ctx.dest)
 
     val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
-      val console = ConsoleOut.systemOut
-      val consoleAppender = MainAppender.defaultScreen(console)
+
+      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
+        ctx.log.outputStream
+      ))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
       LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
@@ -97,13 +108,13 @@ object ScalaModule{
       override def startUnit(phase: String, unitPath: String): Unit = ()
     }
 
-    val zincFile = (outputPath/'zinc).toIO
+    val zincFile = (ctx.dest/'zinc).toIO
     val store = FileAnalysisStore.binary(zincFile)
-    val classesDir = (outputPath / 'classes).toIO
+    val classesDir = (ctx.dest / 'classes).toIO
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesDir +: compileClasspathFiles,
-        sources = ls.rec(sources).filter(_.isFile).map(_.toIO).toArray,
+        sources = sources.flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
         classesDirectory = classesDir,
         scalacOptions = scalacOptions.toArray,
         javacOptions = javacOptions.toArray,
@@ -115,7 +126,8 @@ object ScalaModule{
           lookup,
           skip = false,
           zincFile,
-          compilerCache,
+          new FreshCompilerCache,
+//          compilerCache,
           IncOptions.of(),
           reporter,
           Some(ignoreProgress),
@@ -129,6 +141,8 @@ object ScalaModule{
       logger = logger
     )
 
+    zincClassLoader.close()
+
     store.set(
       AnalysisContents.create(
         newResult.analysis(),
@@ -136,7 +150,7 @@ object ScalaModule{
       )
     )
 
-    PathRef(outputPath/'classes)
+    PathRef(ctx.dest/'classes)
   }
 
   def resolveDependencies(repositories: Seq[Repository],
@@ -325,33 +339,29 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
+  def allSources = T{ Seq(sources()) }
   def compile = T.persistent{
     compileScala(
       scalaVersion(),
-      sources().path,
+      allSources().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
       scalacOptions(),
-      javacOptions(),
-      T.ctx().dest
+      javacOptions()
     )
   }
   def assembly = T{
-    val dest = T.ctx().dest
     createAssembly(
-      dest,
-      (runDepClasspath().filter(_.path.ext != "pom") ++ Seq(resources(), compile())).map(_.path).filter(exists),
+      (runDepClasspath().filter(_.path.ext != "pom") ++
+      Seq(resources(), compile())).map(_.path).filter(exists),
       prependShellScript = prependShellScript()
     )
-    PathRef(dest)
   }
 
   def classpath = T{ Seq(resources(), compile()) }
   def jar = T{
-    val dest = T.ctx().dest
-    createJar(dest, Seq(resources(), compile()).map(_.path).filter(exists), mainClass())
-    PathRef(dest)
+    createJar(Seq(resources(), compile()).map(_.path).filter(exists), mainClass())
   }
 
   def run() = T.command{

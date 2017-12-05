@@ -1,17 +1,20 @@
 package mill.eval
 
+import java.io.PrintStream
+
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task}
 import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.util
-import mill.util.{Args, MultiBiMap, OSet}
+import mill.util._
+
 import scala.collection.mutable
 
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], LabelledTarget[_]],
-                log: String => Unit){
+                log: Logger){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
@@ -133,8 +136,7 @@ class Evaluator(workspacePath: Path,
   def evaluateGroup(group: OSet[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
                     targetDestPath: Option[Path],
-                    maybeTargetLabel: Option[String]
-                   ) = {
+                    maybeTargetLabel: Option[String]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -150,7 +152,7 @@ class Evaluator(workspacePath: Path,
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
-      if(logRun) { log("Running " + targetLabel) }
+      if(logRun) { log.info("Running " + targetLabel) }
     }
 
     for (target <- nonEvaluatedTargets) {
@@ -163,8 +165,25 @@ class Evaluator(workspacePath: Path,
       val res =
         if (targetInputValues.length != target.inputs.length) Result.Skipped
         else {
-          val args = new Args(targetInputValues.toArray[Any], targetDestPath.orNull)
-          target.evaluate(args)
+          val args = new Ctx(
+            targetInputValues.toArray[Any],
+            targetDestPath.orNull,
+            log
+          )
+          val out = System.out
+          val err = System.err
+          try{
+            System.setErr(log.outputStream)
+            System.setOut(log.outputStream)
+            Console.withOut(log.outputStream){
+              Console.withErr(log.outputStream){
+                target.evaluate(args)
+              }
+            }
+          }finally{
+            System.setErr(err)
+            System.setOut(out)
+          }
         }
 
       newResults(target) = res
