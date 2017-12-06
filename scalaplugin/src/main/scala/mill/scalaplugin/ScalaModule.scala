@@ -51,7 +51,6 @@ object ScalaModule{
         .toIO
     }
 
-
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
     def binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
     val compilerBridgeJar = new java.io.File(
@@ -60,7 +59,7 @@ object ScalaModule{
     )
 
     val classloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
-    println("classloaderSig: " + classloaderSig)
+
     val scalaInstance = scalaInstanceCache match{
       case Some((k, v)) if k == classloaderSig => v
       case _ =>
@@ -76,16 +75,11 @@ object ScalaModule{
         scalaInstance
     }
 
-
-
-    val scalac = ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
-
     mkdir(ctx.dest)
 
     val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
-
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
         ctx.log.outputStream
       ))
@@ -94,23 +88,13 @@ object ScalaModule{
       LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
-    val compiler = new IncrementalCompilerImpl
-
-
-    val cs = compiler.compilers(scalaInstance, ClasspathOptionsUtil.boot, None, scalac)
 
     val lookup = MockedLookup(Function.const(Optional.empty[CompileAnalysis]))
-    val reporter = new ManagedLoggedReporter(10, logger)
-    val extra = Array(InterfaceUtil.t2(("key", "value")))
-
-    val ignoreProgress = new CompileProgress {
-      override def advance(current: Int, total: Int): Boolean = true
-      override def startUnit(phase: String, unitPath: String): Unit = ()
-    }
 
     val zincFile = (ctx.dest/'zinc).toIO
     val store = FileAnalysisStore.binary(zincFile)
     val classesDir = (ctx.dest / 'classes).toIO
+
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesDir +: compileClasspathFiles,
@@ -121,16 +105,21 @@ object ScalaModule{
         maxErrors = 10,
         sourcePositionMappers = Array(),
         order = CompileOrder.Mixed,
-        compilers = cs,
+        compilers = ic.compilers(
+          scalaInstance,
+          ClasspathOptionsUtil.boot,
+          None,
+          ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
+        ),
         setup = ic.setup(
           lookup,
           skip = false,
           zincFile,
           new FreshCompilerCache,
           IncOptions.of(),
-          reporter,
-          Some(ignoreProgress),
-          extra
+          new ManagedLoggedReporter(10, logger),
+          None,
+          Array()
         ),
         pr = {
           val prev = store.get()

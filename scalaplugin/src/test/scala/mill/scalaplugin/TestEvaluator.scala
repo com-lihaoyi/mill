@@ -16,7 +16,7 @@ object TestEvaluator {
   def eval[T](
       mapping: Map[Target[_], Mirror.LabelledTarget[_]],
       workspacePath: Path)(t: Task[T]): Either[Result.Failing, (T, Int)] = {
-    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
+    val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
     val evaluated = evaluator.evaluate(OSet(t))
 
     if (evaluated.failing.keyCount == 0) {
