@@ -102,7 +102,7 @@ lazy val scalaplugin = project
   .settings(
     sharedSettings,
     name := "mill-scalaplugin",
-    (compile in Test) := {
+    (assembly in Test) := {
       val a = (packageBin in (bridge2_10_6, Compile)).value
       val b = (packageBin in (bridge2_11_8, Compile)).value
 //      val c = (packageBin in (bridge2_11_9, Compile)).value
@@ -113,6 +113,6 @@ lazy val scalaplugin = project
 //      val h = (packageBin in (bridge2_12_2, Compile)).value
       val i = (packageBin in (bridge2_12_3, Compile)).value
       val j = (packageBin in (bridge2_12_4, Compile)).value
-      (compile in Test).value
+      (assembly in Test).value
     }
   )
