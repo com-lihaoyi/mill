@@ -37,8 +37,8 @@ object Applicative {
                                 (cb: (A, B, C, D, E, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
     def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
                                    (cb: (A, B, C, D, E, F, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
-    def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
-                                      (cb: (A, B, C, D, E, F, G, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
+    def zipMap[A, B, C, D, E, F, G, H, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H])
+                                      (cb: (A, B, C, D, E, F, G, H, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h)){case ((a, b, c, d, e, f, g, h), x) => cb(a, b, c, d, e, f, g, h, x)}
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
     def zip[A, B](a: T[A], b: T[B]): T[(A, B)]
@@ -46,7 +46,7 @@ object Applicative {
     def zip[A, B, C, D](a: T[A], b: T[B], c: T[C], d: T[D]): T[(A, B, C, D)]
     def zip[A, B, C, D, E](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E]): T[(A, B, C, D, E)]
     def zip[A, B, C, D, E, F](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F]): T[(A, B, C, D, E, F)]
-    def zip[A, B, C, D, E, F, G](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G]): T[(A, B, C, D, E, F, G)]
+    def zip[A, B, C, D, E, F, G, H](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H]): T[(A, B, C, D, E, F, G, H)]
   }
 
   def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)
