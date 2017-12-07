@@ -50,6 +50,11 @@ object TestRunner {
     })
     val outputPath = args(4)
     ammonite.ops.write(Path(outputPath), upickle.default.write(result))
+
+    // Tests are over, kill the JVM whether or not anyone's threads are still running
+    // Always return 0, even if tests fail. The caller can pick up the detailed test
+    // results from the outputPath
+    System.exit(0)
   }
   def apply(frameworkName: String,
             entireClasspath: Seq[Path],

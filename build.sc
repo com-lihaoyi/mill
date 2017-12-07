@@ -5,7 +5,10 @@ import mill.scalaplugin._
 trait MillModule extends ScalaModule{ outer =>
   def scalaVersion = "2.12.4"
   override def sources = basePath/'src/'main/'scala
+  def testArgs = T{ Seq.empty[String] }
   object test extends this.Tests{
+    override def defaultCommandName() = "forkTest"
+    override def forkArgs = T{ testArgs() }
     override def projectDeps =
       if (this == Core.test) Seq(Core)
       else Seq(outer, Core.test)
@@ -80,14 +83,20 @@ object ScalaPlugin extends MillModule {
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
   override def compile = T.persistent[mill.eval.PathRef]{
-    bridges("2.10.6").compile()
-    bridges("2.11.8").compile()
-    bridges("2.11.11").compile()
-    bridges("2.12.3").compile()
-    bridges("2.12.4").compile()
     super.compile()
   }
+  override def testArgs = T{
+    val mapping = Map(
+      "MILL_COMPILER_BRIDGE_2_10_6" -> bridges("2.10.6").compile().path,
+      "MILL_COMPILER_BRIDGE_2_11_8" -> bridges("2.11.8").compile().path,
+      "MILL_COMPILER_BRIDGE_2_11_11" -> bridges("2.11.11").compile().path,
+      "MILL_COMPILER_BRIDGE_2_12_3" -> bridges("2.12.3").compile().path,
+      "MILL_COMPILER_BRIDGE_2_12_4" -> bridges("2.12.4").compile().path,
+    )
+    for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+  }
+
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
-    """exec java $JAVA_OPTS -cp "$0" mill.Main "$@" """
+    s"""exec java ${testArgs().mkString(" ")} $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
 }

@@ -34,6 +34,7 @@ object ScalaModule{
   }
 
   var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
+
   def compileScala(scalaVersion: String,
                    sources: Seq[Path],
                    compileClasspath: Seq[Path],
@@ -52,11 +53,10 @@ object ScalaModule{
     }
 
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
-    def binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
-    val compilerBridgeJar = new java.io.File(
-      s"bridge/${scalaVersion.replace('.', '_')}/target/scala-$binaryScalaVersion/mill-bridge_$scalaVersion-0.1-SNAPSHOT.jar"
-//      s"out/bridges/$scalaVersion/compile/classes"
-    )
+    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_"+scalaVersion.replace('.', '_')
+    val compilerBridgePath = sys.props(compilerBridgeKey)
+    assert(compilerBridgePath != null, "Cannot find compiler bridge " + compilerBridgeKey)
+    val compilerBridgeJar = new java.io.File(compilerBridgePath)
 
     val classloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
 
@@ -184,14 +184,15 @@ trait TestScalaModule extends ScalaModule with TaskModule {
   def testFramework: T[String]
 
   def forkWorkingDir = ammonite.ops.pwd
+  def forkArgs = T{ Seq.empty[String] }
   def forkTest(args: String*) = T.command{
     val outputPath = tmp.dir()/"out.json"
+
     Jvm.subprocess(
-      "mill.scalaplugin.TestRunner",
-      getClass.getClassLoader.asInstanceOf[URLClassLoader].getURLs.toList.map(
-        u => Path(new java.io.File(u.toURI))
-      ),
-      Seq(
+      mainClass = "mill.scalaplugin.TestRunner",
+      classPath = Jvm.gatherClassloaderJars(),
+      jvmOptions = forkArgs(),
+      options = Seq(
         testFramework(),
         (runDepClasspath().map(_.path) :+ compile().path).mkString(" "),
         Seq(compile().path).mkString(" "),

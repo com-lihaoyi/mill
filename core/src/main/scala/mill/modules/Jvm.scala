@@ -1,6 +1,7 @@
 package mill.modules
 
 import java.io.FileOutputStream
+import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
@@ -14,16 +15,35 @@ import scala.collection.mutable
 
 
 object Jvm {
-
+  def gatherClassloaderJars(): Seq[Path] = {
+    val allJars = collection.mutable.Buffer.empty[Path]
+    var currentClassloader = Thread.currentThread().getContextClassLoader
+    while(currentClassloader != null){
+      currentClassloader match{
+        case u: URLClassLoader => allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
+        case _ =>
+      }
+      currentClassloader = currentClassloader.getParent
+    }
+    allJars
+  }
   def subprocess(mainClass: String,
                  classPath: Seq[Path],
+                 jvmOptions: Seq[String] = Seq.empty,
                  options: Seq[String] = Seq.empty,
                  workingDir: Path = ammonite.ops.pwd)
                 (implicit ctx: Ctx) = {
+
+    val commandArgs =
+      Vector("java") ++
+      jvmOptions ++
+      Vector("-cp", classPath.mkString(":"), mainClass) ++
+      options
+
     val proc =
       new java.lang.ProcessBuilder()
         .directory(workingDir.toIO)
-        .command(Vector("java", "-cp", classPath.mkString(":"), mainClass) ++ options:_*)
+        .command(commandArgs:_*)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
         .start()

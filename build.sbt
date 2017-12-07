@@ -8,19 +8,6 @@ val sharedSettings = Seq(
   parallelExecution in Test := false,
   test in assembly := {},
 
-  assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-    prependShellScript = Some(
-      // G1 Garbage Collector is awesome https://github.com/lihaoyi/Ammonite/issues/216
-      Seq("#!/usr/bin/env sh", """exec java -cp "$0" mill.Main "$@" """)
-    )
-  ),
-  assembly in Test := {
-    val dest = target.value/"mill"
-    IO.copyFile(assembly.value, dest)
-    import sys.process._
-    Seq("chmod", "+x", dest.getAbsolutePath).!
-    dest
-  },
   libraryDependencies += "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided",
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
@@ -97,26 +84,39 @@ lazy val core = project
     )
   )
 
+val bridgeProps = Def.task{
+  val mapping = Map(
+    "MILL_COMPILER_BRIDGE_2_10_6" -> (packageBin in (bridge2_10_6, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_11_8" -> (packageBin in (bridge2_11_8, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_11_11" -> (packageBin in (bridge2_11_11, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_12_3" -> (packageBin in (bridge2_12_3, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_12_4" -> (packageBin in (bridge2_12_4, Compile)).value.absolutePath
+  )
+  for((k, v) <- mapping) yield s"-D$k=$v"
+}
 lazy val scalaplugin = project
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     sharedSettings,
     name := "mill-scalaplugin",
-    (compile in Test) := {
-      val a = (packageBin in (bridge2_10_6, Compile)).value
-      val b = (packageBin in (bridge2_11_8, Compile)).value
-//      val c = (packageBin in (bridge2_11_9, Compile)).value
-//      val d = (packageBin in (bridge2_11_10, Compile)).value
-      val e = (packageBin in (bridge2_11_11, Compile)).value
-//      val f = (packageBin in (bridge2_12_0, Compile)).value
-//      val g = (packageBin in (bridge2_12_1, Compile)).value
-//      val h = (packageBin in (bridge2_12_2, Compile)).value
-      val i = (packageBin in (bridge2_12_3, Compile)).value
-      val j = (packageBin in (bridge2_12_4, Compile)).value
-      (compile in Test).value
+    fork in Test := true,
+    baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
+    javaOptions in (Test, test) := bridgeProps.value.toSeq,
+    assemblyOption in assembly := {
+      (assemblyOption in assembly).value.copy(
+        prependShellScript = Some(
+          Seq(
+            "#!/usr/bin/env sh",
+            s"""exec java ${bridgeProps.value.mkString(" ")} -cp "$$0" mill.Main "$$@" """
+          )
+        )
+      )
     },
     assembly in Test := {
-      (compile in Test).value
-      (assembly in Test).value
+      val dest = target.value/"mill"
+      IO.copyFile(assembly.value, dest)
+      import sys.process._
+      Seq("chmod", "+x", dest.getAbsolutePath).!
+      dest
     }
   )
