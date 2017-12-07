@@ -114,5 +114,9 @@ lazy val scalaplugin = project
       val i = (packageBin in (bridge2_12_3, Compile)).value
       val j = (packageBin in (bridge2_12_4, Compile)).value
       (compile in Test).value
+    },
+    assembly in Test := {
+      (compile in Test).value
+      (assembly in Test).value
     }
   )
