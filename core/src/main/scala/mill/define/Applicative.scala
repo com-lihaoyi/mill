@@ -1,9 +1,7 @@
 package mill.define
 
-import mill.util.Args
 
-import scala.annotation.compileTimeOnly
-import scala.collection.mutable
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.reflect.macros.blackbox.Context
 
 /**
@@ -20,11 +18,11 @@ object Applicative {
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
     def apply(): T = ???
   }
+  class ImplicitStub extends StaticAnnotation
   type Id[+T] = T
 
   trait Applyer[W[_], T[_], Z[_], Ctx]{
-    @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
-    def ctx(): Ctx = ???
+    def ctx()(implicit c: Ctx) = c
     def underlying[A](v: W[A]): T[_]
 
     def mapCtx[A, B](a: T[A])(f: (A, Ctx) => Z[B]): T[B]
@@ -39,10 +37,8 @@ object Applicative {
                                 (cb: (A, B, C, D, E, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
     def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
                                    (cb: (A, B, C, D, E, F, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
-    def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
-                                      (cb: (A, B, C, D, E, F, G, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
     def zipMap[A, B, C, D, E, F, G, H, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H])
-      (cb: (A, B, C, D, E, F, G, H, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h)){case ((a, b, c, d, e, f, g, h), x) => cb(a, b, c, d, e, f, g, h, x)}
+                                      (cb: (A, B, C, D, E, F, G, H, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h)){case ((a, b, c, d, e, f, g, h), x) => cb(a, b, c, d, e, f, g, h, x)}
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
     def zip[A, B](a: T[A], b: T[B]): T[(A, B)]
@@ -50,7 +46,6 @@ object Applicative {
     def zip[A, B, C, D](a: T[A], b: T[B], c: T[C], d: T[D]): T[(A, B, C, D)]
     def zip[A, B, C, D, E](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E]): T[(A, B, C, D, E)]
     def zip[A, B, C, D, E, F](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F]): T[(A, B, C, D, E, F)]
-    def zip[A, B, C, D, E, F, G](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G]): T[(A, B, C, D, E, F, G)]
     def zip[A, B, C, D, E, F, G, H](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H]): T[(A, B, C, D, E, F, G, H)]
   }
 
@@ -95,8 +90,9 @@ object Applicative {
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
         bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
         tempIdent
-      case (t @ q"$prefix.ctx()", api)
-        if prefix.tpe.baseClasses.exists(_.fullName == "mill.define.Applicative.Applyer") =>
+      case (t, api)
+        if t.symbol != null
+        && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[ImplicitStub]) =>
 
         val tempIdent = Ident(ctxSym)
         c.internal.setType(tempIdent, t.tpe)

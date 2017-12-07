@@ -2,17 +2,14 @@ package mill.scalaplugin
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Cross, Target, Task}
+import mill.define.{Cross,Task}
 import mill.discover.Discovered
-import mill.eval.{Evaluator, PathRef, Result}
-import mill.modules.Jvm.jarUp
-import mill.{Module, T}
-import mill.util.OSet
+import mill.eval.Result
 import utest._
 import mill.util.JsonFormatters._
 object AcyclicBuild{
   val acyclic =
-    for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.4"))
+    for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
     yield new ScalaModule{outer =>
       def basePath = AcyclicTests.workspacePath
       def organization = "com.lihaoyi"
@@ -21,11 +18,12 @@ object AcyclicBuild{
       def version = "0.1.7"
       override def sources = basePath/'src/'main/'scala
       def scalaVersion = crossVersion
-      override def compileIvyDeps = Seq(
+      override def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
       )
       object test extends this.Tests{
         def basePath = AcyclicTests.workspacePath
+        override def forkWorkingDir = pwd/'scalaplugin/'src/'test/'resource/'acyclic
         override def ivyDeps = Seq(
           Dep("com.lihaoyi", "utest", "0.6.0")
         )
@@ -44,31 +42,34 @@ object AcyclicTests extends TestSuite{
   val workspacePath = pwd / 'target / 'workspace / 'acyclic
   val srcPath = pwd / 'scalaplugin / 'src / 'test / 'resource / 'acyclic
   val tests = Tests{
-    'acyclic - {
-      rm(workspacePath)
-      mkdir(workspacePath/up)
-      cp(srcPath, workspacePath)
-      val mapping = Discovered.mapping(AcyclicBuild)
-      def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping, _ => ())
-        val evaluated = evaluator.evaluate(OSet(t))
+    rm(workspacePath)
+    mkdir(workspacePath/up)
+    cp(srcPath, workspacePath)
+    val mapping = Discovered.mapping(AcyclicBuild)
+    def eval[T](t: Task[T]) = TestEvaluator.eval(mapping, workspacePath)(t)
 
-        if (evaluated.failing.keyCount == 0){
-          Right(Tuple2(
-            evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
-            evaluated.evaluated.collect{
-              case t: Target[_] if mapping.contains(t) => t
-              case t: mill.define.Command[_] => t
-            }.size
-          ))
-        }else{
-          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
-        }
-      }
+    val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
+
+    'scala210 - check("2.10.6", full = false)
+    'scala211 - check("2.11.8", full = false)
+    'scala2123 - check("2.12.3", full = true)
+    'scala2124 - check("2.12.4", full = false)
+
+    val allBinaryVersions = Seq("2.10", "2.11", "2.12")
+    def check(scalaVersion: String, full: Boolean) = {
+      // Dependencies are right; make sure every dependency is of the correct
+      // binary Scala version, except for the compiler-bridge which is of the
+      // same version as the host classpath.
+      val Right((compileDepClasspath, _)) = eval(AcyclicBuild.acyclic(scalaVersion).compileDepClasspath)
+      val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
+      val compileDeps = compileDepClasspath.map(_.path.toString())
+      val offBinaryVersions = allBinaryVersions.filter(_ != binaryScalaVersion)
+      val offVersionedDeps = compileDeps.filter(p => offBinaryVersions.exists(p.contains))
+      assert(offVersionedDeps.forall(_.contains("compiler-bridge")))
 
       // We can compile
-      val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
-      val outputPath = pathRef.path
+      val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
+      val outputPath = pathRef.classes.path
       val outputFiles = ls.rec(outputPath)
       assert(
         evalCount > 0,
@@ -77,28 +78,35 @@ object AcyclicTests extends TestSuite{
       )
 
       // Compilation is cached
-      val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+      val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       assert(evalCount2 == 0)
 
-      val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
-      write.append(packageScala, "\n")
+      if (full){
+        // Caches are invalidated if code is changed
+        write.append(packageScala, "\n")
+        val Right((_, evalCount3)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
+        assert(evalCount3 > 0)
 
-      // Caches are invalidated if code is changed
-      val Right((_, evalCount3)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
-      assert(evalCount3 > 0)
+        // Compilation can fail on broken code, and work when fixed
+        write.append(packageScala, "\n}}")
+        val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
+        assert(ex.isInstanceOf[sbt.internal.inc.CompileFailed])
 
-      // Compilation can fail on broken code, and work when fixed
-      write.append(packageScala, "\n}}")
-      val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
+        write.write(packageScala, read(packageScala).dropRight(3))
+        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
 
-      assert(ex.isInstanceOf[sbt.internal.inc.CompileFailed])
+        // Tests compile & run
+        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
 
-      write.write(packageScala, read(packageScala).dropRight(3))
+        // Tests can be broken
+        write.append(packageScala, "\n}}")
+        val Left(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
 
-      val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").compile)
-
-      // Tests can run
-//      val Right((_, _)) = eval(AcyclicBuild.acyclic("2.12.4").test.test())
+        // Tests can be fixed
+        write.write(packageScala, read(packageScala).dropRight(3))
+        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
+      }
     }
+
   }
 }

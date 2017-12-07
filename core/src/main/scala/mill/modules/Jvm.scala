@@ -1,24 +1,77 @@
 package mill.modules
 
 import java.io.FileOutputStream
+import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
-import mill.util.Args
+import mill.util.Ctx
 
+import scala.annotation.tailrec
 import scala.collection.mutable
 
 
 object Jvm {
-
+  def gatherClassloaderJars(): Seq[Path] = {
+    val allJars = collection.mutable.Buffer.empty[Path]
+    var currentClassloader = Thread.currentThread().getContextClassLoader
+    while(currentClassloader != null){
+      currentClassloader match{
+        case u: URLClassLoader => allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
+        case _ =>
+      }
+      currentClassloader = currentClassloader.getParent
+    }
+    allJars
+  }
   def subprocess(mainClass: String,
                  classPath: Seq[Path],
-                 options: Seq[String] = Seq.empty) = {
-    import ammonite.ops.ImplicitWd._
-    %("java", "-cp", classPath.mkString(":"), mainClass, options)
+                 jvmOptions: Seq[String] = Seq.empty,
+                 options: Seq[String] = Seq.empty,
+                 workingDir: Path = ammonite.ops.pwd)
+                (implicit ctx: Ctx) = {
+
+    val commandArgs =
+      Vector("java") ++
+      jvmOptions ++
+      Vector("-cp", classPath.mkString(":"), mainClass) ++
+      options
+
+    val proc =
+      new java.lang.ProcessBuilder()
+        .directory(workingDir.toIO)
+        .command(commandArgs:_*)
+        .redirectOutput(ProcessBuilder.Redirect.PIPE)
+        .redirectError(ProcessBuilder.Redirect.PIPE)
+        .start()
+
+    val stdout = proc.getInputStream
+    val stderr = proc.getErrorStream
+    val sources = Seq(stdout , stderr)
+    while(
+    // Process.isAlive doesn't exist on JDK 7 =/
+      util.Try(proc.exitValue).isFailure ||
+        stdout.available() > 0 ||
+        stderr.available() > 0
+    ){
+      var readSomething = false
+      for (std <- sources){
+        while (std.available() > 0){
+          readSomething = true
+          val array = new Array[Byte](std.available())
+          val actuallyRead = std.read(array)
+          ctx.log.outputStream.write(array, 0, actuallyRead)
+        }
+      }
+      // if we did not read anything sleep briefly to avoid spinning
+      if(!readSomething)
+        Thread.sleep(2)
+    }
+
+    if (proc.exitValue() != 0) throw new InteractiveShelloutException()
   }
 
   private def createManifest(mainClass: Option[String]) = {
@@ -31,10 +84,10 @@ object Jvm {
     m
   }
 
-  def createJar(outputPath: Path, inputPaths: Seq[Path], mainClass: Option[String] = None): Option[Path] = {
+  def createJar(outputPath: Path, inputPaths: Seq[Path], mainClass: Option[String] = None)
+               (implicit ctx: Ctx.DestCtx): PathRef = {
     rm(outputPath)
-    if(inputPaths.isEmpty) None
-    else {
+    if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
 
       val jar = new JarOutputStream(
@@ -60,19 +113,19 @@ object Jvm {
         jar.close()
       }
 
-      Some(outputPath)
     }
+    PathRef(outputPath)
   }
 
 
-  def createAssembly(outputPath: Path,
-                     inputPaths: Seq[Path],
+  def createAssembly(inputPaths: Seq[Path],
                      mainClass: Option[String] = None,
-                     prependShellScript: String = ""): Option[Path] = {
+                     prependShellScript: String = "")
+                    (implicit ctx: Ctx.DestCtx): PathRef = {
+    val outputPath = ctx.dest
     rm(outputPath)
 
-    if(inputPaths.isEmpty) None
-    else {
+    if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
 
       val output = new FileOutputStream(outputPath.toIO)
@@ -125,16 +178,8 @@ object Jvm {
         output.close()
       }
 
-      Some(outputPath)
     }
+    PathRef(outputPath)
   }
 
-  def jarUp(roots: Task[PathRef]*) = new Task[PathRef]{
-
-    val inputs = roots
-    def evaluate(args: Args) = {
-      createJar(args.dest, args.args.map(_.asInstanceOf[PathRef].path))
-      PathRef(args.dest)
-    }
-  }
 }

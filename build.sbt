@@ -8,19 +8,6 @@ val sharedSettings = Seq(
   parallelExecution in Test := false,
   test in assembly := {},
 
-  assemblyOption in assembly := (assemblyOption in assembly).value.copy(
-    prependShellScript = Some(
-      // G1 Garbage Collector is awesome https://github.com/lihaoyi/Ammonite/issues/216
-      Seq("#!/usr/bin/env sh", """exec java -jar -Xmx500m -XX:+UseG1GC $JAVA_OPTS "$0" "$@"""")
-    )
-  ),
-  assembly in Test := {
-    val dest = target.value/"mill"
-    IO.copyFile(assembly.value, dest)
-    import sys.process._
-    Seq("chmod", "+x", dest.getAbsolutePath).!
-    dest
-  },
   libraryDependencies += "com.lihaoyi" %% "acyclic" % "0.1.7" % "provided",
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
@@ -34,6 +21,54 @@ val sharedSettings = Seq(
   }.taskValue
 
 )
+
+def bridge(bridgeVersion: String) = Project(
+  id = "bridge" + bridgeVersion.replace('.', '_'),
+  base = file("bridge/" + bridgeVersion.replace('.', '_')),
+  settings = Seq(
+    organization := "com.lihaoyi",
+    scalaVersion := bridgeVersion,
+    name := "mill-bridge",
+    crossVersion := CrossVersion.full,
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "org.scala-sbt" % "compiler-interface" % "1.0.5"
+    ),
+    (sourceGenerators in Compile) += Def.task{
+      import sys.process._
+      import collection.JavaConverters._
+      val v = scalaBinaryVersion.value
+      val url =
+        s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
+      val curlDest = java.nio.file.Paths.get(target.value.toString, "sources")
+
+      Seq("rm", "-rf", curlDest.toString).!
+      java.nio.file.Files.createDirectories(curlDest)
+
+      Seq("curl", "-L", "-o", curlDest.resolve("bridge.jar").toString, url).!
+      Seq("unzip", curlDest.resolve("bridge.jar").toString, "-d", curlDest.toString).!
+
+      val sources = java.nio.file.Files.walk(curlDest)
+        .iterator
+        .asScala
+        .filter(_.toString.endsWith(".scala"))
+        .map(_.toFile)
+        .toSeq
+
+      sources
+    }.taskValue
+  )
+)
+lazy val bridge2_10_6 = bridge("2.10.6")
+lazy val bridge2_11_8 = bridge("2.11.8")
+//lazy val bridge2_11_9 = bridge("2.11.9")
+//lazy val bridge2_11_10 = bridge("2.11.10")
+lazy val bridge2_11_11 = bridge("2.11.11")
+//lazy val bridge2_12_0 = bridge("2.12.0")
+//lazy val bridge2_12_1 = bridge("2.12.1")
+//lazy val bridge2_12_2 = bridge("2.12.2")
+lazy val bridge2_12_3 = bridge("2.12.3")
+lazy val bridge2_12_4 = bridge("2.12.4")
 
 lazy val core = project
   .settings(
@@ -49,9 +84,39 @@ lazy val core = project
     )
   )
 
+val bridgeProps = Def.task{
+  val mapping = Map(
+    "MILL_COMPILER_BRIDGE_2_10_6" -> (packageBin in (bridge2_10_6, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_11_8" -> (packageBin in (bridge2_11_8, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_11_11" -> (packageBin in (bridge2_11_11, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_12_3" -> (packageBin in (bridge2_12_3, Compile)).value.absolutePath,
+    "MILL_COMPILER_BRIDGE_2_12_4" -> (packageBin in (bridge2_12_4, Compile)).value.absolutePath
+  )
+  for((k, v) <- mapping) yield s"-D$k=$v"
+}
 lazy val scalaplugin = project
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     sharedSettings,
-    name := "mill-scalaplugin"
+    name := "mill-scalaplugin",
+    fork in Test := true,
+    baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
+    javaOptions in (Test, test) := bridgeProps.value.toSeq,
+    assemblyOption in assembly := {
+      (assemblyOption in assembly).value.copy(
+        prependShellScript = Some(
+          Seq(
+            "#!/usr/bin/env sh",
+            s"""exec java ${bridgeProps.value.mkString(" ")} -cp "$$0" mill.Main "$$@" """
+          )
+        )
+      )
+    },
+    assembly in Test := {
+      val dest = target.value/"mill"
+      IO.copyFile(assembly.value, dest)
+      import sys.process._
+      Seq("chmod", "+x", dest.getAbsolutePath).!
+      dest
+    }
   )

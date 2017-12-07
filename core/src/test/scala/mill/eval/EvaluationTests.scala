@@ -5,7 +5,7 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
-import mill.util.{OSet, TestGraphs, TestUtil}
+import mill.util.{DummyLogger, OSet, TestGraphs, TestUtil}
 import utest._
 import utest.framework.TestPath
 
@@ -14,7 +14,7 @@ object EvaluationTests extends TestSuite{
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, Discovered.mapping(base), _ => ())
+    def evaluator = new Evaluator(workspace, Discovered.mapping(base), DummyLogger)
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: OSet[Task[_]],

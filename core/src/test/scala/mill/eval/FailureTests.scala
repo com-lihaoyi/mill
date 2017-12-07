@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.define.Target
 import mill.discover.Discovered
-import mill.util.OSet
+import mill.util.{DummyLogger, OSet}
 import utest._
 import utest.framework.TestPath
 
@@ -17,7 +17,7 @@ object FailureTests extends TestSuite{
     def check[T: Discovered](base: T)
                             (target: T => Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]])
                             (implicit tp: TestPath) = {
-      val evaluator = new Evaluator(workspace, Discovered.mapping(base), _ => ())
+      val evaluator = new Evaluator(workspace, Discovered.mapping(base), DummyLogger)
       val res = evaluator.evaluate(OSet(target(base)))
       assert(
         res.rawValues == expectedRawValues,

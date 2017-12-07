@@ -1,7 +1,9 @@
 package mill.define
 
+import mill.define.Applicative.ImplicitStub
 import utest._
 
+import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 
 
@@ -37,7 +39,7 @@ object ApplicativeTests extends TestSuite {
       for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g) yield (a, b, c, d, e, f, g)
     }
     def zip[A, B, C, D, E, F, G, H](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g, h <- h) yield (a, b, c, d, e, f, g, h)
+      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h) yield (a, b, c, d, e, f, g, h)
     }
   }
   class Counter{
@@ -47,6 +49,9 @@ object ApplicativeTests extends TestSuite {
       value
     }
   }
+  @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
+  @ImplicitStub
+  implicit def taskCtx: String = ???
 
   val tests = Tests{
 
