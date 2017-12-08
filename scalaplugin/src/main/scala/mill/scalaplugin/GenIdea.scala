@@ -14,7 +14,7 @@ object GenIdea {
     rm! pwd/".idea_modules"
 
     for((relPath, xml) <- xmlFileLayout(obj)){
-      write(pwd/relPath, pp.format(xml))
+      write.over(pwd/relPath, pp.format(xml))
     }
   }
 
