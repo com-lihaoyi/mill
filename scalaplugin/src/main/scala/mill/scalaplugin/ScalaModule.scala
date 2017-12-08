@@ -12,6 +12,7 @@ import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.scalaplugin.publish.Dependency
 import mill.util.Ctx
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -358,6 +359,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     )
   }
   def assembly = T{
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
     createAssembly(
       (runDepClasspath().filter(_.path.ext != "pom") ++
       Seq(resources(), compile().classes)).map(_.path).filter(exists),
@@ -368,7 +374,26 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def classpath = T{ Seq(resources(), compile().classes) }
 
   def jar = T{
-    createJar(Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}.jar"
+    val dest = outDir/jarName
+    createJar(dest, Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
+    PathRef(dest)
+  }
+
+  def sourcesJar = T{
+    val outDir = T.ctx().dest/up
+    val n = name()
+    val v = version()
+    val jarName = s"${n}-${v}-sources.jar"
+    val dest = outDir/jarName
+
+    val inputs = Seq(sources(), resources()).map(_.path).filter(exists)
+
+    createJar(dest, inputs)
+    PathRef(dest)
   }
 
   def run() = T.command{
@@ -387,4 +412,26 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       options = Seq("-usejavacp")
     )
   }
+
+  def organization: T[String]
+  def name: T[String]
+  def version: T[String]
+  // build artifact name as "mill-2.12.4" instead of "mill-2.12"
+  def useFullScalaVersionForPublish: T[Boolean] = T { false }
+
+  def publishLocal() = T.command {
+    import publish._
+    val file = jar()
+    val scalaFull = scalaVersion()
+    val scalaBin = scalaBinaryVersion()
+    val useFullVersion = useFullScalaVersionForPublish()
+    val deps = ivyDeps()
+
+    val dependencies = deps.map(d => Artifact.fromDep(d, scalaFull, scalaBin))
+    val artScalaVersion = if (useFullVersion) scalaFull else scalaBin
+    val artifact = ScalaArtifact(organization(), name(), version(), artScalaVersion)
+    LocalPublisher.publish(file, artifact, dependencies)
+  }
+
 }
+

@@ -16,6 +16,10 @@ trait MillModule extends ScalaModule{ outer =>
     override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
     override def sources = basePath/'src/'test/'scala
     def testFramework = "mill.UTestFramework"
+
+    def organization = "com.lihaoyi"
+    def name = "mill-test"
+    def version = "0.0.1"
   }
 }
 
@@ -49,6 +53,11 @@ object Core extends MillModule {
         PathRef(dest)
       }
     }
+
+  def organization = "com.lihaoyi"
+  def name = "mill"
+  def version = "0.0.1"
+  override def useFullScalaVersionForPublish: T[Boolean] = true
 }
 
 
@@ -77,7 +86,13 @@ val bridges = for{
     Dep.Java("org.scala-lang", "scala-compiler", crossVersion),
     Dep.Java("org.scala-sbt", "compiler-interface", "1.0.5")
   )
+
+  def organization = "com.lihaoyi"
+  def name = "mill-bridge"
+  def version = "0.0.1"
+  override def useFullScalaVersionForPublish: T[Boolean] = true
 }
+
 object ScalaPlugin extends MillModule {
 
   override def projectDeps = Seq(Core)
@@ -96,4 +111,9 @@ object ScalaPlugin extends MillModule {
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
     s"""exec java ${testArgs().mkString(" ")} $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+
+  def organization = "com.lihaoyi"
+  def name = "mill-scala"
+  def version = "0.0.1"
+  override def useFullScalaVersionForPublish: T[Boolean] = true
 }

@@ -84,9 +84,8 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Seq[Path], mainClass: Option[String] = None)
+  def createJar(outputPath: Path, inputPaths: Seq[Path], mainClass: Option[String] = None)
                (implicit ctx: Ctx.DestCtx): PathRef = {
-    val outputPath = ctx.dest
     rm(outputPath)
     if(inputPaths.nonEmpty) {
       mkdir(outputPath/up)
