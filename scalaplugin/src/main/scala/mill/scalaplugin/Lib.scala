@@ -36,7 +36,7 @@ object Lib{
                    sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
-                   compilerBridge: Seq[Path],
+                   compilerBridge: Path,
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Seq[Path],
                    javacOptions: Seq[String],
@@ -52,10 +52,6 @@ object Lib{
     }
 
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
-    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_"+scalaVersion.replace('.', '_')
-    val compilerBridgePath = sys.props(compilerBridgeKey)
-    assert(compilerBridgePath != null, "Cannot find compiler bridge " + compilerBridgeKey)
-    val compilerBridgeJar = new java.io.File(compilerBridgePath)
 
     val classloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
 
@@ -123,7 +119,7 @@ object Lib{
           scalaInstance,
           ClasspathOptionsUtil.boot,
           None,
-          ZincUtil.scalaCompiler(scalaInstance, compilerBridgeJar)
+          ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
         ),
         setup = ic.setup(
           lookup,
@@ -186,6 +182,8 @@ object Lib{
   def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
+  def compilerBridgeIvyDep(scalaVersion: String) =
+    Dep.Point(coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1-SNAPSHOT", transitive = false))
 
   val DefaultShellScript: Seq[String] = Seq(
     "#!/usr/bin/env sh",
