@@ -41,6 +41,9 @@ object ApplicativeTests extends TestSuite {
     def zip[A, B, C, D, E, F, G, H](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H]) = {
       for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h) yield (a, b, c, d, e, f, g, h)
     }
+    def zip[A, B, C, D, E, F, G, H, I](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H], i: O[I]) = {
+      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h; i <- i) yield (a, b, c, d, e, f, g, h, i)
+    }
   }
   class Counter{
     var value = 0
@@ -145,4 +148,3 @@ object ApplicativeTests extends TestSuite {
     }
   }
 }
-
