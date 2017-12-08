@@ -42,6 +42,7 @@ object ScalaModule{
                    compilerClasspath: Seq[Path],
                    compilerBridge: Seq[Path],
                    scalacOptions: Seq[String],
+                   scalacPluginClasspath: Seq[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: Ctx): CompilationResult = {
@@ -117,7 +118,7 @@ object ScalaModule{
         classpath = classesIODir +: compileClasspathFiles,
         sources = sources.flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
         classesDirectory = classesIODir,
-        scalacOptions = scalacOptions.toArray,
+        scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++  scalacOptions).toArray,
         javacOptions = javacOptions.toArray,
         maxErrors = 10,
         sourcePositionMappers = Array(),
@@ -247,6 +248,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
   def ivyDeps = T{ Seq[Dep]() }
   def compileIvyDeps = T{ Seq[Dep]() }
+  def scalacPluginIvyDeps = T{ Seq[Dep]() }
   def runIvyDeps = T{ Seq[Dep]() }
   def basePath: Path
 
@@ -320,13 +322,18 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     )()
   }
 
+  def scalacPluginClasspath: T[Seq[PathRef]] =
+    resolveDeps(
+      T.task{scalacPluginIvyDeps()}
+    )()
+
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
   def scalaCompilerClasspath: T[Seq[PathRef]] = T{
     resolveDeps(
       T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())},
-    )()
+    )() ++ scalacPluginClasspath()
   }
 
   /**
@@ -353,6 +360,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       scalaCompilerClasspath().map(_.path),
       compilerBridgeClasspath().map(_.path),
       scalacOptions(),
+      scalacPluginClasspath().map(_.path),
       javacOptions(),
       upstreamCompileOutput()
     )

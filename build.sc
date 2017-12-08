@@ -5,7 +5,13 @@ import mill.scalaplugin._
 trait MillModule extends ScalaModule{ outer =>
   def scalaVersion = "2.12.4"
   override def sources = basePath/'src/'main/'scala
+
+  override def compileIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+  override def scalacOptions = Seq("-P:acyclic:force")
+  override def scalacPluginIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+
   def testArgs = T{ Seq.empty[String] }
+
   object test extends this.Tests{
     override def defaultCommandName() = "forkTest"
     override def forkArgs = T{ testArgs() }
