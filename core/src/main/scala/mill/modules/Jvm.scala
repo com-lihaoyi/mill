@@ -27,6 +27,14 @@ object Jvm {
     }
     allJars
   }
+
+  def interactiveSubprocess(mainClass: String,
+                            classPath: Seq[Path],
+                            options: Seq[String] = Seq.empty): Unit = {
+    import ammonite.ops.ImplicitWd._
+    %("java", "-cp", classPath.mkString(":"), mainClass, options)
+  }
+
   def subprocess(mainClass: String,
                  classPath: Seq[Path],
                  jvmOptions: Seq[String] = Seq.empty,
