@@ -246,6 +246,12 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
+      'logOutputToFile {
+        eval(HelloWorld.compile, helloWorldMapping)
+
+        val logFile = outputPath / "compile.log"
+        assert(exists(logFile))
+      }
     }
   }
 
