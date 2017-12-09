@@ -11,7 +11,7 @@ import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
 import mill.util.Ctx
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -389,7 +389,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
 
   def console() = T.command{
-    subprocess(
+    interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
       classPath = externalCompileDepClasspath().map(_.path) :+ compile().classes.path,
       options = Seq("-usejavacp")
