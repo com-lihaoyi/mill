@@ -482,6 +482,9 @@ substitute SBT in developing the following projects:
 - https://github.com/lihaoyi/utest: a Scala project fully-cross-published
   against Scala {2.10, 2.11, 2.12} X {JVM, JS, Native}
 
+- https://github.com/gitbucket/gitbucket: a standalone  *application* build 
+  using Scala (v.s. all the libraries listed above) with a simple build
+
 Each of these are relatively simple projects. Satisfying all of their
 requirements (codegen, building, testing, publishing, etc.) and being happy with
 the Mill code necessary to do so (both in their build code, as well as Mill's
