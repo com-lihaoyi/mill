@@ -9,9 +9,8 @@ import utest._
 import mill.util.JsonFormatters._
 
 object BetterFilesBuild{
-  trait BetterFilesModule extends ScalaModule{ outer =>
+  trait BetterFilesModule extends SbtScalaModule{ outer =>
     def scalaVersion = "2.12.4"
-    override def sources = basePath/'src/'main/'scala
     override def scalacOptions = Seq(
       "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
       "-encoding", "utf-8",                // Specify character encoding used by source files.
@@ -64,9 +63,7 @@ object BetterFilesBuild{
       override def projectDeps =
         if (this == Core.test) Seq(Core)
         else Seq(outer, Core.test)
-      def basePath = outer.basePath
       override def ivyDeps = Seq(Dep("org.scalatest", "scalatest", "3.0.4"))
-      override def sources = basePath/'src/'test/'scala
       def testFramework = "org.scalatest.tools.Framework"
     }
   }

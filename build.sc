@@ -2,9 +2,8 @@ import ammonite.ops._
 import mill._
 import mill.scalaplugin._
 
-trait MillModule extends ScalaModule{ outer =>
+trait MillModule extends SbtScalaModule{ outer =>
   def scalaVersion = "2.12.4"
-  override def sources = basePath/'src/'main/'scala
 
   override def compileIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
   override def scalacOptions = Seq("-P:acyclic:force")
@@ -18,9 +17,7 @@ trait MillModule extends ScalaModule{ outer =>
     override def projectDeps =
       if (this == Core.test) Seq(Core)
       else Seq(outer, Core.test)
-    def basePath = outer.basePath
     override def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
-    override def sources = basePath/'src/'test/'scala
     def testFramework = "mill.UTestFramework"
   }
 }

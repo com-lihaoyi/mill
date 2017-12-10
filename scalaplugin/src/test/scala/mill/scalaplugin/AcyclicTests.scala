@@ -10,24 +10,21 @@ import mill.util.JsonFormatters._
 object AcyclicBuild{
   val acyclic =
     for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
-    yield new ScalaModule{outer =>
+    yield new SbtScalaModule{outer =>
       def basePath = AcyclicTests.workspacePath
       def organization = "com.lihaoyi"
       def name = "acyclic"
 
       def version = "0.1.7"
-      override def sources = basePath/'src/'main/'scala
       def scalaVersion = crossVersion
       override def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
       )
       object test extends this.Tests{
-        def basePath = AcyclicTests.workspacePath
         override def forkWorkingDir = pwd/'scalaplugin/'src/'test/'resource/'acyclic
         override def ivyDeps = Seq(
           Dep("com.lihaoyi", "utest", "0.6.0")
         )
-        override def sources = basePath/'src/'test/'scala
         def testFramework = "utest.runner.Framework"
       }
     }
