@@ -1,19 +1,16 @@
 package mill.scalaplugin.publish
 
-import scala.xml.{Elem, NodeSeq}
+import scala.xml.{Elem, NodeSeq, PrettyPrinter}
 
-
-trait PomFile {
+object Pom {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
   //TODO - not only jar packaging support?
-  //TODO - description
-  def generatePom(
-    artifact: Artifact,
-    dependencies: Seq[Dependency],
-    pomSettings: PomSettings
-  ): String = {
+  def apply(artifact: Artifact,
+            dependencies: Seq[Dependency],
+            name: String,
+            pomSettings: PomSettings): String = {
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -21,9 +18,11 @@ trait PomFile {
         xmlns ="http://maven.apache.org/POM/4.0.0">
 
         <modelVersion>4.0.0</modelVersion>
+        <name>{name}</name>
+        <groupId>{artifact.group}</groupId>
         <artifactId>{artifact.id}</artifactId>
         <packaging>jar</packaging>
-        <description></description>
+        <description>{pomSettings.description}</description>
 
         <version>{artifact.version}</version>
         <url>{pomSettings.url}</url>
@@ -42,49 +41,48 @@ trait PomFile {
         </dependencies>
       </project>
 
-    val pp = new scala.xml.PrettyPrinter(120, 4)
-    val data = pp.format(xml)
-    head + data
+    val pp = new PrettyPrinter(120, 4)
+    head + pp.format(xml)
   }
 
   private def renderLicense(l: License): Elem = {
-    import l._
     <license>
-      <name>{name}</name>
-      <url>{url}</url>
-      <distribution>{distribution}</distribution>
+      <name>{l.name}</name>
+      <url>{l.url}</url>
+      <distribution>{l.distribution}</distribution>
     </license>
   }
 
   private def renderDeveloper(d: Developer): Elem = {
-    import d._
     <developer>
-      <id>{id}</id>
-      <name>{name}</name>
-      <organization>{organization}</organization>
-      <organizationUrl>{organizationUrl}</organizationUrl>
+      <id>{d.id}</id>
+      <name>{d.name}</name>
+      {
+        d.organization.map { org =>
+          <organization>{org}</organization>
+        }.getOrElse(NodeSeq.Empty)
+      }
+      {
+        d.organizationUrl.map { orgUrl =>
+          <organizationUrl>{orgUrl}</organizationUrl>
+        }.getOrElse(NodeSeq.Empty)
+      }
     </developer>
   }
 
   private def renderDependency(d: Dependency): Elem = {
-    import d._
-    import artifact._
-
     val scope = d.scope match {
-      case Scope.Compile => NodeSeq.Empty
+      case Scope.Compile  => NodeSeq.Empty
       case Scope.Provided => <scope>provided</scope>
-      case Scope.Test => <scope>test</scope>
-      case Scope.Runtime => <scope>runtime</scope>
+      case Scope.Test     => <scope>test</scope>
+      case Scope.Runtime  => <scope>runtime</scope>
     }
     <dependency>
-      <groupId>{group}</groupId>
-      <artifactId>{id}</artifactId>
-      <version>{version}</version>
+      <groupId>{d.artifact.group}</groupId>
+      <artifactId>{d.artifact.id}</artifactId>
+      <version>{d.artifact.version}</version>
       {scope}
     </dependency>
   }
 
 }
-
-object PomFile extends PomFile
-

@@ -7,6 +7,7 @@ import mill.define.{Target, Task}
 import mill.discover.Discovered
 import mill.discover.Mirror.LabelledTarget
 import mill.eval.Result
+import mill.scalaplugin.publish._
 import sbt.internal.inc.CompileFailed
 import utest._
 
@@ -27,6 +28,26 @@ object HelloWorldWarnUnused extends HelloWorldModule {
 
 object HelloWorldFatalWarnings extends HelloWorldModule {
   def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+}
+
+object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
+  def publishName = "hello-world"
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    organization = "com.lihaoyi",
+    description = "hello world ready for real world publishing",
+    url = "https://github.com/lihaoyi/hello-world-publish",
+    licenses = Seq(
+      License("Apache License, Version 2.0",
+              "http://www.apache.org/licenses/LICENSE-2.0")),
+    scm = SCM(
+      "https://github.com/lihaoyi/hello-world-publish",
+      "scm:git:https://github.com/lihaoyi/hello-world-publish"
+    ),
+    developers =
+      Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+  )
 }
 
 object HelloWorldTests extends TestSuite {
@@ -98,7 +119,8 @@ object HelloWorldTests extends TestSuite {
         val outPath = result.classes.path
         val analysisFile = result.analysisFile
         val outputFiles = ls.rec(outPath)
-        val expectedClassfiles = compileClassfiles(outputPath / 'compile / 'classes)
+        val expectedClassfiles =
+          compileClassfiles(outputPath / 'compile / 'classes)
         assert(
           outPath == outputPath / 'compile / 'classes,
           exists(analysisFile),

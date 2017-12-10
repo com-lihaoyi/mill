@@ -5,12 +5,17 @@ import mill.define.Applicative.ImplicitStub
 import mill.util.Ctx.{ArgCtx, DestCtx, LoaderCtx, LogCtx}
 
 import scala.annotation.compileTimeOnly
+import scala.language.implicitConversions
 
 object Ctx{
   @compileTimeOnly("Target.ctx() can only be used with a T{...} block")
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 
+  object DestCtx {
+    implicit def pathToCtx(path: Path): DestCtx =
+      new DestCtx { def dest: Path = path }
+  }
   trait DestCtx{
     def dest: Path
   }
