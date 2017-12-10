@@ -1,9 +1,23 @@
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
-import mill.scalaplugin._
+import mill.scalaplugin._, publish._
 import mill.modules.Jvm.createAssembly
 
+trait MillPublishModule extends PublishModule {
+  def publishVersion = "0.0.1"
+
+  def publishWithFullScalaVersion = true
+
+  def pomSettings = PomSettings(
+    organization = "com.lihaoyi",
+    description = publishName(),
+    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi/mill")),
+    licenses = Seq(License("MIT License", "https://spdx.org/licenses/MIT.html#licenseText")),
+    scm = SCM("https://github.com/lihaoyi/mill", "scm:git:https://github.com/lihaoyi/mill.git"),
+    url = "https://github.com/lihaoyi/mill"
+  )
+}
 
 object CompilerPlugin extends SbtScalaModule{
   def scalaVersion = "2.12.4"
@@ -40,8 +54,10 @@ trait MillModule extends SbtScalaModule{ outer =>
   }
 }
 
-object Core extends MillModule {
+object Core extends MillModule with MillPublishModule {
   def projectDeps = Seq(CompilerPlugin)
+
+  def publishName = "mill-core"
 
   def compileIvyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
@@ -72,11 +88,6 @@ object Core extends MillModule {
         PathRef(dest)
       }
     }
-
-  override def organization = "com.lihaoyi"
-  override def name = "mill"
-  override def version = "0.0.1"
-  override def useFullScalaVersionForPublish = true
 }
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
@@ -106,7 +117,8 @@ val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield ne
   )
 }
 
-object ScalaPlugin extends MillModule {
+object ScalaPlugin extends MillModule with MillPublishModule {
+  def publishName = "mill-scala"
 
   def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
