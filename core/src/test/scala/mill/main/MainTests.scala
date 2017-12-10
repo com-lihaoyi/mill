@@ -15,7 +15,7 @@ object MainTests extends TestSuite{
     val resolved = for{
       args <- mill.Main.parseArgs(selectorString)
       val crossSelectors = args.map{case Mirror.Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
-      task <- mill.Main.resolve(args, mirror, obj, Nil, crossSelectors, Nil)
+      task <- mill.main.Resolve.resolve(args, mirror, obj, Nil, crossSelectors, Nil)
     } yield task
     assert(resolved == expected)
   }
