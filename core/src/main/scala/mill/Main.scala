@@ -93,7 +93,7 @@ object Main {
         case _ => Nil
       }
       target <- mill.main.Resolve.resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
-      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log)
+      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log, sel)
       _ <- evaluate(evaluator, target, watch).toLeft(())
     } yield ()
 

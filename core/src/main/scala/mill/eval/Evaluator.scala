@@ -1,12 +1,11 @@
 package mill.eval
 
-import java.io.PrintStream
-
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task}
 import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
+import mill.discover.Mirror.Segment.{Cross, Label}
 import mill.util
 import mill.util._
 
@@ -14,7 +13,8 @@ import scala.collection.mutable
 
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], LabelledTarget[_]],
-                log: Logger){
+                log: Logger,
+                sel: List[Mirror.Segment] = List()){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
@@ -155,6 +155,8 @@ class Evaluator(workspacePath: Path,
       if(logRun) { log.info("Running " + targetLabel) }
     }
 
+    val multiLogger = resolveLogger(targetDestPath)
+
     for (target <- nonEvaluatedTargets) {
 
       newEvaluated.append(target)
@@ -168,15 +170,16 @@ class Evaluator(workspacePath: Path,
           val args = new Ctx(
             targetInputValues.toArray[Any],
             targetDestPath.orNull,
-            log
+            multiLogger
           )
+
           val out = System.out
           val err = System.err
           try{
-            System.setErr(log.outputStream)
-            System.setOut(log.outputStream)
-            Console.withOut(log.outputStream){
-              Console.withErr(log.outputStream){
+            System.setErr(multiLogger.outputStream)
+            System.setOut(multiLogger.outputStream)
+            Console.withOut(multiLogger.outputStream){
+              Console.withErr(multiLogger.outputStream){
                 target.evaluate(args)
               }
             }
@@ -189,7 +192,27 @@ class Evaluator(workspacePath: Path,
       newResults(target) = res
     }
 
+    multiLogger.close()
+
     (newResults, newEvaluated)
+  }
+
+  def resolveLogger(targetDestPath: Option[Path]): Logger = {
+    if (targetDestPath.isEmpty && sel.isEmpty)
+      log
+    else {
+      val path = targetDestPath.getOrElse(
+        sel.foldLeft[Path](pwd / 'out) {
+          case (d, Label(s)) => d / s
+          case (d, Cross(args)) => d / args.map(_.toString)
+        }
+      )
+      val dir = path / up
+      mkdir(dir)
+      val file = dir / (path.last + ".log")
+      rm(file)
+      MultiLogger(log, FileLogger(file))
+    }
   }
 
 }
