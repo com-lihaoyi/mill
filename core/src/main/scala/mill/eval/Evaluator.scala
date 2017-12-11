@@ -1,5 +1,6 @@
 package mill.eval
 
+import java.net.URLClassLoader
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task}
@@ -67,9 +68,12 @@ class Evaluator(workspacePath: Path,
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
     // check if the build itself has changed
-    val classLoaderSig = Thread.currentThread().getContextClassLoader match {
-      case scl: SpecialClassLoader => scl.classpathSignature
-      case _ => Nil
+    val classLoaderSig = group.toVector.map { task =>
+      task.getClass.getClassLoader match {
+        case scl: SpecialClassLoader => scl.classpathSignature
+        case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
+        case _ => Nil
+      }
     }
 
     val inputsHash =
