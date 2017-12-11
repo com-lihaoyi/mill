@@ -1,5 +1,7 @@
 package mill.eval
 
+import java.net.URLClassLoader
+
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task}
@@ -28,12 +30,14 @@ class Evaluator(workspacePath: Path,
 
     val evaluated = new OSet.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
+    val classLoaderSignatureCache = mutable.Map.empty[ClassLoader, Seq[(Path, Long)]]
 
     for ((terminal, group)<- sortedGroups.items()){
       val (newResults, newEvaluated) = evaluateGroupCached(
         terminal,
         group,
-        results
+        results,
+        classLoaderSignatureCache
       )
       for(ev <- newEvaluated){
         evaluated.append(ev)
@@ -61,15 +65,19 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
                           group: OSet[Task[_]],
-                          results: collection.Map[Task[_], Result[Any]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
+                          results: collection.Map[Task[_], Result[Any]],
+                          signatureCache: mutable.Map[ClassLoader, Seq[(Path, Long)]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
     // check if the build itself has changed
-    val classLoaderSig = Thread.currentThread().getContextClassLoader match {
-      case scl: SpecialClassLoader => scl.classpathSignature
-      case _ => Nil
+    val classLoaderSig = group.toVector.map(_.getClass.getClassLoader).map { cl =>
+      signatureCache.getOrElseUpdate(cl, cl match {
+        case scl: SpecialClassLoader => scl.classpathSignature
+        case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
+        case _ => Nil
+      })
     }
 
     val inputsHash =
