@@ -129,10 +129,24 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   /**
     * Strange compiler-bridge jar that the Zinc incremental compile needs
     */
-  def compilerBridgeClasspath: T[Seq[PathRef]] = T{
-    resolveDeps(
-      T.task{Seq(Dep("org.scala-sbt", "compiler-bridge", "1.0.5"))},
-    )()
+  def compilerBridge: T[PathRef] = T{
+    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_" + scalaVersion().replace('.', '_')
+    val compilerBridgePath = sys.props(compilerBridgeKey)
+    if (compilerBridgePath != null) PathRef(Path(compilerBridgePath), quick = true)
+    else {
+      val dep = compilerBridgeIvyDep(scalaVersion())
+      val classpath = resolveDependencies(
+        repositories,
+        scalaVersion(),
+        scalaBinaryVersion(),
+        Seq(dep)
+      )
+      classpath match {
+        case Seq(single) => PathRef(single.path, quick = true)
+        case Seq() => throw new Exception(dep + " resolution failed")
+        case _ => throw new Exception(dep + " resolution resulted in more than one file")
+      }
+    }
   }
 
   def scalacPluginClasspath: T[Seq[PathRef]] =
@@ -171,7 +185,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       allSources().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
-      compilerBridgeClasspath().map(_.path),
+      compilerBridge().path,
       scalacOptions(),
       scalacPluginClasspath().map(_.path),
       javacOptions(),

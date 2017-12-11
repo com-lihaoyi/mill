@@ -1,6 +1,7 @@
 import ammonite.ops._
 import mill._
 import mill.scalaplugin._
+import mill.modules.Jvm.createAssembly
 
 trait MillModule extends SbtScalaModule{ outer =>
   def scalaVersion = "2.12.4"
@@ -94,6 +95,16 @@ object ScalaPlugin extends MillModule {
       "MILL_COMPILER_BRIDGE_2_12_4"  -> bridges("2.12.4").compile().classes.path,
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+  }
+
+  def releaseAssembly = T{
+    createAssembly(
+      (runDepClasspath().filter(_.path.ext != "pom") ++
+        Seq(resources(), compile().classes)).map(_.path).filter(exists),
+      prependShellScript =
+        "#!/usr/bin/env sh\n" +
+        s"""exec java $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+    )
   }
 
   override def prependShellScript =
