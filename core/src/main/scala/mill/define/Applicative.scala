@@ -14,9 +14,16 @@ import scala.reflect.macros.blackbox.Context
   * Applier.zipMap(applyable1, applyable2){ (a1, a2, ctx) => ... a1 ... a2 ... }
   */
 object Applicative {
-  trait Applyable[+T]{
+  trait ApplyHandler[M[+_]]{
+    def apply[T](t: M[T]): T
+  }
+  object ApplyHandler{
     @compileTimeOnly("Target#apply() can only be used with a T{...} block")
-    def apply(): T = ???
+    implicit def defaultApplyHandler[M[+_]]: ApplyHandler[M] = ???
+  }
+  trait Applyable[M[+_], +T]{
+    def self: M[T]
+    def apply()(implicit handler: ApplyHandler[M]): T = handler(self)
   }
   class ImplicitStub extends StaticAnnotation
   type Id[+T] = T
@@ -64,7 +71,7 @@ object Applicative {
     def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
 
     val bound = collection.mutable.Buffer.empty[(c.Tree, ValDef)]
-    val targetApplySym = typeOf[Applyable[_]].member(TermName("apply"))
+    val targetApplySym = typeOf[Applyable[Nothing, _]].member(TermName("apply"))
 
     // Derived from @olafurpg's
     // https://gist.github.com/olafurpg/596d62f87bf3360a29488b725fbc7608
@@ -75,7 +82,7 @@ object Applicative {
     c.internal.setInfo(ctxSym, weakTypeOf[Ctx])
 
     val transformed = c.internal.typingTransform(t) {
-      case (t @ q"$fun.apply()", api) if t.symbol == targetApplySym =>
+      case (t @ q"$fun.apply()($handler)", api) if t.symbol == targetApplySym =>
 
         val localDefs = rec(fun).filter(_.isDef).map(_.symbol).toSet
         val banned = rec(t).filter(x => defs(x.symbol) && !localDefs(x.symbol))

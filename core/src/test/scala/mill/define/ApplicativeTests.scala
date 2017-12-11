@@ -9,11 +9,11 @@ import scala.language.experimental.macros
 
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
-  class Opt[T](val o: Option[T]) extends Applicative.Applyable[T]
+  class Opt[T](val self: Option[T]) extends Applicative.Applyable[Option, T]
   object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String]{
 
     val injectedCtx = "helloooo"
-    def underlying[A](v: Opt[A]) = v.o
+    def underlying[A](v: Opt[A]) = v.self
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
     type O[+T] = Option[T]

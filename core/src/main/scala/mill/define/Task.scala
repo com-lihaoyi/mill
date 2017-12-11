@@ -7,7 +7,7 @@ import mill.util.Ctx
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
+abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
   /**
     * What other Targets does this Target depend on?
     */
@@ -29,6 +29,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[T]{
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
   def asPersistent: Option[Persistent[T]] = None
+  def self = this
 }
 
 trait Target[+T] extends Task[T]{

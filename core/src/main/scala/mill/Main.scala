@@ -118,9 +118,13 @@ object Main {
       s"""import $$file.^.build
          |import mill._
          |
-         |@main def run(args: String*) = mill.Main(args, build, interp.watch, true/*interp.colors()*/)
+         |val discovered = implicitly[mill.discover.Discovered[build.type]]
          |
-         |@main def idea() = mill.scalaplugin.GenIdea(build)""".stripMargin
+         |@main def run(args: String*) = mill.Main(args, build, interp.watch, true)(discovered)
+         |
+         |@main def idea() = mill.scalaplugin.GenIdea(build)(discovered)
+         |
+         |implicit val replApplyHandler = new mill.main.ReplApplyHandler(build)(discovered)""".stripMargin
     )
 
     import ammonite.main.Cli
@@ -147,8 +151,9 @@ object Main {
 
           val runner = new ammonite.MainRunner(
             cliConfig.copy(
-              predefFile = Some(pwd / "build.sc"),
-              welcomeBanner = Some("")
+              predefFile = Some(pwd / 'out / "run.sc"),
+              predefCode = "import build._",
+              welcomeBanner = None
             ),
             System.out, System.err,
             System.in, System.out, System.err

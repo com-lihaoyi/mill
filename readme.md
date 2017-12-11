@@ -44,6 +44,61 @@ Lastly, you can generate IntelliJ Scala project files using Mill via
 
 Allowing you to import a Mill project into Intellij without using SBT
 
+### REPL
+
+Mill provides a build REPL, which lets you explore the build interactively and
+run `Target`s from Scala code:
+
+```scala
+lihaoyi mill$ scalaplugin/target/mill --repl
+Loading...
+Compiling (synthetic)/ammonite/predef/interpBridge.sc
+Compiling (synthetic)/ammonite/predef/replBridge.sc
+Compiling (synthetic)/ammonite/predef/DefaultPredef.sc
+Compiling /Users/lihaoyi/Dropbox/Workspace/mill/build.sc
+Compiling /Users/lihaoyi/Dropbox/Workspace/mill/out/run.sc
+Compiling (synthetic)/ammonite/predef/CodePredef.sc
+
+@ build
+res0: build.type = build
+
+@ build.
+!=            Core          ScalaPlugin   bridges       getClass      isInstanceOf  |>
+==            MillModule    asInstanceOf  equals        hashCode      toString
+@ build.Core
+res1: Core.type = ammonite.predef.$up.build$Core$@5600c124
+
+@ Core
+res2: Core.type = ammonite.predef.$up.build$Core$@5600c124
+
+@ Core.scalaV
+scalaVersion
+@ Core.scalaVersion
+res3: define.Target[String] = ammonite.predef.^.build.MillModule#scalaVersion@4b7d16
+
+@ Core.scalaVersion()
+Running Core.scalaVersion
+res4: String = "2.12.4"
+
+@ Core.ivyDeps()
+Running Core.ivyDeps
+res5: Seq[scalaplugin.Dep] = List(
+  Scala(
+    Dependency(
+      Module("com.lihaoyi", "sourcecode", Map()),
+      "0.1.4",
+...
+
+@ Core.ivyDeps().foreach(println)
+Running Core.ivyDeps
+Scala(Dependency(com.lihaoyi:sourcecode,0.1.4,,Set(),Attributes(,),false,true))
+Scala(Dependency(com.lihaoyi:pprint,0.5.3,,Set(),Attributes(,),false,true))
+Point(Dependency(com.lihaoyi:ammonite,1.0.3,,Set(),Attributes(,),false,true))
+Scala(Dependency(com.typesafe.play:play-json,2.6.6,,Set(),Attributes(,),false,true))
+Scala(Dependency(org.scala-sbt:zinc,1.0.5,,Set(),Attributes(,),false,true))
+Java(Dependency(org.scala-sbt:test-interface,1.0,,Set(),Attributes(,),false,true))
+```
+
 ### build.sc
 
 Into a `build.sc` file you can define separate `Module`s (e.g. `ScalaModule`).
