@@ -125,7 +125,9 @@ class Evaluator(workspacePath: Path,
                   .write(v)
 
                 write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
-              case _ =>
+              case Result.Skipped =>
+                // Do nothing
+              case _: Result.Failing =>
                 // Wipe out any cached metadata.mill.json file that exists, so
                 // a following run won't look at the cached metadata file and
                 // assume it's associated with the possibly-borked state of the
