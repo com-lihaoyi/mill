@@ -9,6 +9,7 @@ import mill.define.{Cross, Target}
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.scalaplugin.publish._
+import mill.util.TestEvaluator
 import sbt.internal.inc.CompileFailed
 import utest._
 

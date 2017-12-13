@@ -7,6 +7,7 @@ import mill.discover.Discovered
 import mill.scalaplugin.publish._
 import utest._
 import mill.util.JsonFormatters._
+import mill.util.TestEvaluator
 object AcyclicBuild{
   val acyclic =
     for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))

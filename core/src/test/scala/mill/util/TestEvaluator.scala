@@ -1,10 +1,9 @@
-package mill.scalaplugin
+package mill.util
 
 import ammonite.ops.Path
 import mill.define.{Target, Task}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
-import mill.util.{DummyLogger, OSet, PrintLogger}
 
 class TestEvaluator(mapping: Discovered.Mapping[_], workspacePath: Path){
   val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
