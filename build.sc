@@ -82,10 +82,12 @@ val bridges = for{
     Dep.Java("org.scala-sbt", "compiler-interface", "1.0.5")
   )
 }
+
 object ScalaPlugin extends MillModule {
 
   override def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
+
   override def testArgs = T{
     val mapping = Map(
       "MILL_COMPILER_BRIDGE_2_10_6"  -> bridges("2.10.6").compile().classes.path,
@@ -96,6 +98,13 @@ object ScalaPlugin extends MillModule {
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
   }
+
+}
+
+object Bin extends MillModule {
+
+  override def projectDeps = Seq(ScalaPlugin)
+  def basePath = pwd / 'bin
 
   def releaseAssembly = T{
     createAssembly(
@@ -109,5 +118,6 @@ object ScalaPlugin extends MillModule {
 
   override def prependShellScript =
     "#!/usr/bin/env sh\n" +
-    s"""exec java ${testArgs().mkString(" ")} $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+    s"""exec java ${ScalaPlugin.testArgs().mkString(" ")} $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+
 }

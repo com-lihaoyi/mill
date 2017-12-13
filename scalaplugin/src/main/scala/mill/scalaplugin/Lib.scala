@@ -108,7 +108,7 @@ object Lib{
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesIODir +: compileClasspathFiles,
-        sources = sources.flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
+        sources = sources.filter(_.toIO.exists()).flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
         classesDirectory = classesIODir,
         scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++  scalacOptions).toArray,
         javacOptions = javacOptions.toArray,
