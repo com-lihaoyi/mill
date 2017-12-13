@@ -100,8 +100,8 @@ lazy val scalaplugin = project
     sharedSettings,
     name := "mill-scalaplugin",
     fork in Test := true,
-    baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
-    javaOptions in (Test, test) := bridgeProps.value.toSeq
+    baseDirectory in Test := (baseDirectory in Test).value / "..",
+    javaOptions in Test := bridgeProps.value.toSeq
   )
 lazy val bin = project
   .dependsOn(scalaplugin)

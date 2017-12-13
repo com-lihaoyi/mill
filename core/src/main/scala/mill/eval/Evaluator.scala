@@ -16,7 +16,8 @@ import scala.collection.mutable
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], LabelledTarget[_]],
                 log: Logger,
-                sel: List[Mirror.Segment] = List()){
+                sel: List[Mirror.Segment] = List(),
+                classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
@@ -71,15 +72,6 @@ class Evaluator(workspacePath: Path,
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
-    // check if the build itself has changed
-    val classLoaderSig = group.toVector.map(_.getClass.getClassLoader).map { cl =>
-      signatureCache.getOrElseUpdate(cl, cl match {
-        case scl: SpecialClassLoader => scl.classpathSignature
-        case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
-        case _ => Nil
-      })
-    }
-
     val inputsHash =
       externalInputs.map(results).toVector.hashCode +
       group.toIterator.map(_.sideHash).toVector.hashCode() +
@@ -125,9 +117,7 @@ class Evaluator(workspacePath: Path,
                   .write(v)
 
                 write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
-              case Result.Skipped =>
-                // Do nothing
-              case _: Result.Failing =>
+              case _ =>
                 // Wipe out any cached metadata.mill.json file that exists, so
                 // a following run won't look at the cached metadata file and
                 // assume it's associated with the possibly-borked state of the
@@ -229,7 +219,13 @@ class Evaluator(workspacePath: Path,
 
 
 object Evaluator{
+  // check if the build itself has changed
+  def classLoaderSig = Thread.currentThread().getContextClassLoader match {
+    case scl: SpecialClassLoader => scl.classpathSignature
+    case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
+    case _ => Nil
 
+  }
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: OSet[Task[_]],
                      transitive: OSet[Task[_]],
