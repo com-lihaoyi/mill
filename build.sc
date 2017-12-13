@@ -1,4 +1,6 @@
 import $file.shared
+import java.io.File
+
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
@@ -143,8 +145,37 @@ object ScalaPlugin extends MillModule {
     }
   }
 }
+val jsbridges = for{
+  scalajsBinary <- mill.define.Cross("0.6", "1.0")
+} yield new MillModule{
+  def basePath = pwd / 'scalajsplugin / s"bridge_${scalajsBinary.replace('.', '_')}"
+  val scalajsVersion = scalajsBinary match {
+    case "0.6" => "0.6.21"
+    case "1.0" => "1.0.0-M2"
+  }
+  override def ivyDeps = Seq(
+    Dep("org.scala-js", "scalajs-tools", scalajsVersion)
+  )
+}
 
-val assemblyProjects = Seq(ScalaPlugin)
+object ScalaJSPlugin extends MillModule {
+
+  def projectDeps = Seq(ScalaPlugin)
+  def basePath = pwd / 'scalajsplugin
+
+  def bridgeClasspath(runDepClasspath: Seq[PathRef], classes: PathRef) =
+    (runDepClasspath :+ classes).map(_.path).mkString(File.pathSeparator)
+  def testArgs = T{
+    val mapping = Map(
+      "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(jsbridges("0.6").runDepClasspath(), jsbridges("0.6").compile().classes),
+      "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(jsbridges("1.0").runDepClasspath(), jsbridges("1.0").compile().classes)
+    )
+    for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+  }
+
+}
+
+val assemblyProjects = Seq(ScalaPlugin, ScalaJSPlugin)
 
 def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.assemblyClasspath)
 
@@ -163,7 +194,7 @@ def assemblyBase(classpath: Seq[Path], extraArgs: String)
 }
 
 def devAssembly = T{
-  assemblyBase(assemblyClasspath().flatten, ScalaPlugin.testArgs().mkString(" "))
+  assemblyBase(assemblyClasspath().flatten, (ScalaPlugin.testArgs() ++ ScalaJSPlugin.testArgs()).mkString(" "))
 }
 
 def releaseAssembly = T{

@@ -1,3 +1,5 @@
+import java.io.File
+
 val sharedSettings = Seq(
   scalaVersion := "2.12.4",
   organization := "com.lihaoyi",
@@ -131,9 +133,42 @@ lazy val scalaplugin = project
     baseDirectory in Test := (baseDirectory in Test).value / "..",
     javaOptions := bridgeProps.value.toSeq
   )
-
+lazy val scalajsplugin = project
+  .dependsOn(scalaplugin % "compile->compile;test->test")
+  .settings(
+    sharedSettings,
+    name := "mill-scalajsplugin",
+    fork in Test := true,
+    baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
+    javaOptions in (Test, test) := bridgeProps.value.toSeq
+  )
+def jsbridge(binary: String, version: String) =
+  Project(
+    id = "scalajsbridge_" + binary.replace('.', '_'),
+    base = file("scalajsplugin/bridge_" + binary.replace('.', '_'))
+  )
+  .settings(
+    organization := "com.lihaoyi",
+    scalaVersion := "2.12.4",
+    name := "mill-js-bridge",
+    libraryDependencies ++= Seq("org.scala-js" %% "scalajs-tools" % version)
+  )
+lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.21")
+lazy val scalajsbridge_1_0 = jsbridge("1.0", "1.0.0-M2")
+val jsbridgeProps = Def.task{
+  def bridgeClasspath(depClasspath: Classpath, jar: File) = {
+    (depClasspath.files :+ jar).map(_.absolutePath).mkString(File.pathSeparator)
+  }
+  val mapping = Map(
+    "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath((dependencyClasspath in (scalajsbridge_0_6, Compile)).value,
+                                                 (packageBin in (scalajsbridge_0_6, Compile)).value),
+    "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath((dependencyClasspath in (scalajsbridge_1_0, Compile)).value,
+                                                 (packageBin in (scalajsbridge_1_0, Compile)).value)
+  )
+  for((k, v) <- mapping) yield s"-D$k=$v"
+}
 lazy val bin = project
-  .dependsOn(scalaplugin)
+  .dependsOn(scalaplugin, scalajsplugin)
   .settings(
     sharedSettings,
     fork := true,
@@ -146,7 +181,7 @@ lazy val bin = project
         prependShellScript = Some(
           Seq(
             "#!/usr/bin/env sh",
-            s"""exec java ${bridgeProps.value.mkString(" ")} -cp "$$0" mill.Main "$$@" """
+            s"""exec java ${(bridgeProps.value ++ jsbridgeProps.value).mkString(" ")} -cp "$$0" mill.Main "$$@" """
           )
         )
       )
