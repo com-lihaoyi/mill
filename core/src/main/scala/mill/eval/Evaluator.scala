@@ -31,15 +31,9 @@ class Evaluator(workspacePath: Path,
 
     val evaluated = new OSet.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
-    val classLoaderSignatureCache = mutable.Map.empty[ClassLoader, Seq[(Path, Long)]]
 
     for ((terminal, group)<- sortedGroups.items()){
-      val (newResults, newEvaluated) = evaluateGroupCached(
-        terminal,
-        group,
-        results,
-        classLoaderSignatureCache
-      )
+      val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results)
       for(ev <- newEvaluated){
         evaluated.append(ev)
       }
@@ -66,8 +60,7 @@ class Evaluator(workspacePath: Path,
 
   def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
                           group: OSet[Task[_]],
-                          results: collection.Map[Task[_], Result[Any]],
-                          signatureCache: mutable.Map[ClassLoader, Seq[(Path, Long)]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
+                          results: collection.Map[Task[_], Result[Any]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
