@@ -36,7 +36,7 @@ trait Target[+T] extends Task[T]{
   override def asTarget = Some(this)
 }
 
-object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
+object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, Ctx] {
 
   implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
 
@@ -97,47 +97,17 @@ object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
     )
   }
 
+  type TT[+X] = Task[X]
+  def makeT[X](inputs0: Seq[TT[_]], evaluate0: Ctx => Result[X]) = new Task[X] {
+    val inputs = inputs0
+    def evaluate(x: Ctx) = evaluate0(x)
+  }
+
   def underlying[A](v: Task[A]) = v
   def mapCtx[A, B](t: Task[A])(f: (A, Ctx) => Result[B]) = t.mapDest(f)
   def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
-  def zip[A, B, C](a: Task[A], b: Task[B], c: Task[C]) = new Task[(A, B, C)]{
-    val inputs = Seq(a, b, c)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2))
-  }
-  def zip[A, B, C, D](a: Task[A], b: Task[B], c: Task[C], d: Task[D]) = new Task[(A, B, C, D)]{
-    val inputs = Seq(a, b, c, d)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3))
-  }
-  def zip[A, B, C, D, E](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E]) = new Task[(A, B, C, D, E)]{
-    val inputs = Seq(a, b, c, d, e)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4))
-  }
-  def zip[A, B, C, D, E, F](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F]) = new Task[(A, B, C, D, E, F)]{
-    val inputs = Seq(a, b, c, d, e, f)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5))
-  }
-  def zip[A, B, C, D, E, F, G](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G]) = new Task[(A, B, C, D, E, F, G)]{
-    val inputs = Seq(a, b, c, d, e, f, g)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6))
-  }
-  def zip[A, B, C, D, E, F, G, H](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G], h: Task[H]) = new Task[(A, B, C, D, E, F, G, H)]{
-    val inputs = Seq(a, b, c, d, e, f, g, h)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7))
-  }
-  def zip[A, B, C, D, E, F, G, H, I](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G], h: Task[H], i: Task[I]) = new Task[(A, B, C, D, E, F, G, H, I)]{
-    val inputs = Seq(a, b, c, d, e, f, g, h, i)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7), args[I](8))
-  }
-  def zip[A, B, C, D, E, F, G, H, I, J](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G], h: Task[H], i: Task[I], j: Task[J]) = new Task[(A, B, C, D, E, F, G, H, I, J)]{
-    val inputs = Seq(a, b, c, d, e, f, g, h, i, j)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7), args[I](8), args[J](9))
-  }
-  def zip[A, B, C, D, E, F, G, H, I, J, K](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G], h: Task[H], i: Task[I], j: Task[J], k: Task[K]) = new Task[(A, B, C, D, E, F, G, H, I, J, K)]{
-    val inputs = Seq(a, b, c, d, e, f, g, h, i, j, k)
-    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7), args[I](8), args[J](9), args[K](10))
-  }
 }
 class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
   val inputs = Seq(t)
@@ -180,9 +150,6 @@ object Task {
     val inputs = Nil
     def evaluate(args: Ctx)  = t0
   }
-
-
-
 
   abstract class Ops[+T]{ this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
