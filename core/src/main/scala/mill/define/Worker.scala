@@ -2,8 +2,6 @@ package mill.define
 
 import mill.util.Ctx
 
-import scala.annotation.compileTimeOnly
-
 /**
   * Worker serves three purposes:
   *
@@ -27,9 +25,9 @@ import scala.annotation.compileTimeOnly
   * evaluating the task graph. The Worker defines how it is evaluated, but it's
   * evaluation/caching/lifecycle are controlled by the `Evaluator`
   */
-trait Worker[V] extends Task[V]{
+trait Worker[V] extends Task[V] with Ctx.Loader[V]{
   val inputs = Nil
   def make(): V
-  def evaluate(args: Ctx) = args.workerFor(this)
+  def evaluate(args: Ctx) = args.load(this)
   def path = this.getClass.getCanonicalName.filter(_ != '$').split('.')
 }

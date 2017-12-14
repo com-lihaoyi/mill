@@ -1,7 +1,8 @@
 package mill.scalaplugin
 
 import ammonite.ops._
-import mill.discover.Mirror.Segment
+import mill.define.Target
+import mill.discover.Mirror.{LabelledTarget, Segment}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.{OSet, PrintLogger}
@@ -13,16 +14,22 @@ object GenIdea {
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
-    for((relPath, xml) <- xmlFileLayout(obj)){
+    val discovered = implicitly[Discovered[T]]
+    val mapping = Discovered.mapping(obj)(discovered)
+    val workspacePath = pwd / 'out
+
+    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
+
+    for((relPath, xml) <- xmlFileLayout(obj, evaluator, mapping)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T: Discovered](obj: T): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T: Discovered](obj: T,
+                                   evaluator: Evaluator,
+                                   mapping: Map[Target[_], LabelledTarget[_]]): Seq[(RelPath, scala.xml.Node)] = {
+
     val discovered = implicitly[Discovered[T]]
-    val mapping = Discovered.mapping(obj)(discovered)
-    val workspacePath = pwd / 'out
-    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
 
     val modules = Mirror
       .traverse(obj, discovered.mirror){ (h, p) =>

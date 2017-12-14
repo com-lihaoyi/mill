@@ -9,7 +9,6 @@ import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.discover.Mirror.Segment.{Cross, Label}
 import mill.util
-import mill.util.Ctx.WorkerCtx
 import mill.util._
 
 import scala.collection.mutable
@@ -19,7 +18,7 @@ class Evaluator(workspacePath: Path,
                 log: Logger,
                 sel: List[Mirror.Segment] = List(),
                 classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
-  val workerCache = mutable.Map.empty[Worker[_], _]
+  val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
@@ -165,8 +164,8 @@ class Evaluator(workspacePath: Path,
             targetInputValues.toArray[Any],
             targetDestPath.orNull,
             multiLogger,
-            new WorkerCtx{
-              def workerFor[T](x: mill.define.Worker[T]): T = {
+            new Ctx.LoaderCtx{
+              def load[T](x: Ctx.Loader[T]): T = {
                 workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
               }
             }

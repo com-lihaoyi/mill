@@ -1,11 +1,8 @@
 package mill.util
 
-import java.io.PrintStream
-
 import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
-import mill.define.Worker
-import mill.util.Ctx.{ArgCtx, DestCtx, LogCtx, WorkerCtx}
+import mill.util.Ctx.{ArgCtx, DestCtx, LoaderCtx, LogCtx}
 
 import scala.annotation.compileTimeOnly
 
@@ -23,16 +20,19 @@ object Ctx{
   trait ArgCtx{
     def args: IndexedSeq[_]
   }
-  trait WorkerCtx{
-    def workerFor[T](x: mill.define.Worker[T]): T
+  trait LoaderCtx{
+    def load[T](x: Loader[T]): T
+  }
+  trait Loader[T]{
+    def make(): T
   }
 }
 class Ctx(val args: IndexedSeq[_],
           val dest: Path,
           val log: Logger,
-          workerCtx0: Ctx.WorkerCtx) extends DestCtx with LogCtx with ArgCtx with WorkerCtx{
+          workerCtx0: Ctx.LoaderCtx) extends DestCtx with LogCtx with ArgCtx with LoaderCtx{
 
-  def workerFor[T](x: mill.define.Worker[T]): T = workerCtx0.workerFor(x)
+  def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

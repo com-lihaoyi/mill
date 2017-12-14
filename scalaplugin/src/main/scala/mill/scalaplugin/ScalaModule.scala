@@ -181,6 +181,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def allSources = T{ Seq(sources()) }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
+      ZincWorker(),
       scalaVersion(),
       allSources().map(_.path),
       compileDepClasspath().map(_.path),

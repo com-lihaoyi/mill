@@ -124,7 +124,18 @@ object Main {
          |
          |@main def idea() = mill.scalaplugin.GenIdea(build)(discovered)
          |
-         |implicit val replApplyHandler = new mill.main.ReplApplyHandler(build)(discovered)""".stripMargin
+         |val mirror = mill.Main.discoverMirror(build) match{
+         |  case Left(err) => throw new Exception("Failed discovery consistency check: " + err)
+         |  case Right(mirror) => mirror
+         |}
+         |
+         |val evaluator = new mill.eval.Evaluator(
+         |  ammonite.ops.pwd / 'out,
+         |  mill.discover.Discovered.mapping(build)(mirror),
+         |  new mill.util.PrintLogger(true)
+         |)
+         |
+         |implicit val replApplyHandler = new mill.main.ReplApplyHandler(evaluator)""".stripMargin
     )
 
     import ammonite.main.Cli

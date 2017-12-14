@@ -48,6 +48,8 @@ object Applicative {
                                       (cb: (A, B, C, D, E, F, G, H, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h)){case ((a, b, c, d, e, f, g, h), x) => cb(a, b, c, d, e, f, g, h, x)}
     def zipMap[A, B, C, D, E, F, G, H, I, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I])
                                             (cb: (A, B, C, D, E, F, G, H, I, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h, i)){case ((a, b, c, d, e, f, g, h, i), x) => cb(a, b, c, d, e, f, g, h, i, x)}
+    def zipMap[A, B, C, D, E, F, G, H, I, J, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J])
+                                            (cb: (A, B, C, D, E, F, G, H, I, J, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h, i, j)){case ((a, b, c, d, e, f, g, h, i, j), x) => cb(a, b, c, d, e, f, g, h, i, j, x)}
 
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
@@ -58,6 +60,7 @@ object Applicative {
     def zip[A, B, C, D, E, F](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F]): T[(A, B, C, D, E, F)]
     def zip[A, B, C, D, E, F, G, H](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H]): T[(A, B, C, D, E, F, G, H)]
     def zip[A, B, C, D, E, F, G, H, I](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I]): T[(A, B, C, D, E, F, G, H, I)]
+    def zip[A, B, C, D, E, F, G, H, I, J](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J]): T[(A, B, C, D, E, F, G, H, I, J)]
 
   }
 

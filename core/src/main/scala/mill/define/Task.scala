@@ -122,6 +122,10 @@ object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
     val inputs = Seq(a, b, c, d, e, f, g, h, i)
     def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7), args[I](8))
   }
+  def zip[A, B, C, D, E, F, G, H, I, J](a: Task[A], b: Task[B], c: Task[C], d: Task[D], e: Task[E], f: Task[F], g: Task[G], h: Task[H], i: Task[I], j: Task[J]) = new Task[(A, B, C, D, E, F, G, H, I, J)]{
+    val inputs = Seq(a, b, c, d, e, f, g, h, i, j)
+    def evaluate(args: Ctx) = (args[A](0), args[B](1), args[C](2), args[D](3), args[E](4), args[F](5), args[G](6), args[H](7), args[I](8), args[J](9))
+  }
 }
 class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
   val inputs = Seq(t)
