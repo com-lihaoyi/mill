@@ -4,11 +4,12 @@ import java.net.URLClassLoader
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
-import mill.define.{Graph, Target, Task}
+import mill.define.{Graph, Target, Task, Worker}
 import mill.discover.Mirror
 import mill.discover.Mirror.LabelledTarget
 import mill.discover.Mirror.Segment.{Cross, Label}
 import mill.util
+import mill.util.Ctx.WorkerCtx
 import mill.util._
 
 import scala.collection.mutable
@@ -18,7 +19,7 @@ class Evaluator(workspacePath: Path,
                 log: Logger,
                 sel: List[Mirror.Segment] = List(),
                 classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
-
+  val workerCache = mutable.Map.empty[Worker[_], _]
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
@@ -163,7 +164,12 @@ class Evaluator(workspacePath: Path,
           val args = new Ctx(
             targetInputValues.toArray[Any],
             targetDestPath.orNull,
-            multiLogger
+            multiLogger,
+            new WorkerCtx{
+              def workerFor[T](x: mill.define.Worker[T]): T = {
+                workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
+              }
+            }
           )
 
           val out = System.out

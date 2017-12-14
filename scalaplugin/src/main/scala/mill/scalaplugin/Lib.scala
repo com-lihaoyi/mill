@@ -7,6 +7,7 @@ import java.util.Optional
 
 import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
+import mill.define.Worker
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import sbt.internal.inc._
@@ -21,6 +22,12 @@ object CompilationResult {
 // analysisFile is represented by Path, so we won't break caches after file changes
 case class CompilationResult(analysisFile: Path, classes: PathRef)
 
+object ZincWorker extends Worker[ZincWorker]{
+  def make() = new ZincWorker
+}
+class ZincWorker{
+  var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
+}
 object Lib{
   case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
     override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
@@ -30,9 +37,15 @@ object Lib{
       Locate.definesClass(classpathEntry)
   }
 
-  var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
+  def grepJar(classPath: Seq[Path], s: String) = {
+    classPath
+      .find(_.toString.endsWith(s))
+      .getOrElse(throw new Exception("Cannot find " + s))
+      .toIO
+  }
 
-  def compileScala(scalaVersion: String,
+  def compileScala(zincWorker: ZincWorker,
+                   scalaVersion: String,
                    sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
@@ -44,18 +57,11 @@ object Lib{
                   (implicit ctx: Ctx): CompilationResult = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
 
-    def grepJar(classPath: Seq[Path], s: String) = {
-      classPath
-        .find(_.toString.endsWith(s))
-        .getOrElse(throw new Exception("Cannot find " + s))
-        .toIO
-    }
-
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
     val classloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
 
-    val scalaInstance = scalaInstanceCache match{
+    val scalaInstance = zincWorker.scalaInstanceCache match{
       case Some((k, v)) if k == classloaderSig => v
       case _ =>
         val scalaInstance = new ScalaInstance(
@@ -66,7 +72,7 @@ object Lib{
           allJars = compilerJars,
           explicitActual = None
         )
-        scalaInstanceCache = Some((classloaderSig, scalaInstance))
+        zincWorker.scalaInstanceCache = Some((classloaderSig, scalaInstance))
         scalaInstance
     }
 
