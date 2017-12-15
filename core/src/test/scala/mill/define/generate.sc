@@ -27,7 +27,7 @@ object Generator {
     val output = List(
         "package mill.define",
         "trait OptGenerated {",
-        (2 until 22).map(generate).mkString(System.lineSeparator),
+        (2 to 22).map(generate).mkString(System.lineSeparator),
         "}"
     ).mkString(System.lineSeparator)
 

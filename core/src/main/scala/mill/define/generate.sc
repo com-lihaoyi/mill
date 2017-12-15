@@ -17,21 +17,21 @@ object Generator {
       val uppercases = generateLetters(n)
       val lowercases = uppercases.map(Character.toLowerCase)
       val typeArgs   = uppercases.mkString(", ")
+      val zipArgs    = lowercases.mkString(", ")
       val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
-      val zipArgs = lowercases.mkString(", ")
-      val cbArgs  = zipArgs + ", z"
-      val body = s"mapCtx(zip($zipArgs)) { case (($zipArgs), z) => cb($cbArgs) }"
-      List(
-        s"def zipMap[$typeArgs, Res]($parameters)(cb: ($typeArgs, Ctx) => Z[Res]) = $body",
-        s"def zip[$typeArgs]($parameters): TT[($typeArgs)]"
-      ).mkString(System.lineSeparator)
+
+      val body   = s"mapCtx(zip($zipArgs)) { case (($zipArgs), z) => cb($zipArgs, z) }"
+      val zipmap = s"def zipMap[$typeArgs, Res]($parameters)(cb: ($typeArgs, Ctx) => Z[Res]) = $body"
+      val zip    = s"def zip[$typeArgs]($parameters): TT[($typeArgs)]"
+
+      if (n < 22) List(zipmap, zip).mkString(System.lineSeparator) else zip
     }
     val output = List(
         "package mill.define",
         "import scala.language.higherKinds",
         "trait ApplyerGenerated[TT[_], Z[_], Ctx] {",
         "def mapCtx[A, B](a: TT[A])(f: (A, Ctx) => Z[B]): TT[B]",
-        (2 until 22).map(generate).mkString(System.lineSeparator),
+        (2 to 22).map(generate).mkString(System.lineSeparator),
         "}").mkString(System.lineSeparator)
 
     write("ApplicativeGenerated.scala", output)
@@ -42,9 +42,9 @@ object Generator {
       val uppercases = generateLetters(n)
       val lowercases = uppercases.map(Character.toLowerCase)
       val typeArgs   = uppercases.mkString(", ")
-      val args = lowercases.mkString(", ")
+      val args       = lowercases.mkString(", ")
       val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
-      val body = uppercases.zipWithIndex.map { case (t, i) => s"args[$t]($i)" }.mkString(", ")
+      val body       = uppercases.zipWithIndex.map { case (t, i) => s"args[$t]($i)" }.mkString(", ")
 
       s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($args), (args: Ctx) => ($body))"
     }
@@ -57,7 +57,7 @@ object Generator {
       "trait TargetGenerated {",
       "type TT[+X]",
       "def makeT[X](inputs: Seq[TT[_]], evaluate: Ctx => Result[X]): TT[X]",
-      (3 until 22).map(generate).mkString(System.lineSeparator),
+      (3 to 22).map(generate).mkString(System.lineSeparator),
       "}").mkString(System.lineSeparator)
     write("TaskGenerated.scala", output)
   }
