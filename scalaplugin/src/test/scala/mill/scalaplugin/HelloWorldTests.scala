@@ -18,15 +18,15 @@ trait HelloWorldModule extends ScalaModule {
 object HelloWorld extends HelloWorldModule
 
 object HelloWorldWithMain extends HelloWorldModule {
-  override def mainClass = Some("Main")
+  def mainClass = Some("Main")
 }
 
 object HelloWorldWarnUnused extends HelloWorldModule {
-  override def scalacOptions = T(Seq("-Ywarn-unused"))
+  def scalacOptions = T(Seq("-Ywarn-unused"))
 }
 
 object HelloWorldFatalWarnings extends HelloWorldModule {
-  override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+  def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
 }
 
 object HelloWorldTests extends TestSuite {

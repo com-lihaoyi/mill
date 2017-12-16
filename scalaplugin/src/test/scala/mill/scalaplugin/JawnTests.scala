@@ -14,15 +14,15 @@ object JawnBuild{
   class Jawn(crossVersion: String) extends Module{
     trait JawnModule extends SbtScalaModule{ outer =>
       def scalaVersion = crossVersion
-      override def scalacOptions = Seq(
+      def scalacOptions = Seq(
         "-deprecation",
         "-optimize",
         "-unchecked"
       )
       def testProjectDeps: Seq[TestScalaModule] = Nil
       object test extends this.Tests{
-        override def projectDeps = super.projectDeps ++ testProjectDeps
-        override def ivyDeps = Seq(
+        def projectDeps = super.projectDeps ++ testProjectDeps
+        def ivyDeps = Seq(
           Dep("org.scalatest", "scalatest", "3.0.3"),
           Dep("org.scalacheck", "scalacheck", "1.13.5")
         )
@@ -33,25 +33,25 @@ object JawnBuild{
       def basePath = JawnTests.srcPath/"parser"
     }
     object Util extends JawnModule{
-      override def projectDeps = Seq(Parser)
-      override def testProjectDeps = Seq(Parser.test)
+      def projectDeps = Seq(Parser)
+      def testProjectDeps = Seq(Parser.test)
       def basePath = JawnTests.srcPath/"util"
     }
     object Ast extends JawnModule{
-      override def projectDeps = Seq(Parser, Util)
-      override def testProjectDeps = Seq(Parser.test, Util.test)
+      def projectDeps = Seq(Parser, Util)
+      def testProjectDeps = Seq(Parser.test, Util.test)
       def basePath = JawnTests.srcPath/"ast"
     }
     class Support(name: String, ivyDeps0: Dep*) extends JawnModule{
-      override def projectDeps = Seq[ScalaModule](Parser)
+      def projectDeps = Seq[ScalaModule](Parser)
       def basePath = JawnTests.srcPath/"support"/"argonaut"
-      override def ivyDeps = ivyDeps0
+      def ivyDeps = ivyDeps0
     }
     object Argonaut extends Support("argonaut", Dep("io.argonaut", "argonaut", "6.2"))
     object Json4s extends Support("json4s", Dep("org.json4s", "json4s-ast", "3.5.2"))
 
     object Play extends Support("play"){
-      override def ivyDeps = mill.T{
+      def ivyDeps = mill.T{
         scalaBinaryVersion() match{
           case "2.10" => Seq(Dep("com.typesafe.play", "play-json", "2.4.11"))
           case "2.11" => Seq(Dep("com.typesafe.play", "play-json", "2.5.15"))

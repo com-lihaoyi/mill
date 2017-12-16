@@ -11,7 +11,7 @@ import mill.util.JsonFormatters._
 object BetterFilesBuild{
   trait BetterFilesModule extends SbtScalaModule{ outer =>
     def scalaVersion = "2.12.4"
-    override def scalacOptions = Seq(
+    def scalacOptions = Seq(
       "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
       "-encoding", "utf-8",                // Specify character encoding used by source files.
       "-explaintypes",                     // Explain type errors in more detail.
@@ -60,10 +60,10 @@ object BetterFilesBuild{
     )
     override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-Xlint")
     object test extends this.Tests{
-      override def projectDeps =
+      def projectDeps =
         if (this == Core.test) Seq(Core)
         else Seq(outer, Core.test)
-      override def ivyDeps = Seq(Dep("org.scalatest", "scalatest", "3.0.4"))
+      def ivyDeps = Seq(Dep("org.scalatest", "scalatest", "3.0.4"))
       def testFramework = "org.scalatest.tools.Framework"
     }
   }
@@ -71,19 +71,19 @@ object BetterFilesBuild{
     def basePath = BetterFilesTests.srcPath/"core"
   }
   object Akka extends BetterFilesModule{
-    override def projectDeps = Seq(Core)
+    def projectDeps = Seq(Core)
     def basePath = BetterFilesTests.srcPath/"akka"
-    override def ivyDeps = Seq(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
+    def ivyDeps = Seq(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
   }
   object ShapelessScanner extends BetterFilesModule{
-    override def projectDeps = Seq(Core)
+    def projectDeps = Seq(Core)
     def basePath = BetterFilesTests.srcPath/"shapeless"
-    override def ivyDeps = Seq(Dep("com.chuusai", "shapeless", "2.3.2"))
+    def ivyDeps = Seq(Dep("com.chuusai", "shapeless", "2.3.2"))
   }
   object Benchmarks extends BetterFilesModule{
-    override def projectDeps = Seq(Core)
+    def projectDeps = Seq(Core)
     def basePath = BetterFilesTests.srcPath/"benchmarks"
-    override def ivyDeps = Seq(
+    def ivyDeps = Seq(
       Dep.Java("commons-io", "commons-io", "2.5")
       // "fastjavaio" % "fastjavaio" % "1.0" from "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar"
     )

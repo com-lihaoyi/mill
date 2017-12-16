@@ -17,12 +17,12 @@ object AcyclicBuild{
 
       def version = "0.1.7"
       def scalaVersion = crossVersion
-      override def ivyDeps = Seq(
+      def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
       )
       object test extends this.Tests{
-        override def forkWorkingDir = pwd/'scalaplugin/'src/'test/'resource/'acyclic
-        override def ivyDeps = Seq(
+        def forkWorkingDir = pwd/'scalaplugin/'src/'test/'resource/'acyclic
+        def ivyDeps = Seq(
           Dep("com.lihaoyi", "utest", "0.6.0")
         )
         def testFramework = "utest.runner.Framework"

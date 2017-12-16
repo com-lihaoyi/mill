@@ -58,7 +58,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
     import c.universe._
 
     c.Expr[Persistent[T]](
-      mill.define.Cacher.wrapCached(c)(
+      mill.plugin.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree})"
       )
     )
@@ -74,7 +74,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
-      mill.define.Cacher.wrapCached(c)(
+      mill.plugin.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[TargetImpl[T]]}($t, _root_.sourcecode.Enclosing())"
       )
     )
@@ -82,7 +82,7 @@ object Target extends Applicative.Applyer[Task, Task, Result, Ctx]{
   def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
-      mill.define.Cacher.wrapCached(c)(
+      mill.plugin.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing())"
       )
     )
@@ -159,7 +159,7 @@ object Task {
   trait TaskModule extends Module {
     def defaultCommandName(): String
   }
-  trait Module extends mill.define.Cacher[Target]{
+  trait Module extends mill.plugin.Cacher[Target]{
     def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
   }
 

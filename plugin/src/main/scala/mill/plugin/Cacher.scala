@@ -1,4 +1,4 @@
-package mill.define
+package mill.plugin
 
 import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
@@ -22,7 +22,7 @@ object Cacher{
     val owner = c.internal.enclosingOwner
     val ownerIsCacherClass =
       owner.owner.isClass &&
-      owner.owner.asClass.baseClasses.exists(_.fullName == "mill.define.Cacher")
+        owner.owner.asClass.baseClasses.exists(_.fullName == "mill.plugin.Cacher")
 
     if (ownerIsCacherClass && owner.isMethod) q"this.cachedTarget($t)"
     else c.abort(

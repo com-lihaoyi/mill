@@ -14,7 +14,7 @@ object CacherTests extends TestSuite{
   }
   object Middle extends Middle
   trait Middle extends Base{
-    override def value = T{ super.value() + 2}
+    def value = T{ super.value() + 2}
     def overriden = T{ super.value()}
   }
   object Terminal extends Terminal
@@ -49,6 +49,19 @@ object CacherTests extends TestSuite{
       eval(Terminal, Terminal.value) == 7,
       eval(Terminal, Terminal.overriden) == 1
     )
+    //    Doesn't fail, presumably compileError doesn't go far enough in the
+    //    compilation pipeline to hit the override checks
+    //
+    //    'overrideOutsideModuleFails - {
+    //      compileError("""
+    //        trait Foo{
+    //          def x = 1
+    //        }
+    //        object Bar extends Foo{
+    //          def x = 2
+    //        }
+    //      """)
+    //    }
   }
 }
 

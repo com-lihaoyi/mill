@@ -19,7 +19,17 @@ val sharedSettings = Seq(
     IO.write(file, """object amm extends App { ammonite.Main().run() }""")
     Seq(file)
   }.taskValue
+)
 
+val pluginSettings = Seq(
+  scalacOptions in Test ++= {
+    val jarFile = (packageBin in (plugin, Compile)).value
+    val addPlugin = "-Xplugin:" + jarFile.getAbsolutePath
+    // add plugin timestamp to compiler options to trigger recompile of
+    // main after editing the plugin. (Otherwise a 'clean' is needed.)
+    val dummy = "-Jdummy=" + jarFile.lastModified
+    Seq(addPlugin, dummy)
+  }
 )
 
 def bridge(bridgeVersion: String) = Project(
@@ -71,8 +81,10 @@ lazy val bridge2_12_3 = bridge("2.12.3")
 lazy val bridge2_12_4 = bridge("2.12.4")
 
 lazy val core = project
+  .dependsOn(plugin)
   .settings(
     sharedSettings,
+    pluginSettings,
     name := "mill-core",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
@@ -84,25 +96,39 @@ lazy val core = project
     )
   )
 
+lazy val plugin = project
+  .settings(
+    sharedSettings,
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+      "com.lihaoyi" %% "sourcecode" % "0.1.4"
+    ),
+    publishArtifact in Compile := false
+  )
+
 val bridgeProps = Def.task{
   val mapping = Map(
     "MILL_COMPILER_BRIDGE_2_10_6" -> (packageBin in (bridge2_10_6, Compile)).value.absolutePath,
     "MILL_COMPILER_BRIDGE_2_11_8" -> (packageBin in (bridge2_11_8, Compile)).value.absolutePath,
     "MILL_COMPILER_BRIDGE_2_11_11" -> (packageBin in (bridge2_11_11, Compile)).value.absolutePath,
     "MILL_COMPILER_BRIDGE_2_12_3" -> (packageBin in (bridge2_12_3, Compile)).value.absolutePath,
-    "MILL_COMPILER_BRIDGE_2_12_4" -> (packageBin in (bridge2_12_4, Compile)).value.absolutePath
+    "MILL_COMPILER_BRIDGE_2_12_4" -> (packageBin in (bridge2_12_4, Compile)).value.absolutePath,
+    "MILL_COMPILER_PLUGIN" -> (packageBin in (plugin, Compile)).value
   )
   for((k, v) <- mapping) yield s"-D$k=$v"
 }
+
 lazy val scalaplugin = project
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     sharedSettings,
+    pluginSettings,
     name := "mill-scalaplugin",
     fork in Test := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
     javaOptions in Test := bridgeProps.value.toSeq
   )
+
 lazy val bin = project
   .dependsOn(scalaplugin)
   .settings(
