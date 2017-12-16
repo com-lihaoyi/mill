@@ -80,7 +80,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def upstreamRunClasspath = T{
     Task.traverse(
       for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compile().classes))
+      yield T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
     )
   }
 
