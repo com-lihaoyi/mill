@@ -1,4 +1,5 @@
 import ammonite.ops._
+import coursier.maven.MavenRepository
 import mill._
 import mill.scalaplugin._
 import mill.modules.Jvm.createAssembly
@@ -19,6 +20,10 @@ trait MillModule extends SbtScalaModule{ outer =>
   def compileIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+
+  def repositories = super.repositories ++ Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )
 
   def testArgs = T{ Seq.empty[String] }
 
@@ -45,7 +50,7 @@ object Core extends MillModule {
   def ivyDeps = Seq(
     Dep("com.lihaoyi", "sourcecode", "0.1.4"),
     Dep("com.lihaoyi", "pprint", "0.5.3"),
-    Dep.Point("com.lihaoyi", "ammonite", "1.0.3"),
+    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-9-b0b068a"),
     Dep("com.typesafe.play", "play-json", "2.6.6"),
     Dep("org.scala-sbt", "zinc", "1.0.5"),
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
