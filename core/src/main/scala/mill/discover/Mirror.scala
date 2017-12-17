@@ -76,7 +76,10 @@ object Mirror{
   }
 
   def makeTargetPoint[T, V](label: String, func: T => Target[V])
-                (implicit f: upickle.default.ReadWriter[V]) = {
+                (implicit f1: upickle.default.Reader[V],
+                 f2: upickle.default.Writer[V]) = {
+
+    val f = upickle.default.ReadWriter(f2.write, f1.read)
     TargetPoint(label, f, func)
   }
 }

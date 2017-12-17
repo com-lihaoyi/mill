@@ -5,7 +5,7 @@ import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.{file => jnio}
 import java.security.MessageDigest
-
+import upickle.default.{ReadWriter => RW}
 import ammonite.ops.Path
 import mill.util.JsonFormatters
 
@@ -63,6 +63,6 @@ case class PathRef(path: ammonite.ops.Path, quick: Boolean = false){
 }
 
 object PathRef{
-  private implicit val pathFormat: upickle.default.ReadWriter[Path] = JsonFormatters.pathReadWrite
-  implicit def jsonFormatter: upickle.default.ReadWriter[PathRef] = upickle.default.macroRW
+  private implicit val pathFormat: RW[Path] = JsonFormatters.pathReadWrite
+  implicit def jsonFormatter: RW[PathRef] = upickle.default.macroRW
 }

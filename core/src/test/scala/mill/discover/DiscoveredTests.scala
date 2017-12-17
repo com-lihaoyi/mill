@@ -95,7 +95,7 @@ object DiscoveredTests extends TestSuite{
 
         val error = compileError("Discovered[outer.type]")
         assert(
-          error.msg.contains("could not find implicit value"),
+          error.msg.contains("uPickle does not know how to read"),
           error.pos.contains("def single = mill.T{ new InputStreamReader(System.in) }")
         )
       }

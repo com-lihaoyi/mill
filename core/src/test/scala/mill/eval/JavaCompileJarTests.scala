@@ -9,6 +9,7 @@ import mill.util.Ctx.DestCtx
 import mill.{Module, T}
 import mill.util.{DummyLogger, OSet}
 import utest._
+import mill._
 
 object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: Seq[PathRef])(implicit ctx: DestCtx) = {
