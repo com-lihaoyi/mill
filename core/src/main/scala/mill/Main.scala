@@ -1,15 +1,16 @@
 package mill
 
-import ammonite.interp.Interpreter
+import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.main.Scripts
 import ammonite.ops._
-import ammonite.util.{Colors, Res}
+import ammonite.util._
 import mill.define.Task
 import mill.discover._
 import mill.eval.{Evaluator, Result}
 import mill.util.{Logger, OSet, PrintLogger}
 import ammonite.main.Scripts.pathScoptRead
 import ammonite.repl.Repl
+import ammonite.util.Util.normalizeNewlines
 import mill.define.Task.TaskModule
 object Main {
   def parseSelector(input: String) = {
@@ -158,27 +159,44 @@ object Main {
         System.err.println(msg)
         System.exit(1)
       case Right((cliConfig, leftoverArgs)) =>
-        if (repl){
-
-          val runner = new ammonite.MainRunner(
-            cliConfig.copy(
-              predefFile = Some(pwd / 'out / "run.sc"),
-              predefCode = "import build._",
-              welcomeBanner = None
-            ),
-            System.out, System.err,
-            System.in, System.out, System.err
+        val config =
+          if(!repl) cliConfig
+          else cliConfig.copy(
+            predefFile = Some(pwd / 'out / "run.sc"),
+            predefCode = "import build._",
+            welcomeBanner = None
           )
+
+        val runner = new ammonite.MainRunner(
+          config,
+          System.out, System.err,
+          System.in, System.out, System.err
+        ){
+          override def initMain(isRepl: Boolean) = {
+            super.initMain(isRepl).copy(codeWrapper = customCodeWrapper)
+          }
+        }
+
+        if (repl){
           runner.printInfo("Loading...")
           runner.runRepl()
         } else {
-          val runner = new ammonite.MainRunner(
-            cliConfig,
-            System.out, System.err,
-            System.in, System.out, System.err
-          )
           runner.runScript(syntheticPath, leftoverArgs)
         }
+    }
+  }
+  val customCodeWrapper = new Preprocessor.CodeWrapper {
+    def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
+      normalizeNewlines(s"""
+package ${pkgName.head.encoded}
+package ${Util.encodeScalaSourcePath(pkgName.tail)}
+$imports
+
+object ${indexedWrapperName.backticked} extends mill.Module{\n""")
+    }
+
+    def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
+      Preprocessor.CodeWrapper.bottom(printCode, indexedWrapperName, extraCode)
     }
   }
 }

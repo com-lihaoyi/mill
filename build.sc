@@ -115,6 +115,9 @@ object ScalaPlugin extends MillModule {
 
 }
 
+def runThing = T{
+  println("Hello!")
+}
 object Bin extends MillModule {
 
   def projectDeps = Seq(ScalaPlugin)
