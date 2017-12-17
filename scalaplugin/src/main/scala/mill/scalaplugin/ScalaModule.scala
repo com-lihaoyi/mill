@@ -193,12 +193,12 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       upstreamCompileOutput()
     )
   }
+  def assemblyClasspath = T{
+    (runDepClasspath().filter(_.path.ext != "pom") ++
+    Seq(resources(), compile().classes)).map(_.path).filter(exists)
+  }
   def assembly = T{
-    createAssembly(
-      (runDepClasspath().filter(_.path.ext != "pom") ++
-      Seq(resources(), compile().classes)).map(_.path).filter(exists),
-      prependShellScript = prependShellScript()
-    )
+    createAssembly(assemblyClasspath(), prependShellScript = prependShellScript())
   }
 
   def classpath = T{ Seq(resources(), compile().classes) }
