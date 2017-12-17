@@ -68,7 +68,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def scalacOptions = T{ Seq.empty[String] }
   def javacOptions = T{ Seq.empty[String] }
 
-  val repositories: Seq[Repository] = Seq(
+  def repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2")
   )
