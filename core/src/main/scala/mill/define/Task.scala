@@ -205,9 +205,4 @@ object Task {
     def evaluate(args: Ctx) = (args(0), args(1))
     val inputs = List(source1, source2)
   }
-
-
-
-
-
 }
