@@ -13,9 +13,9 @@ trait TestScalaModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFramework: T[String]
 
-  def forkWorkingDir: Path = ammonite.ops.pwd
+  def forkWorkingDir = ammonite.ops.pwd
   def forkArgs = T{ Seq.empty[String] }
-  def forkTest(args: String*): define.Command[Unit] = T.command{
+  def forkTest(args: String*) = T.command{
     val outputPath = tmp.dir()/"out.json"
 
     Jvm.subprocess(
@@ -36,7 +36,7 @@ trait TestScalaModule extends ScalaModule with TaskModule {
       case None => Result.Success(())
     }
   }
-  def test(args: String*): define.Command[Unit] = T.command{
+  def test(args: String*) = T.command{
     TestRunner(
       testFramework(),
       runDepClasspath().map(_.path) :+ compile().classes.path,
@@ -94,7 +94,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     Task.traverse(projectDeps.map(_.compile))
   }
 
-  def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false): Task[Seq[PathRef]] = T.task{
+  def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
       repositories,
       scalaVersion(),
@@ -187,8 +187,8 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources: Source = T.source{ basePath / 'src }
-  def resources: Source = T.source{ basePath / 'resources }
+  def sources = T.source{ basePath / 'src }
+  def resources = T.source{ basePath / 'resources }
   def allSources = T{ Seq(sources()) }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
@@ -218,16 +218,16 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     createJar(Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
   }
 
-  def run(): define.Command[Unit] = T.command{
+  def run() = T.command{
     val main = mainClass().getOrElse(throw new RuntimeException("No mainClass provided!"))
     subprocess(main, runDepClasspath().map(_.path) :+ compile().classes.path)
   }
 
-  def runMain(mainClass: String): define.Command[Unit] = T.command{
+  def runMain(mainClass: String) = T.command{
     subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().classes.path)
   }
 
-  def console(): define.Command[Unit] = T.command{
+  def console() = T.command{
     interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
       classPath = externalCompileDepClasspath().map(_.path) :+ compile().classes.path,
@@ -237,11 +237,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 }
 trait SbtScalaModule extends ScalaModule { outer =>
   def basePath: Path
-  override def sources: Source = T.source{ basePath / 'src / 'main / 'scala }
-  override def resources: Source = T.source{ basePath / 'src / 'main / 'resources }
+  override def sources = T.source{ basePath / 'src / 'main / 'scala }
+  override def resources = T.source{ basePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests{
-    def basePath: Path = outer.basePath
-    override def sources: Source = T.source{ basePath / 'src / 'test / 'scala }
-    override def resources: Source = T.source{ basePath / 'src / 'test / 'resources }
+    def basePath = outer.basePath
+    override def sources = T.source{ basePath / 'src / 'test / 'scala }
+    override def resources = T.source{ basePath / 'src / 'test / 'resources }
   }
 }
