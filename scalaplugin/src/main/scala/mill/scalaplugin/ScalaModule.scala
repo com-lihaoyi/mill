@@ -78,21 +78,18 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
 
   def upstreamRunClasspath = T{
-    Task.traverse(
-      for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
+    Task.traverse(projectDeps)(p =>
+      T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
     )
   }
 
-  def upstreamCompileDepClasspath = T{
-    Task.traverse(projectDeps.map(_.externalCompileDepClasspath))
-  }
-  def upstreamCompileDepSources = T{
-    Task.traverse(projectDeps.map(_.externalCompileDepSources))
-  }
-
   def upstreamCompileOutput = T{
-    Task.traverse(projectDeps.map(_.compile))
+    Task.traverse(projectDeps)(_.compile)
+  }
+  def upstreamCompileClasspath = T{
+    externalCompileDepClasspath() ++
+    upstreamCompileOutput().map(_.classes) ++
+    Task.traverse(projectDeps)(_.compileDepClasspath)().flatten
   }
 
   def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false) = T.task{
@@ -105,13 +102,14 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     )
   }
   def externalCompileDepClasspath: T[Seq[PathRef]] = T{
-    upstreamCompileDepClasspath().flatten ++
+    Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
     )()
   }
+
   def externalCompileDepSources: T[Seq[PathRef]] = T{
-    upstreamCompileDepSources().flatten ++
+    Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
       sources = true
@@ -122,9 +120,8 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     * might be less than the runtime classpath
     */
   def compileDepClasspath: T[Seq[PathRef]] = T{
-    upstreamCompileOutput().map(_.classes) ++
-    depClasspath() ++
-    externalCompileDepClasspath()
+    upstreamCompileClasspath() ++
+    depClasspath()
   }
 
   /**

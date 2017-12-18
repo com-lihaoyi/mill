@@ -182,10 +182,12 @@ object Task {
 
   }
 
-  def traverse[T](source: Seq[Task[T]]) = {
-    new Traverse[T](source)
+  def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
+    new Sequence[V](source.map(f))
   }
-  class Traverse[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
+  def sequence[T](source: Seq[Task[T]]) = new Sequence[T](source)
+
+  class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
     val inputs = inputs0
     def evaluate(args: Ctx) = {
       for (i <- 0 until args.length)

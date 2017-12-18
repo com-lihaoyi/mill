@@ -106,7 +106,7 @@ object ScalaPlugin extends MillModule {
   def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
 
-  def bridgeCompiles = mill.define.Task.traverse(bridges.items.map(_._2.compile))
+  def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
   def testArgs = T{
     val bridgeVersions = bridges.items.map(_._1.head.toString)
 
@@ -122,7 +122,7 @@ object ScalaPlugin extends MillModule {
 
 val assemblyProjects = Seq(ScalaPlugin)
 
-def assemblyClasspath = mill.define.Task.traverse(assemblyProjects.map(_.assemblyClasspath))
+def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.assemblyClasspath)
 
 def assemblyBase(classpath: Seq[Path], extraArgs: String)
                 (implicit ctx: mill.util.Ctx.DestCtx) = {
