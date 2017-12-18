@@ -85,7 +85,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
 
   def upstreamCompileDepClasspath = T{
-    Task.traverse(projectDeps.map(_.compileDepClasspath))
+    Task.traverse(projectDeps.map(_.externalCompileDepClasspath))
   }
   def upstreamCompileDepSources = T{
     Task.traverse(projectDeps.map(_.externalCompileDepSources))
@@ -100,10 +100,11 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       repositories,
       scalaVersion(),
       scalaBinaryVersion(),
-      deps()
+      deps(),
+      sources
     )
   }
-  def externalCompileDepClasspath = T{
+  def externalCompileDepClasspath: T[Seq[PathRef]] = T{
     upstreamCompileDepClasspath().flatten ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
