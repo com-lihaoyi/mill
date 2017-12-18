@@ -13,7 +13,7 @@ val sharedSettings = Seq(
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
   addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
-  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-9-b0b068a" % "test" cross CrossVersion.full,
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-10-4311ac9" % "test" cross CrossVersion.full,
 
   sourceGenerators in Test += Def.task {
     val file = (sourceManaged in Test).value / "amm.scala"
