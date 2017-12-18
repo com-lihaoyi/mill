@@ -50,7 +50,7 @@ object Core extends MillModule {
   def ivyDeps = Seq(
     Dep("com.lihaoyi", "sourcecode", "0.1.4"),
     Dep("com.lihaoyi", "pprint", "0.5.3"),
-    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-9-b0b068a"),
+    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-10-4311ac9"),
     Dep("com.typesafe.play", "play-json", "2.6.6"),
     Dep("org.scala-sbt", "zinc", "1.0.5"),
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
@@ -74,10 +74,9 @@ object Core extends MillModule {
     }
 }
 
+val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
-val bridges = for{
-  crossVersion <- mill.define.Cross("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
-} yield new ScalaModule{
+val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield new ScalaModule{
   def basePath = pwd / 'bridge
   def scalaVersion = crossVersion
   def allSources = T{
@@ -107,39 +106,39 @@ object ScalaPlugin extends MillModule {
   def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
 
+  def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
   def testArgs = T{
-    val mapping = Map(
-      "MILL_COMPILER_BRIDGE_2_10_6"  -> bridges("2.10.6").compile().classes.path,
-      "MILL_COMPILER_BRIDGE_2_11_8"  -> bridges("2.11.8").compile().classes.path,
-      "MILL_COMPILER_BRIDGE_2_11_11" -> bridges("2.11.11").compile().classes.path,
-      "MILL_COMPILER_BRIDGE_2_12_3"  -> bridges("2.12.3").compile().classes.path,
-      "MILL_COMPILER_BRIDGE_2_12_4"  -> bridges("2.12.4").compile().classes.path
-    )
-    for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+    val bridgeVersions = bridges.items.map(_._1.head.toString)
+
+    for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
+    yield {
+      val underscored = version.replace('.', '_')
+      val key = s"MILL_COMPILER_BRIDGE_$underscored"
+      val value = compile.classes.path
+      s"-D$key=$value"
+    }
   }
-
 }
 
-def runThing = T{
-  println("Hello!")
+val assemblyProjects = Seq(ScalaPlugin)
+
+def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.assemblyClasspath)
+
+def assemblyBase(classpath: Seq[Path], extraArgs: String)
+                (implicit ctx: mill.util.Ctx.DestCtx) = {
+  createAssembly(
+    classpath,
+    prependShellScript =
+      "#!/usr/bin/env sh\n" +
+      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+  )
 }
-object Bin extends MillModule {
 
-  def projectDeps = Seq(ScalaPlugin)
-  def basePath = pwd / 'bin
-
-  def releaseAssembly = T{
-    createAssembly(
-      (runDepClasspath().filter(_.path.ext != "pom") ++
-        Seq(resources(), compile().classes)).map(_.path).filter(exists),
-      prependShellScript =
-        "#!/usr/bin/env sh\n" +
-        s"""exec java $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
-    )
-  }
-
-  def prependShellScript =
-    "#!/usr/bin/env sh\n" +
-    s"""exec java ${ScalaPlugin.testArgs().mkString(" ")} $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
-
+def assembly = T{
+  assemblyBase(assemblyClasspath().flatten, ScalaPlugin.testArgs().mkString(" "))
 }
+
+def releaseAssembly = T{
+  assemblyBase(assemblyClasspath().flatten, "")
+}
+

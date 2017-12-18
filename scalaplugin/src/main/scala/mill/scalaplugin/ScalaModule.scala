@@ -77,21 +77,18 @@ trait ScalaModule extends Module with TaskModule{ outer =>
 
 
   def upstreamRunClasspath = T{
-    Task.traverse(
-      for (p <- projectDeps)
-      yield T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
+    Task.traverse(projectDeps)(p =>
+      T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
     )
   }
 
-  def upstreamCompileDepClasspath = T{
-    Task.traverse(projectDeps.map(_.compileDepClasspath))
-  }
-  def upstreamCompileDepSources = T{
-    Task.traverse(projectDeps.map(_.externalCompileDepSources))
-  }
-
   def upstreamCompileOutput = T{
-    Task.traverse(projectDeps.map(_.compile))
+    Task.traverse(projectDeps)(_.compile)
+  }
+  def upstreamCompileClasspath = T{
+    externalCompileDepClasspath() ++
+    upstreamCompileOutput().map(_.classes) ++
+    Task.traverse(projectDeps)(_.compileDepClasspath)().flatten
   }
 
   def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false) = T.task{
@@ -99,18 +96,20 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       repositories,
       scalaVersion(),
       scalaBinaryVersion(),
-      deps()
+      deps(),
+      sources
     )
   }
 
-  def externalCompileDepClasspath = T{
-    upstreamCompileDepClasspath().flatten ++
+  def externalCompileDepClasspath: T[Seq[PathRef]] = T{
+    Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
     )()
   }
+
   def externalCompileDepSources: T[Seq[PathRef]] = T{
-    upstreamCompileDepSources().flatten ++
+    Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
       sources = true
@@ -118,22 +117,15 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   }
 
 
-  def resolve: T[Seq[PathRef]] = T{
-    upstreamCompileDepClasspath().flatten ++
-    resolveDeps(
-      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
-      sources = true
-    )()
-  }
+  def resolve: T[Seq[PathRef]] = externalCompileDepClasspath
 
   /**
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
     */
   def compileDepClasspath: T[Seq[PathRef]] = T{
-    upstreamCompileOutput().map(_.classes) ++
-    depClasspath() ++
-    externalCompileDepClasspath()
+    upstreamCompileClasspath() ++
+    depClasspath()
   }
 
   /**
@@ -204,12 +196,12 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       upstreamCompileOutput()
     )
   }
+  def assemblyClasspath = T{
+    (runDepClasspath().filter(_.path.ext != "pom") ++
+    Seq(resources(), compile().classes)).map(_.path).filter(exists)
+  }
   def assembly = T{
-    createAssembly(
-      (runDepClasspath().filter(_.path.ext != "pom") ++
-      Seq(resources(), compile().classes)).map(_.path).filter(exists),
-      prependShellScript = prependShellScript()
-    )
+    createAssembly(assemblyClasspath(), prependShellScript = prependShellScript())
   }
 
   def classpath = T{ Seq(resources(), compile().classes) }
