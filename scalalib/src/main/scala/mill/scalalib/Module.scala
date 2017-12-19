@@ -192,9 +192,11 @@ trait Module extends mill.Module with TaskModule { outer =>
   def prependShellScript: T[String] = T{ "" }
 
   def sources = T.source{ basePath / 'src }
+  def javaSources = T.source {basePath / 'javasrc }
   def resources = T.source{ basePath / 'resources }
-  def allSources = T{ Seq(sources()) }
+  def allSources = T{ Seq(sources(), javaSources()) }
   def compile: T[CompilationResult] = T.persistent{
+    import PathConvertible.StringConvertible
     compileScala(
       ZincWorker(),
       scalaVersion(),
@@ -205,6 +207,7 @@ trait Module extends mill.Module with TaskModule { outer =>
       compilerBridge().path,
       scalacOptions(),
       scalacPluginClasspath().map(_.path),
+      sys.env.get("JAVA_HOME").map(s => Path(s)),
       javacOptions(),
       upstreamCompileOutput()
     )
@@ -360,10 +363,41 @@ trait PublishModule extends Module { outer =>
 
 trait SbtModule extends Module { outer =>
   override def sources = T.source{ basePath / 'src / 'main / 'scala }
+  override def javaSources = T.source{ basePath / 'src / 'main / 'java }
   override def resources = T.source{ basePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests{
     override def basePath = outer.basePath
     override def sources = T.source{ basePath / 'src / 'test / 'scala }
     override def resources = T.source{ basePath / 'src / 'test / 'resources }
+  }
+
+
+  //Experimental trait to make pasting of dependencies in SBT format easier
+  trait SbtDeps {
+    implicit def stringToSbtOrg(s: String): SbtOrg = SbtOrg(s)
+    case class SbtOrg(org: String) {
+      def %(module: String) = SbtJavaModule(this, module)
+      def %%(module: String) = SbtScalaModule(this, module)
+    }
+    sealed trait SbtModule {
+      def %(version: String) = SbtDep(this, version)
+    }
+    case class SbtJavaModule(org: SbtOrg, module: String) extends SbtModule
+    case class SbtScalaModule(org: SbtOrg, module: String) extends SbtModule
+
+    case class SbtDep(module: SbtModule, version: String) {
+      //TODO: Improve these
+      def exclude(stuff: String*) = this
+      def %(attribute: String) = this
+    }
+
+    def deps: Seq[SbtDep]
+
+    def toMill = deps.map(toDep)
+
+    def toDep(sbtDep: SbtDep): Dep = sbtDep match {
+      case SbtDep(SbtScalaModule(SbtOrg(org), module), version) => Dep.Scala(org, module, version)
+      case SbtDep(SbtJavaModule(SbtOrg(org), module), version) => Dep.Java(org, module, version)
+    }
   }
 }

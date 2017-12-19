@@ -93,7 +93,8 @@ lazy val core = project
       "com.lihaoyi" %% "pprint" % "0.5.3",
       "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
       "org.scala-sbt" %% "zinc" % "1.0.5",
-      "org.scala-sbt" % "test-interface" % "1.0"
+      "org.scala-sbt" % "test-interface" % "1.0",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.2.201712150930-r"	
     ),
     sourceGenerators in Compile += {
       ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _))

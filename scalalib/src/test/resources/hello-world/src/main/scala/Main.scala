@@ -3,6 +3,7 @@ import java.nio.file.{Files, Paths}
 
 object Main extends App {
 
+  val everything = Demo.EVERYTHING
   val person = Person.fromString("rockjam:25")
   val greeting = s"hello ${person.name}, your age is: ${person.age}"
   println(greeting)
