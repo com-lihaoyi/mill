@@ -6,7 +6,7 @@ import java.net.URLClassLoader
 import java.util.Optional
 
 import ammonite.ops._
-import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution}
+import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module => CoursierModule}
 import mill.define.Worker
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
@@ -159,7 +159,7 @@ object Lib{
                           scalaVersion: String,
                           scalaBinaryVersion: String,
                           deps: Seq[Dep],
-                          sources: Boolean = false): Seq[PathRef] = {
+                          sources: Boolean = false): Result[Seq[PathRef]] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
@@ -171,15 +171,30 @@ object Lib{
 
     val fetch = Fetch.from(repositories, Cache.fetch())
     val resolution = start.process.run(fetch).unsafePerformSync
-    val sourceOrJar =
-      if (sources) resolution.classifiersArtifacts(Seq("sources"))
-      else resolution.artifacts
-    val localArtifacts: Seq[File] = scalaz.concurrent.Task
-      .gatherUnordered(sourceOrJar.map(Cache.file(_).run))
-      .unsafePerformSync
-      .flatMap(_.toOption)
+    val errs = resolution.metadataErrors
+    if(errs.nonEmpty) {
+      val header =
+        s"""|
+            |Resolution failed for ${errs.length} modules:
+            |--------------------------------------------
+            |""".stripMargin
 
-    localArtifacts.map(p => PathRef(Path(p), quick = true))
+      val errLines = errs.map {
+        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
+      }.mkString("\n")
+      val msg = header + errLines + "\n"
+      Result.Failure(msg)
+    } else {
+      val sourceOrJar =
+        if (sources) resolution.classifiersArtifacts(Seq("sources"))
+        else resolution.artifacts
+      val localArtifacts: Seq[File] = scalaz.concurrent.Task
+        .gatherUnordered(sourceOrJar.map(Cache.file(_).run))
+        .unsafePerformSync
+        .flatMap(_.toOption)
+
+      localArtifacts.map(p => PathRef(Path(p), quick = true))
+    }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),

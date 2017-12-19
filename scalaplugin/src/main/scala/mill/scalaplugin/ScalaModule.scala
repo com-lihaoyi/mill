@@ -2,13 +2,12 @@ package mill
 package scalaplugin
 
 import ammonite.ops._
-import coursier.{Cache, MavenRepository, Repository, Resolution}
-import mill.define.Task
+import coursier.{Cache, MavenRepository, Repository}
+import mill.define.{Source, Task}
 import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
-
 import Lib._
 trait TestScalaModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
@@ -101,6 +100,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       sources
     )
   }
+
   def externalCompileDepClasspath: T[Seq[PathRef]] = T{
     Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten ++
     resolveDeps(
@@ -115,6 +115,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       sources = true
     )()
   }
+
   /**
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
@@ -140,8 +141,9 @@ trait ScalaModule extends Module with TaskModule{ outer =>
         Seq(dep)
       )
       classpath match {
-        case Seq(single) => PathRef(single.path, quick = true)
-        case Seq() => throw new Exception(dep + " resolution failed")
+        case Result.Success(Seq(single)) => PathRef(single.path, quick = true)
+        case Result.Success(Seq()) => throw new Exception(dep + " resolution failed")
+        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}")
         case _ => throw new Exception(dep + " resolution resulted in more than one file")
       }
     }
