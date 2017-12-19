@@ -22,10 +22,6 @@ object HelloWorldWithMain extends HelloWorldModule {
   def mainClass = Some("Main")
 }
 
-object HelloWorldWarnUnused extends HelloWorldModule {
-  def scalacOptions = T(Seq("-Ywarn-unused"))
-}
-
 object HelloWorldFatalWarnings extends HelloWorldModule {
   def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
 }
@@ -62,6 +58,10 @@ object HelloWorldTests extends TestSuite {
 
   val helloWorldMapping = Discovered.mapping(HelloWorld)
   val helloWorldWithMainMapping = Discovered.mapping(HelloWorldWithMain)
+  val helloWorldFatalWarningsMapping =
+    Discovered.mapping(HelloWorldFatalWarnings)
+  val helloWorldWithPublishMapping =
+    Discovered.mapping(HelloWorldWithPublish)
 
   def tests: Tests = Tests {
     prepareWorkspace()
@@ -103,7 +103,7 @@ object HelloWorldTests extends TestSuite {
       'override - {
         val Right((result, evalCount)) =
           eval(HelloWorldFatalWarnings.scalacOptions,
-               Discovered.mapping(HelloWorldFatalWarnings))
+               helloWorldFatalWarningsMapping)
 
         assert(
           result == Seq("-Ywarn-unused", "-Xfatal-warnings"),
@@ -165,8 +165,7 @@ object HelloWorldTests extends TestSuite {
       'passScalacOptions - {
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Exception(err)) =
-          eval(HelloWorldFatalWarnings.compile,
-               Discovered.mapping(HelloWorldFatalWarnings))
+          eval(HelloWorldFatalWarnings.compile, helloWorldFatalWarningsMapping)
 
         assert(err.isInstanceOf[CompileFailed])
       }
@@ -273,6 +272,42 @@ object HelloWorldTests extends TestSuite {
 
         val logFile = outputPath / "compile.log"
         assert(exists(logFile))
+      }
+    }
+    'publishing {
+      'ivy {
+        val Right((result, evalCount)) =
+          eval(HelloWorldWithPublish.ivy, helloWorldWithPublishMapping)
+
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+      }
+      'pom {
+        val Right((result, evalCount)) =
+          eval(HelloWorldWithPublish.pom, helloWorldWithPublishMapping)
+
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+      }
+      'publishLocal {
+        val Right((_, evalCount)) =
+          eval(HelloWorldWithPublish.publishLocal, helloWorldWithPublishMapping)
+
+        val ivyHome = home / ".ivy2" / "local"
+        val publishDir = ivyHome / "com.lihaoyi" / "hello-world_2.12" / "0.0.1"
+        assert(
+          evalCount > 0,
+          exists(publishDir),
+          exists(publishDir / "docs" / "hello-world_2.12-javadoc.jar"),
+          exists(publishDir / "ivys" / "ivy.xml"),
+          exists(publishDir / "jars" / "hello-world_2.12.jar"),
+          exists(publishDir / "poms" / "hello-world_2.12.pom"),
+          exists(publishDir / "srcs" / "hello-world_2.12-sources.jar")
+        )
       }
     }
   }
