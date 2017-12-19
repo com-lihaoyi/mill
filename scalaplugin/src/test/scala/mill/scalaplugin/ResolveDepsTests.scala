@@ -1,57 +1,39 @@
 package mill.scalaplugin
 
-import ammonite.ops._
-import ammonite.ops.Path
-import mill.define.{Target, Task}
-import mill.discover.Mirror.LabelledTarget
-import mill.discover.Discovered
-import mill.eval.Result
+import coursier.Cache
+import coursier.maven.MavenRepository
+import mill.eval.Result.{Failure, Success}
+import mill.eval.{PathRef, Result}
 import utest._
 
-case class TestModule(deps: Dep*)(implicit path: utest.framework.TestPath) extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  def basePath: Path = ResolveDepsTests.workspaceRoot / "resolve-deps"
-  override def ivyDeps: Target[Seq[Dep]] = deps.toSeq
-}
-
 object ResolveDepsTests extends TestSuite {
-  val workspaceRoot: Path = pwd / 'target / 'workspace
-  def outputPath()(implicit path: utest.framework.TestPath): Path = workspaceRoot / path.value.last / 'out
+  val repos = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
-  def eval[T](t: Task[T], mapping: Map[Target[_], LabelledTarget[_]])(implicit path: utest.framework.TestPath) =
-    TestEvaluator.eval(mapping, outputPath)(t)
+  def evalDeps(deps: Seq[Dep]): Result[Seq[PathRef]] = Lib.resolveDependencies(repos, "2.12.4", "2.12", deps)
 
   val tests = Tests {
     'resolveValidDeps - {
-      val module = TestModule(Dep("com.lihaoyi", "pprint", "0.5.3"))
-      val testWithValidDeps = Discovered.mapping(module)
-      val Right((result, evalCount)) =
-        eval(module.compile, testWithValidDeps)
-      assert(evalCount > 0)
+      val deps = Seq(Dep("com.lihaoyi", "pprint", "0.5.3"))
+      val Success(paths) = evalDeps(deps)
+      assert(paths.nonEmpty)
     }
 
     'errOnInvalidOrgDeps - {
-      val module = TestModule(Dep("xxx.yyy.invalid", "pprint", "0.5.3"))
-      val mapping = Discovered.mapping(module)
-      val Left(err) =
-        eval(module.compile, mapping)
-      assert(err.isInstanceOf[mill.eval.Result.Failing])
+      val deps = Seq(Dep("xxx.yyy.invalid", "pprint", "0.5.3"))
+      val Failure(errMsg) = evalDeps(deps)
+      assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     'errOnInvalidVersionDeps - {
-      val module = TestModule(Dep("com.lihaoyi", "pprint", "invalid.version.num"))
-      val mapping = Discovered.mapping(module)
-      val Left(err) =
-        eval(module.compile, mapping)
-      assert(err.isInstanceOf[mill.eval.Result.Failing])
+      val deps = Seq(Dep("com.lihaoyi", "pprint", "invalid.version.num"))
+      val Failure(errMsg) = evalDeps(deps)
+      assert(errMsg.contains("invalid.version.num"))
     }
 
     'errOnPartialSuccess - {
-      val module = TestModule(Dep("com.lihaoyi", "pprint", "0.5.3"), Dep("fake", "fake", "fake"))
-      val mapping = Discovered.mapping(module)
-      val Left(err) =
-        eval(module.compile, mapping)
-      assert(err.isInstanceOf[mill.eval.Result.Failing])
+      val deps = Seq(Dep("com.lihaoyi", "pprint", "0.5.3"), Dep("fake", "fake", "fake"))
+      val Failure(errMsg) = evalDeps(deps)
+      assert(errMsg.contains("fake"))
     }
   }
 }

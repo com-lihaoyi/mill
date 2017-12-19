@@ -116,9 +116,6 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     )()
   }
 
-
-  def resolve: T[Seq[PathRef]] = externalCompileDepClasspath
-
   /**
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
