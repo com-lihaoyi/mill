@@ -2,7 +2,7 @@ package mill
 package scalaplugin
 
 import ammonite.ops._
-import coursier.{Cache, MavenRepository, Repository, Resolution}
+import coursier.{Cache, MavenRepository, Repository}
 import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
@@ -49,7 +49,8 @@ trait TestScalaModule extends ScalaModule with TaskModule {
     }
   }
 }
-trait ScalaModule extends Module with TaskModule{ outer =>
+
+trait ScalaModule extends Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestScalaModule{
     def scalaVersion = outer.scalaVersion()
@@ -101,6 +102,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       sources
     )
   }
+
   def externalCompileDepClasspath: T[Seq[PathRef]] = T{
     Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten ++
     resolveDeps(
@@ -115,6 +117,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
       sources = true
     )()
   }
+
   /**
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
@@ -140,8 +143,9 @@ trait ScalaModule extends Module with TaskModule{ outer =>
         Seq(dep)
       )
       classpath match {
-        case Seq(single) => PathRef(single.path, quick = true)
-        case Seq() => throw new Exception(dep + " resolution failed")
+        case Result.Success(Seq(single)) => PathRef(single.path, quick = true)
+        case Result.Success(Seq()) => throw new Exception(dep + " resolution failed")
+        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}")
         case _ => throw new Exception(dep + " resolution resulted in more than one file")
       }
     }
@@ -195,6 +199,7 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     (runDepClasspath().filter(_.path.ext != "pom") ++
     Seq(resources(), compile().classes)).map(_.path).filter(exists)
   }
+
   def assembly = T{
     createAssembly(assemblyClasspath(), prependShellScript = prependShellScript())
   }
@@ -202,7 +207,34 @@ trait ScalaModule extends Module with TaskModule{ outer =>
   def classpath = T{ Seq(resources(), compile().classes) }
 
   def jar = T{
-    createJar(Seq(resources(), compile().classes).map(_.path).filter(exists), mainClass())
+    createJar(
+      Seq(resources(), compile().classes).map(_.path).filter(exists),
+      mainClass()
+    )
+  }
+
+  def docsJar = T {
+    val outDir = T.ctx().dest
+
+    val javadocDir = outDir / 'javadoc
+    mkdir(javadocDir)
+
+    val options = {
+      val files = ls.rec(sources().path).filter(_.isFile).map(_.toNIO.toString)
+      files ++ Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
+    }
+
+    subprocess(
+      "scala.tools.nsc.ScalaDoc",
+      compileDepClasspath().filterNot(_.path.ext == "pom").map(_.path),
+      options = options
+    )
+
+    createJar(Seq(javadocDir))(outDir / "javadoc.jar")
+  }
+
+  def sourcesJar = T {
+    createJar(Seq(sources(), resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
   }
 
   def run() = T.command{
@@ -222,6 +254,79 @@ trait ScalaModule extends Module with TaskModule{ outer =>
     )
   }
 }
+
+trait PublishModule extends ScalaModule { outer =>
+  import mill.scalaplugin.publish._
+
+  def publishName: T[String] = basePath.last.toString
+  def publishVersion: T[String] = "0.0.1-SNAPSHOT"
+  def pomSettings: T[PomSettings]
+
+  // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
+  def publishWithFullScalaVersion: Boolean = false
+
+  def artifactScalaVersion: T[String] = T {
+    if (publishWithFullScalaVersion) scalaVersion()
+    else scalaBinaryVersion()
+  }
+
+  def pom = T {
+    val dependencies =
+      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
+    val pom = Pom(artifact(), dependencies, publishName(), pomSettings())
+
+    val pomPath = T.ctx().dest / s"${publishName()}_${artifactScalaVersion()}-${publishVersion()}.pom"
+    write.over(pomPath, pom)
+    PathRef(pomPath)
+  }
+
+  def ivy = T {
+    val dependencies =
+      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
+    val ivy = Ivy(artifact(), dependencies)
+    val ivyPath = T.ctx().dest / "ivy.xml"
+    write.over(ivyPath, ivy)
+    PathRef(ivyPath)
+  }
+
+  def artifact: T[Artifact] = T {
+    Artifact(pomSettings().organization, s"${publishName()}_${artifactScalaVersion()}", publishVersion())
+  }
+
+  def publishLocal(): define.Command[Unit] = T.command {
+    LocalPublisher.publish(
+      jar = jar().path,
+      sourcesJar = sourcesJar().path,
+      docsJar = docsJar().path,
+      pom = pom().path,
+      ivy = ivy().path,
+      artifact = artifact()
+    )
+  }
+
+  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
+
+  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+
+  def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] = T.command {
+    val baseName = s"${publishName()}_${artifactScalaVersion()}-${publishVersion()}"
+    val artifacts = Seq(
+      jar().path -> s"${baseName}.jar",
+      sourcesJar().path -> s"${baseName}-sources.jar",
+      docsJar().path -> s"${baseName}-javadoc.jar",
+      pom().path -> s"${baseName}.pom"
+    )
+    new SonatypePublisher(
+      sonatypeUri,
+      sonatypeSnapshotUri,
+      credentials,
+      gpgPassphrase,
+      T.ctx().log
+    ).publish(artifacts, artifact())
+  }
+
+}
+
 trait SbtScalaModule extends ScalaModule { outer =>
   def basePath: Path
   override def sources = T.source{ basePath / 'src / 'main / 'scala }

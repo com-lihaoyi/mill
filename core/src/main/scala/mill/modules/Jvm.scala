@@ -126,7 +126,6 @@ object Jvm {
     PathRef(outputPath)
   }
 
-
   def createAssembly(inputPaths: Seq[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")

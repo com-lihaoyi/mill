@@ -2,20 +2,36 @@ package mill.scalaplugin
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Cross,Task}
+import mill.define.{Cross, Task}
 import mill.discover.Discovered
 import mill.eval.Result
+import mill.scalaplugin.publish._
 import utest._
 import mill.util.JsonFormatters._
 object AcyclicBuild{
   val acyclic =
     for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
-    yield new SbtScalaModule{outer =>
+    yield new SbtScalaModule with PublishModule {outer =>
       def basePath = AcyclicTests.workspacePath
-      def organization = "com.lihaoyi"
-      def name = "acyclic"
+      def publishName = "acyclic"
+      def publishVersion = "0.1.7"
 
-      def version = "0.1.7"
+      def pomSettings = PomSettings(
+        description = publishName(),
+        organization = "com.lihaoyi",
+        url = "https://github.com/lihaoyi/acyclic",
+        licenses = Seq(
+          License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
+        ),
+        scm = SCM(
+          "git://github.com/lihaoyi/acyclic.git",
+          "scm:git://github.com/lihaoyi/acyclic.git"
+        ),
+        developers = Seq(
+          Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+        )
+      )
+
       def scalaVersion = crossVersion
       def ivyDeps = Seq(
         Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
