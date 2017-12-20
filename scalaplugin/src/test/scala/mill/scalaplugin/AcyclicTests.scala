@@ -37,7 +37,7 @@ object AcyclicTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(AcyclicBuild)
-    def eval[T](t: Task[T]) = TestEvaluator.eval(mapping, workspacePath)(t)
+    def eval[T](t: Task[T]) = TestEvaluator.eval(mapping.value, workspacePath)(t)
 
     val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
 

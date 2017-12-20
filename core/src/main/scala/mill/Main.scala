@@ -39,13 +39,12 @@ object Main {
   }
 
 
-  def discoverMirror[T: Discovered](obj: T): Either[String, Discovered[T]] = {
-    val discovered = implicitly[Discovered[T]]
-    val consistencyErrors = Discovered.consistencyCheck(obj, discovered)
+  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
+    val consistencyErrors = Discovered.consistencyCheck(mapping)
     if (consistencyErrors.nonEmpty) {
       Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(Mirror.renderSelector)}")
     } else {
-      Right(discovered)
+      Right(())
     }
   }
 
@@ -77,10 +76,10 @@ object Main {
     }
   }
 
-  def apply[T: Discovered](args: Seq[String],
-                           obj: T,
-                           watch: Path => Unit,
-                           coloredOutput: Boolean): Int = {
+  def apply[T](args: Seq[String],
+               mapping: Discovered.Mapping[T],
+               watch: Path => Unit,
+               coloredOutput: Boolean): Int = {
 
     val log = new PrintLogger(coloredOutput)
 
@@ -88,13 +87,13 @@ object Main {
 
     val res = for {
       sel <- parseArgs(selectorString)
-      disc <- discoverMirror(obj)
+      _ <- consistencyCheck(mapping)
       crossSelectors = sel.map{
         case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
         case _ => Nil
       }
-      target <- mill.main.Resolve.resolve(sel, disc.mirror, obj, rest, crossSelectors, Nil)
-      evaluator = new Evaluator(pwd / 'out, Discovered.mapping(obj)(disc), log, sel)
+      target <- mill.main.Resolve.resolve(sel, mapping.mirror, mapping.base, rest, crossSelectors, Nil)
+      evaluator = new Evaluator(pwd / 'out, mapping.value, log, sel)
       _ <- evaluate(evaluator, target, watch).toLeft(())
     } yield ()
 
@@ -119,20 +118,17 @@ object Main {
       s"""import $$file.^.build
          |import mill._
          |
-         |val discovered = implicitly[mill.discover.Discovered[build.type]]
+         |val mapping = mill.discover.Discovered.mapping(build)
          |
-         |@main def run(args: String*) = mill.Main(args, build, interp.watch, true)(discovered)
+         |mill.Main.consistencyCheck(mapping).left.foreach(msg => throw new Exception(msg))
          |
-         |@main def idea() = mill.scalaplugin.GenIdea(build)(discovered)
+         |@main def run(args: String*) = mill.Main(args, mapping, interp.watch, true)
          |
-         |val mirror = mill.Main.discoverMirror(build) match{
-         |  case Left(err) => throw new Exception("Failed discovery consistency check: " + err)
-         |  case Right(mirror) => mirror
-         |}
+         |@main def idea() = mill.scalaplugin.GenIdea(mapping)
          |
          |val evaluator = new mill.eval.Evaluator(
          |  ammonite.ops.pwd / 'out,
-         |  mill.discover.Discovered.mapping(build)(mirror),
+         |  mapping.value,
          |  new mill.util.PrintLogger(true)
          |)
          |

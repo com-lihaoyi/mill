@@ -15,24 +15,37 @@ class Discovered[T](val mirror: Mirror[T, T]){
   def targets(obj: T) = Mirror.traverse(obj, mirror) { (h, p) =>
     h.labelled(obj, p)
   }
+  def mapping(t: T) = {
+    Discovered.Mapping(
+      targets(t).map(x => x.target -> x).toMap[Target[Any], LabelledTarget[_]],
+      mirror,
+      t
+    )
+  }
 }
 
 object Discovered {
-  def consistencyCheck[T](base: T, d: Discovered[T]) = {
+  case class Mapping[T](value: Map[Target[Any], LabelledTarget[_]],
+                        mirror: Mirror[T, T],
+                        base: T)
+
+  def consistencyCheck[T](mapping: Discovered.Mapping[T]) = {
+    val d = new Discovered(mapping.mirror)
     val inconsistent = for{
-      (t1, t2) <- d.targets(base).zip(d.targets(base))
+      (t1, t2) <- d.targets(mapping.base).zip(d.targets(mapping.base))
       if t1.target ne t2.target
     } yield t1.segments
     inconsistent
   }
 
 
-  def mapping[T: Discovered](t: T): Map[Target[_], LabelledTarget[_]] = {
-    implicitly[Discovered[T]].targets(t).map(x => x.target -> x).toMap
-  }
-
-  implicit def apply[T]: Discovered[T] = macro applyImpl[T]
+  def make[T]: Discovered[T] = macro applyImpl[T]
+  def mapping[T](t: T): Discovered.Mapping[T] = macro mappingImpl[T]
   def tupleLeft[T, V](items: List[(T, V)]) = items.map(_._1)
+  def mappingImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Discovered.Mapping[T]] = {
+    import c.universe._
+    c.Expr[Discovered.Mapping[T]](q"${applyImpl[T](c)}.mapping($t)")
+  }
   def applyImpl[T: c.WeakTypeTag](c: Context): c.Expr[Discovered[T]] = {
 
     import c.universe._

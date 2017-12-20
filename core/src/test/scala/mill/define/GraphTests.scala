@@ -2,6 +2,7 @@ package mill.define
 
 
 import mill.discover.Discovered
+import Discovered.mapping
 import mill.eval.Evaluator
 import mill.util.{OSet, TestGraphs, TestUtil}
 import utest._
@@ -150,13 +151,13 @@ object GraphTests extends TestSuite{
       )
     }
     'multiTerminalGroupCounts - {
-      def countGroups[T: Discovered](t: T, goals: Task[_]*) = {
-        val labeling = Discovered.mapping(t)
+      def countGroups(mapping: Discovered.Mapping[_], goals: Task[_]*) = {
+
         val topoSorted = Graph.topoSorted(
           Graph.transitiveTargets(OSet.from(goals))
         )
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: Target[_] if labeling.contains(t) || goals.contains(t) => t
+          case t: Target[_] if mapping.value.contains(t) || goals.contains(t) => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount
@@ -164,7 +165,7 @@ object GraphTests extends TestSuite{
 
       'separateGroups - {
         import separateGroups._
-        val groupCount = countGroups(separateGroups, right, left)
+        val groupCount = countGroups(mapping(separateGroups), right, left)
         assert(groupCount == 3)
       }
 
@@ -173,7 +174,7 @@ object GraphTests extends TestSuite{
         // `right` depends on `left`, both of them depend on the un-cached `task`
         // which would force them both to re-compute every time `task` changes
         import triangleTask._
-        val groupCount = countGroups(triangleTask, right, left)
+        val groupCount = countGroups(mapping(triangleTask), right, left)
         assert(groupCount == 2)
       }
 
@@ -181,7 +182,7 @@ object GraphTests extends TestSuite{
       'multiTerminalGroup - {
         // Make sure the following graph ends up as two groups
         import multiTerminalGroup._
-        val groupCount = countGroups(multiTerminalGroup, right, left)
+        val groupCount = countGroups(mapping(multiTerminalGroup), right, left)
         assert(groupCount == 2)
       }
 
@@ -190,7 +191,7 @@ object GraphTests extends TestSuite{
         // Make sure the following graph ends up as a three groups: one for
         // each cached target, and one for the downstream task we are running
         import multiTerminalBoundary._
-        val groupCount = countGroups(multiTerminalBoundary, task2)
+        val groupCount = countGroups(mapping(multiTerminalBoundary), task2)
         assert(groupCount == 3)
       }
     }

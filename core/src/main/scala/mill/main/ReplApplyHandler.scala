@@ -1,12 +1,10 @@
 package mill.main
 
-import ammonite.ops.pwd
-import mill.Main.discoverMirror
+
 import mill.define.Applicative.ApplyHandler
 import mill.define.Task
-import mill.discover.Discovered
 import mill.eval.Evaluator
-import mill.util.{OSet, PrintLogger}
+import mill.util.{OSet}
 
 class ReplApplyHandler(evaluator: Evaluator) extends ApplyHandler[Task] {
   // Evaluate classLoaderSig only once in the REPL to avoid busting caches

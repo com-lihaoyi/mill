@@ -13,9 +13,8 @@ object TestEvaluator {
     new Evaluator(workspacePath, Map.empty, DummyLogger).resolveDestPaths(t)
   }
 
-  def eval[T](
-      mapping: Map[Target[_], Mirror.LabelledTarget[_]],
-      workspacePath: Path)(t: Task[T]): Either[Result.Failing, (T, Int)] = {
+  def eval[T](mapping: Map[Target[_], Mirror.LabelledTarget[_]],
+              workspacePath: Path)(t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
     val evaluated = evaluator.evaluate(OSet(t))
 

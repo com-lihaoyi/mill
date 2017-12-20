@@ -51,14 +51,14 @@ object JavaCompileJarTests extends TestSuite{
       val mapping = Discovered.mapping(Build)
 
       def eval[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, mapping.value, DummyLogger)
         val evaluated = evaluator.evaluate(OSet(t))
 
         if (evaluated.failing.keyCount == 0){
           Right(Tuple2(
             evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect{
-              case t: Target[_] if mapping.contains(t) => t
+              case t: Target[_] if mapping.value.contains(t) => t
               case t: mill.define.Command[_] => t
             }.size
           ))
@@ -68,12 +68,12 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, mapping.value, DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated
           .flatMap(_.asTarget)
-          .filter(mapping.contains)
+          .filter(mapping.value.contains)
         assert(evaluated == expected)
       }
 

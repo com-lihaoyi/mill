@@ -25,16 +25,14 @@ object ConsistencyTests extends TestSuite{
 
       'diamond - {
         val inconsistent = Discovered.consistencyCheck(
-          diamond,
-          Discovered[diamond.type]
+          Discovered.mapping(diamond)
         )
 
         assert(inconsistent == Nil)
       }
       'anonDiamond - {
         val inconsistent = Discovered.consistencyCheck(
-          anonDiamond,
-          Discovered[anonDiamond.type]
+          Discovered.mapping(anonDiamond)
         )
 
         assert(inconsistent == Nil)
@@ -42,15 +40,13 @@ object ConsistencyTests extends TestSuite{
 
       'borkedCachedDiamond2 - {
         val inconsistent = Discovered.consistencyCheck(
-          borkedCachedDiamond2,
-          Discovered[borkedCachedDiamond2.type]
+          Discovered.mapping(borkedCachedDiamond2)
         )
         assert(inconsistent == expected)
       }
       'borkedCachedDiamond3 - {
         val inconsistent = Discovered.consistencyCheck(
-          borkedCachedDiamond3,
-          Discovered[borkedCachedDiamond3.type]
+          Discovered.mapping(borkedCachedDiamond3)
         )
         assert(inconsistent == expected)
       }

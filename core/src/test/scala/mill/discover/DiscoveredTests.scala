@@ -12,7 +12,7 @@ object DiscoveredTests extends TestSuite{
   val tests = Tests{
 
     'targets - {
-      val discovered = Discovered[nestedModule.type]
+      val discovered = Discovered.make[nestedModule.type]
 
       def flatten(h: Mirror[nestedModule.type, _]): Seq[Any] = {
         h.node(nestedModule, Nil) :: h.children.flatMap{case (label, c) => flatten(c)}
@@ -22,7 +22,7 @@ object DiscoveredTests extends TestSuite{
       val expectedHierarchy = Seq(
         nestedModule,
         nestedModule.classInstance,
-        nestedModule.nested,
+        nestedModule.nested
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
@@ -37,7 +37,7 @@ object DiscoveredTests extends TestSuite{
     }
 
     'traitWithModule - {
-      val discovered = Discovered[TraitWithModuleObject.type]
+      val discovered = Discovered.make[TraitWithModuleObject.type]
       val mapped = discovered.targets(TraitWithModuleObject).map(x => x.segments -> x.target)
       val expected = Seq(
         (
@@ -64,7 +64,7 @@ object DiscoveredTests extends TestSuite{
 
       }
 
-      val discovered = Discovered[outer.type]
+      val discovered = Discovered.make[outer.type]
       val outerCommands = discovered.mirror.commands
 
       assertMatch(outerCommands){case Seq(
@@ -93,7 +93,7 @@ object DiscoveredTests extends TestSuite{
           def single = mill.T{ new InputStreamReader(System.in) }
         }
 
-        val error = compileError("Discovered[outer.type]")
+        val error = compileError("Discovered.make[outer.type]")
         assert(
           error.msg.contains("uPickle does not know how to read"),
           error.pos.contains("def single = mill.T{ new InputStreamReader(System.in) }")
@@ -105,7 +105,7 @@ object DiscoveredTests extends TestSuite{
           def single(in: InputStreamReader) = mill.T.command{ println(123) }
         }
 
-        val error = compileError("Discovered[outer.type]")
+        val error = compileError("Discovered.make[outer.type]")
 
         assert(
           error.msg.contains("could not find implicit value"),

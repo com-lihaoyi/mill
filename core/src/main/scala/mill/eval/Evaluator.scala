@@ -5,7 +5,7 @@ import java.net.URLClassLoader
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Graph, Target, Task, Worker}
-import mill.discover.Mirror
+import mill.discover.{Discovered, Mirror}
 import mill.discover.Mirror.LabelledTarget
 import mill.discover.Mirror.Segment.{Cross, Label}
 import mill.util
@@ -19,6 +19,7 @@ class Evaluator(workspacePath: Path,
                 sel: List[Mirror.Segment] = List(),
                 classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
+
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 

@@ -5,16 +5,17 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
+import mill.discover.Discovered.mapping
 import mill.util.{DummyLogger, OSet, TestGraphs, TestUtil}
 import utest._
 import utest.framework.TestPath
 
 object EvaluationTests extends TestSuite{
-  class Checker[T: Discovered](base: T)(implicit tp: TestPath) {
+  class Checker(mapping: Discovered.Mapping[_])(implicit tp: TestPath) {
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, Discovered.mapping(base), DummyLogger)
+    def evaluator = new Evaluator(workspace, mapping.value, DummyLogger)
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: OSet[Task[_]],
@@ -57,7 +58,7 @@ object EvaluationTests extends TestSuite{
 
       'singleton - {
         import singleton._
-        val check = new Checker(singleton)
+        val check = new Checker(mapping(singleton))
         // First time the target is evaluated
         check(single, expValue = 0, expEvaled = OSet(single))
 
@@ -67,7 +68,7 @@ object EvaluationTests extends TestSuite{
       }
       'pair - {
         import pair._
-        val check = new Checker(pair)
+        val check = new Checker(mapping(pair))
         check(down, expValue = 0, expEvaled = OSet(up, down))
 
         down.counter += 1
@@ -78,7 +79,7 @@ object EvaluationTests extends TestSuite{
       }
       'anonTriple - {
         import anonTriple._
-        val check = new Checker(anonTriple)
+        val check = new Checker(mapping(anonTriple))
         val middle = down.inputs(0)
         check(down, expValue = 0, expEvaled = OSet(up, middle, down))
 
@@ -94,7 +95,7 @@ object EvaluationTests extends TestSuite{
       }
       'diamond - {
         import diamond._
-        val check = new Checker(diamond)
+        val check = new Checker(mapping(diamond))
         check(down, expValue = 0, expEvaled = OSet(up, left, right, down))
 
         down.counter += 1
@@ -112,7 +113,7 @@ object EvaluationTests extends TestSuite{
       }
       'anonDiamond - {
         import anonDiamond._
-        val check = new Checker(anonDiamond)
+        val check = new Checker(mapping(anonDiamond))
         val left = down.inputs(0).asInstanceOf[TestUtil.Test]
         val right = down.inputs(1).asInstanceOf[TestUtil.Test]
         check(down, expValue = 0, expEvaled = OSet(up, left, right, down))
@@ -133,7 +134,7 @@ object EvaluationTests extends TestSuite{
 
       'bigSingleTerminal - {
         import bigSingleTerminal._
-        val check = new Checker(bigSingleTerminal)
+        val check = new Checker(mapping(bigSingleTerminal))
 
         check(j, expValue = 0, expEvaled = OSet(a, b, e, f, i, j), extraEvaled = 22)
 
@@ -156,7 +157,7 @@ object EvaluationTests extends TestSuite{
         // even though one depends on the other
 
         import separateGroups._
-        val checker = new Checker(separateGroups)
+        val checker = new Checker(mapping(separateGroups))
         val evaled1 = checker.evaluator.evaluate(OSet(right, left))
         val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered1 == OSet(change, left, right))
@@ -173,7 +174,7 @@ object EvaluationTests extends TestSuite{
       'triangleTask - {
 
         import triangleTask._
-        val checker = new Checker(triangleTask)
+        val checker = new Checker(mapping(triangleTask))
         checker(right, 3, OSet(left, right), extraEvaled = -1)
         checker(left, 1, OSet(), extraEvaled = -1)
 
@@ -181,7 +182,7 @@ object EvaluationTests extends TestSuite{
       'multiTerminalGroup - {
         import multiTerminalGroup._
 
-        val checker = new Checker(multiTerminalGroup)
+        val checker = new Checker(mapping(multiTerminalGroup))
         checker(right, 1, OSet(right), extraEvaled = -1)
         checker(left, 1, OSet(left), extraEvaled = -1)
       }
@@ -190,7 +191,7 @@ object EvaluationTests extends TestSuite{
 
         import multiTerminalBoundary._
 
-        val checker = new Checker(multiTerminalBoundary)
+        val checker = new Checker(mapping(multiTerminalBoundary))
         checker(task2, 4, OSet(right, left), extraEvaled = -1, secondRunNoOp = false)
         checker(task2, 4, OSet(), extraEvaled = -1, secondRunNoOp = false)
       }
@@ -228,7 +229,7 @@ object EvaluationTests extends TestSuite{
 
         // During the first evaluation, they get computed normally like any
         // cached target
-        val check = new Checker(build)
+        val check = new Checker(mapping(build))
         assert(leftCount == 0, rightCount == 0)
         check(down, expValue = 10101, expEvaled = OSet(up, right, down), extraEvaled = 8)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)

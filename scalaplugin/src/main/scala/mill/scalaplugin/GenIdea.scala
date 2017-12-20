@@ -9,31 +9,27 @@ import mill.util.{OSet, PrintLogger}
 
 object GenIdea {
 
-  def apply[T: Discovered](obj: T): Unit = {
+  def apply[T](mapping: Discovered.Mapping[T]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
-    val discovered = implicitly[Discovered[T]]
-    val mapping = Discovered.mapping(obj)(discovered)
     val workspacePath = pwd / 'out
 
-    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
+    val evaluator = new Evaluator(workspacePath, mapping.value, new PrintLogger(true))
 
-    for((relPath, xml) <- xmlFileLayout(obj, evaluator, mapping)){
+    for((relPath, xml) <- xmlFileLayout(mapping, evaluator)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T: Discovered](obj: T,
-                                   evaluator: Evaluator,
-                                   mapping: Map[Target[_], LabelledTarget[_]]): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](mapping: Discovered.Mapping[T],
+                       evaluator: Evaluator): Seq[(RelPath, scala.xml.Node)] = {
 
-    val discovered = implicitly[Discovered[T]]
 
     val modules = Mirror
-      .traverse(obj, discovered.mirror){ (h, p) =>
-        h.node(obj, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
+      .traverse(mapping.base, mapping.mirror){ (h, p) =>
+        h.node(mapping.base, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
           case m: ScalaModule => Seq(p -> m)
           case _ => Nil
         }
@@ -82,7 +78,7 @@ object GenIdea {
       val Seq(sourcePath: PathRef) =
         evaluator.evaluate(OSet(mod.sources)).values
 
-      val (destPath, jsonPath) = evaluator.resolveDestPaths(mapping(mod.compile))
+      val (destPath, jsonPath) = evaluator.resolveDestPaths(mapping.value(mod.compile))
 
       val elem = moduleXmlTemplate(
         sourcePath.path,

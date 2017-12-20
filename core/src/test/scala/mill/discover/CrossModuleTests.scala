@@ -20,7 +20,7 @@ object CrossModuleTests extends TestSuite{
           }
       }
 
-      val discovered = Discovered[outer.type]
+      val discovered = Discovered.make[outer.type]
 
       val Some((gen, innerMirror)) = discovered
         .mirror
@@ -47,7 +47,7 @@ object CrossModuleTests extends TestSuite{
           }
       }
 
-      val Some((gen, innerMirror)) = Discovered[outer.type]
+      val Some((gen, innerMirror)) = Discovered.make[outer.type]
         .mirror
         .children
         .head._2
@@ -63,7 +63,7 @@ object CrossModuleTests extends TestSuite{
         List("2.11.8", "sjs0.6"),
         List("2.12.4", "sjs0.6"),
         List("2.11.8", "native0.3"),
-        List("2.12.4", "native0.3"),
+        List("2.12.4", "native0.3")
       )
 
       assert(keys == expectedKeys)
@@ -75,7 +75,7 @@ object CrossModuleTests extends TestSuite{
     }
     'crossTargetDiscovery - {
 
-      val discovered = Discovered[singleCross.type].targets(singleCross)
+      val discovered = Discovered.make[singleCross.type].targets(singleCross)
 
       val segments = discovered.map(_.segments)
       val expectedSegments = List(
@@ -94,7 +94,7 @@ object CrossModuleTests extends TestSuite{
     }
 
     'doubleCrossTargetDiscovery - {
-      val discovered = Discovered[doubleCross.type]
+      val discovered = Discovered.make[doubleCross.type]
       val targets = discovered.targets(doubleCross).map(_.target)
 
       val expected = List(
@@ -111,7 +111,7 @@ object CrossModuleTests extends TestSuite{
     }
 
     'nestedCrosses - {
-      val discovered = Discovered[nestedCrosses.type].targets(nestedCrosses)
+      val discovered = Discovered.make[nestedCrosses.type].targets(nestedCrosses)
       assert(discovered.length == 9)
     }
   }
