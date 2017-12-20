@@ -8,9 +8,16 @@ import play.twirl.compiler.TwirlCompiler
 import mill.define.Task
 import mill.define.Task.{Module, TaskModule}
 import mill.util.Ctx
+import TwirlModule._
 
-trait TwirlModule extends Module { self: ScalaModule =>
+trait TwirlModule extends ScalaModule {
+  override def allSources = T {
+    super.allSources() ++ twirlSources(basePath / 'src / 'main / 'twirl)
+  }
+}
 
+
+object TwirlModule {
   def twirlSources(inputDir: Path)(implicit ctx: Ctx): Seq[PathRef] = {
     val outputDir = ctx.dest / 'twirl
 
