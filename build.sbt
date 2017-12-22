@@ -33,10 +33,11 @@ val pluginSettings = Seq(
   }
 )
 
-def bridge(bridgeVersion: String) = Project(
-  id = "bridge" + bridgeVersion.replace('.', '_'),
-  base = file("bridge/" + bridgeVersion.replace('.', '_')),
-  settings = Seq(
+def bridge(bridgeVersion: String) =
+  Project(
+    id = "bridge" + bridgeVersion.replace('.', '_'),
+    base = file("bridge/" + bridgeVersion.replace('.', '_'))
+  ).settings(
     organization := "com.lihaoyi",
     scalaVersion := bridgeVersion,
     name := "mill-bridge",
@@ -69,7 +70,7 @@ def bridge(bridgeVersion: String) = Project(
       sources
     }.taskValue
   )
-)
+
 lazy val bridge2_10_6 = bridge("2.10.6")
 lazy val bridge2_11_8 = bridge("2.11.8")
 //lazy val bridge2_11_9 = bridge("2.11.9")
