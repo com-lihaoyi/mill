@@ -51,7 +51,7 @@ object GenIdea {
         ".idea"/"modules.xml",
         allModulesXmlTemplate(
           for((path, mod) <- modules)
-          yield path.collect{case Segment.Label(v) => v}.mkString(".").toLowerCase
+          yield moduleName(path)
         )
       ),
       Tuple2(".idea_modules"/"root.iml", rootXmlTemplate())
@@ -85,9 +85,9 @@ object GenIdea {
         Seq(destPath, jsonPath),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
-        yield moduleLabels(m).collect{case Segment.Label(v) => v}.mkString(".").toLowerCase
+        yield moduleName(moduleLabels(m))
       )
-      Tuple2(".idea_modules"/s"${path.collect{case Segment.Label(v) => v}.mkString(".").toLowerCase}.iml", elem)
+      Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
     fixedFiles ++ libraries ++ moduleFiles
   }
@@ -97,6 +97,14 @@ object GenIdea {
     val r = p.relativeTo(pwd/".idea_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
+
+  def moduleName(p: Seq[Mirror.Segment]) = p.foldLeft(StringBuilder.newBuilder) {
+    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+    case (sb, Segment.Label(s)) => sb.append(".").append(s)
+    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+  }.mkString.toLowerCase()
+
   def miscXmlTemplate() = {
     <project version="4">
       <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8 (1)" project-jdk-type="JavaSDK">
