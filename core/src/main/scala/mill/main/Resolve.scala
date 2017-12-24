@@ -2,7 +2,8 @@ package mill.main
 
 import mill.define.Task
 import mill.define.Task.TaskModule
-import mill.discover.{Mirror, Router}
+import mill.discover.{Mirror}
+import ammonite.main.Router
 
 object Resolve {
   def resolve[T, V](remainingSelector: List[Mirror.Segment],
@@ -45,7 +46,9 @@ object Resolve {
           case None =>  Left("Cannot resolve task " + Mirror.renderSelector(
             (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
           )
-          case Some(either) => either
+          // Contents of `either` *must* be a `Task`, because we only select
+          // methods returning `Task` in the discovery process
+          case Some(either) => either.right.map{ case x: Task[Any] => x }
         }
 
 

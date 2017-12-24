@@ -1,7 +1,7 @@
 package mill.discover
 
 import mill.define.{Target, Task}
-import mill.discover.Router.EntryPoint
+import ammonite.main.Router.EntryPoint
 
 import scala.language.experimental.macros
 

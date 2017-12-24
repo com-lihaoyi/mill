@@ -5,7 +5,7 @@ import scala.reflect.macros.blackbox.Context
 
 
 trait Cacher[C[_]]{
-  private[this] val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, C[_]]
+  private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, C[_]]
   def wrapCached[T](in: C[T], enclosing: String): C[T]
   protected[this] def cachedTarget[T](t: => C[T])
                                      (implicit c: sourcecode.Enclosing): C[T] = synchronized{

@@ -112,28 +112,6 @@ object Main {
                     watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
-    val syntheticPath = pwd / 'out / "run.sc"
-    write.over(
-      syntheticPath,
-      s"""import $$file.^.build
-         |import mill._
-         |
-         |val mapping = mill.discover.Discovered.mapping(build)
-         |
-         |mill.Main.consistencyCheck(mapping).left.foreach(msg => throw new Exception(msg))
-         |
-         |@main def run(args: String*) = mill.Main(args, mapping, interp.watch, true)
-         |
-         |@main def idea() = mill.scalaplugin.GenIdea(mapping)
-         |
-         |val evaluator = new mill.eval.Evaluator(
-         |  ammonite.ops.pwd / 'out,
-         |  mapping.value,
-         |  new mill.util.PrintLogger(true)
-         |)
-         |
-         |implicit val replApplyHandler = new mill.main.ReplApplyHandler(evaluator)""".stripMargin
-    )
 
     import ammonite.main.Cli
     var repl = false
@@ -158,8 +136,8 @@ object Main {
         val config =
           if(!repl) cliConfig
           else cliConfig.copy(
-            predefFile = Some(pwd / 'out / "run.sc"),
-            predefCode = "import build._",
+            defaultPredef = false,
+            predefFile = Some(pwd/"build.sc"),
             welcomeBanner = None
           )
 
@@ -169,7 +147,7 @@ object Main {
           System.in, System.out, System.err
         ){
           override def initMain(isRepl: Boolean) = {
-            super.initMain(isRepl).copy(codeWrapper = customCodeWrapper)
+            super.initMain(isRepl).copy(scriptCodeWrapper = customCodeWrapper)
           }
         }
 
@@ -177,23 +155,86 @@ object Main {
           runner.printInfo("Loading...")
           runner.runRepl()
         } else {
-          runner.runScript(syntheticPath, leftoverArgs)
+          runner.runScript(pwd / "build.sc", leftoverArgs)
         }
     }
   }
   val customCodeWrapper = new Preprocessor.CodeWrapper {
     def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
-      normalizeNewlines(s"""
-package ${pkgName.head.encoded}
-package ${Util.encodeScalaSourcePath(pkgName.tail)}
-$imports
-
-object ${indexedWrapperName.backticked} extends mill.Module{\n""")
+      s"""
+      |package ${pkgName.head.encoded}
+      |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+      |$imports
+      |import mill._
+      |sealed abstract class ${indexedWrapperName.backticked} extends mill.Module{\n
+      |""".stripMargin
     }
 
     def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
+      val wrapName = indexedWrapperName.backticked
+      val tmpName = ammonite.util.Name(indexedWrapperName.raw + "-Temp").backticked
+
+      // Define `discovered` in the `tmpName` trait, before mixing in `MainWrapper`,
+      // to ensure that `$tempName#discovered` is initialized before `MainWrapper` is.
+      //
+      // `import $wrapName._` is necessary too let Ammonite pick up all the
+      // members of class wrapper, which are inherited but otherwise not visible
+      // in the AST of the `$wrapName` object
+      //
+      // We need to duplicate the Ammonite predef as part of the wrapper because
+      // imports within the body of the class wrapper are not brought into scope
+      // by the `import $wrapName._`. Other non-Ammonite-predef imports are not
+      // made available, and that's just too bad
+      s"""
+        |}
+        |trait $tmpName{
+        |  val discovered = mill.discover.Discovered.make[$wrapName]
+        |  val interpApi = ammonite.interp.InterpBridge.value
+        |}
+        |
+        |object $wrapName
+        |extends $wrapName
+        |with $tmpName
+        |with mill.MainWrapper[$wrapName] {
+        |  @ammonite.main.Router.main
+        |  def idea() = mill.scalaplugin.GenIdea(mapping)
+        |  ${ammonite.main.Defaults.replPredef}
+        |  ${ammonite.main.Defaults.predefString}
+        |  ${ammonite.Main.extraPredefString}
+        |  import ammonite.repl.ReplBridge.{value => repl}
+        |  import ammonite.interp.InterpBridge.{value => interp}
+        |  import $wrapName._
+      """.stripMargin +
       Preprocessor.CodeWrapper.bottom(printCode, indexedWrapperName, extraCode)
     }
   }
 }
 
+/**
+  * Class that wraps each Mill build file.
+  */
+trait MainWrapper[T]{
+  val discovered: mill.discover.Discovered[T]
+  val interpApi: ammonite.interp.InterpAPI
+  val mapping = discovered.mapping(this.asInstanceOf[T])
+
+  mill.Main.consistencyCheck(mapping).left.foreach(msg => throw new Exception(msg))
+
+  @ammonite.main.Router.main
+  def run(args: String*) = mill.Main(
+    args,
+    mapping,
+    interpApi.watch,
+    true
+  )
+
+
+  val evaluator = new mill.eval.Evaluator(
+    ammonite.ops.pwd / 'out,
+    mapping.value,
+    new mill.util.PrintLogger(true)
+  )
+
+  implicit val replApplyHandler: mill.main.ReplApplyHandler =
+    new mill.main.ReplApplyHandler(evaluator)
+}

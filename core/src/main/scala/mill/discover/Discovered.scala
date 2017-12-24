@@ -3,7 +3,8 @@ package mill.discover
 import mill.define.Task.Module
 import mill.define.{Cross, Target, Task}
 import mill.discover.Mirror.LabelledTarget
-import mill.discover.Router.{EntryPoint, Result}
+import ammonite.main.Router
+import ammonite.main.Router.{EntryPoint, Result}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -103,7 +104,10 @@ object Discovered {
       }
 
       val commands =
-        r.getAllRoutesForClass(t.asInstanceOf[r.c.Type])
+        r.getAllRoutesForClass(
+            t.asInstanceOf[r.c.Type],
+            _.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[r.c.Type]
+          )
           .asInstanceOf[Seq[c.Tree]]
           .toList
 

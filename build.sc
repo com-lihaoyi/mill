@@ -66,7 +66,7 @@ object Core extends MillModule with MillPublishModule {
   def ivyDeps = Seq(
     Dep("com.lihaoyi", "sourcecode", "0.1.4"),
     Dep("com.lihaoyi", "pprint", "0.5.3"),
-    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-10-4311ac9"),
+    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-20-75e58ac"),
     Dep("com.typesafe.play", "play-json", "2.6.6"),
     Dep("org.scala-sbt", "zinc", "1.0.5"),
     Dep.Java("org.scala-sbt", "test-interface", "1.0")

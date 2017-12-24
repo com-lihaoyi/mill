@@ -13,7 +13,7 @@ val sharedSettings = Seq(
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
   addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
-  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-10-4311ac9" % "test" cross CrossVersion.full,
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-20-75e58ac" % "test" cross CrossVersion.full,
 
   sourceGenerators in Test += Def.task {
     val file = (sourceManaged in Test).value / "amm.scala"
@@ -53,12 +53,13 @@ def bridge(bridgeVersion: String) = Project(
         s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
       val curlDest = java.nio.file.Paths.get(target.value.toString, "sources")
 
-      Seq("rm", "-rf", curlDest.toString).!
-      java.nio.file.Files.createDirectories(curlDest)
+      if (!java.nio.file.Files.exists(curlDest)) {
+        Seq("rm", "-rf", curlDest.toString).!
+        java.nio.file.Files.createDirectories(curlDest)
 
-      Seq("curl", "-L", "-o", curlDest.resolve("bridge.jar").toString, url).!
-      Seq("unzip", curlDest.resolve("bridge.jar").toString, "-d", curlDest.toString).!
-
+        Seq("curl", "-L", "-o", curlDest.resolve("bridge.jar").toString, url).!
+        Seq("unzip", curlDest.resolve("bridge.jar").toString, "-d", curlDest.toString).!
+      }
       val sources = java.nio.file.Files.walk(curlDest)
         .iterator
         .asScala
@@ -91,7 +92,7 @@ lazy val core = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
       "com.lihaoyi" %% "sourcecode" % "0.1.4",
       "com.lihaoyi" %% "pprint" % "0.5.3",
-      "com.lihaoyi" % "ammonite" % "1.0.3-10-4311ac9" cross CrossVersion.full,
+      "com.lihaoyi" % "ammonite" % "1.0.3-20-75e58ac" cross CrossVersion.full,
       "org.scala-sbt" %% "zinc" % "1.0.5",
       "org.scala-sbt" % "test-interface" % "1.0"
     )

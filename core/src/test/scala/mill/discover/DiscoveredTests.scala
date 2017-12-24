@@ -2,7 +2,7 @@ package mill.discover
 
 import java.io.InputStreamReader
 
-import mill.discover.Router.{ArgSig, EntryPoint}
+import ammonite.main.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
 import mill.discover.Mirror.Segment.Label
@@ -68,13 +68,13 @@ object DiscoveredTests extends TestSuite{
       val outerCommands = discovered.mirror.commands
 
       assertMatch(outerCommands){case Seq(
+        EntryPoint("hello", Nil, None, false, _),
         EntryPoint("echoPair",
           List(ArgSig("prefix", "String", None, None), ArgSig("suffix", "String", None, None)),
           None,
           false,
           _
-        ),
-        EntryPoint("hello", Nil, None, false, _)
+        )
       ) =>}
 
       val innerCommands = discovered.mirror
