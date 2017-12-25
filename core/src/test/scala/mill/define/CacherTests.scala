@@ -4,6 +4,7 @@ import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.{DummyLogger, OSet}
 import mill.T
+import mill.eval.Result.Success
 import utest._
 import utest.framework.TestPath
 
@@ -11,6 +12,7 @@ object CacherTests extends TestSuite{
   object Base extends Base
   trait Base extends Task.Module{
     def value = T{ 1 }
+    def result = T{ Success(1) }
   }
   object Middle extends Middle
   trait Middle extends Base{
@@ -34,6 +36,11 @@ object CacherTests extends TestSuite{
     'simpleDefIsCached - assert(
       Base.value eq Base.value,
       eval(Discovered.mapping(Base), Base.value) == 1
+    )
+
+    'resultDefIsCached - assert(
+      Base.result eq Base.result,
+      eval(Discovered.mapping(Base), Base.result) == 1
     )
 
     val middleMapping = Discovered.mapping(Middle)
