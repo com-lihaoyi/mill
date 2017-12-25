@@ -5,8 +5,6 @@ import mill.scalaplugin._, publish._
 import mill.modules.Jvm.createAssembly
 
 trait MillPublishModule extends PublishModule {
-  def publishVersion = "0.0.1"
-
   def publishWithFullScalaVersion = true
 
   def pomSettings = PomSettings(
@@ -54,10 +52,8 @@ trait MillModule extends SbtScalaModule{ outer =>
   }
 }
 
-object Core extends MillModule with MillPublishModule {
+object Core extends MillModule {
   def projectDeps = Seq(CompilerPlugin)
-
-  def publishName = "mill-core"
 
   def compileIvyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
@@ -92,9 +88,17 @@ object Core extends MillModule with MillPublishModule {
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
-val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield new ScalaModule{
+val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield new MillPublishModule {
+  def publishName = "mill-bridge"
+  def publishVersion = "0.1"
+
   def basePath = pwd / 'bridge
   def scalaVersion = crossVersion
+  def sources = T.source {
+    val path = basePath / 'src
+    mkdir(path)
+    path
+  }
   def allSources = T{
 
     val v = crossVersion.split('.').dropRight(1).mkString(".")
@@ -117,9 +121,7 @@ val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield ne
   )
 }
 
-object ScalaPlugin extends MillModule with MillPublishModule {
-  def publishName = "mill-scala"
-
+object ScalaPlugin extends MillModule {
   def projectDeps = Seq(Core)
   def basePath = pwd / 'scalaplugin
 
@@ -141,6 +143,10 @@ val assemblyProjects = Seq(ScalaPlugin)
 
 def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.assemblyClasspath)
 
+def publishBridges(credentials: String, gpgPassphrase: String) = T.command {
+  mill.define.Task.traverse(bridges.items)(_._2.publish(credentials, gpgPassphrase))
+}
+
 def assemblyBase(classpath: Seq[Path], extraArgs: String)
                 (implicit ctx: mill.util.Ctx.DestCtx) = {
   createAssembly(
@@ -151,7 +157,7 @@ def assemblyBase(classpath: Seq[Path], extraArgs: String)
   )
 }
 
-def assembly = T{
+def devAssembly = T{
   assemblyBase(assemblyClasspath().flatten, ScalaPlugin.testArgs().mkString(" "))
 }
 

@@ -204,7 +204,7 @@ object Lib{
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
   def compilerBridgeIvyDep(scalaVersion: String) =
-    Dep.Point(coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1-SNAPSHOT", transitive = false))
+    Dep.Point(coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false))
 
   val DefaultShellScript: Seq[String] = Seq(
     "#!/usr/bin/env sh",

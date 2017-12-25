@@ -143,10 +143,13 @@ trait ScalaModule extends Module with TaskModule { outer =>
         Seq(dep)
       )
       classpath match {
-        case Result.Success(Seq(single)) => PathRef(single.path, quick = true)
-        case Result.Success(Seq()) => throw new Exception(dep + " resolution failed")
-        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}")
-        case _ => throw new Exception(dep + " resolution resulted in more than one file")
+        case Result.Success(resolved) =>
+          resolved.filterNot(_.path.ext == "pom") match {
+            case Seq(single) => PathRef(single.path, quick = true)
+            case Seq() => throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
+            case _ => throw new Exception(dep + " resolution resulted in more than one file")
+          }
+        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
       }
     }
   }
