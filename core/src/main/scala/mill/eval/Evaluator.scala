@@ -16,8 +16,7 @@ import scala.collection.mutable
 class Evaluator(workspacePath: Path,
                 labeling: Map[Target[_], LabelledTarget[_]],
                 log: Logger,
-                sel: List[Mirror.Segment] = List(),
-                classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
+                val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
@@ -197,15 +196,9 @@ class Evaluator(workspacePath: Path,
   }
 
   def resolveLogger(targetDestPath: Option[Path]): Logger = {
-    if (targetDestPath.isEmpty && sel.isEmpty)
-      log
+    if (targetDestPath.isEmpty) log
     else {
-      val path = targetDestPath.getOrElse(
-        sel.foldLeft[Path](pwd / 'out) {
-          case (d, Label(s)) => d / s
-          case (d, Cross(args)) => d / args.map(_.toString)
-        }
-      )
+      val path = targetDestPath.getOrElse(pwd/ 'out / 'command)
       val dir = path / up
       mkdir(dir)
       val file = dir / (path.last + ".log")
