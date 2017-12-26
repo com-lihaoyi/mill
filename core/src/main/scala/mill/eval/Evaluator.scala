@@ -13,14 +13,14 @@ import mill.util._
 
 import scala.collection.mutable
 
-class Evaluator[T](workspacePath: Path,
+class Evaluator[T](val workspacePath: Path,
                    val mapping: Discovered.Mapping[T],
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
   val labeling = mapping.value
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
-
+  workerCache(Discovered.Mapping) = mapping
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
@@ -162,8 +162,7 @@ class Evaluator[T](workspacePath: Path,
               def load[T](x: Ctx.Loader[T]): T = {
                 workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
               }
-            },
-            mapping
+            }
           )
 
           val out = System.out

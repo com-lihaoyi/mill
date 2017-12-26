@@ -5,11 +5,13 @@ import mill.define.Target
 import mill.discover.Mirror.{LabelledTarget, Segment}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
+import mill.util.Ctx.LoaderCtx
 import mill.util.{OSet, PrintLogger}
 
 object GenIdea {
 
-  def apply[T](mapping: Discovered.Mapping[T]): Unit = {
+  def apply()(implicit ctx: LoaderCtx): Unit = {
+    val mapping = ctx.load(mill.discover.Discovered.Mapping)
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
@@ -18,13 +20,12 @@ object GenIdea {
 
     val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
 
-    for((relPath, xml) <- xmlFileLayout(mapping, evaluator)){
+    for((relPath, xml) <- xmlFileLayout(evaluator)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator): Seq[(RelPath, scala.xml.Node)] = {
-
+  def xmlFileLayout[T](evaluator: Evaluator[T]): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = Mirror
       .traverse(evaluator.mapping.base, evaluator.mapping.mirror){ (h, p) =>
@@ -77,7 +78,10 @@ object GenIdea {
       val Seq(sourcePath: PathRef) =
         evaluator.evaluate(OSet(mod.sources)).values
 
-      val (destPath, jsonPath) = evaluator.resolveDestPaths(mapping.value(mod.compile))
+      val (destPath, jsonPath) = Evaluator.resolveDestPaths(
+        evaluator.workspacePath,
+        evaluator.mapping.value(mod.compile)
+      )
 
       val elem = moduleXmlTemplate(
         sourcePath.path,

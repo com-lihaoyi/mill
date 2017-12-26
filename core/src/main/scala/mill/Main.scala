@@ -47,9 +47,10 @@ object Main {
         System.exit(1)
       case Right((cliConfig, leftoverArgs)) =>
         val config =
-          if(!repl) cliConfig
+          if(!repl) cliConfig.copy(defaultPredef = false)
           else cliConfig.copy(
             defaultPredef = false,
+            predefCode = "implicit val replApplyHandler = mill.main.ReplApplyHandler(mapping)",
             predefFile = Some(pwd/"build.sc"),
             welcomeBanner = None
           )

@@ -38,7 +38,7 @@ object RunScript{
         case _ =>
           interp.watch(path)
           for(mapping <- evaluateMapping(wd, path, interp))
-            yield (mapping, new Evaluator(pwd / 'out, mapping, log))
+          yield (mapping, new Evaluator(pwd / 'out, mapping, log))
       }
     } yield {
       val evaluationWatches = mutable.Buffer.empty[(Path, Long)]

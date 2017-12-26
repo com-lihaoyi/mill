@@ -5,6 +5,7 @@ import mill.define.{Cross, Target, Task}
 import mill.discover.Mirror.LabelledTarget
 import ammonite.main.Router
 import ammonite.main.Router.{EntryPoint, Result}
+import mill.util.Ctx.Loader
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -26,6 +27,10 @@ class Discovered[T](val mirror: Mirror[T, T]){
 }
 
 object Discovered {
+  object Mapping extends Loader[Mapping[_]] {
+    // Magically injected by the `Evaluator`, rather than being constructed here
+    def make() = ???
+  }
   case class Mapping[T](value: Map[Target[Any], LabelledTarget[_]],
                         mirror: Mirror[T, T],
                         base: T)
