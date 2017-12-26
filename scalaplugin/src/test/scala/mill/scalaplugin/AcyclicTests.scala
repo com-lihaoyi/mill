@@ -102,11 +102,11 @@ object AcyclicTests extends TestSuite{
 
         // Tests can be broken
         write.append(packageScala, "\n}}")
-        val Left(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
+        val Left(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.compile)
 
         // Tests can be fixed
         write.write(packageScala, read(packageScala).dropRight(3))
-        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
+        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.compile)
       }
     }
 
