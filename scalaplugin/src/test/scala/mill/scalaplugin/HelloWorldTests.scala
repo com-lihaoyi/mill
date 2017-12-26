@@ -54,7 +54,6 @@ object HelloWorldTests extends TestSuite {
 
   val srcPath = pwd / 'scalaplugin / 'src / 'test / 'resource / "hello-world"
   val workspacePath = pwd / 'target / 'workspace / "hello-world"
-  val outputPath = workspacePath / 'out
   val mainObject = workspacePath / 'src / 'main / 'scala / "Main.scala"
 
   def eval[T](t: Task[T], mapping: Discovered.Mapping[_]) = {
@@ -122,9 +121,9 @@ object HelloWorldTests extends TestSuite {
         val analysisFile = result.analysisFile
         val outputFiles = ls.rec(outPath)
         val expectedClassfiles =
-          compileClassfiles(outputPath / 'compile / 'classes)
+          compileClassfiles(workspacePath / 'compile / 'classes)
         assert(
-          outPath == outputPath / 'compile / 'classes,
+          outPath == workspacePath / 'compile / 'classes,
           exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -156,7 +155,7 @@ object HelloWorldTests extends TestSuite {
         assert(err.isInstanceOf[CompileFailed])
 
         val (compilePath, compileMetadataPath) =
-          Evaluator.resolveDestPaths(outputPath, helloWorldMapping.value(HelloWorld.compile))
+          Evaluator.resolveDestPaths(workspacePath, helloWorldMapping.value(HelloWorld.compile))
 
         assert(
           ls.rec(compilePath / 'classes).isEmpty,
@@ -236,7 +235,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
 
-        val unJarPath = outputPath / 'unjar
+        val unJarPath = workspacePath / 'unjar
         mkdir(unJarPath)
         %("tar", "xf", result.path, "-C", unJarPath)
 
@@ -272,7 +271,7 @@ object HelloWorldTests extends TestSuite {
       'logOutputToFile {
         eval(HelloWorld.compile, helloWorldMapping)
 
-        val logFile = outputPath / "compile.log"
+        val logFile = workspacePath / "compile.log"
         assert(exists(logFile))
       }
     }
