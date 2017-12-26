@@ -12,7 +12,7 @@ trait MainWrapper[T]{
     new mill.main.ReplApplyHandler(
       new mill.eval.Evaluator(
         ammonite.ops.pwd / 'out,
-        mapping.value,
+        mapping,
         new mill.util.PrintLogger(true)
       )
     )

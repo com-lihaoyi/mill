@@ -13,10 +13,12 @@ import mill.util._
 
 import scala.collection.mutable
 
-class Evaluator(workspacePath: Path,
-                labeling: Map[Target[_], LabelledTarget[_]],
-                log: Logger,
-                val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
+class Evaluator[T](workspacePath: Path,
+                   val mapping: Discovered.Mapping[T],
+                   log: Logger,
+                   val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
+
+  val labeling = mapping.value
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
 
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
@@ -48,15 +50,7 @@ class Evaluator(workspacePath: Path,
     Evaluator.Results(goals.indexed.map(results), evaluated, transitive, failing)
   }
 
-  def resolveDestPaths(t: LabelledTarget[_]): (Path, Path) = {
-    val segmentStrings = t.segments.flatMap{
-      case Mirror.Segment.Label(s) => Seq(s)
-      case Mirror.Segment.Cross(values) => values.map(_.toString)
-    }
-    val targetDestPath = workspacePath / segmentStrings
-    val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
-    (targetDestPath, metadataPath)
-  }
+
 
   def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
                           group: OSet[Task[_]],
@@ -74,7 +68,7 @@ class Evaluator(workspacePath: Path,
       case Left(task) =>
         evaluateGroup(group, results, targetDestPath = None, maybeTargetLabel = None)
       case Right(labelledTarget) =>
-        val (destPath, metadataPath) = resolveDestPaths(labelledTarget)
+        val (destPath, metadataPath) = Evaluator.resolveDestPaths(workspacePath, labelledTarget)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(metadataPath))).toOption
           (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
@@ -168,7 +162,8 @@ class Evaluator(workspacePath: Path,
               def load[T](x: Ctx.Loader[T]): T = {
                 workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
               }
-            }
+            },
+            mapping
           )
 
           val out = System.out
@@ -211,6 +206,16 @@ class Evaluator(workspacePath: Path,
 
 
 object Evaluator{
+  def resolveDestPaths(workspacePath: Path, t: LabelledTarget[_]): (Path, Path) = {
+    val segmentStrings = t.segments.flatMap{
+      case Mirror.Segment.Label(s) => Seq(s)
+      case Mirror.Segment.Cross(values) => values.map(_.toString)
+    }
+    val targetDestPath = workspacePath / segmentStrings
+    val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
+    (targetDestPath, metadataPath)
+  }
+
   // check if the build itself has changed
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {
     case scl: SpecialClassLoader => scl.classpathSignature

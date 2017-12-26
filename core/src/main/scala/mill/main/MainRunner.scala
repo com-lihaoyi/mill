@@ -9,7 +9,7 @@ class MainRunner(config: ammonite.main.Cli.Config)
     config,
     System.out, System.err, System.in, System.out, System.err
   ){
-  var lastEvaluator: Option[(Seq[(Path, Long)], Discovered.Mapping[_], Evaluator)] = None
+  var lastEvaluator: Option[(Seq[(Path, Long)], Discovered.Mapping[_], Evaluator[_])] = None
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(
       isRepl = false,

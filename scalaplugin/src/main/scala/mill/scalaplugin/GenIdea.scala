@@ -16,20 +16,19 @@ object GenIdea {
 
     val workspacePath = pwd / 'out
 
-    val evaluator = new Evaluator(workspacePath, mapping.value, new PrintLogger(true))
+    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
 
     for((relPath, xml) <- xmlFileLayout(mapping, evaluator)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T](mapping: Discovered.Mapping[T],
-                       evaluator: Evaluator): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator): Seq[(RelPath, scala.xml.Node)] = {
 
 
     val modules = Mirror
-      .traverse(mapping.base, mapping.mirror){ (h, p) =>
-        h.node(mapping.base, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
+      .traverse(evaluator.mapping.base, evaluator.mapping.mirror){ (h, p) =>
+        h.node(evaluator.mapping.base, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
           case m: ScalaModule => Seq(p -> m)
           case _ => Nil
         }

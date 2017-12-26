@@ -2,7 +2,7 @@ package mill.util
 
 import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
-import mill.util.Ctx.{ArgCtx, DestCtx, LoaderCtx, LogCtx}
+import mill.util.Ctx.{ArgCtx, DestCtx, LoaderCtx, LogCtx, MappingCtx}
 
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
@@ -31,11 +31,20 @@ object Ctx{
   trait Loader[T]{
     def make(): T
   }
+  trait MappingCtx{
+    def mapping: mill.discover.Discovered.Mapping[_]
+  }
 }
 class Ctx(val args: IndexedSeq[_],
           val dest: Path,
           val log: Logger,
-          workerCtx0: Ctx.LoaderCtx) extends DestCtx with LogCtx with ArgCtx with LoaderCtx{
+          workerCtx0: Ctx.LoaderCtx,
+          val mapping: mill.discover.Discovered.Mapping[_])
+  extends DestCtx
+  with LogCtx
+  with ArgCtx
+  with LoaderCtx
+  with MappingCtx{
 
   def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length

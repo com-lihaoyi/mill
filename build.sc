@@ -165,3 +165,4 @@ def releaseAssembly = T{
   assemblyBase(assemblyClasspath().flatten, "")
 }
 
+def idea = T{ mill.scalaplugin.GenIdea() }

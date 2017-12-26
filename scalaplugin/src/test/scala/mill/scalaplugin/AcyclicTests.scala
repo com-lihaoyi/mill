@@ -53,14 +53,9 @@ object AcyclicTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(AcyclicBuild)
-    def eval[T](t: Task[T]) = TestEvaluator.eval(mapping.value, workspacePath)(t)
+    val eval = new TestEvaluator(mapping, workspacePath)
 
     val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
-
-    'scala210 - check("2.10.6", full = false)
-    'scala211 - check("2.11.8", full = false)
-    'scala2123 - check("2.12.3", full = true)
-    'scala2124 - check("2.12.4", full = false)
 
     val allBinaryVersions = Seq("2.10", "2.11", "2.12")
     def check(scalaVersion: String, full: Boolean) = {
@@ -114,6 +109,11 @@ object AcyclicTests extends TestSuite{
         val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
       }
     }
+
+    'scala210 - check("2.10.6", full = false)
+    'scala211 - check("2.11.8", full = false)
+    'scala2123 - check("2.12.3", full = true)
+    'scala2124 - check("2.12.4", full = false)
 
   }
 }

@@ -15,7 +15,7 @@ object EvaluationTests extends TestSuite{
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, mapping.value, DummyLogger)
+    def evaluator = new Evaluator(workspace, mapping, DummyLogger)
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: OSet[Task[_]],

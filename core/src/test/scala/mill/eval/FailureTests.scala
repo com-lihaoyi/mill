@@ -14,7 +14,7 @@ object FailureTests extends TestSuite{
   }
   class Checker(mapping: Discovered.Mapping[_])(implicit tp: TestPath){
 
-    val evaluator = new Evaluator(workspace, mapping.value, DummyLogger)
+    val evaluator = new Evaluator(workspace, mapping, DummyLogger)
 
     def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
 

@@ -25,8 +25,8 @@ object RunScript{
                 path: Path,
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Discovered.Mapping[_], Evaluator)])
-  : Res[(Discovered.Mapping[_], Evaluator, Seq[(Path, Long)], Boolean)] = {
+                lastEvaluator: Option[(Seq[(Path, Long)], Discovered.Mapping[_], Evaluator[_])])
+  : Res[(Discovered.Mapping[_], Evaluator[_], Seq[(Path, Long)], Boolean)] = {
 
     val log = new PrintLogger(true)
     for{
@@ -38,13 +38,12 @@ object RunScript{
         case _ =>
           interp.watch(path)
           for(mapping <- evaluateMapping(wd, path, interp))
-            yield (mapping, new Evaluator(pwd / 'out, mapping.value, log))
+            yield (mapping, new Evaluator(pwd / 'out, mapping, log))
       }
     } yield {
       val evaluationWatches = mutable.Buffer.empty[(Path, Long)]
       val res = evaluateTarget(
         evaluator,
-        mapping,
         scriptArgs,
         p => evaluationWatches.append((p, Interpreter.pathSignature(p)))
       )
@@ -95,8 +94,7 @@ object RunScript{
       _ <- Res(consistencyCheck(mapping))
     } yield mapping
   }
-  def evaluateTarget[T](evaluator: Evaluator,
-                        mapping: Discovered.Mapping[T],
+  def evaluateTarget[T](evaluator: Evaluator[_],
                         scriptArgs: Seq[String],
                         watch: Path => Unit) = {
 
@@ -107,11 +105,11 @@ object RunScript{
         case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
         case _ => Nil
       }
-      target <- mill.main.Resolve.resolve(sel, mapping.mirror, mapping.base, rest, crossSelectors, Nil)
+      target <- mill.main.Resolve.resolve(sel, evaluator.mapping.mirror, evaluator.mapping.base, rest, crossSelectors, Nil)
       _ <- evaluate(evaluator, target, watch).toLeft(())
     } yield ()
   }
-  def evaluate(evaluator: Evaluator,
+  def evaluate(evaluator: Evaluator[_],
                target: Task[Any],
                watch: Path => Unit): Option[String] = {
     val evaluated = evaluator.evaluate(OSet(target))
