@@ -125,15 +125,16 @@ lazy val scalaplugin = project
     sharedSettings,
     pluginSettings,
     name := "mill-scalaplugin",
-    fork in Test := true,
+    fork := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
-    javaOptions in Test := bridgeProps.value.toSeq
+    javaOptions := bridgeProps.value.toSeq
   )
 
 lazy val bin = project
   .dependsOn(scalaplugin)
   .settings(
     sharedSettings,
+    mainClass in (Compile, run) := Some("mill.Main"),
     assemblyOption in assembly := {
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(
