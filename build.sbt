@@ -22,6 +22,117 @@ val sharedSettings = Seq(
   }.taskValue
 )
 
+val coreSettings = Seq(
+  sourceGenerators in Compile += Def.task {
+    object CodeGenerator {
+      private def generateLetters(n: Int) = {
+        val base = 'A'.toInt
+        (0 until n).map(i => (i + base).toChar)
+      }
+
+      def generateApplyer(dir: File) = {
+        def generate(n: Int) = {
+          val uppercases = generateLetters(n)
+          val lowercases = uppercases.map(Character.toLowerCase)
+          val typeArgs   = uppercases.mkString(", ")
+          val zipArgs    = lowercases.mkString(", ")
+          val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
+
+          val body   = s"mapCtx(zip($zipArgs)) { case (($zipArgs), z) => cb($zipArgs, z) }"
+          val zipmap = s"def zipMap[$typeArgs, Res]($parameters)(cb: ($typeArgs, Ctx) => Z[Res]) = $body"
+          val zip    = s"def zip[$typeArgs]($parameters): TT[($typeArgs)]"
+
+          if (n < 22) List(zipmap, zip).mkString(System.lineSeparator) else zip
+        }
+        val output = List(
+            "package mill.define",
+            "import scala.language.higherKinds",
+            "trait ApplyerGenerated[TT[_], Z[_], Ctx] {",
+            "def mapCtx[A, B](a: TT[A])(f: (A, Ctx) => Z[B]): TT[B]",
+            (2 to 22).map(generate).mkString(System.lineSeparator),
+            "}").mkString(System.lineSeparator)
+
+        val file = dir / "ApplicativeGenerated.scala"
+        IO.write(file, output)
+        file
+      }
+
+      def generateTarget(dir: File) = {
+        def generate(n: Int) = {
+          val uppercases = generateLetters(n)
+          val lowercases = uppercases.map(Character.toLowerCase)
+          val typeArgs   = uppercases.mkString(", ")
+          val args       = lowercases.mkString(", ")
+          val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
+          val body       = uppercases.zipWithIndex.map { case (t, i) => s"args[$t]($i)" }.mkString(", ")
+
+          s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($args), (args: Ctx) => ($body))"
+        }
+
+        val output = List(
+          "package mill.define",
+          "import scala.language.higherKinds",
+          "import mill.eval.Result",
+          "import mill.util.Ctx",
+          "trait TargetGenerated {",
+          "type TT[+X]",
+          "def makeT[X](inputs: Seq[TT[_]], evaluate: Ctx => Result[X]): TT[X]",
+          (3 to 22).map(generate).mkString(System.lineSeparator),
+          "}").mkString(System.lineSeparator)
+
+        val file = dir / "TaskGenerated.scala"
+        IO.write(file, output)
+        file
+      }
+
+      def generateSources(dir: File) = {
+        Seq(generateApplyer(dir), generateTarget(dir))
+      }
+    }
+    val dir = (sourceManaged in Compile).value
+    CodeGenerator.generateSources(dir)
+  }.taskValue,
+
+  sourceGenerators in Test += Def.task {
+    object CodeGenerator {
+      private def generateLetters(n: Int) = {
+        val base = 'A'.toInt
+        (0 until n).map(i => (i + base).toChar)
+      }
+
+      def generateApplicativeTest(dir: File) = {
+        def generate(n: Int): String = {
+            val uppercases = generateLetters(n)
+            val lowercases = uppercases.map(Character.toLowerCase)
+            val typeArgs   = uppercases.mkString(", ")
+            val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: Option[$upper]" }.mkString(", ")
+            val result = lowercases.mkString(", ")
+            val forArgs = lowercases.map(i => s"$i <- $i").mkString("; ")
+            s"def zip[$typeArgs]($parameters) = { for ($forArgs) yield ($result) }"
+        }
+
+        val output = List(
+            "package mill.define",
+            "trait OptGenerated {",
+            (2 to 22).map(generate).mkString(System.lineSeparator),
+            "}"
+        ).mkString(System.lineSeparator)
+
+        val file = dir / "ApplicativeTestsGenerated.scala"
+        IO.write(file, output)
+        file
+      }
+
+      def generateTests(dir: File) = {
+        Seq(generateApplicativeTest(dir))
+      }
+    }
+
+    val dir = (sourceManaged in Test).value
+    CodeGenerator.generateTests(dir)
+  }.taskValue
+)
+
 val pluginSettings = Seq(
   scalacOptions in Test ++= {
     val jarFile = (packageBin in (plugin, Compile)).value
@@ -86,6 +197,7 @@ lazy val core = project
   .dependsOn(plugin)
   .settings(
     sharedSettings,
+    coreSettings,
     pluginSettings,
     name := "mill-core",
     libraryDependencies ++= Seq(
