@@ -25,20 +25,20 @@ object RunScript{
                 path: Path,
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Discovered.Mapping[_], Evaluator[_])])
-  : Res[(Discovered.Mapping[_], Evaluator[_], Seq[(Path, Long)], Boolean)] = {
+                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])])
+  : Res[(Evaluator[_], Seq[(Path, Long)], Boolean)] = {
 
     val log = new PrintLogger(true)
     for{
-      (mapping, evaluator) <- lastEvaluator match{
-        case Some((prevInterpWatchedSig, prevMapping, prevEvaluator))
+      evaluator <- lastEvaluator match{
+        case Some((prevInterpWatchedSig, prevEvaluator))
           if watchedSigUnchanged(prevInterpWatchedSig) =>
-          Res.Success((prevMapping, prevEvaluator))
+          Res.Success(prevEvaluator)
 
         case _ =>
           interp.watch(path)
           for(mapping <- evaluateMapping(wd, path, interp))
-          yield (mapping, new Evaluator(pwd / 'out, mapping, log))
+          yield new Evaluator(pwd / 'out, mapping, log)
       }
     } yield {
       val evaluationWatches = mutable.Buffer.empty[(Path, Long)]
@@ -47,7 +47,7 @@ object RunScript{
         scriptArgs,
         p => evaluationWatches.append((p, Interpreter.pathSignature(p)))
       )
-      (mapping, evaluator, evaluationWatches, res.isRight)
+      (evaluator, evaluationWatches, res.isRight)
     }
   }
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
