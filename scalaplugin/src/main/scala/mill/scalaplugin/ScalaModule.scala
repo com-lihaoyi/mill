@@ -164,8 +164,8 @@ trait ScalaModule extends Module with TaskModule { outer =>
     */
   def scalaCompilerClasspath: T[Seq[PathRef]] = T{
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())},
-    )() ++ scalacPluginClasspath()
+      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
+    )()
   }
 
   /**
@@ -191,6 +191,7 @@ trait ScalaModule extends Module with TaskModule { outer =>
       allSources().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
+      scalacPluginClasspath().map(_.path),
       compilerBridge().path,
       scalacOptions(),
       scalacPluginClasspath().map(_.path),

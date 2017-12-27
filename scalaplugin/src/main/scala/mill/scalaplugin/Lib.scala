@@ -26,6 +26,7 @@ object ZincWorker extends Worker[ZincWorker]{
   def make() = new ZincWorker
 }
 class ZincWorker{
+  var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
   var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 }
 object Lib{
@@ -49,6 +50,7 @@ object Lib{
                    sources: Seq[Path],
                    compileClasspath: Seq[Path],
                    compilerClasspath: Seq[Path],
+                   pluginClasspath: Seq[Path],
                    compilerBridge: Path,
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Seq[Path],
@@ -58,21 +60,32 @@ object Lib{
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
 
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
+    val pluginJars = pluginClasspath.toArray.map(_.toIO)
 
-    val classloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val compilerClassloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val scalaInstanceSig =
+      compilerClassloaderSig + pluginClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+
+    val compilerClassLoader = zincWorker.scalaClassloaderCache match{
+      case Some((k, v)) if k == compilerClassloaderSig => v
+      case _ =>
+        val classloader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
+        zincWorker.scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
+        classloader
+    }
 
     val scalaInstance = zincWorker.scalaInstanceCache match{
-      case Some((k, v)) if k == classloaderSig => v
+      case Some((k, v)) if k == scalaInstanceSig => v
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null),
+          loader = new URLClassLoader(pluginJars.map(_.toURI.toURL), compilerClassLoader),
           libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
           compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
-          allJars = compilerJars,
+          allJars = compilerJars ++ pluginJars,
           explicitActual = None
         )
-        zincWorker.scalaInstanceCache = Some((classloaderSig, scalaInstance))
+        zincWorker.scalaInstanceCache = Some((scalaInstanceSig, scalaInstance))
         scalaInstance
     }
 
