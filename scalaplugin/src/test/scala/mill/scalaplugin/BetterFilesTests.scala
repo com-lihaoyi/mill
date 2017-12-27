@@ -2,9 +2,7 @@ package mill.scalaplugin
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Cross,Task}
 import mill.discover.Discovered
-import mill.eval.Result
 import utest._
 import mill.util.JsonFormatters._
 
@@ -102,8 +100,8 @@ object BetterFilesTests extends TestSuite{
     'test - {
 
       val Right(_) = eval(BetterFilesBuild.Core.test.test())
-      val Right(_) = eval(BetterFilesBuild.Akka.test.test())
-      val Right(_) = eval(BetterFilesBuild.ShapelessScanner.test.test())
+      val Right(_) = eval(BetterFilesBuild.Akka.test.compile)
+      val Right(_) = eval(BetterFilesBuild.ShapelessScanner.test.compile)
       // Doesn't work yet, need to support curling down a jar and caching it
       val Left(_) = eval(BetterFilesBuild.Benchmarks.test.test())
     }

@@ -8,12 +8,10 @@ git clean -xdf
 # First build & run tests using SBT
 sbt core/test scalaplugin/test bin/test:assembly
 
-# Second build & run tests using Mill built using SBT
-bin/target/mill Core.test
-bin/target/mill ScalaPlugin.test
+# Build Mill using SBT
 bin/target/mill devAssembly
 
-# Third build & run tests using Mill built using Mill
+# Secpmd build & run tests using Mill
 out/devAssembly Core.test
 out/devAssembly ScalaPlugin.test
 out/devAssembly devAssembly

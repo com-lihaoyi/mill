@@ -2,9 +2,8 @@ package mill.scalaplugin
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Cross, Task}
+import mill.define.Cross
 import mill.discover.Discovered
-import mill.eval.Result
 import mill.scalaplugin.publish._
 import utest._
 import mill.util.JsonFormatters._
@@ -55,20 +54,7 @@ object AcyclicTests extends TestSuite{
     val mapping = Discovered.mapping(AcyclicBuild)
     val eval = new TestEvaluator(mapping, workspacePath)
 
-    val packageScala = workspacePath/'src/'main/'scala/'acyclic/"package.scala"
-
-    val allBinaryVersions = Seq("2.10", "2.11", "2.12")
-    def check(scalaVersion: String, full: Boolean) = {
-      // Dependencies are right; make sure every dependency is of the correct
-      // binary Scala version, except for the compiler-bridge which is of the
-      // same version as the host classpath.
-      val Right((compileDepClasspath, _)) = eval(AcyclicBuild.acyclic(scalaVersion).compileDepClasspath)
-      val binaryScalaVersion = scalaVersion.split('.').dropRight(1).mkString(".")
-      val compileDeps = compileDepClasspath.map(_.path.toString())
-      val offBinaryVersions = allBinaryVersions.filter(_ != binaryScalaVersion)
-      val offVersionedDeps = compileDeps.filter(p => offBinaryVersions.exists(p.contains))
-      assert(offVersionedDeps.forall(_.contains("compiler-bridge")))
-
+    def check(scalaVersion: String) = {
       // We can compile
       val Right((pathRef, evalCount)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       val outputPath = pathRef.classes.path
@@ -82,38 +68,10 @@ object AcyclicTests extends TestSuite{
       // Compilation is cached
       val Right((_, evalCount2)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
       assert(evalCount2 == 0)
-
-      if (full){
-        // Caches are invalidated if code is changed
-        write.append(packageScala, "\n")
-        val Right((_, evalCount3)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
-        assert(evalCount3 > 0)
-
-        // Compilation can fail on broken code, and work when fixed
-        write.append(packageScala, "\n}}")
-        val Left(Result.Exception(ex)) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
-        assert(ex.isInstanceOf[sbt.internal.inc.CompileFailed])
-
-        write.write(packageScala, read(packageScala).dropRight(3))
-        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).compile)
-
-        // Tests compile & run
-        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.forkTest())
-
-        // Tests can be broken
-        write.append(packageScala, "\n}}")
-        val Left(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.compile)
-
-        // Tests can be fixed
-        write.write(packageScala, read(packageScala).dropRight(3))
-        val Right(_) = eval(AcyclicBuild.acyclic(scalaVersion).test.compile)
-      }
     }
 
-    'scala210 - check("2.10.6", full = false)
-    'scala211 - check("2.11.8", full = false)
-    'scala2123 - check("2.12.3", full = true)
-    'scala2124 - check("2.12.4", full = false)
+    'scala211 - check("2.11.8")
+    'scala2123 - check("2.12.3")
 
   }
 }

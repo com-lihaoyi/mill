@@ -1,23 +1,7 @@
 package mill
 
-import ammonite.interp.{Interpreter, Preprocessor}
-import ammonite.main.Scripts
 import ammonite.ops._
-import ammonite.util._
-import mill.define.Task
-import mill.discover._
-import mill.eval.{Evaluator, Result}
-import mill.util.{Logger, OSet, PrintLogger}
-import ammonite.main.Scripts.pathScoptRead
-import ammonite.repl.Repl
-import ammonite.util.Util.normalizeNewlines
-import mill.define.Task.TaskModule
 object Main {
-
-
-
-
-
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
                     colored: Option[Boolean] = None,
                     help: Boolean = false,
