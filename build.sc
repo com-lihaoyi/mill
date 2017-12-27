@@ -172,9 +172,10 @@ object Core extends MillModule {
     super.sources
   }
 
-  trait Tests extends super.Tests {
+  object tests extends super.Tests {
+    override def testFramework = Core.test.testFramework
     override def sources = {
-      CodeGenerator.generateTests(this.basePath / 'src / 'test / 'scala / 'mill / 'define)
+      CodeGenerator.generateTests(pwd / 'core / 'src / 'test / 'scala / 'mill / 'define)
       super.sources
     }
   }
