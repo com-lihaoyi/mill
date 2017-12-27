@@ -48,7 +48,6 @@ trait MillModule extends SbtScalaModule{ outer =>
     def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
     def testFramework = "mill.UTestFramework"
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(CompilerPlugin.jar())
-
   }
 }
 
@@ -169,15 +168,8 @@ object Core extends MillModule {
 
   def sources = {
     CodeGenerator.generateSources(this.basePath / 'src / 'main / 'scala / 'mill / 'define)
+    CodeGenerator.generateTests(pwd / 'core / 'src / 'test / 'scala / 'mill / 'define)
     super.sources
-  }
-
-  object tests extends super.Tests {
-    override def testFramework = Core.test.testFramework
-    override def sources = {
-      CodeGenerator.generateTests(pwd / 'core / 'src / 'test / 'scala / 'mill / 'define)
-      super.sources
-    }
   }
 
   val cross =
