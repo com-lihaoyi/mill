@@ -169,18 +169,20 @@ object Jvm {
           p <- inputPaths
           if exists(p)
           (file, mapping) <-
-            if (p.isFile) {
+            if (p.isFile && p.ext == "jar") {
               val jf = new JarFile(p.toIO)
               import collection.JavaConverters._
               for(entry <- jf.entries().asScala if !entry.isDirectory) yield {
                 read.bytes(jf.getInputStream(entry)) -> entry.getName
               }
             }
-            else {
+            else  if (p.isDir) {
               ls.rec(p).iterator
                 .filter(_.isFile)
                 .map(sub => read.bytes(sub) -> sub.relativeTo(p).toString)
             }
+            else Iterator() //Some builds show up with surprising files such as .tar.gz I am assuming those should be ignored
+
           if !seen(mapping)
         } {
           seen.add(mapping)

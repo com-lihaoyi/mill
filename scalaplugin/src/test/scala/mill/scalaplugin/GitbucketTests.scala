@@ -18,10 +18,23 @@ trait GitbucketModule extends SbtScalaModule with TwirlModule {
   val ScalatraVersion = "2.6.1"
   val JettyVersion = "9.4.7.v20170914"
 
-
-
   override def repositories =
     super.repositories :+ MavenRepository("https://dl.bintray.com/bkromhout/maven")
+
+  object test extends this.Tests{
+    def testFramework = "org.scalatest.tools.Framework"
+
+    override def forkArgs = super.forkArgs() ++ Seq("-Dgitbucket.home=target/gitbucket_home_for_test")
+
+//    override def beforeTests(): Unit = {
+//      val gitbucketHome = pwd / 'target / 'gitbucket_home_for_test
+//      rm(gitbucketHome)
+//      mkdir(gitbucketHome / up)
+//    }
+//    javaOptions in Test += "-Dgitbucket.home=target/gitbucket_home_for_test"
+//    testOptions in Test += Tests.Setup( () => new java.io.File("target/gitbucket_home_for_test").mkdir() )
+//    fork in Test := true
+  }
 
   override def ivyDeps = Seq(
     Dep.Java("org.eclipse.jgit", "org.eclipse.jgit.http.server", "4.9.0.201710071750-r"),
@@ -80,7 +93,18 @@ object GitbucketTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
-        val  Right((result, evalCount)) = eval(Gitbucket.compile, gitbucketMapping)
+        val  Right((result, evalCount)) = eval(Gitbucket.compile, gitbucketMapping.value)
+    }
+
+//    'test - {
+//      eval(Gitbucket.test.forkTest(), gitbucketMapping) match {
+//        case Left(err) => err
+//        case Right(succ) => //ok
+//      }
+//    }
+
+    'assembly - {
+      val  Right((result, evalCount)) = eval(Gitbucket.assembly, gitbucketMapping.value)
     }
   }
 
