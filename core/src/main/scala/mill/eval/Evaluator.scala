@@ -1,6 +1,7 @@
 package mill.eval
 
 import java.net.URLClassLoader
+import java.util.concurrent.atomic.AtomicReference
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
@@ -181,6 +182,7 @@ class Evaluator[T](val workspacePath: Path,
 
     val multiLogger = resolveLogger(paths.map(_.log))
 
+    lazy val lastTaskRef = new AtomicReference[Task[_]](null)
     for (target <- nonEvaluatedTargets) {
 
       newEvaluated.append(target)
@@ -201,7 +203,19 @@ class Evaluator[T](val workspacePath: Path,
                 workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
               }
             }
-          )
+          ){
+            override def dest: Path = {
+              lastTaskRef.get() match {
+                case null =>
+                  lastTaskRef.set(target)
+                  super.dest
+                case lastTask if lastTask == target =>
+                  super.dest
+                case lastTask =>
+                  throw new IllegalAccessException(s"The dest should only be used by the same task,currently it's used by [$lastTask],your task [$target] should not used it at the sametime.")
+              }
+            }
+          }
 
           val out = System.out
           val err = System.err

@@ -41,7 +41,7 @@ object Ctx{
   }
 }
 class Ctx(val args: IndexedSeq[_],
-          val dest: Path,
+          _dest: Path,
           val base: Path,
           val log: Logger,
           workerCtx0: Ctx.LoaderCtx)
@@ -50,6 +50,8 @@ class Ctx(val args: IndexedSeq[_],
   with ArgCtx
   with LoaderCtx
   with BaseCtx{
+
+  override def dest: Path = _dest
 
   def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length
