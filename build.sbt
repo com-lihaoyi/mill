@@ -135,7 +135,11 @@ lazy val bin = project
   .dependsOn(scalaplugin)
   .settings(
     sharedSettings,
-    mainClass in (Compile, run) := Some("mill.Main"),
+    fork := true,
+    connectInput in (Test, run) := true,
+    outputStrategy in (Test, run) := Some(StdoutOutput),
+    mainClass in (Test, run) := Some("mill.Main"),
+    baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / "..",
     assemblyOption in assembly := {
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(

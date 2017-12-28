@@ -41,7 +41,8 @@ file in the repository root, you can skip the assembly process and directly run
 it via:
 
 ```bash
-sbt "~bin/run Core.test"
+sbt "~bin/test:run Core.test"
+sbt "~bin/test:run --repl"
 ```
 
 Lastly, you can generate IntelliJ Scala project files using Mill via
