@@ -33,8 +33,11 @@ object Main {
         val config =
           if(!repl) cliConfig
           else cliConfig.copy(
-            predefCode = "implicit val replApplyHandler = mill.main.ReplApplyHandler(mapping)",
-            predefFile = Some(pwd/"build.sc"),
+            predefCode =
+              """import $file.build, build._
+                |implicit val replApplyHandler = mill.main.ReplApplyHandler(build.mapping)
+                |
+              """.stripMargin,
             welcomeBanner = None
           )
 
