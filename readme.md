@@ -22,16 +22,16 @@ core unit tests
 
 e.g.:
 ```bash
-./bin/target/mill run Core.compile
-./bin/target/mill run Core.test.compile
-./bin/target/mill run Core.test
-./bin/target/mill run ScalaPlugin.assembly
+./bin/target/mill Core.compile
+./bin/target/mill Core.test.compile
+./bin/target/mill Core.test
+./bin/target/mill ScalaPlugin.assembly
 ```
 
 There is already a `watch` option that looks for changes on files, e.g.:
 
 ```bash
-./bin/target/mill --watch run Core.compile
+./bin/target/mill --watch Core.compile
 ```
 
 Output will be generated into a the `./out` folder.
@@ -171,7 +171,7 @@ dependency graph of `Task`s.
 
 ### Builds are hierarchical
 
-The syntax for running targets from the command line `mill run Foo.bar.baz` is
+The syntax for running targets from the command line `mill Foo.bar.baz` is
 the same as referencing a target in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
@@ -181,7 +181,7 @@ able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
 the object hierarchy. The only difference is syntax: from the command line you'd
-run something via `mill run Core.cross[a].printIt` while from code you use
+run something via `mill Core.cross[a].printIt` while from code you use
 `Core.cross("a").printIt` due to different restrictions in Scala/Bash syntax.
 
 ### Caching by default
@@ -331,7 +331,7 @@ example, a `Target` at position `Core.test.compile` would:
 
 - Output files to the folder `out/Core/test/compile/`
 
-- Be runnable from the command-line via `mill run Core.test.compile`
+- Be runnable from the command-line via `mill Core.test.compile`
 
 - Be referenced programmatically (from other `Target`s) via `Core.test.compile`
 
