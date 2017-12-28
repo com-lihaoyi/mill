@@ -1,3 +1,4 @@
+import $file.shared
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
@@ -39,7 +40,8 @@ trait MillModule extends SbtScalaModule{ outer =>
 
   def testArgs = T{ Seq.empty[String] }
 
-  object test extends this.Tests{
+  val test = new Tests
+  class Tests extends super.Tests{
     def defaultCommandName() = "forkTest"
     def forkArgs = T{ testArgs() }
     def projectDeps =
@@ -69,107 +71,21 @@ object Core extends MillModule {
 
   def basePath = pwd / 'core
 
-  object CodeGenerator {
-    private def generateLetters(n: Int) = {
-      val base = 'A'.toInt
-      (0 until n).map(i => (i + base).toChar)
-    }
-
-    private def write(dir: String, filename: String, s: String) = {
-      import java.io.{BufferedWriter, FileWriter}
-
-      val path = java.nio.file.Paths.get(dir, filename)
-      val w = new BufferedWriter(new FileWriter(path.toFile))
-      w.write(s)
-      w.close()
-    }
-
-    def generateApplyer(dir: String) = {
-      def generate(n: Int) = {
-        val uppercases = generateLetters(n)
-        val lowercases = uppercases.map(Character.toLowerCase)
-        val typeArgs   = uppercases.mkString(", ")
-        val zipArgs    = lowercases.mkString(", ")
-        val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
-
-        val body   = s"mapCtx(zip($zipArgs)) { case (($zipArgs), z) => cb($zipArgs, z) }"
-        val zipmap = s"def zipMap[$typeArgs, Res]($parameters)(cb: ($typeArgs, Ctx) => Z[Res]) = $body"
-        val zip    = s"def zip[$typeArgs]($parameters): TT[($typeArgs)]"
-
-        if (n < 22) List(zipmap, zip).mkString(System.lineSeparator) else zip
-      }
-      val output = List(
-          "package mill.define",
-          "import scala.language.higherKinds",
-          "trait ApplyerGenerated[TT[_], Z[_], Ctx] {",
-          "def mapCtx[A, B](a: TT[A])(f: (A, Ctx) => Z[B]): TT[B]",
-          (2 to 22).map(generate).mkString(System.lineSeparator),
-          "}").mkString(System.lineSeparator)
-
-      write(dir, "ApplicativeGenerated.scala", output)
-    }
-
-    def generateTarget(dir: String) = {
-      def generate(n: Int) = {
-        val uppercases = generateLetters(n)
-        val lowercases = uppercases.map(Character.toLowerCase)
-        val typeArgs   = uppercases.mkString(", ")
-        val args       = lowercases.mkString(", ")
-        val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
-        val body       = uppercases.zipWithIndex.map { case (t, i) => s"args[$t]($i)" }.mkString(", ")
-
-        s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($args), (args: Ctx) => ($body))"
-      }
-
-      val output = List(
-        "package mill.define",
-        "import scala.language.higherKinds",
-        "import mill.eval.Result",
-        "import mill.util.Ctx",
-        "trait TargetGenerated {",
-        "type TT[+X]",
-        "def makeT[X](inputs: Seq[TT[_]], evaluate: Ctx => Result[X]): TT[X]",
-        (3 to 22).map(generate).mkString(System.lineSeparator),
-        "}").mkString(System.lineSeparator)
-      write(dir, "TaskGenerated.scala", output)
-    }
-
-    def generateApplicativeTest(dir: String) = {
-      def generate(n: Int): String = {
-          val uppercases = generateLetters(n)
-          val lowercases = uppercases.map(Character.toLowerCase)
-          val typeArgs   = uppercases.mkString(", ")
-          val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: Option[$upper]" }.mkString(", ")
-          val result = lowercases.mkString(", ")
-          val forArgs = lowercases.map(i => s"$i <- $i").mkString("; ")
-          s"def zip[$typeArgs]($parameters) = { for ($forArgs) yield ($result) }"
-      }
-
-      val output = List(
-          "package mill.define",
-          "trait OptGenerated {",
-          (2 to 22).map(generate).mkString(System.lineSeparator),
-          "}"
-      ).mkString(System.lineSeparator)
-
-      write(dir, "ApplicativeTestsGenerated.scala", output)
-    }
-
-    def generateSources(p: Path) = {
-      val dir = p.toString()
-      generateApplyer(dir)
-      generateTarget(dir)
-    }
-
-    def generateTests(p: Path) = {
-      generateApplicativeTest(p.toString())
-    }
+  def generatedSources = T{
+    mkdir(T.ctx().dest)
+    shared.generateSources(T.ctx().dest)
+    PathRef(T.ctx().dest)
   }
 
-  def sources = {
-    CodeGenerator.generateSources(this.basePath / 'src / 'main / 'scala / 'mill / 'define)
-    CodeGenerator.generateTests(pwd / 'core / 'src / 'test / 'scala / 'mill / 'define)
-    super.sources
+  def allSources = super.allSources() ++ Seq(generatedSources())
+  val test = new Tests{
+    def generatedSources = T{
+      mkdir(T.ctx().dest)
+      shared.generateTests(T.ctx().dest)
+      PathRef(T.ctx().dest)
+
+    }
+    def allSources = super.allSources() ++ Seq(generatedSources())
   }
 
   val cross =
@@ -202,20 +118,7 @@ val bridges = for(crossVersion <- mill.define.Cross(bridgeVersions:_*)) yield ne
     path
   }
   def allSources = T{
-
-    val v = crossVersion.split('.').dropRight(1).mkString(".")
-    val url =
-      s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
-    val curlDest = T.ctx().dest
-    implicit val pwd = curlDest
-    mkdir(curlDest)
-    rm(curlDest/"bridge.jar")
-
-    %("curl", "-L", "-o", curlDest / "bridge.jar", url)
-    %("unzip", curlDest / "bridge.jar" , "-d", curlDest / 'classes)
-
-
-    Seq(PathRef(curlDest / 'classes))
+    Seq(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
   }
   def ivyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", crossVersion),
