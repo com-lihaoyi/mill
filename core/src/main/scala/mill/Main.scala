@@ -12,6 +12,7 @@ object Main {
 
     import ammonite.main.Cli
     var repl = false
+    var show = false
     val replCliArg = Cli.Arg[Cli.Config, Unit](
       "repl",
       None,
@@ -21,9 +22,18 @@ object Main {
         x
       }
     )
+    val showCliArg = Cli.Arg[Cli.Config, Unit](
+      "show",
+      None,
+      "Display the json-formatted value of the given target, if any",
+      (x, _) => {
+        show = true
+        x
+      }
+    )
     Cli.groupArgs(
       args.toList,
-      Cli.ammoniteArgSignature :+ replCliArg,
+      Cli.ammoniteArgSignature :+ replCliArg :+ showCliArg,
       Cli.Config()
     ) match{
       case Left(msg) =>
@@ -41,7 +51,7 @@ object Main {
             welcomeBanner = None
           )
 
-        val runner = new mill.main.MainRunner(config)
+        val runner = new mill.main.MainRunner(config, show)
         if (repl){
           runner.printInfo("Loading...")
           runner.runRepl()

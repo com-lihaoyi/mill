@@ -11,6 +11,7 @@ import mill.define.Task
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 import mill.util.{OSet, PrintLogger}
+import upickle.Js
 
 import scala.collection.mutable
 
@@ -26,7 +27,7 @@ object RunScript{
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
                 lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])])
-  : Res[(Evaluator[_], Seq[(Path, Long)])] = {
+  : Res[(Evaluator[_], Seq[(Path, Long)], Seq[(Any, Option[Js.Value])])] = {
 
     val log = new PrintLogger(true)
     for{
@@ -41,12 +42,12 @@ object RunScript{
           yield new Evaluator(pwd / 'out, mapping, log)
       }
       evaluationWatches = mutable.Buffer.empty[(Path, Long)]
-      _ <- Res(evaluateTarget(
+      res <- Res(evaluateTarget(
         evaluator,
         scriptArgs,
         p => evaluationWatches.append((p, Interpreter.pathSignature(p)))
       ))
-    } yield (evaluator, evaluationWatches)
+    } yield (evaluator, evaluationWatches, res)
   }
 
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
@@ -106,13 +107,16 @@ object RunScript{
         case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
         case _ => Nil
       }
-      target <- mill.main.Resolve.resolve(sel, evaluator.mapping.mirror, evaluator.mapping.base, rest, crossSelectors, Nil)
-      _ <- evaluate(evaluator, target, watch).toLeft(())
-    } yield ()
+      target <- mill.main.Resolve.resolve(
+        sel, evaluator.mapping.mirror, evaluator.mapping.base,
+        rest, crossSelectors, Nil
+      )
+      res <- evaluate(evaluator, target, watch)
+    } yield res
   }
   def evaluate(evaluator: Evaluator[_],
                target: Task[Any],
-               watch: Path => Unit): Option[String] = {
+               watch: Path => Unit): Either[String, Seq[(Any, Option[upickle.Js.Value])]] = {
     val evaluated = evaluator.evaluate(OSet(target))
     evaluated.transitive.foreach {
       case t: define.Source => watch(t.handle.path)
@@ -133,8 +137,21 @@ object RunScript{
       }).mkString("\n")
 
     evaluated.failing.keyCount match {
-      case 0 => None
-      case n => Some(s"$n targets failed\n$errorStr")
+      case 0 =>
+        val json = for(t <- Seq(target)) yield {
+          t match {
+            case t: mill.define.Target[_] =>
+              for (labelled <- evaluator.labeling.get(t)) yield {
+                val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, labelled)._2
+                val metadata = upickle.json.read(jsonFile.toIO)
+                metadata(1)
+              }
+            case _ => None
+          }
+        }
+
+        Right(evaluated.values.zip(json))
+      case n => Left(s"$n targets failed\n$errorStr")
     }
   }
 

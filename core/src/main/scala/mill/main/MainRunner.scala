@@ -4,13 +4,15 @@ import ammonite.ops.Path
 import ammonite.util.{Imports, Name, Res, Util}
 import mill.discover.Discovered
 import mill.eval.Evaluator
+import upickle.Js
 
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config)
+class MainRunner(config: ammonite.main.Cli.Config,
+                 show: Boolean)
   extends ammonite.MainRunner(
     config,
     System.out, System.err, System.in, System.out, System.err
@@ -31,9 +33,9 @@ class MainRunner(config: ammonite.main.Cli.Config)
             )
             result match{
               case Res.Success(data) =>
-                val (eval, evaluationWatches) = data
+                val (eval, evaluationWatches, res) = data
                 lastEvaluator = Some((interpWatched, eval))
-                (result, interpWatched ++ evaluationWatches)
+                (Res.Success(res.flatMap(_._2)), interpWatched ++ evaluationWatches)
               case _ =>
                 (result, interpWatched)
             }
@@ -42,11 +44,24 @@ class MainRunner(config: ammonite.main.Cli.Config)
         }
       }
     )
+
+  override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
+    res match{
+      case Res.Success(value) =>
+        if (show){
+          for(json <- value.asInstanceOf[Seq[Js.Value]]){
+            System.out.println(json)
+          }
+        }
+
+        true
+
+      case _ => super.handleWatchRes(res, printing)
+    }
+
+  }
   override def initMain(isRepl: Boolean) = {
     super.initMain(isRepl).copy(scriptCodeWrapper = mill.main.MainRunner.CustomCodeWrapper)
-  }
-  override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
-    super.handleWatchRes(res, printing = false)
   }
 }
 
