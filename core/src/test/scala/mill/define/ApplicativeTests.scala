@@ -10,46 +10,15 @@ import scala.language.experimental.macros
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
   class Opt[T](val self: Option[T]) extends Applicative.Applyable[Option, T]
-  object Opt extends Applicative.Applyer[Opt, Option, Applicative.Id, String]{
+  object Opt extends OptGenerated with Applicative.Applyer[Opt, Option, Applicative.Id, String]{
 
     val injectedCtx = "helloooo"
     def underlying[A](v: Opt[A]) = v.self
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
-    type O[+T] = Option[T]
-    def mapCtx[A, B](a: O[A])(f: (A, String) => B): Option[B] = a.map(f(_, injectedCtx))
+    def mapCtx[A, B](a: Option[A])(f: (A, String) => B): Option[B] = a.map(f(_, injectedCtx))
     def zip() = Some(())
-    def zip[A](a: O[A]) = a.map(Tuple1(_))
-    def zip[A, B](a: O[A], b: O[B]) = {
-      for(a <- a; b <- b) yield (a, b)
-    }
-    def zip[A, B, C](a: O[A], b: O[B], c: O[C]) = {
-      for(a <- a; b <- b; c <- c) yield (a, b, c)
-    }
-    def zip[A, B, C, D](a: O[A], b: O[B], c: O[C], d: O[D]) = {
-      for(a <- a; b <- b; c <- c; d <- d) yield (a, b, c, d)
-    }
-    def zip[A, B, C, D, E](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e) yield (a, b, c, d, e)
-    }
-    def zip[A, B, C, D, E, F](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F]) ={
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f) yield (a, b, c, d, e, f)
-    }
-    def zip[A, B, C, D, E, F, G](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g) yield (a, b, c, d, e, f, g)
-    }
-    def zip[A, B, C, D, E, F, G, H](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h) yield (a, b, c, d, e, f, g, h)
-    }
-    def zip[A, B, C, D, E, F, G, H, I](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H], i: O[I]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h; i <- i) yield (a, b, c, d, e, f, g, h, i)
-    }
-    def zip[A, B, C, D, E, F, G, H, I, J](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H], i: O[I], j: O[J]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h; i <- i; j <- j) yield (a, b, c, d, e, f, g, h, i, j)
-    }
-    def zip[A, B, C, D, E, F, G, H, I, J, K](a: O[A], b: O[B], c: O[C], d: O[D], e: O[E], f: O[F], g: O[G], h: O[H], i: O[I], j: O[J], k: O[K]) = {
-      for(a <- a; b <- b; c <- c; d <- d; e <- e; f <- f; g <- g; h <- h; i <- i; j <- j; k <- k) yield (a, b, c, d, e, f, g, h, i, j, k)
-    }
+    def zip[A](a: Option[A]) = a.map(Tuple1(_))
   }
   class Counter{
     var value = 0

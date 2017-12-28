@@ -1,7 +1,7 @@
 package mill.define
 
-
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
+import scala.language.higherKinds
 import scala.reflect.macros.blackbox.Context
 
 /**
@@ -28,47 +28,14 @@ object Applicative {
   class ImplicitStub extends StaticAnnotation
   type Id[+T] = T
 
-  trait Applyer[W[_], T[_], Z[_], Ctx]{
+  trait Applyer[W[_], T[_], Z[_], Ctx] extends ApplyerGenerated[T, Z, Ctx] {
     def ctx()(implicit c: Ctx) = c
     def underlying[A](v: W[A]): T[_]
 
-    def mapCtx[A, B](a: T[A])(f: (A, Ctx) => Z[B]): T[B]
     def zipMap[R]()(cb: Ctx => Z[R]) = mapCtx(zip()){ (_, ctx) => cb(ctx)}
     def zipMap[A, R](a: T[A])(f: (A, Ctx) => Z[R]) = mapCtx(a)(f)
-    def zipMap[A, B, R](a: T[A], b: T[B])(cb: (A, B, Ctx) => Z[R]) = mapCtx(zip(a, b)){case ((a, b), x) => cb(a, b, x)}
-    def zipMap[A, B, C, R](a: T[A], b: T[B], c: T[C])
-                          (cb: (A, B, C, Ctx) => Z[R]) = mapCtx(zip(a, b, c)){case ((a, b, c), x) => cb(a, b, c, x)}
-    def zipMap[A, B, C, D, R](a: T[A], b: T[B], c: T[C], d: T[D])
-                             (cb: (A, B, C, D, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d)){case ((a, b, c, d), x) => cb(a, b, c, d, x)}
-    def zipMap[A, B, C, D, E, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E])
-                                (cb: (A, B, C, D, E, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e)){case ((a, b, c, d, e), x) => cb(a, b, c, d, e, x)}
-    def zipMap[A, B, C, D, E, F, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F])
-                                   (cb: (A, B, C, D, E, F, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f)){case ((a, b, c, d, e, f), x) => cb(a, b, c, d, e, f, x)}
-    def zipMap[A, B, C, D, E, F, G, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G])
-                                      (cb: (A, B, C, D, E, F, G, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g)){case ((a, b, c, d, e, f, g), x) => cb(a, b, c, d, e, f, g, x)}
-    def zipMap[A, B, C, D, E, F, G, H, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H])
-                                      (cb: (A, B, C, D, E, F, G, H, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h)){case ((a, b, c, d, e, f, g, h), x) => cb(a, b, c, d, e, f, g, h, x)}
-    def zipMap[A, B, C, D, E, F, G, H, I, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I])
-                                            (cb: (A, B, C, D, E, F, G, H, I, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h, i)){case ((a, b, c, d, e, f, g, h, i), x) => cb(a, b, c, d, e, f, g, h, i, x)}
-    def zipMap[A, B, C, D, E, F, G, H, I, J, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J])
-                                            (cb: (A, B, C, D, E, F, G, H, I, J, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h, i, j)){case ((a, b, c, d, e, f, g, h, i, j), x) => cb(a, b, c, d, e, f, g, h, i, j, x)}
-
-    def zipMap[A, B, C, D, E, F, G, H, I, J, K, R](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J], k: T[K])
-                                            (cb: (A, B, C, D, E, F, G, H, I, J, K, Ctx) => Z[R]) = mapCtx(zip(a, b, c, d, e, f, g, h, i, j, k)){case ((a, b, c, d, e, f, g, h, i, j, k), x) => cb(a, b, c, d, e, f, g, h, i, j, k, x)}
-
     def zip(): T[Unit]
     def zip[A](a: T[A]): T[Tuple1[A]]
-    def zip[A, B](a: T[A], b: T[B]): T[(A, B)]
-    def zip[A, B, C](a: T[A], b: T[B], c: T[C]): T[(A, B, C)]
-    def zip[A, B, C, D](a: T[A], b: T[B], c: T[C], d: T[D]): T[(A, B, C, D)]
-    def zip[A, B, C, D, E](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E]): T[(A, B, C, D, E)]
-    def zip[A, B, C, D, E, F](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F]): T[(A, B, C, D, E, F)]
-    def zip[A, B, C, D, E, F, G](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G]): T[(A, B, C, D, E, F, G)]
-    def zip[A, B, C, D, E, F, G, H](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H]): T[(A, B, C, D, E, F, G, H)]
-    def zip[A, B, C, D, E, F, G, H, I](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I]): T[(A, B, C, D, E, F, G, H, I)]
-    def zip[A, B, C, D, E, F, G, H, I, J](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J]): T[(A, B, C, D, E, F, G, H, I, J)]
-    def zip[A, B, C, D, E, F, G, H, I, J, K](a: T[A], b: T[B], c: T[C], d: T[D], e: T[E], f: T[F], g: T[G], h: T[H], i: T[I], j: T[J], k: T[K]): T[(A, B, C, D, E, F, G, H, I, J, K)]
-
   }
 
   def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)
