@@ -26,7 +26,7 @@ object RunScript{
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
                 lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])])
-  : Res[(Evaluator[_], Seq[(Path, Long)], Boolean)] = {
+  : Res[(Evaluator[_], Seq[(Path, Long)])] = {
 
     val log = new PrintLogger(true)
     for{
@@ -40,19 +40,19 @@ object RunScript{
           for(mapping <- evaluateMapping(wd, path, interp))
           yield new Evaluator(pwd / 'out, mapping, log)
       }
-    } yield {
-      val evaluationWatches = mutable.Buffer.empty[(Path, Long)]
-      val res = evaluateTarget(
+      evaluationWatches = mutable.Buffer.empty[(Path, Long)]
+      _ <- Res(evaluateTarget(
         evaluator,
         scriptArgs,
         p => evaluationWatches.append((p, Interpreter.pathSignature(p)))
-      )
-      (evaluator, evaluationWatches, res.isRight)
-    }
+      ))
+    } yield (evaluator, evaluationWatches)
   }
+
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
     sig.forall{case (p, l) => Interpreter.pathSignature(p) == l}
   }
+
   def evaluateMapping(wd: Path,
                       path: Path,
                       interp: ammonite.interp.Interpreter): Res[Discovered.Mapping[_]] = {
@@ -60,9 +60,10 @@ object RunScript{
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
-      scriptTxt <- try Res.Success(Util.normalizeNewlines(read(path))) catch {
-        case e: NoSuchFileException => Res.Failure("Script file not found: " + path)
-      }
+      scriptTxt <-
+        try Res.Success(Util.normalizeNewlines(read(path)))
+        catch { case e: NoSuchFileException => Res.Failure("Script file not found: " + path) }
+
       processed <- interp.processModule(
         scriptTxt,
         CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),

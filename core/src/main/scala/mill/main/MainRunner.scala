@@ -24,13 +24,14 @@ class MainRunner(config: ammonite.main.Cli.Config)
         mainCfg.instantiateInterpreter() match{
           case Left(problems) => problems
           case Right(interp) =>
+            val interpWatched = interp.watchedFiles
+
             val result = RunScript.runScript(
               mainCfg.wd, scriptPath, interp, scriptArgs, lastEvaluator
             )
-
-            val interpWatched = interp.watchedFiles
             result match{
-              case Res.Success((eval, evaluationWatches, success)) =>
+              case Res.Success(data) =>
+                val (eval, evaluationWatches) = data
                 lastEvaluator = Some((interpWatched, eval))
                 (result, interpWatched ++ evaluationWatches)
               case _ =>
