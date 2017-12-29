@@ -140,7 +140,7 @@ lazy val scalajsplugin = project
     name := "mill-scalajsplugin",
     fork in Test := true,
     baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
-    javaOptions in (Test, test) := bridgeProps.value.toSeq
+    javaOptions in (Test, test) := jsbridgeProps.value.toSeq
   )
 def jsbridge(binary: String, version: String) =
   Project(
