@@ -51,12 +51,42 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                         n: sourcecode.Name,
                         cl: Caller[mill.define.Task.Module]): Target[T] = macro targetImpl[T]
 
+  def targetImpl[T: c.WeakTypeTag](c: Context)
+                                  (t: c.Expr[T])
+                                  (r: c.Expr[R[T]],
+                                   w: c.Expr[W[T]],
+                                   e: c.Expr[sourcecode.Enclosing],
+                                   n: c.Expr[sourcecode.Name],
+                                   cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
+    import c.universe._
+    c.Expr[Target[T]](
+      mill.plugin.Cacher.wrapCached(c)(
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
+      )
+    )
+  }
+
   implicit def apply[T](t: Result[T])
                        (implicit r: R[T],
                         w: W[T],
                         e: sourcecode.Enclosing,
                         n: sourcecode.Name,
                         cl: Caller[mill.define.Task.Module]): Target[T] = macro targetResultImpl[T]
+
+  def targetResultImpl[T: c.WeakTypeTag](c: Context)
+                                        (t: c.Expr[Result[T]])
+                                        (r: c.Expr[R[T]],
+                                         w: c.Expr[W[T]],
+                                         e: c.Expr[sourcecode.Enclosing],
+                                         n: c.Expr[sourcecode.Name],
+                                         cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
+    import c.universe._
+    c.Expr[Target[T]](
+      mill.plugin.Cacher.wrapCached(c)(
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
+      )
+    )
+  }
 
   def apply[T](t: Task[T])
               (implicit r: R[T],
@@ -65,7 +95,25 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                n: sourcecode.Name,
                cl: Caller[mill.define.Task.Module]): Target[T] = macro targetTaskImpl[T]
 
-  def command[T](t: Result[T])(implicit w: W[T]): Command[T] = macro commandImpl[T]
+  def targetTaskImpl[T: c.WeakTypeTag](c: Context)
+                                      (t: c.Expr[Task[T]])
+                                      (r: c.Expr[R[T]],
+                                       w: c.Expr[W[T]],
+                                       e: c.Expr[sourcecode.Enclosing],
+                                       n: c.Expr[sourcecode.Name],
+                                       cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
+    import c.universe._
+    c.Expr[Target[T]](
+      mill.plugin.Cacher.wrapCached(c)(
+        q"new ${weakTypeOf[TargetImpl[T]]}($t, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
+      )
+    )
+  }
+
+  def command[T](t: Result[T])
+                (implicit w: W[T],
+                 n: sourcecode.Name,
+                 cl: Caller[mill.define.Task.Module]): Command[T] = macro commandImpl[T]
 
   def source(path: ammonite.ops.Path) = new Source(path)
 
@@ -74,8 +122,19 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                  n: sourcecode.Name,
                  w: W[T]): Command[T] = new Command(t, c.value, n.value, w)
 
+  def commandImpl[T: c.WeakTypeTag](c: Context)
+                                   (t: c.Expr[T])
+                                   (w: c.Expr[W[T]],
+                                    n: c.Expr[sourcecode.Name],
+                                    cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Command[T]] = {
+    import c.universe._
+
+    c.Expr[Command[T]](
+      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, $cl.value, $n.value, $w)"
+    )
+  }
+
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, Ctx]
-  def task[T](t: Task[T]): Task[T] = t
 
   def persistent[T](t: Result[T])(implicit r: R[T],
                                   w: W[T],
@@ -95,59 +154,6 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     c.Expr[Persistent[T]](
       mill.plugin.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
-      )
-    )
-  }
-  def commandImpl[T: c.WeakTypeTag](c: Context)
-                                   (t: c.Expr[T])
-                                   (w: c.Expr[W[T]]): c.Expr[Command[T]] = {
-    import c.universe._
-
-    c.Expr[Command[T]](
-      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name(), $w)"
-    )
-  }
-
-  def targetTaskImpl[T: c.WeakTypeTag](c: Context)
-                                      (t: c.Expr[Task[T]])
-                                      (r: c.Expr[R[T]],
-                                       w: c.Expr[W[T]],
-                                       e: c.Expr[sourcecode.Enclosing],
-                                       n: c.Expr[sourcecode.Name],
-                                       cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
-    import c.universe._
-    c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}($t, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
-      )
-    )
-  }
-  def targetImpl[T: c.WeakTypeTag](c: Context)
-                                  (t: c.Expr[T])
-                                  (r: c.Expr[R[T]],
-                                   w: c.Expr[W[T]],
-                                   e: c.Expr[sourcecode.Enclosing],
-                                   n: c.Expr[sourcecode.Name],
-                                   cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
-    import c.universe._
-    c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
-      )
-    )
-  }
-
-  def targetResultImpl[T: c.WeakTypeTag](c: Context)
-                                        (t: c.Expr[Result[T]])
-                                        (r: c.Expr[R[T]],
-                                         w: c.Expr[W[T]],
-                                         e: c.Expr[sourcecode.Enclosing],
-                                         n: c.Expr[sourcecode.Name],
-                                         cl: c.Expr[Caller[mill.define.Task.Module]]): c.Expr[Target[T]] = {
-    import c.universe._
-    c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read))"
       )
     )
   }
