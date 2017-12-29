@@ -9,6 +9,7 @@ import mill.define.{Cross, Target}
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.scalaplugin.publish._
+import mill.util.TestEvaluator
 import sbt.internal.inc.CompileFailed
 import utest._
 
@@ -41,7 +42,7 @@ object HelloWorldFatalWarnings extends HelloWorldModule {
 }
 
 object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
-  def publishName = "hello-world"
+  def artifactName = "hello-world"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

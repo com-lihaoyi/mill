@@ -5,6 +5,7 @@ import ammonite.ops._
 import mill.discover.Discovered
 import utest._
 import mill.util.JsonFormatters._
+import mill.util.TestEvaluator
 
 object BetterFilesBuild{
   trait BetterFilesModule extends SbtScalaModule{ outer =>

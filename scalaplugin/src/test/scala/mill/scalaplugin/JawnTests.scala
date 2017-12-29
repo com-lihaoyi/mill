@@ -8,6 +8,7 @@ import mill.discover.Discovered
 import mill.eval.Result
 import utest._
 import mill.util.JsonFormatters._
+import mill.util.TestEvaluator
 
 object JawnBuild{
   val Jawn = Cross("2.10.6", "2.11.11", "2.12.3").map(new Jawn(_))

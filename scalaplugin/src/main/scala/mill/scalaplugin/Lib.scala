@@ -26,8 +26,8 @@ object ZincWorker extends Worker[ZincWorker]{
   def make() = new ZincWorker
 }
 class ZincWorker{
-  var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
-  var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
+  @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
+  @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 }
 object Lib{
   case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
