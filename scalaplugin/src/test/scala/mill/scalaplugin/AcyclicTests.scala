@@ -13,11 +13,11 @@ object AcyclicBuild{
     for(crossVersion <- Cross("2.10.6", "2.11.8", "2.12.3", "2.12.4"))
     yield new SbtScalaModule with PublishModule {outer =>
       def basePath = AcyclicTests.workspacePath
-      def publishName = "acyclic"
+      def artifactName = "acyclic"
       def publishVersion = "0.1.7"
 
       def pomSettings = PomSettings(
-        description = publishName(),
+        description = artifactName(),
         organization = "com.lihaoyi",
         url = "https://github.com/lihaoyi/acyclic",
         licenses = Seq(

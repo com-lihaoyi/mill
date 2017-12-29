@@ -12,7 +12,7 @@ trait MillPublishModule extends PublishModule {
 
   def pomSettings = PomSettings(
     organization = "com.lihaoyi",
-    description = publishName(),
+    description = artifactId(),
     developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi/mill")),
     licenses = Seq(License("MIT License", "https://spdx.org/licenses/MIT.html#licenseText")),
     scm = SCM("https://github.com/lihaoyi/mill", "scm:git:https://github.com/lihaoyi/mill.git"),

@@ -257,29 +257,32 @@ trait ScalaModule extends Module with TaskModule { outer =>
       options = Seq("-usejavacp")
     )
   }
+
+  // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
+  def crossFullScalaVersion: T[Boolean] = false
+
+  def artifactName: T[String] = basePath.last.toString
+  def artifactScalaVersion: T[String] = T {
+    if (crossFullScalaVersion()) scalaVersion()
+    else scalaBinaryVersion()
+  }
+
+  def artifactId: T[String] = T { s"${artifactName()}_${artifactScalaVersion()}" }
+
 }
 
 trait PublishModule extends ScalaModule { outer =>
   import mill.scalaplugin.publish._
 
-  def publishName: T[String] = basePath.last.toString
-  def publishVersion: T[String] = "0.0.1-SNAPSHOT"
   def pomSettings: T[PomSettings]
-
-  // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
-  def publishWithFullScalaVersion: Boolean = false
-
-  def artifactScalaVersion: T[String] = T {
-    if (publishWithFullScalaVersion) scalaVersion()
-    else scalaBinaryVersion()
-  }
+  def publishVersion: T[String] = "0.0.1-SNAPSHOT"
 
   def pom = T {
     val dependencies =
       ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
-    val pom = Pom(artifact(), dependencies, publishName(), pomSettings())
+    val pom = Pom(artifact(), dependencies, artifactName(), pomSettings())
 
-    val pomPath = T.ctx().dest / s"${publishName()}_${artifactScalaVersion()}-${publishVersion()}.pom"
+    val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
   }
@@ -294,7 +297,7 @@ trait PublishModule extends ScalaModule { outer =>
   }
 
   def artifact: T[Artifact] = T {
-    Artifact(pomSettings().organization, s"${publishName()}_${artifactScalaVersion()}", publishVersion())
+    Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   def publishLocal(): define.Command[Unit] = T.command {
@@ -313,7 +316,7 @@ trait PublishModule extends ScalaModule { outer =>
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
   def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] = T.command {
-    val baseName = s"${publishName()}_${artifactScalaVersion()}-${publishVersion()}"
+    val baseName = s"${artifactId()}-${publishVersion()}"
     val artifacts = Seq(
       jar().path -> s"${baseName}.jar",
       sourcesJar().path -> s"${baseName}-sources.jar",

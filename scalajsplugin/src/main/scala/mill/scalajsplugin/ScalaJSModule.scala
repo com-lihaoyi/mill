@@ -7,20 +7,31 @@ import ammonite.ops.Path
 import mill.eval.Result.Success
 import mill.scalajsplugin.Lib._
 import mill.scalaplugin.Lib.resolveDependencies
-import mill.scalaplugin.{Dep, ScalaModule, TestScalaModule}
+import mill.scalaplugin.{Dep, PublishModule, ScalaModule, TestScalaModule}
 
 trait ScalaJSModule extends ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
-  def scalaJSBinaryVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
+  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+
+  def scalaJSBinaryVersion = T{
+    scalaJSVersion() match {
+      case ReleaseVersion(major, minor, _) => s"$major.$minor"
+      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+      case _ => scalaJSVersion()
+    }
+  }
+
+  def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
   def scalaJSLinkerClasspath: T[Seq[PathRef]] = T{
-    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBinaryVersion().replace('.', '_')
+    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
     val jsBridgePath = sys.props(jsBridgeKey)
     if (jsBridgePath != null) Success(jsBridgePath.split(File.pathSeparator).map(f => PathRef(Path(f), quick = true)).toVector)
     else {
-      val dep = scalaJSLinkerIvyDep(scalaJSBinaryVersion())
+      val dep = scalaJSLinkerIvyDep(scalaJSBridgeVersion())
       resolveDependencies(
         repositories,
         scalaVersion(),
@@ -43,6 +54,15 @@ trait ScalaJSModule extends ScalaModule { outer =>
   override def scalacPluginIvyDeps = T{ Seq(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
 
   override def ivyDeps = T{ Seq(Dep("org.scala-js", "scalajs-library", scalaJSVersion())) }
+
+  // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
+  def crossFullScalaJSVersion: T[Boolean] = false
+  def artifactScalaJSVersion: T[String] = T {
+    if (crossFullScalaJSVersion()) scalaJSVersion()
+    else scalaJSBinaryVersion()
+  }
+
+  override def artifactId: T[String] = T { s"${artifactName()}_sjs${artifactScalaJSVersion()}_${artifactScalaVersion()}" }
 
 }
 
