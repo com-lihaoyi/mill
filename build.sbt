@@ -15,27 +15,6 @@ val sharedSettings = Seq(
   addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7")
 )
 
-val coreSettings = Seq(
-  sourceGenerators in Compile += Def.task {
-    import sys.process._
-    val dir = (sourceManaged in Compile).value
-    if (!dir.exists()) {
-      IO.createDirectory(dir)
-      Seq("amm", "shared.sc", "generateSources", dir.toString).!
-    }
-    IO.listFiles(dir).toSeq
-  }.taskValue,
-
-  sourceGenerators in Test += Def.task {
-    import sys.process._
-    val dir = (sourceManaged in Test).value
-    if (!dir.exists()) {
-      IO.createDirectory(dir)
-      Seq("amm", "shared.sc", "generateTests", dir.toString).!
-    }
-    IO.listFiles(dir).toSeq
-  }.taskValue
-)
 
 val pluginSettings = Seq(
   scalacOptions in Test ++= {
@@ -47,6 +26,26 @@ val pluginSettings = Seq(
     Seq(addPlugin, dummy)
   }
 )
+
+lazy val ammoniteRunner = project.settings(
+  libraryDependencies +=
+    "com.lihaoyi" % "ammonite" % "1.0.3" cross CrossVersion.full
+)
+
+
+def ammoniteRun(hole: SettingKey[File], args: String => List[String]) = Def.task{
+  if (!hole.value.exists()) {
+    IO.createDirectory(hole.value)
+    (runner in(ammoniteRunner, Compile)).value.run(
+      "ammonite.Main",
+      (dependencyClasspath in(ammoniteRunner, Compile)).value.files,
+      args(hole.value.toString),
+      streams.value.log
+    )
+  }
+  (hole.value ** "*.scala").get
+}
+
 
 def bridge(bridgeVersion: String) = Project(
   id = "bridge" + bridgeVersion.replace('.', '_'),
@@ -60,17 +59,13 @@ def bridge(bridgeVersion: String) = Project(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "org.scala-sbt" % "compiler-interface" % "1.0.5"
     ),
-    (sourceGenerators in Compile) += Def.task{
-      import sys.process._
-      val dir = (sourceManaged in Compile).value
-      if (!dir.exists()) {
-        IO.createDirectory(dir)
-        Seq("amm", "shared.sc", "downloadBridgeSource", dir.toString, bridgeVersion).!
-      }
-      (dir ** "*.scala").get
-    }.taskValue
+    (sourceGenerators in Compile) += ammoniteRun(
+      sourceManaged in Compile,
+      List("shared.sc", "downloadBridgeSource", _, bridgeVersion)
+    ).taskValue
   )
 )
+
 lazy val bridge2_10_6 = bridge("2.10.6")
 lazy val bridge2_11_8 = bridge("2.11.8")
 //lazy val bridge2_11_9 = bridge("2.11.9")
@@ -86,7 +81,6 @@ lazy val core = project
   .dependsOn(plugin)
   .settings(
     sharedSettings,
-    coreSettings,
     pluginSettings,
     name := "mill-core",
     libraryDependencies ++= Seq(
@@ -96,7 +90,14 @@ lazy val core = project
       "com.lihaoyi" % "ammonite" % "1.0.3-20-75e58ac" cross CrossVersion.full,
       "org.scala-sbt" %% "zinc" % "1.0.5",
       "org.scala-sbt" % "test-interface" % "1.0"
-    )
+    ),
+    sourceGenerators in Compile += {
+      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _)).taskValue
+    },
+
+    sourceGenerators in Test += {
+      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateTests", _)).taskValue
+    }
   )
 
 lazy val plugin = project
