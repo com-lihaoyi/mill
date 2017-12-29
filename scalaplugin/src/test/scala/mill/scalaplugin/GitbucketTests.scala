@@ -84,16 +84,14 @@ object Gitbucket extends GitbucketModule
 object GitbucketTests extends TestSuite {
   val workspacePath = pwd / 'target / 'workspace / "gitbucket"
   val outputPath = workspacePath / 'out
-
-  def eval[T](t: Task[T], mapping: Map[Target[_], LabelledTarget[_]]) =
-    TestEvaluator.eval(mapping, outputPath)(t)
-
   val gitbucketMapping = Discovered.mapping(Gitbucket)
+  lazy val eval = new TestEvaluator(gitbucketMapping, workspacePath)
+
 
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
-        val  Right((result, evalCount)) = eval(Gitbucket.compile, gitbucketMapping.value)
+        val  Right((result, evalCount)) = eval(Gitbucket.compile)
     }
 
 //    'test - {
@@ -104,7 +102,7 @@ object GitbucketTests extends TestSuite {
 //    }
 
     'assembly - {
-      val  Right((result, evalCount)) = eval(Gitbucket.assembly, gitbucketMapping.value)
+      val  Right((result, evalCount)) = eval(Gitbucket.assembly)
     }
   }
 

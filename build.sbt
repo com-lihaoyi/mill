@@ -139,7 +139,7 @@ lazy val scalalib = project
     fork := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
     javaOptions := bridgeProps.value.toSeq,
-    javaOptions in Test := bridgeProps.value.toSeq ++ Seq("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044"),
+    javaOptions in Test := bridgeProps.value.toSeq, // ++ Seq("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044"),
     libraryDependencies += "com.typesafe.play" %% "twirl-compiler" % "1.3.13" % "test"
   )
 lazy val scalajslib = project
