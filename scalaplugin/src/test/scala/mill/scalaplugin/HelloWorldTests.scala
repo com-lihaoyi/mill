@@ -1,5 +1,7 @@
 package mill.scalaplugin
 
+import java.util.jar.JarFile
+
 import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
@@ -9,6 +11,8 @@ import mill.eval.{Evaluator, Result}
 import mill.scalaplugin.publish._
 import sbt.internal.inc.CompileFailed
 import utest._
+
+import scala.collection.JavaConverters._
 
 trait HelloWorldModule extends ScalaModule {
   def scalaVersion = "2.12.4"
@@ -134,8 +138,7 @@ object HelloWorldTests extends TestSuite {
         val outPath = result.classes.path
         val analysisFile = result.analysisFile
         val outputFiles = ls.rec(outPath)
-        val expectedClassfiles =
-          compileClassfiles(workspacePath / 'compile / 'classes)
+        val expectedClassfiles = compileClassfiles.map(workspacePath / 'compile / 'classes / _)
         assert(
           outPath == workspacePath / 'compile / 'classes,
           exists(analysisFile),
@@ -265,20 +268,16 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
 
-        val unJarPath = workspacePath / 'unjar
-        mkdir(unJarPath)
-        %("tar", "xf", result.path, "-C", unJarPath)
+        val entries = new JarFile(result.path.toIO).entries().asScala.map(_.getName).toSet
 
-        val manifestFiles = Seq(
-          unJarPath / "META-INF",
-          unJarPath / "META-INF" / "MANIFEST.MF"
+        val manifestFiles = Seq[RelPath](
+          "META-INF" / "MANIFEST.MF"
         )
-        val expectedFiles = compileClassfiles(unJarPath) ++ manifestFiles
+        val expectedFiles = compileClassfiles ++ manifestFiles
 
-        val jarFiles = ls.rec(unJarPath)
         assert(
-          jarFiles.nonEmpty,
-          jarFiles.forall(expectedFiles.contains)
+          entries.nonEmpty,
+          entries == expectedFiles.map(_.toString()).toSet
         )
       }
       'runJar - {
@@ -306,12 +305,12 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: Path) = Seq(
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Person.class",
-    parentDir / "Person$.class"
+  def compileClassfiles = Seq[RelPath](
+    "Main.class",
+    "Main$.class",
+    "Main$delayedInit$body.class",
+    "Person.class",
+    "Person$.class"
   )
 
   def prepareWorkspace(): Unit = {
