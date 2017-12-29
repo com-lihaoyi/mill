@@ -72,7 +72,7 @@ object MacroErrorTests extends TestSuite{
             def down = T{ TestUtil.test(left, right) }
           }
         """)
-        assert(borkedCachedDiamond1.msg.contains("must be defs"))
+        assert(borkedCachedDiamond1.msg.contains("required: mill.Module"))
       }
     }
   }

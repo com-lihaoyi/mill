@@ -209,7 +209,7 @@ object EvaluationTests extends TestSuite{
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = T{ test() }
+          def up = T{ test.anon() }
           def left = T.task{ leftCount += 1; up() + 1 }
           def middle = T.task{ middleCount += 1; 100 }
           def right = T{ rightCount += 1; 10000 }

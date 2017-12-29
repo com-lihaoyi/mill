@@ -8,6 +8,7 @@ import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define.Task
+import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 import mill.util.{OSet, PrintLogger}
@@ -141,8 +142,8 @@ object RunScript{
         val json = for(t <- Seq(target)) yield {
           t match {
             case t: mill.define.Target[_] =>
-              for (labelled <- evaluator.labeling.get(t)) yield {
-                val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, labelled)._2
+              for (segments <- evaluator.moduleMapping.get(t.owner)) yield {
+                val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, segments :+ Segment.Label(t.name))._2
                 val metadata = upickle.json.read(jsonFile.toIO)
                 metadata(1)
               }

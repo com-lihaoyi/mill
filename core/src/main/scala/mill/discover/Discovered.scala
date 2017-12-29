@@ -19,7 +19,7 @@ class Discovered[T](val mirror: Mirror[T, T]){
   }
   def mapping(t: T) = {
     Discovered.Mapping(
-      targets(t).map(x => x.target -> x).toMap[Target[Any], LabelledTarget[_]],
+      targets(t).map(x => x.target -> x).toMap[Task[Any], LabelledTarget[_]],
       mirror,
       t
     )
@@ -31,7 +31,7 @@ object Discovered {
     // Magically injected by the `Evaluator`, rather than being constructed here
     def make() = ???
   }
-  case class Mapping[T](value: Map[Target[Any], LabelledTarget[_]],
+  case class Mapping[T](value: Map[Task[Any], LabelledTarget[_]],
                         mirror: Mirror[T, T],
                         base: T)
 

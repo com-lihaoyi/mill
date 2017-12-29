@@ -3,7 +3,7 @@ package mill.define
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
-
+import upickle.default.{Reader => R, Writer => W, ReadWriter => RW}
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
@@ -32,34 +32,42 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
   def self = this
 }
 
-trait Target[+T] extends Task[T]{
+trait NamedTask[+T] extends Task[T]{
+  def owner: Task.Module
+  def name: String
+}
+trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)
+  def enclosing: String
+  def readWrite: RW[_]
 }
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, Ctx] {
 
-  implicit def apply[T](t: T): Target[T] = macro targetImpl[T]
+  implicit def apply[T](t: T)(implicit r: R[T], w: W[T]): Target[T] = macro targetImpl[T]
 
-  implicit def apply[T](t: Result[T]): Target[T] = macro targetResultImpl[T]
+  implicit def apply[T](t: Result[T])(implicit r: R[T], w: W[T]): Target[T] = macro targetResultImpl[T]
 
-  def apply[T](t: Task[T]): Target[T] = macro targetTaskImpl[T]
+  def apply[T](t: Task[T])(implicit r: R[T], w: W[T]): Target[T] = macro targetTaskImpl[T]
 
   def command[T](t: Result[T]): Command[T] = macro commandImpl[T]
 
   def source(path: ammonite.ops.Path) = new Source(path)
 
-  def command[T](t: Task[T]): Command[T] = new Command(t)
+  def command[T](t: Task[T])(implicit c: Caller[Task.Module], n: sourcecode.Name): Command[T] = new Command(t, c.value, n.value)
 
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, Ctx]
   def task[T](t: Task[T]): Task[T] = t
 
-  def persistent[T](t: Result[T]): Target[T] = macro persistentImpl[T]
-  def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Persistent[T]] = {
+  def persistent[T](t: Result[T])(implicit r: R[T], w: W[T]): Target[T] = macro persistentImpl[T]
+  def persistentImpl[T: c.WeakTypeTag](c: Context)
+                                      (t: c.Expr[T])
+                                      (r: c.Expr[R[T]], w: c.Expr[W[T]]): c.Expr[Persistent[T]] = {
     import c.universe._
 
     c.Expr[Persistent[T]](
       mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree})"
+        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, _root_.sourcecode.Enclosing(), _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name(), upickle.default.ReadWriter($w.write, $r.read))"
       )
     )
   }
@@ -67,32 +75,38 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
 
     c.Expr[Command[T]](
-      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree})"
+      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name())"
     )
   }
 
-  def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]]): c.Expr[Target[T]] = {
+  def targetTaskImpl[T: c.WeakTypeTag](c: Context)
+                                      (t: c.Expr[Task[T]])
+                                      (r: c.Expr[R[T]], w: c.Expr[W[T]]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
       mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}($t, _root_.sourcecode.Enclosing())"
+        q"new ${weakTypeOf[TargetImpl[T]]}($t, _root_.sourcecode.Enclosing(), _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name(), upickle.default.ReadWriter($w.write, $r.read))"
       )
     )
   }
-  def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[Target[T]] = {
+  def targetImpl[T: c.WeakTypeTag](c: Context)
+                                  (t: c.Expr[T])
+                                  (r: c.Expr[R[T]], w: c.Expr[W[T]]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
       mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing())"
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, _root_.sourcecode.Enclosing(), _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name(), upickle.default.ReadWriter($w.write, $r.read))"
       )
     )
   }
 
-  def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]]): c.Expr[Target[T]] = {
+  def targetResultImpl[T: c.WeakTypeTag](c: Context)
+                                        (t: c.Expr[Result[T]])
+                                        (r: c.Expr[R[T]], w: c.Expr[W[T]]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
       mill.plugin.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, _root_.sourcecode.Enclosing())"
+        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, _root_.sourcecode.Enclosing(), _root_.mill.define.Caller[mill.define.Task.Module](), _root_.sourcecode.Name(), upickle.default.ReadWriter($w.write, $r.read))"
       )
     )
   }
@@ -109,19 +123,36 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
 }
-class TargetImpl[+T](t: Task[T], enclosing: String) extends Target[T] {
+case class Caller[A](value: A)
+object Caller {
+  def apply[T]()(implicit c: Caller[T]) = c.value
+  implicit def generate[T]: Caller[T] = macro impl[T]
+  def impl[T: c.WeakTypeTag](c: Context): c.Tree = {
+    import c.universe._
+    q"new _root_.mill.define.Caller[${weakTypeOf[T]}](this)"
+  }
+}
+
+class TargetImpl[+T](t: Task[T],
+                     val enclosing: String,
+                     val owner: Task.Module,
+                     val name: String,
+                     val readWrite: RW[_]) extends Target[T] {
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
   override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
-class Command[+T](t: Task[T]) extends Task[T] {
+class Command[+T](t: Task[T], val owner: Task.Module, val name: String) extends NamedTask[T] {
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
   override def asCommand = Some(this)
 }
-class Persistent[+T](t: Task[T]) extends Target[T] {
-  val inputs = Seq(t)
-  def evaluate(args: Ctx) = args[T](0)
+class Persistent[+T](t: Task[T],
+                     enclosing: String,
+                     owner: Task.Module,
+                     name: String,
+                     readWrite: RW[_])
+  extends TargetImpl[T](t, enclosing, owner, name, readWrite) {
   override def flushDest = false
   override def asPersistent = Some(this)
 }

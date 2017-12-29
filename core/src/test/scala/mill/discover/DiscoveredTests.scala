@@ -49,7 +49,7 @@ object DiscoveredTests extends TestSuite{
     }
 
     'commands - {
-      object outer {
+      object outer extends mill.Module{
         def hello() = T.command{
           println("Hello")
         }
@@ -89,14 +89,15 @@ object DiscoveredTests extends TestSuite{
     'compileError - {
       'unserializableTarget - {
 
+
         object outer extends Module {
-          def single = mill.T{ new InputStreamReader(System.in) }
+          val error = compileError("def single = mill.T{ new InputStreamReader(System.in) }")
         }
 
-        val error = compileError("Discovered.make[outer.type]")
+
         assert(
-          error.msg.contains("uPickle does not know how to read"),
-          error.pos.contains("def single = mill.T{ new InputStreamReader(System.in) }")
+          outer.error.msg.contains("uPickle does not know how to read"),
+          outer.error.pos.contains("def single = mill.T{ new InputStreamReader(System.in) }")
         )
       }
 

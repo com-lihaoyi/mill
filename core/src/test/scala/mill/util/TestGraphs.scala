@@ -15,20 +15,20 @@ import mill.{Module, T}
   */
 class TestGraphs(){
   // single
-  object singleton {
+  object singleton extends Module{
     val single = test()
   }
 
   // up---down
-  object pair {
+  object pair extends Module {
     val up = test()
     val down = test(up)
   }
 
   // up---o---down
-  object anonTriple{
+  object anonTriple extends Module{
     val up = test()
-    val down = test(test(up))
+    val down = test(test.anon(up))
   }
 
   //   left
@@ -36,7 +36,7 @@ class TestGraphs(){
   // up    down
   //   \   /
   //   right
-  object diamond{
+  object diamond extends Module{
     val up = test()
     val left = test(up)
     val right = test(up)
@@ -48,9 +48,9 @@ class TestGraphs(){
   // up   down
   //   \ /
   //    o
-  object anonDiamond{
+  object anonDiamond extends Module{
     val up = test()
-    val down = test(test(up), test(up))
+    val down = test(test.anon(up), test.anon(up))
   }
 
   object defCachedDiamond extends Module{
@@ -68,7 +68,7 @@ class TestGraphs(){
     def down = test(left, right)
   }
 
-  object borkedCachedDiamond3 {
+  object borkedCachedDiamond3 extends Module {
     def up = test()
     def left = test(up)
     def right = test(up)
@@ -86,22 +86,22 @@ class TestGraphs(){
   //       o          o---F---o
   //      /          /
   //  o--B          o
-  object bigSingleTerminal{
-    val a = test(test(), test())
-    val b = test(test())
+  object bigSingleTerminal extends Module{
+    val a = test(test.anon(), test.anon())
+    val b = test(test.anon())
     val e = {
-      val c = test(a)
-      val d = test(a)
-      test(test(test(), test(c)), test(test(c, test(d, b))))
+      val c = test.anon(a)
+      val d = test.anon(a)
+      test(test.anon(test.anon(), test.anon(c)), test.anon(test.anon(c, test.anon(d, b))))
     }
-    val f = test(test(test(), test(e)))
+    val f = test(test.anon(test.anon(), test.anon(e)))
 
     val i = {
-      val g = test()
-      val h = test(g, e)
-      test(test(g), test(test(h)))
+      val g = test.anon()
+      val h = test.anon(g, e)
+      test(test.anon(g), test.anon(test.anon(h)))
     }
-    val j = test(test(i), test(i, f), test(f))
+    val j = test(test.anon(i), test.anon(i, f), test.anon(f))
   }
 }
 object TestGraphs{

@@ -56,10 +56,11 @@ object Mirror{
     rec(Nil, hierarchy)
   }
 
+
   /**
     * A target after being materialized in a concrete build
     */
-  case class LabelledTarget[V](target: Target[V],
+  case class LabelledTarget[V](target: Task[V],
                                format: upickle.default.ReadWriter[V],
                                segments: Seq[Segment])
 

@@ -1,33 +1,51 @@
 package mill.util
 
-import mill.define.{Target, Task}
+import mill.define.{Caller, Target, Task}
 import mill.eval.Result
 import utest.assert
 
 import scala.collection.mutable
 
 object TestUtil {
-  def test(inputs: Task[Int]*) = {
-    new Test(inputs, pure = inputs.nonEmpty)
+  object test{
+
+    def anon(inputs: Task[Int]*) = new Test(inputs)
+    def apply(inputs: Task[Int]*)
+            (implicit enclosing0: sourcecode.Enclosing,
+             owner0: Caller[mill.Module],
+             name0: sourcecode.Name)= {
+      new TestTarget(inputs, pure = inputs.nonEmpty)
+    }
   }
 
-  /**
-    * A dummy target that takes any number of inputs, and whose output can be
-    * controlled externally, so you can construct arbitrary dataflow graphs and
-    * test how changes propagate.
-    */
-  class Test(override val inputs: Seq[Task[Int]],
-             val pure: Boolean) extends Target[Int]{
+  class Test(val inputs: Seq[Task[Int]]) extends Task[Int]{
     var counter = 0
     var failure = Option.empty[String]
     var exception = Option.empty[Throwable]
     override def evaluate(args: Ctx) = {
       failure.map(Result.Failure) orElse
-      exception.map(Result.Exception) getOrElse
-      Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
+        exception.map(Result.Exception) getOrElse
+        Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
     }
-
     override def sideHash = counter + failure.hashCode() + exception.hashCode()
+  }
+  /**
+    * A dummy target that takes any number of inputs, and whose output can be
+    * controlled externally, so you can construct arbitrary dataflow graphs and
+    * test how changes propagate.
+    */
+  class TestTarget(inputs: Seq[Task[Int]],
+             val pure: Boolean)
+            (implicit enclosing0: sourcecode.Enclosing,
+             owner0: Caller[mill.Module],
+             name0: sourcecode.Name)
+    extends Test(inputs) with Target[Int]{
+    val enclosing = enclosing0.value
+    val owner = owner0.value
+    val name = name0.value
+    val readWrite = upickle.default.IntRW
+
+
   }
   def checkTopological(targets: OSet[Task[_]]) = {
     val seen = mutable.Set.empty[Task[_]]

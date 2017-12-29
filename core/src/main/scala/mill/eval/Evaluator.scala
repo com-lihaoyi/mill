@@ -4,30 +4,48 @@ import java.net.URLClassLoader
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
-import mill.define.{Graph, Target, Task, Worker}
+import mill.define._
 import mill.discover.{Discovered, Mirror}
-import mill.discover.Mirror.LabelledTarget
-import mill.discover.Mirror.Segment.{Cross, Label}
+import mill.discover.Mirror.{LabelledTarget, Segment}
 import mill.util
 import mill.util._
 
 import scala.collection.mutable
-
+case class Labelled[T](target: Task[T],
+                       format: Option[upickle.default.ReadWriter[T]],
+                       segments: Seq[Segment])
 class Evaluator[T](val workspacePath: Path,
                    val mapping: Discovered.Mapping[T],
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
-  val labeling = mapping.value
+
+  val moduleMapping = Mirror.traverse(mapping.base, mapping.mirror){ (mirror, segmentsRev) =>
+    val resolvedNode = mirror.node(
+      mapping.base,
+      segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+    )
+    Seq(resolvedNode -> segmentsRev.reverse)
+  }.toMap
+
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(Discovered.Mapping) = mapping
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
+    LabelledTarget
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: Target[_] if labeling.contains(t) || goals.contains(t) => Right(labeling(t))
+      case t: NamedTask[Any] if moduleMapping.contains(t.owner) =>
+        Right(Labelled(
+          t,
+          t match{
+            case t: Target[Any] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[Any]])
+            case _ => None
+          },
+          moduleMapping(t.owner) :+ Segment.Label(t.name)
+        ))
       case t if goals.contains(t) => Left(t)
     }
 
@@ -43,7 +61,7 @@ class Evaluator[T](val workspacePath: Path,
 
     }
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], LabelledTarget[_]], Result.Failing]
+    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing]
     for((k, vs) <- sortedGroups.items()){
       failing.addAll(k, vs.items.flatMap(results.get).collect{case f: Result.Failing => f})
     }
@@ -51,8 +69,7 @@ class Evaluator[T](val workspacePath: Path,
   }
 
 
-
-  def evaluateGroupCached(terminal: Either[Task[_], LabelledTarget[_]],
+  def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: OSet[Task[_]],
                           results: collection.Map[Task[_], Result[Any]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
@@ -78,7 +95,7 @@ class Evaluator[T](val workspacePath: Path,
         cached match{
           case Some(terminalResult) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
-            newResults(labelledTarget.target) = labelledTarget.format.read(terminalResult)
+            newResults(labelledTarget.target) = labelledTarget.format.get.read(terminalResult)
             (newResults, Nil)
 
           case _ =>
@@ -100,10 +117,12 @@ class Evaluator[T](val workspacePath: Path,
               case Result.Success(v) =>
                 val terminalResult = labelledTarget
                   .format
-                  .asInstanceOf[upickle.default.ReadWriter[Any]]
-                  .write(v)
+                  .asInstanceOf[Option[upickle.default.ReadWriter[Any]]]
+                  .map(_.write(v))
 
-                write.over(metadataPath, upickle.default.write(inputsHash -> terminalResult, indent = 4))
+                for(t <- terminalResult){
+                  write.over(metadataPath, upickle.default.write(inputsHash -> t, indent = 4))
+                }
               case _ =>
                 // Wipe out any cached metadata.mill.json file that exists, so
                 // a following run won't look at the cached metadata file and
@@ -206,7 +225,13 @@ class Evaluator[T](val workspacePath: Path,
 
 object Evaluator{
   def resolveDestPaths(workspacePath: Path, t: LabelledTarget[_]): (Path, Path) = {
-    val segmentStrings = t.segments.flatMap{
+    resolveDestPaths(workspacePath, t.segments)
+  }
+  def resolveDestPaths(workspacePath: Path, t: Labelled[_]): (Path, Path) = {
+    resolveDestPaths(workspacePath, t.segments)
+  }
+  def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): (Path, Path) = {
+    val segmentStrings = segments.flatMap{
       case Mirror.Segment.Label(s) => Seq(s)
       case Mirror.Segment.Cross(values) => values.map(_.toString)
     }
@@ -225,7 +250,7 @@ object Evaluator{
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: OSet[Task[_]],
                      transitive: OSet[Task[_]],
-                     failing: MultiBiMap[Either[Task[_], LabelledTarget[_]], Result.Failing]){
+                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing]){
     def values = rawValues.collect{case Result.Success(v) => v}
   }
 }
