@@ -12,7 +12,7 @@ object DiscoveredTests extends TestSuite{
   val tests = Tests{
 
     'targets - {
-      val discovered = Discovered.make[nestedModule.type]
+      val discovered = Discovered.mapping(nestedModule)
 
       def flatten(h: Mirror[nestedModule.type, _]): Seq[Any] = {
         h.node(nestedModule, Nil) :: h.children.flatMap{case (label, c) => flatten(c)}
@@ -26,7 +26,7 @@ object DiscoveredTests extends TestSuite{
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targets(nestedModule).map(x => x.segments -> x.target)
+      val mapped = discovered.targets.map(_.swap)
 
       val expected = Seq(
         (List(Label("classInstance"), Label("single")), nestedModule.classInstance.single),
@@ -37,9 +37,9 @@ object DiscoveredTests extends TestSuite{
     }
 
     'traitWithModule - {
-      val discovered = Discovered.make[TraitWithModuleObject.type]
-      val mapped = discovered.targets(TraitWithModuleObject).map(x => x.segments -> x.target)
-      val expected = Seq(
+      val discovered = Discovered.mapping(TraitWithModuleObject)
+      val mapped = discovered.targets.map(_.swap)
+      val expected = Map(
         (
           List(Label("TraitModule"), Label("testFramework")),
           TraitWithModuleObject.TraitModule.testFramework

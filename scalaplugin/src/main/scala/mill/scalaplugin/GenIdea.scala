@@ -2,7 +2,7 @@ package mill.scalaplugin
 
 import ammonite.ops._
 import mill.define.Target
-import mill.discover.Mirror.{LabelledTarget, Segment}
+import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.Ctx.LoaderCtx
@@ -80,7 +80,7 @@ object GenIdea {
 
       val (destPath, jsonPath) = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
-        evaluator.mapping.value(mod.compile)
+        evaluator.mapping.modules(mod.compile)
       )
 
       val elem = moduleXmlTemplate(

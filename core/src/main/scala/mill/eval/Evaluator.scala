@@ -6,7 +6,7 @@ import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define._
 import mill.discover.{Discovered, Mirror}
-import mill.discover.Mirror.{LabelledTarget, Segment}
+import mill.discover.Mirror.Segment
 import mill.util
 import mill.util._
 
@@ -20,31 +20,23 @@ class Evaluator[T](val workspacePath: Path,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
 
-  val moduleMapping = Mirror.traverse(mapping.base, mapping.mirror){ (mirror, segmentsRev) =>
-    val resolvedNode = mirror.node(
-      mapping.base,
-      segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
-    )
-    Seq(resolvedNode -> segmentsRev.reverse)
-  }.toMap
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(Discovered.Mapping) = mapping
   def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
-    LabelledTarget
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any] if moduleMapping.contains(t.owner) =>
+      case t: NamedTask[Any] if mapping.modules.contains(t.owner) =>
         Right(Labelled(
           t,
           t match{
             case t: Target[Any] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[Any]])
             case _ => None
           },
-          moduleMapping(t.owner) :+ Segment.Label(t.name)
+          mapping.modules(t.owner) :+ Segment.Label(t.name)
         ))
       case t if goals.contains(t) => Left(t)
     }
@@ -224,9 +216,6 @@ class Evaluator[T](val workspacePath: Path,
 
 
 object Evaluator{
-  def resolveDestPaths(workspacePath: Path, t: LabelledTarget[_]): (Path, Path) = {
-    resolveDestPaths(workspacePath, t.segments)
-  }
   def resolveDestPaths(workspacePath: Path, t: Labelled[_]): (Path, Path) = {
     resolveDestPaths(workspacePath, t.segments)
   }

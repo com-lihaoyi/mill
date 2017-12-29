@@ -2,7 +2,7 @@ package mill.discover
 
 import mill.{Module, T}
 import mill.define.Cross
-import mill.discover.Mirror.{LabelledTarget, Segment}
+import mill.discover.Mirror.Segment
 import mill.discover.Mirror.Segment.Label
 import mill.util.TestUtil.test
 import utest._
@@ -75,17 +75,17 @@ object CrossModuleTests extends TestSuite{
     }
     'crossTargetDiscovery - {
 
-      val discovered = Discovered.make[singleCross.type].targets(singleCross)
+      val discovered = Discovered.mapping(singleCross)
 
-      val segments = discovered.map(_.segments)
-      val expectedSegments = List(
+      val segments = discovered.targets.values.toSet
+      val expectedSegments = Set(
         List(Label("cross"), Segment.Cross(List("210")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("211")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("212")), Label("suffix"))
       )
       assert(segments == expectedSegments)
-      val targets = discovered.map(_.target)
-      val expected = List(
+      val targets = discovered.targets.keys.toSet
+      val expected = Set(
         singleCross.cross("210").suffix,
         singleCross.cross("211").suffix,
         singleCross.cross("212").suffix
@@ -94,25 +94,24 @@ object CrossModuleTests extends TestSuite{
     }
 
     'doubleCrossTargetDiscovery - {
-      val discovered = Discovered.make[doubleCross.type]
-      val targets = discovered.targets(doubleCross).map(_.target)
+      val discovered = Discovered.mapping(doubleCross)
+      val targets = discovered.targets.keys.toSet
 
-      val expected = List(
+      val expected = Set(
         doubleCross.cross("jvm", "210").suffix,
         doubleCross.cross("js", "210").suffix,
         doubleCross.cross("jvm", "211").suffix,
         doubleCross.cross("js", "211").suffix,
         doubleCross.cross("jvm", "212").suffix,
         doubleCross.cross("js", "212").suffix,
-        doubleCross.cross("native", "212").suffix,
-
+        doubleCross.cross("native", "212").suffix
       )
       assert(targets == expected)
     }
 
     'nestedCrosses - {
-      val discovered = Discovered.make[nestedCrosses.type].targets(nestedCrosses)
-      assert(discovered.length == 9)
+      val discovered = Discovered.mapping(nestedCrosses).targets
+      assert(discovered.size == 9)
     }
   }
 }

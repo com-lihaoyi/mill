@@ -142,7 +142,7 @@ object RunScript{
         val json = for(t <- Seq(target)) yield {
           t match {
             case t: mill.define.Target[_] =>
-              for (segments <- evaluator.moduleMapping.get(t.owner)) yield {
+              for (segments <- evaluator.mapping.modules.get(t.owner)) yield {
                 val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, segments :+ Segment.Label(t.name))._2
                 val metadata = upickle.json.read(jsonFile.toIO)
                 metadata(1)

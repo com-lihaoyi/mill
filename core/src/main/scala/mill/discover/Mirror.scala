@@ -17,12 +17,7 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          commands: Seq[EntryPoint[V]],
                          targets: Seq[Mirror.TargetPoint[V, _]],
                          children: List[(String, Mirror[T, _])],
-                         crossChildren: Option[(V => List[List[Any]], Mirror[T, _])]){
-  def labelled(obj: T, p: Seq[Mirror.Segment]) = {
-    val crossValues = p.map{case Mirror.Segment.Cross(vs) => vs case _ => Nil}.toList
-    targets.map(t => t.labelled(node(obj, crossValues.reverse.map(_.toList)), p.reverse))
-  }
-}
+                         crossChildren: Option[(V => List[List[Any]], Mirror[T, _])])
 
 object Mirror{
   def renderSelector(selector: Seq[Mirror.Segment]) = {
@@ -58,29 +53,8 @@ object Mirror{
 
 
   /**
-    * A target after being materialized in a concrete build
-    */
-  case class LabelledTarget[V](target: Task[V],
-                               format: upickle.default.ReadWriter[V],
-                               segments: Seq[Segment])
-
-  /**
     * Represents metadata about a particular target, before the target is
     * materialized for a concrete build
     */
-  case class TargetPoint[T, V](label: String,
-                               format: upickle.default.ReadWriter[V],
-                               run: T => Target[V]) {
-    def labelled(t: T, segments: Seq[Segment]) = {
-      LabelledTarget(run(t), format, segments :+ Segment.Label(label))
-    }
-  }
-
-  def makeTargetPoint[T, V](label: String, func: T => Target[V])
-                (implicit f1: upickle.default.Reader[V],
-                 f2: upickle.default.Writer[V]) = {
-
-    val f = upickle.default.ReadWriter(f2.write, f1.read)
-    TargetPoint(label, f, func)
-  }
+  case class TargetPoint[T, V](label: String, run: T => Target[V])
 }

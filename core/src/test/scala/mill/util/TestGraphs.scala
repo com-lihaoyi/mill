@@ -187,14 +187,13 @@ object TestGraphs{
       }
   }
   object doubleCross{
-    val cross =
-      for{
-        scalaVersion <- mill.define.Cross("210", "211", "212")
-        platform <- mill.define.Cross("jvm", "js", "native")
-        if !(platform == "native" && scalaVersion != "212")
-      } yield new Module{
-        def suffix = T{ scalaVersion + "_" + platform }
-      }
+    val cross = for{
+      scalaVersion <- mill.define.Cross("210", "211", "212")
+      platform <- mill.define.Cross("jvm", "js", "native")
+      if !(platform == "native" && scalaVersion != "212")
+    } yield new Module{
+      def suffix = T{ scalaVersion + "_" + platform }
+    }
   }
 
   object indirectNestedCrosses{

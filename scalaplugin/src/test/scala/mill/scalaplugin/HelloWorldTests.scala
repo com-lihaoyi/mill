@@ -166,7 +166,7 @@ object HelloWorldTests extends TestSuite {
 
         val (compilePath, compileMetadataPath) = Evaluator.resolveDestPaths(
           workspacePath,
-          helloWorldEvaluator.evaluator.mapping.value(HelloWorld.compile)
+          helloWorldEvaluator.evaluator.mapping.targets(HelloWorld.compile)
         )
 
         assert(

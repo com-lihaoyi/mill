@@ -2,9 +2,8 @@ package mill.discover
 
 import mill.define.Task.Module
 import mill.define.{Cross, Target, Task}
-import mill.discover.Mirror.LabelledTarget
 import ammonite.main.Router
-import ammonite.main.Router.{EntryPoint, Result}
+import mill.discover.Mirror.{Segment, TargetPoint}
 import mill.util.Ctx.Loader
 
 import scala.language.experimental.macros
@@ -14,16 +13,7 @@ import scala.reflect.macros.blackbox.Context
   * Allows you to implicitly summon up a build [[Mirror]] for arbitrary types
   */
 class Discovered[T](val mirror: Mirror[T, T]){
-  def targets(obj: T) = Mirror.traverse(obj, mirror) { (h, p) =>
-    h.labelled(obj, p)
-  }
-  def mapping(t: T) = {
-    Discovered.Mapping(
-      targets(t).map(x => x.target -> x).toMap[Task[Any], LabelledTarget[_]],
-      mirror,
-      t
-    )
-  }
+  def mapping(t: T) = Discovered.Mapping(mirror, t)
 }
 
 object Discovered {
@@ -31,17 +21,36 @@ object Discovered {
     // Magically injected by the `Evaluator`, rather than being constructed here
     def make() = ???
   }
-  case class Mapping[T](value: Map[Task[Any], LabelledTarget[_]],
-                        mirror: Mirror[T, T],
-                        base: T)
+  case class Mapping[T](mirror: Mirror[T, T],
+                        base: T){
+    val modules = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
+      val resolvedNode = mirror.node(
+        base,
+        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+      )
+      Seq(resolvedNode -> segmentsRev.reverse)
+    }.toMap
+    val targets = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
+      val resolvedNode = mirror.node(
+        base,
+        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+      )
+      for(target <- mirror.targets) yield {
+
+        target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode) -> (segmentsRev.reverse :+ Segment.Label(target.label))
+      }
+
+    }.toMap
+
+  }
 
   def consistencyCheck[T](mapping: Discovered.Mapping[T]) = {
-    val d = new Discovered(mapping.mirror)
-    val inconsistent = for{
-      (t1, t2) <- d.targets(mapping.base).zip(d.targets(mapping.base))
-      if t1.target ne t2.target
-    } yield t1.segments
-    inconsistent
+    val mapping2 = Discovered.Mapping(mapping.mirror, mapping.base)
+
+    for{
+      (t1, t2) <- mapping2.targets.zip(mapping.targets)
+      if t1._1 ne t2._1
+    } yield t1._2
   }
 
 
@@ -70,7 +79,7 @@ object Discovered {
            m.isPublic
       } yield {
         val x = Ident(TermName(c.freshName()))
-        val t = q"""mill.discover.Mirror.makeTargetPoint(
+        val t = q"""mill.discover.Mirror.TargetPoint(
           ${m.name.toString},
           ($x: ${m.typeSignature.resultType}) => $x.${m.name.toTermName}
         )"""
