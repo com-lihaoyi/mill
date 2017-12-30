@@ -56,6 +56,32 @@ def generateTarget(dir: Path) = {
   )
 }
 
+def generateEval(dir: Path) = {
+  def generate(n: Int) = {
+    val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
+    val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
+    val extract    = uppercases.zipWithIndex.map { case (t, i) =>  s"result($i).asInstanceOf[$t]" }.mkString(", ")
+
+    s"""def eval[$typeArgs]($parameters):($typeArgs) = {
+       |  val result = evaluator.evaluate(OSet($zipArgs)).values
+       |  (${extract})
+       |}
+     """.stripMargin
+  }
+
+  write(
+    dir / "EvalGenerated.scala",
+    s"""package mill.main
+       |import mill.eval.Evaluator
+       |import mill.define.Task
+       |import mill.util.OSet
+       |class EvalGenerated(evaluator: Evaluator[_]) {
+       |  type TT[+X] = Task[X]
+       |  ${(1 to 22).map(generate).mkString("\n")}
+       |}""".stripMargin
+  )
+}
+
 def generateApplicativeTest(dir: Path) = {
   def generate(n: Int): String = {
     val (lowercases, uppercases, typeArgs, zipArgs) = argNames(n)
@@ -78,6 +104,7 @@ def generateApplicativeTest(dir: Path) = {
 def generateSources(p: Path) = {
   generateApplyer(p)
   generateTarget(p)
+  generateEval(p)
 }
 
 @main

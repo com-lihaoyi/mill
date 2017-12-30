@@ -116,6 +116,11 @@ Point(Dependency(com.lihaoyi:ammonite,1.0.3,,Set(),Attributes(,),false,true))
 Scala(Dependency(com.typesafe.play:play-json,2.6.6,,Set(),Attributes(,),false,true))
 Scala(Dependency(org.scala-sbt:zinc,1.0.5,,Set(),Attributes(,),false,true))
 Java(Dependency(org.scala-sbt:test-interface,1.0,,Set(),Attributes(,),false,true))
+
+// run multiple tasks with `eval` function.
+@ val (coreScala, bridge2106Scala) = eval(core.scalaVersion, bridges("2.10.6").scalaVersion)
+coreScala: String = "2.12.4"
+bridge2106Scala: String = "2.10.6"
 ```
 
 ### build.sc

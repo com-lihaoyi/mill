@@ -46,6 +46,7 @@ object Main {
             predefCode =
               """import $file.build, build._
                 |implicit val replApplyHandler = mill.main.ReplApplyHandler(build.mapping)
+                |import replApplyHandler.generatedEval._
                 |
               """.stripMargin,
             welcomeBanner = None

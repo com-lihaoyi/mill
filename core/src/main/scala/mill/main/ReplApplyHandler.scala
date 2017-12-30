@@ -25,4 +25,6 @@ class ReplApplyHandler(evaluator: Evaluator[_]) extends ApplyHandler[Task] {
   override def apply[V](t: Task[V]) = {
     evaluator.evaluate(OSet(t)).values.head.asInstanceOf[V]
   }
+
+  val generatedEval = new EvalGenerated(evaluator)
 }
