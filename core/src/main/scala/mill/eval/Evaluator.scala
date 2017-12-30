@@ -11,9 +11,13 @@ import mill.util
 import mill.util._
 
 import scala.collection.mutable
-case class Labelled[T](target: Task[T],
-                       format: Option[upickle.default.ReadWriter[T]],
-                       segments: Seq[Segment])
+case class Labelled[T](target: NamedTask[T],
+                       segments: Seq[Segment]){
+  def format = target match{
+    case t: Target[Any] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[Any]])
+    case _ => None
+  }
+}
 class Evaluator[T](val workspacePath: Path,
                    val mapping: Discovered.Mapping[T],
                    log: Logger,
@@ -29,15 +33,18 @@ class Evaluator[T](val workspacePath: Path,
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any] if mapping.modules.contains(t.owner) =>
-        Right(Labelled(
-          t,
-          t match{
-            case t: Target[Any] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[Any]])
-            case _ => None
-          },
-          mapping.modules(t.owner) :+ Segment.Label(t.name)
-        ))
+      case t: NamedTask[Any] if mapping.modules.contains(t.owner)  =>
+        val segments = mapping.modules(t.owner) :+ Segment.Label(t.name)
+        val finalTaskOverrides = t match{
+          case t: Target[_] => mapping.segmentsToTargets(segments).overrides
+          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides
+        }
+        val delta = finalTaskOverrides - t.overrides
+        val additional =
+          if (delta == 0) Seq(segments.last)
+          else Seq(Segment.Label(segments.last.asInstanceOf[Segment.Label].value + "-override-" + delta))
+
+        Right(Labelled(t, segments.init ++ additional))
       case t if goals.contains(t) => Left(t)
     }
 

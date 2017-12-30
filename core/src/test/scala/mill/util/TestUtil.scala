@@ -1,5 +1,6 @@
 package mill.util
 
+import ammonite.main.Router.Overrides
 import mill.define.{Caller, Target, Task}
 import mill.eval.Result
 import utest.assert
@@ -38,8 +39,10 @@ object TestUtil {
              val pure: Boolean)
             (implicit enclosing0: sourcecode.Enclosing,
              owner0: Caller[mill.Module],
-             name0: sourcecode.Name)
+             name0: sourcecode.Name,
+             o: Overrides)
     extends Test(inputs) with Target[Int]{
+    val overrides = o.value
     val enclosing = enclosing0.value
     val owner = owner0.value
     val name = name0.value

@@ -30,8 +30,9 @@ val pluginSettings = Seq(
 )
 
 lazy val ammoniteRunner = project.settings(
+  scalaVersion := "2.12.4",
   libraryDependencies +=
-    "com.lihaoyi" % "ammonite" % "1.0.3" cross CrossVersion.full
+    "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
 )
 
 
@@ -89,7 +90,7 @@ lazy val core = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
       "com.lihaoyi" %% "sourcecode" % "0.1.4",
       "com.lihaoyi" %% "pprint" % "0.5.3",
-      "com.lihaoyi" % "ammonite" % "1.0.3-20-75e58ac" cross CrossVersion.full,
+      "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
       "org.scala-sbt" %% "zinc" % "1.0.5",
       "org.scala-sbt" % "test-interface" % "1.0"
     ),

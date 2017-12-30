@@ -167,6 +167,14 @@ object TestGraphs{
 
   }
 
+  trait BaseModule extends Module {
+    def foo = T{ Seq("base") }
+  }
+
+  object canOverrideSuper extends BaseModule {
+    override def foo = T{ super.foo() ++ Seq("object") }
+  }
+
   trait TraitWithModule extends Module{ outer =>
     object TraitModule extends Module{
       def testFramework = T{ "mill.UTestFramework" }

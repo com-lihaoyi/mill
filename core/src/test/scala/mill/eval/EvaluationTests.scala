@@ -196,6 +196,13 @@ object EvaluationTests extends TestSuite{
         checker(task2, 4, OSet(), extraEvaled = -1, secondRunNoOp = false)
       }
 
+      'overrideSuperTask - {
+        import canOverrideSuper._
+
+        val checker = new Checker(mapping(canOverrideSuper))
+        checker(foo, Seq("base", "object"), OSet(foo), extraEvaled = -1)
+      }
+
       'tasksAreUncached - {
         // Make sure the tasks `left` and `middle` re-compute every time, while
         // the target `right` does not

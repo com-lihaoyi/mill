@@ -65,7 +65,7 @@ object Core extends MillModule {
   def ivyDeps = Seq(
     Dep("com.lihaoyi", "sourcecode", "0.1.4"),
     Dep("com.lihaoyi", "pprint", "0.5.3"),
-    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-20-75e58ac"),
+    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-21-05b5d32"),
     Dep("com.typesafe.play", "play-json", "2.6.6"),
     Dep("org.scala-sbt", "zinc", "1.0.5"),
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
@@ -80,7 +80,8 @@ object Core extends MillModule {
   }
 
   def allSources = super.allSources() ++ Seq(generatedSources())
-  val test = new Tests{
+  val test = new Tests
+  class Tests extends super.Tests{
     def generatedSources = T{
       mkdir(T.ctx().dest)
       shared.generateTests(T.ctx().dest)

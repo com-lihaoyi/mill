@@ -3,6 +3,7 @@ package mill.discover
 import mill.define.Task.Module
 import mill.define.{Cross, Target, Task}
 import ammonite.main.Router
+import ammonite.main.Router.EntryPoint
 import mill.discover.Mirror.{Segment, TargetPoint}
 import mill.util.Ctx.Loader
 
@@ -30,18 +31,24 @@ object Discovered {
       )
       Seq(resolvedNode -> segmentsRev.reverse)
     }.toMap
+
     val targets = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
         segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
       )
       for(target <- mirror.targets) yield {
-
         target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode) -> (segmentsRev.reverse :+ Segment.Label(target.label))
       }
 
     }.toMap
 
+    val segmentsToCommands = Mirror.traverse[T, T, (Seq[Segment], EntryPoint[_])](base, mirror){ (mirror, segmentsRev) =>
+      for(command <- mirror.commands)
+      yield (segmentsRev.reverse :+ Segment.Label(command.name)) -> command
+    }.toMap
+
+    val segmentsToTargets = targets.map(_.swap)
   }
 
   def consistencyCheck[T](mapping: Discovered.Mapping[T]) = {

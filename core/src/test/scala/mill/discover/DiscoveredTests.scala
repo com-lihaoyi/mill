@@ -68,11 +68,12 @@ object DiscoveredTests extends TestSuite{
       val outerCommands = discovered.mirror.commands
 
       assertMatch(outerCommands){case Seq(
-        EntryPoint("hello", Nil, None, false, _),
+        EntryPoint("hello", Nil, None, false, _, _),
         EntryPoint("echoPair",
           List(ArgSig("prefix", "String", None, None), ArgSig("suffix", "String", None, None)),
           None,
           false,
+          _,
           _
         )
       ) =>}
@@ -82,7 +83,7 @@ object DiscoveredTests extends TestSuite{
         .flatMap(_._2.commands.asInstanceOf[Seq[EntryPoint[_]]])
 
       assertMatch(innerCommands){case Seq(
-        EntryPoint("inner", _, None, false, _),
+        EntryPoint("inner", _, None, false, _, _),
       ) =>}
     }
 
