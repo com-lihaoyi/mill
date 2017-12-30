@@ -139,9 +139,9 @@ object HelloWorldTests extends TestSuite {
         val outPath = result.classes.path
         val analysisFile = result.analysisFile
         val outputFiles = ls.rec(outPath)
-        val expectedClassfiles = compileClassfiles.map(workspacePath / 'compile / 'classes / _)
+        val expectedClassfiles = compileClassfiles.map(workspacePath / 'compile / 'dest / 'classes / _)
         assert(
-          outPath == workspacePath / 'compile / 'classes,
+          outPath == workspacePath / 'compile / 'dest / 'classes,
           exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -168,14 +168,14 @@ object HelloWorldTests extends TestSuite {
 
         assert(err.isInstanceOf[CompileFailed])
 
-        val (compilePath, compileMetadataPath) = Evaluator.resolveDestPaths(
+        val paths = Evaluator.resolveDestPaths(
           workspacePath,
           helloWorldEvaluator.evaluator.mapping.targets(HelloWorld.compile)
         )
 
         assert(
-          ls.rec(compilePath / 'classes).isEmpty,
-          !exists(compileMetadataPath)
+          ls.rec(paths.dest / 'classes).isEmpty,
+          !exists(paths.meta)
         )
         // Works when fixed
         write.over(mainObject, read(mainObject).dropRight("val x: ".length))
@@ -300,7 +300,7 @@ object HelloWorldTests extends TestSuite {
       'logOutputToFile {
         helloWorldEvaluator(HelloWorld.compile)
 
-        val logFile = workspacePath / "compile.log"
+        val logFile = workspacePath / 'compile / 'log
         assert(exists(logFile))
       }
     }

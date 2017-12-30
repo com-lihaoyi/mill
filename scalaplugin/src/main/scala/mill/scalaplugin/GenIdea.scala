@@ -78,14 +78,14 @@ object GenIdea {
       val Seq(sourcePath: PathRef) =
         evaluator.evaluate(OSet(mod.sources)).values
 
-      val (destPath, jsonPath) = Evaluator.resolveDestPaths(
+      val paths = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
         evaluator.mapping.modules(mod.compile)
       )
 
       val elem = moduleXmlTemplate(
         sourcePath.path,
-        Seq(destPath, jsonPath),
+        Seq(paths.base),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
         yield moduleName(moduleLabels(m))

@@ -41,10 +41,10 @@ class Evaluator[T](val workspacePath: Path,
         }
         val delta = finalTaskOverrides - t.overrides
         val additional =
-          if (delta == 0) Seq(segments.last)
-          else Seq(Segment.Label(segments.last.asInstanceOf[Segment.Label].value + "-override-" + delta))
+          if (delta == 0) Nil
+          else Seq(Segment.Label("override" + delta))
 
-        Right(Labelled(t, segments.init ++ additional))
+        Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)
     }
 
@@ -82,11 +82,12 @@ class Evaluator[T](val workspacePath: Path,
 
     terminal match{
       case Left(task) =>
-        evaluateGroup(group, results, targetDestPath = None, maybeTargetLabel = None)
+        evaluateGroup(group, results, paths = None, maybeTargetLabel = None)
       case Right(labelledTarget) =>
-        val (destPath, metadataPath) = Evaluator.resolveDestPaths(workspacePath, labelledTarget)
+        val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget)
+        mkdir(paths.base)
         val cached = for{
-          json <- scala.util.Try(upickle.json.read(read(metadataPath))).toOption
+          json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
           (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
           if cachedHash == inputsHash
         } yield terminalResult
@@ -105,11 +106,11 @@ class Evaluator[T](val workspacePath: Path,
               case Mirror.Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
-            if (labelledTarget.target.flushDest) rm(destPath)
+            if (labelledTarget.target.flushDest) rm(paths.dest)
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,
-              Some(destPath),
+              Some(paths),
               maybeTargetLabel = Some(msgParts.mkString))
 
             newResults(labelledTarget.target) match{
@@ -120,14 +121,14 @@ class Evaluator[T](val workspacePath: Path,
                   .map(_.write(v))
 
                 for(t <- terminalResult){
-                  write.over(metadataPath, upickle.default.write(inputsHash -> t, indent = 4))
+                  write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
                 }
               case _ =>
-                // Wipe out any cached metadata.mill.json file that exists, so
+                // Wipe out any cached meta.json file that exists, so
                 // a following run won't look at the cached metadata file and
                 // assume it's associated with the possibly-borked state of the
                 // destPath after an evaluation failure.
-                rm(metadataPath)
+                rm(paths.meta)
             }
 
 
@@ -140,7 +141,7 @@ class Evaluator[T](val workspacePath: Path,
 
   def evaluateGroup(group: OSet[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
-                    targetDestPath: Option[Path],
+                    paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String]) = {
 
 
@@ -160,7 +161,7 @@ class Evaluator[T](val workspacePath: Path,
       if(logRun) { log.info("Running " + targetLabel) }
     }
 
-    val multiLogger = resolveLogger(targetDestPath)
+    val multiLogger = resolveLogger(paths.map(_.log))
 
     for (target <- nonEvaluatedTargets) {
 
@@ -174,7 +175,7 @@ class Evaluator[T](val workspacePath: Path,
         else {
           val args = new Ctx(
             targetInputValues.toArray[Any],
-            targetDestPath.orNull,
+            paths.map(_.dest).orNull,
             multiLogger,
             new Ctx.LoaderCtx{
               def load[T](x: Ctx.Loader[T]): T = {
@@ -207,33 +208,27 @@ class Evaluator[T](val workspacePath: Path,
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(targetDestPath: Option[Path]): Logger = {
-    if (targetDestPath.isEmpty) log
-    else {
-      val path = targetDestPath.getOrElse(pwd/ 'out / 'command)
-      val dir = path / up
-      mkdir(dir)
-      val file = dir / (path.last + ".log")
-      rm(file)
-      MultiLogger(log, FileLogger(file))
-    }
+  def resolveLogger(logPath: Option[Path]): Logger = logPath match{
+    case None => log
+    case Some(path) =>
+      rm(path)
+      MultiLogger(log, FileLogger(path))
   }
-
 }
 
 
 object Evaluator{
-  def resolveDestPaths(workspacePath: Path, t: Labelled[_]): (Path, Path) = {
+  case class Paths(base: Path, dest: Path, meta: Path, log: Path)
+  def resolveDestPaths(workspacePath: Path, t: Labelled[_]): Paths = {
     resolveDestPaths(workspacePath, t.segments)
   }
-  def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): (Path, Path) = {
+  def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): Paths = {
     val segmentStrings = segments.flatMap{
       case Mirror.Segment.Label(s) => Seq(s)
       case Mirror.Segment.Cross(values) => values.map(_.toString)
     }
-    val targetDestPath = workspacePath / segmentStrings
-    val metadataPath = targetDestPath / up / (targetDestPath.last + ".mill.json")
-    (targetDestPath, metadataPath)
+    val targetPath = workspacePath / segmentStrings
+    Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
   }
 
   // check if the build itself has changed

@@ -123,7 +123,7 @@ object JavaCompileJarTests extends TestSuite{
       check(targets = OSet(allSources), expected = OSet(allSources))
       check(targets = OSet(jar), expected = OSet(classFiles, jar))
 
-      val jarContents = %%('jar, "-tf", workspacePath/'jar)(workspacePath).out.string
+      val jarContents = %%('jar, "-tf", workspacePath/'jar/'dest)(workspacePath).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |hello.txt
@@ -135,7 +135,7 @@ object JavaCompileJarTests extends TestSuite{
           |""".stripMargin
       assert(jarContents == expectedJarContents)
 
-      val executed = %%('java, "-cp", workspacePath/'jar, "test.Foo")(workspacePath).out.string
+      val executed = %%('java, "-cp", workspacePath/'jar/'dest, "test.Foo")(workspacePath).out.string
       assert(executed == (31337 + 271828) + "\n")
 
       for(i <- 0 until 3){

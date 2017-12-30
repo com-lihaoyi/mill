@@ -12,7 +12,7 @@ sbt core/test scalaplugin/test scalajsplugin/test bin/test:assembly
 bin/target/mill devAssembly
 
 # Second build & run tests using Mill
-out/devAssembly Core.test
-out/devAssembly ScalaPlugin.test
-out/devAssembly ScalaJSPlugin.test
-out/devAssembly devAssembly
+out/devAssembly/dest Core.test
+out/devAssembly/dest ScalaPlugin.test
+out/devAssembly/dest ScalaJSPlugin.test
+out/devAssembly/dest devAssembly
