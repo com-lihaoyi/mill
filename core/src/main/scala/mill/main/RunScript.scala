@@ -6,7 +6,7 @@ import ammonite.interp.Interpreter
 import ammonite.ops.{Path, pwd, read}
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
-import mill.define
+import mill.{PathRef, define}
 import mill.define.Task
 import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
@@ -27,8 +27,7 @@ object RunScript{
                 path: Path,
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])])
-  : Res[(Evaluator[_], Seq[(Path, Long)], Seq[(Any, Option[Js.Value])])] = {
+                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])]) = {
 
     val log = new PrintLogger(true)
     for{
@@ -40,15 +39,10 @@ object RunScript{
         case _ =>
           interp.watch(path)
           for(mapping <- evaluateMapping(wd, path, interp))
-          yield new Evaluator(pwd / 'out, mapping, log)
+          yield new Evaluator(pwd / 'out, pwd, mapping, log)
       }
-      evaluationWatches = mutable.Buffer.empty[(Path, Long)]
-      res <- Res(evaluateTarget(
-        evaluator,
-        scriptArgs,
-        p => evaluationWatches.append((p, Interpreter.pathSignature(p)))
-      ))
-    } yield (evaluator, evaluationWatches, res)
+      (watches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
+    } yield (evaluator, watches, res)
   }
 
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
@@ -98,8 +92,7 @@ object RunScript{
     } yield mapping
   }
   def evaluateTarget[T](evaluator: Evaluator[_],
-                        scriptArgs: Seq[String],
-                        watch: Path => Unit) = {
+                        scriptArgs: Seq[String]) = {
 
     val Seq(selectorString, rest @_*) = scriptArgs
     for {
@@ -112,17 +105,18 @@ object RunScript{
         sel, evaluator.mapping.mirror, evaluator.mapping.base,
         rest, crossSelectors, Nil
       )
-      res <- evaluate(evaluator, target, watch)
-    } yield res
+      (watched, res) = evaluate(evaluator, target)
+    } yield (watched, res)
   }
   def evaluate(evaluator: Evaluator[_],
-               target: Task[Any],
-               watch: Path => Unit): Either[String, Seq[(Any, Option[upickle.Js.Value])]] = {
+               target: Task[Any]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
     val evaluated = evaluator.evaluate(OSet(target))
-    evaluated.transitive.foreach {
-      case t: define.Source => watch(t.handle.path)
-      case _ => // do nothing
-    }
+    val watched = evaluated.results
+      .iterator
+      .collect {
+        case (t: define.Source[_], Result.Success(p: PathRef)) => p
+      }
+      .toSeq
 
     val errorStr =
       (for((k, fs) <- evaluated.failing.items()) yield {
@@ -151,8 +145,8 @@ object RunScript{
           }
         }
 
-        Right(evaluated.values.zip(json))
-      case n => Left(s"$n targets failed\n$errorStr")
+        watched -> Right(evaluated.values.zip(json))
+      case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }
 

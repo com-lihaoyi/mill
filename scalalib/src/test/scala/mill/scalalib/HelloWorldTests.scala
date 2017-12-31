@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
 
 trait HelloWorldModule extends scalalib.Module {
   def scalaVersion = "2.12.4"
-  def basePath = HelloWorldTests.workspacePath
+  def basePath = HelloWorldTests.workingSrcPath
 }
 
 object HelloWorld extends HelloWorldModule
@@ -66,31 +66,38 @@ object HelloWorldScalaOverride extends HelloWorldModule {
 object HelloWorldTests extends TestSuite {
 
   val srcPath = pwd / 'scalalib / 'src / 'test / 'resource / "hello-world"
-  val workspacePath = pwd / 'target / 'workspace / "hello-world"
-  val mainObject = workspacePath / 'src / 'main / 'scala / "Main.scala"
+  val basePath = pwd / 'target / 'workspace / "hello-world"
+  val workingSrcPath = basePath / 'src
+  val outPath = basePath / 'out
+  val mainObject = workingSrcPath / 'src / 'main / 'scala / "Main.scala"
 
 
 
 
   val helloWorldEvaluator = new TestEvaluator(
     Discovered.mapping(HelloWorld),
-    workspacePath
+    outPath,
+    workingSrcPath
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
     Discovered.mapping(HelloWorldWithMain),
-    workspacePath
+    outPath,
+    workingSrcPath
   )
   val helloWorldFatalEvaluator = new TestEvaluator(
     Discovered.mapping(HelloWorldFatalWarnings),
-    workspacePath
+    outPath,
+    workingSrcPath
   )
   val helloWorldOverrideEvaluator = new TestEvaluator(
     Discovered.mapping(HelloWorldScalaOverride),
-    workspacePath
+    outPath,
+    workingSrcPath
   )
   val helloWorldCrossEvaluator = new TestEvaluator(
     Discovered.mapping(CrossHelloWorld),
-    workspacePath
+    outPath,
+    workingSrcPath
   )
 
 
@@ -136,12 +143,11 @@ object HelloWorldTests extends TestSuite {
       'fromScratch - {
         val Right((result, evalCount)) = helloWorldEvaluator(HelloWorld.compile)
 
-        val outPath = result.classes.path
         val analysisFile = result.analysisFile
-        val outputFiles = ls.rec(outPath)
-        val expectedClassfiles = compileClassfiles.map(workspacePath / 'compile / 'dest / 'classes / _)
+        val outputFiles = ls.rec(result.classes.path)
+        val expectedClassfiles = compileClassfiles.map(outPath / 'compile / 'dest / 'classes / _)
         assert(
-          outPath == workspacePath / 'compile / 'dest / 'classes,
+          result.classes.path == outPath / 'compile / 'dest / 'classes,
           exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -169,7 +175,7 @@ object HelloWorldTests extends TestSuite {
         assert(err.isInstanceOf[CompileFailed])
 
         val paths = Evaluator.resolveDestPaths(
-          workspacePath,
+          outPath,
           helloWorldEvaluator.evaluator.mapping.targets(HelloWorld.compile)
         )
 
@@ -195,7 +201,7 @@ object HelloWorldTests extends TestSuite {
 
         assert(evalCount > 0)
 
-        val runResult = workspacePath / "hello-mill"
+        val runResult = basePath / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -210,7 +216,7 @@ object HelloWorldTests extends TestSuite {
 
           assert(evalCount > 0)
 
-          val runResult = workspacePath / "hello-mill"
+          val runResult = basePath / "hello-mill"
           assert(
             exists(runResult),
             read(runResult) == "hello rockjam, your age is: 25"
@@ -246,7 +252,7 @@ object HelloWorldTests extends TestSuite {
 
         assert(evalCount > 0)
 
-        val runResult = workspacePath / "hello-mill"
+        val runResult = basePath / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -291,7 +297,7 @@ object HelloWorldTests extends TestSuite {
 
         %("scala", result.path)
 
-        val runResult = workspacePath / "hello-mill"
+        val runResult = basePath / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -300,7 +306,7 @@ object HelloWorldTests extends TestSuite {
       'logOutputToFile {
         helloWorldEvaluator(HelloWorld.compile)
 
-        val logFile = workspacePath / 'compile / 'log
+        val logFile = outPath / 'compile / 'log
         assert(exists(logFile))
       }
     }
@@ -315,9 +321,10 @@ object HelloWorldTests extends TestSuite {
   )
 
   def prepareWorkspace(): Unit = {
-    rm(workspacePath)
-    mkdir(workspacePath / up)
-    cp(srcPath, workspacePath)
+    rm(outPath)
+    rm(workingSrcPath)
+    mkdir(outPath)
+    cp(srcPath, workingSrcPath)
   }
 
 }

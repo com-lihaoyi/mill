@@ -54,7 +54,8 @@ object HelloJSWorldTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     Discovered.mapping(HelloJSWorld),
-    workspacePath
+    workspacePath,
+    srcPath
   )
 
   class Console {

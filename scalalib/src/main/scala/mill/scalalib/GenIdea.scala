@@ -16,9 +16,8 @@ object GenIdea {
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
-    val workspacePath = pwd / 'out
 
-    val evaluator = new Evaluator(workspacePath, mapping, new PrintLogger(true))
+    val evaluator = new Evaluator(pwd / 'out, pwd, mapping, new PrintLogger(true))
 
     for((relPath, xml) <- xmlFileLayout(evaluator)){
       write.over(pwd/relPath, pp.format(xml))
@@ -85,7 +84,7 @@ object GenIdea {
 
       val elem = moduleXmlTemplate(
         sourcePath.path,
-        Seq(paths.base),
+        Seq(paths.out),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
         yield moduleName(moduleLabels(m))

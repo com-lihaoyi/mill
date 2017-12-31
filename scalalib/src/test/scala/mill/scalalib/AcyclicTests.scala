@@ -53,7 +53,7 @@ object AcyclicTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(AcyclicBuild)
-    val eval = new TestEvaluator(mapping, workspacePath)
+    val eval = new TestEvaluator(mapping, workspacePath, srcPath)
 
     def check(scalaVersion: String) = {
       // We can compile

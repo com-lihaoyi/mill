@@ -1,9 +1,9 @@
 package mill.main
-import ammonite.interp.Preprocessor
+import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util.{Imports, Name, Res, Util}
 import mill.discover.Discovered
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, PathRef}
 import upickle.Js
 
 /**
@@ -33,9 +33,20 @@ class MainRunner(config: ammonite.main.Cli.Config,
             )
             result match{
               case Res.Success(data) =>
-                val (eval, evaluationWatches, res) = data
+                val (eval, evaluationWatches0, res) = data
+                val alreadyStale = evaluationWatches0.exists(p => p.sig != PathRef(p.path, p.quick).sig)
+                // If the file changed between the creation of the original
+                // `PathRef` and the current moment, use random junk .sig values
+                // to force an immediate re-run. Otherwise calculate the
+                // pathSignatures the same way Ammonite would and hand over the
+                // values, so Ammonite can watch them and only re-run if they
+                // subsequently change
+                val evaluationWatches =
+                  if (alreadyStale) evaluationWatches0.map(_.path -> util.Random.nextLong())
+                  else evaluationWatches0.map(p => p.path -> Interpreter.pathSignature(p.path))
+
                 lastEvaluator = Some((interpWatched, eval))
-                (Res.Success(res.flatMap(_._2)), interpWatched ++ evaluationWatches)
+                (Res(res.map(_.flatMap(_._2))), interpWatched ++ evaluationWatches)
               case _ =>
                 (result, interpWatched)
             }

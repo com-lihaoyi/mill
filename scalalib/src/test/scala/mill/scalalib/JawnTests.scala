@@ -75,7 +75,7 @@ object JawnTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(JawnBuild)
-    val eval = new TestEvaluator(mapping, workspacePath)
+    val eval = new TestEvaluator(mapping, workspacePath, srcPath)
 
     'test - {
       def compileOutput = workspacePath / 'jawn / "2.12.3" / 'Parser / 'compile

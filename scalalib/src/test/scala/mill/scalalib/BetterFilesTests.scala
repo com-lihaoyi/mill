@@ -96,7 +96,7 @@ object BetterFilesTests extends TestSuite{
     mkdir(workspacePath/up)
     cp(srcPath, workspacePath)
     val mapping = Discovered.mapping(BetterFilesBuild)
-    val eval = new TestEvaluator(mapping, workspacePath)
+    val eval = new TestEvaluator(mapping, workspacePath, srcPath)
 
     'test - {
 

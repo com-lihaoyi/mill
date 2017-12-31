@@ -2,7 +2,7 @@ package mill.util
 
 import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
-import mill.util.Ctx.{ArgCtx, DestCtx, LoaderCtx, LogCtx}
+import mill.util.Ctx.{ArgCtx, BaseCtx, DestCtx, LoaderCtx, LogCtx}
 
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
@@ -13,14 +13,22 @@ object Ctx{
   implicit def taskCtx: Ctx = ???
 
   object DestCtx {
-    implicit def pathToCtx(path: Path): DestCtx =
-      new DestCtx { def dest: Path = path }
+    implicit def pathToCtx(path: Path): DestCtx = new DestCtx { def dest = path }
   }
   trait DestCtx{
     def dest: Path
   }
+  trait BaseCtx{
+    def base: Path
+  }
+  object BaseCtx {
+    implicit def pathToCtx(path: Path): BaseCtx = new BaseCtx { def base = path }
+  }
   trait LogCtx{
     def log: Logger
+  }
+  object LogCtx{
+    implicit def logToCtx(l: Logger): LogCtx = new LogCtx { def log = l }
   }
   trait ArgCtx{
     def args: IndexedSeq[_]
@@ -34,12 +42,14 @@ object Ctx{
 }
 class Ctx(val args: IndexedSeq[_],
           val dest: Path,
+          val base: Path,
           val log: Logger,
           workerCtx0: Ctx.LoaderCtx)
   extends DestCtx
   with LogCtx
   with ArgCtx
-  with LoaderCtx{
+  with LoaderCtx
+  with BaseCtx{
 
   def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length

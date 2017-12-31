@@ -4,19 +4,21 @@ import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
 
-trait Cacher[C[_]]{
-  private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, C[_]]
-  def wrapCached[T](in: C[T], enclosing: String): C[T]
-  protected[this] def cachedTarget[T](t: => C[T])
-                                     (implicit c: sourcecode.Enclosing): C[T] = synchronized{
-    cacherLazyMap.getOrElseUpdate(c, wrapCached(t, c.value)).asInstanceOf[C[T]]
+trait Cacher{
+  private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
+
+  protected[this] def cachedTarget[T](t: => T)
+                                     (implicit c: sourcecode.Enclosing): T = synchronized{
+    cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
   }
 }
+
 object Cacher{
-  def impl0[M[_], T: c.WeakTypeTag](c: Context)(t: c.Expr[M[T]]): c.Expr[M[T]] = {
-    c.Expr[M[T]](wrapCached(c)(t.tree))
+  def impl0[T: c.WeakTypeTag](c: Context)
+                                   (t: c.Expr[T]): c.Expr[T] = {
+    c.Expr[T](wrapCached[T](c)(t.tree))
   }
-  def wrapCached(c: Context)(t: c.Tree) = {
+  def wrapCached[R: c.WeakTypeTag](c: Context)(t: c.Tree) = {
 
     import c.universe._
     val owner = c.internal.enclosingOwner
@@ -24,7 +26,7 @@ object Cacher{
       owner.owner.isClass &&
         owner.owner.asClass.baseClasses.exists(_.fullName == "mill.moduledefs.Cacher")
 
-    if (ownerIsCacherClass && owner.isMethod) q"this.cachedTarget($t)"
+    if (ownerIsCacherClass && owner.isMethod) q"this.cachedTarget[${weakTypeTag[R]}]($t)"
     else c.abort(
       c.enclosingPosition,
       "T{} members must be defs defined in a Cacher class/trait/object body"

@@ -2,7 +2,7 @@ package mill.eval
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Target, Task}
+import mill.define.{Source, Target, Task}
 import mill.discover.Discovered
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
@@ -36,8 +36,8 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T.source{ sourceRootPath }
-        def resourceRoot = T.source{ resourceRootPath }
+        def sourceRoot = T.source{ PathRef(sourceRootPath) }
+        def resourceRoot = T.source{ PathRef(resourceRootPath) }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
         def jar = T{ Jvm.createJar(Seq(resourceRoot().path, classFiles().path)) }
@@ -51,7 +51,7 @@ object JavaCompileJarTests extends TestSuite{
       val mapping = Discovered.mapping(Build)
 
       def eval[T](t: Task[T]) = {
-        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
         val evaluated = evaluator.evaluate(OSet(t))
 
         if (evaluated.failing.keyCount == 0){
@@ -68,12 +68,13 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated
           .flatMap(_.asTarget)
           .filter(mapping.targets.contains)
+          .filter(!_.isInstanceOf[Source[_]])
         assert(evaluated == expected)
       }
 
@@ -144,7 +145,7 @@ object JavaCompileJarTests extends TestSuite{
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
           runOutput.out.string == (31337 + 271828) + "\n",
-          evalCount == 1
+          evalCount == 2
         )
       }
 
@@ -165,12 +166,12 @@ object JavaCompileJarTests extends TestSuite{
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput2.out.string == "New Cls!\n",
-        evalCount2 == 3
+        evalCount2 == 4
       )
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput3.out.string == "New Cls!\n",
-        evalCount3 == 1
+        evalCount3 == 2
       )
     }
   }

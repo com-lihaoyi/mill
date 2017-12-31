@@ -66,7 +66,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
     val lhs = Applicative.impl0[Task, T, Ctx](c)(reify(Result.Success(t.splice)).tree)
 
-    mill.moduledefs.Cacher.impl0[TargetImpl, T](c)(
+    mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
         new TargetImpl[T](
           lhs.splice,
@@ -96,7 +96,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                          cl: c.Expr[Caller[mill.define.Task.Module]],
                                          o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
-    mill.moduledefs.Cacher.impl0[Target, T](c)(
+    mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
         new TargetImpl[T](
           Applicative.impl0[Task, T, Ctx](c)(t.tree).splice,
@@ -127,7 +127,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        cl: c.Expr[Caller[mill.define.Task.Module]],
                                        o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
-    mill.moduledefs.Cacher.impl0[Target, T](c)(
+    mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
         new TargetImpl[T](
           t.splice,
@@ -148,7 +148,37 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                  cl: Caller[mill.define.Task.Module],
                  o: Overrides): Command[T] = macro commandImpl[T]
 
-  def source(path: ammonite.ops.Path) = new Source(path)
+  def source[T](value: Result[T])
+               (implicit r: R[T],
+                w: W[T],
+                e: sourcecode.Enclosing,
+                n: sourcecode.Name,
+                cl: Caller[mill.define.Task.Module],
+                o: Overrides): Source[T] = macro sourceImpl[T]
+
+  def sourceImpl[T: c.WeakTypeTag](c: Context)
+                                  (value: c.Expr[T])
+                                  (r: c.Expr[R[T]],
+                                   w: c.Expr[W[T]],
+                                   e: c.Expr[sourcecode.Enclosing],
+                                   n: c.Expr[sourcecode.Name],
+                                   cl: c.Expr[Caller[mill.define.Task.Module]],
+                                   o: c.Expr[Overrides]): c.Expr[Source[T]] = {
+    import c.universe._
+
+    mill.moduledefs.Cacher.impl0[Source[T]](c)(
+      reify(
+        new Source[T](
+          Applicative.impl[Task, T, Ctx](c)(value).splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read),
+          o.splice.value
+        )
+      )
+    )
+  }
 
   def command[T](t: Task[T])
                 (implicit c: Caller[Task.Module],
@@ -197,7 +227,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
 
 
-    mill.moduledefs.Cacher.impl0[Persistent, T](c)(
+    mill.moduledefs.Cacher.impl0[Persistent[T]](c)(
       reify(
         new Persistent[T](
           Applicative.impl[Task, T, Ctx](c)(t).splice,
@@ -264,14 +294,15 @@ class Persistent[+T](t: Task[T],
   override def flushDest = false
   override def asPersistent = Some(this)
 }
-object Source{
-  implicit def apply(p: ammonite.ops.Path) = new Source(p)
-}
-class Source(path: ammonite.ops.Path) extends Task[PathRef]{
-  def handle = PathRef(path)
-  def evaluate(args: Ctx) = handle
-  override def sideHash = handle.hashCode()
-  val inputs = Nil
+class Source[T](t: Task[T],
+                val enclosing: String,
+                val owner: Task.Module,
+                val name: String,
+                val readWrite: RW[_],
+                val overrides: Int) extends Target[T]{
+  val inputs = Seq(t)
+  def evaluate(args: Ctx) = args[T](0)
+  override def sideHash = util.Random.nextInt()
 }
 
 object Task {
@@ -280,9 +311,7 @@ object Task {
   trait TaskModule extends Module {
     def defaultCommandName(): String
   }
-  trait Module extends mill.moduledefs.Cacher[Target]{
-    def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
-  }
+  trait Module extends mill.moduledefs.Cacher
 
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t

@@ -11,6 +11,7 @@ object ReplApplyHandler{
     new ReplApplyHandler(
       new mill.eval.Evaluator(
         ammonite.ops.pwd / 'out,
+        ammonite.ops.pwd,
         mapping,
         new mill.util.PrintLogger(true)
       )

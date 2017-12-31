@@ -24,6 +24,7 @@ case class Labelled[T](target: NamedTask[T],
   }
 }
 class Evaluator[T](val workspacePath: Path,
+                   val basePath: Path,
                    val mapping: Discovered.Mapping[T],
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
@@ -69,7 +70,13 @@ class Evaluator[T](val workspacePath: Path,
     for((k, vs) <- sortedGroups.items()){
       failing.addAll(k, vs.items.flatMap(results.get).collect{case f: Result.Failing => f})
     }
-    Evaluator.Results(goals.indexed.map(results), evaluated, transitive, failing)
+    Evaluator.Results(
+      goals.indexed.map(results),
+      evaluated,
+      transitive,
+      failing,
+      results
+    )
   }
 
 
@@ -87,10 +94,11 @@ class Evaluator[T](val workspacePath: Path,
 
     terminal match{
       case Left(task) =>
-        evaluateGroup(group, results, paths = None, maybeTargetLabel = None)
+        evaluateGroup(group, results, groupBasePath = None, paths = None, maybeTargetLabel = None)
       case Right(labelledTarget) =>
-        val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget)
-        mkdir(paths.base)
+        val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget.segments)
+        val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledTarget.segments)
+        mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
           (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
@@ -117,8 +125,10 @@ class Evaluator[T](val workspacePath: Path,
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,
-              Some(paths),
-              maybeTargetLabel = Some(msgParts.mkString))
+              groupBasePath = Some(groupBasePath),
+              paths = Some(paths),
+              maybeTargetLabel = Some(msgParts.mkString)
+            )
 
             newResults(labelledTarget.target) match{
               case Result.Success(v) =>
@@ -148,6 +158,7 @@ class Evaluator[T](val workspacePath: Path,
 
   def evaluateGroup(group: OSet[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
+                    groupBasePath: Option[Path],
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String]) = {
 
@@ -183,6 +194,7 @@ class Evaluator[T](val workspacePath: Path,
           val args = new Ctx(
             targetInputValues.toArray[Any],
             paths.map(_.dest).orNull,
+            groupBasePath.orNull,
             multiLogger,
             new Ctx.LoaderCtx{
               def load[T](x: Ctx.Loader[T]): T = {
@@ -225,15 +237,16 @@ class Evaluator[T](val workspacePath: Path,
 
 
 object Evaluator{
-  case class Paths(base: Path, dest: Path, meta: Path, log: Path)
-  def resolveDestPaths(workspacePath: Path, t: Labelled[_]): Paths = {
-    resolveDestPaths(workspacePath, t.segments)
+  case class Paths(out: Path,
+                   dest: Path,
+                   meta: Path,
+                   log: Path)
+  def makeSegmentStrings(segments: Seq[Segment]) = segments.flatMap{
+    case Mirror.Segment.Label(s) => Seq(s)
+    case Mirror.Segment.Cross(values) => values.map(_.toString)
   }
   def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): Paths = {
-    val segmentStrings = segments.flatMap{
-      case Mirror.Segment.Label(s) => Seq(s)
-      case Mirror.Segment.Cross(values) => values.map(_.toString)
-    }
+    val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
     Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
   }
@@ -248,7 +261,8 @@ object Evaluator{
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: OSet[Task[_]],
                      transitive: OSet[Task[_]],
-                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing]){
+                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
+                     results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}
   }
 }
