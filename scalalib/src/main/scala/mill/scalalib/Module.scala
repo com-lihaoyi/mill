@@ -191,8 +191,8 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.source{ PathRef(basePath / 'src) }
-  def resources = T.source{ PathRef(basePath / 'resources) }
+  def sources = T.source{ basePath / 'src }
+  def resources = T.source{ basePath / 'resources }
   def allSources = T{ Seq(sources()) }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
@@ -346,11 +346,11 @@ trait PublishModule extends Module { outer =>
 
 trait SbtModule extends Module { outer =>
   def basePath: Path
-  override def sources = T.source{ PathRef(basePath / 'src / 'main / 'scala) }
-  override def resources = T.source{ PathRef(basePath / 'src / 'main / 'resources) }
+  override def sources = T.source{ basePath / 'src / 'main / 'scala }
+  override def resources = T.source{ basePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests{
     def basePath = outer.basePath
-    override def sources = T.source{ PathRef(basePath / 'src / 'test / 'scala) }
-    override def resources = T.source{ PathRef(basePath / 'src / 'test / 'resources) }
+    override def sources = T.source{ basePath / 'src / 'test / 'scala }
+    override def resources = T.source{ basePath / 'src / 'test / 'resources }
   }
 }

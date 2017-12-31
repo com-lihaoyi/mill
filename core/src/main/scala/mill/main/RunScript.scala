@@ -114,7 +114,7 @@ object RunScript{
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: define.Source[_], Result.Success(p: PathRef)) => p
+        case (t: define.Input[_], Result.Success(p: PathRef)) => p
       }
       .toSeq
 

@@ -108,7 +108,7 @@ val bridges = for{
   def sources = T.source {
     val path = basePath / 'src
     mkdir(path)
-    PathRef(path)
+    path
   }
   def allSources = T{
     Seq(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))

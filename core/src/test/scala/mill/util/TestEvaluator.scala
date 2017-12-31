@@ -1,7 +1,7 @@
 package mill.util
 
 import ammonite.ops.Path
-import mill.define.{Source, Target, Task}
+import mill.define.{Input, Target, Task}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 
@@ -18,7 +18,7 @@ class TestEvaluator(mapping: Discovered.Mapping[_],
         Tuple2(
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
-            case t: Target[_] if mapping.targets.contains(t) && !t.isInstanceOf[Source[_]] => t
+            case t: Target[_] if mapping.targets.contains(t) && !t.isInstanceOf[Input[_]] => t
             case t: mill.define.Command[_]           => t
           }.size
         ))

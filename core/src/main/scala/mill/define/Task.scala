@@ -148,27 +148,62 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                  cl: Caller[mill.define.Task.Module],
                  o: Overrides): Command[T] = macro commandImpl[T]
 
-  def source[T](value: Result[T])
-               (implicit r: R[T],
+  def source(value: Result[ammonite.ops.Path])
+            (implicit r: R[PathRef],
+             w: W[PathRef],
+             e: sourcecode.Enclosing,
+             n: sourcecode.Name,
+             cl: Caller[mill.define.Task.Module],
+             o: Overrides): Input[PathRef] = macro sourceImpl
+
+  def sourceImpl(c: Context)
+                (value: c.Expr[Result[ammonite.ops.Path]])
+                (r: c.Expr[R[PathRef]],
+                 w: c.Expr[W[PathRef]],
+                 e: c.Expr[sourcecode.Enclosing],
+                 n: c.Expr[sourcecode.Name],
+                 cl: c.Expr[Caller[mill.define.Task.Module]],
+                 o: c.Expr[Overrides]): c.Expr[Input[PathRef]] = {
+    import c.universe._
+    val wrapped: c.Expr[Result[PathRef]] = reify(value.splice match{
+      case Result.Success(p) => Result.Success(PathRef(p))
+      case x: Result.Failing => x
+    })
+    mill.moduledefs.Cacher.impl0[Input[PathRef]](c)(
+      reify(
+        new Input[PathRef](
+          Applicative.impl0[Task, PathRef, Ctx](c)(wrapped.tree).splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read),
+          o.splice.value
+        )
+      )
+    )
+  }
+
+  def input[T](value: Result[T])
+              (implicit r: R[T],
                 w: W[T],
                 e: sourcecode.Enclosing,
                 n: sourcecode.Name,
                 cl: Caller[mill.define.Task.Module],
-                o: Overrides): Source[T] = macro sourceImpl[T]
+                o: Overrides): Input[T] = macro inputImpl[T]
 
-  def sourceImpl[T: c.WeakTypeTag](c: Context)
+  def inputImpl[T: c.WeakTypeTag](c: Context)
                                   (value: c.Expr[T])
                                   (r: c.Expr[R[T]],
                                    w: c.Expr[W[T]],
                                    e: c.Expr[sourcecode.Enclosing],
                                    n: c.Expr[sourcecode.Name],
                                    cl: c.Expr[Caller[mill.define.Task.Module]],
-                                   o: c.Expr[Overrides]): c.Expr[Source[T]] = {
+                                   o: c.Expr[Overrides]): c.Expr[Input[T]] = {
     import c.universe._
 
-    mill.moduledefs.Cacher.impl0[Source[T]](c)(
+    mill.moduledefs.Cacher.impl0[Input[T]](c)(
       reify(
-        new Source[T](
+        new Input[T](
           Applicative.impl[Task, T, Ctx](c)(value).splice,
           e.splice.value,
           cl.splice.value,
@@ -294,12 +329,12 @@ class Persistent[+T](t: Task[T],
   override def flushDest = false
   override def asPersistent = Some(this)
 }
-class Source[T](t: Task[T],
-                val enclosing: String,
-                val owner: Task.Module,
-                val name: String,
-                val readWrite: RW[_],
-                val overrides: Int) extends Target[T]{
+class Input[T](t: Task[T],
+               val enclosing: String,
+               val owner: Task.Module,
+               val name: String,
+               val readWrite: RW[_],
+               val overrides: Int) extends Target[T]{
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
   override def sideHash = util.Random.nextInt()

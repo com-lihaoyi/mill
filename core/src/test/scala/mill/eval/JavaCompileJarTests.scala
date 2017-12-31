@@ -2,7 +2,7 @@ package mill.eval
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Source, Target, Task}
+import mill.define.{Input, Target, Task}
 import mill.discover.Discovered
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
@@ -36,8 +36,8 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T.source{ PathRef(sourceRootPath) }
-        def resourceRoot = T.source{ PathRef(resourceRootPath) }
+        def sourceRoot = T.source{ sourceRootPath }
+        def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
         def jar = T{ Jvm.createJar(Seq(resourceRoot().path, classFiles().path)) }
@@ -74,7 +74,7 @@ object JavaCompileJarTests extends TestSuite{
           .evaluated
           .flatMap(_.asTarget)
           .filter(mapping.targets.contains)
-          .filter(!_.isInstanceOf[Source[_]])
+          .filter(!_.isInstanceOf[Input[_]])
         assert(evaluated == expected)
       }
 
