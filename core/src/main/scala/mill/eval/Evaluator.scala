@@ -213,6 +213,8 @@ class Evaluator[T](val workspacePath: Path,
                 target.evaluate(args)
               }
             }
+          }catch{ case e: Throwable =>
+            Result.Exception(e)
           }finally{
             System.setErr(err)
             System.setOut(out)
