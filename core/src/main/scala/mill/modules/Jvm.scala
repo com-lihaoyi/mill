@@ -58,7 +58,8 @@ object Jvm {
 
     val stdout = proc.getInputStream
     val stderr = proc.getErrorStream
-    val sources = Seq(stdout , stderr)
+    val sources = Seq(stdout -> (Left(_: Bytes)), stderr -> (Right(_: Bytes)))
+    val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
     while(
     // Process.isAlive doesn't exist on JDK 7 =/
       util.Try(proc.exitValue).isFailure ||
@@ -66,11 +67,12 @@ object Jvm {
         stderr.available() > 0
     ){
       var readSomething = false
-      for (std <- sources){
+      for ((std, wrapper) <- sources){
         while (std.available() > 0){
           readSomething = true
           val array = new Array[Byte](std.available())
           val actuallyRead = std.read(array)
+          chunks.append(wrapper(new ammonite.ops.Bytes(array)))
           ctx.log.outputStream.write(array, 0, actuallyRead)
         }
       }
@@ -80,6 +82,7 @@ object Jvm {
     }
 
     if (proc.exitValue() != 0) throw new InteractiveShelloutException()
+    else ammonite.ops.CommandResult(proc.exitValue(), chunks)
   }
 
   private def createManifest(mainClass: Option[String]) = {

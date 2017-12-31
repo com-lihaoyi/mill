@@ -8,8 +8,18 @@ import mill.define.Task.{Module, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
-
 import Lib._
+import sbt.testing.Status
+object TestScalaModule{
+  def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
+    if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
+    else {
+      val grouped = results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
+
+      Result.Failure(grouped.map{case (k, v) => k + ": " + v}.mkString(","))
+    }
+  }
+}
 trait TestScalaModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFramework: T[String]
@@ -17,7 +27,8 @@ trait TestScalaModule extends ScalaModule with TaskModule {
   def forkWorkingDir = ammonite.ops.pwd
   def forkArgs = T{ Seq.empty[String] }
   def forkTest(args: String*) = T.command{
-    val outputPath = tmp.dir()/"out.json"
+    mkdir(T.ctx().dest)
+    val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
       mainClass = "mill.scalaplugin.TestRunner",
@@ -32,21 +43,20 @@ trait TestScalaModule extends ScalaModule with TaskModule {
       ),
       workingDir = forkWorkingDir
     )
-    upickle.default.read[Option[String]](ammonite.ops.read(outputPath)) match{
-      case Some(errMsg) => Result.Failure(errMsg)
-      case None => Result.Success(())
-    }
+
+    val jsonOutput = upickle.json.read(outputPath.toIO)
+    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    TestScalaModule.handleResults(doneMsg, results)
+
   }
   def test(args: String*) = T.command{
-    TestRunner(
+    val (doneMsg, results) = TestRunner(
       testFramework(),
       runDepClasspath().map(_.path) :+ compile().classes.path,
       Seq(compile().classes.path),
       args
-    ) match{
-      case Some(errMsg) => Result.Failure(errMsg)
-      case None => Result.Success(())
-    }
+    )
+    TestScalaModule.handleResults(doneMsg, results)
   }
 }
 

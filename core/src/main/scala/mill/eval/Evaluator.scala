@@ -14,7 +14,12 @@ import scala.collection.mutable
 case class Labelled[T](target: NamedTask[T],
                        segments: Seq[Segment]){
   def format = target match{
-    case t: Target[Any] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[Any]])
+    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case _ => None
+  }
+  def writer = target match{
+    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
+    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
 }
@@ -90,12 +95,14 @@ class Evaluator[T](val workspacePath: Path,
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
           (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
           if cachedHash == inputsHash
-        } yield terminalResult
+          reader <- labelledTarget.format
+          parsed <- reader.read.lift(terminalResult)
+        } yield parsed
 
         cached match{
-          case Some(terminalResult) =>
+          case Some(parsed) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
-            newResults(labelledTarget.target) = labelledTarget.format.get.read(terminalResult)
+            newResults(labelledTarget.target) = parsed
             (newResults, Nil)
 
           case _ =>
@@ -116,8 +123,8 @@ class Evaluator[T](val workspacePath: Path,
             newResults(labelledTarget.target) match{
               case Result.Success(v) =>
                 val terminalResult = labelledTarget
-                  .format
-                  .asInstanceOf[Option[upickle.default.ReadWriter[Any]]]
+                  .writer
+                  .asInstanceOf[Option[upickle.default.Writer[Any]]]
                   .map(_.write(v))
 
                 for(t <- terminalResult){

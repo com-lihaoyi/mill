@@ -9,7 +9,8 @@ import ammonite.ops.{Path, ls, pwd}
 import mill.util.Ctx.LogCtx
 import mill.util.PrintLogger
 import sbt.testing._
-
+import upickle.Js
+import mill.util.JsonFormatters._
 import scala.collection.mutable
 
 object TestRunner {
@@ -49,6 +50,7 @@ object TestRunner {
       def log = new PrintLogger(true)
     })
     val outputPath = args(4)
+
     ammonite.ops.write(Path(outputPath), upickle.default.write(result))
 
     // Tests are over, kill the JVM whether or not anyone's threads are still running
@@ -60,7 +62,7 @@ object TestRunner {
             entireClasspath: Seq[Path],
             testClassfilePath: Seq[Path],
             args: Seq[String])
-           (implicit ctx: LogCtx): Option[String] = {
+           (implicit ctx: LogCtx): (String, Seq[Result]) = {
     val outerClassLoader = getClass.getClassLoader
     val cl = new URLClassLoader(
       entireClasspath.map(_.toIO.toURI.toURL).toArray,
@@ -88,11 +90,11 @@ object TestRunner {
         new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array())
       }
     )
-    val events = mutable.Buffer.empty[Status]
+    val events = mutable.Buffer.empty[Event]
     for(t <- tasks){
       t.execute(
         new EventHandler {
-          def handle(event: Event) = events.append(event.status())
+          def handle(event: Event) = events.append(event)
         },
         Array(
           new Logger {
@@ -111,14 +113,58 @@ object TestRunner {
       )
     }
     val doneMsg = runner.done()
-    val msg =
-      if (doneMsg.trim.nonEmpty) doneMsg
-      else{
-        val grouped = events.groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
-        grouped.map{case (k, v) => k + ": " + v}.mkString(",")
-      }
-    ctx.log.info(msg)
-    if (events.count(Set(Status.Error, Status.Failure)) == 0) None
-    else Some(msg)
+
+    val results = for(e <- events) yield {
+      val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
+      Result(
+        e.fullyQualifiedName(),
+        e.selector() match{
+          case s: NestedSuiteSelector => s.suiteId()
+          case s: NestedTestSelector => s.suiteId() + "." + s.testName()
+          case s: SuiteSelector => s.toString
+          case s: TestSelector => s.testName()
+          case s: TestWildcardSelector => s.testWildcard()
+        },
+        e.duration(),
+        e.status(),
+        ex.map(_.getClass.getName),
+        ex.map(_.getMessage),
+        ex.map(_.getStackTrace)
+      )
+    }
+    (doneMsg, results)
   }
+
+  case class Result(fullyQualifiedName: String,
+                    selector: String,
+                    duration: Long,
+                    status: Status,
+                    exceptionName: Option[String],
+                    exceptionMsg: Option[String],
+                    exceptionTrace: Option[Seq[StackTraceElement]])
+
+  object Result{
+    implicit def resultRW: upickle.default.ReadWriter[Result] = upickle.default.macroRW[Result]
+    implicit def statusRW: upickle.default.ReadWriter[Status] = upickle.default.ReadWriter[Status](
+      {
+        case Status.Success => Js.Str("Success")
+        case Status.Error => Js.Str("Error")
+        case Status.Failure => Js.Str("Failure")
+        case Status.Skipped => Js.Str("Skipped")
+        case Status.Ignored => Js.Str("Ignored")
+        case Status.Canceled => Js.Str("Canceled")
+        case Status.Pending => Js.Str("Pending")
+      },
+      {
+        case Js.Str("Success") => Status.Success
+        case Js.Str("Error") => Status.Error
+        case Js.Str("Failure") => Status.Failure
+        case Js.Str("Skipped") => Status.Skipped
+        case Js.Str("Ignored") => Status.Ignored
+        case Js.Str("Canceled") => Status.Canceled
+        case Js.Str("Pending") => Status.Pending
+      }
+    )
+  }
+
 }

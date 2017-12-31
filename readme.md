@@ -34,6 +34,16 @@ There is already a `watch` option that looks for changes on files, e.g.:
 ./bin/target/mill --watch Core.compile
 ```
 
+You can get Mill to show the JSON-structured output for a particular `Target` or
+`Command` using the `--show` flag:
+
+```bash
+./bin/target/mill --show Core.scalaVersion
+./bin/target/mill --show Core.compile
+./bin/target/mill --show Core.assemblyClasspath
+./bin/target/mill --show Core.test
+```
+
 Output will be generated into a the `./out` folder.
 
 If you are repeatedly testing Mill manually by running it against the `build.sc`
