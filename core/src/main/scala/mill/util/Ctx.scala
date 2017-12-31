@@ -33,13 +33,15 @@ object Ctx{
   }
 }
 class Ctx(val args: IndexedSeq[_],
-          val dest: Path,
+          _dest: Path,
           val log: Logger,
           workerCtx0: Ctx.LoaderCtx)
   extends DestCtx
   with LogCtx
   with ArgCtx
   with LoaderCtx{
+
+  override def dest: Path = _dest
 
   def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length
