@@ -40,14 +40,14 @@ class Evaluator[T](val workspacePath: Path,
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case t: NamedTask[Any] if mapping.modules.contains(t.owner)  =>
         val segments = mapping.modules(t.owner) :+ Segment.Label(t.name)
-        val finalTaskOverrides = t match{
-          case t: Target[_] => mapping.segmentsToTargets(segments).overrides
-          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides
+        val (finalTaskOverrides, enclosing) = t match{
+          case t: Target[_] => mapping.segmentsToTargets(segments).overrides -> t.enclosing
+          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.enclosing
         }
         val delta = finalTaskOverrides - t.overrides
         val additional =
           if (delta == 0) Nil
-          else Seq(Segment.Label("override" + delta))
+          else Seq(Segment.Label("override" + delta), Segment.Label(enclosing))
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)

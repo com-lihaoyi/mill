@@ -64,9 +64,17 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                    cl: c.Expr[Caller[mill.define.Task.Module]],
                                    o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
-    c.Expr[Target[T]](
-      mill.moduledefs.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
+    val lhs = Applicative.impl0[Task, T, Ctx](c)(reify(Result.Success(t.splice)).tree)
+
+    mill.moduledefs.Cacher.impl0[TargetImpl, T](c)(
+      reify(
+        new TargetImpl[T](
+          lhs.splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read), o.splice.value
+        )
       )
     )
   }
@@ -88,9 +96,16 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                          cl: c.Expr[Caller[mill.define.Task.Module]],
                                          o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
-    c.Expr[Target[T]](
-      mill.moduledefs.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
+    mill.moduledefs.Cacher.impl0[Target, T](c)(
+      reify(
+        new TargetImpl[T](
+          Applicative.impl0[Task, T, Ctx](c)(t.tree).splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read),
+          o.splice.value
+        )
       )
     )
   }
@@ -112,15 +127,23 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        cl: c.Expr[Caller[mill.define.Task.Module]],
                                        o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
-    c.Expr[Target[T]](
-      mill.moduledefs.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[TargetImpl[T]]}($t, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
+    mill.moduledefs.Cacher.impl0[Target, T](c)(
+      reify(
+        new TargetImpl[T](
+          t.splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read),
+          o.splice.value
+        )
       )
     )
   }
 
   def command[T](t: Result[T])
                 (implicit w: W[T],
+                 e: sourcecode.Enclosing,
                  n: sourcecode.Name,
                  cl: Caller[mill.define.Task.Module],
                  o: Overrides): Command[T] = macro commandImpl[T]
@@ -129,20 +152,28 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def command[T](t: Task[T])
                 (implicit c: Caller[Task.Module],
+                 e: sourcecode.Enclosing,
                  n: sourcecode.Name,
                  w: W[T],
-                 o: Overrides): Command[T] = new Command(t, c.value, n.value, w, o.value)
+                 o: Overrides): Command[T] = new Command(t, e.value, c.value, n.value, w, o.value)
 
   def commandImpl[T: c.WeakTypeTag](c: Context)
                                    (t: c.Expr[T])
                                    (w: c.Expr[W[T]],
+                                    e: c.Expr[sourcecode.Enclosing],
                                     n: c.Expr[sourcecode.Name],
                                     cl: c.Expr[Caller[mill.define.Task.Module]],
                                     o: c.Expr[Overrides]): c.Expr[Command[T]] = {
     import c.universe._
-
-    c.Expr[Command[T]](
-      q"new ${weakTypeOf[Command[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, $cl.value, $n.value, $w, $o.value)"
+    reify(
+      new Command[T](
+        Applicative.impl[Task, T, Ctx](c)(t).splice,
+        e.splice.value,
+        cl.splice.value,
+        n.splice.value,
+        w.splice,
+        o.splice.value
+      )
     )
   }
 
@@ -165,9 +196,17 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        o: c.Expr[Overrides]): c.Expr[Persistent[T]] = {
     import c.universe._
 
-    c.Expr[Persistent[T]](
-      mill.moduledefs.Cacher.wrapCached(c)(
-        q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
+
+    mill.moduledefs.Cacher.impl0[Persistent, T](c)(
+      reify(
+        new Persistent[T](
+          Applicative.impl[Task, T, Ctx](c)(t).splice,
+          e.splice.value,
+          cl.splice.value,
+          n.splice.value,
+          upickle.default.ReadWriter(w.splice.write, r.splice.read),
+          o.splice.value
+        )
       )
     )
   }
@@ -206,6 +245,7 @@ class TargetImpl[+T](t: Task[T],
   override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
 class Command[+T](t: Task[T],
+                  val enclosing: String,
                   val owner: Task.Module,
                   val name: String,
                   val writer: W[_],
