@@ -22,26 +22,26 @@ core unit tests
 
 e.g.:
 ```bash
-./bin/target/mill Core.compile
-./bin/target/mill Core.test.compile
-./bin/target/mill Core.test
-./bin/target/mill ScalaPlugin.assembly
+./bin/target/mill core.compile
+./bin/target/mill core.test.compile
+./bin/target/mill core.test
+./bin/target/mill scalalib.assembly
 ```
 
 There is already a `watch` option that looks for changes on files, e.g.:
 
 ```bash
-./bin/target/mill --watch Core.compile
+./bin/target/mill --watch core.compile
 ```
 
 You can get Mill to show the JSON-structured output for a particular `Target` or
 `Command` using the `--show` flag:
 
 ```bash
-./bin/target/mill --show Core.scalaVersion
-./bin/target/mill --show Core.compile
-./bin/target/mill --show Core.assemblyClasspath
-./bin/target/mill --show Core.test
+./bin/target/mill --show core.scalaVersion
+./bin/target/mill --show core.compile
+./bin/target/mill --show core.assemblyClasspath
+./bin/target/mill --show core.test
 ```
 
 Output will be generated into a the `./out` folder.
@@ -51,7 +51,7 @@ file in the repository root, you can skip the assembly process and directly run
 it via:
 
 ```bash
-sbt "~bin/test:run Core.test"
+sbt "~bin/test:run core.test"
 sbt "~bin/test:run --repl"
 ```
 
@@ -82,34 +82,34 @@ Compiling (synthetic)/ammonite/predef/CodePredef.sc
 res0: build.type = build
 
 @ build.
-!=            Core          ScalaPlugin   bridges       getClass      isInstanceOf  |>
+!=            core          scalalib   bridges       getClass      isInstanceOf  |>
 ==            MillModule    asInstanceOf  equals        hashCode      toString
-@ build.Core
-res1: Core.type = ammonite.predef.$up.build$Core$@5600c124
+@ build.core
+res1: core.type = ammonite.predef.$up.build$core$@5600c124
 
-@ Core
-res2: Core.type = ammonite.predef.$up.build$Core$@5600c124
+@ core
+res2: core.type = ammonite.predef.$up.build$core$@5600c124
 
-@ Core.scalaV
+@ core.scalaV
 scalaVersion
-@ Core.scalaVersion
+@ core.scalaVersion
 res3: define.Target[String] = ammonite.predef.^.build.MillModule#scalaVersion@4b7d16
 
-@ Core.scalaVersion()
-Running Core.scalaVersion
+@ core.scalaVersion()
+Running core.scalaVersion
 res4: String = "2.12.4"
 
-@ Core.ivyDeps()
-Running Core.ivyDeps
-res5: Seq[scalaplugin.Dep] = List(
+@ core.ivyDeps()
+Running core.ivyDeps
+res5: Seq[scalalib.Dep] = List(
   Scala(
     Dependency(
       Module("com.lihaoyi", "sourcecode", Map()),
       "0.1.4",
 ...
 
-@ Core.ivyDeps().foreach(println)
-Running Core.ivyDeps
+@ core.ivyDeps().foreach(println)
+Running core.ivyDeps
 Scala(Dependency(com.lihaoyi:sourcecode,0.1.4,,Set(),Attributes(,),false,true))
 Scala(Dependency(com.lihaoyi:pprint,0.5.3,,Set(),Attributes(,),false,true))
 Point(Dependency(com.lihaoyi:ammonite,1.0.3,,Set(),Attributes(,),false,true))
@@ -133,13 +133,13 @@ Within each `Module` you can define 3 type of task:
 
 ### Structure of the `out/` folder
 
-The `out/` folder is structured with one folder per `Target`/`Command`, that is
-run, e.g.:
+The `out/` folder contains all the generated files & metadata for your build. It
+is structured with one folder per `Target`/`Command`, that is run, e.g.:
 
-- `out/Core/compile/`
-- `out/Core/test/compile/`
-- `out/Core/test/forkTest/`
-- `out/ScalaPlugin/compile/`
+- `out/core/compile/`
+- `out/core/test/compile/`
+- `out/core/test/forkTest/`
+- `out/scalalib/compile/`
 
 Each folder currently contains the following files:
 
@@ -149,12 +149,12 @@ Each folder currently contains the following files:
   conflicting with other `Task`s, but files within `dest/` can be named
   arbitrarily.
 
-- `log`: the `stdout`/`stderr` of the `Task`. This is streamed to the console
-  during evaluation, but you use `log` if you want to retrieve it later
+- `log`: the `stdout`/`stderr` of the `Task`. This is also streamed to the
+  console during evaluation.
 
 - `meta.json`: the cache-key and JSON-serialized return-value of the
   `Target`/`Command`. The return-value can also be retrieved via `mill --show
-  Core.compile`. Binary blobs are typically not included in `meta.json`, and
+  core.compile`. Binary blobs are typically not included in `meta.json`, and
   instead stored as separate binary files in `dest/` which are then referenced
   by `meta.json` via `PathRef`s
 
@@ -220,8 +220,8 @@ able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
 the object hierarchy. The only difference is syntax: from the command line you'd
-run something via `mill Core.cross[a].printIt` while from code you use
-`Core.cross("a").printIt` due to different restrictions in Scala/Bash syntax.
+run something via `mill core.cross[a].printIt` while from code you use
+`core.cross("a").printIt` due to different restrictions in Scala/Bash syntax.
 
 ### Caching by default
 
@@ -246,7 +246,7 @@ process, and that a new process must be able to re-construct the in-memory data
 structures where a previous process left off, in order to continue the build.
 
 Re-construction is done via the hierarchical nature of the build: each `Target`
-`Foo.bar.baz` has a fixed position in the build hierarchy, and thus a fixed
+`foo.bar.baz` has a fixed position in the build hierarchy, and thus a fixed
 position on disk `out/foo/bar/baz/meta.json`. When the old process dies and a
 new process starts, there will be a new instance of `Target` with the same
 implementation code and same position in the build hierarchy: this new `Target`
@@ -364,15 +364,15 @@ The module hierarchy is the graph of objects, starting from the root of the
 the `Target`s you can run.
 
 A `Target`'s position in the module hierarchy tells you many things. For
-example, a `Target` at position `Core.test.compile` would:
+example, a `Target` at position `core.test.compile` would:
 
-- Cache output metadata at `out/Core/test/compile/meta.json`
+- Cache output metadata at `out/core/test/compile/meta.json`
 
-- Output files to the folder `out/Core/test/compile/dest/`
+- Output files to the folder `out/core/test/compile/dest/`
 
-- Be runnable from the command-line via `mill Core.test.compile`
+- Be runnable from the command-line via `mill core.test.compile`
 
-- Be referenced programmatically (from other `Target`s) via `Core.test.compile`
+- Be referenced programmatically (from other `Target`s) via `core.test.compile`
 
 From the position of any `Target` within the object hierarchy, you immediately
 know how to run it, find it's output files, find any caches, or refer to it from

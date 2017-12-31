@@ -6,13 +6,13 @@ set -eux
 git clean -xdf
 
 # First build & run tests using SBT
-sbt core/test scalaplugin/test scalajsplugin/test bin/test:assembly
+sbt core/test scalalib/test scalajslib/test bin/test:assembly
 
 # Build Mill using SBT
 bin/target/mill devAssembly
 
 # Second build & run tests using Mill
-out/devAssembly/dest Core.test
-out/devAssembly/dest ScalaPlugin.test
-out/devAssembly/dest ScalaJSPlugin.test
+out/devAssembly/dest core.test
+out/devAssembly/dest scalalib.test
+out/devAssembly/dest scalajslib.test
 out/devAssembly/dest devAssembly

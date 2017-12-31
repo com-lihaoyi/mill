@@ -65,7 +65,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                    o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
+      mill.moduledefs.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(q"mill.eval.Result.Success($t)").tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
       )
     )
@@ -89,7 +89,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                          o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
+      mill.moduledefs.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[TargetImpl[T]]}(${Applicative.impl0[Task, T, Ctx](c)(t.tree).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
       )
     )
@@ -113,7 +113,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     c.Expr[Target[T]](
-      mill.plugin.Cacher.wrapCached(c)(
+      mill.moduledefs.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[TargetImpl[T]]}($t, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
       )
     )
@@ -166,7 +166,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
 
     c.Expr[Persistent[T]](
-      mill.plugin.Cacher.wrapCached(c)(
+      mill.moduledefs.Cacher.wrapCached(c)(
         q"new ${weakTypeOf[Persistent[T]]}(${Applicative.impl[Task, T, Ctx](c)(t).tree}, $e.value, $cl.value, $n.value, upickle.default.ReadWriter($w.write, $r.read), $o.value)"
       )
     )
@@ -240,7 +240,7 @@ object Task {
   trait TaskModule extends Module {
     def defaultCommandName(): String
   }
-  trait Module extends mill.plugin.Cacher[Target]{
+  trait Module extends mill.moduledefs.Cacher[Target]{
     def wrapCached[T](t: Target[T], enclosing: String): Target[T] = t
   }
 

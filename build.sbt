@@ -20,7 +20,7 @@ val sharedSettings = Seq(
 
 val pluginSettings = Seq(
   scalacOptions in Test ++= {
-    val jarFile = (packageBin in (plugin, Compile)).value
+    val jarFile = (packageBin in (moduledefs, Compile)).value
     val addPlugin = "-Xplugin:" + jarFile.getAbsolutePath
     // add plugin timestamp to compiler options to trigger recompile of
     // main after editing the plugin. (Otherwise a 'clean' is needed.)
@@ -81,7 +81,7 @@ lazy val bridge2_12_3 = bridge("2.12.3")
 lazy val bridge2_12_4 = bridge("2.12.4")
 
 lazy val core = project
-  .dependsOn(plugin)
+  .dependsOn(moduledefs)
   .settings(
     sharedSettings,
     pluginSettings,
@@ -103,7 +103,7 @@ lazy val core = project
     }
   )
 
-lazy val plugin = project
+lazy val moduledefs = project
   .settings(
     sharedSettings,
     libraryDependencies ++= Seq(
@@ -124,21 +124,21 @@ val bridgeProps = Def.task{
   for((k, v) <- mapping) yield s"-D$k=$v"
 }
 
-lazy val scalaplugin = project
+lazy val scalalib = project
   .dependsOn(core % "compile->compile;test->test")
   .settings(
     sharedSettings,
     pluginSettings,
-    name := "mill-scalaplugin",
+    name := "mill-scalalib",
     fork := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
     javaOptions := bridgeProps.value.toSeq
   )
-lazy val scalajsplugin = project
-  .dependsOn(scalaplugin % "compile->compile;test->test")
+lazy val scalajslib = project
+  .dependsOn(scalalib % "compile->compile;test->test")
   .settings(
     sharedSettings,
-    name := "mill-scalajsplugin",
+    name := "mill-scalajslib",
     fork in Test := true,
     baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
     javaOptions in (Test, test) := jsbridgeProps.value.toSeq
@@ -146,7 +146,7 @@ lazy val scalajsplugin = project
 def jsbridge(binary: String, version: String) =
   Project(
     id = "scalajsbridge_" + binary.replace('.', '_'),
-    base = file("scalajsplugin/bridge_" + binary.replace('.', '_'))
+    base = file("scalajslib/bridge_" + binary.replace('.', '_'))
   )
   .settings(
     organization := "com.lihaoyi",
@@ -169,7 +169,7 @@ val jsbridgeProps = Def.task{
   for((k, v) <- mapping) yield s"-D$k=$v"
 }
 lazy val bin = project
-  .dependsOn(scalaplugin, scalajsplugin)
+  .dependsOn(scalalib, scalajslib)
   .settings(
     sharedSettings,
     fork := true,
