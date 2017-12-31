@@ -130,6 +130,34 @@ Within each `Module` you can define 3 type of task:
 - `Task`: take arguments, output is not cached; do not run from `bash` (e.g.
   `def foo = T.task{...}` )
 
+
+### Structure of the `out/` folder
+
+The `out/` folder is structured with one folder per `Target`/`Command`, that is
+run, e.g.:
+
+- `out/Core/compile/`
+- `out/Core/test/compile/`
+- `out/Core/test/forkTest/`
+- `out/ScalaPlugin/compile/`
+
+Each folder currently contains the following files:
+
+- `dest/`: a path for the `Task` to use either as a scratch space, or to place
+  generated files that are returned using `PathRef`s. `Task`s should only output
+  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  conflicting with other `Task`s, but files within `dest/` can be named
+  arbitrarily.
+
+- `log`: the `stdout`/`stderr` of the `Task`. This is streamed to the console
+  during evaluation, but you use `log` if you want to retrieve it later
+
+- `meta.json`: the cache-key and JSON-serialized return-value of the
+  `Target`/`Command`. The return-value can also be retrieved via `mill --show
+  Core.compile`. Binary blobs are typically not included in `meta.json`, and
+  instead stored as separate binary files in `dest/` which are then referenced
+  by `meta.json` via `PathRef`s
+
 ### Self Hosting
 
 You can use SBT to build a Mill executable, which itself is able to build more
