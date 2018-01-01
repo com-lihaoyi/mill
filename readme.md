@@ -383,7 +383,7 @@ example, a `Target` at position `core.test.compile` would:
 - Be referenced programmatically (from other `Target`s) via `core.test.compile`
 
 From the position of any `Target` within the object hierarchy, you immediately
-know how to run it, find it's output files, find any caches, or refer to it from
+know how to run it, find its output files, find any caches, or refer to it from
 other `Target`s. You know up-front where the `Target`'s data "lives" on disk, and
 are sure that it will never clash with any other `Target`'s data.
 
@@ -404,7 +404,7 @@ available to the Mill execution engine at runtime. The call graph tells you:
   tracing the call graph up to the `Source`s)
 
 - What a given `Target` makes available for other `Target`s to depend on (via
-  it's return value)
+  its return value)
 
 - Defining your own task that depends on others is as simple as `def foo =
   T{...}`
@@ -464,7 +464,7 @@ a build:
 - Required configuration parameters within a `project` are `abstract` members.
 
 - Cross-builds are modelled as instantiating a (possibly anonymous) class
-  multiple times, each instance with it's own distinct set of `Target`s
+  multiple times, each instance with its own distinct set of `Target`s
 
 In normal Scala, you bundle up common fields & functionality into a `class` you
 can instantiate over and over, and you can override the things you want to
@@ -555,7 +555,7 @@ libraries.
 
 The immediate goal of Mill is to be feature-complete enough to:
 
-- Sustain it's own development, without needing SBT
+- Sustain its own development, without needing SBT
 - Start porting over existing open-source Scala library builds from SBT to Mill
 
 https://github.com/lihaoyi/mill/issues/2 would kick off the process porting
