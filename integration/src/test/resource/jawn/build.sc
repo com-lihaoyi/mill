@@ -32,7 +32,7 @@ class Jawn(crossVersion: String) extends mill.Module{
   object Ast extends JawnModule{
     def projectDeps = Seq(Parser, Util)
     def testProjectDeps = Seq(Parser.test, Util.test)
-    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'acyclic
+    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'ast
   }
   class Support(name: String, ivyDeps0: Dep*) extends JawnModule{
     def projectDeps = Seq[Module](Parser)

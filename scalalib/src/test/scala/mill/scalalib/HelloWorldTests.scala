@@ -197,11 +197,11 @@ object HelloWorldTests extends TestSuite {
     }
     'runMain - {
       'runMainObject - {
-        val Right((_, evalCount)) = helloWorldEvaluator(HelloWorld.runMain("Main"))
+        val runResult = basePath / 'out / 'runMain / 'dest / "hello-mill"
 
+        val Right((_, evalCount)) = helloWorldEvaluator(HelloWorld.runMain("Main", runResult.toString))
         assert(evalCount > 0)
 
-        val runResult = basePath / 'out / 'runMain / 'dest / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -210,13 +210,15 @@ object HelloWorldTests extends TestSuite {
       'runCross{
         def cross(v: String) {
 
+          val runResult = basePath / 'out / 'cross / v / 'runMain / 'dest / "hello-mill"
+
           val Right((_, evalCount)) = helloWorldCrossEvaluator(
-            CrossHelloWorld.cross(v).runMain("Main")
+            CrossHelloWorld.cross(v).runMain("Main", runResult.toString)
           )
 
           assert(evalCount > 0)
 
-          val runResult = basePath / 'out / 'cross / v / 'runMain / 'dest / "hello-mill"
+
           assert(
             exists(runResult),
             read(runResult) == "hello rockjam, your age is: 25"
@@ -248,11 +250,14 @@ object HelloWorldTests extends TestSuite {
     }
     'run - {
       'runIfMainClassProvided - {
-        val Right((_, evalCount)) = helloWorldWithMainEvaluator(HelloWorldWithMain.run())
+        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+        val Right((_, evalCount)) = helloWorldWithMainEvaluator(
+          HelloWorldWithMain.run(runResult.toString)
+        )
 
         assert(evalCount > 0)
 
-        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -294,10 +299,11 @@ object HelloWorldTests extends TestSuite {
           exists(result.path),
           evalCount > 0
         )
-
-        %("scala", result.path)(wd = basePath)
-
         val runResult = basePath / "hello-mill"
+
+        %("scala", result.path, runResult)(wd = basePath)
+
+
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"

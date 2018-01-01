@@ -255,19 +255,21 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def forkArgs = T{ Seq.empty[String] }
 
-  def run() = T.command{
+  def run(args: String*) = T.command{
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runDepClasspath().map(_.path) :+ compile().classes.path,
       forkArgs(),
+      args,
       workingDir = ammonite.ops.pwd)
   }
 
-  def runMain(mainClass: String) = T.command{
+  def runMain(mainClass: String, args: String*) = T.command{
     subprocess(
       mainClass,
       runDepClasspath().map(_.path) :+ compile().classes.path,
       forkArgs(),
+      args,
       workingDir = ammonite.ops.pwd
     )
   }
