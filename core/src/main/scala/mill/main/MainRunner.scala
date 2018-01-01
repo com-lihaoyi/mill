@@ -1,4 +1,6 @@
 package mill.main
+import java.io.{InputStream, OutputStream, PrintStream}
+
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util.{Imports, Name, Res, Util}
@@ -11,11 +13,13 @@ import upickle.Js
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config, show: Boolean)
-  extends ammonite.MainRunner(
-    config,
-    System.out, System.err, System.in, System.out, System.err
-  ){
+class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
+                 outprintStream: PrintStream,
+                 errPrintStream: PrintStream,
+                 stdIn: InputStream,
+                 stdOut: OutputStream,
+                 stdErr: OutputStream)
+  extends ammonite.MainRunner(config, outprintStream, errPrintStream, stdIn, stdOut, stdErr){
   var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])] = None
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(

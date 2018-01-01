@@ -52,7 +52,10 @@ object Main {
             welcomeBanner = None
           )
 
-        val runner = new mill.main.MainRunner(config, show)
+        val runner = new mill.main.MainRunner(
+          config, show,
+          System.out, System.err, System.in, System.out, System.err
+        )
         if (repl){
           runner.printInfo("Loading...")
           runner.runRepl()

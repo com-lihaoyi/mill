@@ -1,12 +1,19 @@
 package mill.integration
 
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintStream}
+
 import ammonite.ops._
 import utest._
 
 abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) extends TestSuite{
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
   val buildFilePath = pwd / 'integration / 'src / 'test / 'resource / workspaceSlug
-  val runner = new mill.main.MainRunner(ammonite.main.Cli.Config(wd = workspacePath), false)
+  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+  val stdIn = new ByteArrayInputStream(Array())
+  val runner = new mill.main.MainRunner(
+    ammonite.main.Cli.Config(wd = workspacePath), false,
+    stdOutErr, stdOutErr, stdIn, stdOutErr, stdOutErr
+  )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
   def initWorkspace() = {
     rm(workspacePath)
