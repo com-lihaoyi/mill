@@ -206,7 +206,7 @@ object Lib{
         .unsafePerformSync
         .flatMap(_.toOption)
 
-      localArtifacts.map(p => PathRef(Path(p), quick = true))
+      localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
     }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Seq(

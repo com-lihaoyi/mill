@@ -39,7 +39,7 @@ object Jvm {
                  classPath: Seq[Path],
                  jvmOptions: Seq[String] = Seq.empty,
                  options: Seq[String] = Seq.empty,
-                 workingDir: Path = ammonite.ops.pwd)
+                 workingDir: Path = null)
                 (implicit ctx: Ctx) = {
 
     val commandArgs =
@@ -48,9 +48,11 @@ object Jvm {
       Vector("-cp", classPath.mkString(":"), mainClass) ++
       options
 
+    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
+    mkdir(workingDir1)
     val proc =
       new java.lang.ProcessBuilder()
-        .directory(workingDir.toIO)
+        .directory(workingDir1.toIO)
         .command(commandArgs:_*)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
@@ -158,11 +160,11 @@ object Jvm {
 
       val seen = mutable.Set("META-INF/MANIFEST.MF")
       try{
-        assert(inputPaths.forall(exists(_)))
+
 
         for{
           p <- inputPaths
-
+          if exists(p)
           (file, mapping) <-
             if (p.isFile) {
               val jf = new JarFile(p.toIO)

@@ -155,7 +155,7 @@ val jsbridges = for{
     case "0.6" => "0.6.21"
     case "1.0" => "1.0.0-M2"
   }
-  override def ivyDeps = Seq(
+  def ivyDeps = Seq(
     Dep("org.scala-js", "scalajs-tools", scalajsVersion)
   )
 }
@@ -174,7 +174,24 @@ object scalajslib extends MillModule {
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
   }
+}
+def testRepos = T{
+  Seq(
+    "MILL_ACYCLIC_REPO" ->
+      shared.downloadTestRepo("lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", T.ctx().dest/"acyclic"),
+    "MILL_JAWN_REPO" ->
+      shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx().dest/"jawn"),
+    "MILL_BETTERFILES_REPO" ->
+      shared.downloadTestRepo("pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", T.ctx().dest/"better-files")
+  )
+}
 
+object integration extends MillModule{
+  def projectDeps = Seq(moduledefs, scalalib, scalajslib)
+  def basePath = pwd / 'integration
+  def testArgs = T{
+    for((k, v) <- testRepos()) yield s"-D$k=$v"
+  }
 }
 
 val assemblyProjects = Seq(scalalib, scalajslib)
@@ -196,11 +213,11 @@ def assemblyBase(classpath: Seq[Path], extraArgs: String)
 }
 
 def devAssembly = T{
-  assemblyBase(assemblyClasspath().flatten, (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
+  assemblyBase(assemblyClasspath().flatten.map(_.path), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
 }
 
 def releaseAssembly = T{
-  assemblyBase(assemblyClasspath().flatten, "")
+  assemblyBase(assemblyClasspath().flatten.map(_.path), "")
 }
 
 def idea() = T.command{ mill.scalalib.GenIdea() }

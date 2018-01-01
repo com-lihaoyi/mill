@@ -201,7 +201,7 @@ object HelloWorldTests extends TestSuite {
 
         assert(evalCount > 0)
 
-        val runResult = basePath / "hello-mill"
+        val runResult = basePath / 'out / 'runMain / 'dest / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -216,7 +216,7 @@ object HelloWorldTests extends TestSuite {
 
           assert(evalCount > 0)
 
-          val runResult = basePath / "hello-mill"
+          val runResult = basePath / 'out / 'cross / v / 'runMain / 'dest / "hello-mill"
           assert(
             exists(runResult),
             read(runResult) == "hello rockjam, your age is: 25"
@@ -252,7 +252,7 @@ object HelloWorldTests extends TestSuite {
 
         assert(evalCount > 0)
 
-        val runResult = basePath / "hello-mill"
+        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
         assert(
           exists(runResult),
           read(runResult) == "hello rockjam, your age is: 25"
@@ -295,7 +295,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
 
-        %("scala", result.path)
+        %("scala", result.path)(wd = basePath)
 
         val runResult = basePath / "hello-mill"
         assert(

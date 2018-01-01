@@ -11,8 +11,7 @@ import upickle.Js
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config,
-                 show: Boolean)
+class MainRunner(config: ammonite.main.Cli.Config, show: Boolean)
   extends ammonite.MainRunner(
     config,
     System.out, System.err, System.in, System.out, System.err
@@ -72,7 +71,12 @@ class MainRunner(config: ammonite.main.Cli.Config,
 
   }
   override def initMain(isRepl: Boolean) = {
-    super.initMain(isRepl).copy(scriptCodeWrapper = mill.main.MainRunner.CustomCodeWrapper)
+    super.initMain(isRepl).copy(
+      scriptCodeWrapper = mill.main.MainRunner.CustomCodeWrapper,
+      // Ammonite does not properly forward the wd from CliConfig to Main, so
+      // force forward it outselves
+      wd = config.wd
+    )
   }
 }
 

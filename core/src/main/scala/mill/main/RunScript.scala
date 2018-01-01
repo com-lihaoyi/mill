@@ -3,7 +3,7 @@ package mill.main
 import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
-import ammonite.ops.{Path, pwd, read}
+import ammonite.ops.{Path, read}
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
@@ -12,9 +12,6 @@ import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 import mill.util.{OSet, PrintLogger}
-import upickle.Js
-
-import scala.collection.mutable
 
 /**
   * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -39,7 +36,7 @@ object RunScript{
         case _ =>
           interp.watch(path)
           for(mapping <- evaluateMapping(wd, path, interp))
-          yield new Evaluator(pwd / 'out, pwd, mapping, log)
+          yield new Evaluator(wd / 'out, wd, mapping, log)
       }
       (watches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
     } yield (evaluator, watches, res)

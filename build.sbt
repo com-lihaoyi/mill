@@ -36,17 +36,18 @@ lazy val ammoniteRunner = project.settings(
 )
 
 
-def ammoniteRun(hole: SettingKey[File], args: String => List[String]) = Def.task{
-  if (!hole.value.exists()) {
-    IO.createDirectory(hole.value)
+def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: String = "") = Def.task{
+  val target = hole.value / suffix
+  if (!target.exists()) {
+    IO.createDirectory(target)
     (runner in(ammoniteRunner, Compile)).value.run(
       "ammonite.Main",
       (dependencyClasspath in(ammoniteRunner, Compile)).value.files,
-      args(hole.value.toString),
+      args(target.toString),
       streams.value.log
     )
   }
-  (hole.value ** "*.scala").get
+  target
 }
 
 
@@ -65,7 +66,7 @@ def bridge(bridgeVersion: String) = Project(
     (sourceGenerators in Compile) += ammoniteRun(
       sourceManaged in Compile,
       List("shared.sc", "downloadBridgeSource", _, bridgeVersion)
-    ).taskValue
+    ).taskValue.map(x => (x ** "*.scala").get)
   )
 )
 
@@ -95,11 +96,15 @@ lazy val core = project
       "org.scala-sbt" % "test-interface" % "1.0"
     ),
     sourceGenerators in Compile += {
-      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _)).taskValue
+      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _))
+        .taskValue
+        .map(x => (x ** "*.scala").get)
     },
 
     sourceGenerators in Test += {
-      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateTests", _)).taskValue
+      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateTests", _))
+        .taskValue
+        .map(x => (x ** "*.scala").get)
     }
   )
 
@@ -140,8 +145,8 @@ lazy val scalajslib = project
     sharedSettings,
     name := "mill-scalajslib",
     fork in Test := true,
-    baseDirectory in (Test, test) := (baseDirectory in (Test, test)).value / "..",
-    javaOptions in (Test, test) := jsbridgeProps.value.toSeq
+    baseDirectory in Test := (baseDirectory in Test).value / "..",
+    javaOptions in Test := jsbridgeProps.value.toSeq
   )
 def jsbridge(binary: String, version: String) =
   Project(
@@ -161,13 +166,53 @@ val jsbridgeProps = Def.task{
     (depClasspath.files :+ jar).map(_.absolutePath).mkString(File.pathSeparator)
   }
   val mapping = Map(
-    "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath((dependencyClasspath in (scalajsbridge_0_6, Compile)).value,
-                                                 (packageBin in (scalajsbridge_0_6, Compile)).value),
-    "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath((dependencyClasspath in (scalajsbridge_1_0, Compile)).value,
-                                                 (packageBin in (scalajsbridge_1_0, Compile)).value)
+    "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(
+      (dependencyClasspath in (scalajsbridge_0_6, Compile)).value,
+      (packageBin in (scalajsbridge_0_6, Compile)).value
+    ),
+    "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(
+      (dependencyClasspath in (scalajsbridge_1_0, Compile)).value,
+      (packageBin in (scalajsbridge_1_0, Compile)).value
+    )
   )
   for((k, v) <- mapping) yield s"-D$k=$v"
 }
+
+val testRepos = Map(
+  "MILL_ACYCLIC_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", _),
+    suffix = "acyclic"
+  ),
+  "MILL_JAWN_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", _),
+    suffix = "jawn"
+  ),
+  "MILL_BETTERFILES_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", _),
+    suffix = "better-files"
+  )
+)
+
+lazy val integration = project
+  .dependsOn(core % "compile->compile;test->test", scalalib, scalajslib)
+  .settings(
+    sharedSettings,
+    name := "integration",
+    fork := true,
+    baseDirectory in Test := (baseDirectory in Test).value / "..",
+    javaOptions in Test := {
+      val kvs = Seq(
+        "MILL_ACYCLIC_REPO" -> testRepos("MILL_ACYCLIC_REPO").value,
+        "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
+        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
+      )
+      for((k, v) <- kvs) yield s"-D$k=$v"
+    }
+  )
+
 lazy val bin = project
   .dependsOn(scalalib, scalajslib)
   .settings(

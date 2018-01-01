@@ -100,35 +100,19 @@ def generateApplicativeTest(dir: Path) = {
   )
 }
 
-@main
-def generateSources(p: Path) = {
-  generateApplyer(p)
-  generateTarget(p)
-  generateEval(p)
-}
+def unpackZip(zipDest: Path, url: String) = {
+  println(s"Unpacking zip $url into $zipDest")
+  mkdir(zipDest)
 
-@main
-def generateTests(p: Path) = {
-  generateApplicativeTest(p)
-}
-
-@main
-def downloadBridgeSource(curlDest: Path, crossVersion: String) = {
-  val v = crossVersion.split('.').dropRight(1).mkString(".")
-  val url =
-    s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
-
-  mkdir(curlDest)
-
-  val bytes = scalaj.http.Http.apply(url).asBytes.body
-  val byteStream = new java.io.ByteArrayInputStream(bytes)
+  val bytes = scalaj.http.Http.apply(url).option(scalaj.http.HttpOptions.followRedirects(true)).asBytes
+  val byteStream = new java.io.ByteArrayInputStream(bytes.body)
   val zipStream = new java.util.zip.ZipInputStream(byteStream)
   while({
     zipStream.getNextEntry match{
       case null => false
       case entry =>
         if (!entry.isDirectory) {
-          val dest = curlDest / RelPath(entry.getName)
+          val dest = zipDest / RelPath(entry.getName)
           mkdir(dest / up)
           val fileOut = new java.io.FileOutputStream(dest.toString)
           val buffer = new Array[Byte](4096)
@@ -146,7 +130,32 @@ def downloadBridgeSource(curlDest: Path, crossVersion: String) = {
         true
     }
   })()
+}
 
+@main
+def generateSources(p: Path) = {
+  generateApplyer(p)
+  generateTarget(p)
+  generateEval(p)
+}
 
+@main
+def generateTests(p: Path) = {
+  generateApplicativeTest(p)
+}
+
+@main
+def downloadBridgeSource(curlDest: Path, crossVersion: String) = {
+  val v = crossVersion.split('.').dropRight(1).mkString(".")
+  unpackZip(
+    curlDest,
+    s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
+  )
   curlDest
+}
+
+@main
+def downloadTestRepo(label: String, commit: String, dest: Path) = {
+  unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")
+  dest
 }

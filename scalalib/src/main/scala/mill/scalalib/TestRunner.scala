@@ -62,6 +62,7 @@ object TestRunner {
             args: Seq[String])
            (implicit ctx: LogCtx): (String, Seq[Result]) = {
     val outerClassLoader = getClass.getClassLoader
+    pprint.log(entireClasspath.map(_.toIO.toURI.toURL).toArray, height=9999)
     val cl = new URLClassLoader(
       entireClasspath.map(_.toIO.toURI.toURL).toArray,
       ClassLoader.getSystemClassLoader().getParent()){
@@ -84,9 +85,7 @@ object TestRunner {
 
     val tasks = runner.tasks(
       for((cls, fingerprint) <- testClasses.toArray)
-      yield {
-        new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array())
-      }
+      yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array())
     )
     val events = mutable.Buffer.empty[Event]
     for(t <- tasks){

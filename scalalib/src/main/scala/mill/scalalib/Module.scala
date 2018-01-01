@@ -36,7 +36,7 @@ trait TestModule extends Module with TaskModule {
       jvmOptions = forkArgs(),
       options = Seq(
         testFramework(),
-        (runDepClasspath().map(_.path) :+ compile().classes.path).mkString(" "),
+        (runDepClasspath().map(_.path) :+ compile().classes.path).distinct.mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
         outputPath.toString
@@ -210,12 +210,14 @@ trait Module extends mill.Module with TaskModule { outer =>
     )
   }
   def assemblyClasspath = T{
-    (runDepClasspath().filter(_.path.ext != "pom") ++
-    Seq(resources(), compile().classes)).map(_.path).filter(exists)
+    runDepClasspath() ++ Seq(resources(), compile().classes)
   }
 
   def assembly = T{
-    createAssembly(assemblyClasspath(), prependShellScript = prependShellScript())
+    createAssembly(
+      assemblyClasspath().map(_.path).filter(exists),
+      prependShellScript = prependShellScript()
+    )
   }
 
   def classpath = T{ Seq(resources(), compile().classes) }
@@ -263,7 +265,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def console() = T.command{
     interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
-      classPath = externalCompileDepClasspath().map(_.path) :+ compile().classes.path,
+      classPath = assemblyClasspath().map(_.path),
       options = Seq("-usejavacp")
     )
   }
