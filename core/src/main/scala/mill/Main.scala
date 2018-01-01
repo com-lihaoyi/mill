@@ -60,7 +60,8 @@ object Main {
           runner.printInfo("Loading...")
           runner.runRepl()
         } else {
-          runner.runScript(pwd / "build.sc", leftoverArgs)
+          val result = runner.runScript(pwd / "build.sc", leftoverArgs)
+          System.exit(if(result) 0 else 1)
         }
     }
   }
