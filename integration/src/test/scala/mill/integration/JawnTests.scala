@@ -16,8 +16,6 @@ object JawnTests extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn") {
         ls.rec(workspacePath).exists(_.last == "CharBuilderSpec.class")
       )
 
-      pprint.log(ls.rec(workspacePath).map(_.toString), height=9999)
-      pprint.log(ls.rec(workspacePath).find(_.ext == "scala"))
       for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
         write.append(scalaFile, "\n}")
       }

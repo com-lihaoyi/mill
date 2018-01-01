@@ -2,8 +2,9 @@ import mill.scalalib
 import mill.define.Cross
 import mill.scalalib.{Dep, TestModule, Module}
 
-val jawn = Cross("2.10.6", "2.11.11", "2.12.3").map(new Jawn(_))
-class Jawn(crossVersion: String) extends mill.Module{
+val jawn = for{
+  crossVersion <- Cross("2.10.6", "2.11.11", "2.12.3")
+} yield new mill.Module{
   trait JawnModule extends scalalib.SbtModule{ outer =>
     def scalaVersion = crossVersion
     def scalacOptions = Seq(
