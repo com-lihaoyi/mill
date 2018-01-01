@@ -94,7 +94,9 @@ object RunScript{
   def evaluateTarget[T](evaluator: Evaluator[_],
                         scriptArgs: Seq[String]) = {
 
-    val Seq(selectorString, rest @_*) = scriptArgs
+    val selectorString = scriptArgs.headOption.getOrElse("")
+    val rest = scriptArgs.drop(1)
+
     for {
       sel <- parseArgs(selectorString)
       crossSelectors = sel.map{
