@@ -11,6 +11,7 @@ import mill.util
 import mill.util._
 
 import scala.collection.mutable
+import scala.util.control.NonFatal
 case class Labelled[T](target: NamedTask[T],
                        segments: Seq[Segment]){
   def format = target match{
@@ -213,8 +214,9 @@ class Evaluator[T](val workspacePath: Path,
                 target.evaluate(args)
               }
             }
-          }catch{ case e: Throwable =>
-            Result.Exception(e)
+          }catch{
+            case NonFatal(e) =>
+              Result.Exception(e)
           }finally{
             System.setErr(err)
             System.setOut(out)
