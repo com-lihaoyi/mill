@@ -2,7 +2,7 @@
 # ![Mill Logo](docs/logo.svg) Mill [![Gitter Chat][gitter-badge]][gitter-link]
 
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
-[gitter-link]: https://gitter.im/lihaoyi/Ammonite?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
+[gitter-link]: https://gitter.im/lihaoyi/mill?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge
 
 Your shiny new Scala build tool!
 
