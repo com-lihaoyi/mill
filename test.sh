@@ -15,4 +15,5 @@ bin/target/mill devAssembly
 out/devAssembly/dest core.test
 out/devAssembly/dest scalalib.test
 out/devAssembly/dest scalajslib.test
+out/devAssembly/dest integration.test
 out/devAssembly/dest devAssembly
