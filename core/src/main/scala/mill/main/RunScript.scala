@@ -1,5 +1,6 @@
 package mill.main
 
+import java.io.PrintStream
 import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
@@ -24,9 +25,11 @@ object RunScript{
                 path: Path,
                 interp: ammonite.interp.Interpreter,
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])]) = {
+                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])],
+                infoStream: PrintStream,
+                errStream: PrintStream) = {
 
-    val log = new PrintLogger(true)
+    val log = new PrintLogger(true, infoStream, errStream)
     for{
       evaluator <- lastEvaluator match{
         case Some((prevInterpWatchedSig, prevEvaluator))

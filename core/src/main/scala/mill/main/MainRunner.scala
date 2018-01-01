@@ -32,7 +32,8 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
             val interpWatched = interp.watchedFiles
 
             val result = RunScript.runScript(
-              mainCfg.wd, scriptPath, interp, scriptArgs, lastEvaluator
+              mainCfg.wd, scriptPath, interp, scriptArgs, lastEvaluator,
+              errPrintStream, errPrintStream
             )
             result match{
               case Res.Success(data) =>

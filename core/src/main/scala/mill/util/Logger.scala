@@ -19,15 +19,17 @@ object DummyLogger extends Logger {
   def error(s: String) = ()
 }
 
-case class PrintLogger(coloredOutput: Boolean) extends Logger {
-  val outputStream: PrintStream = System.err
+case class PrintLogger(coloredOutput: Boolean,
+                       infoStream: PrintStream,
+                       errorStream: PrintStream) extends Logger {
 
+  override val outputStream = infoStream
   val colors =
     if(coloredOutput) Colors.Default
     else Colors.BlackWhite
 
-  def info(s: String) = outputStream.println(colors.info()(s))
-  def error(s: String) = outputStream.println(colors.error()(s))
+  def info(s: String) = infoStream.println(colors.info()(s))
+  def error(s: String) = errorStream.println(colors.error()(s))
 }
 
 case class FileLogger(file: Path) extends Logger {

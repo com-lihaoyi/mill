@@ -5,19 +5,19 @@ import mill.define.Target
 import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
-import mill.util.Ctx.LoaderCtx
+import mill.util.Ctx.{LoaderCtx, LogCtx}
 import mill.util.{OSet, PrintLogger}
 
 object GenIdea {
 
-  def apply()(implicit ctx: LoaderCtx): Unit = {
+  def apply()(implicit ctx: LoaderCtx with LogCtx): Unit = {
     val mapping = ctx.load(mill.discover.Discovered.Mapping)
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd, mapping, new PrintLogger(true))
+    val evaluator = new Evaluator(pwd / 'out, pwd, mapping, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator)){
       write.over(pwd/relPath, pp.format(xml))

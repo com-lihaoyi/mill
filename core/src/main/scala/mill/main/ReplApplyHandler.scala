@@ -13,7 +13,7 @@ object ReplApplyHandler{
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd,
         mapping,
-        new mill.util.PrintLogger(true)
+        new mill.util.PrintLogger(true, System.err, System.err)
       )
     )
   }

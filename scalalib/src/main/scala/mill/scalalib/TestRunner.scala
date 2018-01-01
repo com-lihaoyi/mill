@@ -49,7 +49,7 @@ object TestRunner {
       entireClasspath = args(1).split(" ").map(Path(_)),
       testClassfilePath = args(2).split(" ").map(Path(_)),
       args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
-    )(new PrintLogger(true))
+    )(new PrintLogger(true, System.err, System.err))
     val outputPath = args(4)
 
     ammonite.ops.write(Path(outputPath), upickle.default.write(result))
