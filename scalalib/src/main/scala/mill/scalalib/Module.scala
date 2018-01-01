@@ -25,7 +25,7 @@ trait TestModule extends Module with TaskModule {
   def testFramework: T[String]
 
   def forkWorkingDir = ammonite.ops.pwd
-  def forkArgs = T{ Seq.empty[String] }
+
   def forkTest(args: String*) = T.command{
     mkdir(T.ctx().dest)
     val outputPath = T.ctx().dest/"out.json"
@@ -253,13 +253,23 @@ trait Module extends mill.Module with TaskModule { outer =>
     createJar(Seq(sources(), resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
   }
 
+  def forkArgs = T{ Seq.empty[String] }
+
   def run() = T.command{
-    val main = mainClass().getOrElse(throw new RuntimeException("No mainClass provided!"))
-    subprocess(main, runDepClasspath().map(_.path) :+ compile().classes.path)
+    subprocess(
+      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      runDepClasspath().map(_.path) :+ compile().classes.path,
+      forkArgs(),
+      workingDir = ammonite.ops.pwd)
   }
 
   def runMain(mainClass: String) = T.command{
-    subprocess(mainClass, runDepClasspath().map(_.path) :+ compile().classes.path)
+    subprocess(
+      mainClass,
+      runDepClasspath().map(_.path) :+ compile().classes.path,
+      forkArgs(),
+      workingDir = ammonite.ops.pwd
+    )
   }
 
   def console() = T.command{

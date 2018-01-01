@@ -192,6 +192,7 @@ object integration extends MillModule{
   def testArgs = T{
     for((k, v) <- testRepos()) yield s"-D$k=$v"
   }
+  def forkArgs() = testArgs()
 }
 
 val assemblyProjects = Seq(scalalib, scalajslib)
