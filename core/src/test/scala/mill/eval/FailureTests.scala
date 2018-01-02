@@ -19,8 +19,14 @@ object FailureTests extends TestSuite{
     def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
 
       val res = evaluator.evaluate(OSet(target))
+
+      val cleaned = res.rawValues.map{
+        case Result.Exception(ex, _) => Result.Exception(ex, Nil)
+        case x => x
+      }
+
       assert(
-        res.rawValues == expectedRawValues,
+        cleaned == expectedRawValues,
         res.failing.keyCount == expectedFailCount
       )
 
@@ -63,7 +69,7 @@ object FailureTests extends TestSuite{
       check(
         target = singleton.single,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Exception(ex))
+        expectedRawValues = Seq(Result.Exception(ex, Nil))
       )
     }
     'evaluatePair - {
