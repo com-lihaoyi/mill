@@ -11,8 +11,9 @@ import mill.{PathRef, define}
 import mill.define.Task
 import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
-import mill.eval.{Evaluator, Result}
+import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{OSet, PrintLogger}
+import upickle.Js
 
 /**
   * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -20,29 +21,52 @@ import mill.util.{OSet, PrintLogger}
   * subsystem
   */
 object RunScript{
-
   def runScript(wd: Path,
                 path: Path,
-                interp: ammonite.interp.Interpreter,
+                instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])],
                 infoStream: PrintStream,
-                errStream: PrintStream) = {
+                errStream: PrintStream)
+  : (Res[(Evaluator[_], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val log = new PrintLogger(true, infoStream, errStream)
-    for{
-      evaluator <- lastEvaluator match{
-        case Some((prevInterpWatchedSig, prevEvaluator))
-          if watchedSigUnchanged(prevInterpWatchedSig) =>
-          Res.Success(prevEvaluator)
+    val (evalRes, interpWatched) = lastEvaluator match{
+      case Some((prevInterpWatchedSig, prevEvaluator))
+        if watchedSigUnchanged(prevInterpWatchedSig) =>
 
-        case _ =>
-          interp.watch(path)
-          for(mapping <- evaluateMapping(wd, path, interp))
-          yield new Evaluator(wd / 'out, wd, mapping, log)
-      }
-      (watches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
-    } yield (evaluator, watches, res)
+        (Res.Success(prevEvaluator), prevInterpWatchedSig)
+
+      case _ =>
+        instantiateInterpreter match{
+          case Left((res, watched)) => (res, watched)
+          case Right(interp) =>
+            interp.watch(path)
+            val eval =
+              for(mapping <- evaluateMapping(wd, path, interp))
+              yield new Evaluator(wd / 'out, wd, mapping, log)
+            (eval, interp.watchedFiles)
+        }
+    }
+
+    val evaluated = for{
+      evaluator <- evalRes
+      (evalWatches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
+    } yield {
+      val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
+      // If the file changed between the creation of the original
+      // `PathRef` and the current moment, use random junk .sig values
+      // to force an immediate re-run. Otherwise calculate the
+      // pathSignatures the same way Ammonite would and hand over the
+      // values, so Ammonite can watch them and only re-run if they
+      // subsequently change
+      val evaluationWatches =
+        if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
+        else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
+
+      (evaluator, evaluationWatches, res.map(_.flatMap(_._2)))
+    }
+    (evaluated, interpWatched)
   }
 
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
