@@ -1,6 +1,6 @@
 package mill.main
 
-import java.io.PrintStream
+import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
@@ -127,7 +127,8 @@ object RunScript{
           case Right(t) => Mirror.renderSelector(t.segments.toList)
         }
         val fss = fs.map{
-          case Result.Exception(t) => t.toString
+          case Result.Exception(t, outerStack) =>
+            t.toString + t.getStackTrace.dropRight(outerStack.length).map("\n    " + _).mkString
           case Result.Failure(t) => t
         }
         s"$ks ${fss.mkString(", ")}"

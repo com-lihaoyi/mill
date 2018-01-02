@@ -170,7 +170,7 @@ object HelloWorldTests extends TestSuite {
       'failOnError - {
         write.append(mainObject, "val x: ")
 
-        val Left(Result.Exception(err)) = helloWorldEvaluator(HelloWorld.compile)
+        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.compile)
 
         assert(err.isInstanceOf[CompileFailed])
 
@@ -190,7 +190,7 @@ object HelloWorldTests extends TestSuite {
       }
       'passScalacOptions - {
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Exception(err)) = helloWorldFatalEvaluator(HelloWorldFatalWarnings.compile)
+        val Left(Result.Exception(err, _)) = helloWorldFatalEvaluator(HelloWorldFatalWarnings.compile)
 
         assert(err.isInstanceOf[CompileFailed])
       }
@@ -232,7 +232,7 @@ object HelloWorldTests extends TestSuite {
 
 
       'notRunInvalidMainObject - {
-        val Left(Result.Exception(err)) = helloWorldEvaluator(HelloWorld.runMain("Invalid"))
+        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.runMain("Invalid"))
 
         assert(
           err.isInstanceOf[InteractiveShelloutException]
@@ -241,7 +241,7 @@ object HelloWorldTests extends TestSuite {
       'notRunWhenComplileFailed - {
         write.append(mainObject, "val x: ")
 
-        val Left(Result.Exception(err)) = helloWorldEvaluator(HelloWorld.runMain("Main"))
+        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.runMain("Main"))
 
         assert(
           err.isInstanceOf[CompileFailed]
@@ -264,7 +264,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'notRunWithoutMainClass - {
-        val Left(Result.Exception(err)) = helloWorldEvaluator(HelloWorld.run())
+        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.run())
 
         assert(
           err.isInstanceOf[RuntimeException]

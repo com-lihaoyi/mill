@@ -214,9 +214,9 @@ class Evaluator[T](val workspacePath: Path,
                 target.evaluate(args)
               }
             }
-          }catch{
-            case NonFatal(e) =>
-              Result.Exception(e)
+          }catch{ case NonFatal(e) =>
+            val currentStack = new Exception().getStackTrace
+            Result.Exception(e, currentStack)
           }finally{
             System.setErr(err)
             System.setOut(out)
