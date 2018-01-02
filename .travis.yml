@@ -9,7 +9,7 @@ jdk:
   - oraclejdk8
 
 script:
-  - test.sh
+  - "./test.sh"
 
 cache:
   directories:
