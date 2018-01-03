@@ -13,9 +13,9 @@ object MainTests extends TestSuite{
                expected: Either[String, Task[_]]) = {
 
     val resolved = for{
-      args <- mill.main.RunScript.parseArgs(selectorString)
-      val crossSelectors = args.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
-      task <- mill.main.Resolve.resolve(args, mapping.mirror, mapping.base, Nil, crossSelectors, Nil)
+      selectors <- mill.main.ParseArgs(Seq(selectorString)).map(_._1.head)
+      val crossSelectors = selectors.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
+      task <- mill.main.Resolve.resolve(selectors, mapping.mirror, mapping.base, Nil, crossSelectors, Nil)
     } yield task
     assert(resolved == expected)
   }

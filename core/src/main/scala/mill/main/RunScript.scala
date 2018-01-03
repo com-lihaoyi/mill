@@ -1,6 +1,5 @@
 package mill.main
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
@@ -10,9 +9,9 @@ import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
 import mill.define.Task
 import mill.define.Segment
-import mill.discover.{Discovered, Mirror}
-import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{Logger, OSet, PrintLogger}
+import mill.discover.Discovered
+import mill.eval.{Evaluator, Result}
+import mill.util.{EitherOps, Logger, OSet}
 import upickle.Js
 
 /**
@@ -113,28 +112,32 @@ object RunScript{
       _ <- Res(consistencyCheck(mapping))
     } yield mapping
   }
+
   def evaluateTarget[T](evaluator: Evaluator[_],
                         scriptArgs: Seq[String]) = {
-
-    val selectorString = scriptArgs.headOption.getOrElse("")
-    val rest = scriptArgs.drop(1)
-
     for {
-      sel <- parseArgs(selectorString)
-      crossSelectors = sel.map{
-        case Segment.Cross(x) => x.toList.map(_.toString)
-        case _ => Nil
+      parsed <- ParseArgs(scriptArgs)
+      (selectors, args) = parsed
+      targets <- {
+        val selected = selectors.map { sel =>
+          val crossSelectors = sel.map {
+            case Segment.Cross(x) => x.toList.map(_.toString)
+            case _ => Nil
+          }
+          mill.main.Resolve.resolve(
+            sel, evaluator.mapping.mirror, evaluator.mapping.base,
+            args, crossSelectors, Nil
+          )
+        }
+        EitherOps.sequence(selected)
       }
-      target <- mill.main.Resolve.resolve(
-        sel, evaluator.mapping.mirror, evaluator.mapping.base,
-        rest, crossSelectors, Nil
-      )
-      (watched, res) = evaluate(evaluator, target)
+      (watched, res) = evaluate(evaluator, targets)
     } yield (watched, res)
   }
+
   def evaluate(evaluator: Evaluator[_],
-               target: Task[Any]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
-    val evaluated = evaluator.evaluate(OSet(target))
+               targets: Seq[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+    val evaluated = evaluator.evaluate(OSet.from(targets))
     val watched = evaluated.results
       .iterator
       .collect {
@@ -158,7 +161,7 @@ object RunScript{
 
     evaluated.failing.keyCount match {
       case 0 =>
-        val json = for(t <- Seq(target)) yield {
+        val json = for(t <- targets) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = Evaluator
@@ -175,32 +178,6 @@ object RunScript{
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }
-
-  def parseSelector(input: String) = {
-    import fastparse.all._
-    val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! ).map(
-      Segment.Label
-    )
-    val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" ).map(
-      Segment.Cross
-    )
-    val query = P( segment ~ ("." ~ segment | crossSegment).rep ~ End ).map{
-      case (h, rest) => h :: rest.toList
-    }
-    query.parse(input)
-  }
-
-
-
-  def parseArgs(selectorString: String): Either[String, List[Segment]] = {
-    import fastparse.all.Parsed
-    if (selectorString.isEmpty) Left("Selector cannot be empty")
-    else parseSelector(selectorString) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
-      case Parsed.Success(selector, _) => Right(selector)
-    }
-  }
-
 
   def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
     val consistencyErrors = Discovered.consistencyCheck(mapping)
