@@ -1,7 +1,8 @@
 import mill.define.Cross
 import mill.scalalib.{SbtModule, PublishModule, Dep}
 import mill.scalalib.publish.{PomSettings, License, Developer, SCM}
-trait BetterFilesModule extends SbtModule{ outer =>
+
+trait BetterFilesModule extends SbtModule{
   def scalaVersion = "2.12.4"
   def scalacOptions = Seq(
     "-deprecation",                      // Emit warning and location for usages of deprecated APIs.
@@ -51,27 +52,31 @@ trait BetterFilesModule extends SbtModule{ outer =>
     "-Ywarn-value-discard"               // Warn when non-Unit expression results are unused.
   )
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-Xlint")
-  object test extends this.Tests{
+  object test extends Tests{
     def projectDeps =
-      if (this == core.test) Seq(core)
-      else Seq(outer, core.test)
+      if (this == core.test) super.projectDeps
+      else super.projectDeps ++ Seq(core.test)
     def ivyDeps = Seq(Dep("org.scalatest", "scalatest", "3.0.4"))
     def testFramework = "org.scalatest.tools.Framework"
   }
 }
+
 object core extends BetterFilesModule{
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'core
 }
+
 object akka extends BetterFilesModule{
   def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'akka
   def ivyDeps = Seq(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
 }
+
 object shapelessScanner extends BetterFilesModule{
   def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'shapeless
   def ivyDeps = Seq(Dep("com.chuusai", "shapeless", "2.3.2"))
 }
+
 object benchmarks extends BetterFilesModule{
   def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'benchmarks

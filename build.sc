@@ -97,9 +97,8 @@ object core extends MillModule {
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
-val bridges = for{
-  crossVersion <- mill.define.Cross(bridgeVersions:_*)
-} yield new PublishModule {
+object bridges extends CrossModule(BridgeModule, bridgeVersions:_*)
+case class BridgeModule(crossVersion: String) extends PublishModule {
   def publishName = "mill-bridge"
   def publishVersion = "0.1"
 

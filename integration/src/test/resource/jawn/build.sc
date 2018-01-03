@@ -1,11 +1,10 @@
 import mill.scalalib
-import mill.define.Cross
+import mill.CrossModule
 import mill.scalalib.{Dep, TestModule, Module}
 
-val jawn = for{
-  crossVersion <- Cross("2.10.6", "2.11.11", "2.12.3")
-} yield new mill.Module{
-  trait JawnModule extends scalalib.SbtModule{ outer =>
+object jawn extends CrossModule(JawnModule, "2.10.6", "2.11.11", "2.12.3")
+case class JawnModule(crossVersion: String) extends mill.Module{
+  trait JawnModule extends scalalib.SbtModule{
     def scalaVersion = crossVersion
     def scalacOptions = Seq(
       "-deprecation",
@@ -13,7 +12,7 @@ val jawn = for{
       "-unchecked"
     )
     def testProjectDeps: Seq[TestModule] = Nil
-    object test extends this.Tests{
+    object test extends Tests{
       def projectDeps = super.projectDeps ++ testProjectDeps
       def ivyDeps = Seq(
         Dep("org.scalatest", "scalatest", "3.0.3"),
