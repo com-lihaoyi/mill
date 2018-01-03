@@ -1,6 +1,7 @@
 package mill
 
 import ammonite.ops._
+
 object Main {
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
                     colored: Option[Boolean] = None,

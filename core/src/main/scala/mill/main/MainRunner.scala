@@ -26,36 +26,19 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       isRepl = false,
       printing = true,
       mainCfg => {
-        mainCfg.instantiateInterpreter() match{
-          case Left(problems) => problems
-          case Right(interp) =>
-            val interpWatched = interp.watchedFiles
+        val (result, interpWatched) = RunScript.runScript(
+          mainCfg.wd, scriptPath, mainCfg.instantiateInterpreter(), scriptArgs, lastEvaluator,
+          errPrintStream, errPrintStream
+        )
 
-            val result = RunScript.runScript(
-              mainCfg.wd, scriptPath, interp, scriptArgs, lastEvaluator,
-              errPrintStream, errPrintStream
-            )
-            result match{
-              case Res.Success(data) =>
-                val (eval, evaluationWatches0, res) = data
-                val alreadyStale = evaluationWatches0.exists(p => p.sig != PathRef(p.path, p.quick).sig)
-                // If the file changed between the creation of the original
-                // `PathRef` and the current moment, use random junk .sig values
-                // to force an immediate re-run. Otherwise calculate the
-                // pathSignatures the same way Ammonite would and hand over the
-                // values, so Ammonite can watch them and only re-run if they
-                // subsequently change
-                val evaluationWatches =
-                  if (alreadyStale) evaluationWatches0.map(_.path -> util.Random.nextLong())
-                  else evaluationWatches0.map(p => p.path -> Interpreter.pathSignature(p.path))
+        result match{
+          case Res.Success(data) =>
+            val (eval, evaluationWatches, res) = data
 
-                lastEvaluator = Some((interpWatched, eval))
-                (Res(res.map(_.flatMap(_._2))), interpWatched ++ evaluationWatches)
-              case _ =>
-                (result, interpWatched)
-            }
+            lastEvaluator = Some((interpWatched, eval))
 
-
+            (Res(res), interpWatched ++ evaluationWatches)
+          case _ => (result, interpWatched)
         }
       }
     )

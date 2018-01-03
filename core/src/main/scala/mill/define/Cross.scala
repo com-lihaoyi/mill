@@ -25,3 +25,6 @@ case class Cross[+T](items: List[(List[Any], T)]){
 object Cross{
   def apply[T](t: T*) = new Cross(t.map(i => List(i) -> i).toList)
 }
+
+class CrossModule[T, V](constructor: T => V, cases: T*)
+extends Cross[V](cases.toList.map(x => (List(x), constructor(x))))

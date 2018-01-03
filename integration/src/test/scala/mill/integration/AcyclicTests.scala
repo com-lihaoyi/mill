@@ -28,7 +28,4 @@ object AcyclicTests extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic")
     'scala2124 - check("2.12.4")
 
   }
-  def main(args: Array[String]): Unit = {
-    println("Integration Main")
-  }
 }

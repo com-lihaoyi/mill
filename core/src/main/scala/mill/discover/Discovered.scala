@@ -98,7 +98,8 @@ object Discovered {
       val crossChildren =
         if (!(t <:< c.weakTypeOf[Cross[Module]])) q"None"
         else {
-          val TypeRef(_, _, Seq(arg)) = t
+
+          val TypeRef(_, _, Seq(arg)) = t.baseType(typeOf[Cross[Module]].typeSymbol)
           val innerMirror = rec(None :: segments, arg)
           q"Some(((c: mill.define.Cross[_]) => mill.discover.Discovered.tupleLeft(c.items), $innerMirror))"
         }
