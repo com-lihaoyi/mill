@@ -8,7 +8,7 @@ object JawnTests extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn") {
     initWorkspace()
 
     def check(scalaVersion: String) = {
-      val firstCompile = eval(s"jawn[$scalaVersion].Parser.test")
+      val firstCompile = eval(s"jawn[$scalaVersion].parser.test")
 
       assert(
         firstCompile,
@@ -20,7 +20,7 @@ object JawnTests extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn") {
         write.append(scalaFile, "\n}")
       }
 
-      val brokenCompile = eval(s"jawn[$scalaVersion].Parser.test")
+      val brokenCompile = eval(s"jawn[$scalaVersion].parser.test")
 
       assert(!brokenCompile)
     }

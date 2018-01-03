@@ -22,28 +22,28 @@ val jawn = for{
       def testFramework = "org.scalatest.tools.Framework"
     }
   }
-  object Parser extends JawnModule{
+  object parser extends JawnModule{
     def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'parser
   }
-  object Util extends JawnModule{
-    def projectDeps = Seq(Parser)
-    def testProjectDeps = Seq(Parser.test)
+  object util extends JawnModule{
+    def projectDeps = Seq(parser)
+    def testProjectDeps = Seq(parser.test)
     def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'util
   }
-  object Ast extends JawnModule{
-    def projectDeps = Seq(Parser, Util)
-    def testProjectDeps = Seq(Parser.test, Util.test)
+  object ast extends JawnModule{
+    def projectDeps = Seq(parser, util)
+    def testProjectDeps = Seq(parser.test, util.test)
     def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'ast
   }
   class Support(name: String, ivyDeps0: Dep*) extends JawnModule{
-    def projectDeps = Seq[Module](Parser)
+    def projectDeps = Seq[Module](parser)
     def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'support / name
     def ivyDeps = ivyDeps0
   }
-  object Argonaut extends Support("argonaut", Dep("io.argonaut", "argonaut", "6.2"))
-  object Json4s extends Support("json4s", Dep("org.json4s", "json4s-ast", "3.5.2"))
+  object argonaut extends Support("argonaut", Dep("io.argonaut", "argonaut", "6.2"))
+  object json4s extends Support("json4s", Dep("org.json4s", "json4s-ast", "3.5.2"))
 
-  object Play extends Support("play"){
+  object play extends Support("play"){
     def ivyDeps = mill.T{
       scalaBinaryVersion() match{
         case "2.10" => Seq(Dep("com.typesafe.play", "play-json", "2.4.11"))
@@ -53,7 +53,7 @@ val jawn = for{
     }
   }
 
-  object Rojoma extends Support("rojoma", Dep("com.rojoma", "rojoma-json", "2.4.3"))
-  object RojomaV3 extends Support("rojoma-v3", Dep("com.rojoma", "rojoma-json-v3", "3.7.2"))
-  object Spray extends Support("spray", Dep("io.spray", "spray-json", "1.3.3"))
+  object rojoma extends Support("rojoma", Dep("com.rojoma", "rojoma-json", "2.4.3"))
+  object rojomaV3 extends Support("rojoma-v3", Dep("com.rojoma", "rojoma-json-v3", "3.7.2"))
+  object spray extends Support("spray", Dep("io.spray", "spray-json", "1.3.3"))
 }

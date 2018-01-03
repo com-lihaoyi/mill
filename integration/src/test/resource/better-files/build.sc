@@ -53,27 +53,27 @@ trait BetterFilesModule extends SbtModule{ outer =>
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-Xlint")
   object test extends this.Tests{
     def projectDeps =
-      if (this == Core.test) Seq(Core)
-      else Seq(outer, Core.test)
+      if (this == core.test) Seq(core)
+      else Seq(outer, core.test)
     def ivyDeps = Seq(Dep("org.scalatest", "scalatest", "3.0.4"))
     def testFramework = "org.scalatest.tools.Framework"
   }
 }
-object Core extends BetterFilesModule{
+object core extends BetterFilesModule{
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'core
 }
-object Akka extends BetterFilesModule{
-  def projectDeps = Seq(Core)
+object akka extends BetterFilesModule{
+  def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'akka
   def ivyDeps = Seq(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
 }
-object ShapelessScanner extends BetterFilesModule{
-  def projectDeps = Seq(Core)
+object shapelessScanner extends BetterFilesModule{
+  def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'shapeless
   def ivyDeps = Seq(Dep("com.chuusai", "shapeless", "2.3.2"))
 }
-object Benchmarks extends BetterFilesModule{
-  def projectDeps = Seq(Core)
+object benchmarks extends BetterFilesModule{
+  def projectDeps = Seq(core)
   def basePath = ammonite.ops.pwd / 'target / 'workspace / "better-files" / 'benchmarks
   def ivyDeps = Seq(
     Dep.Java("commons-io", "commons-io", "2.5")
