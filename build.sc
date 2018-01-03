@@ -78,21 +78,6 @@ object core extends MillModule {
     }
     def allSources = super.allSources() ++ Seq(generatedSources())
   }
-
-  val cross =
-    for(jarLabel <- mill.define.Cross("jarA", "jarB", "jarC"))
-    yield new mill.Module{
-      def printIt() = T.command{
-        println("PRINTING IT: " + jarLabel)
-      }
-      def jar = T{
-        val dest = T.ctx().dest
-        ammonite.ops.mkdir(dest/ammonite.ops.up)
-        ammonite.ops.cp(core.jar().path, dest)
-
-        PathRef(dest)
-      }
-    }
 }
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
