@@ -11,5 +11,9 @@ object GitbucketTests extends IntegrationTestSuite("MILL_GITBUCKET_REPO", "gitbu
       assert(eval("gitbucket.compile"))
     }
 
+    'test - {
+      assert(eval("gitbucket.test.test"))
+    }
+
   }
 }
