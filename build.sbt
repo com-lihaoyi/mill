@@ -139,8 +139,7 @@ lazy val scalalib = project
     fork := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
     javaOptions := bridgeProps.value.toSeq,
-    javaOptions in Test := bridgeProps.value.toSeq, // ++ Seq("-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=1044"),
-    libraryDependencies += "com.typesafe.play" %% "twirl-compiler" % "1.3.13" % "test"
+    javaOptions in Test := bridgeProps.value.toSeq
   )
 lazy val scalajslib = project
   .dependsOn(scalalib % "compile->compile;test->test")
@@ -196,6 +195,11 @@ val testRepos = Map(
     resourceManaged in test,
     List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", _),
     suffix = "better-files"
+  ),
+  "MILL_GITBUCKET_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "gitbucket/gitbucket", "3f8069638c298cdab5637333ace9619a9442edfe", _),
+    suffix = "gitbucket"
   )
 )
 
@@ -210,7 +214,9 @@ lazy val integration = project
       val kvs = Seq(
         "MILL_ACYCLIC_REPO" -> testRepos("MILL_ACYCLIC_REPO").value,
         "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
-        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
+        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value,
+        "MILL_GITBUCKET_REPO" -> testRepos("MILL_GITBUCKET_REPO").value
+
       )
       for((k, v) <- kvs) yield s"-D$k=$v"
     }

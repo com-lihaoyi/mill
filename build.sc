@@ -154,7 +154,9 @@ def testRepos = T{
     "MILL_JAWN_REPO" ->
       shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx().dest/"jawn"),
     "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo("pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", T.ctx().dest/"better-files")
+      shared.downloadTestRepo("pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", T.ctx().dest/"better-files"),
+    "MILL_GITBUCKET_REPO" ->
+      shared.downloadTestRepo("gitbucket/gitbucket", "3f8069638c298cdab5637333ace9619a9442edfe", T.ctx().dest/"gitbucket")
   )
 }
 
