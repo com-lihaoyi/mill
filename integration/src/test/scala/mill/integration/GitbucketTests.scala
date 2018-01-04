@@ -1,4 +1,4 @@
-package mill.scalaplugin
+package mill.integration
 
 import ammonite.ops._
 import coursier.MavenRepository
@@ -113,4 +113,3 @@ object GitbucketTests extends TestSuite {
     Git.gitClone("https://github.com/gitbucket/gitbucket.git", "3f8069638c298cdab5637333ace9619a9442edfe", workspacePath)
   }
 }
-
