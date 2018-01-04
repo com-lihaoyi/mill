@@ -35,7 +35,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(c.e.value, ":", c.l.value.toString) ++
+        Iterator(c.e.value, ":", c.l.value.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
