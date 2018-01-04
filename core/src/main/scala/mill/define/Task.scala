@@ -42,6 +42,7 @@ trait NamedTask[+T] extends Task[T]{
 trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)
   def enclosing: String
+  def lineNum: Int
   def readWrite: RW[_]
 }
 
@@ -51,6 +52,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                        (implicit r: R[T],
                         w: W[T],
                         e: sourcecode.Enclosing,
+                        l: sourcecode.Line,
                         n: sourcecode.Name,
                         cl: Caller[mill.define.Task.Module],
                         o: Overrides): Target[T] = macro targetImpl[T]
@@ -60,6 +62,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                   (r: c.Expr[R[T]],
                                    w: c.Expr[W[T]],
                                    e: c.Expr[sourcecode.Enclosing],
+                                   l: c.Expr[sourcecode.Line],
                                    n: c.Expr[sourcecode.Name],
                                    cl: c.Expr[Caller[mill.define.Task.Module]],
                                    o: c.Expr[Overrides]): c.Expr[Target[T]] = {
@@ -71,6 +74,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new TargetImpl[T](
           lhs.splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read), o.splice.value
@@ -83,6 +87,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                        (implicit r: R[T],
                         w: W[T],
                         e: sourcecode.Enclosing,
+                        l: sourcecode.Line,
                         n: sourcecode.Name,
                         cl: Caller[mill.define.Task.Module],
                         o: Overrides): Target[T] = macro targetResultImpl[T]
@@ -92,6 +97,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                         (r: c.Expr[R[T]],
                                          w: c.Expr[W[T]],
                                          e: c.Expr[sourcecode.Enclosing],
+                                         l: c.Expr[sourcecode.Line],
                                          n: c.Expr[sourcecode.Name],
                                          cl: c.Expr[Caller[mill.define.Task.Module]],
                                          o: c.Expr[Overrides]): c.Expr[Target[T]] = {
@@ -101,6 +107,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new TargetImpl[T](
           Applicative.impl0[Task, T, Ctx](c)(t.tree).splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read),
@@ -114,6 +121,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
               (implicit r: R[T],
                w: W[T],
                e: sourcecode.Enclosing,
+               l: sourcecode.Line,
                n: sourcecode.Name,
                cl: Caller[mill.define.Task.Module],
                o: Overrides): Target[T] = macro targetTaskImpl[T]
@@ -123,6 +131,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                       (r: c.Expr[R[T]],
                                        w: c.Expr[W[T]],
                                        e: c.Expr[sourcecode.Enclosing],
+                                       l: c.Expr[sourcecode.Line],
                                        n: c.Expr[sourcecode.Name],
                                        cl: c.Expr[Caller[mill.define.Task.Module]],
                                        o: c.Expr[Overrides]): c.Expr[Target[T]] = {
@@ -132,6 +141,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new TargetImpl[T](
           t.splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read),
@@ -152,6 +162,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
             (implicit r: R[PathRef],
              w: W[PathRef],
              e: sourcecode.Enclosing,
+             l: sourcecode.Line,
              n: sourcecode.Name,
              cl: Caller[mill.define.Task.Module],
              o: Overrides): Input[PathRef] = macro sourceImpl
@@ -161,6 +172,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                 (r: c.Expr[R[PathRef]],
                  w: c.Expr[W[PathRef]],
                  e: c.Expr[sourcecode.Enclosing],
+                 l: c.Expr[sourcecode.Line],
                  n: c.Expr[sourcecode.Name],
                  cl: c.Expr[Caller[mill.define.Task.Module]],
                  o: c.Expr[Overrides]): c.Expr[Input[PathRef]] = {
@@ -174,6 +186,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new Input[PathRef](
           Applicative.impl0[Task, PathRef, Ctx](c)(wrapped.tree).splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read),
@@ -187,6 +200,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
               (implicit r: R[T],
                 w: W[T],
                 e: sourcecode.Enclosing,
+                l: sourcecode.Line,
                 n: sourcecode.Name,
                 cl: Caller[mill.define.Task.Module],
                 o: Overrides): Input[T] = macro inputImpl[T]
@@ -196,6 +210,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                   (r: c.Expr[R[T]],
                                    w: c.Expr[W[T]],
                                    e: c.Expr[sourcecode.Enclosing],
+                                   l: c.Expr[sourcecode.Line],
                                    n: c.Expr[sourcecode.Name],
                                    cl: c.Expr[Caller[mill.define.Task.Module]],
                                    o: c.Expr[Overrides]): c.Expr[Input[T]] = {
@@ -206,6 +221,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new Input[T](
           Applicative.impl[Task, T, Ctx](c)(value).splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read),
@@ -247,6 +263,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def persistent[T](t: Result[T])(implicit r: R[T],
                                   w: W[T],
                                   e: sourcecode.Enclosing,
+                                  l: sourcecode.Line,
                                   n: sourcecode.Name,
                                   cl: Caller[mill.define.Task.Module],
                                   o: Overrides): Target[T] = macro persistentImpl[T]
@@ -256,6 +273,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                       (r: c.Expr[R[T]],
                                        w: c.Expr[W[T]],
                                        e: c.Expr[sourcecode.Enclosing],
+                                       l: c.Expr[sourcecode.Line],
                                        n: c.Expr[sourcecode.Name],
                                        cl: c.Expr[Caller[mill.define.Task.Module]],
                                        o: c.Expr[Overrides]): c.Expr[Persistent[T]] = {
@@ -267,6 +285,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
         new Persistent[T](
           Applicative.impl[Task, T, Ctx](c)(t).splice,
           e.splice.value,
+          l.splice.value,
           cl.splice.value,
           n.splice.value,
           upickle.default.ReadWriter(w.splice.write, r.splice.read),
@@ -301,6 +320,7 @@ object Caller {
 
 class TargetImpl[+T](t: Task[T],
                      val enclosing: String,
+                     val lineNum: Int,
                      val owner: Task.Module,
                      val name: String,
                      val readWrite: RW[_],
@@ -321,16 +341,18 @@ class Command[+T](t: Task[T],
 }
 class Persistent[+T](t: Task[T],
                      enclosing: String,
+                     lineNum: Int,
                      owner: Task.Module,
                      name: String,
                      readWrite: RW[_],
                      overrides: Int)
-  extends TargetImpl[T](t, enclosing, owner, name, readWrite, overrides) {
+  extends TargetImpl[T](t, enclosing, lineNum, owner, name, readWrite, overrides) {
   override def flushDest = false
   override def asPersistent = Some(this)
 }
 class Input[T](t: Task[T],
                val enclosing: String,
+               val lineNum: Int,
                val owner: Task.Module,
                val name: String,
                val readWrite: RW[_],
@@ -346,7 +368,21 @@ object Task {
   trait TaskModule extends Module {
     def defaultCommandName(): String
   }
-  trait Module extends mill.moduledefs.Cacher
+
+  /**
+    * `Module` is a class meant to be extended by `trait`s *only*, in order to
+    * propagate the implicit parameters forward to the final concrete
+    * instantiation site so they can capture the enclosing/line information of
+    * the concrete instance.
+    */
+  class Module(implicit millModuleEnclosing0: sourcecode.Enclosing,
+               millModuleLine0: sourcecode.Line) extends mill.moduledefs.Cacher{
+    // Ensure we do not propagate the implicit parameters as implicits within
+    // the body of any inheriting class/trait/objects, as it would screw up any
+    // one else trying to use sourcecode.{Enclosing,Line} to capture debug info
+    val millModuleEnclosing = millModuleEnclosing0
+    val millModuleLine = millModuleLine0
+  }
 
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t

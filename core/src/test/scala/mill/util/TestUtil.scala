@@ -36,14 +36,16 @@ object TestUtil {
     * test how changes propagate.
     */
   class TestTarget(inputs: Seq[Task[Int]],
-             val pure: Boolean)
-            (implicit enclosing0: sourcecode.Enclosing,
-             owner0: Caller[mill.Module],
-             name0: sourcecode.Name,
-             o: Overrides)
+                   val pure: Boolean)
+                  (implicit enclosing0: sourcecode.Enclosing,
+                   lineNum0: sourcecode.Line,
+                   owner0: Caller[mill.Module],
+                   name0: sourcecode.Name,
+                   o: Overrides)
     extends Test(inputs) with Target[Int]{
     val overrides = o.value
     val enclosing = enclosing0.value
+    val lineNum = lineNum0.value
     val owner = owner0.value
     val name = name0.value
     val readWrite = upickle.default.IntRW

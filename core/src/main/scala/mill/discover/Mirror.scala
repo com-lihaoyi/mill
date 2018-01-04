@@ -20,13 +20,14 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])])
 
 object Mirror{
-  def renderSelector(selector: Seq[Mirror.Segment]) = {
-    val Mirror.Segment.Label(head) :: rest = selector.toList
-    val stringSegments = rest.map{
-      case Mirror.Segment.Label(s) => "." + s
-      case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
-    }
-    head + stringSegments.mkString
+  def renderSelector(selector: Seq[Mirror.Segment]) = selector.toList match {
+    case Nil => ""
+    case Mirror.Segment.Label(head) :: rest =>
+      val stringSegments = rest.map{
+        case Mirror.Segment.Label(s) => "." + s
+        case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+      }
+      head + stringSegments.mkString
   }
 
   sealed trait Segment

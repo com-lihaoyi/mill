@@ -18,7 +18,7 @@ class TestEvaluator(mapping: Discovered.Mapping[_],
         Tuple2(
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
-            case t: Target[_] if mapping.targets.contains(t) && !t.isInstanceOf[Input[_]] => t
+            case t: Target[_] if mapping.targetsToSegments.contains(t) && !t.isInstanceOf[Input[_]] => t
             case t: mill.define.Command[_]           => t
           }.size
         ))

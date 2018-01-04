@@ -77,14 +77,14 @@ object CrossModuleTests extends TestSuite{
 
       val discovered = Discovered.mapping(singleCross)
 
-      val segments = discovered.targets.values.toSet
+      val segments = discovered.targetsToSegments.values.toSet
       val expectedSegments = Set(
         List(Label("cross"), Segment.Cross(List("210")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("211")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("212")), Label("suffix"))
       )
       assert(segments == expectedSegments)
-      val targets = discovered.targets.keys.toSet
+      val targets = discovered.targetsToSegments.keys.toSet
       val expected = Set(
         singleCross.cross("210").suffix,
         singleCross.cross("211").suffix,
@@ -95,7 +95,7 @@ object CrossModuleTests extends TestSuite{
 
     'doubleCrossTargetDiscovery - {
       val discovered = Discovered.mapping(doubleCross)
-      val targets = discovered.targets.keys.toSet
+      val targets = discovered.targetsToSegments.keys.toSet
 
       val expected = Set(
         doubleCross.cross("jvm", "210").suffix,
@@ -110,7 +110,7 @@ object CrossModuleTests extends TestSuite{
     }
 
     'nestedCrosses - {
-      val discovered = Discovered.mapping(nestedCrosses).targets
+      val discovered = Discovered.mapping(nestedCrosses).targetsToSegments
       assert(discovered.size == 9)
     }
   }

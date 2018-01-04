@@ -1,6 +1,6 @@
 package mill.define
 
-case class Cross[+T](items: List[(List[Any], T)]){
+case class Cross[+T](items: List[(List[Any], T)])(implicit val e: sourcecode.Enclosing, val l: sourcecode.Line){
   def flatMap[V](f: T => Cross[V]): Cross[V] = new Cross(
     items.flatMap{
       case (l, v) => f(v).items.map{case (l2, v2) => (l2 ::: l, v2)}
@@ -27,4 +27,5 @@ object Cross{
 }
 
 class CrossModule[T, V](constructor: T => V, cases: T*)
+                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
 extends Cross[V](cases.toList.map(x => (List(x), constructor(x))))

@@ -92,7 +92,10 @@ class TestGraphs(){
     val e = {
       val c = test.anon(a)
       val d = test.anon(a)
-      test(test.anon(test.anon(), test.anon(c)), test.anon(test.anon(c, test.anon(d, b))))
+      test(
+        test.anon(test.anon(), test.anon(c)),
+        test.anon(test.anon(c, test.anon(d, b)))
+      )
     }
     val f = test(test.anon(test.anon(), test.anon(e)))
 

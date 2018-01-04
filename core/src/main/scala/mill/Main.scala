@@ -46,7 +46,8 @@ object Main {
           else cliConfig.copy(
             predefCode =
               """import $file.build, build._
-                |implicit val replApplyHandler = mill.main.ReplApplyHandler(build.mapping)
+                |implicit val replApplyHandler = mill.main.ReplApplyHandler(repl.pprinter(), build.mapping)
+                |repl.pprinter() = replApplyHandler.pprinter
                 |import replApplyHandler.generatedEval._
                 |
               """.stripMargin,

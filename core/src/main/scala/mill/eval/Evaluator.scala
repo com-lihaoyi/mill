@@ -40,8 +40,8 @@ class Evaluator[T](val workspacePath: Path,
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any] if mapping.modules.contains(t.owner)  =>
-        val segments = mapping.modules(t.owner) :+ Segment.Label(t.name)
+      case t: NamedTask[Any] if mapping.modulesToPaths.contains(t.owner)  =>
+        val segments = mapping.modulesToPaths(t.owner) :+ Segment.Label(t.name)
         val (finalTaskOverrides, enclosing) = t match{
           case t: Target[_] => mapping.segmentsToTargets(segments).overrides -> t.enclosing
           case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.enclosing

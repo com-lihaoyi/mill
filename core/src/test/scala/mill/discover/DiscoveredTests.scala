@@ -26,7 +26,7 @@ object DiscoveredTests extends TestSuite{
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targets.map(_.swap)
+      val mapped = discovered.targetsToSegments.map(_.swap)
 
       val expected = Seq(
         (List(Label("classInstance"), Label("single")), nestedModule.classInstance.single),
@@ -38,7 +38,7 @@ object DiscoveredTests extends TestSuite{
 
     'traitWithModule - {
       val discovered = Discovered.mapping(TraitWithModuleObject)
-      val mapped = discovered.targets.map(_.swap)
+      val mapped = discovered.targetsToSegments.map(_.swap)
       val expected = Map(
         (
           List(Label("TraitModule"), Label("testFramework")),

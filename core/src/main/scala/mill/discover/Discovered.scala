@@ -24,7 +24,7 @@ object Discovered {
   }
   case class Mapping[T](mirror: Mirror[T, T],
                         base: T){
-    val modules = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
+    val modulesToPaths = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
         segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
@@ -32,7 +32,15 @@ object Discovered {
       Seq(resolvedNode -> segmentsRev.reverse)
     }.toMap
 
-    val targets = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
+    val modulesToMirrors = Mirror.traverse[T, T, (Any, Mirror[_, _])](base, mirror){ (mirror, segmentsRev) =>
+      val resolvedNode = mirror.node(
+        base,
+        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+      )
+      Seq(resolvedNode -> mirror)
+    }.toMap
+
+    val targetsToSegments = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
         segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
@@ -48,14 +56,14 @@ object Discovered {
       yield (segmentsRev.reverse :+ Segment.Label(command.name)) -> command
     }.toMap
 
-    val segmentsToTargets = targets.map(_.swap)
+    val segmentsToTargets = targetsToSegments.map(_.swap)
   }
 
   def consistencyCheck[T](mapping: Discovered.Mapping[T]) = {
     val mapping2 = Discovered.Mapping(mapping.mirror, mapping.base)
 
     for{
-      (t1, t2) <- mapping2.targets.zip(mapping.targets)
+      (t1, t2) <- mapping2.targetsToSegments.zip(mapping.targetsToSegments)
       if t1._1 ne t2._1
     } yield t1._2
   }
