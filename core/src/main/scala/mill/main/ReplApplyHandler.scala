@@ -10,14 +10,21 @@ import mill.util.OSet
 
 import scala.collection.mutable
 object ReplApplyHandler{
-  def apply[T](pprinter0: pprint.PPrinter, mapping: Discovered.Mapping[T]) = {
+  def apply[T](colors: ammonite.util.Colors,
+               pprinter0: pprint.PPrinter,
+               mapping: Discovered.Mapping[T]) = {
     new ReplApplyHandler(
       pprinter0,
       new mill.eval.Evaluator(
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd,
         mapping,
-        new mill.util.PrintLogger(true, System.err, System.err)
+        new mill.util.PrintLogger(
+          colors != ammonite.util.Colors.BlackWhite,
+          colors,
+          System.err,
+          System.err
+        )
       )
     )
   }

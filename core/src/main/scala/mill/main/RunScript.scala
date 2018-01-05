@@ -27,10 +27,11 @@ object RunScript{
                 scriptArgs: Seq[String],
                 lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])],
                 infoStream: PrintStream,
-                errStream: PrintStream)
+                errStream: PrintStream,
+                colors: ammonite.util.Colors)
   : (Res[(Evaluator[_], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
-    val log = new PrintLogger(true, infoStream, errStream)
+    val log = new PrintLogger(colors != ammonite.util.Colors.BlackWhite, colors, infoStream, errStream)
     val (evalRes, interpWatched) = lastEvaluator match{
       case Some((prevInterpWatchedSig, prevEvaluator))
         if watchedSigUnchanged(prevInterpWatchedSig) =>

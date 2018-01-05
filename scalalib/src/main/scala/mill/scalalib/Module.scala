@@ -39,7 +39,8 @@ trait TestModule extends Module with TaskModule {
         (runDepClasspath().map(_.path) :+ compile().classes.path).distinct.mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
-        outputPath.toString
+        outputPath.toString,
+        T.ctx().log.colored.toString
       ),
       workingDir = forkWorkingDir
     )

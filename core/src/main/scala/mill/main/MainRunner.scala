@@ -1,9 +1,10 @@
 package mill.main
 import java.io.{InputStream, OutputStream, PrintStream}
 
+import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
-import ammonite.util.{Imports, Name, Res, Util}
+import ammonite.util._
 import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
 import upickle.Js
@@ -21,6 +22,7 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
                  stdErr: OutputStream)
   extends ammonite.MainRunner(config, outprintStream, errPrintStream, stdIn, stdOut, stdErr){
   var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])] = None
+
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(
       isRepl = false,
@@ -28,7 +30,7 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       mainCfg => {
         val (result, interpWatched) = RunScript.runScript(
           mainCfg.wd, scriptPath, mainCfg.instantiateInterpreter(), scriptArgs, lastEvaluator,
-          errPrintStream, errPrintStream
+          errPrintStream, errPrintStream, colors
         )
 
         result match{

@@ -6,11 +6,13 @@ import java.net.URLClassLoader
 import java.util.zip.ZipInputStream
 
 import ammonite.ops.{Path, ls, pwd}
+import ammonite.util.Colors
 import mill.util.Ctx.LogCtx
 import mill.util.PrintLogger
 import sbt.testing._
 import upickle.Js
 import mill.util.JsonFormatters._
+
 import scala.collection.mutable
 
 object TestRunner {
@@ -49,7 +51,13 @@ object TestRunner {
       entireClasspath = args(1).split(" ").map(Path(_)),
       testClassfilePath = args(2).split(" ").map(Path(_)),
       args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
-    )(new PrintLogger(true, System.err, System.err))
+    )(new PrintLogger(
+      args(5) == "true",
+      if(args(5) == "true") Colors.Default
+      else Colors.BlackWhite,
+      System.err,
+      System.err
+    ))
     val outputPath = args(4)
 
     ammonite.ops.write(Path(outputPath), upickle.default.write(result))

@@ -58,8 +58,10 @@ class Evaluator[T](val workspacePath: Path,
     val evaluated = new OSet.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
 
-    for ((terminal, group)<- sortedGroups.items()){
-      val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results)
+    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
+      // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+      val counterMsg = (i+1) + "/" + sortedGroups.keyCount
+      val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results, counterMsg)
       for(ev <- newEvaluated){
         evaluated.append(ev)
       }
@@ -83,7 +85,8 @@ class Evaluator[T](val workspacePath: Path,
 
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: OSet[Task[_]],
-                          results: collection.Map[Task[_], Result[Any]]): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
+                          results: collection.Map[Task[_], Result[Any]],
+                          counterMsg: String): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -95,7 +98,14 @@ class Evaluator[T](val workspacePath: Path,
 
     terminal match{
       case Left(task) =>
-        evaluateGroup(group, results, groupBasePath = None, paths = None, maybeTargetLabel = None)
+        evaluateGroup(
+          group,
+          results,
+          groupBasePath = None,
+          paths = None,
+          maybeTargetLabel = None,
+          counterMsg = counterMsg
+        )
       case Right(labelledTarget) =>
         val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget.segments)
         val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledTarget.segments)
@@ -128,7 +138,8 @@ class Evaluator[T](val workspacePath: Path,
               results,
               groupBasePath = Some(groupBasePath),
               paths = Some(paths),
-              maybeTargetLabel = Some(msgParts.mkString)
+              maybeTargetLabel = Some(msgParts.mkString),
+              counterMsg = counterMsg
             )
 
             newResults(labelledTarget.target) match{
@@ -161,7 +172,8 @@ class Evaluator[T](val workspacePath: Path,
                     results: collection.Map[Task[_], Result[Any]],
                     groupBasePath: Option[Path],
                     paths: Option[Evaluator.Paths],
-                    maybeTargetLabel: Option[String]) = {
+                    maybeTargetLabel: Option[String],
+                    counterMsg: String) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -177,7 +189,7 @@ class Evaluator[T](val workspacePath: Path,
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
-      if(logRun) { log.info("Running " + targetLabel) }
+      if(logRun) { log.ticker(s"[$counterMsg] $targetLabel ") }
     }
 
     val multiLogger = resolveLogger(paths.map(_.log))
@@ -235,7 +247,7 @@ class Evaluator[T](val workspacePath: Path,
     case None => log
     case Some(path) =>
       rm(path)
-      MultiLogger(log, FileLogger(path))
+      MultiLogger(log.colored, log, FileLogger(log.colored, path))
   }
 }
 
