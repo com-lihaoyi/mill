@@ -79,7 +79,7 @@ object GenIdea {
 
       val paths = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
-        evaluator.mapping.modulesToPaths(mod.compile)
+        evaluator.mapping.targetsToSegments(mod.compile)
       )
 
       val elem = moduleXmlTemplate(
