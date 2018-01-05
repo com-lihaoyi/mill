@@ -11,6 +11,10 @@ object BetterFilesTests extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "b
       assert(eval("core.test"))
       assert(eval("akka.test"))
 
+      val coreTestMeta = meta("Core.test.test")
+      assert(coreTestMeta.contains("better.files.FileSpec"))
+      assert(coreTestMeta.contains("files should handle BOM"))
+
       for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
         write.append(scalaFile, "\n}")
       }

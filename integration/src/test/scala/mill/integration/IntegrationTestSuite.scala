@@ -15,6 +15,7 @@ abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) exte
     stdOutErr, stdOutErr, stdIn, stdOutErr, stdOutErr
   )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
+  def meta(s: String) = read(workspacePath / "out" / RelPath(s.replaceAll("\\.", "/")) / "meta.json")
   def initWorkspace() = {
     rm(workspacePath)
     mkdir(workspacePath / up)
