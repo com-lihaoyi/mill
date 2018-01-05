@@ -131,9 +131,8 @@ object scalalib extends MillModule {
     }
   }
 }
-val jsbridges = for{
-  scalajsBinary <- mill.define.Cross("0.6", "1.0")
-} yield new MillModule{
+object jsbridges extends CrossModule(JsBridgeModule, "0.6", "1.0")
+case class JsBridgeModule(scalajsBinary: String) extends MillModule{
   def basePath = pwd / 'scalajslib / s"bridge_${scalajsBinary.replace('.', '_')}"
   val scalajsVersion = scalajsBinary match {
     case "0.6" => "0.6.21"
