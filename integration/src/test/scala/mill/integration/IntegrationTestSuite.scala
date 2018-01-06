@@ -12,7 +12,7 @@ abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) exte
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath), false,
-    stdOutErr, stdOutErr, stdIn, stdOutErr, stdOutErr
+    System.out, System.err, System.in
   )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
   def meta(s: String) = read(workspacePath / "out" / RelPath(s.replaceAll("\\.", "/")) / "meta.json")
