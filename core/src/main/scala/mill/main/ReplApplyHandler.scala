@@ -22,6 +22,7 @@ object ReplApplyHandler{
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
           colors,
+          System.out,
           System.err,
           System.err
         )

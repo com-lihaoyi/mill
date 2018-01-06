@@ -7,6 +7,7 @@ import ammonite.ops.Path
 import ammonite.util._
 import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
+import mill.util.PrintLogger
 import upickle.Js
 
 /**
@@ -14,13 +15,15 @@ import upickle.Js
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
+class MainRunner(config: ammonite.main.Cli.Config,
+                 show: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
-                 stdIn: InputStream,
-                 stdOut: OutputStream,
-                 stdErr: OutputStream)
-  extends ammonite.MainRunner(config, outprintStream, errPrintStream, stdIn, stdOut, stdErr){
+                 stdIn: InputStream)
+  extends ammonite.MainRunner(
+    config, outprintStream, errPrintStream,
+    stdIn, outprintStream, errPrintStream
+  ){
   var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])] = None
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
@@ -29,8 +32,18 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       printing = true,
       mainCfg => {
         val (result, interpWatched) = RunScript.runScript(
-          mainCfg.wd, scriptPath, mainCfg.instantiateInterpreter(), scriptArgs, lastEvaluator,
-          errPrintStream, errPrintStream, colors
+          mainCfg.wd,
+          scriptPath,
+          mainCfg.instantiateInterpreter(),
+          scriptArgs,
+          lastEvaluator,
+          new PrintLogger(
+            colors != ammonite.util.Colors.BlackWhite,
+            colors,
+            if (show) errPrintStream else outprintStream,
+            errPrintStream,
+            errPrintStream
+          )
         )
 
         result match{
@@ -50,7 +63,7 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       case Res.Success(value) =>
         if (show){
           for(json <- value.asInstanceOf[Seq[Js.Value]]){
-            System.out.println(json)
+            outprintStream.println(json)
           }
         }
 

@@ -12,7 +12,7 @@ import mill.define.Task
 import mill.discover.Mirror.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{OSet, PrintLogger}
+import mill.util.{Logger, OSet, PrintLogger}
 import upickle.Js
 
 /**
@@ -26,12 +26,9 @@ object RunScript{
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])],
-                infoStream: PrintStream,
-                errStream: PrintStream,
-                colors: ammonite.util.Colors)
+                log: Logger)
   : (Res[(Evaluator[_], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
-    val log = new PrintLogger(colors != ammonite.util.Colors.BlackWhite, colors, infoStream, errStream)
     val (evalRes, interpWatched) = lastEvaluator match{
       case Some((prevInterpWatchedSig, prevEvaluator))
         if watchedSigUnchanged(prevInterpWatchedSig) =>

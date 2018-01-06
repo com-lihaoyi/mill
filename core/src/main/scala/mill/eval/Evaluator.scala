@@ -219,10 +219,10 @@ class Evaluator[T](val workspacePath: Path,
           val out = System.out
           val err = System.err
           try{
-            System.setErr(multiLogger.outputStream)
+            System.setErr(multiLogger.errorStream)
             System.setOut(multiLogger.outputStream)
             Console.withOut(multiLogger.outputStream){
-              Console.withErr(multiLogger.outputStream){
+              Console.withErr(multiLogger.errorStream){
                 target.evaluate(args)
               }
             }

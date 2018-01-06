@@ -60,7 +60,10 @@ object Jvm {
 
     val stdout = proc.getInputStream
     val stderr = proc.getErrorStream
-    val sources = Seq(stdout -> (Left(_: Bytes)), stderr -> (Right(_: Bytes)))
+    val sources = Seq(
+      (stdout, Left(_: Bytes), ctx.log.outputStream),
+      (stderr, Right(_: Bytes),ctx.log.errorStream )
+    )
     val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
     while(
     // Process.isAlive doesn't exist on JDK 7 =/
@@ -69,13 +72,13 @@ object Jvm {
         stderr.available() > 0
     ){
       var readSomething = false
-      for ((std, wrapper) <- sources){
-        while (std.available() > 0){
+      for ((subStream, wrapper, parentStream) <- sources){
+        while (subStream.available() > 0){
           readSomething = true
-          val array = new Array[Byte](std.available())
-          val actuallyRead = std.read(array)
+          val array = new Array[Byte](subStream.available())
+          val actuallyRead = subStream.read(array)
           chunks.append(wrapper(new ammonite.ops.Bytes(array)))
-          ctx.log.outputStream.write(array, 0, actuallyRead)
+          parentStream.write(array, 0, actuallyRead)
         }
       }
       // if we did not read anything sleep briefly to avoid spinning

@@ -60,7 +60,7 @@ object Main {
 
         val runner = new mill.main.MainRunner(
           config, show,
-          System.out, System.err, System.in, System.out, System.err
+          System.out, System.err, System.in
         )
         if (repl){
           runner.printInfo("Loading...")

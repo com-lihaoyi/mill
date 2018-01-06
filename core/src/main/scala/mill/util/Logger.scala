@@ -6,25 +6,38 @@ import ammonite.ops.Path
 import ammonite.util.Colors
 
 
+/**
+  * The standard logging interface of the Mill build tool.
+  *
+  * Contains four primary logging methods, in order of increasing importance:
+  *
+  * - `ticker`: short-lived logging output where consecutive lines over-write
+  *   each other; useful for information which is transient and disposable
+  *
+  * - `info`: miscellaneous logging output which isn't part of the main output
+  *   a user is looking for, but useful to provide context on what Mill is doing
+  *
+  * - `error`: logging output which represents problems the user should care
+  *   about
+  *
+  * Also contains the two forwarded stdout and stderr streams, for code executed
+  * by Mill to use directly. Typically these correspond to the stdout and stderr,
+  * but when `--show` is used both are forwarded to stderr and stdout is only
+  * used to display the final `--show` output for easy piping.
+  */
 trait Logger {
   def colored: Boolean
+  val errorStream: PrintStream
   val outputStream: PrintStream
   def info(s: String): Unit
   def error(s: String): Unit
-
-  /**
-    * Like [[info]], but if two calls to [[ticker]] are made consecutively
-    * without any calls to [[info]]/[[error]][[outputStream]] in between,
-    * the second call to [[ticker]] over-writes the first one in the console.
-    * This is useful for displaying loading bars, progress updates or all other
-    * sorts of fast-changing information to the user
-    */
   def ticker(s: String): Unit
   def close(): Unit = ()
 }
 
 object DummyLogger extends Logger {
   def colored = false
+  object errorStream extends PrintStream(_ => ())
   object outputStream extends PrintStream(_ => ())
   def info(s: String) = ()
   def error(s: String) = ()
@@ -33,28 +46,48 @@ object DummyLogger extends Logger {
 
 case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
+                       outStream: PrintStream,
                        infoStream: PrintStream,
-                       errorStream: PrintStream) extends Logger {
+                       errStream: PrintStream) extends Logger {
 
   var lastLineTicker = false
-  override val outputStream = new PrintStream(
+  override val errorStream = new PrintStream(
     new OutputStream {
       override def write(b: Array[Byte]): Unit = {
         lastLineTicker = false
-        infoStream.write(b)
+        errStream.write(b)
       }
 
       override def write(b: Array[Byte], off: Int, len: Int): Unit = {
         lastLineTicker = false
-        infoStream.write(b, off, len)
+        errStream.write(b, off, len)
       }
 
       def write(b: Int) = {
         lastLineTicker = false
-        infoStream.write(b)
+        errStream.write(b)
       }
     }
   )
+  override val outputStream = new PrintStream(
+    new OutputStream {
+      override def write(b: Array[Byte]): Unit = {
+        lastLineTicker = false
+        outStream.write(b)
+      }
+
+      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+        lastLineTicker = false
+        outStream.write(b, off, len)
+      }
+
+      def write(b: Int) = {
+        lastLineTicker = false
+        outStream.write(b)
+      }
+    }
+  )
+
 
   def info(s: String) = {
     lastLineTicker = false
@@ -62,7 +95,7 @@ case class PrintLogger(colored: Boolean,
   }
   def error(s: String) = {
     lastLineTicker = false
-    errorStream.println(colors.error()(s))
+    errStream.println(colors.error()(s))
   }
   def ticker(s: String) = {
     if (lastLineTicker){
@@ -86,6 +119,11 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
+  lazy val errorStream = {
+    outputStreamUsed = true
+    new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
+  }
+
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
@@ -97,6 +135,11 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
 
 case class MultiLogger(colored: Boolean, streams: Logger*) extends Logger {
   lazy val outputStream: PrintStream =
+    new PrintStream(b => streams.foreach(_.outputStream.write(b))) {
+      override def flush() = streams.foreach(_.outputStream.flush())
+      override def close() = streams.foreach(_.outputStream.close())
+    }
+  lazy val errorStream: PrintStream =
     new PrintStream(b => streams.foreach(_.outputStream.write(b))) {
       override def flush() = streams.foreach(_.outputStream.flush())
       override def close() = streams.foreach(_.outputStream.close())

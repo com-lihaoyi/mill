@@ -55,6 +55,7 @@ object TestRunner {
       args(5) == "true",
       if(args(5) == "true") Colors.Default
       else Colors.BlackWhite,
+      System.out,
       System.err,
       System.err
     ))
