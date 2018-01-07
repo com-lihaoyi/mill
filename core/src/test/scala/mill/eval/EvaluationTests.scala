@@ -212,7 +212,7 @@ object EvaluationTests extends TestSuite{
         // up    middle -- down
         //                /
         //           right
-        object build extends Module{
+        object build extends TestUtil.BaseModule{
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0

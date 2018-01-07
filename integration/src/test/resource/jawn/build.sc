@@ -4,6 +4,8 @@ import mill.scalalib.{Dep, TestModule, Module}
 
 object jawn extends CrossModule(JawnModule, "2.10.6", "2.11.11", "2.12.3")
 case class JawnModule(crossVersion: String) extends mill.Module{
+  override def basePath = super.basePath / ammonite.ops.up
+
   trait JawnModule extends scalalib.SbtModule{
     def scalaVersion = crossVersion
     def scalacOptions = Seq(
@@ -21,38 +23,38 @@ case class JawnModule(crossVersion: String) extends mill.Module{
       def testFramework = "org.scalatest.tools.Framework"
     }
   }
-  object parser extends JawnModule{
-    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'parser
-  }
+  object parser extends JawnModule
+
   object util extends JawnModule{
     def projectDeps = Seq(parser)
     def testProjectDeps = Seq(parser.test)
-    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'util
   }
   object ast extends JawnModule{
     def projectDeps = Seq(parser, util)
     def testProjectDeps = Seq(parser.test, util.test)
-    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'ast
   }
-  class Support(name: String, ivyDeps0: Dep*) extends JawnModule{
+  class Support(ivyDeps0: Dep*)(implicit ctx: mill.Module.Ctx) extends JawnModule{
     def projectDeps = Seq[Module](parser)
-    def basePath = ammonite.ops.pwd / 'target / 'workspace / 'jawn / 'support / name
     def ivyDeps = ivyDeps0
   }
-  object argonaut extends Support("argonaut", Dep("io.argonaut", "argonaut", "6.2"))
-  object json4s extends Support("json4s", Dep("org.json4s", "json4s-ast", "3.5.2"))
+  object support extends mill.Module{
+    object argonaut extends Support(Dep("io.argonaut", "argonaut", "6.2"))
+    object json4s extends Support(Dep("org.json4s", "json4s-ast", "3.5.2"))
 
-  object play extends Support("play"){
-    def ivyDeps = mill.T{
-      scalaBinaryVersion() match{
-        case "2.10" => Seq(Dep("com.typesafe.play", "play-json", "2.4.11"))
-        case "2.11" => Seq(Dep("com.typesafe.play", "play-json", "2.5.15"))
-        case _ => Seq(Dep("com.typesafe.play", "play-json", "2.6.0"))
+    object play extends Support(){
+      def ivyDeps = mill.T{
+        scalaBinaryVersion() match{
+          case "2.10" => Seq(Dep("com.typesafe.play", "play-json", "2.4.11"))
+          case "2.11" => Seq(Dep("com.typesafe.play", "play-json", "2.5.15"))
+          case _ => Seq(Dep("com.typesafe.play", "play-json", "2.6.0"))
+        }
       }
     }
-  }
 
-  object rojoma extends Support("rojoma", Dep("com.rojoma", "rojoma-json", "2.4.3"))
-  object rojomaV3 extends Support("rojoma-v3", Dep("com.rojoma", "rojoma-json-v3", "3.7.2"))
-  object spray extends Support("spray", Dep("io.spray", "spray-json", "1.3.3"))
+    object rojoma extends Support(Dep("com.rojoma", "rojoma-json", "2.4.3"))
+    object rojomaV3 extends Support(Dep("com.rojoma", "rojoma-json-v3", "3.7.2")){
+      override def basePath = super.basePath / ammonite.ops.up / "rojoma-v3"
+    }
+    object spray extends Support(Dep("io.spray", "spray-json", "1.3.3"))
+  }
 }

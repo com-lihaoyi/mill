@@ -75,7 +75,6 @@ trait Module extends mill.Module with TaskModule { outer =>
   def compileIvyDeps = T{ Seq[Dep]() }
   def scalacPluginIvyDeps = T{ Seq[Dep]() }
   def runIvyDeps = T{ Seq[Dep]() }
-  def basePath: Path
 
   def scalacOptions = T{ Seq.empty[String] }
   def javacOptions = T{ Seq.empty[String] }
@@ -360,11 +359,10 @@ trait PublishModule extends Module { outer =>
 }
 
 trait SbtModule extends Module { outer =>
-  def basePath: Path
   override def sources = T.source{ basePath / 'src / 'main / 'scala }
   override def resources = T.source{ basePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests{
-    def basePath = outer.basePath
+    override def basePath = outer.basePath
     override def sources = T.source{ basePath / 'src / 'test / 'scala }
     override def resources = T.source{ basePath / 'src / 'test / 'resources }
   }

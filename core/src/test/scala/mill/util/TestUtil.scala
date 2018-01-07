@@ -1,13 +1,27 @@
 package mill.util
 
 import ammonite.main.Router.Overrides
-import mill.define.{Caller, Target, Task}
+import ammonite.ops.Path
+import mill.define.Task.Module
+import mill.define.{BasePath, Caller, Target, Task}
 import mill.eval.Result
 import utest.assert
+import utest.framework.TestPath
 
 import scala.collection.mutable
 
 object TestUtil {
+  class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
+                   millModuleLine0: sourcecode.Line,
+                   millName0: sourcecode.Name)
+    extends Module()(
+      Module.Ctx.make(
+        implicitly,
+        implicitly,
+        implicitly,
+        BasePath(ammonite.ops.pwd / millModuleEnclosing0.value)
+      )
+    )
   object test{
 
     def anon(inputs: Task[Int]*) = new Test(inputs)

@@ -10,7 +10,6 @@ import mill.modules.Jvm.createAssembly
 
 object moduledefs extends SbtModule{
   def scalaVersion = "2.12.4"
-  def basePath = pwd / 'moduledefs
   def ivyDeps = Seq(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion()),
     Dep("com.lihaoyi", "sourcecode", "0.1.4")
@@ -59,8 +58,6 @@ object core extends MillModule {
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
   )
 
-  def basePath = pwd / 'core
-
   def generatedSources = T{
     mkdir(T.ctx().dest)
     shared.generateSources(T.ctx().dest)
@@ -87,13 +84,7 @@ case class BridgeModule(crossVersion: String) extends PublishModule {
   def publishName = "mill-bridge"
   def publishVersion = "0.1"
 
-  def basePath = pwd / 'bridge
   def scalaVersion = crossVersion
-  def sources = T.source {
-    val path = basePath / 'src
-    mkdir(path)
-    path
-  }
   def allSources = T{
     Seq(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
   }
@@ -116,7 +107,6 @@ case class BridgeModule(crossVersion: String) extends PublishModule {
 
 object scalalib extends MillModule {
   def projectDeps = Seq(core)
-  def basePath = pwd / 'scalalib
 
   def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
   def testArgs = T{
@@ -146,7 +136,6 @@ case class JsBridgeModule(scalajsBinary: String) extends MillModule{
 object scalajslib extends MillModule {
 
   def projectDeps = Seq(scalalib)
-  def basePath = pwd / 'scalajslib
 
   def bridgeClasspath(runDepClasspath: Seq[PathRef], classes: PathRef) =
     (runDepClasspath :+ classes).map(_.path).mkString(File.pathSeparator)
@@ -171,7 +160,6 @@ def testRepos = T{
 
 object integration extends MillModule{
   def projectDeps = Seq(moduledefs, scalalib, scalajslib)
-  def basePath = pwd / 'integration
   def testArgs = T{
     for((k, v) <- testRepos()) yield s"-D$k=$v"
   }

@@ -9,7 +9,7 @@ import mill.define.{Cross, Target}
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
-import mill.util.TestEvaluator
+import mill.util.{TestEvaluator, TestUtil}
 import sbt.internal.inc.CompileFailed
 import utest._
 
@@ -20,8 +20,8 @@ trait HelloWorldModule extends scalalib.Module {
   def basePath = HelloWorldTests.workingSrcPath
 }
 
-object HelloWorld extends HelloWorldModule
-object CrossHelloWorld extends mill.Module{
+object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
+object CrossHelloWorld extends TestUtil.BaseModule {
   val cross =
     for(v <- Cross("2.10.6", "2.11.11", "2.12.3", "2.12.4"))
     yield new HelloWorldModule {
@@ -29,19 +29,19 @@ object CrossHelloWorld extends mill.Module{
     }
 }
 
-object HelloWorldWithMain extends HelloWorldModule {
+object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
   def mainClass = Some("Main")
 }
 
-object HelloWorldWarnUnused extends HelloWorldModule {
+object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
   def scalacOptions = T(Seq("-Ywarn-unused"))
 }
 
-object HelloWorldFatalWarnings extends HelloWorldModule {
+object HelloWorldFatalWarnings extends TestUtil.BaseModule with HelloWorldModule {
   def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
 }
 
-object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
+object HelloWorldWithPublish extends TestUtil.BaseModule with HelloWorldModule with PublishModule {
   def artifactName = "hello-world"
   def publishVersion = "0.0.1"
 
@@ -60,7 +60,7 @@ object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
       Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
   )
 }
-object HelloWorldScalaOverride extends HelloWorldModule {
+object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
   override def scalaVersion: Target[String] = "2.11.11"
 }
 object HelloWorldTests extends TestSuite {

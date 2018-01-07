@@ -10,17 +10,17 @@ import mill.define.Cross
 import mill.discover.Discovered
 import mill.scalalib.PublishModule
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
-import mill.util.TestEvaluator
+import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
-  def basePath = HelloJSWorldTests.workspacePath
+trait HelloJSWorldModule extends TestUtil.BaseModule with ScalaJSModule with PublishModule {
+  override def basePath = HelloJSWorldTests.workspacePath
   override def mainClass = Some("Main")
 }
 
-object HelloJSWorld {
+object HelloJSWorld extends TestUtil.BaseModule {
   val build = for {
     scalaJS <- Cross("0.6.20", "0.6.21", "1.0.0-M2")
     scala <- Cross("2.11.8", "2.12.3", "2.12.4")

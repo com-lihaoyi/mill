@@ -29,3 +29,11 @@ object Cross{
 class CrossModule[T, V](constructor: T => V, cases: T*)
                        (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
 extends Cross[V](cases.toList.map(x => (List(x), constructor(x))))
+
+class CrossModule2[T1, T2, V](constructor: (T1, T2) => V, cases: (T1, T2)*)
+                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
+extends Cross[V](cases.toList.map(x => (List(x._2, x._1), constructor(x._1, x._2))))
+
+class CrossModule3[T1, T2, T3, V](constructor: (T1, T2, T3) => V, cases: (T1, T2, T3)*)
+                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
+extends Cross[V](cases.toList.map(x => (List(x._3, x._2, x._1), constructor(x._1, x._2, x._3))))

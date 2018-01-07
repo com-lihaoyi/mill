@@ -47,19 +47,19 @@ object MainTests extends TestSuite{
         'neg2 - check(mapping(singleCross), "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
         'neg2 - check(mapping(singleCross), "cross[doesntExist].suffix", Left("Cannot resolve cross cross[doesntExist]"))
       }
-      'double - {
-
-        'pos1 - check(
-          mapping(doubleCross),
-          "cross[jvm,210].suffix",
-          Right(doubleCross.cross("jvm", "210").suffix)
-        )
-        'pos2 - check(
-          mapping(doubleCross),
-          "cross[jvm,211].suffix",
-          Right(doubleCross.cross("jvm", "211").suffix)
-        )
-      }
+//      'double - {
+//
+//        'pos1 - check(
+//          mapping(doubleCross),
+//          "cross[jvm,210].suffix",
+//          Right(doubleCross.cross("jvm", "210").suffix)
+//        )
+//        'pos2 - check(
+//          mapping(doubleCross),
+//          "cross[jvm,211].suffix",
+//          Right(doubleCross.cross("jvm", "211").suffix)
+//        )
+//      }
       'nested - {
         'indirect - {
           'pos1 - check(

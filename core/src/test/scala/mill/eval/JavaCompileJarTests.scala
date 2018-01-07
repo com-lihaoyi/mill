@@ -7,7 +7,7 @@ import mill.discover.Discovered
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
-import mill.util.{DummyLogger, OSet}
+import mill.util.{DummyLogger, OSet, TestUtil}
 import utest._
 import mill._
 
@@ -28,7 +28,7 @@ object JavaCompileJarTests extends TestSuite{
       mkdir(pwd / 'target / 'workspace / 'javac)
       cp(javacSrcPath, javacDestPath)
 
-      object Build extends Module{
+      object Build extends TestUtil.BaseModule{
         def sourceRootPath = javacDestPath / 'src
         def resourceRootPath = javacDestPath / 'resources
 

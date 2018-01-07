@@ -7,6 +7,7 @@ import utest._
 import mill.{Module, T}
 import mill.discover.Mirror.Segment.Label
 import mill.util.TestGraphs.{TraitWithModuleObject, nestedModule}
+import mill.util.TestUtil
 object DiscoveredTests extends TestSuite{
 
   val tests = Tests{
@@ -49,7 +50,7 @@ object DiscoveredTests extends TestSuite{
     }
 
     'commands - {
-      object outer extends mill.Module{
+      object outer extends TestUtil.BaseModule{
         def hello() = T.command{
           println("Hello")
         }
@@ -91,7 +92,7 @@ object DiscoveredTests extends TestSuite{
       'unserializableTarget - {
 
 
-        object outer extends Module {
+        object outer extends TestUtil.BaseModule {
           val error = compileError("def single = mill.T{ new InputStreamReader(System.in) }")
         }
 
@@ -103,7 +104,7 @@ object DiscoveredTests extends TestSuite{
       }
 
       'unreadableCommand - {
-        object outer extends Module {
+        object outer extends TestUtil.BaseModule {
           def single(in: InputStreamReader) = mill.T.command{ println(123) }
         }
 

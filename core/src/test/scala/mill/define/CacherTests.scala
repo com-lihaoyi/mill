@@ -2,7 +2,7 @@ package mill.define
 
 import mill.discover.Discovered
 import mill.eval.Evaluator
-import mill.util.{DummyLogger, OSet}
+import mill.util.{DummyLogger, OSet, TestUtil}
 import mill.T
 import mill.eval.Result.Success
 import utest._
@@ -10,7 +10,7 @@ import utest.framework.TestPath
 
 object CacherTests extends TestSuite{
   object Base extends Base
-  trait Base extends Task.Module{
+  trait Base extends TestUtil.BaseModule{
     def value = T{ 1 }
     def result = T{ Success(1) }
   }
@@ -19,7 +19,7 @@ object CacherTests extends TestSuite{
     def value = T{ super.value() + 2}
     def overriden = T{ super.value()}
   }
-  object Terminal extends Terminal
+  object Terminal extends  Terminal
   trait Terminal extends Middle{
     override def value = T{ super.value() + 4}
   }

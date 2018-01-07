@@ -11,7 +11,7 @@ object MacroErrorTests extends TestSuite{
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends Module{ val x = T{1} }")
+      val err = compileError("object Foo extends TestUtil.BaseModule{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
 

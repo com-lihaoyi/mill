@@ -7,17 +7,17 @@ import mill.discover.Mirror.Segment.Label
 import mill.util.TestUtil.test
 import utest._
 import mill.util.TestGraphs._
+import mill.util.TestUtil
 object CrossModuleTests extends TestSuite{
 
   val tests = Tests{
 
     'cross - {
-      object outer{
-        val crossed =
-          for(n <- Cross("2.10.6", "2.11.8", "2.12.4"))
-          yield new Module{
-            def scalaVersion = n
-          }
+      object outer extends TestUtil.BaseModule {
+        object crossed extends mill.CrossModule(CrossedModule, "2.10.6", "2.11.8", "2.12.4")
+        case class CrossedModule(n: String) extends Module{
+          def scalaVersion = n
+        }
       }
 
       val discovered = Discovered.make[outer.type]
@@ -36,15 +36,16 @@ object CrossModuleTests extends TestSuite{
       }
     }
     'doubleCross - {
-      object outer{
-        val crossed =
-          for{
-            platform <- Cross("", "sjs0.6", "native0.3")
-            scalaVersion <- Cross("2.10.6", "2.11.8", "2.12.4")
-            if !(platform == "native0.3" && scalaVersion == "2.10.6")
-          } yield new Module{
-            def suffix = Seq(scalaVersion, platform).filter(_.nonEmpty).map("_"+_).mkString
-          }
+      object outer extends TestUtil.BaseModule {
+        val crossMatrix = for{
+          platform <- Seq("", "sjs0.6", "native0.3")
+          scalaVersion <- Seq("2.10.6", "2.11.8", "2.12.4")
+          if !(platform == "native0.3" && scalaVersion == "2.10.6")
+        } yield (platform, scalaVersion)
+        object crossed extends mill.CrossModule2(CrossModule, crossMatrix:_*)
+        case class CrossModule(platform: String, scalaVersion: String) extends mill.Module{
+          def suffix = Seq(scalaVersion, platform).filter(_.nonEmpty).map("_"+_).mkString
+        }
       }
 
       val Some((gen, innerMirror)) = Discovered.make[outer.type]

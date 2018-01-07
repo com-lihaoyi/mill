@@ -75,15 +75,12 @@ class MainRunner(config: ammonite.main.Cli.Config,
   }
   override def initMain(isRepl: Boolean) = {
     super.initMain(isRepl).copy(
-      scriptCodeWrapper = mill.main.MainRunner.CustomCodeWrapper,
+      scriptCodeWrapper = CustomCodeWrapper,
       // Ammonite does not properly forward the wd from CliConfig to Main, so
       // force forward it outselves
       wd = config.wd
     )
   }
-}
-
-object MainRunner{
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
     def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
       val wrapName = indexedWrapperName.backticked
@@ -93,14 +90,17 @@ object MainRunner{
          |$imports
          |import mill._
          |
-         |object $wrapName extends $wrapName{
+         |object $wrapName extends mill.define.Task.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
+         |  // Make sure we don't include the `build` wrapper-object's name in
+         |  // the `basePath`s of our build
+         |  override def basePath = super.basePath / ammonite.ops.up
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
          |  lazy val mapping = mill.discover.Discovered.make[$wrapName].mapping(this)
          |}
          |
-         |sealed abstract class $wrapName extends mill.Module{
+         |sealed trait $wrapName extends mill.Module{
          |""".stripMargin
     }
 
