@@ -7,7 +7,7 @@ import utest._
 
 abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) extends TestSuite{
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
-  val buildFilePath = pwd / 'integration / 'src / 'test / 'resource / workspaceSlug
+  val buildFilePath = pwd / 'integration / 'src / 'test / 'resources / workspaceSlug
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(

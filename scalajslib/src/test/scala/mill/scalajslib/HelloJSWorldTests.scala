@@ -47,7 +47,7 @@ object HelloJSWorld extends TestUtil.BaseModule {
 
 object HelloJSWorldTests extends TestSuite {
 
-  val srcPath = pwd / 'scalajslib / 'src / 'test / 'resource / "hello-js-world"
+  val srcPath = pwd / 'scalajslib / 'src / 'test / 'resources / "hello-js-world"
   val workspacePath = pwd / 'target / 'workspace / "hello-js-world"
   val outputPath = workspacePath / 'out
   val mainObject = workspacePath / 'src / 'main / 'scala / "Main.scala"

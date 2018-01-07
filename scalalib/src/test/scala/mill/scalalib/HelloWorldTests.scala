@@ -65,7 +65,7 @@ object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule
 }
 object HelloWorldTests extends TestSuite {
 
-  val srcPath = pwd / 'scalalib / 'src / 'test / 'resource / "hello-world"
+  val srcPath = pwd / 'scalalib / 'src / 'test / 'resources / "hello-world"
   val basePath = pwd / 'target / 'workspace / "hello-world"
   val workingSrcPath = basePath / 'src
   val outPath = basePath / 'out
