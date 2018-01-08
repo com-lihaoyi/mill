@@ -90,7 +90,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |$imports
          |import mill._
          |
-         |object $wrapName extends mill.define.Task.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
+         |object $wrapName extends mill.define.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
          |  // Make sure we don't include the `build` wrapper-object's name in
          |  // the `basePath`s of our build
          |  override def basePath = super.basePath / ammonite.ops.up

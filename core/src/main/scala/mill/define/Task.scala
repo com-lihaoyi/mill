@@ -1,7 +1,6 @@
 package mill.define
 
 import ammonite.main.Router.Overrides
-import ammonite.ops.Path
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
@@ -36,7 +35,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
 }
 
 trait NamedTask[+T] extends Task[T]{
-  def owner: Task.Module
+  def owner: Module
   def name: String
   def overrides: Int
 }
@@ -55,7 +54,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                         e: sourcecode.Enclosing,
                         l: sourcecode.Line,
                         n: sourcecode.Name,
-                        cl: Caller[mill.define.Task.Module],
+                        cl: Caller[Module],
                         o: Overrides): Target[T] = macro targetImpl[T]
 
   def targetImpl[T: c.WeakTypeTag](c: Context)
@@ -65,7 +64,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                    e: c.Expr[sourcecode.Enclosing],
                                    l: c.Expr[sourcecode.Line],
                                    n: c.Expr[sourcecode.Name],
-                                   cl: c.Expr[Caller[mill.define.Task.Module]],
+                                   cl: c.Expr[Caller[Module]],
                                    o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     val lhs = Applicative.impl0[Task, T, Ctx](c)(reify(Result.Success(t.splice)).tree)
@@ -90,7 +89,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                         e: sourcecode.Enclosing,
                         l: sourcecode.Line,
                         n: sourcecode.Name,
-                        cl: Caller[mill.define.Task.Module],
+                        cl: Caller[Module],
                         o: Overrides): Target[T] = macro targetResultImpl[T]
 
   def targetResultImpl[T: c.WeakTypeTag](c: Context)
@@ -100,7 +99,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                          e: c.Expr[sourcecode.Enclosing],
                                          l: c.Expr[sourcecode.Line],
                                          n: c.Expr[sourcecode.Name],
-                                         cl: c.Expr[Caller[mill.define.Task.Module]],
+                                         cl: c.Expr[Caller[Module]],
                                          o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
@@ -124,7 +123,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                e: sourcecode.Enclosing,
                l: sourcecode.Line,
                n: sourcecode.Name,
-               cl: Caller[mill.define.Task.Module],
+               cl: Caller[Module],
                o: Overrides): Target[T] = macro targetTaskImpl[T]
 
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)
@@ -134,7 +133,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        e: c.Expr[sourcecode.Enclosing],
                                        l: c.Expr[sourcecode.Line],
                                        n: c.Expr[sourcecode.Name],
-                                       cl: c.Expr[Caller[mill.define.Task.Module]],
+                                       cl: c.Expr[Caller[Module]],
                                        o: c.Expr[Overrides]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
@@ -156,7 +155,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                 (implicit w: W[T],
                  e: sourcecode.Enclosing,
                  n: sourcecode.Name,
-                 cl: Caller[mill.define.Task.Module],
+                 cl: Caller[Module],
                  o: Overrides): Command[T] = macro commandImpl[T]
 
   def source(value: Result[ammonite.ops.Path])
@@ -165,7 +164,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
              e: sourcecode.Enclosing,
              l: sourcecode.Line,
              n: sourcecode.Name,
-             cl: Caller[mill.define.Task.Module],
+             cl: Caller[Module],
              o: Overrides): Input[PathRef] = macro sourceImpl
 
   def sourceImpl(c: Context)
@@ -175,7 +174,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                  e: c.Expr[sourcecode.Enclosing],
                  l: c.Expr[sourcecode.Line],
                  n: c.Expr[sourcecode.Name],
-                 cl: c.Expr[Caller[mill.define.Task.Module]],
+                 cl: c.Expr[Caller[Module]],
                  o: c.Expr[Overrides]): c.Expr[Input[PathRef]] = {
     import c.universe._
     val wrapped: c.Expr[Result[PathRef]] = reify(value.splice match{
@@ -203,7 +202,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                 e: sourcecode.Enclosing,
                 l: sourcecode.Line,
                 n: sourcecode.Name,
-                cl: Caller[mill.define.Task.Module],
+                cl: Caller[Module],
                 o: Overrides): Input[T] = macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)
@@ -213,7 +212,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                    e: c.Expr[sourcecode.Enclosing],
                                    l: c.Expr[sourcecode.Line],
                                    n: c.Expr[sourcecode.Name],
-                                   cl: c.Expr[Caller[mill.define.Task.Module]],
+                                   cl: c.Expr[Caller[Module]],
                                    o: c.Expr[Overrides]): c.Expr[Input[T]] = {
     import c.universe._
 
@@ -233,7 +232,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   def command[T](t: Task[T])
-                (implicit c: Caller[Task.Module],
+                (implicit c: Caller[Module],
                  e: sourcecode.Enclosing,
                  n: sourcecode.Name,
                  w: W[T],
@@ -244,7 +243,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                    (w: c.Expr[W[T]],
                                     e: c.Expr[sourcecode.Enclosing],
                                     n: c.Expr[sourcecode.Name],
-                                    cl: c.Expr[Caller[mill.define.Task.Module]],
+                                    cl: c.Expr[Caller[Module]],
                                     o: c.Expr[Overrides]): c.Expr[Command[T]] = {
     import c.universe._
     reify(
@@ -266,7 +265,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                   e: sourcecode.Enclosing,
                                   l: sourcecode.Line,
                                   n: sourcecode.Name,
-                                  cl: Caller[mill.define.Task.Module],
+                                  cl: Caller[Module],
                                   o: Overrides): Target[T] = macro persistentImpl[T]
 
   def persistentImpl[T: c.WeakTypeTag](c: Context)
@@ -276,7 +275,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                        e: c.Expr[sourcecode.Enclosing],
                                        l: c.Expr[sourcecode.Line],
                                        n: c.Expr[sourcecode.Name],
-                                       cl: c.Expr[Caller[mill.define.Task.Module]],
+                                       cl: c.Expr[Caller[Module]],
                                        o: c.Expr[Overrides]): c.Expr[Persistent[T]] = {
     import c.universe._
 
@@ -322,7 +321,7 @@ object Caller {
 class TargetImpl[+T](t: Task[T],
                      val enclosing: String,
                      val lineNum: Int,
-                     val owner: Task.Module,
+                     val owner: Module,
                      val name: String,
                      val readWrite: RW[_],
                      val overrides: Int) extends Target[T] {
@@ -332,7 +331,7 @@ class TargetImpl[+T](t: Task[T],
 }
 class Command[+T](t: Task[T],
                   val enclosing: String,
-                  val owner: Task.Module,
+                  val owner: Module,
                   val name: String,
                   val writer: W[_],
                   val overrides: Int) extends NamedTask[T] {
@@ -343,7 +342,7 @@ class Command[+T](t: Task[T],
 class Persistent[+T](t: Task[T],
                      enclosing: String,
                      lineNum: Int,
-                     owner: Task.Module,
+                     owner: Module,
                      name: String,
                      readWrite: RW[_],
                      overrides: Int)
@@ -354,7 +353,7 @@ class Persistent[+T](t: Task[T],
 class Input[T](t: Task[T],
                val enclosing: String,
                val lineNum: Int,
-               val owner: Task.Module,
+               val owner: Module,
                val name: String,
                val readWrite: RW[_],
                val overrides: Int) extends Target[T]{
@@ -362,50 +361,13 @@ class Input[T](t: Task[T],
   def evaluate(args: Ctx) = args[T](0)
   override def sideHash = util.Random.nextInt()
 }
-case class BasePath(value: Path)
+
 object Task {
 
   trait TaskModule extends Module {
     def defaultCommandName(): String
   }
 
-  /**
-    * `Module` is a class meant to be extended by `trait`s *only*, in order to
-    * propagate the implicit parameters forward to the final concrete
-    * instantiation site so they can capture the enclosing/line information of
-    * the concrete instance.
-    */
-  class Module(implicit ctx: Module.Ctx) extends mill.moduledefs.Cacher{
-    // Ensure we do not propagate the implicit parameters as implicits within
-    // the body of any inheriting class/trait/objects, as it would screw up any
-    // one else trying to use sourcecode.{Enclosing,Line} to capture debug info
-    val millModuleEnclosing = ctx.millModuleEnclosing0
-    val millModuleLine = ctx.millModuleLine0
-    def basePath: Path = ctx.millModuleBasePath0.value / ctx.millName0.value
-    implicit def millModuleBasePath: BasePath = BasePath(basePath)
-  }
-  object Module{
-    case class Ctx(millModuleEnclosing0: sourcecode.Enclosing,
-                   millModuleLine0: sourcecode.Line,
-                   millName0: sourcecode.Name,
-                   millModuleBasePath0: BasePath)
-    object Ctx{
-      implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
-                        millModuleLine0: sourcecode.Line,
-                        millName0: sourcecode.Name,
-                        millModuleBasePath0: BasePath): Ctx = Ctx(
-        millModuleEnclosing0,
-        millModuleLine0,
-        millName0,
-        millModuleBasePath0
-      )
-    }
-  }
-  class BaseModule(basePath: Path)
-                  (implicit millModuleEnclosing0: sourcecode.Enclosing,
-                   millModuleLine0: sourcecode.Line,
-                   millName0: sourcecode.Name)
-    extends Module()(Module.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath)))
 
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t

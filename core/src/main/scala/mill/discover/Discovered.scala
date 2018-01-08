@@ -1,6 +1,6 @@
 package mill.discover
 
-import mill.define.Task.Module
+import mill.define.Module
 import mill.define.{Cross, Target, Task}
 import ammonite.main.Router
 import ammonite.main.Router.EntryPoint

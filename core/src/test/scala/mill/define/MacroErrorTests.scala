@@ -30,7 +30,7 @@ object MacroErrorTests extends TestSuite{
             }
           }
         """)
-        assert(e.msg.contains("required: mill.define.Task.Module"))
+        assert(e.msg.contains("required: mill.define.Module"))
       }
       'neg - {
 

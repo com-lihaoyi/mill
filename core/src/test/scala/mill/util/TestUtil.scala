@@ -2,7 +2,7 @@ package mill.util
 
 import ammonite.main.Router.Overrides
 import ammonite.ops.Path
-import mill.define.Task.Module
+import mill.define.Module
 import mill.define.{BasePath, Caller, Target, Task}
 import mill.eval.Result
 import utest.assert
