@@ -4,7 +4,6 @@ import scala.reflect.macros.blackbox
 
 
 object Cross{
-  def autoCast[A](x: Any): A = x.asInstanceOf[A]
   abstract class Implicit[T]{
     def make(v: Any, ctx: Module.Ctx): T
     def crossValues(v: Any): List[Any]
@@ -54,7 +53,7 @@ class Cross[T](cases: Any*)
     val sub = ci.make(
       c,
       ctx.copy(
-        segments0 = Segments(ctx.segments0.value :+ ctx.segment),
+        segments0 = ctx.segments0 ++ Seq(ctx.segment),
         segment = Segment.Cross(crossValues.reverse)
       )
     )

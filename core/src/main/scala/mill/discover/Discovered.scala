@@ -5,6 +5,7 @@ import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
 import mill.discover.Mirror.TargetPoint
 import mill.util.Ctx.Loader
+import mill.util.OSet
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -23,48 +24,32 @@ object Discovered {
   }
   case class Mapping[T](mirror: Mirror[T, T],
                         base: T){
-    val modulesToPaths = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
-      val resolvedNode = mirror.node(
-        base,
-        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
-      )
-      Seq(resolvedNode -> segmentsRev.reverse)
+    val modulesToMirrors = Mirror.traverseNode[T, T, (Any, Mirror[_, _])](base, mirror){
+      (mirror, segments, resolvedNode) => Seq(resolvedNode -> mirror)
     }.toMap
 
-    val modulesToMirrors = Mirror.traverse[T, T, (Any, Mirror[_, _])](base, mirror){ (mirror, segmentsRev) =>
-      val resolvedNode = mirror.node(
-        base,
-        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
-      )
-      Seq(resolvedNode -> mirror)
-    }.toMap
-
-    val targetsToSegments = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
-      val resolvedNode = mirror.node(
-        base,
-        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
-      )
-      for(target <- mirror.targets) yield {
-        target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode) -> (segmentsRev.reverse :+ Segment.Label(target.label))
+    val targets = OSet.from(
+      Mirror.traverseNode(base, mirror){ (mirror, segmentsRev, resolvedNode) =>
+        for(target <- mirror.targets)
+        yield target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode)
       }
+    )
 
-    }.toMap
-
-    val segmentsToCommands = Mirror.traverse[T, T, (Seq[Segment], EntryPoint[_])](base, mirror){ (mirror, segmentsRev) =>
+    val segmentsToCommands = Mirror.traverse[T, T, (Segments, EntryPoint[_])](base, mirror){ (mirror, segments) =>
       for(command <- mirror.commands)
-      yield (segmentsRev.reverse :+ Segment.Label(command.name)) -> command
+      yield segments ++ Seq(Segment.Label(command.name)) -> command
     }.toMap
 
-    val segmentsToTargets = targetsToSegments.map(_.swap)
+    val segmentsToTargets = targets.map(t => (t.ctx.segments, t)).toMap
+    val targetsToSegments = segmentsToTargets.map(_.swap)
   }
 
-  def consistencyCheck[T](mapping: Discovered.Mapping[T]) = {
+  def consistencyCheck[T](mapping: Discovered.Mapping[T]): OSet[Segments] = {
     val mapping2 = Discovered.Mapping(mapping.mirror, mapping.base)
-
     for{
-      (t1, t2) <- mapping2.targetsToSegments.zip(mapping.targetsToSegments)
-      if t1._1 ne t2._1
-    } yield t1._2
+      (t1, t2) <- mapping2.targets.zip(mapping.targets)
+      if t1 ne t2
+    } yield t1.ctx.segments
   }
 
 

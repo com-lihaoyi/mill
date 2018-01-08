@@ -65,13 +65,13 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
         ))
 
       )
-    case t: mill.define.Target[_] if evaluator.mapping.targetsToSegments.contains(t) =>
+    case t: mill.define.Target[_] if evaluator.mapping.targets.contains(t) =>
       val seen = mutable.Set.empty[Task[_]]
-      def rec(t: Task[_]): Seq[Seq[Segment]] = {
+      def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: Target[_] if evaluator.mapping.targetsToSegments.contains(t) =>
-            Seq(evaluator.mapping.targetsToSegments(t))
+          case t: Target[_] if evaluator.mapping.targets.contains(t) =>
+            Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
             t.inputs.flatMap(rec)
@@ -79,11 +79,10 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
       }
       pprint.Tree.Lazy(ctx =>
         Iterator(t.ctx.enclosing, ":", t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
-        t.inputs.iterator.flatMap(rec).map("\n    " + Mirror.renderSelector(_))
+        t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
       )
 
   }
-  ammonite.main.Cli
   val pprinter = pprinter0.copy(
     additionalHandlers = millHandlers orElse pprinter0.additionalHandlers
   )

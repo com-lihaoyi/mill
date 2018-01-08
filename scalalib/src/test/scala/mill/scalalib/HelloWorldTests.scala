@@ -175,7 +175,7 @@ object HelloWorldTests extends TestSuite {
 
         val paths = Evaluator.resolveDestPaths(
           outPath,
-          helloWorldEvaluator.evaluator.mapping.targetsToSegments(HelloWorld.compile)
+          HelloWorld.compile.ctx.segments
         )
 
         assert(

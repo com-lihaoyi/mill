@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.define.{Segment, Task}
+import mill.define.{Segment, Segments, Task}
 import mill.define.Task.TaskModule
 import mill.discover.Mirror
 import ammonite.main.Router
@@ -43,8 +43,8 @@ object Resolve {
         def command = invokeCommand(hierarchy, last)
 
         command orElse target orElse runDefault.headOption.flatten match{
-          case None =>  Left("Cannot resolve task " + Mirror.renderSelector(
-            (Segment.Label(last) :: revSelectorsSoFar).reverse)
+          case None =>  Left("Cannot resolve task " +
+            Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render
           )
           // Contents of `either` *must* be a `Task`, because we only select
           // methods returning `Task` in the discovery process
@@ -60,7 +60,7 @@ object Resolve {
               case (label, child) if label == singleLabel => child
             } match{
               case Some(child) => resolve(tail, child, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
-              case None => Left("Cannot resolve module " + Mirror.renderSelector(newRevSelectorsSoFar.reverse))
+              case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
             }
 
           case Segment.Cross(cross) =>
@@ -69,7 +69,7 @@ object Resolve {
             if (crossOptions.contains(cross)){
               resolve(tail, childMirror, obj, rest, remainingCrossSelectors, newRevSelectorsSoFar)
             }else{
-              Left("Cannot resolve cross " + Mirror.renderSelector(newRevSelectorsSoFar.reverse))
+              Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
             }
 
 

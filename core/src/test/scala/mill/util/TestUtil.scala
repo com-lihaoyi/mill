@@ -18,7 +18,7 @@ object TestUtil {
         implicitly,
         implicitly,
         BasePath(ammonite.ops.pwd / millModuleEnclosing0.value),
-        Segments(Nil),
+        Segments(),
         implicitly
       )
     )
@@ -51,7 +51,7 @@ object TestUtil {
                    val pure: Boolean)
                   (implicit ctx0: Module.Ctx)
     extends Test(inputs) with Target[Int]{
-    val ctx = ctx0.copy(segments0 = Segments(ctx0.segments0.value :+ ctx0.segment))
+    val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
     val readWrite = upickle.default.IntRW
 
 

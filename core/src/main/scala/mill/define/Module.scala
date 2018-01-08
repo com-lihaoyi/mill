@@ -12,7 +12,19 @@ object Segment{
 }
 
 case class BasePath(value: Path)
-case class Segments(value: Seq[Segment])
+case class Segments(value: Segment*){
+  def ++(other: Seq[Segment]): Segments = Segments(value ++ other:_*)
+  def ++(other: Segments): Segments = Segments(value ++ other.value:_*)
+  def render = value match {
+    case Nil => ""
+    case Segment.Label(head) :: rest =>
+      val stringSegments = rest.map{
+        case Segment.Label(s) => "." + s
+        case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+      }
+      head + stringSegments.mkString
+  }
+}
 /**
   * `Module` is a class meant to be extended by `trait`s *only*, in order to
   * propagate the implicit parameters forward to the final concrete
@@ -32,7 +44,7 @@ class Module(implicit ctx0: Module.Ctx) extends mill.moduledefs.Cacher{
   })
   implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millModuleSegments: Segments = {
-    Segments(ctx.segments0.value :+ ctx.segment)
+    ctx.segments0 ++ Seq(ctx.segment)
   }
 }
 object Module{
@@ -43,7 +55,7 @@ object Module{
                  basePath: Path,
                  segments0: Segments,
                  overrides: Int){
-    def segments = Segments(segments0.value.drop(1))
+    def segments = Segments(segments0.value.drop(1):_*)
   }
   object Ctx{
     implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
@@ -67,5 +79,5 @@ class BaseModule(basePath: Path)
                  millName0: sourcecode.Name,
                  overrides0: Overrides)
   extends Module()(
-    Module.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath), Segments(Nil), implicitly)
+    Module.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath), Segments(), implicitly)
   )

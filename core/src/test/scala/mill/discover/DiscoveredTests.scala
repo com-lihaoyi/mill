@@ -6,6 +6,7 @@ import ammonite.main.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
 import mill.define.Segment.Label
+import mill.define.Segments
 import mill.util.TestGraphs.{TraitWithModuleObject, nestedModule}
 import mill.util.TestUtil
 object DiscoveredTests extends TestSuite{
@@ -27,22 +28,22 @@ object DiscoveredTests extends TestSuite{
       )
       assert(flattenedHierarchy == expectedHierarchy)
 
-      val mapped = discovered.targetsToSegments.map(_.swap)
+      val mapped = discovered.segmentsToTargets
 
-      val expected = Seq(
-        (List(Label("classInstance"), Label("single")), nestedModule.classInstance.single),
-        (List(Label("nested"), Label("single")), nestedModule.nested.single),
-        (List(Label("single")), nestedModule.single)
+      val expected = Map(
+        (Segments(Label("classInstance"), Label("single")), nestedModule.classInstance.single),
+        (Segments(Label("nested"), Label("single")), nestedModule.nested.single),
+        (Segments(Label("single")), nestedModule.single)
       )
-      assert(mapped.toSet == expected.toSet)
+      assert(mapped == expected)
     }
 
     'traitWithModule - {
       val discovered = Discovered.mapping(TraitWithModuleObject)
-      val mapped = discovered.targetsToSegments.map(_.swap)
+      val mapped = discovered.segmentsToTargets
       val expected = Map(
         (
-          List(Label("TraitModule"), Label("testFramework")),
+          Segments(Label("TraitModule"), Label("testFramework")),
           TraitWithModuleObject.TraitModule.testFramework
         )
       )

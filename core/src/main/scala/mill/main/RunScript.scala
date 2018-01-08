@@ -146,7 +146,7 @@ object RunScript{
       (for((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match{
           case Left(t) => t.toString
-          case Right(t) => Mirror.renderSelector(t.segments.toList)
+          case Right(t) => t.segments.render
         }
         val fss = fs.map{
           case Result.Exception(t, outerStack) =>
@@ -161,10 +161,9 @@ object RunScript{
         val json = for(t <- Seq(target)) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
-              val segments = t.ctx.segments.value
-              val jsonFile = Evaluator.resolveDestPaths(
-                evaluator.workspacePath, segments
-              ).meta
+              val jsonFile = Evaluator
+                .resolveDestPaths(evaluator.workspacePath, t.ctx.segments)
+                .meta
               val metadata = upickle.json.read(jsonFile.toIO)
               Some(metadata(1))
 
@@ -206,7 +205,7 @@ object RunScript{
   def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
     val consistencyErrors = Discovered.consistencyCheck(mapping)
     if (consistencyErrors.nonEmpty) {
-      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(Mirror.renderSelector)}")
+      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
     } else {
       Right(())
     }

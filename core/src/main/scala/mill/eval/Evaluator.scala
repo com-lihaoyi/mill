@@ -13,7 +13,7 @@ import mill.util._
 import scala.collection.mutable
 import scala.util.control.NonFatal
 case class Labelled[T](target: NamedTask[T],
-                       segments: Seq[Segment]){
+                       segments: Segments){
   def format = target match{
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
@@ -41,7 +41,7 @@ class Evaluator[T](val workspacePath: Path,
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case t: NamedTask[Any]   =>
-        val segments = t.ctx.segments.value
+        val segments = t.ctx.segments
         val (finalTaskOverrides, enclosing) = t match{
           case t: Target[_] => mapping.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
           case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.ctx.enclosing
@@ -125,7 +125,7 @@ class Evaluator[T](val workspacePath: Path,
 
           case _ =>
 
-            val Seq(first, rest @_*) = labelledTarget.segments
+            val Seq(first, rest @_*) = labelledTarget.segments.value
             val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
               case Segment.Label(s) => "." + s
               case Segment.Cross(s) => "[" + s.mkString(",") + "]"
@@ -256,11 +256,11 @@ object Evaluator{
                    dest: Path,
                    meta: Path,
                    log: Path)
-  def makeSegmentStrings(segments: Seq[Segment]) = segments.flatMap{
+  def makeSegmentStrings(segments: Segments) = segments.value.flatMap{
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
-  def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): Paths = {
+  def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
     Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
