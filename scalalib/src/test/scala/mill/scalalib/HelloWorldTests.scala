@@ -5,7 +5,7 @@ import java.util.jar.JarFile
 import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
-import mill.define.{Cross, Target}
+import mill.define.Target
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
@@ -22,8 +22,8 @@ trait HelloWorldModule extends scalalib.Module {
 
 object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
 object CrossHelloWorld extends TestUtil.BaseModule {
-  object cross extends CrossModule[HelloWorldCrossModule]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
-  class HelloWorldCrossModule(v: String) extends HelloWorldModule {
+  object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+  class HelloWorldCross(v: String) extends HelloWorldModule {
     def scalaVersion = v
   }
 }

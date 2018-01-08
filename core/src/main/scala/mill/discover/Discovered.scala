@@ -103,10 +103,10 @@ object Discovered {
       }
 
       val crossChildren =
-        if (!(t <:< c.weakTypeOf[Cross[Module]])) q"None"
+        if (!(t <:< c.weakTypeOf[Cross[_]])) q"None"
         else {
 
-          val TypeRef(_, _, Seq(arg)) = t.baseType(typeOf[Cross[Module]].typeSymbol)
+          val TypeRef(_, _, Seq(arg)) = t.baseType(weakTypeOf[Cross[_]].typeSymbol)
           val innerMirror = rec(None :: segments, arg)
           q"Some(((c: mill.define.Cross[_]) => mill.discover.Discovered.tupleLeft(c.items), $innerMirror))"
         }
@@ -114,7 +114,7 @@ object Discovered {
         m <- t.members.toList
         if m.typeSignature.paramLists.isEmpty && m.isPublic
         if (m.typeSignature.finalResultType <:< c.weakTypeOf[Module]) ||
-          (m.typeSignature.finalResultType <:< c.weakTypeOf[Cross[Module]])
+          (m.typeSignature.finalResultType <:< c.weakTypeOf[Cross[_]])
 
       } yield {
         val name = m.name.toString.trim

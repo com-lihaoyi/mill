@@ -2,8 +2,7 @@ package mill.main
 
 
 import mill.define.Applicative.ApplyHandler
-import mill.define.{Cross, Target, Task}
-import mill.define.Segment
+import mill.define._
 import mill.discover.{Discovered, Mirror}
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -43,7 +42,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(c.e.value, ":", c.l.value.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
+        Iterator(c.ctx.enclosing , ":", c.ctx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )

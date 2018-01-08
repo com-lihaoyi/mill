@@ -7,5 +7,5 @@ package object mill extends JsonFormatters{
   type PathRef = mill.eval.PathRef
   type Module = define.Module
   val Module = define.Module
-  type CrossModule[T] = define.CrossModule[T]
+  type Cross[T] = define.Cross[T]
 }

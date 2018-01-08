@@ -6,7 +6,6 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
-import mill.define.Cross
 import mill.discover.Discovered
 import mill.scalalib.PublishModule
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
@@ -26,7 +25,7 @@ object HelloJSWorld extends TestUtil.BaseModule {
     scala <- Seq("2.11.8", "2.12.3", "2.12.4")
   } yield (scalaJS, scala)
 
-  object build extends CrossModule[BuildModule](matrix:_*)
+  object build extends Cross[BuildModule](matrix:_*)
 
   class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0

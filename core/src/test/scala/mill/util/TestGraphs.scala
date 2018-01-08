@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.define.CrossModule
+import mill.define.Cross
 import mill.{Module, T}
 
 /**
@@ -192,8 +192,8 @@ object TestGraphs{
 
 
   object singleCross extends TestUtil.BaseModule {
-    object cross extends mill.CrossModule[CrossModule]("210", "211", "212")
-    class CrossModule(scalaVersion: String) extends Module{
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    class Cross(scalaVersion: String) extends Module{
       def suffix = T{ scalaVersion }
     }
   }
@@ -203,27 +203,27 @@ object TestGraphs{
       platform <- Seq("jvm", "js", "native")
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
-    object cross extends mill.CrossModule[CrossModule](crossMatrix:_*)
-    class CrossModule(scalaVersion: String, platform: String) extends Module{
+    object cross extends mill.Cross[Cross](crossMatrix:_*)
+    class Cross(scalaVersion: String, platform: String) extends Module{
       def suffix = T{ scalaVersion + "_" + platform }
     }
   }
 
   object indirectNestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.CrossModule[CrossModule]("210", "211", "212")
-    class CrossModule(scalaVersion: String) extends mill.Module{
-      object cross2 extends mill.CrossModule[CrossModule]("jvm", "js", "native")
-      class CrossModule(platform: String) extends mill.Module{
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    class Cross(scalaVersion: String) extends mill.Module{
+      object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
+      class Cross(platform: String) extends mill.Module{
         def suffix = T{ scalaVersion + "_" + platform }
       }
     }
   }
 
   object nestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.CrossModule[CrossModule]("210", "211", "212")
-    class CrossModule(scalaVersion: String) extends mill.Module{
-      object cross2 extends mill.CrossModule[CrossModule]("jvm", "js", "native")
-      class CrossModule(platform: String) extends mill.Module{
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    class Cross(scalaVersion: String) extends mill.Module{
+      object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
+      class Cross(platform: String) extends mill.Module{
         def suffix = T{ scalaVersion + "_" + platform }
       }
     }
