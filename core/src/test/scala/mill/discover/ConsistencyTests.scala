@@ -1,7 +1,7 @@
 package mill.discover
 
 
-import mill.discover.Mirror.Segment.Label
+import mill.define.Segment.Label
 import mill.util.TestGraphs
 import utest._
 

@@ -5,7 +5,7 @@ import java.io.InputStreamReader
 import ammonite.main.Router.{ArgSig, EntryPoint}
 import utest._
 import mill.{Module, T}
-import mill.discover.Mirror.Segment.Label
+import mill.define.Segment.Label
 import mill.util.TestGraphs.{TraitWithModuleObject, nestedModule}
 import mill.util.TestUtil
 object DiscoveredTests extends TestSuite{

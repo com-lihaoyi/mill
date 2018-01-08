@@ -29,8 +29,8 @@ trait MillModule extends SbtModule{ outer =>
 
   def testArgs = T{ Seq.empty[String] }
 
-  val test = new Tests
-  class Tests extends super.Tests{
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.Module.Ctx) extends mill.Module()(ctx0) with super.Tests{
     def defaultCommandName() = "forkTest"
     def forkArgs = T{ testArgs() }
     def projectDeps =
@@ -65,8 +65,8 @@ object core extends MillModule {
   }
 
   def allSources = super.allSources() ++ Seq(generatedSources())
-  val test = new Tests
-  class Tests extends super.Tests{
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.Module.Ctx) extends super.Tests(ctx0){
     def generatedSources = T{
       mkdir(T.ctx().dest)
       shared.generateTests(T.ctx().dest)
@@ -80,7 +80,7 @@ object core extends MillModule {
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
 object bridges extends CrossModule(BridgeModule, bridgeVersions:_*)
-case class BridgeModule(crossVersion: String) extends PublishModule {
+case class BridgeModule(crossVersion: String, ctx: mill.Module.Ctx) extends mill.Module()(ctx) with PublishModule {
   def publishName = "mill-bridge"
   def publishVersion = "0.1"
 
@@ -122,7 +122,7 @@ object scalalib extends MillModule {
   }
 }
 object jsbridges extends CrossModule(JsBridgeModule, "0.6", "1.0")
-case class JsBridgeModule(scalajsBinary: String) extends MillModule{
+case class JsBridgeModule(scalajsBinary: String, ctx: mill.Module.Ctx) extends mill.Module()(ctx) with MillModule{
   def basePath = pwd / 'scalajslib / s"bridge_${scalajsBinary.replace('.', '_')}"
   val scalajsVersion = scalajsBinary match {
     case "0.6" => "0.6.21"

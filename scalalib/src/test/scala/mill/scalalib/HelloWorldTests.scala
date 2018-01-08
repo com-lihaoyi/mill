@@ -22,11 +22,11 @@ trait HelloWorldModule extends scalalib.Module {
 
 object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
 object CrossHelloWorld extends TestUtil.BaseModule {
-  val cross =
-    for(v <- Cross("2.10.6", "2.11.11", "2.12.3", "2.12.4"))
-    yield new HelloWorldModule {
-      def scalaVersion = v
-    }
+  object cross extends CrossModule(HelloWorldCrossModule, "2.10.6", "2.11.11", "2.12.3", "2.12.4")
+  case class HelloWorldCrossModule(v: String, ctx0: Module.Ctx)
+  extends mill.Module()(ctx0) with HelloWorldModule {
+    def scalaVersion = v
+  }
 }
 
 object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {

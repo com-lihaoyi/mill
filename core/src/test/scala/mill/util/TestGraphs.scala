@@ -193,7 +193,7 @@ object TestGraphs{
 
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.CrossModule(CrossModule, "210", "211", "212")
-    case class CrossModule(scalaVersion: String) extends Module{
+    case class CrossModule(scalaVersion: String, ctx0: Module.Ctx) extends Module()(ctx0){
       def suffix = T{ scalaVersion }
     }
   }
@@ -204,16 +204,16 @@ object TestGraphs{
       if !(platform == "native" && scalaVersion != "212")
     } yield (scalaVersion, platform)
     object cross extends mill.CrossModule2(CrossModule, crossMatrix:_*)
-    case class CrossModule(scalaVersion: String, platform: String) extends Module{
+    case class CrossModule(scalaVersion: String, platform: String, ctx0: Module.Ctx) extends Module()(ctx0){
       def suffix = T{ scalaVersion + "_" + platform }
     }
   }
 
   object indirectNestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.CrossModule(CrossModule, "210", "211", "212")
-    case class CrossModule(scalaVersion: String) extends mill.Module{
+    case class CrossModule(scalaVersion: String, ctx0: Module.Ctx) extends mill.Module()(ctx0){
       object cross2 extends mill.CrossModule(CrossModule, "jvm", "js", "native")
-      case class CrossModule(platform: String) extends mill.Module{
+      case class CrossModule(platform: String, ctx0: Module.Ctx) extends mill.Module{
         def suffix = T{ scalaVersion + "_" + platform }
       }
     }
@@ -221,9 +221,9 @@ object TestGraphs{
 
   object nestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.CrossModule(CrossModule, "210", "211", "212")
-    case class CrossModule(scalaVersion: String) extends mill.Module{
+    case class CrossModule(scalaVersion: String, ctx0: Module.Ctx) extends mill.Module()(ctx0){
       object cross2 extends mill.CrossModule(CrossModule, "jvm", "js", "native")
-      case class CrossModule(platform: String) extends mill.Module{
+      case class CrossModule(platform: String, ctx0: Module.Ctx) extends mill.Module()(ctx0){
         def suffix = T{ scalaVersion + "_" + platform }
       }
     }

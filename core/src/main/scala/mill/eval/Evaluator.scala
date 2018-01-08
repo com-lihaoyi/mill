@@ -6,7 +6,7 @@ import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define._
 import mill.discover.{Discovered, Mirror}
-import mill.discover.Mirror.Segment
+import mill.define.Segment
 import mill.util
 import mill.util._
 
@@ -40,16 +40,15 @@ class Evaluator[T](val workspacePath: Path,
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any] if mapping.modulesToPaths.contains(t.owner)  =>
-        val segments = mapping.modulesToPaths(t.owner) :+ Segment.Label(t.name)
+      case t: NamedTask[Any]   =>
+        val segments = t.ctx.segments.value
         val (finalTaskOverrides, enclosing) = t match{
-          case t: Target[_] => mapping.segmentsToTargets(segments).overrides -> t.enclosing
-          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.enclosing
+          case t: Target[_] => mapping.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
+          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.ctx.enclosing
         }
-        val delta = finalTaskOverrides - t.overrides
         val additional =
-          if (delta == 0) Nil
-          else Seq(Segment.Label("override" + delta), Segment.Label(enclosing))
+          if (finalTaskOverrides == t.ctx.overrides) Nil
+          else Seq(Segment.Label("overriden"), Segment.Label(enclosing))
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)
@@ -127,9 +126,9 @@ class Evaluator[T](val workspacePath: Path,
           case _ =>
 
             val Seq(first, rest @_*) = labelledTarget.segments
-            val msgParts = Seq(first.asInstanceOf[Mirror.Segment.Label].value) ++ rest.map{
-              case Mirror.Segment.Label(s) => "." + s
-              case Mirror.Segment.Cross(s) => "[" + s.mkString(",") + "]"
+            val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
+              case Segment.Label(s) => "." + s
+              case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
             if (labelledTarget.target.flushDest) rm(paths.dest)
@@ -258,8 +257,8 @@ object Evaluator{
                    meta: Path,
                    log: Path)
   def makeSegmentStrings(segments: Seq[Segment]) = segments.flatMap{
-    case Mirror.Segment.Label(s) => Seq(s)
-    case Mirror.Segment.Cross(values) => values.map(_.toString)
+    case Segment.Label(s) => Seq(s)
+    case Segment.Cross(values) => values.map(_.toString)
   }
   def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): Paths = {
     val segmentStrings = makeSegmentStrings(segments)

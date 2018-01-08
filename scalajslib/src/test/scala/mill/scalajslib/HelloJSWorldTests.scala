@@ -15,17 +15,22 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloJSWorldModule extends TestUtil.BaseModule with ScalaJSModule with PublishModule {
+trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
   override def basePath = HelloJSWorldTests.workspacePath
   override def mainClass = Some("Main")
 }
 
 object HelloJSWorld extends TestUtil.BaseModule {
-  val build = for {
-    scalaJS <- Cross("0.6.20", "0.6.21", "1.0.0-M2")
-    scala <- Cross("2.11.8", "2.12.3", "2.12.4")
-  } yield
-    new HelloJSWorldModule {
+  val matrix = for {
+    scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+    scala <- Seq("2.11.8", "2.12.3", "2.12.4")
+  } yield (scalaJS, scala)
+
+  object build extends CrossModule2(BuildModule, matrix:_*)
+
+  case class BuildModule(scalaJS: String,
+                         scala: String,
+                         ctx0: Module.Ctx) extends Module()(ctx0) with HelloJSWorldModule {
       def scalaVersion = scala
       def scalaJSVersion = scalaJS
       def pomSettings = PomSettings(

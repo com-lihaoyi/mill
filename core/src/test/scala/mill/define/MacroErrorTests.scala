@@ -30,7 +30,9 @@ object MacroErrorTests extends TestSuite{
             }
           }
         """)
-        assert(e.msg.contains("required: mill.define.Module"))
+        assert(e.msg.contains(
+          "Modules, Targets and Commands can only be defined within a mill Module")
+        )
       }
       'neg - {
 
@@ -72,7 +74,9 @@ object MacroErrorTests extends TestSuite{
             def down = T{ TestUtil.test(left, right) }
           }
         """)
-        assert(borkedCachedDiamond1.msg.contains("required: mill.Module"))
+        assert(borkedCachedDiamond1.msg.contains(
+          "Modules, Targets and Commands can only be defined within a mill Module")
+        )
       }
     }
   }

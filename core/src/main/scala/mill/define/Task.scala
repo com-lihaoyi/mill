@@ -1,6 +1,5 @@
 package mill.define
 
-import ammonite.main.Router.Overrides
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
@@ -35,14 +34,10 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
 }
 
 trait NamedTask[+T] extends Task[T]{
-  def owner: Module
-  def name: String
-  def overrides: Int
+  def ctx: Module.Ctx
 }
 trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)
-  def enclosing: String
-  def lineNum: Int
   def readWrite: RW[_]
 }
 
@@ -51,34 +46,19 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   implicit def apply[T](t: T)
                        (implicit r: R[T],
                         w: W[T],
-                        e: sourcecode.Enclosing,
-                        l: sourcecode.Line,
-                        n: sourcecode.Name,
-                        cl: Caller[Module],
-                        o: Overrides): Target[T] = macro targetImpl[T]
+                        ctx: Module.Ctx): Target[T] = macro targetImpl[T]
 
   def targetImpl[T: c.WeakTypeTag](c: Context)
                                   (t: c.Expr[T])
                                   (r: c.Expr[R[T]],
                                    w: c.Expr[W[T]],
-                                   e: c.Expr[sourcecode.Enclosing],
-                                   l: c.Expr[sourcecode.Line],
-                                   n: c.Expr[sourcecode.Name],
-                                   cl: c.Expr[Caller[Module]],
-                                   o: c.Expr[Overrides]): c.Expr[Target[T]] = {
+                                   ctx: c.Expr[Module.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     val lhs = Applicative.impl0[Task, T, Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
-        new TargetImpl[T](
-          lhs.splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read), o.splice.value
-        )
+        new TargetImpl[T](lhs.splice, ctx.splice, RW(w.splice.write, r.splice.read))
       )
     )
   }
@@ -86,32 +66,20 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   implicit def apply[T](t: Result[T])
                        (implicit r: R[T],
                         w: W[T],
-                        e: sourcecode.Enclosing,
-                        l: sourcecode.Line,
-                        n: sourcecode.Name,
-                        cl: Caller[Module],
-                        o: Overrides): Target[T] = macro targetResultImpl[T]
+                        ctx: Module.Ctx): Target[T] = macro targetResultImpl[T]
 
   def targetResultImpl[T: c.WeakTypeTag](c: Context)
                                         (t: c.Expr[Result[T]])
                                         (r: c.Expr[R[T]],
                                          w: c.Expr[W[T]],
-                                         e: c.Expr[sourcecode.Enclosing],
-                                         l: c.Expr[sourcecode.Line],
-                                         n: c.Expr[sourcecode.Name],
-                                         cl: c.Expr[Caller[Module]],
-                                         o: c.Expr[Overrides]): c.Expr[Target[T]] = {
+                                         ctx: c.Expr[Module.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
         new TargetImpl[T](
           Applicative.impl0[Task, T, Ctx](c)(t.tree).splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read),
-          o.splice.value
+          ctx.splice,
+          RW(w.splice.write, r.splice.read)
         )
       )
     )
@@ -120,62 +88,31 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def apply[T](t: Task[T])
               (implicit r: R[T],
                w: W[T],
-               e: sourcecode.Enclosing,
-               l: sourcecode.Line,
-               n: sourcecode.Name,
-               cl: Caller[Module],
-               o: Overrides): Target[T] = macro targetTaskImpl[T]
+               ctx: Module.Ctx): Target[T] = macro targetTaskImpl[T]
 
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)
                                       (t: c.Expr[Task[T]])
                                       (r: c.Expr[R[T]],
                                        w: c.Expr[W[T]],
-                                       e: c.Expr[sourcecode.Enclosing],
-                                       l: c.Expr[sourcecode.Line],
-                                       n: c.Expr[sourcecode.Name],
-                                       cl: c.Expr[Caller[Module]],
-                                       o: c.Expr[Overrides]): c.Expr[Target[T]] = {
+                                       ctx: c.Expr[Module.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new TargetImpl[T](
-          t.splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read),
-          o.splice.value
-        )
+        new TargetImpl[T](t.splice, ctx.splice, RW(w.splice.write, r.splice.read))
       )
     )
   }
 
-  def command[T](t: Result[T])
-                (implicit w: W[T],
-                 e: sourcecode.Enclosing,
-                 n: sourcecode.Name,
-                 cl: Caller[Module],
-                 o: Overrides): Command[T] = macro commandImpl[T]
-
   def source(value: Result[ammonite.ops.Path])
             (implicit r: R[PathRef],
              w: W[PathRef],
-             e: sourcecode.Enclosing,
-             l: sourcecode.Line,
-             n: sourcecode.Name,
-             cl: Caller[Module],
-             o: Overrides): Input[PathRef] = macro sourceImpl
+             ctx: Module.Ctx): Input[PathRef] = macro sourceImpl
 
   def sourceImpl(c: Context)
                 (value: c.Expr[Result[ammonite.ops.Path]])
                 (r: c.Expr[R[PathRef]],
                  w: c.Expr[W[PathRef]],
-                 e: c.Expr[sourcecode.Enclosing],
-                 l: c.Expr[sourcecode.Line],
-                 n: c.Expr[sourcecode.Name],
-                 cl: c.Expr[Caller[Module]],
-                 o: c.Expr[Overrides]): c.Expr[Input[PathRef]] = {
+                 ctx: c.Expr[Module.Ctx]): c.Expr[Input[PathRef]] = {
     import c.universe._
     val wrapped: c.Expr[Result[PathRef]] = reify(value.splice match{
       case Result.Success(p) => Result.Success(PathRef(p))
@@ -185,12 +122,8 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       reify(
         new Input[PathRef](
           Applicative.impl0[Task, PathRef, Ctx](c)(wrapped.tree).splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read),
-          o.splice.value
+          ctx.splice,
+          RW(w.splice.write, r.splice.read),
         )
       )
     )
@@ -199,62 +132,41 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def input[T](value: Result[T])
               (implicit r: R[T],
                 w: W[T],
-                e: sourcecode.Enclosing,
-                l: sourcecode.Line,
-                n: sourcecode.Name,
-                cl: Caller[Module],
-                o: Overrides): Input[T] = macro inputImpl[T]
+                ctx: Module.Ctx): Input[T] = macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)
                                   (value: c.Expr[T])
                                   (r: c.Expr[R[T]],
                                    w: c.Expr[W[T]],
-                                   e: c.Expr[sourcecode.Enclosing],
-                                   l: c.Expr[sourcecode.Line],
-                                   n: c.Expr[sourcecode.Name],
-                                   cl: c.Expr[Caller[Module]],
-                                   o: c.Expr[Overrides]): c.Expr[Input[T]] = {
+                                   ctx: c.Expr[Module.Ctx]): c.Expr[Input[T]] = {
     import c.universe._
 
     mill.moduledefs.Cacher.impl0[Input[T]](c)(
       reify(
         new Input[T](
           Applicative.impl[Task, T, Ctx](c)(value).splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read),
-          o.splice.value
+          ctx.splice,
+          RW(w.splice.write, r.splice.read)
         )
       )
     )
   }
 
   def command[T](t: Task[T])
-                (implicit c: Caller[Module],
-                 e: sourcecode.Enclosing,
-                 n: sourcecode.Name,
-                 w: W[T],
-                 o: Overrides): Command[T] = new Command(t, e.value, c.value, n.value, w, o.value)
+                (implicit ctx: Module.Ctx,
+                 w: W[T]): Command[T] = new Command(t, ctx, w)
+
+  def command[T](t: Result[T])
+                (implicit w: W[T],
+                 ctx: Module.Ctx): Command[T] = macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)
                                    (t: c.Expr[T])
                                    (w: c.Expr[W[T]],
-                                    e: c.Expr[sourcecode.Enclosing],
-                                    n: c.Expr[sourcecode.Name],
-                                    cl: c.Expr[Caller[Module]],
-                                    o: c.Expr[Overrides]): c.Expr[Command[T]] = {
+                                    ctx: c.Expr[Module.Ctx]): c.Expr[Command[T]] = {
     import c.universe._
     reify(
-      new Command[T](
-        Applicative.impl[Task, T, Ctx](c)(t).splice,
-        e.splice.value,
-        cl.splice.value,
-        n.splice.value,
-        w.splice,
-        o.splice.value
-      )
+      new Command[T](Applicative.impl[Task, T, Ctx](c)(t).splice, ctx.splice, w.splice)
     )
   }
 
@@ -262,21 +174,13 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def persistent[T](t: Result[T])(implicit r: R[T],
                                   w: W[T],
-                                  e: sourcecode.Enclosing,
-                                  l: sourcecode.Line,
-                                  n: sourcecode.Name,
-                                  cl: Caller[Module],
-                                  o: Overrides): Target[T] = macro persistentImpl[T]
+                                  ctx: Module.Ctx): Target[T] = macro persistentImpl[T]
 
   def persistentImpl[T: c.WeakTypeTag](c: Context)
                                       (t: c.Expr[T])
                                       (r: c.Expr[R[T]],
                                        w: c.Expr[W[T]],
-                                       e: c.Expr[sourcecode.Enclosing],
-                                       l: c.Expr[sourcecode.Line],
-                                       n: c.Expr[sourcecode.Name],
-                                       cl: c.Expr[Caller[Module]],
-                                       o: c.Expr[Overrides]): c.Expr[Persistent[T]] = {
+                                       ctx: c.Expr[Module.Ctx]): c.Expr[Persistent[T]] = {
     import c.universe._
 
 
@@ -284,12 +188,8 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       reify(
         new Persistent[T](
           Applicative.impl[Task, T, Ctx](c)(t).splice,
-          e.splice.value,
-          l.splice.value,
-          cl.splice.value,
-          n.splice.value,
-          upickle.default.ReadWriter(w.splice.write, r.splice.read),
-          o.splice.value
+          ctx.splice,
+          RW(w.splice.write, r.splice.read)
         )
       )
     )
@@ -319,44 +219,33 @@ object Caller {
 }
 
 class TargetImpl[+T](t: Task[T],
-                     val enclosing: String,
-                     val lineNum: Int,
-                     val owner: Module,
-                     val name: String,
-                     val readWrite: RW[_],
-                     val overrides: Int) extends Target[T] {
+                     ctx0: Module.Ctx,
+                     val readWrite: RW[_]) extends Target[T] {
+  val ctx = ctx0.copy(segments0 = Segments(ctx0.segments0.value :+ ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
-  override def toString = enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
+  override def toString = ctx.enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
 class Command[+T](t: Task[T],
-                  val enclosing: String,
-                  val owner: Module,
-                  val name: String,
-                  val writer: W[_],
-                  val overrides: Int) extends NamedTask[T] {
+                  ctx0: Module.Ctx,
+                  val writer: W[_]) extends NamedTask[T] {
+  val ctx = ctx0.copy(segments0 = Segments(ctx0.segments0.value :+ ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
   override def asCommand = Some(this)
 }
 class Persistent[+T](t: Task[T],
-                     enclosing: String,
-                     lineNum: Int,
-                     owner: Module,
-                     name: String,
-                     readWrite: RW[_],
-                     overrides: Int)
-  extends TargetImpl[T](t, enclosing, lineNum, owner, name, readWrite, overrides) {
+                     ctx0: Module.Ctx,
+                     readWrite: RW[_])
+  extends TargetImpl[T](t, ctx0, readWrite) {
+
   override def flushDest = false
   override def asPersistent = Some(this)
 }
 class Input[T](t: Task[T],
-               val enclosing: String,
-               val lineNum: Int,
-               val owner: Module,
-               val name: String,
-               val readWrite: RW[_],
-               val overrides: Int) extends Target[T]{
+               ctx0: Module.Ctx,
+               val readWrite: RW[_]) extends Target[T]{
+  val ctx = ctx0.copy(segments0 = Segments(ctx0.segments0.value :+ ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: Ctx) = args[T](0)
   override def sideHash = util.Random.nextInt()

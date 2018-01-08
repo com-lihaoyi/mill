@@ -1,34 +1,32 @@
 package mill.util
 
 import ammonite.main.Router.Overrides
-import ammonite.ops.Path
-import mill.define.Module
-import mill.define.{BasePath, Caller, Target, Task}
+import mill.define._
 import mill.eval.Result
 import utest.assert
-import utest.framework.TestPath
 
 import scala.collection.mutable
 
 object TestUtil {
   class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                    millModuleLine0: sourcecode.Line,
-                   millName0: sourcecode.Name)
+                   millName0: sourcecode.Name,
+                   overrides: Overrides)
     extends Module()(
       Module.Ctx.make(
         implicitly,
         implicitly,
         implicitly,
-        BasePath(ammonite.ops.pwd / millModuleEnclosing0.value)
+        BasePath(ammonite.ops.pwd / millModuleEnclosing0.value),
+        Segments(Nil),
+        implicitly
       )
     )
   object test{
 
     def anon(inputs: Task[Int]*) = new Test(inputs)
     def apply(inputs: Task[Int]*)
-            (implicit enclosing0: sourcecode.Enclosing,
-             owner0: Caller[mill.Module],
-             name0: sourcecode.Name)= {
+            (implicit ctx: Module.Ctx)= {
       new TestTarget(inputs, pure = inputs.nonEmpty)
     }
   }
@@ -51,17 +49,9 @@ object TestUtil {
     */
   class TestTarget(inputs: Seq[Task[Int]],
                    val pure: Boolean)
-                  (implicit enclosing0: sourcecode.Enclosing,
-                   lineNum0: sourcecode.Line,
-                   owner0: Caller[mill.Module],
-                   name0: sourcecode.Name,
-                   o: Overrides)
+                  (implicit ctx0: Module.Ctx)
     extends Test(inputs) with Target[Int]{
-    val overrides = o.value
-    val enclosing = enclosing0.value
-    val lineNum = lineNum0.value
-    val owner = owner0.value
-    val name = name0.value
+    val ctx = ctx0.copy(segments0 = Segments(ctx0.segments0.value :+ ctx0.segment))
     val readWrite = upickle.default.IntRW
 
 

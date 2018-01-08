@@ -26,14 +26,53 @@ object Cross{
   def apply[T](t: T*) = new Cross(t.map(i => List(i) -> i).toList)
 }
 
-class CrossModule[T, V](constructor: T => V, cases: T*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x), constructor(x))))
+class CrossModule[T, V](constructor: (T, Module.Ctx) => V, cases: T*)
+                       (implicit ctx: Module.Ctx)
+extends Cross[V]({
+  cases.toList.map(x =>
+    (
+      List(x),
+      constructor(
+        x,
+        ctx.copy(
+          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
+          segment = Segment.Cross(List(x))
+        )
+      )
+    )
+  )
+})
 
-class CrossModule2[T1, T2, V](constructor: (T1, T2) => V, cases: (T1, T2)*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x._2, x._1), constructor(x._1, x._2))))
+class CrossModule2[T1, T2, V](constructor: (T1, T2, Module.Ctx) => V, cases: (T1, T2)*)
+                             (implicit ctx: Module.Ctx)
+extends Cross[V](
+  cases.toList.map(x =>
+    (
+      List(x._2, x._1),
+      constructor(
+        x._1, x._2,
+        ctx.copy(
+          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
+          segment = Segment.Cross(List(x._2, x._1))
+        )
+      )
+    )
+  )
+)
 
-class CrossModule3[T1, T2, T3, V](constructor: (T1, T2, T3) => V, cases: (T1, T2, T3)*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x._3, x._2, x._1), constructor(x._1, x._2, x._3))))
+class CrossModule3[T1, T2, T3, V](constructor: (T1, T2, T3, Module.Ctx) => V, cases: (T1, T2, T3)*)
+                                 (implicit ctx: Module.Ctx)
+extends Cross[V](
+  cases.toList.map(x =>
+    (
+      List(x._3, x._2, x._1),
+      constructor(
+        x._1, x._2, x._3,
+        ctx.copy(
+          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
+          segment = Segment.Cross(List(x._3, x._2, x._1))
+        )
+      )
+    )
+  )
+)

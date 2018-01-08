@@ -1,21 +1,21 @@
 package mill.main
 
-import mill.define.Task
+import mill.define.{Segment, Task}
 import mill.define.Task.TaskModule
-import mill.discover.{Mirror}
+import mill.discover.Mirror
 import ammonite.main.Router
 
 object Resolve {
-  def resolve[T, V](remainingSelector: List[Mirror.Segment],
+  def resolve[T, V](remainingSelector: List[Segment],
                     hierarchy: Mirror[T, V],
                     obj: T,
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
-                    revSelectorsSoFar: List[Mirror.Segment]): Either[String, Task[Any]] = {
+                    revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
 
     remainingSelector match{
-      case Mirror.Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
-      case Mirror.Segment.Label(last) :: Nil =>
+      case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
+      case Segment.Label(last) :: Nil =>
         def target =
           hierarchy.targets
             .find(_.label == last)
@@ -44,7 +44,7 @@ object Resolve {
 
         command orElse target orElse runDefault.headOption.flatten match{
           case None =>  Left("Cannot resolve task " + Mirror.renderSelector(
-            (Mirror.Segment.Label(last) :: revSelectorsSoFar).reverse)
+            (Segment.Label(last) :: revSelectorsSoFar).reverse)
           )
           // Contents of `either` *must* be a `Task`, because we only select
           // methods returning `Task` in the discovery process
@@ -55,7 +55,7 @@ object Resolve {
       case head :: tail =>
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
-          case Mirror.Segment.Label(singleLabel) =>
+          case Segment.Label(singleLabel) =>
             hierarchy.children.collectFirst{
               case (label, child) if label == singleLabel => child
             } match{
@@ -63,7 +63,7 @@ object Resolve {
               case None => Left("Cannot resolve module " + Mirror.renderSelector(newRevSelectorsSoFar.reverse))
             }
 
-          case Mirror.Segment.Cross(cross) =>
+          case Segment.Cross(cross) =>
             val Some((crossGen, childMirror)) = hierarchy.crossChildren
             val crossOptions = crossGen(hierarchy.node(obj, remainingCrossSelectors))
             if (crossOptions.contains(cross)){

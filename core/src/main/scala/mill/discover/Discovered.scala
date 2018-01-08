@@ -1,10 +1,9 @@
 package mill.discover
 
-import mill.define.Module
-import mill.define.{Cross, Target, Task}
+import mill.define._
 import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
-import mill.discover.Mirror.{Segment, TargetPoint}
+import mill.discover.Mirror.TargetPoint
 import mill.util.Ctx.Loader
 
 import scala.language.experimental.macros
@@ -27,7 +26,7 @@ object Discovered {
     val modulesToPaths = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
-        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
       )
       Seq(resolvedNode -> segmentsRev.reverse)
     }.toMap
@@ -35,7 +34,7 @@ object Discovered {
     val modulesToMirrors = Mirror.traverse[T, T, (Any, Mirror[_, _])](base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
-        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
       )
       Seq(resolvedNode -> mirror)
     }.toMap
@@ -43,7 +42,7 @@ object Discovered {
     val targetsToSegments = Mirror.traverse(base, mirror){ (mirror, segmentsRev) =>
       val resolvedNode = mirror.node(
         base,
-        segmentsRev.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+        segmentsRev.reverse.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
       )
       for(target <- mirror.targets) yield {
         target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode) -> (segmentsRev.reverse :+ Segment.Label(target.label))

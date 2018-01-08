@@ -1,6 +1,6 @@
 package mill.discover
 
-import mill.define.{Target, Task}
+import mill.define.{Segment, Target, Task}
 import ammonite.main.Router.EntryPoint
 
 import scala.language.experimental.macros
@@ -20,21 +20,17 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])])
 
 object Mirror{
-  def renderSelector(selector: Seq[Mirror.Segment]) = selector.toList match {
+  def renderSelector(selector: Seq[Segment]) = selector.toList match {
     case Nil => ""
-    case Mirror.Segment.Label(head) :: rest =>
+    case Segment.Label(head) :: rest =>
       val stringSegments = rest.map{
-        case Mirror.Segment.Label(s) => "." + s
-        case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
+        case Segment.Label(s) => "." + s
+        case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
       }
       head + stringSegments.mkString
   }
 
-  sealed trait Segment
-  object Segment{
-    case class Label(value: String) extends Segment
-    case class Cross(value: Seq[Any]) extends Segment
-  }
+
   def traverse[T, V, R](t: T, hierarchy: Mirror[T, V])
                        (f: (Mirror[T, _], => Seq[Segment]) => Seq[R]): Seq[R] = {
     def rec[C](segmentsRev: List[Segment], h: Mirror[T, C]): Seq[R]= {

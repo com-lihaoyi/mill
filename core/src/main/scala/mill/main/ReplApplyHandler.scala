@@ -3,7 +3,7 @@ package mill.main
 
 import mill.define.Applicative.ApplyHandler
 import mill.define.{Cross, Target, Task}
-import mill.discover.Mirror.Segment
+import mill.define.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -51,7 +51,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
     case m: mill.Module if evaluator.mapping.modulesToMirrors.contains(m) =>
       val mirror = evaluator.mapping.modulesToMirrors(m)
       pprint.Tree.Lazy( ctx =>
-        Iterator(m.millModuleEnclosing.value, ":", m.millModuleLine.value.toString) ++
+        Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
         (if (mirror.children.isEmpty) Nil
         else ctx.applyPrefixColor("\nChildren:").toString +: mirror.children.map("\n    ." + _._1)) ++
         (if (mirror.commands.isEmpty) Nil
@@ -79,7 +79,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
         }
       }
       pprint.Tree.Lazy(ctx =>
-        Iterator(t.enclosing, ":", t.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
+        Iterator(t.ctx.enclosing, ":", t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
         t.inputs.iterator.flatMap(rec).map("\n    " + Mirror.renderSelector(_))
       )
 
