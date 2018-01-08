@@ -12,17 +12,8 @@ object Main {
   def main(args: Array[String]): Unit = {
 
     import ammonite.main.Cli
-    var repl = false
+
     var show = false
-    val replCliArg = Cli.Arg[Cli.Config, Unit](
-      "repl",
-      None,
-      "Open a Build REPL",
-      (x, _) => {
-        repl = true
-        x
-      }
-    )
     val showCliArg = Cli.Arg[Cli.Config, Unit](
       "show",
       None,
@@ -34,13 +25,14 @@ object Main {
     )
     Cli.groupArgs(
       args.toList,
-      Cli.ammoniteArgSignature :+ replCliArg :+ showCliArg,
+      Cli.ammoniteArgSignature :+ showCliArg,
       Cli.Config()
     ) match{
       case Left(msg) =>
         System.err.println(msg)
         System.exit(1)
       case Right((cliConfig, leftoverArgs)) =>
+        val repl = leftoverArgs.isEmpty
         val config =
           if(!repl) cliConfig
           else cliConfig.copy(

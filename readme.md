@@ -55,7 +55,7 @@ it via:
 
 ```bash
 sbt "~bin/test:run core.test"
-sbt "~bin/test:run --repl"
+sbt "~bin/test:run"
 ```
 
 Lastly, you can generate IntelliJ Scala project files using Mill via
@@ -72,7 +72,7 @@ Mill provides a build REPL, which lets you explore the build interactively and
 run `Target`s from Scala code:
 
 ```scala
-lihaoyi mill$ bin/target/mill --repl
+lihaoyi mill$ bin/target/mill
 Loading...
 Compiling (synthetic)/ammonite/predef/interpBridge.sc
 Compiling (synthetic)/ammonite/predef/replBridge.sc
