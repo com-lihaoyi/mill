@@ -20,7 +20,7 @@ case class Segments(value: Seq[Segment])
   * the concrete instance.
   */
 class Module(implicit ctx0: Module.Ctx) extends mill.moduledefs.Cacher{
-  val ctx = ctx0
+  def ctx = ctx0
   // Ensure we do not propagate the implicit parameters as implicits within
   // the body of any inheriting class/trait/objects, as it would screw up any
   // one else trying to use sourcecode.{Enclosing,Line} to capture debug info

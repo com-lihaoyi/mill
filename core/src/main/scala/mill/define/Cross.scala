@@ -1,4 +1,7 @@
 package mill.define
+import language.experimental.macros
+import scala.reflect.ClassTag
+import scala.reflect.macros.{Context, blackbox}
 
 case class Cross[+T](items: List[(List[Any], T)])(implicit val e: sourcecode.Enclosing, val l: sourcecode.Line){
   def flatMap[V](f: T => Cross[V]): Cross[V] = new Cross(
@@ -26,53 +29,62 @@ object Cross{
   def apply[T](t: T*) = new Cross(t.map(i => List(i) -> i).toList)
 }
 
-class CrossModule[T, V](constructor: (T, Module.Ctx) => V, cases: T*)
-                       (implicit ctx: Module.Ctx)
-extends Cross[V]({
-  cases.toList.map(x =>
-    (
-      List(x),
-      constructor(
-        x,
-        ctx.copy(
-          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
-          segment = Segment.Cross(List(x))
-        )
+object CrossModule{
+  def autoCast[A](x: Any): A = x.asInstanceOf[A]
+  abstract class Implicit[T]{
+    def make(v: Any, ctx: Module.Ctx): T
+    def crossValues(v: Any): List[Any]
+  }
+  object Implicit{
+    implicit def make[T]: Implicit[T] = macro makeImpl[T]
+    def makeImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Implicit[T]] = {
+      import c.universe._
+      val tpe = weakTypeOf[T]
+
+      val primaryConstructorArgs =
+        tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
+
+      val tree = primaryConstructorArgs match{
+        case List(arg) =>
+          q"""
+            new mill.define.CrossModule.Implicit[$tpe]{
+              def make(v: Any, ctx0: mill.define.Module.Ctx) = new $tpe(v.asInstanceOf[${arg.info}]){
+                override def ctx = ctx0
+              }
+              def crossValues(v: Any) = List(v)
+            }
+          """
+        case args =>
+          val argTupleValues = for((a, n) <- args.zipWithIndex) yield{
+            q"v.asInstanceOf[scala.Product].productElement($n).asInstanceOf[${a.info}]"
+          }
+          q"""
+            new mill.define.CrossModule.Implicit[$tpe]{
+              def make(v: Any, ctx0: mill.define.Module.Ctx) = new $tpe(..$argTupleValues){
+                override def ctx = ctx0
+              }
+              def crossValues(v: Any) = List(..$argTupleValues)
+            }
+          """
+
+      }
+      c.Expr[Implicit[T]](tree)
+    }
+  }
+}
+class CrossModule[T](cases: Any*)
+                    (implicit ci: CrossModule.Implicit[T],
+                     ctx: Module.Ctx)
+extends Cross[T]({
+  for(c <- cases.toList) yield{
+    val crossValues = ci.crossValues(c)
+    val sub = ci.make(
+      c,
+      ctx.copy(
+        segments0 = Segments(ctx.segments0.value :+ ctx.segment),
+        segment = Segment.Cross(crossValues.reverse)
       )
     )
-  )
+    (crossValues.reverse, sub)
+  }
 })
-
-class CrossModule2[T1, T2, V](constructor: (T1, T2, Module.Ctx) => V, cases: (T1, T2)*)
-                             (implicit ctx: Module.Ctx)
-extends Cross[V](
-  cases.toList.map(x =>
-    (
-      List(x._2, x._1),
-      constructor(
-        x._1, x._2,
-        ctx.copy(
-          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
-          segment = Segment.Cross(List(x._2, x._1))
-        )
-      )
-    )
-  )
-)
-
-class CrossModule3[T1, T2, T3, V](constructor: (T1, T2, T3, Module.Ctx) => V, cases: (T1, T2, T3)*)
-                                 (implicit ctx: Module.Ctx)
-extends Cross[V](
-  cases.toList.map(x =>
-    (
-      List(x._3, x._2, x._1),
-      constructor(
-        x._1, x._2, x._3,
-        ctx.copy(
-          segments0 = Segments(ctx.segments0.value :+ ctx.segment),
-          segment = Segment.Cross(List(x._3, x._2, x._1))
-        )
-      )
-    )
-  )
-)

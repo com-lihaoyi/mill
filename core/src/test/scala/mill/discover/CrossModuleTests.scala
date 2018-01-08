@@ -14,8 +14,8 @@ object CrossModuleTests extends TestSuite{
 
     'cross - {
       object outer extends TestUtil.BaseModule {
-        object crossed extends mill.CrossModule(CrossedModule, "2.10.6", "2.11.8", "2.12.4")
-        case class CrossedModule(n: String, ctx0: Module.Ctx) extends Module()(ctx0){
+        object crossed extends mill.CrossModule[CrossedModule]("2.10.6", "2.11.8", "2.12.4")
+        class CrossedModule(n: String) extends mill.Module{
           def scalaVersion = n
         }
       }
@@ -42,8 +42,8 @@ object CrossModuleTests extends TestSuite{
           scalaVersion <- Seq("2.10.6", "2.11.8", "2.12.4")
           if !(platform == "native0.3" && scalaVersion == "2.10.6")
         } yield (platform, scalaVersion)
-        object crossed extends mill.CrossModule2(CrossModule, crossMatrix:_*)
-        case class CrossModule(platform: String, scalaVersion: String, ctx0: Module.Ctx) extends mill.Module()(ctx0){
+        object crossed extends mill.CrossModule[CrossModule](crossMatrix:_*)
+        case class CrossModule(platform: String, scalaVersion: String) extends mill.Module{
           def suffix = Seq(scalaVersion, platform).filter(_.nonEmpty).map("_"+_).mkString
         }
       }

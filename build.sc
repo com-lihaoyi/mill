@@ -79,8 +79,8 @@ object core extends MillModule {
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
-object bridges extends CrossModule(BridgeModule, bridgeVersions:_*)
-case class BridgeModule(crossVersion: String, ctx: mill.Module.Ctx) extends mill.Module()(ctx) with PublishModule {
+object bridges extends CrossModule[BridgeModule](bridgeVersions:_*)
+class BridgeModule(crossVersion: String) extends PublishModule {
   def publishName = "mill-bridge"
   def publishVersion = "0.1"
 
@@ -121,8 +121,8 @@ object scalalib extends MillModule {
     }
   }
 }
-object jsbridges extends CrossModule(JsBridgeModule, "0.6", "1.0")
-case class JsBridgeModule(scalajsBinary: String, ctx: mill.Module.Ctx) extends mill.Module()(ctx) with MillModule{
+object jsbridges extends CrossModule[JsBridgeModule]("0.6", "1.0")
+class JsBridgeModule(scalajsBinary: String) extends MillModule{
   def basePath = pwd / 'scalajslib / s"bridge_${scalajsBinary.replace('.', '_')}"
   val scalajsVersion = scalajsBinary match {
     case "0.6" => "0.6.21"

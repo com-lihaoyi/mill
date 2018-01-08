@@ -26,13 +26,11 @@ object HelloJSWorld extends TestUtil.BaseModule {
     scala <- Seq("2.11.8", "2.12.3", "2.12.4")
   } yield (scalaJS, scala)
 
-  object build extends CrossModule2(BuildModule, matrix:_*)
+  object build extends CrossModule[BuildModule](matrix:_*)
 
-  case class BuildModule(scalaJS: String,
-                         scala: String,
-                         ctx0: Module.Ctx) extends Module()(ctx0) with HelloJSWorldModule {
-      def scalaVersion = scala
-      def scalaJSVersion = scalaJS
+  class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
+      def scalaVersion = scalaVersion0
+      def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
