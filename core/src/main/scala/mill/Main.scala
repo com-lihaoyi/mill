@@ -1,6 +1,8 @@
 package mill
 
+import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
+import ammonite.util.Util
 
 object Main {
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
@@ -23,15 +25,27 @@ object Main {
         x
       }
     )
+    val removed = Set("predef-code", "home", "no-home-predef")
+    val millArgSignature = (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
     Cli.groupArgs(
       args.toList,
-      Cli.ammoniteArgSignature :+ showCliArg,
-      Cli.Config()
+      millArgSignature,
+      Cli.Config(remoteLogging = false)
     ) match{
       case Left(msg) =>
         System.err.println(msg)
         System.exit(1)
+      case Right((cliConfig, _)) if cliConfig.help =>
+        val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
+        System.out.println(
+        s"""Mill Build Tool
+           |usage: mill [mill-options] [target [target-options]]
+           |
+           |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
+        )
+        System.exit(0)
       case Right((cliConfig, leftoverArgs)) =>
+
         val repl = leftoverArgs.isEmpty
         val config =
           if(!repl) cliConfig
