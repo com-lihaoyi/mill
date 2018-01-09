@@ -58,22 +58,23 @@ object core extends MillModule {
     Dep.Java("org.scala-sbt", "test-interface", "1.0")
   )
 
-  def generatedSources = T{
+  def generatedCoreSources = T{
     mkdir(T.ctx().dest)
-    shared.generateSources(T.ctx().dest)
+    shared.generateCoreSources(T.ctx().dest)
     PathRef(T.ctx().dest)
   }
 
-  def allSources = super.allSources() ++ Seq(generatedSources())
+
+  def generatedSources = T { super.generatedSources() ++ Seq(generatedCoreSources()) }
+
   val test = new Tests
   class Tests extends super.Tests{
-    def generatedSources = T{
+    def generateCoreTestsSources = T{
       mkdir(T.ctx().dest)
-      shared.generateTests(T.ctx().dest)
+      shared.generateCoreTestsSources(T.ctx().dest)
       PathRef(T.ctx().dest)
-
     }
-    def allSources = super.allSources() ++ Seq(generatedSources())
+    def generatedSources = T { super.generatedSources() ++ Seq(generateCoreTestsSources()) }
   }
 }
 

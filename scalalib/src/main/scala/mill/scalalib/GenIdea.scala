@@ -74,8 +74,11 @@ object GenIdea {
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
-      val Seq(sourcePath: PathRef) =
-        evaluator.evaluate(OSet(mod.sources)).values
+      val Seq(sourcesPathRef: PathRef, generatedSourcePathRefs: Seq[PathRef], allSourcesPathRefs: Seq[PathRef]) =
+        evaluator.evaluate(OSet(mod.sources, mod.generatedSources, mod.allSources)).values
+
+      val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
+      val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
 
       val paths = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
@@ -83,7 +86,9 @@ object GenIdea {
       )
 
       val elem = moduleXmlTemplate(
-        sourcePath.path,
+        sourcesPathRef.path,
+        normalSourcePaths,
+        generatedSourcePaths,
         Seq(paths.out),
         resolvedDeps.map(pathToLibName),
         for(m <- mod.projectDeps)
@@ -152,7 +157,9 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(sourcePath: Path,
+  def moduleXmlTemplate(basePath: Path,
+    normalSourcePaths: Seq[Path],
+    generatedSourcePaths: Seq[Path],
                         outputPaths: Seq[Path],
                         libNames: Seq[String],
                         depNames: Seq[String]) = {
@@ -164,8 +171,15 @@ object GenIdea {
         }
 
         <exclude-output />
-        <content url={"file://$MODULE_DIR$/" + relify(sourcePath)}>
-          <sourceFolder url={"file://$MODULE_DIR$/" + relify(sourcePath)} isTestSource="false" />
+        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
+          {
+          for (normalSourcePath <- normalSourcePaths)
+            yield <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
+          }
+          {
+          for (generatedSourcePath <- generatedSourcePaths)
+            yield <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
+          }
         </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />

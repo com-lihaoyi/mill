@@ -133,14 +133,14 @@ def unpackZip(zipDest: Path, url: String) = {
 }
 
 @main
-def generateSources(p: Path) = {
+def generateCoreSources(p: Path) = {
   generateApplyer(p)
   generateTarget(p)
   generateEval(p)
 }
 
 @main
-def generateTests(p: Path) = {
+def generateCoreTestsSources(p: Path) = {
   generateApplicativeTest(p)
 }
 

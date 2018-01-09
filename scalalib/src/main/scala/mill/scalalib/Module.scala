@@ -193,7 +193,8 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
-  def allSources = T{ Seq(sources()) }
+  def generatedSources = T { Seq.empty[PathRef] }
+  def allSources = T{ Seq(sources()) ++ generatedSources() }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
       ZincWorker(),
@@ -361,7 +362,7 @@ trait PublishModule extends Module { outer =>
 trait SbtModule extends Module { outer =>
   override def sources = T.source{ basePath / 'src / 'main / 'scala }
   override def resources = T.source{ basePath / 'src / 'main / 'resources }
-  trait Tests extends super.Tests{
+  trait Tests extends super.Tests {
     override def basePath = outer.basePath
     override def sources = T.source{ basePath / 'src / 'test / 'scala }
     override def resources = T.source{ basePath / 'src / 'test / 'resources }

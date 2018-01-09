@@ -96,13 +96,13 @@ lazy val core = project
       "org.scala-sbt" % "test-interface" % "1.0"
     ),
     sourceGenerators in Compile += {
-      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _))
+      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateCoreSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
     },
 
     sourceGenerators in Test += {
-      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateTests", _))
+      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestsSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
     }
