@@ -102,7 +102,7 @@ lazy val core = project
     },
 
     sourceGenerators in Test += {
-      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestsSources", _))
+      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
     }

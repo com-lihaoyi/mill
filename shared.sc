@@ -140,7 +140,7 @@ def generateCoreSources(p: Path) = {
 }
 
 @main
-def generateCoreTestsSources(p: Path) = {
+def generateCoreTestSources(p: Path) = {
   generateApplicativeTest(p)
 }
 
