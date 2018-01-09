@@ -68,7 +68,7 @@ Allowing you to import a Mill project into Intellij without using SBT
 
 ### Command line
 
-There is a number of ways to run targets via command line:
+There is a number of ways to run targets and commands via command line:
 
 * Run single target:
 ```bash
@@ -97,7 +97,7 @@ Here `--credentials foo --gpgPassphrase bar` arguments will be passed to both `b
 **Note**: arguments list should be separated with `--` from command list.
 
 
-Sometimes it is tedious to write multiple targets when you want to run same targets on multiple modules, or multiple targets on one module.
+Sometimes it is tedious to write multiple targets when you want to run same target in multiple modules, or multiple targets in one module.
 Here brace expansion from bash(or another shell that support brace expansion) comes to rescue. It allows you to make some "shortcuts" for multiple commands.
 
 * Run same targets in multiple modules with brace expansion:
