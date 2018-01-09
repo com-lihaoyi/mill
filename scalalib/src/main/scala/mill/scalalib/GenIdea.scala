@@ -169,16 +169,20 @@ object GenIdea {
         }
 
         <exclude-output />
-        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
-          {
-          for (normalSourcePath <- normalSourcePaths)
-            yield <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
-          }
-          {
-          for (generatedSourcePath <- generatedSourcePaths)
-            yield <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
-          }
-        </content>
+        {
+        for (normalSourcePath <- normalSourcePaths)
+          yield
+            <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
+            </content>
+        }
+        {
+        for (generatedSourcePath <- generatedSourcePaths)
+          yield
+            <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
+            </content>
+        }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
 
