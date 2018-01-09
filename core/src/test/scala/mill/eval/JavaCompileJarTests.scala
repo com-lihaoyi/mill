@@ -58,7 +58,7 @@ object JavaCompileJarTests extends TestSuite{
           Right(Tuple2(
             evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect{
-              case t: Target[_] if mapping.targetsToSegments.contains(t) => t
+              case t: Target[_] if mapping.targets.contains(t) => t
               case t: mill.define.Command[_] => t
             }.size
           ))
@@ -73,7 +73,7 @@ object JavaCompileJarTests extends TestSuite{
         val evaluated = evaluator.evaluate(targets)
           .evaluated
           .flatMap(_.asTarget)
-          .filter(mapping.targetsToSegments.contains)
+          .filter(mapping.targets.contains)
           .filter(!_.isInstanceOf[Input[_]])
         assert(evaluated == expected)
       }

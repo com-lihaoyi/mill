@@ -4,7 +4,7 @@ package scalalib
 import ammonite.ops._
 import coursier.{Cache, MavenRepository, Repository}
 import mill.define.Task
-import mill.define.Task.{Module, TaskModule}
+import mill.define.Task.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}

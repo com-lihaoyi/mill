@@ -1,39 +1,51 @@
 package mill.define
+import language.experimental.macros
+import scala.reflect.macros.blackbox
 
-case class Cross[+T](items: List[(List[Any], T)])(implicit val e: sourcecode.Enclosing, val l: sourcecode.Line){
-  def flatMap[V](f: T => Cross[V]): Cross[V] = new Cross(
-    items.flatMap{
-      case (l, v) => f(v).items.map{case (l2, v2) => (l2 ::: l, v2)}
+
+object Cross{
+  case class Factory[T](make: (Product, Module.Ctx) => T)
+
+  object Factory{
+    implicit def make[T]: Factory[T] = macro makeImpl[T]
+    def makeImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Factory[T]] = {
+      import c.universe._
+      val tpe = weakTypeOf[T]
+
+      val primaryConstructorArgs =
+        tpe.typeSymbol.asClass.primaryConstructor.typeSignature.paramLists.head
+
+      val argTupleValues =
+        for((a, n) <- primaryConstructorArgs.zipWithIndex)
+        yield q"v.productElement($n).asInstanceOf[${a.info}]"
+
+      val instance = c.Expr[(Product, Module.Ctx) => T](
+        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def ctx = ctx0 } }"
+      )
+
+      reify { mill.define.Cross.Factory[T](instance.splice) }
     }
-  )
-  def map[V](f: T => V): Cross[V] = new Cross(items.map{case (l, v) => (l, f(v))})
-  def withFilter(f: T => Boolean): Cross[T] = new Cross(items.filter(t => f(t._2)))
-
-  def applyOpt(input: Any*): Option[T] = {
-    val inputList = input.toList
-    items.find(_._1 == inputList).map(_._2)
   }
-  def apply(input: Any*): T = {
-    applyOpt(input:_*).getOrElse(
-      throw new Exception(
-        "Unknown set of cross values: " + input +
-        " not in known values\n" + items.map(_._1).mkString("\n")
+}
+class Cross[T](cases: Any*)
+              (implicit ci: Cross.Factory[T],
+               val ctx: Module.Ctx){
+
+  val items = for(c0 <- cases.toList) yield{
+    val c = c0 match{
+      case p: Product => p
+      case v => Tuple1(v)
+    }
+    val crossValues = c.productIterator.toList.reverse
+    val sub = ci.make(
+      c,
+      ctx.copy(
+        segments0 = ctx.segments0 ++ Seq(ctx.segment),
+        segment = Segment.Cross(crossValues)
       )
     )
+    (crossValues, sub)
   }
+  val itemMap = items.toMap
+  def apply(args: Any*) = itemMap(args.toList)
 }
-object Cross{
-  def apply[T](t: T*) = new Cross(t.map(i => List(i) -> i).toList)
-}
-
-class CrossModule[T, V](constructor: T => V, cases: T*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x), constructor(x))))
-
-class CrossModule2[T1, T2, V](constructor: (T1, T2) => V, cases: (T1, T2)*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x._2, x._1), constructor(x._1, x._2))))
-
-class CrossModule3[T1, T2, T3, V](constructor: (T1, T2, T3) => V, cases: (T1, T2, T3)*)
-                       (implicit e: sourcecode.Enclosing, l: sourcecode.Line)
-extends Cross[V](cases.toList.map(x => (List(x._3, x._2, x._1), constructor(x._1, x._2, x._3))))

@@ -1,6 +1,6 @@
 package mill.discover
 
-import mill.define.{Target, Task}
+import mill.define.{Segment, Segments, Target, Task}
 import ammonite.main.Router.EntryPoint
 
 import scala.language.experimental.macros
@@ -20,26 +20,23 @@ case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])])
 
 object Mirror{
-  def renderSelector(selector: Seq[Mirror.Segment]) = selector.toList match {
-    case Nil => ""
-    case Mirror.Segment.Label(head) :: rest =>
-      val stringSegments = rest.map{
-        case Mirror.Segment.Label(s) => "." + s
-        case Mirror.Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
-      }
-      head + stringSegments.mkString
-  }
 
-  sealed trait Segment
-  object Segment{
-    case class Label(value: String) extends Segment
-    case class Cross(value: Seq[Any]) extends Segment
+
+  def traverseNode[T, V, R](t: T, hierarchy: Mirror[T, V])
+                           (f: (Mirror[T, _], => Segments, => Any) => Seq[R]): Seq[R] = {
+    traverse(t, hierarchy){ (mirror, segmentsRev) =>
+      lazy val resolvedNode = mirror.node(
+        t,
+        segmentsRev.value.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList
+      )
+      f(mirror, segmentsRev, resolvedNode)
+    }
   }
   def traverse[T, V, R](t: T, hierarchy: Mirror[T, V])
-                       (f: (Mirror[T, _], => Seq[Segment]) => Seq[R]): Seq[R] = {
+                       (f: (Mirror[T, _], => Segments) => Seq[R]): Seq[R] = {
     def rec[C](segmentsRev: List[Segment], h: Mirror[T, C]): Seq[R]= {
       val crossValues = segmentsRev.map{case Segment.Cross(vs) => vs case _ => Nil}
-      val self = f(h, segmentsRev)
+      val self = f(h, Segments(segmentsRev.reverse:_*))
       self ++
       h.children.flatMap{case (label, c) => rec(Segment.Label(label) :: segmentsRev, c)} ++
       h.crossChildren.toSeq.flatMap{

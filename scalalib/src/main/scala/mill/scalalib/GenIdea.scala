@@ -1,8 +1,7 @@
 package mill.scalalib
 
 import ammonite.ops._
-import mill.define.Target
-import mill.discover.Mirror.Segment
+import mill.define.{Segment, Segments, Target}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.Ctx.{LoaderCtx, LogCtx}
@@ -28,12 +27,11 @@ object GenIdea {
 
     val modules = Mirror
       .traverse(evaluator.mapping.base, evaluator.mapping.mirror){ (h, p) =>
-        h.node(evaluator.mapping.base, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
+        h.node(evaluator.mapping.base, p.value.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
           case m: Module => Seq(p -> m)
           case _ => Nil
         }
       }
-      .map{case (p, v) => (p.reverse, v)}
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
@@ -82,7 +80,7 @@ object GenIdea {
 
       val paths = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
-        evaluator.mapping.targetsToSegments(mod.compile)
+        mod.compile.ctx.segments
       )
 
       val elem = moduleXmlTemplate(
@@ -105,7 +103,7 @@ object GenIdea {
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def moduleName(p: Seq[Mirror.Segment]) = p.foldLeft(StringBuilder.newBuilder) {
+  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
     case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
     case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
     case (sb, Segment.Label(s)) => sb.append(".").append(s)

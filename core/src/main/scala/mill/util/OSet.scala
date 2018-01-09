@@ -16,9 +16,11 @@ trait OSet[V] extends TraversableOnce[V]{
   def flatMap[T](f: V => TraversableOnce[T]): OSet[T]
   def map[T](f: V => T): OSet[T]
   def filter(f: V => Boolean): OSet[V]
+  def withFilter(f: V => Boolean): OSet[V]
   def collect[T](f: PartialFunction[V, T]): OSet[T]
   def zipWithIndex: OSet[(V, Int)]
   def reverse: OSet[V]
+  def zip[T](other: OSet[T]): OSet[(V, T)]
 }
 
 object OSet{
@@ -66,6 +68,7 @@ object OSet{
       for(i <- items) if (f(i)) output.append(i)
       output
     }
+    def withFilter(f: V => Boolean): OSet[V] = filter(f)
 
     def collect[T](f: PartialFunction[V, T]) = this.filter(f.isDefinedAt).map(x => f(x))
 
@@ -78,6 +81,8 @@ object OSet{
     }
 
     def reverse = OSet.from(indexed.reverseIterator)
+
+    def zip[T](other: OSet[T]) = OSet.from(items.zip(other.items))
 
     // Members declared in scala.collection.GenTraversableOnce
     def isTraversableAgain: Boolean = items.isTraversableAgain

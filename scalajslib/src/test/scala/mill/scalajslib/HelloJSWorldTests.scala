@@ -6,7 +6,6 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
-import mill.define.Cross
 import mill.discover.Discovered
 import mill.scalalib.PublishModule
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
@@ -15,19 +14,22 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloJSWorldModule extends TestUtil.BaseModule with ScalaJSModule with PublishModule {
+trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
   override def basePath = HelloJSWorldTests.workspacePath
   override def mainClass = Some("Main")
 }
 
 object HelloJSWorld extends TestUtil.BaseModule {
-  val build = for {
-    scalaJS <- Cross("0.6.20", "0.6.21", "1.0.0-M2")
-    scala <- Cross("2.11.8", "2.12.3", "2.12.4")
-  } yield
-    new HelloJSWorldModule {
-      def scalaVersion = scala
-      def scalaJSVersion = scalaJS
+  val matrix = for {
+    scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+    scala <- Seq("2.11.8", "2.12.3", "2.12.4")
+  } yield (scalaJS, scala)
+
+  object build extends Cross[BuildModule](matrix:_*)
+
+  class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
+      def scalaVersion = scalaVersion0
+      def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",

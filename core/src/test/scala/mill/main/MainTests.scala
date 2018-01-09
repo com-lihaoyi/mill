@@ -1,7 +1,7 @@
 package mill.main
 
 import mill.Module
-import mill.define.Task
+import mill.define.{Segment, Task}
 import mill.discover.{Discovered, Mirror}
 import mill.util.TestGraphs._
 import mill.util.TestUtil.test
@@ -14,7 +14,7 @@ object MainTests extends TestSuite{
 
     val resolved = for{
       args <- mill.main.RunScript.parseArgs(selectorString)
-      val crossSelectors = args.map{case Mirror.Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
+      val crossSelectors = args.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
       task <- mill.main.Resolve.resolve(args, mapping.mirror, mapping.base, Nil, crossSelectors, Nil)
     } yield task
     assert(resolved == expected)

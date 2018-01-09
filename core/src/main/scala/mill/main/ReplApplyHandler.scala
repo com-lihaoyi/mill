@@ -2,8 +2,7 @@ package mill.main
 
 
 import mill.define.Applicative.ApplyHandler
-import mill.define.{Cross, Target, Task}
-import mill.discover.Mirror.Segment
+import mill.define._
 import mill.discover.{Discovered, Mirror}
 import mill.eval.Evaluator
 import mill.util.OSet
@@ -43,7 +42,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(c.e.value, ":", c.l.value.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
+        Iterator(c.ctx.enclosing , ":", c.ctx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
@@ -51,7 +50,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
     case m: mill.Module if evaluator.mapping.modulesToMirrors.contains(m) =>
       val mirror = evaluator.mapping.modulesToMirrors(m)
       pprint.Tree.Lazy( ctx =>
-        Iterator(m.millModuleEnclosing.value, ":", m.millModuleLine.value.toString) ++
+        Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
         (if (mirror.children.isEmpty) Nil
         else ctx.applyPrefixColor("\nChildren:").toString +: mirror.children.map("\n    ." + _._1)) ++
         (if (mirror.commands.isEmpty) Nil
@@ -66,25 +65,24 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
         ))
 
       )
-    case t: mill.define.Target[_] if evaluator.mapping.targetsToSegments.contains(t) =>
+    case t: mill.define.Target[_] if evaluator.mapping.targets.contains(t) =>
       val seen = mutable.Set.empty[Task[_]]
-      def rec(t: Task[_]): Seq[Seq[Segment]] = {
+      def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: Target[_] if evaluator.mapping.targetsToSegments.contains(t) =>
-            Seq(evaluator.mapping.targetsToSegments(t))
+          case t: Target[_] if evaluator.mapping.targets.contains(t) =>
+            Seq(t.ctx.segments)
           case _ =>
             seen.add(t)
             t.inputs.flatMap(rec)
         }
       }
       pprint.Tree.Lazy(ctx =>
-        Iterator(t.enclosing, ":", t.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
-        t.inputs.iterator.flatMap(rec).map("\n    " + Mirror.renderSelector(_))
+        Iterator(t.ctx.enclosing, ":", t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
+        t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
       )
 
   }
-  ammonite.main.Cli
   val pprinter = pprinter0.copy(
     additionalHandlers = millHandlers orElse pprinter0.additionalHandlers
   )

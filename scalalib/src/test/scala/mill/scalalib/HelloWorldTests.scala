@@ -5,7 +5,7 @@ import java.util.jar.JarFile
 import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
-import mill.define.{Cross, Target}
+import mill.define.Target
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
@@ -22,15 +22,25 @@ trait HelloWorldModule extends scalalib.Module {
 
 object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
 object CrossHelloWorld extends TestUtil.BaseModule {
-  val cross =
-    for(v <- Cross("2.10.6", "2.11.11", "2.12.3", "2.12.4"))
-    yield new HelloWorldModule {
-      def scalaVersion = v
-    }
+  object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+  class HelloWorldCross(v: String) extends HelloWorldModule {
+    def scalaVersion = v
+  }
 }
 
 object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
   def mainClass = Some("Main")
+}
+
+object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
+  def mainClass = Some("Main")
+  def assembly = T{
+    modules.Jvm.createAssembly(
+      assemblyClasspath().map(_.path).filter(exists),
+      prependShellScript = prependShellScript(),
+      mainClass = mainClass()
+    )
+  }
 }
 
 object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
@@ -81,6 +91,11 @@ object HelloWorldTests extends TestSuite {
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
     Discovered.mapping(HelloWorldWithMain),
+    outPath,
+    workingSrcPath
+  )
+  val helloWorldWithMainAssemblyEvaluator = new TestEvaluator(
+    Discovered.mapping(HelloWorldWithMainAssembly),
     outPath,
     workingSrcPath
   )
@@ -176,7 +191,7 @@ object HelloWorldTests extends TestSuite {
 
         val paths = Evaluator.resolveDestPaths(
           outPath,
-          helloWorldEvaluator.evaluator.mapping.targetsToSegments(HelloWorld.compile)
+          HelloWorld.compile.ctx.segments
         )
 
         assert(
@@ -273,14 +288,15 @@ object HelloWorldTests extends TestSuite {
     }
     'jar - {
       'nonEmpty - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloWorld.jar)
+        val Right((result, evalCount)) = helloWorldWithMainEvaluator(HelloWorldWithMain.jar)
 
         assert(
           exists(result.path),
           evalCount > 0
         )
 
-        val entries = new JarFile(result.path.toIO).entries().asScala.map(_.getName).toSet
+        val jarFile = new JarFile(result.path.toIO)
+        val entries = jarFile.entries().asScala.map(_.getName).toSet
 
         val manifestFiles = Seq[RelPath](
           "META-INF" / "MANIFEST.MF"
@@ -291,23 +307,9 @@ object HelloWorldTests extends TestSuite {
           entries.nonEmpty,
           entries == expectedFiles.map(_.toString()).toSet
         )
-      }
-      'runJar - {
-        val Right((result, evalCount)) = helloWorldWithMainEvaluator(HelloWorldWithMain.jar)
 
-        assert(
-          exists(result.path),
-          evalCount > 0
-        )
-        val runResult = basePath / "hello-mill"
-
-        %("scala", result.path, runResult)(wd = basePath)
-
-
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        val mainClass = jarMainClass(jarFile)
+        assert(mainClass.contains("Main"))
       }
       'logOutputToFile {
         helloWorldEvaluator(HelloWorld.compile)
@@ -316,6 +318,45 @@ object HelloWorldTests extends TestSuite {
         assert(exists(logFile))
       }
     }
+    'assembly - {
+      'assembly - {
+        val Right((result, evalCount)) = helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+        val jarFile = new JarFile(result.path.toIO)
+        val entries = jarFile.entries().asScala.map(_.getName).toSet
+
+        assert(entries.contains("Main.class"))
+        assert(entries.exists(s => s.contains("scala/Predef.class")))
+
+        val mainClass = jarMainClass(jarFile)
+        assert(mainClass.contains("Main"))
+      }
+      'run - {
+        val Right((result, evalCount)) = helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
+
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+        val runResult = basePath / "hello-mill"
+
+        %%("java", "-jar", result.path, runResult)(wd = basePath)
+
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
+    }
+  }
+
+  def jarMainClass(jar: JarFile): Option[String] = {
+    import java.util.jar.Attributes._
+    val attrs = jar.getManifest.getMainAttributes.asScala
+    attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
   }
 
   def compileClassfiles = Seq[RelPath](

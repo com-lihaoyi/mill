@@ -1,21 +1,18 @@
 package mill.discover
 
-import mill.{Module, T}
-import mill.define.Cross
-import mill.discover.Mirror.Segment
-import mill.discover.Mirror.Segment.Label
-import mill.util.TestUtil.test
+import mill.define.Segment
+import mill.define.Segment.Label
 import utest._
 import mill.util.TestGraphs._
 import mill.util.TestUtil
-object CrossModuleTests extends TestSuite{
+object CrossTests extends TestSuite{
 
   val tests = Tests{
 
     'cross - {
       object outer extends TestUtil.BaseModule {
-        object crossed extends mill.CrossModule(CrossedModule, "2.10.6", "2.11.8", "2.12.4")
-        case class CrossedModule(n: String) extends Module{
+        object crossed extends mill.Cross[CrossedModule]("2.10.6", "2.11.8", "2.12.4")
+        class CrossedModule(n: String) extends mill.Module{
           def scalaVersion = n
         }
       }
@@ -42,8 +39,8 @@ object CrossModuleTests extends TestSuite{
           scalaVersion <- Seq("2.10.6", "2.11.8", "2.12.4")
           if !(platform == "native0.3" && scalaVersion == "2.10.6")
         } yield (platform, scalaVersion)
-        object crossed extends mill.CrossModule2(CrossModule, crossMatrix:_*)
-        case class CrossModule(platform: String, scalaVersion: String) extends mill.Module{
+        object crossed extends mill.Cross[Cross](crossMatrix:_*)
+        case class Cross(platform: String, scalaVersion: String) extends mill.Module{
           def suffix = Seq(scalaVersion, platform).filter(_.nonEmpty).map("_"+_).mkString
         }
       }
@@ -78,14 +75,14 @@ object CrossModuleTests extends TestSuite{
 
       val discovered = Discovered.mapping(singleCross)
 
-      val segments = discovered.targetsToSegments.values.toSet
+      val segments = discovered.targets.map(_.ctx.segments.value).toSet
       val expectedSegments = Set(
         List(Label("cross"), Segment.Cross(List("210")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("211")), Label("suffix")),
         List(Label("cross"), Segment.Cross(List("212")), Label("suffix"))
       )
       assert(segments == expectedSegments)
-      val targets = discovered.targetsToSegments.keys.toSet
+      val targets = discovered.targets.toSet
       val expected = Set(
         singleCross.cross("210").suffix,
         singleCross.cross("211").suffix,
@@ -96,7 +93,7 @@ object CrossModuleTests extends TestSuite{
 
     'doubleCrossTargetDiscovery - {
       val discovered = Discovered.mapping(doubleCross)
-      val targets = discovered.targetsToSegments.keys.toSet
+      val targets = discovered.targets.toSet
 
       val expected = Set(
         doubleCross.cross("jvm", "210").suffix,
@@ -111,7 +108,7 @@ object CrossModuleTests extends TestSuite{
     }
 
     'nestedCrosses - {
-      val discovered = Discovered.mapping(nestedCrosses).targetsToSegments
+      val discovered = Discovered.mapping(nestedCrosses).targets
       assert(discovered.size == 9)
     }
   }

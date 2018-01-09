@@ -9,7 +9,7 @@ import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
 import mill.define.Task
-import mill.discover.Mirror.Segment
+import mill.define.Segment
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{Logger, OSet, PrintLogger}
@@ -122,7 +122,7 @@ object RunScript{
     for {
       sel <- parseArgs(selectorString)
       crossSelectors = sel.map{
-        case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
+        case Segment.Cross(x) => x.toList.map(_.toString)
         case _ => Nil
       }
       target <- mill.main.Resolve.resolve(
@@ -146,7 +146,7 @@ object RunScript{
       (for((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match{
           case Left(t) => t.toString
-          case Right(t) => Mirror.renderSelector(t.segments.toList)
+          case Right(t) => t.segments.render
         }
         val fss = fs.map{
           case Result.Exception(t, outerStack) =>
@@ -161,11 +161,12 @@ object RunScript{
         val json = for(t <- Seq(target)) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
-              for (segments <- evaluator.mapping.modulesToPaths.get(t.owner)) yield {
-                val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, segments :+ Segment.Label(t.name)).meta
-                val metadata = upickle.json.read(jsonFile.toIO)
-                metadata(1)
-              }
+              val jsonFile = Evaluator
+                .resolveDestPaths(evaluator.workspacePath, t.ctx.segments)
+                .meta
+              val metadata = upickle.json.read(jsonFile.toIO)
+              Some(metadata(1))
+
             case _ => None
           }
         }
@@ -178,10 +179,10 @@ object RunScript{
   def parseSelector(input: String) = {
     import fastparse.all._
     val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! ).map(
-      Mirror.Segment.Label
+      Segment.Label
     )
     val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" ).map(
-      Mirror.Segment.Cross
+      Segment.Cross
     )
     val query = P( segment ~ ("." ~ segment | crossSegment).rep ~ End ).map{
       case (h, rest) => h :: rest.toList
@@ -191,7 +192,7 @@ object RunScript{
 
 
 
-  def parseArgs(selectorString: String): Either[String, List[Mirror.Segment]] = {
+  def parseArgs(selectorString: String): Either[String, List[Segment]] = {
     import fastparse.all.Parsed
     if (selectorString.isEmpty) Left("Selector cannot be empty")
     else parseSelector(selectorString) match {
@@ -204,7 +205,7 @@ object RunScript{
   def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
     val consistencyErrors = Discovered.consistencyCheck(mapping)
     if (consistencyErrors.nonEmpty) {
-      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(Mirror.renderSelector)}")
+      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
     } else {
       Right(())
     }

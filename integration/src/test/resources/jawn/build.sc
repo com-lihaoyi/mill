@@ -1,9 +1,9 @@
 import mill.scalalib
-import mill.CrossModule
+import mill.Cross
 import mill.scalalib.{Dep, TestModule, Module}
 
-object jawn extends CrossModule(JawnModule, "2.10.6", "2.11.11", "2.12.3")
-case class JawnModule(crossVersion: String) extends mill.Module{
+object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", "2.12.3")
+class JawnModule(crossVersion: String) extends mill.Module{
   override def basePath = super.basePath / ammonite.ops.up
 
   trait JawnModule extends scalalib.SbtModule{

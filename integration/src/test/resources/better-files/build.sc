@@ -1,6 +1,4 @@
-import mill.define.Cross
-import mill.scalalib.{SbtModule, PublishModule, Dep}
-import mill.scalalib.publish.{PomSettings, License, Developer, SCM}
+import mill.scalalib.{SbtModule, Dep}
 
 trait BetterFilesModule extends SbtModule{
   def scalaVersion = "2.12.4"

@@ -1,10 +1,10 @@
 package mill.discover
 
-import mill.define.Task
+import mill.define.{Segment, Segments, Task}
 import mill.util.TestGraphs
 import utest._
 import Discovered.mapping
-import mill.discover.Mirror.Segment.Label
+import mill.define.Segment.Label
 object LabelingTests extends TestSuite{
 
   val tests = Tests{
@@ -16,10 +16,10 @@ object LabelingTests extends TestSuite{
       def check(mapping: Discovered.Mapping[_], t: Task[_], relPath: Option[String]) = {
 
 
-        val names: Seq[(Task[_], Seq[Mirror.Segment])] = mapping.targetsToSegments.toSeq
+        val names: Seq[(Task[_], Segments)] = mapping.targetsToSegments.toSeq
         val nameMap = names.toMap
 
-        val targetLabel = nameMap.get(t).map(_.map{case Label(v) => v}.mkString("."))
+        val targetLabel = nameMap.get(t).map(_.render)
         assert(targetLabel == relPath)
       }
       'singleton - check(mapping(singleton), singleton.single, Some("single"))
