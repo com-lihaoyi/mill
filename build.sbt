@@ -93,7 +93,8 @@ lazy val core = project
       "com.lihaoyi" %% "pprint" % "0.5.3",
       "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
       "org.scala-sbt" %% "zinc" % "1.0.5",
-      "org.scala-sbt" % "test-interface" % "1.0"
+      "org.scala-sbt" % "test-interface" % "1.0",
+      "org.eclipse.jgit" % "org.eclipse.jgit" % "4.9.2.201712150930-r"	
     ),
     sourceGenerators in Compile += {
       ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _))
@@ -137,7 +138,8 @@ lazy val scalalib = project
     name := "mill-scalalib",
     fork := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
-    javaOptions := bridgeProps.value.toSeq
+    javaOptions := bridgeProps.value.toSeq,
+    javaOptions in Test := bridgeProps.value.toSeq
   )
 lazy val scalajslib = project
   .dependsOn(scalalib % "compile->compile;test->test")
@@ -193,6 +195,11 @@ val testRepos = Map(
     resourceManaged in test,
     List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", _),
     suffix = "better-files"
+  ),
+  "MILL_GITBUCKET_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "gitbucket/gitbucket", "3f8069638c298cdab5637333ace9619a9442edfe", _),
+    suffix = "gitbucket"
   )
 )
 
@@ -207,7 +214,9 @@ lazy val integration = project
       val kvs = Seq(
         "MILL_ACYCLIC_REPO" -> testRepos("MILL_ACYCLIC_REPO").value,
         "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
-        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
+        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value,
+        "MILL_GITBUCKET_REPO" -> testRepos("MILL_GITBUCKET_REPO").value
+
       )
       for((k, v) <- kvs) yield s"-D$k=$v"
     }

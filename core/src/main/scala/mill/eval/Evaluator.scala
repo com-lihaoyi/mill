@@ -149,7 +149,7 @@ class Evaluator[T](val workspacePath: Path,
                   .map(_.write(v))
 
                 for(t <- terminalResult){
-                  write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
+                  write.over(paths.meta, upickle.default.write(inputsHash -> fixNulls(t), indent = 4))
                 }
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -166,6 +166,12 @@ class Evaluator[T](val workspacePath: Path,
     }
   }
 
+  def fixNulls(in: upickle.Js.Value): upickle.Js.Value = in match {
+    case arr: upickle.Js.Arr => upickle.Js.Arr(arr.value.map(fixNulls): _*)
+    case obj : upickle.Js.Obj => upickle.Js.Obj(obj.value.map {case (k,v) => (k, fixNulls(v))}: _*)
+    case upickle.Js.Str(null) => upickle.Js.Null
+    case other => other
+  }
 
   def evaluateGroup(group: OSet[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],

@@ -192,9 +192,11 @@ trait Module extends mill.Module with TaskModule { outer =>
   def prependShellScript: T[String] = T{ "" }
 
   def sources = T.source{ basePath / 'src }
+  def javaSources = T.source { basePath / 'javasrc }
   def resources = T.source{ basePath / 'resources }
-  def allSources = T{ Seq(sources()) }
+  def allSources = T{ Seq(sources(), javaSources()) }
   def compile: T[CompilationResult] = T.persistent{
+    import PathConvertible.StringConvertible
     compileScala(
       ZincWorker(),
       scalaVersion(),
@@ -205,6 +207,7 @@ trait Module extends mill.Module with TaskModule { outer =>
       compilerBridge().path,
       scalacOptions(),
       scalacPluginClasspath().map(_.path),
+      sys.env.get("JAVA_HOME").map(s => Path(s)),
       javacOptions(),
       upstreamCompileOutput()
     )
@@ -360,6 +363,7 @@ trait PublishModule extends Module { outer =>
 
 trait SbtModule extends Module { outer =>
   override def sources = T.source{ basePath / 'src / 'main / 'scala }
+  override def javaSources = T.source{ basePath / 'src / 'main / 'java }
   override def resources = T.source{ basePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests{
     override def basePath = outer.basePath

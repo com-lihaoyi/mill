@@ -360,6 +360,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   def compileClassfiles = Seq[RelPath](
+    "Demo.class",
     "Main.class",
     "Main$.class",
     "Main$delayedInit$body.class",
