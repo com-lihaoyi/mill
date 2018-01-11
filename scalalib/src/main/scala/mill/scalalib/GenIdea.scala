@@ -165,7 +165,7 @@ object GenIdea {
       <component name="NewModuleRootManager">
         {
         for(outputPath <- outputPaths)
-        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath)} />
+        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         }
 
         <exclude-output />
