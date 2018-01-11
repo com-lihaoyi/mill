@@ -68,12 +68,12 @@ object core extends MillModule {
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.Module.Ctx) extends super.Tests(ctx0){
-    def generateCoreTestSources = T{
+    def generatedCoreTestSources = T{
       mkdir(T.ctx().dest)
       shared.generateCoreTestSources(T.ctx().dest)
       PathRef(T.ctx().dest)
     }
-    def generatedSources = T { super.generatedSources() ++ Seq(generateCoreTestSources()) }
+    def generatedSources = T { super.generatedSources() ++ Seq(generatedCoreTestSources()) }
   }
 }
 
