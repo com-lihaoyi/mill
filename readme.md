@@ -66,6 +66,71 @@ Lastly, you can generate IntelliJ Scala project files using Mill via
 
 Allowing you to import a Mill project into Intellij without using SBT
 
+### Command line
+
+There is a number of ways to run targets and commands via command line:
+
+* Run single target:
+```bash
+mill core.compile
+```
+
+* Run single command with arguments:
+```bash
+mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
+```
+
+* Run multiple targets:
+```bash
+mill --all core.test scalalib.test 
+```
+
+**Note**: don't forget to put `--all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
+
+* Run multiple commands with arguments:
+```bash
+mill --all bridges[2.11.11].publish bridges[2.12.4].publish -- --credentials foo --gpgPassphrase bar 
+```
+
+Here `--credentials foo --gpgPassphrase bar` arguments will be passed to both `bridges[2.11.11].publish` and `bridges[2.12.4].publish` command. 
+
+**Note**: arguments list should be separated with `--` from command list.
+
+
+Sometimes it is tedious to write multiple targets when you want to run same target in multiple modules, or multiple targets in one module.
+Here brace expansion from bash(or another shell that support brace expansion) comes to rescue. It allows you to make some "shortcuts" for multiple commands.
+
+* Run same targets in multiple modules with brace expansion:
+```bash
+mill --all {core,scalalib,scalajslib,integration}.test
+```
+
+will run `test` target in `core`, `scalalib`, `scalajslib` and `integration` modules.
+
+* Run multiple targets in one module with brace expansion:
+```bash
+mill --all scalalib.{compile,test}
+```
+
+will run `compile` and `test` targets in `scalalib` module.
+
+* Run multiple targets in multiple modules:
+```bash
+mill --show --all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
+```
+
+will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `scalalib` modules. 
+
+* Run targets in different cross build modules
+```bash
+mill --all bridges[{2.11.11,2.12.4}].publish --  --credentials foo --gpgPassphrase bar
+```
+
+will run `publish` command in both `brides[2.11.11]` and `bridges[2.12.4]` modules
+
+**Note**: When you run multiple targets with `--all` flag, they are not guaranteed to run in that exact order. 
+Mill will build task evaluation graph and run targets in correct order.
+
 ### REPL
 
 Mill provides a build REPL, which lets you explore the build interactively and
@@ -88,31 +153,78 @@ res0: build.type = build
 !=            core          scalalib   bridges       getClass      isInstanceOf  |>
 ==            MillModule    asInstanceOf  equals        hashCode      toString
 @ build.core
-res1: core.type = ammonite.predef.$up.build$core$@5600c124
+res1: core = ammonite.predef.build#core:45
+Children:
+    .test
+Commands:
+    .console()()
+    .run(args: String*)()
+    .runMain(mainClass: String, args: String*)()
+Targets:
+    .allSources()
+    .artifactId()
+    .artifactName()
+    .artifactScalaVersion()
+    .assembly()
+    .assemblyClasspath()
+    .classpath()
+    .compile()
+    .compileDepClasspath()
+    .compileIvyDeps()
+    .compilerBridge()
+    .crossFullScalaVersion()
+    .depClasspath()
+    .docsJar()
+    .externalCompileDepClasspath()
+    .externalCompileDepSources()
+...
 
 @ core
-res2: core.type = ammonite.predef.$up.build$core$@5600c124
+res2: core.type = ammonite.predef.build#core:45
+Children:
+    .test
+Commands:
+    .console()()
+    .run(args: String*)()
+    .runMain(mainClass: String, args: String*)()
+Targets:
+    .allSources()
+    .artifactId()
+    .artifactName()
+    .artifactScalaVersion()
+    .assembly()
+    .assemblyClasspath()
+    .classpath()
+    .compile()
+    .compileDepClasspath()
+    .compileIvyDeps()
+    .compilerBridge()
+    .crossFullScalaVersion()
+    .depClasspath()
+    .docsJar()
+    .externalCompileDepClasspath()
+    .externalCompileDepSources()
+...
 
 @ core.scalaV
 scalaVersion
 @ core.scalaVersion
-res3: define.Target[String] = ammonite.predef.^.build.MillModule#scalaVersion@4b7d16
+res3: mill.define.Target[String] = ammonite.predef.build#MillModule#scalaVersion:20
+Inputs:
 
 @ core.scalaVersion()
-Running core.scalaVersion
+[1/1] core.scalaVersion
 res4: String = "2.12.4"
 
 @ core.ivyDeps()
 Running core.ivyDeps
-res5: Seq[scalalib.Dep] = List(
-  Scala(
-    Dependency(
-      Module("com.lihaoyi", "sourcecode", Map()),
-      "0.1.4",
+[1/1] core.ivyDeps
+res5: Seq[mill.scalalib.Dep] = List(
+  Scala(Dependency(Module("com.lihaoyi", "sourcecode", Map()),
+   "0.1.4",
 ...
 
 @ core.ivyDeps().foreach(println)
-Running core.ivyDeps
 Scala(Dependency(com.lihaoyi:sourcecode,0.1.4,,Set(),Attributes(,),false,true))
 Scala(Dependency(com.lihaoyi:pprint,0.5.3,,Set(),Attributes(,),false,true))
 Point(Dependency(com.lihaoyi:ammonite,1.0.3,,Set(),Attributes(,),false,true))
