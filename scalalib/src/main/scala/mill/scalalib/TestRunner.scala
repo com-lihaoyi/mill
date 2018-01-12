@@ -146,6 +146,7 @@ object TestRunner {
       (doneMsg, results)
     }finally{
       Thread.currentThread().setContextClassLoader(oldCl)
+      cl.close()
     }
 
 
