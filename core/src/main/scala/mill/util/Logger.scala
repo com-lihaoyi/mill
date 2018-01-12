@@ -44,6 +44,16 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
+class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream{
+  override def write(b: Array[Byte]): Unit = { f(); wrapped.write(b) }
+
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+    f()
+    wrapped.write(b, off, len)
+  }
+
+  def write(b: Int) = {f(); wrapped.write(b)}
+}
 case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
                        outStream: PrintStream,
@@ -51,41 +61,15 @@ case class PrintLogger(colored: Boolean,
                        errStream: PrintStream) extends Logger {
 
   var lastLineTicker = false
+  def falseTicker[T](t: T) = {
+    lastLineTicker = false
+    t
+  }
   override val errorStream = new PrintStream(
-    new OutputStream {
-      override def write(b: Array[Byte]): Unit = {
-        lastLineTicker = false
-        errStream.write(b)
-      }
-
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-        lastLineTicker = false
-        errStream.write(b, off, len)
-      }
-
-      def write(b: Int) = {
-        lastLineTicker = false
-        errStream.write(b)
-      }
-    }
+    new CallbackStream(errStream, () => lastLineTicker = false)
   )
   override val outputStream = new PrintStream(
-    new OutputStream {
-      override def write(b: Array[Byte]): Unit = {
-        lastLineTicker = false
-        outStream.write(b)
-      }
-
-      override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-        lastLineTicker = false
-        outStream.write(b, off, len)
-      }
-
-      def write(b: Int) = {
-        lastLineTicker = false
-        outStream.write(b)
-      }
-    }
+    new CallbackStream(outStream, () => lastLineTicker = false)
   )
 
 
