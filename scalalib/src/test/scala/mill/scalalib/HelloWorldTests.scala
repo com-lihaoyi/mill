@@ -36,7 +36,7 @@ object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldMod
   def mainClass = Some("Main")
   def assembly = T{
     modules.Jvm.createAssembly(
-      assemblyClasspath().map(_.path).filter(exists),
+      runClasspath().map(_.path).filter(exists),
       prependShellScript = prependShellScript(),
       mainClass = mainClass()
     )

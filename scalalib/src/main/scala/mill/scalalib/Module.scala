@@ -36,7 +36,7 @@ trait TestModule extends Module with TaskModule {
       jvmOptions = forkArgs(),
       options = Seq(
         testFramework(),
-        assemblyClasspath().map(_.path).distinct.mkString(" "),
+        runClasspath().map(_.path).distinct.mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
         outputPath.toString,
@@ -53,7 +53,7 @@ trait TestModule extends Module with TaskModule {
   def test(args: String*) = T.command{
     val (doneMsg, results) = TestRunner(
       testFramework(),
-      assemblyClasspath().map(_.path),
+      runClasspath().map(_.path),
       Seq(compile().classes.path),
       args
     )
@@ -90,7 +90,7 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def upstreamRunClasspath = T{
     Task.traverse(projectDeps)(p =>
-      T.task(p.runDepClasspath() ++ Seq(p.compile().classes, p.resources()))
+      T.task(p.runDepClasspath() ++ p.runClasspath())
     )
   }
 
@@ -191,10 +191,10 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.source{ basePath / 'src }
-  def resources = T.source{ basePath / 'resources }
+  def sources = T.input{ Seq(PathRef(basePath / 'src)) }
+  def resources = T.input{ Seq(PathRef(basePath / 'resources)) }
   def generatedSources = T { Seq.empty[PathRef] }
-  def allSources = T{ Seq(sources()) ++ generatedSources() }
+  def allSources = T{ sources() ++ generatedSources() }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
       ZincWorker(),
@@ -210,22 +210,22 @@ trait Module extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-  def assemblyClasspath = T{
-    runDepClasspath() ++ Seq(resources(), compile().classes)
+  def runClasspath = T{
+    runDepClasspath() ++ resources() ++ Seq(compile().classes)
   }
 
   def assembly = T{
     createAssembly(
-      assemblyClasspath().map(_.path).filter(exists),
+      runClasspath().map(_.path).filter(exists),
       prependShellScript = prependShellScript()
     )
   }
 
-  def classpath = T{ Seq(resources(), compile().classes) }
+  def localClasspath = T{ resources() ++ Seq(compile().classes) }
 
   def jar = T{
     createJar(
-      Seq(resources(), compile().classes).map(_.path).filter(exists),
+      localClasspath().map(_.path).filter(exists),
       mainClass()
     )
   }
@@ -237,7 +237,12 @@ trait Module extends mill.Module with TaskModule { outer =>
     mkdir(javadocDir)
 
     val options = {
-      val files = ls.rec(sources().path).filter(_.isFile).map(_.toNIO.toString)
+
+      val files = for{
+        ref <- sources()
+        p <- ls.rec(ref.path)
+        if p.isFile
+      } yield p.toNIO.toString
       files ++ Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
     }
 
@@ -251,7 +256,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   }
 
   def sourcesJar = T {
-    createJar(Seq(sources(), resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
+    createJar((sources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
   }
 
   def forkArgs = T{ Seq.empty[String] }
@@ -259,7 +264,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def run(args: String*) = T.command{
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
-      assemblyClasspath().map(_.path),
+      runClasspath().map(_.path),
       forkArgs(),
       args,
       workingDir = ammonite.ops.pwd)
@@ -268,7 +273,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def runMain(mainClass: String, args: String*) = T.command{
     subprocess(
       mainClass,
-      assemblyClasspath().map(_.path),
+      runClasspath().map(_.path),
       forkArgs(),
       args,
       workingDir = ammonite.ops.pwd
@@ -278,7 +283,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def console() = T.command{
     interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
-      classPath = assemblyClasspath().map(_.path),
+      classPath = runClasspath().map(_.path),
       options = Seq("-usejavacp")
     )
   }
@@ -360,11 +365,36 @@ trait PublishModule extends Module { outer =>
 }
 
 trait SbtModule extends Module { outer =>
-  override def sources = T.source{ basePath / 'src / 'main / 'scala }
-  override def resources = T.source{ basePath / 'src / 'main / 'resources }
+  override def sources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'scala)) }
+  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {
     override def basePath = outer.basePath
-    override def sources = T.source{ basePath / 'src / 'test / 'scala }
-    override def resources = T.source{ basePath / 'src / 'test / 'resources }
+    override def sources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'scala)) }
+    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
   }
 }
+
+trait CrossSbtModule extends SbtModule { outer =>
+  def crossScalaVersion: String
+  def scalaVersion = crossScalaVersion
+  override def sources = T.input{
+    super.sources() ++
+    crossScalaVersion.split('.').inits.filter(_.nonEmpty).map(_.mkString(".")).map{
+      s => PathRef{ basePath / 'src / 'main / s"scala-$s" }
+    }
+
+  }
+  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
+  trait Tests extends super.Tests {
+    override def basePath = outer.basePath
+    override def sources = T.input{
+      super.sources() ++
+      crossScalaVersion.split('.').inits.filter(_.nonEmpty).map(_.mkString(".")).map{
+        s => PathRef{ basePath / 'src / 'test / s"scala-$s" }
+      }
+    }
+    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
+  }
+}
+
+
