@@ -36,7 +36,7 @@ trait TestModule extends Module with TaskModule {
       jvmOptions = forkArgs(),
       options = Seq(
         testFramework(),
-        (runDepClasspath().map(_.path) :+ compile().classes.path).distinct.mkString(" "),
+        assemblyClasspath().map(_.path).distinct.mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
         outputPath.toString,
@@ -53,7 +53,7 @@ trait TestModule extends Module with TaskModule {
   def test(args: String*) = T.command{
     val (doneMsg, results) = TestRunner(
       testFramework(),
-      runDepClasspath().map(_.path) :+ compile().classes.path,
+      assemblyClasspath().map(_.path),
       Seq(compile().classes.path),
       args
     )
@@ -259,7 +259,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def run(args: String*) = T.command{
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
-      runDepClasspath().map(_.path) :+ compile().classes.path,
+      assemblyClasspath().map(_.path),
       forkArgs(),
       args,
       workingDir = ammonite.ops.pwd)
@@ -268,7 +268,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def runMain(mainClass: String, args: String*) = T.command{
     subprocess(
       mainClass,
-      runDepClasspath().map(_.path) :+ compile().classes.path,
+      assemblyClasspath().map(_.path),
       forkArgs(),
       args,
       workingDir = ammonite.ops.pwd

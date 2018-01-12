@@ -4,7 +4,7 @@ package mill.main
 import mill.define.Applicative.ApplyHandler
 import mill.define._
 import mill.discover.{Discovered, Mirror}
-import mill.eval.Evaluator
+import mill.eval.{Evaluator, Result}
 import mill.util.OSet
 
 import scala.collection.mutable
@@ -34,7 +34,31 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig
   override def apply[V](t: Task[V]) = {
-    evaluator.evaluate(OSet(t)).values.head.asInstanceOf[V]
+    val res = evaluator.evaluate(OSet(t))
+    res.values match{
+      case Seq(head: V) => head
+      case Nil =>
+        val msg = new mutable.StringBuilder()
+        msg.append(res.failing.keyCount + " targets failed\n")
+        for((k, vs) <- res.failing.items){
+          msg.append(k match{
+            case Left(t) => "Anonymous Task\n"
+            case Right(k) => k.segments.render + "\n"
+          })
+
+          for(v <- vs){
+            v match{
+              case Result.Failure(m) => msg.append(m + "\n")
+              case Result.Exception(t, outerStack) =>
+                msg.append(
+                  t.toString + t.getStackTrace.dropRight(outerStack.length).map("\n    " + _).mkString + "\n"
+                )
+
+            }
+          }
+        }
+        throw new Exception(msg.toString)
+    }
   }
 
   val generatedEval = new EvalGenerated(evaluator)
