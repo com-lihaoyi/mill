@@ -8,9 +8,14 @@ scala:
 jdk:
   - oraclejdk8
 
-script:
-  - "./test.sh"
+matrix:
+  include:
+  - env: CI_SCRIPT=ci/test.sh
+  - env: CI_SCRIPT=ci/test2.sh
+  - env: CI_SCRIPT=ci/test3.sh
 
+script:
+  - "$CI_SCRIPT"
 cache:
   directories:
   - $HOME/.sbt/0.13/dependency
