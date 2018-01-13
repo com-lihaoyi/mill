@@ -218,6 +218,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def assembly = T{
     createAssembly(
       runClasspath().map(_.path).filter(exists),
+      mainClass(),
       prependShellScript = prependShellScript()
     )
   }
@@ -376,6 +377,7 @@ trait SbtModule extends Module { outer =>
 }
 
 trait CrossSbtModule extends SbtModule { outer =>
+  override def basePath = super.basePath / ammonite.ops.up
   implicit def crossSbtModuleResolver: Resolver[CrossSbtModule] = new Resolver[CrossSbtModule]{
     def resolve[V <: CrossSbtModule](c: Cross[V]): V = {
       crossScalaVersion.split('.')

@@ -43,8 +43,8 @@ object Cross{
   * }
   */
 class Cross[T](cases: Any*)
-               (implicit ci: Cross.Factory[T],
-                val ctx: Module.Ctx){
+              (implicit ci: Cross.Factory[T],
+               ctx: Module.Ctx) extends mill.define.Module()(ctx) {
 
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{
@@ -52,10 +52,15 @@ class Cross[T](cases: Any*)
       case v => Tuple1(v)
     }
     val crossValues = c.productIterator.toList.reverse
+    val relPath = ctx.segment match{
+      case Segment.Label(s) => ammonite.ops.empty / s
+      case Segment.Cross(vs) => ammonite.ops.empty / vs.map(_.toString)
+    }
     val sub = ci.make(
       c,
       ctx.copy(
         segments0 = ctx.segments0 ++ Seq(ctx.segment),
+        basePath = ctx.basePath / relPath,
         segment = Segment.Cross(crossValues)
       )
     )
