@@ -1,5 +1,7 @@
 package mill.scalalib.publish
 
+import mill.util.Loose.OSet
+
 import scala.xml.PrettyPrinter
 
 object Ivy {
@@ -8,7 +10,7 @@ object Ivy {
 
   def apply(
       artifact: Artifact,
-      dependencies: Seq[Dependency]
+      dependencies: OSet[Dependency]
   ): String = {
     val xml =
       <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">

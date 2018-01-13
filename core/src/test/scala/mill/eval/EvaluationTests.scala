@@ -6,7 +6,8 @@ import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
 import mill.discover.Discovered
 import mill.discover.Discovered.mapping
-import mill.util.{DummyLogger, OSet, TestGraphs, TestUtil}
+import mill.util.{DummyLogger, TestGraphs, TestUtil}
+import mill.util.Strict.OSet
 import utest._
 import utest.framework.TestPath
 

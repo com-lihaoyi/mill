@@ -7,7 +7,7 @@ import java.net.URLClassLoader
 import ammonite.ops.{Path, mkdir, rm, _}
 import mill.eval.PathRef
 import mill.scalalib.Dep
-import mill.util.Ctx
+import mill.util.{Ctx, Loose}
 
 import scala.collection.breakOut
 import scala.language.reflectiveCalls
@@ -21,7 +21,7 @@ object Lib {
   def scalaJSLinkerIvyDep(scalaJSVersion: String): Dep =
     Dep("com.lihaoyi", s"mill-jsbridge_${scalaJSVersion.replace('.', '_')}", "0.1-SNAPSHOT")
 
-  def scalaJSLinkerBridge(classPath: Seq[Path]): ScalaJSLinkerBridge = {
+  def scalaJSLinkerBridge(classPath: Loose.OSet[Path]): ScalaJSLinkerBridge = {
     val classloaderSig = classPath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     LinkerBridge.scalaInstanceCache match {
       case Some((`classloaderSig`, linker)) => linker
@@ -44,7 +44,7 @@ object Lib {
 
   def link(main: Option[String],
            inputPaths: Seq[Path],
-           libraries: Seq[Path],
+           libraries: Loose.OSet[Path],
            linker: ScalaJSLinkerBridge,
            mode: OptimizeMode)
           (implicit ctx: Ctx.DestCtx): PathRef = {
@@ -53,7 +53,7 @@ object Lib {
     if (inputPaths.nonEmpty) {
       mkdir(outputPath / up)
       val inputFiles: Vector[File] = inputPaths.map(ls).flatMap(_.filter(_.ext == "sjsir")).map(_.toIO)(breakOut)
-      val inputLibraries: Vector[File] = libraries.filter(_.ext == "jar").map(_.toIO)(breakOut)
+      val inputLibraries: Vector[File] = libraries.filter(_.ext == "jar").map(_.toIO).toVector
       linker.link(inputFiles, inputLibraries, outputPath.toIO, main, mode)
     }
     PathRef(outputPath)

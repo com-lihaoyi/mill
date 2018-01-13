@@ -74,7 +74,7 @@ def generateEval(dir: Path) = {
     s"""package mill.main
        |import mill.eval.Evaluator
        |import mill.define.Task
-       |import mill.util.OSet
+       |import mill.util.Strict.OSet
        |class EvalGenerated(evaluator: Evaluator[_]) {
        |  type TT[+X] = Task[X]
        |  ${(1 to 22).map(generate).mkString("\n")}

@@ -5,7 +5,8 @@ import mill.define.{Segment, Segments, Target}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.Ctx.{LoaderCtx, LogCtx}
-import mill.util.{OSet, PrintLogger}
+import mill.util.{PrintLogger}
+import mill.util.Strict.OSet
 
 object GenIdea {
 

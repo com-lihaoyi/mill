@@ -3,7 +3,8 @@ package mill.discover
 
 import mill.define.Segment.Label
 import mill.define.Segments
-import mill.util.{OSet, TestGraphs}
+import mill.util.{TestGraphs}
+import mill.util.Strict.OSet
 import utest._
 
 object ConsistencyTests extends TestSuite{

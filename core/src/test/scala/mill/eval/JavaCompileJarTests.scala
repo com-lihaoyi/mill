@@ -7,7 +7,8 @@ import mill.discover.Discovered
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
-import mill.util.{DummyLogger, OSet, TestUtil}
+import mill.util.{DummyLogger, Loose, TestUtil}
+import mill.util.Strict.OSet
 import utest._
 import mill._
 
@@ -40,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ Jvm.createJar(Seq(resourceRoot().path, classFiles().path)) }
+        def jar = T{ Jvm.createJar(Loose.OSet(resourceRoot().path, classFiles().path)) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)

@@ -4,9 +4,9 @@ package mill.define
 import mill.discover.Discovered
 import Discovered.mapping
 import mill.eval.Evaluator
-import mill.util.{OSet, TestGraphs, TestUtil}
+import mill.util.{TestGraphs, TestUtil}
 import utest._
-
+import mill.util.Strict.OSet
 object GraphTests extends TestSuite{
 
   val tests = Tests{

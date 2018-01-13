@@ -2,7 +2,8 @@ package mill.define
 
 import mill.discover.Discovered
 import mill.eval.Evaluator
-import mill.util.{DummyLogger, OSet, TestUtil}
+import mill.util.{DummyLogger, TestUtil}
+import mill.util.Strict.OSet
 import mill.T
 import mill.eval.Result.Success
 import utest._

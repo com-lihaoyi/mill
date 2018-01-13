@@ -4,7 +4,7 @@ import ammonite.main.Router.Overrides
 import mill.define._
 import mill.eval.Result
 import utest.assert
-
+import mill.util.Strict.OSet
 import scala.collection.mutable
 
 object TestUtil {

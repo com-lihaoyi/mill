@@ -10,6 +10,7 @@ import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
 import Lib._
 import mill.define.Cross.Resolver
+import mill.util.Loose.OSet
 import sbt.testing.Status
 
 /**
@@ -25,10 +26,10 @@ trait Module extends mill.Module with TaskModule { outer =>
   def mainClass: T[Option[String]] = None
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
-  def ivyDeps = T{ Seq[Dep]() }
-  def compileIvyDeps = T{ Seq[Dep]() }
-  def scalacPluginIvyDeps = T{ Seq[Dep]() }
-  def runIvyDeps = T{ Seq[Dep]() }
+  def ivyDeps = T{ OSet.empty[Dep] }
+  def compileIvyDeps = T{ OSet.empty[Dep] }
+  def scalacPluginIvyDeps = T{ OSet.empty[Dep] }
+  def runIvyDeps = T{ OSet.empty[Dep] }
 
   def scalacOptions = T{ Seq.empty[String] }
   def javacOptions = T{ Seq.empty[String] }
@@ -39,7 +40,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   )
 
   def projectDeps = Seq.empty[Module]
-  def depClasspath = T{ Seq.empty[PathRef] }
+  def depClasspath = T{ OSet.empty[PathRef] }
 
 
   def upstreamRunClasspath = T{
@@ -57,7 +58,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     Task.traverse(projectDeps)(_.compileDepClasspath)().flatten
   }
 
-  def resolveDeps(deps: Task[Seq[Dep]], sources: Boolean = false) = T.task{
+  def resolveDeps(deps: Task[OSet[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
       repositories,
       scalaVersion(),
@@ -67,15 +68,15 @@ trait Module extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def externalCompileDepClasspath: T[Seq[PathRef]] = T{
-    Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten ++
+  def externalCompileDepClasspath: T[OSet[PathRef]] = T{
+    OSet.from(Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
     )()
   }
 
-  def externalCompileDepSources: T[Seq[PathRef]] = T{
-    Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten ++
+  def externalCompileDepSources: T[OSet[PathRef]] = T{
+    OSet.from(Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
       sources = true
@@ -86,7 +87,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
     */
-  def compileDepClasspath: T[Seq[PathRef]] = T{
+  def compileDepClasspath: T[OSet[PathRef]] = T{
     upstreamCompileClasspath() ++
     depClasspath()
   }
@@ -108,7 +109,7 @@ trait Module extends mill.Module with TaskModule { outer =>
       )
       classpath match {
         case Result.Success(resolved) =>
-          resolved.filterNot(_.path.ext == "pom") match {
+          resolved.filter(_.path.ext != "pom").toSeq match {
             case Seq(single) => PathRef(single.path, quick = true)
             case Seq() => throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
             case _ => throw new Exception(dep + " resolution resulted in more than one file")
@@ -118,7 +119,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     }
   }
 
-  def scalacPluginClasspath: T[Seq[PathRef]] =
+  def scalacPluginClasspath: T[OSet[PathRef]] =
     resolveDeps(
       T.task{scalacPluginIvyDeps()}
     )()
@@ -126,7 +127,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
-  def scalaCompilerClasspath: T[Seq[PathRef]] = T{
+  def scalaCompilerClasspath: T[OSet[PathRef]] = T{
     resolveDeps(
       T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
     )()
@@ -135,19 +136,19 @@ trait Module extends mill.Module with TaskModule { outer =>
   /**
     * Things that need to be on the classpath in order for this code to run
     */
-  def runDepClasspath: T[Seq[PathRef]] = T{
-    upstreamRunClasspath().flatten ++
+  def runDepClasspath: T[OSet[PathRef]] = T{
+    OSet.from(upstreamRunClasspath().flatten) ++
     depClasspath() ++
     resolveDeps(
-      T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())},
+      T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())}
     )()
   }
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.input{ Seq(PathRef(basePath / 'src)) }
-  def resources = T.input{ Seq(PathRef(basePath / 'resources)) }
-  def generatedSources = T { Seq.empty[PathRef] }
+  def sources = T.input{ OSet(PathRef(basePath / 'src)) }
+  def resources = T.input{ OSet(PathRef(basePath / 'resources)) }
+  def generatedSources = T { OSet.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
@@ -203,11 +204,11 @@ trait Module extends mill.Module with TaskModule { outer =>
 
     subprocess(
       "scala.tools.nsc.ScalaDoc",
-      compileDepClasspath().filterNot(_.path.ext == "pom").map(_.path),
-      options = options
+      compileDepClasspath().filter(_.path.ext != "pom").map(_.path),
+      options = options.toSeq
     )
 
-    createJar(Seq(javadocDir))(outDir / "javadoc.jar")
+    createJar(OSet(javadocDir))(outDir / "javadoc.jar")
   }
 
   def sourcesJar = T {
@@ -283,7 +284,7 @@ trait TestModule extends Module with TaskModule {
       jvmOptions = forkArgs(),
       options = Seq(
         testFramework(),
-        runClasspath().map(_.path).distinct.mkString(" "),
+        runClasspath().map(_.path).mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
         outputPath.toString,
@@ -301,7 +302,7 @@ trait TestModule extends Module with TaskModule {
     val (doneMsg, results) = TestRunner(
       testFramework(),
       runClasspath().map(_.path),
-      Seq(compile().classes.path),
+      OSet(compile().classes.path),
       args
     )
     TestModule.handleResults(doneMsg, results)

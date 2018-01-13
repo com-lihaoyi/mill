@@ -1,5 +1,7 @@
 package mill.scalalib.publish
 
+import mill.util.Loose.OSet
+
 import scala.xml.{Elem, NodeSeq, PrettyPrinter}
 
 object Pom {
@@ -8,7 +10,7 @@ object Pom {
 
   //TODO - not only jar packaging support?
   def apply(artifact: Artifact,
-            dependencies: Seq[Dependency],
+            dependencies: OSet[Dependency],
             name: String,
             pomSettings: PomSettings): String = {
     val xml =

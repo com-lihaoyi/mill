@@ -9,14 +9,15 @@ import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.Ctx
+import mill.util.Loose.OSet
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 
 
 object Jvm {
-  def gatherClassloaderJars(): Seq[Path] = {
-    val allJars = collection.mutable.Buffer.empty[Path]
+  def gatherClassloaderJars(): OSet[Path] = {
+    val allJars = new OSet.Mutable[Path]()
     var currentClassloader = Thread.currentThread().getContextClassLoader
     while(currentClassloader != null){
       currentClassloader match{
@@ -29,14 +30,14 @@ object Jvm {
   }
 
   def interactiveSubprocess(mainClass: String,
-                            classPath: Seq[Path],
+                            classPath: OSet[Path],
                             options: Seq[String] = Seq.empty): Unit = {
     import ammonite.ops.ImplicitWd._
     %("java", "-cp", classPath.mkString(":"), mainClass, options)
   }
 
   def subprocess(mainClass: String,
-                 classPath: Seq[Path],
+                 classPath: OSet[Path],
                  jvmOptions: Seq[String] = Seq.empty,
                  options: Seq[String] = Seq.empty,
                  workingDir: Path = null)
@@ -100,7 +101,7 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Seq[Path], mainClass: Option[String] = None)
+  def createJar(inputPaths: OSet[Path], mainClass: Option[String] = None)
                (implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
@@ -134,7 +135,7 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def createAssembly(inputPaths: Seq[Path],
+  def createAssembly(inputPaths: OSet[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")
                     (implicit ctx: Ctx.DestCtx): PathRef = {

@@ -5,7 +5,7 @@ import mill.define.Applicative.ApplyHandler
 import mill.define._
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
-import mill.util.OSet
+import mill.util.Strict.OSet
 
 import scala.collection.mutable
 object ReplApplyHandler{

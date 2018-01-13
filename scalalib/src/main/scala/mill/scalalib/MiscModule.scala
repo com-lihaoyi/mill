@@ -1,18 +1,19 @@
 package mill
 package scalalib
 
+import mill.define.Cross.Resolver
 import mill.define.{Cross, Task}
 import mill.eval.{PathRef, Result}
-import mill.define.Cross.Resolver
+import mill.util.Loose.OSet
 
 
 trait SbtModule extends Module { outer =>
-  override def sources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'scala)) }
-  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
+  override def sources = T.input{ OSet(PathRef(basePath / 'src / 'main / 'scala)) }
+  override def resources = T.input{ OSet(PathRef(basePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {
     override def basePath = outer.basePath
-    override def sources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'scala)) }
-    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
+    override def sources = T.input{ OSet(PathRef(basePath / 'src / 'test / 'scala)) }
+    override def resources = T.input{ OSet(PathRef(basePath / 'src / 'test / 'resources)) }
   }
 }
 
@@ -45,7 +46,7 @@ trait CrossSbtModule extends SbtModule { outer =>
     }
 
   }
-  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
+  override def resources = T.input{ OSet(PathRef(basePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {
     override def basePath = outer.basePath
     override def sources = T.input{
@@ -54,7 +55,7 @@ trait CrossSbtModule extends SbtModule { outer =>
         s => PathRef{ basePath / 'src / 'test / s"scala-$s" }
       }
     }
-    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
+    override def resources = T.input{ OSet(PathRef(basePath / 'src / 'test / 'resources)) }
   }
 }
 

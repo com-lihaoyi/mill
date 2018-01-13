@@ -4,7 +4,7 @@ import ammonite.ops.Path
 import mill.define.{Input, Target, Task}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
-
+import mill.util.Strict.OSet
 class TestEvaluator(mapping: Discovered.Mapping[_],
                     workspacePath: Path,
                     basePath: Path){

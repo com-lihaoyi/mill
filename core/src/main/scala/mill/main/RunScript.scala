@@ -11,7 +11,8 @@ import mill.define.Task
 import mill.define.Segment
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, Logger, OSet}
+import mill.util.{EitherOps, Logger}
+import mill.util.Strict.OSet
 import upickle.Js
 
 /**

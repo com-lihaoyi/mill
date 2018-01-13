@@ -8,4 +8,6 @@ package object mill extends JsonFormatters{
   type Module = define.Module
   val Module = define.Module
   type Cross[T] = define.Cross[T]
+  type OSet[T] = util.Loose.OSet[T]
+  val OSet = util.Loose.OSet
 }

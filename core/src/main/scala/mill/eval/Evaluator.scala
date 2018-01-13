@@ -9,6 +9,7 @@ import mill.discover.{Discovered, Mirror}
 import mill.define.Segment
 import mill.util
 import mill.util._
+import mill.util.Strict.OSet
 
 import scala.collection.mutable
 import scala.util.control.NonFatal

@@ -9,7 +9,8 @@ import ammonite.ops._
 import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module => CoursierModule}
 import mill.define.Worker
 import mill.eval.{PathRef, Result}
-import mill.util.Ctx
+import mill.util.{Ctx}
+import mill.util.Loose.OSet
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
@@ -38,7 +39,7 @@ object Lib{
       Locate.definesClass(classpathEntry)
   }
 
-  def grepJar(classPath: Seq[Path], s: String) = {
+  def grepJar(classPath: OSet[Path], s: String) = {
     classPath
       .find(_.toString.endsWith(s))
       .getOrElse(throw new Exception("Cannot find " + s))
@@ -47,13 +48,13 @@ object Lib{
 
   def compileScala(zincWorker: ZincWorker,
                    scalaVersion: String,
-                   sources: Seq[Path],
-                   compileClasspath: Seq[Path],
-                   compilerClasspath: Seq[Path],
-                   pluginClasspath: Seq[Path],
+                   sources: OSet[Path],
+                   compileClasspath: OSet[Path],
+                   compilerClasspath: OSet[Path],
+                   pluginClasspath: OSet[Path],
                    compilerBridge: Path,
                    scalacOptions: Seq[String],
-                   scalacPluginClasspath: Seq[Path],
+                   scalacPluginClasspath: OSet[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: Ctx): CompilationResult = {
@@ -171,8 +172,8 @@ object Lib{
   def resolveDependencies(repositories: Seq[Repository],
                           scalaVersion: String,
                           scalaBinaryVersion: String,
-                          deps: Seq[Dep],
-                          sources: Boolean = false): Result[Seq[PathRef]] = {
+                          deps: TraversableOnce[Dep],
+                          sources: Boolean = false): Result[OSet[PathRef]] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
@@ -206,14 +207,16 @@ object Lib{
         .unsafePerformSync
         .flatMap(_.toOption)
 
-      localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+      OSet.from(
+        localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+      )
     }
   }
-  def scalaCompilerIvyDeps(scalaVersion: String) = Seq(
+  def scalaCompilerIvyDeps(scalaVersion: String) = OSet[Dep](
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
   )
-  def scalaRuntimeIvyDeps(scalaVersion: String) = Seq[Dep](
+  def scalaRuntimeIvyDeps(scalaVersion: String) = OSet[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
   def compilerBridgeIvyDep(scalaVersion: String) =

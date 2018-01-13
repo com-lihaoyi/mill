@@ -3,7 +3,8 @@ package mill.eval
 import mill.define.Target
 import mill.discover.Discovered
 import mill.discover.Discovered.mapping
-import mill.util.{DummyLogger, OSet}
+import mill.util.DummyLogger
+import mill.util.Strict.OSet
 import utest._
 import utest.framework.TestPath
 

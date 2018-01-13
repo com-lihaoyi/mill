@@ -5,7 +5,7 @@ import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
 import mill.discover.Mirror.TargetPoint
 import mill.util.Ctx.Loader
-import mill.util.OSet
+import mill.util.Strict.OSet
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context

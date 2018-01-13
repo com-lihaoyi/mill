@@ -1,7 +1,8 @@
 package mill.define
 
 import mill.eval.Tarjans
-import mill.util.{MultiBiMap, OSet}
+import mill.util.MultiBiMap
+import mill.util.Strict.OSet
 
 object Graph {
   class TopoSorted private[Graph](val values: OSet[Task[_]])
