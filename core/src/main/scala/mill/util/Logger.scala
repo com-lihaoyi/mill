@@ -90,7 +90,7 @@ case class PrintLogger(colored: Boolean,
       nav.left(9999)
       p.flush()
     }else{
-      println()
+      infoStream.println()
     }
     lastLineTicker = true
     infoStream.println(colors.info()(s))

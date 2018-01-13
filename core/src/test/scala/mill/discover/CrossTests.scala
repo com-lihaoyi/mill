@@ -29,7 +29,7 @@ object CrossTests extends TestSuite{
       val keys = gen(outer.crossed)
       assert(keys == List(List("2.10.6"), List("2.11.8"), List("2.12.4")))
       for(k <- keys){
-        assert(outer.crossed(k:_*).scalaVersion == k.head)
+        assert(outer.crossed.get(k).scalaVersion == k.head)
       }
     }
     'doubleCross - {
@@ -66,7 +66,7 @@ object CrossTests extends TestSuite{
 
       assert(keys == expectedKeys)
       for(k <- keys){
-        val suffix = outer.crossed(k:_*).suffix
+        val suffix = outer.crossed.get(k).suffix
         val expected = k.map(_.toString).filter(_.nonEmpty).map("_"+_).mkString
         assert(suffix == expected)
       }
