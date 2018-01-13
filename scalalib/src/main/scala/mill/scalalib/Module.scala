@@ -3,12 +3,13 @@ package scalalib
 
 import ammonite.ops._
 import coursier.{Cache, MavenRepository, Repository}
-import mill.define.Task
+import mill.define.{Cross, Task}
 import mill.define.Task.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
 import Lib._
+import mill.define.Cross.Resolver
 import sbt.testing.Status
 object TestModule{
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
@@ -375,6 +376,24 @@ trait SbtModule extends Module { outer =>
 }
 
 trait CrossSbtModule extends SbtModule { outer =>
+  implicit def crossSbtModuleResolver: Resolver[CrossSbtModule] = new Resolver[CrossSbtModule]{
+    def resolve[V <: CrossSbtModule](c: Cross[V]): V = {
+      crossScalaVersion.split('.')
+        .inits
+        .takeWhile(_.length > 1)
+        .flatMap( prefix =>
+          c.items.map(_._2).find(_.crossScalaVersion.split('.').startsWith(prefix))
+        )
+        .collectFirst{case x => x}
+        .getOrElse(
+          throw new Exception(
+            s"Unable to find compatible cross version between $crossScalaVersion and "+
+            c.items.map(_._2.crossScalaVersion).mkString(",")
+          )
+        )
+    }
+  }
+
   def crossScalaVersion: String
   def scalaVersion = crossScalaVersion
   override def sources = T.input{

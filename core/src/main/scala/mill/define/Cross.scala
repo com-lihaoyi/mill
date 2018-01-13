@@ -26,10 +26,15 @@ object Cross{
       reify { mill.define.Cross.Factory[T](instance.splice) }
     }
   }
+
+  trait Resolver[-T]{
+    def resolve[V <: T](c: Cross[V]): V
+  }
 }
+
 class Cross[T](cases: Any*)
-              (implicit ci: Cross.Factory[T],
-               val ctx: Module.Ctx){
+               (implicit ci: Cross.Factory[T],
+                val ctx: Module.Ctx){
 
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{
@@ -47,5 +52,23 @@ class Cross[T](cases: Any*)
     (crossValues, sub)
   }
   val itemMap = items.toMap
-  def apply(args: Any*) = itemMap(args.toList)
+
+  /**
+    * Fetch the cross module corresponding to the given cross values
+    */
+  def get(args: Seq[Any]) = itemMap(args.toList)
+
+  /**
+    * Fetch the cross module corresponding to the given cross values
+    */
+  def apply(arg0: Any, args: Any*) = itemMap(arg0 :: args.toList)
+
+  /**
+    * Fetch the relevant cross module given the implicit resolver you have in
+    * scope. This is often the first cross module whose cross-version is
+    * compatible with the current module.
+    */
+  def apply[V >: T]()(implicit resolver: Cross.Resolver[V]): T = {
+    resolver.resolve(this.asInstanceOf[Cross[V]]).asInstanceOf[T]
+  }
 }
