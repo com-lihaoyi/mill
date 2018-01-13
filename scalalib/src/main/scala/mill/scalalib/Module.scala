@@ -11,57 +11,10 @@ import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subpr
 import Lib._
 import mill.define.Cross.Resolver
 import sbt.testing.Status
-object TestModule{
-  def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
-    if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
-    else {
-      val grouped = results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
 
-      Result.Failure(grouped.map{case (k, v) => k + ": " + v}.mkString(","))
-    }
-  }
-}
-trait TestModule extends Module with TaskModule {
-  override def defaultCommandName() = "test"
-  def testFramework: T[String]
-
-  def forkWorkingDir = ammonite.ops.pwd
-
-  def forkTest(args: String*) = T.command{
-    mkdir(T.ctx().dest)
-    val outputPath = T.ctx().dest/"out.json"
-
-    Jvm.subprocess(
-      mainClass = "mill.scalalib.TestRunner",
-      classPath = Jvm.gatherClassloaderJars(),
-      jvmOptions = forkArgs(),
-      options = Seq(
-        testFramework(),
-        runClasspath().map(_.path).distinct.mkString(" "),
-        Seq(compile().classes.path).mkString(" "),
-        args.mkString(" "),
-        outputPath.toString,
-        T.ctx().log.colored.toString
-      ),
-      workingDir = forkWorkingDir
-    )
-
-    val jsonOutput = upickle.json.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
-    TestModule.handleResults(doneMsg, results)
-
-  }
-  def test(args: String*) = T.command{
-    val (doneMsg, results) = TestRunner(
-      testFramework(),
-      runClasspath().map(_.path),
-      Seq(compile().classes.path),
-      args
-    )
-    TestModule.handleResults(doneMsg, results)
-  }
-}
-
+/**
+  * Core configuration required to compile a single Scala compilation target
+  */
 trait Module extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestModule{
@@ -303,119 +256,54 @@ trait Module extends mill.Module with TaskModule { outer =>
 
 }
 
-trait PublishModule extends Module { outer =>
-  import mill.scalalib.publish._
 
-  def pomSettings: T[PomSettings]
-  def publishVersion: T[String] = "0.0.1-SNAPSHOT"
+object TestModule{
+  def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
+    if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
+    else {
+      val grouped = results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
 
-  def pom = T {
-    val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
-    val pom = Pom(artifact(), dependencies, artifactName(), pomSettings())
-
-    val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
-    write.over(pomPath, pom)
-    PathRef(pomPath)
+      Result.Failure(grouped.map{case (k, v) => k + ": " + v}.mkString(","))
+    }
   }
+}
+trait TestModule extends Module with TaskModule {
+  override def defaultCommandName() = "test"
+  def testFramework: T[String]
 
-  def ivy = T {
-    val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
-    val ivy = Ivy(artifact(), dependencies)
-    val ivyPath = T.ctx().dest / "ivy.xml"
-    write.over(ivyPath, ivy)
-    PathRef(ivyPath)
-  }
+  def forkWorkingDir = ammonite.ops.pwd
 
-  def artifact: T[Artifact] = T {
-    Artifact(pomSettings().organization, artifactId(), publishVersion())
-  }
+  def forkTest(args: String*) = T.command{
+    mkdir(T.ctx().dest)
+    val outputPath = T.ctx().dest/"out.json"
 
-  def publishLocal(): define.Command[Unit] = T.command {
-    LocalPublisher.publish(
-      jar = jar().path,
-      sourcesJar = sourcesJar().path,
-      docsJar = docsJar().path,
-      pom = pom().path,
-      ivy = ivy().path,
-      artifact = artifact()
+    Jvm.subprocess(
+      mainClass = "mill.scalalib.TestRunner",
+      classPath = Jvm.gatherClassloaderJars(),
+      jvmOptions = forkArgs(),
+      options = Seq(
+        testFramework(),
+        runClasspath().map(_.path).distinct.mkString(" "),
+        Seq(compile().classes.path).mkString(" "),
+        args.mkString(" "),
+        outputPath.toString,
+        T.ctx().log.colored.toString
+      ),
+      workingDir = forkWorkingDir
     )
+
+    val jsonOutput = upickle.json.read(outputPath.toIO)
+    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    TestModule.handleResults(doneMsg, results)
+
   }
-
-  def sonatypeUri: String = "https://oss.sonatype.org/service/local"
-
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
-
-  def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] = T.command {
-    val baseName = s"${artifactId()}-${publishVersion()}"
-    val artifacts = Seq(
-      jar().path -> s"${baseName}.jar",
-      sourcesJar().path -> s"${baseName}-sources.jar",
-      docsJar().path -> s"${baseName}-javadoc.jar",
-      pom().path -> s"${baseName}.pom"
+  def test(args: String*) = T.command{
+    val (doneMsg, results) = TestRunner(
+      testFramework(),
+      runClasspath().map(_.path),
+      Seq(compile().classes.path),
+      args
     )
-    new SonatypePublisher(
-      sonatypeUri,
-      sonatypeSnapshotUri,
-      credentials,
-      gpgPassphrase,
-      T.ctx().log
-    ).publish(artifacts, artifact())
-  }
-
-}
-
-trait SbtModule extends Module { outer =>
-  override def sources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'scala)) }
-  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
-  trait Tests extends super.Tests {
-    override def basePath = outer.basePath
-    override def sources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'scala)) }
-    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
+    TestModule.handleResults(doneMsg, results)
   }
 }
-
-trait CrossSbtModule extends SbtModule { outer =>
-  override def basePath = super.basePath / ammonite.ops.up
-  implicit def crossSbtModuleResolver: Resolver[CrossSbtModule] = new Resolver[CrossSbtModule]{
-    def resolve[V <: CrossSbtModule](c: Cross[V]): V = {
-      crossScalaVersion.split('.')
-        .inits
-        .takeWhile(_.length > 1)
-        .flatMap( prefix =>
-          c.items.map(_._2).find(_.crossScalaVersion.split('.').startsWith(prefix))
-        )
-        .collectFirst{case x => x}
-        .getOrElse(
-          throw new Exception(
-            s"Unable to find compatible cross version between $crossScalaVersion and "+
-            c.items.map(_._2.crossScalaVersion).mkString(",")
-          )
-        )
-    }
-  }
-
-  def crossScalaVersion: String
-  def scalaVersion = crossScalaVersion
-  override def sources = T.input{
-    super.sources() ++
-    crossScalaVersion.split('.').inits.filter(_.nonEmpty).map(_.mkString(".")).map{
-      s => PathRef{ basePath / 'src / 'main / s"scala-$s" }
-    }
-
-  }
-  override def resources = T.input{ Seq(PathRef(basePath / 'src / 'main / 'resources)) }
-  trait Tests extends super.Tests {
-    override def basePath = outer.basePath
-    override def sources = T.input{
-      super.sources() ++
-      crossScalaVersion.split('.').inits.filter(_.nonEmpty).map(_.mkString(".")).map{
-        s => PathRef{ basePath / 'src / 'test / s"scala-$s" }
-      }
-    }
-    override def resources = T.input{ Seq(PathRef(basePath / 'src / 'test / 'resources)) }
-  }
-}
-
-
