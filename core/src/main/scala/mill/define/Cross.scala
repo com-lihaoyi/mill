@@ -32,6 +32,16 @@ object Cross{
   }
 }
 
+/**
+  * Models "cross-builds": sets of duplicate builds which differ only in the
+  * value of one or more "case" variables whose values are determined at runtime.
+  * Used via:
+  *
+  * object foo extends Cross[FooModule]("bar", "baz", "qux")
+  * class FooModule(v: String) extends Module{
+  *   ...
+  * }
+  */
 class Cross[T](cases: Any*)
                (implicit ci: Cross.Factory[T],
                 val ctx: Module.Ctx){

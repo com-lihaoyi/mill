@@ -8,6 +8,13 @@ import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
+/**
+  * Models a single node in the Mill build graph, with a list of inputs and a
+  * single output of type [[T]].
+  *
+  * Generally not instantiated manually, but instead constructed via the
+  * [[Target.apply]] & similar macros.
+  */
 abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
   /**
     * What other Targets does this Target depend on?

@@ -12,6 +12,15 @@ object Segment{
 }
 
 case class BasePath(value: Path)
+
+/**
+  * Models a path with the Mill build hierarchy, e.g.
+  *
+  * amm.util[2.11].test.compile
+  *
+  * .-separated segments are [[Segment.Label]]s, while []-delimited
+  * segments are [[Segment.Cross]]s
+  */
 case class Segments(value: Segment*){
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other:_*)
   def ++(other: Segments): Segments = Segments(value ++ other.value:_*)
