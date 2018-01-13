@@ -5,7 +5,7 @@ import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
 import mill.discover.Mirror.TargetPoint
 import mill.util.Ctx.Loader
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -28,7 +28,7 @@ object Discovered {
       (mirror, segments, resolvedNode) => Seq(resolvedNode -> mirror)
     }.toMap
 
-    val targets = OSet.from(
+    val targets = Agg.from(
       Mirror.traverseNode(base, mirror){ (mirror, segmentsRev, resolvedNode) =>
         for(target <- mirror.targets)
         yield target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode)
@@ -44,7 +44,7 @@ object Discovered {
     val targetsToSegments = segmentsToTargets.map(_.swap)
   }
 
-  def consistencyCheck[T](mapping: Discovered.Mapping[T]): OSet[Segments] = {
+  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Agg[Segments] = {
     val mapping2 = Discovered.Mapping(mapping.mirror, mapping.base)
     for{
       (t1, t2) <- mapping2.targets.zip(mapping.targets)

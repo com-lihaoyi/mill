@@ -3,7 +3,7 @@ package mill.define
 import mill.discover.Discovered
 import mill.eval.Evaluator
 import mill.util.{DummyLogger, TestUtil}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import mill.T
 import mill.eval.Result.Success
 import utest._
@@ -31,7 +31,7 @@ object CacherTests extends TestSuite{
     def eval[V](mapping: Discovered.Mapping[_], v: Task[V])(implicit tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
       val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
-      evaluator.evaluate(OSet(v)).values(0)
+      evaluator.evaluate(Agg(v)).values(0)
     }
 
     'simpleDefIsCached - assert(

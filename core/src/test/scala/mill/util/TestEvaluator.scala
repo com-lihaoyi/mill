@@ -4,14 +4,14 @@ import ammonite.ops.Path
 import mill.define.{Input, Target, Task}
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 class TestEvaluator(mapping: Discovered.Mapping[_],
                     workspacePath: Path,
                     basePath: Path){
   val evaluator = new Evaluator(workspacePath, basePath, mapping, DummyLogger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
-    val evaluated = evaluator.evaluate(OSet(t))
+    val evaluated = evaluator.evaluate(Agg(t))
 
     if (evaluated.failing.keyCount == 0) {
       Right(

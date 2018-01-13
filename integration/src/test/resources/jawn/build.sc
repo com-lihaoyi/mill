@@ -16,7 +16,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
     def testProjectDeps: Seq[TestModule] = Nil
     object test extends Tests{
       def projectDeps = super.projectDeps ++ testProjectDeps
-      def ivyDeps = OSet(
+      def ivyDeps = Agg(
         Dep("org.scalatest", "scalatest", "3.0.3"),
         Dep("org.scalacheck", "scalacheck", "1.13.5")
       )
@@ -35,7 +35,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
   }
   class Support(ivyDeps0: Dep*)(implicit ctx: mill.Module.Ctx) extends JawnModule{
     def projectDeps = Seq[Module](parser)
-    def ivyDeps = OSet.from(ivyDeps0)
+    def ivyDeps = Agg.from(ivyDeps0)
   }
   object support extends mill.Module{
     object argonaut extends Support(Dep("io.argonaut", "argonaut", "6.2"))
@@ -44,9 +44,9 @@ class JawnModule(crossVersion: String) extends mill.Module{
     object play extends Support(){
       def ivyDeps = mill.T{
         scalaBinaryVersion() match{
-          case "2.10" => OSet(Dep("com.typesafe.play", "play-json", "2.4.11"))
-          case "2.11" => OSet(Dep("com.typesafe.play", "play-json", "2.5.15"))
-          case _ => OSet(Dep("com.typesafe.play", "play-json", "2.6.0"))
+          case "2.10" => Agg(Dep("com.typesafe.play", "play-json", "2.4.11"))
+          case "2.11" => Agg(Dep("com.typesafe.play", "play-json", "2.5.15"))
+          case _ => Agg(Dep("com.typesafe.play", "play-json", "2.6.0"))
         }
       }
     }

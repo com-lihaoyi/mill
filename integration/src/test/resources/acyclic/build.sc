@@ -24,12 +24,12 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     )
   )
 
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
   )
   object test extends Tests{
     def forkWorkingDir = ammonite.ops.pwd / 'target / 'workspace / 'acyclic
-    def ivyDeps = OSet(
+    def ivyDeps = Agg(
       Dep("com.lihaoyi", "utest", "0.6.0")
     )
     def testFramework = "utest.runner.Framework"

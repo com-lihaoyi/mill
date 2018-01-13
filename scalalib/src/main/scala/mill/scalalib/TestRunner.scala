@@ -9,7 +9,7 @@ import ammonite.ops.{Path, ls, pwd}
 import ammonite.util.Colors
 import mill.util.Ctx.LogCtx
 import mill.util.{PrintLogger}
-import mill.util.Loose.OSet
+import mill.util.Loose.Agg
 import sbt.testing._
 import upickle.Js
 import mill.util.JsonFormatters._
@@ -24,7 +24,7 @@ object TestRunner {
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
-  def runTests(cl: ClassLoader, framework: Framework, classpath: OSet[Path]) = {
+  def runTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
 
 
     val fingerprints = framework.fingerprints()
@@ -49,8 +49,8 @@ object TestRunner {
   def main(args: Array[String]): Unit = {
     val result = apply(
       frameworkName = args(0),
-      entireClasspath = OSet.from(args(1).split(" ").map(Path(_))),
-      testClassfilePath = OSet.from(args(2).split(" ").map(Path(_))),
+      entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
+      testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
       args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
     )(new PrintLogger(
       args(5) == "true",
@@ -70,8 +70,8 @@ object TestRunner {
     System.exit(0)
   }
   def apply(frameworkName: String,
-            entireClasspath: OSet[Path],
-            testClassfilePath: OSet[Path],
+            entireClasspath: Agg[Path],
+            testClassfilePath: Agg[Path],
             args: Seq[String])
            (implicit ctx: LogCtx): (String, Seq[Result]) = {
     val outerClassLoader = getClass.getClassLoader

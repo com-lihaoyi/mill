@@ -10,7 +10,7 @@ import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
 import Lib._
 import mill.define.Cross.Resolver
-import mill.util.Loose.OSet
+import mill.util.Loose.Agg
 import sbt.testing.Status
 
 /**
@@ -26,10 +26,10 @@ trait Module extends mill.Module with TaskModule { outer =>
   def mainClass: T[Option[String]] = None
 
   def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
-  def ivyDeps = T{ OSet.empty[Dep] }
-  def compileIvyDeps = T{ OSet.empty[Dep] }
-  def scalacPluginIvyDeps = T{ OSet.empty[Dep] }
-  def runIvyDeps = T{ OSet.empty[Dep] }
+  def ivyDeps = T{ Agg.empty[Dep] }
+  def compileIvyDeps = T{ Agg.empty[Dep] }
+  def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
+  def runIvyDeps = T{ Agg.empty[Dep] }
 
   def scalacOptions = T{ Seq.empty[String] }
   def javacOptions = T{ Seq.empty[String] }
@@ -40,7 +40,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   )
 
   def projectDeps = Seq.empty[Module]
-  def depClasspath = T{ OSet.empty[PathRef] }
+  def depClasspath = T{ Agg.empty[PathRef] }
 
 
   def upstreamRunClasspath = T{
@@ -58,7 +58,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     Task.traverse(projectDeps)(_.compileDepClasspath)().flatten
   }
 
-  def resolveDeps(deps: Task[OSet[Dep]], sources: Boolean = false) = T.task{
+  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
       repositories,
       scalaVersion(),
@@ -68,15 +68,15 @@ trait Module extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def externalCompileDepClasspath: T[OSet[PathRef]] = T{
-    OSet.from(Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten) ++
+  def externalCompileDepClasspath: T[Agg[PathRef]] = T{
+    Agg.from(Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
     )()
   }
 
-  def externalCompileDepSources: T[OSet[PathRef]] = T{
-    OSet.from(Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten) ++
+  def externalCompileDepSources: T[Agg[PathRef]] = T{
+    Agg.from(Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
       sources = true
@@ -87,7 +87,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
     */
-  def compileDepClasspath: T[OSet[PathRef]] = T{
+  def compileDepClasspath: T[Agg[PathRef]] = T{
     upstreamCompileClasspath() ++
     depClasspath()
   }
@@ -119,7 +119,7 @@ trait Module extends mill.Module with TaskModule { outer =>
     }
   }
 
-  def scalacPluginClasspath: T[OSet[PathRef]] =
+  def scalacPluginClasspath: T[Agg[PathRef]] =
     resolveDeps(
       T.task{scalacPluginIvyDeps()}
     )()
@@ -127,7 +127,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
-  def scalaCompilerClasspath: T[OSet[PathRef]] = T{
+  def scalaCompilerClasspath: T[Agg[PathRef]] = T{
     resolveDeps(
       T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
     )()
@@ -136,8 +136,8 @@ trait Module extends mill.Module with TaskModule { outer =>
   /**
     * Things that need to be on the classpath in order for this code to run
     */
-  def runDepClasspath: T[OSet[PathRef]] = T{
-    OSet.from(upstreamRunClasspath().flatten) ++
+  def runDepClasspath: T[Agg[PathRef]] = T{
+    Agg.from(upstreamRunClasspath().flatten) ++
     depClasspath() ++
     resolveDeps(
       T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())}
@@ -146,9 +146,9 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.input{ OSet(PathRef(basePath / 'src)) }
-  def resources = T.input{ OSet(PathRef(basePath / 'resources)) }
-  def generatedSources = T { OSet.empty[PathRef] }
+  def sources = T.input{ Agg(PathRef(basePath / 'src)) }
+  def resources = T.input{ Agg(PathRef(basePath / 'resources)) }
+  def generatedSources = T { Agg.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
   def compile: T[CompilationResult] = T.persistent{
     compileScala(
@@ -208,7 +208,7 @@ trait Module extends mill.Module with TaskModule { outer =>
       options = options.toSeq
     )
 
-    createJar(OSet(javadocDir))(outDir / "javadoc.jar")
+    createJar(Agg(javadocDir))(outDir / "javadoc.jar")
   }
 
   def sourcesJar = T {
@@ -302,7 +302,7 @@ trait TestModule extends Module with TaskModule {
     val (doneMsg, results) = TestRunner(
       testFramework(),
       runClasspath().map(_.path),
-      OSet(compile().classes.path),
+      Agg(compile().classes.path),
       args
     )
     TestModule.handleResults(doneMsg, results)

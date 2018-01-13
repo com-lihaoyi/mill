@@ -3,7 +3,7 @@ package scalalib
 
 import ammonite.ops._
 import mill.eval.{PathRef, Result}
-import mill.util.Loose.OSet
+import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */

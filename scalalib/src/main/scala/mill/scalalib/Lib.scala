@@ -10,7 +10,7 @@ import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module =
 import mill.define.Worker
 import mill.eval.{PathRef, Result}
 import mill.util.{Ctx}
-import mill.util.Loose.OSet
+import mill.util.Loose.Agg
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
@@ -39,7 +39,7 @@ object Lib{
       Locate.definesClass(classpathEntry)
   }
 
-  def grepJar(classPath: OSet[Path], s: String) = {
+  def grepJar(classPath: Agg[Path], s: String) = {
     classPath
       .find(_.toString.endsWith(s))
       .getOrElse(throw new Exception("Cannot find " + s))
@@ -48,13 +48,13 @@ object Lib{
 
   def compileScala(zincWorker: ZincWorker,
                    scalaVersion: String,
-                   sources: OSet[Path],
-                   compileClasspath: OSet[Path],
-                   compilerClasspath: OSet[Path],
-                   pluginClasspath: OSet[Path],
+                   sources: Agg[Path],
+                   compileClasspath: Agg[Path],
+                   compilerClasspath: Agg[Path],
+                   pluginClasspath: Agg[Path],
                    compilerBridge: Path,
                    scalacOptions: Seq[String],
-                   scalacPluginClasspath: OSet[Path],
+                   scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: Ctx): CompilationResult = {
@@ -173,7 +173,7 @@ object Lib{
                           scalaVersion: String,
                           scalaBinaryVersion: String,
                           deps: TraversableOnce[Dep],
-                          sources: Boolean = false): Result[OSet[PathRef]] = {
+                          sources: Boolean = false): Result[Agg[PathRef]] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
@@ -207,16 +207,16 @@ object Lib{
         .unsafePerformSync
         .flatMap(_.toOption)
 
-      OSet.from(
+      Agg.from(
         localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
       )
     }
   }
-  def scalaCompilerIvyDeps(scalaVersion: String) = OSet[Dep](
+  def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
   )
-  def scalaRuntimeIvyDeps(scalaVersion: String) = OSet[Dep](
+  def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
     Dep.Java("org.scala-lang", "scala-library", scalaVersion)
   )
   def compilerBridgeIvyDep(scalaVersion: String) =

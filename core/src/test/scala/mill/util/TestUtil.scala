@@ -4,7 +4,7 @@ import ammonite.main.Router.Overrides
 import mill.define._
 import mill.eval.Result
 import utest.assert
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import scala.collection.mutable
 
 object TestUtil {
@@ -56,7 +56,7 @@ object TestUtil {
 
 
   }
-  def checkTopological(targets: OSet[Task[_]]) = {
+  def checkTopological(targets: Agg[Task[_]]) = {
     val seen = mutable.Set.empty[Task[_]]
     for(t <- targets.indexed.reverseIterator){
       seen.add(t)

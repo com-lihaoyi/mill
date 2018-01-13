@@ -21,7 +21,7 @@ object Lib {
   def scalaJSLinkerIvyDep(scalaJSVersion: String): Dep =
     Dep("com.lihaoyi", s"mill-jsbridge_${scalaJSVersion.replace('.', '_')}", "0.1-SNAPSHOT")
 
-  def scalaJSLinkerBridge(classPath: Loose.OSet[Path]): ScalaJSLinkerBridge = {
+  def scalaJSLinkerBridge(classPath: Loose.Agg[Path]): ScalaJSLinkerBridge = {
     val classloaderSig = classPath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     LinkerBridge.scalaInstanceCache match {
       case Some((`classloaderSig`, linker)) => linker
@@ -44,7 +44,7 @@ object Lib {
 
   def link(main: Option[String],
            inputPaths: Seq[Path],
-           libraries: Loose.OSet[Path],
+           libraries: Loose.Agg[Path],
            linker: ScalaJSLinkerBridge,
            mode: OptimizeMode)
           (implicit ctx: Ctx.DestCtx): PathRef = {

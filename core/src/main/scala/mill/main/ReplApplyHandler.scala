@@ -5,7 +5,7 @@ import mill.define.Applicative.ApplyHandler
 import mill.define._
 import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 
 import scala.collection.mutable
 object ReplApplyHandler{
@@ -34,7 +34,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig
   override def apply[V](t: Task[V]) = {
-    val res = evaluator.evaluate(OSet(t))
+    val res = evaluator.evaluate(Agg(t))
     res.values match{
       case Seq(head: V) => head
       case Nil =>

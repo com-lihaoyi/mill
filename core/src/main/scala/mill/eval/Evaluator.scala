@@ -9,7 +9,7 @@ import mill.discover.{Discovered, Mirror}
 import mill.define.Segment
 import mill.util
 import mill.util._
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -35,7 +35,7 @@ class Evaluator[T](val workspacePath: Path,
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(Discovered.Mapping) = mapping
-  def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
+  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
     val transitive = Graph.transitiveTargets(goals)
@@ -55,7 +55,7 @@ class Evaluator[T](val workspacePath: Path,
       case t if goals.contains(t) => Left(t)
     }
 
-    val evaluated = new OSet.Mutable[Task[_]]
+    val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
 
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
@@ -84,7 +84,7 @@ class Evaluator[T](val workspacePath: Path,
 
 
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
-                          group: OSet[Task[_]],
+                          group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[Any]],
                           counterMsg: String): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
@@ -168,7 +168,7 @@ class Evaluator[T](val workspacePath: Path,
   }
 
 
-  def evaluateGroup(group: OSet[Task[_]],
+  def evaluateGroup(group: Agg[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
                     groupBasePath: Option[Path],
                     paths: Option[Evaluator.Paths],
@@ -275,8 +275,8 @@ object Evaluator{
 
   }
   case class Results(rawValues: Seq[Result[Any]],
-                     evaluated: OSet[Task[_]],
-                     transitive: OSet[Task[_]],
+                     evaluated: Agg[Task[_]],
+                     transitive: Agg[Task[_]],
                      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
                      results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}

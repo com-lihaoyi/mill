@@ -54,7 +54,7 @@ trait BetterFilesModule extends SbtModule{
     def projectDeps =
       if (this == core.test) super.projectDeps
       else super.projectDeps ++ Seq(core.test)
-    def ivyDeps = OSet(Dep("org.scalatest", "scalatest", "3.0.4"))
+    def ivyDeps = Agg(Dep("org.scalatest", "scalatest", "3.0.4"))
     def testFramework = "org.scalatest.tools.Framework"
   }
 }
@@ -63,17 +63,17 @@ object core extends BetterFilesModule
 
 object akka extends BetterFilesModule{
   def projectDeps = Seq(core)
-  def ivyDeps = OSet(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
+  def ivyDeps = Agg(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
 }
 
 object shapeless extends BetterFilesModule{
   def projectDeps = Seq(core)
-  def ivyDeps = OSet(Dep("com.chuusai", "shapeless", "2.3.2"))
+  def ivyDeps = Agg(Dep("com.chuusai", "shapeless", "2.3.2"))
 }
 
 object benchmarks extends BetterFilesModule{
   def projectDeps = Seq(core)
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep.Java("commons-io", "commons-io", "2.5")
     // "fastjavaio" % "fastjavaio" % "1.0" from "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar"
   )

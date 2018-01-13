@@ -4,7 +4,7 @@ package mill.discover
 import mill.define.Segment.Label
 import mill.define.Segments
 import mill.util.{TestGraphs}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import utest._
 
 object ConsistencyTests extends TestSuite{
@@ -18,7 +18,7 @@ object ConsistencyTests extends TestSuite{
       //
       // Maybe later we can convert them into compile errors somehow
 
-      val expected = OSet(
+      val expected = Agg(
         Segments(Label("down")),
         Segments(Label("right")),
         Segments(Label("left")),
@@ -30,7 +30,7 @@ object ConsistencyTests extends TestSuite{
           Discovered.mapping(diamond)
         )
 
-        assert(inconsistent == OSet())
+        assert(inconsistent == Agg())
       }
 
       'anonDiamond - {
@@ -38,7 +38,7 @@ object ConsistencyTests extends TestSuite{
           Discovered.mapping(anonDiamond)
         )
 
-        assert(inconsistent == OSet())
+        assert(inconsistent == Agg())
       }
 
       'borkedCachedDiamond2 - {

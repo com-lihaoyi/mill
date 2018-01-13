@@ -12,7 +12,7 @@ import mill.define.Segment
 import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.util.{EitherOps, Logger}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import upickle.Js
 
 /**
@@ -138,7 +138,7 @@ object RunScript{
 
   def evaluate(evaluator: Evaluator[_],
                targets: Seq[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
-    val evaluated = evaluator.evaluate(OSet.from(targets))
+    val evaluated = evaluator.evaluate(Agg.from(targets))
     val watched = evaluated.results
       .iterator
       .collect {

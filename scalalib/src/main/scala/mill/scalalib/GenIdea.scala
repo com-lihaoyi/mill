@@ -6,7 +6,7 @@ import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, PathRef}
 import mill.util.Ctx.{LoaderCtx, LogCtx}
 import mill.util.{PrintLogger}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 
 object GenIdea {
 
@@ -36,7 +36,7 @@ object GenIdea {
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
-        evaluator.evaluate(OSet(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
+        evaluator.evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
           .values
 
       (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
@@ -74,7 +74,7 @@ object GenIdea {
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
       val Seq(sourcesPathRef: PathRef, generatedSourcePathRefs: Seq[PathRef], allSourcesPathRefs: Seq[PathRef]) =
-        evaluator.evaluate(OSet(mod.sources, mod.generatedSources, mod.allSources)).values
+        evaluator.evaluate(Agg(mod.sources, mod.generatedSources, mod.allSources)).values
 
       val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
       val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq

@@ -2,17 +2,17 @@ package mill.define
 
 import mill.eval.Tarjans
 import mill.util.MultiBiMap
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 
 object Graph {
-  class TopoSorted private[Graph](val values: OSet[Task[_]])
+  class TopoSorted private[Graph](val values: Agg[Task[_]])
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
                                     (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
     for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
 
-      val transitiveTargets = new OSet.Mutable[Task[_]]
+      val transitiveTargets = new Agg.Mutable[Task[_]]
       def rec(t: Task[_]): Unit = {
         if (transitiveTargets.contains(t)) () // do nothing
         else if (important.isDefinedAt(t) && t != target) () // do nothing
@@ -27,8 +27,8 @@ object Graph {
     output
   }
 
-  def transitiveTargets(sourceTargets: OSet[Task[_]]): OSet[Task[_]] = {
-    val transitiveTargets = new OSet.Mutable[Task[_]]
+  def transitiveTargets(sourceTargets: Agg[Task[_]]): Agg[Task[_]] = {
+    val transitiveTargets = new Agg.Mutable[Task[_]]
     def rec(t: Task[_]): Unit = {
       if (transitiveTargets.contains(t)) () // do nothing
       else {
@@ -44,7 +44,7 @@ object Graph {
     * Takes the given targets, finds all the targets they transitively depend
     * on, and sort them topologically. Fails if there are dependency cycles
     */
-  def topoSorted(transitiveTargets: OSet[Task[_]]): TopoSorted = {
+  def topoSorted(transitiveTargets: Agg[Task[_]]): TopoSorted = {
 
     val indexed = transitiveTargets.indexed
     val targetIndices = indexed.zipWithIndex.toMap
@@ -56,6 +56,6 @@ object Graph {
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)
     assert(nonTrivialClusters.isEmpty, nonTrivialClusters)
-    new TopoSorted(OSet.from(sortedClusters.flatten.map(indexed)))
+    new TopoSorted(Agg.from(sortedClusters.flatten.map(indexed)))
   }
 }

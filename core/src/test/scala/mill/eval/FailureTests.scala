@@ -4,7 +4,7 @@ import mill.define.Target
 import mill.discover.Discovered
 import mill.discover.Discovered.mapping
 import mill.util.DummyLogger
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
@@ -19,7 +19,7 @@ object FailureTests extends TestSuite{
 
     def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
 
-      val res = evaluator.evaluate(OSet(target))
+      val res = evaluator.evaluate(Agg(target))
 
       val cleaned = res.rawValues.map{
         case Result.Exception(ex, _) => Result.Exception(ex, Nil)

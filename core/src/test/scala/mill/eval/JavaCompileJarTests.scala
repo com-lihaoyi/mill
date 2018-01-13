@@ -8,7 +8,7 @@ import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
 import mill.util.{DummyLogger, Loose, TestUtil}
-import mill.util.Strict.OSet
+import mill.util.Strict.Agg
 import utest._
 import mill._
 
@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def resourceRoot = T.source{ resourceRootPath }
         def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ Jvm.createJar(Loose.OSet(resourceRoot().path, classFiles().path)) }
+        def jar = T{ Jvm.createJar(Loose.Agg(resourceRoot().path, classFiles().path)) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
@@ -53,7 +53,7 @@ object JavaCompileJarTests extends TestSuite{
 
       def eval[T](t: Task[T]) = {
         val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
-        val evaluated = evaluator.evaluate(OSet(t))
+        val evaluated = evaluator.evaluate(Agg(t))
 
         if (evaluated.failing.keyCount == 0){
           Right(Tuple2(
@@ -68,7 +68,7 @@ object JavaCompileJarTests extends TestSuite{
         }
 
       }
-      def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
+      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
         val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
@@ -83,47 +83,47 @@ object JavaCompileJarTests extends TestSuite{
 
 
       check(
-        targets = OSet(jar),
-        expected = OSet(allSources, classFiles, jar)
+        targets = Agg(jar),
+        expected = Agg(allSources, classFiles, jar)
       )
 
       // Re-running with no changes results in nothing being evaluated
-      check(targets = OSet(jar), expected = OSet())
+      check(targets = Agg(jar), expected = Agg())
 
       // Appending an empty string gets ignored due to file-content hashing
       append(sourceRootPath / "Foo.java", "")
-      check(targets = OSet(jar), expected = OSet())
+      check(targets = Agg(jar), expected = Agg())
 
       // Appending whitespace forces a recompile, but the classfilesend up
       // exactly the same so no re-jarring.
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
       // list, because they are `Source`s not `Target`s
-      check(targets = OSet(jar), expected = OSet(/*sourceRoot, */allSources, classFiles))
+      check(targets = Agg(jar), expected = Agg(/*sourceRoot, */allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
       append(sourceRootPath / "Foo.java", "\nclass FooTwo{}")
-      check(targets = OSet(jar), expected = OSet(allSources, classFiles, jar))
+      check(targets = Agg(jar), expected = Agg(allSources, classFiles, jar))
 
       // Tweaking the resources forces rebuild of the final jar, without
       // recompiling classfiles
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(jar), expected = OSet(jar))
+      check(targets = Agg(jar), expected = Agg(jar))
 
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested
       append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(classFiles), expected = OSet(allSources, classFiles))
-      check(targets = OSet(jar), expected = OSet(jar))
-      check(targets = OSet(allSources), expected = OSet())
+      check(targets = Agg(classFiles), expected = Agg(allSources, classFiles))
+      check(targets = Agg(jar), expected = Agg(jar))
+      check(targets = Agg(allSources), expected = Agg())
 
       append(sourceRootPath / "Bar.java", "\nclass BarThree{}")
       append(resourceRootPath / "hello.txt", " ")
-      check(targets = OSet(resourceRoot), expected = OSet())
-      check(targets = OSet(allSources), expected = OSet(allSources))
-      check(targets = OSet(jar), expected = OSet(classFiles, jar))
+      check(targets = Agg(resourceRoot), expected = Agg())
+      check(targets = Agg(allSources), expected = Agg(allSources))
+      check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
       val jarContents = %%('jar, "-tf", workspacePath/'jar/'dest)(workspacePath).out.string
       val expectedJarContents =

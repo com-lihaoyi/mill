@@ -10,7 +10,7 @@ import mill.modules.Jvm.createAssembly
 
 object moduledefs extends SbtModule{
   def scalaVersion = "2.12.4"
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep.Java("org.scala-lang", "scala-compiler", scalaVersion()),
     Dep("com.lihaoyi", "sourcecode", "0.1.4")
   )
@@ -19,9 +19,9 @@ object moduledefs extends SbtModule{
 trait MillModule extends SbtModule{ outer =>
   def scalaVersion = "2.12.4"
 
-  def compileIvyDeps = OSet(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+  def compileIvyDeps = Agg(Dep("com.lihaoyi", "acyclic", "0.1.7"))
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = OSet(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+  def scalacPluginIvyDeps = Agg(Dep("com.lihaoyi", "acyclic", "0.1.7"))
 
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
@@ -36,7 +36,7 @@ trait MillModule extends SbtModule{ outer =>
     def projectDeps =
       if (this == core.test) Seq(core)
       else Seq(outer, core.test)
-    def ivyDeps = OSet(Dep("com.lihaoyi", "utest", "0.6.0"))
+    def ivyDeps = Agg(Dep("com.lihaoyi", "utest", "0.6.0"))
     def testFramework = "mill.UTestFramework"
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
   }
@@ -45,11 +45,11 @@ trait MillModule extends SbtModule{ outer =>
 object core extends MillModule {
   def projectDeps = Seq(moduledefs)
 
-  def compileIvyDeps = OSet(
+  def compileIvyDeps = Agg(
     Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
   )
 
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep("com.lihaoyi", "sourcecode", "0.1.4"),
     Dep("com.lihaoyi", "pprint", "0.5.3"),
     Dep.Point("com.lihaoyi", "ammonite", "1.0.3-21-05b5d32"),
@@ -61,7 +61,7 @@ object core extends MillModule {
   def generatedSources = T {
     mkdir(T.ctx().dest)
     shared.generateCoreSources(T.ctx().dest)
-    OSet(PathRef(T.ctx().dest))
+    Agg(PathRef(T.ctx().dest))
   }
 
   val test = new Tests(implicitly)
@@ -69,7 +69,7 @@ object core extends MillModule {
     def generatedSources = T {
       mkdir(T.ctx().dest)
       shared.generateCoreTestSources(T.ctx().dest)
-      OSet(PathRef(T.ctx().dest))
+      Agg(PathRef(T.ctx().dest))
     }
   }
 }
@@ -83,9 +83,9 @@ class BridgeModule(crossVersion: String) extends PublishModule {
 
   def scalaVersion = crossVersion
   def allSources = T{
-    OSet(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
+    Agg(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
   }
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep.Java("org.scala-lang", "scala-compiler", crossVersion),
     Dep.Java("org.scala-sbt", "compiler-interface", "1.0.5")
   )
@@ -125,7 +125,7 @@ class JsBridgeModule(scalajsBinary: String) extends MillModule{
     case "0.6" => "0.6.21"
     case "1.0" => "1.0.0-M2"
   }
-  def ivyDeps = OSet(
+  def ivyDeps = Agg(
     Dep("org.scala-js", "scalajs-tools", scalajsVersion)
   )
 }
@@ -134,8 +134,8 @@ object scalajslib extends MillModule {
 
   def projectDeps = Seq(scalalib)
 
-  def bridgeClasspath(runDepClasspath: OSet[PathRef], classes: PathRef) =
-    (runDepClasspath ++ OSet(classes)).map(_.path).mkString(File.pathSeparator)
+  def bridgeClasspath(runDepClasspath: Agg[PathRef], classes: PathRef) =
+    (runDepClasspath ++ Agg(classes)).map(_.path).mkString(File.pathSeparator)
   def testArgs = T{
     val mapping = Map(
       "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(jsbridges("0.6").runDepClasspath(), jsbridges("0.6").compile().classes),
@@ -171,7 +171,7 @@ def publishBridges(credentials: String, gpgPassphrase: String) = T.command {
   mill.define.Task.traverse(bridges.items)(_._2.publish(credentials, gpgPassphrase))
 }
 
-def assemblyBase(classpath: OSet[Path], extraArgs: String)
+def assemblyBase(classpath: Agg[Path], extraArgs: String)
                 (implicit ctx: mill.util.Ctx.DestCtx) = {
   createAssembly(
     classpath,
@@ -182,11 +182,11 @@ def assemblyBase(classpath: OSet[Path], extraArgs: String)
 }
 
 def devAssembly = T{
-  assemblyBase(OSet.from(assemblyClasspath().flatten.map(_.path)), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
+  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
 }
 
 def releaseAssembly = T{
-  assemblyBase(OSet.from(assemblyClasspath().flatten.map(_.path)), "")
+  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "")
 }
 
 def idea() = T.command{ mill.scalalib.GenIdea() }

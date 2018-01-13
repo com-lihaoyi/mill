@@ -3,46 +3,46 @@ package mill.util
 
 
 import scala.collection.mutable
-object Strict extends OSetWrapper(true)
-object Loose extends OSetWrapper(false)
-sealed class OSetWrapper(strictUniqueness: Boolean){
+object Strict extends AggWrapper(true)
+object Loose extends AggWrapper(false)
+sealed class AggWrapper(strictUniqueness: Boolean){
   /**
     * A collection with enforced uniqueness, fast contains and deterministic
     * ordering. Raises an exception if a duplicate is found; call
     * `toSeq.distinct` if you explicitly want to make it swallow duplicates
     */
-  trait OSet[V] extends TraversableOnce[V]{
+  trait Agg[V] extends TraversableOnce[V]{
     def contains(v: V): Boolean
     def items: Iterator[V]
     def indexed: IndexedSeq[V]
-    def flatMap[T](f: V => TraversableOnce[T]): OSet[T]
-    def map[T](f: V => T): OSet[T]
-    def filter(f: V => Boolean): OSet[V]
-    def withFilter(f: V => Boolean): OSet[V]
-    def collect[T](f: PartialFunction[V, T]): OSet[T]
-    def zipWithIndex: OSet[(V, Int)]
-    def reverse: OSet[V]
-    def zip[T](other: OSet[T]): OSet[(V, T)]
-    def ++[T >: V](other: TraversableOnce[T]): OSet[T]
+    def flatMap[T](f: V => TraversableOnce[T]): Agg[T]
+    def map[T](f: V => T): Agg[T]
+    def filter(f: V => Boolean): Agg[V]
+    def withFilter(f: V => Boolean): Agg[V]
+    def collect[T](f: PartialFunction[V, T]): Agg[T]
+    def zipWithIndex: Agg[(V, Int)]
+    def reverse: Agg[V]
+    def zip[T](other: Agg[T]): Agg[(V, T)]
+    def ++[T >: V](other: TraversableOnce[T]): Agg[T]
   }
 
-  object OSet{
-    def empty[V]: OSet[V] = new OSet.Mutable[V]
-    implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[OSet[T]] =
-      upickle.default.ReadWriter[OSet[T]] (
+  object Agg{
+    def empty[V]: Agg[V] = new Agg.Mutable[V]
+    implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
+      upickle.default.ReadWriter[Agg[T]] (
         oset => upickle.default.writeJs(oset.toList),
-        {case json => OSet.from(upickle.default.readJs[Seq[T]](json))}
+        {case json => Agg.from(upickle.default.readJs[Seq[T]](json))}
       )
     def apply[V](items: V*) = from(items)
 
-    def from[V](items: TraversableOnce[V]): OSet[V] = {
-      val set = new OSet.Mutable[V]()
+    def from[V](items: TraversableOnce[V]): Agg[V] = {
+      val set = new Agg.Mutable[V]()
       items.foreach(set.append)
       set
     }
 
 
-    class Mutable[V]() extends OSet[V]{
+    class Mutable[V]() extends Agg[V]{
 
       private[this] val set0 = mutable.LinkedHashSet.empty[V]
       def contains(v: V) = set0.contains(v)
@@ -57,22 +57,22 @@ sealed class OSetWrapper(strictUniqueness: Boolean){
       def indexed: IndexedSeq[V] = items.toIndexedSeq
       def set: collection.Set[V] = set0
 
-      def map[T](f: V => T): OSet[T] = {
-        val output = new OSet.Mutable[T]
+      def map[T](f: V => T): Agg[T] = {
+        val output = new Agg.Mutable[T]
         for(i <- items) output.append(f(i))
         output
       }
-      def flatMap[T](f: V => TraversableOnce[T]): OSet[T] = {
-        val output = new OSet.Mutable[T]
+      def flatMap[T](f: V => TraversableOnce[T]): Agg[T] = {
+        val output = new Agg.Mutable[T]
         for(i <- items) for(i0 <- f(i)) output.append(i0)
         output
       }
-      def filter(f: V => Boolean): OSet[V] = {
-        val output = new OSet.Mutable[V]
+      def filter(f: V => Boolean): Agg[V] = {
+        val output = new Agg.Mutable[V]
         for(i <- items) if (f(i)) output.append(i)
         output
       }
-      def withFilter(f: V => Boolean): OSet[V] = filter(f)
+      def withFilter(f: V => Boolean): Agg[V] = filter(f)
 
       def collect[T](f: PartialFunction[V, T]) = this.filter(f.isDefinedAt).map(x => f(x))
 
@@ -84,10 +84,10 @@ sealed class OSetWrapper(strictUniqueness: Boolean){
         }
       }
 
-      def reverse = OSet.from(indexed.reverseIterator)
+      def reverse = Agg.from(indexed.reverseIterator)
 
-      def zip[T](other: OSet[T]) = OSet.from(items.zip(other.items))
-      def ++[T >: V](other: TraversableOnce[T]) = OSet.from(items ++ other)
+      def zip[T](other: Agg[T]) = Agg.from(items.zip(other.items))
+      def ++[T >: V](other: TraversableOnce[T]) = Agg.from(items ++ other)
 
       // Members declared in scala.collection.GenTraversableOnce
       def isTraversableAgain: Boolean = items.isTraversableAgain
@@ -107,10 +107,10 @@ sealed class OSetWrapper(strictUniqueness: Boolean){
 
       override def hashCode() = items.map(_.hashCode()).sum
       override def equals(other: Any) = other match{
-        case s: OSet[_] => items.sameElements(s.items)
+        case s: Agg[_] => items.sameElements(s.items)
         case _ => super.equals(other)
       }
-      override def toString = items.mkString("OSet(", ", ", ")")
+      override def toString = items.mkString("Agg(", ", ", ")")
     }
   }
 }
