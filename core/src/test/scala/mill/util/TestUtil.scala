@@ -11,7 +11,8 @@ object TestUtil {
   class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
-                   overrides: Overrides)
+                   overrides: Overrides,
+                   cmds: Module.Cmds)
     extends Module()(
       mill.define.Ctx.make(
         implicitly,
@@ -20,7 +21,8 @@ object TestUtil {
         BasePath(ammonite.ops.pwd / millModuleEnclosing0.value),
         Segments(),
         implicitly
-      )
+      ),
+      cmds
     )
   object test{
 

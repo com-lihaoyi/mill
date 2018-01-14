@@ -5,33 +5,47 @@ import java.lang.reflect.Modifier
 import ammonite.main.Router.{EntryPoint, Overrides}
 import ammonite.ops.Path
 
-import scala.annotation.implicitNotFound
+import scala.language.experimental.macros
 import scala.reflect.ClassTag
-
+import scala.reflect.macros.blackbox
+object Module{
+  case class Cmds(value: Seq[EntryPoint[Module]])
+  object Cmds{
+    implicit def make: Cmds = macro makeImpl
+    implicit def makeImpl(c: blackbox.Context): c.Expr[Cmds] = {
+      import c.universe._
+      reify(Cmds(Nil))
+    }
+  }
+}
 /**
   * `Module` is a class meant to be extended by `trait`s *only*, in order to
   * propagate the implicit parameters forward to the final concrete
   * instantiation site so they can capture the enclosing/line information of
   * the concrete instance.
   */
-class Module(implicit ctx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
-  def commands: Seq[EntryPoint[Module]] = ???
+class Module(implicit ctx0: mill.define.Ctx, cmds: Module.Cmds) extends mill.moduledefs.Cacher{
+  def commands: Seq[EntryPoint[Module]] = cmds.value
 
-  def traverse[T](f: (Module, Segments) => Seq[T]): Seq[T] = {
-    ???
+  def traverse[T](f: Module => Seq[T]): Seq[T] = {
+    def rec(m: Module): Seq[T] = {
+      f(m) ++
+      this.reflect[Module].flatMap(f)
+    }
+    rec(this)
   }
 
-  lazy val segmentsToModules = traverse{(m, s) => Seq(s -> m)}
+  lazy val segmentsToModules = traverse{m => Seq(m.ctx.segments -> m)}
     .toMap
 
   lazy val modules = segmentsToModules.valuesIterator.toSet
-  lazy val segmentsToTargets = traverse{(m, s) => m.reflect[Target[_]]}
+  lazy val segmentsToTargets = traverse{_.reflect[Target[_]]}
     .map(t => (t.ctx.segments, t))
     .toMap
 
   lazy val targets = segmentsToTargets.valuesIterator.toSet
   lazy val segmentsToCommands = traverse{
-    (m, s) => m.commands.map(e => s ++ Seq(Segment.Label(e.name)) -> e)
+    m => m.commands.map(e => m.ctx.segments ++ Seq(Segment.Label(e.name)) -> e)
   }.toMap
 
   def ctx = ctx0
@@ -66,7 +80,9 @@ class BaseModule(basePath: Path)
                 (implicit millModuleEnclosing0: sourcecode.Enclosing,
                  millModuleLine0: sourcecode.Line,
                  millName0: sourcecode.Name,
-                 overrides0: Overrides)
+                 overrides0: Overrides,
+                 cmds: Module.Cmds)
   extends Module()(
-    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath), Segments(), implicitly)
+    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath), Segments(), implicitly),
+    cmds
   )
