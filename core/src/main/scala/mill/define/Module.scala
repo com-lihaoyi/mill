@@ -21,7 +21,7 @@ class Module(implicit parentCtx0: mill.define.Ctx) extends mill.moduledefs.Cache
     rec(this)
   }
 
-  lazy val segmentsToModules = traverse{m => Seq(m.parentCtx.segments -> m)}
+  lazy val segmentsToModules = traverse{m => Seq(m.millModuleSegments -> m)}
     .toMap
 
   lazy val modules = this.reflectNestedObjects[Module]
