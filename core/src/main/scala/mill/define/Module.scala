@@ -52,6 +52,7 @@ class Module(implicit ctx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
     this
       .getClass
       .getMethods
+      .filter(!_.getName.contains('$'))
       .filter(_.getParameterCount == 0)
       .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
       .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)

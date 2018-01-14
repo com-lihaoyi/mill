@@ -16,21 +16,22 @@ object Resolve {
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
-        def target =
+        val target =
           obj
             .reflect[Target[_]]
             .find(_.label == last)
             .map(Right(_))
 
-        def invokeCommand[V](target: mill.Module, name: String) = for{
-          cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name)
-        } yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
-          case Router.Result.Success(v) => Right(v)
-          case _ => Left(s"Command failed $last")
+        def invokeCommand[V](target: mill.Module, name: String) = {
+          for(cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name))
+          yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+            case Router.Result.Success(v) => Right(v)
+            case _ => Left(s"Command failed $last")
+          }
         }
 
-        def runDefault = for{
-          child <- obj.reflect[mill.Module]
+        val runDefault = for{
+          child <- obj.reflectNestedObjects[mill.Module]
           if child.ctx.segment == Segment.Label(last)
           res <- child match{
             case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
@@ -38,7 +39,7 @@ object Resolve {
           }
         } yield res
 
-        def command = invokeCommand(obj, last)
+        val command = invokeCommand(obj, last)
 
         command orElse target orElse runDefault.headOption.flatten match{
           case None =>  Left("Cannot resolve task " +
