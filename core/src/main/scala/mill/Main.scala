@@ -55,7 +55,8 @@ object Main {
                 |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                 |  interp.colors(),
                 |  repl.pprinter(),
-                |  build.mapping
+                |  build.millSelf.get,
+                |  build.millDiscover
                 |)
                 |repl.pprinter() = replApplyHandler.pprinter
                 |import replApplyHandler.generatedEval._

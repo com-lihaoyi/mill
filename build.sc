@@ -7,7 +7,6 @@ import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
 
-
 object moduledefs extends SbtModule{
   def scalaVersion = "2.12.4"
   def ivyDeps = Agg(
