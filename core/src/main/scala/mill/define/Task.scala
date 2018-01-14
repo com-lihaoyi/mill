@@ -42,6 +42,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
 
 trait NamedTask[+T] extends Task[T]{
   def ctx: Module.Ctx
+  def label = ctx.segment match{case Segment.Label(v) => v}
 }
 trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)

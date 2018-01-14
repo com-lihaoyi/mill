@@ -1,6 +1,6 @@
 package mill.main
 
-import mill.define.{Segment, Segments, Task}
+import mill.define.{Segment, Segments, Target, Task}
 import mill.define.Task.TaskModule
 import mill.discover.Mirror
 import ammonite.main.Router
@@ -17,9 +17,10 @@ object Resolve {
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
         def target =
-          hierarchy.targets
+          hierarchy.node(obj, remainingCrossSelectors).asInstanceOf[mill.Module]
+            .reflect[Target[_]]
             .find(_.label == last)
-            .map(x => Right(x.run(hierarchy.node(obj, remainingCrossSelectors))))
+            .map(Right(_))
 
         def invokeCommand[V](mirror: Mirror[T, V], name: String) = for{
           cmd <- mirror.commands.find(_.name == name)

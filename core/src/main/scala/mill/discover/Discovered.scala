@@ -3,7 +3,6 @@ package mill.discover
 import mill.define._
 import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
-import mill.discover.Mirror.TargetPoint
 import mill.util.Ctx.Loader
 import mill.util.Strict.Agg
 
@@ -30,8 +29,7 @@ object Discovered {
 
     val targets = Agg.from(
       Mirror.traverseNode(base, mirror){ (mirror, segmentsRev, resolvedNode) =>
-        for(target <- mirror.targets)
-        yield target.asInstanceOf[TargetPoint[Any, Any]].run(resolvedNode)
+        resolvedNode.asInstanceOf[mill.Module].reflect[Target[_]]
       }
     )
 
@@ -68,24 +66,6 @@ object Discovered {
             t: c.Type): Tree = {
 
       val r = new Router(c)
-
-      val targets = for {
-        m <- t.members.toList
-        if m.isMethod &&
-           m.typeSignature.paramLists.isEmpty &&
-           m.typeSignature.resultType <:< c.weakTypeOf[Target[_]] &&
-           !m.name.toString.contains(' ') &&
-           m.isPublic
-      } yield {
-        val x = Ident(TermName(c.freshName()))
-        val t = q"""mill.discover.Mirror.TargetPoint(
-          ${m.name.toString},
-          ($x: ${m.typeSignature.resultType}) => $x.${m.name.toTermName}
-        )"""
-
-        c.internal.setPos(t, m.pos)
-        t
-      }
 
       val crossChildren =
         if (!(t <:< c.weakTypeOf[Cross[_]])) q"None"
@@ -128,7 +108,6 @@ object Discovered {
       q"""mill.discover.Mirror[$baseType, $t](
         $hierarchySelector,
         $commands,
-        $targets,
         $childHierarchies,
         $crossChildren
       )"""

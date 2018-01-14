@@ -83,10 +83,13 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
             c.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
             ")()"
         }) ++
-        (if (mirror.targets.isEmpty) Nil
-        else ctx.applyPrefixColor("\nTargets:").toString +: mirror.targets.sortBy(_.label).map(t =>
-          "\n    ." + t.label + "()"
-        ))
+        (if (m.reflect[Target[_]].isEmpty) Nil
+        else {
+          Seq(ctx.applyPrefixColor("\nTargets:").toString) ++
+          m.reflect[Target[_]].sortBy(_.label).map(t =>
+            "\n    ." + t.label + "()"
+          )
+        })
 
       )
     case t: mill.define.Target[_] if evaluator.mapping.targets.contains(t) =>

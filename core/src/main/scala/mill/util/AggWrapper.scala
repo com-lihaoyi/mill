@@ -35,7 +35,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
       )
     def apply[V](items: V*) = from(items)
 
-    def from[V](items: TraversableOnce[V]): Agg[V] = {
+    implicit def from[V](items: TraversableOnce[V]): Agg[V] = {
       val set = new Agg.Mutable[V]()
       items.foreach(set.append)
       set

@@ -4,6 +4,7 @@ import ammonite.main.Router.Overrides
 import ammonite.ops.Path
 
 import scala.annotation.implicitNotFound
+import scala.reflect.ClassTag
 
 sealed trait Segment
 object Segment{
@@ -54,6 +55,14 @@ class Module(implicit ctx0: Module.Ctx) extends mill.moduledefs.Cacher{
   implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millModuleSegments: Segments = {
     ctx.segments0 ++ Seq(ctx.segment)
+  }
+  def reflect[T: ClassTag] = {
+    this
+      .getClass
+      .getMethods
+      .filter(_.getParameterCount == 0)
+      .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
+      .map(_.invoke(this).asInstanceOf[T])
   }
 }
 object Module{

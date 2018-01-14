@@ -15,12 +15,10 @@ import scala.language.experimental.macros
   */
 case class Mirror[-T, V](node: (T, List[List[Any]]) => V,
                          commands: Seq[EntryPoint[V]],
-                         targets: Seq[Mirror.TargetPoint[V, _]],
                          children: List[(String, Mirror[T, _])],
                          crossChildren: Option[(V => List[List[Any]], Mirror[T, _])])
 
 object Mirror{
-
 
   def traverseNode[T, V, R](t: T, hierarchy: Mirror[T, V])
                            (f: (Mirror[T, _], => Segments, => Any) => Seq[R]): Seq[R] = {
@@ -48,11 +46,4 @@ object Mirror{
     }
     rec(Nil, hierarchy)
   }
-
-
-  /**
-    * Represents metadata about a particular target, before the target is
-    * materialized for a concrete build
-    */
-  case class TargetPoint[T, V](label: String, run: T => Target[V])
 }
