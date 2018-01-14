@@ -5,7 +5,6 @@ import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
-import mill.discover.Discovered
 import mill.eval.{Evaluator, PathRef}
 import mill.util.PrintLogger
 import upickle.Js
@@ -97,7 +96,6 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
-         |  lazy val mapping = mill.discover.Discovered.make[$wrapName].mapping(this)
          |}
          |
          |sealed trait $wrapName extends mill.Module{

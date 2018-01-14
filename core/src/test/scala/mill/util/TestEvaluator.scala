@@ -2,13 +2,12 @@ package mill.util
 
 import ammonite.ops.Path
 import mill.define.{Input, Target, Task}
-import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
-class TestEvaluator(mapping: Discovered.Mapping[_],
+class TestEvaluator(module: mill.Module,
                     workspacePath: Path,
                     basePath: Path){
-  val evaluator = new Evaluator(workspacePath, basePath, mapping, DummyLogger)
+  val evaluator = new Evaluator(workspacePath, basePath, module, DummyLogger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
@@ -18,7 +17,7 @@ class TestEvaluator(mapping: Discovered.Mapping[_],
         Tuple2(
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
-            case t: Target[_] if mapping.targets.contains(t) && !t.isInstanceOf[Input[_]] => t
+            case t: Target[_] if module.targets.contains(t) && !t.isInstanceOf[Input[_]] => t
             case t: mill.define.Command[_]           => t
           }.size
         ))

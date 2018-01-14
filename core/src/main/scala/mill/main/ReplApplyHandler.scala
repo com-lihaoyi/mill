@@ -3,7 +3,6 @@ package mill.main
 
 import mill.define.Applicative.ApplyHandler
 import mill.define._
-import mill.discover.{Discovered, Mirror}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
 
@@ -11,13 +10,13 @@ import scala.collection.mutable
 object ReplApplyHandler{
   def apply[T](colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
-               mapping: Discovered.Mapping[T]) = {
+               rootModule: mill.Module) = {
     new ReplApplyHandler(
       pprinter0,
       new mill.eval.Evaluator(
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd,
-        mapping,
+        rootModule,
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
           colors,
@@ -71,14 +70,13 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
       )
-    case m: mill.Module if evaluator.mapping.modulesToMirrors.contains(m) =>
-      val mirror = evaluator.mapping.modulesToMirrors(m)
+    case m: mill.Module if evaluator.rootModule.modules.contains(m) =>
       pprint.Tree.Lazy( ctx =>
         Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
-        (if (mirror.children.isEmpty) Nil
-        else ctx.applyPrefixColor("\nChildren:").toString +: mirror.children.map("\n    ." + _._1)) ++
-        (if (mirror.commands.isEmpty) Nil
-        else ctx.applyPrefixColor("\nCommands:").toString +: mirror.commands.sortBy(_.name).map{c =>
+        (if (m.reflect[mill.Module].isEmpty) Nil
+        else ctx.applyPrefixColor("\nChildren:").toString +: m.reflect[mill.Module].map("\n    ." + _.ctx.segments.render)) ++
+        (if (m.commands.isEmpty) Nil
+        else ctx.applyPrefixColor("\nCommands:").toString +: m.commands.sortBy(_.name).map{c =>
           "\n    ." + c.name + "(" +
             c.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
             ")()"
@@ -92,12 +90,12 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
         })
 
       )
-    case t: mill.define.Target[_] if evaluator.mapping.targets.contains(t) =>
+    case t: mill.define.Target[_] if evaluator.rootModule.targets.contains(t) =>
       val seen = mutable.Set.empty[Task[_]]
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: Target[_] if evaluator.mapping.targets.contains(t) =>
+          case t: Target[_] if evaluator.rootModule.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)

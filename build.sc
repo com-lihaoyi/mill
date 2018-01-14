@@ -30,7 +30,7 @@ trait MillModule extends SbtModule{ outer =>
   def testArgs = T{ Seq.empty[String] }
 
   val test = new Tests(implicitly)
-  class Tests(ctx0: mill.Module.Ctx) extends mill.Module()(ctx0) with super.Tests{
+  class Tests(ctx0: mill.mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
     def defaultCommandName() = "forkTest"
     def forkArgs = T{ testArgs() }
     def projectDeps =
@@ -65,7 +65,7 @@ object core extends MillModule {
   }
 
   val test = new Tests(implicitly)
-  class Tests(ctx0: mill.Module.Ctx) extends super.Tests(ctx0){
+  class Tests(ctx0: mill.mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
       mkdir(T.ctx().dest)
       shared.generateCoreTestSources(T.ctx().dest)

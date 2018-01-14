@@ -13,7 +13,7 @@ object TestUtil {
                    millName0: sourcecode.Name,
                    overrides: Overrides)
     extends Module()(
-      Module.Ctx.make(
+      mill.define.Ctx.make(
         implicitly,
         implicitly,
         implicitly,
@@ -26,7 +26,7 @@ object TestUtil {
 
     def anon(inputs: Task[Int]*) = new Test(inputs)
     def apply(inputs: Task[Int]*)
-            (implicit ctx: Module.Ctx)= {
+            (implicit ctx: mill.define.Ctx)= {
       new TestTarget(inputs, pure = inputs.nonEmpty)
     }
   }
@@ -49,7 +49,7 @@ object TestUtil {
     */
   class TestTarget(inputs: Seq[Task[Int]],
                    val pure: Boolean)
-                  (implicit ctx0: Module.Ctx)
+                  (implicit ctx0: mill.define.Ctx)
     extends Test(inputs) with Target[Int]{
     val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
     val readWrite = upickle.default.IntRW

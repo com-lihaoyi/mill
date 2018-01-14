@@ -9,7 +9,6 @@ import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
 import mill.define.Task
 import mill.define.Segment
-import mill.discover.Discovered
 import mill.eval.{Evaluator, Result}
 import mill.util.{EitherOps, Logger}
 import mill.util.Strict.Agg
@@ -73,7 +72,7 @@ object RunScript{
 
   def evaluateMapping(wd: Path,
                       path: Path,
-                      interp: ammonite.interp.Interpreter): Res[Discovered.Mapping[_]] = {
+                      interp: ammonite.interp.Interpreter): Res[mill.Module] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -102,15 +101,15 @@ object RunScript{
       mapping <- try {
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
-            buildCls.getDeclaredMethod("mapping")
-              .invoke(null)
-              .asInstanceOf[Discovered.Mapping[_]]
+            buildCls.getField("MODULE$")
+              .get(buildCls)
+              .asInstanceOf[mill.Module]
           )
         }
       } catch {
         case e: Throwable => Res.Exception(e, "")
       }
-      _ <- Res(consistencyCheck(mapping))
+//      _ <- Res(consistencyCheck(mapping))
     } yield mapping
   }
 
@@ -126,7 +125,7 @@ object RunScript{
             case _ => Nil
           }
           mill.main.Resolve.resolve(
-            sel, evaluator.mapping.mirror, evaluator.mapping.base,
+            sel, evaluator.rootModule,
             args, crossSelectors, Nil
           )
         }
@@ -180,12 +179,12 @@ object RunScript{
     }
   }
 
-  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
-    val consistencyErrors = Discovered.consistencyCheck(mapping)
-    if (consistencyErrors.nonEmpty) {
-      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
-    } else {
-      Right(())
-    }
-  }
+//  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
+//    val consistencyErrors = Discovered.consistencyCheck(mapping)
+//    if (consistencyErrors.nonEmpty) {
+//      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
+//    } else {
+//      Right(())
+//    }
+//  }
 }

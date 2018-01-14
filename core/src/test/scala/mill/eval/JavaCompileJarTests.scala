@@ -3,7 +3,6 @@ package mill.eval
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
 import mill.define.{Input, Target, Task}
-import mill.discover.Discovered
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
@@ -49,17 +48,16 @@ object JavaCompileJarTests extends TestSuite{
       }
 
       import Build._
-      val mapping = Discovered.mapping(Build)
 
       def eval[T](t: Task[T]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, Build, DummyLogger)
         val evaluated = evaluator.evaluate(Agg(t))
 
         if (evaluated.failing.keyCount == 0){
           Right(Tuple2(
             evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
             evaluated.evaluated.collect{
-              case t: Target[_] if mapping.targets.contains(t) => t
+              case t: Target[_] if Build.targets.contains(t) => t
               case t: mill.define.Command[_] => t
             }.size
           ))
@@ -69,12 +67,12 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, mapping, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, Build, DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated
           .flatMap(_.asTarget)
-          .filter(mapping.targets.contains)
+          .filter(Build.targets.contains)
           .filter(!_.isInstanceOf[Input[_]])
         assert(evaluated == expected)
       }

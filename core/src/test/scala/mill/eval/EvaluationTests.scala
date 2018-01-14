@@ -4,19 +4,17 @@ package mill.eval
 import mill.util.TestUtil.{Test, test}
 import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
-import mill.discover.Discovered
-import mill.discover.Discovered.mapping
 import mill.util.{DummyLogger, TestGraphs, TestUtil}
 import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
 object EvaluationTests extends TestSuite{
-  class Checker(mapping: Discovered.Mapping[_])(implicit tp: TestPath) {
+  class Checker(module: mill.Module)(implicit tp: TestPath) {
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
+    def evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: Agg[Task[_]],
@@ -59,7 +57,7 @@ object EvaluationTests extends TestSuite{
 
       'singleton - {
         import singleton._
-        val check = new Checker(mapping(singleton))
+        val check = new Checker(singleton)
         // First time the target is evaluated
         check(single, expValue = 0, expEvaled = Agg(single))
 
@@ -69,7 +67,7 @@ object EvaluationTests extends TestSuite{
       }
       'pair - {
         import pair._
-        val check = new Checker(mapping(pair))
+        val check = new Checker(pair)
         check(down, expValue = 0, expEvaled = Agg(up, down))
 
         down.counter += 1
@@ -80,7 +78,7 @@ object EvaluationTests extends TestSuite{
       }
       'anonTriple - {
         import anonTriple._
-        val check = new Checker(mapping(anonTriple))
+        val check = new Checker(anonTriple)
         val middle = down.inputs(0)
         check(down, expValue = 0, expEvaled = Agg(up, middle, down))
 
@@ -96,7 +94,7 @@ object EvaluationTests extends TestSuite{
       }
       'diamond - {
         import diamond._
-        val check = new Checker(mapping(diamond))
+        val check = new Checker(diamond)
         check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
 
         down.counter += 1
@@ -114,7 +112,7 @@ object EvaluationTests extends TestSuite{
       }
       'anonDiamond - {
         import anonDiamond._
-        val check = new Checker(mapping(anonDiamond))
+        val check = new Checker(anonDiamond)
         val left = down.inputs(0).asInstanceOf[TestUtil.Test]
         val right = down.inputs(1).asInstanceOf[TestUtil.Test]
         check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
@@ -135,7 +133,7 @@ object EvaluationTests extends TestSuite{
 
       'bigSingleTerminal - {
         import bigSingleTerminal._
-        val check = new Checker(mapping(bigSingleTerminal))
+        val check = new Checker(bigSingleTerminal)
 
         check(j, expValue = 0, expEvaled = Agg(a, b, e, f, i, j), extraEvaled = 22)
 
@@ -158,7 +156,7 @@ object EvaluationTests extends TestSuite{
         // even though one depends on the other
 
         import separateGroups._
-        val checker = new Checker(mapping(separateGroups))
+        val checker = new Checker(separateGroups)
         val evaled1 = checker.evaluator.evaluate(Agg(right, left))
         val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered1 == Agg(change, left, right))
@@ -175,7 +173,7 @@ object EvaluationTests extends TestSuite{
       'triangleTask - {
 
         import triangleTask._
-        val checker = new Checker(mapping(triangleTask))
+        val checker = new Checker(triangleTask)
         checker(right, 3, Agg(left, right), extraEvaled = -1)
         checker(left, 1, Agg(), extraEvaled = -1)
 
@@ -183,7 +181,7 @@ object EvaluationTests extends TestSuite{
       'multiTerminalGroup - {
         import multiTerminalGroup._
 
-        val checker = new Checker(mapping(multiTerminalGroup))
+        val checker = new Checker(multiTerminalGroup)
         checker(right, 1, Agg(right), extraEvaled = -1)
         checker(left, 1, Agg(left), extraEvaled = -1)
       }
@@ -192,7 +190,7 @@ object EvaluationTests extends TestSuite{
 
         import multiTerminalBoundary._
 
-        val checker = new Checker(mapping(multiTerminalBoundary))
+        val checker = new Checker(multiTerminalBoundary)
         checker(task2, 4, Agg(right, left), extraEvaled = -1, secondRunNoOp = false)
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
@@ -200,7 +198,7 @@ object EvaluationTests extends TestSuite{
       'overrideSuperTask - {
         import canOverrideSuper._
 
-        val checker = new Checker(mapping(canOverrideSuper))
+        val checker = new Checker(canOverrideSuper)
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
       }
 
@@ -237,7 +235,7 @@ object EvaluationTests extends TestSuite{
 
         // During the first evaluation, they get computed normally like any
         // cached target
-        val check = new Checker(mapping(build))
+        val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
         check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 8)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)

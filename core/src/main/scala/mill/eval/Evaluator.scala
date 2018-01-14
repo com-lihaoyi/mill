@@ -4,9 +4,7 @@ import java.net.URLClassLoader
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
-import mill.define._
-import mill.discover.{Discovered, Mirror}
-import mill.define.Segment
+import mill.define.{Segment, Segments, NamedTask, Graph, Target, Task}
 import mill.util
 import mill.util._
 import mill.util.Strict.Agg
@@ -27,14 +25,14 @@ case class Labelled[T](target: NamedTask[T],
 }
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
-                   val mapping: Discovered.Mapping[T],
+                   val rootModule: mill.Module,
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
 
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
-  workerCache(Discovered.Mapping) = mapping
+//  workerCache(Discovered.Mapping) = rootModule
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
@@ -44,8 +42,8 @@ class Evaluator[T](val workspacePath: Path,
       case t: NamedTask[Any]   =>
         val segments = t.ctx.segments
         val (finalTaskOverrides, enclosing) = t match{
-          case t: Target[_] => mapping.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
-          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.ctx.enclosing
+          case t: Target[_] => rootModule.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
+          case c: mill.define.Command[_] => rootModule.segmentsToCommands(segments).overrides -> c.ctx.enclosing
         }
         val additional =
           if (finalTaskOverrides == t.ctx.overrides) Nil

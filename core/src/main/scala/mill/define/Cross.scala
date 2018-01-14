@@ -4,7 +4,7 @@ import scala.reflect.macros.blackbox
 
 
 object Cross{
-  case class Factory[T](make: (Product, Module.Ctx) => T)
+  case class Factory[T](make: (Product, mill.define.Ctx) => T)
 
   object Factory{
     implicit def make[T]: Factory[T] = macro makeImpl[T]
@@ -19,7 +19,7 @@ object Cross{
         for((a, n) <- primaryConstructorArgs.zipWithIndex)
         yield q"v.productElement($n).asInstanceOf[${a.info}]"
 
-      val instance = c.Expr[(Product, Module.Ctx) => T](
+      val instance = c.Expr[(Product, mill.define.Ctx) => T](
         q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def ctx = ctx0 } }"
       )
 
@@ -44,7 +44,14 @@ object Cross{
   */
 class Cross[T](cases: Any*)
               (implicit ci: Cross.Factory[T],
-               ctx: Module.Ctx) extends mill.define.Module()(ctx) {
+               ctx: mill.define.Ctx) extends mill.define.Module()(ctx) {
+
+  override def traverse[T](f: (Module, Segments) => Seq[T]): Seq[T] = {
+    ???
+//    f(this) ++
+//    this.reflect[mill.Module].flatMap(f) ++
+//    items.map(_._2).flatMap{case t: mill.Module => f(t)}
+  }
 
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{
