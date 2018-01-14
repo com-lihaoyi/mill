@@ -29,11 +29,13 @@ val pluginSettings = Seq(
   }
 )
 
-lazy val ammoniteRunner = project.settings(
-  scalaVersion := "2.12.4",
-  libraryDependencies +=
-    "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
-)
+lazy val ammoniteRunner = project
+  .in(file("synthetic/ammoniteRunner"))
+  .settings(
+    scalaVersion := "2.12.4",
+    libraryDependencies +=
+      "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
+  )
 
 
 def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: String = "") = Def.task{
@@ -53,7 +55,7 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
 
 def bridge(bridgeVersion: String) = Project(
   id = "bridge" + bridgeVersion.replace('.', '_'),
-  base = file("bridge/" + bridgeVersion.replace('.', '_')),
+  base = file("synthetic/bridge/" + bridgeVersion.replace('.', '_')),
   settings = Seq(
     organization := "com.lihaoyi",
     scalaVersion := bridgeVersion,
@@ -214,9 +216,11 @@ lazy val integration = project
   )
 
 lazy val bin = project
+  .in(file("synthetic/bin"))
   .dependsOn(scalalib, scalajslib)
   .settings(
     sharedSettings,
+    baseDirectory := baseDirectory.value.getParentFile,
     fork := true,
     connectInput in (Test, run) := true,
     outputStrategy in (Test, run) := Some(StdoutOutput),
