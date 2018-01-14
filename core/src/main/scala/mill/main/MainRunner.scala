@@ -98,7 +98,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
          |
-         |  val millDiscover = mill.define.Discover[$wrapName]
+         |  val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
          |  // Need to wrap the returned Module in Some(...) to make sure it
          |  // doesn't get picked up during reflective child-module discovery
          |  val millSelf = Some(this)

@@ -14,14 +14,14 @@ import scala.reflect.macros.blackbox
   * instantiation site so they can capture the enclosing/line information of
   * the concrete instance.
   */
-class Module(implicit ctx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
+class Module(implicit parentCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
 
   def traverse[T](f: Module => Seq[T]): Seq[T] = {
     def rec(m: Module): Seq[T] = f(m) ++ m.modules.flatMap(rec)
     rec(this)
   }
 
-  lazy val segmentsToModules = traverse{m => Seq(m.ctx.segments -> m)}
+  lazy val segmentsToModules = traverse{m => Seq(m.parentCtx.segments -> m)}
     .toMap
 
   lazy val modules = this.reflectNestedObjects[Module]
@@ -31,22 +31,22 @@ class Module(implicit ctx0: mill.define.Ctx) extends mill.moduledefs.Cacher{
 
   lazy val targets = segmentsToTargets.valuesIterator.toSet
   lazy val segmentsToCommands = traverse{
-    m => m.reflectNames[Command[_]].map(c => m.ctx.segments ++ Seq(Segment.Label(c)))
+    m => m.reflectNames[Command[_]].map(c => m.parentCtx.segments ++ Seq(Segment.Label(c)))
   }.toSet
 
-  def ctx = ctx0
+  def parentCtx = parentCtx0
   // Ensure we do not propagate the implicit parameters as implicits within
   // the body of any inheriting class/trait/objects, as it would screw up any
   // one else trying to use sourcecode.{Enclosing,Line} to capture debug info
-  val millModuleEnclosing = ctx.enclosing
-  val millModuleLine = ctx.lineNum
-  def basePath: Path = ctx.basePath / (ctx.segment match{
+  val millModuleEnclosing = parentCtx.enclosing
+  val millModuleLine = parentCtx.lineNum
+  def basePath: Path = parentCtx.basePath / (parentCtx.segment match{
     case Segment.Label(s) => List(s)
     case Segment.Cross(vs) => vs.map(_.toString)
   })
   implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millModuleSegments: Segments = {
-    ctx.segments0 ++ Seq(ctx.segment)
+    parentCtx.segments0 ++ Seq(parentCtx.segment)
   }
   def reflect[T: ClassTag] = {
     this

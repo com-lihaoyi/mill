@@ -5,7 +5,7 @@ import mill.define.{Segment, Segments, Target}
 import mill.eval.{Evaluator, PathRef, RootModuleLoader}
 import mill.scalalib
 import mill.util.Ctx.{LoaderCtx, LogCtx}
-import mill.util.PrintLogger
+import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
 
 object GenIdea {
@@ -27,10 +27,10 @@ object GenIdea {
   def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
 
-    val modules = rootModule.modules.collect{case x: scalalib.Module => (x.ctx.segments, x)}.toSeq
+    val modules = rootModule.modules.collect{case x: scalalib.Module => (x.millModuleSegments, x)}.toSeq
 
     val resolved = for((path, mod) <- modules) yield {
-      val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
+      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
         evaluator.evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
           .values
 
@@ -68,8 +68,11 @@ object GenIdea {
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
-      val Seq(sourcesPathRef: PathRef, generatedSourcePathRefs: Seq[PathRef], allSourcesPathRefs: Seq[PathRef]) =
-        evaluator.evaluate(Agg(mod.sources, mod.generatedSources, mod.allSources)).values
+      val Seq(
+        sourcesPathRef: Loose.Agg[PathRef],
+        generatedSourcePathRefs: Loose.Agg[PathRef],
+        allSourcesPathRefs: Loose.Agg[PathRef]
+      ) = evaluator.evaluate(Agg(mod.sources, mod.generatedSources, mod.allSources)).values
 
       val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
       val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
@@ -80,13 +83,11 @@ object GenIdea {
       )
 
       val elem = moduleXmlTemplate(
-        sourcesPathRef.path,
-        normalSourcePaths,
-        generatedSourcePaths,
-        Seq(paths.out),
-        resolvedDeps.map(pathToLibName),
-        for(m <- mod.projectDeps)
-        yield moduleName(moduleLabels(m))
+        Strict.Agg.from(normalSourcePaths),
+        Strict.Agg.from(generatedSourcePaths),
+        Strict.Agg(paths.out),
+        Strict.Agg.from(resolvedDeps.map(pathToLibName)),
+        Strict.Agg.from(mod.projectDeps.map{m => moduleName(moduleLabels(m))}.distinct)
       )
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
@@ -151,29 +152,28 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(basePath: Path,
-    normalSourcePaths: Seq[Path],
-    generatedSourcePaths: Seq[Path],
-                        outputPaths: Seq[Path],
-                        libNames: Seq[String],
-                        depNames: Seq[String]) = {
+  def moduleXmlTemplate(normalSourcePaths: Strict.Agg[Path],
+                        generatedSourcePaths: Strict.Agg[Path],
+                        outputPaths: Strict.Agg[Path],
+                        libNames: Strict.Agg[String],
+                        depNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         {
-        for(outputPath <- outputPaths)
+        for(outputPath <- outputPaths.toSeq)
         yield <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         }
 
         <exclude-output />
         {
-        for (normalSourcePath <- normalSourcePaths)
+        for (normalSourcePath <- normalSourcePaths.toSeq)
           yield
             <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
             </content>
         }
         {
-        for (generatedSourcePath <- generatedSourcePaths)
+        for (generatedSourcePath <- generatedSourcePaths.toSeq)
           yield
             <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
@@ -183,12 +183,12 @@ object GenIdea {
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
-        for(name <- libNames)
+        for(name <- libNames.toSeq)
         yield <orderEntry type="library" name={name} level="project" />
 
         }
         {
-        for(depName <- depNames)
+        for(depName <- depNames.toSeq)
         yield <orderEntry type="module" module-name={depName} exported="" />
         }
       </component>

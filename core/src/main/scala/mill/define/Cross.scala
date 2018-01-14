@@ -20,7 +20,7 @@ object Cross{
         yield q"v.productElement($n).asInstanceOf[${a.info}]"
 
       val instance = c.Expr[(Product, mill.define.Ctx) => T](
-        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def ctx = ctx0 } }"
+        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def parentCtx = ctx0 } }"
       )
 
       reify { mill.define.Cross.Factory[T](instance.splice) }

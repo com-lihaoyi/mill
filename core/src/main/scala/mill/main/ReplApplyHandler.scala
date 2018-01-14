@@ -70,7 +70,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(c.ctx.enclosing , ":", c.ctx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
+        Iterator(c.parentCtx.enclosing , ":", c.parentCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
@@ -79,7 +79,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
       pprint.Tree.Lazy( ctx =>
         Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
         (if (m.reflect[mill.Module].isEmpty) Nil
-        else ctx.applyPrefixColor("\nChildren:").toString +: m.reflect[mill.Module].map("\n    ." + _.ctx.segments.render)) ++
+        else ctx.applyPrefixColor("\nChildren:").toString +: m.reflect[mill.Module].map("\n    ." + _.parentCtx.segments.render)) ++
         (discover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>

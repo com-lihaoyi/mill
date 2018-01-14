@@ -13,6 +13,9 @@ object Resolve {
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
 
+    pprint.log(discover.value.keySet)
+    pprint.log(obj.getClass)
+    pprint.log(remainingSelector)
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
@@ -23,6 +26,8 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand[V](target: mill.Module, name: String) = {
+          pprint.log(target)
+          pprint.log(discover.value.get(target.getClass))
           for(cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name))
           yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
             case Router.Result.Success(v) => Right(v)
@@ -32,7 +37,7 @@ object Resolve {
 
         val runDefault = for{
           child <- obj.reflectNestedObjects[mill.Module]
-          if child.ctx.segment == Segment.Label(last)
+          if child.parentCtx.segment == Segment.Label(last)
           res <- child match{
             case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
             case _ => None
@@ -56,7 +61,7 @@ object Resolve {
         head match{
           case Segment.Label(singleLabel) =>
             obj.reflectNestedObjects[mill.Module].find{
-              _.ctx.segment == Segment.Label(singleLabel)
+              _.parentCtx.segment == Segment.Label(singleLabel)
             } match{
               case Some(child: mill.Module) => resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
               case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
