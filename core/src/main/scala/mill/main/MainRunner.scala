@@ -5,6 +5,7 @@ import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
+import mill.define.Discover
 import mill.eval.{Evaluator, PathRef}
 import mill.util.PrintLogger
 import upickle.Js
@@ -23,7 +24,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
-  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])] = None
+  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)] = None
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(
@@ -47,9 +48,9 @@ class MainRunner(config: ammonite.main.Cli.Config,
 
         result match{
           case Res.Success(data) =>
-            val (eval, evaluationWatches, res) = data
+            val (eval, discover, evaluationWatches, res) = data
 
-            lastEvaluator = Some((interpWatched, eval))
+            lastEvaluator = Some((interpWatched, eval, discover))
 
             (Res(res), interpWatched ++ evaluationWatches)
           case _ => (result, interpWatched)
@@ -96,6 +97,8 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
+         |
+         |  val millDiscover = mill.define.Discover[$wrapName]
          |}
          |
          |sealed trait $wrapName extends mill.Module{

@@ -25,7 +25,6 @@ object Module{
   * the concrete instance.
   */
 class Module(implicit ctx0: mill.define.Ctx, cmds: Module.Cmds) extends mill.moduledefs.Cacher{
-  def commands: Seq[EntryPoint[Module]] = cmds.value
 
   def traverse[T](f: Module => Seq[T]): Seq[T] = {
     def rec(m: Module): Seq[T] = {
@@ -45,8 +44,8 @@ class Module(implicit ctx0: mill.define.Ctx, cmds: Module.Cmds) extends mill.mod
 
   lazy val targets = segmentsToTargets.valuesIterator.toSet
   lazy val segmentsToCommands = traverse{
-    m => m.commands.map(e => m.ctx.segments ++ Seq(Segment.Label(e.name)) -> e)
-  }.toMap
+    m => m.reflectNames[Command[_]].map(c => m.ctx.segments ++ Seq(Segment.Label(c)))
+  }.toSet
 
   def ctx = ctx0
   // Ensure we do not propagate the implicit parameters as implicits within
@@ -70,6 +69,22 @@ class Module(implicit ctx0: mill.define.Ctx, cmds: Module.Cmds) extends mill.mod
       .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
       .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
       .map(_.invoke(this).asInstanceOf[T])
+  }
+  def reflectNames[T: ClassTag] = {
+    this
+      .getClass
+      .getMethods
+      .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
+      .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
+      .map(_.getName)
+  }
+  def reflectNestedObjects[T: ClassTag] = {
+    reflect[T] ++
+    this
+      .getClass
+      .getClasses
+      .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _)
+      .flatMap(c => c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T]))
   }
 }
 trait TaskModule extends Module {

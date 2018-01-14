@@ -2,6 +2,7 @@ package mill.main
 
 
 import mill.define.Applicative.ApplyHandler
+import mill.define.Segment.Label
 import mill.define._
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
@@ -10,7 +11,8 @@ import scala.collection.mutable
 object ReplApplyHandler{
   def apply[T](colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
-               rootModule: mill.Module) = {
+               rootModule: mill.Module,
+               discover: Discover) = {
     new ReplApplyHandler(
       pprinter0,
       new mill.eval.Evaluator(
@@ -24,11 +26,14 @@ object ReplApplyHandler{
           System.err,
           System.err
         )
-      )
+      ),
+      discover
     )
   }
 }
-class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) extends ApplyHandler[Task] {
+class ReplApplyHandler(pprinter0: pprint.PPrinter,
+                       evaluator: Evaluator[_],
+                       discover: Discover) extends ApplyHandler[Task] {
   // Evaluate classLoaderSig only once in the REPL to avoid busting caches
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig
@@ -75,11 +80,14 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter, evaluator: Evaluator[_]) exte
         Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
         (if (m.reflect[mill.Module].isEmpty) Nil
         else ctx.applyPrefixColor("\nChildren:").toString +: m.reflect[mill.Module].map("\n    ." + _.ctx.segments.render)) ++
-        (if (m.commands.isEmpty) Nil
-        else ctx.applyPrefixColor("\nCommands:").toString +: m.commands.sortBy(_.name).map{c =>
-          "\n    ." + c.name + "(" +
-            c.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
-            ")()"
+        (discover.value.get(m.getClass) match{
+          case None => Nil
+          case Some(commands) =>
+            ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
+              "\n    ." + c.name + "(" +
+              c.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
+                ")()"
+            }
         }) ++
         (if (m.reflect[Target[_]].isEmpty) Nil
         else {

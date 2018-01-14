@@ -6,7 +6,7 @@ import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
 import mill.define.Target
-import mill.discover.Discovered
+
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
@@ -35,7 +35,7 @@ object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
 object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
   def mainClass = Some("Main")
   def assembly = T{
-    modules.Jvm.createAssembly(
+    mill.modules.Jvm.createAssembly(
       runClasspath().map(_.path).filter(exists),
       prependShellScript = prependShellScript(),
       mainClass = mainClass()
@@ -85,32 +85,32 @@ object HelloWorldTests extends TestSuite {
 
 
   val helloWorldEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorld),
+    HelloWorld,
     outPath,
     workingSrcPath
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldWithMain),
+    HelloWorldWithMain,
     outPath,
     workingSrcPath
   )
   val helloWorldWithMainAssemblyEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldWithMainAssembly),
+    HelloWorldWithMainAssembly,
     outPath,
     workingSrcPath
   )
   val helloWorldFatalEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldFatalWarnings),
+    HelloWorldFatalWarnings,
     outPath,
     workingSrcPath
   )
   val helloWorldOverrideEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldScalaOverride),
+    HelloWorldScalaOverride,
     outPath,
     workingSrcPath
   )
   val helloWorldCrossEvaluator = new TestEvaluator(
-    Discovered.mapping(CrossHelloWorld),
+    CrossHelloWorld,
     outPath,
     workingSrcPath
   )

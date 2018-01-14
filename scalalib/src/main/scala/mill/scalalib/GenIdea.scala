@@ -2,37 +2,32 @@ package mill.scalalib
 
 import ammonite.ops._
 import mill.define.{Segment, Segments, Target}
-import mill.discover.{Discovered, Mirror}
-import mill.eval.{Evaluator, PathRef}
+import mill.eval.{Evaluator, PathRef, RootModuleLoader}
+import mill.scalalib
 import mill.util.Ctx.{LoaderCtx, LogCtx}
-import mill.util.{PrintLogger}
+import mill.util.PrintLogger
 import mill.util.Strict.Agg
 
 object GenIdea {
 
   def apply()(implicit ctx: LoaderCtx with LogCtx): Unit = {
-    val mapping = ctx.load(mill.discover.Discovered.Mapping)
+    val rootModule = ctx.load(RootModuleLoader)
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd, mapping, ctx.log)
+    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule , ctx.log)
 
-    for((relPath, xml) <- xmlFileLayout(evaluator)){
+    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator[T]): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
-    val modules = Mirror
-      .traverse(evaluator.mapping.base, evaluator.mapping.mirror){ (h, p) =>
-        h.node(evaluator.mapping.base, p.value.map{case Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
-          case m: Module => Seq(p -> m)
-          case _ => Nil
-        }
-      }
+
+    val modules = rootModule.modules.collect{case x: scalalib.Module => (x.ctx.segments, x)}.toSeq
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =

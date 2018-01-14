@@ -3,10 +3,12 @@ package mill.main
 import mill.define._
 import mill.define.TaskModule
 import ammonite.main.Router
+import ammonite.main.Router.EntryPoint
 
 object Resolve {
   def resolve[T, V](remainingSelector: List[Segment],
                     obj: mill.Module,
+                    discover: Discover,
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
@@ -21,8 +23,8 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand[V](target: mill.Module, name: String) = for{
-          cmd <- target.commands.find(_.name == name)
-        } yield cmd.invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+          cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name)
+        } yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
           case Router.Result.Success(v) => Right(v)
           case _ => Left(s"Command failed $last")
         }
@@ -52,10 +54,10 @@ object Resolve {
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Segment.Label(singleLabel) =>
-            obj.reflect[mill.Module].find{
+            obj.reflectNestedObjects[mill.Module].find{
               _.ctx.segment == Segment.Label(singleLabel)
             } match{
-              case Some(child: mill.Module) => resolve(tail, child, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+              case Some(child: mill.Module) => resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
               case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
             }
 
@@ -63,7 +65,7 @@ object Resolve {
             obj match{
               case c: Cross[_] =>
                 c.itemMap.get(cross.toList) match{
-                  case Some(m: mill.Module) => resolve(tail, m, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+                  case Some(m: mill.Module) => resolve(tail, m, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
                   case None => Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
 
                 }
