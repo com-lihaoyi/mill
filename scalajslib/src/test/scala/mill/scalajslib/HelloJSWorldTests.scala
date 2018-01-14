@@ -13,20 +13,24 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
-  override def basePath = HelloJSWorldTests.workspacePath
-  override def mainClass = Some("Main")
-}
 
-object HelloJSWorld extends TestUtil.BaseModule {
-  val matrix = for {
-    scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
-    scala <- Seq("2.11.8", "2.12.3", "2.12.4")
-  } yield (scalaJS, scala)
+object HelloJSWorldTests extends TestSuite {
 
-  object build extends Cross[BuildModule](matrix:_*)
 
-  class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
+  trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
+    override def basePath = HelloJSWorldTests.workspacePath
+    override def mainClass = Some("Main")
+  }
+
+  object HelloJSWorld extends TestUtil.BaseModule {
+    val matrix = for {
+      scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+      scala <- Seq("2.11.8", "2.12.3", "2.12.4")
+    } yield (scalaJS, scala)
+
+    object build extends Cross[BuildModule](matrix:_*)
+
+    class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0
       def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
@@ -35,7 +39,7 @@ object HelloJSWorld extends TestUtil.BaseModule {
         url = "https://github.com/lihaoyi/hello-world-publish",
         licenses = Seq(
           License("Apache License, Version 2.0",
-                  "http://www.apache.org/licenses/LICENSE-2.0")),
+            "http://www.apache.org/licenses/LICENSE-2.0")),
         scm = SCM(
           "https://github.com/lihaoyi/hello-world-publish",
           "scm:git:https://github.com/lihaoyi/hello-world-publish"
@@ -44,9 +48,7 @@ object HelloJSWorld extends TestUtil.BaseModule {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-}
-
-object HelloJSWorldTests extends TestSuite {
+  }
 
   val srcPath = pwd / 'scalajslib / 'src / 'test / 'resources / "hello-js-world"
   val workspacePath = pwd / 'target / 'workspace / "hello-js-world"

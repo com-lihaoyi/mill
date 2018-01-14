@@ -44,15 +44,9 @@ object Cross{
   */
 class Cross[T](cases: Any*)
               (implicit ci: Cross.Factory[T],
-               ctx: mill.define.Ctx,
-               cmds: Module.Cmds) extends mill.define.Module()(ctx, cmds) {
+               ctx: mill.define.Ctx) extends mill.define.Module()(ctx) {
 
-  override def traverse[T](f: Module => Seq[T]): Seq[T] = {
-    f(this) ++
-    this.reflect[Module].flatMap(f) ++
-    items.map(_._2).flatMap{case t: Module => f(t)}
-  }
-
+  override lazy val modules = this.reflectNestedObjects[Module] ++ items.collect{case (k, v: mill.define.Module) => v}
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{
       case p: Product => p

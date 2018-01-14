@@ -13,7 +13,6 @@ object Discover {
     import c.universe._
     val seen = mutable.Set.empty[Type]
     def rec(tpe: Type): Unit = {
-      println("Rec! " + tpe)
       if (!seen(tpe)){
         seen.add(tpe)
         for{

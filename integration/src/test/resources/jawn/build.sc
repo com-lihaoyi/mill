@@ -33,7 +33,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
     def projectDeps = Seq(parser, util)
     def testProjectDeps = Seq(parser.test, util.test)
   }
-  class Support(ivyDeps0: Dep*)(implicit ctx: mill.mill.define.Ctx) extends JawnModule{
+  class Support(ivyDeps0: Dep*)(implicit ctx: mill.define.Ctx) extends JawnModule{
     def projectDeps = Seq[Module](parser)
     def ivyDeps = Agg.from(ivyDeps0)
   }

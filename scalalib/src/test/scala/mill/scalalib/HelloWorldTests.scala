@@ -6,7 +6,6 @@ import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
 import mill.define.Target
-
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
@@ -15,66 +14,66 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloWorldModule extends scalalib.Module {
-  def scalaVersion = "2.12.4"
-  def basePath = HelloWorldTests.workingSrcPath
-}
 
-object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
-object CrossHelloWorld extends TestUtil.BaseModule {
-  object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
-  class HelloWorldCross(v: String) extends HelloWorldModule {
-    def scalaVersion = v
+object HelloWorldTests extends TestSuite {
+  trait HelloWorldModule extends scalalib.Module {
+    def scalaVersion = "2.12.4"
+    def basePath = HelloWorldTests.workingSrcPath
   }
-}
 
-object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
-  def mainClass = Some("Main")
-}
+  object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
+  object CrossHelloWorld extends TestUtil.BaseModule {
+    object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    class HelloWorldCross(v: String) extends HelloWorldModule {
+      def scalaVersion = v
+    }
+  }
 
-object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
-  def mainClass = Some("Main")
-  def assembly = T{
-    mill.modules.Jvm.createAssembly(
-      runClasspath().map(_.path).filter(exists),
-      prependShellScript = prependShellScript(),
-      mainClass = mainClass()
+  object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
+    def mainClass = Some("Main")
+  }
+
+  object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
+    def mainClass = Some("Main")
+    def assembly = T{
+      mill.modules.Jvm.createAssembly(
+        runClasspath().map(_.path).filter(exists),
+        prependShellScript = prependShellScript(),
+        mainClass = mainClass()
+      )
+    }
+  }
+
+  object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
+    def scalacOptions = T(Seq("-Ywarn-unused"))
+  }
+
+  object HelloWorldFatalWarnings extends TestUtil.BaseModule with HelloWorldModule {
+    def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+  }
+
+  object HelloWorldWithPublish extends TestUtil.BaseModule with HelloWorldModule with PublishModule {
+    def artifactName = "hello-world"
+    def publishVersion = "0.0.1"
+
+    def pomSettings = PomSettings(
+      organization = "com.lihaoyi",
+      description = "hello world ready for real world publishing",
+      url = "https://github.com/lihaoyi/hello-world-publish",
+      licenses = Seq(
+        License("Apache License, Version 2.0",
+          "http://www.apache.org/licenses/LICENSE-2.0")),
+      scm = SCM(
+        "https://github.com/lihaoyi/hello-world-publish",
+        "scm:git:https://github.com/lihaoyi/hello-world-publish"
+      ),
+      developers =
+        Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
     )
   }
-}
-
-object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
-  def scalacOptions = T(Seq("-Ywarn-unused"))
-}
-
-object HelloWorldFatalWarnings extends TestUtil.BaseModule with HelloWorldModule {
-  def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-}
-
-object HelloWorldWithPublish extends TestUtil.BaseModule with HelloWorldModule with PublishModule {
-  def artifactName = "hello-world"
-  def publishVersion = "0.0.1"
-
-  def pomSettings = PomSettings(
-    organization = "com.lihaoyi",
-    description = "hello world ready for real world publishing",
-    url = "https://github.com/lihaoyi/hello-world-publish",
-    licenses = Seq(
-      License("Apache License, Version 2.0",
-              "http://www.apache.org/licenses/LICENSE-2.0")),
-    scm = SCM(
-      "https://github.com/lihaoyi/hello-world-publish",
-      "scm:git:https://github.com/lihaoyi/hello-world-publish"
-    ),
-    developers =
-      Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}
-object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
-  override def scalaVersion: Target[String] = "2.11.11"
-}
-object HelloWorldTests extends TestSuite {
-
+  object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
+    override def scalaVersion: Target[String] = "2.11.11"
+  }
   val srcPath = pwd / 'scalalib / 'src / 'test / 'resources / "hello-world"
   val basePath = pwd / 'target / 'workspace / "hello-world"
   val workingSrcPath = basePath / 'src

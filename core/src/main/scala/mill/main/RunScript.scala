@@ -100,9 +100,10 @@ object RunScript{
       module <- try {
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
-            buildCls.getField("MODULE$")
-              .get(buildCls)
-              .asInstanceOf[mill.Module]
+            buildCls.getMethod("millSelf")
+                    .invoke(null)
+                    .asInstanceOf[Some[mill.Module]]
+                    .get
           )
         }
       } catch {
@@ -112,8 +113,8 @@ object RunScript{
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
             buildCls.getMethod("millDiscover")
-                .invoke(null)
-                .asInstanceOf[Discover]
+                    .invoke(null)
+                    .asInstanceOf[Discover]
           )
         }
       } catch {
