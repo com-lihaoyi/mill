@@ -1,5 +1,7 @@
 package mill.define
 
+import java.lang.reflect.Modifier
+
 import ammonite.main.Router.Overrides
 import ammonite.ops.Path
 
@@ -61,6 +63,7 @@ class Module(implicit ctx0: Module.Ctx) extends mill.moduledefs.Cacher{
       .getClass
       .getMethods
       .filter(_.getParameterCount == 0)
+      .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
       .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
       .map(_.invoke(this).asInstanceOf[T])
   }

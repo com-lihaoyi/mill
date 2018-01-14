@@ -45,13 +45,13 @@ object ConsistencyTests extends TestSuite{
         val inconsistent = Discovered.consistencyCheck(
           Discovered.mapping(borkedCachedDiamond2)
         )
-        assert(inconsistent == expected)
+        assert(inconsistent.toSet == expected.toSet)
       }
       'borkedCachedDiamond3 - {
         val inconsistent = Discovered.consistencyCheck(
           Discovered.mapping(borkedCachedDiamond3)
         )
-        assert(inconsistent == expected)
+        assert(inconsistent.toSet == expected.toSet)
       }
     }
 

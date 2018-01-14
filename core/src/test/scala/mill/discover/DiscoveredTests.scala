@@ -21,12 +21,12 @@ object DiscoveredTests extends TestSuite{
       }
       val flattenedHierarchy = flatten(discovered.mirror)
 
-      val expectedHierarchy = Seq(
+      val expectedHierarchy = Set(
         nestedModule,
         nestedModule.classInstance,
         nestedModule.nested
       )
-      assert(flattenedHierarchy == expectedHierarchy)
+      assert(flattenedHierarchy.toSet == expectedHierarchy)
 
       val mapped = discovered.segmentsToTargets
 
