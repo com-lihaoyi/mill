@@ -55,7 +55,7 @@ class Cross[T](cases: Any*)
       case p: Product => p
       case v => Tuple1(v)
     }
-    val crossValues = c.productIterator.toList.reverse
+    val crossValues = c.productIterator.toList
     val relPath = ctx.segment match{
       case Segment.Label(s) => ammonite.ops.empty / s
       case Segment.Cross(vs) => ammonite.ops.empty / vs.map(_.toString)

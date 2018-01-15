@@ -46,48 +46,34 @@ object MainTests extends TestSuite{
         'neg2 - check(singleCross, Discover[singleCross.type], "cross[doesntExist].doesntExist", Left("Cannot resolve cross cross[doesntExist]"))
         'neg2 - check(singleCross, Discover[singleCross.type], "cross[doesntExist].suffix", Left("Cannot resolve cross cross[doesntExist]"))
       }
-//      'double - {
-//
-//        'pos1 - check(
-//          doubleCross,
-//          "cross[jvm,210].suffix",
-//          Right(doubleCross.cross("jvm", "210").suffix)
-//        )
-//        'pos2 - check(
-//          doubleCross,
-//          "cross[jvm,211].suffix",
-//          Right(doubleCross.cross("jvm", "211").suffix)
-//        )
-//      }
+      'double - {
+
+        'pos1 - check(
+          doubleCross,
+          Discover[doubleCross.type],
+          "cross[210,jvm].suffix",
+          Right(doubleCross.cross("210", "jvm").suffix)
+        )
+        'pos2 - check(
+          doubleCross,
+          Discover[doubleCross.type],
+          "cross[211,jvm].suffix",
+          Right(doubleCross.cross("211", "jvm").suffix)
+        )
+      }
       'nested - {
-        'indirect - {
-          'pos1 - check(
-            indirectNestedCrosses,
-            Discover[indirectNestedCrosses.type],
-            "cross[210].cross2[js].suffix",
-            Right(indirectNestedCrosses.cross("210").cross2("js").suffix)
-          )
-          'pos2 - check(
-            indirectNestedCrosses,
-            Discover[indirectNestedCrosses.type],
-            "cross[211].cross2[jvm].suffix",
-            Right(indirectNestedCrosses.cross("211").cross2("jvm").suffix)
-          )
-        }
-        'direct - {
-          'pos1 - check(
-            nestedCrosses,
-            Discover[nestedCrosses.type],
-            "cross[210].cross2[js].suffix",
-            Right(nestedCrosses.cross("210").cross2("js").suffix)
-          )
-          'pos2 - check(
-            nestedCrosses,
-            Discover[nestedCrosses.type],
-            "cross[211].cross2[jvm].suffix",
-            Right(nestedCrosses.cross("211").cross2("jvm").suffix)
-          )
-        }
+        'pos1 - check(
+          nestedCrosses,
+          Discover[nestedCrosses.type],
+          "cross[210].cross2[js].suffix",
+          Right(nestedCrosses.cross("210").cross2("js").suffix)
+        )
+        'pos2 - check(
+          nestedCrosses,
+          Discover[nestedCrosses.type],
+          "cross[211].cross2[jvm].suffix",
+          Right(nestedCrosses.cross("211").cross2("jvm").suffix)
+        )
       }
     }
 

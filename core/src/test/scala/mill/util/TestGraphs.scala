@@ -209,16 +209,6 @@ object TestGraphs{
     }
   }
 
-  object indirectNestedCrosses extends TestUtil.BaseModule {
-    object cross extends mill.Cross[Cross]("210", "211", "212")
-    class Cross(scalaVersion: String) extends mill.Module{
-      object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
-      class Cross(platform: String) extends mill.Module{
-        def suffix = T{ scalaVersion + "_" + platform }
-      }
-    }
-  }
-
   object nestedCrosses extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")
     class Cross(scalaVersion: String) extends mill.Module{
