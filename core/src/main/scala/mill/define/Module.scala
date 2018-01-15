@@ -43,11 +43,11 @@ object Module{
     lazy val segmentsToModules = traverse{m => Seq(m.millModuleSegments -> m)}
       .toMap
 
-    lazy val segmentsToTargets = traverse{_.millInternal.reflect[Target[_]]}
+    lazy val targets = traverse{_.millInternal.reflect[Target[_]]}.toSet
+
+    lazy val segmentsToTargets = targets
       .map(t => (t.ctx.segments, t))
       .toMap
-
-    lazy val targets = segmentsToTargets.valuesIterator.toSet
 
     // Ensure we do not propagate the implicit parameters as implicits within
     // the body of any inheriting class/trait/objects, as it would screw up any

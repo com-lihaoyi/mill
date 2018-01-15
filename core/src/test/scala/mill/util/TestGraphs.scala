@@ -107,8 +107,6 @@ class TestGraphs(){
     }
     val j = test(test.anon(i), test.anon(i, f), test.anon(f))
   }
-}
-object TestGraphs{
   //        _ left _
   //       /        \
   //  task1 -------- right
@@ -122,7 +120,10 @@ object TestGraphs{
     def right = T{ task1() + task2() + left() + 1 }
 
   }
+}
 
+
+object TestGraphs{
   //      _ left _
   //     /        \
   // task -------- right

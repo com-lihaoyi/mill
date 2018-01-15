@@ -12,11 +12,9 @@ object BasePathTests extends TestSuite{
     }
     'singleton - {
       check(testGraphs.singleton, "singleton")
-      check(testGraphs.singleton, "singleton")
-
     }
     'separateGroups - {
-      check(TestGraphs.separateGroups, "separateGroups")
+      check(TestGraphs.triangleTask, "triangleTask")
     }
     'TraitWithModuleObject - {
       check(TestGraphs.TraitWithModuleObject.TraitModule,
