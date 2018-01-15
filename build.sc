@@ -134,7 +134,6 @@ object scalajslib extends MillModule {
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
   class JsBridgeModule(scalajsBinary: String) extends MillModule{
-    def basePath = super.basePath / ammonite.ops.up / s"bridge_${scalajsBinary.replace('.', '_')}"
     val scalajsVersion = scalajsBinary match {
       case "0.6" => "0.6.21"
       case "1.0" => "1.0.0-M2"

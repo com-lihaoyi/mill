@@ -155,7 +155,7 @@ lazy val scalajslib = project
 def jsbridge(binary: String, version: String) =
   Project(
     id = "scalajsbridge_" + binary.replace('.', '_'),
-    base = file("scalajslib/bridge_" + binary.replace('.', '_'))
+    base = file("scalajslib/jsbridges/" + binary)
   )
   .settings(
     organization := "com.lihaoyi",
