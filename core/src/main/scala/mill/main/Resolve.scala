@@ -13,9 +13,6 @@ object Resolve {
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
 
-    pprint.log(discover.value.keySet)
-    pprint.log(obj.getClass)
-    pprint.log(remainingSelector)
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
@@ -26,8 +23,6 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand[V](target: mill.Module, name: String) = {
-          pprint.log(target)
-          pprint.log(discover.value.get(target.getClass))
           for(cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name))
           yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
             case Router.Result.Success(v) => Right(v)

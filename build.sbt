@@ -30,9 +30,10 @@ val pluginSettings = Seq(
 )
 
 lazy val ammoniteRunner = project
-  .in(file("synthetic/ammoniteRunner"))
+  .in(file("target/ammoniteRunner"))
   .settings(
     scalaVersion := "2.12.4",
+    target := baseDirectory.value,
     libraryDependencies +=
       "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
   )
@@ -55,11 +56,12 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
 
 def bridge(bridgeVersion: String) = Project(
   id = "bridge" + bridgeVersion.replace('.', '_'),
-  base = file("synthetic/bridge/" + bridgeVersion.replace('.', '_')),
+  base = file("target/bridge/" + bridgeVersion.replace('.', '_')),
   settings = Seq(
     organization := "com.lihaoyi",
     scalaVersion := bridgeVersion,
     name := "mill-bridge",
+    target := baseDirectory.value,
     crossVersion := CrossVersion.full,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
@@ -216,16 +218,16 @@ lazy val integration = project
   )
 
 lazy val bin = project
-  .in(file("synthetic/bin"))
+  .in(file("target/bin"))
   .dependsOn(scalalib, scalajslib)
   .settings(
     sharedSettings,
-    baseDirectory := baseDirectory.value.getParentFile,
+    target := baseDirectory.value,
     fork := true,
     connectInput in (Test, run) := true,
     outputStrategy in (Test, run) := Some(StdoutOutput),
     mainClass in (Test, run) := Some("mill.Main"),
-    baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / "..",
+    baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     assemblyOption in assembly := {
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(

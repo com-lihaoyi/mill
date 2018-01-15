@@ -9,7 +9,7 @@ git clean -xdf
 sbt bin/test:assembly
 
 # Build Mill using SBT
-bin/target/mill devAssembly
+target/bin/mill devAssembly
 
 # Second build & run tests using Mill
 out/devAssembly/dest core.test

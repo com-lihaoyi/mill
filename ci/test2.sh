@@ -8,8 +8,8 @@ git clean -xdf
 
 sbt bin/test:assembly
 # Run tests using
-bin/target/mill core.test
-bin/target/mill scalalib.test
-bin/target/mill scalajslib.test
-bin/target/mill integration.test
-bin/target/mill devAssembly
+target/bin/mill core.test
+target/bin/mill scalalib.test
+target/bin/mill scalajslib.test
+target/bin/mill integration.test
+target/bin/mill devAssembly

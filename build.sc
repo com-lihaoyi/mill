@@ -117,17 +117,6 @@ object scalalib extends MillModule {
     }
   }
 }
-object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
-class JsBridgeModule(scalajsBinary: String) extends MillModule{
-  def basePath = pwd / 'scalajslib / s"bridge_${scalajsBinary.replace('.', '_')}"
-  val scalajsVersion = scalajsBinary match {
-    case "0.6" => "0.6.21"
-    case "1.0" => "1.0.0-M2"
-  }
-  def ivyDeps = Agg(
-    Dep("org.scala-js", "scalajs-tools", scalajsVersion)
-  )
-}
 
 object scalajslib extends MillModule {
 
@@ -141,6 +130,18 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(jsbridges("1.0").runDepClasspath(), jsbridges("1.0").compile().classes)
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+  }
+
+  object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
+  class JsBridgeModule(scalajsBinary: String) extends MillModule{
+    def basePath = super.basePath / ammonite.ops.up / s"bridge_${scalajsBinary.replace('.', '_')}"
+    val scalajsVersion = scalajsBinary match {
+      case "0.6" => "0.6.21"
+      case "1.0" => "1.0.0-M2"
+    }
+    def ivyDeps = Agg(
+      Dep("org.scala-js", "scalajs-tools", scalajsVersion)
+    )
   }
 }
 def testRepos = T{
