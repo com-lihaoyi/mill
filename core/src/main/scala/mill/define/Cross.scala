@@ -63,7 +63,7 @@ class Cross[T](cases: Any*)
     val sub = ci.make(
       c,
       ctx.copy(
-        segments0 = ctx.segments0 ++ Seq(ctx.segment),
+        segments = ctx.segments ++ Seq(ctx.segment),
         basePath = ctx.basePath / relPath,
         segment = Segment.Cross(crossValues)
       )

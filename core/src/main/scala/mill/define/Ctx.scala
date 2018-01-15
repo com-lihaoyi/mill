@@ -41,10 +41,9 @@ case class Ctx(enclosing: String,
                lineNum: Int,
                segment: Segment,
                basePath: Path,
-               segments0: Segments,
-               overrides: Int){
-  def segments = Segments(segments0.value.drop(1):_*)
-}
+               segments: Segments,
+               overrides: Int)
+
 object Ctx{
   implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
                     millModuleLine0: sourcecode.Line,

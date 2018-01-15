@@ -24,13 +24,13 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
       scala <- Seq("2.11.8", "2.12.3", "2.12.4")
-    } yield (scalaJS, scala)
+      scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+    } yield (scala, scalaJS)
 
     object build extends Cross[BuildModule](matrix:_*)
 
-    class BuildModule(sjsVersion0: String, scalaVersion0: String) extends HelloJSWorldModule {
+    class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0
       def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(

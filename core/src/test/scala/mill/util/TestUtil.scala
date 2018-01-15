@@ -12,16 +12,8 @@ object TestUtil {
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
                    overrides: Overrides)
-    extends Module()(
-      mill.define.Ctx.make(
-        implicitly,
-        implicitly,
-        implicitly,
-        BasePath(ammonite.ops.pwd / millModuleEnclosing0.value),
-        Segments(),
-        implicitly
-      )
-    )
+    extends mill.define.BaseModule(ammonite.ops.pwd / millModuleEnclosing0.value)
+
   object test{
 
     def anon(inputs: Task[Int]*) = new Test(inputs)
@@ -51,7 +43,7 @@ object TestUtil {
                    val pure: Boolean)
                   (implicit ctx0: mill.define.Ctx)
     extends Test(inputs) with Target[Int]{
-    val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
+    val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
     val readWrite = upickle.default.IntRW
 
 

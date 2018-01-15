@@ -229,7 +229,7 @@ object Caller {
 class TargetImpl[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
                      val readWrite: RW[_]) extends Target[T] {
-  val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
+  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
   override def toString = ctx.enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
@@ -237,7 +237,7 @@ class TargetImpl[+T](t: Task[T],
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,
                   val writer: W[_]) extends NamedTask[T] {
-  val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
+  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
   override def asCommand = Some(this)
@@ -253,7 +253,7 @@ class Persistent[+T](t: Task[T],
 class Input[T](t: Task[T],
                ctx0: mill.define.Ctx,
                val readWrite: RW[_]) extends Target[T]{
-  val ctx = ctx0.copy(segments0 = ctx0.segments0 ++ Seq(ctx0.segment))
+  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
   override def sideHash = util.Random.nextInt()

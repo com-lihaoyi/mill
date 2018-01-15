@@ -14,7 +14,10 @@ val sharedSettings = Seq(
   resolvers += Resolver.sonatypeRepo("releases"),
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7")
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
+
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
+  mainClass in Test := Some("ammonite.Main")
 )
 
 

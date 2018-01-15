@@ -30,7 +30,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   })
   implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millModuleSegments: Segments = {
-    millOuterCtx.segments0 ++ Seq(millOuterCtx.segment)
+    millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
 }
 
@@ -90,11 +90,18 @@ trait TaskModule extends Module {
   def defaultCommandName(): String
 }
 
-class BaseModule(basePath: Path)
+class BaseModule(basePath0: Path)
                 (implicit millModuleEnclosing0: sourcecode.Enclosing,
                  millModuleLine0: sourcecode.Line,
                  millName0: sourcecode.Name,
                  overrides0: Overrides)
   extends Module()(
-    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath), Segments(), implicitly)
-  )
+    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath0), Segments(), implicitly)
+  ){
+  // A BaseModule should provide an empty Segments list to it's children, since
+  // it is the root of the module tree, and thus must not include it's own
+  // sourcecode.Name as part of the list,
+  override implicit def millModuleSegments: Segments = Segments()
+  override implicit def millModuleBasePath: BasePath = BasePath(millOuterCtx.basePath)
+  override def basePath = millOuterCtx.basePath
+}
