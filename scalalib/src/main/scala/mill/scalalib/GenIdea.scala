@@ -27,7 +27,7 @@ object GenIdea {
   def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
 
-    val modules = rootModule.segmentsToModules.values.collect{case x: scalalib.Module => (x.millModuleSegments, x)}.toSeq
+    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.Module => (x.millModuleSegments, x)}.toSeq
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =

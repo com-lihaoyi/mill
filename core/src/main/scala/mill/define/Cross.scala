@@ -20,7 +20,7 @@ object Cross{
         yield q"v.productElement($n).asInstanceOf[${a.info}]"
 
       val instance = c.Expr[(Product, mill.define.Ctx) => T](
-        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def parentCtx = ctx0 } }"
+        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def millOuterCtx = ctx0 } }"
       )
 
       reify { mill.define.Cross.Factory[T](instance.splice) }
@@ -46,7 +46,10 @@ class Cross[T](cases: Any*)
               (implicit ci: Cross.Factory[T],
                ctx: mill.define.Ctx) extends mill.define.Module()(ctx) {
 
-  override lazy val modules = this.reflectNestedObjects[Module] ++ items.collect{case (k, v: mill.define.Module) => v}
+  override lazy val millModuleDirectChildren =
+    this.millInternal.reflectNestedObjects[Module] ++
+    items.collect{case (k, v: mill.define.Module) => v}
+
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{
       case p: Product => p

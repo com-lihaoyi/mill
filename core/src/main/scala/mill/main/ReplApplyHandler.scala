@@ -70,16 +70,18 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(c.parentCtx.enclosing , ":", c.parentCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
+        Iterator(c.millOuterCtx.enclosing , ":", c.millOuterCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
       )
-    case m: mill.Module if evaluator.rootModule.modules.contains(m) =>
+    case m: mill.Module if evaluator.rootModule.millModuleDirectChildren.contains(m) =>
       pprint.Tree.Lazy( ctx =>
-        Iterator(m.millModuleEnclosing, ":", m.millModuleLine.toString) ++
-        (if (m.reflect[mill.Module].isEmpty) Nil
-        else ctx.applyPrefixColor("\nChildren:").toString +: m.reflect[mill.Module].map("\n    ." + _.parentCtx.segments.render)) ++
+        Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
+        (if (m.millInternal.reflect[mill.Module].isEmpty) Nil
+        else
+          ctx.applyPrefixColor("\nChildren:").toString +:
+          m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segments.render)) ++
         (discover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>
@@ -89,21 +91,21 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
                 ")()"
             }
         }) ++
-        (if (m.reflect[Target[_]].isEmpty) Nil
+        (if (m.millInternal.reflect[Target[_]].isEmpty) Nil
         else {
           Seq(ctx.applyPrefixColor("\nTargets:").toString) ++
-          m.reflect[Target[_]].sortBy(_.label).map(t =>
+          m.millInternal.reflect[Target[_]].sortBy(_.label).map(t =>
             "\n    ." + t.label + "()"
           )
         })
 
       )
-    case t: mill.define.Target[_] if evaluator.rootModule.targets.contains(t) =>
+    case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
       val seen = mutable.Set.empty[Task[_]]
       def rec(t: Task[_]): Seq[Segments] = {
         if (seen(t)) Nil // do nothing
         else t match {
-          case t: Target[_] if evaluator.rootModule.targets.contains(t) =>
+          case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
             Seq(t.ctx.segments)
           case _ =>
             seen.add(t)

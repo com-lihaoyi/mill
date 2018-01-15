@@ -18,6 +18,7 @@ object Resolve {
       case Segment.Label(last) :: Nil =>
         val target =
           obj
+            .millInternal
             .reflect[Target[_]]
             .find(_.label == last)
             .map(Right(_))
@@ -31,8 +32,8 @@ object Resolve {
         }
 
         val runDefault = for{
-          child <- obj.reflectNestedObjects[mill.Module]
-          if child.parentCtx.segment == Segment.Label(last)
+          child <- obj.millInternal.reflectNestedObjects[mill.Module]
+          if child.millOuterCtx.segment == Segment.Label(last)
           res <- child match{
             case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
             case _ => None
@@ -55,8 +56,8 @@ object Resolve {
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Segment.Label(singleLabel) =>
-            obj.reflectNestedObjects[mill.Module].find{
-              _.parentCtx.segment == Segment.Label(singleLabel)
+            obj.millInternal.reflectNestedObjects[mill.Module].find{
+              _.millOuterCtx.segment == Segment.Label(singleLabel)
             } match{
               case Some(child: mill.Module) => resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
               case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
