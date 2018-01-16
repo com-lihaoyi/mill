@@ -1,7 +1,6 @@
 import mill.scalalib
 import mill.Cross
-import mill.scalalib.{Dep, TestModule, Module}
-
+import mill.scalalib.{Dep, TestModule, DepSyntax}
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", "2.12.3")
 class JawnModule(crossVersion: String) extends mill.Module{
   override def basePath = super.basePath / ammonite.ops.up / ammonite.ops.up
@@ -13,12 +12,12 @@ class JawnModule(crossVersion: String) extends mill.Module{
       "-optimize",
       "-unchecked"
     )
-    def testProjectDeps: Seq[TestModule] = Nil
+    def testModuleDeps: Seq[TestModule] = Nil
     object test extends Tests{
-      def projectDeps = super.projectDeps ++ testProjectDeps
+      def moduleDeps = super.moduleDeps ++ testModuleDeps
       def ivyDeps = Agg(
-        Dep("org.scalatest", "scalatest", "3.0.3"),
-        Dep("org.scalacheck", "scalacheck", "1.13.5")
+        ivy"org.scalatest::scalatest:3.0.3",
+        ivy"org.scalacheck::scalacheck:1.13.5"
       )
       def testFramework = "org.scalatest.tools.Framework"
     }
@@ -26,35 +25,35 @@ class JawnModule(crossVersion: String) extends mill.Module{
   object parser extends JawnModule
 
   object util extends JawnModule{
-    def projectDeps = Seq(parser)
-    def testProjectDeps = Seq(parser.test)
+    def moduleDeps = Seq(parser)
+    def testModuleDeps = Seq(parser.test)
   }
   object ast extends JawnModule{
-    def projectDeps = Seq(parser, util)
-    def testProjectDeps = Seq(parser.test, util.test)
+    def moduleDeps = Seq(parser, util)
+    def testModuleDeps = Seq(parser.test, util.test)
   }
   class Support(ivyDeps0: Dep*)(implicit ctx: mill.define.Ctx) extends JawnModule{
-    def projectDeps = Seq[Module](parser)
+    def moduleDeps = Seq(parser)
     def ivyDeps = Agg.from(ivyDeps0)
   }
   object support extends mill.Module{
-    object argonaut extends Support(Dep("io.argonaut", "argonaut", "6.2"))
-    object json4s extends Support(Dep("org.json4s", "json4s-ast", "3.5.2"))
+    object argonaut extends Support(ivy"io.argonaut::argonaut:6.2")
+    object json4s extends Support(ivy"org.json4s::json4s-ast:3.5.2")
 
     object play extends Support(){
       def ivyDeps = mill.T{
         scalaBinaryVersion() match{
-          case "2.10" => Agg(Dep("com.typesafe.play", "play-json", "2.4.11"))
-          case "2.11" => Agg(Dep("com.typesafe.play", "play-json", "2.5.15"))
-          case _ => Agg(Dep("com.typesafe.play", "play-json", "2.6.0"))
+          case "2.10" => Agg(ivy"com.typesafe.play::play-json:2.4.11")
+          case "2.11" => Agg(ivy"com.typesafe.play::play-json:2.5.15")
+          case _ => Agg(ivy"com.typesafe.play::play-json:2.6.0")
         }
       }
     }
 
-    object rojoma extends Support(Dep("com.rojoma", "rojoma-json", "2.4.3"))
-    object rojomaV3 extends Support(Dep("com.rojoma", "rojoma-json-v3", "3.7.2")){
+    object rojoma extends Support(ivy"com.rojoma::rojoma-json:2.4.3")
+    object rojomaV3 extends Support(ivy"com.rojoma::rojoma-json-v3:3.7.2"){
       override def basePath = super.basePath / ammonite.ops.up / "rojoma-v3"
     }
-    object spray extends Support(Dep("io.spray", "spray-json", "1.3.3"))
+    object spray extends Support(ivy"io.spray::spray-json:1.3.3")
   }
 }

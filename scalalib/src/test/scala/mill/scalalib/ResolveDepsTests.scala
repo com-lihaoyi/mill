@@ -14,25 +14,25 @@ object ResolveDepsTests extends TestSuite {
 
   val tests = Tests {
     'resolveValidDeps - {
-      val deps = Agg(Dep("com.lihaoyi", "pprint", "0.5.3"))
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3")
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
     }
 
     'errOnInvalidOrgDeps - {
-      val deps = Agg(Dep("xxx.yyy.invalid", "pprint", "0.5.3"))
+      val deps = Agg(ivy"xxx.yyy.invalid::pprint:0.5.3")
       val Failure(errMsg) = evalDeps(deps)
       assert(errMsg.contains("xxx.yyy.invalid"))
     }
 
     'errOnInvalidVersionDeps - {
-      val deps = Agg(Dep("com.lihaoyi", "pprint", "invalid.version.num"))
+      val deps = Agg(ivy"com.lihaoyi::pprint:invalid.version.num")
       val Failure(errMsg) = evalDeps(deps)
       assert(errMsg.contains("invalid.version.num"))
     }
 
     'errOnPartialSuccess - {
-      val deps = Agg(Dep("com.lihaoyi", "pprint", "0.5.3"), Dep("fake", "fake", "fake"))
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3", ivy"fake::fake:fake")
       val Failure(errMsg) = evalDeps(deps)
       assert(errMsg.contains("fake"))
     }

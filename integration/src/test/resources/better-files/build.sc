@@ -1,4 +1,4 @@
-import mill.scalalib.{SbtModule, Dep}
+import mill.scalalib.{SbtModule, Dep, DepSyntax}
 
 trait BetterFilesModule extends SbtModule{
   def scalaVersion = "2.12.4"
@@ -51,10 +51,10 @@ trait BetterFilesModule extends SbtModule{
   )
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-Xlint")
   object test extends Tests{
-    def projectDeps =
-      if (this == core.test) super.projectDeps
-      else super.projectDeps ++ Seq(core.test)
-    def ivyDeps = Agg(Dep("org.scalatest", "scalatest", "3.0.4"))
+    def moduleDeps =
+      if (this == core.test) super.moduleDeps
+      else super.moduleDeps ++ Seq(core.test)
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
     def testFramework = "org.scalatest.tools.Framework"
   }
 }
@@ -62,19 +62,19 @@ trait BetterFilesModule extends SbtModule{
 object core extends BetterFilesModule
 
 object akka extends BetterFilesModule{
-  def projectDeps = Seq(core)
-  def ivyDeps = Agg(Dep("com.typesafe.akka", "akka-actor", "2.5.6"))
+  def moduleDeps = Seq(core)
+  def ivyDeps = Agg(ivy"com.typesafe.akka::akka-actor:2.5.6")
 }
 
 object shapeless extends BetterFilesModule{
-  def projectDeps = Seq(core)
-  def ivyDeps = Agg(Dep("com.chuusai", "shapeless", "2.3.2"))
+  def moduleDeps = Seq(core)
+  def ivyDeps = Agg(ivy"com.chuusai::shapeless:2.3.2")
 }
 
 object benchmarks extends BetterFilesModule{
-  def projectDeps = Seq(core)
+  def moduleDeps = Seq(core)
   def ivyDeps = Agg(
-    Dep.Java("commons-io", "commons-io", "2.5")
+    ivy"commons-io:commons-io:2.5"
     // "fastjavaio" % "fastjavaio" % "1.0" from "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar"
   )
 }

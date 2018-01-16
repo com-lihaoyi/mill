@@ -1,5 +1,5 @@
 import mill.Cross
-import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule}
+import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule, DepSyntax}
 import mill.scalalib.publish.{PomSettings, License, Developer, SCM}
 
 object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.4")
@@ -25,12 +25,12 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
   )
 
   def ivyDeps = Agg(
-    Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
+    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
   )
   object test extends Tests{
     def forkWorkingDir = ammonite.ops.pwd / 'target / 'workspace / 'acyclic
     def ivyDeps = Agg(
-      Dep("com.lihaoyi", "utest", "0.6.0")
+      ivy"com.lihaoyi::utest:0.6.0"
     )
     def testFramework = "utest.runner.Framework"
   }

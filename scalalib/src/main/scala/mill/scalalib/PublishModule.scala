@@ -7,7 +7,7 @@ import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */
-trait PublishModule extends Module { outer =>
+trait PublishModule extends ScalaModule { outer =>
   import mill.scalalib.publish._
 
   def pomSettings: T[PomSettings]

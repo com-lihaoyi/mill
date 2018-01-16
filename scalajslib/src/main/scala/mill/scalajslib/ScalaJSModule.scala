@@ -7,10 +7,10 @@ import ammonite.ops.Path
 import mill.eval.Result.Success
 import mill.scalajslib.Lib._
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, Module, PublishModule, TestModule}
+import mill.scalalib.{Dep, ScalaModule, PublishModule, TestModule}
 import mill.util.Loose
 
-trait ScalaJSModule extends scalalib.Module { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 

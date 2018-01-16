@@ -7,7 +7,7 @@ import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
 
 
-trait SbtModule extends Module { outer =>
+trait SbtModule extends ScalaModule { outer =>
   override def sources = T.input{ Agg(PathRef(basePath / 'src / 'main / 'scala)) }
   override def resources = T.input{ Agg(PathRef(basePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {

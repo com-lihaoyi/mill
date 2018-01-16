@@ -16,11 +16,11 @@ import sbt.testing.Status
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait Module extends mill.Module with TaskModule { outer =>
+trait ScalaModule extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
-    override def projectDeps = Seq(outer)
+    override def moduleDeps = Seq(outer)
   }
   def scalaVersion: T[String]
   def mainClass: T[Option[String]] = None
@@ -39,23 +39,23 @@ trait Module extends mill.Module with TaskModule { outer =>
     MavenRepository("https://repo1.maven.org/maven2")
   )
 
-  def projectDeps = Seq.empty[Module]
+  def moduleDeps = Seq.empty[ScalaModule]
   def depClasspath = T{ Agg.empty[PathRef] }
 
 
   def upstreamRunClasspath = T{
-    Task.traverse(projectDeps)(p =>
+    Task.traverse(moduleDeps)(p =>
       T.task(p.runDepClasspath() ++ p.runClasspath())
     )
   }
 
   def upstreamCompileOutput = T{
-    Task.traverse(projectDeps)(_.compile)
+    Task.traverse(moduleDeps)(_.compile)
   }
   def upstreamCompileClasspath = T{
     externalCompileDepClasspath() ++
     upstreamCompileOutput().map(_.classes) ++
-    Task.traverse(projectDeps)(_.compileDepClasspath)().flatten
+    Task.traverse(moduleDeps)(_.compileDepClasspath)().flatten
   }
 
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
@@ -69,14 +69,14 @@ trait Module extends mill.Module with TaskModule { outer =>
   }
 
   def externalCompileDepClasspath: T[Agg[PathRef]] = T{
-    Agg.from(Task.traverse(projectDeps)(_.externalCompileDepClasspath)().flatten) ++
+    Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepClasspath)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
     )()
   }
 
   def externalCompileDepSources: T[Agg[PathRef]] = T{
-    Agg.from(Task.traverse(projectDeps)(_.externalCompileDepSources)().flatten) ++
+    Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepSources)().flatten) ++
     resolveDeps(
       T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
       sources = true
@@ -268,7 +268,7 @@ object TestModule{
     }
   }
 }
-trait TestModule extends Module with TaskModule {
+trait TestModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFramework: T[String]
 

@@ -27,7 +27,7 @@ object GenIdea {
   def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
 
-    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.Module => (x.millModuleSegments, x)}.toSeq
+    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.ScalaModule => (x.millModuleSegments, x)}.toSeq
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
@@ -87,7 +87,7 @@ object GenIdea {
         Strict.Agg.from(generatedSourcePaths),
         Strict.Agg(paths.out),
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-        Strict.Agg.from(mod.projectDeps.map{m => moduleName(moduleLabels(m))}.distinct)
+        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
       )
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }

@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 
 
 object HelloWorldTests extends TestSuite {
-  trait HelloWorldModule extends scalalib.Module {
+  trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
     def basePath = HelloWorldTests.workingSrcPath
   }
