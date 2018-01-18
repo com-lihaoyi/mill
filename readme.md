@@ -629,10 +629,10 @@ return values rather than via a global namespace of programmatically-constructed
 strings would make it easier to follow.
 
 With Mill, I’m trying to collapse Bazel’s Python layer 1 & 2 into just 1 layer
-of Scala, and have it define it’s dependency graph/hierarchy by returning
-values, rather than by calling global-side-effecting APIs I've had trouble
+of Scala, and have it define its dependency graph/hierarchy by returning
+values, rather than by calling global-side-effecting APIs. I've had trouble
 trying to teach people how-to-bazel at work, and am pretty sure we can make
-something that's easier to use
+something that's easier to use.
 
 ### Scala.Rx
 
