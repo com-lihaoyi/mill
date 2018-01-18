@@ -221,7 +221,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def run(args: String*) = T.command {
     Jvm.inprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
-      runDepClasspath().map(_.path) :+ compile().classes.path,
+      runClasspath().map(_.path),
       args)
   }
 

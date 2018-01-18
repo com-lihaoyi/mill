@@ -37,7 +37,7 @@ object Jvm {
   }
 
   def inprocess(mainClass: String,
-    classPath: Seq[Path],
+    classPath: Agg[Path],
     options: Seq[String] = Seq.empty)
     (implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
@@ -48,7 +48,7 @@ object Jvm {
 
 
   private def createInprocessClassLoader(
-      classPath: Seq[Path],
+      classPath: Agg[Path],
       classLoaderOverrideSbtTesting: Boolean // currently only a hardcoded option, do we need more general way to do this?
   ): URLClassLoader = {
     if (classLoaderOverrideSbtTesting) {
@@ -71,7 +71,7 @@ object Jvm {
     }
   }
 
-  def inprocess[T](classPath: Seq[Path],
+  def inprocess[T](classPath: Agg[Path],
     classLoaderOverrideSbtTesting: Boolean,
     body: ClassLoader => T)
     (implicit ctx: Ctx): T = {
