@@ -8,11 +8,21 @@ import mill.util.Loose.Agg
 
 
 trait SbtModule extends ScalaModule { outer =>
-  override def sources = T.input{ Agg(PathRef(basePath / 'src / 'main / 'scala)) }
+  override def sources = T.input{
+    Agg(
+      PathRef(basePath / 'src / 'main / 'scala),
+      PathRef(basePath / 'src / 'main / 'java)
+    )
+  }
   override def resources = T.input{ Agg(PathRef(basePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {
     override def basePath = outer.basePath
-    override def sources = T.input{ Agg(PathRef(basePath / 'src / 'test / 'scala)) }
+    override def sources = T.input{
+      Agg(
+        PathRef(basePath / 'src / 'test / 'scala),
+        PathRef(basePath / 'src / 'test / 'java)
+      )
+    }
     override def resources = T.input{ Agg(PathRef(basePath / 'src / 'test / 'resources)) }
   }
 }

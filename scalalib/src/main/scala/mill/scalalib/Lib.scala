@@ -128,7 +128,12 @@ object Lib{
     val newResult = ic.compile(
       ic.inputs(
         classpath = classesIODir +: compileClasspathFiles,
-        sources = sources.filter(_.toIO.exists()).flatMap(ls.rec).filter(x => x.isFile && x.ext == "scala").map(_.toIO).toArray,
+        sources = for{
+          root <- sources.toArray
+          if exists(root)
+          path <- ls.rec(root)
+          if path.isFile && (path.ext == "scala" || path.ext == "java")
+        } yield path.toIO,
         classesDirectory = classesIODir,
         scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++  scalacOptions).toArray,
         javacOptions = javacOptions.toArray,

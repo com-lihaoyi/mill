@@ -10,6 +10,7 @@ object BetterFilesTests extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "b
 
       assert(eval("core.test"))
       assert(eval("akka.test"))
+      assert(eval("benchmarks.test.compile"))
 
       val coreTestMeta = meta("core.test.test")
       assert(coreTestMeta.contains("better.files.FileSpec"))

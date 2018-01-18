@@ -75,7 +75,12 @@ object benchmarks extends BetterFilesModule{
   def moduleDeps = Seq(core)
   def ivyDeps = Agg(
     ivy"commons-io:commons-io:2.5"
-    // "fastjavaio" % "fastjavaio" % "1.0" from "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar"
+  )
+  def depClasspath = Agg(
+    mill.modules.Util.download(
+      "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
+      "fastjavaio.jar"
+    )
   )
 }
 
