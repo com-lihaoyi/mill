@@ -9,15 +9,15 @@ import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.Ctx
-import mill.util.Ctx.LogCtx
+import mill.util.Loose.Agg
 
 import scala.annotation.tailrec
 import scala.collection.mutable
 
 
 object Jvm {
-  def gatherClassloaderJars(): Seq[Path] = {
-    val allJars = collection.mutable.Buffer.empty[Path]
+  def gatherClassloaderJars(): Agg[Path] = {
+    val allJars = new Agg.Mutable[Path]()
     var currentClassloader = Thread.currentThread().getContextClassLoader
     while(currentClassloader != null){
       currentClassloader match{
@@ -30,7 +30,7 @@ object Jvm {
   }
 
   def interactiveSubprocess(mainClass: String,
-                            classPath: Seq[Path],
+                            classPath: Agg[Path],
                             options: Seq[String] = Seq.empty): Unit = {
     import ammonite.ops.ImplicitWd._
     %("java", "-cp", classPath.mkString(":"), mainClass, options)
@@ -50,7 +50,7 @@ object Jvm {
   private def createInprocessClassLoader(
       classPath: Seq[Path],
       classLoaderOverrideSbtTesting: Boolean // currently only a hardcoded option, do we need more general way to do this?
-  ): ClassLoader = {
+  ): URLClassLoader = {
     if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
       return new URLClassLoader(
@@ -82,11 +82,12 @@ object Jvm {
       body(cl)
     }finally{
       Thread.currentThread().setContextClassLoader(oldCl)
+      cl.close()
     }
   }
 
   def subprocess(mainClass: String,
-                 classPath: Seq[Path],
+                 classPath: Agg[Path],
                  jvmOptions: Seq[String] = Seq.empty,
                  options: Seq[String] = Seq.empty,
                  workingDir: Path = null)
@@ -110,7 +111,10 @@ object Jvm {
 
     val stdout = proc.getInputStream
     val stderr = proc.getErrorStream
-    val sources = Seq(stdout -> (Left(_: Bytes)), stderr -> (Right(_: Bytes)))
+    val sources = Seq(
+      (stdout, Left(_: Bytes), ctx.log.outputStream),
+      (stderr, Right(_: Bytes),ctx.log.errorStream )
+    )
     val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
     while(
     // Process.isAlive doesn't exist on JDK 7 =/
@@ -119,13 +123,13 @@ object Jvm {
         stderr.available() > 0
     ){
       var readSomething = false
-      for ((std, wrapper) <- sources){
-        while (std.available() > 0){
+      for ((subStream, wrapper, parentStream) <- sources){
+        while (subStream.available() > 0){
           readSomething = true
-          val array = new Array[Byte](std.available())
-          val actuallyRead = std.read(array)
+          val array = new Array[Byte](subStream.available())
+          val actuallyRead = subStream.read(array)
           chunks.append(wrapper(new ammonite.ops.Bytes(array)))
-          ctx.log.outputStream.write(array, 0, actuallyRead)
+          parentStream.write(array, 0, actuallyRead)
         }
       }
       // if we did not read anything sleep briefly to avoid spinning
@@ -147,7 +151,7 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Seq[Path], mainClass: Option[String] = None)
+  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
                (implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
@@ -181,7 +185,7 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def createAssembly(inputPaths: Seq[Path],
+  def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")
                     (implicit ctx: Ctx.DestCtx): PathRef = {

@@ -7,9 +7,10 @@ import ammonite.ops.Path
 import mill.eval.Result.Success
 import mill.scalajslib.Lib._
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, PublishModule, Module, TestModule}
+import mill.scalalib.{Dep, ScalaModule, PublishModule, TestModule}
+import mill.util.Loose
 
-trait ScalaJSModule extends scalalib.Module { outer =>
+trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
 
@@ -26,10 +27,16 @@ trait ScalaJSModule extends scalalib.Module { outer =>
 
   def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
-  def scalaJSLinkerClasspath: T[Seq[PathRef]] = T{
+  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
     val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
     val jsBridgePath = sys.props(jsBridgeKey)
-    if (jsBridgePath != null) Success(jsBridgePath.split(File.pathSeparator).map(f => PathRef(Path(f), quick = true)).toVector)
+    if (jsBridgePath != null) {
+      Success(
+        Loose.Agg.from(
+          jsBridgePath.split(File.pathSeparator).map(f => PathRef(Path(f), quick = true))
+        )
+      )
+    }
     else {
       val dep = scalaJSLinkerIvyDep(scalaJSBridgeVersion())
       resolveDependencies(
@@ -51,9 +58,9 @@ trait ScalaJSModule extends scalalib.Module { outer =>
     link(mainClass(), Seq(compile().classes.path), compileDepClasspath().map(_.path), linker, FullOpt)
   }
 
-  override def scalacPluginIvyDeps = T{ Seq(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
+  override def scalacPluginIvyDeps = T{ Loose.Agg(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
 
-  override def ivyDeps = T{ Seq(Dep("org.scala-js", "scalajs-library", scalaJSVersion())) }
+  override def ivyDeps = T{ Loose.Agg(Dep("org.scala-js", "scalajs-library", scalaJSVersion())) }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
   def crossFullScalaJSVersion: T[Boolean] = false

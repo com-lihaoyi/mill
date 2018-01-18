@@ -1,5 +1,6 @@
 package mill.util
 import TestUtil.test
+import mill.define.Cross
 import mill.{Module, T}
 
 /**
@@ -15,18 +16,18 @@ import mill.{Module, T}
   */
 class TestGraphs(){
   // single
-  object singleton extends Module{
+  object singleton extends TestUtil.BaseModule {
     val single = test()
   }
 
   // up---down
-  object pair extends Module {
+  object pair extends TestUtil.BaseModule{
     val up = test()
     val down = test(up)
   }
 
   // up---o---down
-  object anonTriple extends Module{
+  object anonTriple extends TestUtil.BaseModule {
     val up = test()
     val down = test(test.anon(up))
   }
@@ -36,7 +37,7 @@ class TestGraphs(){
   // up    down
   //   \   /
   //   right
-  object diamond extends Module{
+  object diamond extends TestUtil.BaseModule {
     val up = test()
     val left = test(up)
     val right = test(up)
@@ -48,12 +49,12 @@ class TestGraphs(){
   // up   down
   //   \ /
   //    o
-  object anonDiamond extends Module{
+  object anonDiamond extends TestUtil.BaseModule {
     val up = test()
     val down = test(test.anon(up), test.anon(up))
   }
 
-  object defCachedDiamond extends Module{
+  object defCachedDiamond extends TestUtil.BaseModule {
     def up = T{ test() }
     def left = T{ test(up) }
     def right = T{ test(up) }
@@ -61,14 +62,14 @@ class TestGraphs(){
   }
 
 
-  object borkedCachedDiamond2 extends Module {
+  object borkedCachedDiamond2 extends TestUtil.BaseModule  {
     def up = test()
     def left = test(up)
     def right = test(up)
     def down = test(left, right)
   }
 
-  object borkedCachedDiamond3 extends Module {
+  object borkedCachedDiamond3 extends TestUtil.BaseModule  {
     def up = test()
     def left = test(up)
     def right = test(up)
@@ -86,7 +87,7 @@ class TestGraphs(){
   //       o          o---F---o
   //      /          /
   //  o--B          o
-  object bigSingleTerminal extends Module{
+  object bigSingleTerminal extends TestUtil.BaseModule {
     val a = test(test.anon(), test.anon())
     val b = test(test.anon())
     val e = {
@@ -106,14 +107,12 @@ class TestGraphs(){
     }
     val j = test(test.anon(i), test.anon(i, f), test.anon(f))
   }
-}
-object TestGraphs{
   //        _ left _
   //       /        \
   //  task1 -------- right
   //               _/
   // change - task2
-  object separateGroups extends Module{
+  object separateGroups extends TestUtil.BaseModule {
     val task1 = T.task{ 1 }
     def left = T{ task1() }
     val change = test()
@@ -121,11 +120,14 @@ object TestGraphs{
     def right = T{ task1() + task2() + left() + 1 }
 
   }
+}
 
+
+object TestGraphs{
   //      _ left _
   //     /        \
   // task -------- right
-  object triangleTask extends Module{
+  object triangleTask extends TestUtil.BaseModule {
     val task = T.task{ 1 }
     def left = T{ task() }
     def right = T{ task() + left() + 1 }
@@ -135,7 +137,7 @@ object TestGraphs{
   //      _ left
   //     /
   // task -------- right
-  object multiTerminalGroup extends Module{
+  object multiTerminalGroup extends TestUtil.BaseModule {
     val task = T.task{ 1 }
     def left = T{ task() }
     def right = T{ task() }
@@ -144,7 +146,7 @@ object TestGraphs{
   //       _ left _____________
   //      /        \           \
   // task1 -------- right ----- task2
-  object multiTerminalBoundary extends Module{
+  object multiTerminalBoundary extends TestUtil.BaseModule {
     val task1 = T.task{ 1 }
     def left = T{ task1() }
     def right = T{ task1() + left() + 1 }
@@ -152,13 +154,13 @@ object TestGraphs{
   }
 
 
-  class CanNest extends Module{
+  trait CanNest extends Module{
     def single = T{ 1 }
     def invisible: Any = T{ 2 }
     def invisible2: mill.define.Task[Int] = T{ 3 }
     def invisible3: mill.define.Task[_] = T{ 4 }
   }
-  object nestedModule extends Module{
+  object nestedModule extends TestUtil.BaseModule {
     def single = T{ 5 }
     def invisible: Any = T{ 6 }
     object nested extends Module{
@@ -166,7 +168,7 @@ object TestGraphs{
       def invisible: Any = T{ 8 }
 
     }
-    val classInstance = new CanNest
+    object classInstance extends CanNest
 
   }
 
@@ -174,7 +176,7 @@ object TestGraphs{
     def foo = T{ Seq("base") }
   }
 
-  object canOverrideSuper extends BaseModule {
+  object canOverrideSuper extends TestUtil.BaseModule with BaseModule {
     override def foo = T{ super.foo() ++ Seq("object") }
   }
 
@@ -187,46 +189,34 @@ object TestGraphs{
 
 
   // Make sure nested objects inherited from traits work
-  object TraitWithModuleObject extends TraitWithModule
+  object TraitWithModuleObject extends TestUtil.BaseModule with TraitWithModule
 
 
-  object singleCross{
-    val cross =
-      for(scalaVersion <- mill.define.Cross("210", "211", "212"))
-      yield new mill.Module{
-        def suffix = T{ scalaVersion }
-      }
+  object singleCross extends TestUtil.BaseModule {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    class Cross(scalaVersion: String) extends Module{
+      def suffix = T{ scalaVersion }
+    }
   }
-  object doubleCross{
-    val cross = for{
-      scalaVersion <- mill.define.Cross("210", "211", "212")
-      platform <- mill.define.Cross("jvm", "js", "native")
+  object doubleCross extends TestUtil.BaseModule {
+    val crossMatrix = for{
+      scalaVersion <- Seq("210", "211", "212")
+      platform <- Seq("jvm", "js", "native")
       if !(platform == "native" && scalaVersion != "212")
-    } yield new Module{
+    } yield (scalaVersion, platform)
+    object cross extends mill.Cross[Cross](crossMatrix:_*)
+    class Cross(scalaVersion: String, platform: String) extends Module{
       def suffix = T{ scalaVersion + "_" + platform }
     }
   }
 
-  object indirectNestedCrosses{
-    val cross = mill.define.Cross("210", "211", "212").map(new cross(_))
-    class cross(scalaVersion: String) extends mill.Module{
-      val cross2 =
-        for(platform <- mill.define.Cross("jvm", "js", "native"))
-        yield new mill.Module{
-          def suffix = T{ scalaVersion + "_" + platform }
-        }
-    }
-  }
-
-  object nestedCrosses{
-    val cross =
-      for(scalaVersion <- mill.define.Cross("210", "211", "212"))
-      yield new mill.Module{
-        val cross2 =
-          for(platform <- mill.define.Cross("jvm", "js", "native"))
-          yield new mill.Module{
-            def suffix = T{ scalaVersion + "_" + platform }
-          }
+  object nestedCrosses extends TestUtil.BaseModule {
+    object cross extends mill.Cross[Cross]("210", "211", "212")
+    class Cross(scalaVersion: String) extends mill.Module{
+      object cross2 extends mill.Cross[Cross]("jvm", "js", "native")
+      class Cross(platform: String) extends mill.Module{
+        def suffix = T{ scalaVersion + "_" + platform }
       }
+    }
   }
 }

@@ -1,43 +1,37 @@
 package mill.scalalib
 
 import ammonite.ops._
-import mill.define.Target
-import mill.discover.Mirror.Segment
-import mill.discover.{Discovered, Mirror}
-import mill.eval.{Evaluator, PathRef}
+import mill.define.{Segment, Segments, Target}
+import mill.eval.{Evaluator, PathRef, RootModuleLoader}
+import mill.scalalib
 import mill.util.Ctx.{LoaderCtx, LogCtx}
-import mill.util.{OSet, PrintLogger}
+import mill.util.{Loose, PrintLogger, Strict}
+import mill.util.Strict.Agg
 
 object GenIdea {
 
   def apply()(implicit ctx: LoaderCtx with LogCtx): Unit = {
-    val mapping = ctx.load(mill.discover.Discovered.Mapping)
+    val rootModule = ctx.load(RootModuleLoader)
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd, mapping, ctx.log)
+    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule , ctx.log)
 
-    for((relPath, xml) <- xmlFileLayout(evaluator)){
+    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator[T]): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
-    val modules = Mirror
-      .traverse(evaluator.mapping.base, evaluator.mapping.mirror){ (h, p) =>
-        h.node(evaluator.mapping.base, p.reverse.map{case Mirror.Segment.Cross(vs) => vs.toList case _ => Nil}.toList) match {
-          case m: Module => Seq(p -> m)
-          case _ => Nil
-        }
-      }
-      .map{case (p, v) => (p.reverse, v)}
+
+    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.ScalaModule => (x.millModuleSegments, x)}.toSeq
 
     val resolved = for((path, mod) <- modules) yield {
-      val Seq(resolvedCp: Seq[PathRef], resolvedSrcs: Seq[PathRef]) =
-        evaluator.evaluate(OSet(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
+      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
+        evaluator.evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
           .values
 
       (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
@@ -74,20 +68,26 @@ object GenIdea {
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
-      val Seq(sourcePath: PathRef) =
-        evaluator.evaluate(OSet(mod.sources)).values
+      val Seq(
+        sourcesPathRef: Loose.Agg[PathRef],
+        generatedSourcePathRefs: Loose.Agg[PathRef],
+        allSourcesPathRefs: Loose.Agg[PathRef]
+      ) = evaluator.evaluate(Agg(mod.sources, mod.generatedSources, mod.allSources)).values
+
+      val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
+      val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
 
       val paths = Evaluator.resolveDestPaths(
         evaluator.workspacePath,
-        evaluator.mapping.targetsToSegments(mod.compile)
+        mod.compile.ctx.segments
       )
 
       val elem = moduleXmlTemplate(
-        sourcePath.path,
-        Seq(paths.out),
-        resolvedDeps.map(pathToLibName),
-        for(m <- mod.projectDeps)
-        yield moduleName(moduleLabels(m))
+        Strict.Agg.from(normalSourcePaths),
+        Strict.Agg.from(generatedSourcePaths),
+        Strict.Agg(paths.out),
+        Strict.Agg.from(resolvedDeps.map(pathToLibName)),
+        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
       )
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
@@ -100,7 +100,7 @@ object GenIdea {
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def moduleName(p: Seq[Mirror.Segment]) = p.foldLeft(StringBuilder.newBuilder) {
+  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
     case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
     case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
     case (sb, Segment.Label(s)) => sb.append(".").append(s)
@@ -152,31 +152,43 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(sourcePath: Path,
-                        outputPaths: Seq[Path],
-                        libNames: Seq[String],
-                        depNames: Seq[String]) = {
+  def moduleXmlTemplate(normalSourcePaths: Strict.Agg[Path],
+                        generatedSourcePaths: Strict.Agg[Path],
+                        outputPaths: Strict.Agg[Path],
+                        libNames: Strict.Agg[String],
+                        depNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         {
-        for(outputPath <- outputPaths)
-        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath)} />
+        for(outputPath <- outputPaths.toSeq)
+        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         }
 
         <exclude-output />
-        <content url={"file://$MODULE_DIR$/" + relify(sourcePath)}>
-          <sourceFolder url={"file://$MODULE_DIR$/" + relify(sourcePath)} isTestSource="false" />
-        </content>
+        {
+        for (normalSourcePath <- normalSourcePaths.toSeq)
+          yield
+            <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
+            </content>
+        }
+        {
+        for (generatedSourcePath <- generatedSourcePaths.toSeq)
+          yield
+            <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
+            </content>
+        }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
-        for(name <- libNames)
+        for(name <- libNames.toSeq)
         yield <orderEntry type="library" name={name} level="project" />
 
         }
         {
-        for(depName <- depNames)
+        for(depName <- depNames.toSeq)
         yield <orderEntry type="module" module-name={depName} exported="" />
         }
       </component>

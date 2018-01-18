@@ -14,7 +14,10 @@ val sharedSettings = Seq(
   resolvers += Resolver.sonatypeRepo("releases"),
   scalacOptions += "-P:acyclic:force",
   autoCompilerPlugins := true,
-  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7")
+  addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
+
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
+  mainClass in Test := Some("ammonite.Main")
 )
 
 
@@ -29,11 +32,14 @@ val pluginSettings = Seq(
   }
 )
 
-lazy val ammoniteRunner = project.settings(
-  scalaVersion := "2.12.4",
-  libraryDependencies +=
-    "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
-)
+lazy val ammoniteRunner = project
+  .in(file("target/ammoniteRunner"))
+  .settings(
+    scalaVersion := "2.12.4",
+    target := baseDirectory.value,
+    libraryDependencies +=
+      "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
+  )
 
 
 def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: String = "") = Def.task{
@@ -53,11 +59,12 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
 
 def bridge(bridgeVersion: String) = Project(
   id = "bridge" + bridgeVersion.replace('.', '_'),
-  base = file("bridge/" + bridgeVersion.replace('.', '_')),
+  base = file("target/bridge/" + bridgeVersion.replace('.', '_')),
   settings = Seq(
     organization := "com.lihaoyi",
     scalaVersion := bridgeVersion,
     name := "mill-bridge",
+    target := baseDirectory.value,
     crossVersion := CrossVersion.full,
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
@@ -96,13 +103,13 @@ lazy val core = project
       "org.scala-sbt" % "test-interface" % "1.0"
     ),
     sourceGenerators in Compile += {
-      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateSources", _))
+      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateCoreSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
     },
 
     sourceGenerators in Test += {
-      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateTests", _))
+      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
     }
@@ -151,7 +158,7 @@ lazy val scalajslib = project
 def jsbridge(binary: String, version: String) =
   Project(
     id = "scalajsbridge_" + binary.replace('.', '_'),
-    base = file("scalajslib/bridge_" + binary.replace('.', '_'))
+    base = file("scalajslib/jsbridges/" + binary)
   )
   .settings(
     organization := "com.lihaoyi",
@@ -214,14 +221,16 @@ lazy val integration = project
   )
 
 lazy val bin = project
+  .in(file("target/bin"))
   .dependsOn(scalalib, scalajslib)
   .settings(
     sharedSettings,
+    target := baseDirectory.value,
     fork := true,
     connectInput in (Test, run) := true,
     outputStrategy in (Test, run) := Some(StdoutOutput),
     mainClass in (Test, run) := Some("mill.Main"),
-    baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / "..",
+    baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     assemblyOption in assembly := {
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(

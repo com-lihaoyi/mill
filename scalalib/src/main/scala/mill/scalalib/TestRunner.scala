@@ -9,7 +9,8 @@ import ammonite.ops.{Path, ls, pwd}
 import ammonite.util.Colors
 import mill.modules.Jvm
 import mill.util.Ctx.LogCtx
-import mill.util.PrintLogger
+import mill.util.{PrintLogger}
+import mill.util.Loose.Agg
 import sbt.testing._
 import upickle.Js
 import mill.util.JsonFormatters._
@@ -24,7 +25,7 @@ object TestRunner {
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
-  def runTests(cl: ClassLoader, framework: Framework, classpath: Seq[Path]) = {
+  def runTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
 
 
     val fingerprints = framework.fingerprints()
@@ -49,13 +50,14 @@ object TestRunner {
   def main(args: Array[String]): Unit = {
     val result = apply(
       frameworkName = args(0),
-      entireClasspath = args(1).split(" ").map(Path(_)),
-      testClassfilePath = args(2).split(" ").map(Path(_)),
+      entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
+      testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
       args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
     )(new PrintLogger(
       args(5) == "true",
       if(args(5) == "true") Colors.Default
       else Colors.BlackWhite,
+      System.out,
       System.err,
       System.err
     ))
@@ -69,8 +71,8 @@ object TestRunner {
     System.exit(0)
   }
   def apply(frameworkName: String,
-            entireClasspath: Seq[Path],
-            testClassfilePath: Seq[Path],
+            entireClasspath: Agg[Path],
+            testClassfilePath: Agg[Path],
             args: Seq[String])
            (implicit ctx: LogCtx): (String, Seq[Result]) = {
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
@@ -84,7 +86,7 @@ object TestRunner {
 
       val tasks = runner.tasks(
         for ((cls, fingerprint) <- testClasses.toArray)
-          yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array())
+          yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
       )
       val events = mutable.Buffer.empty[Event]
       for (t <- tasks) {

@@ -47,6 +47,8 @@ case class PathRef(path: ammonite.ops.Path, quick: Boolean = false){
               }
             }
             rec()
+
+            is.close()
           }
           FileVisitResult.CONTINUE
         }

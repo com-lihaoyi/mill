@@ -1,12 +1,10 @@
 package mill.define
 
 
-import mill.discover.Discovered
-import Discovered.mapping
 import mill.eval.Evaluator
-import mill.util.{OSet, TestGraphs, TestUtil}
+import mill.util.{TestGraphs, TestUtil}
 import utest._
-
+import mill.util.Strict.Agg
 object GraphTests extends TestSuite{
 
   val tests = Tests{
@@ -17,31 +15,31 @@ object GraphTests extends TestSuite{
     import TestGraphs._
 
     'topoSortedTransitiveTargets - {
-      def check(targets: OSet[Task[_]], expected: OSet[Task[_]]) = {
+      def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
         val result = Graph.topoSorted(Graph.transitiveTargets(targets)).values
         TestUtil.checkTopological(result)
         assert(result == expected)
       }
 
       'singleton - check(
-        targets = OSet(singleton.single),
-        expected = OSet(singleton.single)
+        targets = Agg(singleton.single),
+        expected = Agg(singleton.single)
       )
       'pair - check(
-        targets = OSet(pair.down),
-        expected = OSet(pair.up, pair.down)
+        targets = Agg(pair.down),
+        expected = Agg(pair.up, pair.down)
       )
       'anonTriple - check(
-        targets = OSet(anonTriple.down),
-        expected = OSet(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
+        targets = Agg(anonTriple.down),
+        expected = Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       'diamond - check(
-        targets = OSet(diamond.down),
-        expected = OSet(diamond.up, diamond.left, diamond.right, diamond.down)
+        targets = Agg(diamond.down),
+        expected = Agg(diamond.up, diamond.left, diamond.right, diamond.down)
       )
       'anonDiamond - check(
-        targets = OSet(diamond.down),
-        expected = OSet(
+        targets = Agg(diamond.down),
+        expected = Agg(
           diamond.up,
           diamond.down.inputs(0),
           diamond.down.inputs(1),
@@ -49,8 +47,8 @@ object GraphTests extends TestSuite{
         )
       )
       'defCachedDiamond - check(
-        targets = OSet(defCachedDiamond.down),
-        expected = OSet(
+        targets = Agg(defCachedDiamond.down),
+        expected = Agg(
           defCachedDiamond.up.inputs(0),
           defCachedDiamond.up,
           defCachedDiamond.down.inputs(0).inputs(0).inputs(0),
@@ -62,7 +60,7 @@ object GraphTests extends TestSuite{
         )
       )
       'bigSingleTerminal - {
-        val result = Graph.topoSorted(Graph.transitiveTargets(OSet(bigSingleTerminal.j))).values
+        val result = Graph.topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j))).values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
@@ -71,46 +69,46 @@ object GraphTests extends TestSuite{
     'groupAroundNamedTargets - {
       def check[T, R <: Target[Int]](base: T)
                                     (target: T => R,
-                                     important0: OSet[T => Target[_]],
-                                     expected: OSet[(R, Int)]) = {
+                                     important0: Agg[T => Target[_]],
+                                     expected: Agg[(R, Int)]) = {
 
-        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(OSet(target(base))))
+        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
 
         val important = important0.map(_ (base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
           case t: Target[_] if important.contains(t) => t
         }
-        val flattened = OSet.from(grouped.values().flatMap(_.items))
+        val flattened = Agg.from(grouped.values().flatMap(_.items))
 
         TestUtil.checkTopological(flattened)
         for ((terminal, expectedSize) <- expected) {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == OSet(terminal)
+            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(terminal)
           )
         }
       }
 
       'singleton - check(singleton)(
         _.single,
-        OSet(_.single),
-        OSet(singleton.single -> 1)
+        Agg(_.single),
+        Agg(singleton.single -> 1)
       )
       'pair - check(pair)(
         _.down,
-        OSet(_.up, _.down),
-        OSet(pair.up -> 1, pair.down -> 1)
+        Agg(_.up, _.down),
+        Agg(pair.up -> 1, pair.down -> 1)
       )
       'anonTriple - check(anonTriple)(
         _.down,
-        OSet(_.up, _.down),
-        OSet(anonTriple.up -> 1, anonTriple.down -> 2)
+        Agg(_.up, _.down),
+        Agg(anonTriple.up -> 1, anonTriple.down -> 2)
       )
       'diamond - check(diamond)(
         _.down,
-        OSet(_.up, _.left, _.right, _.down),
-        OSet(
+        Agg(_.up, _.left, _.right, _.down),
+        Agg(
           diamond.up -> 1,
           diamond.left -> 1,
           diamond.right -> 1,
@@ -120,8 +118,8 @@ object GraphTests extends TestSuite{
 
       'defCachedDiamond - check(defCachedDiamond)(
         _.down,
-        OSet(_.up, _.left, _.right, _.down),
-        OSet(
+        Agg(_.up, _.left, _.right, _.down),
+        Agg(
           defCachedDiamond.up -> 2,
           defCachedDiamond.left -> 2,
           defCachedDiamond.right -> 2,
@@ -131,16 +129,16 @@ object GraphTests extends TestSuite{
 
       'anonDiamond - check(anonDiamond)(
         _.down,
-        OSet(_.down, _.up),
-        OSet(
+        Agg(_.down, _.up),
+        Agg(
           anonDiamond.up -> 1,
           anonDiamond.down -> 3
         )
       )
       'bigSingleTerminal - check(bigSingleTerminal)(
         _.j,
-        OSet(_.a, _.b, _.e, _.f, _.i, _.j),
-        OSet(
+        Agg(_.a, _.b, _.e, _.f, _.i, _.j),
+        Agg(
           bigSingleTerminal.a -> 3,
           bigSingleTerminal.b -> 2,
           bigSingleTerminal.e -> 9,
@@ -151,13 +149,13 @@ object GraphTests extends TestSuite{
       )
     }
     'multiTerminalGroupCounts - {
-      def countGroups(mapping: Discovered.Mapping[_], goals: Task[_]*) = {
+      def countGroups(goals: Task[_]*) = {
 
         val topoSorted = Graph.topoSorted(
-          Graph.transitiveTargets(OSet.from(goals))
+          Graph.transitiveTargets(Agg.from(goals))
         )
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] if mapping.modulesToPaths.contains(t.owner) => t
+          case t: NamedTask[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount
@@ -165,7 +163,7 @@ object GraphTests extends TestSuite{
 
       'separateGroups - {
         import separateGroups._
-        val groupCount = countGroups(mapping(separateGroups), right, left)
+        val groupCount = countGroups(right, left)
         assert(groupCount == 3)
       }
 
@@ -174,7 +172,7 @@ object GraphTests extends TestSuite{
         // `right` depends on `left`, both of them depend on the un-cached `task`
         // which would force them both to re-compute every time `task` changes
         import triangleTask._
-        val groupCount = countGroups(mapping(triangleTask), right, left)
+        val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
 
@@ -182,7 +180,7 @@ object GraphTests extends TestSuite{
       'multiTerminalGroup - {
         // Make sure the following graph ends up as two groups
         import multiTerminalGroup._
-        val groupCount = countGroups(mapping(multiTerminalGroup), right, left)
+        val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
 
@@ -191,7 +189,7 @@ object GraphTests extends TestSuite{
         // Make sure the following graph ends up as a three groups: one for
         // each cached target, and one for the downstream task we are running
         import multiTerminalBoundary._
-        val groupCount = countGroups(mapping(multiTerminalBoundary), task2)
+        val groupCount = countGroups(task2)
         assert(groupCount == 3)
       }
     }

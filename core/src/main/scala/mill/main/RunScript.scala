@@ -1,6 +1,5 @@
 package mill.main
 
-import java.io.{ByteArrayOutputStream, PrintStream}
 import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
@@ -8,11 +7,10 @@ import ammonite.ops.{Path, read}
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
-import mill.define.Task
-import mill.discover.Mirror.Segment
-import mill.discover.{Discovered, Mirror}
-import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{OSet, PrintLogger}
+import mill.define.{Discover, Segment, Task}
+import mill.eval.{Evaluator, Result}
+import mill.util.{EitherOps, Logger}
+import mill.util.Strict.Agg
 import upickle.Js
 
 /**
@@ -25,18 +23,15 @@ object RunScript{
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])],
-                infoStream: PrintStream,
-                errStream: PrintStream,
-                colors: ammonite.util.Colors)
-  : (Res[(Evaluator[_], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)],
+                log: Logger)
+  : (Res[(Evaluator[_], Discover, Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
-    val log = new PrintLogger(colors != ammonite.util.Colors.BlackWhite, colors, infoStream, errStream)
     val (evalRes, interpWatched) = lastEvaluator match{
-      case Some((prevInterpWatchedSig, prevEvaluator))
+      case Some((prevInterpWatchedSig, prevEvaluator, prevDiscover))
         if watchedSigUnchanged(prevInterpWatchedSig) =>
 
-        (Res.Success(prevEvaluator), prevInterpWatchedSig)
+        (Res.Success(prevEvaluator -> prevDiscover), prevInterpWatchedSig)
 
       case _ =>
         instantiateInterpreter match{
@@ -44,15 +39,15 @@ object RunScript{
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for(mapping <- evaluateMapping(wd, path, interp))
-              yield new Evaluator(wd / 'out, wd, mapping, log)
+              for((mapping, discover) <- evaluateMapping(wd, path, interp))
+              yield (new Evaluator(wd / 'out, wd, mapping, log), discover)
             (eval, interp.watchedFiles)
         }
     }
 
     val evaluated = for{
-      evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
+      (evaluator, discover) <- evalRes
+      (evalWatches, res) <- Res(evaluateTarget(evaluator, discover, scriptArgs))
     } yield {
       val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
       // If the file changed between the creation of the original
@@ -65,7 +60,7 @@ object RunScript{
         if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
         else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
 
-      (evaluator, evaluationWatches, res.map(_.flatMap(_._2)))
+      (evaluator, discover, evaluationWatches, res.map(_.flatMap(_._2)))
     }
     (evaluated, interpWatched)
   }
@@ -76,7 +71,7 @@ object RunScript{
 
   def evaluateMapping(wd: Path,
                       path: Path,
-                      interp: ammonite.interp.Interpreter): Res[Discovered.Mapping[_]] = {
+                      interp: ammonite.interp.Interpreter): Res[(mill.Module, Discover)] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -102,42 +97,60 @@ object RunScript{
         .evalClassloader
         .loadClass(buildClsName)
 
-      mapping <- try {
+      module <- try {
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
-            buildCls.getDeclaredMethod("mapping")
-              .invoke(null)
-              .asInstanceOf[Discovered.Mapping[_]]
+            buildCls.getMethod("millSelf")
+                    .invoke(null)
+                    .asInstanceOf[Some[mill.Module]]
+                    .get
           )
         }
       } catch {
         case e: Throwable => Res.Exception(e, "")
       }
-      _ <- Res(consistencyCheck(mapping))
-    } yield mapping
-  }
-  def evaluateTarget[T](evaluator: Evaluator[_],
-                        scriptArgs: Seq[String]) = {
-
-    val selectorString = scriptArgs.headOption.getOrElse("")
-    val rest = scriptArgs.drop(1)
-
-    for {
-      sel <- parseArgs(selectorString)
-      crossSelectors = sel.map{
-        case Mirror.Segment.Cross(x) => x.toList.map(_.toString)
-        case _ => Nil
+      discover <- try {
+        Util.withContextClassloader(interp.evalClassloader) {
+          Res.Success(
+            buildCls.getMethod("millDiscover")
+                    .invoke(null)
+                    .asInstanceOf[Discover]
+          )
+        }
+      } catch {
+        case e: Throwable => Res.Exception(e, "")
       }
-      target <- mill.main.Resolve.resolve(
-        sel, evaluator.mapping.mirror, evaluator.mapping.base,
-        rest, crossSelectors, Nil
-      )
-      (watched, res) = evaluate(evaluator, target)
+//      _ <- Res(consistencyCheck(mapping))
+    } yield (module, discover)
+  }
+
+  def evaluateTarget[T](evaluator: Evaluator[_],
+                        discover: Discover,
+                        scriptArgs: Seq[String]) = {
+    for {
+      parsed <- ParseArgs(scriptArgs)
+      (selectors, args) = parsed
+      targets <- {
+        val selected = selectors.map { sel =>
+          val crossSelectors = sel.map {
+            case Segment.Cross(x) => x.toList.map(_.toString)
+            case _ => Nil
+          }
+          mill.main.Resolve.resolve(
+            sel, evaluator.rootModule,
+            discover,
+            args, crossSelectors, Nil
+          )
+        }
+        EitherOps.sequence(selected)
+      }
+      (watched, res) = evaluate(evaluator, targets)
     } yield (watched, res)
   }
+
   def evaluate(evaluator: Evaluator[_],
-               target: Task[Any]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
-    val evaluated = evaluator.evaluate(OSet(target))
+               targets: Seq[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+    val evaluated = evaluator.evaluate(Agg.from(targets))
     val watched = evaluated.results
       .iterator
       .collect {
@@ -149,7 +162,7 @@ object RunScript{
       (for((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match{
           case Left(t) => t.toString
-          case Right(t) => Mirror.renderSelector(t.segments.toList)
+          case Right(t) => t.segments.render
         }
         val fss = fs.map{
           case Result.Exception(t, outerStack) =>
@@ -161,14 +174,15 @@ object RunScript{
 
     evaluated.failing.keyCount match {
       case 0 =>
-        val json = for(t <- Seq(target)) yield {
+        val json = for(t <- targets) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
-              for (segments <- evaluator.mapping.modulesToPaths.get(t.owner)) yield {
-                val jsonFile = Evaluator.resolveDestPaths(evaluator.workspacePath, segments :+ Segment.Label(t.name)).meta
-                val metadata = upickle.json.read(jsonFile.toIO)
-                metadata(1)
-              }
+              val jsonFile = Evaluator
+                .resolveDestPaths(evaluator.workspacePath, t.ctx.segments)
+                .meta
+              val metadata = upickle.json.read(jsonFile.toIO)
+              Some(metadata(1))
+
             case _ => None
           }
         }
@@ -178,38 +192,12 @@ object RunScript{
     }
   }
 
-  def parseSelector(input: String) = {
-    import fastparse.all._
-    val segment = P( CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).! ).map(
-      Mirror.Segment.Label
-    )
-    val crossSegment = P( "[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep=",") ~ "]" ).map(
-      Mirror.Segment.Cross
-    )
-    val query = P( segment ~ ("." ~ segment | crossSegment).rep ~ End ).map{
-      case (h, rest) => h :: rest.toList
-    }
-    query.parse(input)
-  }
-
-
-
-  def parseArgs(selectorString: String): Either[String, List[Mirror.Segment]] = {
-    import fastparse.all.Parsed
-    if (selectorString.isEmpty) Left("Selector cannot be empty")
-    else parseSelector(selectorString) match {
-      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
-      case Parsed.Success(selector, _) => Right(selector)
-    }
-  }
-
-
-  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
-    val consistencyErrors = Discovered.consistencyCheck(mapping)
-    if (consistencyErrors.nonEmpty) {
-      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(Mirror.renderSelector)}")
-    } else {
-      Right(())
-    }
-  }
+//  def consistencyCheck[T](mapping: Discovered.Mapping[T]): Either[String, Unit] = {
+//    val consistencyErrors = Discovered.consistencyCheck(mapping)
+//    if (consistencyErrors.nonEmpty) {
+//      Left(s"Failed Discovered.consistencyCheck: ${consistencyErrors.map(_.render)}")
+//    } else {
+//      Right(())
+//    }
+//  }
 }

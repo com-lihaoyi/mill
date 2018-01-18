@@ -1,6 +1,8 @@
 package mill
 
+import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
+import ammonite.util.Util
 
 object Main {
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
@@ -12,17 +14,8 @@ object Main {
   def main(args: Array[String]): Unit = {
 
     import ammonite.main.Cli
-    var repl = false
+
     var show = false
-    val replCliArg = Cli.Arg[Cli.Config, Unit](
-      "repl",
-      None,
-      "Open a Build REPL",
-      (x, _) => {
-        repl = true
-        x
-      }
-    )
     val showCliArg = Cli.Arg[Cli.Config, Unit](
       "show",
       None,
@@ -32,15 +25,28 @@ object Main {
         x
       }
     )
+    val removed = Set("predef-code", "home", "no-home-predef")
+    val millArgSignature = (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
     Cli.groupArgs(
       args.toList,
-      Cli.ammoniteArgSignature :+ replCliArg :+ showCliArg,
-      Cli.Config()
+      millArgSignature,
+      Cli.Config(remoteLogging = false)
     ) match{
       case Left(msg) =>
         System.err.println(msg)
         System.exit(1)
+      case Right((cliConfig, _)) if cliConfig.help =>
+        val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
+        System.out.println(
+        s"""Mill Build Tool
+           |usage: mill [mill-options] [target [target-options]]
+           |
+           |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
+        )
+        System.exit(0)
       case Right((cliConfig, leftoverArgs)) =>
+
+        val repl = leftoverArgs.isEmpty
         val config =
           if(!repl) cliConfig
           else cliConfig.copy(
@@ -49,7 +55,8 @@ object Main {
                 |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                 |  interp.colors(),
                 |  repl.pprinter(),
-                |  build.mapping
+                |  build.millSelf.get,
+                |  build.millDiscover
                 |)
                 |repl.pprinter() = replApplyHandler.pprinter
                 |import replApplyHandler.generatedEval._
@@ -60,7 +67,7 @@ object Main {
 
         val runner = new mill.main.MainRunner(
           config, show,
-          System.out, System.err, System.in, System.out, System.err
+          System.out, System.err, System.in
         )
         if (repl){
           runner.printInfo("Loading...")

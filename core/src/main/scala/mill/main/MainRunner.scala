@@ -5,8 +5,9 @@ import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
-import mill.discover.Discovered
+import mill.define.Discover
 import mill.eval.{Evaluator, PathRef}
+import mill.util.PrintLogger
 import upickle.Js
 
 /**
@@ -14,14 +15,16 @@ import upickle.Js
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
+class MainRunner(config: ammonite.main.Cli.Config,
+                 show: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
-                 stdIn: InputStream,
-                 stdOut: OutputStream,
-                 stdErr: OutputStream)
-  extends ammonite.MainRunner(config, outprintStream, errPrintStream, stdIn, stdOut, stdErr){
-  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_])] = None
+                 stdIn: InputStream)
+  extends ammonite.MainRunner(
+    config, outprintStream, errPrintStream,
+    stdIn, outprintStream, errPrintStream
+  ){
+  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)] = None
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(
@@ -29,15 +32,25 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       printing = true,
       mainCfg => {
         val (result, interpWatched) = RunScript.runScript(
-          mainCfg.wd, scriptPath, mainCfg.instantiateInterpreter(), scriptArgs, lastEvaluator,
-          errPrintStream, errPrintStream, colors
+          mainCfg.wd,
+          scriptPath,
+          mainCfg.instantiateInterpreter(),
+          scriptArgs,
+          lastEvaluator,
+          new PrintLogger(
+            colors != ammonite.util.Colors.BlackWhite,
+            colors,
+            if (show) errPrintStream else outprintStream,
+            errPrintStream,
+            errPrintStream
+          )
         )
 
         result match{
           case Res.Success(data) =>
-            val (eval, evaluationWatches, res) = data
+            val (eval, discover, evaluationWatches, res) = data
 
-            lastEvaluator = Some((interpWatched, eval))
+            lastEvaluator = Some((interpWatched, eval, discover))
 
             (Res(res), interpWatched ++ evaluationWatches)
           case _ => (result, interpWatched)
@@ -50,7 +63,7 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
       case Res.Success(value) =>
         if (show){
           for(json <- value.asInstanceOf[Seq[Js.Value]]){
-            System.out.println(json)
+            outprintStream.println(json)
           }
         }
 
@@ -62,15 +75,12 @@ class MainRunner(config: ammonite.main.Cli.Config, show: Boolean,
   }
   override def initMain(isRepl: Boolean) = {
     super.initMain(isRepl).copy(
-      scriptCodeWrapper = mill.main.MainRunner.CustomCodeWrapper,
+      scriptCodeWrapper = CustomCodeWrapper,
       // Ammonite does not properly forward the wd from CliConfig to Main, so
       // force forward it outselves
       wd = config.wd
     )
   }
-}
-
-object MainRunner{
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
     def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
       val wrapName = indexedWrapperName.backticked
@@ -80,14 +90,21 @@ object MainRunner{
          |$imports
          |import mill._
          |
-         |object $wrapName extends $wrapName{
+         |object $wrapName extends mill.define.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
+         |  // Make sure we don't include the `build` wrapper-object's name in
+         |  // the `basePath`s of our build
+         |  override def basePath = super.basePath / ammonite.ops.up
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
-         |  lazy val mapping = mill.discover.Discovered.make[$wrapName].mapping(this)
+         |
+         |  val millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+         |  // Need to wrap the returned Module in Some(...) to make sure it
+         |  // doesn't get picked up during reflective child-module discovery
+         |  val millSelf = Some(this)
          |}
          |
-         |sealed abstract class $wrapName extends mill.Module{
+         |sealed trait $wrapName extends mill.Module{
          |""".stripMargin
     }
 

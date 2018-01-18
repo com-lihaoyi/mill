@@ -63,7 +63,7 @@ def generateEval(dir: Path) = {
     val extract    = uppercases.zipWithIndex.map { case (t, i) =>  s"result($i).asInstanceOf[$t]" }.mkString(", ")
 
     s"""def eval[$typeArgs]($parameters):($typeArgs) = {
-       |  val result = evaluator.evaluate(OSet($zipArgs)).values
+       |  val result = evaluator.evaluate(Agg($zipArgs)).values
        |  (${extract})
        |}
      """.stripMargin
@@ -74,7 +74,7 @@ def generateEval(dir: Path) = {
     s"""package mill.main
        |import mill.eval.Evaluator
        |import mill.define.Task
-       |import mill.util.OSet
+       |import mill.util.Strict.Agg
        |class EvalGenerated(evaluator: Evaluator[_]) {
        |  type TT[+X] = Task[X]
        |  ${(1 to 22).map(generate).mkString("\n")}
@@ -133,14 +133,14 @@ def unpackZip(zipDest: Path, url: String) = {
 }
 
 @main
-def generateSources(p: Path) = {
+def generateCoreSources(p: Path) = {
   generateApplyer(p)
   generateTarget(p)
   generateEval(p)
 }
 
 @main
-def generateTests(p: Path) = {
+def generateCoreTestSources(p: Path) = {
   generateApplicativeTest(p)
 }
 

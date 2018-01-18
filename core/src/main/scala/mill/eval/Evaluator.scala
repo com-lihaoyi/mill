@@ -4,16 +4,16 @@ import java.net.URLClassLoader
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
-import mill.define._
-import mill.discover.{Discovered, Mirror}
-import mill.discover.Mirror.Segment
+import mill.define.{Graph, NamedTask, Segment, Segments, Target, Task}
 import mill.util
+import mill.util.Ctx.Loader
 import mill.util._
+import mill.util.Strict.Agg
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
 case class Labelled[T](target: NamedTask[T],
-                       segments: Seq[Segment]){
+                       segments: Segments){
   def format = target match{
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
@@ -24,38 +24,40 @@ case class Labelled[T](target: NamedTask[T],
     case _ => None
   }
 }
+object RootModuleLoader extends Loader[mill.Module] {
+  def make() = ???
+}
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
-                   val mapping: Discovered.Mapping[T],
+                   val rootModule: mill.Module,
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
 
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
-  workerCache(Discovered.Mapping) = mapping
-  def evaluate(goals: OSet[Task[_]]): Evaluator.Results = {
+  workerCache(RootModuleLoader) = rootModule
+  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any] if mapping.modulesToPaths.contains(t.owner)  =>
-        val segments = mapping.modulesToPaths(t.owner) :+ Segment.Label(t.name)
+      case t: NamedTask[Any]   =>
+        val segments = t.ctx.segments
         val (finalTaskOverrides, enclosing) = t match{
-          case t: Target[_] => mapping.segmentsToTargets(segments).overrides -> t.enclosing
-          case c: mill.define.Command[_] => mapping.segmentsToCommands(segments).overrides -> c.enclosing
+          case t: Target[_] => rootModule.millInternal.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
+          case c: mill.define.Command[_] => 0 -> c.ctx.enclosing
         }
-        val delta = finalTaskOverrides - t.overrides
         val additional =
-          if (delta == 0) Nil
-          else Seq(Segment.Label("override" + delta), Segment.Label(enclosing))
+          if (finalTaskOverrides == t.ctx.overrides) Nil
+          else Seq(Segment.Label("overriden"), Segment.Label(enclosing))
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)
     }
 
-    val evaluated = new OSet.Mutable[Task[_]]
+    val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
 
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
@@ -84,7 +86,7 @@ class Evaluator[T](val workspacePath: Path,
 
 
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
-                          group: OSet[Task[_]],
+                          group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[Any]],
                           counterMsg: String): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
@@ -126,10 +128,10 @@ class Evaluator[T](val workspacePath: Path,
 
           case _ =>
 
-            val Seq(first, rest @_*) = labelledTarget.segments
-            val msgParts = Seq(first.asInstanceOf[Mirror.Segment.Label].value) ++ rest.map{
-              case Mirror.Segment.Label(s) => "." + s
-              case Mirror.Segment.Cross(s) => "[" + s.mkString(",") + "]"
+            val Seq(first, rest @_*) = labelledTarget.segments.value
+            val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
+              case Segment.Label(s) => "." + s
+              case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
             if (labelledTarget.target.flushDest) rm(paths.dest)
@@ -168,7 +170,7 @@ class Evaluator[T](val workspacePath: Path,
   }
 
 
-  def evaluateGroup(group: OSet[Task[_]],
+  def evaluateGroup(group: Agg[Task[_]],
                     results: collection.Map[Task[_], Result[Any]],
                     groupBasePath: Option[Path],
                     paths: Option[Evaluator.Paths],
@@ -219,10 +221,10 @@ class Evaluator[T](val workspacePath: Path,
           val out = System.out
           val err = System.err
           try{
-            System.setErr(multiLogger.outputStream)
+            System.setErr(multiLogger.errorStream)
             System.setOut(multiLogger.outputStream)
             Console.withOut(multiLogger.outputStream){
-              Console.withErr(multiLogger.outputStream){
+              Console.withErr(multiLogger.errorStream){
                 target.evaluate(args)
               }
             }
@@ -257,11 +259,11 @@ object Evaluator{
                    dest: Path,
                    meta: Path,
                    log: Path)
-  def makeSegmentStrings(segments: Seq[Segment]) = segments.flatMap{
-    case Mirror.Segment.Label(s) => Seq(s)
-    case Mirror.Segment.Cross(values) => values.map(_.toString)
+  def makeSegmentStrings(segments: Segments) = segments.value.flatMap{
+    case Segment.Label(s) => Seq(s)
+    case Segment.Cross(values) => values.map(_.toString)
   }
-  def resolveDestPaths(workspacePath: Path, segments: Seq[Segment]): Paths = {
+  def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
     Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
@@ -275,8 +277,8 @@ object Evaluator{
 
   }
   case class Results(rawValues: Seq[Result[Any]],
-                     evaluated: OSet[Task[_]],
-                     transitive: OSet[Task[_]],
+                     evaluated: Agg[Task[_]],
+                     transitive: Agg[Task[_]],
                      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
                      results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}

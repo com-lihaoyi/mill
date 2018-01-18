@@ -7,22 +7,20 @@ import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
 
-
 object moduledefs extends SbtModule{
   def scalaVersion = "2.12.4"
-  def basePath = pwd / 'moduledefs
-  def ivyDeps = Seq(
-    Dep.Java("org.scala-lang", "scala-compiler", scalaVersion()),
-    Dep("com.lihaoyi", "sourcecode", "0.1.4")
+  def ivyDeps = Agg(
+    ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
+    ivy"com.lihaoyi::sourcecode:0.1.4"
   )
 }
 
 trait MillModule extends SbtModule{ outer =>
   def scalaVersion = "2.12.4"
 
-  def compileIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+  def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Seq(Dep("com.lihaoyi", "acyclic", "0.1.7"))
+  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
 
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
@@ -30,76 +28,64 @@ trait MillModule extends SbtModule{ outer =>
 
   def testArgs = T{ Seq.empty[String] }
 
-  val test = new Tests
-  class Tests extends super.Tests{
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
     def defaultCommandName() = "forkTest"
     def forkArgs = T{ testArgs() }
-    def projectDeps =
+    def moduleDeps =
       if (this == core.test) Seq(core)
       else Seq(outer, core.test)
-    def ivyDeps = Seq(Dep("com.lihaoyi", "utest", "0.6.0"))
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFramework = "mill.UTestFramework"
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
   }
 }
 
 object core extends MillModule {
-  def projectDeps = Seq(moduledefs)
+  def moduleDeps = Seq(moduledefs)
 
-  def compileIvyDeps = Seq(
-    Dep.Java("org.scala-lang", "scala-reflect", scalaVersion())
+  def compileIvyDeps = Agg(
+    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 
-  def ivyDeps = Seq(
-    Dep("com.lihaoyi", "sourcecode", "0.1.4"),
-    Dep("com.lihaoyi", "pprint", "0.5.3"),
-    Dep.Point("com.lihaoyi", "ammonite", "1.0.3-21-05b5d32"),
-    Dep("com.typesafe.play", "play-json", "2.6.6"),
-    Dep("org.scala-sbt", "zinc", "1.0.5"),
-    Dep.Java("org.scala-sbt", "test-interface", "1.0")
+  def ivyDeps = Agg(
+    ivy"com.lihaoyi::sourcecode:0.1.4",
+    ivy"com.lihaoyi::pprint:0.5.3",
+    ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32",
+    ivy"org.scala-sbt::zinc:1.0.5",
+    ivy"org.scala-sbt:test-interface:1.0"
   )
 
-  def basePath = pwd / 'core
-
-  def generatedSources = T{
+  def generatedSources = T {
     mkdir(T.ctx().dest)
-    shared.generateSources(T.ctx().dest)
-    PathRef(T.ctx().dest)
+    shared.generateCoreSources(T.ctx().dest)
+    Agg(PathRef(T.ctx().dest))
   }
 
-  def allSources = super.allSources() ++ Seq(generatedSources())
-  val test = new Tests
-  class Tests extends super.Tests{
-    def generatedSources = T{
+  val test = new Tests(implicitly)
+  class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
+    def generatedSources = T {
       mkdir(T.ctx().dest)
-      shared.generateTests(T.ctx().dest)
-      PathRef(T.ctx().dest)
-
+      shared.generateCoreTestSources(T.ctx().dest)
+      Agg(PathRef(T.ctx().dest))
     }
-    def allSources = super.allSources() ++ Seq(generatedSources())
   }
 }
 
 val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
 
-object bridges extends CrossModule(BridgeModule, bridgeVersions:_*)
-case class BridgeModule(crossVersion: String) extends PublishModule {
+object bridges extends Cross[BridgeModule](bridgeVersions:_*)
+class BridgeModule(crossVersion: String) extends PublishModule {
   def publishName = "mill-bridge"
   def publishVersion = "0.1"
 
-  def basePath = pwd / 'bridge
   def scalaVersion = crossVersion
-  def sources = T.source {
-    val path = basePath / 'src
-    mkdir(path)
-    path
-  }
   def allSources = T{
-    Seq(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
+    Agg(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
   }
-  def ivyDeps = Seq(
-    Dep.Java("org.scala-lang", "scala-compiler", crossVersion),
-    Dep.Java("org.scala-sbt", "compiler-interface", "1.0.5")
+  def ivyDeps = Agg(
+    ivy"org.scala-lang:scala-compiler:$crossVersion",
+    ivy"org.scala-sbt:compiler-interface:1.0.5"
   )
 
   def publishWithFullScalaVersion = true
@@ -115,8 +101,7 @@ case class BridgeModule(crossVersion: String) extends PublishModule {
 }
 
 object scalalib extends MillModule {
-  def projectDeps = Seq(core)
-  def basePath = pwd / 'scalalib
+  def moduleDeps = Seq(core)
 
   def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
   def testArgs = T{
@@ -131,31 +116,30 @@ object scalalib extends MillModule {
     }
   }
 }
-object jsbridges extends CrossModule(JsBridgeModule, "0.6", "1.0")
-case class JsBridgeModule(scalajsBinary: String) extends MillModule{
-  def basePath = pwd / 'scalajslib / s"bridge_${scalajsBinary.replace('.', '_')}"
-  val scalajsVersion = scalajsBinary match {
-    case "0.6" => "0.6.21"
-    case "1.0" => "1.0.0-M2"
-  }
-  def ivyDeps = Seq(
-    Dep("org.scala-js", "scalajs-tools", scalajsVersion)
-  )
-}
 
 object scalajslib extends MillModule {
 
-  def projectDeps = Seq(scalalib)
-  def basePath = pwd / 'scalajslib
+  def moduleDeps = Seq(scalalib)
 
-  def bridgeClasspath(runDepClasspath: Seq[PathRef], classes: PathRef) =
-    (runDepClasspath :+ classes).map(_.path).mkString(File.pathSeparator)
+  def bridgeClasspath(runDepClasspath: Agg[PathRef], classes: PathRef) =
+    (runDepClasspath ++ Agg(classes)).map(_.path).mkString(File.pathSeparator)
   def testArgs = T{
     val mapping = Map(
       "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(jsbridges("0.6").runDepClasspath(), jsbridges("0.6").compile().classes),
       "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(jsbridges("1.0").runDepClasspath(), jsbridges("1.0").compile().classes)
     )
     for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+  }
+
+  object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
+  class JsBridgeModule(scalajsBinary: String) extends MillModule{
+    val scalajsVersion = scalajsBinary match {
+      case "0.6" => "0.6.21"
+      case "1.0" => "1.0.0-M2"
+    }
+    def ivyDeps = Agg(
+      ivy"org.scala-js::scalajs-tools:$scalajsVersion"
+    )
   }
 }
 def testRepos = T{
@@ -170,8 +154,7 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def projectDeps = Seq(moduledefs, scalalib, scalajslib)
-  def basePath = pwd / 'integration
+  def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
     for((k, v) <- testRepos()) yield s"-D$k=$v"
   }
@@ -180,13 +163,13 @@ object integration extends MillModule{
 
 val assemblyProjects = Seq(scalalib, scalajslib)
 
-def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.assemblyClasspath)
+def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.runClasspath)
 
 def publishBridges(credentials: String, gpgPassphrase: String) = T.command {
   mill.define.Task.traverse(bridges.items)(_._2.publish(credentials, gpgPassphrase))
 }
 
-def assemblyBase(classpath: Seq[Path], extraArgs: String)
+def assemblyBase(classpath: Agg[Path], extraArgs: String)
                 (implicit ctx: mill.util.Ctx.DestCtx) = {
   createAssembly(
     classpath,
@@ -197,11 +180,11 @@ def assemblyBase(classpath: Seq[Path], extraArgs: String)
 }
 
 def devAssembly = T{
-  assemblyBase(assemblyClasspath().flatten.map(_.path), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
+  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
 }
 
 def releaseAssembly = T{
-  assemblyBase(assemblyClasspath().flatten.map(_.path), "")
+  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "")
 }
 
 def idea() = T.command{ mill.scalalib.GenIdea() }

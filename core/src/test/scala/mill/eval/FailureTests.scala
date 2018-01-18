@@ -1,9 +1,8 @@
 package mill.eval
 
 import mill.define.Target
-import mill.discover.Discovered
-import mill.discover.Discovered.mapping
-import mill.util.{DummyLogger, OSet}
+import mill.util.DummyLogger
+import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
@@ -12,13 +11,13 @@ object FailureTests extends TestSuite{
   def workspace(implicit tp: TestPath) = {
     ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
   }
-  class Checker(mapping: Discovered.Mapping[_])(implicit tp: TestPath){
+  class Checker(module: mill.Module)(implicit tp: TestPath){
 
-    val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
+    val evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
     def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
 
-      val res = evaluator.evaluate(OSet(target))
+      val res = evaluator.evaluate(Agg(target))
 
       val cleaned = res.rawValues.map{
         case Result.Exception(ex, _) => Result.Exception(ex, Nil)
@@ -38,7 +37,7 @@ object FailureTests extends TestSuite{
 
     'evaluateSingle - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(mapping(singleton))
+      val check = new Checker(singleton)
       check(
         target = singleton.single,
         expectedFailCount = 0,
@@ -74,7 +73,7 @@ object FailureTests extends TestSuite{
     }
     'evaluatePair - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(mapping(pair))
+      val check = new Checker(pair)
       check(
         pair.down,
         expectedFailCount = 0,

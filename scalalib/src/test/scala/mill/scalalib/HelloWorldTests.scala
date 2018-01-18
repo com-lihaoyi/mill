@@ -5,67 +5,76 @@ import java.util.jar.JarFile
 import ammonite.ops._
 import ammonite.ops.ImplicitWd._
 import mill._
-import mill.define.{Cross, Target}
-import mill.discover.Discovered
+import mill.define.Target
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
-import mill.util.TestEvaluator
+import mill.util.{TestEvaluator, TestUtil}
 import sbt.internal.inc.CompileFailed
 import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloWorldModule extends scalalib.Module {
-  def scalaVersion = "2.12.4"
-  def basePath = HelloWorldTests.workingSrcPath
-}
 
-object HelloWorld extends HelloWorldModule
-object CrossHelloWorld extends mill.Module{
-  val cross =
-    for(v <- Cross("2.10.6", "2.11.11", "2.12.3", "2.12.4"))
-    yield new HelloWorldModule {
+object HelloWorldTests extends TestSuite {
+  trait HelloWorldModule extends scalalib.ScalaModule {
+    def scalaVersion = "2.12.4"
+    def basePath = HelloWorldTests.workingSrcPath
+  }
+
+  object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
+  object CrossHelloWorld extends TestUtil.BaseModule {
+    object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    class HelloWorldCross(v: String) extends HelloWorldModule {
       def scalaVersion = v
     }
-}
+  }
 
-object HelloWorldWithMain extends HelloWorldModule {
-  def mainClass = Some("Main")
-}
+  object HelloWorldWithMain extends TestUtil.BaseModule with HelloWorldModule {
+    def mainClass = Some("Main")
+  }
 
-object HelloWorldWarnUnused extends HelloWorldModule {
-  def scalacOptions = T(Seq("-Ywarn-unused"))
-}
+  object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
+    def mainClass = Some("Main")
+    def assembly = T{
+      mill.modules.Jvm.createAssembly(
+        runClasspath().map(_.path).filter(exists),
+        prependShellScript = prependShellScript(),
+        mainClass = mainClass()
+      )
+    }
+  }
 
-object HelloWorldFatalWarnings extends HelloWorldModule {
-  def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-}
+  object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
+    def scalacOptions = T(Seq("-Ywarn-unused"))
+  }
 
-object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
-  def artifactName = "hello-world"
-  def publishVersion = "0.0.1"
+  object HelloWorldFatalWarnings extends TestUtil.BaseModule with HelloWorldModule {
+    def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+  }
 
-  def pomSettings = PomSettings(
-    organization = "com.lihaoyi",
-    description = "hello world ready for real world publishing",
-    url = "https://github.com/lihaoyi/hello-world-publish",
-    licenses = Seq(
-      License("Apache License, Version 2.0",
-              "http://www.apache.org/licenses/LICENSE-2.0")),
-    scm = SCM(
-      "https://github.com/lihaoyi/hello-world-publish",
-      "scm:git:https://github.com/lihaoyi/hello-world-publish"
-    ),
-    developers =
-      Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-  )
-}
-object HelloWorldScalaOverride extends HelloWorldModule {
-  override def scalaVersion: Target[String] = "2.11.11"
-}
-object HelloWorldTests extends TestSuite {
+  object HelloWorldWithPublish extends TestUtil.BaseModule with HelloWorldModule with PublishModule {
+    def artifactName = "hello-world"
+    def publishVersion = "0.0.1"
 
-  val srcPath = pwd / 'scalalib / 'src / 'test / 'resource / "hello-world"
+    def pomSettings = PomSettings(
+      organization = "com.lihaoyi",
+      description = "hello world ready for real world publishing",
+      url = "https://github.com/lihaoyi/hello-world-publish",
+      licenses = Seq(
+        License("Apache License, Version 2.0",
+          "http://www.apache.org/licenses/LICENSE-2.0")),
+      scm = SCM(
+        "https://github.com/lihaoyi/hello-world-publish",
+        "scm:git:https://github.com/lihaoyi/hello-world-publish"
+      ),
+      developers =
+        Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+    )
+  }
+  object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
+    override def scalaVersion: Target[String] = "2.11.11"
+  }
+  val srcPath = pwd / 'scalalib / 'src / 'test / 'resources / "hello-world"
   val basePath = pwd / 'target / 'workspace / "hello-world"
   val workingSrcPath = basePath / 'src
   val outPath = basePath / 'out
@@ -75,27 +84,32 @@ object HelloWorldTests extends TestSuite {
 
 
   val helloWorldEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorld),
+    HelloWorld,
     outPath,
     workingSrcPath
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldWithMain),
+    HelloWorldWithMain,
+    outPath,
+    workingSrcPath
+  )
+  val helloWorldWithMainAssemblyEvaluator = new TestEvaluator(
+    HelloWorldWithMainAssembly,
     outPath,
     workingSrcPath
   )
   val helloWorldFatalEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldFatalWarnings),
+    HelloWorldFatalWarnings,
     outPath,
     workingSrcPath
   )
   val helloWorldOverrideEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloWorldScalaOverride),
+    HelloWorldScalaOverride,
     outPath,
     workingSrcPath
   )
   val helloWorldCrossEvaluator = new TestEvaluator(
-    Discovered.mapping(CrossHelloWorld),
+    CrossHelloWorld,
     outPath,
     workingSrcPath
   )
@@ -176,7 +190,7 @@ object HelloWorldTests extends TestSuite {
 
         val paths = Evaluator.resolveDestPaths(
           outPath,
-          helloWorldEvaluator.evaluator.mapping.targetsToSegments(HelloWorld.compile)
+          HelloWorld.compile.ctx.segments
         )
 
         assert(
@@ -273,14 +287,15 @@ object HelloWorldTests extends TestSuite {
     }
     'jar - {
       'nonEmpty - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloWorld.jar)
+        val Right((result, evalCount)) = helloWorldWithMainEvaluator(HelloWorldWithMain.jar)
 
         assert(
           exists(result.path),
           evalCount > 0
         )
 
-        val entries = new JarFile(result.path.toIO).entries().asScala.map(_.getName).toSet
+        val jarFile = new JarFile(result.path.toIO)
+        val entries = jarFile.entries().asScala.map(_.getName).toSet
 
         val manifestFiles = Seq[RelPath](
           "META-INF" / "MANIFEST.MF"
@@ -291,23 +306,9 @@ object HelloWorldTests extends TestSuite {
           entries.nonEmpty,
           entries == expectedFiles.map(_.toString()).toSet
         )
-      }
-      'runJar - {
-        val Right((result, evalCount)) = helloWorldWithMainEvaluator(HelloWorldWithMain.jar)
 
-        assert(
-          exists(result.path),
-          evalCount > 0
-        )
-        val runResult = basePath / "hello-mill"
-
-        %("scala", result.path, runResult)(wd = basePath)
-
-
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        val mainClass = jarMainClass(jarFile)
+        assert(mainClass.contains("Main"))
       }
       'logOutputToFile {
         helloWorldEvaluator(HelloWorld.compile)
@@ -316,6 +317,45 @@ object HelloWorldTests extends TestSuite {
         assert(exists(logFile))
       }
     }
+    'assembly - {
+      'assembly - {
+        val Right((result, evalCount)) = helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+        val jarFile = new JarFile(result.path.toIO)
+        val entries = jarFile.entries().asScala.map(_.getName).toSet
+
+        assert(entries.contains("Main.class"))
+        assert(entries.exists(s => s.contains("scala/Predef.class")))
+
+        val mainClass = jarMainClass(jarFile)
+        assert(mainClass.contains("Main"))
+      }
+      'run - {
+        val Right((result, evalCount)) = helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
+
+        assert(
+          exists(result.path),
+          evalCount > 0
+        )
+        val runResult = basePath / "hello-mill"
+
+        %%("java", "-jar", result.path, runResult)(wd = basePath)
+
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
+    }
+  }
+
+  def jarMainClass(jar: JarFile): Option[String] = {
+    import java.util.jar.Attributes._
+    val attrs = jar.getManifest.getMainAttributes.asScala
+    attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
   }
 
   def compileClassfiles = Seq[RelPath](

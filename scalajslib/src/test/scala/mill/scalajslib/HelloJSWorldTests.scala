@@ -6,35 +6,40 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
-import mill.define.Cross
-import mill.discover.Discovered
 import mill.scalalib.PublishModule
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
-import mill.util.TestEvaluator
+import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
 import scala.collection.JavaConverters._
 
-trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
-  def basePath = HelloJSWorldTests.workspacePath
-  override def mainClass = Some("Main")
-}
 
-object HelloJSWorld {
-  val build = for {
-    scalaJS <- Cross("0.6.20", "0.6.21", "1.0.0-M2")
-    scala <- Cross("2.11.8", "2.12.3", "2.12.4")
-  } yield
-    new HelloJSWorldModule {
-      def scalaVersion = scala
-      def scalaJSVersion = scalaJS
+object HelloJSWorldTests extends TestSuite {
+
+
+  trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
+    override def basePath = HelloJSWorldTests.workspacePath
+    override def mainClass = Some("Main")
+  }
+
+  object HelloJSWorld extends TestUtil.BaseModule {
+    val matrix = for {
+      scala <- Seq("2.11.8", "2.12.3", "2.12.4")
+      scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+    } yield (scala, scalaJS)
+
+    object build extends Cross[BuildModule](matrix:_*)
+
+    class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
+      def scalaVersion = scalaVersion0
+      def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
         licenses = Seq(
           License("Apache License, Version 2.0",
-                  "http://www.apache.org/licenses/LICENSE-2.0")),
+            "http://www.apache.org/licenses/LICENSE-2.0")),
         scm = SCM(
           "https://github.com/lihaoyi/hello-world-publish",
           "scm:git:https://github.com/lihaoyi/hello-world-publish"
@@ -43,17 +48,15 @@ object HelloJSWorld {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-}
+  }
 
-object HelloJSWorldTests extends TestSuite {
-
-  val srcPath = pwd / 'scalajslib / 'src / 'test / 'resource / "hello-js-world"
+  val srcPath = pwd / 'scalajslib / 'src / 'test / 'resources / "hello-js-world"
   val workspacePath = pwd / 'target / 'workspace / "hello-js-world"
   val outputPath = workspacePath / 'out
   val mainObject = workspacePath / 'src / 'main / 'scala / "Main.scala"
 
   val helloWorldEvaluator = new TestEvaluator(
-    Discovered.mapping(HelloJSWorld),
+    HelloJSWorld,
     workspacePath,
     srcPath
   )

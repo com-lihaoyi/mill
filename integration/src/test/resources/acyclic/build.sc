@@ -1,11 +1,10 @@
-import mill.define.Cross
-import mill.CrossModule
-import mill.scalalib.{SbtModule, PublishModule, Dep}
+import mill.Cross
+import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule, DepSyntax}
 import mill.scalalib.publish.{PomSettings, License, Developer, SCM}
 
-object acyclic extends CrossModule(AcyclicModule, "2.10.6", "2.11.8", "2.12.3", "2.12.4")
-case class AcyclicModule(crossVersion: String) extends SbtModule with PublishModule {
-  def basePath = ammonite.ops.pwd / 'target / 'workspace / 'acyclic
+object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.4")
+class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with PublishModule {
+  def basePath = super.basePath / ammonite.ops.up
   def artifactName = "acyclic"
   def publishVersion = "0.1.7"
 
@@ -25,14 +24,13 @@ case class AcyclicModule(crossVersion: String) extends SbtModule with PublishMod
     )
   )
 
-  def scalaVersion = crossVersion
-  def ivyDeps = Seq(
-    Dep.Java("org.scala-lang", "scala-compiler", scalaVersion())
+  def ivyDeps = Agg(
+    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
   )
   object test extends Tests{
     def forkWorkingDir = ammonite.ops.pwd / 'target / 'workspace / 'acyclic
-    def ivyDeps = Seq(
-      Dep("com.lihaoyi", "utest", "0.6.0")
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi::utest:0.6.0"
     )
     def testFramework = "utest.runner.Framework"
   }

@@ -1,6 +1,5 @@
 package mill.define
 
-import mill.util.Ctx
 
 /**
   * Worker serves three purposes:
@@ -25,9 +24,9 @@ import mill.util.Ctx
   * evaluating the task graph. The Worker defines how it is evaluated, but it's
   * evaluation/caching/lifecycle are controlled by the `Evaluator`
   */
-trait Worker[V] extends Task[V] with Ctx.Loader[V]{
+trait Worker[V] extends Task[V] with mill.util.Ctx.Loader[V]{
   val inputs = Nil
   def make(): V
-  def evaluate(args: Ctx) = args.load(this)
+  def evaluate(args: mill.util.Ctx) = args.load(this)
   def path = this.getClass.getCanonicalName.filter(_ != '$').split('.')
 }
