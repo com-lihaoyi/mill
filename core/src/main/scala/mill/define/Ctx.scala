@@ -1,11 +1,16 @@
 package mill.define
 
 import ammonite.main.Router.Overrides
-import ammonite.ops.Path
+import ammonite.ops.{Path, RelPath}
 
 import scala.annotation.implicitNotFound
 
-sealed trait Segment
+sealed trait Segment{
+  def pathSegments: Seq[String] = this match{
+    case Segment.Label(s) => List(s)
+    case Segment.Cross(vs) => vs.map(_.toString)
+  }
+}
 object Segment{
   case class Label(value: String) extends Segment
   case class Cross(value: Seq[Any]) extends Segment
@@ -42,7 +47,8 @@ case class Ctx(enclosing: String,
                segment: Segment,
                basePath: Path,
                segments: Segments,
-               overrides: Int)
+               overrides: Int){
+}
 
 object Ctx{
   implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
@@ -50,12 +56,14 @@ object Ctx{
                     millName0: sourcecode.Name,
                     millModuleBasePath0: BasePath,
                     segments0: Segments,
-                    overrides0: Overrides): Ctx = Ctx(
-    millModuleEnclosing0.value,
-    millModuleLine0.value,
-    Segment.Label(millName0.value),
-    millModuleBasePath0.value,
-    segments0,
-    overrides0.value
-  )
+                    overrides0: Overrides): Ctx = {
+    Ctx(
+      millModuleEnclosing0.value,
+      millModuleLine0.value,
+      Segment.Label(millName0.value),
+      millModuleBasePath0.value,
+      segments0,
+      overrides0.value
+    )
+  }
 }

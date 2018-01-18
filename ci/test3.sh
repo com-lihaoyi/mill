@@ -5,7 +5,7 @@ set -eux
 # Starting from scratch...
 git clean -xdf
 
-# First build & run tests using SBT
+# First build using SBT
 sbt bin/test:assembly
 
 # Build Mill using SBT

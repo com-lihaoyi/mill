@@ -6,7 +6,4 @@ set -eux
 git clean -xdf
 
 # First build & run tests using SBT
-sbt core/test scalalib/test scalajslib/test
-sbt integration/test
-sbt bin/test:assembly
-
+sbt core/test scalalib/test scalajslib/test integration/test bin/test:assembly
