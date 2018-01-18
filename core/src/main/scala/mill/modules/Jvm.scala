@@ -9,6 +9,7 @@ import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.Ctx
+import mill.util.Ctx.LogCtx
 import mill.util.Loose.Agg
 
 import scala.annotation.tailrec
@@ -73,8 +74,7 @@ object Jvm {
 
   def inprocess[T](classPath: Agg[Path],
     classLoaderOverrideSbtTesting: Boolean,
-    body: ClassLoader => T)
-    (implicit ctx: Ctx): T = {
+    body: ClassLoader => T): T = {
     val cl = createInprocessClassLoader(classPath, classLoaderOverrideSbtTesting)
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
