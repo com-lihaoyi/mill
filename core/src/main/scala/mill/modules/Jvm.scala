@@ -9,6 +9,7 @@ import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.Ctx
+import mill.util.Ctx.LogCtx
 
 import scala.annotation.tailrec
 import scala.collection.mutable
@@ -33,6 +34,55 @@ object Jvm {
                             options: Seq[String] = Seq.empty): Unit = {
     import ammonite.ops.ImplicitWd._
     %("java", "-cp", classPath.mkString(":"), mainClass, options)
+  }
+
+  def inprocess(mainClass: String,
+    classPath: Seq[Path],
+    options: Seq[String] = Seq.empty)
+    (implicit ctx: Ctx): Unit = {
+    inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
+      val mainMethod = cl.loadClass(mainClass).getMethod("main")
+      mainMethod.invoke(null, options.toArray)
+    })
+  }
+
+
+  private def createInprocessClassLoader(
+      classPath: Seq[Path],
+      classLoaderOverrideSbtTesting: Boolean // currently only a hardcoded option, do we need more general way to do this?
+  ): ClassLoader = {
+    if (classLoaderOverrideSbtTesting) {
+      val outerClassLoader = getClass.getClassLoader
+      return new URLClassLoader(
+        classPath.map(_.toIO.toURI.toURL).toArray,
+        ClassLoader.getSystemClassLoader().getParent()){
+        override def findClass(name: String) = {
+          if (name.startsWith("sbt.testing.")){
+            outerClassLoader.loadClass(name)
+          }else{
+            super.findClass(name)
+          }
+        }
+      }
+    } else {
+      return new URLClassLoader(
+        classPath.map(_.toIO.toURI.toURL).toArray,
+        ClassLoader.getSystemClassLoader().getParent())
+    }
+  }
+
+  def inprocess[T](classPath: Seq[Path],
+    classLoaderOverrideSbtTesting: Boolean,
+    body: ClassLoader => T)
+    (implicit ctx: Ctx): T = {
+    val cl = createInprocessClassLoader(classPath, classLoaderOverrideSbtTesting)
+    val oldCl = Thread.currentThread().getContextClassLoader
+    Thread.currentThread().setContextClassLoader(cl)
+    try {
+      body(cl)
+    }finally{
+      Thread.currentThread().setContextClassLoader(oldCl)
+    }
   }
 
   def subprocess(mainClass: String,

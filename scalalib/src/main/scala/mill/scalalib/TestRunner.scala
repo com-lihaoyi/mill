@@ -7,6 +7,7 @@ import java.util.zip.ZipInputStream
 
 import ammonite.ops.{Path, ls, pwd}
 import ammonite.util.Colors
+import mill.modules.Jvm
 import mill.util.Ctx.LogCtx
 import mill.util.PrintLogger
 import sbt.testing._
@@ -72,23 +73,7 @@ object TestRunner {
             testClassfilePath: Seq[Path],
             args: Seq[String])
            (implicit ctx: LogCtx): (String, Seq[Result]) = {
-    val outerClassLoader = getClass.getClassLoader
-
-    val cl = new URLClassLoader(
-      entireClasspath.map(_.toIO.toURI.toURL).toArray,
-      ClassLoader.getSystemClassLoader().getParent()){
-      override def findClass(name: String) = {
-        if (name.startsWith("sbt.testing.")){
-          outerClassLoader.loadClass(name)
-        }else{
-          super.findClass(name)
-        }
-      }
-    }
-
-    val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(cl)
-    try {
+    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = cl.loadClass(frameworkName)
         .newInstance()
         .asInstanceOf[sbt.testing.Framework]
@@ -143,11 +128,7 @@ object TestRunner {
         )
       }
       (doneMsg, results)
-    }finally{
-      Thread.currentThread().setContextClassLoader(oldCl)
-    }
-
-
+    })
   }
 
   case class Result(fullyQualifiedName: String,

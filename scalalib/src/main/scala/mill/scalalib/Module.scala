@@ -195,7 +195,7 @@ trait Module extends mill.Module with TaskModule { outer =>
   def sources = T.source{ basePath / 'src }
   def resources = T.source{ basePath / 'resources }
   def allSources = T{ Seq(sources()) }
-  def compile: T[CompilationResult] = T.persistent{
+  def compile: T[CompilationResult] = T.persistent {
     compileScala(
       ZincWorker(),
       scalaVersion(),
@@ -256,7 +256,15 @@ trait Module extends mill.Module with TaskModule { outer =>
 
   def forkArgs = T{ Seq.empty[String] }
 
-  def run(args: String*) = T.command{
+
+  def run(args: String*) = T.command {
+    Jvm.inprocess(
+      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      runDepClasspath().map(_.path) :+ compile().classes.path,
+      args)
+  }
+
+  def forkRun(args: String*) = T.command{
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runDepClasspath().map(_.path) :+ compile().classes.path,
