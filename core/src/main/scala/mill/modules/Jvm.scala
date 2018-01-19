@@ -43,12 +43,12 @@ object Jvm {
     options: Seq[String] = Seq.empty)
     (implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
-      getMainMethod("main", cl).invoke(null, options.toArray)
+      getMainMethod(mainClass, cl).invoke(null, options.toArray)
     })
   }
 
-  private def getMainMethod(mainClassName: String, loader: ClassLoader) = {
-    val mainClass = Class.forName(mainClassName, true, loader)
+  private def getMainMethod(mainClassName: String, cl: ClassLoader) = {
+    val mainClass = cl.loadClass(mainClassName)
     val method = mainClass.getMethod("main", classOf[Array[String]])
     // jvm allows the actual main class to be non-public and to run a method in the non-public class,
     //  we need to make it accessible
