@@ -1,6 +1,7 @@
 package mill.modules
 
 import java.io.FileOutputStream
+import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
@@ -42,19 +43,31 @@ object Jvm {
     options: Seq[String] = Seq.empty)
     (implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
-      val mainMethod = cl.loadClass(mainClass).getMethod("main")
-      mainMethod.invoke(null, options.toArray)
+      getMainMethod("main", cl).invoke(null, options.toArray)
     })
   }
 
+  private def getMainMethod(mainClass: String, loader: ClassLoader) = {
+    val mainClass = Class.forName(mainClass, true, loader)
+    val method = mainClass.getMethod("main", classOf[Array[String]])
+    // jvm allows the actual main class to be non-public and to run a method in the non-public class,
+    //  we need to make it accessible
+    method.setAccessible(true)
+    val modifiers = method.getModifiers
+    if (!Modifier.isPublic(modifiers))
+      throw new NoSuchMethodException(mainClass + ".main is not public")
+    if (!Modifier.isStatic(modifiers))
+      throw new NoSuchMethodException(mainClass + ".main is not static")
+    method
+  }
 
-  private def createInprocessClassLoader(
-      classPath: Agg[Path],
-      classLoaderOverrideSbtTesting: Boolean // currently only a hardcoded option, do we need more general way to do this?
-  ): URLClassLoader = {
-    if (classLoaderOverrideSbtTesting) {
+
+  def inprocess[T](classPath: Agg[Path],
+    classLoaderOverrideSbtTesting: Boolean, // currently only a hardcoded option, do we need more general way to do this?
+    body: ClassLoader => T): T = {
+    val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      return new URLClassLoader(
+      new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
         ClassLoader.getSystemClassLoader().getParent()){
         override def findClass(name: String) = {
@@ -66,16 +79,10 @@ object Jvm {
         }
       }
     } else {
-      return new URLClassLoader(
+      new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
         ClassLoader.getSystemClassLoader().getParent())
     }
-  }
-
-  def inprocess[T](classPath: Agg[Path],
-    classLoaderOverrideSbtTesting: Boolean,
-    body: ClassLoader => T): T = {
-    val cl = createInprocessClassLoader(classPath, classLoaderOverrideSbtTesting)
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
     try {
