@@ -165,14 +165,14 @@ object GenIdea {
         <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         <exclude-output />
         {
-        for (normalSourcePath <- normalSourcePaths.toSeq)
+        for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
           yield
             <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
             </content>
         }
         {
-        for (generatedSourcePath <- generatedSourcePaths.toSeq)
+        for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
           yield
             <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
@@ -189,12 +189,12 @@ object GenIdea {
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
-        for(name <- libNames.toSeq)
+        for(name <- libNames.toSeq.sorted)
         yield <orderEntry type="library" name={name} level="project" />
 
         }
         {
-        for(depName <- depNames.toSeq)
+        for(depName <- depNames.toSeq.sorted)
         yield <orderEntry type="module" module-name={depName} exported="" />
         }
       </component>

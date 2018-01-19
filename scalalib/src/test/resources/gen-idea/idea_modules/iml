@@ -1,0 +1,19 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../target/workspace/gen-idea/out/compile/dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src">
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src" isTestSource="false"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6-sources.jar" level="project"/>
+        <orderEntry type="library" name="modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6.jar" level="project"/>
+        <orderEntry type="library" name="scala-compiler_2.12.4_scala-compiler-2.12.4-sources.jar" level="project"/>
+        <orderEntry type="library" name="scala-compiler_2.12.4_scala-compiler-2.12.4.jar" level="project"/>
+        <orderEntry type="library" name="scala-library_2.12.4_scala-library-2.12.4-sources.jar" level="project"/>
+        <orderEntry type="library" name="scala-library_2.12.4_scala-library-2.12.4.jar" level="project"/>
+        <orderEntry type="library" name="scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar" level="project"/>
+        <orderEntry type="library" name="scala-reflect_2.12.4_scala-reflect-2.12.4.jar" level="project"/>
+    </component>
+</module>
