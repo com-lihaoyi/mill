@@ -47,17 +47,17 @@ object Jvm {
     })
   }
 
-  private def getMainMethod(mainClass: String, loader: ClassLoader) = {
-    val mainClass = Class.forName(mainClass, true, loader)
+  private def getMainMethod(mainClassName: String, loader: ClassLoader) = {
+    val mainClass = Class.forName(mainClassName, true, loader)
     val method = mainClass.getMethod("main", classOf[Array[String]])
     // jvm allows the actual main class to be non-public and to run a method in the non-public class,
     //  we need to make it accessible
     method.setAccessible(true)
     val modifiers = method.getModifiers
     if (!Modifier.isPublic(modifiers))
-      throw new NoSuchMethodException(mainClass + ".main is not public")
+      throw new NoSuchMethodException(mainClassName + ".main is not public")
     if (!Modifier.isStatic(modifiers))
-      throw new NoSuchMethodException(mainClass + ".main is not static")
+      throw new NoSuchMethodException(mainClassName + ".main is not static")
     method
   }
 
