@@ -7,7 +7,7 @@ import mill.define.{Cross, Task}
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess}
+import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess, inprocess}
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
@@ -217,7 +217,15 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def forkArgs = T{ Seq.empty[String] }
 
-  def run(args: String*) = T.command{
+
+  def run(args: String*) = T.command {
+    inprocess(
+      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      runClasspath().map(_.path),
+      args)
+  }
+
+  def forkRun(args: String*) = T.command{
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
