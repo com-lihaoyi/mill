@@ -12,4 +12,8 @@ sbt bin/test:assembly
 target/bin/mill devAssembly
 
 # Second build & run tests using Mill
-out/devAssembly/dest --all {core,scalalib,scalajslib,integration}.test devAssembly
+
+out/devAssembly/dest --all {core,scalalib,scalajslib}.test devAssembly
+out/devAssembly/dest integration.test mill.integration.AmmoniteTests
+out/devAssembly/dest integration.test "mill.integration.{AcyclicTests,BetterFilesTests,JawnTests}"
+out/devAssembly/dest devAssembly

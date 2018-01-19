@@ -1,11 +1,14 @@
 import java.io.File
 
+parallelExecution := false
+
 val sharedSettings = Seq(
   scalaVersion := "2.12.4",
   organization := "com.lihaoyi",
   libraryDependencies += "com.lihaoyi" %% "utest" % "0.6.0" % "test",
 
   testFrameworks += new TestFramework("mill.UTestFramework"),
+
 
   parallelExecution in Test := false,
   test in assembly := {},
@@ -238,11 +241,12 @@ lazy val bin = project
     mainClass in (Test, run) := Some("mill.Main"),
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     assemblyOption in assembly := {
+      val extraArgs = (bridgeProps.value ++ jsbridgeProps.value).mkString(" ")
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(
           Seq(
             "#!/usr/bin/env sh",
-            s"""exec java ${(bridgeProps.value ++ jsbridgeProps.value).mkString(" ")} -cp "$$0" mill.Main "$$@" """
+            s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
           )
         )
       )

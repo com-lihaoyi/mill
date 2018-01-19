@@ -48,23 +48,27 @@ object TestRunner {
     testClasses
   }
   def main(args: Array[String]): Unit = {
-    val result = apply(
-      frameworkName = args(0),
-      entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
-      testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
-      args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
-    )(new PrintLogger(
-      args(5) == "true",
-      if(args(5) == "true") Colors.Default
-      else Colors.BlackWhite,
-      System.out,
-      System.err,
-      System.err
-    ))
-    val outputPath = args(4)
+    try{
+      val result = apply(
+        frameworkName = args(0),
+        entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
+        testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
+        args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
+      )(new PrintLogger(
+        args(5) == "true",
+        if(args(5) == "true") Colors.Default
+        else Colors.BlackWhite,
+        System.out,
+        System.err,
+        System.err
+      ))
+      val outputPath = args(4)
 
-    ammonite.ops.write(Path(outputPath), upickle.default.write(result))
-
+      ammonite.ops.write(Path(outputPath), upickle.default.write(result))
+    }catch{case e: Throwable => 
+      println(e)
+      e.printStackTrace()
+    }
     // Tests are over, kill the JVM whether or not anyone's threads are still running
     // Always return 0, even if tests fail. The caller can pick up the detailed test
     // results from the outputPath
