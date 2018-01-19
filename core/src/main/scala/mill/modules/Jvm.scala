@@ -63,7 +63,7 @@ object Jvm {
 
 
   def inprocess[T](classPath: Agg[Path],
-    classLoaderOverrideSbtTesting: Boolean, // currently only a hardcoded option, do we need more general way to do this?
+    classLoaderOverrideSbtTesting: Boolean,
     body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
