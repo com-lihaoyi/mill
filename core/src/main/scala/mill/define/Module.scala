@@ -24,10 +24,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
 
   lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module]
   def millOuterCtx = outerCtx0
-  def basePath: Path = millOuterCtx.basePath / (millOuterCtx.segment match{
-    case Segment.Label(s) => List(s)
-    case Segment.Cross(vs) => vs.map(_.toString)
-  })
+  def basePath: Path = millOuterCtx.basePath / millOuterCtx.segment.pathSegments
   implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)

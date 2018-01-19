@@ -91,9 +91,6 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |import mill._
          |
          |object $wrapName extends mill.define.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
-         |  // Make sure we don't include the `build` wrapper-object's name in
-         |  // the `basePath`s of our build
-         |  override def basePath = super.basePath / ammonite.ops.up
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()

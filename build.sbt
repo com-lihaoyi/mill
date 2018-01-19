@@ -200,6 +200,11 @@ val testRepos = Map(
     resourceManaged in test,
     List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", _),
     suffix = "better-files"
+  ),
+  "MILL_AMMONITE_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "lihaoyi/ammonite", "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac", _),
+    suffix = "ammonite"
   )
 )
 
@@ -213,6 +218,7 @@ lazy val integration = project
     javaOptions in Test := {
       val kvs = Seq(
         "MILL_ACYCLIC_REPO" -> testRepos("MILL_ACYCLIC_REPO").value,
+        "MILL_AMMONITE_REPO" -> testRepos("MILL_AMMONITE_REPO").value,
         "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
         "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
       )

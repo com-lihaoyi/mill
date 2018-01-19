@@ -69,10 +69,11 @@ object GenIdea {
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
       val Seq(
+        resoucesPathRefs: Loose.Agg[PathRef],
         sourcesPathRef: Loose.Agg[PathRef],
         generatedSourcePathRefs: Loose.Agg[PathRef],
         allSourcesPathRefs: Loose.Agg[PathRef]
-      ) = evaluator.evaluate(Agg(mod.sources, mod.generatedSources, mod.allSources)).values
+      ) = evaluator.evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources)).values
 
       val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
       val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
@@ -83,9 +84,10 @@ object GenIdea {
       )
 
       val elem = moduleXmlTemplate(
+        Strict.Agg.from(resoucesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
-        Strict.Agg(paths.out),
+        paths.out,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
       )
@@ -152,18 +154,15 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(normalSourcePaths: Strict.Agg[Path],
+  def moduleXmlTemplate(resourcePaths: Strict.Agg[Path],
+                        normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
-                        outputPaths: Strict.Agg[Path],
+                        outputPath: Path,
                         libNames: Strict.Agg[String],
                         depNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
-        {
-        for(outputPath <- outputPaths.toSeq)
-        yield <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
-        }
-
+        <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         <exclude-output />
         {
         for (normalSourcePath <- normalSourcePaths.toSeq)
@@ -177,6 +176,13 @@ object GenIdea {
           yield
             <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
+            </content>
+        }
+        {
+        for (resourcePath <- resourcePaths.toSeq)
+          yield
+            <content url={"file://$MODULE_DIR$/" + relify(resourcePath)}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />
             </content>
         }
         <orderEntry type="inheritedJdk" />
