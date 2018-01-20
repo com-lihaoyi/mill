@@ -22,8 +22,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
   object CrossHelloWorld extends TestUtil.BaseModule {
-    object cross
-        extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
     class HelloWorldCross(v: String) extends HelloWorldModule {
       def scalaVersion = v
     }
@@ -33,9 +32,7 @@ object HelloWorldTests extends TestSuite {
     def mainClass = Some("Main")
   }
 
-  object HelloWorldWithMainAssembly
-      extends TestUtil.BaseModule
-      with HelloWorldModule {
+  object HelloWorldWithMainAssembly extends TestUtil.BaseModule with HelloWorldModule {
     def mainClass = Some("Main")
     def assembly = T {
       mill.modules.Jvm.createAssembly(
@@ -46,15 +43,11 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldWarnUnused
-      extends TestUtil.BaseModule
-      with HelloWorldModule {
+  object HelloWorldWarnUnused extends TestUtil.BaseModule with HelloWorldModule {
     def scalacOptions = T(Seq("-Ywarn-unused"))
   }
 
-  object HelloWorldFatalWarnings
-      extends TestUtil.BaseModule
-      with HelloWorldModule {
+  object HelloWorldFatalWarnings extends TestUtil.BaseModule with HelloWorldModule {
     def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
   }
 
@@ -80,13 +73,10 @@ object HelloWorldTests extends TestSuite {
           "https://github.com/lihaoyi/hello-world-publish",
           "scm:git:https://github.com/lihaoyi/hello-world-publish"
         ),
-        developers =
-          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+        developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
   }
-  object HelloWorldScalaOverride
-      extends TestUtil.BaseModule
-      with HelloWorldModule {
+  object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
     override def scalaVersion: Target[String] = "2.11.11"
   }
   val srcPath = pwd / 'scalalib / 'test / 'resources / "hello-world"
@@ -135,10 +125,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) =
           helloWorldFatalEvaluator(HelloWorldFatalWarnings.scalacOptions)
 
-        assert(
-          result == Seq("-Ywarn-unused", "-Xfatal-warnings"),
-          evalCount > 0
-        )
+        assert(result == Seq("-Ywarn-unused", "-Xfatal-warnings"), evalCount > 0)
       }
     }
     'compile - {
@@ -205,10 +192,7 @@ object HelloWorldTests extends TestSuite {
           helloWorldEvaluator(HelloWorld.runMain("Main", runResult.toString))
         assert(evalCount > 0)
 
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        assert(exists(runResult), read(runResult) == "hello rockjam, your age is: 25")
       }
       'runCross {
         def cross(v: String) {
@@ -221,10 +205,7 @@ object HelloWorldTests extends TestSuite {
 
           assert(evalCount > 0)
 
-          assert(
-            exists(runResult),
-            read(runResult) == "hello rockjam, your age is: 25"
-          )
+          assert(exists(runResult), read(runResult) == "hello rockjam, your age is: 25")
         }
         'v210 - cross("2.10.6")
         'v211 - cross("2.11.11")
@@ -251,16 +232,12 @@ object HelloWorldTests extends TestSuite {
     'forkRun - {
       'runIfMainClassProvided - {
         val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
-        val Right((_, evalCount)) = helloWorldWithMainEvaluator(
-          HelloWorldWithMain.forkRun(runResult.toString)
-        )
+        val Right((_, evalCount)) =
+          helloWorldWithMainEvaluator(HelloWorldWithMain.forkRun(runResult.toString))
 
         assert(evalCount > 0)
 
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        assert(exists(runResult), read(runResult) == "hello rockjam, your age is: 25")
       }
       'notRunWithoutMainClass - {
         val Left(Result.Exception(err, _)) =
@@ -272,16 +249,12 @@ object HelloWorldTests extends TestSuite {
     'run - {
       'runIfMainClassProvided - {
         val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
-        val Right((_, evalCount)) = helloWorldWithMainEvaluator(
-          HelloWorldWithMain.run(runResult.toString)
-        )
+        val Right((_, evalCount)) =
+          helloWorldWithMainEvaluator(HelloWorldWithMain.run(runResult.toString))
 
         assert(evalCount > 0)
 
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        assert(exists(runResult), read(runResult) == "hello rockjam, your age is: 25")
       }
       'notRunWithoutMainClass - {
         val Left(Result.Exception(err, _)) =
@@ -303,10 +276,7 @@ object HelloWorldTests extends TestSuite {
         val manifestFiles = Seq[RelPath]("META-INF" / "MANIFEST.MF")
         val expectedFiles = compileClassfiles ++ manifestFiles
 
-        assert(
-          entries.nonEmpty,
-          entries == expectedFiles.map(_.toString()).toSet
-        )
+        assert(entries.nonEmpty, entries == expectedFiles.map(_.toString()).toSet)
 
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
@@ -321,9 +291,7 @@ object HelloWorldTests extends TestSuite {
     'assembly - {
       'assembly - {
         val Right((result, evalCount)) =
-          helloWorldWithMainAssemblyEvaluator(
-            HelloWorldWithMainAssembly.assembly
-          )
+          helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
         assert(exists(result.path), evalCount > 0)
         val jarFile = new JarFile(result.path.toIO)
         val entries = jarFile.entries().asScala.map(_.getName).toSet
@@ -336,19 +304,14 @@ object HelloWorldTests extends TestSuite {
       }
       'run - {
         val Right((result, evalCount)) =
-          helloWorldWithMainAssemblyEvaluator(
-            HelloWorldWithMainAssembly.assembly
-          )
+          helloWorldWithMainAssemblyEvaluator(HelloWorldWithMainAssembly.assembly)
 
         assert(exists(result.path), evalCount > 0)
         val runResult = basePath / "hello-mill"
 
         %%("java", "-jar", result.path, runResult)(wd = basePath)
 
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
+        assert(exists(runResult), read(runResult) == "hello rockjam, your age is: 25")
       }
     }
   }

@@ -28,12 +28,7 @@ object RunScript {
     scriptArgs: Seq[String],
     lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)],
     log: Logger
-  ): (Res[
-        (Evaluator[_],
-         Discover,
-         Seq[(Path, Long)],
-         Either[String, Seq[Js.Value]])
-      ],
+  ): (Res[(Evaluator[_], Discover, Seq[(Path, Long)], Either[String, Seq[Js.Value]])],
       Seq[(Path, Long)]) = {
 
     val (evalRes, interpWatched) = lastEvaluator match {
@@ -107,12 +102,7 @@ object RunScript {
 
       processed <- interp.processModule(
         scriptTxt,
-        CodeSource(
-          wrapper,
-          pkg,
-          Seq(Name("ammonite"), Name("$file")),
-          Some(path)
-        ),
+        CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),
         autoImport = true,
         extraCode = "",
         hardcoded = true
@@ -167,14 +157,8 @@ object RunScript {
             case Segment.Cross(x) => x.toList.map(_.toString)
             case _ => Nil
           }
-          mill.main.Resolve.resolve(
-            sel,
-            evaluator.rootModule,
-            discover,
-            args,
-            crossSelectors,
-            Nil
-          )
+          mill.main.Resolve
+            .resolve(sel, evaluator.rootModule, discover, args, crossSelectors, Nil)
         }
         EitherOps.sequence(selected)
       }

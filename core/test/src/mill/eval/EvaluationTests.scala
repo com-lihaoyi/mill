@@ -136,12 +136,7 @@ object EvaluationTests extends TestSuite {
         import bigSingleTerminal._
         val check = new Checker(bigSingleTerminal)
 
-        check(
-          j,
-          expValue = 0,
-          expEvaled = Agg(a, b, e, f, i, j),
-          extraEvaled = 22
-        )
+        check(j, expValue = 0, expEvaled = Agg(a, b, e, f, i, j), extraEvaled = 22)
 
         j.counter += 1
         check(j, expValue = 1, expEvaled = Agg(j), extraEvaled = 3)
@@ -196,13 +191,7 @@ object EvaluationTests extends TestSuite {
         import multiTerminalBoundary._
 
         val checker = new Checker(multiTerminalBoundary)
-        checker(
-          task2,
-          4,
-          Agg(right, left),
-          extraEvaled = -1,
-          secondRunNoOp = false
-        )
+        checker(task2, 4, Agg(right, left), extraEvaled = -1, secondRunNoOp = false)
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
@@ -236,24 +225,13 @@ object EvaluationTests extends TestSuite {
         import build._
 
         // Ensure task objects themselves are not cached, and recomputed each time
-        assert(
-          up eq up,
-          left ne left,
-          middle ne middle,
-          right eq right,
-          down eq down
-        )
+        assert(up eq up, left ne left, middle ne middle, right eq right, down eq down)
 
         // During the first evaluation, they get computed normally like any
         // cached target
         val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
-        check(
-          down,
-          expValue = 10101,
-          expEvaled = Agg(up, right, down),
-          extraEvaled = 8
-        )
+        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 8)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
         // If the upstream `up` doesn't change, the entire block of tasks
@@ -266,12 +244,7 @@ object EvaluationTests extends TestSuite {
         // because tasks have no cached value that can be used. `right`, which
         // is a cached Target, does not recompute
         up.inputs(0).asInstanceOf[Test].counter += 1
-        check(
-          down,
-          expValue = 10102,
-          expEvaled = Agg(up, down),
-          extraEvaled = 6
-        )
+        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 6)
         assert(leftCount == 2, middleCount == 2, rightCount == 1)
 
         // Running the tasks themselves results in them being recomputed every

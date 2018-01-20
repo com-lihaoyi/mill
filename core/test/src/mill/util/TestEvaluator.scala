@@ -24,9 +24,7 @@ class TestEvaluator(module: mill.Module, workspacePath: Path, basePath: Path) {
         )
       )
     } else {
-      Left(
-        evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
-      )
+      Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
     }
   }
 

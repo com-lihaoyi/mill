@@ -33,15 +33,9 @@ object CacherTests extends TestSuite {
       evaluator.evaluate(Agg(v)).values(0)
     }
 
-    'simpleDefIsCached - assert(
-      Base.value eq Base.value,
-      eval(Base, Base.value) == 1
-    )
+    'simpleDefIsCached - assert(Base.value eq Base.value, eval(Base, Base.value) == 1)
 
-    'resultDefIsCached - assert(
-      Base.result eq Base.result,
-      eval(Base, Base.result) == 1
-    )
+    'resultDefIsCached - assert(Base.result eq Base.result, eval(Base, Base.result) == 1)
 
     'overridingDefIsAlsoCached - assert(
       eval(Middle, Middle.value) == 3,

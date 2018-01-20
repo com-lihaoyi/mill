@@ -26,12 +26,7 @@ object MainTests extends TestSuite {
     val graphs = new mill.util.TestGraphs()
     import graphs._
     'single - {
-      'pos - check(
-        singleton,
-        Discover[singleton.type],
-        "single",
-        Right(singleton.single)
-      )
+      'pos - check(singleton, Discover[singleton.type], "single", Right(singleton.single))
       'neg1 - check(
         singleton,
         Discover[singleton.type],

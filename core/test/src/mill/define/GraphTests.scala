@@ -23,14 +23,10 @@ object GraphTests extends TestSuite {
         targets = Agg(singleton.single),
         expected = Agg(singleton.single)
       )
-      'pair - check(
-        targets = Agg(pair.down),
-        expected = Agg(pair.up, pair.down)
-      )
+      'pair - check(targets = Agg(pair.down), expected = Agg(pair.up, pair.down))
       'anonTriple - check(
         targets = Agg(anonTriple.down),
-        expected =
-          Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
+        expected = Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       'diamond - check(
         targets = Agg(diamond.down),
@@ -38,12 +34,8 @@ object GraphTests extends TestSuite {
       )
       'anonDiamond - check(
         targets = Agg(diamond.down),
-        expected = Agg(
-          diamond.up,
-          diamond.down.inputs(0),
-          diamond.down.inputs(1),
-          diamond.down
-        )
+        expected =
+          Agg(diamond.up, diamond.down.inputs(0), diamond.down.inputs(1), diamond.down)
       )
       'defCachedDiamond - check(
         targets = Agg(defCachedDiamond.down),
@@ -103,16 +95,8 @@ object GraphTests extends TestSuite {
         }
       }
 
-      'singleton - check(singleton)(
-        _.single,
-        Agg(_.single),
-        Agg(singleton.single -> 1)
-      )
-      'pair - check(pair)(
-        _.down,
-        Agg(_.up, _.down),
-        Agg(pair.up -> 1, pair.down -> 1)
-      )
+      'singleton - check(singleton)(_.single, Agg(_.single), Agg(singleton.single -> 1))
+      'pair - check(pair)(_.down, Agg(_.up, _.down), Agg(pair.up -> 1, pair.down -> 1))
       'anonTriple - check(anonTriple)(
         _.down,
         Agg(_.up, _.down),
@@ -121,12 +105,7 @@ object GraphTests extends TestSuite {
       'diamond - check(diamond)(
         _.down,
         Agg(_.up, _.left, _.right, _.down),
-        Agg(
-          diamond.up -> 1,
-          diamond.left -> 1,
-          diamond.right -> 1,
-          diamond.down -> 1
-        )
+        Agg(diamond.up -> 1, diamond.left -> 1, diamond.right -> 1, diamond.down -> 1)
       )
 
       'defCachedDiamond - check(defCachedDiamond)(

@@ -43,8 +43,7 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream, f: () => Unit)
-    extends OutputStream {
+class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream {
   override def write(b: Array[Byte]): Unit = { f(); wrapped.write(b) }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {

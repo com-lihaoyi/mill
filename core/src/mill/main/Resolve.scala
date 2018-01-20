@@ -6,14 +6,12 @@ import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
 
 object Resolve {
-  def resolve[T, V](
-    remainingSelector: List[Segment],
-    obj: mill.Module,
-    discover: Discover,
-    rest: Seq[String],
-    remainingCrossSelectors: List[List[String]],
-    revSelectorsSoFar: List[Segment]
-  ): Either[String, Task[Any]] = {
+  def resolve[T, V](remainingSelector: List[Segment],
+                    obj: mill.Module,
+                    discover: Discover,
+                    rest: Seq[String],
+                    remainingCrossSelectors: List[List[String]],
+                    revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
 
     remainingSelector match {
       case Segment.Cross(_) :: Nil =>
@@ -81,9 +79,7 @@ object Resolve {
                 )
               case None =>
                 Left(
-                  "Cannot resolve module " + Segments(
-                    newRevSelectorsSoFar.reverse: _*
-                  ).render
+                  "Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse: _*).render
                 )
             }
 
@@ -102,17 +98,13 @@ object Resolve {
                     )
                   case None =>
                     Left(
-                      "Cannot resolve cross " + Segments(
-                        newRevSelectorsSoFar.reverse: _*
-                      ).render
+                      "Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse: _*).render
                     )
 
                 }
               case _ =>
                 Left(
-                  "Cannot resolve cross " + Segments(
-                    newRevSelectorsSoFar.reverse: _*
-                  ).render
+                  "Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse: _*).render
                 )
             }
         }

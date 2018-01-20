@@ -87,8 +87,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
                   .mkString(", ") + ")"
           )
       )
-    case m: mill.Module
-        if evaluator.rootModule.millModuleDirectChildren.contains(m) =>
+    case m: mill.Module if evaluator.rootModule.millModuleDirectChildren.contains(m) =>
       pprint.Tree.Lazy(
         ctx =>
           Iterator(
@@ -105,13 +104,12 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
             (discover.value.get(m.getClass) match {
               case None => Nil
               case Some(commands) =>
-                ctx.applyPrefixColor("\nCommands:").toString +: commands.map {
-                  c =>
-                    "\n    ." + c.name + "(" +
-                      c.argSignatures
-                        .map(s => s.name + ": " + s.typeString)
-                        .mkString(", ") +
-                      ")()"
+                ctx.applyPrefixColor("\nCommands:").toString +: commands.map { c =>
+                  "\n    ." + c.name + "(" +
+                    c.argSignatures
+                      .map(s => s.name + ": " + s.typeString)
+                      .mkString(", ") +
+                    ")()"
                 }
             }) ++
             (if (m.millInternal.reflect[Target[_]].isEmpty) Nil
@@ -130,8 +128,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
         if (seen(t)) Nil // do nothing
         else
           t match {
-            case t: Target[_]
-                if evaluator.rootModule.millInternal.targets.contains(t) =>
+            case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
               Seq(t.ctx.segments)
             case _ =>
               seen.add(t)
@@ -151,7 +148,6 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
       )
 
   }
-  val pprinter = pprinter0.copy(
-    additionalHandlers = millHandlers orElse pprinter0.additionalHandlers
-  )
+  val pprinter =
+    pprinter0.copy(additionalHandlers = millHandlers orElse pprinter0.additionalHandlers)
 }

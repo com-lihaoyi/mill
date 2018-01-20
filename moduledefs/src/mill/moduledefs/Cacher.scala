@@ -7,11 +7,10 @@ trait Cacher {
   private[this] lazy val cacherLazyMap =
     mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  protected[this] def cachedTarget[T](
-    t: => T
-  )(implicit c: sourcecode.Enclosing): T = synchronized {
-    cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
-  }
+  protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T =
+    synchronized {
+      cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
+    }
 }
 
 object Cacher {

@@ -104,10 +104,7 @@ object JavaCompileJarTests extends TestSuite {
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
       // list, because they are `Source`s not `Target`s
-      check(
-        targets = Agg(jar),
-        expected = Agg( /*sourceRoot, */ allSources, classFiles)
-      )
+      check(targets = Agg(jar), expected = Agg( /*sourceRoot, */ allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
@@ -147,9 +144,7 @@ object JavaCompileJarTests extends TestSuite {
       assert(jarContents == expectedJarContents)
 
       val executed =
-        %%('java, "-cp", workspacePath / 'jar / 'dest, "test.Foo")(
-          workspacePath
-        ).out.string
+        %%('java, "-cp", workspacePath / 'jar / 'dest, "test.Foo")(workspacePath).out.string
       assert(executed == (31337 + 271828) + "\n")
 
       for (i <- 0 until 3) {
@@ -163,16 +158,13 @@ object JavaCompileJarTests extends TestSuite {
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 
-      append(
-        sourceRootPath / "Bar.java",
-        """
+      append(sourceRootPath / "Bar.java", """
         class BarFour{
           public static void main(String[] args){
             System.out.println("New Cls!");
           }
         }
-        """
-      )
+        """)
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(runOutput2.out.string == "New Cls!\n", evalCount2 == 4)
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))

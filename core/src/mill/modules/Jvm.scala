@@ -156,9 +156,8 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)(
-    implicit ctx: Ctx.DestCtx
-  ): PathRef = {
+  def createJar(inputPaths: Agg[Path],
+                mainClass: Option[String] = None)(implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
     if (inputPaths.nonEmpty) {

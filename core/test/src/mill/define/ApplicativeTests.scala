@@ -39,9 +39,7 @@ object ApplicativeTests extends TestSuite {
 
       'simple - assert(Opt("lol " + 1) == Some("lol 1"))
       'singleSome - assert(Opt("lol " + Some("hello")()) == Some("lol hello"))
-      'twoSomes - assert(
-        Opt(Some("lol ")() + Some("hello")()) == Some("lol hello")
-      )
+      'twoSomes - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
       'singleNone - assert(Opt("lol " + None()) == None)
       'twoNones - assert(Opt("lol " + None() + None()) == None)
     }
@@ -53,9 +51,7 @@ object ApplicativeTests extends TestSuite {
       def hell(o: String) = "hell" + o
       'simple - assert(Opt(lol + 1) == Some("lol 1"))
       'singleSome - assert(Opt(lol + Some(hell("o"))()) == Some("lol hello"))
-      'twoSomes - assert(
-        Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello")
-      )
+      'twoSomes - assert(Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello"))
       'singleNone - assert(Opt(lol + None()) == None)
       'twoNones - assert(Opt(lol + None() + None()) == None)
     }
@@ -104,9 +100,7 @@ object ApplicativeTests extends TestSuite {
       val counter = new Counter()
       def up = Opt { "hello" + counter() }
       val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
-      assert(
-        down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2"))
-      )
+      assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
     'appliesEvaluateBeforehand - {
       // Every Applyable#apply() within a Opt{...} block evaluates before any

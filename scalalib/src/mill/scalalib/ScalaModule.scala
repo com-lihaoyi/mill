@@ -49,9 +49,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def depClasspath = T { Agg.empty[PathRef] }
 
   def upstreamRunClasspath = T {
-    Task.traverse(moduleDeps)(
-      p => T.task(p.runDepClasspath() ++ p.runClasspath())
-    )
+    Task.traverse(moduleDeps)(p => T.task(p.runDepClasspath() ++ p.runClasspath()))
   }
 
   def upstreamCompileOutput = T {
@@ -108,12 +106,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       PathRef(Path(compilerBridgePath), quick = true)
     else {
       val dep = compilerBridgeIvyDep(scalaVersion())
-      val classpath = resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        Seq(dep)
-      )
+      val classpath =
+        resolveDependencies(repositories, scalaVersion(), scalaBinaryVersion(), Seq(dep))
       classpath match {
         case Result.Success(resolved) =>
           resolved.filter(_.path.ext != "pom").toSeq match {
@@ -121,9 +115,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
             case Seq() =>
               throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
             case _ =>
-              throw new Exception(
-                dep + " resolution resulted in more than one file"
-              )
+              throw new Exception(dep + " resolution resulted in more than one file")
           }
         case f: Result.Failure =>
           throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
@@ -139,9 +131,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(
-        scalaVersion()
-      )
+      scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())
     })()
   }
 

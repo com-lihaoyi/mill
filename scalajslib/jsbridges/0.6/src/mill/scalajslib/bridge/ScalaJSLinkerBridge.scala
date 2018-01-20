@@ -25,8 +25,7 @@ class ScalaJSLinkerBridge {
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars =
       libraries.map(
-        jar =>
-          IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile)
+        jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile)
       )
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
     val destFile = AtomicWritableFileVirtualJSFile(dest)

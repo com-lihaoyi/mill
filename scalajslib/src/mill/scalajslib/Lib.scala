@@ -49,13 +49,8 @@ object Lib {
                                            dest: File,
                                            main: Option[String],
                                            mode: OptimizeMode) =>
-          bridge.link(
-            sources.toArray,
-            libraries.toArray,
-            dest,
-            main.orNull,
-            mode == FullOpt
-        )
+          bridge
+            .link(sources.toArray, libraries.toArray, dest, main.orNull, mode == FullOpt)
         LinkerBridge.scalaInstanceCache = Some((classloaderSig, linker))
         linker
     }
@@ -67,9 +62,7 @@ object Lib {
            linker: ScalaJSLinkerBridge,
            mode: OptimizeMode)(implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath =
-      ctx.dest.copy(
-        segments = ctx.dest.segments.init :+ (ctx.dest.segments.last + ".js")
-      )
+      ctx.dest.copy(segments = ctx.dest.segments.init :+ (ctx.dest.segments.last + ".js"))
     rm(outputPath)
     if (inputPaths.nonEmpty) {
       mkdir(outputPath / up)

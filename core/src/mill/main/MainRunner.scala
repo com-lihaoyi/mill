@@ -116,9 +116,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |""".stripMargin
     }
 
-    def bottom(printCode: String,
-               indexedWrapperName: Name,
-               extraCode: String) = {
+    def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
       // We need to disable the `$main` method definition inside the wrapper class,
       // because otherwise it might get picked up by Ammonite and run as a static
       // class method, which blows up since it's defined as an instance method

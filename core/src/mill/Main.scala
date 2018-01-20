@@ -28,11 +28,8 @@ object Main {
     val removed = Set("predef-code", "home", "no-home-predef")
     val millArgSignature =
       (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
-    Cli.groupArgs(
-      args.toList,
-      millArgSignature,
-      Cli.Config(remoteLogging = false)
-    ) match {
+    Cli
+      .groupArgs(args.toList, millArgSignature, Cli.Config(remoteLogging = false)) match {
       case Left(msg) =>
         System.err.println(msg)
         System.exit(1)
@@ -52,8 +49,7 @@ object Main {
           if (!repl) cliConfig
           else
             cliConfig.copy(
-              predefCode =
-                """import $file.build, build._
+              predefCode = """import $file.build, build._
                              |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                              |  interp.colors(),
                              |  repl.pprinter(),
@@ -67,13 +63,8 @@ object Main {
               welcomeBanner = None
             )
 
-        val runner = new mill.main.MainRunner(
-          config,
-          show,
-          System.out,
-          System.err,
-          System.in
-        )
+        val runner =
+          new mill.main.MainRunner(config, show, System.out, System.err, System.in)
         if (repl) {
           runner.printInfo("Loading...")
           runner.runRepl()

@@ -103,18 +103,10 @@ object ParseArgsTest extends TestSuite {
       )
       'expandBoth - check(
         "{core,application}.{jar,docsJar}",
-        List(
-          "core.jar",
-          "core.docsJar",
-          "application.jar",
-          "application.docsJar"
-        )
+        List("core.jar", "core.docsJar", "application.jar", "application.docsJar")
       )
       'expandNested - {
-        check(
-          "{hello,world.{cow,moo}}",
-          List("hello", "world.cow", "world.moo")
-        )
+        check("{hello,world.{cow,moo}}", List("hello", "world.cow", "world.moo"))
         check("{a,b{c,d}}", List("a", "bc", "bd"))
         check("{a,b,{c,d}}", List("a", "b", "c", "d"))
         check("{a,b{c,d{e,f}}}", List("a", "bc", "bde", "bdf"))
@@ -140,10 +132,7 @@ object ParseArgsTest extends TestSuite {
       'keepUnknownSymbols - {
         check("{a,b}.e<>", List("a.e<>", "b.e<>"))
         check("a[99]&&", List("a[99]&&"))
-        check(
-          "{a,b}.<%%>.{c,d}",
-          List("a.<%%>.c", "a.<%%>.d", "b.<%%>.c", "b.<%%>.d")
-        )
+        check("{a,b}.<%%>.{c,d}", List("a.<%%>.c", "a.<%%>.d", "b.<%%>.c", "b.<%%>.d"))
       }
     }
 
@@ -171,9 +160,8 @@ object ParseArgsTest extends TestSuite {
       )
       'singleSelectorWithCross - check(
         input = Seq("bridges[2.12.4,jvm].compile"),
-        expectedSelectors = List(
-          List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
-        ),
+        expectedSelectors =
+          List(List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))),
         expectedArgs = Seq.empty
       )
       'multiSelectorsBraceExpansion - check(

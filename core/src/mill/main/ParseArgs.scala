@@ -20,9 +20,7 @@ object ParseArgs {
     } yield (selectors.toList, args)
   }
 
-  def extractSelsAndArgs(
-    scriptArgs: Seq[String]
-  ): (Seq[String], Seq[String], Boolean) = {
+  def extractSelsAndArgs(scriptArgs: Seq[String]): (Seq[String], Seq[String], Boolean) = {
     val multiFlags = Seq("--all", "--seq")
     val isMultiSelectors = scriptArgs.headOption.exists(multiFlags.contains)
 
@@ -38,9 +36,7 @@ object ParseArgs {
     }
   }
 
-  private def validateSelectors(
-    selectors: Seq[String]
-  ): Either[String, Unit] = {
+  private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Selector cannot be empty")
     else Right(())

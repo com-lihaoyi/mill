@@ -44,12 +44,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       )
     } else {
       val dep = scalaJSLinkerIvyDep(scalaJSBridgeVersion())
-      resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        Seq(dep)
-      )
+      resolveDependencies(repositories, scalaVersion(), scalaBinaryVersion(), Seq(dep))
     }
   }
 

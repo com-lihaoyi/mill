@@ -121,8 +121,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .asString
   }
 
-  private def withRetry(request: HttpRequest,
-                        retries: Int = 10): HttpResponse[String] = {
+  private def withRetry(request: HttpRequest, retries: Int = 10): HttpResponse[String] = {
     val resp = request.asString
     if (resp.is5xx && retries > 0) {
       Thread.sleep(500)

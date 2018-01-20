@@ -47,8 +47,7 @@ object HelloJSWorldTests extends TestSuite {
             "https://github.com/lihaoyi/hello-world-publish",
             "scm:git:https://github.com/lihaoyi/hello-world-publish"
           ),
-          developers =
-            Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+          developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
         )
     }
   }
@@ -78,12 +77,9 @@ object HelloJSWorldTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
-      def testCompileFromScratch(scalaVersion: String,
-                                 scalaJSVersion: String): Unit = {
+      def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right((result, evalCount)) =
-          helloWorldEvaluator(
-            HelloJSWorld.build(scalaVersion, scalaJSVersion).compile
-          )
+          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
 
         val outPath = result.classes.path
         val outputFiles = ls.rec(outPath)
@@ -92,9 +88,7 @@ object HelloJSWorldTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) =
-          helloWorldEvaluator(
-            HelloJSWorld.build(scalaVersion, scalaJSVersion).compile
-          )
+          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
         assert(unchangedEvalCount == 0)
       }
 
@@ -142,16 +136,10 @@ object HelloJSWorldTests extends TestSuite {
                          scalaJSVersion: String,
                          artifactId: String): Unit = {
         val Right((result, evalCount)) =
-          helloWorldEvaluator(
-            HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact
-          )
+          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
-      'artifactId_0621 - testArtifactId(
-        "2.12.4",
-        "0.6.21",
-        "hello-js-world_sjs0.6_2.12"
-      )
+      'artifactId_0621 - testArtifactId("2.12.4", "0.6.21", "hello-js-world_sjs0.6_2.12")
       'artifactId_0621 - testArtifactId(
         "2.12.4",
         "1.0.0-M2",

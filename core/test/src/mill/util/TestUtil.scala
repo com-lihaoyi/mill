@@ -12,9 +12,7 @@ object TestUtil {
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
                    overrides: Overrides)
-      extends mill.define.BaseModule(
-        ammonite.ops.pwd / millModuleEnclosing0.value
-      )
+      extends mill.define.BaseModule(ammonite.ops.pwd / millModuleEnclosing0.value)
 
   object test {
 

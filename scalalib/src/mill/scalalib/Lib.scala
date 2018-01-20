@@ -21,12 +21,7 @@ import mill.util.Loose.Agg
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
-import xsbti.compile.{
-  CompilerCache => _,
-  FileAnalysisStore => _,
-  ScalaInstance => _,
-  _
-}
+import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 
 object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
@@ -90,9 +85,7 @@ object Lib {
       case _ =>
         val classloader =
           new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
-        zincWorker.scalaClassloaderCache = Some(
-          (compilerClassloaderSig, classloader)
-        )
+        zincWorker.scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
         classloader
     }
 
@@ -101,14 +94,9 @@ object Lib {
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = new URLClassLoader(
-            pluginJars.map(_.toURI.toURL),
-            compilerClassLoader
-          ),
-          libraryJar =
-            grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
-          compilerJar =
-            grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+          loader = new URLClassLoader(pluginJars.map(_.toURI.toURL), compilerClassLoader),
+          libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
+          compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
           allJars = compilerJars ++ pluginJars,
           explicitActual = None
         )
@@ -121,15 +109,12 @@ object Lib {
     val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
-      val consoleAppender = MainAppender.defaultScreen(
-        ConsoleOut.printStreamOut(ctx.log.outputStream)
-      )
+      val consoleAppender =
+        MainAppender.defaultScreen(ConsoleOut.printStreamOut(ctx.log.outputStream))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders(
-        "Hello",
-        (consoleAppender -> sbt.util.Level.Info) :: Nil
-      )
+      LogExchange
+        .bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
 
@@ -214,13 +199,10 @@ object Lib {
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
         dep.copy(
-          module =
-            dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion)
+          module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion)
         )
       case Dep.Point(dep) =>
-        dep.copy(
-          module = dep.module.copy(name = dep.module.name + "_" + scalaVersion)
-        )
+        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
     }.toSet
     val start = Resolution(flattened)
 

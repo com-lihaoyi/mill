@@ -33,8 +33,7 @@ class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
                    val rootModule: mill.Module,
                    log: Logger,
-                   val classLoaderSig: Seq[(Path, Long)] =
-                     Evaluator.classLoaderSig) {
+                   val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig) {
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(RootModuleLoader) = rootModule
@@ -84,13 +83,7 @@ class Evaluator[T](val workspacePath: Path,
         case f: Result.Failing => f
       })
     }
-    Evaluator.Results(
-      goals.indexed.map(results),
-      evaluated,
-      transitive,
-      failing,
-      results
-    )
+    Evaluator.Results(goals.indexed.map(results), evaluated, transitive, failing, results)
   }
 
   def evaluateGroupCached(
@@ -166,10 +159,8 @@ class Evaluator[T](val workspacePath: Path,
                   .map(_.write(v))
 
                 for (t <- terminalResult) {
-                  write.over(
-                    paths.meta,
-                    upickle.default.write(inputsHash -> t, indent = 4)
-                  )
+                  write
+                    .over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
                 }
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -278,12 +269,7 @@ object Evaluator {
   def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
-    Paths(
-      targetPath,
-      targetPath / 'dest,
-      targetPath / "meta.json",
-      targetPath / 'log
-    )
+    Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
   }
 
   // check if the build itself has changed
@@ -294,13 +280,11 @@ object Evaluator {
     case _ => Nil
 
   }
-  case class Results(
-    rawValues: Seq[Result[Any]],
-    evaluated: Agg[Task[_]],
-    transitive: Agg[Task[_]],
-    failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
-    results: collection.Map[Task[_], Result[Any]]
-  ) {
+  case class Results(rawValues: Seq[Result[Any]],
+                     evaluated: Agg[Task[_]],
+                     transitive: Agg[Task[_]],
+                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
+                     results: collection.Map[Task[_], Result[Any]]) {
     def values = rawValues.collect { case Result.Success(v) => v }
   }
 }

@@ -15,8 +15,8 @@ import scala.reflect.macros.blackbox
   * instantiation site so they can capture the enclosing/line information of
   * the concrete instance.
   */
-class Module(implicit outerCtx0: mill.define.Ctx)
-    extends mill.moduledefs.Cacher { outer =>
+class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher {
+  outer =>
 
   /**
     * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -61,17 +61,13 @@ object Module {
         .filter(!_.getName.contains('$'))
         .filter(_.getParameterCount == 0)
         .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(
-          implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType
-        )
+        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
         .map(_.invoke(outer).asInstanceOf[T])
     }
     def reflectNames[T: ClassTag] = {
       outer.getClass.getMethods
         .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(
-          implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType
-        )
+        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
         .map(_.getName)
     }
     // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -94,12 +90,11 @@ trait TaskModule extends Module {
   def defaultCommandName(): String
 }
 
-class BaseModule(basePath0: Path)(
-  implicit millModuleEnclosing0: sourcecode.Enclosing,
-  millModuleLine0: sourcecode.Line,
-  millName0: sourcecode.Name,
-  overrides0: Overrides
-) extends Module()(
+class BaseModule(basePath0: Path)(implicit millModuleEnclosing0: sourcecode.Enclosing,
+                                  millModuleLine0: sourcecode.Line,
+                                  millName0: sourcecode.Name,
+                                  overrides0: Overrides)
+    extends Module()(
       mill.define.Ctx
         .make(
           implicitly,

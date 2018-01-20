@@ -59,23 +59,15 @@ object Target
   )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetImpl[T]
 
-  def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-    r: c.Expr[R[T]],
-    w: c.Expr[W[T]],
-    ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[Target[T]] = {
+  def targetImpl[T: c.WeakTypeTag](c: Context)(
+    t: c.Expr[T]
+  )(r: c.Expr[R[T]], w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     val lhs = Applicative
       .impl0[Task, T, mill.util.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
-      reify(
-        new TargetImpl[T](
-          lhs.splice,
-          ctx.splice,
-          RW(w.splice.write, r.splice.read)
-        )
-      )
+      reify(new TargetImpl[T](lhs.splice, ctx.splice, RW(w.splice.write, r.splice.read)))
     )
   }
 
@@ -84,11 +76,9 @@ object Target
   )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetResultImpl[T]
 
-  def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
-    r: c.Expr[R[T]],
-    w: c.Expr[W[T]],
-    ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[Target[T]] = {
+  def targetResultImpl[T: c.WeakTypeTag](c: Context)(
+    t: c.Expr[Result[T]]
+  )(r: c.Expr[R[T]], w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
@@ -101,33 +91,21 @@ object Target
     )
   }
 
-  def apply[T](
-    t: Task[T]
-  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](t: Task[T])(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetTaskImpl[T]
 
-  def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-    r: c.Expr[R[T]],
-    w: c.Expr[W[T]],
-    ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[Target[T]] = {
+  def targetTaskImpl[T: c.WeakTypeTag](c: Context)(
+    t: c.Expr[Task[T]]
+  )(r: c.Expr[R[T]], w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
-      reify(
-        new TargetImpl[T](
-          t.splice,
-          ctx.splice,
-          RW(w.splice.write, r.splice.read)
-        )
-      )
+      reify(new TargetImpl[T](t.splice, ctx.splice, RW(w.splice.write, r.splice.read)))
     )
   }
 
-  def source(value: Result[ammonite.ops.Path])(
-    implicit r: R[PathRef],
-    w: W[PathRef],
-    ctx: mill.define.Ctx
-  ): Input[PathRef] =
+  def source(
+    value: Result[ammonite.ops.Path]
+  )(implicit r: R[PathRef], w: W[PathRef], ctx: mill.define.Ctx): Input[PathRef] =
     macro sourceImpl
 
   def sourceImpl(c: Context)(value: c.Expr[Result[ammonite.ops.Path]])(
@@ -158,11 +136,9 @@ object Target
   )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Input[T] =
     macro inputImpl[T]
 
-  def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-    r: c.Expr[R[T]],
-    w: c.Expr[W[T]],
-    ctx: c.Expr[mill.define.Ctx]
-  ): c.Expr[Input[T]] = {
+  def inputImpl[T: c.WeakTypeTag](c: Context)(
+    value: c.Expr[T]
+  )(r: c.Expr[R[T]], w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Input[T]] = {
     import c.universe._
 
     mill.moduledefs.Cacher.impl0[Input[T]](c)(
@@ -176,17 +152,15 @@ object Target
     )
   }
 
-  def command[T](t: Task[T])(implicit ctx: mill.define.Ctx,
-                             w: W[T]): Command[T] =
+  def command[T](t: Task[T])(implicit ctx: mill.define.Ctx, w: W[T]): Command[T] =
     new Command(t, ctx, w)
 
-  def command[T](t: Result[T])(implicit w: W[T],
-                               ctx: mill.define.Ctx): Command[T] =
+  def command[T](t: Result[T])(implicit w: W[T], ctx: mill.define.Ctx): Command[T] =
     macro commandImpl[T]
 
-  def commandImpl[T: c.WeakTypeTag](c: Context)(
-    t: c.Expr[T]
-  )(w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Command[T]] = {
+  def commandImpl[T: c.WeakTypeTag](
+    c: Context
+  )(t: c.Expr[T])(w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Command[T]] = {
     import c.universe._
     reify(
       new Command[T](
@@ -318,8 +292,7 @@ object Task {
     def evaluate(args: mill.util.Ctx) = f(args(0), args)
     val inputs = List(source)
   }
-  class Zipped[+T, +V](source1: Task[T], source2: Task[V])
-      extends Task[(T, V)] {
+  class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
     def evaluate(args: mill.util.Ctx) = (args(0), args(1))
     val inputs = List(source1, source2)
   }

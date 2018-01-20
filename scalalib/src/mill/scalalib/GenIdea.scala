@@ -23,31 +23,22 @@ object GenIdea {
     }
   }
 
-  def xmlFileLayout[T](
-    evaluator: Evaluator[T],
-    rootModule: mill.Module
-  ): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator[T],
+                       rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values.collect {
       case x: scalalib.ScalaModule => (x.millModuleSegments, x)
     }.toSeq
 
     val resolved = for ((path, mod) <- modules) yield {
-      val Seq(
-        resolvedCp: Loose.Agg[PathRef],
-        resolvedSrcs: Loose.Agg[PathRef]
-      ) =
+      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
         evaluator
-          .evaluate(
-            Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources)
-          )
+          .evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
           .values
 
       (
         path,
-        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(
-          _.path
-        ),
+        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
         mod
       )
     }
@@ -91,14 +82,7 @@ object GenIdea {
           generatedSourcePathRefs: Loose.Agg[PathRef],
           allSourcesPathRefs: Loose.Agg[PathRef]
         ) = evaluator
-          .evaluate(
-            Agg(
-              mod.resources,
-              mod.sources,
-              mod.generatedSources,
-              mod.allSources
-            )
-          )
+          .evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources))
           .values
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)

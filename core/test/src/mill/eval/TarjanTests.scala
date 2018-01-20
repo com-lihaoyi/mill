@@ -23,16 +23,10 @@ object TarjanTests extends TestSuite {
     'simpleCycle - check(Seq(Seq(1), Seq(0)), Seq(Seq(1, 0)))
 
     // (0)  (1)  (2)
-    'multipleSingletons - check(
-      Seq(Seq(), Seq(), Seq()),
-      Seq(Seq(0), Seq(1), Seq(2))
-    )
+    'multipleSingletons - check(Seq(Seq(), Seq(), Seq()), Seq(Seq(0), Seq(1), Seq(2)))
 
     // (0) -> (1) -> (2)
-    'straightLineNoCycles - check(
-      Seq(Seq(1), Seq(2), Seq()),
-      Seq(Seq(2), Seq(1), Seq(0))
-    )
+    'straightLineNoCycles - check(Seq(Seq(1), Seq(2), Seq()), Seq(Seq(2), Seq(1), Seq(0)))
 
     // (0) <- (1) <- (2)
     'straightLineNoCyclesReversed - check(

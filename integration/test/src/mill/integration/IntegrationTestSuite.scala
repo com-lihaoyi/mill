@@ -1,11 +1,6 @@
 package mill.integration
 
-import java.io.{
-  ByteArrayInputStream,
-  ByteArrayOutputStream,
-  InputStream,
-  PrintStream
-}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintStream}
 
 import ammonite.ops._
 import mill.define.Segments

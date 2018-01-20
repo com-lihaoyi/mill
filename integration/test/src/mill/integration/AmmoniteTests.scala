@@ -3,8 +3,7 @@ package mill.integration
 import ammonite.ops._
 import utest._
 
-object AmmoniteTests
-    extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite") {
+object AmmoniteTests extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite") {
   val tests = Tests {
     initWorkspace()
 
@@ -18,22 +17,15 @@ object AmmoniteTests
       assert(
         replTests,
         replTestMeta.contains("ammonite.session.ProjectTests.guava"),
-        replTestMeta.contains(
-          "ammonite.unit.SourceTests.objectInfo.thirdPartyJava"
-        )
+        replTestMeta.contains("ammonite.unit.SourceTests.objectInfo.thirdPartyJava")
       )
 
       val compileResult =
-        eval(
-          "--all",
-          s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
-        )
+        eval("--all", s"{shell,sshd,amm,integration}[$scalaVersion].test.compile")
 
       assert(
         compileResult,
-        ls.rec(
-            workspacePath / 'out / 'integration / scalaVersion / 'test / 'compile
-          )
+        ls.rec(workspacePath / 'out / 'integration / scalaVersion / 'test / 'compile)
           .exists(_.name == "ErrorTruncationTests.class")
       )
     }

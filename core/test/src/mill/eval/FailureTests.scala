@@ -27,10 +27,7 @@ object FailureTests extends TestSuite {
         case x => x
       }
 
-      assert(
-        cleaned == expectedRawValues,
-        res.failing.keyCount == expectedFailCount
-      )
+      assert(cleaned == expectedRawValues, res.failing.keyCount == expectedFailCount)
 
     }
   }
@@ -75,35 +72,19 @@ object FailureTests extends TestSuite {
     'evaluatePair - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
       val check = new Checker(pair)
-      check(
-        pair.down,
-        expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
-      )
+      check(pair.down, expectedFailCount = 0, expectedRawValues = Seq(Result.Success(0)))
 
       pair.up.failure = Some("lols")
 
-      check(
-        pair.down,
-        expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
-      )
+      check(pair.down, expectedFailCount = 1, expectedRawValues = Seq(Result.Skipped))
 
       pair.up.failure = None
 
-      check(
-        pair.down,
-        expectedFailCount = 0,
-        expectedRawValues = Seq(Result.Success(0))
-      )
+      check(pair.down, expectedFailCount = 0, expectedRawValues = Seq(Result.Success(0)))
 
       pair.up.exception = Some(new IndexOutOfBoundsException())
 
-      check(
-        pair.down,
-        expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Skipped)
-      )
+      check(pair.down, expectedFailCount = 1, expectedRawValues = Seq(Result.Skipped))
     }
   }
 }

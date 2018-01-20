@@ -51,8 +51,6 @@ object Discover {
       q"$lhs -> $rhs"
     }
 
-    c.Expr[Discover](
-      q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))"
-    )
+    c.Expr[Discover](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
   }
 }
