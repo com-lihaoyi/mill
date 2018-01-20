@@ -5,11 +5,12 @@ import ammonite.ops._
 import ammonite.util.Util
 
 object Main {
-  case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
-                    colored: Option[Boolean] = None,
-                    help: Boolean = false,
-                    repl: Boolean = false,
-                    watch: Boolean = false)
+  case class Config(
+      home: ammonite.ops.Path = pwd / 'out / 'ammonite,
+      colored: Option[Boolean] = None,
+      help: Boolean = false,
+      repl: Boolean = false,
+      watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
 
@@ -31,53 +32,53 @@ object Main {
       args.toList,
       millArgSignature,
       Cli.Config(remoteLogging = false)
-    ) match{
+    ) match {
       case Left(msg) =>
         System.err.println(msg)
         System.exit(1)
       case Right((cliConfig, _)) if cliConfig.help =>
         val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
         System.out.println(
-        s"""Mill Build Tool
-           |usage: mill [mill-options] [target [target-options]]
-           |
-           |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
+          s"""Mill Build Tool
+             |usage: mill [mill-options] [target [target-options]]
+             |
+             |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
         )
         System.exit(0)
       case Right((cliConfig, leftoverArgs)) =>
-
         val repl = leftoverArgs.isEmpty
         val config =
-          if(!repl) cliConfig
-          else cliConfig.copy(
-            predefCode =
-              """import $file.build, build._
-                |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                |  interp.colors(),
-                |  repl.pprinter(),
-                |  build.millSelf.get,
-                |  build.millDiscover
-                |)
-                |repl.pprinter() = replApplyHandler.pprinter
-                |import replApplyHandler.generatedEval._
-                |
+          if (!repl) cliConfig
+          else
+            cliConfig.copy(
+              predefCode = """import $file.build, build._
+                             |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                             |  interp.colors(),
+                             |  repl.pprinter(),
+                             |  build.millSelf.get,
+                             |  build.millDiscover
+                             |)
+                             |repl.pprinter() = replApplyHandler.pprinter
+                             |import replApplyHandler.generatedEval._
+                             |
               """.stripMargin,
-            welcomeBanner = None
-          )
+              welcomeBanner = None
+            )
 
         val runner = new mill.main.MainRunner(
-          config, show,
-          System.out, System.err, System.in
+          config,
+          show,
+          System.out,
+          System.err,
+          System.in
         )
-        if (repl){
+        if (repl) {
           runner.printInfo("Loading...")
           runner.runRepl()
         } else {
           val result = runner.runScript(pwd / "build.sc", leftoverArgs)
-          System.exit(if(result) 0 else 1)
+          System.exit(if (result) 0 else 1)
         }
     }
   }
 }
-
-

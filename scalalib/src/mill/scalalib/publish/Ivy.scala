@@ -46,10 +46,10 @@ object Ivy {
   }
 
   private def scopeToConf(s: Scope): String = s match {
-    case Scope.Compile  => "compile"
+    case Scope.Compile => "compile"
     case Scope.Provided => "provided"
-    case Scope.Test     => "test"
-    case Scope.Runtime  => "runtime"
+    case Scope.Test => "test"
+    case Scope.Runtime => "runtime"
   }
 
 }

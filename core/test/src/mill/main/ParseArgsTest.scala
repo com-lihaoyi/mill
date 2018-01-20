@@ -8,10 +8,11 @@ object ParseArgsTest extends TestSuite {
 
   val tests = Tests {
     'extractSelsAndArgs - {
-      def check(input: Seq[String],
-                expectedSelectors: Seq[String],
-                expectedArgs: Seq[String],
-                expectedIsMulti: Boolean) = {
+      def check(
+          input: Seq[String],
+          expectedSelectors: Seq[String],
+          expectedArgs: Seq[String],
+          expectedIsMulti: Boolean) = {
         val (selectors, args, isMulti) = ParseArgs.extractSelsAndArgs(input)
 
         assert(
@@ -21,10 +22,11 @@ object ParseArgsTest extends TestSuite {
         )
       }
 
-      'empty - check(input = Seq.empty,
-                     expectedSelectors = Seq.empty,
-                     expectedArgs = Seq.empty,
-                     expectedIsMulti = false)
+      'empty - check(
+        input = Seq.empty,
+        expectedSelectors = Seq.empty,
+        expectedArgs = Seq.empty,
+        expectedIsMulti = false)
       'singleSelector - check(
         input = Seq("core.compile"),
         expectedSelectors = Seq("core.compile"),
@@ -56,25 +58,13 @@ object ParseArgsTest extends TestSuite {
         expectedIsMulti = true
       )
       'multiSelectorsWithArgs - check(
-        input = Seq("--all",
-                    "core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "hello",
-                    "world"),
+        input = Seq("--all", "core.compile", "application.runMain", "--", "Main", "hello", "world"),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "hello", "world"),
         expectedIsMulti = true
       )
       'multiSelectorsWithArgsWithAllInArgs - check(
-        input = Seq("--all",
-                    "core.compile",
-                    "application.runMain",
-                    "--",
-                    "Main",
-                    "--all",
-                    "world"),
+        input = Seq("--all", "core.compile", "application.runMain", "--", "Main", "--all", "world"),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "--all", "world"),
         expectedIsMulti = true
@@ -105,8 +95,7 @@ object ParseArgsTest extends TestSuite {
         )
       )
       'expandNested - {
-        check("{hello,world.{cow,moo}}",
-              List("hello", "world.cow", "world.moo"))
+        check("{hello,world.{cow,moo}}", List("hello", "world.cow", "world.moo"))
         check("{a,b{c,d}}", List("a", "bc", "bd"))
         check("{a,b,{c,d}}", List("a", "b", "c", "d"))
         check("{a,b{c,d{e,f}}}", List("a", "bc", "bde", "bdf"))
@@ -143,9 +132,10 @@ object ParseArgsTest extends TestSuite {
     }
 
     'apply - {
-      def check(input: Seq[String],
-                expectedSelectors: List[List[Segment]],
-                expectedArgs: Seq[String]) = {
+      def check(
+          input: Seq[String],
+          expectedSelectors: List[List[Segment]],
+          expectedArgs: Seq[String]) = {
         val Right((selectors, args)) = ParseArgs(input)
 
         assert(

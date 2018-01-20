@@ -6,11 +6,10 @@ import utest._
 import scala.annotation.compileTimeOnly
 import scala.language.experimental.macros
 
-
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
   class Opt[T](val self: Option[T]) extends Applicative.Applyable[Option, T]
-  object Opt extends OptGenerated with Applicative.Applyer[Opt, Option, Applicative.Id, String]{
+  object Opt extends OptGenerated with Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
     val injectedCtx = "helloooo"
     def underlying[A](v: Opt[A]) = v.self
@@ -20,7 +19,7 @@ object ApplicativeTests extends TestSuite {
     def zip() = Some(())
     def zip[A](a: Option[A]) = a.map(Tuple1(_))
   }
-  class Counter{
+  class Counter {
     var value = 0
     def apply() = {
       value += 1
@@ -31,7 +30,7 @@ object ApplicativeTests extends TestSuite {
   @ImplicitStub
   implicit def taskCtx: String = ???
 
-  val tests = Tests{
+  val tests = Tests {
 
     'selfContained - {
 
@@ -57,7 +56,7 @@ object ApplicativeTests extends TestSuite {
       // Although x is defined inside the Opt{...} block, it is also defined
       // within the LHS of the Applyable#apply call, so it is safe to life it
       // out into the `zipMap` arguments list.
-      val res = Opt{ "lol " + Some("hello").flatMap(x => Some(x)).apply() }
+      val res = Opt { "lol " + Some("hello").flatMap(x => Some(x)).apply() }
       assert(res == Some("lol hello"))
     }
     'upstreamAlwaysEvaluated - {
@@ -65,8 +64,8 @@ object ApplicativeTests extends TestSuite {
       // Opt{...} block, we always evaluate the LHS of the Applyable#apply
       // because it gets lifted out of any control flow statements
       val counter = new Counter()
-      def up = Opt{ "lol " + counter() }
-      val down = Opt{ if ("lol".length > 10) up() else "fail" }
+      def up = Opt { "lol " + counter() }
+      val down = Opt { if ("lol".length > 10) up() else "fail" }
       assert(
         down == Some("fail"),
         counter.value == 1
@@ -76,9 +75,9 @@ object ApplicativeTests extends TestSuite {
       // Even if control-flow reaches the Applyable#apply call more than once,
       // it only gets evaluated once due to its lifting out of the Opt{...} block
       val counter = new Counter()
-      def up = Opt{ "lol " + counter() }
+      def up = Opt { "lol " + counter() }
       def runTwice[T](t: => T) = (t, t)
-      val down = Opt{ runTwice(up()) }
+      val down = Opt { runTwice(up()) }
       assert(
         down == Some(("lol 1", "lol 1")),
         counter.value == 1
@@ -88,9 +87,9 @@ object ApplicativeTests extends TestSuite {
       // This required some fiddling with owner chains inside the macro to get
       // working, so ensure it doesn't regress
       val counter = new Counter()
-      def up = Opt{ "hello" + counter() }
-      val down1 = Opt{ (() => up())() }
-      val down2 = Opt{ Seq(1, 2, 3).map(n => up() * n) }
+      def up = Opt { "hello" + counter() }
+      val down1 = Opt { (() => up())() }
+      val down2 = Opt { Seq(1, 2, 3).map(n => up() * n) }
       assert(
         down1 == Some("hello1"),
         down2 == Some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
@@ -102,8 +101,8 @@ object ApplicativeTests extends TestSuite {
       // apply() call is identical. It's up to the downstream zipMap()
       // implementation to decide if it wants to dedup them or do other things.
       val counter = new Counter()
-      def up = Opt{ "hello" + counter() }
-      val down = Opt{ Seq(1, 2, 3).map(n => n + up() + up()) }
+      def up = Opt { "hello" + counter() }
+      val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
       assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
     'appliesEvaluateBeforehand - {
@@ -111,8 +110,8 @@ object ApplicativeTests extends TestSuite {
       // other logic within that block, even if they would happen first in the
       // normal Scala evaluation order
       val counter = new Counter()
-      def up = Opt{ counter() }
-      val down = Opt{
+      def up = Opt { counter() }
+      val down = Opt {
         val res = counter()
         val one = up()
         val two = up()

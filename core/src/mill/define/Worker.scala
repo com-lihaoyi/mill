@@ -1,6 +1,5 @@
 package mill.define
 
-
 /**
   * Worker serves three purposes:
   *
@@ -24,7 +23,7 @@ package mill.define
   * evaluating the task graph. The Worker defines how it is evaluated, but it's
   * evaluation/caching/lifecycle are controlled by the `Evaluator`
   */
-trait Worker[V] extends Task[V] with mill.util.Ctx.Loader[V]{
+trait Worker[V] extends Task[V] with mill.util.Ctx.Loader[V] {
   val inputs = Nil
   def make(): V
   def evaluate(args: mill.util.Ctx) = args.load(this)

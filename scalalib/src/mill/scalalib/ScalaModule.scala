@@ -18,21 +18,21 @@ import sbt.testing.Status
   */
 trait ScalaModule extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
-  trait Tests extends TestModule{
+  trait Tests extends TestModule {
     def scalaVersion = outer.scalaVersion()
     override def moduleDeps = Seq(outer)
   }
   def scalaVersion: T[String]
   def mainClass: T[Option[String]] = None
 
-  def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
-  def ivyDeps = T{ Agg.empty[Dep] }
-  def compileIvyDeps = T{ Agg.empty[Dep] }
-  def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
-  def runIvyDeps = T{ Agg.empty[Dep] }
+  def scalaBinaryVersion = T { scalaVersion().split('.').dropRight(1).mkString(".") }
+  def ivyDeps = T { Agg.empty[Dep] }
+  def compileIvyDeps = T { Agg.empty[Dep] }
+  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
+  def runIvyDeps = T { Agg.empty[Dep] }
 
-  def scalacOptions = T{ Seq.empty[String] }
-  def javacOptions = T{ Seq.empty[String] }
+  def scalacOptions = T { Seq.empty[String] }
+  def javacOptions = T { Seq.empty[String] }
 
   def repositories: Seq[Repository] = Seq(
     Cache.ivy2Local,
@@ -40,25 +40,22 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   )
 
   def moduleDeps = Seq.empty[ScalaModule]
-  def depClasspath = T{ Agg.empty[PathRef] }
+  def depClasspath = T { Agg.empty[PathRef] }
 
-
-  def upstreamRunClasspath = T{
-    Task.traverse(moduleDeps)(p =>
-      T.task(p.runDepClasspath() ++ p.runClasspath())
-    )
+  def upstreamRunClasspath = T {
+    Task.traverse(moduleDeps)(p => T.task(p.runDepClasspath() ++ p.runClasspath()))
   }
 
-  def upstreamCompileOutput = T{
+  def upstreamCompileOutput = T {
     Task.traverse(moduleDeps)(_.compile)
   }
-  def upstreamCompileClasspath = T{
+  def upstreamCompileClasspath = T {
     externalCompileDepClasspath() ++
-    upstreamCompileOutput().map(_.classes) ++
-    Task.traverse(moduleDeps)(_.compileDepClasspath)().flatten
+      upstreamCompileOutput().map(_.classes) ++
+      Task.traverse(moduleDeps)(_.compileDepClasspath)().flatten
   }
 
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
+  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task {
     resolveDependencies(
       repositories,
       scalaVersion(),
@@ -68,34 +65,34 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def externalCompileDepClasspath: T[Agg[PathRef]] = T{
+  def externalCompileDepClasspath: T[Agg[PathRef]] = T {
     Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepClasspath)().flatten) ++
-    resolveDeps(
-      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
-    )()
+      resolveDeps(
+        T.task { ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()) }
+      )()
   }
 
-  def externalCompileDepSources: T[Agg[PathRef]] = T{
+  def externalCompileDepSources: T[Agg[PathRef]] = T {
     Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepSources)().flatten) ++
-    resolveDeps(
-      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
-      sources = true
-    )()
+      resolveDeps(
+        T.task { ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()) },
+        sources = true
+      )()
   }
 
   /**
     * Things that need to be on the classpath in order for this code to compile;
     * might be less than the runtime classpath
     */
-  def compileDepClasspath: T[Agg[PathRef]] = T{
+  def compileDepClasspath: T[Agg[PathRef]] = T {
     upstreamCompileClasspath() ++
-    depClasspath()
+      depClasspath()
   }
 
   /**
     * Strange compiler-bridge jar that the Zinc incremental compile needs
     */
-  def compilerBridge: T[PathRef] = T{
+  def compilerBridge: T[PathRef] = T {
     val compilerBridgeKey = "MILL_COMPILER_BRIDGE_" + scalaVersion().replace('.', '_')
     val compilerBridgePath = sys.props(compilerBridgeKey)
     if (compilerBridgePath != null) PathRef(Path(compilerBridgePath), quick = true)
@@ -111,46 +108,48 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
         case Result.Success(resolved) =>
           resolved.filter(_.path.ext != "pom").toSeq match {
             case Seq(single) => PathRef(single.path, quick = true)
-            case Seq() => throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
+            case Seq() =>
+              throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
             case _ => throw new Exception(dep + " resolution resulted in more than one file")
           }
-        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
+        case f: Result.Failure =>
+          throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
       }
     }
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] =
     resolveDeps(
-      T.task{scalacPluginIvyDeps()}
+      T.task { scalacPluginIvyDeps() }
     )()
 
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = T{
+  def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
+      T.task { scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion()) }
     )()
   }
 
   /**
     * Things that need to be on the classpath in order for this code to run
     */
-  def runDepClasspath: T[Agg[PathRef]] = T{
+  def runDepClasspath: T[Agg[PathRef]] = T {
     Agg.from(upstreamRunClasspath().flatten) ++
-    depClasspath() ++
-    resolveDeps(
-      T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())}
-    )()
+      depClasspath() ++
+      resolveDeps(
+        T.task { ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion()) }
+      )()
   }
 
-  def prependShellScript: T[String] = T{ "" }
+  def prependShellScript: T[String] = T { "" }
 
-  def sources = T.input{ Agg(PathRef(basePath / 'src)) }
-  def resources = T.input{ Agg(PathRef(basePath / 'resources)) }
+  def sources = T.input { Agg(PathRef(basePath / 'src)) }
+  def resources = T.input { Agg(PathRef(basePath / 'resources)) }
   def generatedSources = T { Agg.empty[PathRef] }
-  def allSources = T{ sources() ++ generatedSources() }
-  def compile: T[CompilationResult] = T.persistent{
+  def allSources = T { sources() ++ generatedSources() }
+  def compile: T[CompilationResult] = T.persistent {
     compileScala(
       ZincWorker(),
       scalaVersion(),
@@ -165,11 +164,11 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-  def runClasspath = T{
+  def runClasspath = T {
     runDepClasspath() ++ resources() ++ Seq(compile().classes)
   }
 
-  def assembly = T{
+  def assembly = T {
     createAssembly(
       runClasspath().map(_.path).filter(exists),
       mainClass(),
@@ -177,9 +176,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def localClasspath = T{ resources() ++ Seq(compile().classes) }
+  def localClasspath = T { resources() ++ Seq(compile().classes) }
 
-  def jar = T{
+  def jar = T {
     createJar(
       localClasspath().map(_.path).filter(exists),
       mainClass()
@@ -194,7 +193,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
     val options = {
 
-      val files = for{
+      val files = for {
         ref <- sources()
         p <- ls.rec(ref.path)
         if p.isFile
@@ -215,8 +214,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     createJar((sources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
   }
 
-  def forkArgs = T{ Seq.empty[String] }
-
+  def forkArgs = T { Seq.empty[String] }
 
   def run(args: String*) = T.command {
     inprocess(
@@ -225,7 +223,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       args)
   }
 
-  def forkRun(args: String*) = T.command{
+  def forkRun(args: String*) = T.command {
     subprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
@@ -234,7 +232,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       workingDir = ammonite.ops.pwd)
   }
 
-  def runMain(mainClass: String, args: String*) = T.command{
+  def runMain(mainClass: String, args: String*) = T.command {
     subprocess(
       mainClass,
       runClasspath().map(_.path),
@@ -244,7 +242,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def console() = T.command{
+  def console() = T.command {
     interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
       classPath = runClasspath().map(_.path),
@@ -265,14 +263,14 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
 }
 
-
-object TestModule{
+object TestModule {
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
     if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
     else {
-      val grouped = results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
+      val grouped =
+        results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
 
-      Result.Failure(grouped.map{case (k, v) => k + ": " + v}.mkString(","))
+      Result.Failure(grouped.map { case (k, v) => k + ": " + v }.mkString(","))
     }
   }
 }
@@ -282,9 +280,9 @@ trait TestModule extends ScalaModule with TaskModule {
 
   def forkWorkingDir = ammonite.ops.pwd
 
-  def forkTest(args: String*) = T.command{
+  def forkTest(args: String*) = T.command {
     mkdir(T.ctx().dest)
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.ctx().dest / "out.json"
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
@@ -306,7 +304,7 @@ trait TestModule extends ScalaModule with TaskModule {
     TestModule.handleResults(doneMsg, results)
 
   }
-  def test(args: String*) = T.command{
+  def test(args: String*) = T.command {
     val (doneMsg, results) = TestRunner(
       testFramework(),
       runClasspath().map(_.path),

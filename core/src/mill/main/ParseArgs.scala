@@ -6,8 +6,7 @@ import mill.define.Segment
 
 object ParseArgs {
 
-  def apply(scriptArgs: Seq[String])
-    : Either[String, (List[List[Segment]], Seq[String])] = {
+  def apply(scriptArgs: Seq[String]): Either[String, (List[List[Segment]], Seq[String])] = {
     val (selectors, args, isMultiSelectors) = extractSelsAndArgs(scriptArgs)
     for {
       _ <- validateSelectors(selectors)
@@ -19,8 +18,7 @@ object ParseArgs {
     } yield (selectors.toList, args)
   }
 
-  def extractSelsAndArgs(
-      scriptArgs: Seq[String]): (Seq[String], Seq[String], Boolean) = {
+  def extractSelsAndArgs(scriptArgs: Seq[String]): (Seq[String], Seq[String], Boolean) = {
     val multiFlags = Seq("--all", "--seq")
     val isMultiSelectors = scriptArgs.headOption.exists(multiFlags.contains)
 
@@ -36,15 +34,13 @@ object ParseArgs {
     }
   }
 
-  private def validateSelectors(
-      selectors: Seq[String]): Either[String, Unit] = {
+  private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Selector cannot be empty")
     else Right(())
   }
 
-  private def validateExpanded(expanded: Seq[String],
-                               isMulti: Boolean): Either[String, Unit] = {
+  private def validateExpanded(expanded: Seq[String], isMulti: Boolean): Either[String, Unit] = {
     if (!isMulti && expanded.length > 1)
       Left("Please use --all flag to run multiple tasks")
     else Right(())
@@ -52,7 +48,7 @@ object ParseArgs {
 
   def expandBraces(selectorString: String): Either[String, List[String]] = {
     parseBraceExpansion(selectorString) match {
-      case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
+      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(expanded, _) => Right(expanded.toList)
     }
   }
@@ -66,10 +62,10 @@ object ParseArgs {
       fragments match {
         case head :: rest =>
           val prefixes = head match {
-            case Keep(v)          => Seq(v)
-            case Expand(Nil)      => Seq("{}")
+            case Keep(v) => Seq(v)
+            case Expand(Nil) => Seq("{}")
             case Expand(List(vs)) => unfold(vs).map("{" + _ + "}")
-            case Expand(vss)      => vss.flatMap(unfold)
+            case Expand(vss) => vss.flatMap(unfold)
           }
           for {
             prefix <- prefixes
@@ -106,7 +102,7 @@ object ParseArgs {
           } yield
             r match {
               case "" => str
-              case _  => str + "," + r
+              case _ => str + "," + r
             }
       }
     }
@@ -121,7 +117,7 @@ object ParseArgs {
 
   def extractSegments(selectorString: String): Either[String, List[Segment]] =
     parseSelector(selectorString) match {
-      case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
+      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
 

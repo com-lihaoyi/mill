@@ -6,12 +6,12 @@ import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
-object FailureTests extends TestSuite{
+object FailureTests extends TestSuite {
 
   def workspace(implicit tp: TestPath) = {
     ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
   }
-  class Checker(module: mill.Module)(implicit tp: TestPath){
+  class Checker(module: mill.Module)(implicit tp: TestPath) {
 
     val evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
@@ -19,7 +19,7 @@ object FailureTests extends TestSuite{
 
       val res = evaluator.evaluate(Agg(target))
 
-      val cleaned = res.rawValues.map{
+      val cleaned = res.rawValues.map {
         case Result.Exception(ex, _) => Result.Exception(ex, Nil)
         case x => x
       }
@@ -31,7 +31,7 @@ object FailureTests extends TestSuite{
 
     }
   }
-  val tests = Tests{
+  val tests = Tests {
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
@@ -60,10 +60,8 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Success(0))
       )
 
-
       val ex = new IndexOutOfBoundsException()
       singleton.single.exception = Some(ex)
-
 
       check(
         target = singleton.single,
@@ -106,4 +104,3 @@ object FailureTests extends TestSuite{
     }
   }
 }
-

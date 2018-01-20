@@ -14,22 +14,16 @@ object Discover {
     import compat._
     val seen = mutable.Set.empty[Type]
     def rec(tpe: Type): Unit = {
-      if (!seen(tpe)){
+      if (!seen(tpe)) {
         seen.add(tpe)
-        for{
+        for {
           m <- tpe.members
           memberTpe = m.typeSignature
           if memberTpe.resultType <:< typeOf[mill.define.Module] && memberTpe.paramLists.isEmpty
         } rec(memberTpe.resultType)
 
-        if (tpe <:< typeOf[mill.define.Cross[_]]){
-          val inner = typeOf[Cross[_]]
-            .typeSymbol
-            .asClass
-            .typeParams
-            .head
-            .asType
-            .toType
+        if (tpe <:< typeOf[mill.define.Cross[_]]) {
+          val inner = typeOf[Cross[_]].typeSymbol.asClass.typeParams.head.asType.toType
             .asSeenFrom(tpe, typeOf[Cross[_]].typeSymbol)
 
           rec(inner)
@@ -39,16 +33,19 @@ object Discover {
     rec(weakTypeOf[T])
 
     val router = new ammonite.main.Router(c)
-    val mapping = for{
+    val mapping = for {
       discoveredModuleType <- seen
-      val routes = router.getAllRoutesForClass(
-        discoveredModuleType.asInstanceOf[router.c.Type],
-        _.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
-      ).map(_.asInstanceOf[c.Tree])
+      val routes = router
+        .getAllRoutesForClass(
+          discoveredModuleType.asInstanceOf[router.c.Type],
+          _.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
+        )
+        .map(_.asInstanceOf[c.Tree])
       if routes.nonEmpty
     } yield {
-      val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      val rhs = q"scala.Seq[ammonite.main.Router.EntryPoint[${discoveredModuleType.typeSymbol.asClass}]](..$routes)"
+      val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
+      val rhs =
+        q"scala.Seq[ammonite.main.Router.EntryPoint[${discoveredModuleType.typeSymbol.asClass}]](..$routes)"
       q"$lhs -> $rhs"
     }
 

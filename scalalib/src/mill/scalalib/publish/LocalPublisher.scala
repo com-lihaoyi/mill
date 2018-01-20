@@ -6,12 +6,13 @@ object LocalPublisher {
 
   private val root: Path = home / ".ivy2" / "local"
 
-  def publish(jar: Path,
-              sourcesJar: Path,
-              docsJar: Path,
-              pom: Path,
-              ivy: Path,
-              artifact: Artifact): Unit = {
+  def publish(
+      jar: Path,
+      sourcesJar: Path,
+      docsJar: Path,
+      pom: Path,
+      ivy: Path,
+      artifact: Artifact): Unit = {
     val releaseDir = root / artifact.group / artifact.id / artifact.version
     writeFiles(
       jar -> releaseDir / "jars" / s"${artifact.id}.jar",

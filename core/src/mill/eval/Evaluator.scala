@@ -12,13 +12,12 @@ import mill.util.Strict.Agg
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
-case class Labelled[T](target: NamedTask[T],
-                       segments: Segments){
-  def format = target match{
+case class Labelled[T](target: NamedTask[T], segments: Segments) {
+  def format = target match {
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
-  def writer = target match{
+  def writer = target match {
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
@@ -27,12 +26,12 @@ case class Labelled[T](target: NamedTask[T],
 object RootModuleLoader extends Loader[mill.Module] {
   def make() = ???
 }
-class Evaluator[T](val workspacePath: Path,
-                   val basePath: Path,
-                   val rootModule: mill.Module,
-                   log: Logger,
-                   val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
-
+class Evaluator[T](
+    val workspacePath: Path,
+    val basePath: Path,
+    val rootModule: mill.Module,
+    log: Logger,
+    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig) {
 
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(RootModuleLoader) = rootModule
@@ -41,11 +40,12 @@ class Evaluator[T](val workspacePath: Path,
 
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
-    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any]   =>
+    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted) {
+      case t: NamedTask[Any] =>
         val segments = t.ctx.segments
-        val (finalTaskOverrides, enclosing) = t match{
-          case t: Target[_] => rootModule.millInternal.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
+        val (finalTaskOverrides, enclosing) = t match {
+          case t: Target[_] =>
+            rootModule.millInternal.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
           case c: mill.define.Command[_] => 0 -> c.ctx.enclosing
         }
         val additional =
@@ -59,20 +59,20 @@ class Evaluator[T](val workspacePath: Path,
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
 
-    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
+    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex) {
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
-      val counterMsg = (i+1) + "/" + sortedGroups.keyCount
+      val counterMsg = (i + 1) + "/" + sortedGroups.keyCount
       val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results, counterMsg)
-      for(ev <- newEvaluated){
+      for (ev <- newEvaluated) {
         evaluated.append(ev)
       }
-      for((k, v) <- newResults) results.put(k, v)
+      for ((k, v) <- newResults) results.put(k, v)
 
     }
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing]
-    for((k, vs) <- sortedGroups.items()){
-      failing.addAll(k, vs.items.flatMap(results.get).collect{case f: Result.Failing => f})
+    for ((k, vs) <- sortedGroups.items()) {
+      failing.addAll(k, vs.items.flatMap(results.get).collect { case f: Result.Failing => f })
     }
     Evaluator.Results(
       goals.indexed.map(results),
@@ -83,21 +83,20 @@ class Evaluator[T](val workspacePath: Path,
     )
   }
 
-
-  def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
-                          group: Agg[Task[_]],
-                          results: collection.Map[Task[_], Result[Any]],
-                          counterMsg: String): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
-
+  def evaluateGroupCached(
+      terminal: Either[Task[_], Labelled[_]],
+      group: Agg[Task[_]],
+      results: collection.Map[Task[_], Result[Any]],
+      counterMsg: String): (collection.Map[Task[_], Result[Any]], Seq[Task[_]]) = {
 
     val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_))
 
     val inputsHash =
       externalInputs.map(results).toVector.hashCode +
-      group.toIterator.map(_.sideHash).toVector.hashCode() +
-      classLoaderSig.hashCode()
+        group.toIterator.map(_.sideHash).toVector.hashCode() +
+        classLoaderSig.hashCode()
 
-    terminal match{
+    terminal match {
       case Left(task) =>
         evaluateGroup(
           group,
@@ -111,24 +110,25 @@ class Evaluator[T](val workspacePath: Path,
         val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget.segments)
         val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledTarget.segments)
         mkdir(paths.out)
-        val cached = for{
+        val cached = for {
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
-          (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
+          (cachedHash, terminalResult) <- scala.util
+            .Try(upickle.default.readJs[(Int, upickle.Js.Value)](json))
+            .toOption
           if cachedHash == inputsHash
           reader <- labelledTarget.format
           parsed <- reader.read.lift(terminalResult)
         } yield parsed
 
-        cached match{
+        cached match {
           case Some(parsed) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
             newResults(labelledTarget.target) = parsed
             (newResults, Nil)
 
           case _ =>
-
-            val Seq(first, rest @_*) = labelledTarget.segments.value
-            val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
+            val Seq(first, rest @ _*) = labelledTarget.segments.value
+            val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map {
               case Segment.Label(s) => "." + s
               case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
@@ -143,14 +143,13 @@ class Evaluator[T](val workspacePath: Path,
               counterMsg = counterMsg
             )
 
-            newResults(labelledTarget.target) match{
+            newResults(labelledTarget.target) match {
               case Result.Success(v) =>
-                val terminalResult = labelledTarget
-                  .writer
+                val terminalResult = labelledTarget.writer
                   .asInstanceOf[Option[upickle.default.Writer[Any]]]
                   .map(_.write(v))
 
-                for(t <- terminalResult){
+                for (t <- terminalResult) {
                   write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
                 }
               case _ =>
@@ -161,21 +160,18 @@ class Evaluator[T](val workspacePath: Path,
                 rm(paths.meta)
             }
 
-
-
             (newResults, newEvaluated)
         }
     }
   }
 
-
-  def evaluateGroup(group: Agg[Task[_]],
-                    results: collection.Map[Task[_], Result[Any]],
-                    groupBasePath: Option[Path],
-                    paths: Option[Evaluator.Paths],
-                    maybeTargetLabel: Option[String],
-                    counterMsg: String) = {
-
+  def evaluateGroup(
+      group: Agg[Task[_]],
+      results: collection.Map[Task[_], Result[Any]],
+      groupBasePath: Option[Path],
+      paths: Option[Evaluator.Paths],
+      maybeTargetLabel: Option[String],
+      counterMsg: String) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
@@ -190,7 +186,7 @@ class Evaluator[T](val workspacePath: Path,
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
-      if(logRun) { log.ticker(s"[$counterMsg] $targetLabel ") }
+      if (logRun) { log.ticker(s"[$counterMsg] $targetLabel ") }
     }
 
     val multiLogger = resolveLogger(paths.map(_.log))
@@ -200,7 +196,7 @@ class Evaluator[T](val workspacePath: Path,
       newEvaluated.append(target)
       val targetInputValues = target.inputs
         .map(x => newResults.getOrElse(x, results(x)))
-        .collect{ case Result.Success(v) => v }
+        .collect { case Result.Success(v) => v }
 
       val res =
         if (targetInputValues.length != target.inputs.length) Result.Skipped
@@ -210,7 +206,7 @@ class Evaluator[T](val workspacePath: Path,
             paths.map(_.dest).orNull,
             groupBasePath.orNull,
             multiLogger,
-            new Ctx.LoaderCtx{
+            new Ctx.LoaderCtx {
               def load[T](x: Ctx.Loader[T]): T = {
                 workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
               }
@@ -219,18 +215,19 @@ class Evaluator[T](val workspacePath: Path,
 
           val out = System.out
           val err = System.err
-          try{
+          try {
             System.setErr(multiLogger.errorStream)
             System.setOut(multiLogger.outputStream)
-            Console.withOut(multiLogger.outputStream){
-              Console.withErr(multiLogger.errorStream){
+            Console.withOut(multiLogger.outputStream) {
+              Console.withErr(multiLogger.errorStream) {
                 target.evaluate(args)
               }
             }
-          }catch{ case NonFatal(e) =>
-            val currentStack = new Exception().getStackTrace
-            Result.Exception(e, currentStack)
-          }finally{
+          } catch {
+            case NonFatal(e) =>
+              val currentStack = new Exception().getStackTrace
+              Result.Exception(e, currentStack)
+          } finally {
             System.setErr(err)
             System.setOut(out)
           }
@@ -244,7 +241,7 @@ class Evaluator[T](val workspacePath: Path,
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[Path]): Logger = logPath match{
+  def resolveLogger(logPath: Option[Path]): Logger = logPath match {
     case None => log
     case Some(path) =>
       rm(path)
@@ -252,13 +249,9 @@ class Evaluator[T](val workspacePath: Path,
   }
 }
 
-
-object Evaluator{
-  case class Paths(out: Path,
-                   dest: Path,
-                   meta: Path,
-                   log: Path)
-  def makeSegmentStrings(segments: Segments) = segments.value.flatMap{
+object Evaluator {
+  case class Paths(out: Path, dest: Path, meta: Path, log: Path)
+  def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
@@ -275,11 +268,12 @@ object Evaluator{
     case _ => Nil
 
   }
-  case class Results(rawValues: Seq[Result[Any]],
-                     evaluated: Agg[Task[_]],
-                     transitive: Agg[Task[_]],
-                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
-                     results: collection.Map[Task[_], Result[Any]]){
-    def values = rawValues.collect{case Result.Success(v) => v}
+  case class Results(
+      rawValues: Seq[Result[Any]],
+      evaluated: Agg[Task[_]],
+      transitive: Agg[Task[_]],
+      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
+      results: collection.Map[Task[_], Result[Any]]) {
+    def values = rawValues.collect { case Result.Success(v) => v }
   }
 }

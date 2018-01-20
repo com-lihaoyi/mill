@@ -10,7 +10,8 @@ import utest._
 object ResolveDepsTests extends TestSuite {
   val repos = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
-  def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(repos, "2.12.4", "2.12", deps)
+  def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] =
+    Lib.resolveDependencies(repos, "2.12.4", "2.12", deps)
 
   val tests = Tests {
     'resolveValidDeps - {

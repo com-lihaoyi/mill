@@ -3,11 +3,11 @@ package mill.define
 import utest._
 import mill.{T, Module}
 import mill.util.TestUtil
-object MacroErrorTests extends TestSuite{
+object MacroErrorTests extends TestSuite {
 
-  val tests = Tests{
+  val tests = Tests {
 
-    'errors{
+    'errors {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
@@ -30,9 +30,8 @@ object MacroErrorTests extends TestSuite{
             }
           }
         """)
-        assert(e.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+        assert(
+          e.msg.contains("Modules, Targets and Commands can only be defined within a mill Module"))
       }
       'neg - {
 
@@ -65,7 +64,7 @@ object MacroErrorTests extends TestSuite{
         }""")
         assert(err.msg == expectedMsg)
       }
-      'neg3{
+      'neg3 {
         val borkedCachedDiamond1 = utest.compileError("""
           object borkedCachedDiamond1 {
             def up = T{ TestUtil.test() }
@@ -74,9 +73,9 @@ object MacroErrorTests extends TestSuite{
             def down = T{ TestUtil.test(left, right) }
           }
         """)
-        assert(borkedCachedDiamond1.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+        assert(
+          borkedCachedDiamond1.msg.contains(
+            "Modules, Targets and Commands can only be defined within a mill Module"))
       }
     }
   }

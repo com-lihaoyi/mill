@@ -7,14 +7,17 @@ import mill.define.Segments
 import mill.main.ParseArgs
 import utest._
 
-abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) extends TestSuite{
+abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) extends TestSuite {
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
   val buildFilePath = pwd / 'integration / 'test / 'resources / workspaceSlug
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(
-    ammonite.main.Cli.Config(wd = workspacePath), false,
-    stdOutErr, stdOutErr, stdIn
+    ammonite.main.Cli.Config(wd = workspacePath),
+    false,
+    stdOutErr,
+    stdOutErr,
+    stdIn
   )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
   def meta(s: String) = {

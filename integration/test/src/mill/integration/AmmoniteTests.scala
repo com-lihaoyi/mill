@@ -4,12 +4,13 @@ import ammonite.ops._
 import utest._
 
 object AmmoniteTests extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite") {
-  val tests = Tests{
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
       val replTests = eval(
-        s"amm.repl[$scalaVersion].test", "{ammonite.unit,ammonite.session.ProjectTests.guava}"
+        s"amm.repl[$scalaVersion].test",
+        "{ammonite.unit,ammonite.session.ProjectTests.guava}"
       )
       val replTestMeta = meta(s"amm.repl[$scalaVersion].test.test")
       assert(
@@ -19,7 +20,8 @@ object AmmoniteTests extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonit
       )
 
       val compileResult = eval(
-        "--all", s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
+        "--all",
+        s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
       )
 
       assert(

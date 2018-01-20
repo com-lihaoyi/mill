@@ -28,8 +28,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
   def getStagingProfileUri(groupId: String): String = {
-    val response = withRetry(
-      PatientHttp(s"${uri}/staging/profiles").headers(commonHeaders))
+    val response = withRetry(PatientHttp(s"${uri}/staging/profiles").headers(commonHeaders))
 
     val resourceUri =
       json
@@ -39,8 +38,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .map(_("resourceURI").str.toString)
 
     resourceUri.getOrElse(
-      throw new RuntimeException(
-        s"Could not find staging profile for groupId: ${groupId}")
+      throw new RuntimeException(s"Could not find staging profile for groupId: ${groupId}")
     )
   }
 
@@ -55,10 +53,10 @@ class SonatypeHttpApi(uri: String, credentials: String) {
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
   def createStagingRepo(profileUri: String, groupId: String): String = {
-    val response = withRetry(PatientHttp(s"${profileUri}/start")
-      .headers(commonHeaders)
-      .postData(
-        s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
+    val response = withRetry(
+      PatientHttp(s"${profileUri}/start")
+        .headers(commonHeaders)
+        .postData(s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
 
     json.read(response.body)("data")("stagedRepositoryId").str.toString
   }
@@ -113,8 +111,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .asString
   }
 
-  private def withRetry(request: HttpRequest,
-                        retries: Int = 10): HttpResponse[String] = {
+  private def withRetry(request: HttpRequest, retries: Int = 10): HttpResponse[String] = {
     val resp = request.asString
     if (resp.is5xx && retries > 0) {
       Thread.sleep(500)

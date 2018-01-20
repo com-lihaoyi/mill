@@ -5,9 +5,9 @@ import mill.util.MultiBiMap
 import mill.util.Strict.Agg
 
 object Graph {
-  class TopoSorted private[Graph](val values: Agg[Task[_]])
-  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
-                                    (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
+  class TopoSorted private[Graph] (val values: Agg[Task[_]])
+  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(
+      important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
     for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
@@ -40,6 +40,7 @@ object Graph {
     sourceTargets.items.foreach(rec)
     transitiveTargets
   }
+
   /**
     * Takes the given targets, finds all the targets they transitively depend
     * on, and sort them topologically. Fails if there are dependency cycles
@@ -50,7 +51,7 @@ object Graph {
     val targetIndices = indexed.zipWithIndex.toMap
 
     val numberedEdges =
-      for(t <- transitiveTargets.items)
+      for (t <- transitiveTargets.items)
         yield t.inputs.collect(targetIndices)
 
     val sortedClusters = Tarjans(numberedEdges)

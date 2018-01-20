@@ -11,19 +11,15 @@ object Artifact {
   def fromDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
     dep match {
       case Dep.Java(dep) =>
-        Dependency(
-          Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile)
+        Dependency(Artifact(dep.module.organization, dep.module.name, dep.version), Scope.Compile)
       case Dep.Scala(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaBin}",
-                            dep.version),
-                   Scope.Compile)
+        Dependency(
+          Artifact(dep.module.organization, s"${dep.module.name}_${scalaBin}", dep.version),
+          Scope.Compile)
       case Dep.Point(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaFull}",
-                            dep.version),
-                   Scope.Compile)
+        Dependency(
+          Artifact(dep.module.organization, s"${dep.module.name}_${scalaFull}", dep.version),
+          Scope.Compile)
     }
   }
 }

@@ -31,15 +31,15 @@ object GenIdeaTests extends TestSuite {
       val x = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
-      for((relPath, xml) <- GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)){
-        write.over(basePath/ "generated"/ relPath, pp.format(xml))
+      for ((relPath, xml) <- GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)) {
+        write.over(basePath / "generated" / relPath, pp.format(xml))
       }
 
       Seq(
         "gen-idea/idea_modules/iml" ->
-          basePath / "generated" / ".idea_modules" /".iml",
+          basePath / "generated" / ".idea_modules" / ".iml",
         "gen-idea/idea_modules/root.iml" ->
-          basePath / "generated" / ".idea_modules" /"root.iml",
+          basePath / "generated" / ".idea_modules" / "root.iml",
         "gen-idea/idea/libraries/scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar.xml" ->
           basePath / "generated" / ".idea" / "libraries" / "scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar.xml",
         "gen-idea/idea/libraries/scala-reflect_2.12.4_scala-reflect-2.12.4.jar.xml" ->
@@ -60,18 +60,18 @@ object GenIdeaTests extends TestSuite {
           basePath / "generated" / ".idea" / "modules.xml",
         "gen-idea/idea/misc.xml" ->
           basePath / "generated" / ".idea" / "misc.xml",
-      ).foreach { case (resource, generated) =>
-          println("checking "+resource)
+      ).foreach {
+        case (resource, generated) =>
+          println("checking " + resource)
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
-          val generatedString = normaliseLibraryPaths(read! generated)
+          val generatedString = normaliseLibraryPaths(read ! generated)
 
           assert(resourceString == generatedString)
-        }
+      }
     }
   }
 
-
-  private val libPathRegex =  """([\w/]+)/.coursier""".r
+  private val libPathRegex = """([\w/]+)/.coursier""".r
   private def normaliseLibraryPaths(in: String): String = {
     libPathRegex.replaceAllIn(in, "COURSIER_HOME")
   }

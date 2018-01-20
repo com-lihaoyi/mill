@@ -11,15 +11,15 @@ object Util {
 
     val website = new java.net.URI(url).toURL
     val rbc = java.nio.channels.Channels.newChannel(website.openStream)
-    try{
+    try {
       val fos = new java.io.FileOutputStream(out.toIO)
-      try{
+      try {
         fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
         PathRef(out)
-      } finally{
+      } finally {
         fos.close()
       }
-    } finally{
+    } finally {
       rbc.close()
     }
   }

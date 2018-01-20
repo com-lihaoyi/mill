@@ -13,9 +13,7 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-
 object HelloJSWorldTests extends TestSuite {
-
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
     override def basePath = HelloJSWorldTests.workspacePath
@@ -28,7 +26,7 @@ object HelloJSWorldTests extends TestSuite {
       scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
     } yield (scala, scalaJS)
 
-    object build extends Cross[BuildModule](matrix:_*)
+    object build extends Cross[BuildModule](matrix: _*)
 
     class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0
@@ -37,15 +35,13 @@ object HelloJSWorldTests extends TestSuite {
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(
-          License("Apache License, Version 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0")),
+        licenses =
+          Seq(License("Apache License, Version 2.0", "http://www.apache.org/licenses/LICENSE-2.0")),
         scm = SCM(
           "https://github.com/lihaoyi/hello-world-publish",
           "scm:git:https://github.com/lihaoyi/hello-world-publish"
         ),
-        developers =
-          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+        developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
   }
@@ -78,8 +74,7 @@ object HelloJSWorldTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
-      def testCompileFromScratch(scalaVersion: String,
-                          scalaJSVersion: String): Unit = {
+      def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
 
@@ -103,9 +98,7 @@ object HelloJSWorldTests extends TestSuite {
       'fromScratch_2124_100M2 - testCompileFromScratch("2.11.8", "1.0.0-M2")
     }
 
-    def testRun(scalaVersion: String,
-                scalaJSVersion: String,
-                mode: OptimizeMode): Unit = {
+    def testRun(scalaVersion: String, scalaJSVersion: String, mode: OptimizeMode): Unit = {
       val task = mode match {
         case FullOpt => HelloJSWorld.build(scalaVersion, scalaJSVersion).fullOpt
         case FastOpt => HelloJSWorld.build(scalaVersion, scalaJSVersion).fastOpt
@@ -129,17 +122,17 @@ object HelloJSWorldTests extends TestSuite {
     }
     'jar - {
       'containsSJSIRs - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.21").jar)
+        val Right((result, evalCount)) =
+          helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.21").jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
       }
     }
     'publish - {
-      def testArtifactId(scalaVersion: String,
-                         scalaJSVersion: String,
-                         artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
+      def testArtifactId(scalaVersion: String, scalaJSVersion: String, artifactId: String): Unit = {
+        val Right((result, evalCount)) =
+          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
       'artifactId_0621 - testArtifactId("2.12.4", "0.6.21", "hello-js-world_sjs0.6_2.12")

@@ -1,6 +1,5 @@
 package mill.eval
 
-
 import mill.util.TestUtil.{Test, test}
 import mill.define.{Graph, Target, Task}
 import mill.{Module, T}
@@ -9,22 +8,24 @@ import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
-object EvaluationTests extends TestSuite{
+object EvaluationTests extends TestSuite {
   class Checker(module: mill.Module)(implicit tp: TestPath) {
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
     def evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
-    def apply(target: Task[_], expValue: Any,
-              expEvaled: Agg[Task[_]],
-              // How many "other" tasks were evaluated other than those listed above.
-              // Pass in -1 to skip the check entirely
-              extraEvaled: Int = 0,
-              // Perform a second evaluation of the same tasks, and make sure the
-              // outputs are the same but nothing was evaluated. Disable this if you
-              // are directly evaluating tasks which need to re-evaluate every time
-              secondRunNoOp: Boolean = true) = {
+    def apply(
+        target: Task[_],
+        expValue: Any,
+        expEvaled: Agg[Task[_]],
+        // How many "other" tasks were evaluated other than those listed above.
+        // Pass in -1 to skip the check entirely
+        extraEvaled: Int = 0,
+        // Perform a second evaluation of the same tasks, and make sure the
+        // outputs are the same but nothing was evaluated. Disable this if you
+        // are directly evaluating tasks which need to re-evaluate every time
+        secondRunNoOp: Boolean = true) = {
 
       val evaled = evaluator.evaluate(Agg(target))
 
@@ -37,7 +38,7 @@ object EvaluationTests extends TestSuite{
       )
 
       // Second time the value is already cached, so no evaluation needed
-      if (secondRunNoOp){
+      if (secondRunNoOp) {
         val evaled2 = evaluator.evaluate(Agg(target))
         val expecteSecondRunEvaluated = Agg()
         assert(
@@ -48,8 +49,7 @@ object EvaluationTests extends TestSuite{
     }
   }
 
-
-  val tests = Tests{
+  val tests = Tests {
     val graphs = new TestGraphs()
     import graphs._
     import TestGraphs._
@@ -168,7 +168,6 @@ object EvaluationTests extends TestSuite{
         val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered3 == Agg(change, right))
 
-
       }
       'triangleTask - {
 
@@ -211,15 +210,15 @@ object EvaluationTests extends TestSuite{
         // up    middle -- down
         //                /
         //           right
-        object build extends TestUtil.BaseModule{
+        object build extends TestUtil.BaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = T{ test.anon() }
-          def left = T.task{ leftCount += 1; up() + 1 }
-          def middle = T.task{ middleCount += 1; 100 }
-          def right = T{ rightCount += 1; 10000 }
-          def down = T{ left() + middle() + right() }
+          def up = T { test.anon() }
+          def left = T.task { leftCount += 1; up() + 1 }
+          def middle = T.task { middleCount += 1; 100 }
+          def right = T { rightCount += 1; 10000 }
+          def down = T { left() + middle() + right() }
         }
 
         import build._

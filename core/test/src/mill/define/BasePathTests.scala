@@ -3,9 +3,9 @@ package mill.define
 import mill.util.TestGraphs
 import utest._
 import ammonite.ops._
-object BasePathTests extends TestSuite{
+object BasePathTests extends TestSuite {
   val testGraphs = new TestGraphs
-  val tests = Tests{
+  val tests = Tests {
     def check(m: Module, segments: String*) = {
       val remaining = m.basePath.relativeTo(pwd).segments.drop(1)
       assert(remaining == segments)
@@ -17,9 +17,7 @@ object BasePathTests extends TestSuite{
       check(TestGraphs.triangleTask)
     }
     'TraitWithModuleObject - {
-      check(TestGraphs.TraitWithModuleObject.TraitModule,
-       "TraitModule"
-      )
+      check(TestGraphs.TraitWithModuleObject.TraitModule, "TraitModule")
     }
     'nestedModuleNested - {
       check(TestGraphs.nestedModule.nested, "nested")
@@ -41,10 +39,12 @@ object BasePathTests extends TestSuite{
       check(TestGraphs.nestedCrosses.cross, "cross")
       check(
         TestGraphs.nestedCrosses.cross("210").cross2("js"),
-        "cross", "210", "cross2", "js"
+        "cross",
+        "210",
+        "cross2",
+        "js"
       )
     }
 
   }
 }
-

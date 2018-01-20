@@ -1,7 +1,7 @@
 package mill.eval
 
 sealed trait Result[+T]
-object Result{
+object Result {
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
     catch { case e: Throwable => Exception(e, new java.lang.Exception().getStackTrace) }

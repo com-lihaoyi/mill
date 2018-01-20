@@ -8,11 +8,12 @@ import mill.util.Logger
 
 import scalaj.http.HttpResponse
 
-class SonatypePublisher(uri: String,
-                        snapshotUri: String,
-                        credentials: String,
-                        gpgPassphrase: String,
-                        log: Logger) {
+class SonatypePublisher(
+    uri: String,
+    snapshotUri: String,
+    credentials: String,
+    gpgPassphrase: String,
+    log: Logger) {
 
   private val api = new SonatypeHttpApi(uri, credentials)
 
@@ -45,9 +46,10 @@ class SonatypePublisher(uri: String,
       publishRelease(publishPath, signedArtifactsWithDigest, artifact)
   }
 
-  private def publishSnapshot(publishPath: String,
-                              payloads: Seq[(String, Array[Byte])],
-                              artifact: Artifact): Unit = {
+  private def publishSnapshot(
+      publishPath: String,
+      payloads: Seq[(String, Array[Byte])],
+      artifact: Artifact): Unit = {
     val baseUri: String = snapshotUri + "/" + publishPath
 
     val publishResults = payloads.map {
@@ -59,9 +61,10 @@ class SonatypePublisher(uri: String,
     reportPublishResults(publishResults, artifact)
   }
 
-  private def publishRelease(publishPath: String,
-                             payloads: Seq[(String, Array[Byte])],
-                             artifact: Artifact): Unit = {
+  private def publishRelease(
+      publishPath: String,
+      payloads: Seq[(String, Array[Byte])],
+      artifact: Artifact): Unit = {
     val profileUri = api.getStagingProfileUri(artifact.group)
     val stagingRepoId =
       api.createStagingRepo(profileUri, artifact.group)
@@ -93,8 +96,9 @@ class SonatypePublisher(uri: String,
     log.info(s"Published ${artifact.id} successfully")
   }
 
-  private def reportPublishResults(publishResults: Seq[HttpResponse[String]],
-                                   artifact: Artifact) = {
+  private def reportPublishResults(
+      publishResults: Seq[HttpResponse[String]],
+      artifact: Artifact) = {
     if (publishResults.forall(_.is2xx)) {
       log.info(s"Published ${artifact.id} to Sonatype")
     } else {
@@ -107,9 +111,7 @@ class SonatypePublisher(uri: String,
     }
   }
 
-  private def awaitRepoStatus(status: String,
-                              stagingRepoId: String,
-                              attempts: Int = 20): Unit = {
+  private def awaitRepoStatus(status: String, stagingRepoId: String, attempts: Int = 20): Unit = {
     def isRightStatus =
       api.getStagingRepoState(stagingRepoId).equalsIgnoreCase(status)
     var attemptsLeft = attempts
@@ -118,8 +120,7 @@ class SonatypePublisher(uri: String,
       Thread.sleep(3000)
       attemptsLeft -= 1
       if (attemptsLeft == 0) {
-        throw new RuntimeException(
-          s"Couldn't wait for staging repository to be ${status}. Failing")
+        throw new RuntimeException(s"Couldn't wait for staging repository to be ${status}. Failing")
       }
     }
   }

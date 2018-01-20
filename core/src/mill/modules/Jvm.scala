@@ -16,13 +16,12 @@ import mill.util.Loose.Agg
 import scala.annotation.tailrec
 import scala.collection.mutable
 
-
 object Jvm {
   def gatherClassloaderJars(): Agg[Path] = {
     val allJars = new Agg.Mutable[Path]()
     var currentClassloader = Thread.currentThread().getContextClassLoader
-    while(currentClassloader != null){
-      currentClassloader match{
+    while (currentClassloader != null) {
+      currentClassloader match {
         case u: URLClassLoader => allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
         case _ =>
       }
@@ -31,17 +30,16 @@ object Jvm {
     allJars
   }
 
-  def interactiveSubprocess(mainClass: String,
-                            classPath: Agg[Path],
-                            options: Seq[String] = Seq.empty): Unit = {
+  def interactiveSubprocess(
+      mainClass: String,
+      classPath: Agg[Path],
+      options: Seq[String] = Seq.empty): Unit = {
     import ammonite.ops.ImplicitWd._
     %("java", "-cp", classPath.mkString(":"), mainClass, options)
   }
 
-  def inprocess(mainClass: String,
-    classPath: Agg[Path],
-    options: Seq[String] = Seq.empty)
-    (implicit ctx: Ctx): Unit = {
+  def inprocess(mainClass: String, classPath: Agg[Path], options: Seq[String] = Seq.empty)(
+      implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
       getMainMethod(mainClass, cl).invoke(null, options.toArray)
     })
@@ -61,19 +59,19 @@ object Jvm {
     method
   }
 
-
-  def inprocess[T](classPath: Agg[Path],
-    classLoaderOverrideSbtTesting: Boolean,
-    body: ClassLoader => T): T = {
+  def inprocess[T](
+      classPath: Agg[Path],
+      classLoaderOverrideSbtTesting: Boolean,
+      body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
       new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
-        ClassLoader.getSystemClassLoader().getParent()){
+        ClassLoader.getSystemClassLoader().getParent()) {
         override def findClass(name: String) = {
-          if (name.startsWith("sbt.testing.")){
+          if (name.startsWith("sbt.testing.")) {
             outerClassLoader.loadClass(name)
-          }else{
+          } else {
             super.findClass(name)
           }
         }
@@ -87,31 +85,31 @@ object Jvm {
     Thread.currentThread().setContextClassLoader(cl)
     try {
       body(cl)
-    }finally{
+    } finally {
       Thread.currentThread().setContextClassLoader(oldCl)
       cl.close()
     }
   }
 
-  def subprocess(mainClass: String,
-                 classPath: Agg[Path],
-                 jvmOptions: Seq[String] = Seq.empty,
-                 options: Seq[String] = Seq.empty,
-                 workingDir: Path = null)
-                (implicit ctx: Ctx) = {
+  def subprocess(
+      mainClass: String,
+      classPath: Agg[Path],
+      jvmOptions: Seq[String] = Seq.empty,
+      options: Seq[String] = Seq.empty,
+      workingDir: Path = null)(implicit ctx: Ctx) = {
 
     val commandArgs =
       Vector("java") ++
-      jvmOptions ++
-      Vector("-cp", classPath.mkString(":"), mainClass) ++
-      options
+        jvmOptions ++
+        Vector("-cp", classPath.mkString(":"), mainClass) ++
+        options
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     mkdir(workingDir1)
     val proc =
       new java.lang.ProcessBuilder()
         .directory(workingDir1.toIO)
-        .command(commandArgs:_*)
+        .command(commandArgs: _*)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
         .start()
@@ -120,18 +118,16 @@ object Jvm {
     val stderr = proc.getErrorStream
     val sources = Seq(
       (stdout, Left(_: Bytes), ctx.log.outputStream),
-      (stderr, Right(_: Bytes),ctx.log.errorStream )
+      (stderr, Right(_: Bytes), ctx.log.errorStream)
     )
     val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
-    while(
-    // Process.isAlive doesn't exist on JDK 7 =/
+    while (// Process.isAlive doesn't exist on JDK 7 =/
       util.Try(proc.exitValue).isFailure ||
-        stdout.available() > 0 ||
-        stderr.available() > 0
-    ){
+      stdout.available() > 0 ||
+      stderr.available() > 0) {
       var readSomething = false
-      for ((subStream, wrapper, parentStream) <- sources){
-        while (subStream.available() > 0){
+      for ((subStream, wrapper, parentStream) <- sources) {
+        while (subStream.available() > 0) {
           readSomething = true
           val array = new Array[Byte](subStream.available())
           val actuallyRead = subStream.read(array)
@@ -140,7 +136,7 @@ object Jvm {
         }
       }
       // if we did not read anything sleep briefly to avoid spinning
-      if(!readSomething)
+      if (!readSomething)
         Thread.sleep(2)
     }
 
@@ -151,32 +147,31 @@ object Jvm {
   private def createManifest(mainClass: Option[String]) = {
     val m = new java.util.jar.Manifest()
     m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
-    m.getMainAttributes.putValue( "Created-By", "Scala mill" )
+    m.getMainAttributes.putValue("Created-By", "Scala mill")
     mainClass.foreach(
       m.getMainAttributes.put(java.util.jar.Attributes.Name.MAIN_CLASS, _)
     )
     m
   }
 
-  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
-               (implicit ctx: Ctx.DestCtx): PathRef = {
+  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)(
+      implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
-    if(inputPaths.nonEmpty) {
-      mkdir(outputPath/up)
+    if (inputPaths.nonEmpty) {
+      mkdir(outputPath / up)
 
       val jar = new JarOutputStream(
         new FileOutputStream(outputPath.toIO),
         createManifest(mainClass)
       )
 
-      try{
+      try {
         assert(inputPaths.forall(exists(_)))
-        for{
+        for {
           p <- inputPaths
-          (file, mapping) <-
-            if (p.isFile) Iterator(p -> empty/p.last)
-            else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
+          (file, mapping) <- if (p.isFile) Iterator(p -> empty / p.last)
+          else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
         } {
           val entry = new JarEntry(mapping.toString)
           entry.setTime(file.mtime.toMillis)
@@ -192,15 +187,15 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def createAssembly(inputPaths: Agg[Path],
-                     mainClass: Option[String] = None,
-                     prependShellScript: String = "")
-                    (implicit ctx: Ctx.DestCtx): PathRef = {
+  def createAssembly(
+      inputPaths: Agg[Path],
+      mainClass: Option[String] = None,
+      prependShellScript: String = "")(implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
 
-    if(inputPaths.nonEmpty) {
-      mkdir(outputPath/up)
+    if (inputPaths.nonEmpty) {
+      mkdir(outputPath / up)
 
       val output = new FileOutputStream(outputPath.toIO)
 
@@ -220,25 +215,23 @@ object Jvm {
       )
 
       val seen = mutable.Set("META-INF/MANIFEST.MF")
-      try{
+      try {
 
-
-        for{
+        for {
           p <- inputPaths
           if exists(p)
-          (file, mapping) <-
-            if (p.isFile) {
-              val jf = new JarFile(p.toIO)
-              import collection.JavaConverters._
-              for(entry <- jf.entries().asScala if !entry.isDirectory) yield {
-                read.bytes(jf.getInputStream(entry)) -> entry.getName
-              }
+          (file, mapping) <- if (p.isFile) {
+            val jf = new JarFile(p.toIO)
+            import collection.JavaConverters._
+            for (entry <- jf.entries().asScala if !entry.isDirectory) yield {
+              read.bytes(jf.getInputStream(entry)) -> entry.getName
             }
-            else {
-              ls.rec(p).iterator
-                .filter(_.isFile)
-                .map(sub => read.bytes(sub) -> sub.relativeTo(p).toString)
-            }
+          } else {
+            ls.rec(p)
+              .iterator
+              .filter(_.isFile)
+              .map(sub => read.bytes(sub) -> sub.relativeTo(p).toString)
+          }
           if !seen(mapping)
         } {
           seen.add(mapping)
