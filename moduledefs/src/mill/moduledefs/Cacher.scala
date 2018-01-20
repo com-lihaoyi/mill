@@ -4,9 +4,12 @@ import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
 trait Cacher {
-  private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
+  private[this] lazy val cacherLazyMap =
+    mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
+  protected[this] def cachedTarget[T](
+    t: => T
+  )(implicit c: sourcecode.Enclosing): T = synchronized {
     cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
   }
 }
@@ -21,9 +24,11 @@ object Cacher {
     val owner = c.internal.enclosingOwner
     val ownerIsCacherClass =
       owner.owner.isClass &&
-        owner.owner.asClass.baseClasses.exists(_.fullName == "mill.moduledefs.Cacher")
+        owner.owner.asClass.baseClasses
+          .exists(_.fullName == "mill.moduledefs.Cacher")
 
-    if (ownerIsCacherClass && owner.isMethod) q"this.cachedTarget[${weakTypeTag[R]}]($t)"
+    if (ownerIsCacherClass && owner.isMethod)
+      q"this.cachedTarget[${weakTypeTag[R]}]($t)"
     else
       c.abort(
         c.enclosingPosition,

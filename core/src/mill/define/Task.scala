@@ -50,32 +50,45 @@ trait Target[+T] extends NamedTask[T] {
   def readWrite: RW[_]
 }
 
-object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.util.Ctx] {
+object Target
+    extends TargetGenerated
+    with Applicative.Applyer[Task, Task, Result, mill.util.Ctx] {
 
-  implicit def apply[T](t: T)(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
+  implicit def apply[T](
+    t: T
+  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetImpl[T]
 
   def targetImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      r: c.Expr[R[T]],
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
+    r: c.Expr[R[T]],
+    w: c.Expr[W[T]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Target[T]] = {
     import c.universe._
-    val lhs = Applicative.impl0[Task, T, mill.util.Ctx](c)(reify(Result.Success(t.splice)).tree)
+    val lhs = Applicative
+      .impl0[Task, T, mill.util.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
-        new TargetImpl[T](lhs.splice, ctx.splice, RW(w.splice.write, r.splice.read))
+        new TargetImpl[T](
+          lhs.splice,
+          ctx.splice,
+          RW(w.splice.write, r.splice.read)
+        )
       )
     )
   }
 
-  implicit def apply[T](t: Result[T])(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
+  implicit def apply[T](
+    t: Result[T]
+  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetResultImpl[T]
 
   def targetResultImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Result[T]])(
-      r: c.Expr[R[T]],
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
+    r: c.Expr[R[T]],
+    w: c.Expr[W[T]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
@@ -88,31 +101,40 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  def apply[T](t: Task[T])(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
+  def apply[T](
+    t: Task[T]
+  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro targetTaskImpl[T]
 
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[Task[T]])(
-      r: c.Expr[R[T]],
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
+    r: c.Expr[R[T]],
+    w: c.Expr[W[T]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
-        new TargetImpl[T](t.splice, ctx.splice, RW(w.splice.write, r.splice.read))
+        new TargetImpl[T](
+          t.splice,
+          ctx.splice,
+          RW(w.splice.write, r.splice.read)
+        )
       )
     )
   }
 
   def source(value: Result[ammonite.ops.Path])(
-      implicit r: R[PathRef],
-      w: W[PathRef],
-      ctx: mill.define.Ctx): Input[PathRef] =
+    implicit r: R[PathRef],
+    w: W[PathRef],
+    ctx: mill.define.Ctx
+  ): Input[PathRef] =
     macro sourceImpl
 
   def sourceImpl(c: Context)(value: c.Expr[Result[ammonite.ops.Path]])(
-      r: c.Expr[R[PathRef]],
-      w: c.Expr[W[PathRef]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Input[PathRef]] = {
+    r: c.Expr[R[PathRef]],
+    w: c.Expr[W[PathRef]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Input[PathRef]] = {
     import c.universe._
     val wrapped: c.Expr[Result[PathRef]] = reify(value.splice match {
       case Result.Success(p) => Result.Success(PathRef(p))
@@ -121,7 +143,9 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Input[PathRef]](c)(
       reify(
         new Input[PathRef](
-          Applicative.impl0[Task, PathRef, mill.util.Ctx](c)(wrapped.tree).splice,
+          Applicative
+            .impl0[Task, PathRef, mill.util.Ctx](c)(wrapped.tree)
+            .splice,
           ctx.splice,
           RW(w.splice.write, r.splice.read),
         )
@@ -129,13 +153,16 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  def input[T](value: Result[T])(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Input[T] =
+  def input[T](
+    value: Result[T]
+  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Input[T] =
     macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)(value: c.Expr[T])(
-      r: c.Expr[R[T]],
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Input[T]] = {
+    r: c.Expr[R[T]],
+    w: c.Expr[W[T]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Input[T]] = {
     import c.universe._
 
     mill.moduledefs.Cacher.impl0[Input[T]](c)(
@@ -149,29 +176,40 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  def command[T](t: Task[T])(implicit ctx: mill.define.Ctx, w: W[T]): Command[T] =
+  def command[T](t: Task[T])(implicit ctx: mill.define.Ctx,
+                             w: W[T]): Command[T] =
     new Command(t, ctx, w)
 
-  def command[T](t: Result[T])(implicit w: W[T], ctx: mill.define.Ctx): Command[T] =
+  def command[T](t: Result[T])(implicit w: W[T],
+                               ctx: mill.define.Ctx): Command[T] =
     macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)(
-      t: c.Expr[T])(w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Command[T]] = {
+    t: c.Expr[T]
+  )(w: c.Expr[W[T]], ctx: c.Expr[mill.define.Ctx]): c.Expr[Command[T]] = {
     import c.universe._
     reify(
-      new Command[T](Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice, ctx.splice, w.splice)
+      new Command[T](
+        Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice,
+        ctx.splice,
+        w.splice
+      )
     )
   }
 
-  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.util.Ctx]
+  def task[T](t: Result[T]): Task[T] =
+    macro Applicative.impl[Task, T, mill.util.Ctx]
 
-  def persistent[T](t: Result[T])(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
+  def persistent[T](
+    t: Result[T]
+  )(implicit r: R[T], w: W[T], ctx: mill.define.Ctx): Target[T] =
     macro persistentImpl[T]
 
   def persistentImpl[T: c.WeakTypeTag](c: Context)(t: c.Expr[T])(
-      r: c.Expr[R[T]],
-      w: c.Expr[W[T]],
-      ctx: c.Expr[mill.define.Ctx]): c.Expr[Persistent[T]] = {
+    r: c.Expr[R[T]],
+    w: c.Expr[W[T]],
+    ctx: c.Expr[mill.define.Ctx]
+  ): c.Expr[Persistent[T]] = {
     import c.universe._
 
     mill.moduledefs.Cacher.impl0[Persistent[T]](c)(
@@ -186,13 +224,15 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   type TT[+X] = Task[X]
-  def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.util.Ctx => Result[X]) = new Task[X] {
-    val inputs = inputs0
-    def evaluate(x: mill.util.Ctx) = evaluate0(x)
-  }
+  def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.util.Ctx => Result[X]) =
+    new Task[X] {
+      val inputs = inputs0
+      def evaluate(x: mill.util.Ctx) = evaluate0(x)
+    }
 
   def underlying[A](v: Task[A]) = v
-  def mapCtx[A, B](t: Task[A])(f: (A, mill.util.Ctx) => Result[B]) = t.mapDest(f)
+  def mapCtx[A, B](t: Task[A])(f: (A, mill.util.Ctx) => Result[B]) =
+    t.mapDest(f)
   def zip() = new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
@@ -208,13 +248,16 @@ object Caller {
   }
 }
 
-class TargetImpl[+T](t: Task[T], ctx0: mill.define.Ctx, val readWrite: RW[_]) extends Target[T] {
+class TargetImpl[+T](t: Task[T], ctx0: mill.define.Ctx, val readWrite: RW[_])
+    extends Target[T] {
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
-  override def toString = ctx.enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
+  override def toString =
+    ctx.enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
 }
-class Command[+T](t: Task[T], ctx0: mill.define.Ctx, val writer: W[_]) extends NamedTask[T] {
+class Command[+T](t: Task[T], ctx0: mill.define.Ctx, val writer: W[_])
+    extends NamedTask[T] {
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
@@ -226,7 +269,8 @@ class Persistent[+T](t: Task[T], ctx0: mill.define.Ctx, readWrite: RW[_])
   override def flushDest = false
   override def asPersistent = Some(this)
 }
-class Input[T](t: Task[T], ctx0: mill.define.Ctx, val readWrite: RW[_]) extends Target[T] {
+class Input[T](t: Task[T], ctx0: mill.define.Ctx, val readWrite: RW[_])
+    extends Target[T] {
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
@@ -243,7 +287,8 @@ object Task {
 
   abstract class Ops[+T] { this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
-    def mapDest[V](f: (T, mill.util.Ctx) => Result[V]) = new Task.MappedDest(this, f)
+    def mapDest[V](f: (T, mill.util.Ctx) => Result[V]) =
+      new Task.MappedDest(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
@@ -268,11 +313,13 @@ object Task {
     def evaluate(args: mill.util.Ctx) = f(args(0))
     val inputs = List(source)
   }
-  class MappedDest[+T, +V](source: Task[T], f: (T, mill.util.Ctx) => Result[V]) extends Task[V] {
+  class MappedDest[+T, +V](source: Task[T], f: (T, mill.util.Ctx) => Result[V])
+      extends Task[V] {
     def evaluate(args: mill.util.Ctx) = f(args(0), args)
     val inputs = List(source)
   }
-  class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)] {
+  class Zipped[+T, +V](source1: Task[T], source2: Task[V])
+      extends Task[(T, V)] {
     def evaluate(args: mill.util.Ctx) = (args(0), args(1))
     val inputs = List(source1, source2)
   }

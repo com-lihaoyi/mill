@@ -1,13 +1,19 @@
 package mill.integration
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, InputStream, PrintStream}
+import java.io.{
+  ByteArrayInputStream,
+  ByteArrayOutputStream,
+  InputStream,
+  PrintStream
+}
 
 import ammonite.ops._
 import mill.define.Segments
 import mill.main.ParseArgs
 import utest._
 
-abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) extends TestSuite {
+abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String)
+    extends TestSuite {
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
   val buildFilePath = pwd / 'integration / 'test / 'resources / workspaceSlug
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())

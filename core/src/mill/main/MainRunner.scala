@@ -15,12 +15,11 @@ import upickle.Js
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(
-    config: ammonite.main.Cli.Config,
-    show: Boolean,
-    outprintStream: PrintStream,
-    errPrintStream: PrintStream,
-    stdIn: InputStream)
+class MainRunner(config: ammonite.main.Cli.Config,
+                 show: Boolean,
+                 outprintStream: PrintStream,
+                 errPrintStream: PrintStream,
+                 stdIn: InputStream)
     extends ammonite.MainRunner(
       config,
       outprintStream,
@@ -39,13 +38,17 @@ class MainRunner(
         val (result, interpWatched) = RunScript.runScript(
           mainCfg.wd,
           scriptPath,
-          mainCfg.instantiateInterpreter(),
+          mainCfg
+            .instantiateInterpreter(),
           scriptArgs,
           lastEvaluator,
           new PrintLogger(
             colors != ammonite.util.Colors.BlackWhite,
             colors,
-            if (show) errPrintStream else outprintStream,
+            if (show)
+              errPrintStream
+            else
+              outprintStream,
             errPrintStream,
             errPrintStream
           )
@@ -113,7 +116,9 @@ class MainRunner(
          |""".stripMargin
     }
 
-    def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
+    def bottom(printCode: String,
+               indexedWrapperName: Name,
+               extraCode: String) = {
       // We need to disable the `$main` method definition inside the wrapper class,
       // because otherwise it might get picked up by Ammonite and run as a static
       // class method, which blows up since it's defined as an instance method

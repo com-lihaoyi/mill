@@ -23,8 +23,9 @@ object Discover {
         } rec(memberTpe.resultType)
 
         if (tpe <:< typeOf[mill.define.Cross[_]]) {
-          val inner = typeOf[Cross[_]].typeSymbol.asClass.typeParams.head.asType.toType
-            .asSeenFrom(tpe, typeOf[Cross[_]].typeSymbol)
+          val inner =
+            typeOf[Cross[_]].typeSymbol.asClass.typeParams.head.asType.toType
+              .asSeenFrom(tpe, typeOf[Cross[_]].typeSymbol)
 
           rec(inner)
         }
@@ -38,7 +39,8 @@ object Discover {
       val routes = router
         .getAllRoutesForClass(
           discoveredModuleType.asInstanceOf[router.c.Type],
-          _.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
+          _.returnType <:< weakTypeOf[mill.define.Command[_]]
+            .asInstanceOf[router.c.Type]
         )
         .map(_.asInstanceOf[c.Tree])
       if routes.nonEmpty
@@ -49,6 +51,8 @@ object Discover {
       q"$lhs -> $rhs"
     }
 
-    c.Expr[Discover](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
+    c.Expr[Discover](
+      q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))"
+    )
   }
 }

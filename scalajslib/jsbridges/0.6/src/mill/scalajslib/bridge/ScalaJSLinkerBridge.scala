@@ -15,17 +15,19 @@ import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 
 class ScalaJSLinkerBridge {
-  def link(
-      sources: Array[File],
-      libraries: Array[File],
-      dest: File,
-      main: String,
-      fullOpt: Boolean): Unit = {
+  def link(sources: Array[File],
+           libraries: Array[File],
+           dest: File,
+           main: String,
+           fullOpt: Boolean): Unit = {
     val config = StandardLinker.Config().withOptimizer(fullOpt)
     val linker = StandardLinker(config)
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars =
-      libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
+      libraries.map(
+        jar =>
+          IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile)
+      )
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger

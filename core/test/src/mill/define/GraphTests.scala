@@ -29,7 +29,8 @@ object GraphTests extends TestSuite {
       )
       'anonTriple - check(
         targets = Agg(anonTriple.down),
-        expected = Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
+        expected =
+          Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
       )
       'diamond - check(
         targets = Agg(diamond.down),
@@ -49,26 +50,40 @@ object GraphTests extends TestSuite {
         expected = Agg(
           defCachedDiamond.up.inputs(0),
           defCachedDiamond.up,
-          defCachedDiamond.down.inputs(0).inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(0)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(1)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(1),
           defCachedDiamond.down.inputs(0),
           defCachedDiamond.down
         )
       )
       'bigSingleTerminal - {
-        val result = Graph.topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j))).values
+        val result = Graph
+          .topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j)))
+          .values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
     }
 
     'groupAroundNamedTargets - {
-      def check[T, R <: Target[Int]](
-          base: T)(target: T => R, important0: Agg[T => Target[_]], expected: Agg[(R, Int)]) = {
+      def check[T, R <: Target[Int]](base: T)(target: T => R,
+                                              important0: Agg[T => Target[_]],
+                                              expected: Agg[(R, Int)]) = {
 
-        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
+        val topoSorted =
+          Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
 
         val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
@@ -81,8 +96,9 @@ object GraphTests extends TestSuite {
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
-              terminal)
+            grouping
+              .flatMap(_.asTarget: Option[Target[_]])
+              .filter(important.contains) == Agg(terminal)
           )
         }
       }
@@ -127,10 +143,7 @@ object GraphTests extends TestSuite {
       'anonDiamond - check(anonDiamond)(
         _.down,
         Agg(_.down, _.up),
-        Agg(
-          anonDiamond.up -> 1,
-          anonDiamond.down -> 3
-        )
+        Agg(anonDiamond.up -> 1, anonDiamond.down -> 3)
       )
       'bigSingleTerminal - check(bigSingleTerminal)(
         _.j,
@@ -148,11 +161,10 @@ object GraphTests extends TestSuite {
     'multiTerminalGroupCounts - {
       def countGroups(goals: Task[_]*) = {
 
-        val topoSorted = Graph.topoSorted(
-          Graph.transitiveTargets(Agg.from(goals))
-        )
+        val topoSorted =
+          Graph.topoSorted(Graph.transitiveTargets(Agg.from(goals)))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any] => t
+          case t: NamedTask[Any]      => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount

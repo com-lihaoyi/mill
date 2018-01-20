@@ -15,25 +15,31 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSVersion: T[String]
 
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+  private val MinorSnapshotVersion =
+    raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
 
   def scalaJSBinaryVersion = T {
     scalaJSVersion() match {
-      case ReleaseVersion(major, minor, _) => s"$major.$minor"
+      case ReleaseVersion(major, minor, _)       => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case _ => scalaJSVersion()
+      case _                                     => scalaJSVersion()
     }
   }
 
-  def scalaJSBridgeVersion = T { scalaJSVersion().split('.').dropRight(1).mkString(".") }
+  def scalaJSBridgeVersion = T {
+    scalaJSVersion().split('.').dropRight(1).mkString(".")
+  }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
-    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
+    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion()
+      .replace('.', '_')
     val jsBridgePath = sys.props(jsBridgeKey)
     if (jsBridgePath != null) {
       Success(
         Loose.Agg.from(
-          jsBridgePath.split(File.pathSeparator).map(f => PathRef(Path(f), quick = true))
+          jsBridgePath
+            .split(File.pathSeparator)
+            .map(f => PathRef(Path(f), quick = true))
         )
       )
     } else {
@@ -54,7 +60,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       Seq(compile().classes.path),
       compileDepClasspath().map(_.path),
       linker,
-      FastOpt)
+      FastOpt
+    )
   }
 
   def fullOpt = T {
@@ -64,14 +71,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       Seq(compile().classes.path),
       compileDepClasspath().map(_.path),
       linker,
-      FullOpt)
+      FullOpt
+    )
   }
 
   override def scalacPluginIvyDeps = T {
     Loose.Agg(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion()))
   }
 
-  override def ivyDeps = T { Loose.Agg(Dep("org.scala-js", "scalajs-library", scalaJSVersion())) }
+  override def ivyDeps = T {
+    Loose.Agg(Dep("org.scala-js", "scalajs-library", scalaJSVersion()))
+  }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
   def crossFullScalaJSVersion: T[Boolean] = false

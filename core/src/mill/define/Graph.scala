@@ -6,11 +6,14 @@ import mill.util.Strict.Agg
 
 object Graph {
   class TopoSorted private[Graph] (val values: Agg[Task[_]])
-  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(
-      important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
+  def groupAroundImportantTargets[T](
+    topoSortedTargets: TopoSorted
+  )(important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
-    for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
+    for ((target, t) <- topoSortedTargets.values.flatMap(
+           t => important.lift(t).map((t, _))
+         )) {
 
       val transitiveTargets = new Agg.Mutable[Task[_]]
       def rec(t: Task[_]): Unit = {

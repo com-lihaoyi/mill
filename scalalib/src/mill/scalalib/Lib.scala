@@ -6,7 +6,14 @@ import java.net.URLClassLoader
 import java.util.Optional
 
 import ammonite.ops._
-import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module => CoursierModule}
+import coursier.{
+  Cache,
+  Fetch,
+  MavenRepository,
+  Repository,
+  Resolution,
+  Module => CoursierModule
+}
 import mill.define.Worker
 import mill.eval.{PathRef, Result}
 import mill.util.{Ctx}
@@ -14,7 +21,12 @@ import mill.util.Loose.Agg
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
-import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+import xsbti.compile.{
+  CompilerCache => _,
+  FileAnalysisStore => _,
+  ScalaInstance => _,
+  _
+}
 
 object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
@@ -32,7 +44,8 @@ class ZincWorker {
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 }
 object Lib {
-  case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
+  case class MockedLookup(am: File => Optional[CompileAnalysis])
+      extends PerClasspathEntryLookup {
     override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
       am(classpathEntry)
 
@@ -48,17 +61,18 @@ object Lib {
   }
 
   def compileScala(
-      zincWorker: ZincWorker,
-      scalaVersion: String,
-      sources: Agg[Path],
-      compileClasspath: Agg[Path],
-      compilerClasspath: Agg[Path],
-      pluginClasspath: Agg[Path],
-      compilerBridge: Path,
-      scalacOptions: Seq[String],
-      scalacPluginClasspath: Agg[Path],
-      javacOptions: Seq[String],
-      upstreamCompileOutput: Seq[CompilationResult])(implicit ctx: Ctx): CompilationResult = {
+    zincWorker: ZincWorker,
+    scalaVersion: String,
+    sources: Agg[Path],
+    compileClasspath: Agg[Path],
+    compilerClasspath: Agg[Path],
+    pluginClasspath: Agg[Path],
+    compilerBridge: Path,
+    scalacOptions: Seq[String],
+    scalacPluginClasspath: Agg[Path],
+    javacOptions: Seq[String],
+    upstreamCompileOutput: Seq[CompilationResult]
+  )(implicit ctx: Ctx): CompilationResult = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
 
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
@@ -74,8 +88,11 @@ object Lib {
     val compilerClassLoader = zincWorker.scalaClassloaderCache match {
       case Some((k, v)) if k == compilerClassloaderSig => v
       case _ =>
-        val classloader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
-        zincWorker.scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
+        val classloader =
+          new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
+        zincWorker.scalaClassloaderCache = Some(
+          (compilerClassloaderSig, classloader)
+        )
         classloader
     }
 
@@ -84,9 +101,14 @@ object Lib {
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = new URLClassLoader(pluginJars.map(_.toURI.toURL), compilerClassLoader),
-          libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
-          compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+          loader = new URLClassLoader(
+            pluginJars.map(_.toURI.toURL),
+            compilerClassLoader
+          ),
+          libraryJar =
+            grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
+          compilerJar =
+            grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
           allJars = compilerJars ++ pluginJars,
           explicitActual = None
         )
@@ -100,12 +122,14 @@ object Lib {
 
     val logger = {
       val consoleAppender = MainAppender.defaultScreen(
-        ConsoleOut.printStreamOut(
-          ctx.log.outputStream
-        ))
+        ConsoleOut.printStreamOut(ctx.log.outputStream)
+      )
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
+      LogExchange.bindLoggerAppenders(
+        "Hello",
+        (consoleAppender -> sbt.util.Level.Info) :: Nil
+      )
       l
     }
 
@@ -115,8 +139,12 @@ object Lib {
       } else {
         upstreamCompileOutput
           .collectFirst {
-            case CompilationResult(zincPath, classFiles) if classFiles.path.toNIO == f.toPath =>
-              FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
+            case CompilationResult(zincPath, classFiles)
+                if classFiles.path.toNIO == f.toPath =>
+              FileAnalysisStore
+                .binary(zincPath.toIO)
+                .get()
+                .map[CompileAnalysis](_.getAnalysis)
           }
           .getOrElse(Optional.empty[CompileAnalysis])
       }
@@ -142,8 +170,8 @@ object Lib {
           if path.isFile && (path.ext == "scala" || path.ext == "java")
         } yield path.toIO,
         classesDirectory = classesIODir,
-        scalacOptions =
-          (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
+        scalacOptions = (scalacPluginClasspath
+          .map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
         javacOptions = javacOptions.toArray,
         maxErrors = 10,
         sourcePositionMappers = Array(),
@@ -172,28 +200,27 @@ object Lib {
       logger = logger
     )
 
-    store.set(
-      AnalysisContents.create(
-        newResult.analysis(),
-        newResult.setup()
-      )
-    )
+    store.set(AnalysisContents.create(newResult.analysis(), newResult.setup()))
 
     CompilationResult(zincFile, PathRef(classesDir))
   }
 
-  def resolveDependencies(
-      repositories: Seq[Repository],
-      scalaVersion: String,
-      scalaBinaryVersion: String,
-      deps: TraversableOnce[Dep],
-      sources: Boolean = false): Result[Agg[PathRef]] = {
+  def resolveDependencies(repositories: Seq[Repository],
+                          scalaVersion: String,
+                          scalaBinaryVersion: String,
+                          deps: TraversableOnce[Dep],
+                          sources: Boolean = false): Result[Agg[PathRef]] = {
     val flattened = deps.map {
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
-        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
+        dep.copy(
+          module =
+            dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion)
+        )
       case Dep.Point(dep) =>
-        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
+        dep.copy(
+          module = dep.module.copy(name = dep.module.name + "_" + scalaVersion)
+        )
     }.toSet
     val start = Resolution(flattened)
 
@@ -209,7 +236,8 @@ object Lib {
 
       val errLines = errs
         .map {
-          case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
+          case ((module, vsn), errMsgs) =>
+            s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
         }
         .mkString("\n")
       val msg = header + errLines + "\n"
@@ -224,23 +252,28 @@ object Lib {
         .flatMap(_.toOption)
 
       Agg.from(
-        localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+        localArtifacts
+          .map(p => PathRef(Path(p), quick = true))
+          .filter(_.path.ext == "jar")
       )
     }
   }
-  def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
-    Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
-    Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
-  )
-  def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
-    Dep.Java("org.scala-lang", "scala-library", scalaVersion)
-  )
+  def scalaCompilerIvyDeps(scalaVersion: String) =
+    Agg[Dep](
+      Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
+      Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
+    )
+  def scalaRuntimeIvyDeps(scalaVersion: String) =
+    Agg[Dep](Dep.Java("org.scala-lang", "scala-library", scalaVersion))
   def compilerBridgeIvyDep(scalaVersion: String) =
     Dep.Point(
-      coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false))
+      coursier.Dependency(
+        coursier.Module("com.lihaoyi", "mill-bridge"),
+        "0.1",
+        transitive = false
+      )
+    )
 
-  val DefaultShellScript: Seq[String] = Seq(
-    "#!/usr/bin/env sh",
-    "exec java -jar \"$0\" \"$@\""
-  )
+  val DefaultShellScript: Seq[String] =
+    Seq("#!/usr/bin/env sh", "exec java -jar \"$0\" \"$@\"")
 }

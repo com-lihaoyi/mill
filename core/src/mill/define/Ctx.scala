@@ -7,7 +7,7 @@ import scala.annotation.implicitNotFound
 
 sealed trait Segment {
   def pathSegments: Seq[String] = this match {
-    case Segment.Label(s) => List(s)
+    case Segment.Label(s)  => List(s)
     case Segment.Cross(vs) => vs.map(_.toString)
   }
 }
@@ -33,30 +33,30 @@ case class Segments(value: Segment*) {
     case Nil => ""
     case Segment.Label(head) :: rest =>
       val stringSegments = rest.map {
-        case Segment.Label(s) => "." + s
+        case Segment.Label(s)  => "." + s
         case Segment.Cross(vs) => "[" + vs.mkString(",") + "]"
       }
       head + stringSegments.mkString
   }
 }
 
-@implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
-case class Ctx(
-    enclosing: String,
-    lineNum: Int,
-    segment: Segment,
-    basePath: Path,
-    segments: Segments,
-    overrides: Int) {}
+@implicitNotFound(
+  "Modules, Targets and Commands can only be defined within a mill Module"
+)
+case class Ctx(enclosing: String,
+               lineNum: Int,
+               segment: Segment,
+               basePath: Path,
+               segments: Segments,
+               overrides: Int) {}
 
 object Ctx {
-  implicit def make(
-      implicit millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name,
-      millModuleBasePath0: BasePath,
-      segments0: Segments,
-      overrides0: Overrides): Ctx = {
+  implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
+                    millModuleLine0: sourcecode.Line,
+                    millName0: sourcecode.Name,
+                    millModuleBasePath0: BasePath,
+                    segments0: Segments,
+                    overrides0: Overrides): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,

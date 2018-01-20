@@ -21,15 +21,19 @@ import upickle.Js
   */
 object RunScript {
   def runScript(
-      wd: Path,
-      path: Path,
-      instantiateInterpreter: => Either[
-        (Res.Failing, Seq[(Path, Long)]),
-        ammonite.interp.Interpreter],
-      scriptArgs: Seq[String],
-      lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)],
-      log: Logger): (
-      Res[(Evaluator[_], Discover, Seq[(Path, Long)], Either[String, Seq[Js.Value]])],
+    wd: Path,
+    path: Path,
+    instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]),
+                                      ammonite.interp.Interpreter],
+    scriptArgs: Seq[String],
+    lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)],
+    log: Logger
+  ): (Res[
+        (Evaluator[_],
+         Discover,
+         Seq[(Path, Long)],
+         Either[String, Seq[Js.Value]])
+      ],
       Seq[(Path, Long)]) = {
 
     val (evalRes, interpWatched) = lastEvaluator match {
@@ -65,7 +69,8 @@ object RunScript {
       (evaluator, discover) <- evalRes
       (evalWatches, res) <- Res(evaluateTarget(evaluator, discover, scriptArgs))
     } yield {
-      val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
+      val alreadyStale =
+        evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
       // If the file changed between the creation of the original
       // `PathRef` and the current moment, use random junk .sig values
       // to force an immediate re-run. Otherwise calculate the
@@ -86,19 +91,28 @@ object RunScript {
   }
 
   def evaluateMapping(
-      wd: Path,
-      path: Path,
-      interp: ammonite.interp.Interpreter): Res[(mill.Module, Discover)] = {
+    wd: Path,
+    path: Path,
+    interp: ammonite.interp.Interpreter
+  ): Res[(mill.Module, Discover)] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
       scriptTxt <- try Res.Success(Util.normalizeNewlines(read(path)))
-      catch { case e: NoSuchFileException => Res.Failure("Script file not found: " + path) }
+      catch {
+        case e: NoSuchFileException =>
+          Res.Failure("Script file not found: " + path)
+      }
 
       processed <- interp.processModule(
         scriptTxt,
-        CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),
+        CodeSource(
+          wrapper,
+          pkg,
+          Seq(Name("ammonite"), Name("$file")),
+          Some(path)
+        ),
         autoImport = true,
         extraCode = "",
         hardcoded = true
@@ -106,7 +120,7 @@ object RunScript {
 
       buildClsName <- processed.blockInfo.lastOption match {
         case Some(meta) => Res.Success(meta.id.wrapperPath)
-        case None => Res.Skip
+        case None       => Res.Skip
       }
 
       buildCls = interp.evalClassloader
@@ -141,7 +155,9 @@ object RunScript {
     } yield (module, discover)
   }
 
-  def evaluateTarget[T](evaluator: Evaluator[_], discover: Discover, scriptArgs: Seq[String]) = {
+  def evaluateTarget[T](evaluator: Evaluator[_],
+                        discover: Discover,
+                        scriptArgs: Seq[String]) = {
     for {
       parsed <- ParseArgs(scriptArgs)
       (selectors, args) = parsed
@@ -149,7 +165,7 @@ object RunScript {
         val selected = selectors.map { sel =>
           val crossSelectors = sel.map {
             case Segment.Cross(x) => x.toList.map(_.toString)
-            case _ => Nil
+            case _                => Nil
           }
           mill.main.Resolve.resolve(
             sel,
@@ -166,8 +182,10 @@ object RunScript {
     } yield (watched, res)
   }
 
-  def evaluate(evaluator: Evaluator[_], targets: Seq[Task[Any]])
-    : (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+  def evaluate(
+    evaluator: Evaluator[_],
+    targets: Seq[Task[Any]]
+  ): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
     val evaluated = evaluator.evaluate(Agg.from(targets))
     val watched = evaluated.results.iterator.collect {
       case (t: define.Input[_], Result.Success(p: PathRef)) => p
@@ -176,12 +194,15 @@ object RunScript {
     val errorStr =
       (for ((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match {
-          case Left(t) => t.toString
+          case Left(t)  => t.toString
           case Right(t) => t.segments.render
         }
         val fss = fs.map {
           case Result.Exception(t, outerStack) =>
-            t.toString + t.getStackTrace.dropRight(outerStack.length).map("\n    " + _).mkString
+            t.toString + t.getStackTrace
+              .dropRight(outerStack.length)
+              .map("\n    " + _)
+              .mkString
           case Result.Failure(t) => t
         }
         s"$ks ${fss.mkString(", ")}"

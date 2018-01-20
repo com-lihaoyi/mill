@@ -7,7 +7,13 @@ import mill.define.{Cross, Task}
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess, inprocess}
+import mill.modules.Jvm.{
+  createAssembly,
+  createJar,
+  interactiveSubprocess,
+  subprocess,
+  inprocess
+}
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
@@ -25,7 +31,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def scalaVersion: T[String]
   def mainClass: T[Option[String]] = None
 
-  def scalaBinaryVersion = T { scalaVersion().split('.').dropRight(1).mkString(".") }
+  def scalaBinaryVersion = T {
+    scalaVersion().split('.').dropRight(1).mkString(".")
+  }
   def ivyDeps = T { Agg.empty[Dep] }
   def compileIvyDeps = T { Agg.empty[Dep] }
   def scalacPluginIvyDeps = T { Agg.empty[Dep] }
@@ -34,16 +42,16 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def scalacOptions = T { Seq.empty[String] }
   def javacOptions = T { Seq.empty[String] }
 
-  def repositories: Seq[Repository] = Seq(
-    Cache.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2")
-  )
+  def repositories: Seq[Repository] =
+    Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
   def moduleDeps = Seq.empty[ScalaModule]
   def depClasspath = T { Agg.empty[PathRef] }
 
   def upstreamRunClasspath = T {
-    Task.traverse(moduleDeps)(p => T.task(p.runDepClasspath() ++ p.runClasspath()))
+    Task.traverse(moduleDeps)(
+      p => T.task(p.runDepClasspath() ++ p.runClasspath())
+    )
   }
 
   def upstreamCompileOutput = T {
@@ -67,17 +75,17 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def externalCompileDepClasspath: T[Agg[PathRef]] = T {
     Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepClasspath)().flatten) ++
-      resolveDeps(
-        T.task { ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()) }
-      )()
+      resolveDeps(T.task {
+        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
+      })()
   }
 
   def externalCompileDepSources: T[Agg[PathRef]] = T {
-    Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepSources)().flatten) ++
-      resolveDeps(
-        T.task { ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion()) },
-        sources = true
-      )()
+    Agg
+      .from(Task.traverse(moduleDeps)(_.externalCompileDepSources)().flatten) ++
+      resolveDeps(T.task {
+        ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())
+      }, sources = true)()
   }
 
   /**
@@ -93,9 +101,11 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     * Strange compiler-bridge jar that the Zinc incremental compile needs
     */
   def compilerBridge: T[PathRef] = T {
-    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_" + scalaVersion().replace('.', '_')
+    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_" + scalaVersion()
+      .replace('.', '_')
     val compilerBridgePath = sys.props(compilerBridgeKey)
-    if (compilerBridgePath != null) PathRef(Path(compilerBridgePath), quick = true)
+    if (compilerBridgePath != null)
+      PathRef(Path(compilerBridgePath), quick = true)
     else {
       val dep = compilerBridgeIvyDep(scalaVersion())
       val classpath = resolveDependencies(
@@ -110,7 +120,10 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
             case Seq(single) => PathRef(single.path, quick = true)
             case Seq() =>
               throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
-            case _ => throw new Exception(dep + " resolution resulted in more than one file")
+            case _ =>
+              throw new Exception(
+                dep + " resolution resulted in more than one file"
+              )
           }
         case f: Result.Failure =>
           throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
@@ -119,17 +132,17 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] =
-    resolveDeps(
-      T.task { scalacPluginIvyDeps() }
-    )()
+    resolveDeps(T.task { scalacPluginIvyDeps() })()
 
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(
-      T.task { scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion()) }
-    )()
+    resolveDeps(T.task {
+      scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(
+        scalaVersion()
+      )
+    })()
   }
 
   /**
@@ -138,9 +151,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def runDepClasspath: T[Agg[PathRef]] = T {
     Agg.from(upstreamRunClasspath().flatten) ++
       depClasspath() ++
-      resolveDeps(
-        T.task { ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion()) }
-      )()
+      resolveDeps(T.task {
+        ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())
+      })()
   }
 
   def prependShellScript: T[String] = T { "" }
@@ -179,10 +192,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def localClasspath = T { resources() ++ Seq(compile().classes) }
 
   def jar = T {
-    createJar(
-      localClasspath().map(_.path).filter(exists),
-      mainClass()
-    )
+    createJar(localClasspath().map(_.path).filter(exists), mainClass())
   }
 
   def docsJar = T {
@@ -211,25 +221,31 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def sourcesJar = T {
-    createJar((sources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
+    createJar((sources() ++ resources()).map(_.path).filter(exists))(
+      T.ctx().dest / "sources.jar"
+    )
   }
 
   def forkArgs = T { Seq.empty[String] }
 
   def run(args: String*) = T.command {
     inprocess(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      mainClass()
+        .getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
-      args)
+      args
+    )
   }
 
   def forkRun(args: String*) = T.command {
     subprocess(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      mainClass()
+        .getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
       forkArgs(),
       args,
-      workingDir = ammonite.ops.pwd)
+      workingDir = ammonite.ops.pwd
+    )
   }
 
   def runMain(mainClass: String, args: String*) = T.command {
@@ -259,16 +275,25 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     else scalaBinaryVersion()
   }
 
-  def artifactId: T[String] = T { s"${artifactName()}_${artifactScalaVersion()}" }
+  def artifactId: T[String] = T {
+    s"${artifactName()}_${artifactScalaVersion()}"
+  }
 
 }
 
 object TestModule {
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
-    if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
+    if (results.count(Set(Status.Error, Status.Failure)) == 0)
+      Result.Success((doneMsg, results))
     else {
       val grouped =
-        results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
+        results
+          .map(_.status)
+          .groupBy(x => x)
+          .mapValues(_.length)
+          .filter(_._2 != 0)
+          .toList
+          .sorted
 
       Result.Failure(grouped.map { case (k, v) => k + ": " + v }.mkString(","))
     }
@@ -300,7 +325,8 @@ trait TestModule extends ScalaModule with TaskModule {
     )
 
     val jsonOutput = upickle.json.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    val (doneMsg, results) =
+      upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }

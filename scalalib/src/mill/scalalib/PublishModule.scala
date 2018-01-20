@@ -50,9 +50,11 @@ trait PublishModule extends ScalaModule { outer =>
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  def sonatypeSnapshotUri: String =
+    "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] = T.command {
+  def publish(credentials: String,
+              gpgPassphrase: String): define.Command[Unit] = T.command {
     val baseName = s"${artifactId()}-${publishVersion()}"
     val artifacts = Seq(
       jar().path -> s"${baseName}.jar",

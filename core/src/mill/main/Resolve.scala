@@ -7,15 +7,17 @@ import ammonite.main.Router.EntryPoint
 
 object Resolve {
   def resolve[T, V](
-      remainingSelector: List[Segment],
-      obj: mill.Module,
-      discover: Discover,
-      rest: Seq[String],
-      remainingCrossSelectors: List[List[String]],
-      revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
+    remainingSelector: List[Segment],
+    obj: mill.Module,
+    discover: Discover,
+    rest: Seq[String],
+    remainingCrossSelectors: List[List[String]],
+    revSelectorsSoFar: List[Segment]
+  ): Either[String, Task[Any]] = {
 
     remainingSelector match {
-      case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
+      case Segment.Cross(_) :: Nil =>
+        Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
         val target =
           obj.millInternal
@@ -24,13 +26,17 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand[V](target: mill.Module, name: String) = {
-          for (cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name))
+          for (cmd <- discover.value
+                 .get(target.getClass)
+                 .toSeq
+                 .flatten
+                 .find(_.name == name))
             yield
               cmd
                 .asInstanceOf[EntryPoint[mill.Module]]
                 .invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
                 case Router.Result.Success(v) => Right(v)
-                case _ => Left(s"Command failed $last")
+                case _                        => Left(s"Command failed $last")
               }
         }
 
@@ -38,7 +44,8 @@ object Resolve {
           child <- obj.millInternal.reflectNestedObjects[mill.Module]
           if child.millOuterCtx.segment == Segment.Label(last)
           res <- child match {
-            case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
+            case taskMod: TaskModule =>
+              Some(invokeCommand(child, taskMod.defaultCommandName()))
             case _ => None
           }
         } yield res
@@ -49,7 +56,8 @@ object Resolve {
           case None =>
             Left(
               "Cannot resolve task " +
-                Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render)
+                Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render
+            )
           // Contents of `either` *must* be a `Task`, because we only select
           // methods returning `Task` in the discovery process
           case Some(either) => either.right.map { case x: Task[Any] => x }
@@ -63,9 +71,20 @@ object Resolve {
               _.millOuterCtx.segment == Segment.Label(singleLabel)
             } match {
               case Some(child: mill.Module) =>
-                resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+                resolve(
+                  tail,
+                  child,
+                  discover,
+                  rest,
+                  remainingCrossSelectors,
+                  newRevSelectorsSoFar
+                )
               case None =>
-                Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse: _*).render)
+                Left(
+                  "Cannot resolve module " + Segments(
+                    newRevSelectorsSoFar.reverse: _*
+                  ).render
+                )
             }
 
           case Segment.Cross(cross) =>
@@ -73,14 +92,28 @@ object Resolve {
               case c: Cross[_] =>
                 c.itemMap.get(cross.toList) match {
                   case Some(m: mill.Module) =>
-                    resolve(tail, m, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+                    resolve(
+                      tail,
+                      m,
+                      discover,
+                      rest,
+                      remainingCrossSelectors,
+                      newRevSelectorsSoFar
+                    )
                   case None =>
                     Left(
-                      "Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse: _*).render)
+                      "Cannot resolve cross " + Segments(
+                        newRevSelectorsSoFar.reverse: _*
+                      ).render
+                    )
 
                 }
               case _ =>
-                Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse: _*).render)
+                Left(
+                  "Cannot resolve cross " + Segments(
+                    newRevSelectorsSoFar.reverse: _*
+                  ).render
+                )
             }
         }
 

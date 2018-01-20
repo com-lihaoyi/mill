@@ -24,20 +24,32 @@ object GenIdea {
   }
 
   def xmlFileLayout[T](
-      evaluator: Evaluator[T],
-      rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
+    evaluator: Evaluator[T],
+    rootModule: mill.Module
+  ): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values.collect {
       case x: scalalib.ScalaModule => (x.millModuleSegments, x)
     }.toSeq
 
     val resolved = for ((path, mod) <- modules) yield {
-      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
+      val Seq(
+        resolvedCp: Loose.Agg[PathRef],
+        resolvedSrcs: Loose.Agg[PathRef]
+      ) =
         evaluator
-          .evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
+          .evaluate(
+            Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources)
+          )
           .values
 
-      (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
+      (
+        path,
+        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(
+          _.path
+        ),
+        mod
+      )
     }
     val moduleLabels = modules.map(_.swap).toMap
 
@@ -79,28 +91,36 @@ object GenIdea {
           generatedSourcePathRefs: Loose.Agg[PathRef],
           allSourcesPathRefs: Loose.Agg[PathRef]
         ) = evaluator
-          .evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources))
+          .evaluate(
+            Agg(
+              mod.resources,
+              mod.sources,
+              mod.generatedSources,
+              mod.allSources
+            )
+          )
           .values
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
         val normalSourcePaths =
-          (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
+          (allSourcesPathRefs
+            .map(_.path)
+            .toSet -- generatedSourcePaths.toSet).toSeq
 
-        val paths = Evaluator.resolveDestPaths(
-          evaluator.workspacePath,
-          mod.compile.ctx.segments
-        )
+        val paths = Evaluator
+          .resolveDestPaths(evaluator.workspacePath, mod.compile.ctx.segments)
 
-        val elem = moduleXmlTemplate(
-          Strict.Agg.from(resoucesPathRefs.map(_.path)),
-          Strict.Agg.from(normalSourcePaths),
-          Strict.Agg.from(generatedSourcePaths),
-          paths.out,
-          Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-          Strict.Agg.from(mod.moduleDeps.map { m =>
-            moduleName(moduleLabels(m))
-          }.distinct)
-        )
+        val elem =
+          moduleXmlTemplate(
+            Strict.Agg.from(resoucesPathRefs.map(_.path)),
+            Strict.Agg.from(normalSourcePaths),
+            Strict.Agg.from(generatedSourcePaths),
+            paths.out,
+            Strict.Agg.from(resolvedDeps.map(pathToLibName)),
+            Strict.Agg.from(mod.moduleDeps.map { m =>
+              moduleName(moduleLabels(m))
+            }.distinct)
+          )
         Tuple2(".idea_modules" / s"${moduleName(path)}.iml", elem)
     }
     fixedFiles ++ libraries ++ moduleFiles
@@ -116,8 +136,8 @@ object GenIdea {
       .foldLeft(StringBuilder.newBuilder) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s)) => sb.append(".").append(s)
-        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+        case (sb, Segment.Label(s))               => sb.append(".").append(s)
+        case (sb, Segment.Cross(s))               => sb.append("-").append(s.mkString("-"))
       }
       .mkString
       .toLowerCase()
@@ -167,13 +187,12 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(
-      resourcePaths: Strict.Agg[Path],
-      normalSourcePaths: Strict.Agg[Path],
-      generatedSourcePaths: Strict.Agg[Path],
-      outputPath: Path,
-      libNames: Strict.Agg[String],
-      depNames: Strict.Agg[String]) = {
+  def moduleXmlTemplate(resourcePaths: Strict.Agg[Path],
+                        normalSourcePaths: Strict.Agg[Path],
+                        generatedSourcePaths: Strict.Agg[Path],
+                        outputPath: Path,
+                        libNames: Strict.Agg[String],
+                        depNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />

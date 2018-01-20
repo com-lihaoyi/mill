@@ -28,7 +28,9 @@ class SonatypeHttpApi(uri: String, credentials: String) {
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
   def getStagingProfileUri(groupId: String): String = {
-    val response = withRetry(PatientHttp(s"${uri}/staging/profiles").headers(commonHeaders))
+    val response = withRetry(
+      PatientHttp(s"${uri}/staging/profiles").headers(commonHeaders)
+    )
 
     val resourceUri =
       json
@@ -38,7 +40,9 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .map(_("resourceURI").str.toString)
 
     resourceUri.getOrElse(
-      throw new RuntimeException(s"Could not find staging profile for groupId: ${groupId}")
+      throw new RuntimeException(
+        s"Could not find staging profile for groupId: ${groupId}"
+      )
     )
   }
 
@@ -56,7 +60,10 @@ class SonatypeHttpApi(uri: String, credentials: String) {
     val response = withRetry(
       PatientHttp(s"${profileUri}/start")
         .headers(commonHeaders)
-        .postData(s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
+        .postData(
+          s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""
+        )
+    )
 
     json.read(response.body)("data")("stagedRepositoryId").str.toString
   }
@@ -68,7 +75,8 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .headers(commonHeaders)
         .postData(
           s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "closing staging repository"}}"""
-        ))
+        )
+    )
 
     response.code == 201
   }
@@ -80,7 +88,8 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .headers(commonHeaders)
         .postData(
           s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "promote staging repository"}}"""
-        ))
+        )
+    )
 
     response.code == 201
   }
@@ -92,7 +101,8 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .headers(commonHeaders)
         .postData(
           s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "drop staging repository"}}"""
-        ))
+        )
+    )
 
     response.code == 201
   }
@@ -111,7 +121,8 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .asString
   }
 
-  private def withRetry(request: HttpRequest, retries: Int = 10): HttpResponse[String] = {
+  private def withRetry(request: HttpRequest,
+                        retries: Int = 10): HttpResponse[String] = {
     val resp = request.asString
     if (resp.is5xx && retries > 0) {
       Thread.sleep(500)

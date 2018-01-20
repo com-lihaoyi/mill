@@ -22,16 +22,14 @@ val sharedSettings = Seq(
   mainClass in Test := Some("ammonite.Main")
 )
 
-val pluginSettings = Seq(
-  scalacOptions in Test ++= {
-    val jarFile = (packageBin in (moduledefs, Compile)).value
-    val addPlugin = "-Xplugin:" + jarFile.getAbsolutePath
-    // add plugin timestamp to compiler options to trigger recompile of
-    // main after editing the plugin. (Otherwise a 'clean' is needed.)
-    val dummy = "-Jdummy=" + jarFile.lastModified
-    Seq(addPlugin, dummy)
-  }
-)
+val pluginSettings = Seq(scalacOptions in Test ++= {
+  val jarFile = (packageBin in (moduledefs, Compile)).value
+  val addPlugin = "-Xplugin:" + jarFile.getAbsolutePath
+  // add plugin timestamp to compiler options to trigger recompile of
+  // main after editing the plugin. (Otherwise a 'clean' is needed.)
+  val dummy = "-Jdummy=" + jarFile.lastModified
+  Seq(addPlugin, dummy)
+})
 
 lazy val ammoniteRunner = project
   .in(file("target/ammoniteRunner"))
@@ -42,7 +40,9 @@ lazy val ammoniteRunner = project
       "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
   )
 
-def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: String = "") =
+def ammoniteRun(hole: SettingKey[File],
+                args: String => List[String],
+                suffix: String = "") =
   Def.task {
     val target = hole.value / suffix
     if (!target.exists()) {
@@ -57,25 +57,27 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
     target
   }
 
-def bridge(bridgeVersion: String) = Project(
-  id = "bridge" + bridgeVersion.replace('.', '_'),
-  base = file("target/bridge/" + bridgeVersion.replace('.', '_')),
-  settings = Seq(
-    organization := "com.lihaoyi",
-    scalaVersion := bridgeVersion,
-    name := "mill-bridge",
-    target := baseDirectory.value,
-    crossVersion := CrossVersion.full,
-    libraryDependencies ++= Seq(
-      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-      "org.scala-sbt" % "compiler-interface" % "1.0.5"
-    ),
-    (sourceGenerators in Compile) += ammoniteRun(
-      sourceManaged in Compile,
-      List("shared.sc", "downloadBridgeSource", _, bridgeVersion)
-    ).taskValue.map(x => (x ** "*.scala").get)
+def bridge(bridgeVersion: String) =
+  Project(
+    id = "bridge" + bridgeVersion.replace('.', '_'),
+    base = file("target/bridge/" + bridgeVersion.replace('.', '_')),
+    settings = Seq(
+      organization := "com.lihaoyi",
+      scalaVersion := bridgeVersion,
+      name := "mill-bridge",
+      target := baseDirectory.value,
+      crossVersion := CrossVersion.full,
+      libraryDependencies ++= Seq(
+        "org.scala-lang" % "scala-compiler" % scalaVersion.value,
+        "org.scala-sbt" % "compiler-interface" % "1.0.5"
+      ),
+      (sourceGenerators in Compile) += ammoniteRun(
+        sourceManaged in Compile,
+        List("shared.sc", "downloadBridgeSource", _, bridgeVersion)
+      ).taskValue
+        .map(x => (x ** "*.scala").get)
+    )
   )
-)
 
 lazy val bridge2_10_6 = bridge("2.10.6")
 lazy val bridge2_11_8 = bridge("2.11.8")
@@ -103,11 +105,17 @@ lazy val core = project
       "org.scala-sbt" % "test-interface" % "1.0"
     ),
     sourceGenerators in Compile += {
-      ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateCoreSources", _)).taskValue
+      ammoniteRun(
+        sourceManaged in Compile,
+        List("shared.sc", "generateCoreSources", _)
+      ).taskValue
         .map(x => (x ** "*.scala").get)
     },
     sourceGenerators in Test += {
-      ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestSources", _)).taskValue
+      ammoniteRun(
+        sourceManaged in Test,
+        List("shared.sc", "generateCoreTestSources", _)
+      ).taskValue
         .map(x => (x ** "*.scala").get)
     }
   )
@@ -190,7 +198,8 @@ val testRepos = Map(
       "downloadTestRepo",
       "lihaoyi/acyclic",
       "bc41cd09a287e2c270271e27ccdb3066173a8598",
-      _),
+      _
+    ),
     suffix = "acyclic"
   ),
   "MILL_JAWN_REPO" -> ammoniteRun(
@@ -200,7 +209,8 @@ val testRepos = Map(
       "downloadTestRepo",
       "non/jawn",
       "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb",
-      _),
+      _
+    ),
     suffix = "jawn"
   ),
   "MILL_BETTERFILES_REPO" -> ammoniteRun(
@@ -210,7 +220,8 @@ val testRepos = Map(
       "downloadTestRepo",
       "pathikrit/better-files",
       "e235722f91f78b8f34a41b8332d7fae3e8a64141",
-      _),
+      _
+    ),
     suffix = "better-files"
   ),
   "MILL_AMMONITE_REPO" -> ammoniteRun(
@@ -220,7 +231,8 @@ val testRepos = Map(
       "downloadTestRepo",
       "lihaoyi/ammonite",
       "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac",
-      _),
+      _
+    ),
     suffix = "ammonite"
   )
 )
@@ -255,7 +267,8 @@ lazy val bin = project
     mainClass in (Test, run) := Some("mill.Main"),
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     assemblyOption in assembly := {
-      val extraArgs = (bridgeProps.value ++ jsbridgeProps.value).mkString(" ")
+      val extraArgs =
+        (bridgeProps.value ++ jsbridgeProps.value).mkString(" ")
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(
           Seq(

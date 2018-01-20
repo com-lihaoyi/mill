@@ -22,7 +22,8 @@ object Jvm {
     var currentClassloader = Thread.currentThread().getContextClassLoader
     while (currentClassloader != null) {
       currentClassloader match {
-        case u: URLClassLoader => allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
+        case u: URLClassLoader =>
+          allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
         case _ =>
       }
       currentClassloader = currentClassloader.getParent
@@ -30,16 +31,16 @@ object Jvm {
     allJars
   }
 
-  def interactiveSubprocess(
-      mainClass: String,
-      classPath: Agg[Path],
-      options: Seq[String] = Seq.empty): Unit = {
+  def interactiveSubprocess(mainClass: String,
+                            classPath: Agg[Path],
+                            options: Seq[String] = Seq.empty): Unit = {
     import ammonite.ops.ImplicitWd._
     %("java", "-cp", classPath.mkString(":"), mainClass, options)
   }
 
-  def inprocess(mainClass: String, classPath: Agg[Path], options: Seq[String] = Seq.empty)(
-      implicit ctx: Ctx): Unit = {
+  def inprocess(mainClass: String,
+                classPath: Agg[Path],
+                options: Seq[String] = Seq.empty)(implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
       getMainMethod(mainClass, cl).invoke(null, options.toArray)
     })
@@ -59,15 +60,15 @@ object Jvm {
     method
   }
 
-  def inprocess[T](
-      classPath: Agg[Path],
-      classLoaderOverrideSbtTesting: Boolean,
-      body: ClassLoader => T): T = {
+  def inprocess[T](classPath: Agg[Path],
+                   classLoaderOverrideSbtTesting: Boolean,
+                   body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
       new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
-        ClassLoader.getSystemClassLoader().getParent()) {
+        ClassLoader.getSystemClassLoader().getParent()
+      ) {
         override def findClass(name: String) = {
           if (name.startsWith("sbt.testing.")) {
             outerClassLoader.loadClass(name)
@@ -79,7 +80,8 @@ object Jvm {
     } else {
       new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
-        ClassLoader.getSystemClassLoader().getParent())
+        ClassLoader.getSystemClassLoader().getParent()
+      )
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -91,12 +93,11 @@ object Jvm {
     }
   }
 
-  def subprocess(
-      mainClass: String,
-      classPath: Agg[Path],
-      jvmOptions: Seq[String] = Seq.empty,
-      options: Seq[String] = Seq.empty,
-      workingDir: Path = null)(implicit ctx: Ctx) = {
+  def subprocess(mainClass: String,
+                 classPath: Agg[Path],
+                 jvmOptions: Seq[String] = Seq.empty,
+                 options: Seq[String] = Seq.empty,
+                 workingDir: Path = null)(implicit ctx: Ctx) = {
 
     val commandArgs =
       Vector("java") ++
@@ -122,9 +123,9 @@ object Jvm {
     )
     val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
     while (// Process.isAlive doesn't exist on JDK 7 =/
-      util.Try(proc.exitValue).isFailure ||
-      stdout.available() > 0 ||
-      stderr.available() > 0) {
+           util.Try(proc.exitValue).isFailure ||
+           stdout.available() > 0 ||
+           stderr.available() > 0) {
       var readSomething = false
       for ((subStream, wrapper, parentStream) <- sources) {
         while (subStream.available() > 0) {
@@ -146,7 +147,8 @@ object Jvm {
 
   private def createManifest(mainClass: Option[String]) = {
     val m = new java.util.jar.Manifest()
-    m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
+    m.getMainAttributes
+      .put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
     m.getMainAttributes.putValue("Created-By", "Scala mill")
     mainClass.foreach(
       m.getMainAttributes.put(java.util.jar.Attributes.Name.MAIN_CLASS, _)
@@ -155,7 +157,8 @@ object Jvm {
   }
 
   def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)(
-      implicit ctx: Ctx.DestCtx): PathRef = {
+    implicit ctx: Ctx.DestCtx
+  ): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
     if (inputPaths.nonEmpty) {
@@ -188,9 +191,10 @@ object Jvm {
   }
 
   def createAssembly(
-      inputPaths: Agg[Path],
-      mainClass: Option[String] = None,
-      prependShellScript: String = "")(implicit ctx: Ctx.DestCtx): PathRef = {
+    inputPaths: Agg[Path],
+    mainClass: Option[String] = None,
+    prependShellScript: String = ""
+  )(implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
 
@@ -202,17 +206,15 @@ object Jvm {
       // Prepend shell script and make it executable
       if (prependShellScript.nonEmpty) {
         output.write((prependShellScript + "\n").getBytes)
-        val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+        val perms =
+          java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
         perms.add(PosixFilePermission.GROUP_EXECUTE)
         perms.add(PosixFilePermission.OWNER_EXECUTE)
         perms.add(PosixFilePermission.OTHERS_EXECUTE)
         java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
       }
 
-      val jar = new JarOutputStream(
-        output,
-        createManifest(mainClass)
-      )
+      val jar = new JarOutputStream(output, createManifest(mainClass))
 
       val seen = mutable.Set("META-INF/MANIFEST.MF")
       try {

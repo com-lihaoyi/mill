@@ -9,11 +9,10 @@ object Pom {
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
   //TODO - not only jar packaging support?
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency],
-      name: String,
-      pomSettings: PomSettings): String = {
+  def apply(artifact: Artifact,
+            dependencies: Agg[Dependency],
+            name: String,
+            pomSettings: PomSettings): String = {
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -75,10 +74,10 @@ object Pom {
 
   private def renderDependency(d: Dependency): Elem = {
     val scope = d.scope match {
-      case Scope.Compile => NodeSeq.Empty
+      case Scope.Compile  => NodeSeq.Empty
       case Scope.Provided => <scope>provided</scope>
-      case Scope.Test => <scope>test</scope>
-      case Scope.Runtime => <scope>runtime</scope>
+      case Scope.Test     => <scope>test</scope>
+      case Scope.Runtime  => <scope>runtime</scope>
     }
     <dependency>
       <groupId>{d.artifact.group}</groupId>

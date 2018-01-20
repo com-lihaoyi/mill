@@ -8,12 +8,13 @@ import mill.util.Strict.Agg
 import scala.collection.mutable
 
 object TestUtil {
-  class BaseModule(
-      implicit millModuleEnclosing0: sourcecode.Enclosing,
-      millModuleLine0: sourcecode.Line,
-      millName0: sourcecode.Name,
-      overrides: Overrides)
-      extends mill.define.BaseModule(ammonite.ops.pwd / millModuleEnclosing0.value)
+  class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
+                   millModuleLine0: sourcecode.Line,
+                   millName0: sourcecode.Name,
+                   overrides: Overrides)
+      extends mill.define.BaseModule(
+        ammonite.ops.pwd / millModuleEnclosing0.value
+      )
 
   object test {
 
@@ -40,8 +41,9 @@ object TestUtil {
     * controlled externally, so you can construct arbitrary dataflow graphs and
     * test how changes propagate.
     */
-  class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean)(implicit ctx0: mill.define.Ctx)
-      extends Test(inputs)
+  class TestTarget(inputs: Seq[Task[Int]], val pure: Boolean)(
+    implicit ctx0: mill.define.Ctx
+  ) extends Test(inputs)
       with Target[Int] {
     val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
     val readWrite = upickle.default.IntRW

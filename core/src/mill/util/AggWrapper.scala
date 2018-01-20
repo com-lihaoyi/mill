@@ -27,11 +27,12 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
 
   object Agg {
     def empty[V]: Agg[V] = new Agg.Mutable[V]
-    implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
-      upickle.default.ReadWriter[Agg[T]](
-        oset => upickle.default.writeJs(oset.toList),
-        { case json => Agg.from(upickle.default.readJs[Seq[T]](json)) }
-      )
+    implicit def jsonFormat[T: upickle.default.ReadWriter]
+      : upickle.default.ReadWriter[Agg[T]] =
+      upickle.default
+        .ReadWriter[Agg[T]](oset => upickle.default.writeJs(oset.toList), {
+          case json => Agg.from(upickle.default.readJs[Seq[T]](json))
+        })
     def apply[V](items: V*) = from(items)
 
     implicit def from[V](items: TraversableOnce[V]): Agg[V] = {
@@ -73,7 +74,8 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       }
       def withFilter(f: V => Boolean): Agg[V] = filter(f)
 
-      def collect[T](f: PartialFunction[V, T]) = this.filter(f.isDefinedAt).map(x => f(x))
+      def collect[T](f: PartialFunction[V, T]) =
+        this.filter(f.isDefinedAt).map(x => f(x))
 
       def zipWithIndex = {
         var i = 0
@@ -108,7 +110,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       override def hashCode() = items.map(_.hashCode()).sum
       override def equals(other: Any) = other match {
         case s: Agg[_] => items.sameElements(s.items)
-        case _ => super.equals(other)
+        case _         => super.equals(other)
       }
       override def toString = items.mkString("Agg(", ", ", ")")
     }

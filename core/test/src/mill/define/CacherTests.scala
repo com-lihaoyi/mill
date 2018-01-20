@@ -28,7 +28,8 @@ object CacherTests extends TestSuite {
 
     def eval[V](mapping: mill.Module, v: Task[V])(implicit tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-      val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
+      val evaluator =
+        new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
       evaluator.evaluate(Agg(v)).values(0)
     }
 
@@ -47,9 +48,7 @@ object CacherTests extends TestSuite {
       Middle.value eq Middle.value
     )
 
-    'overridenDefRemainsAvailable - assert(
-      eval(Middle, Middle.overriden) == 1
-    )
+    'overridenDefRemainsAvailable - assert(eval(Middle, Middle.overriden) == 1)
 
     'multipleOverridesWork - assert(
       eval(Terminal, Terminal.value) == 7,

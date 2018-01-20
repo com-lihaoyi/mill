@@ -3,7 +3,8 @@ package mill.integration
 import ammonite.ops._
 import utest._
 
-object BetterFilesTests extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "better-files") {
+object BetterFilesTests
+    extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "better-files") {
   val tests = Tests {
     initWorkspace()
     'test - {

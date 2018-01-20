@@ -13,15 +13,18 @@ object FailureTests extends TestSuite {
   }
   class Checker(module: mill.Module)(implicit tp: TestPath) {
 
-    val evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
+    val evaluator =
+      new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
-    def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
+    def apply(target: Target[_],
+              expectedFailCount: Int,
+              expectedRawValues: Seq[Result[_]]) = {
 
       val res = evaluator.evaluate(Agg(target))
 
       val cleaned = res.rawValues.map {
         case Result.Exception(ex, _) => Result.Exception(ex, Nil)
-        case x => x
+        case x                       => x
       }
 
       assert(

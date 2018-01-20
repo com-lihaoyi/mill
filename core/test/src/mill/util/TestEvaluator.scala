@@ -16,13 +16,17 @@ class TestEvaluator(module: mill.Module, workspacePath: Path, basePath: Path) {
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
             case t: Target[_]
-                if module.millInternal.targets.contains(t) && !t.isInstanceOf[Input[_]] =>
+                if module.millInternal.targets.contains(t)
+                  && !t.isInstanceOf[Input[_]] =>
               t
             case t: mill.define.Command[_] => t
           }.size
-        ))
+        )
+      )
     } else {
-      Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
+      Left(
+        evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
+      )
     }
   }
 

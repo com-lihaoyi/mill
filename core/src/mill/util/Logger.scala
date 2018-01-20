@@ -43,7 +43,8 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream {
+class CallbackStream(wrapped: OutputStream, f: () => Unit)
+    extends OutputStream {
   override def write(b: Array[Byte]): Unit = { f(); wrapped.write(b) }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
@@ -53,12 +54,11 @@ class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream 
 
   def write(b: Int) = { f(); wrapped.write(b) }
 }
-case class PrintLogger(
-    colored: Boolean,
-    colors: ammonite.util.Colors,
-    outStream: PrintStream,
-    infoStream: PrintStream,
-    errStream: PrintStream)
+case class PrintLogger(colored: Boolean,
+                       colors: ammonite.util.Colors,
+                       outStream: PrintStream,
+                       infoStream: PrintStream,
+                       errStream: PrintStream)
     extends Logger {
 
   var lastLineTicker = false

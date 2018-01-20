@@ -9,13 +9,16 @@ import scala.language.experimental.macros
 object ApplicativeTests extends TestSuite {
   implicit def optionToOpt[T](o: Option[T]): Opt[T] = new Opt(o)
   class Opt[T](val self: Option[T]) extends Applicative.Applyable[Option, T]
-  object Opt extends OptGenerated with Applicative.Applyer[Opt, Option, Applicative.Id, String] {
+  object Opt
+      extends OptGenerated
+      with Applicative.Applyer[Opt, Option, Applicative.Id, String] {
 
     val injectedCtx = "helloooo"
     def underlying[A](v: Opt[A]) = v.self
     def apply[T](t: T): Option[T] = macro Applicative.impl[Option, T, String]
 
-    def mapCtx[A, B](a: Option[A])(f: (A, String) => B): Option[B] = a.map(f(_, injectedCtx))
+    def mapCtx[A, B](a: Option[A])(f: (A, String) => B): Option[B] =
+      a.map(f(_, injectedCtx))
     def zip() = Some(())
     def zip[A](a: Option[A]) = a.map(Tuple1(_))
   }
@@ -36,7 +39,9 @@ object ApplicativeTests extends TestSuite {
 
       'simple - assert(Opt("lol " + 1) == Some("lol 1"))
       'singleSome - assert(Opt("lol " + Some("hello")()) == Some("lol hello"))
-      'twoSomes - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
+      'twoSomes - assert(
+        Opt(Some("lol ")() + Some("hello")()) == Some("lol hello")
+      )
       'singleNone - assert(Opt("lol " + None()) == None)
       'twoNones - assert(Opt("lol " + None() + None()) == None)
     }
@@ -48,7 +53,9 @@ object ApplicativeTests extends TestSuite {
       def hell(o: String) = "hell" + o
       'simple - assert(Opt(lol + 1) == Some("lol 1"))
       'singleSome - assert(Opt(lol + Some(hell("o"))()) == Some("lol hello"))
-      'twoSomes - assert(Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello"))
+      'twoSomes - assert(
+        Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello")
+      )
       'singleNone - assert(Opt(lol + None()) == None)
       'twoNones - assert(Opt(lol + None() + None()) == None)
     }
@@ -66,10 +73,7 @@ object ApplicativeTests extends TestSuite {
       val counter = new Counter()
       def up = Opt { "lol " + counter() }
       val down = Opt { if ("lol".length > 10) up() else "fail" }
-      assert(
-        down == Some("fail"),
-        counter.value == 1
-      )
+      assert(down == Some("fail"), counter.value == 1)
     }
     'upstreamEvaluatedOnlyOnce - {
       // Even if control-flow reaches the Applyable#apply call more than once,
@@ -78,10 +82,7 @@ object ApplicativeTests extends TestSuite {
       def up = Opt { "lol " + counter() }
       def runTwice[T](t: => T) = (t, t)
       val down = Opt { runTwice(up()) }
-      assert(
-        down == Some(("lol 1", "lol 1")),
-        counter.value == 1
-      )
+      assert(down == Some(("lol 1", "lol 1")), counter.value == 1)
     }
     'evaluationsInsideLambdasWork - {
       // This required some fiddling with owner chains inside the macro to get
@@ -103,7 +104,9 @@ object ApplicativeTests extends TestSuite {
       val counter = new Counter()
       def up = Opt { "hello" + counter() }
       val down = Opt { Seq(1, 2, 3).map(n => n + up() + up()) }
-      assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
+      assert(
+        down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2"))
+      )
     }
     'appliesEvaluateBeforehand - {
       // Every Applyable#apply() within a Opt{...} block evaluates before any

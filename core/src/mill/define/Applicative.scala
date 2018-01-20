@@ -40,12 +40,20 @@ object Applicative {
     def zip[A](a: T[A]): T[Tuple1[A]]
   }
 
-  def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[M[T]] = {
-    impl0(c)(t.tree)(implicitly[c.WeakTypeTag[T]], implicitly[c.WeakTypeTag[Ctx]])
+  def impl[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](
+    c: Context
+  )(t: c.Expr[T]): c.Expr[M[T]] = {
+    impl0(c)(t.tree)(
+      implicitly[c.WeakTypeTag[T]],
+      implicitly[c.WeakTypeTag[Ctx]]
+    )
   }
-  def impl0[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](c: Context)(t: c.Tree): c.Expr[M[T]] = {
+  def impl0[M[_], T: c.WeakTypeTag, Ctx: c.WeakTypeTag](
+    c: Context
+  )(t: c.Tree): c.Expr[M[T]] = {
     import c.universe._
-    def rec(t: Tree): Iterator[c.Tree] = Iterator(t) ++ t.children.flatMap(rec(_))
+    def rec(t: Tree): Iterator[c.Tree] =
+      Iterator(t) ++ t.children.flatMap(rec(_))
 
     val bound = collection.mutable.Buffer.empty[(c.Tree, ValDef)]
     val targetApplySym = typeOf[Applyable[Nothing, _]].member(TermName("apply"))
@@ -71,16 +79,21 @@ object Applicative {
           )
         }
         val tempName = c.freshName(TermName("tmp"))
-        val tempSym = c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
+        val tempSym =
+          c.internal.newTermSymbol(c.internal.enclosingOwner, tempName)
         c.internal.setInfo(tempSym, t.tpe)
         val tempIdent = Ident(tempSym)
         c.internal.setType(tempIdent, t.tpe)
         c.internal.setFlag(tempSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
-        bound.append((q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym)))
+        bound.append(
+          (q"${c.prefix}.underlying($fun)", c.internal.valDef(tempSym))
+        )
         tempIdent
       case (t, api)
           if t.symbol != null
-            && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[ImplicitStub]) =>
+            && t.symbol.annotations.exists(
+              _.tree.tpe =:= typeOf[ImplicitStub]
+            ) =>
         val tempIdent = Ident(ctxSym)
         c.internal.setType(tempIdent, t.tpe)
         c.internal.setFlag(ctxSym, (1L << 44).asInstanceOf[c.universe.FlagSet])
@@ -97,7 +110,8 @@ object Applicative {
 
     val res = q"${c.prefix}.zipMap(..$exprs){ $callback }"
 
-    c.internal.changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
+    c.internal
+      .changeOwner(transformed, c.internal.enclosingOwner, callback.symbol)
 
     c.Expr[M[T]](res)
   }

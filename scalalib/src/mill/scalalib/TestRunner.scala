@@ -20,7 +20,10 @@ import scala.collection.mutable
 object TestRunner {
   def listClassFiles(base: Path): Iterator[String] = {
     if (base.isDir)
-      ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+      ls.rec(base)
+        .toIterator
+        .filter(_.ext == "class")
+        .map(_.relativeTo(base).toString)
     else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
       Iterator
@@ -44,7 +47,8 @@ object TestRunner {
             case f: AnnotatedFingerprint =>
               (f.isModule == cls.getName.endsWith("$")) &&
                 cls.isAnnotationPresent(
-                  cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+                  cl.loadClass(f.annotationName())
+                    .asInstanceOf[Class[Annotation]]
                 )
           }
           .map { f =>
@@ -62,7 +66,7 @@ object TestRunner {
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
         args = args(3) match {
           case "" => Nil
-          case x => x.split(" ").toList
+          case x  => x.split(" ").toList
         }
       )(
         new PrintLogger(
@@ -72,7 +76,8 @@ object TestRunner {
           System.out,
           System.err,
           System.err
-        ))
+        )
+      )
       val outputPath = args(4)
 
       ammonite.ops.write(Path(outputPath), upickle.default.write(result))
@@ -86,36 +91,40 @@ object TestRunner {
     // results from the outputPath
     System.exit(0)
   }
-  def apply(
-      frameworkName: String,
-      entireClasspath: Agg[Path],
-      testClassfilePath: Agg[Path],
-      args: Seq[String])(implicit ctx: LogCtx): (String, Seq[Result]) = {
-    Jvm.inprocess(
-      entireClasspath,
-      classLoaderOverrideSbtTesting = true,
-      cl => {
-        val framework = cl
-          .loadClass(frameworkName)
-          .newInstance()
-          .asInstanceOf[sbt.testing.Framework]
+  def apply(frameworkName: String,
+            entireClasspath: Agg[Path],
+            testClassfilePath: Agg[Path],
+            args: Seq[String])(implicit ctx: LogCtx): (String, Seq[Result]) = {
+    Jvm
+      .inprocess(
+        entireClasspath,
+        classLoaderOverrideSbtTesting = true,
+        cl => {
+          val framework = cl
+            .loadClass(frameworkName)
+            .newInstance()
+            .asInstanceOf[sbt.testing.Framework]
 
-        val testClasses = runTests(cl, framework, testClassfilePath)
+          val testClasses = runTests(cl, framework, testClassfilePath)
 
-        val runner = framework.runner(args.toArray, args.toArray, cl)
+          val runner =
+            framework.runner(args.toArray, args.toArray, cl)
 
-        val tasks = runner.tasks(
-          for ((cls, fingerprint) <- testClasses.toArray)
-            yield
-              new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-        )
-        val events = mutable.Buffer.empty[Event]
-        for (t <- tasks) {
-          t.execute(
-            new EventHandler {
+          val tasks = runner.tasks(
+            for ((cls, fingerprint) <- testClasses.toArray)
+              yield
+                new TaskDef(
+                  cls.getName.stripSuffix("$"),
+                  fingerprint,
+                  true,
+                  Array(new SuiteSelector)
+                )
+          )
+          val events = mutable.Buffer.empty[Event]
+          for (t <- tasks) {
+            t.execute(new EventHandler {
               def handle(event: Event) = events.append(event)
-            },
-            Array(new Logger {
+            }, Array(new Logger {
               def debug(msg: String) = ctx.log.info(msg)
 
               def error(msg: String) = ctx.log.error(msg)
@@ -124,66 +133,60 @@ object TestRunner {
 
               def warn(msg: String) = ctx.log.info(msg)
 
-              def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+              def trace(t: Throwable) =
+                t.printStackTrace(ctx.log.outputStream)
 
               def info(msg: String) = ctx.log.info(msg)
-            })
-          )
-        }
-        val doneMsg = runner.done()
-        val results = for (e <- events) yield {
-          val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
-          Result(
-            e.fullyQualifiedName(),
-            e.selector() match {
+            }))
+          }
+          val doneMsg = runner.done()
+          val results = for (e <- events) yield {
+            val ex =
+              if (e.throwable().isDefined) Some(e.throwable().get)
+              else None
+            Result(e.fullyQualifiedName(), e.selector() match {
               case s: NestedSuiteSelector => s.suiteId()
-              case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-              case s: SuiteSelector => s.toString
-              case s: TestSelector => s.testName()
+              case s: NestedTestSelector =>
+                s.suiteId() + "." + s.testName()
+              case s: SuiteSelector        => s.toString
+              case s: TestSelector         => s.testName()
               case s: TestWildcardSelector => s.testWildcard()
-            },
-            e.duration(),
-            e.status(),
-            ex.map(_.getClass.getName),
-            ex.map(_.getMessage),
-            ex.map(_.getStackTrace)
-          )
+            }, e.duration(), e.status(), ex.map(_.getClass.getName), ex.map(_.getMessage), ex.map(_.getStackTrace))
+          }
+          (doneMsg, results)
         }
-        (doneMsg, results)
-      }
-    )
+      )
   }
 
-  case class Result(
-      fullyQualifiedName: String,
-      selector: String,
-      duration: Long,
-      status: Status,
-      exceptionName: Option[String],
-      exceptionMsg: Option[String],
-      exceptionTrace: Option[Seq[StackTraceElement]])
+  case class Result(fullyQualifiedName: String,
+                    selector: String,
+                    duration: Long,
+                    status: Status,
+                    exceptionName: Option[String],
+                    exceptionMsg: Option[String],
+                    exceptionTrace: Option[Seq[StackTraceElement]])
 
   object Result {
-    implicit def resultRW: upickle.default.ReadWriter[Result] = upickle.default.macroRW[Result]
-    implicit def statusRW: upickle.default.ReadWriter[Status] = upickle.default.ReadWriter[Status](
-      {
-        case Status.Success => Js.Str("Success")
-        case Status.Error => Js.Str("Error")
-        case Status.Failure => Js.Str("Failure")
-        case Status.Skipped => Js.Str("Skipped")
-        case Status.Ignored => Js.Str("Ignored")
+    implicit def resultRW: upickle.default.ReadWriter[Result] =
+      upickle.default.macroRW[Result]
+    implicit def statusRW: upickle.default.ReadWriter[Status] =
+      upickle.default.ReadWriter[Status]({
+        case Status.Success  => Js.Str("Success")
+        case Status.Error    => Js.Str("Error")
+        case Status.Failure  => Js.Str("Failure")
+        case Status.Skipped  => Js.Str("Skipped")
+        case Status.Ignored  => Js.Str("Ignored")
         case Status.Canceled => Js.Str("Canceled")
-        case Status.Pending => Js.Str("Pending")
+        case Status.Pending  => Js.Str("Pending")
       }, {
-        case Js.Str("Success") => Status.Success
-        case Js.Str("Error") => Status.Error
-        case Js.Str("Failure") => Status.Failure
-        case Js.Str("Skipped") => Status.Skipped
-        case Js.Str("Ignored") => Status.Ignored
+        case Js.Str("Success")  => Status.Success
+        case Js.Str("Error")    => Status.Error
+        case Js.Str("Failure")  => Status.Failure
+        case Js.Str("Skipped")  => Status.Skipped
+        case Js.Str("Ignored")  => Status.Ignored
         case Js.Str("Canceled") => Status.Canceled
-        case Js.Str("Pending") => Status.Pending
-      }
-    )
+        case Js.Str("Pending")  => Status.Pending
+      })
   }
 
 }

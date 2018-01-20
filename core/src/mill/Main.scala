@@ -5,12 +5,11 @@ import ammonite.ops._
 import ammonite.util.Util
 
 object Main {
-  case class Config(
-      home: ammonite.ops.Path = pwd / 'out / 'ammonite,
-      colored: Option[Boolean] = None,
-      help: Boolean = false,
-      repl: Boolean = false,
-      watch: Boolean = false)
+  case class Config(home: ammonite.ops.Path = pwd / 'out / 'ammonite,
+                    colored: Option[Boolean] = None,
+                    help: Boolean = false,
+                    repl: Boolean = false,
+                    watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
 
@@ -27,7 +26,8 @@ object Main {
       }
     )
     val removed = Set("predef-code", "home", "no-home-predef")
-    val millArgSignature = (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
+    val millArgSignature =
+      (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
     Cli.groupArgs(
       args.toList,
       millArgSignature,
@@ -37,13 +37,14 @@ object Main {
         System.err.println(msg)
         System.exit(1)
       case Right((cliConfig, _)) if cliConfig.help =>
-        val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
-        System.out.println(
-          s"""Mill Build Tool
+        val leftMargin = millArgSignature
+          .map(ammonite.main.Cli.showArg(_).length)
+          .max + 2
+        System.out.println(s"""Mill Build Tool
              |usage: mill [mill-options] [target [target-options]]
              |
-             |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
-        )
+             |${formatBlock(millArgSignature, leftMargin)
+                                .mkString(Util.newLine)}""".stripMargin)
         System.exit(0)
       case Right((cliConfig, leftoverArgs)) =>
         val repl = leftoverArgs.isEmpty
@@ -51,7 +52,8 @@ object Main {
           if (!repl) cliConfig
           else
             cliConfig.copy(
-              predefCode = """import $file.build, build._
+              predefCode =
+                """import $file.build, build._
                              |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                              |  interp.colors(),
                              |  repl.pprinter(),

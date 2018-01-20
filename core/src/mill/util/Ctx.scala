@@ -13,7 +13,9 @@ object Ctx {
   implicit def taskCtx: Ctx = ???
 
   object DestCtx {
-    implicit def pathToCtx(path: Path): DestCtx = new DestCtx { def dest = path }
+    implicit def pathToCtx(path: Path): DestCtx = new DestCtx {
+      def dest = path
+    }
   }
   trait DestCtx {
     def dest: Path
@@ -22,7 +24,9 @@ object Ctx {
     def base: Path
   }
   object BaseCtx {
-    implicit def pathToCtx(path: Path): BaseCtx = new BaseCtx { def base = path }
+    implicit def pathToCtx(path: Path): BaseCtx = new BaseCtx {
+      def base = path
+    }
   }
   trait LogCtx {
     def log: Logger
@@ -40,12 +44,11 @@ object Ctx {
     def make(): T
   }
 }
-class Ctx(
-    val args: IndexedSeq[_],
-    val dest: Path,
-    val base: Path,
-    val log: Logger,
-    workerCtx0: Ctx.LoaderCtx)
+class Ctx(val args: IndexedSeq[_],
+          val dest: Path,
+          val base: Path,
+          val log: Logger,
+          workerCtx0: Ctx.LoaderCtx)
     extends DestCtx
     with LogCtx
     with ArgCtx
@@ -56,6 +59,9 @@ class Ctx(
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
-    else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
+    else
+      throw new IndexOutOfBoundsException(
+        s"Index $index outside of range 0 - ${args.length}"
+      )
   }
 }

@@ -19,11 +19,8 @@ object GenIdeaTests extends TestSuite {
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
 
-  val helloWorldEvaluator = new TestEvaluator(
-    HelloWorld,
-    outPath,
-    workingSrcPath
-  )
+  val helloWorldEvaluator =
+    new TestEvaluator(HelloWorld, outPath, workingSrcPath)
 
   def tests: Tests = Tests {
     'genIdeaTests - {
@@ -31,7 +28,8 @@ object GenIdeaTests extends TestSuite {
       val x = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
-      for ((relPath, xml) <- GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)) {
+      for ((relPath, xml) <- GenIdea
+             .xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)) {
         write.over(basePath / "generated" / relPath, pp.format(xml))
       }
 
@@ -63,7 +61,8 @@ object GenIdeaTests extends TestSuite {
       ).foreach {
         case (resource, generated) =>
           println("checking " + resource)
-          val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
+          val resourceString =
+            scala.io.Source.fromResource(resource).getLines().mkString("\n")
           val generatedString = normaliseLibraryPaths(read ! generated)
 
           assert(resourceString == generatedString)

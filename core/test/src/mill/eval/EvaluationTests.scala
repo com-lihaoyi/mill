@@ -13,23 +13,24 @@ object EvaluationTests extends TestSuite {
     val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
     ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
+    def evaluator =
+      new Evaluator(workspace, ammonite.ops.pwd, module, DummyLogger)
 
-    def apply(
-        target: Task[_],
-        expValue: Any,
-        expEvaled: Agg[Task[_]],
-        // How many "other" tasks were evaluated other than those listed above.
-        // Pass in -1 to skip the check entirely
-        extraEvaled: Int = 0,
-        // Perform a second evaluation of the same tasks, and make sure the
-        // outputs are the same but nothing was evaluated. Disable this if you
-        // are directly evaluating tasks which need to re-evaluate every time
-        secondRunNoOp: Boolean = true) = {
+    def apply(target: Task[_],
+              expValue: Any,
+              expEvaled: Agg[Task[_]],
+              // How many "other" tasks were evaluated other than those listed above.
+              // Pass in -1 to skip the check entirely
+              extraEvaled: Int = 0,
+              // Perform a second evaluation of the same tasks, and make sure the
+              // outputs are the same but nothing was evaluated. Disable this if you
+              // are directly evaluating tasks which need to re-evaluate every time
+              secondRunNoOp: Boolean = true) = {
 
       val evaled = evaluator.evaluate(Agg(target))
 
-      val (matchingReturnedEvaled, extra) = evaled.evaluated.indexed.partition(expEvaled.contains)
+      val (matchingReturnedEvaled, extra) =
+        evaled.evaluated.indexed.partition(expEvaled.contains)
 
       assert(
         evaled.values == Seq(expValue),
@@ -135,7 +136,12 @@ object EvaluationTests extends TestSuite {
         import bigSingleTerminal._
         val check = new Checker(bigSingleTerminal)
 
-        check(j, expValue = 0, expEvaled = Agg(a, b, e, f, i, j), extraEvaled = 22)
+        check(
+          j,
+          expValue = 0,
+          expEvaled = Agg(a, b, e, f, i, j),
+          extraEvaled = 22
+        )
 
         j.counter += 1
         check(j, expValue = 1, expEvaled = Agg(j), extraEvaled = 3)
@@ -190,7 +196,13 @@ object EvaluationTests extends TestSuite {
         import multiTerminalBoundary._
 
         val checker = new Checker(multiTerminalBoundary)
-        checker(task2, 4, Agg(right, left), extraEvaled = -1, secondRunNoOp = false)
+        checker(
+          task2,
+          4,
+          Agg(right, left),
+          extraEvaled = -1,
+          secondRunNoOp = false
+        )
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
@@ -236,7 +248,12 @@ object EvaluationTests extends TestSuite {
         // cached target
         val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
-        check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 8)
+        check(
+          down,
+          expValue = 10101,
+          expEvaled = Agg(up, right, down),
+          extraEvaled = 8
+        )
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
         // If the upstream `up` doesn't change, the entire block of tasks
@@ -249,19 +266,48 @@ object EvaluationTests extends TestSuite {
         // because tasks have no cached value that can be used. `right`, which
         // is a cached Target, does not recompute
         up.inputs(0).asInstanceOf[Test].counter += 1
-        check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 6)
+        check(
+          down,
+          expValue = 10102,
+          expEvaled = Agg(up, down),
+          extraEvaled = 6
+        )
         assert(leftCount == 2, middleCount == 2, rightCount == 1)
 
         // Running the tasks themselves results in them being recomputed every
         // single time, even if nothing changes
-        check(left, expValue = 2, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
+        check(
+          left,
+          expValue = 2,
+          expEvaled = Agg(),
+          extraEvaled = 1,
+          secondRunNoOp = false
+        )
         assert(leftCount == 3, middleCount == 2, rightCount == 1)
-        check(left, expValue = 2, expEvaled = Agg(), extraEvaled = 1, secondRunNoOp = false)
+        check(
+          left,
+          expValue = 2,
+          expEvaled = Agg(),
+          extraEvaled = 1,
+          secondRunNoOp = false
+        )
         assert(leftCount == 4, middleCount == 2, rightCount == 1)
 
-        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 2, secondRunNoOp = false)
+        check(
+          middle,
+          expValue = 100,
+          expEvaled = Agg(),
+          extraEvaled = 2,
+          secondRunNoOp = false
+        )
         assert(leftCount == 4, middleCount == 3, rightCount == 1)
-        check(middle, expValue = 100, expEvaled = Agg(), extraEvaled = 2, secondRunNoOp = false)
+        check(
+          middle,
+          expValue = 100,
+          expEvaled = Agg(),
+          extraEvaled = 2,
+          secondRunNoOp = false
+        )
         assert(leftCount == 4, middleCount == 4, rightCount == 1)
       }
     }

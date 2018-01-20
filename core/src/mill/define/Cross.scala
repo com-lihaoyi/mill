@@ -51,7 +51,7 @@ class Cross[T](cases: Any*)(implicit ci: Cross.Factory[T], ctx: mill.define.Ctx)
   val items = for (c0 <- cases.toList) yield {
     val c = c0 match {
       case p: Product => p
-      case v => Tuple1(v)
+      case v          => Tuple1(v)
     }
     val crossValues = c.productIterator.toList
     val relPath = ctx.segment.pathSegments

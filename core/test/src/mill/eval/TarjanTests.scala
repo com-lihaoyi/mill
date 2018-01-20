@@ -92,7 +92,8 @@ object TarjanTests extends TestSuite {
         Seq(9),
         Seq(6),
         Seq(),
-        Seq()),
+        Seq()
+      ),
       Seq(Seq(0, 1), Seq(2), Seq(9), Seq(6), Seq(7), Seq(3, 4), Seq(8), Seq(5))
     )
 

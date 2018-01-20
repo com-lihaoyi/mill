@@ -19,10 +19,15 @@ private object LinkerBridge {
 object Lib {
 
   def scalaJSLinkerIvyDep(scalaJSVersion: String): Dep =
-    Dep("com.lihaoyi", s"mill-jsbridge_${scalaJSVersion.replace('.', '_')}", "0.1-SNAPSHOT")
+    Dep(
+      "com.lihaoyi",
+      s"mill-jsbridge_${scalaJSVersion.replace('.', '_')}",
+      "0.1-SNAPSHOT"
+    )
 
   def scalaJSLinkerBridge(classPath: Loose.Agg[Path]): ScalaJSLinkerBridge = {
-    val classloaderSig = classPath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val classloaderSig =
+      classPath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     LinkerBridge.scalaInstanceCache match {
       case Some((`classloaderSig`, linker)) => linker
       case _ =>
@@ -32,39 +37,49 @@ object Lib {
           .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[{
-            def link(
-                sources: Array[File],
-                libraries: Array[File],
-                dest: File,
-                main: String,
-                fullOpt: Boolean): Unit
-          }]
-        val linker: ScalaJSLinkerBridge = (
-            sources: Seq[File],
-            libraries: Seq[File],
-            dest: File,
-            main: Option[String],
-            mode: OptimizeMode) =>
-          bridge.link(sources.toArray, libraries.toArray, dest, main.orNull, mode == FullOpt)
+              def link(sources: Array[File],
+                       libraries: Array[File],
+                       dest: File,
+                       main: String,
+                       fullOpt: Boolean): Unit
+            }
+          ]
+        val linker: ScalaJSLinkerBridge = (sources: Seq[File],
+                                           libraries: Seq[File],
+                                           dest: File,
+                                           main: Option[String],
+                                           mode: OptimizeMode) =>
+          bridge.link(
+            sources.toArray,
+            libraries.toArray,
+            dest,
+            main.orNull,
+            mode == FullOpt
+        )
         LinkerBridge.scalaInstanceCache = Some((classloaderSig, linker))
         linker
     }
   }
 
-  def link(
-      main: Option[String],
-      inputPaths: Seq[Path],
-      libraries: Loose.Agg[Path],
-      linker: ScalaJSLinkerBridge,
-      mode: OptimizeMode)(implicit ctx: Ctx.DestCtx): PathRef = {
+  def link(main: Option[String],
+           inputPaths: Seq[Path],
+           libraries: Loose.Agg[Path],
+           linker: ScalaJSLinkerBridge,
+           mode: OptimizeMode)(implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath =
-      ctx.dest.copy(segments = ctx.dest.segments.init :+ (ctx.dest.segments.last + ".js"))
+      ctx.dest.copy(
+        segments = ctx.dest.segments.init :+ (ctx.dest.segments.last + ".js")
+      )
     rm(outputPath)
     if (inputPaths.nonEmpty) {
       mkdir(outputPath / up)
       val inputFiles: Vector[File] =
-        inputPaths.map(ls).flatMap(_.filter(_.ext == "sjsir")).map(_.toIO)(breakOut)
-      val inputLibraries: Vector[File] = libraries.filter(_.ext == "jar").map(_.toIO).toVector
+        inputPaths
+          .map(ls)
+          .flatMap(_.filter(_.ext == "sjsir"))
+          .map(_.toIO)(breakOut)
+      val inputLibraries: Vector[File] =
+        libraries.filter(_.ext == "jar").map(_.toIO).toVector
       linker.link(inputFiles, inputLibraries, outputPath.toIO, main, mode)
     }
     PathRef(outputPath)

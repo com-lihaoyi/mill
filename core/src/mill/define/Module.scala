@@ -15,7 +15,8 @@ import scala.reflect.macros.blackbox
   * instantiation site so they can capture the enclosing/line information of
   * the concrete instance.
   */
-class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher { outer =>
+class Module(implicit outerCtx0: mill.define.Ctx)
+    extends mill.moduledefs.Cacher { outer =>
 
   /**
     * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -35,7 +36,8 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
 object Module {
   class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {
-      def rec(m: Module): Seq[T] = f(m) ++ m.millModuleDirectChildren.flatMap(rec)
+      def rec(m: Module): Seq[T] =
+        f(m) ++ m.millModuleDirectChildren.flatMap(rec)
       rec(outer)
     }
     lazy val segmentsToModules = traverse { m =>
@@ -59,13 +61,17 @@ object Module {
         .filter(!_.getName.contains('$'))
         .filter(_.getParameterCount == 0)
         .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
+        .filter(
+          implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType
+        )
         .map(_.invoke(outer).asInstanceOf[T])
     }
     def reflectNames[T: ClassTag] = {
       outer.getClass.getMethods
         .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
+        .filter(
+          implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType
+        )
         .map(_.getName)
     }
     // For some reason, this fails to pick up concrete `object`s nested directly within
@@ -75,7 +81,12 @@ object Module {
       reflect[T] ++
         outer.getClass.getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _)
-          .flatMap(c => c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T]))
+          .flatMap(
+            c =>
+              c.getFields
+                .find(_.getName == "MODULE$")
+                .map(_.get(c).asInstanceOf[T])
+          )
     }
   }
 }
@@ -84,18 +95,26 @@ trait TaskModule extends Module {
 }
 
 class BaseModule(basePath0: Path)(
-    implicit millModuleEnclosing0: sourcecode.Enclosing,
-    millModuleLine0: sourcecode.Line,
-    millName0: sourcecode.Name,
-    overrides0: Overrides)
-    extends Module()(
+  implicit millModuleEnclosing0: sourcecode.Enclosing,
+  millModuleLine0: sourcecode.Line,
+  millName0: sourcecode.Name,
+  overrides0: Overrides
+) extends Module()(
       mill.define.Ctx
-        .make(implicitly, implicitly, implicitly, BasePath(basePath0), Segments(), implicitly)
+        .make(
+          implicitly,
+          implicitly,
+          implicitly,
+          BasePath(basePath0),
+          Segments(),
+          implicitly
+        )
     ) {
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,
   override implicit def millModuleSegments: Segments = Segments()
-  override implicit def millModuleBasePath: BasePath = BasePath(millOuterCtx.basePath)
+  override implicit def millModuleBasePath: BasePath =
+    BasePath(millOuterCtx.basePath)
   override def basePath = millOuterCtx.basePath
 }
