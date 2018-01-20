@@ -1,7 +1,7 @@
 <component name="libraryTable">
     <library name="scala-compiler_2.12.4_scala-compiler-2.12.4.jar">
         <CLASSES>
-            <root url="jar:///Users/stephen/.coursier/cache/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar!/"/>
+            <root url="jar:COURSIER_HOME/cache/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar!/"/>
         </CLASSES>
     </library>
 </component>

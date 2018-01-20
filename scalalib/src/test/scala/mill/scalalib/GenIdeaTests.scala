@@ -63,9 +63,16 @@ object GenIdeaTests extends TestSuite {
       ).foreach { case (resource, generated) =>
           println("checking "+resource)
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
-          val generatedString = read! generated
+          val generatedString = normaliseLibraryPaths(read! generated)
+
           assert(resourceString == generatedString)
         }
     }
+  }
+
+
+  private val libPathRegex =  """([\w/]+)/.coursier""".r
+  private def normaliseLibraryPaths(in: String): String = {
+    libPathRegex.replaceAllIn(in, "COURSIER_HOME")
   }
 }
