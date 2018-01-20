@@ -1,0 +1,7 @@
+<component name="libraryTable">
+    <library name="scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar">
+        <CLASSES>
+            <root url="jar:COURSIER_HOME/cache/v1/https/repo1.maven.org/maven2/org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4-sources.jar!/"/>
+        </CLASSES>
+    </library>
+</component>
