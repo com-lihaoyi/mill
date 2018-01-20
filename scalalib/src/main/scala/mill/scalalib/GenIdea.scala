@@ -179,7 +179,7 @@ object GenIdea {
             </content>
         }
         {
-        for (resourcePath <- resourcePaths.toSeq)
+        for (resourcePath <- resourcePaths.toSeq.sorted)
           yield
             <content url={"file://$MODULE_DIR$/" + relify(resourcePath)}>
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />

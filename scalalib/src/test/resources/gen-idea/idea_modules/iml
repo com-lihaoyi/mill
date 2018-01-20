@@ -5,6 +5,9 @@
         <content url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src">
             <sourceFolder url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src" isTestSource="false"/>
         </content>
+        <content url="file://$MODULE_DIR$/../target/workspace/hello-world/src/resources">
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/hello-world/src/resources" isTestSource="false" type="java-resource"/>
+        </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6-sources.jar" level="project"/>
