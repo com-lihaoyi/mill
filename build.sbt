@@ -9,6 +9,11 @@ val sharedSettings = Seq(
 
   testFrameworks += new TestFramework("mill.UTestFramework"),
 
+  scalaSource in Compile := baseDirectory.value / "src",
+  resourceDirectory in Compile := baseDirectory.value / "resources",
+
+  scalaSource in Test := baseDirectory.value / "test" / "src",
+  resourceDirectory in Test := baseDirectory.value / "test" / "resources",
 
   parallelExecution in Test := false,
   test in assembly := {},
@@ -164,6 +169,7 @@ def jsbridge(binary: String, version: String) =
     base = file("scalajslib/jsbridges/" + binary)
   )
   .settings(
+    sharedSettings,
     organization := "com.lihaoyi",
     scalaVersion := "2.12.4",
     name := "mill-js-bridge",

@@ -7,7 +7,7 @@ import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
 
-object moduledefs extends SbtModule{
+object moduledefs extends ScalaModule{
   def scalaVersion = "2.12.4"
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
@@ -15,7 +15,7 @@ object moduledefs extends SbtModule{
   )
 }
 
-trait MillModule extends SbtModule{ outer =>
+trait MillModule extends ScalaModule{ outer =>
   def scalaVersion = "2.12.4"
 
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
