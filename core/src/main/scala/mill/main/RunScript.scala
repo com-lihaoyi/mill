@@ -4,6 +4,7 @@ import java.nio.file.NoSuchFileException
 
 import ammonite.interp.Interpreter
 import ammonite.ops.{Path, read}
+import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
@@ -40,7 +41,13 @@ object RunScript{
             interp.watch(path)
             val eval =
               for((mapping, discover) <- evaluateMapping(wd, path, interp))
-              yield (new Evaluator(wd / 'out, wd, mapping, log), discover)
+              yield (
+                new Evaluator(
+                  wd / 'out, wd, mapping, log,
+                  mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
+                ),
+                discover
+              )
             (eval, interp.watchedFiles)
         }
     }

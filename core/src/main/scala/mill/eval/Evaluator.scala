@@ -34,7 +34,6 @@ class Evaluator[T](val workspacePath: Path,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
 
-
   val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
   workerCache(RootModuleLoader) = rootModule
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
