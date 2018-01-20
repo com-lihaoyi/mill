@@ -55,7 +55,7 @@ object Graph {
 
     val numberedEdges =
       for (t <- transitiveTargets.items)
-        yield t.inputs.collect(targetIndices)
+      yield t.inputs.collect(targetIndices)
 
     val sortedClusters = Tarjans(numberedEdges)
     val nonTrivialClusters = sortedClusters.filter(_.length > 1)

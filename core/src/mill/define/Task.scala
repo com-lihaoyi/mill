@@ -279,7 +279,7 @@ object Task {
     val inputs = inputs0
     def evaluate(args: mill.util.Ctx) = {
       for (i <- 0 until args.length)
-        yield args(i).asInstanceOf[T]
+      yield args(i).asInstanceOf[T]
     }
 
   }

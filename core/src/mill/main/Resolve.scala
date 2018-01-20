@@ -29,13 +29,13 @@ object Resolve {
                  .toSeq
                  .flatten
                  .find(_.name == name))
-            yield
-              cmd
-                .asInstanceOf[EntryPoint[mill.Module]]
-                .invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
-                case Router.Result.Success(v) => Right(v)
-                case _ => Left(s"Command failed $last")
-              }
+          yield
+            cmd
+              .asInstanceOf[EntryPoint[mill.Module]]
+              .invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+              case Router.Result.Success(v) => Right(v)
+              case _ => Left(s"Command failed $last")
+            }
         }
 
         val runDefault = for {

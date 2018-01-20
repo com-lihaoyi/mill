@@ -43,19 +43,19 @@ object RunScript {
             interp.watch(path)
             val eval =
               for ((mapping, discover) <- evaluateMapping(wd, path, interp))
-                yield
-                  (
-                    new Evaluator(
-                      wd / 'out,
-                      wd,
-                      mapping,
-                      log,
-                      mapping.getClass.getClassLoader
-                        .asInstanceOf[SpecialClassLoader]
-                        .classpathSignature
-                    ),
-                    discover
-                  )
+              yield
+                (
+                  new Evaluator(
+                    wd / 'out,
+                    wd,
+                    mapping,
+                    log,
+                    mapping.getClass.getClassLoader
+                      .asInstanceOf[SpecialClassLoader]
+                      .classpathSignature
+                  ),
+                  discover
+                )
             (eval, interp.watchedFiles)
         }
     }
@@ -177,20 +177,20 @@ object RunScript {
 
     val errorStr =
       (for ((k, fs) <- evaluated.failing.items()) yield {
-        val ks = k match {
-          case Left(t) => t.toString
-          case Right(t) => t.segments.render
-        }
-        val fss = fs.map {
-          case Result.Exception(t, outerStack) =>
-            t.toString + t.getStackTrace
-              .dropRight(outerStack.length)
-              .map("\n    " + _)
-              .mkString
-          case Result.Failure(t) => t
-        }
-        s"$ks ${fss.mkString(", ")}"
-      }).mkString("\n")
+         val ks = k match {
+           case Left(t) => t.toString
+           case Right(t) => t.segments.render
+         }
+         val fss = fs.map {
+           case Result.Exception(t, outerStack) =>
+             t.toString + t.getStackTrace
+               .dropRight(outerStack.length)
+               .map("\n    " + _)
+               .mkString
+           case Result.Failure(t) => t
+         }
+         s"$ks ${fss.mkString(", ")}"
+       }).mkString("\n")
 
     evaluated.failing.keyCount match {
       case 0 =>

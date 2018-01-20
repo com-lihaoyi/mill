@@ -50,7 +50,7 @@ object GenIdea {
         ".idea" / "modules.xml",
         allModulesXmlTemplate(
           for ((path, mod) <- modules)
-            yield moduleName(path)
+          yield moduleName(path)
         )
       ),
       Tuple2(".idea_modules" / "root.iml", rootXmlTemplate())

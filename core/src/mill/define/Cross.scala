@@ -16,7 +16,7 @@ object Cross {
 
       val argTupleValues =
         for ((a, n) <- primaryConstructorArgs.zipWithIndex)
-          yield q"v.productElement($n).asInstanceOf[${a.info}]"
+        yield q"v.productElement($n).asInstanceOf[${a.info}]"
 
       val instance = c.Expr[(Product, mill.define.Ctx) => T](
         q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def millOuterCtx = ctx0 } }"

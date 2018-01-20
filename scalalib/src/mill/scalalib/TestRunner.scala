@@ -112,13 +112,13 @@ object TestRunner {
 
           val tasks = runner.tasks(
             for ((cls, fingerprint) <- testClasses.toArray)
-              yield
-                new TaskDef(
-                  cls.getName.stripSuffix("$"),
-                  fingerprint,
-                  true,
-                  Array(new SuiteSelector)
-                )
+            yield
+              new TaskDef(
+                cls.getName.stripSuffix("$"),
+                fingerprint,
+                true,
+                Array(new SuiteSelector)
+              )
           )
           val events = mutable.Buffer.empty[Event]
           for (t <- tasks) {
