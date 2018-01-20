@@ -20,9 +20,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBinaryVersion = T {
     scalaJSVersion() match {
-      case ReleaseVersion(major, minor, _)       => s"$major.$minor"
+      case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case _                                     => scalaJSVersion()
+      case _ => scalaJSVersion()
     }
   }
 

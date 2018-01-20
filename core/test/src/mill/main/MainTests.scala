@@ -15,7 +15,7 @@ object MainTests extends TestSuite {
       selectors <- mill.main.ParseArgs(Seq(selectorString)).map(_._1.head)
       val crossSelectors = selectors.map {
         case Segment.Cross(x) => x.toList.map(_.toString)
-        case _                => Nil
+        case _ => Nil
       }
       task <- mill.main.Resolve
         .resolve(selectors, module, discover, Nil, crossSelectors, Nil)

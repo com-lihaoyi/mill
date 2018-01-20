@@ -74,10 +74,10 @@ object Pom {
 
   private def renderDependency(d: Dependency): Elem = {
     val scope = d.scope match {
-      case Scope.Compile  => NodeSeq.Empty
+      case Scope.Compile => NodeSeq.Empty
       case Scope.Provided => <scope>provided</scope>
-      case Scope.Test     => <scope>test</scope>
-      case Scope.Runtime  => <scope>runtime</scope>
+      case Scope.Test => <scope>test</scope>
+      case Scope.Runtime => <scope>runtime</scope>
     }
     <dependency>
       <groupId>{d.artifact.group}</groupId>

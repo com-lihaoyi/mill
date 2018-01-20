@@ -136,8 +136,8 @@ object GenIdea {
       .foldLeft(StringBuilder.newBuilder) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s))               => sb.append(".").append(s)
-        case (sb, Segment.Cross(s))               => sb.append("-").append(s.mkString("-"))
+        case (sb, Segment.Label(s)) => sb.append(".").append(s)
+        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
       }
       .mkString
       .toLowerCase()

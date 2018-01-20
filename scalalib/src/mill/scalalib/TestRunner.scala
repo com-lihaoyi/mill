@@ -66,7 +66,7 @@ object TestRunner {
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
         args = args(3) match {
           case "" => Nil
-          case x  => x.split(" ").toList
+          case x => x.split(" ").toList
         }
       )(
         new PrintLogger(
@@ -148,8 +148,8 @@ object TestRunner {
               case s: NestedSuiteSelector => s.suiteId()
               case s: NestedTestSelector =>
                 s.suiteId() + "." + s.testName()
-              case s: SuiteSelector        => s.toString
-              case s: TestSelector         => s.testName()
+              case s: SuiteSelector => s.toString
+              case s: TestSelector => s.testName()
               case s: TestWildcardSelector => s.testWildcard()
             }, e.duration(), e.status(), ex.map(_.getClass.getName), ex.map(_.getMessage), ex.map(_.getStackTrace))
           }
@@ -171,21 +171,21 @@ object TestRunner {
       upickle.default.macroRW[Result]
     implicit def statusRW: upickle.default.ReadWriter[Status] =
       upickle.default.ReadWriter[Status]({
-        case Status.Success  => Js.Str("Success")
-        case Status.Error    => Js.Str("Error")
-        case Status.Failure  => Js.Str("Failure")
-        case Status.Skipped  => Js.Str("Skipped")
-        case Status.Ignored  => Js.Str("Ignored")
+        case Status.Success => Js.Str("Success")
+        case Status.Error => Js.Str("Error")
+        case Status.Failure => Js.Str("Failure")
+        case Status.Skipped => Js.Str("Skipped")
+        case Status.Ignored => Js.Str("Ignored")
         case Status.Canceled => Js.Str("Canceled")
-        case Status.Pending  => Js.Str("Pending")
+        case Status.Pending => Js.Str("Pending")
       }, {
-        case Js.Str("Success")  => Status.Success
-        case Js.Str("Error")    => Status.Error
-        case Js.Str("Failure")  => Status.Failure
-        case Js.Str("Skipped")  => Status.Skipped
-        case Js.Str("Ignored")  => Status.Ignored
+        case Js.Str("Success") => Status.Success
+        case Js.Str("Error") => Status.Error
+        case Js.Str("Failure") => Status.Failure
+        case Js.Str("Skipped") => Status.Skipped
+        case Js.Str("Ignored") => Status.Ignored
         case Js.Str("Canceled") => Status.Canceled
-        case Js.Str("Pending")  => Status.Pending
+        case Js.Str("Pending") => Status.Pending
       })
   }
 

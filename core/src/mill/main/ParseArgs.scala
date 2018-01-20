@@ -55,7 +55,7 @@ object ParseArgs {
 
   def expandBraces(selectorString: String): Either[String, List[String]] = {
     parseBraceExpansion(selectorString) match {
-      case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
+      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(expanded, _) => Right(expanded.toList)
     }
   }
@@ -69,10 +69,10 @@ object ParseArgs {
       fragments match {
         case head :: rest =>
           val prefixes = head match {
-            case Keep(v)          => Seq(v)
-            case Expand(Nil)      => Seq("{}")
+            case Keep(v) => Seq(v)
+            case Expand(Nil) => Seq("{}")
             case Expand(List(vs)) => unfold(vs).map("{" + _ + "}")
-            case Expand(vss)      => vss.flatMap(unfold)
+            case Expand(vss) => vss.flatMap(unfold)
           }
           for {
             prefix <- prefixes
@@ -108,7 +108,7 @@ object ParseArgs {
           } yield
             r match {
               case "" => str
-              case _  => str + "," + r
+              case _ => str + "," + r
             }
       }
     }
@@ -123,7 +123,7 @@ object ParseArgs {
 
   def extractSegments(selectorString: String): Either[String, List[Segment]] =
     parseSelector(selectorString) match {
-      case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
+      case f: Parsed.Failure => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
 

@@ -46,7 +46,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
         msg.append(res.failing.keyCount + " targets failed\n")
         for ((k, vs) <- res.failing.items) {
           msg.append(k match {
-            case Left(t)  => "Anonymous Task\n"
+            case Left(t) => "Anonymous Task\n"
             case Right(k) => k.segments.render + "\n"
           })
 

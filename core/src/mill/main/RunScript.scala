@@ -120,7 +120,7 @@ object RunScript {
 
       buildClsName <- processed.blockInfo.lastOption match {
         case Some(meta) => Res.Success(meta.id.wrapperPath)
-        case None       => Res.Skip
+        case None => Res.Skip
       }
 
       buildCls = interp.evalClassloader
@@ -165,7 +165,7 @@ object RunScript {
         val selected = selectors.map { sel =>
           val crossSelectors = sel.map {
             case Segment.Cross(x) => x.toList.map(_.toString)
-            case _                => Nil
+            case _ => Nil
           }
           mill.main.Resolve.resolve(
             sel,
@@ -194,7 +194,7 @@ object RunScript {
     val errorStr =
       (for ((k, fs) <- evaluated.failing.items()) yield {
         val ks = k match {
-          case Left(t)  => t.toString
+          case Left(t) => t.toString
           case Right(t) => t.segments.render
         }
         val fss = fs.map {

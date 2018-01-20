@@ -272,7 +272,7 @@ class Evaluator[T](val workspacePath: Path,
 object Evaluator {
   case class Paths(out: Path, dest: Path, meta: Path, log: Path)
   def makeSegmentStrings(segments: Segments) = segments.value.flatMap {
-    case Segment.Label(s)      => Seq(s)
+    case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
   def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {

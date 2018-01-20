@@ -36,7 +36,7 @@ object Resolve {
                 .asInstanceOf[EntryPoint[mill.Module]]
                 .invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
                 case Router.Result.Success(v) => Right(v)
-                case _                        => Left(s"Command failed $last")
+                case _ => Left(s"Command failed $last")
               }
         }
 

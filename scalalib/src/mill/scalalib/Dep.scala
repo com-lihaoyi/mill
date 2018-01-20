@@ -6,10 +6,10 @@ object Dep {
 
   implicit def parse(signature: String) = {
     signature.split(':') match {
-      case Array(a, b, c)         => Dep.Java(a, b, c)
-      case Array(a, "", b, c)     => Dep.Scala(a, b, c)
+      case Array(a, b, c) => Dep.Java(a, b, c)
+      case Array(a, "", b, c) => Dep.Scala(a, b, c)
       case Array(a, "", "", b, c) => Dep.Point(a, b, c)
-      case _                      => throw new Exception(s"Unable to parse signature: [$signature]")
+      case _ => throw new Exception(s"Unable to parse signature: [$signature]")
     }
   }
   def apply(org: String, name: String, version: String): Dep = {

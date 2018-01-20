@@ -164,7 +164,7 @@ object GraphTests extends TestSuite {
         val topoSorted =
           Graph.topoSorted(Graph.transitiveTargets(Agg.from(goals)))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
-          case t: NamedTask[Any]      => t
+          case t: NamedTask[Any] => t
           case t if goals.contains(t) => t
         }
         grouped.keyCount
