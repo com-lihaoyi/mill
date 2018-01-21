@@ -47,13 +47,10 @@ object TestRunner {
             case f: AnnotatedFingerprint =>
               (f.isModule == cls.getName.endsWith("$")) &&
                 cls.isAnnotationPresent(
-                  cl.loadClass(f.annotationName())
-                    .asInstanceOf[Class[Annotation]]
+                  cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
                 )
           }
-          .map { f =>
-            (cls, f)
-          }
+          .map(f => (cls, f))
       }
     }
     testClasses
@@ -122,36 +119,47 @@ object TestRunner {
           )
           val events = mutable.Buffer.empty[Event]
           for (t <- tasks) {
-            t.execute(new EventHandler {
-              def handle(event: Event) = events.append(event)
-            }, Array(new Logger {
-              def debug(msg: String) = ctx.log.info(msg)
+            t.execute(
+              new EventHandler {
+                def handle(event: Event) = events.append(event)
+              },
+              Array(new Logger {
+                def debug(msg: String) = ctx.log.info(msg)
 
-              def error(msg: String) = ctx.log.error(msg)
+                def error(msg: String) = ctx.log.error(msg)
 
-              def ansiCodesSupported() = true
+                def ansiCodesSupported() = true
 
-              def warn(msg: String) = ctx.log.info(msg)
+                def warn(msg: String) = ctx.log.info(msg)
 
-              def trace(t: Throwable) =
-                t.printStackTrace(ctx.log.outputStream)
+                def trace(t: Throwable) =
+                  t.printStackTrace(ctx.log.outputStream)
 
-              def info(msg: String) = ctx.log.info(msg)
-            }))
+                def info(msg: String) = ctx.log.info(msg)
+              })
+            )
           }
           val doneMsg = runner.done()
           val results = for (e <- events) yield {
             val ex =
               if (e.throwable().isDefined) Some(e.throwable().get)
               else None
-            Result(e.fullyQualifiedName(), e.selector() match {
-              case s: NestedSuiteSelector => s.suiteId()
-              case s: NestedTestSelector =>
-                s.suiteId() + "." + s.testName()
-              case s: SuiteSelector => s.toString
-              case s: TestSelector => s.testName()
-              case s: TestWildcardSelector => s.testWildcard()
-            }, e.duration(), e.status(), ex.map(_.getClass.getName), ex.map(_.getMessage), ex.map(_.getStackTrace))
+            Result(
+              e.fullyQualifiedName(),
+              e.selector() match {
+                case s: NestedSuiteSelector => s.suiteId()
+                case s: NestedTestSelector =>
+                  s.suiteId() + "." + s.testName()
+                case s: SuiteSelector => s.toString
+                case s: TestSelector => s.testName()
+                case s: TestWildcardSelector => s.testWildcard()
+              },
+              e.duration(),
+              e.status(),
+              ex.map(_.getClass.getName),
+              ex.map(_.getMessage),
+              ex.map(_.getStackTrace)
+            )
           }
           (doneMsg, results)
         }
@@ -170,23 +178,25 @@ object TestRunner {
     implicit def resultRW: upickle.default.ReadWriter[Result] =
       upickle.default.macroRW[Result]
     implicit def statusRW: upickle.default.ReadWriter[Status] =
-      upickle.default.ReadWriter[Status]({
-        case Status.Success => Js.Str("Success")
-        case Status.Error => Js.Str("Error")
-        case Status.Failure => Js.Str("Failure")
-        case Status.Skipped => Js.Str("Skipped")
-        case Status.Ignored => Js.Str("Ignored")
-        case Status.Canceled => Js.Str("Canceled")
-        case Status.Pending => Js.Str("Pending")
-      }, {
-        case Js.Str("Success") => Status.Success
-        case Js.Str("Error") => Status.Error
-        case Js.Str("Failure") => Status.Failure
-        case Js.Str("Skipped") => Status.Skipped
-        case Js.Str("Ignored") => Status.Ignored
-        case Js.Str("Canceled") => Status.Canceled
-        case Js.Str("Pending") => Status.Pending
-      })
+      upickle.default.ReadWriter[Status](
+        {
+          case Status.Success => Js.Str("Success")
+          case Status.Error => Js.Str("Error")
+          case Status.Failure => Js.Str("Failure")
+          case Status.Skipped => Js.Str("Skipped")
+          case Status.Ignored => Js.Str("Ignored")
+          case Status.Canceled => Js.Str("Canceled")
+          case Status.Pending => Js.Str("Pending")
+        }, {
+          case Js.Str("Success") => Status.Success
+          case Js.Str("Error") => Status.Error
+          case Js.Str("Failure") => Status.Failure
+          case Js.Str("Skipped") => Status.Skipped
+          case Js.Str("Ignored") => Status.Ignored
+          case Js.Str("Canceled") => Status.Canceled
+          case Js.Str("Pending") => Status.Pending
+        }
+      )
   }
 
 }

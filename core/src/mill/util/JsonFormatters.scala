@@ -11,10 +11,12 @@ trait JsonFormatters {
     })
 
   implicit val bytesReadWrite: RW[Bytes] =
-    RW[Bytes](o => Js.Str(javax.xml.bind.DatatypeConverter.printBase64Binary(o.array)), {
-      case Js.Str(json) =>
-        new Bytes(javax.xml.bind.DatatypeConverter.parseBase64Binary(json.toString))
-    })
+    RW[Bytes](
+      o => Js.Str(javax.xml.bind.DatatypeConverter.printBase64Binary(o.array)), {
+        case Js.Str(json) =>
+          new Bytes(javax.xml.bind.DatatypeConverter.parseBase64Binary(json.toString))
+      }
+    )
 
   implicit lazy val crFormat: RW[ammonite.ops.CommandResult] =
     upickle.default.macroRW

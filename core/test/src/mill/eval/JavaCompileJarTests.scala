@@ -158,13 +158,16 @@ object JavaCompileJarTests extends TestSuite {
 
       assert(ex.getMessage.contains("Could not find or load main class"))
 
-      append(sourceRootPath / "Bar.java", """
+      append(
+        sourceRootPath / "Bar.java",
+        """
         class BarFour{
           public static void main(String[] args){
             System.out.println("New Cls!");
           }
         }
-        """)
+        """
+      )
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(runOutput2.out.string == "New Cls!\n", evalCount2 == 4)
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
