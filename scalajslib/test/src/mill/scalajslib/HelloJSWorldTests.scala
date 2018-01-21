@@ -100,7 +100,7 @@ object HelloJSWorldTests extends TestSuite {
       'fromScratch_2124_0621 - testCompileFromScratch("2.12.4", "0.6.21")
       'fromScratch_2123_0621 - testCompileFromScratch("2.12.3", "0.6.21")
       'fromScratch_2118_0621 - testCompileFromScratch("2.11.8", "0.6.21")
-      'fromScratch_2124_100M2 - testCompileFromScratch("2.11.8", "1.0.0-M2")
+      'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
     def testRun(scalaVersion: String,
@@ -119,13 +119,13 @@ object HelloJSWorldTests extends TestSuite {
       'run_2124_0621 - testRun("2.12.4", "0.6.21", FullOpt)
       'run_2123_0621 - testRun("2.12.3", "0.6.21", FullOpt)
       'run_2118_0621 - testRun("2.11.8", "0.6.21", FullOpt)
-      'run_2124_100M2 - testRun("2.11.8", "1.0.0-M2", FullOpt)
+      'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FullOpt)
     }
     'fastOpt - {
       'run_2124_0621 - testRun("2.12.4", "0.6.21", FastOpt)
       'run_2123_0621 - testRun("2.12.3", "0.6.21", FastOpt)
       'run_2118_0621 - testRun("2.11.8", "0.6.21", FastOpt)
-      'run_2124_100M2 - testRun("2.11.8", "1.0.0-M2", FastOpt)
+      'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FastOpt)
     }
     'jar - {
       'containsSJSIRs - {
