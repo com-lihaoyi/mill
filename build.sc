@@ -119,8 +119,7 @@ object scalaworker extends MillModule{
   def moduleDeps = Seq(core, scalalib)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt::zinc:1.0.5",
-    ivy"org.scala-sbt:test-interface:1.0"
+    ivy"org.scala-sbt::zinc:1.0.5"
   )
   def testArgs = Seq(
     "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -130,6 +129,10 @@ object scalaworker extends MillModule{
 
 object scalalib extends MillModule {
   def moduleDeps = Seq(core)
+
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt:test-interface:1.0"
+  )
 
   def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
 
@@ -175,13 +178,20 @@ object scalajslib extends MillModule {
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
   class JsBridgeModule(scalajsBinary: String) extends MillModule{
     def moduleDeps = Seq(scalajslib)
-    val scalajsVersion = scalajsBinary match {
-      case "0.6" => "0.6.21"
-      case "1.0" => "1.0.0-M2"
+    def ivyDeps = scalajsBinary match {
+      case "0.6" =>
+        Agg(
+          ivy"org.scala-js::scalajs-tools:0.6.21",
+          ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.21",
+          ivy"org.scala-js::scalajs-js-envs:0.6.21"
+        )
+      case "1.0" =>
+        Agg(
+          ivy"org.scala-js::scalajs-tools:1.0.0-M2",
+          ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2",
+          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
+        )
     }
-    def ivyDeps = Agg(
-      ivy"org.scala-js::scalajs-tools:$scalajsVersion"
-    )
   }
 }
 def testRepos = T{
