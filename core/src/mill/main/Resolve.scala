@@ -24,8 +24,12 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand[V](target: mill.Module, name: String) = {
-          for(cmd <- discover.value.get(target.getClass).toSeq.flatten.find(_.name == name))
-          yield cmd.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+
+          for{
+            (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
+            ep <- entryPoints
+            if ep.name == name
+          } yield ep.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
             case Router.Result.Success(v) => Right(v)
             case _ => Left(s"Command failed $last")
           }
@@ -35,12 +39,12 @@ object Resolve {
           child <- obj.millInternal.reflectNestedObjects[mill.Module]
           if child.millOuterCtx.segment == Segment.Label(last)
           res <- child match{
-            case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()))
+            case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()).headOption)
             case _ => None
           }
         } yield res
 
-        val command = invokeCommand(obj, last)
+        val command = invokeCommand(obj, last).headOption
 
         command orElse target orElse runDefault.headOption.flatten match{
           case None =>  Left("Cannot resolve task " +

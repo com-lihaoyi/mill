@@ -162,33 +162,35 @@ object Jvm {
                (implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest
     rm(outputPath)
-    if(inputPaths.nonEmpty) {
-      mkdir(outputPath/up)
+    mkdir(outputPath/up)
 
-      val jar = new JarOutputStream(
-        new FileOutputStream(outputPath.toIO),
-        createManifest(mainClass)
-      )
+    val seen = mutable.Set.empty[RelPath]
+    seen.add("META-INF" / "MANIFEST.MF")
+    val jar = new JarOutputStream(
+      new FileOutputStream(outputPath.toIO),
+      createManifest(mainClass)
+    )
 
-      try{
-        assert(inputPaths.forall(exists(_)))
-        for{
-          p <- inputPaths
-          (file, mapping) <-
-            if (p.isFile) Iterator(p -> empty/p.last)
-            else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
-        } {
-          val entry = new JarEntry(mapping.toString)
-          entry.setTime(file.mtime.toMillis)
-          jar.putNextEntry(entry)
-          jar.write(read.bytes(file))
-          jar.closeEntry()
-        }
-      } finally {
-        jar.close()
+    try{
+      assert(inputPaths.forall(exists(_)))
+      for{
+        p <- inputPaths
+        (file, mapping) <-
+          if (p.isFile) Iterator(p -> empty/p.last)
+          else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
+        if !seen(mapping)
+      } {
+        seen.add(mapping)
+        val entry = new JarEntry(mapping.toString)
+        entry.setTime(file.mtime.toMillis)
+        jar.putNextEntry(entry)
+        jar.write(read.bytes(file))
+        jar.closeEntry()
       }
-
+    } finally {
+      jar.close()
     }
+
     PathRef(outputPath)
   }
 

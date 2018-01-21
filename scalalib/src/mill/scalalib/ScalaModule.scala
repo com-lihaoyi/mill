@@ -192,27 +192,27 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     val javadocDir = outDir / 'javadoc
     mkdir(javadocDir)
 
-    val options = {
+    val files = for{
+      ref <- sources()
+      if exists(ref.path)
+      p <- ls.rec(ref.path)
+      if p.isFile
+    } yield p.toNIO.toString
 
-      val files = for{
-        ref <- sources()
-        p <- ls.rec(ref.path)
-        if p.isFile
-      } yield p.toNIO.toString
-      files ++ Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
-    }
 
-    subprocess(
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
+
+    if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
       compileDepClasspath().filter(_.path.ext != "pom").map(_.path),
-      options = options.toSeq
+      options = (files ++ options).toSeq
     )
 
     createJar(Agg(javadocDir))(outDir / "javadoc.jar")
   }
 
   def sourcesJar = T {
-    createJar((sources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
+    createJar((allSources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
   }
 
   def forkArgs = T{ Seq.empty[String] }
