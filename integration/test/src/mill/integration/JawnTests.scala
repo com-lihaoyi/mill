@@ -4,7 +4,7 @@ import ammonite.ops._
 import utest._
 
 object JawnTests extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn") {
-  val tests = Tests{
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
@@ -16,7 +16,7 @@ object JawnTests extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn") {
         ls.rec(workspacePath).exists(_.last == "CharBuilderSpec.class")
       )
 
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
+      for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")) {
         write.append(scalaFile, "\n}")
       }
 

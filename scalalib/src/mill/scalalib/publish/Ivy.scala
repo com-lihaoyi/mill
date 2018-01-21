@@ -8,10 +8,7 @@ object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
-  def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency]
-  ): String = {
+  def apply(artifact: Artifact, dependencies: Agg[Dependency]): String = {
     val xml =
       <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
         <info
@@ -46,10 +43,10 @@ object Ivy {
   }
 
   private def scopeToConf(s: Scope): String = s match {
-    case Scope.Compile  => "compile"
+    case Scope.Compile => "compile"
     case Scope.Provided => "provided"
-    case Scope.Test     => "test"
-    case Scope.Runtime  => "runtime"
+    case Scope.Test => "test"
+    case Scope.Runtime => "runtime"
   }
 
 }

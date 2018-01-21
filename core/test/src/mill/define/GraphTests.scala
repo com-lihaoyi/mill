@@ -1,14 +1,12 @@
 package mill.define
 
-
 import mill.eval.Evaluator
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.util.Strict.Agg
-object GraphTests extends TestSuite{
+object GraphTests extends TestSuite {
 
-  val tests = Tests{
-
+  val tests = Tests {
 
     val graphs = new TestGraphs()
     import graphs._
@@ -25,10 +23,7 @@ object GraphTests extends TestSuite{
         targets = Agg(singleton.single),
         expected = Agg(singleton.single)
       )
-      'pair - check(
-        targets = Agg(pair.down),
-        expected = Agg(pair.up, pair.down)
-      )
+      'pair - check(targets = Agg(pair.down), expected = Agg(pair.up, pair.down))
       'anonTriple - check(
         targets = Agg(anonTriple.down),
         expected = Agg(anonTriple.up, anonTriple.down.inputs(0), anonTriple.down)
@@ -39,42 +34,50 @@ object GraphTests extends TestSuite{
       )
       'anonDiamond - check(
         targets = Agg(diamond.down),
-        expected = Agg(
-          diamond.up,
-          diamond.down.inputs(0),
-          diamond.down.inputs(1),
-          diamond.down
-        )
+        expected =
+          Agg(diamond.up, diamond.down.inputs(0), diamond.down.inputs(1), diamond.down)
       )
       'defCachedDiamond - check(
         targets = Agg(defCachedDiamond.down),
         expected = Agg(
           defCachedDiamond.up.inputs(0),
           defCachedDiamond.up,
-          defCachedDiamond.down.inputs(0).inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1).inputs(0),
-          defCachedDiamond.down.inputs(0).inputs(1),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(0)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(1)
+            .inputs(0),
+          defCachedDiamond.down
+            .inputs(0)
+            .inputs(1),
           defCachedDiamond.down.inputs(0),
           defCachedDiamond.down
         )
       )
       'bigSingleTerminal - {
-        val result = Graph.topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j))).values
+        val result = Graph
+          .topoSorted(Graph.transitiveTargets(Agg(bigSingleTerminal.j)))
+          .values
         TestUtil.checkTopological(result)
         assert(result.size == 28)
       }
     }
 
     'groupAroundNamedTargets - {
-      def check[T, R <: Target[Int]](base: T)
-                                    (target: T => R,
-                                     important0: Agg[T => Target[_]],
-                                     expected: Agg[(R, Int)]) = {
+      def check[T, R <: Target[Int]](base: T)(target: T => R,
+                                              important0: Agg[T => Target[_]],
+                                              expected: Agg[(R, Int)]) = {
 
-        val topoSorted = Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
+        val topoSorted =
+          Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
 
-        val important = important0.map(_ (base))
+        val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
           case t: Target[_] if important.contains(t) => t
         }
@@ -85,21 +88,15 @@ object GraphTests extends TestSuite{
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(terminal)
+            grouping
+              .flatMap(_.asTarget: Option[Target[_]])
+              .filter(important.contains) == Agg(terminal)
           )
         }
       }
 
-      'singleton - check(singleton)(
-        _.single,
-        Agg(_.single),
-        Agg(singleton.single -> 1)
-      )
-      'pair - check(pair)(
-        _.down,
-        Agg(_.up, _.down),
-        Agg(pair.up -> 1, pair.down -> 1)
-      )
+      'singleton - check(singleton)(_.single, Agg(_.single), Agg(singleton.single -> 1))
+      'pair - check(pair)(_.down, Agg(_.up, _.down), Agg(pair.up -> 1, pair.down -> 1))
       'anonTriple - check(anonTriple)(
         _.down,
         Agg(_.up, _.down),
@@ -108,12 +105,7 @@ object GraphTests extends TestSuite{
       'diamond - check(diamond)(
         _.down,
         Agg(_.up, _.left, _.right, _.down),
-        Agg(
-          diamond.up -> 1,
-          diamond.left -> 1,
-          diamond.right -> 1,
-          diamond.down -> 1
-        )
+        Agg(diamond.up -> 1, diamond.left -> 1, diamond.right -> 1, diamond.down -> 1)
       )
 
       'defCachedDiamond - check(defCachedDiamond)(
@@ -130,10 +122,7 @@ object GraphTests extends TestSuite{
       'anonDiamond - check(anonDiamond)(
         _.down,
         Agg(_.down, _.up),
-        Agg(
-          anonDiamond.up -> 1,
-          anonDiamond.down -> 3
-        )
+        Agg(anonDiamond.up -> 1, anonDiamond.down -> 3)
       )
       'bigSingleTerminal - check(bigSingleTerminal)(
         _.j,
@@ -151,9 +140,8 @@ object GraphTests extends TestSuite{
     'multiTerminalGroupCounts - {
       def countGroups(goals: Task[_]*) = {
 
-        val topoSorted = Graph.topoSorted(
-          Graph.transitiveTargets(Agg.from(goals))
-        )
+        val topoSorted =
+          Graph.topoSorted(Graph.transitiveTargets(Agg.from(goals)))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
           case t: NamedTask[Any] => t
           case t if goals.contains(t) => t
@@ -176,14 +164,12 @@ object GraphTests extends TestSuite{
         assert(groupCount == 2)
       }
 
-
       'multiTerminalGroup - {
         // Make sure the following graph ends up as two groups
         import multiTerminalGroup._
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
-
 
       'multiTerminalBoundary - {
         // Make sure the following graph ends up as a three groups: one for
@@ -193,7 +179,6 @@ object GraphTests extends TestSuite{
         assert(groupCount == 3)
       }
     }
-
 
   }
 }

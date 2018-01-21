@@ -5,7 +5,6 @@ import java.io._
 import ammonite.ops.Path
 import ammonite.util.Colors
 
-
 /**
   * The standard logging interface of the Mill build tool.
   *
@@ -44,7 +43,7 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream{
+class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream {
   override def write(b: Array[Byte]): Unit = { f(); wrapped.write(b) }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
@@ -52,13 +51,14 @@ class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream{
     wrapped.write(b, off, len)
   }
 
-  def write(b: Int) = {f(); wrapped.write(b)}
+  def write(b: Int) = { f(); wrapped.write(b) }
 }
 case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
                        outStream: PrintStream,
                        infoStream: PrintStream,
-                       errStream: PrintStream) extends Logger {
+                       errStream: PrintStream)
+    extends Logger {
 
   var lastLineTicker = false
   def falseTicker[T](t: T) = {
@@ -72,7 +72,6 @@ case class PrintLogger(colored: Boolean,
     new CallbackStream(outStream, () => lastLineTicker = false)
   )
 
-
   def info(s: String) = {
     lastLineTicker = false
     infoStream.println(colors.info()(s))
@@ -82,14 +81,14 @@ case class PrintLogger(colored: Boolean,
     errStream.println(colors.error()(s))
   }
   def ticker(s: String) = {
-    if (lastLineTicker){
+    if (lastLineTicker) {
       val p = new PrintWriter(infoStream)
       val nav = new ammonite.terminal.AnsiNav(p)
       nav.up(1)
       nav.clearLine(2)
       nav.left(9999)
       p.flush()
-    }else{
+    } else {
       infoStream.println()
     }
     lastLineTicker = true

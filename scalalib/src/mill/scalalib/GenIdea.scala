@@ -13,101 +13,118 @@ object GenIdea {
   def apply()(implicit ctx: LoaderCtx with LogCtx): Unit = {
     val rootModule = ctx.load(RootModuleLoader)
     val pp = new scala.xml.PrettyPrinter(999, 4)
-    rm! pwd/".idea"
-    rm! pwd/".idea_modules"
+    rm ! pwd / ".idea"
+    rm ! pwd / ".idea_modules"
 
+    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule, ctx.log)
 
-    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule , ctx.log)
-
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
-      write.over(pwd/relPath, pp.format(xml))
+    for ((relPath, xml) <- xmlFileLayout(evaluator, rootModule)) {
+      write.over(pwd / relPath, pp.format(xml))
     }
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator[T],
+                       rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
+    val modules = rootModule.millInternal.segmentsToModules.values.collect {
+      case x: scalalib.ScalaModule => (x.millModuleSegments, x)
+    }.toSeq
 
-    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.ScalaModule => (x.millModuleSegments, x)}.toSeq
-
-    val resolved = for((path, mod) <- modules) yield {
+    val resolved = for ((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
-        evaluator.evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
+        evaluator
+          .evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
           .values
 
-      (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
+      (
+        path,
+        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+        mod
+      )
     }
     val moduleLabels = modules.map(_.swap).toMap
 
     val fixedFiles = Seq(
-      Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
+      Tuple2(".idea" / "misc.xml", miscXmlTemplate()),
       Tuple2(
-        ".idea"/"modules.xml",
+        ".idea" / "modules.xml",
         allModulesXmlTemplate(
-          for((path, mod) <- modules)
+          for ((path, mod) <- modules)
           yield moduleName(path)
         )
       ),
-      Tuple2(".idea_modules"/"root.iml", rootXmlTemplate())
+      Tuple2(".idea_modules" / "root.iml", rootXmlTemplate())
     )
 
     val allResolved = resolved.flatMap(_._2).distinct
     val minResolvedLength = allResolved.map(_.segments.length).min
-    val commonPrefix = allResolved.map(_.segments.take(minResolvedLength))
+    val commonPrefix = allResolved
+      .map(_.segments.take(minResolvedLength))
       .transpose
       .takeWhile(_.distinct.length == 1)
       .length
 
-    val pathToLibName = allResolved
-      .map{p => (p, p.segments.drop(commonPrefix).mkString("_"))}
-      .toMap
+    val pathToLibName = allResolved.map { p =>
+      (p, p.segments.drop(commonPrefix).mkString("_"))
+    }.toMap
 
-    val libraries = allResolved.map{path =>
+    val libraries = allResolved.map { path =>
       val url = "jar://" + path + "!/"
       val name = pathToLibName(path)
-      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
+      Tuple2(".idea" / 'libraries / s"$name.xml", libraryXmlTemplate(name, url))
     }
 
-    val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
-      val Seq(
-        resoucesPathRefs: Loose.Agg[PathRef],
-        sourcesPathRef: Loose.Agg[PathRef],
-        generatedSourcePathRefs: Loose.Agg[PathRef],
-        allSourcesPathRefs: Loose.Agg[PathRef]
-      ) = evaluator.evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources)).values
+    val moduleFiles = resolved.map {
+      case (path, resolvedDeps, mod) =>
+        val Seq(
+          resoucesPathRefs: Loose.Agg[PathRef],
+          sourcesPathRef: Loose.Agg[PathRef],
+          generatedSourcePathRefs: Loose.Agg[PathRef],
+          allSourcesPathRefs: Loose.Agg[PathRef]
+        ) = evaluator
+          .evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources))
+          .values
 
-      val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
-      val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
+        val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
+        val normalSourcePaths =
+          (allSourcesPathRefs
+            .map(_.path)
+            .toSet -- generatedSourcePaths.toSet).toSeq
 
-      val paths = Evaluator.resolveDestPaths(
-        evaluator.workspacePath,
-        mod.compile.ctx.segments
-      )
+        val paths = Evaluator
+          .resolveDestPaths(evaluator.workspacePath, mod.compile.ctx.segments)
 
-      val elem = moduleXmlTemplate(
-        Strict.Agg.from(resoucesPathRefs.map(_.path)),
-        Strict.Agg.from(normalSourcePaths),
-        Strict.Agg.from(generatedSourcePaths),
-        paths.out,
-        Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
-      )
-      Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
+        val elem =
+          moduleXmlTemplate(
+            Strict.Agg.from(resoucesPathRefs.map(_.path)),
+            Strict.Agg.from(normalSourcePaths),
+            Strict.Agg.from(generatedSourcePaths),
+            paths.out,
+            Strict.Agg.from(resolvedDeps.map(pathToLibName)),
+            Strict.Agg.from(mod.moduleDeps.map { m =>
+              moduleName(moduleLabels(m))
+            }.distinct)
+          )
+        Tuple2(".idea_modules" / s"${moduleName(path)}.iml", elem)
     }
     fixedFiles ++ libraries ++ moduleFiles
   }
 
-
   def relify(p: Path) = {
-    val r = p.relativeTo(pwd/".idea_modules")
+    val r = p.relativeTo(pwd / ".idea_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
-    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-    case (sb, Segment.Label(s)) => sb.append(".").append(s)
-    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-  }.mkString.toLowerCase()
+  def moduleName(p: Segments) =
+    p.value
+      .foldLeft(StringBuilder.newBuilder) {
+        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+        case (sb, Segment.Label(s)) => sb.append(".").append(s)
+        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+      }
+      .mkString
+      .toLowerCase()
 
   def miscXmlTemplate() = {
     <project version="4">

@@ -13,17 +13,26 @@ object Artifact {
       case Dep.Java(dep) =>
         Dependency(
           Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile)
+          Scope.Compile
+        )
       case Dep.Scala(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaBin}",
-                            dep.version),
-                   Scope.Compile)
+        Dependency(
+          Artifact(
+            dep.module.organization,
+            s"${dep.module.name}_${scalaBin}",
+            dep.version
+          ),
+          Scope.Compile
+        )
       case Dep.Point(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaFull}",
-                            dep.version),
-                   Scope.Compile)
+        Dependency(
+          Artifact(
+            dep.module.organization,
+            s"${dep.module.name}_${scalaFull}",
+            dep.version
+          ),
+          Scope.Compile
+        )
     }
   }
 }
@@ -36,35 +45,21 @@ object Scope {
   case object Test extends Scope
 }
 
-case class Dependency(
-    artifact: Artifact,
-    scope: Scope
-)
+case class Dependency(artifact: Artifact, scope: Scope)
 
-case class License(
-    name: String,
-    url: String,
-    distribution: String = "repo"
-)
+case class License(name: String, url: String, distribution: String = "repo")
 
-case class SCM(
-    url: String,
-    connection: String
-)
+case class SCM(url: String, connection: String)
 
-case class Developer(
-    id: String,
-    name: String,
-    url: String,
-    organization: Option[String] = None,
-    organizationUrl: Option[String] = None
-)
+case class Developer(id: String,
+                     name: String,
+                     url: String,
+                     organization: Option[String] = None,
+                     organizationUrl: Option[String] = None)
 
-case class PomSettings(
-    description: String,
-    organization: String,
-    url: String,
-    licenses: Seq[License],
-    scm: SCM,
-    developers: Seq[Developer]
-)
+case class PomSettings(description: String,
+                       organization: String,
+                       url: String,
+                       licenses: Seq[License],
+                       scm: SCM,
+                       developers: Seq[Developer])

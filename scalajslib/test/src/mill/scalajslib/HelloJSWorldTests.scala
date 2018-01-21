@@ -13,9 +13,7 @@ import utest._
 
 import scala.collection.JavaConverters._
 
-
 object HelloJSWorldTests extends TestSuite {
-
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
     override def basePath = HelloJSWorldTests.workspacePath
@@ -28,25 +26,29 @@ object HelloJSWorldTests extends TestSuite {
       scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
     } yield (scala, scalaJS)
 
-    object build extends Cross[BuildModule](matrix:_*)
+    object build extends Cross[BuildModule](matrix: _*)
 
-    class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
+    class BuildModule(scalaVersion0: String, sjsVersion0: String)
+        extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0
       def scalaJSVersion = sjsVersion0
-      def pomSettings = PomSettings(
-        organization = "com.lihaoyi",
-        description = "hello js world ready for real world publishing",
-        url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(
-          License("Apache License, Version 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0")),
-        scm = SCM(
-          "https://github.com/lihaoyi/hello-world-publish",
-          "scm:git:https://github.com/lihaoyi/hello-world-publish"
-        ),
-        developers =
-          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-      )
+      def pomSettings =
+        PomSettings(
+          organization = "com.lihaoyi",
+          description = "hello js world ready for real world publishing",
+          url = "https://github.com/lihaoyi/hello-world-publish",
+          licenses = Seq(
+            License(
+              "Apache License, Version 2.0",
+              "http://www.apache.org/licenses/LICENSE-2.0"
+            )
+          ),
+          scm = SCM(
+            "https://github.com/lihaoyi/hello-world-publish",
+            "scm:git:https://github.com/lihaoyi/hello-world-publish"
+          ),
+          developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
+        )
     }
   }
 
@@ -55,11 +57,8 @@ object HelloJSWorldTests extends TestSuite {
   val outputPath = workspacePath / 'out
   val mainObject = workspacePath / 'src / "Main.scala"
 
-  val helloWorldEvaluator = new TestEvaluator(
-    HelloJSWorld,
-    workspacePath,
-    srcPath
-  )
+  val helloWorldEvaluator =
+    new TestEvaluator(HelloJSWorld, workspacePath, srcPath)
 
   class Console {
     val out = new StringWriter()
@@ -78,18 +77,14 @@ object HelloJSWorldTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
-      def testCompileFromScratch(scalaVersion: String,
-                          scalaJSVersion: String): Unit = {
+      def testCompileFromScratch(scalaVersion: String, scalaJSVersion: String): Unit = {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
 
         val outPath = result.classes.path
         val outputFiles = ls.rec(outPath)
         val expectedClassfiles = compileClassfiles(outPath)
-        assert(
-          outputFiles.toSet == expectedClassfiles,
-          evalCount > 0
-        )
+        assert(outputFiles.toSet == expectedClassfiles, evalCount > 0)
 
         // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) =
@@ -129,7 +124,8 @@ object HelloJSWorldTests extends TestSuite {
     }
     'jar - {
       'containsSJSIRs - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.21").jar)
+        val Right((result, evalCount)) =
+          helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.21").jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
@@ -139,21 +135,27 @@ object HelloJSWorldTests extends TestSuite {
       def testArtifactId(scalaVersion: String,
                          scalaJSVersion: String,
                          artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
+        val Right((result, evalCount)) =
+          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
       'artifactId_0621 - testArtifactId("2.12.4", "0.6.21", "hello-js-world_sjs0.6_2.12")
-      'artifactId_0621 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
+      'artifactId_0621 - testArtifactId(
+        "2.12.4",
+        "1.0.0-M2",
+        "hello-js-world_sjs1.0.0-M2_2.12"
+      )
     }
   }
 
-  def compileClassfiles(parentDir: Path) = Set(
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Main$.sjsir",
-    parentDir / "Main$delayedInit$body.sjsir"
-  )
+  def compileClassfiles(parentDir: Path) =
+    Set(
+      parentDir / "Main.class",
+      parentDir / "Main$.class",
+      parentDir / "Main$delayedInit$body.class",
+      parentDir / "Main$.sjsir",
+      parentDir / "Main$delayedInit$body.sjsir"
+    )
 
   def prepareWorkspace(): Unit = {
     rm(workspacePath)

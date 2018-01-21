@@ -4,9 +4,7 @@ import ammonite.ops.Path
 import mill.define.{Input, Target, Task}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
-class TestEvaluator(module: mill.Module,
-                    workspacePath: Path,
-                    basePath: Path){
+class TestEvaluator(module: mill.Module, workspacePath: Path, basePath: Path) {
   val evaluator = new Evaluator(workspacePath, basePath, module, DummyLogger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
@@ -17,13 +15,16 @@ class TestEvaluator(module: mill.Module,
         Tuple2(
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
-            case t: Target[_] if module.millInternal.targets.contains(t) && !t.isInstanceOf[Input[_]] => t
-            case t: mill.define.Command[_]           => t
+            case t: Target[_]
+                if module.millInternal.targets.contains(t)
+                  && !t.isInstanceOf[Input[_]] =>
+              t
+            case t: mill.define.Command[_] => t
           }.size
-        ))
+        )
+      )
     } else {
-      Left(
-        evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
+      Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
     }
   }
 

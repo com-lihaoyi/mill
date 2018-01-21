@@ -4,6 +4,7 @@ package scalalib
 import ammonite.ops._
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
+
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */
@@ -49,22 +50,24 @@ trait PublishModule extends ScalaModule { outer =>
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  def sonatypeSnapshotUri: String =
+    "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] = T.command {
-    val baseName = s"${artifactId()}-${publishVersion()}"
-    val artifacts = Seq(
-      jar().path -> s"${baseName}.jar",
-      sourcesJar().path -> s"${baseName}-sources.jar",
-      docsJar().path -> s"${baseName}-javadoc.jar",
-      pom().path -> s"${baseName}.pom"
-    )
-    new SonatypePublisher(
-      sonatypeUri,
-      sonatypeSnapshotUri,
-      credentials,
-      gpgPassphrase,
-      T.ctx().log
-    ).publish(artifacts, artifact())
-  }
+  def publish(credentials: String, gpgPassphrase: String): define.Command[Unit] =
+    T.command {
+      val baseName = s"${artifactId()}-${publishVersion()}"
+      val artifacts = Seq(
+        jar().path -> s"${baseName}.jar",
+        sourcesJar().path -> s"${baseName}-sources.jar",
+        docsJar().path -> s"${baseName}-javadoc.jar",
+        pom().path -> s"${baseName}.pom"
+      )
+      new SonatypePublisher(
+        sonatypeUri,
+        sonatypeSnapshotUri,
+        credentials,
+        gpgPassphrase,
+        T.ctx().log
+      ).publish(artifacts, artifact())
+    }
 }

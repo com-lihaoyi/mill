@@ -33,11 +33,9 @@ class SonatypePublisher(uri: String,
         )
     }
 
-    val publishPath = Seq(
-      artifact.group.replace(".", "/"),
-      artifact.id,
-      artifact.version
-    ).mkString("/")
+    val publishPath =
+      Seq(artifact.group.replace(".", "/"), artifact.id, artifact.version)
+        .mkString("/")
 
     if (artifact.isSnapshot)
       publishSnapshot(publishPath, signedArtifactsWithDigest, artifact)
@@ -119,7 +117,8 @@ class SonatypePublisher(uri: String,
       attemptsLeft -= 1
       if (attemptsLeft == 0) {
         throw new RuntimeException(
-          s"Couldn't wait for staging repository to be ${status}. Failing")
+          s"Couldn't wait for staging repository to be ${status}. Failing"
+        )
       }
     }
   }
