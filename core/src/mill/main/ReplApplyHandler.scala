@@ -75,7 +75,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
           "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
         )
       )
-    case m: mill.Module if evaluator.rootModule.millModuleDirectChildren.contains(m) =>
+    case m: mill.Module if evaluator.rootModule.millInternal.modules.contains(m) =>
       pprint.Tree.Lazy( ctx =>
         Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
         (if (m.millInternal.reflect[mill.Module].isEmpty) Nil

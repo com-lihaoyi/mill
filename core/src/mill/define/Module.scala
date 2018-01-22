@@ -29,6 +29,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
+  override def toString = millModuleSegments.render
 }
 
 object Module{
