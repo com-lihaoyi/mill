@@ -26,7 +26,7 @@ object terminal extends Cross[TerminalModule](binCrossScalaVersions:_*)
 class TerminalModule(val crossScalaVersion: String) extends AmmModule{
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.3",
-    ivy"com.lihaoyi::fansi:0.2.3"
+    ivy"com.lihaoyi::fansi:0.2.4"
   )
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:$crossScalaVersion"
@@ -141,9 +141,10 @@ class ShellModule(val crossScalaVersion: String) extends AmmModule{
   def moduleDeps = Seq(ops(), amm())
   object test extends Tests{
     def moduleDeps = super.moduleDeps ++ Seq(amm.repl().test)
-    //    (test in Test) := (test in Test).dependsOn(packageBin in Compile).value,
-    //    (run in Test) := (run in Test).dependsOn(packageBin in Compile).evaluated,
-    //    (testOnly in Test) := (testOnly in Test).dependsOn(packageBin in Compile).evaluated
+    def forkEnv = super.forkEnv() ++ Seq(
+      "AMMONITE_TEST_SHELL" -> shell().jar().path.toString,
+      "AMMONITE_TEST_ASSEMBLY" -> amm().assembly().path.toString
+    )
   }
 }
 object integration extends Cross[IntegrationModule](fullCrossScalaVersions:_*)
@@ -155,6 +156,10 @@ class IntegrationModule(val crossScalaVersion: String) extends AmmModule{
   //  (console in Test) := (console in Test).dependsOn(integrationTasks:_*).value,
   //  initialCommands in (Test, console) := "ammonite.integration.Main.main(null)"
   object test extends Tests {
+    def forkEnv = super.forkEnv() ++ Seq(
+      "AMMONITE_TEST_SHELL" -> shell().jar().path.toString,
+      "AMMONITE_TEST_ASSEMBLY" -> amm().assembly().path.toString
+    )
   }
 }
 

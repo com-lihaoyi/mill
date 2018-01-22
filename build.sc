@@ -30,7 +30,6 @@ trait MillModule extends ScalaModule{ outer =>
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
-    def defaultCommandName() = "forkTest"
     def forkArgs = T{ testArgs() }
     def moduleDeps =
       if (this == core.test) Seq(core)

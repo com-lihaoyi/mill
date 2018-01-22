@@ -46,7 +46,7 @@ object Resolve {
 
         val command = invokeCommand(obj, last).headOption
 
-        command orElse target orElse runDefault.headOption.flatten match{
+        command orElse target orElse runDefault.flatten.headOption match{
           case None =>  Left("Cannot resolve task " +
             Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render
           )

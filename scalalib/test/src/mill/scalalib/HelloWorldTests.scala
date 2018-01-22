@@ -267,29 +267,6 @@ object HelloWorldTests extends TestSuite {
       'runIfMainClassProvided - {
         val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
         val Right((_, evalCount)) = helloWorldWithMainEvaluator(
-          HelloWorldWithMain.forkRun(runResult.toString)
-        )
-
-        assert(evalCount > 0)
-
-
-        assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
-        )
-      }
-      'notRunWithoutMainClass - {
-        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.forkRun())
-
-        assert(
-          err.isInstanceOf[RuntimeException]
-        )
-      }
-    }
-    'run - {
-      'runIfMainClassProvided - {
-        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
-        val Right((_, evalCount)) = helloWorldWithMainEvaluator(
           HelloWorldWithMain.run(runResult.toString)
         )
 
@@ -303,6 +280,29 @@ object HelloWorldTests extends TestSuite {
       }
       'notRunWithoutMainClass - {
         val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.run())
+
+        assert(
+          err.isInstanceOf[RuntimeException]
+        )
+      }
+    }
+    'run - {
+      'runIfMainClassProvided - {
+        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+        val Right((_, evalCount)) = helloWorldWithMainEvaluator(
+          HelloWorldWithMain.runLocal(runResult.toString)
+        )
+
+        assert(evalCount > 0)
+
+
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
+      'notRunWithoutMainClass - {
+        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.runLocal())
 
         assert(
           err.isInstanceOf[RuntimeException]

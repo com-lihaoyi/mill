@@ -33,17 +33,26 @@ object Jvm {
 
   def interactiveSubprocess(mainClass: String,
                             classPath: Agg[Path],
-                            options: Seq[String] = Seq.empty): Unit = {
+                            jvmArgs: Seq[String] = Seq.empty,
+                            envArgs: Map[String, String] = Map.empty,
+                            mainArgs: Seq[String] = Seq.empty,
+                            workingDir: Path = null): Unit = {
     import ammonite.ops.ImplicitWd._
-    %("java", "-cp", classPath.mkString(":"), mainClass, options)
+    val commandArgs =
+      Vector("java") ++
+        jvmArgs ++
+        Vector("-cp", classPath.mkString(":"), mainClass) ++
+        mainArgs
+
+    %.copy(envArgs = envArgs)(commandArgs)(workingDir)
   }
 
-  def inprocess(mainClass: String,
-    classPath: Agg[Path],
-    options: Seq[String] = Seq.empty)
-    (implicit ctx: Ctx): Unit = {
+  def runLocal(mainClass: String,
+               classPath: Agg[Path],
+               mainArgs: Seq[String] = Seq.empty)
+              (implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
-      getMainMethod(mainClass, cl).invoke(null, options.toArray)
+      getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
 
@@ -95,27 +104,29 @@ object Jvm {
 
   def subprocess(mainClass: String,
                  classPath: Agg[Path],
-                 jvmOptions: Seq[String] = Seq.empty,
-                 options: Seq[String] = Seq.empty,
+                 jvmArgs: Seq[String] = Seq.empty,
+                 envArgs: Map[String, String] = Map.empty,
+                 mainArgs: Seq[String] = Seq.empty,
                  workingDir: Path = null)
                 (implicit ctx: Ctx) = {
 
     val commandArgs =
       Vector("java") ++
-      jvmOptions ++
+      jvmArgs ++
       Vector("-cp", classPath.mkString(":"), mainClass) ++
-      options
+      mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     mkdir(workingDir1)
-    val proc =
+    val builder =
       new java.lang.ProcessBuilder()
         .directory(workingDir1.toIO)
         .command(commandArgs:_*)
         .redirectOutput(ProcessBuilder.Redirect.PIPE)
         .redirectError(ProcessBuilder.Redirect.PIPE)
-        .start()
 
+    for((k, v) <- envArgs) builder.environment().put(k, v)
+    val proc = builder.start()
     val stdout = proc.getInputStream
     val stderr = proc.getErrorStream
     val sources = Seq(

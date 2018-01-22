@@ -76,12 +76,13 @@ object Module{
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite
     // script/REPL runner always wraps user code in a wrapper object/trait
     def reflectNestedObjects[T: ClassTag] = {
-      reflect[T] ++
+      (reflect[T] ++
         outer
           .getClass
           .getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _)
           .flatMap(c => c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T]))
+        ).distinct
     }
   }
 }

@@ -7,7 +7,7 @@ import mill.define.{Cross, Task}
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess, inprocess}
+import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess, runLocal}
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
@@ -205,7 +205,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
       compileDepClasspath().filter(_.path.ext != "pom").map(_.path),
-      options = (files ++ options).toSeq
+      mainArgs = (files ++ options).toSeq
     )
 
     createJar(Agg(javadocDir))(outDir / "javadoc.jar")
@@ -217,38 +217,51 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def forkArgs = T{ Seq.empty[String] }
 
+  def forkEnv = T{ sys.env.toMap }
 
-  def run(args: String*) = T.command {
-    inprocess(
+  def runLocal(args: String*) = T.command {
+    Jvm.runLocal(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
-      args)
+      args
+    )
   }
 
-  def forkRun(args: String*) = T.command{
-    subprocess(
+  def run(args: String*) = T.command{
+    Jvm.interactiveSubprocess(
       mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
       forkArgs(),
+      forkEnv(),
       args,
       workingDir = ammonite.ops.pwd)
   }
 
+
+  def runMainLocal(mainClass: String, args: String*) = T.command {
+    Jvm.runLocal(
+      mainClass,
+      runClasspath().map(_.path),
+      args
+    )
+  }
+
   def runMain(mainClass: String, args: String*) = T.command{
-    subprocess(
+    Jvm.interactiveSubprocess(
       mainClass,
       runClasspath().map(_.path),
       forkArgs(),
+      forkEnv(),
       args,
       workingDir = ammonite.ops.pwd
     )
   }
 
   def console() = T.command{
-    interactiveSubprocess(
+    Jvm.interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
       classPath = runClasspath().map(_.path),
-      options = Seq("-usejavacp")
+      mainArgs = Seq("-usejavacp")
     )
   }
 
@@ -282,15 +295,16 @@ trait TestModule extends ScalaModule with TaskModule {
 
   def forkWorkingDir = ammonite.ops.pwd
 
-  def forkTest(args: String*) = T.command{
+  def test(args: String*) = T.command{
     mkdir(T.ctx().dest)
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
       classPath = Jvm.gatherClassloaderJars(),
-      jvmOptions = forkArgs(),
-      options = Seq(
+      jvmArgs = forkArgs(),
+      envArgs = forkEnv(),
+      mainArgs = Seq(
         testFramework(),
         runClasspath().map(_.path).mkString(" "),
         Seq(compile().classes.path).mkString(" "),
@@ -306,13 +320,26 @@ trait TestModule extends ScalaModule with TaskModule {
     TestModule.handleResults(doneMsg, results)
 
   }
-  def test(args: String*) = T.command{
-    val (doneMsg, results) = TestRunner(
-      testFramework(),
-      runClasspath().map(_.path),
-      Agg(compile().classes.path),
-      args
+  def testLocal(args: String*) = T.command{
+    mkdir(T.ctx().dest)
+    val outputPath = T.ctx().dest/"out.json"
+
+    Jvm.runLocal(
+      mainClass = "mill.scalalib.TestRunner",
+      classPath = Jvm.gatherClassloaderJars(),
+      mainArgs = Seq(
+        testFramework(),
+        runClasspath().map(_.path).mkString(" "),
+        Seq(compile().classes.path).mkString(" "),
+        args.mkString(" "),
+        outputPath.toString,
+        T.ctx().log.colored.toString
+      )
     )
+
+    val jsonOutput = upickle.json.read(outputPath.toIO)
+    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
+
   }
 }
