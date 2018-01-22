@@ -151,13 +151,16 @@ object RunScript{
         }
         EitherOps.sequence(selected)
       }
-      (watched, res) = evaluate(evaluator, targets)
+      (watched, res) = evaluate(
+        evaluator,
+        Agg.from(targets.flatten.distinct)
+      )
     } yield (watched, res)
   }
 
   def evaluate(evaluator: Evaluator[_],
-               targets: Seq[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
-    val evaluated = evaluator.evaluate(Agg.from(targets))
+               targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+    val evaluated = evaluator.evaluate(targets)
     val watched = evaluated.results
       .iterator
       .collect {
@@ -194,7 +197,7 @@ object RunScript{
           }
         }
 
-        watched -> Right(evaluated.values.zip(json))
+        watched -> Right(evaluated.values.zip(json.toSeq))
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }

@@ -126,13 +126,11 @@ object ParseArgs {
     }
 
   private def parseSelector(input: String) = {
-    val segment =
-      P(CharsWhileIn(('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).!).map(
-        Segment.Label
-      )
-    val crossSegment =
-      P("[" ~ CharsWhile(c => c != ',' && c != ']').!.rep(1, sep = ",") ~ "]")
-        .map(Segment.Cross)
+    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "_"
+    val ident = P( CharsWhileIn(identChars) ).!
+    val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
+    val segment = P( ident ).map( Segment.Label)
+    val crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     val query = P(segment ~ ("." ~ segment | crossSegment).rep ~ End).map {
       case (h, rest) => h :: rest.toList
     }

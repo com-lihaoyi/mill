@@ -61,7 +61,6 @@ object GenIdeaTests extends TestSuite {
         "gen-idea/idea/misc.xml" ->
           basePath / "generated" / ".idea" / "misc.xml",
       ).foreach { case (resource, generated) =>
-          println("checking "+resource)
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
           val generatedString = normaliseLibraryPaths(read! generated)
 

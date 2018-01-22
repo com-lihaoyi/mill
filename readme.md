@@ -126,14 +126,30 @@ mill --show --all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
 will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `scalalib` modules. 
 
 * Run targets in different cross build modules
+
 ```bash
 mill --all bridges[{2.11.11,2.12.4}].publish --  --credentials foo --gpgPassphrase bar
 ```
 
 will run `publish` command in both `brides[2.11.11]` and `bridges[2.12.4]` modules
 
-**Note**: When you run multiple targets with `--all` flag, they are not guaranteed to run in that exact order. 
-Mill will build task evaluation graph and run targets in correct order.
+You can also use the `_` wildcard and `__` recursive-wildcard to run groups of
+tasks:
+
+```bash
+# Run the `test` command of all top-level modules
+mill --all _.test
+
+# Run the `test` command of all modules, top-level or nested
+mill --all __.test
+
+# Run `compile` in every cross-module of `bridges`
+mill --all bridges[_].compile
+```
+
+**Note**: When you run multiple targets with `--all` flag, they are not
+guaranteed to run in that exact order. Mill will build task evaluation graph and
+run targets in correct order.
 
 ### REPL
 

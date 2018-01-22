@@ -43,6 +43,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
 trait NamedTask[+T] extends Task[T]{
   def ctx: mill.define.Ctx
   def label = ctx.segment match{case Segment.Label(v) => v}
+  override def toString = ctx.segments.render
 }
 trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)
@@ -232,7 +233,7 @@ class TargetImpl[+T](t: Task[T],
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
-  override def toString = ctx.enclosing + "@" + Integer.toHexString(System.identityHashCode(this))
+
 }
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,

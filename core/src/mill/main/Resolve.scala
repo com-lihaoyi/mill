@@ -11,7 +11,7 @@ object Resolve {
                     discover: Discover,
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
-                    revSelectorsSoFar: List[Segment]): Either[String, Task[Any]] = {
+                    revSelectorsSoFar: List[Segment]): Either[String, Seq[Task[Any]]] = {
 
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
@@ -23,7 +23,7 @@ object Resolve {
             .find(_.label == last)
             .map(Right(_))
 
-        def invokeCommand[V](target: mill.Module, name: String) = {
+        def invokeCommand(target: mill.Module, name: String) = {
 
           for{
             (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
@@ -52,7 +52,7 @@ object Resolve {
           )
           // Contents of `either` *must* be a `Task`, because we only select
           // methods returning `Task` in the discovery process
-          case Some(either) => either.right.map{ case x: Task[Any] => x }
+          case Some(either) => either.right.map{ case x: Task[Any] => Seq(x) }
         }
 
 
@@ -60,20 +60,62 @@ object Resolve {
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Segment.Label(singleLabel) =>
-            obj.millInternal.reflectNestedObjects[mill.Module].find{
-              _.millOuterCtx.segment == Segment.Label(singleLabel)
-            } match{
-              case Some(child: mill.Module) => resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
-              case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+            if (singleLabel == "__"){
+              val matching =
+                obj.millInternal
+                  .modules
+                  .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
+                  .collect{case Right(vs) => vs}.flatten
+
+              if (matching.nonEmpty) Right(matching.toSeq)
+              else Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+            }else if (singleLabel == "_") {
+              val matching =
+                obj.millInternal
+                  .reflectNestedObjects[mill.Module]
+                  .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
+                  .collect{case Right(vs) => vs}.flatten
+
+              if (matching.nonEmpty)Right(matching)
+              else Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+            }else{
+
+              obj.millInternal.reflectNestedObjects[mill.Module].find{
+                _.millOuterCtx.segment == Segment.Label(singleLabel)
+              } match{
+                case Some(child: mill.Module) => resolve(tail, child, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+                case None => Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+              }
             }
 
           case Segment.Cross(cross) =>
             obj match{
               case c: Cross[_] =>
-                c.itemMap.get(cross.toList) match{
-                  case Some(m: mill.Module) => resolve(tail, m, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
-                  case None => Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+                if(cross == Seq("__")){
+                  val matching =
+                    for ((k, v) <- c.items)
+                    yield resolve(tail, v.asInstanceOf[mill.Module], discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
 
+                  val results = matching.collect{case Right(res) => res}.flatten
+
+                  if (results.isEmpty) Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+                  else Right(results)
+                } else if (cross.contains("_")){
+                  val matching = for {
+                    (k, v) <- c.items
+                    if k.length == cross.length
+                    if k.zip(cross).forall { case (l, r) => l == r || r == "_" }
+                  } yield resolve(tail, v.asInstanceOf[mill.Module], discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+
+                  val results = matching.collect{case Right(res) => res}.flatten
+
+                  if (results.isEmpty) Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+                  else Right(results)
+                }else{
+                  c.itemMap.get(cross.toList) match{
+                    case Some(m: mill.Module) => resolve(tail, m, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar)
+                    case None => Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+                  }
                 }
               case _ => Left("Cannot resolve cross " + Segments(newRevSelectorsSoFar.reverse:_*).render)
             }

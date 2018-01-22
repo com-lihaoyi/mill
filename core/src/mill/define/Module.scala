@@ -37,8 +37,9 @@ object Module{
       def rec(m: Module): Seq[T] = f(m) ++ m.millModuleDirectChildren.flatMap(rec)
       rec(outer)
     }
-    lazy val segmentsToModules = traverse{m => Seq(m.millModuleSegments -> m)}
-      .toMap
+
+    lazy val modules = traverse(Seq(_))
+    lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
 
     lazy val targets = traverse{_.millInternal.reflect[Target[_]]}.toSet
 
