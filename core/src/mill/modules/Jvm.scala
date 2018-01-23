@@ -9,12 +9,14 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
-import mill.util.Ctx
+import mill.util.{Ctx, Loose}
 import mill.util.Ctx.LogCtx
 import mill.util.Loose.Agg
+import upickle.default.{Reader, Writer}
 
 import scala.annotation.tailrec
 import scala.collection.mutable
+import scala.reflect.ClassTag
 
 
 object Jvm {
@@ -71,9 +73,10 @@ object Jvm {
   }
 
 
+
   def inprocess[T](classPath: Agg[Path],
-    classLoaderOverrideSbtTesting: Boolean,
-    body: ClassLoader => T): T = {
+                   classLoaderOverrideSbtTesting: Boolean,
+                   body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
       new URLClassLoader(

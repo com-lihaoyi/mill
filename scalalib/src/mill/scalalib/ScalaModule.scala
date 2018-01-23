@@ -11,8 +11,6 @@ import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subpr
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
-import sbt.testing.Status
-
 /**
   * Core configuration required to compile a single Scala compilation target
   */
@@ -150,9 +148,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def resources = T.input{ Agg(PathRef(basePath / 'resources)) }
   def generatedSources = T { Agg.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
+
   def compile: T[CompilationResult] = T.persistent{
-    compileScala(
-      ZincWorker(),
+    mill.scalalib.ScalaWorkerApi.scalaWorker().compileScala(
       scalaVersion(),
       allSources().map(_.path),
       compileDepClasspath().map(_.path),
@@ -165,6 +163,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
+  
   def runClasspath = T{
     runDepClasspath() ++ resources() ++ Seq(compile().classes)
   }
@@ -281,7 +280,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
 object TestModule{
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
-    if (results.count(Set(Status.Error, Status.Failure)) == 0) Result.Success((doneMsg, results))
+    if (results.count(Set("Error", "Failure")) == 0) Result.Success((doneMsg, results))
     else {
       val grouped = results.map(_.status).groupBy(x => x).mapValues(_.length).filter(_._2 != 0).toList.sorted
 

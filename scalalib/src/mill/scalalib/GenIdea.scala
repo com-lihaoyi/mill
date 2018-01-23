@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import ammonite.ops._
-import mill.define.{Segment, Segments, Target}
+import mill.define.{BaseModule, Segment, Segments, Target}
 import mill.eval.{Evaluator, PathRef, RootModuleLoader}
 import mill.scalalib
 import mill.util.Ctx.{LoaderCtx, LogCtx}
@@ -10,8 +10,8 @@ import mill.util.Strict.Agg
 
 object GenIdea {
 
-  def apply()(implicit ctx: LoaderCtx with LogCtx): Unit = {
-    val rootModule = ctx.load(RootModuleLoader)
+  def apply()(implicit ctx: LogCtx, rootModule0: BaseModule.Implicit): Unit = {
+    val rootModule = rootModule0.value
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"

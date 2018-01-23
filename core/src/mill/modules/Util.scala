@@ -1,6 +1,6 @@
 package mill.modules
 
-import ammonite.ops.RelPath
+import ammonite.ops.{Path, RelPath}
 import mill.eval.PathRef
 import mill.util.Ctx
 

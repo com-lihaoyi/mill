@@ -28,7 +28,6 @@ val sharedSettings = Seq(
   mainClass in Test := Some("ammonite.Main")
 )
 
-
 val pluginSettings = Seq(
   scalacOptions in Test ++= {
     val jarFile = (packageBin in (moduledefs, Compile)).value
@@ -106,9 +105,7 @@ lazy val core = project
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
       "com.lihaoyi" %% "sourcecode" % "0.1.4",
       "com.lihaoyi" %% "pprint" % "0.5.3",
-      "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
-      "org.scala-sbt" %% "zinc" % "1.0.5",
-      "org.scala-sbt" % "test-interface" % "1.0"
+      "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
     ),
     sourceGenerators in Compile += {
       ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateCoreSources", _))
@@ -143,6 +140,9 @@ val bridgeProps = Def.task{
   )
   for((k, v) <- mapping) yield s"-D$k=$v"
 }
+lazy val scalaWorkerProps = Def.task{
+  Seq("-DMILL_SCALA_WORKER=" + (fullClasspath in (scalaworker, Compile)).value.map(_.data).mkString(","))
+}
 
 lazy val scalalib = project
   .dependsOn(core % "compile->compile;test->test")
@@ -151,9 +151,24 @@ lazy val scalalib = project
     pluginSettings,
     name := "mill-scalalib",
     fork := true,
-    baseDirectory in Test := (baseDirectory in Test).value / "..",
-    javaOptions := bridgeProps.value.toSeq
+    baseDirectory in Test := (baseDirectory in Test).value / ".."
   )
+
+lazy val scalaworker: Project = project
+  .dependsOn(core, scalalib)
+  .settings(
+    sharedSettings,
+    pluginSettings,
+    name := "mill-scalaworker",
+    fork := true,
+    libraryDependencies ++= Seq(
+      "org.scala-sbt" %% "zinc" % "1.0.5",
+      "org.scala-sbt" % "test-interface" % "1.0"
+    )
+  )
+
+(javaOptions in scalalib) := bridgeProps.value.toSeq ++ scalaWorkerProps.value
+
 lazy val scalajslib = project
   .dependsOn(scalalib % "compile->compile;test->test")
   .settings(
@@ -247,7 +262,11 @@ lazy val bin = project
     mainClass in (Test, run) := Some("mill.Main"),
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     assemblyOption in assembly := {
-      val extraArgs = (bridgeProps.value ++ jsbridgeProps.value).mkString(" ")
+      val extraArgs = (
+        bridgeProps.value ++
+        jsbridgeProps.value ++
+        scalaWorkerProps.value
+      ).mkString(" ")
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(
           Seq(

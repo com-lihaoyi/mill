@@ -89,7 +89,9 @@ object Module{
 trait TaskModule extends Module {
   def defaultCommandName(): String
 }
-
+object BaseModule{
+  case class Implicit(value: BaseModule)
+}
 class BaseModule(basePath0: Path)
                 (implicit millModuleEnclosing0: sourcecode.Enclosing,
                  millModuleLine0: sourcecode.Line,
@@ -104,4 +106,5 @@ class BaseModule(basePath0: Path)
   override implicit def millModuleSegments: Segments = Segments()
   override implicit def millModuleBasePath: BasePath = BasePath(millOuterCtx.basePath)
   override def basePath = millOuterCtx.basePath
+  implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
 }

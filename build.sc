@@ -52,7 +52,7 @@ object core extends MillModule {
     ivy"com.lihaoyi::pprint:0.5.3",
     ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32",
     ivy"org.scala-sbt::zinc:1.0.5",
-    ivy"org.scala-sbt:test-interface:1.0"
+    ivy"org.scala-sbt:test-interface:1.0",
   )
 
   def generatedSources = T {
@@ -115,6 +115,16 @@ object scalalib extends MillModule {
     }
   }
 }
+
+object scalaworker extends MillModule{
+  def moduleDeps = Seq(core, scalalib)
+
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt::zinc:1.0.5",
+    ivy"org.scala-sbt:test-interface:1.0"
+  )
+}
+
 
 object scalajslib extends MillModule {
 
@@ -181,7 +191,10 @@ def assemblyBase(classpath: Agg[Path], extraArgs: String)
 }
 
 def devAssembly = T{
-  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), (scalalib.testArgs() ++ scalajslib.testArgs()).mkString(" "))
+  assemblyBase(
+    Agg.from(assemblyClasspath().flatten.map(_.path)),
+    (scalalib.testArgs() ++ scalajslib.testArgs() ++ Seq(scalaworker.jar())).mkString(" ")
+  )
 }
 
 def releaseAssembly = T{

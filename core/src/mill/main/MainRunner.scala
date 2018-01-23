@@ -101,7 +101,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  val millSelf = Some(this)
          |}
          |
-         |sealed trait $wrapName extends mill.Module{
+         |sealed trait $wrapName extends mill.Module{this: mill.define.BaseModule =>
          |""".stripMargin
     }
 

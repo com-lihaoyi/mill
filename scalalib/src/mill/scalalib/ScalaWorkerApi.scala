@@ -1,0 +1,60 @@
+package mill.scalalib
+
+import java.lang.reflect.{InvocationHandler, Method}
+import java.net.URI
+
+import ammonite.ops.Path
+import coursier.maven.MavenRepository
+import mill.Agg
+import mill.scalalib.TestRunner.Result
+import mill.T
+import mill.define.{Task, Worker}
+import mill.eval.PathRef
+import mill.scalalib.Lib.resolveDependencies
+import mill.util.Loose
+
+object ScalaWorkerApi extends mill.define.BaseModule(ammonite.ops.pwd){
+  def scalaWorker: Worker[ScalaWorkerApi] = T.worker{
+
+    val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
+    val scalaWorkerClasspath =
+      if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))
+      else {
+        val mill.eval.Result.Success(v) = resolveDependencies(
+          Seq(MavenRepository("https://repo1.maven.org/maven2")),
+          "2.12.4",
+          "2.12",
+          Seq(ivy"com.lihaoyi::mill-scalaworker:0.1-SNAPSHOT")
+        )
+        v.map(_.path)
+      }
+
+    val cl = new java.net.URLClassLoader(
+      scalaWorkerClasspath.map(_.toNIO.toUri.toURL).toArray,
+      getClass.getClassLoader
+    )
+    val cls = cl.loadClass("mill.scalaworker.ScalaWorker")
+    val instance = cls.getConstructor(classOf[mill.util.Ctx]).newInstance(T.ctx())
+    instance.asInstanceOf[ScalaWorkerApi]
+  }
+}
+
+trait ScalaWorkerApi {
+  def compileScala(scalaVersion: String,
+                   sources: Agg[Path],
+                   compileClasspath: Agg[Path],
+                   compilerClasspath: Agg[Path],
+                   pluginClasspath: Agg[Path],
+                   compilerBridge: Path,
+                   scalacOptions: Seq[String],
+                   scalacPluginClasspath: Agg[Path],
+                   javacOptions: Seq[String],
+                   upstreamCompileOutput: Seq[CompilationResult])
+                  (implicit ctx: mill.util.Ctx): CompilationResult
+
+  def apply(frameworkName: String,
+            entireClasspath: Agg[Path],
+            testClassfilePath: Agg[Path],
+            args: Seq[String])
+           (implicit ctx: mill.util.Ctx): (String, Seq[Result])
+}

@@ -4,7 +4,7 @@ import java.net.URLClassLoader
 
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
-import mill.define.{Graph, NamedTask, Segment, Segments, Target, Task}
+import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util.Ctx.Loader
 import mill.util._
@@ -34,8 +34,7 @@ class Evaluator[T](val workspacePath: Path,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
 
-  val workerCache = mutable.Map.empty[Ctx.Loader[_], Any]
-  workerCache(RootModuleLoader) = rootModule
+  val workerCache = mutable.Map.empty[Segments, (Int, Any)]
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(workspacePath)
 
@@ -47,6 +46,7 @@ class Evaluator[T](val workspacePath: Path,
         val (finalTaskOverrides, enclosing) = t match{
           case t: Target[_] => rootModule.millInternal.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
           case c: mill.define.Command[_] => 0 -> c.ctx.enclosing
+          case c: mill.define.Worker[_] => 0 -> c.ctx.enclosing
         }
         val additional =
           if (finalTaskOverrides == t.ctx.overrides) Nil
@@ -107,33 +107,44 @@ class Evaluator[T](val workspacePath: Path,
           maybeTargetLabel = None,
           counterMsg = counterMsg
         )
-      case Right(labelledTarget) =>
-        val paths = Evaluator.resolveDestPaths(workspacePath, labelledTarget.segments)
-        val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledTarget.segments)
+      case Right(labelledNamedTask) =>
+        val paths = Evaluator.resolveDestPaths(workspacePath, labelledNamedTask.segments)
+        val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledNamedTask.segments)
         mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
           (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
           if cachedHash == inputsHash
-          reader <- labelledTarget.format
+          reader <- labelledNamedTask.format
           parsed <- reader.read.lift(terminalResult)
         } yield parsed
 
-        cached match{
-          case Some(parsed) =>
+        val workerCached = labelledNamedTask.target.asWorker
+          .flatMap{w => workerCache.get(w.ctx.segments)}
+          .filter(_._1 == inputsHash)
+
+        (workerCached, cached) match{
+          case (Some(workerValue), _) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
-            newResults(labelledTarget.target) = parsed
+            newResults(labelledNamedTask.target) = {
+              Result.Success(workerValue._2)
+            }
+            (newResults, Nil)
+
+          case (_, Some(parsed)) =>
+            val newResults = mutable.LinkedHashMap.empty[Task[_], Result[Any]]
+            newResults(labelledNamedTask.target) = parsed
             (newResults, Nil)
 
           case _ =>
 
-            val Seq(first, rest @_*) = labelledTarget.segments.value
+            val Seq(first, rest @_*) = labelledNamedTask.segments.value
             val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
               case Segment.Label(s) => "." + s
               case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
-            if (labelledTarget.target.flushDest) rm(paths.dest)
+            if (labelledNamedTask.target.flushDest) rm(paths.dest)
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,
@@ -143,15 +154,20 @@ class Evaluator[T](val workspacePath: Path,
               counterMsg = counterMsg
             )
 
-            newResults(labelledTarget.target) match{
+            newResults(labelledNamedTask.target) match{
               case Result.Success(v) =>
-                val terminalResult = labelledTarget
-                  .writer
-                  .asInstanceOf[Option[upickle.default.Writer[Any]]]
-                  .map(_.write(v))
+                labelledNamedTask.target.asWorker match{
+                  case Some(w) =>
+                    workerCache(w.ctx.segments) = (inputsHash, v)
+                  case None =>
+                    val terminalResult = labelledNamedTask
+                      .writer
+                      .asInstanceOf[Option[upickle.default.Writer[Any]]]
+                      .map(_.write(v))
 
-                for(t <- terminalResult){
-                  write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
+                    for(t <- terminalResult){
+                      write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
+                    }
                 }
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -211,9 +227,7 @@ class Evaluator[T](val workspacePath: Path,
             groupBasePath.orNull,
             multiLogger,
             new Ctx.LoaderCtx{
-              def load[T](x: Ctx.Loader[T]): T = {
-                workerCache.getOrElseUpdate(x, x.make()).asInstanceOf[T]
-              }
+              def load[T](x: Ctx.Loader[T]): T = ???
             }
           )
 

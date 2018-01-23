@@ -37,6 +37,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
   def asPersistent: Option[Persistent[T]] = None
+  def asWorker: Option[Worker[T]] = None
   def self = this
 }
 
@@ -179,6 +180,21 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
+  def worker[T](t: Task[T])
+               (implicit ctx: mill.define.Ctx): Worker[T] = new Worker(t, ctx)
+
+  def worker[T](t: Result[T])
+               (implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl[T]
+
+  def workerImpl[T: c.WeakTypeTag](c: Context)
+                                  (t: c.Expr[T])
+                                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Worker[T]] = {
+    import c.universe._
+    reify(
+      new Worker[T](Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice, ctx.splice)
+    )
+  }
+
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.util.Ctx]
 
   def persistent[T](t: Result[T])(implicit r: R[T],
@@ -233,8 +249,8 @@ class TargetImpl[+T](t: Task[T],
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
-
 }
+
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,
                   val writer: W[_]) extends NamedTask[T] {
@@ -242,6 +258,14 @@ class Command[+T](t: Task[T],
   val inputs = Seq(t)
   def evaluate(args: mill.util.Ctx) = args[T](0)
   override def asCommand = Some(this)
+}
+
+class Worker[+T](t: Task[T],
+                 ctx0: mill.define.Ctx) extends NamedTask[T] {
+  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val inputs = Seq(t)
+  def evaluate(args: mill.util.Ctx) = args[T](0)
+  override def asWorker = Some(this)
 }
 class Persistent[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
