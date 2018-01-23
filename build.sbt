@@ -176,7 +176,7 @@ lazy val scalajslib = project
     name := "mill-scalajslib",
     fork in Test := true,
     baseDirectory in Test := (baseDirectory in Test).value / "..",
-    javaOptions in Test := jsbridgeProps.value.toSeq
+    javaOptions in Test := jsbridgeProps.value.toSeq ++ scalaWorkerProps
   )
 def jsbridge(binary: String, version: String) =
   Project(
