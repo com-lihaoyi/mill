@@ -242,29 +242,25 @@ object Caller {
     q"new _root_.mill.define.Caller[${weakTypeOf[T]}](this)"
   }
 }
+abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends NamedTask[T]{
+  def evaluate(args: mill.util.Ctx) = args[T](0)
+  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
+  val inputs = Seq(t)
+}
 
 class TargetImpl[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
-                     val readWrite: RW[_]) extends Target[T] {
-  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs = Seq(t)
-  def evaluate(args: mill.util.Ctx) = args[T](0)
+                     val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T] {
 }
 
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,
-                  val writer: W[_]) extends NamedTask[T] {
-  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs = Seq(t)
-  def evaluate(args: mill.util.Ctx) = args[T](0)
+                  val writer: W[_]) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
 }
 
-class Worker[+T](t: Task[T],
-                 ctx0: mill.define.Ctx) extends NamedTask[T] {
-  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs = Seq(t)
-  def evaluate(args: mill.util.Ctx) = args[T](0)
+class Worker[+T](t: Task[T], ctx0: mill.define.Ctx) extends NamedTaskImpl[T](ctx0, t) {
+
   override def asWorker = Some(this)
 }
 class Persistent[+T](t: Task[T],
@@ -277,17 +273,11 @@ class Persistent[+T](t: Task[T],
 }
 class Input[T](t: Task[T],
                ctx0: mill.define.Ctx,
-               val readWrite: RW[_]) extends Target[T]{
-  val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-  val inputs = Seq(t)
-  def evaluate(args: mill.util.Ctx) = args[T](0)
+               val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T]{
   override def sideHash = util.Random.nextInt()
 }
 
 object Task {
-
-
-
 
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t
