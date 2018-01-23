@@ -12,25 +12,24 @@ import mill.define.{Task, Worker}
 import mill.eval.PathRef
 import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
-
+import mill.util.JsonFormatters._
 object ScalaWorkerApi extends mill.define.BaseModule(ammonite.ops.pwd){
-  def scalaWorker: Worker[ScalaWorkerApi] = T.worker{
-
+  def scalaWorkerClasspath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
-    val scalaWorkerClasspath =
-      if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))
-      else {
-        val mill.eval.Result.Success(v) = resolveDependencies(
-          Seq(MavenRepository("https://repo1.maven.org/maven2")),
-          "2.12.4",
-          "2.12",
-          Seq(ivy"com.lihaoyi::mill-scalaworker:0.1-SNAPSHOT")
-        )
-        v.map(_.path)
-      }
-
+    if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))
+    else {
+      val mill.eval.Result.Success(v) = resolveDependencies(
+        Seq(MavenRepository("https://repo1.maven.org/maven2")),
+        "2.12.4",
+        "2.12",
+        Seq(ivy"com.lihaoyi::mill-scalaworker:0.1-SNAPSHOT")
+      )
+      v.map(_.path)
+    }
+  }
+  def scalaWorker: Worker[ScalaWorkerApi] = T.worker{
     val cl = new java.net.URLClassLoader(
-      scalaWorkerClasspath.map(_.toNIO.toUri.toURL).toArray,
+      scalaWorkerClasspath().map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalaworker.ScalaWorker")
@@ -56,5 +55,5 @@ trait ScalaWorkerApi {
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])
-           (implicit ctx: mill.util.Ctx): (String, Seq[Result])
+           (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result])
 }

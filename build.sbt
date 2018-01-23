@@ -246,7 +246,7 @@ lazy val integration = project
         "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
         "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
       )
-      for((k, v) <- kvs) yield s"-D$k=$v"
+      scalaWorkerProps.value ++ (for((k, v) <- kvs) yield s"-D$k=$v")
     }
   )
 

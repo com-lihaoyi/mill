@@ -20,18 +20,6 @@ import scala.reflect.ClassTag
 
 
 object Jvm {
-  def gatherClassloaderJars(): Agg[Path] = {
-    val allJars = new Agg.Mutable[Path]()
-    var currentClassloader = Thread.currentThread().getContextClassLoader
-    while(currentClassloader != null){
-      currentClassloader match{
-        case u: URLClassLoader => allJars.appendAll(u.getURLs.map(x => Path(x.getFile)))
-        case _ =>
-      }
-      currentClassloader = currentClassloader.getParent
-    }
-    allJars
-  }
 
   def interactiveSubprocess(mainClass: String,
                             classPath: Agg[Path],

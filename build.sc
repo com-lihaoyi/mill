@@ -99,22 +99,6 @@ class BridgeModule(crossVersion: String) extends PublishModule {
   )
 }
 
-object scalalib extends MillModule {
-  def moduleDeps = Seq(core)
-
-  def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
-  def testArgs = T{
-    val bridgeVersions = bridges.items.map(_._1.head.toString)
-
-    for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
-    yield {
-      val underscored = version.replace('.', '_')
-      val key = s"MILL_COMPILER_BRIDGE_$underscored"
-      val value = compile.classes.path
-      s"-D$key=$value"
-    }
-  }
-}
 
 object scalaworker extends MillModule{
   def moduleDeps = Seq(core, scalalib)
@@ -123,6 +107,28 @@ object scalaworker extends MillModule{
     ivy"org.scala-sbt::zinc:1.0.5",
     ivy"org.scala-sbt:test-interface:1.0"
   )
+  def testArgs = Seq(
+    "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
+  )
+}
+
+
+object scalalib extends MillModule {
+  def moduleDeps = Seq(core)
+
+  def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
+  def testArgs = T{
+    val bridgeVersions = bridges.items.map(_._1.head.toString)
+
+    val bridgeArgs = for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
+    yield {
+      val underscored = version.replace('.', '_')
+      val key = s"MILL_COMPILER_BRIDGE_$underscored"
+      val value = compile.classes.path
+      s"-D$key=$value"
+    }
+    scalaworker.testArgs() ++ bridgeArgs
+  }
 }
 
 
@@ -137,7 +143,7 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(jsbridges("0.6").runDepClasspath(), jsbridges("0.6").compile().classes),
       "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(jsbridges("1.0").runDepClasspath(), jsbridges("1.0").compile().classes)
     )
-    for((k, v) <- mapping.toSeq) yield s"-D$k=$v"
+    scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
@@ -167,7 +173,7 @@ def testRepos = T{
 object integration extends MillModule{
   def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
-    for((k, v) <- testRepos()) yield s"-D$k=$v"
+    scalaworker.testArgs() ++ (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   def forkArgs() = testArgs()
 }
@@ -193,7 +199,7 @@ def assemblyBase(classpath: Agg[Path], extraArgs: String)
 def devAssembly = T{
   assemblyBase(
     Agg.from(assemblyClasspath().flatten.map(_.path)),
-    (scalalib.testArgs() ++ scalajslib.testArgs() ++ Seq(scalaworker.jar())).mkString(" ")
+    (scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()).mkString(" ")
   )
 }
 

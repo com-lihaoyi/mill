@@ -7,15 +7,16 @@ import java.util.Optional
 import java.util.zip.ZipInputStream
 
 import ammonite.ops.{Path, exists, ls, mkdir}
+import ammonite.util.Colors
 import mill.Agg
 import mill.define.Worker
 import mill.eval.PathRef
 import mill.modules.Jvm
-import mill.scalalib.CompilationResult
+import mill.scalalib.{CompilationResult, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.scalalib.Lib.grepJar
 import mill.scalalib.TestRunner.Result
-import mill.util.Ctx
+import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.testing._
@@ -31,7 +32,37 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
+object  ScalaWorker{
 
+  def main(args: Array[String]): Unit = {
+    try{
+      val result = new ScalaWorker(null).apply(
+        frameworkName = args(0),
+        entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
+        testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
+        args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
+      )(new PrintLogger(
+        args(5) == "true",
+        if(args(5) == "true") Colors.Default
+        else Colors.BlackWhite,
+        System.out,
+        System.err,
+        System.err
+      ))
+      val outputPath = args(4)
+
+      ammonite.ops.write(Path(outputPath), upickle.default.write(result))
+    }catch{case e: Throwable =>
+      println(e)
+      e.printStackTrace()
+    }
+    // Tests are over, kill the JVM whether or not anyone's threads are still running
+    // Always return 0, even if tests fail. The caller can pick up the detailed test
+    // results from the outputPath
+    System.exit(0)
+  }
+
+}
 class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
   @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
@@ -167,7 +198,7 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])
-           (implicit ctx: mill.util.Ctx): (String, Seq[Result]) = {
+           (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = cl.loadClass(frameworkName)

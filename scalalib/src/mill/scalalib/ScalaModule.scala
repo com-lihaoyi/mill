@@ -295,12 +295,11 @@ trait TestModule extends ScalaModule with TaskModule {
   def forkWorkingDir = ammonite.ops.pwd
 
   def test(args: String*) = T.command{
-    mkdir(T.ctx().dest)
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalalib.TestRunner",
-      classPath = Jvm.gatherClassloaderJars(),
+      mainClass = "mill.scalaworker.ScalaWorker",
+      classPath = mill.scalalib.ScalaWorkerApi.scalaWorkerClasspath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
@@ -323,17 +322,11 @@ trait TestModule extends ScalaModule with TaskModule {
     mkdir(T.ctx().dest)
     val outputPath = T.ctx().dest/"out.json"
 
-    Jvm.runLocal(
-      mainClass = "mill.scalalib.TestRunner",
-      classPath = Jvm.gatherClassloaderJars(),
-      mainArgs = Seq(
-        testFramework(),
-        runClasspath().map(_.path).mkString(" "),
-        Seq(compile().classes.path).mkString(" "),
-        args.mkString(" "),
-        outputPath.toString,
-        T.ctx().log.colored.toString
-      )
+    mill.scalalib.ScalaWorkerApi.scalaWorker().apply(
+      testFramework(),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args
     )
 
     val jsonOutput = upickle.json.read(outputPath.toIO)

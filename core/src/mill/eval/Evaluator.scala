@@ -44,7 +44,8 @@ class Evaluator[T](val workspacePath: Path,
       case t: NamedTask[Any]   =>
         val segments = t.ctx.segments
         val (finalTaskOverrides, enclosing) = t match{
-          case t: Target[_] => rootModule.millInternal.segmentsToTargets(segments).ctx.overrides -> t.ctx.enclosing
+          case t: Target[_] =>
+            rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides) -> t.ctx.enclosing
           case c: mill.define.Command[_] => 0 -> c.ctx.enclosing
           case c: mill.define.Worker[_] => 0 -> c.ctx.enclosing
         }
