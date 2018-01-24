@@ -1,6 +1,12 @@
 package mill.eval
 
-sealed trait Result[+T]
+sealed trait Result[+T]{
+  def map[V](f: T => V): Result[V] = this match{
+    case Result.Success(v) => Result.Success(f(v))
+    case f: Result.Failing => f
+    case Result.Skipped => Result.Skipped
+  }
+}
 object Result{
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
