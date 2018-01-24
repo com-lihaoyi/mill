@@ -8,6 +8,8 @@ object TaskTests extends TestSuite{
   val tests = Tests{
     object build extends mill.util.TestUtil.BaseModule{
       var count = 0
+      // Explicitly instantiate `Function1` objects to make sure we get
+      // different instances each time
       def staticWorker = T.worker{
         new Function1[Int, Int] {
           def apply(v1: Int) = v1 + 1
