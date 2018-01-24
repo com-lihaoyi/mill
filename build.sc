@@ -50,9 +50,7 @@ object core extends MillModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
     ivy"com.lihaoyi::pprint:0.5.3",
-    ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32",
-    ivy"org.scala-sbt::zinc:1.0.5",
-    ivy"org.scala-sbt:test-interface:1.0",
+    ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32"
   )
 
   def generatedSources = T {
