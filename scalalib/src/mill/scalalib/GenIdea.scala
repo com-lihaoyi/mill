@@ -2,9 +2,9 @@ package mill.scalalib
 
 import ammonite.ops._
 import mill.define.{BaseModule, Segment, Segments, Target}
-import mill.eval.{Evaluator, PathRef, RootModuleLoader}
+import mill.eval.{Evaluator, PathRef}
 import mill.scalalib
-import mill.util.Ctx.{LoaderCtx, LogCtx}
+import mill.util.Ctx.LogCtx
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
 

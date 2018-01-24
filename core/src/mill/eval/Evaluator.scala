@@ -6,7 +6,6 @@ import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
 import mill.util
-import mill.util.Ctx.Loader
 import mill.util._
 import mill.util.Strict.Agg
 
@@ -23,9 +22,6 @@ case class Labelled[T](target: NamedTask[T],
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
-}
-object RootModuleLoader extends Loader[mill.Module] {
-  def make() = ???
 }
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
@@ -225,10 +221,7 @@ class Evaluator[T](val workspacePath: Path,
             targetInputValues.toArray[Any],
             paths.map(_.dest).orNull,
             groupBasePath.orNull,
-            multiLogger,
-            new Ctx.LoaderCtx{
-              def load[T](x: Ctx.Loader[T]): T = ???
-            }
+            multiLogger
           )
 
           val out = System.out

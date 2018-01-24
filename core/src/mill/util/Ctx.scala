@@ -2,7 +2,7 @@ package mill.util
 
 import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
-import mill.util.Ctx.{ArgCtx, BaseCtx, DestCtx, LoaderCtx, LogCtx}
+import mill.util.Ctx.{ArgCtx, BaseCtx, DestCtx, LogCtx}
 
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
@@ -33,25 +33,17 @@ object Ctx{
   trait ArgCtx{
     def args: IndexedSeq[_]
   }
-  trait LoaderCtx{
-    def load[T](x: Loader[T]): T
-  }
-  trait Loader[T]{
-    def make(): T
-  }
+
 }
 class Ctx(val args: IndexedSeq[_],
           val dest: Path,
           val base: Path,
-          val log: Logger,
-          workerCtx0: Ctx.LoaderCtx)
+          val log: Logger)
   extends DestCtx
   with LogCtx
   with ArgCtx
-  with LoaderCtx
   with BaseCtx{
 
-  def load[T](x: Ctx.Loader[T]): T = workerCtx0.load(x)
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
