@@ -21,13 +21,6 @@ object HelloJSWorldTests extends TestSuite {
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
     override def basePath = HelloJSWorldTests.workspacePath
     override def mainClass = Some("Main")
-
-    object test extends super.Tests {
-      def testFramework: T[String] = "utest.runner.Framework"
-      override def ivyDeps = Agg(
-        ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${scalaBinaryVersion()}:0.6.3"
-      )
-    }
   }
 
   object HelloJSWorld extends TestUtil.BaseModule {
@@ -37,6 +30,30 @@ object HelloJSWorldTests extends TestSuite {
     } yield (scala, scalaJS)
 
     object build extends Cross[BuildModule](matrix:_*)
+
+    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
+    class BuildModuleUtest(scalaVersion0: String, sjsVersion0: String)
+      extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
+      object test extends super.Tests {
+        override def sources = T.input{ Agg(PathRef(basePath / 'src / 'utest)) }
+        def testFramework: T[String] = "utest.runner.Framework"
+        override def ivyDeps = Agg(
+          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${scalaBinaryVersion()}:0.6.3"
+        )
+      }
+    }
+
+    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix:_*)
+    class BuildModuleScalaTest(scalaVersion0: String, sjsVersion0: String)
+      extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
+      object test extends super.Tests {
+        override def sources = T.input{ Agg(PathRef(basePath / 'src / 'scalatest)) }
+        def testFramework: T[String] = "org.scalatest.tools.Framework"
+        override def ivyDeps = Agg(
+          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${scalaBinaryVersion()}:3.0.4"
+        )
+      }
+    }
 
     class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
       def scalaVersion = scalaVersion0
@@ -154,20 +171,23 @@ object HelloJSWorldTests extends TestSuite {
       'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
     }
     'test - {
-      def check(scalaVersion: String, scalaJSVersion: String): Unit = {
-        val task = HelloJSWorld.build(scalaVersion, scalaJSVersion).test.test()
-        val Right(((_, testResults), evalCount)) = helloWorldEvaluator(task)
+      def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
+        val Right(((_, testResults), evalCount)) = helloWorldEvaluator(testTask)
 
-        val resultMap = testResults
+        assert(evalCount > 0)
+
+        testResults
           .groupBy(_.fullyQualifiedName)
           .mapValues(_.map(e => e.selector -> e).toMap)
+      }
+
+      def checkUtest(scalaVersion: String, scalaJSVersion: String) = {
+        val resultMap = runTests(HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test())
 
         val mainTests = resultMap("MainTests")
         val argParserTests = resultMap("ArgsParserTests")
 
         assert(
-          evalCount > 0,
-
           mainTests.size == 2,
           mainTests("MainTests.vmName.containJs").status == "Success",
           mainTests("MainTests.vmName.containScala").status == "Success",
@@ -178,10 +198,33 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'test_2118_0621 - check("2.11.8", "0.6.21")
-      'test_2124_0621 - check("2.12.4", "0.6.21")
-      'test_2118_100M2 - check("2.11.8", "1.0.0-M2")
-      'test_2124_100M2 - check("2.12.4", "1.0.0-M2")
+      def checkScalaTest(scalaVersion: String, scalaJSVersion: String) = {
+        val resultMap = runTests(HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test())
+
+        val mainSpec = resultMap("MainSpec")
+        val argParserSpec = resultMap("ArgsParserSpec")
+
+        assert(
+          mainSpec.size == 2,
+          mainSpec("vmName should contain js").status == "Success",
+          mainSpec("vmName should contain Scala").status == "Success",
+
+          argParserSpec.size == 2,
+          argParserSpec("parse should one").status == "Success",
+          argParserSpec("parse should two").status == "Failure"
+        )
+      }
+
+      'utest_2118_0621 - checkUtest("2.11.8", "0.6.21")
+      'utest_2124_0621 - checkUtest("2.12.4", "0.6.21")
+      'utest_2118_100M2 - checkUtest("2.11.8", "1.0.0-M2")
+      'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
+
+      'scalaTest_2118_0621 - checkScalaTest("2.11.8", "0.6.21")
+      'scalaTest_2124_0621 - checkScalaTest("2.12.4", "0.6.21")
+//      No scalatest artifact for scala.js 1.0.0-M2 published yet
+//      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
+//      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
     }
   }
 
