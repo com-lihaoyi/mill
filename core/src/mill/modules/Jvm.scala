@@ -41,7 +41,7 @@ object Jvm {
                classPath: Agg[Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
+    inprocess(classPath, None, cl => {
       getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
@@ -61,17 +61,19 @@ object Jvm {
   }
 
 
-
+  /**
+    * run `body` with a isolated classloader
+    */
   def inprocess[T](classPath: Agg[Path],
-                   classLoaderOverrideSbtTesting: Boolean,
+                   classLoaderOverrideSbtTesting: Option[ClassLoader],
                    body: ClassLoader => T): T = {
-    val cl = if (classLoaderOverrideSbtTesting) {
-      val outerClassLoader = getClass.getClassLoader
+    val cl = if (classLoaderOverrideSbtTesting.isDefined) {
+      val outerClassLoader = classLoaderOverrideSbtTesting.get
       new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
         ClassLoader.getSystemClassLoader().getParent()){
         override def findClass(name: String) = {
-          if (name.startsWith("sbt.testing.")){
+          if (name.startsWith("sbt.testing.") || name.startsWith("org.apache.logging.log4j.")){
             outerClassLoader.loadClass(name)
           }else{
             super.findClass(name)

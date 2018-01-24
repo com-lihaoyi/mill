@@ -200,7 +200,7 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
             args: Seq[String])
            (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
 
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
+    Jvm.inprocess(entireClasspath, Some(getClass.getClassLoader), cl => {
       val framework = cl.loadClass(frameworkName)
         .newInstance()
         .asInstanceOf[sbt.testing.Framework]

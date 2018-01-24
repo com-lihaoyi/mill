@@ -320,17 +320,14 @@ trait TestModule extends ScalaModule with TaskModule {
   }
   def testLocal(args: String*) = T.command{
     mkdir(T.ctx().dest)
-    val outputPath = T.ctx().dest/"out.json"
 
-    mill.scalalib.ScalaWorkerApi.scalaWorker().apply(
+    val (doneMsg, results) = mill.scalalib.ScalaWorkerApi.scalaWorker().apply(
       testFramework(),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args
     )
 
-    val jsonOutput = upickle.json.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }
