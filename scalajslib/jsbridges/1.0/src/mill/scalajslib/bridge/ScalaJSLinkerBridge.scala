@@ -8,7 +8,7 @@ import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 
-class ScalaJSLinkerBridge {
+class ScalaJSLinkerBridge extends mill.scalajslib.ScalaJSLinkerBridge{
   def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean): Unit = {
     val config = StandardLinker.Config().withOptimizer(fullOpt)
     val linker = StandardLinker(config)

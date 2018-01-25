@@ -175,14 +175,14 @@ lazy val scalajslib = project
     sharedSettings,
     name := "mill-scalajslib",
     fork in Test := true,
-    baseDirectory in Test := (baseDirectory in Test).value / "..",
-    javaOptions in Test := jsbridgeProps.value.toSeq ++ scalaWorkerProps.value
+    baseDirectory in Test := (baseDirectory in Test).value / ".."
   )
+
 def jsbridge(binary: String, version: String) =
   Project(
     id = "scalajsbridge_" + binary.replace('.', '_'),
     base = file("scalajslib/jsbridges/" + binary)
-  )
+  ).dependsOn(scalajslib)
   .settings(
     sharedSettings,
     organization := "com.lihaoyi",
@@ -192,19 +192,15 @@ def jsbridge(binary: String, version: String) =
   )
 lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.21")
 lazy val scalajsbridge_1_0 = jsbridge("1.0", "1.0.0-M2")
+
+javaOptions in (scalajslib, Test) := jsbridgeProps.value.toSeq ++ scalaWorkerProps.value
+
 val jsbridgeProps = Def.task{
-  def bridgeClasspath(depClasspath: Classpath, jar: File) = {
-    (depClasspath.files :+ jar).map(_.absolutePath).mkString(File.pathSeparator)
-  }
   val mapping = Map(
-    "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(
-      (dependencyClasspath in (scalajsbridge_0_6, Compile)).value,
-      (packageBin in (scalajsbridge_0_6, Compile)).value
-    ),
-    "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(
-      (dependencyClasspath in (scalajsbridge_1_0, Compile)).value,
-      (packageBin in (scalajsbridge_1_0, Compile)).value
-    )
+    "MILL_SCALAJS_BRIDGE_0_6" ->
+      (packageBin in (scalajsbridge_0_6, Compile)).value.absolutePath.toString,
+    "MILL_SCALAJS_BRIDGE_1_0" ->
+      (packageBin in (scalajsbridge_1_0, Compile)).value.absolutePath.toString
   )
   for((k, v) <- mapping) yield s"-D$k=$v"
 }

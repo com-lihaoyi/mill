@@ -8,7 +8,7 @@ class TestEvaluator(module: mill.Module,
                     workspacePath: Path,
                     basePath: Path){
   val evaluator = new Evaluator(workspacePath, basePath, module, DummyLogger)
-
+  //val evaluator = new Evaluator(workspacePath, basePath, module, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
 

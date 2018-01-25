@@ -32,7 +32,7 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-object  ScalaWorker{
+object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{

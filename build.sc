@@ -134,18 +134,17 @@ object scalajslib extends MillModule {
 
   def moduleDeps = Seq(scalalib)
 
-  def bridgeClasspath(runDepClasspath: Agg[PathRef], classes: PathRef) =
-    (runDepClasspath ++ Agg(classes)).map(_.path).mkString(File.pathSeparator)
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALAJS_BRIDGE_0_6" -> bridgeClasspath(jsbridges("0.6").runDepClasspath(), jsbridges("0.6").compile().classes),
-      "MILL_SCALAJS_BRIDGE_1_0" -> bridgeClasspath(jsbridges("1.0").runDepClasspath(), jsbridges("1.0").compile().classes)
+      "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
+      "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
     scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
   class JsBridgeModule(scalajsBinary: String) extends MillModule{
+    def moduleDeps = Seq(scalajslib)
     val scalajsVersion = scalajsBinary match {
       case "0.6" => "0.6.21"
       case "1.0" => "1.0.0-M2"

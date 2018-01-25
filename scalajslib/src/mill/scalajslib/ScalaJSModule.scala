@@ -3,12 +3,16 @@ package scalajslib
 
 import java.io.File
 
-import ammonite.ops.Path
+import mill.scalalib.DepSyntax
+import ammonite.ops.{Path, ls, mkdir, rm}
+import coursier.maven.MavenRepository
+import mill.eval.PathRef
 import mill.eval.Result.Success
-import mill.scalajslib.Lib._
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, ScalaModule, PublishModule, TestModule}
+import mill.scalalib.{Dep, PublishModule, ScalaModule, TestModule}
 import mill.util.Loose
+
+import scala.collection.breakOut
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -27,36 +31,54 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
-  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
+  def sjsLinkerBridgeClasspath = T {
     val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
     val jsBridgePath = sys.props(jsBridgeKey)
-    if (jsBridgePath != null) {
-      Success(
-        Loose.Agg.from(
-          jsBridgePath.split(File.pathSeparator).map(f => PathRef(Path(f), quick = true))
-        )
-      )
-    }
-    else {
-      val dep = scalaJSLinkerIvyDep(scalaJSBridgeVersion())
-      resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        Seq(dep)
-      )
-    }
+    if (jsBridgePath != null) Success(
+      PathRef(Path(jsBridgePath), quick = true)
+    ) else resolveDependencies(
+      Seq(MavenRepository("https://repo1.maven.org/maven2")),
+      "2.12.4",
+      "2.12",
+      Seq(Dep(
+        "com.lihaoyi",
+        s"mill-jsbridge_${scalaJSBridgeVersion().replace('.', '_')}",
+        "0.1-SNAPSHOT"
+      ))
+    ).map(_.find(_.path.toString.contains("mill-jsbridge")).get)
   }
 
-  def fastOpt = T{
-    val linker = scalaJSLinkerBridge(scalaJSLinkerClasspath().map(_.path))
-    link(mainClass(), Seq(compile().classes.path), compileDepClasspath().map(_.path), linker, FastOpt)
+
+  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
+    resolveDependencies(
+      repositories,
+      "2.12.4",
+      "2.12",
+      Seq(ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}")
+    )
   }
 
-  def fullOpt = T{
-    val linker = scalaJSLinkerBridge(scalaJSLinkerClasspath().map(_.path))
-    link(mainClass(), Seq(compile().classes.path), compileDepClasspath().map(_.path), linker, FullOpt)
+  def genericOpt(mode: OptimizeMode) = T.task{
+    val outputPath = T.ctx().dest / "out.js"
+
+    mkdir(T.ctx().dest)
+    rm(outputPath)
+    val inputFiles = Agg.from(ls(compile().classes.path).filter(_.ext == "sjsir"))
+    val inputLibraries = compileDepClasspath().map(_.path).filter(_.ext == "jar")
+    mill.scalajslib.ScalaJSLinkerBridge.scalaJSLinkerBridge().link(
+      (Agg(sjsLinkerBridgeClasspath()) ++ scalaJSLinkerClasspath()).map(_.path),
+      inputFiles,
+      inputLibraries,
+      outputPath.toIO,
+      mainClass(),
+      mode == FullOpt
+    )
+    PathRef(outputPath)
   }
+
+  def fastOpt = T{ genericOpt(FastOpt)() }
+
+  def fullOpt = T{ genericOpt(FullOpt)() }
 
   override def scalacPluginIvyDeps = T{ Loose.Agg(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
 
