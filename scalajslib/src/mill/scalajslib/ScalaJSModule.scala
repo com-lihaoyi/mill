@@ -137,7 +137,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     PathRef(outputPath)
   }
 
-  override def test(args: String*) = testLocal(args:_*)
+  override def test(args: String*) = T.command { testLocal(args:_*) }
 
   override def testLocal(args: String*) = T.command {
     val framework = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
