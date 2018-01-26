@@ -7,8 +7,8 @@ import coursier.maven.MavenRepository
 import mill.eval.PathRef
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{Dep, DepSyntax, TestModule}
-import mill.util.Loose
+import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
+import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -68,27 +68,55 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def genericOpt(mode: OptimizeMode) = T.task{
-    val outputPath = T.ctx().dest / "out.js"
+  def fastOpt = T {
+    link(
+      ScalaJSBridge.scalaJSBridge(),
+      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      Seq(compile()),
+      compileDepClasspath(),
+      mainClass(),
+      FastOpt
+    )
+  }
 
-    mkdir(T.ctx().dest)
+  def fullOpt = T {
+    link(
+      ScalaJSBridge.scalaJSBridge(),
+      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      Seq(compile()),
+      compileDepClasspath(),
+      mainClass(),
+      FullOpt
+    )
+  }
+
+  def link(worker: ScalaJSWorker,
+           toolsClasspath: Agg[PathRef],
+           input: Seq[CompilationResult],
+           libraries: Agg[PathRef],
+           mainClass: Option[String],
+           mode: OptimizeMode)(implicit ctx: Ctx.DestCtx): PathRef = {
+    val outputPath = ctx.dest / "out.js"
+
+    mkdir(ctx.dest)
     rm(outputPath)
-    val inputFiles = Agg.from(ls(compile().classes.path).filter(_.ext == "sjsir"))
-    val inputLibraries = compileDepClasspath().map(_.path).filter(_.ext == "jar")
-    mill.scalajslib.ScalaJSBridge.scalaJSBridge().link(
-      (Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath()).map(_.path),
+
+    val inputFiles = Agg.from(for {
+      compiled <- input
+      file <- ls(compiled.classes.path)
+      if file.ext == "sjsir"
+    } yield file)
+    val inputLibraries = libraries.map(_.path).filter(_.ext == "jar")
+    worker.link(
+      toolsClasspath.map(_.path),
       inputFiles,
       inputLibraries,
       outputPath.toIO,
-      mainClass(),
+      mainClass,
       mode == FullOpt
     )
     PathRef(outputPath)
   }
-
-  def fastOpt = T{ genericOpt(FastOpt)() }
-
-  def fullOpt = T{ genericOpt(FullOpt)() }
 
   override def scalacPluginIvyDeps = T{ Loose.Agg(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
 
@@ -116,27 +144,14 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   }
 
   def fastOptTest = T {
-    val outputPath = T.ctx().dest / "out.js"
-
-    mkdir(T.ctx().dest)
-    rm(outputPath)
-
-    val inputFiles = Agg.from(for {
-      compiled <- compile() +: upstreamCompileOutput()
-      classes <- ls(compiled.classes.path).filter(_.ext == "sjsir")
-    } yield classes)
-
-    val inputLibraries = (scalaJSTestDeps() ++ compileDepClasspath()).map(_.path).filter(_.ext == "jar")
-
-    mill.scalajslib.ScalaJSBridge.scalaJSBridge().link(
-      toolsClasspath = (Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath()).map(_.path),
-      sources = inputFiles,
-      libraries = inputLibraries,
-      dest = outputPath.toIO,
-      main = None,
-      fullOpt = false
+    link(
+      ScalaJSBridge.scalaJSBridge(),
+      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      compile() +: upstreamCompileOutput(),
+      scalaJSTestDeps() ++ compileDepClasspath(),
+      None,
+      FastOpt
     )
-    PathRef(outputPath)
   }
 
   override def test(args: String*) = T.command { testLocal(args:_*) }
