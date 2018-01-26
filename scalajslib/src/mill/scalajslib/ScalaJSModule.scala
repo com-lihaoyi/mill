@@ -107,10 +107,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = T {
-    Loose.Agg(
-      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-      ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
-    )
+    resolveDeps(T.task {
+      Loose.Agg(
+        ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
+        ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
+      )
+    })
   }
 
   def fastOptTest = T {
@@ -124,7 +126,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       classes <- ls(compiled.classes.path).filter(_.ext == "sjsir")
     } yield classes)
 
-    val inputLibraries = (resolveDeps(scalaJSTestDeps)() ++ compileDepClasspath()).map(_.path).filter(_.ext == "jar")
+    val inputLibraries = (scalaJSTestDeps() ++ compileDepClasspath()).map(_.path).filter(_.ext == "jar")
 
     mill.scalajslib.ScalaJSBridge.scalaJSBridge().link(
       toolsClasspath = (Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath()).map(_.path),
