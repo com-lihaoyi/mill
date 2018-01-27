@@ -1,11 +1,14 @@
 package mill.define
 import language.experimental.macros
-import ammonite.main.Router.EntryPoint
+import ammonite.main.Router.{EntryPoint, Overrides}
+import sourcecode.Compat.Context
 
 import scala.collection.mutable
 import scala.reflect.macros.blackbox
 
-case class Discover(value: Map[Class[_], Seq[EntryPoint[_]]])
+
+
+case class Discover(value: Map[Class[_], Seq[(Int, EntryPoint[_])]])
 object Discover {
   def apply[T]: Discover = macro applyImpl[T]
 
@@ -41,14 +44,20 @@ object Discover {
     val router = new ammonite.main.Router(c)
     val mapping = for{
       discoveredModuleType <- seen
-      val routes = router.getAllRoutesForClass(
-        discoveredModuleType.asInstanceOf[router.c.Type],
-        _.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
-      ).map(_.asInstanceOf[c.Tree])
-      if routes.nonEmpty
+      val curCls = discoveredModuleType.asInstanceOf[router.c.Type]
+      val methods = router.getValsOrMeths(curCls)
+      val overridesRoutes = {
+        for{
+          m <- methods.toList
+          if m.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
+        } yield (m.overrides.length, router.extractMethod(m, curCls).asInstanceOf[c.Tree])
+      }
+      if overridesRoutes.nonEmpty
+      val (overrides, routes) = overridesRoutes.unzip
+
     } yield {
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      val rhs = q"scala.Seq[ammonite.main.Router.EntryPoint[${discoveredModuleType.typeSymbol.asClass}]](..$routes)"
+      val rhs = q"scala.Seq[(Int, ammonite.main.Router.EntryPoint[${discoveredModuleType.typeSymbol.asClass}])](..$overridesRoutes)"
       q"$lhs -> $rhs"
     }
 

@@ -2,7 +2,7 @@ package mill.scalalib
 
 import ammonite.ops._
 import mill._
-
+import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
@@ -21,6 +21,7 @@ object GenIdeaTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloWorld,
+    Discover[HelloWorld.type],
     outPath,
     workingSrcPath
   )

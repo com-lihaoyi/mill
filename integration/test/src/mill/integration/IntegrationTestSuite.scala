@@ -11,6 +11,7 @@ abstract class IntegrationTestSuite(repoKey: String, workspaceSlug: String) exte
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
   val buildFilePath = pwd / 'integration / 'test / 'resources / workspaceSlug
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+//  val stdOutErr = new PrintStream(System.out)
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath), false,

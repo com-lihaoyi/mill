@@ -6,7 +6,8 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
-import mill.scalalib.PublishModule
+import mill.define.Discover
+import mill.scalalib.{DepSyntax, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -57,6 +58,7 @@ object HelloJSWorldTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloJSWorld,
+    Discover[HelloJSWorld.type],
     workspacePath,
     srcPath
   )

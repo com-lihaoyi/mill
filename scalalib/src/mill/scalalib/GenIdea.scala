@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import ammonite.ops._
-import mill.define.{BaseModule, Segment, Segments, Target}
+import mill.define._
 import mill.eval.{Evaluator, PathRef}
 import mill.scalalib
 import mill.util.Ctx.LogCtx
@@ -10,14 +10,16 @@ import mill.util.Strict.Agg
 
 object GenIdea {
 
-  def apply()(implicit ctx: LogCtx, rootModule0: BaseModule.Implicit): Unit = {
+  def apply()(implicit ctx: LogCtx,
+              rootModule0: BaseModule.Implicit,
+              discover: Discover): Unit = {
     val rootModule = rootModule0.value
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule , ctx.log)
+    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule, discover, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
       write.over(pwd/relPath, pp.format(xml))

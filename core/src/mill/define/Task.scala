@@ -1,12 +1,25 @@
 package mill.define
 
+import ammonite.main.Router.Overrides
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
-
+import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
+
+case class EnclosingClass(value: Class[_])
+object EnclosingClass{
+  def apply()(implicit c: EnclosingClass) = c.value
+  implicit def generate: EnclosingClass = macro impl
+  def impl(c: Context): c.Tree = {
+    import c.universe._
+    val cls = c.internal.enclosingOwner.owner.asType.asClass
+//    q"new _root_.mill.define.EnclosingClass(classOf[$cls])"
+    q"new _root_.mill.define.EnclosingClass(this.getClass)"
+  }
+}
 
 /**
   * Models a single node in the Mill build graph, with a list of inputs and a
@@ -164,19 +177,33 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def command[T](t: Task[T])
                 (implicit ctx: mill.define.Ctx,
-                 w: W[T]): Command[T] = new Command(t, ctx, w)
+                 w: W[T],
+                 cls: EnclosingClass,
+                 overrides: Overrides): Command[T] = {
+    new Command(t, ctx, w, cls.value, overrides.value)
+  }
 
   def command[T](t: Result[T])
                 (implicit w: W[T],
-                 ctx: mill.define.Ctx): Command[T] = macro commandImpl[T]
+                 ctx: mill.define.Ctx,
+                 cls: EnclosingClass,
+                 overrides: Overrides): Command[T] = macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)
                                    (t: c.Expr[T])
                                    (w: c.Expr[W[T]],
-                                    ctx: c.Expr[mill.define.Ctx]): c.Expr[Command[T]] = {
+                                    ctx: c.Expr[mill.define.Ctx],
+                                    cls: c.Expr[EnclosingClass],
+                                    overrides: c.Expr[Overrides]): c.Expr[Command[T]] = {
     import c.universe._
     reify(
-      new Command[T](Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice, ctx.splice, w.splice)
+      new Command[T](
+        Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice,
+        ctx.splice,
+        w.splice,
+        cls.splice.value,
+        overrides.splice.value
+      )
     )
   }
 
@@ -255,7 +282,9 @@ class TargetImpl[+T](t: Task[T],
 
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,
-                  val writer: W[_]) extends NamedTaskImpl[T](ctx0, t) {
+                  val writer: W[_],
+                  val cls: Class[_],
+                  val overrides: Int) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
 }
 

@@ -3,6 +3,7 @@ package mill.eval
 import utest._
 import ammonite.ops._
 import mill.T
+import mill.define.Discover
 import mill.util.TestEvaluator
 object TaskTests extends TestSuite{
   val tests = Tests{
@@ -57,6 +58,7 @@ object TaskTests extends TestSuite{
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
       val check = new TestEvaluator(
         build,
+        Discover[build.type],
         pwd / 'target / 'workspace / "task-tests" / "inputs",
         pwd
       )
@@ -74,6 +76,7 @@ object TaskTests extends TestSuite{
       // Persistent tasks keep the working dir around between runs
       val check = new TestEvaluator(
         build,
+        Discover[build.type],
         pwd / 'target / 'workspace / "task-tests" / "persistent",
         pwd
       )
@@ -90,6 +93,7 @@ object TaskTests extends TestSuite{
       // Persistent task
       def check = new TestEvaluator(
         build,
+        Discover[build.type],
         pwd / 'target / 'workspace / "task-tests" / "worker",
         pwd
       )

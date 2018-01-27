@@ -43,7 +43,7 @@ object RunScript{
               for((mapping, discover) <- evaluateMapping(wd, path, interp))
               yield (
                 new Evaluator(
-                  wd / 'out, wd, mapping, log,
+                  wd / 'out, wd, mapping, discover, log,
                   mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
                 ),
                 discover
@@ -120,7 +120,7 @@ object RunScript{
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
             buildCls.getMethod("millDiscover")
-                    .invoke(null)
+                    .invoke(module)
                     .asInstanceOf[Discover]
           )
         }

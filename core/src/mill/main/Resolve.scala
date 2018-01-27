@@ -28,8 +28,8 @@ object Resolve {
           for{
             (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
             ep <- entryPoints
-            if ep.name == name
-          } yield ep.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
+            if ep._2.name == name
+          } yield ep._2.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
             case Router.Result.Success(v) => Right(v)
             case _ => Left(s"Command failed $last")
           }

@@ -19,6 +19,7 @@ object ReplApplyHandler{
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd,
         rootModule,
+        discover,
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
           colors,
@@ -86,8 +87,8 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
           case None => Nil
           case Some(commands) =>
             ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
-              "\n    ." + c.name + "(" +
-              c.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
+              "\n    ." + c._2.name + "(" +
+              c._2.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
                 ")()"
             }
         }) ++

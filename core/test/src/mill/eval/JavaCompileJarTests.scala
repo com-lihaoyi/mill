@@ -2,7 +2,7 @@ package mill.eval
 
 import ammonite.ops.ImplicitWd._
 import ammonite.ops._
-import mill.define.{Input, Target, Task}
+import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
@@ -50,7 +50,7 @@ object JavaCompileJarTests extends TestSuite{
       import Build._
 
       def eval[T](t: Task[T]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, Build, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, Build, Discover[Build.type], DummyLogger)
         val evaluated = evaluator.evaluate(Agg(t))
 
         if (evaluated.failing.keyCount == 0){
@@ -67,7 +67,7 @@ object JavaCompileJarTests extends TestSuite{
 
       }
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, Build, DummyLogger)
+        val evaluator = new Evaluator(workspacePath, pwd, Build, Discover[Build.type], DummyLogger)
 
         val evaluated = evaluator.evaluate(targets)
           .evaluated

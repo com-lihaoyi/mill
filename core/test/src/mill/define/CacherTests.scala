@@ -27,36 +27,36 @@ object CacherTests extends TestSuite{
   val tests = Tests{
 
 
-    def eval[V](mapping: mill.Module, v: Task[V])(implicit tp: TestPath) = {
+    def eval[V](mapping: mill.Module, discover: Discover, v: Task[V])(implicit tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-      val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, DummyLogger)
+      val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, discover, DummyLogger)
       evaluator.evaluate(Agg(v)).values(0)
     }
 
     'simpleDefIsCached - assert(
       Base.value eq Base.value,
-      eval(Base, Base.value) == 1
+      eval(Base, Discover[Base.type], Base.value) == 1
     )
 
     'resultDefIsCached - assert(
       Base.result eq Base.result,
-      eval(Base, Base.result) == 1
+      eval(Base, Discover[Base.type], Base.result) == 1
     )
 
 
     'overridingDefIsAlsoCached - assert(
-      eval(Middle, Middle.value) == 3,
+      eval(Middle, Discover[Middle.type], Middle.value) == 3,
       Middle.value eq Middle.value
     )
 
     'overridenDefRemainsAvailable - assert(
-      eval(Middle, Middle.overriden) == 1
+      eval(Middle, Discover[Middle.type], Middle.overriden) == 1
     )
 
 
     'multipleOverridesWork- assert(
-      eval(Terminal, Terminal.value) == 7,
-      eval(Terminal, Terminal.overriden) == 1
+      eval(Terminal, Discover[Terminal.type], Terminal.value) == 7,
+      eval(Terminal, Discover[Terminal.type], Terminal.overriden) == 1
     )
     //    Doesn't fail, presumably compileError doesn't go far enough in the
     //    compilation pipeline to hit the override checks

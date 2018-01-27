@@ -2,6 +2,7 @@ package mill.eval
 
 import java.net.URLClassLoader
 
+import ammonite.main.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
@@ -26,6 +27,7 @@ case class Labelled[T](target: NamedTask[T],
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
                    val rootModule: mill.Module,
+                   val discover: Discover,
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 
@@ -38,16 +40,30 @@ class Evaluator[T](val workspacePath: Path,
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case t: NamedTask[Any]   =>
+
         val segments = t.ctx.segments
-        val (finalTaskOverrides, enclosing) = t match{
+        val finalTaskOverrides = t match{
           case t: Target[_] =>
-            rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides) -> t.ctx.enclosing
-          case c: mill.define.Command[_] => 0 -> c.ctx.enclosing
-          case c: mill.define.Worker[_] => 0 -> c.ctx.enclosing
+            rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
+          case c: mill.define.Command[_] =>
+            def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
+              discover.value.get(cls) match{
+                case Some(v) => Some(v)
+                case None =>
+                  cls.getSuperclass match{
+                    case null => None
+                    case superCls => findMatching(superCls)
+                  }
+              }
+            }
+            val public = findMatching(c.cls).get.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+            public
+          case c: mill.define.Worker[_] => 0
         }
+
         val additional =
           if (finalTaskOverrides == t.ctx.overrides) Nil
-          else Seq(Segment.Label("overriden"), Segment.Label(enclosing))
+          else Seq(Segment.Label("overriden"), Segment.Label(t.ctx.enclosing))
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)

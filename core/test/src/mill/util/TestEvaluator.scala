@@ -1,13 +1,14 @@
 package mill.util
 
 import ammonite.ops.Path
-import mill.define.{Input, Target, Task}
+import mill.define.{Discover, Input, Target, Task}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
 class TestEvaluator(module: mill.Module,
+                    discover: Discover,
                     workspacePath: Path,
                     basePath: Path){
-  val evaluator = new Evaluator(workspacePath, basePath, module, DummyLogger)
+  val evaluator = new Evaluator(workspacePath, basePath, module, discover, DummyLogger)
   //val evaluator = new Evaluator(workspacePath, basePath, module, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

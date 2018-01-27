@@ -174,10 +174,12 @@ object TestGraphs{
 
   trait BaseModule extends Module {
     def foo = T{ Seq("base") }
+    def cmd(i: Int) = T.command{ Seq("base" + i) }
   }
 
   object canOverrideSuper extends TestUtil.BaseModule with BaseModule {
     override def foo = T{ super.foo() ++ Seq("object") }
+    override def cmd(i: Int) = T.command{ super.cmd(i)() ++ Seq("object" + i) }
   }
 
   trait TraitWithModule extends Module{ outer =>
