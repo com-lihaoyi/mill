@@ -11,7 +11,7 @@ import mill.scalalib.{DepSyntax, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-
+import mill.util.TestEvaluator.implicitDisover
 import scala.collection.JavaConverters._
 
 
@@ -58,7 +58,6 @@ object HelloJSWorldTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloJSWorld,
-    Discover[HelloJSWorld.type],
     workspacePath,
     srcPath
   )

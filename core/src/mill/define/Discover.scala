@@ -8,11 +8,11 @@ import scala.reflect.macros.blackbox
 
 
 
-case class Discover(value: Map[Class[_], Seq[(Int, EntryPoint[_])]])
+case class Discover[T](value: Map[Class[_], Seq[(Int, EntryPoint[_])]])
 object Discover {
-  def apply[T]: Discover = macro applyImpl[T]
+  def apply[T]: Discover[T] = macro applyImpl[T]
 
-  def applyImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Discover] = {
+  def applyImpl[T: c.WeakTypeTag](c: blackbox.Context): c.Expr[Discover[T]] = {
     import c.universe._
     import compat._
     val seen = mutable.Set.empty[Type]
@@ -61,6 +61,6 @@ object Discover {
       q"$lhs -> $rhs"
     }
 
-    c.Expr[Discover](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
+    c.Expr[Discover[T]](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
   }
 }

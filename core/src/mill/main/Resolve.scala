@@ -8,7 +8,7 @@ import ammonite.main.Router.EntryPoint
 object Resolve {
   def resolve[T, V](remainingSelector: List[Segment],
                     obj: mill.Module,
-                    discover: Discover,
+                    discover: Discover[_],
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Seq[Task[Any]]] = {

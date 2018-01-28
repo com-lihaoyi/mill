@@ -1,9 +1,10 @@
 package mill.eval
 
 import ammonite.ops._
-import mill.T
+
 import mill.define.Discover
 import mill.util.TestEvaluator
+import mill.util.TestEvaluator.implicitDisover
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
 
@@ -12,7 +13,6 @@ object CrossTests extends TestSuite{
     'singleCross - {
       val check = new TestEvaluator(
         singleCross,
-        Discover[singleCross.type],
         pwd / 'target / 'workspace / "cross-tests" / "inputs",
         pwd
       )
@@ -25,7 +25,6 @@ object CrossTests extends TestSuite{
     'crossResolved - {
       val check = new TestEvaluator(
         crossResolved,
-        Discover[crossResolved.type],
         pwd / 'target / 'workspace / "cross-tests" / "crossResolved",
         pwd
       )
@@ -43,7 +42,6 @@ object CrossTests extends TestSuite{
     'doubleCross - {
       val check = new TestEvaluator(
         doubleCross,
-        Discover[doubleCross.type],
         pwd / 'target / 'workspace / "cross-tests" / "doubleCross",
         pwd
       )
@@ -60,7 +58,6 @@ object CrossTests extends TestSuite{
     'nestedCrosses - {
       val check = new TestEvaluator(
         nestedCrosses,
-        Discover[nestedCrosses.type],
         pwd / 'target / 'workspace / "cross-tests" / "nestedCrosses",
         pwd
       )

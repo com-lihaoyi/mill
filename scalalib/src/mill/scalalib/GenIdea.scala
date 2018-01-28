@@ -14,7 +14,7 @@ object GenIdea {
 
   def apply()(implicit ctx: LogCtx,
               rootModule0: BaseModule.Implicit,
-              discover: Discover): Unit = {
+              discover: Discover[_]): Unit = {
     val rootModule = rootModule0.value
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"

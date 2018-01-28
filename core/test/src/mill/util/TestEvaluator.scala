@@ -1,13 +1,18 @@
 package mill.util
 
 import ammonite.ops.Path
+import mill.define.Discover.applyImpl
 import mill.define.{Discover, Input, Target, Task}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
-class TestEvaluator(module: mill.Module,
-                    discover: Discover,
-                    workspacePath: Path,
-                    basePath: Path){
+import language.experimental.macros
+object TestEvaluator{
+  implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
+}
+class TestEvaluator[T <: TestUtil.BaseModule](module: T,
+                                              workspacePath: Path,
+                                              basePath: Path)
+                                             (implicit discover: Discover[T]){
   val evaluator = new Evaluator(workspacePath, basePath, module, discover, DummyLogger)
   //val evaluator = new Evaluator(workspacePath, basePath, module, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {

@@ -1,16 +1,15 @@
 package mill.main
 
-import mill.Module
 import mill.define.{Discover, Segment, Task}
 import mill.util.TestGraphs._
-import mill.util.TestUtil.test
+import mill.util.TestEvaluator.implicitDisover
 import utest._
 object MainTests extends TestSuite{
 
-  def check[T <: mill.Module](module: T,
-                              discover: Discover)(
+  def check[T <: mill.Module](module: T)(
                               selectorString: String,
-                              expected0: Either[String, Seq[T => Task[_]]]) = {
+                              expected0: Either[String, Seq[T => Task[_]]])
+                             (implicit discover: Discover[T])= {
 
     val expected = expected0.map(_.map(_(module)))
     val resolved = for{
@@ -24,14 +23,14 @@ object MainTests extends TestSuite{
     val graphs = new mill.util.TestGraphs()
     import graphs._
     'single - {
-      val check = MainTests.check(singleton, Discover[singleton.type]) _
+      val check = MainTests.check(singleton) _
       'pos - check("single", Right(Seq(_.single)))
       'neg1 - check("doesntExist", Left("Cannot resolve task doesntExist"))
       'neg2 - check("single.doesntExist", Left("Cannot resolve module single"))
       'neg3 - check("", Left("Selector cannot be empty"))
     }
     'nested - {
-      val check = MainTests.check(nestedModule, Discover[nestedModule.type]) _
+      val check = MainTests.check(nestedModule) _
       'pos1 - check("single", Right(Seq(_.single)))
       'pos2 - check("nested.single", Right(Seq(_.nested.single)))
       'pos3 - check("classInstance.single", Right(Seq(_.classInstance.single)))
@@ -74,7 +73,7 @@ object MainTests extends TestSuite{
     }
     'cross - {
       'single - {
-        val check = MainTests.check(singleCross, Discover[singleCross.type]) _
+        val check = MainTests.check(singleCross) _
         'pos1 - check("cross[210].suffix", Right(Seq(_.cross("210").suffix)))
         'pos2 - check("cross[211].suffix", Right(Seq(_.cross("211").suffix)))
         'neg1 - check("cross[210].doesntExist", Left("Cannot resolve task cross[210].doesntExist"))
@@ -98,7 +97,7 @@ object MainTests extends TestSuite{
         )
       }
       'double - {
-        val check = MainTests.check(doubleCross, Discover[doubleCross.type]) _
+        val check = MainTests.check(doubleCross) _
         'pos1 - check(
           "cross[210,jvm].suffix",
           Right(Seq(_.cross("210", "jvm").suffix))
@@ -172,7 +171,7 @@ object MainTests extends TestSuite{
         }
       }
       'nested - {
-        val check = MainTests.check(nestedCrosses, Discover[nestedCrosses.type]) _
+        val check = MainTests.check(nestedCrosses) _
         'pos1 - check(
           "cross[210].cross2[js].suffix",
           Right(Seq(_.cross("210").cross2("js").suffix))

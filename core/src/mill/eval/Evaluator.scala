@@ -27,7 +27,7 @@ case class Labelled[T](target: NamedTask[T],
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
                    val rootModule: mill.Module,
-                   val discover: Discover,
+                   val discover: Discover[T],
                    log: Logger,
                    val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
 

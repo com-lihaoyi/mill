@@ -10,7 +10,7 @@ import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-
+import mill.util.TestEvaluator.implicitDisover
 import scala.collection.JavaConverters._
 
 
@@ -84,37 +84,31 @@ object HelloWorldTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloWorld,
-    Discover[HelloWorld.type],
     outPath,
     workingSrcPath
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
     HelloWorldWithMain,
-    Discover[HelloWorldWithMain.type],
     outPath,
     workingSrcPath
   )
   val helloWorldWithMainAssemblyEvaluator = new TestEvaluator(
     HelloWorldWithMainAssembly,
-    Discover[HelloWorldWithMainAssembly.type],
     outPath,
     workingSrcPath
   )
   val helloWorldFatalEvaluator = new TestEvaluator(
     HelloWorldFatalWarnings,
-    Discover[HelloWorldFatalWarnings.type],
     outPath,
     workingSrcPath
   )
   val helloWorldOverrideEvaluator = new TestEvaluator(
     HelloWorldScalaOverride,
-    Discover[HelloWorldScalaOverride.type],
     outPath,
     workingSrcPath
   )
   val helloWorldCrossEvaluator = new TestEvaluator(
     CrossHelloWorld,
-    Discover[CrossHelloWorld.type],
     outPath,
     workingSrcPath
   )

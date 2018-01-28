@@ -24,15 +24,15 @@ object RunScript{
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)],
+                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])],
                 log: Logger)
-  : (Res[(Evaluator[_], Discover, Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+  : (Res[(Evaluator[Any], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalRes, interpWatched) = lastEvaluator match{
-      case Some((prevInterpWatchedSig, prevEvaluator, prevDiscover))
+      case Some((prevInterpWatchedSig, prevEvaluator))
         if watchedSigUnchanged(prevInterpWatchedSig) =>
 
-        (Res.Success(prevEvaluator -> prevDiscover), prevInterpWatchedSig)
+        (Res.Success(prevEvaluator), prevInterpWatchedSig)
 
       case _ =>
         instantiateInterpreter match{
@@ -41,20 +41,18 @@ object RunScript{
             interp.watch(path)
             val eval =
               for((mapping, discover) <- evaluateMapping(wd, path, interp))
-              yield (
-                new Evaluator(
-                  wd / 'out, wd, mapping, discover, log,
-                  mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
-                ),
-                discover
+              yield new Evaluator[Any](
+                wd / 'out, wd, mapping, discover, log,
+                mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
               )
+
             (eval, interp.watchedFiles)
         }
     }
 
     val evaluated = for{
-      (evaluator, discover) <- evalRes
-      (evalWatches, res) <- Res(evaluateTarget(evaluator, discover, scriptArgs))
+      evaluator <- evalRes
+      (evalWatches, res) <- Res(evaluateTarget(evaluator, scriptArgs))
     } yield {
       val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
       // If the file changed between the creation of the original
@@ -67,7 +65,7 @@ object RunScript{
         if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
         else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
 
-      (evaluator, discover, evaluationWatches, res.map(_.flatMap(_._2)))
+      (evaluator, evaluationWatches, res.map(_.flatMap(_._2)))
     }
     (evaluated, interpWatched)
   }
@@ -78,7 +76,7 @@ object RunScript{
 
   def evaluateMapping(wd: Path,
                       path: Path,
-                      interp: ammonite.interp.Interpreter): Res[(mill.Module, Discover)] = {
+                      interp: ammonite.interp.Interpreter): Res[(mill.Module, Discover[Any])] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -121,7 +119,7 @@ object RunScript{
           Res.Success(
             buildCls.getMethod("millDiscover")
                     .invoke(module)
-                    .asInstanceOf[Discover]
+                    .asInstanceOf[Discover[Any]]
           )
         }
       } catch {
@@ -131,8 +129,7 @@ object RunScript{
     } yield (module, discover)
   }
 
-  def evaluateTarget[T](evaluator: Evaluator[_],
-                        discover: Discover,
+  def evaluateTarget[T](evaluator: Evaluator[T],
                         scriptArgs: Seq[String]) = {
     for {
       parsed <- ParseArgs(scriptArgs)
@@ -145,7 +142,7 @@ object RunScript{
           }
           mill.main.Resolve.resolve(
             sel, evaluator.rootModule,
-            discover,
+            evaluator.discover,
             args, crossSelectors, Nil
           )
         }

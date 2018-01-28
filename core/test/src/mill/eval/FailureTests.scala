@@ -5,13 +5,13 @@ import mill.util.DummyLogger
 import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
-
+import mill.util.TestEvaluator.implicitDisover
 object FailureTests extends TestSuite{
 
   def workspace(implicit tp: TestPath) = {
     ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
   }
-  class Checker(module: mill.Module, discover: Discover)(implicit tp: TestPath){
+  class Checker[T <: mill.Module](module: T)(implicit tp: TestPath, discover: Discover[T]){
 
     val evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, discover, DummyLogger)
 
@@ -37,7 +37,7 @@ object FailureTests extends TestSuite{
 
     'evaluateSingle - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(singleton, Discover[singleton.type])
+      val check = new Checker(singleton)
       check(
         target = singleton.single,
         expectedFailCount = 0,
@@ -73,7 +73,7 @@ object FailureTests extends TestSuite{
     }
     'evaluatePair - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(pair, Discover[pair.type])
+      val check = new Checker(pair)
       check(
         pair.down,
         expectedFailCount = 0,

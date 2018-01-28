@@ -12,7 +12,7 @@ object ReplApplyHandler{
   def apply[T](colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
                rootModule: mill.Module,
-               discover: Discover) = {
+               discover: Discover[_]) = {
     new ReplApplyHandler(
       pprinter0,
       new mill.eval.Evaluator(
@@ -27,14 +27,12 @@ object ReplApplyHandler{
           System.err,
           System.err
         )
-      ),
-      discover
+      )
     )
   }
 }
 class ReplApplyHandler(pprinter0: pprint.PPrinter,
-                       evaluator: Evaluator[_],
-                       discover: Discover) extends ApplyHandler[Task] {
+                       evaluator: Evaluator[_]) extends ApplyHandler[Task] {
   // Evaluate classLoaderSig only once in the REPL to avoid busting caches
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig
@@ -83,7 +81,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
         else
           ctx.applyPrefixColor("\nChildren:").toString +:
           m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segments.render)) ++
-        (discover.value.get(m.getClass) match{
+        (evaluator.discover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>
             ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>

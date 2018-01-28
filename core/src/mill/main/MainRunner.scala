@@ -24,7 +24,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
-  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[_], Discover)] = None
+  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(
@@ -48,9 +48,9 @@ class MainRunner(config: ammonite.main.Cli.Config,
 
         result match{
           case Res.Success(data) =>
-            val (eval, discover, evaluationWatches, res) = data
+            val (eval, evaluationWatches, res) = data
 
-            lastEvaluator = Some((interpWatched, eval, discover))
+            lastEvaluator = Some((interpWatched, eval))
 
             (Res(res), interpWatched ++ evaluationWatches)
           case _ => (result, interpWatched)
@@ -95,7 +95,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
          |
-         |  implicit def millDiscover: mill.define.Discover = mill.define.Discover[this.type]
+         |  implicit def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
          |  // Need to wrap the returned Module in Some(...) to make sure it
          |  // doesn't get picked up during reflective child-module discovery
          |  val millSelf = Some(this)
@@ -103,7 +103,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |
          |sealed trait $wrapName extends mill.Module{this: mill.define.BaseModule =>
          |
-         |  implicit def millDiscover: mill.define.Discover
+         |  implicit def millDiscover: mill.define.Discover[_]
          |""".stripMargin
     }
 
