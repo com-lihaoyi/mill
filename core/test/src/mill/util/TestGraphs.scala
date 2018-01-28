@@ -200,6 +200,24 @@ object TestGraphs{
       def suffix = T{ scalaVersion }
     }
   }
+  object crossResolved extends TestUtil.BaseModule {
+    trait MyModule extends Module{
+      def crossVersion: String
+      implicit object resolver extends mill.define.Cross.Resolver[MyModule]{
+        def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
+      }
+    }
+
+    object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
+    class FooModule(val crossVersion: String) extends MyModule{
+      def suffix = T{ crossVersion }
+    }
+
+    object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
+    class BarModule(val crossVersion: String) extends MyModule{
+      def longSuffix = T{ "_" + foo().suffix() }
+    }
+  }
   object doubleCross extends TestUtil.BaseModule {
     val crossMatrix = for{
       scalaVersion <- Seq("210", "211", "212")
