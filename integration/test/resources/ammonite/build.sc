@@ -150,11 +150,6 @@ class ShellModule(val crossScalaVersion: String) extends AmmModule{
 object integration extends Cross[IntegrationModule](fullCrossScalaVersions:_*)
 class IntegrationModule(val crossScalaVersion: String) extends AmmModule{
   def moduleDeps = Seq(ops(), amm())
-  //  (test in Test) := (test in Test).dependsOn(integrationTasks:_*).value,
-  //  (run in Test) := (run in Test).dependsOn(integrationTasks:_*).evaluated,
-  //  (testOnly in Test) := (testOnly in Test).dependsOn(integrationTasks:_*).evaluated,
-  //  (console in Test) := (console in Test).dependsOn(integrationTasks:_*).value,
-  //  initialCommands in (Test, console) := "ammonite.integration.Main.main(null)"
   object test extends Tests {
     def forkEnv = super.forkEnv() ++ Seq(
       "AMMONITE_TEST_SHELL" -> shell().jar().path.toString,

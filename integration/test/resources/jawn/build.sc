@@ -1,9 +1,10 @@
 import mill.scalalib
 import mill.Cross
 import mill.scalalib.{Dep, TestModule, DepSyntax}
+import ammonite.ops.up
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", "2.12.3")
 class JawnModule(crossVersion: String) extends mill.Module{
-  override def basePath = super.basePath / ammonite.ops.up / ammonite.ops.up
+  override def basePath = super.basePath / up / up
 
   trait JawnModule extends scalalib.SbtModule{
     def scalaVersion = crossVersion
@@ -52,7 +53,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
 
     object rojoma extends Support(ivy"com.rojoma::rojoma-json:2.4.3")
     object rojomaV3 extends Support(ivy"com.rojoma::rojoma-json-v3:3.7.2"){
-      override def basePath = super.basePath / ammonite.ops.up / "rojoma-v3"
+      override def basePath = super.basePath / up / "rojoma-v3"
     }
     object spray extends Support(ivy"io.spray::spray-json:1.3.3")
   }
