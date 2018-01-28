@@ -7,7 +7,7 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 import ammonite.ops._
 import mill._
 import mill.define.Discover
-import mill.scalalib.{DepSyntax, PublishModule}
+import mill.scalalib.{DepSyntax, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._

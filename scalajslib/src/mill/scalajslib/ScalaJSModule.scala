@@ -68,10 +68,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
+  def toolsClasspath = T { Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath() }
+
   def fastOpt = T {
     link(
       ScalaJSBridge.scalaJSBridge(),
-      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      toolsClasspath(),
       Seq(compile()),
       compileDepClasspath(),
       mainClass(),
@@ -82,7 +84,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def fullOpt = T {
     link(
       ScalaJSBridge.scalaJSBridge(),
-      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      toolsClasspath(),
       Seq(compile()),
       compileDepClasspath(),
       mainClass(),
@@ -146,7 +148,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def fastOptTest = T {
     link(
       ScalaJSBridge.scalaJSBridge(),
-      Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath(),
+      toolsClasspath(),
       compile() +: upstreamCompileOutput(),
       scalaJSTestDeps() ++ compileDepClasspath(),
       None,
@@ -154,11 +156,11 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def test(args: String*) = T.command { testLocal(args:_*) }
+  override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override def testLocal(args: String*) = T.command {
+  override def test(args: String*) = T.command {
     val framework = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
-        (Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath()).map(_.path),
+        toolsClasspath().map(_.path),
         testFramework(),
         fastOptTest().path.toIO
       )
