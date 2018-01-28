@@ -28,25 +28,29 @@ object GenIdea {
     }
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout[T](evaluator: Evaluator[T],
+                       rootModule: mill.Module,
+                       fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
       .collect{ case x: scalalib.ScalaModule => (x.millModuleSegments, x)}
       .toSeq
 
-    val buildLibraryPaths = sys.props.get("MILL_BUILD_LIBRARIES") match {
-      case Some(found) => Agg.from(found.split(',').map(Path(_)).distinct)
-      case None =>
-        val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
-        val Result.Success(res) = scalalib.Lib.resolveDependencies(
-          Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-          "2.12.4",
-          "2.12",
-          for(name <- artifactNames)
-          yield Dep("com.lihaoyi", s"mill-${name}", "0.0.1-SNAPSHOT")
-        )
-        res.items.toSeq.map(_.path)
-    }
+    val buildLibraryPaths =
+      if (!fetchMillModules) Nil
+      else sys.props.get("MILL_BUILD_LIBRARIES") match {
+        case Some(found) => Agg.from(found.split(',').map(Path(_)).distinct)
+        case None =>
+          val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
+          val Result.Success(res) = scalalib.Lib.resolveDependencies(
+            Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+            "2.12.4",
+            "2.12",
+            for(name <- artifactNames)
+            yield Dep("com.lihaoyi", s"mill-${name}", "0.0.1-SNAPSHOT")
+          )
+          res.items.toSeq.map(_.path)
+      }
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =

@@ -29,10 +29,10 @@ object GenIdeaTests extends TestSuite {
   def tests: Tests = Tests {
     'genIdeaTests - {
       helloWorldEvaluator(HelloWorld.scalaVersion)
-      val x = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
-      for((relPath, xml) <- GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld)){
+      val layout = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld, fetchMillModules = false)
+      for((relPath, xml) <- layout){
         write.over(basePath/ "generated"/ relPath, pp.format(xml))
       }
 
@@ -60,7 +60,7 @@ object GenIdeaTests extends TestSuite {
         "gen-idea/idea/modules.xml" ->
           basePath / "generated" / ".idea" / "modules.xml",
         "gen-idea/idea/misc.xml" ->
-          basePath / "generated" / ".idea" / "misc.xml",
+          basePath / "generated" / ".idea" / "misc.xml"
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
           val generatedString = normaliseLibraryPaths(read! generated)
