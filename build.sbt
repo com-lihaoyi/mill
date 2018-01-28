@@ -123,6 +123,7 @@ lazy val core = project
 lazy val moduledefs = project
   .settings(
     sharedSettings,
+    name := "mill-moduledefs",
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-compiler" % scalaVersion.value,
       "com.lihaoyi" %% "sourcecode" % "0.1.4"

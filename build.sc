@@ -7,16 +7,33 @@ import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
 
-object moduledefs extends ScalaModule{
+trait MillPublishModule extends PublishModule{
   def scalaVersion = "2.12.4"
+  def artifactName = "mill-" + super.artifactName()
+  def pomSettings = PomSettings(
+    description = artifactName(),
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/mill",
+    licenses = Seq(
+      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
+    ),
+    scm = SCM(
+      "git://github.com/lihaoyi/mill.git",
+      "scm:git://github.com/lihaoyi/mill.git"
+    ),
+    developers = Seq(
+      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+    )
+  )
+}
+object moduledefs extends MillPublishModule{
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
   )
 }
 
-trait MillModule extends ScalaModule{ outer =>
-  def scalaVersion = "2.12.4"
+trait MillModule extends MillPublishModule{ outer =>
 
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")

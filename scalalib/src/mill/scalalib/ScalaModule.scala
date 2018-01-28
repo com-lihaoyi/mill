@@ -192,7 +192,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     mkdir(javadocDir)
 
     val files = for{
-      ref <- sources()
+      ref <- allSources()
       if exists(ref.path)
       p <- ls.rec(ref.path)
       if p.isFile

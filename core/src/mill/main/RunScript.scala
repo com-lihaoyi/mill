@@ -184,7 +184,7 @@ object RunScript{
 
     evaluated.failing.keyCount match {
       case 0 =>
-        val json = for(t <- targets) yield {
+        val json = for(t <- targets.toSeq) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = Evaluator
@@ -197,7 +197,7 @@ object RunScript{
           }
         }
 
-        watched -> Right(evaluated.values.zip(json.toSeq))
+        watched -> Right(evaluated.values.zip(json))
       case n => watched -> Left(s"$n targets failed\n$errorStr")
     }
   }
