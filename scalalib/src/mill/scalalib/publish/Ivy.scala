@@ -33,7 +33,7 @@ object Ivy {
           <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/>
           <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
         </publications>
-        <dependencies>{dependencies.map(renderDependency)}</dependencies>
+        <dependencies>{dependencies.map(renderDependency).toSeq}</dependencies>
       </ivy-module>
 
     val pp = new PrettyPrinter(120, 4)

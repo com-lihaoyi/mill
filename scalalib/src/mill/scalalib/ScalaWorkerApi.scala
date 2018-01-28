@@ -4,6 +4,7 @@ import java.lang.reflect.{InvocationHandler, Method}
 import java.net.URI
 
 import ammonite.ops.Path
+import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.scalalib.TestRunner.Result
@@ -19,10 +20,10 @@ object ScalaWorkerApi extends mill.define.BaseModule(ammonite.ops.pwd){
     if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))
     else {
       val mill.eval.Result.Success(v) = resolveDependencies(
-        Seq(MavenRepository("https://repo1.maven.org/maven2")),
+        Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
         "2.12.4",
         "2.12",
-        Seq(ivy"com.lihaoyi::mill-scalaworker:0.1-SNAPSHOT")
+        Seq(ivy"com.lihaoyi::mill-scalaworker:0.0.1-SNAPSHOT")
       )
       v.map(_.path)
     }

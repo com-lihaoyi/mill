@@ -1,8 +1,10 @@
 package mill.scalalib
 
 import ammonite.ops._
+import coursier.Cache
+import coursier.maven.MavenRepository
 import mill.define._
-import mill.eval.{Evaluator, PathRef}
+import mill.eval.{Evaluator, PathRef, Result}
 import mill.scalalib
 import mill.util.Ctx.LogCtx
 import mill.util.{Loose, PrintLogger, Strict}
@@ -32,7 +34,19 @@ object GenIdea {
       .collect{ case x: scalalib.ScalaModule => (x.millModuleSegments, x)}
       .toSeq
 
-    val buildLibraryPaths = Agg.from(sys.props("MILL_BUILD_LIBRARIES").split(',').map(Path(_)).distinct)
+    val buildLibraryPaths = sys.props.get("MILL_BUILD_LIBRARIES") match {
+      case Some(found) => Agg.from(found.split(',').map(Path(_)).distinct)
+      case None =>
+        val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
+        val Result.Success(res) = scalalib.Lib.resolveDependencies(
+          Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+          "2.12.4",
+          "2.12",
+          for(name <- artifactNames)
+          yield Dep("com.lihaoyi", s"mill-${name}", "0.0.1-SNAPSHOT")
+        )
+        res.items.toSeq.map(_.path)
+    }
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =

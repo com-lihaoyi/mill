@@ -5,6 +5,7 @@ import java.io.File
 
 import mill.scalalib.DepSyntax
 import ammonite.ops.{Path, ls, mkdir, rm}
+import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.PathRef
 import mill.eval.Result.Success
@@ -37,7 +38,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     if (jsBridgePath != null) Success(
       PathRef(Path(jsBridgePath), quick = true)
     ) else resolveDependencies(
-      Seq(MavenRepository("https://repo1.maven.org/maven2")),
+      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       "2.12.4",
       "2.12",
       Seq(Dep(

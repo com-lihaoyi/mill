@@ -39,7 +39,7 @@ object Pom {
           {pomSettings.developers.map(renderDeveloper)}
         </developers>
         <dependencies>
-          {dependencies.map(renderDependency)}
+          {dependencies.map(renderDependency).toSeq}
         </dependencies>
       </project>
 
