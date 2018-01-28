@@ -12,4 +12,4 @@ sbt core/test scalalib/test scalajslib/test integration/test bin/test:assembly
 target/bin/mill --all {core,scalalib,scalajslib,integration}.test devAssembly
 
 # Second build & run tests using Mill
-out/devAssembly/dest --all {core,scalalib,scalajslib,integration}.test devAssembly
+out/devAssembly/dest/out.jar --all {core,scalalib,scalajslib,integration}.test devAssembly

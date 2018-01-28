@@ -162,7 +162,7 @@ object Jvm {
 
   def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
                (implicit ctx: Ctx.DestCtx): PathRef = {
-    val outputPath = ctx.dest
+    val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
     mkdir(outputPath/up)
 
@@ -200,7 +200,7 @@ object Jvm {
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")
                     (implicit ctx: Ctx.DestCtx): PathRef = {
-    val outputPath = ctx.dest
+    val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
 
     if(inputPaths.nonEmpty) {

@@ -115,17 +115,30 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(core)
 
   def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
+
+  def genTask(m: ScalaModule) = T.task{
+    Seq(m.jar(), m.sourcesJar()) ++
+    m.externalCompileDepClasspath() ++
+    m.externalCompileDepSources()
+  }
+
   def testArgs = T{
     val bridgeVersions = bridges.items.map(_._1.head.toString)
 
-    val bridgeArgs = for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
-    yield {
-      val underscored = version.replace('.', '_')
-      val key = s"MILL_COMPILER_BRIDGE_$underscored"
-      val value = compile.classes.path
-      s"-D$key=$value"
-    }
-    scalaworker.testArgs() ++ bridgeArgs
+    val bridgeArgs =
+      for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
+      yield s"-DMILL_COMPILER_BRIDGE_${version.replace('.', '_')}=${compile.classes.path}"
+
+
+    val genIdeaArgs =
+      genTask(moduledefs)() ++
+      genTask(core)() ++
+      genTask(scalalib)() ++
+      genTask(scalajslib)()
+
+    scalaworker.testArgs() ++
+    bridgeArgs ++
+    Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
   }
 }
 

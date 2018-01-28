@@ -167,8 +167,23 @@ lazy val scalaworker: Project = project
     )
   )
 
-(javaOptions in scalalib) := bridgeProps.value.toSeq ++ scalaWorkerProps.value
+def genTask(m: Project) = Def.task{
+  Seq((packageBin in (m, Compile)).value, (packageSrc in (m, Compile)).value) ++
+  (externalDependencyClasspath in (m, Compile)).value.map(_.data)
+}
 
+(javaOptions in scalalib) := {
+  bridgeProps.value.toSeq ++
+  scalaWorkerProps.value ++
+  Seq("-DMILL_BUILD_LIBRARIES=" +
+    (
+      genTask(moduledefs).value ++
+      genTask(core).value ++
+      genTask(scalalib).value ++
+      genTask(scalajslib).value
+    ).mkString(",")
+  )
+}
 lazy val scalajslib = project
   .dependsOn(scalalib % "compile->compile;test->test")
   .settings(
@@ -257,12 +272,12 @@ lazy val bin = project
     outputStrategy in (Test, run) := Some(StdoutOutput),
     mainClass in (Test, run) := Some("mill.Main"),
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
+    javaOptions in (Test, run) := {
+      (javaOptions in (scalalib, Compile)).value ++
+      scalaWorkerProps.value
+    },
     assemblyOption in assembly := {
-      val extraArgs = (
-        bridgeProps.value ++
-        jsbridgeProps.value ++
-        scalaWorkerProps.value
-      ).mkString(" ")
+      val extraArgs = (javaOptions in (Test, run)).value.mkString(" ")
       (assemblyOption in assembly).value.copy(
         prependShellScript = Some(
           Seq(

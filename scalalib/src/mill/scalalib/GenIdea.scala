@@ -28,8 +28,11 @@ object GenIdea {
 
   def xmlFileLayout[T](evaluator: Evaluator[T], rootModule: mill.Module): Seq[(RelPath, scala.xml.Node)] = {
 
+    val modules = rootModule.millInternal.segmentsToModules.values
+      .collect{ case x: scalalib.ScalaModule => (x.millModuleSegments, x)}
+      .toSeq
 
-    val modules = rootModule.millInternal.segmentsToModules.values.collect{case x: scalalib.ScalaModule => (x.millModuleSegments, x)}.toSeq
+    val buildLibraryPaths = Agg.from(sys.props("MILL_BUILD_LIBRARIES").split(',').map(Path(_)).distinct)
 
     val resolved = for((path, mod) <- modules) yield {
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
@@ -40,19 +43,9 @@ object GenIdea {
     }
     val moduleLabels = modules.map(_.swap).toMap
 
-    val fixedFiles = Seq(
-      Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
-      Tuple2(
-        ".idea"/"modules.xml",
-        allModulesXmlTemplate(
-          for((path, mod) <- modules)
-          yield moduleName(path)
-        )
-      ),
-      Tuple2(".idea_modules"/"root.iml", rootXmlTemplate())
-    )
 
-    val allResolved = resolved.flatMap(_._2).distinct
+
+    val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths
     val minResolvedLength = allResolved.map(_.segments.length).min
     val commonPrefix = allResolved.map(_.segments.take(minResolvedLength))
       .transpose
@@ -63,7 +56,32 @@ object GenIdea {
       .map{p => (p, p.segments.drop(commonPrefix).mkString("_"))}
       .toMap
 
+    val fixedFiles = Seq(
+      Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
+      Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
+      Tuple2(
+        ".idea"/"modules.xml",
+        allModulesXmlTemplate(
+          for((path, mod) <- modules)
+            yield moduleName(path)
+        )
+      ),
+      Tuple2(
+        ".idea_modules"/"root.iml",
+        rootXmlTemplate(
+          for(path <- buildLibraryPaths)
+          yield pathToLibName(path)
+        )
+      )
+    )
+
     val libraries = allResolved.map{path =>
+      val url = "jar://" + path + "!/"
+      val name = pathToLibName(path)
+      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
+    }
+
+    val buildLibraries = buildLibraryPaths.map{path =>
       val url = "jar://" + path + "!/"
       val name = pathToLibName(path)
       Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
@@ -95,7 +113,8 @@ object GenIdea {
       )
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
-    fixedFiles ++ libraries ++ moduleFiles
+
+    fixedFiles ++ libraries ++ moduleFiles ++ buildLibraries
   }
 
 
@@ -111,6 +130,14 @@ object GenIdea {
     case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
   }.mkString.toLowerCase()
 
+  def scalaSettingsTemplate() = {
+
+    <project version="4">
+      <component name="ScalaProjectSettings">
+        <option name="scFileMode" value="Ammonite" />
+      </component>
+    </project>
+  }
   def miscXmlTemplate() = {
     <project version="4">
       <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8 (1)" project-jdk-type="JavaSDK">
@@ -136,7 +163,7 @@ object GenIdea {
       </component>
     </project>
   }
-  def rootXmlTemplate() = {
+  def rootXmlTemplate(libNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out"/>
@@ -144,6 +171,10 @@ object GenIdea {
         <exclude-output/>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
+        {
+          for(name <- libNames.toSeq.sorted)
+          yield <orderEntry type="library" name={name} level="project" />
+        }
       </component>
     </module>
   }
