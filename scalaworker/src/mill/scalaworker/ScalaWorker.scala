@@ -16,7 +16,7 @@ import mill.scalalib.{CompilationResult, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.scalalib.Lib.grepJar
 import mill.scalalib.TestRunner.Result
-import mill.util.{Ctx, PrintLogger}
+import mill.util.{Ctx, Loose, PrintLogger}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.testing._
@@ -265,7 +265,7 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
-  def runTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
+  def runTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]): Loose.Agg[(Class[_], Fingerprint)] = {
 
 
     val fingerprints = framework.fingerprints()

@@ -308,11 +308,27 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'notRunWithoutMainClass - {
-        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.runLocal())
+        // should now work with auto main class detection
+        println("11")
+        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+        val result = helloWorldWithMainEvaluator(
+          HelloWorld.runLocal(runResult.toString)
+        )
+        result.left.foreach(println)
+
+        val evalCount = result.map(_._2).getOrElse(0)
+
+        assert(evalCount > 0)
 
         assert(
-          err.isInstanceOf[RuntimeException]
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
         )
+//        val Left(Result.Exception(err, _)) = helloWorldEvaluator(HelloWorld.runLocal())
+//
+//        assert(
+//          err.isInstanceOf[RuntimeException]
+//        )
       }
     }
     'jar - {
