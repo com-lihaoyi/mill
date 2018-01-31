@@ -21,10 +21,11 @@ class ScalaJSWorker {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val outerClassLoader = getClass.getClassLoader
+        outerClassLoader.loadClass("sbt.testing.Framework") // to avoid class not found and different classloader loading
         val cl = new URLClassLoader(
           toolsClasspath.map(_.toIO.toURI.toURL).toArray) {
           override def findClass(name: String) = {
-            if (name.startsWith("mill.scalajslib.ScalaJSBridge")) {
+            if (name.startsWith("sbt.testing.") || name.startsWith("mill.scalajslib.ScalaJSBridge")) {
               outerClassLoader.loadClass(name)
             } else {
               super.findClass(name)
