@@ -200,6 +200,9 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
             args: Seq[String])
            (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
 
+    import scala.collection.JavaConverters._
+    sbt.testing.Status.values().toSeq.foreach(println)
+
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = frameworkInstance(cl)
 
