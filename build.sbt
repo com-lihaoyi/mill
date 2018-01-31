@@ -292,6 +292,7 @@ lazy val bin = project
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     javaOptions in (Test, run) := {
       (javaOptions in (scalalib, Compile)).value ++
+      jsbridgeProps.value.toSeq ++
       scalaWorkerProps.value
     },
     assemblyOption in assembly := {
