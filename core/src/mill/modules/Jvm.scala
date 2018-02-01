@@ -67,9 +67,17 @@ object Jvm {
                    body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
+      println(s"inprocess outerClassLoader: ${outerClassLoader}")
       new URLClassLoader(
         classPath.map(_.toIO.toURI.toURL).toArray,
         ClassLoader.getSystemClassLoader().getParent()){
+        override def loadClass(name: String) = {
+          if (name.startsWith("sbt.testing.Status")){
+            println(s"${System.currentTimeMillis()} loading: ${name}")
+          }
+          super.loadClass(name)
+        }
+
         override def findClass(name: String) = {
           if (name.startsWith("sbt.testing.")){
             outerClassLoader.loadClass(name)
