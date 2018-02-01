@@ -152,7 +152,10 @@ lazy val scalalib = project
     pluginSettings,
     name := "mill-scalalib",
     fork := true,
-    baseDirectory in Test := (baseDirectory in Test).value / ".."
+    baseDirectory in Test := (baseDirectory in Test).value / "..",
+    libraryDependencies ++= Seq(
+      "org.scala-sbt" % "test-interface" % "1.0"
+    )
   )
 
 lazy val scalaworker: Project = project
@@ -163,8 +166,7 @@ lazy val scalaworker: Project = project
     name := "mill-scalaworker",
     fork := true,
     libraryDependencies ++= Seq(
-      "org.scala-sbt" %% "zinc" % "1.0.5",
-      "org.scala-sbt" % "test-interface" % "1.0"
+      "org.scala-sbt" %% "zinc" % "1.0.5"
     )
   )
 
@@ -204,10 +206,25 @@ def jsbridge(binary: String, version: String) =
     organization := "com.lihaoyi",
     scalaVersion := "2.12.4",
     name := "mill-js-bridge",
-    libraryDependencies ++= Seq("org.scala-js" %% "scalajs-tools" % version)
+    libraryDependencies ++= Seq(
+      "org.scala-js" %% "scalajs-tools"            % version,
+      "org.scala-js" %% "scalajs-sbt-test-adapter" % version
+    )
   )
-lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.21")
+
+lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.22")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-js" %% "scalajs-js-envs" % "0.6.22"
+    )
+  )
+
 lazy val scalajsbridge_1_0 = jsbridge("1.0", "1.0.0-M2")
+  .settings(
+    libraryDependencies ++= Seq(
+      "org.scala-js" %% "scalajs-env-nodejs" % "1.0.0-M2"
+    )
+  )
 
 javaOptions in (scalajslib, Test) := jsbridgeProps.value.toSeq ++ scalaWorkerProps.value
 
@@ -275,6 +292,7 @@ lazy val bin = project
     baseDirectory in (Test, run) := (baseDirectory in (Compile, run)).value / ".." / "..",
     javaOptions in (Test, run) := {
       (javaOptions in (scalalib, Compile)).value ++
+      jsbridgeProps.value.toSeq ++
       scalaWorkerProps.value
     },
     assemblyOption in assembly := {

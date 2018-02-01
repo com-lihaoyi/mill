@@ -1,3 +1,6 @@
 object Main extends App {
-  println("Hello " + sys.props("java.vm.name"))
+
+  println("Hello " + vmName)
+
+  def vmName = sys.props("java.vm.name")
 }

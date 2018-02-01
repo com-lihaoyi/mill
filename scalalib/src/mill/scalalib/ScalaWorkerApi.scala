@@ -52,7 +52,7 @@ trait ScalaWorkerApi {
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: mill.util.Ctx): CompilationResult
 
-  def apply(frameworkName: String,
+  def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])

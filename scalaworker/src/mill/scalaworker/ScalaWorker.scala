@@ -37,7 +37,7 @@ object ScalaWorker{
   def main(args: Array[String]): Unit = {
     try{
       val result = new ScalaWorker(null).apply(
-        frameworkName = args(0),
+        frameworkInstance = TestRunner.framework(args(0)),
         entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
         args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
@@ -194,16 +194,14 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
     CompilationResult(zincFile, PathRef(classesDir))
   }
 
-  def apply(frameworkName: String,
+  def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])
            (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
-      val framework = cl.loadClass(frameworkName)
-        .newInstance()
-        .asInstanceOf[sbt.testing.Framework]
+      val framework = frameworkInstance(cl)
 
       val testClasses = runTests(cl, framework, testClassfilePath)
 
