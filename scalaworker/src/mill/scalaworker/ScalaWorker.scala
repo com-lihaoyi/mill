@@ -200,10 +200,6 @@ class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
             args: Seq[String])
            (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
 
-    // work around class loading issues with scala.js tests
-    sbt.testing.Status.values().foreach { s: Status => println(s) }
-    println(s"Status is loaded by: ${classOf[sbt.testing.Status].getClassLoader}")
-
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = frameworkInstance(cl)
 
