@@ -14,7 +14,7 @@ class TestEvaluator[T <: TestUtil.BaseModule](module: T,
                                               basePath: Path)
                                              (implicit discover: Discover[T]){
   val evaluator = new Evaluator(workspacePath, basePath, module, discover, DummyLogger)
-  //val evaluator = new Evaluator(workspacePath, basePath, module, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
+//  val evaluator = new Evaluator(workspacePath, basePath, module, discover, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
 

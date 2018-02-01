@@ -20,18 +20,7 @@ class ScalaJSWorker {
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val outerClassLoader = getClass.getClassLoader
-        println(s"bridge outerClassLoader: ${outerClassLoader}")
-        val cl = new URLClassLoader(
-          toolsClasspath.map(_.toIO.toURI.toURL).toArray) {
-          override def findClass(name: String) = {
-            if (name.startsWith("sbt.testing.") || name.startsWith("mill.scalajslib.ScalaJSBridge")) {
-              outerClassLoader.loadClass(name)
-            } else {
-              super.findClass(name)
-            }
-          }
-        }
+        val cl = new URLClassLoader(toolsClasspath.map(_.toIO.toURI.toURL).toArray)
         val bridge = cl
           .loadClass("mill.scalajslib.bridge.ScalaJSBridge")
           .getDeclaredConstructor()
