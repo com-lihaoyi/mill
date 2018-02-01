@@ -26,7 +26,7 @@ object HelloJSWorldTests extends TestSuite {
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq("2.11.8", "2.12.3", "2.12.4")
-      scalaJS <- Seq("0.6.20", "0.6.21", "1.0.0-M2")
+      scalaJS <- Seq("0.6.22", "1.0.0-M2")
     } yield (scala, scalaJS)
 
     object build extends Cross[BuildModule](matrix:_*)
@@ -122,9 +122,9 @@ object HelloJSWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_2124_0621 - testCompileFromScratch("2.12.4", "0.6.21")
-      'fromScratch_2123_0621 - testCompileFromScratch("2.12.3", "0.6.21")
-      'fromScratch_2118_0621 - testCompileFromScratch("2.11.8", "0.6.21")
+      'fromScratch_2124_0621 - testCompileFromScratch("2.12.4", "0.6.22")
+      'fromScratch_2123_0621 - testCompileFromScratch("2.12.3", "0.6.22")
+      'fromScratch_2118_0621 - testCompileFromScratch("2.11.8", "0.6.22")
       'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
@@ -141,20 +141,20 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     'fullOpt - {
-      'run_2124_0621 - testRun("2.12.4", "0.6.21", FullOpt)
-      'run_2123_0621 - testRun("2.12.3", "0.6.21", FullOpt)
-      'run_2118_0621 - testRun("2.11.8", "0.6.21", FullOpt)
+      'run_2124_0621 - testRun("2.12.4", "0.6.22", FullOpt)
+      'run_2123_0621 - testRun("2.12.3", "0.6.22", FullOpt)
+      'run_2118_0621 - testRun("2.11.8", "0.6.22", FullOpt)
       'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FullOpt)
     }
     'fastOpt - {
-      'run_2124_0621 - testRun("2.12.4", "0.6.21", FastOpt)
-      'run_2123_0621 - testRun("2.12.3", "0.6.21", FastOpt)
-      'run_2118_0621 - testRun("2.11.8", "0.6.21", FastOpt)
+      'run_2124_0621 - testRun("2.12.4", "0.6.22", FastOpt)
+      'run_2123_0621 - testRun("2.12.3", "0.6.22", FastOpt)
+      'run_2118_0621 - testRun("2.11.8", "0.6.22", FastOpt)
       'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FastOpt)
     }
     'jar - {
       'containsSJSIRs - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.21").jar)
+        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.22").jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
@@ -167,7 +167,7 @@ object HelloJSWorldTests extends TestSuite {
         val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
-      'artifactId_0621 - testArtifactId("2.12.4", "0.6.21", "hello-js-world_sjs0.6_2.12")
+      'artifactId_0621 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
       'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
     }
     'test - {
@@ -215,13 +215,13 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'utest_2118_0621 - checkUtest("2.11.8", "0.6.21")
-      'utest_2124_0621 - checkUtest("2.12.4", "0.6.21")
+      'utest_2118_0621 - checkUtest("2.11.8", "0.6.22")
+      'utest_2124_0621 - checkUtest("2.12.4", "0.6.22")
       'utest_2118_100M2 - checkUtest("2.11.8", "1.0.0-M2")
       'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
 
-      'scalaTest_2118_0621 - checkScalaTest("2.11.8", "0.6.21")
-      'scalaTest_2124_0621 - checkScalaTest("2.12.4", "0.6.21")
+      'scalaTest_2118_0621 - checkScalaTest("2.11.8", "0.6.22")
+      'scalaTest_2124_0621 - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
 //      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
 //      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")

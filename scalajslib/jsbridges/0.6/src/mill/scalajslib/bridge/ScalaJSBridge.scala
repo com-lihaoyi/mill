@@ -11,7 +11,7 @@ import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.jsenv.nodejs._
-import org.scalajs.testadapter.ScalaJSFramework
+import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
   def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean): Unit = {
@@ -32,8 +32,14 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
     val jsConsole = ConsoleJSConsole
-    val logger = new ScalaConsoleLogger()
+    val config = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val adapter =
+      new TestAdapter(env, config)
 
-    new ScalaJSFramework(frameworkName, env, logger, jsConsole)
+    adapter
+      .loadFrameworks(List(List(frameworkName)))
+      .flatten
+      .headOption
+      .getOrElse(throw new RuntimeException("Failed to get framework"))
   }
 }

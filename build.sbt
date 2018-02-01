@@ -212,10 +212,10 @@ def jsbridge(binary: String, version: String) =
     )
   )
 
-lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.21")
+lazy val scalajsbridge_0_6 = jsbridge("0.6", "0.6.22")
   .settings(
     libraryDependencies ++= Seq(
-      "org.scala-js" %% "scalajs-js-envs" % "0.6.21"
+      "org.scala-js" %% "scalajs-js-envs" % "0.6.22"
     )
   )
 

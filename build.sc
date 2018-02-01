@@ -181,9 +181,9 @@ object scalajslib extends MillModule {
     def ivyDeps = scalajsBinary match {
       case "0.6" =>
         Agg(
-          ivy"org.scala-js::scalajs-tools:0.6.21",
-          ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.21",
-          ivy"org.scala-js::scalajs-js-envs:0.6.21"
+          ivy"org.scala-js::scalajs-tools:0.6.22",
+          ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22",
+          ivy"org.scala-js::scalajs-js-envs:0.6.22"
         )
       case "1.0" =>
         Agg(
