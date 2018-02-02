@@ -84,13 +84,16 @@ class MainRunner(config: ammonite.main.Cli.Config,
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
     def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
       val wrapName = indexedWrapperName.backticked
+      val literalPath = pprint.Util.literalize(config.wd.toString)
       s"""
          |package ${pkgName.head.encoded}
          |package ${Util.encodeScalaSourcePath(pkgName.tail)}
          |$imports
          |import mill._
          |
-         |object $wrapName extends mill.define.BaseModule(ammonite.ops.Path(${pprint.Util.literalize(config.wd.toString)})) with $wrapName{
+         |object $wrapName
+         |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
+         |with $wrapName{
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()

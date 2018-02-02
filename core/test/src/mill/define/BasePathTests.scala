@@ -1,8 +1,9 @@
 package mill.define
 
-import mill.util.TestGraphs
+import mill.util.{TestGraphs, TestUtil}
 import utest._
 import ammonite.ops._
+import mill.{Module, T}
 object BasePathTests extends TestSuite{
   val testGraphs = new TestGraphs
   val tests = Tests{
@@ -42,6 +43,22 @@ object BasePathTests extends TestSuite{
       check(
         TestGraphs.nestedCrosses.cross("210").cross2("js"),
         "cross", "210", "cross2", "js"
+      )
+    }
+    'overriden - {
+      object overridenBasePath extends TestUtil.BaseModule {
+        override def basePath = pwd / 'overridenBasePathRootValue
+        object nested extends Module{
+          override def basePath = super.basePath / 'overridenBasePathNested
+          object nested extends Module{
+            override def basePath = super.basePath / 'overridenBasePathDoubleNested
+          }
+        }
+      }
+      assert(
+        overridenBasePath.basePath == pwd / 'overridenBasePathRootValue,
+        overridenBasePath.nested.basePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested,
+        overridenBasePath.nested.nested.basePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested / 'nested / 'overridenBasePathDoubleNested
       )
     }
 

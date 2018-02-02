@@ -104,7 +104,7 @@ class BaseModule(basePath0: Path)
   // it is the root of the module tree, and thus must not include it's own
   // sourcecode.Name as part of the list,
   override implicit def millModuleSegments: Segments = Segments()
-  override implicit def millModuleBasePath: BasePath = BasePath(millOuterCtx.basePath)
   override def basePath = millOuterCtx.basePath
+  override implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
 }
