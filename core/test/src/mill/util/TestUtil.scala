@@ -8,11 +8,13 @@ import mill.util.Strict.Agg
 import scala.collection.mutable
 
 object TestUtil {
+  trait TestBuild extends mill.define.Module
   class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
                    overrides: Overrides)
     extends mill.define.BaseModule(ammonite.ops.pwd / millModuleEnclosing0.value)
+  with TestBuild
 
   object test{
 

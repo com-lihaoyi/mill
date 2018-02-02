@@ -66,7 +66,7 @@ trait ScalaJSBridge {
 
 }
 
-object ScalaJSBridge extends mill.define.BaseModule(ammonite.ops.pwd) {
+object ScalaJSBridge extends mill.define.ExternalModule {
 
   def scalaJSBridge = T.worker { new ScalaJSWorker() }
 }

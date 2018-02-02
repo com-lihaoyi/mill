@@ -14,7 +14,7 @@ import mill.eval.PathRef
 import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
-object ScalaWorkerApi extends mill.define.BaseModule(ammonite.ops.pwd){
+object ScalaWorkerApi extends mill.define.ExternalModule {
   def scalaWorkerClasspath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
     if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))

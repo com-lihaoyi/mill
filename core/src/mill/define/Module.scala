@@ -95,10 +95,9 @@ object BaseModule{
 class BaseModule(basePath0: Path)
                 (implicit millModuleEnclosing0: sourcecode.Enclosing,
                  millModuleLine0: sourcecode.Line,
-                 millName0: sourcecode.Name,
-                 overrides0: Overrides)
+                 millName0: sourcecode.Name)
   extends Module()(
-    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath0), Segments(), implicitly)
+    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(basePath0), Segments(), Overrides(0))
   ){
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
@@ -107,4 +106,16 @@ class BaseModule(basePath0: Path)
   override def basePath = millOuterCtx.basePath
   override implicit def millModuleBasePath: BasePath = BasePath(basePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
+}
+
+class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
+                     millModuleLine0: sourcecode.Line,
+                     millName0: sourcecode.Name) extends BaseModule(ammonite.ops.pwd){
+  assert(
+    !" #".exists(millModuleEnclosing0.value.contains(_)),
+    "External modules must be at a top-level static path, not " + millModuleEnclosing0.value
+  )
+  override implicit def millModuleSegments = {
+    Segments(millModuleEnclosing0.value.split('.').map(Segment.Label):_*)
+  }
 }

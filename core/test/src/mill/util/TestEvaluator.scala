@@ -9,10 +9,10 @@ import language.experimental.macros
 object TestEvaluator{
   implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
 }
-class TestEvaluator[T <: TestUtil.BaseModule](module: T,
-                                              workspacePath: Path,
-                                              basePath: Path)
-                                             (implicit discover: Discover[T]){
+class TestEvaluator[T <: TestUtil.TestBuild](module: T,
+                                             workspacePath: Path,
+                                             basePath: Path)
+                                            (implicit discover: Discover[T]){
   val evaluator = new Evaluator(workspacePath, basePath, module, discover, DummyLogger)
 //  val evaluator = new Evaluator(workspacePath, basePath, module, discover, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
