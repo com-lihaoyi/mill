@@ -36,7 +36,7 @@ object Ctx{
 
 }
 class Ctx(val args: IndexedSeq[_],
-          val dest: Path,
+          dest0: () => Path,
           val base: Path,
           val log: Logger)
   extends DestCtx
@@ -44,6 +44,7 @@ class Ctx(val args: IndexedSeq[_],
   with ArgCtx
   with BaseCtx{
 
+  def dest = dest0()
   def length = args.length
   def apply[T](index: Int): T = {
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]

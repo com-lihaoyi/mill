@@ -162,8 +162,6 @@ class Evaluator[T](val outPath: Path,
 
             if (labelledNamedTask.task.flushDest) rm(paths.dest)
 
-            mkdir(paths.dest)
-
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,
@@ -231,20 +229,40 @@ class Evaluator[T](val outPath: Path,
     }
 
     val multiLogger = resolveLogger(paths.map(_.log))
-
-    for (target <- nonEvaluatedTargets) {
-
-      newEvaluated.append(target)
-      val targetInputValues = target.inputs
+    var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
+    for (task <- nonEvaluatedTargets) {
+      val currentStack = new Exception().getStackTrace
+      newEvaluated.append(task)
+      val targetInputValues = task.inputs
         .map(x => newResults.getOrElse(x, results(x)))
         .collect{ case Result.Success((v, hashCode)) => v }
 
       val res =
-        if (targetInputValues.length != target.inputs.length) Result.Skipped
+        if (targetInputValues.length != task.inputs.length) Result.Skipped
         else {
           val args = new Ctx(
             targetInputValues.toArray[Any],
-            paths.map(_.dest).orNull,
+            () => usedDest match{
+              case Some((earlierTask, earlierStack)) if earlierTask != task =>
+                val inner = new Exception("Earlier usage of `dest`")
+                inner.setStackTrace(earlierStack)
+                throw new Exception(
+                  "`dest` can only be used in one place within each Target[T]",
+                  inner
+                )
+              case _ =>
+                usedDest = Some((
+                  task,
+                  new Exception().getStackTrace.dropRight(currentStack.length)
+                ))
+                paths match{
+                  case Some(dest) =>
+                    mkdir(dest.dest)
+                    dest.dest
+                  case None =>
+                    throw new Exception("No `dest` folder available here")
+                }
+            },
             groupBasePath.orNull,
             multiLogger
           )
@@ -256,11 +274,11 @@ class Evaluator[T](val outPath: Path,
             System.setOut(multiLogger.outputStream)
             Console.withOut(multiLogger.outputStream){
               Console.withErr(multiLogger.errorStream){
-                target.evaluate(args)
+                task.evaluate(args)
               }
             }
           }catch{ case NonFatal(e) =>
-            val currentStack = new Exception().getStackTrace
+
             Result.Exception(e, currentStack)
           }finally{
             System.setErr(err)
@@ -268,9 +286,9 @@ class Evaluator[T](val outPath: Path,
           }
         }
 
-      newResults(target) = for(v <- res) yield {
+      newResults(task) = for(v <- res) yield {
         (v,
-          if (target.isInstanceOf[Worker[_]]) inputsHash
+          if (task.isInstanceOf[Worker[_]]) inputsHash
           else v.hashCode
         )
       }
