@@ -6,13 +6,13 @@ import java.net.URLClassLoader
 import java.util.Optional
 import java.util.zip.ZipInputStream
 
-import ammonite.ops.{Path, exists, ls, mkdir}
+import ammonite.ops.{Path, exists, ls, mkdir, rm, up}
 import ammonite.util.Colors
 import mill.Agg
 import mill.define.Worker
 import mill.eval.PathRef
 import mill.modules.Jvm
-import mill.scalalib.{CompilationResult, TestRunner}
+import mill.scalalib.{CompilationResult, Lib, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.scalalib.Lib.grepJar
 import mill.scalalib.TestRunner.Result
@@ -36,7 +36,7 @@ object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{
-      val result = new ScalaWorker(null).apply(
+      val result = new ScalaWorker(null, null).apply(
         frameworkInstance = TestRunner.framework(args(0)),
         entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
@@ -61,26 +61,59 @@ object ScalaWorker{
     // results from the outputPath
     System.exit(0)
   }
-
 }
-class ScalaWorker(ctx0: mill.util.Ctx) extends mill.scalalib.ScalaWorkerApi{
+
+class ScalaWorker(ctx0: mill.util.Ctx,
+                  compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
   @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 
+  def compileZincBridge(scalaVersion: String,
+                        compileBridgeSources: Agg[Path],
+                        compilerJars: Array[File]) = {
+    val workingDir = ctx0.dest / scalaVersion
+    val compiledDest = workingDir / 'compiled
+    if (!exists(workingDir)) {
+
+      mkdir(workingDir)
+      mkdir(compiledDest)
+
+      val sourceJar = compileBridgeSources
+        .find(_.last == s"compiler-bridge_${Lib.scalaBinaryVersion(scalaVersion)}-1.1.0-sources.jar")
+        .get
+
+      val sourceFolder = mill.modules.Util.unpackZip(sourceJar)(workingDir)
+      val classloader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
+      val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
+      val argsArray = Array[String](
+        "-d", compiledDest.toString,
+        "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(":")
+      ) ++ ls.rec(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
+
+      scalacMain.getMethods
+        .find(_.getName == "process")
+        .get
+        .invoke(null, argsArray)
+    }
+    compiledDest
+  }
+
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],
+                   compileBridgeSources: Agg[Path],
                    compileClasspath: Agg[Path],
                    compilerClasspath: Agg[Path],
                    pluginClasspath: Agg[Path],
-                   compilerBridge: Path,
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: mill.util.Ctx): CompilationResult = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
-
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
+
+    val compilerBridge = compileZincBridge(scalaVersion, compileBridgeSources, compilerJars)
+
     val pluginJars = pluginClasspath.toArray.map(_.toIO)
 
     val compilerClassloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum

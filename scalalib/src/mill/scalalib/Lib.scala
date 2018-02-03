@@ -18,6 +18,8 @@ case class CompilationResult(analysisFile: Path, classes: PathRef)
 
 object Lib{
 
+  def scalaBinaryVersion(scalaVersion: String) = scalaVersion.split('.').dropRight(1).mkString(".")
+
   def grepJar(classPath: Agg[Path], s: String) = {
     classPath
       .find(_.toString.endsWith(s))
@@ -34,13 +36,12 @@ object Lib{
     */
   def resolveDependencies(repositories: Seq[Repository],
                           scalaVersion: String,
-                          scalaBinaryVersion: String,
                           deps: TraversableOnce[Dep],
                           sources: Boolean = false): Result[Agg[PathRef]] = {
     val flattened = deps.map{
       case Dep.Java(dep) => dep
       case Dep.Scala(dep) =>
-        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion))
+        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion(scalaVersion)))
       case Dep.Point(dep) =>
         dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
     }.toSet

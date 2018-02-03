@@ -15,7 +15,7 @@ trait PublishModule extends ScalaModule { outer =>
 
   def pom = T {
     val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
+      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion())))
     val pom = Pom(artifact(), dependencies, artifactName(), pomSettings())
 
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
@@ -25,7 +25,7 @@ trait PublishModule extends ScalaModule { outer =>
 
   def ivy = T {
     val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), scalaBinaryVersion()))
+      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion())))
     val ivy = Ivy(artifact(), dependencies)
     val ivyPath = T.ctx().dest / "ivy.xml"
     write.over(ivyPath, ivy)

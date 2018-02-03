@@ -41,7 +41,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ) else resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       "2.12.4",
-      "2.12",
       Seq(Dep(
         "com.lihaoyi",
         s"mill-jsbridge_${scalaJSBridgeVersion().replace('.', '_')}",
@@ -62,7 +61,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     resolveDependencies(
       repositories,
       "2.12.4",
-      "2.12",
       commonDeps :+ envDep
     )
   }

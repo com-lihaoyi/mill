@@ -86,34 +86,6 @@ object core extends MillModule {
   }
 }
 
-val bridgeVersions = Seq("2.10.6", "2.11.8", "2.11.11", "2.12.3", "2.12.4")
-
-object bridges extends Cross[BridgeModule](bridgeVersions:_*)
-class BridgeModule(crossVersion: String) extends PublishModule {
-  def publishName = "mill-bridge"
-  def publishVersion = "0.1"
-
-  def scalaVersion = crossVersion
-  def allSources = T{
-    Agg(PathRef(shared.downloadBridgeSource(T.ctx().dest, crossVersion)))
-  }
-  def ivyDeps = Agg(
-    ivy"org.scala-lang:scala-compiler:$crossVersion",
-    ivy"org.scala-sbt:compiler-interface:1.0.5"
-  )
-
-  def publishWithFullScalaVersion = true
-
-  def pomSettings = PomSettings(
-    organization = "com.lihaoyi",
-    description = artifactId(),
-    developers = Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi/mill")),
-    licenses = Seq(License("MIT License", "https://spdx.org/licenses/MIT.html#licenseText")),
-    scm = SCM("https://github.com/lihaoyi/mill", "scm:git:https://github.com/lihaoyi/mill.git"),
-    url = "https://github.com/lihaoyi/mill"
-  )
-}
-
 
 object scalaworker extends MillModule{
   def moduleDeps = Seq(core, scalalib)
@@ -134,8 +106,6 @@ object scalalib extends MillModule {
     ivy"org.scala-sbt:test-interface:1.0"
   )
 
-  def bridgeCompiles = mill.define.Task.traverse(bridges.items)(_._2.compile)
-
   def genTask(m: ScalaModule) = T.task{
     Seq(m.jar(), m.sourcesJar()) ++
     m.externalCompileDepClasspath() ++
@@ -143,13 +113,6 @@ object scalalib extends MillModule {
   }
 
   def testArgs = T{
-    val bridgeVersions = bridges.items.map(_._1.head.toString)
-
-    val bridgeArgs =
-      for((version, compile) <- bridgeVersions.zip(bridgeCompiles()))
-      yield s"-DMILL_COMPILER_BRIDGE_${version.replace('.', '_')}=${compile.classes.path}"
-
-
     val genIdeaArgs =
       genTask(moduledefs)() ++
       genTask(core)() ++
@@ -157,7 +120,6 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     scalaworker.testArgs() ++
-    bridgeArgs ++
     Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
   }
 }

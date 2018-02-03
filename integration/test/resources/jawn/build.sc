@@ -1,6 +1,6 @@
 import mill.scalalib
 import mill.Cross
-import mill.scalalib.{Dep, TestModule, DepSyntax}
+import mill.scalalib.{Dep, TestModule, DepSyntax, Lib}
 import ammonite.ops.up
 object jawn extends Cross[JawnModule]("2.10.6", "2.11.11", "2.12.3")
 class JawnModule(crossVersion: String) extends mill.Module{
@@ -43,7 +43,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
 
     object play extends Support(){
       def ivyDeps = mill.T{
-        scalaBinaryVersion() match{
+        Lib.scalaBinaryVersion(scalaVersion()) match{
           case "2.10" => Agg(ivy"com.typesafe.play::play-json:2.4.11")
           case "2.11" => Agg(ivy"com.typesafe.play::play-json:2.5.15")
           case _ => Agg(ivy"com.typesafe.play::play-json:2.6.0")

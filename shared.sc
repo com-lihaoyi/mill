@@ -144,15 +144,6 @@ def generateCoreTestSources(p: Path) = {
   generateApplicativeTest(p)
 }
 
-@main
-def downloadBridgeSource(curlDest: Path, crossVersion: String) = {
-  val v = crossVersion.split('.').dropRight(1).mkString(".")
-  unpackZip(
-    curlDest,
-    s"http://repo1.maven.org/maven2/org/scala-sbt/compiler-bridge_$v/1.0.5/compiler-bridge_$v-1.0.5-sources.jar"
-  )
-  curlDest
-}
 
 @main
 def downloadTestRepo(label: String, commit: String, dest: Path) = {

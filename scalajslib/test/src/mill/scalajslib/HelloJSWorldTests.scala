@@ -7,11 +7,12 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 import ammonite.ops._
 import mill._
 import mill.define.Discover
-import mill.scalalib.{DepSyntax, PublishModule, TestRunner}
+import mill.scalalib.{DepSyntax, Lib, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import mill.util.TestEvaluator.implicitDisover
+
 import scala.collection.JavaConverters._
 
 
@@ -38,7 +39,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.input{ Agg(PathRef(basePath / 'src / 'utest)) }
         def testFramework: T[String] = "utest.runner.Framework"
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${scalaBinaryVersion()}:0.6.3"
+          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
         )
       }
     }
@@ -50,7 +51,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.input{ Agg(PathRef(basePath / 'src / 'scalatest)) }
         def testFramework: T[String] = "org.scalatest.tools.Framework"
         override def ivyDeps = Agg(
-          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${scalaBinaryVersion()}:3.0.4"
+          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
         )
       }
     }

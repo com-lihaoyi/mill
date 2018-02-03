@@ -45,7 +45,6 @@ object GenIdea {
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
             "2.12.4",
-            "2.12",
             for(name <- artifactNames)
             yield Dep("com.lihaoyi", s"mill-${name}", "0.0.1-SNAPSHOT")
           )

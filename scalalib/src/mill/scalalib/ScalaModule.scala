@@ -7,10 +7,12 @@ import mill.define.{Cross, Task}
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, subprocess, runLocal}
+import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, runLocal, subprocess}
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
+import mill.util.Strict
+
 /**
   * Core configuration required to compile a single Scala compilation target
   */
@@ -23,7 +25,6 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def scalaVersion: T[String]
   def mainClass: T[Option[String]] = None
 
-  def scalaBinaryVersion = T{ scalaVersion().split('.').dropRight(1).mkString(".") }
   def ivyDeps = T{ Agg.empty[Dep] }
   def compileIvyDeps = T{ Agg.empty[Dep] }
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
@@ -60,7 +61,6 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     resolveDependencies(
       repositories,
       scalaVersion(),
-      scalaBinaryVersion(),
       deps(),
       sources
     )
@@ -90,31 +90,13 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     depClasspath()
   }
 
-  /**
-    * Strange compiler-bridge jar that the Zinc incremental compile needs
-    */
-  def compilerBridge: T[PathRef] = T{
-    val compilerBridgeKey = "MILL_COMPILER_BRIDGE_" + scalaVersion().replace('.', '_')
-    val compilerBridgePath = sys.props(compilerBridgeKey)
-    if (compilerBridgePath != null) PathRef(Path(compilerBridgePath), quick = true)
-    else {
-      val dep = compilerBridgeIvyDep(scalaVersion())
-      val classpath = resolveDependencies(
-        repositories,
-        scalaVersion(),
-        scalaBinaryVersion(),
-        Seq(dep)
-      )
-      classpath match {
-        case Result.Success(resolved) =>
-          resolved.filter(_.path.ext != "pom").toSeq match {
-            case Seq(single) => PathRef(single.path, quick = true)
-            case Seq() => throw new Exception(dep + " resolution failed") // TODO: find out, is it possible?
-            case _ => throw new Exception(dep + " resolution resulted in more than one file")
-          }
-        case f: Result.Failure => throw new Exception(dep + s" resolution failed.\n + ${f.msg}") // TODO: remove, resolveDependencies will take care of this.
-      }
-    }
+  def compilerBridgeSources = T{
+    resolveDependencies(
+      repositories,
+      scalaVersion(),
+      Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
+      sources = true
+    )
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] =
@@ -153,10 +135,10 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     mill.scalalib.ScalaWorkerApi.scalaWorker().compileScala(
       scalaVersion(),
       allSources().map(_.path),
+      compilerBridgeSources().map(_.path),
       compileDepClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
-      compilerBridge().path,
       scalacOptions(),
       scalacPluginClasspath().map(_.path),
       javacOptions(),
@@ -270,7 +252,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def artifactName: T[String] = basePath.last.toString
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
-    else scalaBinaryVersion()
+    else Lib.scalaBinaryVersion(scalaVersion())
   }
 
   def artifactId: T[String] = T { s"${artifactName()}_${artifactScalaVersion()}" }
