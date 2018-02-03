@@ -45,6 +45,7 @@ class Evaluator[T](val outPath: Path,
         val finalTaskOverrides = t match{
           case t: Target[_] =>
             rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
+
           case c: mill.define.Command[_] =>
             def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
               discover.value.get(cls) match{
@@ -56,8 +57,8 @@ class Evaluator[T](val outPath: Path,
                   }
               }
             }
-            val public = findMatching(c.cls).get.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
-            public
+            findMatching(c.cls).get.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+
           case c: mill.define.Worker[_] => 0
         }
 

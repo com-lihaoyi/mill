@@ -9,12 +9,10 @@ import mill.util.TestEvaluator.implicitDisover
 object GenIdeaTests extends TestSuite {
 
   val millSourcePath = pwd / 'target / 'workspace / "gen-idea"
-  val outPath = millSourcePath / 'out
-  val workingSrcPath = millSourcePath / 'src
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
-    def millSourcePath = HelloWorldTests.workingSrcPath
+    def millSourcePath = GenIdeaTests.millSourcePath
   }
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
@@ -23,7 +21,6 @@ object GenIdeaTests extends TestSuite {
 
   def tests: Tests = Tests {
     'genIdeaTests - {
-      helloWorldEvaluator(HelloWorld.scalaVersion)
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
       val layout = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld, fetchMillModules = false)

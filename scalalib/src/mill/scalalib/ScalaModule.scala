@@ -193,7 +193,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def sourcesJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(exists))(T.ctx().dest / "sources.jar")
+    createJar((allSources() ++ resources()).map(_.path).filter(exists))
   }
 
   def forkArgs = T{ Seq.empty[String] }
@@ -250,6 +250,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def crossFullScalaVersion: T[Boolean] = false
 
   def artifactName: T[String] = millSourcePath.last.toString
+
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
     else Lib.scalaBinaryVersion(scalaVersion())

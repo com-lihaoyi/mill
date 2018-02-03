@@ -13,13 +13,6 @@ object TestEvaluator{
   implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
   val externalOutPath = pwd / 'target / 'external
 
-  def getOutPath()(implicit fullName: sourcecode.FullName,
-                 tp: TestPath) = {
-    pwd / 'target / 'workspace / (fullName.value.split('.') ++ tp.value)
-  }
-  def getOutPathStatic()(implicit fullName: sourcecode.FullName) = {
-    pwd / 'target / 'workspace / fullName.value.split('.')
-  }
 
   def static[T <: TestUtil.TestBuild](module: T)
                                      (implicit discover: Discover[T],
@@ -32,10 +25,10 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T)
                                             (implicit discover: Discover[T],
                                              fullName: sourcecode.FullName,
                                              tp: TestPath){
-  val outPath = TestEvaluator.getOutPath()
+  val outPath =  TestUtil.getOutPath()
 
-//  val logger = DummyLogger
-  val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
+  val logger = DummyLogger
+//  val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
   val evaluator = new Evaluator(outPath, TestEvaluator.externalOutPath, module, discover, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
@@ -48,7 +41,8 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T)
           evaluated.evaluated.collect {
             case t: Target[_]
               if module.millInternal.targets.contains(t)
-              && !t.isInstanceOf[Input[_]] => t
+              && !t.isInstanceOf[Input[_]]
+              && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
         ))

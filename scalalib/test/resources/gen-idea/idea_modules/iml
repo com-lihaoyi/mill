@@ -1,12 +1,12 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../target/workspace/gen-idea/out/compile/dest/classes"/>
+        <output url="file://$MODULE_DIR$/../target/workspace/mill/scalalib/GenIdeaTests/helloWorldEvaluator/compile/dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src">
-            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/hello-world/src/src" isTestSource="false"/>
+        <content url="file://$MODULE_DIR$/../target/workspace/gen-idea/src">
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/src" isTestSource="false"/>
         </content>
-        <content url="file://$MODULE_DIR$/../target/workspace/hello-world/src/resources">
-            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/hello-world/src/resources" isTestSource="false" type="java-resource"/>
+        <content url="file://$MODULE_DIR$/../target/workspace/gen-idea/resources">
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/resources" isTestSource="false" type="java-resource"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

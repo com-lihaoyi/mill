@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
 
 
 object HelloJSWorldTests extends TestSuite {
-  val workspacePath = TestEvaluator.getOutPathStatic()
+  val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
     override def millSourcePath = workspacePath
@@ -89,10 +89,11 @@ object HelloJSWorldTests extends TestSuite {
   }
 
   def runJS(path: Path): String = {
-    val engineManager = new ScriptEngineManager
+    val engineManager = new ScriptEngineManager(null)
     val engine = engineManager.getEngineByName("nashorn")
     val console = new Console
-    engine.getBindings(ScriptContext.ENGINE_SCOPE).put("console", console)
+    val bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE)
+    bindings.put("console", console)
     engine.eval(new FileReader(path.toIO))
     console.out.toString
   }
