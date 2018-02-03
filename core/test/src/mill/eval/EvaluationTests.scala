@@ -13,11 +13,9 @@ import ammonite.ops._
 object EvaluationTests extends TestSuite{
   class Checker[T <: TestUtil.TestBuild](module: T)
                                         (implicit tp: TestPath, discover: Discover[T]) {
-    val workspace = pwd / 'target / 'workspace / tp.value
-    rm(Path(workspace, pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module, workspace).evaluator
+    def evaluator = new TestEvaluator(module).evaluator
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: Agg[Task[_]],
@@ -209,9 +207,9 @@ object EvaluationTests extends TestSuite{
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
 
-        val public = ammonite.ops.read(checker.workspace / 'foo / "meta.json")
+        val public = ammonite.ops.read(checker.evaluator.outPath / 'foo / "meta.json")
         val overriden = ammonite.ops.read(
-          checker.workspace / 'foo /
+          checker.evaluator.outPath / 'foo /
             'overriden / "mill.util.TestGraphs.BaseModule#foo"  / "meta.json"
         )
         assert(
@@ -237,9 +235,9 @@ object EvaluationTests extends TestSuite{
           secondRunNoOp = false
         )
 
-        val public = ammonite.ops.read(checker.workspace / 'cmd / "meta.json")
+        val public = ammonite.ops.read(checker.evaluator.outPath / 'cmd / "meta.json")
         val overriden = ammonite.ops.read(
-          checker.workspace / 'cmd /
+          checker.evaluator.outPath / 'cmd /
           'overriden / "mill.util.TestGraphs.BaseModule#cmd"  / "meta.json"
         )
         assert(

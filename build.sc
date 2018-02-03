@@ -180,7 +180,7 @@ val assemblyProjects = Seq(scalalib, scalajslib)
 def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.runClasspath)
 
 def assemblyBase(classpath: Agg[Path], extraArgs: String)
-                (implicit ctx: mill.util.Ctx.DestCtx) = {
+                (implicit ctx: mill.util.Ctx.Dest) = {
   createAssembly(
     classpath,
     prependShellScript =

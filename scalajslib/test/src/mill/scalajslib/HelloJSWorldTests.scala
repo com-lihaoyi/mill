@@ -17,10 +17,10 @@ import scala.collection.JavaConverters._
 
 
 object HelloJSWorldTests extends TestSuite {
-
+  val workspacePath = TestEvaluator.getOutPathStatic()
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
-    override def millSourcePath = HelloJSWorldTests.workspacePath
+    override def millSourcePath = workspacePath
     override def mainClass = Some("Main")
   }
 
@@ -77,14 +77,11 @@ object HelloJSWorldTests extends TestSuite {
   }
 
   val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
-  val workspacePath = pwd / 'target / 'workspace / "hello-js-world"
-  val outputPath = workspacePath / 'out
-  val mainObject = workspacePath / 'src / "Main.scala"
 
-  val helloWorldEvaluator = new TestEvaluator(
-    HelloJSWorld,
-    workspacePath,
-  )
+  val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
+
+
+  val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
 
   class Console {
     val out = new StringWriter()

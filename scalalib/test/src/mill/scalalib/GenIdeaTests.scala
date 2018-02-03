@@ -19,10 +19,7 @@ object GenIdeaTests extends TestSuite {
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
 
-  val helloWorldEvaluator = new TestEvaluator(
-    HelloWorld,
-    outPath
-  )
+  val helloWorldEvaluator = TestEvaluator.static(HelloWorld)
 
   def tests: Tests = Tests {
     'genIdeaTests - {

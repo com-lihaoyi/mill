@@ -6,17 +6,37 @@ import mill.define.{Discover, Input, Target, Task}
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
 import utest.assert
+import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
   implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
   val externalOutPath = pwd / 'target / 'external
+
+  def getOutPath()(implicit fullName: sourcecode.FullName,
+                 tp: TestPath) = {
+    pwd / 'target / 'workspace / (fullName.value.split('.') ++ tp.value)
+  }
+  def getOutPathStatic()(implicit fullName: sourcecode.FullName) = {
+    pwd / 'target / 'workspace / fullName.value.split('.')
+  }
+
+  def static[T <: TestUtil.TestBuild](module: T)
+                                     (implicit discover: Discover[T],
+                                     fullName: sourcecode.FullName) = {
+    new TestEvaluator[T](module)(discover, fullName, TestPath(Nil))
+  }
 }
-class TestEvaluator[T <: TestUtil.TestBuild](module: T, workspacePath: Path)
-                                            (implicit discover: Discover[T]){
+
+class TestEvaluator[T <: TestUtil.TestBuild](module: T)
+                                            (implicit discover: Discover[T],
+                                             fullName: sourcecode.FullName,
+                                             tp: TestPath){
+  val outPath = TestEvaluator.getOutPath()
+
 //  val logger = DummyLogger
   val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
-  val evaluator = new Evaluator(workspacePath, TestEvaluator.externalOutPath, module, discover, logger)
+  val evaluator = new Evaluator(outPath, TestEvaluator.externalOutPath, module, discover, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

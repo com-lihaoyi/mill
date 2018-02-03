@@ -7,18 +7,12 @@ import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
 object FailureTests extends TestSuite{
 
-  def workspace(implicit tp: TestPath) = {
-    ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
-  }
-
-
   val tests = Tests{
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
     'evaluateSingle - {
-      ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new TestEvaluator(singleton, workspace)
+      val check = new TestEvaluator(singleton)
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
@@ -53,8 +47,7 @@ object FailureTests extends TestSuite{
       )
     }
     'evaluatePair - {
-      val check = new TestEvaluator(pair, workspace)
-      rm(Path(workspace, pwd))
+      val check = new TestEvaluator(pair)
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -95,7 +88,7 @@ object FailureTests extends TestSuite{
         def right = T{ task() + left() + T.ctx().dest.toString().length }
       }
 
-      val check = new TestEvaluator(build, workspace)
+      val check = new TestEvaluator(build)
       val Right(_) = check(build.left)
       val Left(Result.Exception(e, _)) = check(build.right)
       assert(e.getMessage.contains("`dest` can only be used in one place"))

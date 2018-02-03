@@ -21,11 +21,10 @@ object JavaCompileJarTests extends TestSuite{
 
   val tests = Tests{
     'javac {
-      val workspacePath = pwd / 'target / 'workspace / 'javac
       val javacSrcPath = pwd / 'core / 'test / 'resources / 'examples / 'javac
-      val javacDestPath = workspacePath / 'src
+      val javacDestPath = TestEvaluator.getOutPath() / 'src
 
-      mkdir(pwd / 'target / 'workspace / 'javac)
+      mkdir(javacDestPath / up)
       cp(javacSrcPath, javacDestPath)
 
       object Build extends TestUtil.BaseModule{
@@ -49,12 +48,11 @@ object JavaCompileJarTests extends TestSuite{
 
       import Build._
 
+      var evaluator = new TestEvaluator(Build)
       def eval[T](t: Task[T]) = {
-        val evaluator = new TestEvaluator(Build, workspacePath)
         evaluator.apply(t)
       }
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val evaluator = new TestEvaluator(Build, workspacePath)
         evaluator.check(targets, expected)
       }
 
@@ -90,6 +88,9 @@ object JavaCompileJarTests extends TestSuite{
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
+      // You can swap evaluators halfway without any ill effects
+      evaluator = new TestEvaluator(Build)
+
       // Asking for an intermediate target forces things to be build up to that
       // target only; these are re-used for any downstream targets requested
       append(sourceRootPath / "Bar.java", "\nclass BarTwo{}")
@@ -104,7 +105,7 @@ object JavaCompileJarTests extends TestSuite{
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = %%('jar, "-tf", workspacePath/'jar/'dest/"out.jar")(workspacePath).out.string
+      val jarContents = %%('jar, "-tf", evaluator.outPath/'jar/'dest/"out.jar")(evaluator.outPath).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |hello.txt
@@ -116,7 +117,7 @@ object JavaCompileJarTests extends TestSuite{
           |""".stripMargin
       assert(jarContents == expectedJarContents)
 
-      val executed = %%('java, "-cp", workspacePath/'jar/'dest/"out.jar", "test.Foo")(workspacePath).out.string
+      val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + "\n")
 
       for(i <- 0 until 3){

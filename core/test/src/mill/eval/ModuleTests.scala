@@ -20,17 +20,13 @@ object ModuleTests extends TestSuite{
   val tests = Tests {
     rm(TestEvaluator.externalOutPath)
     'externalModuleTargetsAreNamespacedByModulePackagePath - {
-      val check = new TestEvaluator(
-        Build,
-        pwd / 'target / 'external
-      )
+      val check = new TestEvaluator(Build)
 
       val Right((30, 1)) = check.apply(Build.z)
-      val base = check.evaluator.outPath
       assert(
-        read(base / 'z / "meta.json").contains("30"),
-        read(base / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),
-        read(base / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")
+        read(check.evaluator.outPath / 'z / "meta.json").contains("30"),
+        read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),
+        read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")
       )
     }
     'externalModuleMustBeGlobalStatic - {

@@ -11,10 +11,7 @@ import utest._
 object CrossTests extends TestSuite{
   val tests = Tests{
     'singleCross - {
-      val check = new TestEvaluator(
-        singleCross,
-        pwd / 'target / 'workspace / "cross-tests" / "inputs"
-      )
+      val check = new TestEvaluator(singleCross)
 
       val Right(("210", 1)) = check.apply(singleCross.cross("210").suffix)
       val Right(("211", 1)) = check.apply(singleCross.cross("211").suffix)
@@ -22,10 +19,7 @@ object CrossTests extends TestSuite{
     }
 
     'crossResolved - {
-      val check = new TestEvaluator(
-        crossResolved,
-        pwd / 'target / 'workspace / "cross-tests" / "crossResolved"
-      )
+      val check = new TestEvaluator(crossResolved)
 
       val Right(("2.10", 1)) = check.apply(crossResolved.foo("2.10").suffix)
       val Right(("2.11", 1)) = check.apply(crossResolved.foo("2.11").suffix)
@@ -38,10 +32,7 @@ object CrossTests extends TestSuite{
 
 
     'doubleCross - {
-      val check = new TestEvaluator(
-        doubleCross,
-        pwd / 'target / 'workspace / "cross-tests" / "doubleCross"
-      )
+      val check = new TestEvaluator(doubleCross)
 
       val Right(("210_jvm", 1)) = check.apply(doubleCross.cross("210", "jvm").suffix)
       val Right(("210_js", 1)) = check.apply(doubleCross.cross("210", "js").suffix)
@@ -53,10 +44,7 @@ object CrossTests extends TestSuite{
     }
 
     'nestedCrosses - {
-      val check = new TestEvaluator(
-        nestedCrosses,
-        pwd / 'target / 'workspace / "cross-tests" / "nestedCrosses"
-      )
+      val check = new TestEvaluator(nestedCrosses)
 
       val Right(("210_jvm", 1)) = check.apply(nestedCrosses.cross("210").cross2("jvm").suffix)
       val Right(("210_js", 1)) = check.apply(nestedCrosses.cross("210").cross2("js").suffix)
