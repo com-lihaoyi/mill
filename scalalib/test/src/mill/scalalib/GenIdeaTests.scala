@@ -21,8 +21,7 @@ object GenIdeaTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloWorld,
-    outPath,
-    workingSrcPath
+    outPath
   )
 
   def tests: Tests = Tests {

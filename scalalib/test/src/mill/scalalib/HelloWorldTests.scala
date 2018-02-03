@@ -84,33 +84,27 @@ object HelloWorldTests extends TestSuite {
 
   val helloWorldEvaluator = new TestEvaluator(
     HelloWorld,
-    outPath,
-    workingSrcPath
+    outPath
   )
   val helloWorldWithMainEvaluator = new TestEvaluator(
     HelloWorldWithMain,
-    outPath,
-    workingSrcPath
+    outPath
   )
   val helloWorldWithMainAssemblyEvaluator = new TestEvaluator(
     HelloWorldWithMainAssembly,
-    outPath,
-    workingSrcPath
+    outPath
   )
   val helloWorldFatalEvaluator = new TestEvaluator(
     HelloWorldFatalWarnings,
-    outPath,
-    workingSrcPath
+    outPath
   )
   val helloWorldOverrideEvaluator = new TestEvaluator(
     HelloWorldScalaOverride,
-    outPath,
-    workingSrcPath
+    outPath
   )
   val helloWorldCrossEvaluator = new TestEvaluator(
     CrossHelloWorld,
-    outPath,
-    workingSrcPath
+    outPath
   )
 
 

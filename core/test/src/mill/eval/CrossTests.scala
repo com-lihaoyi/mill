@@ -13,8 +13,7 @@ object CrossTests extends TestSuite{
     'singleCross - {
       val check = new TestEvaluator(
         singleCross,
-        pwd / 'target / 'workspace / "cross-tests" / "inputs",
-        pwd
+        pwd / 'target / 'workspace / "cross-tests" / "inputs"
       )
 
       val Right(("210", 1)) = check.apply(singleCross.cross("210").suffix)
@@ -25,8 +24,7 @@ object CrossTests extends TestSuite{
     'crossResolved - {
       val check = new TestEvaluator(
         crossResolved,
-        pwd / 'target / 'workspace / "cross-tests" / "crossResolved",
-        pwd
+        pwd / 'target / 'workspace / "cross-tests" / "crossResolved"
       )
 
       val Right(("2.10", 1)) = check.apply(crossResolved.foo("2.10").suffix)
@@ -42,8 +40,7 @@ object CrossTests extends TestSuite{
     'doubleCross - {
       val check = new TestEvaluator(
         doubleCross,
-        pwd / 'target / 'workspace / "cross-tests" / "doubleCross",
-        pwd
+        pwd / 'target / 'workspace / "cross-tests" / "doubleCross"
       )
 
       val Right(("210_jvm", 1)) = check.apply(doubleCross.cross("210", "jvm").suffix)
@@ -58,8 +55,7 @@ object CrossTests extends TestSuite{
     'nestedCrosses - {
       val check = new TestEvaluator(
         nestedCrosses,
-        pwd / 'target / 'workspace / "cross-tests" / "nestedCrosses",
-        pwd
+        pwd / 'target / 'workspace / "cross-tests" / "nestedCrosses"
       )
 
       val Right(("210_jvm", 1)) = check.apply(nestedCrosses.cross("210").cross2("jvm").suffix)

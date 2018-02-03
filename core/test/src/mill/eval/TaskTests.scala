@@ -58,8 +58,7 @@ object TaskTests extends TestSuite{
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
       val check = new TestEvaluator(
         build,
-        pwd / 'target / 'workspace / "task-tests" / "inputs",
-        pwd
+        pwd / 'target / 'workspace / "task-tests" / "inputs"
       )
 
       val Right((1, 1)) = check.apply(build.taskInput)
@@ -75,8 +74,7 @@ object TaskTests extends TestSuite{
       // Persistent tasks keep the working dir around between runs
       val check = new TestEvaluator(
         build,
-        pwd / 'target / 'workspace / "task-tests" / "persistent",
-        pwd
+        pwd / 'target / 'workspace / "task-tests" / "persistent"
       )
       val Right((1, 1)) = check.apply(build.persistent)
       val Right((2, 1)) = check.apply(build.persistent)
@@ -91,8 +89,7 @@ object TaskTests extends TestSuite{
       // Persistent task
       def check = new TestEvaluator(
         build,
-        pwd / 'target / 'workspace / "task-tests" / "worker",
-        pwd
+        pwd / 'target / 'workspace / "task-tests" / "worker"
       )
 
       val Right((2, 1)) = check.apply(build.noisyWorkerDownstream)

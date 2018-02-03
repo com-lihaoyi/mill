@@ -29,7 +29,7 @@ object CacherTests extends TestSuite{
     def eval[T <: TestUtil.TestBuild, V](mapping: T, v: Task[V])
                                  (implicit discover: Discover[T], tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-      val evaluator = new TestEvaluator(mapping, workspace, pwd)
+      val evaluator = new TestEvaluator(mapping, workspace)
       evaluator(v).right.get._1
     }
 

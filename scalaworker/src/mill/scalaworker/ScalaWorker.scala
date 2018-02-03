@@ -232,7 +232,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])
-           (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result]) = {
+           (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = frameworkInstance(cl)

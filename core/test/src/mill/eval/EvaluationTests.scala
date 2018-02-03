@@ -17,7 +17,7 @@ object EvaluationTests extends TestSuite{
     rm(Path(workspace, pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module, workspace, pwd).evaluator
+    def evaluator = new TestEvaluator(module, workspace).evaluator
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: Agg[Task[_]],

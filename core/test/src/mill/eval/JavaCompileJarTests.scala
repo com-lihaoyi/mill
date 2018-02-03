@@ -4,7 +4,7 @@ import ammonite.ops.ImplicitWd._
 import ammonite.ops._
 import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
-import mill.util.Ctx.DestCtx
+import mill.util.Ctx.Dest
 import mill.{Module, T}
 import mill.util.{DummyLogger, Loose, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
@@ -12,7 +12,7 @@ import utest._
 import mill._
 import TestEvaluator.implicitDisover
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(sources: Seq[PathRef])(implicit ctx: DestCtx) = {
+  def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
     mkdir(ctx.dest)
     import ammonite.ops._
     %("javac", sources.map(_.path.toString()), "-d", ctx.dest)(wd = ctx.dest)
@@ -50,11 +50,11 @@ object JavaCompileJarTests extends TestSuite{
       import Build._
 
       def eval[T](t: Task[T]) = {
-        val evaluator = new TestEvaluator(Build, workspacePath, pwd)
+        val evaluator = new TestEvaluator(Build, workspacePath)
         evaluator.apply(t)
       }
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val evaluator = new TestEvaluator(Build, workspacePath, pwd)
+        val evaluator = new TestEvaluator(Build, workspacePath)
         evaluator.check(targets, expected)
       }
 

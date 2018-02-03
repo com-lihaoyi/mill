@@ -2,7 +2,6 @@ package mill.util
 
 import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
-import mill.util.Ctx.{ArgCtx, BaseCtx, DestCtx, LogCtx}
 
 import scala.annotation.compileTimeOnly
 import scala.language.implicitConversions
@@ -12,37 +11,29 @@ object Ctx{
   @ImplicitStub
   implicit def taskCtx: Ctx = ???
 
-  object DestCtx {
-    implicit def pathToCtx(path: Path): DestCtx = new DestCtx { def dest = path }
+  object Dest {
+    implicit def pathToCtx(path: Path): Dest = new Dest { def dest = path }
   }
-  trait DestCtx{
+  trait Dest{
     def dest: Path
   }
-  trait BaseCtx{
-    def base: Path
-  }
-  object BaseCtx {
-    implicit def pathToCtx(path: Path): BaseCtx = new BaseCtx { def base = path }
-  }
-  trait LogCtx{
+  trait Log{
     def log: Logger
   }
-  object LogCtx{
-    implicit def logToCtx(l: Logger): LogCtx = new LogCtx { def log = l }
+  object Log{
+    implicit def logToCtx(l: Logger): Log = new Log { def log = l }
   }
-  trait ArgCtx{
+  trait Args{
     def args: IndexedSeq[_]
   }
 
 }
 class Ctx(val args: IndexedSeq[_],
           dest0: () => Path,
-          val base: Path,
           val log: Logger)
-  extends DestCtx
-  with LogCtx
-  with ArgCtx
-  with BaseCtx{
+  extends Ctx.Dest
+  with Ctx.Log
+  with Ctx.Args{
 
   def dest = dest0()
   def length = args.length

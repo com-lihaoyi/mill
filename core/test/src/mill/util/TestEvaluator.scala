@@ -12,13 +12,11 @@ object TestEvaluator{
   implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
   val externalOutPath = pwd / 'target / 'external
 }
-class TestEvaluator[T <: TestUtil.TestBuild](module: T,
-                                             workspacePath: Path,
-                                             millSourcePath: Path)
+class TestEvaluator[T <: TestUtil.TestBuild](module: T, workspacePath: Path)
                                             (implicit discover: Discover[T]){
 //  val logger = DummyLogger
   val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
-  val evaluator = new Evaluator(workspacePath, millSourcePath, TestEvaluator.externalOutPath, module, discover, logger)
+  val evaluator = new Evaluator(workspacePath, TestEvaluator.externalOutPath, module, discover, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

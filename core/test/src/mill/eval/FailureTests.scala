@@ -1,7 +1,7 @@
 package mill.eval
 import mill.T
 import mill.util.{TestEvaluator, TestUtil}
-import ammonite.ops.pwd
+import ammonite.ops.{Path, pwd, rm}
 import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
@@ -18,7 +18,7 @@ object FailureTests extends TestSuite{
 
     'evaluateSingle - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new TestEvaluator(singleton, workspace, pwd)
+      val check = new TestEvaluator(singleton, workspace)
       check.fail(
         target = singleton.single,
         expectedFailCount = 0,
@@ -53,8 +53,8 @@ object FailureTests extends TestSuite{
       )
     }
     'evaluatePair - {
-      val check = new TestEvaluator(pair, workspace, pwd)
-      ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
+      val check = new TestEvaluator(pair, workspace)
+      rm(Path(workspace, pwd))
       check.fail(
         pair.down,
         expectedFailCount = 0,
@@ -95,7 +95,7 @@ object FailureTests extends TestSuite{
         def right = T{ task() + left() + T.ctx().dest.toString().length }
       }
 
-      val check = new TestEvaluator(build, workspace, pwd)
+      val check = new TestEvaluator(build, workspace)
       val Right(_) = check(build.left)
       val Left(Result.Exception(e, _)) = check(build.right)
       assert(e.getMessage.contains("`dest` can only be used in one place"))

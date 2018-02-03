@@ -22,8 +22,7 @@ object ModuleTests extends TestSuite{
     'externalModuleTargetsAreNamespacedByModulePackagePath - {
       val check = new TestEvaluator(
         Build,
-        pwd / 'target / 'external,
-        pwd
+        pwd / 'target / 'external
       )
 
       val Right((30, 1)) = check.apply(Build.z)

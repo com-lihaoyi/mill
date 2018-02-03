@@ -84,7 +84,6 @@ object HelloJSWorldTests extends TestSuite {
   val helloWorldEvaluator = new TestEvaluator(
     HelloJSWorld,
     workspacePath,
-    millSourcePath
   )
 
   class Console {

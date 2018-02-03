@@ -61,5 +61,5 @@ trait ScalaWorkerApi {
             entireClasspath: Agg[Path],
             testClassfilePath: Agg[Path],
             args: Seq[String])
-           (implicit ctx: mill.util.Ctx.LogCtx): (String, Seq[Result])
+           (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result])
 }

@@ -15,9 +15,8 @@ object ReplApplyHandler{
                discover: Discover[_]) = {
     new ReplApplyHandler(
       pprinter0,
-      new mill.eval.Evaluator(
+      new Evaluator(
         ammonite.ops.pwd,
-        ammonite.ops.pwd / 'out,
         ammonite.ops.pwd / 'out,
         rootModule,
         discover,

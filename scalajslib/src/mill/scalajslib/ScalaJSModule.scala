@@ -94,7 +94,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            input: Seq[CompilationResult],
            libraries: Agg[PathRef],
            mainClass: Option[String],
-           mode: OptimizeMode)(implicit ctx: Ctx.DestCtx): PathRef = {
+           mode: OptimizeMode)(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.js"
 
     mkdir(ctx.dest)

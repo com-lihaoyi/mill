@@ -25,7 +25,6 @@ case class Labelled[T](task: NamedTask[T],
   }
 }
 class Evaluator[T](val outPath: Path,
-                   val millSourcePath: Path,
                    val externalOutPath: Path,
                    val rootModule: mill.Module,
                    val discover: Discover[T],
@@ -119,7 +118,6 @@ class Evaluator[T](val outPath: Path,
           group,
           results,
           inputsHash,
-          groupBasePath = None,
           paths = None,
           maybeTargetLabel = None,
           counterMsg = counterMsg
@@ -131,7 +129,6 @@ class Evaluator[T](val outPath: Path,
           labelledNamedTask.segments
         )
 
-        val groupBasePath = millSourcePath / Evaluator.makeSegmentStrings(labelledNamedTask.segments)
         mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
@@ -166,7 +163,6 @@ class Evaluator[T](val outPath: Path,
               group,
               results,
               inputsHash,
-              groupBasePath = Some(groupBasePath),
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
               counterMsg = counterMsg
@@ -206,7 +202,6 @@ class Evaluator[T](val outPath: Path,
   def evaluateGroup(group: Agg[Task[_]],
                     results: collection.Map[Task[_], Result[(Any, Int)]],
                     inputsHash: Int,
-                    groupBasePath: Option[Path],
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
                     counterMsg: String) = {
@@ -263,7 +258,6 @@ class Evaluator[T](val outPath: Path,
                     throw new Exception("No `dest` folder available here")
                 }
             },
-            groupBasePath.orNull,
             multiLogger
           )
 

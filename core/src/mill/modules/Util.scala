@@ -6,7 +6,7 @@ import mill.eval.PathRef
 import mill.util.Ctx
 
 object Util {
-  def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.DestCtx) = {
+  def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.Dest) = {
     val out = ctx.dest / dest
 
     val website = new java.net.URI(url).toURL
@@ -25,7 +25,7 @@ object Util {
   }
 
   def downloadUnpackZip(url: String, dest: RelPath = "unpacked")
-                       (implicit ctx: Ctx.DestCtx) = {
+                       (implicit ctx: Ctx.Dest) = {
 
     val tmpName = if (dest == empty / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, tmpName)
@@ -33,7 +33,7 @@ object Util {
   }
 
   def unpackZip(src: Path, dest: RelPath = "unpacked")
-               (implicit ctx: Ctx.DestCtx) = {
+               (implicit ctx: Ctx.Dest) = {
 
     val byteStream = read.getInputStream(src)
     val zipStream = new java.util.zip.ZipInputStream(byteStream)

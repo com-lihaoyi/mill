@@ -6,13 +6,13 @@ import coursier.maven.MavenRepository
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.scalalib
-import mill.util.Ctx.LogCtx
+import mill.util.Ctx.Log
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
 
 object GenIdea {
 
-  def apply()(implicit ctx: LogCtx,
+  def apply()(implicit ctx: Log,
               rootModule0: BaseModule.Implicit,
               discover: Discover[_]): Unit = {
     val rootModule = rootModule0.value
@@ -21,7 +21,7 @@ object GenIdea {
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd / 'out, pwd, rootModule, discover, ctx.log)
+    val evaluator = new Evaluator(pwd / 'out, pwd, rootModule, discover, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
       write.over(pwd/relPath, pp.format(xml))

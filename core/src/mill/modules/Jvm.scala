@@ -10,7 +10,7 @@ import ammonite.ops._
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.{Ctx, Loose}
-import mill.util.Ctx.LogCtx
+import mill.util.Ctx.Log
 import mill.util.Loose.Agg
 import upickle.default.{Reader, Writer}
 
@@ -161,7 +161,7 @@ object Jvm {
   }
 
   def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
-               (implicit ctx: Ctx.DestCtx): PathRef = {
+               (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
 
@@ -198,7 +198,7 @@ object Jvm {
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "")
-                    (implicit ctx: Ctx.DestCtx): PathRef = {
+                    (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
 
