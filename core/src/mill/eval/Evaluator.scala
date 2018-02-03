@@ -162,6 +162,8 @@ class Evaluator[T](val outPath: Path,
 
             if (labelledNamedTask.task.flushDest) rm(paths.dest)
 
+            mkdir(paths.dest)
+
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,

@@ -164,7 +164,6 @@ object Jvm {
                (implicit ctx: Ctx.DestCtx): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
-    mkdir(outputPath/up)
 
     val seen = mutable.Set.empty[RelPath]
     seen.add("META-INF" / "MANIFEST.MF")
@@ -204,7 +203,6 @@ object Jvm {
     rm(outputPath)
 
     if(inputPaths.nonEmpty) {
-      mkdir(outputPath/up)
 
       val output = new FileOutputStream(outputPath.toIO)
 

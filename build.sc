@@ -71,7 +71,6 @@ object core extends MillModule {
   )
 
   def generatedSources = T {
-    mkdir(T.ctx().dest)
     shared.generateCoreSources(T.ctx().dest)
     Agg(PathRef(T.ctx().dest))
   }
@@ -79,7 +78,6 @@ object core extends MillModule {
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
-      mkdir(T.ctx().dest)
       shared.generateCoreTestSources(T.ctx().dest)
       Agg(PathRef(T.ctx().dest))
     }

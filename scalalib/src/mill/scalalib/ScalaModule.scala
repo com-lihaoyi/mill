@@ -301,7 +301,6 @@ trait TestModule extends ScalaModule with TaskModule {
 
   }
   def testLocal(args: String*) = T.command{
-    mkdir(T.ctx().dest)
     val outputPath = T.ctx().dest/"out.json"
 
     mill.scalalib.ScalaWorkerApi.scalaWorker().apply(

@@ -7,7 +7,6 @@ import mill.util.Ctx
 
 object Util {
   def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.DestCtx) = {
-    ammonite.ops.mkdir(ctx.dest)
     val out = ctx.dest / dest
 
     val website = new java.net.URI(url).toURL
@@ -27,8 +26,6 @@ object Util {
 
   def downloadUnpackZip(url: String, dest: RelPath = "unpacked")
                        (implicit ctx: Ctx.DestCtx) = {
-    ctx.dest
-    mkdir(ctx.dest)
 
     val tmpName = if (dest == empty / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, tmpName)
@@ -37,7 +34,6 @@ object Util {
 
   def unpackZip(src: Path, dest: RelPath = "unpacked")
                (implicit ctx: Ctx.DestCtx) = {
-    mkdir(ctx.dest)
 
     val byteStream = read.getInputStream(src)
     val zipStream = new java.util.zip.ZipInputStream(byteStream)

@@ -100,38 +100,6 @@ def generateApplicativeTest(dir: Path) = {
   )
 }
 
-def unpackZip(zipDest: Path, url: String) = {
-  println(s"Unpacking zip $url into $zipDest")
-  mkdir(zipDest)
-
-  val bytes = scalaj.http.Http.apply(url).option(scalaj.http.HttpOptions.followRedirects(true)).asBytes
-  val byteStream = new java.io.ByteArrayInputStream(bytes.body)
-  val zipStream = new java.util.zip.ZipInputStream(byteStream)
-  while({
-    zipStream.getNextEntry match{
-      case null => false
-      case entry =>
-        if (!entry.isDirectory) {
-          val dest = zipDest / RelPath(entry.getName)
-          mkdir(dest / up)
-          val fileOut = new java.io.FileOutputStream(dest.toString)
-          val buffer = new Array[Byte](4096)
-          while ( {
-            zipStream.read(buffer) match {
-              case -1 => false
-              case n =>
-                fileOut.write(buffer, 0, n)
-                true
-            }
-          }) ()
-          fileOut.close()
-        }
-        zipStream.closeEntry()
-        true
-    }
-  })()
-}
-
 @main
 def generateCoreSources(p: Path) = {
   generateApplyer(p)
@@ -147,6 +115,5 @@ def generateCoreTestSources(p: Path) = {
 
 @main
 def downloadTestRepo(label: String, commit: String, dest: Path) = {
-  unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")
-  dest
+  mill.modules.Util.unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")(dest)
 }
