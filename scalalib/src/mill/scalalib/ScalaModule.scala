@@ -1,6 +1,11 @@
 package mill
 package scalalib
 
+import java.io.FileInputStream
+import java.lang.instrument.Instrumentation
+import java.net.URLClassLoader
+import java.util.zip.ZipInputStream
+
 import ammonite.ops._
 import coursier.{Cache, MavenRepository, Repository}
 import mill.define.{Cross, Task}
@@ -10,6 +15,7 @@ import mill.modules.Jvm
 import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, runLocal, subprocess}
 import Lib._
 import mill.define.Cross.Resolver
+import mill.util.Loose
 import mill.util.Loose.Agg
 import mill.util.Strict
 
@@ -201,16 +207,42 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def forkEnv = T{ sys.env.toMap }
 
   def runLocal(args: String*) = T.command {
+    println("runlocal")
     Jvm.runLocal(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      mainClass().orElse(findMainClass().apply()).getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
       args
     )
   }
 
+  // from scalaworker TODO make common
+  def listClassFiles(base: Path): Iterator[String] = {
+    if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+    else {
+      val zip = new ZipInputStream(new FileInputStream(base.toIO))
+      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
+    }
+  }
+
+  private def findMainClass(): T[Option[String]] = T {
+    println("finding main 1")
+    val paths: Loose.Agg[Path] = runClasspath().map(_.path)
+    println("finding main class in"+ paths)
+    Jvm.inprocess(paths, false, cl => {
+      paths.flatMap(listClassFiles).find { path =>
+        val c = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+        c.getMethods.exists(m => m.getName == "main") // TODO also check for args as Array[String]
+      }.map { path =>
+        val p = path.stripSuffix(".class").replace('/', '.')
+        println("found main class " + path + " p " + p) // TODO is format correct ?
+        p
+      }
+    })
+  }
+
   def run(args: String*) = T.command{
     Jvm.interactiveSubprocess(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      mainClass().orElse(findMainClass().apply()).getOrElse(throw new RuntimeException("No mainClass provided!")),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
