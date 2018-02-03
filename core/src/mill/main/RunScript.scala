@@ -42,7 +42,7 @@ object RunScript{
             val eval =
               for((mapping, discover) <- evaluateMapping(wd, path, interp))
               yield new Evaluator[Any](
-                wd / 'out, wd, mapping, discover, log,
+                wd / 'out, wd / 'out, mapping, discover, log,
                 mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
               )
 
