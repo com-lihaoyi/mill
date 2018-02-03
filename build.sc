@@ -70,6 +70,7 @@ object testng extends MillPublishModule{
     ivy"org.scala-sbt:test-interface:1.0",
     ivy"org.testng:testng:6.11"
   )
+  val test = new Tests(implicitly)
 }
 
 object core extends MillModule {
@@ -111,6 +112,7 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
+}
 
   object client extends MillPublishModule{
     def ivyDeps = Agg(
@@ -194,6 +196,12 @@ object scalajslib extends MillModule {
         )
     }
   }
+}
+
+object twirllib extends MillModule {
+
+  def moduleDeps = Seq(scalalib)
+
 }
 
 def testRepos = T{
