@@ -1,7 +1,7 @@
 package mill.define
 
-import mill.eval.Evaluator
-import mill.util.{DummyLogger, TestUtil}
+import ammonite.ops.pwd
+import mill.util.{DummyLogger, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
 import mill.T
 import mill.eval.Result.Success
@@ -26,11 +26,11 @@ object CacherTests extends TestSuite{
   }
 
   val tests = Tests{
-    def eval[T <: mill.Module, V](mapping: T, v: Task[V])
+    def eval[T <: TestUtil.TestBuild, V](mapping: T, v: Task[V])
                                  (implicit discover: Discover[T], tp: TestPath) = {
       val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-      val evaluator = new Evaluator(workspace, ammonite.ops.pwd, mapping, discover, DummyLogger)
-      evaluator.evaluate(Agg(v)).values(0)
+      val evaluator = new TestEvaluator(mapping, workspace, pwd)
+      evaluator(v).right.get._1
     }
 
     'simpleDefIsCached - assert(

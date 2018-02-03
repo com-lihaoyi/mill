@@ -6,11 +6,11 @@ import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.util.Ctx.DestCtx
 import mill.{Module, T}
-import mill.util.{DummyLogger, Loose, TestUtil}
+import mill.util.{DummyLogger, Loose, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
 import utest._
 import mill._
-
+import TestEvaluator.implicitDisover
 object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: Seq[PathRef])(implicit ctx: DestCtx) = {
     mkdir(ctx.dest)
@@ -50,31 +50,12 @@ object JavaCompileJarTests extends TestSuite{
       import Build._
 
       def eval[T](t: Task[T]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, Build, Discover[Build.type], DummyLogger)
-        val evaluated = evaluator.evaluate(Agg(t))
-
-        if (evaluated.failing.keyCount == 0){
-          Right(Tuple2(
-            evaluated.rawValues(0).asInstanceOf[Result.Success[T]].value,
-            evaluated.evaluated.collect{
-              case t: Target[_] if Build.millInternal.targets.contains(t) => t
-              case t: mill.define.Command[_] => t
-            }.size
-          ))
-        }else{
-          Left(evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
-        }
-
+        val evaluator = new TestEvaluator(Build, workspacePath, pwd)
+        evaluator.apply(t)
       }
       def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
-        val evaluator = new Evaluator(workspacePath, pwd, Build, Discover[Build.type], DummyLogger)
-
-        val evaluated = evaluator.evaluate(targets)
-          .evaluated
-          .flatMap(_.asTarget)
-          .filter(Build.millInternal.targets.contains)
-          .filter(!_.isInstanceOf[Input[_]])
-        assert(evaluated == expected)
+        val evaluator = new TestEvaluator(Build, workspacePath, pwd)
+        evaluator.check(targets, expected)
       }
 
       def append(path: Path, txt: String) = ammonite.ops.write.append(path, txt)
@@ -144,7 +125,7 @@ object JavaCompileJarTests extends TestSuite{
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
           runOutput.out.string == (31337 + 271828) + "\n",
-          evalCount == 2
+          evalCount == 1
         )
       }
 
@@ -165,12 +146,12 @@ object JavaCompileJarTests extends TestSuite{
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput2.out.string == "New Cls!\n",
-        evalCount2 == 4
+        evalCount2 == 3
       )
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
         runOutput3.out.string == "New Cls!\n",
-        evalCount3 == 2
+        evalCount3 == 1
       )
     }
   }

@@ -1,8 +1,7 @@
 package mill.eval
 
-import mill.define.{Discover, Target}
-import mill.util.DummyLogger
-import mill.util.Strict.Agg
+import mill.util.TestEvaluator
+import ammonite.ops.pwd
 import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
@@ -11,34 +10,16 @@ object FailureTests extends TestSuite{
   def workspace(implicit tp: TestPath) = {
     ammonite.ops.pwd / 'target / 'workspace / 'failure / implicitly[TestPath].value
   }
-  class Checker[T <: mill.Module](module: T)(implicit tp: TestPath, discover: Discover[T]){
 
-    val evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, discover, DummyLogger)
 
-    def apply(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
-
-      val res = evaluator.evaluate(Agg(target))
-
-      val cleaned = res.rawValues.map{
-        case Result.Exception(ex, _) => Result.Exception(ex, Nil)
-        case x => x
-      }
-
-      assert(
-        cleaned == expectedRawValues,
-        res.failing.keyCount == expectedFailCount
-      )
-
-    }
-  }
   val tests = Tests{
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
     'evaluateSingle - {
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(singleton)
-      check(
+      val check = new TestEvaluator(singleton, workspace, pwd)
+      check.fail(
         target = singleton.single,
         expectedFailCount = 0,
         expectedRawValues = Seq(Result.Success(0))
@@ -46,7 +27,7 @@ object FailureTests extends TestSuite{
 
       singleton.single.failure = Some("lols")
 
-      check(
+      check.fail(
         target = singleton.single,
         expectedFailCount = 1,
         expectedRawValues = Seq(Result.Failure("lols"))
@@ -54,7 +35,7 @@ object FailureTests extends TestSuite{
 
       singleton.single.failure = None
 
-      check(
+      check.fail(
         target = singleton.single,
         expectedFailCount = 0,
         expectedRawValues = Seq(Result.Success(0))
@@ -65,16 +46,16 @@ object FailureTests extends TestSuite{
       singleton.single.exception = Some(ex)
 
 
-      check(
+      check.fail(
         target = singleton.single,
         expectedFailCount = 1,
         expectedRawValues = Seq(Result.Exception(ex, Nil))
       )
     }
     'evaluatePair - {
+      val check = new TestEvaluator(pair, workspace, pwd)
       ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
-      val check = new Checker(pair)
-      check(
+      check.fail(
         pair.down,
         expectedFailCount = 0,
         expectedRawValues = Seq(Result.Success(0))
@@ -82,7 +63,7 @@ object FailureTests extends TestSuite{
 
       pair.up.failure = Some("lols")
 
-      check(
+      check.fail(
         pair.down,
         expectedFailCount = 1,
         expectedRawValues = Seq(Result.Skipped)
@@ -90,7 +71,7 @@ object FailureTests extends TestSuite{
 
       pair.up.failure = None
 
-      check(
+      check.fail(
         pair.down,
         expectedFailCount = 0,
         expectedRawValues = Seq(Result.Success(0))
@@ -98,7 +79,7 @@ object FailureTests extends TestSuite{
 
       pair.up.exception = Some(new IndexOutOfBoundsException())
 
-      check(
+      check.fail(
         pair.down,
         expectedFailCount = 1,
         expectedRawValues = Seq(Result.Skipped)

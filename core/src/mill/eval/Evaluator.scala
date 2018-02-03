@@ -26,6 +26,7 @@ case class Labelled[T](target: NamedTask[T],
 }
 class Evaluator[T](val workspacePath: Path,
                    val basePath: Path,
+                   val externalBasePath: Path,
                    val rootModule: mill.Module,
                    val discover: Discover[T],
                    log: Logger,

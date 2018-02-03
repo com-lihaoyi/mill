@@ -4,18 +4,20 @@ package mill.eval
 import mill.util.TestUtil.{Test, test}
 import mill.define.{Discover, Graph, Target, Task}
 import mill.{Module, T}
-import mill.util.{DummyLogger, TestGraphs, TestUtil}
+import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
 import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
-
+import ammonite.ops._
 object EvaluationTests extends TestSuite{
-  class Checker[T <: mill.Module](module: T)(implicit tp: TestPath, discover: Discover[T]) {
-    val workspace = ammonite.ops.pwd / 'target / 'workspace / tp.value
-    ammonite.ops.rm(ammonite.ops.Path(workspace, ammonite.ops.pwd))
+  class Checker[T <: TestUtil.TestBuild](module: T)
+                                        (implicit tp: TestPath, discover: Discover[T]) {
+    val workspace = pwd / 'target / 'workspace / tp.value
+    rm(Path(workspace, pwd))
     // Make sure data is persisted even if we re-create the evaluator each time
-    def evaluator = new Evaluator(workspace, ammonite.ops.pwd, module, discover, DummyLogger)
+
+    def evaluator = new TestEvaluator(module, workspace, pwd).evaluator
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: Agg[Task[_]],
