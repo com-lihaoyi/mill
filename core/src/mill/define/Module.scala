@@ -25,6 +25,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
   lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module]
   def millOuterCtx = outerCtx0
   def millSourcePath: Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
+  implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
   implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
@@ -92,12 +93,20 @@ trait TaskModule extends Module {
 object BaseModule{
   case class Implicit(value: BaseModule)
 }
-class BaseModule(millSourcePath0: Path)
+class BaseModule(millSourcePath0: Path, external0: Boolean = false)
                 (implicit millModuleEnclosing0: sourcecode.Enclosing,
                  millModuleLine0: sourcecode.Line,
                  millName0: sourcecode.Name)
   extends Module()(
-    mill.define.Ctx.make(implicitly, implicitly, implicitly, BasePath(millSourcePath0), Segments(), Overrides(0))
+    mill.define.Ctx.make(
+      implicitly,
+      implicitly,
+      implicitly,
+      BasePath(millSourcePath0),
+      Segments(),
+      Overrides(0),
+      Ctx.External(external0)
+    )
   ){
   // A BaseModule should provide an empty Segments list to it's children, since
   // it is the root of the module tree, and thus must not include it's own
@@ -110,7 +119,8 @@ class BaseModule(millSourcePath0: Path)
 
 class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                      millModuleLine0: sourcecode.Line,
-                     millName0: sourcecode.Name) extends BaseModule(ammonite.ops.pwd){
+                     millName0: sourcecode.Name)
+  extends BaseModule(ammonite.ops.pwd, external0 = true){
   assert(
     !" #".exists(millModuleEnclosing0.value.contains(_)),
     "External modules must be at a top-level static path, not " + millModuleEnclosing0.value

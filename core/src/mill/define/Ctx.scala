@@ -47,23 +47,27 @@ case class Ctx(enclosing: String,
                segment: Segment,
                millSourcePath: Path,
                segments: Segments,
-               overrides: Int){
+               overrides: Int,
+               external: Boolean){
 }
 
 object Ctx{
+  case class External(value: Boolean)
   implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
                     millModuleLine0: sourcecode.Line,
                     millName0: sourcecode.Name,
                     millModuleBasePath0: BasePath,
                     segments0: Segments,
-                    overrides0: Overrides): Ctx = {
+                    overrides0: Overrides,
+                    external0: External): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,
       Segment.Label(millName0.value),
       millModuleBasePath0.value,
       segments0,
-      overrides0.value
+      overrides0.value,
+      external0.value
     )
   }
 }

@@ -64,37 +64,6 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
 }
 
 
-//def bridge(bridgeVersion: String) = Project(
-//  id = "bridge" + bridgeVersion.replace('.', '_'),
-//  base = file("target/bridge/" + bridgeVersion.replace('.', '_')),
-//  settings = Seq(
-//    organization := "com.lihaoyi",
-//    scalaVersion := bridgeVersion,
-//    name := "mill-bridge",
-//    target := baseDirectory.value,
-//    crossVersion := CrossVersion.full,
-//    libraryDependencies ++= Seq(
-//      "org.scala-lang" % "scala-compiler" % scalaVersion.value,
-//      "org.scala-sbt" % "compiler-interface" % "1.0.5"
-//    ),
-//    (sourceGenerators in Compile) += ammoniteRun(
-//      sourceManaged in Compile,
-//      List("shared.sc", "downloadBridgeSource", _, bridgeVersion)
-//    ).taskValue.map(x => (x ** "*.scala").get)
-//  )
-//)
-//
-//lazy val bridge2_10_6 = bridge("2.10.6")
-//lazy val bridge2_11_8 = bridge("2.11.8")
-////lazy val bridge2_11_9 = bridge("2.11.9")
-////lazy val bridge2_11_10 = bridge("2.11.10")
-//lazy val bridge2_11_11 = bridge("2.11.11")
-////lazy val bridge2_12_0 = bridge("2.12.0")
-////lazy val bridge2_12_1 = bridge("2.12.1")
-////lazy val bridge2_12_2 = bridge("2.12.2")
-//lazy val bridge2_12_3 = bridge("2.12.3")
-//lazy val bridge2_12_4 = bridge("2.12.4")
-
 lazy val core = project
   .dependsOn(moduledefs)
   .settings(

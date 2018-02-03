@@ -16,8 +16,8 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T,
                                              workspacePath: Path,
                                              millSourcePath: Path)
                                             (implicit discover: Discover[T]){
-  val logger = DummyLogger
-//  val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
+//  val logger = DummyLogger
+  val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
   val evaluator = new Evaluator(workspacePath, millSourcePath, TestEvaluator.externalOutPath, module, discover, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {

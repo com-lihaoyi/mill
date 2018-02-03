@@ -126,11 +126,11 @@ class Evaluator[T](val outPath: Path,
         )
       case Right(labelledNamedTask) =>
 
-        val paths = if (labelledNamedTask.task.asTarget.exists(rootModule.millInternal.targets.contains)){
-          Evaluator.resolveDestPaths(outPath, labelledNamedTask.segments)
-        }else{
-          Evaluator.resolveDestPaths(externalOutPath, labelledNamedTask.segments)
-        }
+        val paths = Evaluator.resolveDestPaths(
+          if (!labelledNamedTask.task.ctx.external) outPath else externalOutPath,
+          labelledNamedTask.segments
+        )
+
         val groupBasePath = millSourcePath / Evaluator.makeSegmentStrings(labelledNamedTask.segments)
         mkdir(paths.out)
         val cached = for{

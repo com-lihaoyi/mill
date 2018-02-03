@@ -181,10 +181,6 @@ val assemblyProjects = Seq(scalalib, scalajslib)
 
 def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.runClasspath)
 
-def publishBridges(credentials: String, gpgPassphrase: String) = T.command {
-  mill.define.Task.traverse(bridges.items)(_._2.publish(credentials, gpgPassphrase))
-}
-
 def assemblyBase(classpath: Agg[Path], extraArgs: String)
                 (implicit ctx: mill.util.Ctx.DestCtx) = {
   createAssembly(

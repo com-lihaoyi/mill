@@ -18,10 +18,11 @@ object ModuleTests extends TestSuite{
     def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
+    rm(TestEvaluator.externalOutPath)
     'externalModuleTargetsAreNamespacedByModulePackagePath - {
       val check = new TestEvaluator(
         Build,
-        pwd / 'target / 'workspace / "module-tests" / "externalModule",
+        pwd / 'target / 'external,
         pwd
       )
 
