@@ -76,9 +76,9 @@ You can override targets and commands to customize them or change what they do.
 The overriden version is available via `super`. You can omit the `override`
 keyword in Mill builds.
 
-## basePath
+## millSourcePath
 
-Each Module has a `basePath` field that corresponds to the path that module
+Each Module has a `millSourcePath` field that corresponds to the path that module
 expects it's input files to be on disk. Re-visiting our examples above:
 
 ```scala
@@ -90,24 +90,24 @@ object foo extends mill.Module{
 }
 ```
 
-The `foo` module has a `basePath` of `./foo`, while the `foo.baz` module has a
-`basePath` of `./foo/baz`.
+The `foo` module has a `millSourcePath` of `./foo`, while the `foo.baz` module has a
+`millSourcePath` of `./foo/baz`.
 
-You can use `basePath` to automatically set the source directories of your
+You can use `millSourcePath` to automatically set the source directories of your
 modules to match the build structure. You are not forced to rigidly use
-`basePath` to define the source folders of all your code, but it can simplify
+`millSourcePath` to define the source folders of all your code, but it can simplify
 the common case where you probably want your build-layout on on-disk-layout to
 be the same.
 
 e.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
-default to be in `basePath/"src"` while resources are automatically assumed to
-be in `basePath/"resources"`.
+default to be in `millSourcePath/"src"` while resources are automatically assumed to
+be in `millSourcePath/"resources"`.
 
-You can override `basePath`:
+You can override `millSourcePath`:
 
 ```scala
 object foo extends mill.Module{
-  def basePath = super.basePath / "lols"
+  def millSourcePath = super.millSourcePath / "lols"
   def bar = T{ "hello" }
   object baz extends mill.Module{
     def qux = T{ "world" } 
@@ -116,10 +116,10 @@ object foo extends mill.Module{
 ```
 
 And any overrides propagate down to the module's children: in the above example,
-module `foo` would have it's `basePath` be `./foo/lols` while module` foo.baz`
-would have it's `basePath` be `./foo/lols/baz`.
+module `foo` would have it's `millSourcePath` be `./foo/lols` while module` foo.baz`
+would have it's `millSourcePath` be `./foo/lols/baz`.
 
-Note that `basePath` is generally only used for a module's input source files.
+Note that `millSourcePath` is generally only used for a module's input source files.
 Output is always in the `out/` folder and cannot be changed, e.g. even with the
-overriden `basePath` the output paths are still the default `./out/foo/bar` and
+overriden `millSourcePath` the output paths are still the default `./out/foo/bar` and
 `./out/foo/baz/qux` folders.

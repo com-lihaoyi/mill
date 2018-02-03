@@ -25,7 +25,7 @@ mill --show foo[2.12].suffix
 mill --show foo[2.12].bigSuffix
 ```
 
-The modules each also have a `basePath` of
+The modules each also have a `millSourcePath` of
 
 ```text
 foo/2.10

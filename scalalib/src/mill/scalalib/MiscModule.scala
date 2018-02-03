@@ -14,7 +14,7 @@ object CrossModuleBase{
 }
 trait CrossModuleBase extends mill.Module{
   def crossScalaVersion: String
-  override def basePath = super.basePath / ammonite.ops.up
+  override def millSourcePath = super.millSourcePath / ammonite.ops.up
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] = new Resolver[CrossModuleBase]{
     def resolve[V <: CrossModuleBase](c: Cross[V]): V = {
       crossScalaVersion.split('.')
@@ -37,14 +37,14 @@ trait CrossModuleBase extends mill.Module{
 trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
   override def sources = T.input{
     super.sources() ++
-    CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => basePath / s"src-$s" )
+    CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s" )
 
   }
 
   trait Tests extends super.Tests {
     override def sources = T.input{
       super.sources() ++
-      CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => basePath / s"src-$s" )
+      CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s" )
     }
   }
 }
@@ -52,20 +52,20 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
 trait SbtModule extends ScalaModule { outer =>
   override def sources = T.input{
     Agg(
-      PathRef(basePath / 'src / 'main / 'scala),
-      PathRef(basePath / 'src / 'main / 'java)
+      PathRef(millSourcePath / 'src / 'main / 'scala),
+      PathRef(millSourcePath / 'src / 'main / 'java)
     )
   }
-  override def resources = T.input{ Agg(PathRef(basePath / 'src / 'main / 'resources)) }
+  override def resources = T.input{ Agg(PathRef(millSourcePath / 'src / 'main / 'resources)) }
   trait Tests extends super.Tests {
-    override def basePath = outer.basePath
+    override def millSourcePath = outer.millSourcePath
     override def sources = T.input{
       Agg(
-        PathRef(basePath / 'src / 'test / 'scala),
-        PathRef(basePath / 'src / 'test / 'java)
+        PathRef(millSourcePath / 'src / 'test / 'scala),
+        PathRef(millSourcePath / 'src / 'test / 'java)
       )
     }
-    override def resources = T.input{ Agg(PathRef(basePath / 'src / 'test / 'resources)) }
+    override def resources = T.input{ Agg(PathRef(millSourcePath / 'src / 'test / 'resources)) }
   }
 }
 
@@ -76,17 +76,17 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase{ outer =>
     super.sources() ++
     CrossModuleBase.scalaVersionPaths(
       crossScalaVersion,
-      s => basePath / 'src / 'main / s"scala-$s"
+      s => millSourcePath / 'src / 'main / s"scala-$s"
     )
 
   }
   trait Tests extends super.Tests {
-    override def basePath = outer.basePath
+    override def millSourcePath = outer.millSourcePath
     override def sources = T.input{
       super.sources() ++
       CrossModuleBase.scalaVersionPaths(
         crossScalaVersion,
-        s => basePath / 'src / 'main / s"scala-$s"
+        s => millSourcePath / 'src / 'main / s"scala-$s"
       )
     }
   }

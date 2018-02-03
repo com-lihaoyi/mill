@@ -95,6 +95,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         .get
         .invoke(null, argsArray)
     }
+
     compiledDest
   }
 

@@ -17,7 +17,7 @@ import scala.collection.JavaConverters._
 object HelloWorldTests extends TestSuite {
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
-    def basePath = HelloWorldTests.workingSrcPath
+    def millSourcePath = HelloWorldTests.workingSrcPath
   }
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
@@ -73,10 +73,10 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldScalaOverride extends TestUtil.BaseModule with HelloWorldModule {
     override def scalaVersion: Target[String] = "2.11.11"
   }
-  val srcPath = pwd / 'scalalib / 'test / 'resources / "hello-world"
-  val basePath = pwd / 'target / 'workspace / "hello-world"
-  val workingSrcPath = basePath / 'src
-  val outPath = basePath / 'out
+  val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+  val millSourcePath = pwd / 'target / 'workspace / "hello-world"
+  val workingSrcPath = millSourcePath / 'src
+  val outPath = millSourcePath / 'out
   val mainObject = workingSrcPath / 'src / "Main.scala"
 
 
@@ -211,7 +211,7 @@ object HelloWorldTests extends TestSuite {
     }
     'runMain - {
       'runMainObject - {
-        val runResult = basePath / 'out / 'runMain / 'dest / "hello-mill"
+        val runResult = millSourcePath / 'out / 'runMain / 'dest / "hello-mill"
 
         val Right((_, evalCount)) = helloWorldEvaluator(HelloWorld.runMain("Main", runResult.toString))
         assert(evalCount > 0)
@@ -224,7 +224,7 @@ object HelloWorldTests extends TestSuite {
       'runCross{
         def cross(v: String) {
 
-          val runResult = basePath / 'out / 'cross / v / 'runMain / 'dest / "hello-mill"
+          val runResult = millSourcePath / 'out / 'cross / v / 'runMain / 'dest / "hello-mill"
 
           val Right((_, evalCount)) = helloWorldCrossEvaluator(
             CrossHelloWorld.cross(v).runMain("Main", runResult.toString)
@@ -265,7 +265,7 @@ object HelloWorldTests extends TestSuite {
 
     'forkRun - {
       'runIfMainClassProvided - {
-        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+        val runResult = millSourcePath / 'out / 'run / 'dest / "hello-mill"
         val Right((_, evalCount)) = helloWorldWithMainEvaluator(
           HelloWorldWithMain.run(runResult.toString)
         )
@@ -288,7 +288,7 @@ object HelloWorldTests extends TestSuite {
     }
     'run - {
       'runIfMainClassProvided - {
-        val runResult = basePath / 'out / 'run / 'dest / "hello-mill"
+        val runResult = millSourcePath / 'out / 'run / 'dest / "hello-mill"
         val Right((_, evalCount)) = helloWorldWithMainEvaluator(
           HelloWorldWithMain.runLocal(runResult.toString)
         )
@@ -364,9 +364,9 @@ object HelloWorldTests extends TestSuite {
           exists(result.path),
           evalCount > 0
         )
-        val runResult = basePath / "hello-mill"
+        val runResult = millSourcePath / "hello-mill"
 
-        %%("java", "-jar", result.path, runResult)(wd = basePath)
+        %%("java", "-jar", result.path, runResult)(wd = millSourcePath)
 
         assert(
           exists(runResult),
@@ -394,7 +394,7 @@ object HelloWorldTests extends TestSuite {
     rm(outPath)
     rm(workingSrcPath)
     mkdir(outPath)
-    cp(srcPath, workingSrcPath)
+    cp(resourcePath, workingSrcPath)
   }
 
 }

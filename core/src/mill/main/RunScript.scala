@@ -185,7 +185,7 @@ object RunScript{
           t match {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = Evaluator
-                .resolveDestPaths(evaluator.workspacePath, t.ctx.segments)
+                .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
               val metadata = upickle.json.read(jsonFile.toIO)
               Some(metadata(1))

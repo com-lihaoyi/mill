@@ -116,7 +116,7 @@ object GenIdea {
       val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
 
       val paths = Evaluator.resolveDestPaths(
-        evaluator.workspacePath,
+        evaluator.outPath,
         mod.compile.ctx.segments
       )
 

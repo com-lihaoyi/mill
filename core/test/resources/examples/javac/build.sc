@@ -5,8 +5,8 @@ import mill.eval.PathRef
 import mill.modules.Jvm
 import mill.util.Loose
 
-def sourceRootPath = basePath / 'src
-def resourceRootPath = basePath / 'resources
+def sourceRootPath = millSourcePath / 'src
+def resourceRootPath = millSourcePath / 'resources
 
 // sourceRoot -> allSources -> classFiles
 //                                |

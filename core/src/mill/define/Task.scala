@@ -289,7 +289,7 @@ class Command[+T](t: Task[T],
 }
 
 class Worker[+T](t: Task[T], ctx0: mill.define.Ctx) extends NamedTaskImpl[T](ctx0, t) {
-
+  override def flushDest = false
   override def asWorker = Some(this)
 }
 class Persistent[+T](t: Task[T],

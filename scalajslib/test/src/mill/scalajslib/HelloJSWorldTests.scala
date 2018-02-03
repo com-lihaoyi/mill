@@ -20,7 +20,7 @@ object HelloJSWorldTests extends TestSuite {
 
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
-    override def basePath = HelloJSWorldTests.workspacePath
+    override def millSourcePath = HelloJSWorldTests.workspacePath
     override def mainClass = Some("Main")
   }
 
@@ -36,7 +36,7 @@ object HelloJSWorldTests extends TestSuite {
     class BuildModuleUtest(scalaVersion0: String, sjsVersion0: String)
       extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
       object test extends super.Tests {
-        override def sources = T.input{ Agg(PathRef(basePath / 'src / 'utest)) }
+        override def sources = T.input{ Agg(PathRef(millSourcePath / 'src / 'utest)) }
         def testFramework: T[String] = "utest.runner.Framework"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
@@ -48,7 +48,7 @@ object HelloJSWorldTests extends TestSuite {
     class BuildModuleScalaTest(scalaVersion0: String, sjsVersion0: String)
       extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
       object test extends super.Tests {
-        override def sources = T.input{ Agg(PathRef(basePath / 'src / 'scalatest)) }
+        override def sources = T.input{ Agg(PathRef(millSourcePath / 'src / 'scalatest)) }
         def testFramework: T[String] = "org.scalatest.tools.Framework"
         override def ivyDeps = Agg(
           ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
@@ -76,7 +76,7 @@ object HelloJSWorldTests extends TestSuite {
     }
   }
 
-  val srcPath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
+  val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
   val workspacePath = pwd / 'target / 'workspace / "hello-js-world"
   val outputPath = workspacePath / 'out
   val mainObject = workspacePath / 'src / "Main.scala"
@@ -84,7 +84,7 @@ object HelloJSWorldTests extends TestSuite {
   val helloWorldEvaluator = new TestEvaluator(
     HelloJSWorld,
     workspacePath,
-    srcPath
+    millSourcePath
   )
 
   class Console {
@@ -243,7 +243,7 @@ object HelloJSWorldTests extends TestSuite {
   def prepareWorkspace(): Unit = {
     rm(workspacePath)
     mkdir(workspacePath / up)
-    cp(srcPath, workspacePath)
+    cp(millSourcePath, workspacePath)
   }
 
 }

@@ -10,16 +10,16 @@ import utest.assert
 import language.experimental.macros
 object TestEvaluator{
   implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
-  val externalBasePath = pwd / 'target / 'external
+  val externalOutPath = pwd / 'target / 'external
 }
 class TestEvaluator[T <: TestUtil.TestBuild](module: T,
                                              workspacePath: Path,
-                                             basePath: Path)
+                                             millSourcePath: Path)
                                             (implicit discover: Discover[T]){
-  val evaluator = new Evaluator(
-    workspacePath, basePath, TestEvaluator.externalBasePath, module, discover, DummyLogger
-  )
-//  val evaluator = new Evaluator(workspacePath, basePath, module, discover, new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err))
+  val logger = DummyLogger
+//  val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
+  val evaluator = new Evaluator(workspacePath, millSourcePath, TestEvaluator.externalOutPath, module, discover, logger)
+
   def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
 
@@ -31,7 +31,7 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T,
             case t: Target[_]
               if module.millInternal.targets.contains(t)
               && !t.isInstanceOf[Input[_]] => t
-            case t: mill.define.Command[_]           => t
+            case t: mill.define.Command[_] => t
           }.size
         ))
     } else {

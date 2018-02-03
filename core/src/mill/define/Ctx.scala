@@ -45,7 +45,7 @@ case class Segments(value: Segment*){
 case class Ctx(enclosing: String,
                lineNum: Int,
                segment: Segment,
-               basePath: Path,
+               millSourcePath: Path,
                segments: Segments,
                overrides: Int){
 }

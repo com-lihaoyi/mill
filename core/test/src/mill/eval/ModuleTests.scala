@@ -26,7 +26,7 @@ object ModuleTests extends TestSuite{
       )
 
       val Right((30, 1)) = check.apply(Build.z)
-      val base = check.evaluator.workspacePath
+      val base = check.evaluator.outPath
       assert(
         read(base / 'z / "meta.json").contains("30"),
         read(base / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),

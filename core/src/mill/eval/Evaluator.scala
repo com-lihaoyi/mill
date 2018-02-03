@@ -12,21 +12,21 @@ import mill.util.Strict.Agg
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
-case class Labelled[T](target: NamedTask[T],
+case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
-  def format = target match{
+  def format = task match{
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
-  def writer = target match{
+  def writer = task match{
     case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
 }
-class Evaluator[T](val workspacePath: Path,
-                   val basePath: Path,
-                   val externalBasePath: Path,
+class Evaluator[T](val outPath: Path,
+                   val millSourcePath: Path,
+                   val externalOutPath: Path,
                    val rootModule: mill.Module,
                    val discover: Discover[T],
                    log: Logger,
@@ -35,7 +35,7 @@ class Evaluator[T](val workspacePath: Path,
 
   val workerCache = mutable.Map.empty[Segments, (Int, Any)]
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
-    mkdir(workspacePath)
+    mkdir(outPath)
 
     val transitive = Graph.transitiveTargets(goals)
     val topoSorted = Graph.topoSorted(transitive)
@@ -125,8 +125,13 @@ class Evaluator[T](val workspacePath: Path,
           counterMsg = counterMsg
         )
       case Right(labelledNamedTask) =>
-        val paths = Evaluator.resolveDestPaths(workspacePath, labelledNamedTask.segments)
-        val groupBasePath = basePath / Evaluator.makeSegmentStrings(labelledNamedTask.segments)
+
+        val paths = if (labelledNamedTask.task.asTarget.exists(rootModule.millInternal.targets.contains)){
+          Evaluator.resolveDestPaths(outPath, labelledNamedTask.segments)
+        }else{
+          Evaluator.resolveDestPaths(externalOutPath, labelledNamedTask.segments)
+        }
+        val groupBasePath = millSourcePath / Evaluator.makeSegmentStrings(labelledNamedTask.segments)
         mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
@@ -136,14 +141,14 @@ class Evaluator[T](val workspacePath: Path,
           parsed <- reader.read.lift(terminalResult)
         } yield parsed
 
-        val workerCached = labelledNamedTask.target.asWorker
+        val workerCached = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
           .collect{case (`inputsHash`, v) => v}
 
         workerCached.map((_, inputsHash)) orElse cached.map(p => (p, p.hashCode())) match{
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
-            newResults(labelledNamedTask.target) = Result.Success((v, hashCode))
+            newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
 
             (newResults, Nil)
 
@@ -155,7 +160,8 @@ class Evaluator[T](val workspacePath: Path,
               case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
-            if (labelledNamedTask.target.flushDest) rm(paths.dest)
+            if (labelledNamedTask.task.flushDest) rm(paths.dest)
+
             val (newResults, newEvaluated) = evaluateGroup(
               group,
               results,
@@ -166,9 +172,9 @@ class Evaluator[T](val workspacePath: Path,
               counterMsg = counterMsg
             )
 
-            newResults(labelledNamedTask.target) match{
+            newResults(labelledNamedTask.task) match{
               case Result.Success((v, hashCode)) =>
-                labelledNamedTask.target.asWorker match{
+                labelledNamedTask.task.asWorker match{
                   case Some(w) =>
                     workerCache(w.ctx.segments) = (inputsHash, v)
                   case None =>

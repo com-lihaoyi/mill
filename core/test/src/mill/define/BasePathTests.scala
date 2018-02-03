@@ -8,7 +8,7 @@ object BasePathTests extends TestSuite{
   val testGraphs = new TestGraphs
   val tests = Tests{
     def check(m: Module, segments: String*) = {
-      val remaining = m.basePath.relativeTo(pwd).segments.drop(1)
+      val remaining = m.millSourcePath.relativeTo(pwd).segments.drop(1)
       assert(remaining == segments)
     }
     'singleton - {
@@ -47,18 +47,18 @@ object BasePathTests extends TestSuite{
     }
     'overriden - {
       object overridenBasePath extends TestUtil.BaseModule {
-        override def basePath = pwd / 'overridenBasePathRootValue
+        override def millSourcePath = pwd / 'overridenBasePathRootValue
         object nested extends Module{
-          override def basePath = super.basePath / 'overridenBasePathNested
+          override def millSourcePath = super.millSourcePath / 'overridenBasePathNested
           object nested extends Module{
-            override def basePath = super.basePath / 'overridenBasePathDoubleNested
+            override def millSourcePath = super.millSourcePath / 'overridenBasePathDoubleNested
           }
         }
       }
       assert(
-        overridenBasePath.basePath == pwd / 'overridenBasePathRootValue,
-        overridenBasePath.nested.basePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested,
-        overridenBasePath.nested.nested.basePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested / 'nested / 'overridenBasePathDoubleNested
+        overridenBasePath.millSourcePath == pwd / 'overridenBasePathRootValue,
+        overridenBasePath.nested.millSourcePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested,
+        overridenBasePath.nested.nested.millSourcePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested / 'nested / 'overridenBasePathDoubleNested
       )
     }
 

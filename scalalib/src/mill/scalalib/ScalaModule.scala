@@ -126,8 +126,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.input{ Agg(PathRef(basePath / 'src)) }
-  def resources = T.input{ Agg(PathRef(basePath / 'resources)) }
+  def sources = T.input{ Agg(PathRef(millSourcePath / 'src)) }
+  def resources = T.input{ Agg(PathRef(millSourcePath / 'resources)) }
   def generatedSources = T { Agg.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
 
@@ -249,7 +249,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
   def crossFullScalaVersion: T[Boolean] = false
 
-  def artifactName: T[String] = basePath.last.toString
+  def artifactName: T[String] = millSourcePath.last.toString
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
     else Lib.scalaBinaryVersion(scalaVersion())

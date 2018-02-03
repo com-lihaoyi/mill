@@ -61,7 +61,7 @@ class Cross[T](cases: Any*)
       c,
       ctx.copy(
         segments = ctx.segments ++ Seq(ctx.segment),
-        basePath = ctx.basePath / relPath,
+        millSourcePath = ctx.millSourcePath / relPath,
         segment = Segment.Cross(crossValues)
       )
     )
