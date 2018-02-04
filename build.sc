@@ -10,6 +10,7 @@ import mill.modules.Jvm.createAssembly
 import upickle.Js
 trait MillPublishModule extends PublishModule{
   def scalaVersion = "2.12.4"
+  def artifactName = "mill-" + super.artifactName()
   def publishVersion = build.publishVersion()._2
 
   def pomSettings = PomSettings(
@@ -205,21 +206,17 @@ val isMasterCommit = {
   (sys.env.get("TRAVIS_BRANCH") == Some("master") || sys.env("TRAVIS_TAG") != "")
 }
 
-def gitHead = T.input{
-  sys.env.get("TRAVIS_COMMIT").getOrElse(
-    %%('git, "rev-parse", "head")(pwd).out.string.trim()
-  )
-}
 def publishVersion = T.input{
   val tag =
-    try Option(%%('git, 'describe, "--exact-match", "--tags", gitHead())(pwd).out.string)
+    try Option(%%('git, 'describe, "--exact-match", "--tags", 'HEAD)(pwd).out.string)
     catch{case e => None}
 
   tag match{
     case Some(t) => (t, t)
     case None =>
       val timestamp = java.time.Instant.now().toString.replaceAll(":|\\.", "-")
-      ("unstable", timestamp + "-" + gitHead())
+      val gitHash = %%('git, "rev-parse", "head")(pwd).out.string.trim()
+      ("unstable", timestamp + "-" + gitHash)
   }
 }
 
