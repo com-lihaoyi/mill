@@ -58,7 +58,13 @@ class Evaluator[T](val outPath: Path,
                   }
               }
             }
-            findMatching(c.cls).get.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+
+            findMatching(c.cls) match{
+              case Some(v) => v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+              // For now we don't properly support overrides for external modules
+              // that do not appear in the Evaluator's main Discovered listing
+              case None => 0
+            }
 
           case c: mill.define.Worker[_] => 0
         }

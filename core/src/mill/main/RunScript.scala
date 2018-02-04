@@ -8,7 +8,7 @@ import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.{PathRef, define}
-import mill.define.{Discover, Segment, Task}
+import mill.define.{Discover, ExternalModule, Segment, Task}
 import mill.eval.{Evaluator, Result}
 import mill.util.{EitherOps, Logger}
 import mill.util.Strict.Agg
@@ -135,15 +135,26 @@ object RunScript{
       parsed <- ParseArgs(scriptArgs)
       (selectors, args) = parsed
       targets <- {
-        val selected = selectors.map { sel =>
-          val crossSelectors = sel.map {
+        val selected = selectors.map { case (scopedSel, sel) =>
+          val (rootModule, discover) = scopedSel match{
+            case None => (evaluator.rootModule, evaluator.discover)
+            case Some(scoping) =>
+              val moduleCls =
+                evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
+
+              pprint.log(moduleCls.getFields)
+              pprint.log(moduleCls.getMethods)
+              val rootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
+              (rootModule, rootModule.millDiscover)
+          }
+          val crossSelectors = sel.value.map {
             case Segment.Cross(x) => x.toList.map(_.toString)
             case _ => Nil
           }
           mill.main.Resolve.resolve(
-            sel, evaluator.rootModule,
-            evaluator.discover,
-            args, crossSelectors, Nil
+            sel.value.toList, rootModule,
+            discover,
+            args, crossSelectors.toList, Nil
           )
         }
         EitherOps.sequence(selected)

@@ -123,3 +123,36 @@ Note that `millSourcePath` is generally only used for a module's input source fi
 Output is always in the `out/` folder and cannot be changed, e.g. even with the
 overriden `millSourcePath` the output paths are still the default `./out/foo/bar` and
 `./out/foo/baz/qux` folders.
+
+## External Modules
+
+Libraries for use in Mill can define `ExternalModule`s: `Module`s which are
+shared between all builds which use that library:
+
+```scala
+package foo
+import mill._
+
+object Bar extends mill.define.ExternalModule {
+  def baz = T{ 1 }
+  def qux() = T.command{ println(baz() + 1) }
+
+  def millDiscover = mill.define.Discover[this.type]
+}
+```
+
+In the above example, `foo.Bar` is an `ExternalModule` living within the `foo`
+Java package, containing the `baz` target and `qux` command. Those can be run
+from the command line via:
+
+```bash
+mill foo.Bar/baz
+mill foo.Bar/qux
+```
+
+`ExternalModule`s are useful for someone providing a library for use with Mill
+that is shared by the entire build: for example,
+`mill.scalalib.ScalaWorkerApi/scalaWorker` provides a shared Scala compilation
+service & cache that is shared between all `ScalaModule`s, and
+`mill.scalalib.GenIdeaModule/idea` lets you generate IntelliJ projects without
+needing to define your own `T.command` in your `build.sc` file

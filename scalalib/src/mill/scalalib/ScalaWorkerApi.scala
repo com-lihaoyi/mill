@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.Agg
 import mill.scalalib.TestRunner.Result
 import mill.T
-import mill.define.Worker
+import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
@@ -42,6 +42,7 @@ object ScalaWorkerApi extends mill.define.ExternalModule {
       Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
     )
   }
+  def millDiscover = Discover[this.type]
 }
 
 trait ScalaWorkerApi {

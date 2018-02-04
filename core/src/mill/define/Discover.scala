@@ -53,11 +53,11 @@ object Discover {
         } yield (m.overrides.length, router.extractMethod(m, curCls).asInstanceOf[c.Tree])
       }
       if overridesRoutes.nonEmpty
-      val (overrides, routes) = overridesRoutes.unzip
-
     } yield {
+      val (overrides, routes) = overridesRoutes.unzip
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      val rhs = q"scala.Seq[(Int, ammonite.main.Router.EntryPoint[${discoveredModuleType.typeSymbol.asClass}])](..$overridesRoutes)"
+      val clsType = discoveredModuleType.typeSymbol.asClass
+      val rhs = q"scala.Seq[(Int, ammonite.main.Router.EntryPoint[$clsType])](..$overridesRoutes)"
       q"$lhs -> $rhs"
     }
 

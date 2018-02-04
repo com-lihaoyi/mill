@@ -5,11 +5,16 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.scalalib
+import mill.{T, scalalib}
 import mill.util.Ctx.Log
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
 
+
+object GenIdeaModule extends ExternalModule {
+  def idea() = T.command{ mill.scalalib.GenIdea() }
+  def millDiscover = Discover[this.type]
+}
 object GenIdea {
 
   def apply()(implicit ctx: Log,

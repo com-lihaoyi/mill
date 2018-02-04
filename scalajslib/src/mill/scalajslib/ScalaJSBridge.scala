@@ -4,6 +4,7 @@ import java.io.File
 import java.net.URLClassLoader
 
 import ammonite.ops.Path
+import mill.define.Discover
 import mill.{Agg, T}
 
 sealed trait OptimizeMode
@@ -72,4 +73,5 @@ trait ScalaJSBridge {
 object ScalaJSBridge extends mill.define.ExternalModule {
 
   def scalaJSBridge = T.worker { new ScalaJSWorker() }
+  def millDiscover = Discover[this.type]
 }

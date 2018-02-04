@@ -22,7 +22,7 @@ abstract class ScriptTestSuite extends TestSuite{
   def meta(s: String) = {
     val (List(selector), args) = ParseArgs.apply(Seq(s)).right.get
 
-    read(workspacePath / "out" / selector.flatMap(_.pathSegments) / "meta.json")
+    read(workspacePath / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
   }
 
 

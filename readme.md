@@ -65,7 +65,7 @@ sbt "~bin/test:run"
 Lastly, you can generate IntelliJ Scala project files using Mill via
 
 ```bash
-./target/bin/mill idea
+./target/bin/mill mill.scalalib.GenIdeaModule/idea
 ```
 
 Allowing you to import a Mill project into Intellij without using SBT

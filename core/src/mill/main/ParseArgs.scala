@@ -2,12 +2,12 @@ package mill.main
 
 import mill.util.EitherOps
 import fastparse.all._
-import mill.define.Segment
+import mill.define.{Segment, Segments}
 
 object ParseArgs {
 
   def apply(scriptArgs: Seq[String])
-    : Either[String, (List[List[Segment]], Seq[String])] = {
+    : Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
     val (selectors, args, isMultiSelectors) = extractSelsAndArgs(scriptArgs)
     for {
       _ <- validateSelectors(selectors)
@@ -119,7 +119,7 @@ object ParseArgs {
       .parse(input)
   }
 
-  def extractSegments(selectorString: String): Either[String, List[Segment]] =
+  def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
     parseSelector(selectorString) match {
       case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
@@ -131,8 +131,12 @@ object ParseArgs {
     val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
     val segment = P( ident ).map( Segment.Label)
     val crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    val query = P(segment ~ ("." ~ segment | crossSegment).rep ~ End).map {
-      case (h, rest) => h :: rest.toList
+    val simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+      case (h, rest) => Segments(h :: rest.toList:_*)
+    }
+    val query = P( simpleQuery ~ ("/" ~/ simpleQuery).?).map{
+      case (q, None) => (None, q)
+      case (q, Some(q2)) => (Some(q), q2)
     }
     query.parse(input)
   }

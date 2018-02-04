@@ -3,6 +3,7 @@ package mill.eval
 import ammonite.ops._
 import mill.util.{TestEvaluator, TestUtil}
 import mill.T
+import mill.define.Discover
 import mill.util.TestEvaluator.implicitDisover
 import utest._
 
@@ -13,6 +14,7 @@ object ModuleTests extends TestSuite{
     object inner extends mill.Module{
       def y = T{17}
     }
+    def millDiscover = Discover[this.type]
   }
   object Build extends TestUtil.BaseModule{
     def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
@@ -35,6 +37,7 @@ object ModuleTests extends TestSuite{
       object Build extends mill.define.ExternalModule {
 
         def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
+        def millDiscover = Discover[this.type]
       }
 
       intercept[java.lang.AssertionError]{ Build }

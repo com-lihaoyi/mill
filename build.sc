@@ -253,4 +253,3 @@ def releaseCI(githubAuthKey: String, sonatypeCreds: String, gpgPassphrase: Strin
     ()
   }
 
-def idea() = T.command{ mill.scalalib.GenIdea() }
