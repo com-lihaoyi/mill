@@ -26,7 +26,7 @@ object CrossTests extends TestSuite{
       val Right(("2.12", 1)) = check.apply(crossResolved.foo("2.12").suffix)
 
       val Right(("_2.10", 1)) = check.apply(crossResolved.bar("2.10").longSuffix)
-      val Right(("_2.11", 1)) = check.apply(crossResolved.bar("2.11").longSuffix)
+      val Right(("_211", 1)) = check.apply(crossResolved.bar("2.11").longSuffix)
       val Right(("_2.12", 1)) = check.apply(crossResolved.bar("2.12").longSuffix)
     }
 
