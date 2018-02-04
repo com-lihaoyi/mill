@@ -10,9 +10,14 @@ jdk:
 
 matrix:
   include:
-  - env: CI_SCRIPT=ci/test.sh
-  - env: CI_SCRIPT=ci/test2.sh
-  - env: CI_SCRIPT=ci/test3.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test2.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test3.sh
+  - stage: release
+    env: CI_SCRIPT=ci/release.sh
 
 script:
   - "$CI_SCRIPT"

@@ -4,6 +4,7 @@ import mill.define._
 import mill.define.TaskModule
 import ammonite.main.Router
 import ammonite.main.Router.EntryPoint
+import ammonite.util.Res
 
 object Resolve {
   def resolve[T, V](remainingSelector: List[Segment],
@@ -23,16 +24,23 @@ object Resolve {
             .find(_.label == last)
             .map(Right(_))
 
-        def invokeCommand(target: mill.Module, name: String) = {
+        def invokeCommand(target: mill.Module, name: String) = for{
+          (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
+          ep <- entryPoints
+          if ep._2.name == name
+        } yield ammonite.main.Scripts.runMainMethod(
+          target,
+          ep._2.asInstanceOf[EntryPoint[mill.Module]],
+          ammonite.main.Scripts.groupArgs(rest.toList)
+        ) match{
+          case Res.Success(v) => Right(v)
+          case Res.Failure(msg) => Left(msg)
+          case Res.Exception(ex, msg) =>
+            val sw = new java.io.StringWriter()
+            ex.printStackTrace(new java.io.PrintWriter(sw))
+            val prefix = if (msg.nonEmpty) msg + "\n" else msg
+            Left(prefix + sw.toString)
 
-          for{
-            (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
-            ep <- entryPoints
-            if ep._2.name == name
-          } yield ep._2.asInstanceOf[EntryPoint[mill.Module]].invoke(target, ammonite.main.Scripts.groupArgs(rest.toList)) match {
-            case Router.Result.Success(v) => Right(v)
-            case _ => Left(s"Command failed $last")
-          }
         }
 
         val runDefault = for{
