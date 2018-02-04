@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 object HelloJSWorldTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
 
-  trait HelloJSWorldModule extends ScalaJSModule with PublishModule with CrossScalaModule{
+  trait HelloJSWorldModule extends CrossScalaModule with ScalaJSModule with PublishModule {
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")

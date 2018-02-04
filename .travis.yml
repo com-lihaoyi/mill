@@ -11,7 +11,7 @@ jdk:
 matrix:
   include:
   - stage: build
-    env: CI_SCRIPT=ci/test.sh
+    env: CI_SCRIPT=ci/test1.sh
   - stage: build
     env: CI_SCRIPT=ci/test2.sh
   - stage: build

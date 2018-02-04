@@ -144,10 +144,14 @@ object ParseArgsTest extends TestSuite {
 
     'apply - {
       def check(input: Seq[String],
-                expectedSelectors: List[List[Segment]],
+                expectedSelectors: List[(Option[List[Segment]], List[Segment])],
                 expectedArgs: Seq[String]) = {
-        val Right((selectors, args)) = ParseArgs(input)
+        val Right((selectors0, args)) = ParseArgs(input)
 
+        val selectors = selectors0.map{
+          case (Some(v1), v2) => (Some(v1.value), v2.value)
+          case (None, v2) => (None, v2.value)
+        }
         assert(
           selectors == expectedSelectors,
           args == expectedArgs
@@ -160,53 +164,60 @@ object ParseArgsTest extends TestSuite {
       'singleSelector - check(
         input = Seq("core.compile"),
         expectedSelectors = List(
-          List(Label("core"), Label("compile"))
+          None -> List(Label("core"), Label("compile"))
+        ),
+        expectedArgs = Seq.empty
+      )
+      'externalSelector - check(
+        input = Seq("foo.bar/core.compile"),
+        expectedSelectors = List(
+          Some(List(Label("foo"), Label("bar"))) -> List(Label("core"), Label("compile"))
         ),
         expectedArgs = Seq.empty
       )
       'singleSelectorWithArgs - check(
         input = Seq("application.run", "hello", "world"),
         expectedSelectors = List(
-          List(Label("application"), Label("run"))
+          None -> List(Label("application"), Label("run"))
         ),
         expectedArgs = Seq("hello", "world")
       )
       'singleSelectorWithCross - check(
         input = Seq("bridges[2.12.4,jvm].compile"),
         expectedSelectors = List(
-          List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
+          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
         ),
         expectedArgs = Seq.empty
       )
       'multiSelectorsBraceExpansion - check(
         input = Seq("--all", "{core,application}.compile"),
         expectedSelectors = List(
-          List(Label("core"), Label("compile")),
-          List(Label("application"), Label("compile"))
+          None -> List(Label("core"), Label("compile")),
+          None -> List(Label("application"), Label("compile"))
         ),
         expectedArgs = Seq.empty
       )
       'multiSelectorsBraceExpansionWithArgs - check(
         input = Seq("--all", "{core,application}.run", "--", "hello", "world"),
         expectedSelectors = List(
-          List(Label("core"), Label("run")),
-          List(Label("application"), Label("run"))
+          None -> List(Label("core"), Label("run")),
+          None -> List(Label("application"), Label("run"))
         ),
         expectedArgs = Seq("hello", "world")
       )
       'multiSelectorsBraceExpansionWithCross - check(
         input = Seq("--all", "bridges[2.12.4,jvm].{test,jar}"),
         expectedSelectors = List(
-          List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
-          List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
+          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
+          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
         ),
         expectedArgs = Seq.empty
       )
       'multiSelectorsBraceExpansionInsideCross - check(
         input = Seq("--all", "bridges[{2.11.11,2.11.8}].jar"),
         expectedSelectors = List(
-          List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
-          List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar"))
+          None -> List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
+          None -> List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar"))
         ),
         expectedArgs = Seq.empty
       )
@@ -216,10 +227,11 @@ object ParseArgsTest extends TestSuite {
             "Please use --all flag to run multiple tasks")
         )
       }
-      'multiSelectorsWithoutAllAsSingle - check( // this is how it works when we pass multiple tasks without --all flag
+      'multiSelectorsWithoutAllAsSingle - check(
+        // this is how it works when we pass multiple tasks without --all flag
         input = Seq("core.compile", "application.compile"),
         expectedSelectors = List(
-          List(Label("core"), Label("compile"))
+          None -> List(Label("core"), Label("compile"))
         ),
         expectedArgs = Seq("application.compile")
       )

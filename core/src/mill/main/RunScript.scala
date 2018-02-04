@@ -142,8 +142,6 @@ object RunScript{
               val moduleCls =
                 evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
 
-              pprint.log(moduleCls.getFields)
-              pprint.log(moduleCls.getMethods)
               val rootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
               (rootModule, rootModule.millDiscover)
           }

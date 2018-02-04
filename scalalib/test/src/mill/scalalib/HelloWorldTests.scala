@@ -199,9 +199,8 @@ object HelloWorldTests extends TestSuite {
       'failOnError - workspaceTest(HelloWorld){eval =>
         write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.compile)
+        val Left(Result.Failure("Compilation failed")) = eval.apply(HelloWorld.core.compile)
 
-//        assert(err.isInstanceOf[CompileFailed])
 
         val paths = Evaluator.resolveDestPaths(
           eval.outPath,
@@ -222,9 +221,8 @@ object HelloWorldTests extends TestSuite {
       }
       'passScalacOptions - workspaceTest(HelloWorldFatalWarnings){ eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldFatalWarnings.core.compile)
+        val Left(Result.Failure("Compilation failed")) = eval.apply(HelloWorldFatalWarnings.core.compile)
 
-//        assert(err.isInstanceOf[CompileFailed])
       }
     }
     'runMain - {
@@ -273,11 +271,8 @@ object HelloWorldTests extends TestSuite {
       'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
         write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runMain("Main"))
+        val Left(Result.Failure("Compilation failed")) = eval.apply(HelloWorld.core.runMain("Main"))
 
-//        assert(
-//          err.isInstanceOf[CompileFailed]
-//        )
       }
     }
 
