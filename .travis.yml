@@ -16,6 +16,8 @@ matrix:
     env: CI_SCRIPT=ci/test2.sh
   - stage: build
     env: CI_SCRIPT=ci/test3.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test4.sh
   - stage: release
     env: CI_SCRIPT=ci/release.sh
 
