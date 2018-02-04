@@ -4,6 +4,7 @@ import ammonite.main.Router.Overrides
 import ammonite.ops.pwd
 import mill.define._
 import mill.eval.Result
+import mill.eval.Result.OuterStack
 import utest.assert
 import mill.util.Strict.Agg
 import utest.framework.TestPath
@@ -49,7 +50,7 @@ object TestUtil {
     var exception = Option.empty[Throwable]
     override def evaluate(args: Ctx) = {
       failure.map(Result.Failure) orElse
-        exception.map(Result.Exception(_, Nil)) getOrElse
+        exception.map(Result.Exception(_, new OuterStack(Nil))) getOrElse
         Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
     }
     override def sideHash = counter + failure.hashCode() + exception.hashCode()

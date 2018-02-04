@@ -6,6 +6,7 @@ import ammonite.main.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
+import mill.eval.Result.OuterStack
 import mill.util
 import mill.util._
 import mill.util.Strict.Agg
@@ -274,7 +275,7 @@ class Evaluator[T](val outPath: Path,
             }
           }catch{ case NonFatal(e) =>
 
-            Result.Exception(e, currentStack)
+            Result.Exception(e, new OuterStack(currentStack))
           }finally{
             System.setErr(err)
             System.setOut(out)

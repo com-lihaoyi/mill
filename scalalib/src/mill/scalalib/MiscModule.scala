@@ -14,6 +14,8 @@ object CrossModuleBase{
 }
 trait CrossModuleBase extends mill.Module{
   def crossScalaVersion: String
+  def scalaVersion = T{ crossScalaVersion }
+
   override def millSourcePath = super.millSourcePath / ammonite.ops.up
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] = new Resolver[CrossModuleBase]{
     def resolve[V <: CrossModuleBase](c: Cross[V]): V = {
@@ -71,7 +73,6 @@ trait SbtModule extends ScalaModule { outer =>
 
 trait CrossSbtModule extends SbtModule with CrossModuleBase{ outer =>
 
-  def scalaVersion = crossScalaVersion
   override def sources = T.input{
     super.sources() ++
     CrossModuleBase.scalaVersionPaths(

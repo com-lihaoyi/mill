@@ -173,7 +173,8 @@ object RunScript{
         }
         val fss = fs.map{
           case Result.Exception(t, outerStack) =>
-            t.toString + t.getStackTrace.dropRight(outerStack.length).map("\n    " + _).mkString
+            t.toString +
+            t.getStackTrace.dropRight(outerStack.value.length).map("\n    " + _).mkString
           case Result.Failure(t) => t
         }
         s"$ks ${fss.mkString(", ")}"

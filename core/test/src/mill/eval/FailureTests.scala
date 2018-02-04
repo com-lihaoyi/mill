@@ -2,6 +2,7 @@ package mill.eval
 import mill.T
 import mill.util.{TestEvaluator, TestUtil}
 import ammonite.ops.{Path, pwd, rm}
+import mill.eval.Result.OuterStack
 import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
@@ -43,7 +44,7 @@ object FailureTests extends TestSuite{
       check.fail(
         target = singleton.single,
         expectedFailCount = 1,
-        expectedRawValues = Seq(Result.Exception(ex, Nil))
+        expectedRawValues = Seq(Result.Exception(ex, new OuterStack(Nil)))
       )
     }
     'evaluatePair - {

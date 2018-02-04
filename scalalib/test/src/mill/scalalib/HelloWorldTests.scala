@@ -17,66 +17,83 @@ import scala.collection.JavaConverters._
 
 
 object HelloWorldTests extends TestSuite {
-  trait HelloWorldModule
-  extends TestUtil.BaseModule with scalalib.ScalaModule {
-    def scalaVersion = "2.12.4"
+  trait HelloBase extends TestUtil.BaseModule{
     def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  }
+  trait HelloWorldModule extends scalalib.ScalaModule {
+    def scalaVersion = "2.12.4"
   }
 
 
-  object HelloWorld extends HelloWorldModule
-  object CrossHelloWorld extends TestUtil.BaseModule {
-    object cross extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
-    class HelloWorldCross(v: String) extends HelloWorldModule {
-      def millSourcePath = super.millSourcePath / up
-      def scalaVersion = v
+  object HelloWorld extends HelloBase {
+    object core extends HelloWorldModule
+  }
+  object CrossHelloWorld extends HelloBase {
+    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
+  }
+
+
+  object HelloWorldWithMain extends HelloBase {
+    object core extends HelloWorldModule{
+      def mainClass = Some("Main")
     }
   }
 
-  object HelloWorldWithMain extends HelloWorldModule {
-    def mainClass = Some("Main")
+  object HelloWorldWithMainAssembly extends HelloBase {
+    object core extends HelloWorldModule{
+      def mainClass = Some("Main")
+      def assembly = T{
+        mill.modules.Jvm.createAssembly(
+          runClasspath().map(_.path).filter(exists),
+          prependShellScript = prependShellScript(),
+          mainClass = mainClass()
+        )
+      }
+    }
   }
 
-  object HelloWorldWithMainAssembly extends HelloWorldModule {
-    def mainClass = Some("Main")
-    def assembly = T{
-      mill.modules.Jvm.createAssembly(
-        runClasspath().map(_.path).filter(exists),
-        prependShellScript = prependShellScript(),
-        mainClass = mainClass()
+  object HelloWorldWarnUnused extends HelloBase{
+    object core extends HelloWorldModule {
+      def scalacOptions = T(Seq("-Ywarn-unused"))
+    }
+  }
+
+  object HelloWorldFatalWarnings extends HelloBase{
+    object core extends HelloWorldModule {
+      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+    }
+
+  }
+
+  object HelloWorldWithPublish extends HelloBase{
+    object core extends HelloWorldModule with PublishModule{
+
+      def artifactName = "hello-world"
+      def publishVersion = "0.0.1"
+
+      def pomSettings = PomSettings(
+        organization = "com.lihaoyi",
+        description = "hello world ready for real world publishing",
+        url = "https://github.com/lihaoyi/hello-world-publish",
+        licenses = Seq(
+          License("Apache License, Version 2.0",
+            "http://www.apache.org/licenses/LICENSE-2.0")),
+        scm = SCM(
+          "https://github.com/lihaoyi/hello-world-publish",
+          "scm:git:https://github.com/lihaoyi/hello-world-publish"
+        ),
+        developers =
+          Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
   }
 
-  object HelloWorldWarnUnused extends HelloWorldModule {
-    def scalacOptions = T(Seq("-Ywarn-unused"))
-  }
+  object HelloWorldScalaOverride extends HelloBase{
+    object core extends HelloWorldModule {
 
-  object HelloWorldFatalWarnings extends HelloWorldModule {
-    def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
-  }
-
-  object HelloWorldWithPublish extends HelloWorldModule with PublishModule {
-    def artifactName = "hello-world"
-    def publishVersion = "0.0.1"
-
-    def pomSettings = PomSettings(
-      organization = "com.lihaoyi",
-      description = "hello world ready for real world publishing",
-      url = "https://github.com/lihaoyi/hello-world-publish",
-      licenses = Seq(
-        License("Apache License, Version 2.0",
-          "http://www.apache.org/licenses/LICENSE-2.0")),
-      scm = SCM(
-        "https://github.com/lihaoyi/hello-world-publish",
-        "scm:git:https://github.com/lihaoyi/hello-world-publish"
-      ),
-      developers =
-        Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
-    )
-  }
-  object HelloWorldScalaOverride extends HelloWorldModule {
-    override def scalaVersion: Target[String] = "2.11.11"
+      override def scalaVersion: Target[String] = "2.11.11"
+    }
   }
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
@@ -89,6 +106,8 @@ object HelloWorldTests extends TestSuite {
   def compileClassfiles = Seq[RelPath](
     "Main.class",
     "Main$.class",
+    "Main0.class",
+    "Main0$.class",
     "Main$delayedInit$body.class",
     "Person.class",
     "Person$.class"
@@ -112,7 +131,7 @@ object HelloWorldTests extends TestSuite {
     'scalaVersion - {
       
       'fromBuild - workspaceTest(HelloWorld){eval => 
-        val Right((result, evalCount)) = eval.apply(HelloWorld.scalaVersion)
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaVersion)
 
         assert(
           result == "2.12.4",
@@ -120,7 +139,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'override - workspaceTest(HelloWorldScalaOverride){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.scalaVersion)
+        val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
           result == "2.11.11",
@@ -130,7 +149,7 @@ object HelloWorldTests extends TestSuite {
     }
     'scalacOptions - {
       'emptyByDefault - workspaceTest(HelloWorld){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.scalacOptions)
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalacOptions)
 
         assert(
           result.isEmpty,
@@ -138,7 +157,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'override - workspaceTest(HelloWorldFatalWarnings){ eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldFatalWarnings.scalacOptions)
+        val Right((result, evalCount)) = eval.apply(HelloWorldFatalWarnings.core.scalacOptions)
 
         assert(
           result == Seq("-Ywarn-unused", "-Xfatal-warnings"),
@@ -148,13 +167,15 @@ object HelloWorldTests extends TestSuite {
     }
     'compile - {
       'fromScratch - workspaceTest(HelloWorld){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.compile)
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
         val analysisFile = result.analysisFile
         val outputFiles = ls.rec(result.classes.path)
-        val expectedClassfiles = compileClassfiles.map(eval.outPath / 'compile / 'dest / 'classes / _)
+        val expectedClassfiles = compileClassfiles.map(
+          eval.outPath / 'core / 'compile / 'dest / 'classes / _
+        )
         assert(
-          result.classes.path == eval.outPath / 'compile / 'dest / 'classes,
+          result.classes.path == eval.outPath / 'core / 'compile / 'dest / 'classes,
           exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
@@ -162,29 +183,29 @@ object HelloWorldTests extends TestSuite {
         )
 
         // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.compile)
+        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compile)
 
         assert(unchangedEvalCount == 0)
       }
       'recompileOnChange - workspaceTest(HelloWorld){eval =>
-        val Right((_, freshCount)) = eval.apply(HelloWorld.compile)
+        val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)
 
-        write.append(HelloWorld.millSourcePath / 'src / "Main.scala", "\n")
+        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "\n")
 
-        val Right((_, incCompileCount)) = eval.apply(HelloWorld.compile)
+        val Right((_, incCompileCount)) = eval.apply(HelloWorld.core.compile)
         assert(incCompileCount > 0, incCompileCount < freshCount)
       }
       'failOnError - workspaceTest(HelloWorld){eval =>
-        write.append(HelloWorld.millSourcePath / 'src / "Main.scala", "val x: ")
+        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.compile)
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.compile)
 
 //        assert(err.isInstanceOf[CompileFailed])
 
         val paths = Evaluator.resolveDestPaths(
           eval.outPath,
-          HelloWorld.compile.ctx.segments
+          HelloWorld.core.compile.ctx.segments
         )
 
         assert(
@@ -193,24 +214,24 @@ object HelloWorldTests extends TestSuite {
         )
         // Works when fixed
         write.over(
-          HelloWorld.millSourcePath / 'src / "Main.scala",
-          read(HelloWorld.millSourcePath / 'src / "Main.scala").dropRight("val x: ".length)
+          HelloWorld.millSourcePath / 'core / 'src / "Main.scala",
+          read(HelloWorld.millSourcePath / 'core / 'src / "Main.scala").dropRight("val x: ".length)
         )
 
-        val Right((result, evalCount)) = eval.apply(HelloWorld.compile)
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
       }
       'passScalacOptions - workspaceTest(HelloWorldFatalWarnings){ eval =>
         // compilation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldFatalWarnings.compile)
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldFatalWarnings.core.compile)
 
 //        assert(err.isInstanceOf[CompileFailed])
       }
     }
     'runMain - {
       'runMainObject - workspaceTest(HelloWorld){eval =>
-        val runResult = eval.outPath/ 'runMain / 'dest / "hello-mill"
+        val runResult = eval.outPath / 'core / 'runMain / 'dest / "hello-mill"
 
-        val Right((_, evalCount)) = eval.apply(HelloWorld.runMain("Main", runResult.toString))
+        val Right((_, evalCount)) = eval.apply(HelloWorld.core.runMain("Main", runResult.toString))
         assert(evalCount > 0)
 
         assert(
@@ -219,12 +240,12 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'runCross - {
-        def cross(eval: TestEvaluator[_], v: String) {
+        def cross(eval: TestEvaluator[_], v: String, expectedOut: String) {
 
-          val runResult = eval.outPath / 'cross / v / 'runMain / 'dest / "hello-mill"
+          val runResult = eval.outPath / "hello-mill"
 
           val Right((_, evalCount)) = eval.apply(
-            CrossHelloWorld.cross(v).runMain("Main", runResult.toString)
+            CrossHelloWorld.core(v).runMain("Shim", runResult.toString)
           )
 
           assert(evalCount > 0)
@@ -232,27 +253,27 @@ object HelloWorldTests extends TestSuite {
 
           assert(
             exists(runResult),
-            read(runResult) == "hello rockjam, your age is: 25"
+            read(runResult) == expectedOut
           )
         }
-        'v210 - workspaceTest(CrossHelloWorld)(cross(_, "2.10.6"))
-        'v211 - workspaceTest(CrossHelloWorld)(cross(_, "2.11.11"))
-        'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3"))
-        'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4"))
+        'v210 - workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox"))
+        'v211 - workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns"))
+        'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
+        'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
       }
 
 
       'notRunInvalidMainObject - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.runMain("Invalid"))
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
 
         assert(
           err.isInstanceOf[InteractiveShelloutException]
         )
       }
-      'notRunWhenComplileFailed - workspaceTest(HelloWorld){eval =>
-        write.append(HelloWorld.millSourcePath / 'src / "Main.scala", "val x: ")
+      'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
+        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.runMain("Main"))
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runMain("Main"))
 
 //        assert(
 //          err.isInstanceOf[CompileFailed]
@@ -262,9 +283,9 @@ object HelloWorldTests extends TestSuite {
 
     'forkRun - {
       'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
-        val runResult = eval.outPath / 'run / 'dest / "hello-mill"
+        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.run(runResult.toString)
+          HelloWorldWithMain.core.run(runResult.toString)
         )
 
         assert(evalCount > 0)
@@ -276,7 +297,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'notRunWithoutMainClass - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.run())
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.run())
 
         assert(
           err.isInstanceOf[RuntimeException]
@@ -285,9 +306,9 @@ object HelloWorldTests extends TestSuite {
     }
     'run - {
       'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
-        val runResult = eval.outPath / 'run / 'dest / "hello-mill"
+        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
         val Right((_, evalCount)) = eval.apply(
-          HelloWorldWithMain.runLocal(runResult.toString)
+          HelloWorldWithMain.core.runLocal(runResult.toString)
         )
 
         assert(evalCount > 0)
@@ -299,7 +320,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'notRunWithoutMainClass - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.runLocal())
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runLocal())
 
         assert(
           err.isInstanceOf[RuntimeException]
@@ -308,7 +329,7 @@ object HelloWorldTests extends TestSuite {
     }
     'jar - {
       'nonEmpty - workspaceTest(HelloWorldWithMain){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.jar)
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
 
         assert(
           exists(result.path),
@@ -333,16 +354,16 @@ object HelloWorldTests extends TestSuite {
       }
       'logOutputToFile - workspaceTest(HelloWorld){eval =>
         val outPath = eval.outPath
-        eval.apply(HelloWorld.compile)
+        eval.apply(HelloWorld.core.compile)
 
-        val logFile = outPath / 'compile / 'log
+        val logFile = outPath / 'core / 'compile / 'log
         assert(exists(logFile))
       }
     }
 
     'assembly - {
       'assembly - workspaceTest(HelloWorldWithMainAssembly){ eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.assembly)
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
         assert(
           exists(result.path),
           evalCount > 0
@@ -357,7 +378,7 @@ object HelloWorldTests extends TestSuite {
         assert(mainClass.contains("Main"))
       }
       'run - workspaceTest(HelloWorldWithMainAssembly){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.assembly)
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
 
         assert(
           exists(result.path),

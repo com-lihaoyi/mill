@@ -3,6 +3,7 @@ package mill.util
 import ammonite.ops.{Path, pwd}
 import mill.define.Discover.applyImpl
 import mill.define.{Discover, Input, Target, Task}
+import mill.eval.Result.OuterStack
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
 import utest.assert
@@ -57,7 +58,7 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T)
     val res = evaluator.evaluate(Agg(target))
 
     val cleaned = res.rawValues.map{
-      case Result.Exception(ex, _) => Result.Exception(ex, Nil)
+      case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
       case x => x
     }
 

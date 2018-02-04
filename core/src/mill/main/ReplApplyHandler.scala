@@ -54,7 +54,9 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
               case Result.Failure(m) => msg.append(m + "\n")
               case Result.Exception(t, outerStack) =>
                 msg.append(
-                  t.toString + t.getStackTrace.dropRight(outerStack.length).map("\n    " + _).mkString + "\n"
+                  t.toString +
+                  t.getStackTrace.dropRight(outerStack.value.length).map("\n    " + _).mkString +
+                  "\n"
                 )
 
             }
