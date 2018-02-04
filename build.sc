@@ -9,6 +9,7 @@ import mill.modules.Jvm.createAssembly
 
 trait MillPublishModule extends PublishModule{
   def scalaVersion = "2.12.4"
+  def publishVersion = "0.0.1"
   def artifactName = "mill-" + super.artifactName()
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -70,16 +71,14 @@ object core extends MillModule {
     ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32"
   )
 
-  def generatedSources = T {
+  def generatedSources = T.sources {
     shared.generateCoreSources(T.ctx().dest)
-    Agg(PathRef(T.ctx().dest))
   }
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
-    def generatedSources = T {
+    def generatedSources = T.sources {
       shared.generateCoreTestSources(T.ctx().dest)
-      Agg(PathRef(T.ctx().dest))
     }
   }
 }

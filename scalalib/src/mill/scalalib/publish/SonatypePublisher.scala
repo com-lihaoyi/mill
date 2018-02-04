@@ -128,7 +128,7 @@ class SonatypePublisher(uri: String,
   private def poorMansSign(file: Path, passphrase: String): Path = {
     val fileName = file.toString
     import ammonite.ops.ImplicitWd._
-    %("gpg", "--yes", "-a", "-b", "--passphrase", passphrase, fileName)
+    %("gpg", "--yes", "-a", "-b", "--batch", "--passphrase", passphrase, fileName)
     Path(fileName + ".asc")
   }
 

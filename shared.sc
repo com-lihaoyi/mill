@@ -137,11 +137,13 @@ def generateCoreSources(p: Path) = {
   generateApplyer(p)
   generateTarget(p)
   generateEval(p)
+  p
 }
 
 @main
 def generateCoreTestSources(p: Path) = {
   generateApplicativeTest(p)
+  p
 }
 
 

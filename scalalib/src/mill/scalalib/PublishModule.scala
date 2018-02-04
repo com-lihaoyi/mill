@@ -11,7 +11,7 @@ trait PublishModule extends ScalaModule { outer =>
   import mill.scalalib.publish._
 
   def pomSettings: T[PomSettings]
-  def publishVersion: T[String] = "0.0.1-SNAPSHOT"
+  def publishVersion: T[String]
 
   def pom = T {
     val dependencies =

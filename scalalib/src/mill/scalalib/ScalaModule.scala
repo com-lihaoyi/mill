@@ -189,7 +189,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       mainArgs = (files ++ options).toSeq
     )
 
-    createJar(Agg(javadocDir))(outDir / "javadoc.jar")
+    createJar(Agg(javadocDir))(outDir)
   }
 
   def sourcesJar = T {
