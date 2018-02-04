@@ -56,11 +56,10 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
       ivy"org.scalaj::scalaj-http:2.3.0"
     )
 
-    def generatedSources = T{
+    def generatedSources = T.sources{
       import ammonite.ops._
-      mkdir(T.ctx().dest)
       cp(build.millSourcePath/'project/"Constants.scala", T.ctx().dest/"Constants.scala")
-      Seq(PathRef(T.ctx().dest))
+      T.ctx().dest
     }
   }
 
@@ -89,10 +88,10 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
     )
 
     object test extends Tests{
-      def resources = T.input {
+      def resources = T.sources {
         super.resources() ++
-          ReplModule.this.sources() ++
-          ReplModule.this.externalCompileDepSources()
+        ReplModule.this.sources() ++
+        ReplModule.this.externalCompileDepSources()
       }
     }
   }

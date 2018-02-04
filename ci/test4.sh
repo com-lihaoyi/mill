@@ -14,7 +14,7 @@ sbt bin/test:assembly
 # Build Mill using SBT
 target/bin/mill --all _.publishLocal releaseAssembly
 
-mv releaseAssembly ~/mill
+mv out/releaseAssembly ~/mill
 
 git clean -xdf
 
