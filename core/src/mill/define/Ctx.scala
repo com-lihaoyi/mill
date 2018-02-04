@@ -30,7 +30,7 @@ case class BasePath(value: Path)
 case class Segments(value: Segment*){
   def ++(other: Seq[Segment]): Segments = Segments(value ++ other:_*)
   def ++(other: Segments): Segments = Segments(value ++ other.value:_*)
-  def render = value match {
+  def render = value.toList match {
     case Nil => ""
     case Segment.Label(head) :: rest =>
       val stringSegments = rest.map{

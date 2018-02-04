@@ -1,4 +1,5 @@
 import $file.shared
+import $file.upload
 import java.io.File
 
 import ammonite.ops._
@@ -6,10 +7,10 @@ import coursier.maven.MavenRepository
 import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
-
+import upickle.Js
 trait MillPublishModule extends PublishModule{
   def scalaVersion = "2.12.4"
-  def publishVersion = "0.0.1"
+  def publishVersion = build.publishVersion()._2
   def artifactName = "mill-" + super.artifactName()
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -198,5 +199,54 @@ def devAssembly = T{
 def releaseAssembly = T{
   assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "")
 }
+
+val isMasterCommit = {
+  sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
+  (sys.env.get("TRAVIS_BRANCH") == Some("master") || sys.env("TRAVIS_TAG") != "")
+}
+
+def publishVersion = T.input{
+  val tag =
+    try Option(%%('git, 'describe, "--exact-match", "--tags", 'HEAD)(pwd).out.string)
+    catch{case e => None}
+
+  tag match{
+    case Some(t) => (t, t)
+    case None =>
+      val timestamp = java.time.Instant.now().toString.replaceAll(":|\\.", "-")
+      val gitHash = %%('git, "rev-parse", "head")(pwd).out.string.trim()
+      ("unstable", timestamp + "-" + gitHash)
+  }
+}
+
+def uploadToGithub(assembly: Path, authKey: String, release: String, label: String) = {
+  if (release == "unstable"){
+    scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
+      .postData(
+        upickle.json.write(
+          Js.Obj(
+            "tag_name" -> Js.Str(release),
+            "name" -> Js.Str(release)
+          )
+        )
+      )
+      .header("Authorization", "token " + authKey)
+      .asString
+
+
+    upload.apply(assembly, release, label, authKey)
+  }
+}
+
+def releaseCI(githubAuthKey: String, sonatypeCreds: String, gpgPassphrase: String) =
+  if (isMasterCommit) T.command()
+  else T.command{
+    scalaworker.publish(sonatypeCreds, gpgPassphrase)()
+    scalajslib.jsbridges("0.6").publish(sonatypeCreds, gpgPassphrase)()
+    scalajslib.jsbridges("1.0").publish(sonatypeCreds, gpgPassphrase)()
+    val (release, label) = publishVersion()
+    uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
+    ()
+  }
 
 def idea() = T.command{ mill.scalalib.GenIdea() }

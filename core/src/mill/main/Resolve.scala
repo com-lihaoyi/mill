@@ -25,7 +25,8 @@ object Resolve {
             .map(Right(_))
 
         def invokeCommand(target: mill.Module, name: String) = for{
-          (cls, entryPoints) <- discover.value.filterKeys(_.isAssignableFrom(target.getClass))
+          (cls, entryPoints) <- discover.value
+          if cls.isAssignableFrom(target.getClass)
           ep <- entryPoints
           if ep._2.name == name
         } yield ammonite.main.Scripts.runMainMethod(
