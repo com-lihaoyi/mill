@@ -521,7 +521,53 @@ Scala build:
 
 ### Cross Scala-Version Modules
 
+```scala
+import mill._
+import mill.scalalib._
+object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule{
+   ...
+}
+```
+
+Mill provides a `CrossScalaModule` template, which can be used with `Cross` to
+cross-build Scala modules across different versions of Scala. The default
+configuration for `CrossScalaModule` expects a filesystem layout as follows:
+
+```text
+build.sc
+foo/
+    src/
+    src-2.10/
+    src-2.11/
+    src-2.12/
+    test/
+        src/
+        src-2.10/
+        src-2.11/
+        src-2.12/
+```
+
+Code common to all Scala versions lives in `src`, while code specific to one
+version lives in `src-x.y`.
+
 ### Scala.js Modules
+
+```scala
+import mill._
+import mill.scalajslib._
+
+object foo extends ScalaJSModule {
+  def scalaVersion = "2.12.4"
+  def scalaJSVersion = "0.6.22"
+}
+```
+
+`ScalaJSModule` is a variant of `ScalaModule` that builds your code using
+Scala.js. In addition to the standard `foo.compile` and `foo.run` commands (the
+latter of which runs your code on Node.js, which must be pre-installed)
+`ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
+generating the optimized Javascript file.
 
 ### Cross Scala-JVM/Scala.js Modules
 
@@ -529,7 +575,61 @@ Scala build:
 
 ### SBT-Compatible Modules
 
+```scala
+import mill._
+import mill.scalalib._
+
+object foo extends SbtModule {
+  def scalaVersion = "2.12.4"
+}
+```
+
+These are basically the same as normal `ScalaModule`s, but configured to follow
+the SBT project layout:
+
+```text
+build.sc
+foo/
+    src/
+        main/
+            scala/
+        test/
+            scala/
+```
+
+Useful if you want to migrate an existing project built with SBT without having
+to re-organize all your files
+
+
 ### SBT-Compatible Cross Scala-Version Modules
+
+```scala
+import mill._
+import mill.scalalib._
+object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
+class FooModule(val crossScalaVersion: String) extends CrossSbtModule{
+   ...
+}
+```
+
+A `CrossSbtModule` is a version of `CrossScalaModule` configured with the SBT
+project layout:
+
+```text
+build.sc
+foo/
+    src/
+        main/
+            scala/
+            scala-2.10/
+            scala-2.11/
+            scala-2.12/
+        test/
+            scala/
+            scala-2.10/
+            scala-2.11/
+            scala-2.12/
+```
 
 ### SBT-Compatible Cross Scala-Version Scala-JVM/JS Modules
 
