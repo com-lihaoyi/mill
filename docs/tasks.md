@@ -7,14 +7,16 @@ The following is a simple self-contained example using Mill to compile Java:
 ```scala
 import ammonite.ops._, mill._
 
-def sourceRootPath = pwd / 'src
-def resourceRootPath = pwd / 'resources
+// sourceRoot -> allSources -> classFiles
+//                                |
+//                                v
+//           resourceRoot ---->  jar
 
-def sourceRoot = T.source{ sourceRootPath }
+def sourceRoot = T.sources{ pwd / 'src }
 
-def resourceRoot = T.source{ resourceRootPath }
+def resourceRoot = T.sources{ pwd / 'resources }
 
-def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
+def allSources = T{ sourceRoot().flatMap(p => ls.rec(p.path)).map(PathRef(_)) }
 
 def classFiles = T{ 
   mkdir(T.ctx().dest)
@@ -23,7 +25,7 @@ def classFiles = T{
   PathRef(T.ctx().dest) 
 }
 
-def jar = T{ mill.modules.Jvm.createJar(Agg(resourceRoot().path, classFiles().path)) }
+def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
 def run(mainClsName: String) = T.command{
   %%('java, "-cp", classFiles().path, mainClsName)
@@ -116,13 +118,23 @@ within a `Module` body
 ```scala
 def sourceRootPath = pwd / 'src
 
-def sourceRoot = T.source{ sourceRootPath }
+def sourceRoots = T.sources{ sourceRootPath }
 ```
 
-`Source`s are defined using `T.source{ ... }`, taking an `ammonite.ops.Path` as
-an input. A `Source` is a subclass of `Target[PathRef]`: this means that it's
-build signature/`hashCode` depends not just on the path it refers to (e.g.
-`foo/bar/baz`) but also the MD5 hash of the filesystem tree under that path.
+`Source`s are defined using `T.source{ ... }`, taking one-or-more
+`ammonite.ops.Path`s as arguments. A `Source` is a subclass of
+`Target[Seq[PathRef]]`: this means that it's build signature/`hashCode` depends
+not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of
+the filesystem tree under that path.
+
+`T.source` also has an overload which takes `Seq[PathRef]`, to let you
+override-and-extend source lists the same way you would any other `T{...}`
+definition:
+
+```scala
+def additionalSources = T.sources{ pwd / 'additionalSources }
+def sourceRoots = T.sources{ super.sourceRoots() ++ additionalSources() }
+```
 
 ### Commands
 

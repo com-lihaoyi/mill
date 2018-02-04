@@ -37,14 +37,13 @@ trait CrossModuleBase extends mill.Module{
 }
 
 trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
-  override def sources = T.input{
+  override def sources = T.sources{
     super.sources() ++
     CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s" )
-
   }
 
   trait Tests extends super.Tests {
-    override def sources = T.input{
+    override def sources = T.sources{
       super.sources() ++
       CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s" )
     }
@@ -52,28 +51,24 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
 }
 
 trait SbtModule extends ScalaModule { outer =>
-  override def sources = T.input{
-    Agg(
-      PathRef(millSourcePath / 'src / 'main / 'scala),
-      PathRef(millSourcePath / 'src / 'main / 'java)
-    )
-  }
-  override def resources = T.input{ Agg(PathRef(millSourcePath / 'src / 'main / 'resources)) }
+  override def sources = T.sources(
+    millSourcePath / 'src / 'main / 'scala,
+    millSourcePath / 'src / 'main / 'java
+  )
+  override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests {
     override def millSourcePath = outer.millSourcePath
-    override def sources = T.input{
-      Agg(
-        PathRef(millSourcePath / 'src / 'test / 'scala),
-        PathRef(millSourcePath / 'src / 'test / 'java)
-      )
-    }
-    override def resources = T.input{ Agg(PathRef(millSourcePath / 'src / 'test / 'resources)) }
+    override def sources = T.sources(
+      millSourcePath / 'src / 'test / 'scala,
+      millSourcePath / 'src / 'test / 'java
+    )
+    override def resources = T.sources{ millSourcePath / 'src / 'test / 'resources }
   }
 }
 
 trait CrossSbtModule extends SbtModule with CrossModuleBase{ outer =>
 
-  override def sources = T.input{
+  override def sources = T.sources{
     super.sources() ++
     CrossModuleBase.scalaVersionPaths(
       crossScalaVersion,
@@ -83,7 +78,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase{ outer =>
   }
   trait Tests extends super.Tests {
     override def millSourcePath = outer.millSourcePath
-    override def sources = T.input{
+    override def sources = T.sources{
       super.sources() ++
       CrossModuleBase.scalaVersionPaths(
         crossScalaVersion,

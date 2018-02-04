@@ -12,11 +12,11 @@ def resourceRootPath = millSourcePath / 'resources
 //                                |
 //                                v
 //           resourceRoot ---->  jar
-def sourceRoot = T.source{ sourceRootPath }
-def resourceRoot = T.source{ resourceRootPath }
-def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
+def sourceRoot = T.sources{ sourceRootPath }
+def resourceRoot = T.sources{ resourceRootPath }
+def allSources = T{ sourceRoot().flatMap(p => ls.rec(p.path)).map(PathRef(_)) }
 def classFiles = T{ compileAll(allSources()) }
-def jar = T{ Jvm.createJar(Loose.Agg(resourceRoot().path, classFiles().path)) }
+def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
 def run(mainClsName: String) = T.command{
   %%('java, "-cp", classFiles().path, mainClsName)(T.ctx().dest)

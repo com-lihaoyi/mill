@@ -161,8 +161,9 @@ object RunScript{
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: define.Input[_], Result.Success(p: PathRef)) => p
+        case (t: define.Sources, Result.Success(p: Seq[PathRef])) => p
       }
+      .flatten
       .toSeq
 
     val errorStr =

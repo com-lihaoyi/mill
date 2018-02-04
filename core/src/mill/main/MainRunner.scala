@@ -24,6 +24,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
+
   var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =

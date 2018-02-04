@@ -35,11 +35,11 @@ object JavaCompileJarTests extends TestSuite{
         //                                |
         //                                v
         //           resourceRoot ---->  jar
-        def sourceRoot = T.source{ sourceRootPath }
-        def resourceRoot = T.source{ resourceRootPath }
-        def allSources = T{ ls.rec(sourceRoot().path).map(PathRef(_)) }
+        def sourceRoot = T.sources{ sourceRootPath }
+        def resourceRoot = T.sources{ resourceRootPath }
+        def allSources = T{ sourceRoot().flatMap(p => ls.rec(p.path)).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ Jvm.createJar(Loose.Agg(resourceRoot().path, classFiles().path)) }
+        def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-cp", classFiles().path, mainClsName)
@@ -108,12 +108,12 @@ object JavaCompileJarTests extends TestSuite{
       val jarContents = %%('jar, "-tf", evaluator.outPath/'jar/'dest/"out.jar")(evaluator.outPath).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
-          |hello.txt
           |test/Bar.class
           |test/BarThree.class
           |test/BarTwo.class
           |test/Foo.class
           |test/FooTwo.class
+          |hello.txt
           |""".stripMargin
       assert(jarContents == expectedJarContents)
 

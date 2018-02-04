@@ -126,32 +126,47 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  def source(value: Result[ammonite.ops.Path])
-            (implicit r: R[PathRef],
-             w: W[PathRef],
-             ctx: mill.define.Ctx): Input[PathRef] = macro sourceImpl
+  def sources(values: Result[ammonite.ops.Path]*)
+             (implicit ctx: mill.define.Ctx): Sources = macro sourcesImpl1
 
-  def sourceImpl(c: Context)
-                (value: c.Expr[Result[ammonite.ops.Path]])
-                (r: c.Expr[R[PathRef]],
-                 w: c.Expr[W[PathRef]],
-                 ctx: c.Expr[mill.define.Ctx]): c.Expr[Input[PathRef]] = {
+  def sourcesImpl1(c: Context)
+                  (values: c.Expr[Result[ammonite.ops.Path]]*)
+                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Sources] = {
     import c.universe._
-    val wrapped: c.Expr[Result[PathRef]] = reify(value.splice match{
-      case Result.Success(p) => Result.Success(PathRef(p))
-      case x: Result.Failing => x
-    })
-    mill.moduledefs.Cacher.impl0[Input[PathRef]](c)(
+    val wrapped =
+      for (value <- values.toList)
+      yield Applicative.impl0[Task, PathRef, mill.util.Ctx](c)(
+        reify(value.splice.map(PathRef(_))).tree
+      ).tree
+
+    mill.moduledefs.Cacher.impl0[Sources](c)(
       reify(
-        new Input[PathRef](
-          Applicative.impl0[Task, PathRef, mill.util.Ctx](c)(wrapped.tree).splice,
-          ctx.splice,
-          RW(w.splice.write, r.splice.read),
+        new Sources(
+          Task.sequence(c.Expr[List[Task[PathRef]]](q"scala.List(..$wrapped)").splice),
+          ctx.splice
         )
       )
     )
   }
 
+  def sources(values: Result[Seq[PathRef]])
+             (implicit ctx: mill.define.Ctx): Sources = macro sourcesImpl2
+
+  def sourcesImpl2(c: Context)
+                  (values: c.Expr[Result[Seq[PathRef]]])
+                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Sources] = {
+    import c.universe._
+
+
+    mill.moduledefs.Cacher.impl0[Sources](c)(
+      reify(
+        new Sources(
+          Applicative.impl0[Task, Seq[PathRef], mill.util.Ctx](c)(values.tree).splice,
+          ctx.splice
+        )
+      )
+    )
+  }
   def input[T](value: Result[T])
               (implicit r: R[T],
                 w: W[T],
@@ -305,7 +320,15 @@ class Input[T](t: Task[T],
                val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T]{
   override def sideHash = util.Random.nextInt()
 }
-
+class Sources(t: Task[Seq[PathRef]],
+              ctx0: mill.define.Ctx) extends Input[Seq[PathRef]](
+  t,
+  ctx0,
+  RW(
+    upickle.default.SeqishW[PathRef, Seq].write,
+    upickle.default.SeqishR[Seq, PathRef].read
+  )
+)
 object Task {
 
   class Task0[T](t: T) extends Task[T]{

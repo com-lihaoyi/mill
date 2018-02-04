@@ -126,8 +126,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def prependShellScript: T[String] = T{ "" }
 
-  def sources = T.input{ Agg(PathRef(millSourcePath / 'src)) }
-  def resources = T.input{ Agg(PathRef(millSourcePath / 'resources)) }
+  def sources = T.sources{ millSourcePath / 'src }
+  def resources = T.sources{ millSourcePath / 'resources }
   def generatedSources = T { Agg.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
 
