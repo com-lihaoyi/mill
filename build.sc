@@ -7,7 +7,7 @@ import mill._
 import mill.scalalib._, publish._
 import mill.modules.Jvm.createAssembly
 
-trait MillPublishModule extends PublishModule{
+trait MillPublishModule extends PublishModule with GitVersionModule{
   def scalaVersion = "2.12.4"
   def artifactName = "mill-" + super.artifactName()
   def pomSettings = PomSettings(
