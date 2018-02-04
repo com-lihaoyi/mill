@@ -21,6 +21,7 @@ object HelloJSWorldTests extends TestSuite {
 
   trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
     override def millSourcePath = workspacePath
+    def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
   }
 
