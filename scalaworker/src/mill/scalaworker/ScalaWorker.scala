@@ -109,7 +109,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
-                  (implicit ctx: mill.util.Ctx): CompilationResult = {
+                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
@@ -179,53 +179,55 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
     val store = FileAnalysisStore.binary(zincIOFile)
 
-    val newResult = ic.compile(
-      ic.inputs(
-        classpath = classesIODir +: compileClasspathFiles,
-        sources = for{
-          root <- sources.toArray
-          if exists(root)
-          path <- ls.rec(root)
-          if path.isFile && (path.ext == "scala" || path.ext == "java")
-        } yield path.toIO,
-        classesDirectory = classesIODir,
-        scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++  scalacOptions).toArray,
-        javacOptions = javacOptions.toArray,
-        maxErrors = 10,
-        sourcePositionMappers = Array(),
-        order = CompileOrder.Mixed,
-        compilers = ic.compilers(
-          scalaInstance,
-          ClasspathOptionsUtil.boot,
-          None,
-          ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
+    try {
+      val newResult = ic.compile(
+        ic.inputs(
+          classpath = classesIODir +: compileClasspathFiles,
+          sources = for {
+            root <- sources.toArray
+            if exists(root)
+            path <- ls.rec(root)
+            if path.isFile && (path.ext == "scala" || path.ext == "java")
+          } yield path.toIO,
+          classesDirectory = classesIODir,
+          scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
+          javacOptions = javacOptions.toArray,
+          maxErrors = 10,
+          sourcePositionMappers = Array(),
+          order = CompileOrder.Mixed,
+          compilers = ic.compilers(
+            scalaInstance,
+            ClasspathOptionsUtil.boot,
+            None,
+            ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
+          ),
+          setup = ic.setup(
+            lookup,
+            skip = false,
+            zincIOFile,
+            new FreshCompilerCache,
+            IncOptions.of(),
+            new ManagedLoggedReporter(10, logger),
+            None,
+            Array()
+          ),
+          pr = {
+            val prev = store.get()
+            PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
+          }
         ),
-        setup = ic.setup(
-          lookup,
-          skip = false,
-          zincIOFile,
-          new FreshCompilerCache,
-          IncOptions.of(),
-          new ManagedLoggedReporter(10, logger),
-          None,
-          Array()
-        ),
-        pr = {
-          val prev = store.get()
-          PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-        }
-      ),
-      logger = logger
-    )
-
-    store.set(
-      AnalysisContents.create(
-        newResult.analysis(),
-        newResult.setup()
+        logger = logger
       )
-    )
 
-    CompilationResult(zincFile, PathRef(classesDir))
+      store.set(
+        AnalysisContents.create(
+          newResult.analysis(),
+          newResult.setup()
+        )
+      )
+
+      mill.eval.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
+    }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
   }
 
   def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,

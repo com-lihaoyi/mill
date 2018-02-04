@@ -55,7 +55,7 @@ trait ScalaWorkerApi {
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
                    upstreamCompileOutput: Seq[CompilationResult])
-                  (implicit ctx: mill.util.Ctx): CompilationResult
+                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
   def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,
             entireClasspath: Agg[Path],
