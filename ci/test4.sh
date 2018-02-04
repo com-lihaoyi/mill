@@ -12,8 +12,12 @@ git clean -xdf
 sbt bin/test:assembly
 
 # Build Mill using SBT
-target/bin/mill --all \
+~/mill-release --all \
+    moduledefs.publishLocal \
+    core.publishLocal \
+    scalalib.publishLocal \
     scalaworker.publishLocal \
+    scalajslib.publishLocal \
     scalajslib.jsbridges[0.6].publishLocal \
     scalajslib.jsbridges[1.0].publishLocal \
     releaseAssembly
