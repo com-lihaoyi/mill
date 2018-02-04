@@ -241,6 +241,10 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
 def releaseCI(githubAuthKey: String, sonatypeCreds: String, gpgPassphrase: String) =
   if (isMasterCommit) T.command()
   else T.command{
+    moduledefs.publish(sonatypeCreds, gpgPassphrase)()
+    core.publish(sonatypeCreds, gpgPassphrase)()
+    scalalib.publish(sonatypeCreds, gpgPassphrase)()
+    scalajslib.publish(sonatypeCreds, gpgPassphrase)()
     scalaworker.publish(sonatypeCreds, gpgPassphrase)()
     scalajslib.jsbridges("0.6").publish(sonatypeCreds, gpgPassphrase)()
     scalajslib.jsbridges("1.0").publish(sonatypeCreds, gpgPassphrase)()

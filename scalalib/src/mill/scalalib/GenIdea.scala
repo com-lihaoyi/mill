@@ -46,7 +46,7 @@ object GenIdea {
             Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
             "2.12.4",
             for(name <- artifactNames)
-            yield Dep("com.lihaoyi", s"mill-${name}", "0.0.1-SNAPSHOT")
+            yield Dep("com.lihaoyi", s"mill-${name}", sys.props("MILL_VERSION"))
           )
           res.items.toSeq.map(_.path)
       }
