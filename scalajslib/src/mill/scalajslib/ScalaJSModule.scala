@@ -128,8 +128,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def artifactId: T[String] = T { s"${artifactName()}_sjs${artifactScalaJSVersion()}_${artifactScalaVersion()}" }
-
+  override def artifactSuffix: T[String] = T {
+    s"_sjs${artifactScalaJSVersion()}_${artifactScalaVersion()}"
+  }
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {

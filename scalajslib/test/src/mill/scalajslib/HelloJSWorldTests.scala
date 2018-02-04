@@ -7,7 +7,7 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 import ammonite.ops._
 import mill._
 import mill.define.Discover
-import mill.scalalib.{DepSyntax, Lib, PublishModule, TestRunner}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 object HelloJSWorldTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
 
-  trait HelloJSWorldModule extends ScalaJSModule with PublishModule {
+  trait HelloJSWorldModule extends ScalaJSModule with PublishModule with CrossScalaModule{
     override def millSourcePath = workspacePath
     def publishVersion = "0.0.1-SNAPSHOT"
     override def mainClass = Some("Main")
@@ -31,34 +31,9 @@ object HelloJSWorldTests extends TestSuite {
       scalaJS <- Seq("0.6.22", "1.0.0-M2")
     } yield (scala, scalaJS)
 
-    object build extends Cross[BuildModule](matrix:_*)
-
-    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
-    class BuildModuleUtest(scalaVersion0: String, sjsVersion0: String)
-      extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
-      object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / 'src / 'utest }
-        def testFramework: T[String] = "utest.runner.Framework"
-        override def ivyDeps = Agg(
-          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
-        )
-      }
-    }
-
-    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix:_*)
-    class BuildModuleScalaTest(scalaVersion0: String, sjsVersion0: String)
-      extends BuildModule(scalaVersion0: String, sjsVersion0: String) {
-      object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
-        def testFramework: T[String] = "org.scalatest.tools.Framework"
-        override def ivyDeps = Agg(
-          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
-        )
-      }
-    }
-
-    class BuildModule(scalaVersion0: String, sjsVersion0: String) extends HelloJSWorldModule {
-      def scalaVersion = scalaVersion0
+    object helloJsWorld extends Cross[BuildModule](matrix:_*)
+    class BuildModule(val crossScalaVersion: String, sjsVersion0: String) extends HelloJSWorldModule {
+      override def artifactName = "hello-js-world"
       def scalaJSVersion = sjsVersion0
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
@@ -74,6 +49,30 @@ object HelloJSWorldTests extends TestSuite {
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
+    }
+
+    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
+    class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String)
+      extends BuildModule(crossScalaVersion, sjsVersion0) {
+      object test extends super.Tests {
+        override def sources = T.sources{ millSourcePath / 'src / 'utest }
+        def testFramework: T[String] = "utest.runner.Framework"
+        override def ivyDeps = Agg(
+          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
+        )
+      }
+    }
+
+    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix:_*)
+    class BuildModuleScalaTest(crossScalaVersion: String, sjsVersion0: String)
+      extends BuildModule(crossScalaVersion, sjsVersion0) {
+      object test extends super.Tests {
+        override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
+        def testFramework: T[String] = "org.scalatest.tools.Framework"
+        override def ivyDeps = Agg(
+          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
+        )
+      }
     }
   }
 
@@ -105,7 +104,7 @@ object HelloJSWorldTests extends TestSuite {
       def testCompileFromScratch(scalaVersion: String,
                           scalaJSVersion: String): Unit = {
         val Right((result, evalCount)) =
-          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
 
         val outPath = result.classes.path
         val outputFiles = ls.rec(outPath)
@@ -117,7 +116,7 @@ object HelloJSWorldTests extends TestSuite {
 
         // don't recompile if nothing changed
         val Right((_, unchangedEvalCount)) =
-          helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).compile)
+          helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
         assert(unchangedEvalCount == 0)
       }
 
@@ -131,8 +130,8 @@ object HelloJSWorldTests extends TestSuite {
                 scalaJSVersion: String,
                 mode: OptimizeMode): Unit = {
       val task = mode match {
-        case FullOpt => HelloJSWorld.build(scalaVersion, scalaJSVersion).fullOpt
-        case FastOpt => HelloJSWorld.build(scalaVersion, scalaJSVersion).fastOpt
+        case FullOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fullOpt
+        case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
       }
       val Right((result, evalCount)) = helloWorldEvaluator(task)
       val output = runJS(result.path)
@@ -153,7 +152,7 @@ object HelloJSWorldTests extends TestSuite {
     }
     'jar - {
       'containsSJSIRs - {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build("2.12.4", "0.6.22").jar)
+        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld("2.12.4", "0.6.22").jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
@@ -163,7 +162,7 @@ object HelloJSWorldTests extends TestSuite {
       def testArtifactId(scalaVersion: String,
                          scalaJSVersion: String,
                          artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.build(scalaVersion, scalaJSVersion).artifact)
+        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
       'artifactId_0621 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")

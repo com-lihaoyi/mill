@@ -12,11 +12,12 @@ trait PublishModule extends ScalaModule { outer =>
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
+  def artifactId: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
 
   def pom = T {
     val dependencies =
       ivyDeps().map(Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion())))
-    val pom = Pom(artifact(), dependencies, artifactName(), pomSettings())
+    val pom = Pom(artifact(), dependencies, artifactId(), pomSettings())
 
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)

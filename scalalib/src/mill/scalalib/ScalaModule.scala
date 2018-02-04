@@ -249,15 +249,13 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
   def crossFullScalaVersion: T[Boolean] = false
 
-  def artifactName: T[String] = millModuleSegments.parts.mkString("-")
-
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
     else Lib.scalaBinaryVersion(scalaVersion())
   }
+  def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
-  def artifactId: T[String] = T { s"${artifactName()}_${artifactScalaVersion()}" }
-
+  def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
 }
 
 

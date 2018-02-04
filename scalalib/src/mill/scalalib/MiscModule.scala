@@ -12,7 +12,7 @@ object CrossModuleBase{
     yield PathRef(f(segments.mkString(".")))
   }
 }
-trait CrossModuleBase extends mill.Module{
+trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T{ crossScalaVersion }
 
@@ -37,7 +37,7 @@ trait CrossModuleBase extends mill.Module{
 }
 
 trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
-  override def sources = T.sources{
+    override def sources = T.sources{
     super.sources() ++
     CrossModuleBase.scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s" )
   }
