@@ -11,7 +11,7 @@ import upickle.Js
 trait MillPublishModule extends PublishModule{
   def scalaVersion = "2.12.4"
   def publishVersion = build.publishVersion()._2
-  def artifactName = "mill-" + super.artifactName()
+
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = "com.lihaoyi",
