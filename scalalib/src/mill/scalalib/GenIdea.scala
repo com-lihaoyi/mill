@@ -106,10 +106,10 @@ object GenIdea {
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
       val Seq(
-        resoucesPathRefs: Loose.Agg[PathRef],
-        sourcesPathRef: Loose.Agg[PathRef],
-        generatedSourcePathRefs: Loose.Agg[PathRef],
-        allSourcesPathRefs: Loose.Agg[PathRef]
+        resourcesPathRefs: Seq[PathRef],
+        sourcesPathRef: Seq[PathRef],
+        generatedSourcePathRefs: Seq[PathRef],
+        allSourcesPathRefs: Seq[PathRef]
       ) = evaluator.evaluate(Agg(mod.resources, mod.sources, mod.generatedSources, mod.allSources)).values
 
       val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
@@ -121,7 +121,7 @@ object GenIdea {
       )
 
       val elem = moduleXmlTemplate(
-        Strict.Agg.from(resoucesPathRefs.map(_.path)),
+        Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
         paths.out,

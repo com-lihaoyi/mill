@@ -128,7 +128,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
-  def generatedSources = T { Agg.empty[PathRef] }
+  def generatedSources = T.sources()
   def allSources = T{ sources() ++ generatedSources() }
 
   def compile: T[CompilationResult] = T.persistent{
