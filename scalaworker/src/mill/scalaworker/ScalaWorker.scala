@@ -239,7 +239,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = frameworkInstance(cl)
 
-      val testClasses = runTests(cl, framework, testClassfilePath)
+      val testClasses = discoverTests(cl, framework, testClassfilePath)
 
       val runner = framework.runner(args.toArray, args.toArray, cl)
 
@@ -299,7 +299,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
-  def runTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
+  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
 
 
     val fingerprints = framework.fingerprints()

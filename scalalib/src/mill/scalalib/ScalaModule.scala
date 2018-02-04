@@ -268,7 +268,10 @@ object TestModule{
     } else {
       val grouped = badStatuses.groupBy(x => x).mapValues(_.length).toList.sorted
 
-      Result.Failure(grouped.map{case (k, v) => k + ": " + v}.mkString(","))
+      Result.Failure(
+        grouped.map{case (k, v) => k + ": " + v}.mkString(","),
+        Some((doneMsg, results))
+      )
     }
   }
 }

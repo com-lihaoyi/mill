@@ -7,6 +7,7 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 import ammonite.ops._
 import mill._
 import mill.define.Discover
+import mill.eval.Result
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
@@ -170,10 +171,9 @@ object HelloJSWorldTests extends TestSuite {
     }
     'test - {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
-        val Right(((_, testResults), evalCount)) = helloWorldEvaluator(testTask)
+        val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
-        assert(evalCount > 0)
-
+        val (doneMsg, testResults) = res
         testResults
           .groupBy(_.fullyQualifiedName)
           .mapValues(_.map(e => e.selector -> e).toMap)

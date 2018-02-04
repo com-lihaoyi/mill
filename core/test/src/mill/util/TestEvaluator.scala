@@ -32,7 +32,7 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T)
   val logger = new PrintLogger(true, ammonite.util.Colors.Default, System.out, System.out, System.err)
   val evaluator = new Evaluator(outPath, TestEvaluator.externalOutPath, module, discover, logger)
 
-  def apply[T](t: Task[T]): Either[Result.Failing, (T, Int)] = {
+  def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
 
     if (evaluated.failing.keyCount == 0) {
@@ -49,7 +49,9 @@ class TestEvaluator[T <: TestUtil.TestBuild](module: T)
         ))
     } else {
       Left(
-        evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next())
+        evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
+          .asInstanceOf[Result.Failing[T]]
+      )
     }
   }
 

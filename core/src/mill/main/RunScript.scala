@@ -185,7 +185,7 @@ object RunScript{
           case Result.Exception(t, outerStack) =>
             t.toString +
             t.getStackTrace.dropRight(outerStack.value.length).map("\n    " + _).mkString
-          case Result.Failure(t) => t
+          case Result.Failure(t, _) => t
         }
         s"$ks ${fss.mkString(", ")}"
       }).mkString("\n")

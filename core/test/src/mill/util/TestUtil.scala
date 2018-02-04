@@ -49,9 +49,9 @@ object TestUtil {
     var failure = Option.empty[String]
     var exception = Option.empty[Throwable]
     override def evaluate(args: Ctx) = {
-      failure.map(Result.Failure) orElse
-        exception.map(Result.Exception(_, new OuterStack(Nil))) getOrElse
-        Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
+      failure.map(Result.Failure(_)) orElse
+      exception.map(Result.Exception(_, new OuterStack(Nil))) getOrElse
+      Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)
     }
     override def sideHash = counter + failure.hashCode() + exception.hashCode()
   }

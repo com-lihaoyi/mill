@@ -1,22 +1,28 @@
 package mill.eval
 
 sealed trait Result[+T]{
-  def map[V](f: T => V): Result[V] = this match{
-    case Result.Success(v) => Result.Success(f(v))
-    case f: Result.Failing => f
-    case Result.Skipped => Result.Skipped
-  }
+  def map[V](f: T => V): Result[V]
 }
 object Result{
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
     catch { case e: Throwable => Exception(e, new OuterStack(new java.lang.Exception().getStackTrace)) }
   }
-  case class Success[T](value: T) extends Result[T]
-  case object Skipped extends Result[Nothing]
-  sealed trait Failing extends Result[Nothing]
-  case class Failure(msg: String) extends Failing
-  case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing
+  case class Success[T](value: T) extends Result[T]{
+    def map[V](f: T => V) = Result.Success(f(value))
+  }
+  case object Skipped extends Result[Nothing]{
+    def map[V](f: Nothing => V) = this
+  }
+  sealed trait Failing[+T] extends Result[T]{
+    def map[V](f: T => V): Failing[V]
+  }
+  case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T]{
+    def map[V](f: T => V) = Result.Failure(msg, value.map(f(_)))
+  }
+  case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing]{
+    def map[V](f: Nothing => V) = this
+  }
   class OuterStack(val value: Seq[StackTraceElement]){
     override def hashCode() = value.hashCode()
 

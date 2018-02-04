@@ -51,7 +51,7 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
 
           for(v <- vs){
             v match{
-              case Result.Failure(m) => msg.append(m + "\n")
+              case Result.Failure(m, _) => msg.append(m + "\n")
               case Result.Exception(t, outerStack) =>
                 msg.append(
                   t.toString +

@@ -93,9 +93,12 @@ class Evaluator[T](val outPath: Path,
 
     }
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing]
+    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
     for((k, vs) <- sortedGroups.items()){
-      failing.addAll(k, vs.items.flatMap(results.get).collect{case f: Result.Failing => f})
+      failing.addAll(
+        k,
+        vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
+      )
     }
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
@@ -177,6 +180,21 @@ class Evaluator[T](val outPath: Path,
             )
 
             newResults(labelledNamedTask.task) match{
+              case Result.Failure(_, Some((v, hashCode))) =>
+                labelledNamedTask.task.asWorker match{
+                  case Some(w) =>
+                    workerCache(w.ctx.segments) = (inputsHash, v)
+                  case None =>
+                    val terminalResult = labelledNamedTask
+                      .writer
+                      .asInstanceOf[Option[upickle.default.Writer[Any]]]
+                      .map(_.write(v))
+
+                    for(t <- terminalResult){
+                      write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
+                    }
+                }
+
               case Result.Success((v, hashCode)) =>
                 labelledNamedTask.task.asWorker match{
                   case Some(w) =>
@@ -335,7 +353,7 @@ object Evaluator{
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: Agg[Task[_]],
                      transitive: Agg[Task[_]],
-                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing],
+                     failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]],
                      results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}
   }
