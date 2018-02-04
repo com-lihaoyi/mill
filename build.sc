@@ -197,7 +197,7 @@ def devAssembly = T{
 }
 
 def releaseAssembly = T{
-  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "")
+  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "-DMILL_VERSION=" + publishVersion()._2)
 }
 
 val isMasterCommit = {

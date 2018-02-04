@@ -44,7 +44,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       Seq(Dep(
         "com.lihaoyi",
         s"mill-jsbridge_${scalaJSBridgeVersion().replace('.', '_')}",
-        "0.1-SNAPSHOT"
+        sys.props("MILL_VERSION")
       ))
     ).map(_.find(_.path.toString.contains("mill-jsbridge")).get)
   }
