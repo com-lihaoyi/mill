@@ -239,10 +239,9 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
       )
       .header("Authorization", "token " + authKey)
       .asString
-
-
-    upload.apply(assembly, release, label, authKey)
   }
+
+  upload.apply(assembly, release, label, authKey)
 }
 
 def releaseCI(githubAuthKey: String,
