@@ -19,30 +19,23 @@ trait PublishModule extends ScalaModule { outer =>
   def publishSelfDependency = T{
     Artifact(pomSettings().organization, artifactId(), publishVersion()),
   }
-  def publishUpstreamDependencies = T{ Task.sequence(moduleDeps.map(_.publishSelfDependency)) }
-  def pom = T {
+
+  def publishXmlDeps = T.task{
     val ivyPomDeps = ivyDeps().map(
       Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
     )
-
-    val upstreamPomDeps = publishUpstreamDependencies().map(Dependency(_, Scope.Compile))
-
-    val pom = Pom(
-      artifact(),
-      ivyPomDeps ++ upstreamPomDeps,
-      artifactId(),
-      pomSettings()
-    )
-
+    val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
+    ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
+  }
+  def pom = T {
+    val pom = Pom(artifact(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
   def ivy = T {
-    val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion())))
-    val ivy = Ivy(artifact(), dependencies)
+    val ivy = Ivy(artifact(), publishXmlDeps())
     val ivyPath = T.ctx().dest / "ivy.xml"
     write.over(ivyPath, ivy)
     PathRef(ivyPath)

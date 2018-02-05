@@ -2,9 +2,6 @@
 
 set -eux
 
-# Force travis to create a git HEAD otherwise common operations don't work
-git checkout -B current
-
 # Starting from scratch...
 git clean -xdf
 
