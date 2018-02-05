@@ -2,7 +2,7 @@
 
 set -eux
 
-
+sbt bin/test:assembly
 
 target/bin/mill releaseCI \
     $GITHUB_ACCESS_TOKEN \

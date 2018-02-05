@@ -213,7 +213,9 @@ def gitHead = T.input{
 }
 def publishVersion = T.input{
   val tag =
-    try Option(%%('git, 'describe, "--exact-match", "--tags", gitHead())(pwd).out.string)
+    try Option(
+      %%('git, 'describe, "--exact-match", "--tags", gitHead())(pwd).out.string.trim()
+    )
     catch{case e => None}
 
   tag match{
@@ -247,10 +249,10 @@ def releaseCI(githubAuthKey: String,
               sonatypeCreds: String,
               gpgPassphrase: String,
               gpgPrivateKey: String) =
-  if (isMasterCommit) T.command()
+  if (!isMasterCommit) T.command()
   else {
     write(home / "gpg.key", java.util.Base64.getDecoder.decode(gpgPrivateKey))
-    %('gpg, 'import, home / "gpg.key")(pwd)
+    %('gpg, "--import", home / "gpg.key")(pwd)
     T.command{
       releaseManual(githubAuthKey, sonatypeCreds, gpgPassphrase)()
     }
@@ -259,18 +261,16 @@ def releaseCI(githubAuthKey: String,
 
 def releaseManual(githubAuthKey: String,
                   sonatypeCreds: String,
-                  gpgPassphrase: String) =
-  if (isMasterCommit) T.command()
-  else T.command{
-    moduledefs.publish(sonatypeCreds, gpgPassphrase)()
-    core.publish(sonatypeCreds, gpgPassphrase)()
-    scalalib.publish(sonatypeCreds, gpgPassphrase)()
-    scalajslib.publish(sonatypeCreds, gpgPassphrase)()
-    scalaworker.publish(sonatypeCreds, gpgPassphrase)()
-    scalajslib.jsbridges("0.6").publish(sonatypeCreds, gpgPassphrase)()
-    scalajslib.jsbridges("1.0").publish(sonatypeCreds, gpgPassphrase)()
-    val (release, label) = publishVersion()
-    uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
-    ()
-  }
+                  gpgPassphrase: String) = T.command{
+  moduledefs.publish(sonatypeCreds, gpgPassphrase)()
+  core.publish(sonatypeCreds, gpgPassphrase)()
+  scalalib.publish(sonatypeCreds, gpgPassphrase)()
+  scalajslib.publish(sonatypeCreds, gpgPassphrase)()
+  scalaworker.publish(sonatypeCreds, gpgPassphrase)()
+  scalajslib.jsbridges("0.6").publish(sonatypeCreds, gpgPassphrase)()
+  scalajslib.jsbridges("1.0").publish(sonatypeCreds, gpgPassphrase)()
+  val (release, label) = publishVersion()
+  uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
+  ()
+}
 
