@@ -2,6 +2,7 @@ package mill
 package scalalib
 
 import ammonite.ops._
+import mill.define.Task
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
 /**
@@ -10,14 +11,28 @@ import mill.util.Loose.Agg
 trait PublishModule extends ScalaModule { outer =>
   import mill.scalalib.publish._
 
+  override def moduleDeps = Seq.empty[PublishModule]
+
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
   def artifactId: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
-
+  def publishSelfDependency = T{
+    Artifact(pomSettings().organization, artifactId(), publishVersion()),
+  }
+  def publishUpstreamDependencies = T{ Task.sequence(moduleDeps.map(_.publishSelfDependency)) }
   def pom = T {
-    val dependencies =
-      ivyDeps().map(Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion())))
-    val pom = Pom(artifact(), dependencies, artifactId(), pomSettings())
+    val ivyPomDeps = ivyDeps().map(
+      Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+    )
+
+    val upstreamPomDeps = publishUpstreamDependencies().map(Dependency(_, Scope.Compile))
+
+    val pom = Pom(
+      artifact(),
+      ivyPomDeps ++ upstreamPomDeps,
+      artifactId(),
+      pomSettings()
+    )
 
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)

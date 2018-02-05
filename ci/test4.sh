@@ -12,7 +12,7 @@ git clean -xdf
 sbt bin/test:assembly
 
 # Build Mill using SBT
-~/mill-release --all \
+target/bin/mill --all \
     moduledefs.publishLocal \
     core.publishLocal \
     scalalib.publishLocal \
