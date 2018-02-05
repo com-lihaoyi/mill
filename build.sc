@@ -243,7 +243,23 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
   }
 }
 
-def releaseCI(githubAuthKey: String, sonatypeCreds: String, gpgPassphrase: String) =
+def releaseCI(githubAuthKey: String,
+              sonatypeCreds: String,
+              gpgPassphrase: String,
+              gpgPrivateKey: String) =
+  if (isMasterCommit) T.command()
+  else {
+    write(home / "gpg.key", java.util.Base64.getDecoder.decode(gpgPrivateKey))
+    %('gpg, 'import, home / "gpg.key")(pwd)
+    T.command{
+      releaseManual(githubAuthKey, sonatypeCreds, gpgPassphrase)()
+    }
+  }
+
+
+def releaseManual(githubAuthKey: String,
+                  sonatypeCreds: String,
+                  gpgPassphrase: String) =
   if (isMasterCommit) T.command()
   else T.command{
     moduledefs.publish(sonatypeCreds, gpgPassphrase)()
