@@ -10,14 +10,14 @@ jdk:
 
 matrix:
   include:
-#  - stage: build
-#    env: CI_SCRIPT=ci/test-sbt.sh
-#  - stage: build
-#    env: CI_SCRIPT=ci/test-sbt-built.sh
-#  - stage: build
-#    env: CI_SCRIPT=ci/test-mill-built.sh
-#  - stage: build
-#    env: CI_SCRIPT=ci/test-mill-release.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test-sbt.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test-sbt-built.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-built.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
   - stage: release
     env: CI_SCRIPT=ci/release.sh
 
