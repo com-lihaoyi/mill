@@ -162,7 +162,7 @@ def testRepos = T{
     "MILL_JAWN_REPO" ->
       shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx().dest/"jawn"),
     "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo("pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", T.ctx().dest/"better-files"),
+      shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx().dest/"better-files"),
     "MILL_AMMONITE_REPO" ->
       shared.downloadTestRepo("lihaoyi/ammonite", "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac", T.ctx().dest/"ammonite")
   )

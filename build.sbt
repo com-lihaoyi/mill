@@ -209,7 +209,7 @@ val testRepos = Map(
   ),
   "MILL_BETTERFILES_REPO" -> ammoniteRun(
     resourceManaged in test,
-    List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "e235722f91f78b8f34a41b8332d7fae3e8a64141", _),
+    List("shared.sc", "downloadTestRepo", "pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", _),
     suffix = "better-files"
   ),
   "MILL_AMMONITE_REPO" -> ammoniteRun(
