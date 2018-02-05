@@ -262,14 +262,13 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 object TestModule{
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
 
-    val badStatuses = results.map(_.status).filter(Set("Error", "Failure"))
-    if (badStatuses.isEmpty) {
-      Result.Success((doneMsg, results))
-    } else {
-      val grouped = badStatuses.groupBy(x => x).mapValues(_.length).toList.sorted
+    val badTests = results.filter(x => Set("Error", "Failure").contains(x.status))
+    if (badTests.isEmpty) Result.Success((doneMsg, results))
+    else {
+      val suffix = if (badTests.length == 1) "" else "and " + (badTests.length-1) + " more"
 
       Result.Failure(
-        grouped.map{case (k, v) => k + ": " + v}.mkString(","),
+        badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,
         Some((doneMsg, results))
       )
     }
