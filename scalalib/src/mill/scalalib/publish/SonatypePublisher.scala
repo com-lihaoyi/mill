@@ -21,12 +21,13 @@ class SonatypePublisher(uri: String,
   }
   def publishAll(artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
 
-    val mappings = for ((fileMapping, artifact) <- artifacts) yield {
+    val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = Seq(
         artifact.group.replace(".", "/"),
         artifact.id,
         artifact.version
       ).mkString("/")
+      val fileMapping = fileMapping0.map{ case (file, name) => (file, publishPath+"/"+name) }
 
       val signedArtifacts = fileMapping ++ fileMapping.map {
         case (file, name) => poorMansSign(file, gpgPassphrase) -> s"$name.asc"
@@ -44,12 +45,13 @@ class SonatypePublisher(uri: String,
       }
     }
 
-    val (snapshots, nonSnapshots) = mappings.partition(_._1.isSnapshot)
+    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
     if(snapshots.nonEmpty) {
       publishSnapshot(snapshots.flatMap(_._2), snapshots.map(_._1))
     }
-    if(nonSnapshots.nonEmpty) {
-      publishRelease(nonSnapshots.flatMap(_._2), nonSnapshots.map(_._1))
+    val releaseGroups = releases.groupBy(_._1.group)
+    for((group, groupReleases) <- releaseGroups){
+      publishRelease(groupReleases.flatMap(_._2), group, releases.map(_._1))
     }
   }
 
@@ -66,10 +68,11 @@ class SonatypePublisher(uri: String,
   }
 
   private def publishRelease(payloads: Seq[(String, Array[Byte])],
+                             stagingProfile: String,
                              artifacts: Seq[Artifact]): Unit = {
-    val profileUri = api.getStagingProfileUri(artifacts.map(_.group).mkString("-"))
+    val profileUri = api.getStagingProfileUri(stagingProfile)
     val stagingRepoId =
-      api.createStagingRepo(profileUri, artifacts.map(_.group).mkString("-"))
+      api.createStagingRepo(profileUri, stagingProfile)
     val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId/"
 
     val publishResults = payloads.map {

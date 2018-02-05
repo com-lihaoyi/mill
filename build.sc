@@ -273,7 +273,7 @@ def releaseManual(githubAuthKey: String,
       scalajslib.jsbridges("0.6"),
       scalajslib.jsbridges("1.0")
     )
-  )
+  )()
 
   val (release, label) = publishVersion()
   uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
