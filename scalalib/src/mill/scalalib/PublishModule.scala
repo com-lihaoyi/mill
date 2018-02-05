@@ -2,8 +2,9 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import mill.define.Task
+import mill.define.{ExternalModule, Task}
 import mill.eval.{PathRef, Result}
+import mill.scalalib.publish.SonatypePublisher
 import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -60,20 +61,43 @@ trait PublishModule extends ScalaModule { outer =>
 
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publish(sonatypeCreds: String, gpgPassphrase: String): define.Command[Unit] = T.command {
+  def publishArtifacts = T{
     val baseName = s"${artifactId()}-${publishVersion()}"
-    val artifacts = Seq(
-      jar().path -> s"${baseName}.jar",
-      sourcesJar().path -> s"${baseName}-sources.jar",
-      docsJar().path -> s"${baseName}-javadoc.jar",
-      pom().path -> s"${baseName}.pom"
+    Seq(
+      jar().path -> s"$baseName.jar",
+      sourcesJar().path -> s"$baseName-sources.jar",
+      docsJar().path -> s"$baseName-javadoc.jar",
+      pom().path -> s"$baseName.pom"
     )
+  }
+
+  def publish(sonatypeCreds: String, gpgPassphrase: String): define.Command[Unit] = T.command {
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
       gpgPassphrase,
       T.ctx().log
-    ).publish(artifacts, artifact())
+    ).publish(publishArtifacts(), artifact())
   }
+}
+object PublishModule extends ExternalModule{
+  def publishAll(sonatypeCreds: String,
+                 gpgPassphrase: String,
+                 modules: Seq[PublishModule],
+                 sonatypeUri: String = "https://oss.sonatype.org/service/local",
+                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.task{
+    new SonatypePublisher(
+      sonatypeUri,
+      sonatypeSnapshotUri,
+      sonatypeCreds,
+      gpgPassphrase,
+      T.ctx().log
+    ).publishAll(
+      Task.traverse(modules)(
+        m => T.task{(m.publishArtifacts(), m.artifact())}
+      )():_*
+    )
+  }
+  def millDiscover = mill.define.Discover[this.type]
 }

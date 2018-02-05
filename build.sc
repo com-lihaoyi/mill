@@ -227,7 +227,7 @@ def publishVersion = T.input{
 }
 
 def uploadToGithub(assembly: Path, authKey: String, release: String, label: String) = {
-  if (release == "unstable"){
+  if (release != "unstable"){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
         upickle.json.write(
@@ -261,13 +261,20 @@ def releaseCI(githubAuthKey: String,
 def releaseManual(githubAuthKey: String,
                   sonatypeCreds: String,
                   gpgPassphrase: String) = T.command{
-  moduledefs.publish(sonatypeCreds, gpgPassphrase)()
-  core.publish(sonatypeCreds, gpgPassphrase)()
-  scalalib.publish(sonatypeCreds, gpgPassphrase)()
-  scalajslib.publish(sonatypeCreds, gpgPassphrase)()
-  scalaworker.publish(sonatypeCreds, gpgPassphrase)()
-  scalajslib.jsbridges("0.6").publish(sonatypeCreds, gpgPassphrase)()
-  scalajslib.jsbridges("1.0").publish(sonatypeCreds, gpgPassphrase)()
+  mill.scalalib.PublishModule.publishAll(
+    sonatypeCreds = sonatypeCreds,
+    gpgPassphrase = gpgPassphrase,
+    modules = Seq(
+      moduledefs,
+      core,
+      scalalib,
+      scalajslib,
+      scalaworker,
+      scalajslib.jsbridges("0.6"),
+      scalajslib.jsbridges("1.0")
+    )
+  )
+
   val (release, label) = publishVersion()
   uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
   ()
