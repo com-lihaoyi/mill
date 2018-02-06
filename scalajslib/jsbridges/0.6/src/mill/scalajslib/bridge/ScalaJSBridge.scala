@@ -26,6 +26,12 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
   }
 
+  def run(linkedFile: File): Unit = {
+    new NodeJSEnv()
+      .jsRunner(FileVirtualJSFile(linkedFile))
+      .run(new ScalaConsoleLogger, ConsoleJSConsole)
+  }
+
   def getFramework(frameworkName: String,
                    linkedFile: File): sbt.testing.Framework = {
     val env = new NodeJSEnv().loadLibs(

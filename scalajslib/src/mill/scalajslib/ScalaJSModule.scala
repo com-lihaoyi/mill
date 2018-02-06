@@ -89,6 +89,19 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
+  override  def runLocal(args: String*) = T.command { run(args:_*) }
+
+  override def run(args: String*) = T.command{
+    if(mainClass().isEmpty) {
+      throw new RuntimeException("No mainClass provided!")
+    }
+
+    ScalaJSBridge.scalaJSBridge().run(
+      toolsClasspath().map(_.path),
+      fastOpt().path.toIO
+    )
+  }
+
   def link(worker: ScalaJSWorker,
            toolsClasspath: Agg[PathRef],
            input: Seq[CompilationResult],
