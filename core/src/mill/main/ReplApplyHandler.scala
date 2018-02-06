@@ -82,8 +82,8 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
         (if (m.millInternal.reflect[mill.Module].isEmpty) Nil
         else
           ctx.applyPrefixColor("\nChildren:").toString +:
-          m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segments.render)) ++
-        (evaluator.discover.value.get(m.getClass) match{
+            m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
+          (evaluator.discover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>
             ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
