@@ -70,7 +70,6 @@ class TargetScopt[T, M <: BaseModule](rootModule: M, d: => Discover[M])
         }
         mill.main.Resolve.resolve(segments.value.toList, externalRootModule, d, Nil, crossSelectors.toList, Nil)
       case (None, segments) =>
-        rootModule.millInternal.segmentsToModules(segments).asInstanceOf[T]
         val crossSelectors = segments.value.map {
           case mill.define.Segment.Cross(x) => x.toList.map(_.toString)
           case _ => Nil
