@@ -21,5 +21,5 @@ check_call([
     "mill.scalalib.PublishModule/publishAll",
     "lihaoyi:" + os.environ["SONATYPE_PASSWORD"],
     os.environ["GPG_PASSWORD"],
-    "_.publishArtifacts"
+    "__.publishArtifacts"
 ])

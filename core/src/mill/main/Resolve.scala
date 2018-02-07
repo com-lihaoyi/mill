@@ -14,7 +14,6 @@ object Resolve {
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Seq[Task[Any]]] = {
 
-    pprint.log(remainingSelector)
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>
@@ -70,10 +69,19 @@ object Resolve {
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Segment.Label(singleLabel) =>
-            if (singleLabel == "_") {
+            if (singleLabel == "__") {
 
               val matching =
                 obj.millInternal.modules
+                  .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
+                  .collect{case Right(vs) => vs}.flatten
+
+              if (matching.nonEmpty)Right(matching)
+              else Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
+            } else if (singleLabel == "_") {
+
+              val matching =
+                obj.millModuleDirectChildren
                   .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
                   .collect{case Right(vs) => vs}.flatten
 

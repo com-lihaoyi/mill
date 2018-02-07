@@ -26,7 +26,7 @@ object CacherTests extends TestSuite{
   }
 
   val tests = Tests{
-    def eval[T <: TestUtil.TestBuild, V](mapping: T, v: Task[V])
+    def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])
                                  (implicit discover: Discover[T], tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).right.get._1

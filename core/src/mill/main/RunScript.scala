@@ -76,7 +76,7 @@ object RunScript{
 
   def evaluateMapping(wd: Path,
                       path: Path,
-                      interp: ammonite.interp.Interpreter): Res[(mill.Module, Discover[Any])] = {
+                      interp: ammonite.interp.Interpreter): Res[(mill.define.BaseModule, Discover[Any])] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -107,7 +107,7 @@ object RunScript{
           Res.Success(
             buildCls.getMethod("millSelf")
                     .invoke(null)
-                    .asInstanceOf[Some[mill.Module]]
+                    .asInstanceOf[Some[mill.define.BaseModule]]
                     .get
           )
         }
@@ -149,11 +149,22 @@ object RunScript{
             case Segment.Cross(x) => x.toList.map(_.toString)
             case _ => Nil
           }
-          mill.main.Resolve.resolve(
-            sel.value.toList, rootModule,
-            discover,
-            args, crossSelectors.toList, Nil
-          )
+
+          try {
+            // We inject the `evaluator.rootModule` into the TargetScopt, rather
+            // than the `rootModule`, because even if you are running an external
+            // module we still want you to be able to resolve targets from your
+            // main build. Resolving targets from external builds as CLI arguments
+            // is not currently supported
+            mill.define.TargetScopt.currentRootModule.set(evaluator.rootModule)
+            mill.main.Resolve.resolve(
+              sel.value.toList, rootModule,
+              discover,
+              args, crossSelectors.toList, Nil
+            )
+          } finally{
+            mill.define.TargetScopt.currentRootModule.set(null)
+          }
         }
         EitherOps.sequence(selected)
       }

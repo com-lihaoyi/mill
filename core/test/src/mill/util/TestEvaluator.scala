@@ -15,14 +15,14 @@ object TestEvaluator{
   val externalOutPath = pwd / 'target / 'external
 
 
-  def static[T <: TestUtil.TestBuild](module: T)
+  def static[T <: TestUtil.BaseModule](module: T)
                                      (implicit discover: Discover[T],
                                      fullName: sourcecode.FullName) = {
     new TestEvaluator[T](module)(discover, fullName, TestPath(Nil))
   }
 }
 
-class TestEvaluator[T <: TestUtil.TestBuild](module: T)
+class TestEvaluator[T <: TestUtil.BaseModule](module: T)
                                             (implicit discover: Discover[T],
                                              fullName: sourcecode.FullName,
                                              tp: TestPath){

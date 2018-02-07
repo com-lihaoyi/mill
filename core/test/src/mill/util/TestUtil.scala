@@ -27,13 +27,13 @@ object TestUtil {
     pwd / 'target / 'worksources
   }
 
-  trait TestBuild extends mill.define.Module
   class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
                    overrides: Overrides)
-    extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))
-  with TestBuild
+    extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#")){
+    def millDiscover: Discover[this.type] = Discover[this.type]
+  }
 
   object test{
 

@@ -31,12 +31,7 @@ abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
   override implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
   implicit def millImplicitBaseModule: BaseModule.Implicit = BaseModule.Implicit(this)
   def millDiscover: Discover[this.type]
-//  implicit def millScoptModuleReads[T <: mill.Module] = new mill.main.ModuleScopt[T, this.type](
-//    this, millDiscover
-//  )
-  implicit def millScoptTargetReads[T] = new TargetScopt[T, this.type](
-    this, millDiscover
-  )
+  implicit def millScoptTargetReads[T] = new TargetScopt[T]()
 }
 
 
@@ -55,10 +50,19 @@ abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosin
   }
 }
 
-class TargetScopt[T, M <: BaseModule](rootModule: M, d: => Discover[M])
+object TargetScopt{
+  // This needs to be a ThreadLocal because we need to pass it into the body of
+  // the TargetScopt#read call, which does not accept additional parameters.
+  // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
+  // in directly) we are forced to pass it in via a ThreadLocal
+  val currentRootModule = new ThreadLocal[BaseModule]
+}
+class TargetScopt[T]()
   extends scopt.Read[Seq[mill.define.Target[T]]]{
   def arity = 1
   def reads = s => try{
+    val rootModule = TargetScopt.currentRootModule.get
+    val d = rootModule.millDiscover
     val (expanded, Nil) = ParseArgs(Seq(s)).fold(e => throw new Exception(e), identity)
     val resolved = expanded.map{
       case (Some(scoping), segments) =>

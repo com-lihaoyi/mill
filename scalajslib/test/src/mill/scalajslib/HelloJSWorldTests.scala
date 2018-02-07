@@ -163,7 +163,7 @@ object HelloJSWorldTests extends TestSuite {
       def testArtifactId(scalaVersion: String,
                          scalaJSVersion: String,
                          artifactId: String): Unit = {
-        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).artifact)
+        val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).artifactMetadata)
         assert(result.id == artifactId)
       }
       'artifactId_0621 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")

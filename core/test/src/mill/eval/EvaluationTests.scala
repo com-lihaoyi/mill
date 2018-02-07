@@ -11,7 +11,7 @@ import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
 import ammonite.ops._
 object EvaluationTests extends TestSuite{
-  class Checker[T <: TestUtil.TestBuild](module: T)
+  class Checker[T <: TestUtil.BaseModule](module: T)
                                         (implicit tp: TestPath, discover: Discover[T]) {
     // Make sure data is persisted even if we re-create the evaluator each time
 

@@ -104,5 +104,6 @@ object PublishModule extends ExternalModule{
       x:_*
     )
   }
+  millScoptTargetReads
   def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

@@ -11,7 +11,7 @@ import scala.collection.mutable
 object ReplApplyHandler{
   def apply[T](colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
-               rootModule: mill.Module,
+               rootModule: mill.define.BaseModule,
                discover: Discover[_]) = {
     new ReplApplyHandler(
       pprinter0,

@@ -113,7 +113,7 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T, M <: TestUtil.TestBuild: Discover](m: M)
+  def workspaceTest[T, M <: TestUtil.BaseModule: Discover](m: M)
                                                          (t: TestEvaluator[M] => T)
                                                          (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
