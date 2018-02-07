@@ -14,6 +14,7 @@ object Resolve {
                     remainingCrossSelectors: List[List[String]],
                     revSelectorsSoFar: List[Segment]): Either[String, Seq[Task[Any]]] = {
 
+    pprint.log(remainingSelector)
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
       case Segment.Label(last) :: Nil =>

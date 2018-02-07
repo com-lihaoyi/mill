@@ -58,7 +58,7 @@ abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosin
 class TargetScopt[T, M <: BaseModule](rootModule: M, d: => Discover[M])
   extends scopt.Read[Seq[mill.define.Target[T]]]{
   def arity = 1
-  def reads = s => {
+  def reads = s => try{
     val (expanded, Nil) = ParseArgs(Seq(s)).fold(e => throw new Exception(e), identity)
     val resolved = expanded.map{
       case (Some(scoping), segments) =>
@@ -80,5 +80,5 @@ class TargetScopt[T, M <: BaseModule](rootModule: M, d: => Discover[M])
       case Left(s) => throw new Exception(s)
       case Right(ts) => ts.flatten.collect{case t: mill.define.Target[T] => t}
     }
-  }
+  }catch{case e => e.printStackTrace(); throw e}
 }
