@@ -243,39 +243,3 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
 
   upload.apply(assembly, release, label, authKey)
 }
-
-def releaseCI(githubAuthKey: String,
-              sonatypeCreds: String,
-              gpgPassphrase: String,
-              gpgPrivateKey: String) =
-  if (!isMasterCommit) T.command()
-  else {
-    write(home / "gpg.key", java.util.Base64.getDecoder.decode(gpgPrivateKey))
-    %('gpg, "--import", home / "gpg.key")(pwd)
-    T.command{
-      releaseManual(githubAuthKey, sonatypeCreds, gpgPassphrase)()
-    }
-  }
-
-
-def releaseManual(githubAuthKey: String,
-                  sonatypeCreds: String,
-                  gpgPassphrase: String) = T.command{
-  mill.scalalib.PublishModule.publishAll(
-    sonatypeCreds = sonatypeCreds,
-    gpgPassphrase = gpgPassphrase,
-    modules = Seq(
-      moduledefs,
-      core,
-      scalalib,
-      scalajslib,
-      scalaworker,
-      scalajslib.jsbridges("0.6"),
-      scalajslib.jsbridges("1.0")
-    )
-  )()
-
-  val (release, label) = publishVersion()
-  uploadToGithub(releaseAssembly().path, githubAuthKey, release, label)
-  ()
-}

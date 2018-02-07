@@ -69,19 +69,10 @@ object Resolve {
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
         head match{
           case Segment.Label(singleLabel) =>
-            if (singleLabel == "__"){
-              val matching =
-                obj.millInternal
-                  .modules
-                  .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
-                  .collect{case Right(vs) => vs}.flatten
+            if (singleLabel == "_") {
 
-              if (matching.nonEmpty) Right(matching.toSeq)
-              else Left("Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render)
-            }else if (singleLabel == "_") {
               val matching =
-                obj.millInternal
-                  .reflectNestedObjects[mill.Module]
+                obj.millInternal.modules
                   .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
                   .collect{case Right(vs) => vs}.flatten
 

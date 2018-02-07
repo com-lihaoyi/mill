@@ -4,7 +4,7 @@ package scalalib
 import ammonite.ops._
 import mill.define.{ExternalModule, Task}
 import mill.eval.{PathRef, Result}
-import mill.scalalib.publish.SonatypePublisher
+import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
@@ -29,20 +29,20 @@ trait PublishModule extends ScalaModule { outer =>
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
   def pom = T {
-    val pom = Pom(artifact(), publishXmlDeps(), artifactId(), pomSettings())
+    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
   def ivy = T {
-    val ivy = Ivy(artifact(), publishXmlDeps())
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps())
     val ivyPath = T.ctx().dest / "ivy.xml"
     write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
-  def artifact: T[Artifact] = T {
+  def artifactMetadata: T[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
@@ -53,7 +53,7 @@ trait PublishModule extends ScalaModule { outer =>
       docsJar = docsJar().path,
       pom = pom().path,
       ivy = ivy().path,
-      artifact = artifact()
+      artifact = artifactMetadata()
     )
   }
 
@@ -63,30 +63,37 @@ trait PublishModule extends ScalaModule { outer =>
 
   def publishArtifacts = T{
     val baseName = s"${artifactId()}-${publishVersion()}"
-    Seq(
-      jar().path -> s"$baseName.jar",
-      sourcesJar().path -> s"$baseName-sources.jar",
-      docsJar().path -> s"$baseName-javadoc.jar",
-      pom().path -> s"$baseName.pom"
+    (
+      artifactMetadata(),
+      Seq(
+        jar() -> s"$baseName.jar",
+        sourcesJar() -> s"$baseName-sources.jar",
+        docsJar() -> s"$baseName-javadoc.jar",
+        pom() -> s"$baseName.pom"
+      )
     )
   }
 
   def publish(sonatypeCreds: String, gpgPassphrase: String): define.Command[Unit] = T.command {
+    val (artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
       gpgPassphrase,
       T.ctx().log
-    ).publish(publishArtifacts(), artifact())
+    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo)
   }
 }
 object PublishModule extends ExternalModule{
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
-                 modules: Seq[PublishModule],
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.task{
+                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+                 publishInfo: Seq[mill.T[(mill.scalalib.publish.Artifact, Seq[(PathRef, String)])]] = Nil) = T.command{
+    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishInfo)().map{
+      case (a, s) => (s.map{case (p, f) => (p.path, f)}, a)
+    }
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
@@ -94,10 +101,8 @@ object PublishModule extends ExternalModule{
       gpgPassphrase,
       T.ctx().log
     ).publishAll(
-      Task.traverse(modules)(
-        m => T.task{(m.publishArtifacts(), m.artifact())}
-      )():_*
+      x:_*
     )
   }
-  def millDiscover = mill.define.Discover[this.type]
+  def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }
