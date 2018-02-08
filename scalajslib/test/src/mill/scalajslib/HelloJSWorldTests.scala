@@ -6,8 +6,7 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
-import mill.define.Discover
-import mill.eval.Result
+import mill.eval.{Evaluator, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
@@ -121,9 +120,9 @@ object HelloJSWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_2124_0621 - testCompileFromScratch("2.12.4", "0.6.22")
-      'fromScratch_2123_0621 - testCompileFromScratch("2.12.3", "0.6.22")
-      'fromScratch_2118_0621 - testCompileFromScratch("2.11.8", "0.6.22")
+      'fromScratch_2124_0622 - testCompileFromScratch("2.12.4", "0.6.22")
+      'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
+      'fromScratch_2118_0622 - testCompileFromScratch("2.11.8", "0.6.22")
       'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
@@ -140,15 +139,15 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     'fullOpt - {
-      'run_2124_0621 - testRun("2.12.4", "0.6.22", FullOpt)
-      'run_2123_0621 - testRun("2.12.3", "0.6.22", FullOpt)
-      'run_2118_0621 - testRun("2.11.8", "0.6.22", FullOpt)
+      'run_2124_0622 - testRun("2.12.4", "0.6.22", FullOpt)
+      'run_2123_0622 - testRun("2.12.3", "0.6.22", FullOpt)
+      'run_2118_0622 - testRun("2.11.8", "0.6.22", FullOpt)
       'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FullOpt)
     }
     'fastOpt - {
-      'run_2124_0621 - testRun("2.12.4", "0.6.22", FastOpt)
-      'run_2123_0621 - testRun("2.12.3", "0.6.22", FastOpt)
-      'run_2118_0621 - testRun("2.11.8", "0.6.22", FastOpt)
+      'run_2124_0622 - testRun("2.12.4", "0.6.22", FastOpt)
+      'run_2123_0622 - testRun("2.12.3", "0.6.22", FastOpt)
+      'run_2118_0622 - testRun("2.11.8", "0.6.22", FastOpt)
       'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FastOpt)
     }
     'jar - {
@@ -166,7 +165,7 @@ object HelloJSWorldTests extends TestSuite {
         val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).artifact)
         assert(result.id == artifactId)
       }
-      'artifactId_0621 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
+      'artifactId_0622 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
       'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
     }
     'test - {
@@ -213,16 +212,61 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'utest_2118_0621 - checkUtest("2.11.8", "0.6.22")
-      'utest_2124_0621 - checkUtest("2.12.4", "0.6.22")
+      'utest_2118_0622 - checkUtest("2.11.8", "0.6.22")
+      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
       'utest_2118_100M2 - checkUtest("2.11.8", "1.0.0-M2")
       'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
 
-      'scalaTest_2118_0621 - checkScalaTest("2.11.8", "0.6.22")
-      'scalaTest_2124_0621 - checkScalaTest("2.12.4", "0.6.22")
+      'scalaTest_2118_0622 - checkScalaTest("2.11.8", "0.6.22")
+      'scalaTest_2124_0622 - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
 //      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
 //      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
+    }
+
+    def checkRun(scalaVersion: String, scalaJSVersion: String, mainClass: Option[String] = None): Unit = {
+      val task = mainClass match {
+        case Some(main) => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).runMain(main)
+        case None => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
+      }
+
+      val Right((_, evalCount)) = helloWorldEvaluator(task)
+
+      val paths = Evaluator.resolveDestPaths(
+        helloWorldEvaluator.outPath,
+        task.ctx.segments
+      )
+      val log = read(paths.log)
+      assert(
+        evalCount > 0,
+        log.contains("node"),
+        log.contains("Scala.js")
+      )
+    }
+
+    'runMain - {
+      val mainClass = Some("Main")
+      'run_2118_0622  - checkRun("2.11.8", "0.6.22", mainClass)
+      'run_2124_0622  - checkRun("2.12.4", "0.6.22", mainClass)
+      'run_2118_100M2 - checkRun("2.11.8", "1.0.0-M2", mainClass)
+      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2", mainClass)
+
+      'wrongMain - {
+        val wrongMainClass = "Foo"
+        val task = HelloJSWorld.helloJsWorld("2.12.4", "0.6.22").runMain(wrongMainClass)
+
+        val Left(Result.Exception(ex, _)) = helloWorldEvaluator(task)
+
+        assert(
+          ex.isInstanceOf[Exception]
+        )
+      }
+    }
+    'run - {
+      'run_2118_0622  - checkRun("2.11.8", "0.6.22")
+      'run_2124_0622  - checkRun("2.12.4", "0.6.22")
+      'run_2118_100M2 - checkRun("2.11.8", "1.0.0-M2")
+      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2")
     }
   }
 

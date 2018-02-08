@@ -91,7 +91,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override  def runLocal(args: String*) = T.command { run(args:_*) }
 
-  override def run(args: String*) = T.command{
+  override def run(args: String*) = T.command {
     if(mainClass().isEmpty) {
       throw new RuntimeException("No mainClass provided!")
     }
@@ -99,6 +99,24 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ScalaJSBridge.scalaJSBridge().run(
       toolsClasspath().map(_.path),
       fastOpt().path.toIO
+    )
+  }
+
+  override def runMainLocal(mainClass: String, args: String*) = T.command { runMain(mainClass, args:_*) }
+
+  override def runMain(mainClass: String, args: String*) = T.command {
+    val linkedFile = link(
+      ScalaJSBridge.scalaJSBridge(),
+      toolsClasspath(),
+      Seq(compile()),
+      compileDepClasspath(),
+      Some(mainClass),
+      FastOpt
+    )
+
+    ScalaJSBridge.scalaJSBridge().run(
+      toolsClasspath().map(_.path),
+      linkedFile.path.toIO
     )
   }
 
