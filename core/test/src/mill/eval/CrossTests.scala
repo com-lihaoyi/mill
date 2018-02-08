@@ -1,13 +1,12 @@
 package mill.eval
 
 import ammonite.ops._
-
-import mill.define.Discover
+import mill.define.{Discover, TargetScopt}
 import mill.util.TestEvaluator
 import mill.util.TestEvaluator.implicitDisover
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
-
+import TargetScopt.millScoptTargetReads
 object CrossTests extends TestSuite{
   val tests = Tests{
     'singleCross - {

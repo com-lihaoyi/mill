@@ -41,7 +41,7 @@ object Discover {
     }
     rec(weakTypeOf[T])
 
-    val router = new ammonite.main.Router(c)
+    val router = new mill.define.Router(c)
     val mapping = for{
       discoveredModuleType <- seen
       val curCls = discoveredModuleType.asInstanceOf[router.c.Type]
@@ -57,7 +57,7 @@ object Discover {
       val (overrides, routes) = overridesRoutes.unzip
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
       val clsType = discoveredModuleType.typeSymbol.asClass
-      val rhs = q"scala.Seq[(Int, ammonite.main.Router.EntryPoint[$clsType])](..$overridesRoutes)"
+      val rhs = q"scala.Seq[(Int, ammonite.main.Router.EntryPoint[_])](..$overridesRoutes)"
       q"$lhs -> $rhs"
     }
 

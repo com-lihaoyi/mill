@@ -62,11 +62,11 @@ class MainRunner(config: ammonite.main.Cli.Config,
   override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
     res match{
       case Res.Success(value) =>
-        if (show){
-          for(json <- value.asInstanceOf[Seq[Js.Value]]){
-            outprintStream.println(json)
-          }
-        }
+//        if (show){
+//          for(json <- value.asInstanceOf[Seq[Js.Value]]){
+//            outprintStream.println(json)
+//          }
+//        }
 
         true
 
@@ -91,7 +91,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |package ${Util.encodeScalaSourcePath(pkgName.tail)}
          |$imports
          |import mill._
-         |
+         |import mill.eval.Evaluator.evaluatorScopt
          |object $wrapName
          |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
          |with $wrapName{
@@ -106,7 +106,26 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |}
          |
          |sealed trait $wrapName extends mill.Module{this: mill.define.BaseModule =>
-         |
+         |  def resolve(targets: mill.define.TargetScopt.Targets[Any]*) = mill.T.command{
+         |    targets.flatMap(_.items).foreach(println)
+         |  }
+         |  def all(evaluator: mill.eval.Evaluator[_],
+         |          targets: mill.define.TargetScopt.Targets[Any]*) = mill.T.command{
+         |    val (watched, res) = mill.main.RunScript.evaluate(
+         |      evaluator,
+         |      mill.util.Strict.Agg.from(targets.flatMap(_.items))
+         |    )
+         |  }
+         |  def show(evaluator: mill.eval.Evaluator[_],
+         |           targets: mill.define.TargetScopt.Targets[Any]*) = mill.T.command{
+         |    val (watched, res) = mill.main.RunScript.evaluate(
+         |      evaluator,
+         |      mill.util.Strict.Agg.from(targets.flatMap(_.items))
+         |    )
+         |    for(json <- res.right.get.flatMap(_._2)){
+         |      println(json)
+         |    }
+         |  }
          |  implicit def millDiscover: mill.define.Discover[_]
          |""".stripMargin
     }

@@ -51,6 +51,8 @@ abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosin
 }
 
 object TargetScopt{
+  case class Targets[T](items: Seq[mill.define.Target[T]])
+  implicit def millScoptTargetReads[T] = new TargetScopt[T]()
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
@@ -58,12 +60,13 @@ object TargetScopt{
   val currentRootModule = new ThreadLocal[BaseModule]
 }
 class TargetScopt[T]()
-  extends scopt.Read[Seq[mill.define.Target[T]]]{
+  extends scopt.Read[TargetScopt.Targets[T]]{
   def arity = 1
   def reads = s => try{
     val rootModule = TargetScopt.currentRootModule.get
     val d = rootModule.millDiscover
-    val (expanded, Nil) = ParseArgs(Seq(s)).fold(e => throw new Exception(e), identity)
+    val (expanded, Nil) = ParseArgs(Seq("--all", s)).fold(e => throw new Exception(e), identity)
+
     val resolved = expanded.map{
       case (Some(scoping), segments) =>
         val moduleCls = rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
@@ -82,7 +85,7 @@ class TargetScopt[T]()
     }
     mill.util.EitherOps.sequence(resolved) match{
       case Left(s) => throw new Exception(s)
-      case Right(ts) => ts.flatten.collect{case t: mill.define.Target[T] => t}
+      case Right(ts) => TargetScopt.Targets(ts.flatten.collect{case t: mill.define.Target[T] => t})
     }
   }catch{case e => e.printStackTrace(); throw e}
 }

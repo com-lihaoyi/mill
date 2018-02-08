@@ -9,6 +9,7 @@ import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
 
+import TargetScopt.millScoptTargetReads
 object CacherTests extends TestSuite{
   object Base extends Base
   trait Base extends TestUtil.BaseModule{
@@ -27,36 +28,37 @@ object CacherTests extends TestSuite{
 
   val tests = Tests{
     def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])
-                                 (implicit discover: Discover[T], tp: TestPath) = {
+                                         (implicit discover: Discover[T], tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).right.get._1
     }
+    def check(x: Any, y: Any) = assert(x == y)
 
-    'simpleDefIsCached - assert(
-      Base.value eq Base.value,
-      eval(Base, Base.value) == 1
-    )
+    'simpleDefIsCached - {
+      Predef.assert(Base.value eq Base.value)
+      Predef.assert(eval(Base, Base.value) == 1)
+    }
 
-    'resultDefIsCached - assert(
-      Base.result eq Base.result,
-      eval(Base, Base.result) == 1
-    )
-
-
-    'overridingDefIsAlsoCached - assert(
-      eval(Middle, Middle.value) == 3,
-      Middle.value eq Middle.value
-    )
-
-    'overridenDefRemainsAvailable - assert(
-      eval(Middle, Middle.overriden) == 1
-    )
+    'resultDefIsCached - {
+      Predef.assert(Base.result eq Base.result)
+      Predef.assert(eval(Base, Base.result) == 1)
+    }
 
 
-    'multipleOverridesWork- assert(
-      eval(Terminal, Terminal.value) == 7,
-      eval(Terminal, Terminal.overriden) == 1
-    )
+    'overridingDefIsAlsoCached - {
+      Predef.assert(eval(Middle, Middle.value) == 3)
+      Predef.assert(Middle.value eq Middle.value)
+    }
+
+    'overridenDefRemainsAvailable - {
+      Predef.assert(eval(Middle, Middle.overriden) == 1)
+    }
+
+
+    'multipleOverridesWork- {
+      Predef.assert(eval(Terminal, Terminal.value) == 7)
+      Predef.assert(eval(Terminal, Terminal.overriden) == 1)
+    }
     //    Doesn't fail, presumably compileError doesn't go far enough in the
     //    compilation pipeline to hit the override checks
     //

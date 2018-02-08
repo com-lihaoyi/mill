@@ -10,6 +10,7 @@ import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
 import ammonite.ops._
+
 object EvaluationTests extends TestSuite{
   class Checker[T <: TestUtil.BaseModule](module: T)
                                         (implicit tp: TestPath, discover: Discover[T]) {
@@ -52,7 +53,7 @@ object EvaluationTests extends TestSuite{
 
 
   val tests = Tests{
-    val graphs = new TestGraphs()
+    object graphs extends TestGraphs()
     import graphs._
     import TestGraphs._
     'evaluateSingle - {

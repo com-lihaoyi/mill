@@ -6,6 +6,7 @@ import mill.eval.Result.OuterStack
 import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
+import mill.define.TargetScopt.millScoptTargetReads
 object FailureTests extends TestSuite{
 
   val tests = Tests{

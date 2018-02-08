@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import mill.define.{ExternalModule, Task}
+import mill.define.{ExternalModule, TargetScopt, Task}
 import mill.eval.{PathRef, Result}
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 import mill.util.Loose.Agg
@@ -88,10 +88,10 @@ trait PublishModule extends ScalaModule { outer =>
 object PublishModule extends ExternalModule{
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
-                 publishArtifacts: Seq[mill.T[(mill.scalalib.publish.Artifact, Seq[(PathRef, String)])]],
+                 publishArtifacts: TargetScopt.Targets[(mill.scalalib.publish.Artifact, Seq[(PathRef, String)])],
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command{
-    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts)().map{
+    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.items)().map{
       case (a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
     new SonatypePublisher(
@@ -104,6 +104,6 @@ object PublishModule extends ExternalModule{
       x:_*
     )
   }
-  millScoptTargetReads
+
   def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

@@ -129,8 +129,7 @@ object RunScript{
     } yield (module, discover)
   }
 
-  def evaluateTarget[T](evaluator: Evaluator[T],
-                        scriptArgs: Seq[String]) = {
+  def evaluateTarget[T](evaluator: Evaluator[T], scriptArgs: Seq[String]) = {
     for {
       parsed <- ParseArgs(scriptArgs)
       (selectors, args) = parsed
@@ -157,12 +156,14 @@ object RunScript{
             // main build. Resolving targets from external builds as CLI arguments
             // is not currently supported
             mill.define.TargetScopt.currentRootModule.set(evaluator.rootModule)
+            mill.eval.Evaluator.dynamicScopt.set(evaluator)
             mill.main.Resolve.resolve(
               sel.value.toList, rootModule,
               discover,
               args, crossSelectors.toList, Nil
             )
           } finally{
+            mill.eval.Evaluator.dynamicScopt.set(null)
             mill.define.TargetScopt.currentRootModule.set(null)
           }
         }

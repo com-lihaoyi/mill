@@ -4,6 +4,7 @@ import mill.define.{Discover, Segment, Task}
 import mill.util.TestGraphs._
 import mill.util.TestEvaluator.implicitDisover
 import utest._
+import mill.define.TargetScopt.millScoptTargetReads
 object MainTests extends TestSuite{
 
   def check[T <: mill.Module](module: T)(

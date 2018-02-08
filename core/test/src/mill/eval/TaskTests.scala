@@ -5,6 +5,7 @@ import ammonite.ops._
 import mill.T
 import mill.util.TestEvaluator.implicitDisover
 import mill.util.TestEvaluator
+import mill.define.TargetScopt.millScoptTargetReads
 object TaskTests extends TestSuite{
   val tests = Tests{
     object build extends mill.util.TestUtil.BaseModule{

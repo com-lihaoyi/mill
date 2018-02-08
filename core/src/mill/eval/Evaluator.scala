@@ -58,9 +58,14 @@ class Evaluator[T](val outPath: Path,
                   }
               }
             }
+            pprint.log(discover.value.keySet)
+            pprint.log(c.cls)
 
             findMatching(c.cls) match{
-              case Some(v) => v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+              case Some(v) =>
+                pprint.log(v)
+                pprint.log(c.ctx.segment.pathSegments)
+                v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
               // For now we don't properly support overrides for external modules
               // that do not appear in the Evaluator's main Discovered listing
               case None => 0
@@ -329,6 +334,12 @@ class Evaluator[T](val outPath: Path,
 
 
 object Evaluator{
+  class Scopt extends scopt.Read[Evaluator[_]] {
+    def arity = 0
+    def reads = _ => dynamicScopt.get
+  }
+  val dynamicScopt = new ThreadLocal[Evaluator[_]]
+  implicit def evaluatorScopt = new Scopt
   case class Paths(out: Path,
                    dest: Path,
                    meta: Path,
