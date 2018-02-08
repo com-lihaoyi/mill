@@ -9,7 +9,6 @@ import utest._
 import utest.framework.TestPath
 import mill.util.TestEvaluator.implicitDisover
 
-import TargetScopt.millScoptTargetReads
 object CacherTests extends TestSuite{
   object Base extends Base
   trait Base extends TestUtil.BaseModule{

@@ -1,8 +1,7 @@
-package mill.define
+package mill.main
 
 
 import ammonite.main.Compat
-import sourcecode.Compat.Context
 
 import scala.annotation.StaticAnnotation
 import scala.collection.mutable
@@ -25,7 +24,7 @@ object Router{
     implicit def generate: Overrides = macro impl
     def impl(c: Context): c.Tree = {
       import c.universe._
-      q"new _root_.ammonite.main.Router.Overrides(${c.internal.enclosingOwner.overrides.length})"
+      q"new _root_.mill.main.Router.Overrides(${c.internal.enclosingOwner.overrides.length})"
     }
   }
 
@@ -48,10 +47,11 @@ object Router{
     * (just for logging and reading, not a replacement for a `TypeTag`) and
     * possible a function that can compute its default value
     */
-  case class ArgSig[T](name: String,
-                       typeString: String,
-                       doc: Option[String],
-                       default: Option[T => Any])
+  case class ArgSig[T, V](name: String,
+                          typeString: String,
+                          doc: Option[String],
+                          default: Option[T => V])
+                         (implicit val reads: scopt.Read[V])
 
   def stripDashes(s: String) = {
     if (s.startsWith("--")) s.drop(2)
@@ -68,25 +68,24 @@ object Router{
     * calling a Scala method.
     */
   case class EntryPoint[T](name: String,
-                           argSignatures: Seq[ArgSig[T]],
+                           argSignatures: Seq[ArgSig[T, _]],
                            doc: Option[String],
                            varargs: Boolean,
                            invoke0: (T, Map[String, String], Seq[String]) => Result[Any],
                            overrides: Int){
     def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Any] = {
-      var remainingArgSignatures = argSignatures.toList
+      var remainingArgSignatures = argSignatures.toList.filter(_.reads.arity > 0)
 
-
-      val accumulatedKeywords = mutable.Map.empty[ArgSig[T], mutable.Buffer[String]]
+      val accumulatedKeywords = mutable.Map.empty[ArgSig[T, _], mutable.Buffer[String]]
       val keywordableArgs = if (varargs) argSignatures.dropRight(1) else argSignatures
 
       for(arg <- keywordableArgs) accumulatedKeywords(arg) = mutable.Buffer.empty
 
       val leftoverArgs = mutable.Buffer.empty[String]
 
-      val lookupArgSig = argSignatures.map(x => (x.name, x)).toMap
+      val lookupArgSig = Map(argSignatures.map(x => (x.name, x)):_*)
 
-      var incomplete: Option[ArgSig[T]] = None
+      var incomplete: Option[ArgSig[T, _]] = None
 
       for(group <- groupedArgs){
 
@@ -121,7 +120,9 @@ object Router{
         }
       }
 
-      val missing0 = remainingArgSignatures.filter(_.default.isEmpty)
+      val missing0 = remainingArgSignatures
+        .filter(_.default.isEmpty)
+
       val missing = if(varargs) {
         missing0.filter(_ != argSignatures.last)
       } else {
@@ -160,9 +161,9 @@ object Router{
     try Right(t)
     catch{ case e: Throwable => Left(error(e))}
   }
-  def readVarargs[T](arg: ArgSig[_],
-                     values: Seq[String],
-                     thunk: String => T) = {
+  def readVarargs(arg: ArgSig[_, _],
+                  values: Seq[String],
+                  thunk: String => Any) = {
     val attempts =
       for(item <- values)
         yield tryEither(thunk(item), Result.ParamError.Invalid(arg, item, _))
@@ -172,17 +173,23 @@ object Router{
     if (bad.nonEmpty) Left(bad)
     else Right(attempts.collect{case Right(x) => x})
   }
-  def read[T](dict: Map[String, String],
-              default: => Option[Any],
-              arg: ArgSig[_],
-              thunk: String => T): FailMaybe = {
-    dict.get(arg.name) match{
-      case None =>
-        tryEither(default.get, Result.ParamError.DefaultFailed(arg, _)).left.map(Seq(_))
+  def read(dict: Map[String, String],
+           default: => Option[Any],
+           arg: ArgSig[_, _],
+           thunk: String => Any): FailMaybe = {
+    arg.reads.arity match{
+      case 0 =>
+        tryEither(thunk(null), Result.ParamError.DefaultFailed(arg, _)).left.map(Seq(_))
+      case 1 =>
+        dict.get(arg.name) match{
+          case None =>
+            tryEither(default.get, Result.ParamError.DefaultFailed(arg, _)).left.map(Seq(_))
 
-      case Some(x) =>
-        tryEither(thunk(x), Result.ParamError.Invalid(arg, x, _)).left.map(Seq(_))
+          case Some(x) =>
+            tryEither(thunk(x), Result.ParamError.Invalid(arg, x, _)).left.map(Seq(_))
+        }
     }
+
   }
 
   /**
@@ -214,10 +221,10 @@ object Router{
         * Invoking the [[EntryPoint]] failed because the arguments provided
         * did not line up with the arguments expected
         */
-      case class MismatchedArguments(missing: Seq[ArgSig[_]],
+      case class MismatchedArguments(missing: Seq[ArgSig[_, _]],
                                      unknown: Seq[String],
-                                     duplicate: Seq[(ArgSig[_], Seq[String])],
-                                     incomplete: Option[ArgSig[_]]) extends Error
+                                     duplicate: Seq[(ArgSig[_, _], Seq[String])],
+                                     incomplete: Option[ArgSig[_, _]]) extends Error
       /**
         * Invoking the [[EntryPoint]] failed because there were problems
         * deserializing/parsing individual arguments
@@ -231,12 +238,12 @@ object Router{
         * Something went wrong trying to de-serialize the input parameter;
         * the thrown exception is stored in [[ex]]
         */
-      case class Invalid(arg: ArgSig[_], value: String, ex: Throwable) extends ParamError
+      case class Invalid(arg: ArgSig[_, _], value: String, ex: Throwable) extends ParamError
       /**
         * Something went wrong trying to evaluate the default value
         * for this input parameter
         */
-      case class DefaultFailed(arg: ArgSig[_], ex: Throwable) extends ParamError
+      case class DefaultFailed(arg: ArgSig[_, _], ex: Throwable) extends ParamError
     }
   }
 
@@ -254,14 +261,13 @@ object Router{
     }
   }
 
-  def makeReadCall[T: scopt.Read](dict: Map[String, String],
-                                  default: => Option[Any],
-                                  arg: ArgSig[_]) = {
-    read[T](dict, default, arg, implicitly[scopt.Read[T]].reads(_))
+  def makeReadCall(dict: Map[String, String],
+                  default: => Option[Any],
+                  arg: ArgSig[_, _]) = {
+    read(dict, default, arg, arg.reads.reads(_))
   }
-  def makeReadVarargsCall[T: scopt.Read](arg: ArgSig[_],
-                                         values: Seq[String]) = {
-    readVarargs[T](arg, values, implicitly[scopt.Read[T]].reads(_))
+  def makeReadVarargsCall(arg: ArgSig[_, _], values: Seq[String]) = {
+    readVarargs(arg, values, arg.reads.reads(_))
   }
 }
 
@@ -357,8 +363,9 @@ class Router [C <: Context](val c: C) {
         case None => q"scala.None"
         case Some(s) => q"scala.Some($s)"
       }
+
       val argSig = q"""
-        ammonite.main.Router.ArgSig(
+        mill.main.Router.ArgSig[$curCls, $docUnwrappedType](
           ${arg.name.toString},
           ${docUnwrappedType.toString + (if(vararg) "*" else "")},
           $docTree,
@@ -368,12 +375,12 @@ class Router [C <: Context](val c: C) {
 
       val reader =
         if(vararg) q"""
-          ammonite.main.Router.makeReadVarargsCall[$docUnwrappedType](
+          mill.main.Router.makeReadVarargsCall(
             $argSig,
             $extrasSymbol
           )
         """ else q"""
-        ammonite.main.Router.makeReadCall[$docUnwrappedType](
+        mill.main.Router.makeReadCall(
           $argListSymbol,
           $default,
           $argSig
@@ -395,8 +402,8 @@ class Router [C <: Context](val c: C) {
     }.unzip
 
 
-    q"""
-    ammonite.main.Router.EntryPoint[$curCls](
+    val res = q"""
+    mill.main.Router.EntryPoint[$curCls](
       ${meth.name.toString},
       scala.Seq(..$argSigs),
       ${methodDoc match{
@@ -405,16 +412,17 @@ class Router [C <: Context](val c: C) {
     }},
       ${varargs.contains(true)},
       ($baseArgSym: $curCls, $argListSymbol: Map[String, String], $extrasSymbol: Seq[String]) =>
-        ammonite.main.Router.validate(Seq(..$readArgs)) match{
-          case ammonite.main.Router.Result.Success(List(..$argNames)) =>
-            ammonite.main.Router.Result.Success(
+        mill.main.Router.validate(Seq(..$readArgs)) match{
+          case mill.main.Router.Result.Success(List(..$argNames)) =>
+            mill.main.Router.Result.Success(
               $baseArgSym.${meth.name.toTermName}(..$argNameCasts)
             )
-          case x: ammonite.main.Router.Result.Error => x
+          case x: mill.main.Router.Result.Error => x
         },
       ammonite.main.Router.Overrides()
     )
     """
+    res
   }
 
   def hasMainAnnotation(t: MethodSymbol) = {

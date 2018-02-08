@@ -155,16 +155,14 @@ object RunScript{
             // module we still want you to be able to resolve targets from your
             // main build. Resolving targets from external builds as CLI arguments
             // is not currently supported
-            mill.define.TargetScopt.currentRootModule.set(evaluator.rootModule)
-            mill.eval.Evaluator.dynamicScopt.set(evaluator)
+            mill.main.MagicScopt.currentEvaluator.set(evaluator)
             mill.main.Resolve.resolve(
               sel.value.toList, rootModule,
               discover,
               args, crossSelectors.toList, Nil
             )
           } finally{
-            mill.eval.Evaluator.dynamicScopt.set(null)
-            mill.define.TargetScopt.currentRootModule.set(null)
+            mill.main.MagicScopt.currentEvaluator.set(null)
           }
         }
         EitherOps.sequence(selected)

@@ -9,7 +9,7 @@ git clean -xdf
 sbt core/test scalalib/test scalajslib/test integration/test bin/test:assembly
 
 # Run tests using Mill built using SBT
-target/bin/mill --all {core,scalalib,scalajslib,integration}.test devAssembly
+target/bin/mill all {core,scalalib,scalajslib,integration}.test devAssembly
 
 # Second build & run tests using Mill
-out/devAssembly/dest/out.jar --all {core,scalalib,scalajslib,integration}.test devAssembly
+out/devAssembly/dest/out.jar all {core,scalalib,scalajslib,integration}.test devAssembly

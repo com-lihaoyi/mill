@@ -2,7 +2,7 @@ package mill.eval
 
 import java.net.URLClassLoader
 
-import ammonite.main.Router.EntryPoint
+import mill.main.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
@@ -58,13 +58,9 @@ class Evaluator[T](val outPath: Path,
                   }
               }
             }
-            pprint.log(discover.value.keySet)
-            pprint.log(c.cls)
 
             findMatching(c.cls) match{
               case Some(v) =>
-                pprint.log(v)
-                pprint.log(c.ctx.segment.pathSegments)
                 v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
               // For now we don't properly support overrides for external modules
               // that do not appear in the Evaluator's main Discovered listing
@@ -334,12 +330,6 @@ class Evaluator[T](val outPath: Path,
 
 
 object Evaluator{
-  class Scopt extends scopt.Read[Evaluator[_]] {
-    def arity = 0
-    def reads = _ => dynamicScopt.get
-  }
-  val dynamicScopt = new ThreadLocal[Evaluator[_]]
-  implicit def evaluatorScopt = new Scopt
   case class Paths(out: Path,
                    dest: Path,
                    meta: Path,

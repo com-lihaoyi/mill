@@ -6,7 +6,6 @@ import mill.T
 import mill.define.Discover
 import mill.util.TestEvaluator.implicitDisover
 import utest._
-import mill.define.TargetScopt.millScoptTargetReads
 
 object ModuleTests extends TestSuite{
   object ExternalModule extends mill.define.ExternalModule {

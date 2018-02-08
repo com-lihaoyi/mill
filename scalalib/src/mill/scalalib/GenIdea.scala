@@ -12,15 +12,23 @@ import mill.util.Strict.Agg
 
 
 object GenIdeaModule extends ExternalModule {
-  def idea() = T.command{ mill.scalalib.GenIdea() }
+
+  def idea(ev: Evaluator[Any]) = T.command{
+    mill.scalalib.GenIdea(
+      implicitly,
+      ev.rootModule,
+      ev.discover
+    )
+  }
+
+  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   def millDiscover = Discover[this.type]
 }
 object GenIdea {
 
-  def apply()(implicit ctx: Log,
-              rootModule0: BaseModule.Implicit,
-              discover: Discover[_]): Unit = {
-    val rootModule = rootModule0.value
+  def apply(ctx: Log,
+            rootModule: BaseModule,
+            discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
     rm! pwd/".idea"
     rm! pwd/".idea_modules"

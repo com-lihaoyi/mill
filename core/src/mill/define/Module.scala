@@ -2,7 +2,7 @@ package mill.define
 
 import java.lang.reflect.Modifier
 
-import ammonite.main.Router.{EntryPoint, Overrides}
+import mill.main.Router.{EntryPoint, Overrides}
 import ammonite.ops.Path
 
 import scala.language.experimental.macros

@@ -1,6 +1,6 @@
 package mill.define
 
-import ammonite.main.Router.Overrides
+import mill.main.Router.Overrides
 import ammonite.ops.{Path, RelPath}
 
 import scala.annotation.implicitNotFound
@@ -67,7 +67,7 @@ object Ctx{
                     millName0: sourcecode.Name,
                     millModuleBasePath0: BasePath,
                     segments0: Segments,
-                    overrides0: Overrides,
+                    overrides0: mill.main.Router.Overrides,
                     external0: External): Ctx = {
     Ctx(
       millModuleEnclosing0.value,

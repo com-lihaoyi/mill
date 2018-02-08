@@ -2,9 +2,8 @@ package mill.main
 
 import mill.define._
 import mill.define.TaskModule
-import ammonite.main.Router
-import ammonite.main.Router.EntryPoint
-import ammonite.util.Res
+import mill.main.Router.EntryPoint
+import ammonite.util.{Res}
 
 object Resolve {
   def resolve[T, V](remainingSelector: List[Segment],
@@ -12,7 +11,7 @@ object Resolve {
                     discover: Discover[_],
                     rest: Seq[String],
                     remainingCrossSelectors: List[List[String]],
-                    revSelectorsSoFar: List[Segment]): Either[String, Seq[Task[Any]]] = {
+                    revSelectorsSoFar: List[Segment]): Either[String, Seq[NamedTask[Any]]] = {
 
     remainingSelector match{
       case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
@@ -24,17 +23,25 @@ object Resolve {
             .find(_.label == last)
             .map(Right(_))
 
+        def shimArgsig[T](a: mill.main.Router.ArgSig[T, _]) = {
+          ammonite.main.Router.ArgSig[T](
+            a.name,
+            a.typeString,
+            a.doc,
+            a.default
+          )
+        }
         def invokeCommand(target: mill.Module, name: String) = for{
           (cls, entryPoints) <- discover.value
           if cls.isAssignableFrom(target.getClass)
           ep <- entryPoints
           if ep._2.name == name
-        } yield ammonite.main.Scripts.runMainMethod(
+        } yield mill.main.Scripts.runMainMethod(
           target,
           ep._2.asInstanceOf[EntryPoint[mill.Module]],
           ammonite.main.Scripts.groupArgs(rest.toList)
         ) match{
-          case Res.Success(v) => Right(v)
+          case Res.Success(v: Command[_]) => Right(v)
           case Res.Failure(msg) => Left(msg)
           case Res.Exception(ex, msg) =>
             val sw = new java.io.StringWriter()
@@ -61,7 +68,7 @@ object Resolve {
           )
           // Contents of `either` *must* be a `Task`, because we only select
           // methods returning `Task` in the discovery process
-          case Some(either) => either.right.map{ case x: Task[Any] => Seq(x) }
+          case Some(either) => either.right.map(Seq(_))
         }
 
 
