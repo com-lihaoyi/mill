@@ -2,8 +2,9 @@ package mill.main
 
 import mill.define._
 import mill.define.TaskModule
-import mill.main.Router.EntryPoint
-import ammonite.util.{Res}
+import ammonite.util.Res
+import mill.util.Router.EntryPoint
+import mill.util.Scripts
 
 object Resolve {
   def resolve[T, V](remainingSelector: List[Segment],
@@ -23,7 +24,7 @@ object Resolve {
             .find(_.label == last)
             .map(Right(_))
 
-        def shimArgsig[T](a: mill.main.Router.ArgSig[T, _]) = {
+        def shimArgsig[T](a: mill.util.Router.ArgSig[T, _]) = {
           ammonite.main.Router.ArgSig[T](
             a.name,
             a.typeString,
@@ -36,7 +37,7 @@ object Resolve {
           if cls.isAssignableFrom(target.getClass)
           ep <- entryPoints
           if ep._2.name == name
-        } yield mill.main.Scripts.runMainMethod(
+        } yield Scripts.runMainMethod(
           target,
           ep._2.asInstanceOf[EntryPoint[mill.Module]],
           ammonite.main.Scripts.groupArgs(rest.toList)

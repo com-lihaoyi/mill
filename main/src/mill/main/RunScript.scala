@@ -7,10 +7,10 @@ import ammonite.ops.{Path, read}
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
-import mill.{PathRef, define}
+import mill.define
 import mill.define.{Discover, ExternalModule, Segment, Task}
-import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, Logger}
+import mill.eval.{Evaluator, PathRef, Result}
+import mill.util.{EitherOps, Logger, ParseArgs, Watched}
 import mill.util.Strict.Agg
 import upickle.Js
 
@@ -155,23 +155,32 @@ object RunScript{
             // module we still want you to be able to resolve targets from your
             // main build. Resolving targets from external builds as CLI arguments
             // is not currently supported
-            mill.main.MagicScopt.currentEvaluator.set(evaluator)
+            mill.eval.Evaluator.currentEvaluator.set(evaluator)
             mill.main.Resolve.resolve(
               sel.value.toList, rootModule,
               discover,
               args, crossSelectors.toList, Nil
             )
           } finally{
-            mill.main.MagicScopt.currentEvaluator.set(null)
+            mill.eval.Evaluator.currentEvaluator.set(null)
           }
         }
         EitherOps.sequence(selected)
       }
-      (watched, res) = evaluate(
+    } yield {
+      val (watched, res) = evaluate(
         evaluator,
         Agg.from(targets.flatten.distinct)
       )
-    } yield (watched, res)
+
+      val watched2 = for{
+        x <- res.right.toSeq
+        (Watched(_, extraWatched), _) <- x
+        w <- extraWatched
+      } yield w
+
+      (watched ++ watched2, res)
+    }
   }
 
   def evaluate(evaluator: Evaluator[_],

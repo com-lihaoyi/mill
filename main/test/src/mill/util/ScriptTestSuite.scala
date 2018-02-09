@@ -3,7 +3,7 @@ package mill.util
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 import ammonite.ops._
-import mill.main.ParseArgs
+import mill.util.ParseArgs
 import utest._
 
 abstract class ScriptTestSuite extends TestSuite{

@@ -1,12 +1,12 @@
-package mill.main
-
+package mill.util
 
 import ammonite.main.Compat
+import language.experimental.macros
 
 import scala.annotation.StaticAnnotation
 import scala.collection.mutable
-import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
+
 /**
   * More or less a minimal version of Autowire's Server that lets you generate
   * a set of "routes" from the methods defined in an object, and call them
@@ -24,7 +24,7 @@ object Router{
     implicit def generate: Overrides = macro impl
     def impl(c: Context): c.Tree = {
       import c.universe._
-      q"new _root_.mill.main.Router.Overrides(${c.internal.enclosingOwner.overrides.length})"
+      q"new _root_.mill.util.Router.Overrides(${c.internal.enclosingOwner.overrides.length})"
     }
   }
 
@@ -262,14 +262,15 @@ object Router{
   }
 
   def makeReadCall(dict: Map[String, String],
-                  default: => Option[Any],
-                  arg: ArgSig[_, _]) = {
+                   default: => Option[Any],
+                   arg: ArgSig[_, _]) = {
     read(dict, default, arg, arg.reads.reads(_))
   }
   def makeReadVarargsCall(arg: ArgSig[_, _], values: Seq[String]) = {
     readVarargs(arg, values, arg.reads.reads(_))
   }
 }
+
 
 class Router [C <: Context](val c: C) {
   import c.universe._
@@ -365,7 +366,7 @@ class Router [C <: Context](val c: C) {
       }
 
       val argSig = q"""
-        mill.main.Router.ArgSig[$curCls, $docUnwrappedType](
+        mill.util.Router.ArgSig[$curCls, $docUnwrappedType](
           ${arg.name.toString},
           ${docUnwrappedType.toString + (if(vararg) "*" else "")},
           $docTree,
@@ -375,12 +376,12 @@ class Router [C <: Context](val c: C) {
 
       val reader =
         if(vararg) q"""
-          mill.main.Router.makeReadVarargsCall(
+          mill.util.Router.makeReadVarargsCall(
             $argSig,
             $extrasSymbol
           )
         """ else q"""
-        mill.main.Router.makeReadCall(
+        mill.util.Router.makeReadCall(
           $argListSymbol,
           $default,
           $argSig
@@ -403,7 +404,7 @@ class Router [C <: Context](val c: C) {
 
 
     val res = q"""
-    mill.main.Router.EntryPoint[$curCls](
+    mill.util.Router.EntryPoint[$curCls](
       ${meth.name.toString},
       scala.Seq(..$argSigs),
       ${methodDoc match{
@@ -412,12 +413,12 @@ class Router [C <: Context](val c: C) {
     }},
       ${varargs.contains(true)},
       ($baseArgSym: $curCls, $argListSymbol: Map[String, String], $extrasSymbol: Seq[String]) =>
-        mill.main.Router.validate(Seq(..$readArgs)) match{
-          case mill.main.Router.Result.Success(List(..$argNames)) =>
-            mill.main.Router.Result.Success(
+        mill.util.Router.validate(Seq(..$readArgs)) match{
+          case mill.util.Router.Result.Success(List(..$argNames)) =>
+            mill.util.Router.Result.Success(
               $baseArgSym.${meth.name.toTermName}(..$argNameCasts)
             )
-          case x: mill.main.Router.Result.Error => x
+          case x: mill.util.Router.Result.Error => x
         },
       ammonite.main.Router.Overrides()
     )
@@ -439,4 +440,3 @@ class Router [C <: Context](val c: C) {
     }
   }
 }
-

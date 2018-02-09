@@ -21,7 +21,7 @@ object JavaCompileJarTests extends TestSuite{
 
   val tests = Tests{
     'javac {
-      val javacSrcPath = pwd / 'core / 'test / 'resources / 'examples / 'javac
+      val javacSrcPath = pwd / 'main / 'test / 'resources / 'examples / 'javac
       val javacDestPath =  TestUtil.getOutPath() / 'src
 
       mkdir(javacDestPath / up)

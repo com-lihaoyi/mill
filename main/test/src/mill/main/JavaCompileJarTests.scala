@@ -6,7 +6,7 @@ import utest._
 
 object JavaCompileJarTests extends ScriptTestSuite {
   def workspaceSlug = "java-compile-jar"
-  def scriptSourcePath = pwd / 'core / 'test / 'resources / 'examples / 'javac
+  def scriptSourcePath = pwd / 'main / 'test / 'resources / 'examples / 'javac
   val tests = Tests{
     initWorkspace()
     'test - {

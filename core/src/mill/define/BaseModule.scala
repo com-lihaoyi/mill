@@ -1,8 +1,6 @@
 package mill.define
 
-import mill.main.Router.Overrides
 import ammonite.ops.Path
-import mill.main.ParseArgs
 
 object BaseModule{
   case class Implicit(value: BaseModule)
@@ -11,7 +9,8 @@ object BaseModule{
 abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
                          (implicit millModuleEnclosing0: sourcecode.Enclosing,
                           millModuleLine0: sourcecode.Line,
-                          millName0: sourcecode.Name)
+                          millName0: sourcecode.Name,
+                          millFile0: sourcecode.File)
   extends Module()(
     mill.define.Ctx.make(
       implicitly,
@@ -19,8 +18,9 @@ abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
       implicitly,
       BasePath(millSourcePath0),
       Segments(),
-      Overrides(0),
-      Ctx.External(external0)
+      mill.util.Router.Overrides(0),
+      Ctx.External(external0),
+      millFile0
     )
   ){
   // A BaseModule should provide an empty Segments list to it's children, since

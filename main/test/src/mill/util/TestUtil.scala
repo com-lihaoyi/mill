@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.main.Router.Overrides
+import mill.util.Router.Overrides
 import ammonite.ops.pwd
 import mill.define._
 import mill.eval.Result

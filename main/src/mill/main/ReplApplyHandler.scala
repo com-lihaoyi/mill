@@ -30,6 +30,60 @@ object ReplApplyHandler{
       )
     )
   }
+  def pprintCross(c: mill.define.Cross[_], evaluator: Evaluator[_]) = {
+    pprint.Tree.Lazy( ctx =>
+      Iterator(c.millOuterCtx.enclosing , ":", c.millOuterCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
+        c.items.iterator.map(x =>
+          "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
+        )
+    )
+  }
+  def pprintModule(m: mill.define.Module, evaluator: Evaluator[_]) = {
+    pprint.Tree.Lazy( ctx =>
+      Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
+        (if (m.millInternal.reflect[mill.Module].isEmpty) Nil
+        else
+          ctx.applyPrefixColor("\nChildren:").toString +:
+            m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
+        (evaluator.discover.value.get(m.getClass) match{
+          case None => Nil
+          case Some(commands) =>
+            ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
+              "\n    ." + c._2.name + "(" +
+                c._2.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
+                ")()"
+            }
+        }) ++
+        (if (m.millInternal.reflect[Target[_]].isEmpty) Nil
+        else {
+          Seq(ctx.applyPrefixColor("\nTargets:").toString) ++
+            m.millInternal.reflect[Target[_]].sortBy(_.label).map(t =>
+              "\n    ." + t.label + "()"
+            )
+        })
+
+    )
+  }
+  def pprintTask(t: NamedTask[_], evaluator: Evaluator[_]) = {
+    val seen = mutable.Set.empty[Task[_]]
+    def rec(t: Task[_]): Seq[Segments] = {
+      if (seen(t)) Nil // do nothing
+      else t match {
+        case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
+          Seq(t.ctx.segments)
+        case _ =>
+          seen.add(t)
+          t.inputs.flatMap(rec)
+      }
+    }
+    pprint.Tree.Lazy(ctx =>
+      Iterator(
+        t.toString, "(", t.ctx.fileName, ":", t.ctx.lineNum.toString, ")",
+        t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString
+      ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
+    )
+  }
+
 }
 class ReplApplyHandler(pprinter0: pprint.PPrinter,
                        evaluator: Evaluator[_]) extends ApplyHandler[Task] {
@@ -70,53 +124,11 @@ class ReplApplyHandler(pprinter0: pprint.PPrinter,
 
   val millHandlers: PartialFunction[Any, pprint.Tree] = {
     case c: Cross[_] =>
-      pprint.Tree.Lazy( ctx =>
-        Iterator(c.millOuterCtx.enclosing , ":", c.millOuterCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
-        c.items.iterator.map(x =>
-          "\n    (" + x._1.map(pprint.PPrinter.BlackWhite.apply(_)).mkString(", ") + ")"
-        )
-      )
+      ReplApplyHandler.pprintCross(c, evaluator)
     case m: mill.Module if evaluator.rootModule.millInternal.modules.contains(m) =>
-      pprint.Tree.Lazy( ctx =>
-        Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
-        (if (m.millInternal.reflect[mill.Module].isEmpty) Nil
-        else
-          ctx.applyPrefixColor("\nChildren:").toString +:
-            m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
-          (evaluator.discover.value.get(m.getClass) match{
-          case None => Nil
-          case Some(commands) =>
-            ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
-              "\n    ." + c._2.name + "(" +
-              c._2.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
-                ")()"
-            }
-        }) ++
-        (if (m.millInternal.reflect[Target[_]].isEmpty) Nil
-        else {
-          Seq(ctx.applyPrefixColor("\nTargets:").toString) ++
-          m.millInternal.reflect[Target[_]].sortBy(_.label).map(t =>
-            "\n    ." + t.label + "()"
-          )
-        })
-
-      )
+      ReplApplyHandler.pprintModule(m, evaluator)
     case t: mill.define.Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
-      val seen = mutable.Set.empty[Task[_]]
-      def rec(t: Task[_]): Seq[Segments] = {
-        if (seen(t)) Nil // do nothing
-        else t match {
-          case t: Target[_] if evaluator.rootModule.millInternal.targets.contains(t) =>
-            Seq(t.ctx.segments)
-          case _ =>
-            seen.add(t)
-            t.inputs.flatMap(rec)
-        }
-      }
-      pprint.Tree.Lazy(ctx =>
-        Iterator(t.ctx.enclosing, ":", t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString) ++
-        t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
-      )
+      ReplApplyHandler.pprintTask(t, evaluator)
 
   }
   val pprinter = pprinter0.copy(

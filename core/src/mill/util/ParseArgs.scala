@@ -1,6 +1,5 @@
-package mill.main
+package mill.util
 
-import mill.util.EitherOps
 import fastparse.all._
 import mill.define.{Segment, Segments}
 

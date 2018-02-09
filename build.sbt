@@ -73,14 +73,24 @@ lazy val core = project
     libraryDependencies ++= Seq(
       "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided",
       "com.lihaoyi" %% "sourcecode" % "0.1.4",
-      "com.lihaoyi" %% "pprint" % "0.5.3",
       "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full
     ),
     sourceGenerators in Compile += {
       ammoniteRun(sourceManaged in Compile, List("shared.sc", "generateCoreSources", _))
         .taskValue
         .map(x => (x ** "*.scala").get)
-    },
+    }
+  )
+
+lazy val main = project
+  .dependsOn(core)
+  .settings(
+    sharedSettings,
+    pluginSettings,
+    name := "mill-main",
+    libraryDependencies ++= Seq(
+      "org.scala-lang" % "scala-reflect" % scalaVersion.value % "provided"
+    ),
 
     sourceGenerators in Test += {
       ammoniteRun(sourceManaged in Test, List("shared.sc", "generateCoreTestSources", _))
@@ -105,7 +115,7 @@ lazy val scalaWorkerProps = Def.task{
 }
 
 lazy val scalalib = project
-  .dependsOn(core % "compile->compile;test->test")
+  .dependsOn(main % "compile->compile;test->test")
   .settings(
     sharedSettings,
     pluginSettings,
@@ -118,7 +128,7 @@ lazy val scalalib = project
   )
 
 lazy val scalaworker: Project = project
-  .dependsOn(core, scalalib)
+  .dependsOn(main, scalalib)
   .settings(
     sharedSettings,
     pluginSettings,
@@ -140,6 +150,7 @@ def genTask(m: Project) = Def.task{
     (
       genTask(moduledefs).value ++
       genTask(core).value ++
+      genTask(main).value ++
       genTask(scalalib).value ++
       genTask(scalajslib).value
     ).mkString(",")
@@ -220,7 +231,7 @@ val testRepos = Map(
 )
 
 lazy val integration = project
-  .dependsOn(core % "compile->compile;test->test", scalalib, scalajslib)
+  .dependsOn(main % "compile->compile;test->test", scalalib, scalajslib)
   .settings(
     sharedSettings,
     name := "integration",

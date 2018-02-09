@@ -1,4 +1,4 @@
-package mill.main
+package mill.util
 
 import mill.define.Segment
 import mill.define.Segment.{Cross, Label}

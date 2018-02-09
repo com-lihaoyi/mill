@@ -2,7 +2,7 @@ package mill.eval
 
 import java.net.URLClassLoader
 
-import mill.main.Router.EntryPoint
+import mill.util.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
@@ -330,6 +330,12 @@ class Evaluator[T](val outPath: Path,
 
 
 object Evaluator{
+  // This needs to be a ThreadLocal because we need to pass it into the body of
+  // the TargetScopt#read call, which does not accept additional parameters.
+  // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
+  // in directly) we are forced to pass it in via a ThreadLocal
+  val currentEvaluator = new ThreadLocal[mill.eval.Evaluator[_]]
+
   case class Paths(out: Path,
                    dest: Path,
                    meta: Path,

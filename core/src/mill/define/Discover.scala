@@ -1,6 +1,7 @@
 package mill.define
+import mill.util.Router.EntryPoint
+
 import language.experimental.macros
-import mill.main.Router.{EntryPoint, Overrides}
 import sourcecode.Compat.Context
 
 import scala.collection.mutable
@@ -41,7 +42,7 @@ object Discover {
     }
     rec(weakTypeOf[T])
 
-    val router = new mill.main.Router(c)
+    val router = new mill.util.Router(c)
     val mapping = for{
       discoveredModuleType <- seen
       val curCls = discoveredModuleType.asInstanceOf[router.c.Type]
@@ -57,7 +58,7 @@ object Discover {
       val (overrides, routes) = overridesRoutes.unzip
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
       val clsType = discoveredModuleType.typeSymbol.asClass
-      val rhs = q"scala.Seq[(Int, mill.main.Router.EntryPoint[_])](..$overridesRoutes)"
+      val rhs = q"scala.Seq[(Int, mill.util.Router.EntryPoint[_])](..$overridesRoutes)"
       q"$lhs -> $rhs"
     }
 

@@ -2,12 +2,10 @@ package mill.define
 
 import java.lang.reflect.Modifier
 
-import mill.main.Router.{EntryPoint, Overrides}
 import ammonite.ops.Path
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag
-import scala.reflect.macros.blackbox
 /**
   * `Module` is a class meant to be extended by `trait`s *only*, in order to
   * propagate the implicit parameters forward to the final concrete

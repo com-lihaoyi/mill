@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.main.Router.Overrides
+
 import ammonite.ops.{Path, RelPath}
 
 import scala.annotation.implicitNotFound
@@ -57,7 +57,8 @@ case class Ctx(enclosing: String,
                millSourcePath: Path,
                segments: Segments,
                overrides: Int,
-               external: Boolean){
+               external: Boolean,
+               fileName: String){
 }
 
 object Ctx{
@@ -67,8 +68,9 @@ object Ctx{
                     millName0: sourcecode.Name,
                     millModuleBasePath0: BasePath,
                     segments0: Segments,
-                    overrides0: mill.main.Router.Overrides,
-                    external0: External): Ctx = {
+                    overrides0: mill.util.Router.Overrides,
+                    external0: External,
+                    fileName: sourcecode.File): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,
@@ -76,7 +78,8 @@ object Ctx{
       millModuleBasePath0.value,
       segments0,
       overrides0.value,
-      external0.value
+      external0.value,
+      fileName.value
     )
   }
 }

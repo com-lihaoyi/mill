@@ -1,14 +1,14 @@
-package mill.main
+package mill.util
+
 import java.nio.file.NoSuchFileException
 
-
-import mill.main.Router.{ArgSig, EntryPoint}
 import ammonite.ops._
 import ammonite.runtime.Evaluator.AmmoniteExit
 import ammonite.util.Name.backtickWrap
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import fastparse.utils.Utils._
+import mill.util.Router.{ArgSig, EntryPoint}
 
 /**
   * Logic around using Ammonite as a script-runner; invoking scripts via the

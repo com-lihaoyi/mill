@@ -8,6 +8,7 @@ import ammonite.util._
 import mill.define.Discover
 import mill.eval.{Evaluator, PathRef}
 import mill.util.PrintLogger
+import mill.main.RunScript
 import upickle.Js
 
 /**

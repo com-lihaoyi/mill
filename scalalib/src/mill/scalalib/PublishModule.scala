@@ -85,13 +85,14 @@ trait PublishModule extends ScalaModule { outer =>
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo)
   }
 }
+
 object PublishModule extends ExternalModule{
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
                  publishArtifacts: mill.main.MagicScopt.Tasks[(mill.scalalib.publish.Artifact, Seq[(PathRef, String)])],
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command{
-    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.items)().map{
+    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
       case (a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
     new SonatypePublisher(
@@ -104,7 +105,8 @@ object PublishModule extends ExternalModule{
       x:_*
     )
   }
-  implicit def millScoptTargetReads[T] = new mill.main.MagicScopt[T]()
+
+  implicit def millScoptTargetReads[T] = new mill.main.TargetScopt[T]()
 
   def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

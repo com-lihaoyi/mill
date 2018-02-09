@@ -52,8 +52,8 @@ trait MillModule extends MillPublishModule{ outer =>
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
     def forkArgs = T{ testArgs() }
     def moduleDeps =
-      if (this == core.test) Seq(core)
-      else Seq(outer, core.test)
+      if (this == main.test) Seq(main)
+      else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFramework = "mill.UTestFramework"
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
@@ -69,8 +69,19 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi::pprint:0.5.3",
     ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32"
+  )
+
+  def generatedSources = T.sources {
+    shared.generateCoreSources(T.ctx().dest)
+  }
+}
+
+object main extends MillModule {
+  def moduleDeps = Seq(core)
+
+  def compileIvyDeps = Agg(
+    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 
   def generatedSources = T.sources {
@@ -87,7 +98,7 @@ object core extends MillModule {
 
 
 object scalaworker extends MillModule{
-  def moduleDeps = Seq(core, scalalib)
+  def moduleDeps = Seq(main, scalalib)
 
   def ivyDeps = Agg(
     ivy"org.scala-sbt::zinc:1.0.5"
@@ -99,7 +110,7 @@ object scalaworker extends MillModule{
 
 
 object scalalib extends MillModule {
-  def moduleDeps = Seq(core)
+  def moduleDeps = Seq(main)
 
   def ivyDeps = Agg(
     ivy"org.scala-sbt:test-interface:1.0"
@@ -115,6 +126,7 @@ object scalalib extends MillModule {
     val genIdeaArgs =
       genTask(moduledefs)() ++
       genTask(core)() ++
+      genTask(main)() ++
       genTask(scalalib)() ++
       genTask(scalajslib)()
 
