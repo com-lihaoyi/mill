@@ -12,6 +12,8 @@ let you define your project's build. Mill's `build.sc` files are Scala scripts.
 
 
 - [Introduction](intro.html)
+- [Configuring Mill](configure.html)
+- [Example Project Layouts](example.html)
 - [Extending](extending.html)
 - [Tasks](tasks.html)
 - [Modules](modules.html)
