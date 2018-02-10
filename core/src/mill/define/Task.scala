@@ -3,23 +3,13 @@ package mill.define
 import ammonite.main.Router.Overrides
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
+import mill.util.EnclosingClass
 import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
 
-case class EnclosingClass(value: Class[_])
-object EnclosingClass{
-  def apply()(implicit c: EnclosingClass) = c.value
-  implicit def generate: EnclosingClass = macro impl
-  def impl(c: Context): c.Tree = {
-    import c.universe._
-    val cls = c.internal.enclosingOwner.owner.asType.asClass
-//    q"new _root_.mill.define.EnclosingClass(classOf[$cls])"
-    q"new _root_.mill.define.EnclosingClass(this.getClass)"
-  }
-}
 
 /**
   * Models a single node in the Mill build graph, with a list of inputs and a

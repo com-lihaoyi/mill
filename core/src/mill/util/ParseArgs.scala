@@ -5,47 +5,35 @@ import mill.define.{Segment, Segments}
 
 object ParseArgs {
 
-  def apply(scriptArgs: Seq[String])
-    : Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
-    val (selectors, args, isMultiSelectors) = extractSelsAndArgs(scriptArgs)
+  def apply(scriptArgs: Seq[String],
+            multiSelect: Boolean): Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
+    val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
       expandedSelectors <- EitherOps
         .sequence(selectors.map(expandBraces))
         .map(_.flatten)
-      _ <- validateExpanded(expandedSelectors, isMultiSelectors)
       selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
     } yield (selectors.toList, args)
   }
 
-  def extractSelsAndArgs(
-      scriptArgs: Seq[String]): (Seq[String], Seq[String], Boolean) = {
-    val multiFlags = Seq("--all", "--seq")
-    val isMultiSelectors = scriptArgs.headOption.exists(multiFlags.contains)
+  def extractSelsAndArgs(scriptArgs: Seq[String],
+                         multiSelect: Boolean): (Seq[String], Seq[String]) = {
 
-    if (isMultiSelectors) {
+    if (multiSelect) {
       val dd = scriptArgs.indexOf("--")
-      val selectors = (if (dd == -1) scriptArgs
-                       else scriptArgs.take(dd)).filterNot(multiFlags.contains)
+      val selectors = if (dd == -1) scriptArgs else scriptArgs.take(dd)
       val args = if (dd == -1) Seq.empty else scriptArgs.drop(dd + 1)
 
-      (selectors, args, isMultiSelectors)
+      (selectors, args)
     } else {
-      (scriptArgs.take(1), scriptArgs.drop(1), isMultiSelectors)
+      (scriptArgs.take(1), scriptArgs.drop(1))
     }
   }
 
-  private def validateSelectors(
-      selectors: Seq[String]): Either[String, Unit] = {
+  private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Selector cannot be empty")
-    else Right(())
-  }
-
-  private def validateExpanded(expanded: Seq[String],
-                               isMulti: Boolean): Either[String, Unit] = {
-    if (!isMulti && expanded.length > 1)
-      Left("Please use --all flag to run multiple tasks")
     else Right(())
   }
 
@@ -139,5 +127,4 @@ object ParseArgs {
     }
     query.parse(input)
   }
-
 }

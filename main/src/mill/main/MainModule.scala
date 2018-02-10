@@ -6,56 +6,70 @@ import pprint.{Renderer, Truncated}
 trait MainModule extends mill.Module{
 
   implicit def millDiscover: mill.define.Discover[_]
-  implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
-  def resolve(targets: mill.main.Tasks[Any]*) = mill.T.command{
-    targets.flatMap(_.value).foreach(println)
-  }
-  def describe(evaluator: mill.eval.Evaluator[Any],
-               targets: mill.main.Tasks[Any]*) = mill.T.command{
-    for{
-      t <- targets
-      target <- t.value
-      tree = ReplApplyHandler.pprintTask(target, evaluator)
-      val defaults = pprint.PPrinter()
-      val renderer = new Renderer(
-        defaults.defaultWidth,
-        defaults.colorApplyPrefix,
-        defaults.colorLiteral,
-        defaults.defaultIndent
-      )
-      val rendered = renderer.rec(tree, 0, 0).iter
-      val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-      str <- truncated ++ Iterator("\n")
-    } {
-      print(str)
+  def resolve(evaluator: mill.eval.Evaluator[Any], targets: String*) = mill.T.command{
+    RunScript.resolveTargets(evaluator, targets, multiSelect = true) match{
+      case Left(err) => mill.eval.Result.Failure(err)
+      case Right(tasks) => mill.eval.Result.Success(tasks.foreach(println))
     }
   }
-  def all(evaluator: mill.eval.Evaluator[Any],
-          targets: mill.main.Tasks[Any]*) = mill.T.command{
-    val (watched, res) = RunScript.evaluate(
-      evaluator,
-      mill.util.Strict.Agg.from(targets.flatMap(_.value))
-    )
-    Watched((), watched)
+
+  def describe(evaluator: mill.eval.Evaluator[Any], targets: String*) = mill.T.command{
+    RunScript.resolveTargets(evaluator, targets, multiSelect = true) match{
+      case Left(err) => mill.eval.Result.Failure(err)
+      case Right(tasks) =>
+        for{
+          task <- tasks
+          tree = ReplApplyHandler.pprintTask(task, evaluator)
+          val defaults = pprint.PPrinter()
+          val renderer = new Renderer(
+            defaults.defaultWidth,
+            defaults.colorApplyPrefix,
+            defaults.colorLiteral,
+            defaults.defaultIndent
+          )
+          val rendered = renderer.rec(tree, 0, 0).iter
+          val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+          str <- truncated ++ Iterator("\n")
+        } {
+          print(str)
+        }
+        mill.eval.Result.Success(())
+    }
   }
+
+  def all(evaluator: mill.eval.Evaluator[Any],
+          targets: String*) = mill.T.command{
+    RunScript.evaluateTarget(evaluator, targets, multiSelect = true) match{
+      case Left(err) => mill.eval.Result.Failure(err)
+      case Right((watched, Left(err))) => mill.eval.Result.Failure(err, Some(Watched((), watched)))
+      case Right((watched, Right(res))) => mill.eval.Result.Success(Watched((), watched))
+    }
+  }
+
   def show(evaluator: mill.eval.Evaluator[Any],
-           targets: mill.main.Tasks[Any]*) = mill.T.command{
-    val (watched, res) = mill.main.RunScript.evaluate(
-      // When using `show`, redirect all stdout of the evaluated tasks so the
-      // printed JSON is the only thing printed to stdout.
+           targets: String*) = mill.T.command{
+    RunScript.evaluateTarget(
       evaluator.copy(
+        // When using `show`, redirect all stdout of the evaluated tasks so the
+        // printed JSON is the only thing printed to stdout.
         log = evaluator.log match{
           case PrintLogger(c1, c2, o, i, e) => PrintLogger(c1, c2, e, i, e)
           case l => l
         }
       ),
-      mill.util.Strict.Agg.from(targets.flatMap(_.value))
-    )
-    for(json <- res.right.get.flatMap(_._2)){
-      println(json)
+      targets,
+      multiSelect = false
+    ) match{
+      case Left(err) => mill.eval.Result.Failure(err)
+      case Right((watched, Left(err))) => mill.eval.Result.Failure(err, Some(Watched((), watched)))
+      case Right((watched, Right(res))) =>
+        for(json <- res.flatMap(_._2)){
+          println(json)
+        }
+        mill.eval.Result.Success(Watched((), watched))
     }
-    Watched((), watched)
   }
 }

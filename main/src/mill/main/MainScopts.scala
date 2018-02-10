@@ -1,43 +1,20 @@
 package mill.main
-import mill.define.ExternalModule
-import mill.eval.{Evaluator, PathRef}
-import mill.util.ParseArgs
+import mill.eval.{Evaluator}
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks{
 
-  class Scopt[T]()
-    extends scopt.Read[Tasks[T]] {
-    def arity = 0
+  class Scopt[T]() extends scopt.Read[Tasks[T]] {
+    def arity = 1
 
     def reads = s => {
-      val rootModule = Evaluator.currentEvaluator.get.rootModule
-      val d = rootModule.millDiscover
-      val (expanded, leftover) = ParseArgs(Seq(s)).fold(e => throw new Exception(e), identity)
-      val resolved = expanded.map {
-        case (Some(scoping), segments) =>
-          val moduleCls = rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
-          val externalRootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
-          val crossSelectors = segments.value.map {
-            case mill.define.Segment.Cross(x) => x.toList.map(_.toString)
-            case _ => Nil
-          }
-          mill.main.Resolve.resolve(segments.value.toList, externalRootModule, d, leftover, crossSelectors.toList, Nil)
-        case (None, segments) =>
-          val crossSelectors = segments.value.map {
-            case mill.define.Segment.Cross(x) => x.toList.map(_.toString)
-            case _ => Nil
-          }
-          mill.main.Resolve.resolve(segments.value.toList, rootModule, d, leftover, crossSelectors.toList, Nil)
-      }
-      mill.util.EitherOps.sequence(resolved) match {
-        case Left(s) => throw new Exception(s)
-        case Right(ts) => Tasks(ts.flatten).asInstanceOf[Tasks[T]]
+      RunScript.resolveTargets(Evaluator.currentEvaluator.get, Seq(s), multiSelect = false) match{
+        case Left(err) => throw new Exception(err)
+        case Right(tasks) => Tasks(tasks).asInstanceOf[Tasks[T]]
       }
     }
   }
-
 }
 
 class EvaluatorScopt[T]()
