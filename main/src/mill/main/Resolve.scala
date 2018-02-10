@@ -101,7 +101,7 @@ object Resolve extends Resolve[NamedTask[Any]]{
     val command = invokeCommand(obj, last).headOption
 
     command orElse target orElse runDefault.flatten.headOption match {
-      case None => Left("Cannot resolve task " +
+      case None => Left("Cannot resolve " +
         Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render
       )
       // Contents of `either` *must* be a `Task`, because we only select
@@ -130,19 +130,24 @@ abstract class Resolve[R: ClassTag] {
       case Segment.Label(last) :: Nil =>
         endResolve(obj, revSelectorsSoFar, last, discover, rest)
 
-
       case head :: tail =>
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
+
         def resolveFailureMsg = Left(
-          "Cannot resolve module " + Segments(newRevSelectorsSoFar.reverse:_*).render
+          "Cannot resolve " + Segments(newRevSelectorsSoFar.reverse:_*).render
         )
         def recurse(searchModules: Seq[Module]) = {
           val matching = searchModules
             .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
-            .collect{case Right(vs) => vs}.flatten
 
-          if (matching.nonEmpty)Right(matching)
-          else resolveFailureMsg
+          matching match{
+            case Seq(Left(err)) => Left(err)
+            case items =>
+              items.collect{case Right(v) => v} match{
+                case Nil => resolveFailureMsg
+                case values => Right(values.flatten)
+              }
+          }
         }
         head match{
           case Segment.Label(singleLabel) =>

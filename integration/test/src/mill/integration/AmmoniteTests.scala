@@ -19,7 +19,7 @@ object AmmoniteTests extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonit
       )
 
       val compileResult = eval(
-        "--all", s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
+        "all", s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
       )
 
       assert(

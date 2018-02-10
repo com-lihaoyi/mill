@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.define.Segment
+import mill.define.{Segment, Segments}
 import mill.define.Segment.{Cross, Label}
 import utest._
 
@@ -43,20 +43,19 @@ object ParseArgsTest extends TestSuite {
         multiSelect = false
       )
       'multiSelectors - check(
-        input = Seq("--all", "core.jar", "core.docsJar", "core.sourcesJar"),
+        input = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
         expectedSelectors = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
       'multiSelectorsSeq - check(
-        input = Seq("--seq", "core.jar", "core.docsJar", "core.sourcesJar"),
+        input = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
         expectedSelectors = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
       'multiSelectorsWithArgs - check(
-        input = Seq("--all",
-                    "core.compile",
+        input = Seq("core.compile",
                     "application.runMain",
                     "--",
                     "Main",
@@ -67,8 +66,7 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       'multiSelectorsWithArgsWithAllInArgs - check(
-        input = Seq("--all",
-                    "core.compile",
+        input = Seq("core.compile",
                     "application.runMain",
                     "--",
                     "Main",
@@ -230,10 +228,15 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       'multiSelectorsBraceExpansionWithoutAll - {
-        assert(
-          ParseArgs(Seq("{core,application}.compile"), multiSelect = false) == Left(
-            "Please use --all flag to run multiple tasks")
+        val res = ParseArgs(Seq("{core,application}.compile"), multiSelect = false)
+        val expected = Right(
+          List(
+            None -> Segments(Label("core"), Label("compile")),
+            None -> Segments(Label("application"), Label("compile"))
+          ),
+          Nil
         )
+        assert(res == expected)
       }
       'multiSelectorsWithoutAllAsSingle - check(
         // this is how it works when we pass multiple tasks without --all flag

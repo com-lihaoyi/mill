@@ -3,7 +3,6 @@ package mill.util
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 import ammonite.ops._
-import mill.util.ParseArgs
 import utest._
 
 abstract class ScriptTestSuite extends TestSuite{
@@ -11,8 +10,8 @@ abstract class ScriptTestSuite extends TestSuite{
   def scriptSourcePath: Path
 
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
-  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
-//  val stdOutErr = new PrintStream(System.out)
+//  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+  val stdOutErr = new PrintStream(System.out)
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath),
