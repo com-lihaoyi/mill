@@ -239,7 +239,9 @@ def publishVersion = T.input{
   }
 }
 
-def uploadToGithub(assembly: Path, authKey: String, release: String, label: String) = {
+def uploadToGithub(authKey: String) = T.command{
+  val (release, label) = publishVersion()
+
   if (release != "unstable"){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
@@ -254,5 +256,5 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
       .asString
   }
 
-  upload.apply(assembly, release, label, authKey)
+  upload.apply(releaseAssembly().path, release, label, authKey)
 }

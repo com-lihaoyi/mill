@@ -46,6 +46,114 @@ The most common **tasks** that Mill can run are cached **targets**, such as
 re-evaluate unless one of their inputs changes, where-as commands re-run every
 time.
 
+
+### Multiple Modules
+
+```scala
+import mill._
+import mill.scalalib._
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+}
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+  def scalaVersion = "2.12.4"
+}
+```
+
+You can define multiple modules the same way you define a single module, using
+`def moduleDeps` to define the relationship between them. The above build
+expects the following project layout:
+
+```
+build.sc
+foo/
+    src/
+        Main.scala
+    resources/
+        ...
+bar/
+    src/
+        Main2.scala
+    resources/
+        ...
+out/
+    foo/
+        ... 
+    bar/
+        ... 
+```
+
+And can be built/run using:
+
+```bash
+$ mill foo.compile        
+$ mill bar.compile        
+
+$ mill foo.run            
+$ mill bar.run            
+
+$ mill foo.jar            
+$ mill bar.jar            
+
+$ mill foo.assembly        
+$ mill bar.assembly        
+```
+
+Mill's evaluator will ensure that the modules are compiled in the right order,
+and re-compiled as necessary when source code in each module changes.
+
+Modules can also be nested:
+
+```scala
+import mill._
+import mill.scalalib._
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  object bar extends ScalaModule {
+    def moduleDeps = Seq(foo)
+    def scalaVersion = "2.12.4"
+  }
+}
+```
+
+Which would result in a similarly nested project layout:
+
+```
+build.sc
+foo/
+    src/
+        Main.scala
+    resources/
+        ...
+    bar/
+        src/
+            Main2.scala
+        resources/
+            ...
+out/
+    foo/
+        ...
+        bar/
+            ...
+```
+
+Where the nested modules can be run via:
+
+```bash
+$ mill foo.compile        
+$ mill foo.bar.compile        
+
+$ mill foo.run            
+$ mill foo.bar.run            
+
+$ mill foo.jar            
+$ mill foo.bar.jar            
+
+$ mill foo.assembly        
+$ mill foo.bar.assembly        
+```
+
 ### Watch and Re-evaluate
 
 You can use the `--watch` flag to make Mill watch a task's inputs, re-evaluating
@@ -363,80 +471,6 @@ Each of which will expect their sources to be in their respective `foo/test` and
 `Tests` modules are `ScalaModule`s like any other, and all the same
 configuration options apply.
 
-### Multiple Modules
-
-```scala
-import mill._
-import mill.scalalib._
-object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
-}
-object bar extends ScalaModule {
-  def moduleDeps = Seq(foo)
-  def scalaVersion = "2.12.4"
-}
-```
-
-You can define multiple modules the same way you define a single module, using
-`def moduleDeps` to define the relationship between them. The above build
-expects the following project layout:
-
-```
-build.sc
-foo/
-    src/
-        Main.scala
-    resources/
-        ...
-bar/
-    src/
-        Main2.scala
-    resources/
-        ...
-out/
-    foo/
-        ... 
-    bar/
-        ... 
-```
-
-Mill's evaluator will ensure that the modules are compiled in the right order,
-and re-compiled as necessary when source code in each module changes.
-
-Modules can also be nested:
-
-```scala
-import mill._
-import mill.scalalib._
-object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  object bar extends ScalaModule {
-    def moduleDeps = Seq(foo)
-    def scalaVersion = "2.12.4"
-  }
-}
-```
-
-Which would result in a similarly nested project layout:
-
-```
-build.sc
-foo/
-    src/
-        Main.scala
-    resources/
-        ...
-    bar/
-        src/
-            Main2.scala
-        resources/
-            ...
-out/
-    foo/
-        ...
-        bar/
-            ...
-```
 
 ### Scala Compiler Plugins
 

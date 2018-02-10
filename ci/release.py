@@ -28,3 +28,9 @@ if is_master_commit:
         "--release",
         "true"
     ])
+
+    check_call([
+        "target/bin/mill",
+        "uploadToGithub",
+        os.environ["GITHUB_ACCESS_TOKEN"]
+    ])
