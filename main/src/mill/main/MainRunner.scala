@@ -100,9 +100,6 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  def $$main() = Iterator[String]()
          |
          |  implicit def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
-         |  // Need to wrap the returned Module in Some(...) to make sure it
-         |  // doesn't get picked up during reflective child-module discovery
-         |  val millSelf = Some(this)
          |}
          |
          |sealed trait $wrapName extends mill.main.MainModule{

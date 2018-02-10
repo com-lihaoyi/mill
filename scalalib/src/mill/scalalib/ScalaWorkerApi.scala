@@ -58,9 +58,9 @@ trait ScalaWorkerApi {
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
-  def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,
-            entireClasspath: Agg[Path],
-            testClassfilePath: Agg[Path],
-            args: Seq[String])
-           (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result])
+  def runTests(frameworkInstance: ClassLoader => sbt.testing.Framework,
+               entireClasspath: Agg[Path],
+               testClassfilePath: Agg[Path],
+               args: Seq[String])
+              (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result])
 }

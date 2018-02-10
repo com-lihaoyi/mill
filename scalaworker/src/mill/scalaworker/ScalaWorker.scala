@@ -36,7 +36,7 @@ object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{
-      val result = new ScalaWorker(null, null).apply(
+      val result = new ScalaWorker(null, null).runTests(
         frameworkInstance = TestRunner.framework(args(0)),
         entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
@@ -230,11 +230,11 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
   }
 
-  def apply(frameworkInstance: ClassLoader => sbt.testing.Framework,
-            entireClasspath: Agg[Path],
-            testClassfilePath: Agg[Path],
-            args: Seq[String])
-           (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
+  def runTests(frameworkInstance: ClassLoader => sbt.testing.Framework,
+               entireClasspath: Agg[Path],
+               testClassfilePath: Agg[Path],
+               args: Seq[String])
+              (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val framework = frameworkInstance(cl)

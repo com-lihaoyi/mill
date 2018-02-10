@@ -97,7 +97,7 @@ object PublishModule extends ExternalModule{
 
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
-                 publishArtifacts: mill.main.MagicScopt.Tasks[PublishModule.PublishData],
+                 publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
                  release: Boolean = false) = T.command{
@@ -116,7 +116,7 @@ object PublishModule extends ExternalModule{
     )
   }
 
-  implicit def millScoptTargetReads[T] = new mill.main.TargetScopt[T]()
+  implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
 
   def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

@@ -307,7 +307,7 @@ trait TestModule extends ScalaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    mill.scalalib.ScalaWorkerApi.scalaWorker().apply(
+    mill.scalalib.ScalaWorkerApi.scalaWorker().runTests(
       TestRunner.framework(testFramework()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),

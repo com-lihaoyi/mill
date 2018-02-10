@@ -6,16 +6,19 @@ import mill.util.Watched
 import pprint.{Renderer, Truncated}
 
 trait MainModule extends mill.Module{
+  // Need to wrap the returned Module in Some(...) to make sure it
+  // doesn't get picked up during reflective child-module discovery
+  val millSelf = Some(this)
 
   implicit def millDiscover: mill.define.Discover[_]
-  implicit def millScoptTargetReads[T] = new mill.main.TargetScopt[T]()
+  implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
-  mill.define.Ctx.make
-  def resolve(targets: mill.main.MagicScopt.Tasks[Any]*) = mill.T.command{
+
+  def resolve(targets: mill.main.Tasks[Any]*) = mill.T.command{
     targets.flatMap(_.value).foreach(println)
   }
   def describe(evaluator: mill.eval.Evaluator[Any],
-               targets: mill.main.MagicScopt.Tasks[Any]*) = mill.T.command{
+               targets: mill.main.Tasks[Any]*) = mill.T.command{
     for{
       t <- targets
       target <- t.value
@@ -35,7 +38,7 @@ trait MainModule extends mill.Module{
     }
   }
   def all(evaluator: mill.eval.Evaluator[Any],
-          targets: mill.main.MagicScopt.Tasks[Any]*) = mill.T.command{
+          targets: mill.main.Tasks[Any]*) = mill.T.command{
     val (watched, res) = RunScript.evaluate(
       evaluator,
       mill.util.Strict.Agg.from(targets.flatMap(_.value))
@@ -43,7 +46,7 @@ trait MainModule extends mill.Module{
     Watched((), watched)
   }
   def show(evaluator: mill.eval.Evaluator[Any],
-           targets: mill.main.MagicScopt.Tasks[Any]*) = mill.T.command{
+           targets: mill.main.Tasks[Any]*) = mill.T.command{
     val (watched, res) = mill.main.RunScript.evaluate(
       evaluator,
       mill.util.Strict.Agg.from(targets.flatMap(_.value))

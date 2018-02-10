@@ -196,7 +196,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
     val (doneMsg, results) = mill.scalalib.ScalaWorkerApi
       .scalaWorker()
-      .apply(
+      .runTests(
         _ => framework,
         runClasspath().map(_.path),
         Agg(compile().classes.path),
