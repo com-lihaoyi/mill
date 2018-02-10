@@ -25,4 +25,6 @@ if is_master_commit:
         "lihaoyi:" + os.environ["SONATYPE_PASSWORD"],
         os.environ["GPG_PASSWORD"],
         "__.publishArtifacts"
+        "--release",
+        "true"
     ])
