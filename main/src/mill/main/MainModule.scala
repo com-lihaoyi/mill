@@ -18,7 +18,9 @@ object MainModule{
     RunScript.evaluateTasks(evaluator, targets, multiSelect) match{
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
-      case Right((watched, Right(res))) => Result.Success(Watched((), watched))
+      case Right((watched, Right(res))) =>
+        f(res)
+        Result.Success(Watched((), watched))
     }
   }
 }
