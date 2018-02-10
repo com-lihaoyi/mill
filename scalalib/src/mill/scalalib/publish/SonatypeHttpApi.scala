@@ -21,7 +21,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
   private val base64Creds = base64(credentials)
 
   private val commonHeaders = Seq(
-    "Authorization" -> s"Basic ${base64Creds}",
+    "Authorization" -> s"Basic $base64Creds",
     "Accept" -> "application/json",
     "Content-Type" -> "application/json"
   )
@@ -29,7 +29,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
   def getStagingProfileUri(groupId: String): String = {
     val response = withRetry(
-      PatientHttp(s"${uri}/staging/profiles").headers(commonHeaders))
+      PatientHttp(s"$uri/staging/profiles").headers(commonHeaders))
 
     val resourceUri =
       json

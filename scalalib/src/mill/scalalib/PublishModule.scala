@@ -98,9 +98,10 @@ object PublishModule extends ExternalModule{
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+                 release: Boolean = false,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-                 release: Boolean = false) = T.command{
+                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command{
+
     val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
       case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
