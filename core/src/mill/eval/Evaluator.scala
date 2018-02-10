@@ -25,15 +25,14 @@ case class Labelled[T](task: NamedTask[T],
     case _ => None
   }
 }
-class Evaluator[T](val outPath: Path,
-                   val externalOutPath: Path,
-                   val rootModule: mill.define.BaseModule,
-                   val discover: Discover[T],
-                   log: Logger,
-                   val classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig){
+case class Evaluator[T](outPath: Path,
+                        externalOutPath: Path,
+                        rootModule: mill.define.BaseModule,
+                        discover: Discover[T],
+                        log: Logger,
+                        classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig,
+                        workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
 
-
-  val workerCache = mutable.Map.empty[Segments, (Int, Any)]
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(outPath)
 

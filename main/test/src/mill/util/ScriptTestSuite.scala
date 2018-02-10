@@ -15,7 +15,7 @@ abstract class ScriptTestSuite extends TestSuite{
 //  val stdOutErr = new PrintStream(System.out)
   val stdIn = new ByteArrayInputStream(Array())
   val runner = new mill.main.MainRunner(
-    ammonite.main.Cli.Config(wd = workspacePath), false,
+    ammonite.main.Cli.Config(wd = workspacePath),
     stdOutErr, stdOutErr, stdIn
   )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)

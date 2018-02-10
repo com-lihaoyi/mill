@@ -15,18 +15,8 @@ object Main {
 
     import ammonite.main.Cli
 
-    var show = false
-    val showCliArg = Cli.Arg[Cli.Config, Unit](
-      "show",
-      None,
-      "Display the json-formatted value of the given target, if any",
-      (x, _) => {
-        show = true
-        x
-      }
-    )
     val removed = Set("predef-code", "home", "no-home-predef")
-    val millArgSignature = (Cli.genericSignature :+ showCliArg).filter(a => !removed(a.name))
+    val millArgSignature = Cli.genericSignature.filter(a => !removed(a.name))
     Cli.groupArgs(
       args.toList,
       millArgSignature,
@@ -65,10 +55,7 @@ object Main {
             welcomeBanner = None
           )
 
-        val runner = new mill.main.MainRunner(
-          config, show,
-          System.out, System.err, System.in
-        )
+        val runner = new mill.main.MainRunner(config, System.out, System.err, System.in)
         if (repl){
           runner.printInfo("Loading...")
           runner.runRepl()

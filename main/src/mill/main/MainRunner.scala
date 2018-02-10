@@ -17,7 +17,6 @@ import upickle.Js
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
 class MainRunner(config: ammonite.main.Cli.Config,
-                 show: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream)
@@ -42,7 +41,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
           new PrintLogger(
             colors != ammonite.util.Colors.BlackWhite,
             colors,
-            if (show) errPrintStream else outprintStream,
+            outprintStream,
             errPrintStream,
             errPrintStream
           )
@@ -62,15 +61,7 @@ class MainRunner(config: ammonite.main.Cli.Config,
 
   override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
     res match{
-      case Res.Success(value) =>
-//        if (show){
-//          for(json <- value.asInstanceOf[Seq[Js.Value]]){
-//            outprintStream.println(json)
-//          }
-//        }
-
-        true
-
+      case Res.Success(value) => true
       case _ => super.handleWatchRes(res, printing)
     }
 
@@ -98,6 +89,10 @@ class MainRunner(config: ammonite.main.Cli.Config,
          |  // Stub to make sure Ammonite has something to call after it evaluates a script,
          |  // even if it does nothing...
          |  def $$main() = Iterator[String]()
+         |
+         |  // Need to wrap the returned Module in Some(...) to make sure it
+         |  // doesn't get picked up during reflective child-module discovery
+         |  def millSelf = Some(this)
          |
          |  implicit def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
          |}

@@ -1,14 +1,9 @@
 package mill.main
 
-import mill.util
-import mill.main.RunScript
-import mill.util.Watched
+import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 
 trait MainModule extends mill.Module{
-  // Need to wrap the returned Module in Some(...) to make sure it
-  // doesn't get picked up during reflective child-module discovery
-  val millSelf = Some(this)
 
   implicit def millDiscover: mill.define.Discover[_]
   implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
@@ -48,7 +43,14 @@ trait MainModule extends mill.Module{
   def show(evaluator: mill.eval.Evaluator[Any],
            targets: mill.main.Tasks[Any]*) = mill.T.command{
     val (watched, res) = mill.main.RunScript.evaluate(
-      evaluator,
+      // When using `show`, redirect all stdout of the evaluated tasks so the
+      // printed JSON is the only thing printed to stdout.
+      evaluator.copy(
+        log = evaluator.log match{
+          case PrintLogger(c1, c2, o, i, e) => PrintLogger(c1, c2, e, i, e)
+          case l => l
+        }
+      ),
       mill.util.Strict.Agg.from(targets.flatMap(_.value))
     )
     for(json <- res.right.get.flatMap(_._2)){
