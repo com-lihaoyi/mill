@@ -1,7 +1,27 @@
 package mill.main
 
+import mill.define.NamedTask
+import mill.eval.{Evaluator, Result}
 import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
+import upickle.Js
+object MainModule{
+  def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
+                     (f: List[NamedTask[Any]] => T) = {
+    RunScript.resolveTasks(evaluator, targets, multiSelect) match{
+      case Left(err) => Result.Failure(err)
+      case Right(tasks) => Result.Success(f(tasks))
+    }
+  }
+  def evaluateTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
+                      (f: Seq[(Any, Option[Js.Value])] => T) = {
+    RunScript.evaluateTasks(evaluator, targets, multiSelect) match{
+      case Left(err) => Result.Failure(err)
+      case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
+      case Right((watched, Right(res))) => Result.Success(Watched((), watched))
+    }
+  }
+}
 
 trait MainModule extends mill.Module{
 
@@ -9,49 +29,41 @@ trait MainModule extends mill.Module{
   implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
-  def resolve(evaluator: mill.eval.Evaluator[Any], targets: String*) = mill.T.command{
-    RunScript.resolveTargets(evaluator, targets, multiSelect = true) match{
-      case Left(err) => mill.eval.Result.Failure(err)
-      case Right(tasks) => mill.eval.Result.Success(tasks.foreach(println))
+  def resolve(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+      tasks.foreach(println)
     }
   }
 
-  def describe(evaluator: mill.eval.Evaluator[Any], targets: String*) = mill.T.command{
-    RunScript.resolveTargets(evaluator, targets, multiSelect = true) match{
-      case Left(err) => mill.eval.Result.Failure(err)
-      case Right(tasks) =>
-        for{
-          task <- tasks
-          tree = ReplApplyHandler.pprintTask(task, evaluator)
-          val defaults = pprint.PPrinter()
-          val renderer = new Renderer(
-            defaults.defaultWidth,
-            defaults.colorApplyPrefix,
-            defaults.colorLiteral,
-            defaults.defaultIndent
-          )
-          val rendered = renderer.rec(tree, 0, 0).iter
-          val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
-          str <- truncated ++ Iterator("\n")
-        } {
-          print(str)
-        }
-        mill.eval.Result.Success(())
+  def describe(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+      for{
+        task <- tasks
+        tree = ReplApplyHandler.pprintTask(task, evaluator)
+        val defaults = pprint.PPrinter()
+        val renderer = new Renderer(
+          defaults.defaultWidth,
+          defaults.colorApplyPrefix,
+          defaults.colorLiteral,
+          defaults.defaultIndent
+        )
+        val rendered = renderer.rec(tree, 0, 0).iter
+        val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+        str <- truncated ++ Iterator("\n")
+      } {
+        print(str)
+      }
     }
   }
 
-  def all(evaluator: mill.eval.Evaluator[Any],
-          targets: String*) = mill.T.command{
-    RunScript.evaluateTarget(evaluator, targets, multiSelect = true) match{
-      case Left(err) => mill.eval.Result.Failure(err)
-      case Right((watched, Left(err))) => mill.eval.Result.Failure(err, Some(Watched((), watched)))
-      case Right((watched, Right(res))) => mill.eval.Result.Success(Watched((), watched))
+  def all(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    MainModule.evaluateTasks(evaluator, targets, multiSelect = true) {res =>
+      res.flatMap(_._2)
     }
   }
 
-  def show(evaluator: mill.eval.Evaluator[Any],
-           targets: String*) = mill.T.command{
-    RunScript.evaluateTarget(
+  def show(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    MainModule.evaluateTasks(
       evaluator.copy(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
@@ -62,14 +74,10 @@ trait MainModule extends mill.Module{
       ),
       targets,
       multiSelect = false
-    ) match{
-      case Left(err) => mill.eval.Result.Failure(err)
-      case Right((watched, Left(err))) => mill.eval.Result.Failure(err, Some(Watched((), watched)))
-      case Right((watched, Right(res))) =>
-        for(json <- res.flatMap(_._2)){
-          println(json)
-        }
-        mill.eval.Result.Success(Watched((), watched))
+    ) {res =>
+      for(json <- res.flatMap(_._2)){
+        println(json)
+      }
     }
   }
 }

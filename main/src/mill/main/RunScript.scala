@@ -52,7 +52,7 @@ object RunScript{
 
     val evaluated = for{
       evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTarget(evaluator, scriptArgs, multiSelect = false))
+      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
     } yield {
       val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
       // If the file changed between the creation of the original
@@ -129,9 +129,9 @@ object RunScript{
     } yield (module, discover)
   }
 
-  def resolveTargets[T](evaluator: Evaluator[T],
-                        scriptArgs: Seq[String],
-                        multiSelect: Boolean) = {
+  def resolveTasks[T](evaluator: Evaluator[T],
+                      scriptArgs: Seq[String],
+                      multiSelect: Boolean) = {
     for {
       parsed <- ParseArgs(scriptArgs, multiSelect = multiSelect)
       (selectors, args) = parsed
@@ -172,10 +172,10 @@ object RunScript{
     } yield taskss.flatten
   }
 
-  def evaluateTarget[T](evaluator: Evaluator[T],
-                        scriptArgs: Seq[String],
-                        multiSelect: Boolean) = {
-    for (targets <- resolveTargets(evaluator, scriptArgs, multiSelect)) yield {
+  def evaluateTasks[T](evaluator: Evaluator[T],
+                       scriptArgs: Seq[String],
+                       multiSelect: Boolean) = {
+    for (targets <- resolveTasks(evaluator, scriptArgs, multiSelect)) yield {
       val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
       val watched2 = for{

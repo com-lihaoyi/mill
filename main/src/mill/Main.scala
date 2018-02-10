@@ -55,7 +55,10 @@ object Main {
             welcomeBanner = None
           )
 
-        val runner = new mill.main.MainRunner(config, System.out, System.err, System.in)
+        val runner = new mill.main.MainRunner(
+          config.copy(home = pwd / "out" / ".ammonite"),
+          System.out, System.err, System.in
+        )
         if (repl){
           runner.printInfo("Loading...")
           runner.runRepl()
