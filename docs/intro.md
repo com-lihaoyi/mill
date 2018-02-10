@@ -1,3 +1,9 @@
+To get started, download Mill and install it into your system via the following
+`curl`/`chmod` command:
+
+```bash
+sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.0.7/0.0.7 && sudo chmod +x /usr/local/bin/mill
+```
 
 The simplest Mill build for a Scala project looks as follows:
 
