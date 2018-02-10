@@ -13,7 +13,7 @@ object MainTests extends TestSuite{
 
     val expected = expected0.map(_.map(_(module)))
     val resolved = for{
-      selectors <- mill.util.ParseArgs(Seq(selectorString)).map(_._1.head)
+      selectors <- mill.util.ParseArgs(Seq(selectorString), multiSelect = false).map(_._1.head)
       val crossSelectors = selectors._2.value.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
       task <- mill.main.Resolve.resolve(
         selectors._2.value.toList, module, discover, Nil, crossSelectors.toList, Nil

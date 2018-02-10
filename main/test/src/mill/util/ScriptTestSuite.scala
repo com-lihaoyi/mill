@@ -20,7 +20,7 @@ abstract class ScriptTestSuite extends TestSuite{
   )
   def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
   def meta(s: String) = {
-    val (List(selector), args) = ParseArgs.apply(Seq(s)).right.get
+    val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
 
     read(workspacePath / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
   }

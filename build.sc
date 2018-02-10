@@ -223,6 +223,7 @@ def gitHead = T.input{
     %%('git, "rev-parse", "head")(pwd).out.string.trim()
   )
 }
+
 def publishVersion = T.input{
   val tag =
     try Option(
@@ -255,7 +256,3 @@ def uploadToGithub(assembly: Path, authKey: String, release: String, label: Stri
 
   upload.apply(assembly, release, label, authKey)
 }
-
-//def resolve(targets: mill.define.TargetScopt.Targets[Any]) = mill.T.command{
-//  targets.items.foreach(println)
-//}

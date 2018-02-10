@@ -6,13 +6,15 @@ import ammonite.ops.Path
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag
+
 /**
   * `Module` is a class meant to be extended by `trait`s *only*, in order to
   * propagate the implicit parameters forward to the final concrete
   * instantiation site so they can capture the enclosing/line information of
   * the concrete instance.
   */
-class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher{ outer =>
+class Module(implicit outerCtx0: mill.define.Ctx)
+  extends mill.moduledefs.Cacher{ outer =>
 
   /**
     * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -20,7 +22,7 @@ class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher
     */
   object millInternal extends Module.Internal(this)
 
-  lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module]
+  lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module].toSeq
   def millOuterCtx = outerCtx0
   def millSourcePath: Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)

@@ -8,7 +8,7 @@ import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
-import mill.define.{Discover, ExternalModule, Segment, Task}
+import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, Logger, ParseArgs, Watched}
 import mill.util.Strict.Agg
@@ -137,19 +137,8 @@ object RunScript{
       (selectors, args) = parsed
       taskss <- {
         val selected = selectors.map { case (scopedSel, sel) =>
-          val (rootModule, discover) = scopedSel match{
-            case None => (evaluator.rootModule, evaluator.discover)
-            case Some(scoping) =>
-              val moduleCls =
-                evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
-
-              val rootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
-              (rootModule, rootModule.millDiscover)
-          }
-          val crossSelectors = sel.value.map {
-            case Segment.Cross(x) => x.toList.map(_.toString)
-            case _ => Nil
-          }
+          val (rootModule, discover, crossSelectors) =
+            prepareResolve(evaluator, scopedSel, sel)
 
           try {
             // We inject the `evaluator.rootModule` into the TargetScopt, rather
@@ -159,8 +148,7 @@ object RunScript{
             // is not currently supported
             mill.eval.Evaluator.currentEvaluator.set(evaluator)
             mill.main.Resolve.resolve(
-              sel.value.toList, rootModule,
-              discover,
+              sel.value.toList, rootModule, discover,
               args, crossSelectors.toList, Nil
             )
           } finally{
@@ -170,6 +158,23 @@ object RunScript{
         EitherOps.sequence(selected)
       }
     } yield taskss.flatten
+  }
+
+  def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
+    val (rootModule, discover) = scopedSel match {
+      case None => (evaluator.rootModule, evaluator.discover)
+      case Some(scoping) =>
+        val moduleCls =
+          evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
+
+        val rootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
+        (rootModule, rootModule.millDiscover)
+    }
+    val crossSelectors = sel.value.map {
+      case Segment.Cross(x) => x.toList.map(_.toString)
+      case _ => Nil
+    }
+    (rootModule, discover, crossSelectors)
   }
 
   def evaluateTasks[T](evaluator: Evaluator[T],

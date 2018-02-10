@@ -2,7 +2,7 @@ package mill.main
 
 import mill.define.NamedTask
 import mill.eval.{Evaluator, Result}
-import mill.util.{PrintLogger, Watched}
+import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
 object MainModule{
@@ -30,8 +30,30 @@ trait MainModule extends mill.Module{
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
   def resolve(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
-      tasks.foreach(println)
+    val resolved = for {
+      parsed <- ParseArgs(targets, multiSelect = true)
+      (selectors, args) = parsed
+      taskss <- {
+        val selected = selectors.map { case (scopedSel, sel) =>
+          val (rootModule, discover, crossSelectors) =
+            mill.main.RunScript.prepareResolve(evaluator, scopedSel, sel)
+
+          try {
+            mill.eval.Evaluator.currentEvaluator.set(evaluator)
+            mill.main.ResolveMetadata.resolve(
+              sel.value.toList, rootModule, discover,
+              args, crossSelectors.toList, Nil
+            )
+          } finally{
+            mill.eval.Evaluator.currentEvaluator.set(null)
+          }
+        }
+        EitherOps.sequence(selected)
+      }
+    } yield taskss.flatten
+    resolved match{
+      case Left(err) => throw new Exception(err)
+      case Right(r) => r.foreach(println)
     }
   }
 
