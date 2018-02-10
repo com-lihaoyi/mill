@@ -78,8 +78,8 @@ object ReplApplyHandler{
     }
     pprint.Tree.Lazy(ctx =>
       Iterator(
-        t.toString, "(", t.ctx.fileName, ":", t.ctx.lineNum.toString, ")",
-        t.ctx.lineNum.toString, "\n", ctx.applyPrefixColor("Inputs:").toString
+        t.toString, "(", t.ctx.fileName.split('/').last, ":", t.ctx.lineNum.toString, ")",
+        "\n", ctx.applyPrefixColor("Inputs:").toString
       ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
     )
   }

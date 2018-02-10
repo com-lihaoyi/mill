@@ -8,7 +8,15 @@
 [patreon-badge]: https://img.shields.io/badge/patreon-sponsor-ff69b4.svg
 [patreon-link]: https://www.patreon.com/lihaoyi
 
-Your shiny new Scala build tool!
+Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed
+by Gradle? Give Mill a try!
+
+If you want to use Mill in your own projects, check out our documentation:
+
+- [Documentation](http://www.lihaoyi.com/mill/)
+
+The remainder of this readme is targeted at people who wish to work on Mill's
+own codebase.
 
 ## How to build and test
 
@@ -42,13 +50,13 @@ There is already a `watch` option that looks for changes on files, e.g.:
 ```
 
 You can get Mill to show the JSON-structured output for a particular `Target` or
-`Command` using the `--show` flag:
+`Command` using the `show` flag:
 
 ```bash
-./target/bin/mill --show core.scalaVersion
-./target/bin/mill --show core.compile
-./target/bin/mill --show core.assemblyClasspath
-./target/bin/mill --show core.test
+./target/bin/mill show core.scalaVersion
+./target/bin/mill show core.compile
+./target/bin/mill show core.assemblyClasspath
+./target/bin/mill show core.test
 ```
 
 Output will be generated into a the `./out` folder.
@@ -120,7 +128,7 @@ will run `compile` and `test` targets in `scalalib` module.
 
 * Run multiple targets in multiple modules:
 ```bash
-mill --show --all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
+mill show --all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
 ```
 
 will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `scalalib` modules. 
@@ -293,7 +301,7 @@ Each folder currently contains the following files:
   console during evaluation.
 
 - `meta.json`: the cache-key and JSON-serialized return-value of the
-  `Target`/`Command`. The return-value can also be retrieved via `mill --show
+  `Target`/`Command`. The return-value can also be retrieved via `mill show
   core.compile`. Binary blobs are typically not included in `meta.json`, and
   instead stored as separate binary files in `dest/` which are then referenced
   by `meta.json` via `PathRef`s

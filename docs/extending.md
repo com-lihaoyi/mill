@@ -148,5 +148,25 @@ builds, simply publish your code as a library to maven central.
 For more information, see Ammonite's
 [Ivy Dependencies documentation](http://ammonite.io/#import$ivy)
 
-## Custom Main Methods
+## Evaluator Commands
 
+You can define a command that takes in the current `Evaluator` as an argument,
+which you can use to inspect the entire build, or run arbitrary tasks. For
+example, here is the `mill.scalalib.GenIdea/idea` command which uses this to
+traverse the module-tree and generate an Intellij project config for your build.
+
+```scala
+def idea(ev: Evaluator[Any]) = T.command{
+  mill.scalalib.GenIdea(
+    implicitly,
+    ev.rootModule,
+    ev.discover
+  )
+}
+```
+
+Many built-in tools are implemented as custom evaluator commands:
+[all](intro.html#all), [describe](intro.html#describe),
+[resolve](intro.html#resolve), [show](intro.html#show). If you want a way to run Mill
+commands and programmatically manipulate the tasks and outputs, you do so with
+your own evaluator command.

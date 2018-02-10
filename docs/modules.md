@@ -19,7 +19,7 @@ object foo extends mill.Module{
 ```
 
 You would be able to run the two targets via `mill foo.bar` or `mill
-foo.baz.qux`. You can use `mill --show foo.bar` or `mill --show foo.baz.qux` to
+foo.baz.qux`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
 make Mill echo out the string value being returned by each Target. The two
 targets will store their output metadata & files at `./out/foo/bar` and
 `./out/foo/baz/qux` respectively.
@@ -46,11 +46,11 @@ object foo2 extends FooModule{
 
 This would make the following targets available from the command line
 
-- `mill --show foo1.bar`
-- `mill --show foo1.baz`
-- `mill --show foo2.bar`
-- `mill --show foo2.baz`
-- `mill --show foo2.qux`
+- `mill show foo1.bar`
+- `mill show foo1.baz`
+- `mill show foo2.bar`
+- `mill show foo2.baz`
+- `mill show foo2.qux`
 
 The built in `mill.scalalib` package uses this to define
 `mill.scalalib.ScalaModule`, `mill.scalalib.SbtModule` and

@@ -17,12 +17,12 @@ This defines three copies of `FooModule`: `"210"`, `"211"` and `"212"`, each of
 which has their own `suffix` target. You can then run them via
 
 ```bash
-mill --show foo[2.10].suffix
-mill --show foo[2.10].bigSuffix
-mill --show foo[2.11].suffix
-mill --show foo[2.11].bigSuffix
-mill --show foo[2.12].suffix
-mill --show foo[2.12].bigSuffix
+mill show foo[2.10].suffix
+mill show foo[2.10].bigSuffix
+mill show foo[2.11].suffix
+mill show foo[2.11].bigSuffix
+mill show foo[2.12].suffix
+mill show foo[2.12].bigSuffix
 ```
 
 The modules each also have a `millSourcePath` of
@@ -66,13 +66,13 @@ takes two parameters instead of one. This creates the following modules each
 with their own `suffix` target:
 
 ```bash
-mill --show foo[210,jvm].suffix
-mill --show foo[211,jvm].suffix
-mill --show foo[212,jvm].suffix
-mill --show foo[210,js].suffix
-mill --show foo[211,js].suffix
-mill --show foo[212,js].suffix
-mill --show foo[212,native].suffix
+mill show foo[210,jvm].suffix
+mill show foo[211,jvm].suffix
+mill show foo[212,jvm].suffix
+mill show foo[210,js].suffix
+mill show foo[211,js].suffix
+mill show foo[212,js].suffix
+mill show foo[212,native].suffix
 ```
 
 ## Using Cross Modules from Outside
@@ -121,12 +121,12 @@ class BarModule(crossVersion: String) extends Module{
 Here, you can run:
 
 ```bash
-mill --show foo[2.10].suffix
-mill --show foo[2.11].suffix
-mill --show foo[2.12].suffix
-mill --show bar[2.10].bigSuffix
-mill --show bar[2.11].bigSuffix
-mill --show bar[2.12].bigSuffix
+mill show foo[2.10].suffix
+mill show foo[2.11].suffix
+mill show foo[2.12].suffix
+mill show bar[2.10].bigSuffix
+mill show bar[2.11].bigSuffix
+mill show bar[2.12].bigSuffix
 ```
 
 

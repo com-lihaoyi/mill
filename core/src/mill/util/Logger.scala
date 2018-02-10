@@ -22,8 +22,8 @@ import ammonite.util.Colors
   *
   * Also contains the two forwarded stdout and stderr streams, for code executed
   * by Mill to use directly. Typically these correspond to the stdout and stderr,
-  * but when `--show` is used both are forwarded to stderr and stdout is only
-  * used to display the final `--show` output for easy piping.
+  * but when `show` is used both are forwarded to stderr and stdout is only
+  * used to display the final `show` output for easy piping.
   */
 trait Logger {
   def colored: Boolean

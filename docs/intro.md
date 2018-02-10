@@ -56,18 +56,89 @@ $ mill --watch foo.compile
 $ mill --watch foo.run 
 ```
 
-### Show Target Output
+### Command-line Tools
+
+Mill comes built in with a small number of useful command-line utilities:
+
+#### all
+
+```bash
+mill all foo.{compile,run}
+mill all "foo.{compile,run}"
+mill all foo.compile foo.run
+mill all _.compile # run compile for every top-level module
+mill all __.compile  # run compile for every module
+```
+
+`all` runs multiple tasks in a single command
+
+#### resolve
+
+```bash
+mill resolve foo.{compile,run}
+mill resolve "foo.{compile,run}"
+mill resolve foo.compile foo.run
+mill resolve _.compile          # list the compile tasks for every top-level module
+mill resolve __.compile         # list the compile tasks for every module
+mill resolve _                  # list every top level module or task
+mill resolve foo._              # list every task directly within the foo module
+mill resolve __                 # list every module or task recursively
+mill resolve foo._              # list every task recursively within the foo module
+```
+
+`resolve` lists the tasks that match a particular query, without running them.
+This is useful for "dry running" an `mill all` command to see what would be run
+before you run them, or to explore what modules or tasks are available from the
+command line using `resolve _`, `resolve foo._`, etc.
+
+
+#### describe
+
+```bash
+$ mill describe core.run
+
+core.run(ScalaModule.scala:211)
+Inputs:
+    core.mainClass
+    core.runClasspath
+    core.forkArgs
+    core.forkEnv
+```
+
+`describe` is a more verbose version of [resolve](#resolve). In addition to
+printing out the name of one-or-more tasks, it also display's it's source
+location and a list of input tasks. This is very useful for debugging and
+interactively exploring the structure of your build from the command line.
+
+`describe` also works with the same `_`/`__` wildcard/query syntaxes that
+[all](#all)/[resolve](#resolve) do:
+
+
+```bash
+mill describe foo.compile
+mill describe foo.{compile,run}
+mill describe "foo.{compile,run}"
+mill describe foo.compile foo.run
+mill describe _.compile
+mill describe __.compile
+mill describe _
+mill describe foo._
+mill describe __
+mill describe foo._
+```
+
+#### show
 
 By default, Mill does not print out the metadata from evaluating a task. Most
 people would not be interested in e.g. viewing the metadata related to
 incremental compilation: they just want to compile their code! However, if you
 want to inspect the build to debug problems, you can make Mill show you the
-metadata output for a task using the `--show` flag:
+metadata output for a task using the `show` flag:
 
-You can also ask Mill to display the metadata output of a task using `--show`:
+You can also ask Mill to display the metadata output of a task using `show`:
 
 ```bash
-$ mill --show foo.compile
+$ mill show foo.compile
 {
     "analysisFile": "/Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/zinc",
     "classes": {
@@ -79,12 +150,12 @@ $ mill --show foo.compile
 This also applies to tasks which hold simple configurable values:
 
 ```bash
-$ mill --show foo.sources
+$ mill show foo.sources
 [
     {"path": "/Users/lihaoyi/Dropbox/Github/test/foo/src"}
 ]
 
-$ mill --show foo.compileDepClasspath
+$ mill show foo.compileDepClasspath
 [
     {"path": ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar"},
     {"path": ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar"},
@@ -93,17 +164,21 @@ $ mill --show foo.compileDepClasspath
 ]
 ```
 
+`show` is also useful for interacting with Mill from external tools, since the
+JSON it outputs is structured and easily parsed & manipulated.
+
+### IntelliJ Support
+
+Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
+generate an IntelliJ project config for your build.
+
+This also configures IntelliJ to allow easy navigate & code-completion within
+your build file itself.
+
+
 Any flags passed *before* the name of the task (e.g. `foo.compile`) are given to
 Mill, while any arguments passed *after* the task are given to the task itself.
 For example:
-
-```bash
-$ mill --watch foo.run
-```
-
-Makes Mill watch-and-re-evaluate the `foo.run` task, while `mill foo.run
---watch` evaluates `foo.run` once and passes it the `--watch` flag. This matches
-the behavior of other executables such as `java` or `python`.
 
 ### The Build Repl
 
@@ -430,10 +505,10 @@ first run until it's inputs change (in this case, if someone edits the
 `foo.sources` files which live in `foo/src`. Cached Targets cannot take
 parameters.
 
-You can print the value of your custom target using `--show`, e.g.
+You can print the value of your custom target using `show`, e.g.
 
 ```bash
-mill run --show lineCount
+mill run show lineCount
 ```
 
 You can define new un-cached Commands using the `T.command{...}` syntax. These
@@ -502,8 +577,6 @@ override `compile` and `run` to add additional logging messages.
 
 In Mill builds the `override` keyword is optional.
 
-### Publishing Modules
-
 ## Common Project Layouts
 
 Above, we have shown how to work with the Mill default Scala module layout. Here
@@ -559,10 +632,6 @@ Scala.js. In addition to the standard `foo.compile` and `foo.run` commands (the
 latter of which runs your code on Node.js, which must be pre-installed)
 `ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
 generating the optimized Javascript file.
-
-### Cross Scala-JVM/Scala.js Modules
-
-### Cross Scala-Version Scala-JVM/JS Modules
 
 ### SBT-Compatible Modules
 
@@ -622,8 +691,69 @@ foo/
             scala-2.12/
 ```
 
-### SBT-Compatible Cross Scala-Version Scala-JVM/JS Modules
+### Publishing
+```scala
+import mill._
+import mill.scalalib._
+object foo extends ScalaModule with PublishModule{
+  def scalaVersion = "2.12.4"
+  def publishVersion = "0.0.1
+  def pomSettings = PomSettings(
+    description = "My first library",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/mill",
+    licenses = Seq(
+      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
+    ),
+    scm = SCM(
+      "git://github.com/lihaoyi/mill.git",
+      "scm:git://github.com/lihaoyi/mill.git"
+    ),
+    developers = Seq(
+      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+    )
+  )
+}
+```
 
+You can make a module publishable by extending `PublishModule`.
+
+`PublishModule` then needs you to define a `publishVersion` and `pomSettings`.
+The `artifactName` defaults to the name of your module (in this case `foo`) but
+can be overriden. The `organization` is defined in `pomSettings`.
+
+Once you've mixed in `PublishModule`, you can publish your libraries to maven
+central  via:
+
+```bash
+target/bin/mill mill.scalalib.PublishModule/publishAll \
+        lihaoyi:$SONATYPE_PASSWORD \
+        $GPG_PASSWORD \ 
+        foo.publishArtifacts
+```
+
+This uploads them to `oss.sonatype.org` where you can log-in and stage/release
+them manually. You can also pass in the `--release true` flag to perform the
+staging/release automatically:
+
+```bash
+target/bin/mill mill.scalalib.PublishModule/publishAll \
+        lihaoyi:$SONATYPE_PASSWORD \
+        $GPG_PASSWORD \ 
+        foo.publishArtifacts \
+        --release true
+```
+
+If you want to publish/release multiple modules, you can use the `_` or `__`
+wildcard syntax:
+
+```bash
+target/bin/mill mill.scalalib.PublishModule/publishAll \
+        lihaoyi:$SONATYPE_PASSWORD \
+        $GPG_PASSWORD \ 
+        __.publishArtifacts \
+        --release true
+```
 
 
 ## Example Builds
@@ -636,7 +766,8 @@ integration tests and examples:
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1)
 
-A small single-module cross-build, with few sources minimal dependencies
+A small single-module cross-build, with few sources minimal dependencies, and
+wired up for publishing to Maven Central
 
 
 ### Better-Files
