@@ -63,7 +63,7 @@ trait PublishModule extends ScalaModule { outer =>
 
   def publishArtifacts = T{
     val baseName = s"${artifactId()}-${publishVersion()}"
-    (
+    PublishModule.PublishData(
       artifactMetadata(),
       Seq(
         jar() -> s"$baseName.jar",
@@ -74,26 +74,35 @@ trait PublishModule extends ScalaModule { outer =>
     )
   }
 
-  def publish(sonatypeCreds: String, gpgPassphrase: String): define.Command[Unit] = T.command {
-    val (artifactInfo, artifacts) = publishArtifacts()
+  def publish(sonatypeCreds: String,
+              gpgPassphrase: String,
+              release: Boolean): define.Command[Unit] = T.command {
+    val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
       gpgPassphrase,
       T.ctx().log
-    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo)
+    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
   }
 }
 
 object PublishModule extends ExternalModule{
+  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
+
+  object PublishData{
+    implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
+  }
+
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String,
-                 publishArtifacts: mill.main.MagicScopt.Tasks[(mill.scalalib.publish.Artifact, Seq[(PathRef, String)])],
+                 publishArtifacts: mill.main.MagicScopt.Tasks[PublishModule.PublishData],
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command{
+                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+                 release: Boolean = false) = T.command{
     val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
-      case (a, s) => (s.map{case (p, f) => (p.path, f)}, a)
+      case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
     new SonatypePublisher(
       sonatypeUri,
@@ -102,6 +111,7 @@ object PublishModule extends ExternalModule{
       gpgPassphrase,
       T.ctx().log
     ).publishAll(
+      release,
       x:_*
     )
   }

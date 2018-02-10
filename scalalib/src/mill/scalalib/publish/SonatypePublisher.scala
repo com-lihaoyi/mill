@@ -16,10 +16,10 @@ class SonatypePublisher(uri: String,
 
   private val api = new SonatypeHttpApi(uri, credentials)
 
-  def publish(fileMapping: Seq[(Path, String)], artifact: Artifact): Unit = {
-    publishAll(fileMapping -> artifact)
+  def publish(fileMapping: Seq[(Path, String)], artifact: Artifact, release: Boolean): Unit = {
+    publishAll(release, fileMapping -> artifact)
   }
-  def publishAll(artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
+  def publishAll(release: Boolean, artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
 
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = Seq(
@@ -51,7 +51,7 @@ class SonatypePublisher(uri: String,
     }
     val releaseGroups = releases.groupBy(_._1.group)
     for((group, groupReleases) <- releaseGroups){
-      publishRelease(groupReleases.flatMap(_._2), group, releases.map(_._1))
+      publishRelease(release, groupReleases.flatMap(_._2), group, releases.map(_._1))
     }
   }
 
@@ -67,7 +67,8 @@ class SonatypePublisher(uri: String,
     reportPublishResults(publishResults, artifacts)
   }
 
-  private def publishRelease(payloads: Seq[(String, Array[Byte])],
+  private def publishRelease(release: Boolean,
+                             payloads: Seq[(String, Array[Byte])],
                              stagingProfile: String,
                              artifacts: Seq[Artifact]): Unit = {
     val profileUri = api.getStagingProfileUri(stagingProfile)
@@ -82,22 +83,24 @@ class SonatypePublisher(uri: String,
     }
     reportPublishResults(publishResults, artifacts)
 
-    log.info("Closing staging repository")
-    api.closeStagingRepo(profileUri, stagingRepoId)
+    if (release) {
+      log.info("Closing staging repository")
+      api.closeStagingRepo(profileUri, stagingRepoId)
 
-    log.info("Waiting for staging repository to close")
-    awaitRepoStatus("closed", stagingRepoId)
+      log.info("Waiting for staging repository to close")
+      awaitRepoStatus("closed", stagingRepoId)
 
-    log.info("Promoting staging repository")
-    api.promoteStagingRepo(profileUri, stagingRepoId)
+      log.info("Promoting staging repository")
+      api.promoteStagingRepo(profileUri, stagingRepoId)
 
-    log.info("Waiting for staging repository to release")
-    awaitRepoStatus("released", stagingRepoId)
+      log.info("Waiting for staging repository to release")
+      awaitRepoStatus("released", stagingRepoId)
 
-    log.info("Dropping staging repository")
-    api.dropStagingRepo(profileUri, stagingRepoId)
+      log.info("Dropping staging repository")
+      api.dropStagingRepo(profileUri, stagingRepoId)
 
-    log.info(s"Published ${artifacts.map(_.id).mkString(", ")} successfully")
+      log.info(s"Published ${artifacts.map(_.id).mkString(", ")} successfully")
+    }
   }
 
   private def reportPublishResults(publishResults: Seq[HttpResponse[String]],
