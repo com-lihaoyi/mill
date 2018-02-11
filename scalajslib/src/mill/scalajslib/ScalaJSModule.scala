@@ -150,8 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     super.scalacPluginIvyDeps() ++
     Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
   }
-  override def ivyDeps = T{
-    super.ivyDeps() ++
+  override def scalaLibraryDeps = T{
     Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
   }
 

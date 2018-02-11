@@ -106,6 +106,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       T.task{scalacPluginIvyDeps()}
     )()
 
+  def scalaLibraryDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
@@ -122,7 +123,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     Agg.from(upstreamRunClasspath().flatten) ++
     depClasspath() ++
     resolveDeps(
-      T.task{ivyDeps() ++ runIvyDeps() ++ scalaRuntimeIvyDeps(scalaVersion())}
+      T.task{ivyDeps() ++ runIvyDeps() ++ scalaLibraryDeps() }
     )()
   }
 
