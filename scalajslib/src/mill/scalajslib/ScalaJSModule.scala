@@ -148,9 +148,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     PathRef(outputPath)
   }
 
-  override def scalacPluginIvyDeps = T{ Loose.Agg(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion())) }
-
-  override def ivyDeps = T{ Loose.Agg(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}") }
+  override def scalacPluginIvyDeps = T{
+    super.scalacPluginIvyDeps() ++
+    Seq(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion()))
+  }
+  override def ivyDeps = T{
+    super.ivyDeps() ++
+    Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
+  }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
   def crossFullScalaJSVersion: T[Boolean] = false
