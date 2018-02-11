@@ -131,7 +131,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
     val inputFiles = Agg.from(for {
       compiled <- input
-      file <- ls(compiled.classes.path)
+      file <- ls.rec(compiled.classes.path)
       if file.ext == "sjsir"
     } yield file)
     val inputLibraries = libraries.map(_.path).filter(_.ext == "jar")
