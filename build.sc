@@ -234,8 +234,13 @@ def publishVersion = T.input{
   tag match{
     case Some(t) => (t, t)
     case None =>
-      val timestamp = java.time.Instant.now().toString.replaceAll(":|\\.", "-")
-      ("unstable", timestamp + "-" + gitHead())
+      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
+
+      val commitsSinceLastTag =
+        %%('git, "rev-list", 'master, "--count")(pwd).out.trim.toInt -
+        %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
+
+      ("unstable", s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")
   }
 }
 
