@@ -72,7 +72,7 @@ object core extends MillModule {
     ivy"com.lihaoyi:::ammonite:1.0.3-21-05b5d32"
   )
 
-  def generatedSources = T.sources {
+  def generatedSources = T {
     shared.generateCoreSources(T.ctx().dest)
   }
 }
@@ -84,13 +84,13 @@ object main extends MillModule {
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 
-  def generatedSources = T.sources {
+  def generatedSources = T {
     shared.generateCoreSources(T.ctx().dest)
   }
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
-    def generatedSources = T.sources {
+    def generatedSources = T {
       shared.generateCoreTestSources(T.ctx().dest)
     }
   }

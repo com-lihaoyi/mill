@@ -33,12 +33,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def scalacOptions = T{ Seq.empty[String] }
   def javacOptions = T{ Seq.empty[String] }
 
-  def repositories: Seq[Repository] = Seq(
-    Cache.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2")
-  )
-
   def moduleDeps = Seq.empty[ScalaModule]
+
+
   def transitiveModuleDeps: Seq[ScalaModule] = {
     Seq(this) ++ moduleDeps.flatMap(_.transitiveModuleDeps).distinct
   }
@@ -66,9 +63,15 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
+
+  def repositories: Seq[Repository] = Seq(
+    Cache.ivy2Local,
+    MavenRepository("https://repo1.maven.org/maven2")
+  )
+
   def platformSuffix = T{ "" }
 
-  def compilerBridgeSources = T{
+  def scalaCompilerBridgeSources = T{
     resolveDependencies(
       repositories,
       scalaVersion(),
@@ -96,17 +99,16 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
-  def generatedSources = T.sources()
+  def generatedSources = T{ Seq.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
 
   def compile: T[CompilationResult] = T.persistent{
     mill.scalalib.ScalaWorkerApi.scalaWorker().compileScala(
       scalaVersion(),
       allSources().map(_.path),
-      compilerBridgeSources().map(_.path),
+      scalaCompilerBridgeSources().map(_.path),
       compileClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
-      scalacPluginClasspath().map(_.path),
       scalacOptions(),
       scalacPluginClasspath().map(_.path),
       javacOptions(),
@@ -137,11 +139,10 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def localClasspath = T{ resources() ++ Seq(compile().classes) }
 
   def jar = T{
     createJar(
-      localClasspath().map(_.path).filter(exists),
+      (resources() ++ Seq(compile().classes)).map(_.path).filter(exists),
       mainClass()
     )
   }

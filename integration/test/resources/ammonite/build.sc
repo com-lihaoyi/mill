@@ -56,7 +56,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
       ivy"org.scalaj::scalaj-http:2.3.0"
     )
 
-    def generatedSources = T.sources{
+    def generatedSources = T{
       import ammonite.ops._
       cp(build.millSourcePath/'project/"Constants.scala", T.ctx().dest/"Constants.scala")
       T.ctx().dest

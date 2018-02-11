@@ -51,7 +51,6 @@ trait ScalaWorkerApi {
                    compileBridgeSources: Agg[Path],
                    compileClasspath: Agg[Path],
                    compilerClasspath: Agg[Path],
-                   pluginClasspath: Agg[Path],
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],

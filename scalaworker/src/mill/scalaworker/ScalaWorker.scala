@@ -104,7 +104,6 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                    compileBridgeSources: Agg[Path],
                    compileClasspath: Agg[Path],
                    compilerClasspath: Agg[Path],
-                   pluginClasspath: Agg[Path],
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
@@ -115,11 +114,11 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
     val compilerBridge = compileZincBridge(scalaVersion, compileBridgeSources, compilerJars)
 
-    val pluginJars = pluginClasspath.toArray.map(_.toIO)
+    val pluginJars = scalacPluginClasspath.toArray.map(_.toIO)
 
     val compilerClassloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     val scalaInstanceSig =
-      compilerClassloaderSig + pluginClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+      compilerClassloaderSig + scalacPluginClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
 
     val compilerClassLoader = scalaClassloaderCache match{
       case Some((k, v)) if k == compilerClassloaderSig => v
