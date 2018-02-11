@@ -227,6 +227,11 @@ val testRepos = Map(
     resourceManaged in test,
     List("shared.sc", "downloadTestRepo", "lihaoyi/ammonite", "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac", _),
     suffix = "ammonite"
+  ),
+  "MILL_UPICKLE_REPO" -> ammoniteRun(
+    resourceManaged in test,
+    List("shared.sc", "downloadTestRepo", "lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", _),
+    suffix = "upickle"
   )
 )
 
@@ -242,9 +247,10 @@ lazy val integration = project
         "MILL_ACYCLIC_REPO" -> testRepos("MILL_ACYCLIC_REPO").value,
         "MILL_AMMONITE_REPO" -> testRepos("MILL_AMMONITE_REPO").value,
         "MILL_JAWN_REPO" -> testRepos("MILL_JAWN_REPO").value,
-        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value
+        "MILL_BETTERFILES_REPO" -> testRepos("MILL_BETTERFILES_REPO").value,
+        "MILL_UPICKLE_REPO" -> testRepos("MILL_UPICKLE_REPO").value
       )
-      scalaWorkerProps.value ++ (for((k, v) <- kvs) yield s"-D$k=$v")
+      jsbridgeProps.value.toSeq ++ scalaWorkerProps.value ++ (for((k, v) <- kvs) yield s"-D$k=$v")
     }
   )
 
