@@ -62,10 +62,12 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       repositories,
       scalaVersion(),
       deps(),
+      platformSuffix(),
       sources
     )
   }
 
+  def platformSuffix = T{ "" }
   def externalCompileDepClasspath: T[Agg[PathRef]] = T{
     Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepClasspath)().flatten) ++
     resolveDeps(

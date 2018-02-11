@@ -8,22 +8,33 @@ case class Artifact(group: String, id: String, version: String) {
 
 object Artifact {
 
-  def fromDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
+  def fromDep(dep: Dep,
+              scalaFull: String,
+              scalaBin: String): Dependency = {
     dep match {
-      case Dep.Java(dep) =>
+      case Dep.Java(dep, cross) =>
         Dependency(
           Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile)
-      case Dep.Scala(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaBin}",
-                            dep.version),
-                   Scope.Compile)
-      case Dep.Point(dep) =>
-        Dependency(Artifact(dep.module.organization,
-                            s"${dep.module.name}_${scalaFull}",
-                            dep.version),
-                   Scope.Compile)
+          Scope.Compile
+        )
+      case Dep.Scala(dep, cross) =>
+        Dependency(
+          Artifact(
+            dep.module.organization,
+            s"${dep.module.name}_${scalaBin}",
+            dep.version
+          ),
+          Scope.Compile
+        )
+      case Dep.Point(dep, cross) =>
+        Dependency(
+          Artifact(
+            dep.module.organization,
+            s"${dep.module.name}_${scalaFull}",
+            dep.version
+          ),
+          Scope.Compile
+        )
     }
   }
 }

@@ -41,11 +41,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ) else resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       "2.12.4",
-      Seq(Dep(
-        "com.lihaoyi",
-        s"mill-scalajslib-jsbridges_${scalaJSBridgeVersion().replace('.', '_')}",
-        sys.props("MILL_VERSION")
-      ))
+      Seq(
+        ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
+      )
     ).map(_.find(_.path.toString.contains("mill-jsbridge")).get)
   }
 
@@ -150,7 +148,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def scalacPluginIvyDeps = T{
     super.scalacPluginIvyDeps() ++
-    Seq(Dep.Point("org.scala-js", "scalajs-compiler", scalaJSVersion()))
+    Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
   }
   override def ivyDeps = T{
     super.ivyDeps() ++
@@ -167,6 +165,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   override def artifactSuffix: T[String] = T {
     s"_sjs${artifactScalaJSVersion()}_${artifactScalaVersion()}"
   }
+
+  override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {

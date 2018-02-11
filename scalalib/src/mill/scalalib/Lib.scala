@@ -37,13 +37,36 @@ object Lib{
   def resolveDependencies(repositories: Seq[Repository],
                           scalaVersion: String,
                           deps: TraversableOnce[Dep],
+                          platformSuffix: String = "",
                           sources: Boolean = false): Result[Agg[PathRef]] = {
+
     val flattened = deps.map{
-      case Dep.Java(dep) => dep
-      case Dep.Scala(dep) =>
-        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaBinaryVersion(scalaVersion)))
-      case Dep.Point(dep) =>
-        dep.copy(module = dep.module.copy(name = dep.module.name + "_" + scalaVersion))
+      case Dep.Java(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+              (if (!cross) "" else platformSuffix)
+          )
+        )
+      case Dep.Scala(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+              (if (!cross) "" else platformSuffix) +
+              "_" + scalaBinaryVersion(scalaVersion)
+          )
+        )
+      case Dep.Point(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+              (if (!cross) "" else platformSuffix) +
+              "_" + scalaVersion
+          )
+        )
     }.toSet
     val start = Resolution(flattened)
 
@@ -77,14 +100,17 @@ object Lib{
     }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
-    Dep.Java("org.scala-lang", "scala-compiler", scalaVersion),
-    Dep.Java("org.scala-lang", "scala-reflect", scalaVersion)
+    ivy"org.scala-lang:scala-compiler:$scalaVersion",
+    ivy"org.scala-lang:scala-reflect:$scalaVersion"
   )
   def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
-    Dep.Java("org.scala-lang", "scala-library", scalaVersion)
+    ivy"org.scala-lang:scala-library:$scalaVersion"
   )
   def compilerBridgeIvyDep(scalaVersion: String) =
-    Dep.Point(coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false))
+    Dep.Point(
+      coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false),
+      cross = false
+    )
 
   val DefaultShellScript: Seq[String] = Seq(
     "#!/usr/bin/env sh",
