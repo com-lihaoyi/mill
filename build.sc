@@ -184,7 +184,9 @@ def testRepos = T{
 object integration extends MillModule{
   def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
-    scalaworker.testArgs() ++ (for((k, v) <- testRepos()) yield s"-D$k=$v")
+    scalajslib.testArgs() ++
+    scalaworker.testArgs() ++
+    (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   def forkArgs() = testArgs()
 }
