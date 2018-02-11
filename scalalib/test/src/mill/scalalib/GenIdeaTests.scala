@@ -33,22 +33,10 @@ object GenIdeaTests extends TestSuite {
           millSourcePath / "generated" / ".idea_modules" /".iml",
         "gen-idea/idea_modules/root.iml" ->
           millSourcePath / "generated" / ".idea_modules" /"root.iml",
-        "gen-idea/idea/libraries/scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-reflect_2.12.4_scala-reflect-2.12.4-sources.jar.xml",
-        "gen-idea/idea/libraries/scala-reflect_2.12.4_scala-reflect-2.12.4.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-reflect_2.12.4_scala-reflect-2.12.4.jar.xml",
-        "gen-idea/idea/libraries/scala-library_2.12.4_scala-library-2.12.4.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library_2.12.4_scala-library-2.12.4.jar.xml",
-        "gen-idea/idea/libraries/modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6.jar.xml",
-        "gen-idea/idea/libraries/modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6-sources.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "modules_scala-xml_2.12_1.0.6_scala-xml_2.12-1.0.6-sources.jar.xml",
-        "gen-idea/idea/libraries/scala-compiler_2.12.4_scala-compiler-2.12.4-sources.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-compiler_2.12.4_scala-compiler-2.12.4-sources.jar.xml",
-        "gen-idea/idea/libraries/scala-library_2.12.4_scala-library-2.12.4-sources.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library_2.12.4_scala-library-2.12.4-sources.jar.xml",
-        "gen-idea/idea/libraries/scala-compiler_2.12.4_scala-compiler-2.12.4.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-compiler_2.12.4_scala-compiler-2.12.4.jar.xml",
+        "gen-idea/idea/libraries/scala-library-2.12.4.jar.xml" ->
+          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
+        "gen-idea/idea/libraries/scala-library-2.12.4-sources.jar.xml" ->
+          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4-sources.jar.xml",
         "gen-idea/idea/modules.xml" ->
           millSourcePath / "generated" / ".idea" / "modules.xml",
         "gen-idea/idea/misc.xml" ->
