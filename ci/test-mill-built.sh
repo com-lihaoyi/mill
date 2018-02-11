@@ -15,5 +15,5 @@ target/bin/mill devAssembly
 
 out/devAssembly/dest/out.jar all {main,scalalib,scalajslib}.test devAssembly
 out/devAssembly/dest/out.jar integration.test mill.integration.AmmoniteTests
-out/devAssembly/dest/out.jar integration.test "mill.integration.{AcyclicTests,BetterFilesTests,JawnTests}"
+out/devAssembly/dest/out.jar integration.test "mill.integration.{AcyclicTests,BetterFilesTests,JawnTests,UpickleTests}"
 out/devAssembly/dest/out.jar devAssembly

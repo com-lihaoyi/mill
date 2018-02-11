@@ -17,7 +17,7 @@ git clean -xdf
 
 # Second build & run tests using Mill
 
-~/mill-release all {main,scalalib,scalajslib}.test devAssembly
+~/mill-release all {main,scalalib,scalajslib}.test
 ~/mill-release integration.test mill.integration.AmmoniteTests
-~/mill-release integration.test "mill.integration.{AcyclicTests,BetterFilesTests,JawnTests}"
+~/mill-release integration.test "mill.integration.{AcyclicTests,BetterFilesTests,JawnTests,UpickleTests}"
 ~/mill-release devAssembly
