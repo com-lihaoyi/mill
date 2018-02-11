@@ -73,7 +73,7 @@ object core extends MillModule {
   )
 
   def generatedSources = T {
-    shared.generateCoreSources(T.ctx().dest)
+    Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
 }
 
@@ -85,13 +85,13 @@ object main extends MillModule {
   )
 
   def generatedSources = T {
-    shared.generateCoreSources(T.ctx().dest)
+    Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
-      shared.generateCoreTestSources(T.ctx().dest)
+      Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
 }
@@ -117,9 +117,8 @@ object scalalib extends MillModule {
   )
 
   def genTask(m: ScalaModule) = T.task{
-    Seq(m.jar(), m.sourcesJar()) ++
-    m.externalCompileDepClasspath() ++
-    m.externalCompileDepSources()
+    Seq(m.jar(), m.sourceJar()) ++
+    m.runClasspath()
   }
 
   def testArgs = T{
@@ -237,7 +236,7 @@ def publishVersion = T.input{
       val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
 
       val commitsSinceLastTag =
-        %%('git, "rev-list", 'master, "--count")(pwd).out.trim.toInt -
+        %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
         %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
       ("unstable", s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")

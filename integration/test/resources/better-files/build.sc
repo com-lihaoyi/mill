@@ -27,7 +27,7 @@ trait BetterFilesModule extends SbtModule{
     "-Xlint:nullary-unit",               // Warn when nullary methods return Unit.
     "-Xlint:option-implicit",            // Option.apply used implicit view.
     "-Xlint:package-object-classes",     // Class or object defined in package object.
-    "-Xlint:poly-implicit-overload",     // Parameterized overloaded implicit methods are not visible as view bounds.
+    "-Xlint:poly-implicit-o¡verload",     // Parameterized overloaded implicit methods are not visible as view bounds.
     "-Xlint:private-shadow",             // A private field (or class parameter) shadows a superclass field.
     "-Xlint:stars-align",                // Pattern sequence wildcard must align with sequence component.
     "-Xlint:type-parameter-shadow",      // A local type parameter shadows a type already in scope.
@@ -76,7 +76,7 @@ object benchmarks extends BetterFilesModule{
   def ivyDeps = Agg(
     ivy"commons-io:commons-io:2.5"
   )
-  def depClasspath = Agg(
+  def unmanagedClasspath = Agg(
     mill.modules.Util.download(
       "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
       "fastjavaio.jar"

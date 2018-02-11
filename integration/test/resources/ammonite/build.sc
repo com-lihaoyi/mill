@@ -13,6 +13,10 @@ trait AmmModule extends mill.scalalib.CrossSbtModule{
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFramework = "utest.runner.Framework"
   }
+  def allIvyDeps = T{transitiveIvyDeps() ++ scalaLibraryIvyDeps()}
+  def externalSources = T{
+    resolveDeps(allIvyDeps, sources = true)()
+  }
 }
 
 object ops extends Cross[OpsModule](binCrossScalaVersions:_*)
@@ -44,6 +48,10 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
       ivy"com.lihaoyi::pprint:0.5.2",
       ivy"com.lihaoyi::fansi:0.2.4"
     )
+    def compileIvyDeps = Agg(
+      ivy"org.scala-lang:scala-reflect:$crossScalaVersion"
+    )
+
   }
 
 
@@ -59,7 +67,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
     def generatedSources = T{
       import ammonite.ops._
       cp(build.millSourcePath/'project/"Constants.scala", T.ctx().dest/"Constants.scala")
-      T.ctx().dest
+      Seq(PathRef(T.ctx().dest))
     }
   }
 
@@ -91,7 +99,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
       def resources = T.sources {
         super.resources() ++
         ReplModule.this.sources() ++
-        ReplModule.this.externalCompileDepSources()
+        ReplModule.this.externalSources()
       }
     }
   }
@@ -118,7 +126,7 @@ class MainModule(val crossScalaVersion: String) extends AmmModule{
       amm.interp().sources() ++
       amm.repl().sources() ++
       sources() ++
-      externalCompileDepSources()
+      externalSources()
 
 
 
