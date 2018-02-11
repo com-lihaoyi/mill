@@ -3,7 +3,7 @@ package mill.integration
 import ammonite.ops._
 import utest._
 
-object UpickleTests extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle") {
+class UpickleTests(fork: Boolean) extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {
   val tests = Tests{
     initWorkspace()
     'test - {

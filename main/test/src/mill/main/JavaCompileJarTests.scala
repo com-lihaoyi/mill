@@ -4,7 +4,7 @@ import ammonite.ops._
 import mill.util.ScriptTestSuite
 import utest._
 
-object JavaCompileJarTests extends ScriptTestSuite {
+object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "java-compile-jar"
   def scriptSourcePath = pwd / 'main / 'test / 'resources / 'examples / 'javac
   val tests = Tests{

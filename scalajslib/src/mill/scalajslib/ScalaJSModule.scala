@@ -44,7 +44,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       Seq(
         ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
       )
-    ).map(_.find(_.path.toString.contains("mill-jsbridge")).get)
+    ).map(_.find(_.path.toString.contains("mill-scalajslib-jsbridges")).get)
   }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{

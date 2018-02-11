@@ -5,19 +5,27 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import ammonite.ops._
 import utest._
 
-abstract class ScriptTestSuite extends TestSuite{
+abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   def workspaceSlug: String
   def scriptSourcePath: Path
 
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
-//  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
-  val stdOutErr = new PrintStream(System.out)
+  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+//  val stdOutErr = new PrintStream(System.out)
   val stdIn = new ByteArrayInputStream(Array())
-  val runner = new mill.main.MainRunner(
+  lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath),
     stdOutErr, stdOutErr, stdIn
   )
-  def eval(s: String*) = runner.runScript(workspacePath / "build.sc", s.toList)
+  def eval(s: String*) = {
+    if (!fork) runner.runScript(workspacePath / "build.sc", s.toList)
+    else{
+      try {
+        %%(home / "mill-release", s)(workspacePath)
+        true
+      }catch{case e: Throwable => false}
+    }
+  }
   def meta(s: String) = {
     val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
 

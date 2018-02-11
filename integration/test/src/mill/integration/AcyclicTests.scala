@@ -3,7 +3,8 @@ package mill.integration
 import ammonite.ops._
 import utest._
 
-object AcyclicTests extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic") {
+class AcyclicTests(fork: Boolean)
+  extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
   val tests = Tests{
     initWorkspace()
 
