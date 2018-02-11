@@ -70,7 +70,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       Seq(compile()),
-      compileDepClasspath(),
+      runClasspath(),
       mainClass(),
       FastOpt
     )
@@ -81,7 +81,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       Seq(compile()),
-      compileDepClasspath(),
+      runClasspath(),
       mainClass(),
       FullOpt
     )
@@ -107,7 +107,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       Seq(compile()),
-      compileDepClasspath(),
+      runClasspath(),
       Some(mainClass),
       FastOpt
     )
@@ -150,7 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     super.scalacPluginIvyDeps() ++
     Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
   }
-  override def scalaLibraryDeps = T{
+  override def scalaLibraryIvyDeps = T{
     Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
   }
 
@@ -183,7 +183,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       compile() +: upstreamCompileOutput(),
-      scalaJSTestDeps() ++ compileDepClasspath(),
+      scalaJSTestDeps() ++ runClasspath(),
       None,
       FastOpt
     )

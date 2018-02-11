@@ -49,7 +49,7 @@ trait PublishModule extends ScalaModule { outer =>
   def publishLocal(): define.Command[Unit] = T.command {
     LocalPublisher.publish(
       jar = jar().path,
-      sourcesJar = sourcesJar().path,
+      sourcesJar = sourceJar().path,
       docsJar = docsJar().path,
       pom = pom().path,
       ivy = ivy().path,
@@ -67,7 +67,7 @@ trait PublishModule extends ScalaModule { outer =>
       artifactMetadata(),
       Seq(
         jar() -> s"$baseName.jar",
-        sourcesJar() -> s"$baseName-sources.jar",
+        sourceJar() -> s"$baseName-sources.jar",
         docsJar() -> s"$baseName-javadoc.jar",
         pom() -> s"$baseName.pom"
       )

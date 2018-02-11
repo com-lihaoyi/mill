@@ -39,22 +39,21 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   )
 
   def moduleDeps = Seq.empty[ScalaModule]
-  def depClasspath = T{ Agg.empty[PathRef] }
-
-
-  def upstreamRunClasspath = T{
-    Task.traverse(moduleDeps)(p =>
-      T.task(p.runDepClasspath() ++ p.runClasspath())
-    )
+  def transitiveModuleDeps: Seq[ScalaModule] = {
+    Seq(this) ++ moduleDeps.flatMap(_.transitiveModuleDeps).distinct
   }
+  def unmanagedClasspath = T{ Agg.empty[PathRef] }
 
+
+  def transitiveIvyDeps: T[Agg[Dep]] = T{
+    ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+  }
   def upstreamCompileOutput = T{
     Task.traverse(moduleDeps)(_.compile)
   }
-  def upstreamCompileClasspath = T{
-    externalCompileDepClasspath() ++
-    upstreamCompileOutput().map(_.classes) ++
-    Task.traverse(moduleDeps)(_.compileDepClasspath)().flatten
+
+  def upstreamRunClasspath: T[Agg[PathRef]] = T{
+    Task.traverse(moduleDeps)(_.runClasspath)().flatten
   }
 
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
@@ -68,29 +67,6 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def platformSuffix = T{ "" }
-  def externalCompileDepClasspath: T[Agg[PathRef]] = T{
-    Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepClasspath)().flatten) ++
-    resolveDeps(
-      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())}
-    )()
-  }
-
-  def externalCompileDepSources: T[Agg[PathRef]] = T{
-    Agg.from(Task.traverse(moduleDeps)(_.externalCompileDepSources)().flatten) ++
-    resolveDeps(
-      T.task{ivyDeps() ++ compileIvyDeps() ++ scalaCompilerIvyDeps(scalaVersion())},
-      sources = true
-    )()
-  }
-
-  /**
-    * Things that need to be on the classpath in order for this code to compile;
-    * might be less than the runtime classpath
-    */
-  def compileDepClasspath: T[Agg[PathRef]] = T{
-    upstreamCompileClasspath() ++
-    depClasspath()
-  }
 
   def compilerBridgeSources = T{
     resolveDependencies(
@@ -101,12 +77,11 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def scalacPluginClasspath: T[Agg[PathRef]] =
-    resolveDeps(
-      T.task{scalacPluginIvyDeps()}
-    )()
+  def scalacPluginClasspath: T[Agg[PathRef]] = T {
+    resolveDeps(scalacPluginIvyDeps)()
+  }
 
-  def scalaLibraryDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
+  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
@@ -116,16 +91,6 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )()
   }
 
-  /**
-    * Things that need to be on the classpath in order for this code to run
-    */
-  def runDepClasspath: T[Agg[PathRef]] = T{
-    Agg.from(upstreamRunClasspath().flatten) ++
-    depClasspath() ++
-    resolveDeps(
-      T.task{ivyDeps() ++ runIvyDeps() ++ scalaLibraryDeps() }
-    )()
-  }
 
   def prependShellScript: T[String] = T{ "" }
 
@@ -139,7 +104,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       scalaVersion(),
       allSources().map(_.path),
       compilerBridgeSources().map(_.path),
-      compileDepClasspath().map(_.path),
+      compileClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
       scalacOptions(),
@@ -148,9 +113,20 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-  
+
+  def compileClasspath = T{
+    upstreamRunClasspath() ++
+    resources() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  }
+
   def runClasspath = T{
-    runDepClasspath() ++ resources() ++ Seq(compile().classes)
+    upstreamRunClasspath() ++
+    Agg(compile().classes) ++
+    resources() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   def assembly = T{
@@ -183,19 +159,18 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       if p.isFile
     } yield p.toNIO.toString
 
-
     val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
-      compileDepClasspath().filter(_.path.ext != "pom").map(_.path),
+      runClasspath().filter(_.path.ext != "pom").map(_.path),
       mainArgs = (files ++ options).toSeq
     )
 
     createJar(Agg(javadocDir))(outDir)
   }
 
-  def sourcesJar = T {
+  def sourceJar = T {
     createJar((allSources() ++ resources()).map(_.path).filter(exists))
   }
 

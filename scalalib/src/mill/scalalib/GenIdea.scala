@@ -65,8 +65,17 @@ object GenIdea {
       }
 
     val resolved = for((path, mod) <- modules) yield {
+      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.scalaLibraryIvyDeps()}
+      val externalDependencies = T.task{
+        mod.resolveDeps(allIvyDeps)() ++
+        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+      }
+
+      val externalSources = T.task{
+        mod.resolveDeps(allIvyDeps, sources = true)()
+      }
       val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
-        evaluator.evaluate(Agg(mod.externalCompileDepClasspath, mod.externalCompileDepSources))
+        evaluator.evaluate(Agg(externalDependencies, externalSources))
           .values
 
       (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
