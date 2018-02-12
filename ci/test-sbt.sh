@@ -7,5 +7,5 @@ git clean -xdf
 
 # First build & run tests using SBT
 sbt core/test main/test scalalib/test scalajslib/test
-sbt "integration/test-only -- mill.integration.local"
+sbt "integration/test-only -- mill.integration.local.{AmmoniteTests,BetterFilesTests}"
 sbt bin/test:assembly

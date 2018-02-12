@@ -37,14 +37,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
     val jsBridgePath = sys.props(jsBridgeKey)
     if (jsBridgePath != null) Success(
-      PathRef(Path(jsBridgePath), quick = true)
+      Agg(PathRef(Path(jsBridgePath), quick = true))
     ) else resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       "2.12.4",
       Seq(
         ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
       )
-    ).map(_.find(_.path.toString.contains("mill-scalajslib-jsbridges")).get)
+    ).map(_.filter(_.path.toString.contains("mill-scalajslib-jsbridges")))
   }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
@@ -63,7 +63,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def toolsClasspath = T { Agg(sjsBridgeClasspath()) ++ scalaJSLinkerClasspath() }
+  def toolsClasspath = T { sjsBridgeClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastOpt = T {
     link(
