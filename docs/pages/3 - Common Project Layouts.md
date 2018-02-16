@@ -206,6 +206,12 @@ compiler flags, and download artifacts as part of the build.
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
+## Upickle
+
+- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
+
+A single cross-platform Scala.js/Scala-JVM module, including the setup necessary
+for publishing to Maven Central
 
 ## Ammonite
 
