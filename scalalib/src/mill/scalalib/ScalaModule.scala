@@ -23,7 +23,19 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     override def moduleDeps = Seq(outer)
   }
   def scalaVersion: T[String]
-  def mainClass: T[Option[String]] = None
+
+  def mainClass: T[Option[String]] = T{
+    discoverMainClasses() match {
+      case Seq(main) => Some(main)
+      case _         => None
+    }
+  }
+
+  def discoverMainClasses: T[Seq[String]] = T{
+    Task.traverse(transitiveModuleDeps){ module => T.task {
+      mill.scalalib.ScalaWorkerApi.scalaWorker().discoverMainClasses(module.compile())
+    }}().flatten.distinct
+  }
 
   def ivyDeps = T{ Agg.empty[Dep] }
   def compileIvyDeps = T{ Agg.empty[Dep] }

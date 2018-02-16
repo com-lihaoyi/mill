@@ -62,4 +62,6 @@ trait ScalaWorkerApi {
                testClassfilePath: Agg[Path],
                args: Seq[String])
               (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result])
+
+  def discoverMainClasses(compilationResult: CompilationResult)(implicit ctx: mill.util.Ctx): Seq[String]
 }
