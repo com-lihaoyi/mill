@@ -23,6 +23,7 @@ sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/dow
 The simplest Mill build for a Scala project looks as follows:
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 
@@ -44,6 +45,10 @@ out/
     foo/
         ... 
 ```
+
+You can download an example project with this layout here:
+
+- [Example 1](example-1.zip)
 
 The source code for this module would live in the `foo/src/` folder, matching
 the name you assigned to the module. Output for this module (compiled files,
@@ -70,6 +75,7 @@ time.
 ## Multiple Modules
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object foo extends ScalaModule {
@@ -126,6 +132,7 @@ and re-compiled as necessary when source code in each module changes.
 Modules can also be nested:
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object foo extends ScalaModule {
@@ -417,6 +424,10 @@ object foo extends PublishModule{
   )
 }
 ```
+
+You can download an example project with this layout here:
+
+- [Example 2](example-2.zip)
 
 Which you can then publish using the `mill foo.publish` command, which takes
 your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:

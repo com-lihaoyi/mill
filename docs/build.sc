@@ -141,9 +141,11 @@ def main(publish: Boolean = false) = {
     cp(otherFile, targetFolder/'page/(otherFile relativeTo postsFolder))
   }
 
-  cp(cwd/"favicon.png", targetFolder/"favicon.ico")
-  cp(cwd/"logo-white.svg", targetFolder/"logo-white.svg")
+  cp(pwd/"favicon.png", targetFolder/"favicon.ico")
+  cp(pwd/"logo-white.svg", targetFolder/"logo-white.svg")
 
+  %('zip, "-r", targetFolder/"example-1.zip", "example-1")(pwd)
+  %('zip, "-r", targetFolder/"example-2.zip", "example-2")(pwd)
   for(i <- posts.indices){
     val post = posts(i)
 

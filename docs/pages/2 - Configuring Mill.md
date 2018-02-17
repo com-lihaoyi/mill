@@ -114,6 +114,7 @@ To run tests in-process in an isolated classloader.
 You can define multiple test suites if you want, e.g.:
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object foo extends ScalaModule {
@@ -140,6 +141,7 @@ configuration options apply.
 ## Scala Compiler Plugins
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object foo extends ScalaModule {
@@ -158,6 +160,7 @@ is needed on the compilation classpath (though not at runtime).
 ## Common Configuration
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 trait CommonModule extends ScalaModule{
@@ -179,6 +182,7 @@ the same testing framework, etc. and all that can be extracted out into the
 ## Custom Tasks
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object foo extends ScalaModule {
@@ -218,6 +222,7 @@ to return nothing.
 ## Custom Modules
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 object qux extends Module{
@@ -244,6 +249,7 @@ You can also define your own module traits, with their own set of custom tasks,
 to represent other things e.g. Javascript bundles, docker image building,:
 
 ```scala
+// build.sc
 trait MySpecialModule extends Module{
   ...
 }
@@ -254,6 +260,7 @@ object bar extends MySpecialModule
 ## Overriding Tasks
 
 ```scala
+// build.sc
 import mill._
 import mill.scalalib._
 

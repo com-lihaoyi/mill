@@ -165,10 +165,10 @@ There are several APIs available to you within the body of a `T{...}` or
 `T.command{...}` block to help your write the code implementing your Target or
 Command:
 
-### mill.util.Ctx.DefCtx
+### mill.util.Ctx.DestCtx
 
 - `T.ctx().dest`
-- `implicitly[mill.util.Ctx.DefCtx]`
+- `implicitly[mill.util.Ctx.DestCtx]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
 assigned to every Target or Command. It is cleared before your task runs, and
