@@ -143,7 +143,7 @@ The `artifactName` defaults to the name of your module (in this case `foo`) but
 can be overriden. The `organization` is defined in `pomSettings`.
 
 Once you've mixed in `PublishModule`, you can publish your libraries to maven
-central  via:
+central via:
 
 ```bash
 target/bin/mill mill.scalalib.PublishModule/publishAll \

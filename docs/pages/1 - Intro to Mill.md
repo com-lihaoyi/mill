@@ -351,5 +351,89 @@ you would depend on tasks from within your build file.
 You can use this REPL to run build commands quicker, due to keeping the JVM warm
 between runs, or to interactively explore your build to see what is available.
 
+## Deploying your code
 
+The two most common things to do once your code is complete is to make an
+assembly (e.g. for deployment/installation) or publishing (e.g. to Maven
+Central). Mill comes with both capabilities built in.
 
+Mill comes built-in with the ability to make assemblies. Given a simple Mill
+build:
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule{
+  def scalaVersion = "2.12.4"
+}
+```
+
+You can make a self-contained assembly via:
+
+```bash
+$ mill foo.assembly
+
+$ ls -lh out/foo/assembly/dest/out.jar
+-rw-r--r--  1 lihaoyi  staff   5.0M Feb 17 11:14 out/foo/assembly/dest/out.jar
+```
+
+You can then move the `out.jar` file anywhere you would like, and run it
+standalone using `java`:
+
+```bash
+$ java -cp out/foo/assembly/dest/out.jar foo.Example
+Hello World!
+```
+
+To publish to Maven Central, you need to make `foo` extend Mill's
+`PublishModule` trait:
+
+```scala
+// build.sc
+import mill._, scalalib._, publish._
+
+object foo extends PublishModule{
+  def scalaVersion = "2.12.4"
+  def publishVersion = "0.0.1"
+
+  def pomSettings = PomSettings(
+    description = "Hello",
+    organization = "com.lihaoyi",
+    url = "https://github.com/lihaoyi/example",
+    licenses = Seq(
+       License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
+    ),
+    scm = SCM(
+      "git://github.com/lihaoyi/example.git",
+      "scm:git://github.com/lihaoyi/example.git"
+    ),
+    developers = Seq(
+      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+    )
+  )
+}
+```
+
+Which you can then publish using the `mill foo.publish` command, which takes
+your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
+
+```bash
+$ mill foo.publish
+Missing arguments: (--sonatypeCreds: String, --gpgPassphrase: String, --release: Boolean)
+
+Arguments provided did not match expected signature:
+
+publish
+  --sonatypeCreds  String
+  --gpgPassphrase  String
+  --release        Boolean
+```
+
+You also need to specify `release` as `true` or `false`, depending on whether
+you just want to stage your module on `oss.sonatype.org` or you want Mill to
+complete the release process to Maven Central.
+
+If you are publishing multiple artifacts, you can also use `target/bin/mill
+mill.scalalib.PublishModule/publishAll1 as described
+[here](http://www.lihaoyi.com/mill/page/common-project-layouts.html#publishing)
