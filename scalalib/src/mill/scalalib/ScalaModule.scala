@@ -24,17 +24,22 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
   def scalaVersion: T[String]
 
-  def mainClass: T[Option[String]] = T{
-    discoverMainClasses() match {
-      case Seq(main) => Some(main)
-      case _         => None
-    }
-  }
+  def mainClass: T[Option[String]] = None
 
-  def discoverMainClasses: T[Seq[String]] = T{
-    Task.traverse(transitiveModuleDeps){ module => T.task {
-      mill.scalalib.ScalaWorkerApi.scalaWorker().discoverMainClasses(module.compile())
-    }}().flatten.distinct
+  def finalMainClass: T[String] = T{
+    mainClass() match {
+      case Some(main) => Result.Success(main)
+      case None =>
+        mill.scalalib.ScalaWorkerApi.scalaWorker().discoverMainClasses(compile()) match {
+          case Seq() => Result.Failure("No main class specified or found")
+          case Seq(main) => Result.Success(main)
+          case mains =>
+            Result.Failure(
+              s"Multiple main classes found (${mains.mkString(",")}) " +
+              "please explicitly specify which one to use by overriding mainClass"
+            )
+        }
+    }
   }
 
   def ivyDeps = T{ Agg.empty[Dep] }
@@ -201,7 +206,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def runLocal(args: String*) = T.command {
     Jvm.runLocal(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      finalMainClass(),
       runClasspath().map(_.path),
       args
     )
@@ -209,7 +214,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def run(args: String*) = T.command{
     Jvm.interactiveSubprocess(
-      mainClass().getOrElse(throw new RuntimeException("No mainClass provided!")),
+      finalMainClass(),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),

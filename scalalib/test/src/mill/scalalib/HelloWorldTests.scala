@@ -122,7 +122,7 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T, M <: TestUtil.BaseModule: Discover](m: M)
+  def workspaceTest[T, M <: TestUtil.BaseModule: Discover](m: M, resourcePath: Path = resourcePath)
                                                          (t: TestEvaluator[M] => T)
                                                          (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
@@ -300,11 +300,27 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldWithoutMain.core.run())
+      'notRunWithoutMainClass - workspaceTest(
+        HelloWorldWithoutMain,
+        pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
+      ){eval =>
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
+      }
+
+      'runDiscoverMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
+        // Make sure even if there isn't a main class defined explicitly, it gets
+        // discovered by Zinc and used
+        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+        val Right((_, evalCount)) = eval.apply(
+          HelloWorldWithoutMain.core.run(runResult.toString)
+        )
+
+        assert(evalCount > 0)
+
 
         assert(
-          err.isInstanceOf[RuntimeException]
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
         )
       }
     }
@@ -337,12 +353,12 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
+      'notRunWithoutMainClass - workspaceTest(
+        HelloWorldWithoutMain,
+        pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
+      ){eval =>
+        val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
-        assert(
-          err.isInstanceOf[RuntimeException]
-        )
       }
     }
     'jar - {
