@@ -1,4 +1,4 @@
-Mill is your shiny new Scala build tool!
+[Mill](https://github.com/lihaoyi/mill) is your shiny new Scala build tool!
 [Confused by SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
 Frustrated by Maven? Perplexed by Gradle? Give Mill a try!
 
@@ -17,7 +17,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.0.7/0.0.7 && sudo chmod +x /usr/local/bin/mill
+sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.0/0.1.0 && sudo chmod +x /usr/local/bin/mill
 ```
 
 The simplest Mill build for a Scala project looks as follows:
@@ -308,7 +308,7 @@ JSON it outputs is structured and easily parsed & manipulated.
 
 ## IntelliJ Support
 
-Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
+Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdeaModule/idea` to
 generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within

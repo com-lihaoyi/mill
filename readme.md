@@ -94,14 +94,14 @@ mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
 
 * Run multiple targets:
 ```bash
-mill --all core.test scalalib.test 
+mill all core.test scalalib.test 
 ```
 
 **Note**: don't forget to put `--all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
 
 * Run multiple commands with arguments:
 ```bash
-mill --all bridges[2.11.11].publish bridges[2.12.4].publish -- --credentials foo --gpgPassphrase bar 
+mill all bridges[2.11.11].publish bridges[2.12.4].publish -- --credentials foo --gpgPassphrase bar 
 ```
 
 Here `--credentials foo --gpgPassphrase bar` arguments will be passed to both `bridges[2.11.11].publish` and `bridges[2.12.4].publish` command. 
@@ -114,21 +114,21 @@ Here brace expansion from bash(or another shell that support brace expansion) co
 
 * Run same targets in multiple modules with brace expansion:
 ```bash
-mill --all {core,scalalib,scalajslib,integration}.test
+mill all {core,scalalib,scalajslib,integration}.test
 ```
 
 will run `test` target in `core`, `scalalib`, `scalajslib` and `integration` modules.
 
 * Run multiple targets in one module with brace expansion:
 ```bash
-mill --all scalalib.{compile,test}
+mill all scalalib.{compile,test}
 ```
 
 will run `compile` and `test` targets in `scalalib` module.
 
 * Run multiple targets in multiple modules:
 ```bash
-mill show --all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
+mill all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
 ```
 
 will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `scalalib` modules. 
@@ -136,7 +136,7 @@ will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `sca
 * Run targets in different cross build modules
 
 ```bash
-mill --all bridges[{2.11.11,2.12.4}].publish --  --credentials foo --gpgPassphrase bar
+mill all bridges[{2.11.11,2.12.4}].publish --  --credentials foo --gpgPassphrase bar
 ```
 
 will run `publish` command in both `brides[2.11.11]` and `bridges[2.12.4]` modules
@@ -146,13 +146,13 @@ tasks:
 
 ```bash
 # Run the `test` command of all top-level modules
-mill --all _.test
+mill all _.test
 
 # Run the `test` command of all modules, top-level or nested
-mill --all __.test
+mill all __.test
 
 # Run `compile` in every cross-module of `bridges`
-mill --all bridges[_].compile
+mill all bridges[_].compile
 ```
 
 **Note**: When you run multiple targets with `--all` flag, they are not
