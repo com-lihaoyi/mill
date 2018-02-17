@@ -33,6 +33,15 @@ object HelloWorldTests extends TestSuite {
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
+  object HelloWorldDefaultMain extends HelloBase {
+    object core extends HelloWorldModule
+  }
+
+  object HelloWorldWithoutMain extends HelloBase {
+    object core extends HelloWorldModule{
+      def mainClass = None
+    }
+  }
 
   object HelloWorldWithMain extends HelloBase {
     object core extends HelloWorldModule{
@@ -291,8 +300,8 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.run())
+      'notRunWithoutMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldWithoutMain.core.run())
 
         assert(
           err.isInstanceOf[RuntimeException]
@@ -314,8 +323,22 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
-      'notRunWithoutMainClass - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runLocal())
+      'runWithDefaultMain - workspaceTest(HelloWorldDefaultMain){eval =>
+        val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
+        val Right((_, evalCount)) = eval.apply(
+          HelloWorldDefaultMain.core.runLocal(runResult.toString)
+        )
+
+        assert(evalCount > 0)
+
+
+        assert(
+          exists(runResult),
+          read(runResult) == "hello rockjam, your age is: 25"
+        )
+      }
+      'notRunWithoutMainClass - workspaceTest(HelloWorldWithoutMain){eval =>
+        val Left(Result.Exception(err, _)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
         assert(
           err.isInstanceOf[RuntimeException]

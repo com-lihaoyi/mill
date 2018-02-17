@@ -99,6 +99,22 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     compiledDest
   }
 
+
+
+  def discoverMainClasses(compilationResult: CompilationResult)(implicit ctx: mill.util.Ctx): Seq[String] = {
+    def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
+
+    toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
+      .map(_.getAnalysis)
+      .flatMap{
+        case analysis: Analysis =>
+          Some(analysis.infos.allInfos.values.map(_.getMainClasses).flatten.toSeq.sorted)
+        case _ =>
+          None
+      }
+      .getOrElse(Seq.empty[String])
+  }
+
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],
                    compileBridgeSources: Agg[Path],
