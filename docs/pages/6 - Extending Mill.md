@@ -64,6 +64,10 @@ def doWebpackStuff(webpackProcess: Process, sources: Seq[PathRef]): PathRef = ??
 def compiledJavascript = T{ doWebpackStuff(webpackWorker(), javascriptSources()) }
 ```
 
+Mill itself uses `T.worker`s for it's built-in Scala support: we keep the Scala
+compiler in memory between compilations, rather than discarding it each time, in
+order to improve performance.
+
 ## Custom Modules
 
 ```scala
