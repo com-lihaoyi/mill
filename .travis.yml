@@ -19,7 +19,7 @@ matrix:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release.py"
+    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
 

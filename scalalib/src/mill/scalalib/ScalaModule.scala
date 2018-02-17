@@ -102,10 +102,18 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def generatedSources = T{ Seq.empty[PathRef] }
   def allSources = T{ sources() ++ generatedSources() }
 
+  def allSourceFiles = T{
+    for {
+      root <- allSources()
+      if exists(root.path)
+      path <- ls.rec(root.path)
+      if path.isFile && (path.ext == "scala" || path.ext == "java")
+    } yield PathRef(path)
+  }
   def compile: T[CompilationResult] = T.persistent{
     mill.scalalib.ScalaWorkerApi.scalaWorker().compileScala(
       scalaVersion(),
-      allSources().map(_.path),
+      allSourceFiles().map(_.path),
       scalaCompilerBridgeSources().map(_.path),
       compileClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),

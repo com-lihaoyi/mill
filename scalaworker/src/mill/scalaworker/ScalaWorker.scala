@@ -182,12 +182,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       val newResult = ic.compile(
         ic.inputs(
           classpath = classesIODir +: compileClasspathFiles,
-          sources = for {
-            root <- sources.toArray
-            if exists(root)
-            path <- ls.rec(root)
-            if path.isFile && (path.ext == "scala" || path.ext == "java")
-          } yield path.toIO,
+          sources = sources.toArray.map(_.toIO),
           classesDirectory = classesIODir,
           scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
           javacOptions = javacOptions.toArray,

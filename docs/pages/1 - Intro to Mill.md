@@ -49,13 +49,13 @@ resolved dependency lists, ...) would live in `out/foo/`.
 This can be run from the Bash shell via:
 
 ```bash
-$ mill foo.compile        # compile sources into classfiles
+$ mill foo.compile                 # compile sources into classfiles
 
-$ mill foo.run            # run the main method, if any
+$ mill foo.runMain foo.ExampleMain # run the specified main method
 
-$ mill foo.jar            # bundle the classfiles into a jar
+$ mill foo.jar                     # bundle the classfiles into a jar
 
-$ mill foo.assembly       # bundle the classfiles and all dependencies into a jar 
+$ mill foo.assembly                # bundle classfiles and all dependencies into a jar 
 ```
 
 The most common **tasks** that Mill can run are cached **targets**, such as
