@@ -264,7 +264,7 @@ object foo extends ScalaModule {
     super.compile()
   }
   def run(args: String*) = T.command{
-    println("Running... + args.mkString(" "))
+    println("Running..." + args.mkString(" "))
     super.run(args:_*)
   }
 }

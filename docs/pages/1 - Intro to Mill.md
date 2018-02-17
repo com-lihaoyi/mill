@@ -181,6 +181,10 @@ $ mill --watch foo.compile
 $ mill --watch foo.run 
 ```
 
+Mill's `--watch` flag watches both the files you are building using Mill, as
+well as Mill's own `build.sc` file and anything it imports, so any changes to
+your `build.sc` will automatically get picked up.
+
 ## Command-line Tools
 
 Mill comes built in with a small number of useful command-line utilities:
