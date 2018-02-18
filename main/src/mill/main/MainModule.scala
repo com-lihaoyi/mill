@@ -8,7 +8,7 @@ import upickle.Js
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
-    RunScript.resolveTasks(mill.main.Resolve, evaluator, targets, multiSelect) match{
+    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, multiSelect) match{
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }

@@ -198,7 +198,7 @@ object RunScript{
   def evaluateTasks[T](evaluator: Evaluator[T],
                        scriptArgs: Seq[String],
                        multiSelect: Boolean) = {
-    for (targets <- resolveTasks(mill.main.Resolve, evaluator, scriptArgs, multiSelect)) yield {
+    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, multiSelect)) yield {
       val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
       val watched2 = for{

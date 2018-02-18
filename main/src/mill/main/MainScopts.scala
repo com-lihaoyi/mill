@@ -10,7 +10,7 @@ object Tasks{
 
     def reads = s => {
       RunScript.resolveTasks(
-        mill.main.Resolve,
+        mill.main.ResolveTasks,
         Evaluator.currentEvaluator.get,
         Seq(s),
         multiSelect = false

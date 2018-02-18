@@ -5,7 +5,7 @@ import mill.define.TaskModule
 import ammonite.util.Res
 import mill.main.ResolveMetadata.singleModuleMeta
 import mill.util.Router.EntryPoint
-import mill.util.{Router, Scripts}
+import mill.util.Scripts
 
 import scala.reflect.ClassTag
 
@@ -27,31 +27,122 @@ object ResolveMetadata extends Resolve[String]{
     }
     modules ++ targets ++ commands
   }
-  def endResolve(obj: Module,
-                 revSelectorsSoFar: List[Segment],
-                 last: String,
-                 discover: Discover[_],
-                 rest: Seq[String]): Either[String, List[String]] = {
+
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, List[String]] = {
 
     val direct = singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty)
-    if (last == "__") {
-      Right(
-        // Filter out our own module in
-        obj.millInternal.modules
-          .filter(_ != obj)
-          .flatMap(m => singleModuleMeta(m, discover, m != obj))
-          .toList
-      )
+    last match{
+      case "__" =>
+        Right(
+          // Filter out our own module in
+          obj.millInternal.modules
+            .filter(_ != obj)
+            .flatMap(m => singleModuleMeta(m, discover, m != obj))
+            .toList
+        )
+      case "_" => Right(direct.toList)
+      case _ =>
+        direct.find(_.split('.').last == last) match{
+          case None => Resolve.errorMsgLabel(direct, last, revSelectorsSoFar)
+          case Some(s) => Right(List(s))
+        }
     }
-    else if (last == "_") Right(direct.toList)
-    else direct.find(_.split('.').last == last) match{
-      case None => Resolve.errorMsgLabel(direct, last, revSelectorsSoFar)
-      case Some(s) => Right(List(s))
+  }
+
+  def endResolveCross(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: List[String],
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, List[String]] = {
+    obj match{
+      case c: Cross[Module] =>
+        last match{
+          case List("__") => Right(c.items.map(_._2.toString))
+          case items =>
+            c.items
+              .filter(_._1.length == items.length)
+              .filter(_._1.zip(last).forall{case (a, b) => b == "_" || a.toString == b})
+              .map(_._2.toString) match{
+              case Nil =>
+                Resolve.errorMsgCross(
+                  c.items.map(_._1.map(_.toString)),
+                  last,
+                  revSelectorsSoFar
+                )
+              case res => Right(res)
+            }
+
+        }
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
+          Resolve.hintListLabel(revSelectorsSoFar)
+        )
     }
   }
 }
 
-object Resolve extends Resolve[NamedTask[Any]]{
+object ResolveTasks extends Resolve[NamedTask[Any]]{
+
+
+  def endResolveCross(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: List[String],
+                      discover: Discover[_],
+                      rest: Seq[String])= {
+
+    obj match{
+      case c: Cross[Module] =>
+
+        Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match{
+          case None =>
+            Left(
+              "Unable to find default task to evaluate for module " +
+              Segments((Segment.Cross(last) :: revSelectorsSoFar).reverse:_*).render
+            )
+          case Some(v) => v.map(Seq(_))
+        }
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
+          Resolve.hintListLabel(revSelectorsSoFar)
+        )
+    }
+  }
+
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]) = {
+    val target =
+      obj
+        .millInternal
+        .reflect[Target[_]]
+        .find(_.label == last)
+        .map(Right(_))
+
+    val command = Resolve.invokeCommand(obj, last, discover, rest).headOption
+
+    command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
+      case None =>
+        Resolve.errorMsgLabel(
+          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+          last,
+          revSelectorsSoFar
+        )
+
+      // Contents of `either` *must* be a `Task`, because we only select
+      // methods returning `Task` in the discovery process
+      case Some(either) => either.right.map(Seq(_))
+    }
+  }
+}
+object Resolve{
   def minimum(i1: Int, i2: Int, i3: Int)= math.min(math.min(i1, i2), i3)
 
   /**
@@ -69,124 +160,100 @@ object Resolve extends Resolve[NamedTask[Any]]{
     dist(s2.length)(s1.length)
   }
 
-  def unableToResolveLabel(last: String, revSelectorsSoFar: List[Segment]) = {
+  def unableToResolve(last: Segment, revSelectorsSoFar: List[Segment]) = {
     "Unable to resolve " +
-    Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render +
-    "."
-  }
-
-  def hintListLabel(revSelectorsSoFar: List[Segment]) = {
-    val search = Segments((Segment.Label("_") :: revSelectorsSoFar).reverse: _*).render
-    s" Try `mill resolve $search` to see what's available."
-  }
-
-  def hintListCross(revSelectorsSoFar: List[Segment]) = {
-    val search = Segments((Segment.Cross(Seq("__")) :: revSelectorsSoFar).reverse: _*).render
-    s" Try `mill resolve $search` to see what's available."
-  }
-
-  def unableToResolveCross(last: Seq[String], revSelectorsSoFar: List[Segment]) = {
-    "Unable to resolve " +
-      Segments((Segment.Cross(last) :: revSelectorsSoFar).reverse: _*).render +
+      Segments((last :: revSelectorsSoFar).reverse: _*).render +
       "."
   }
 
-  def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
+  def hintList(last: Segment, revSelectorsSoFar: List[Segment]) = {
+    val search = Segments((last :: revSelectorsSoFar).reverse: _*).render
+    s" Try `mill resolve $search` to see what's available."
+  }
+  def hintListLabel(revSelectorsSoFar: List[Segment]) = {
+    hintList(Segment.Label("_"), revSelectorsSoFar)
+  }
+
+  def hintListCross(revSelectorsSoFar: List[Segment]) = {
+    hintList(Segment.Cross(Seq("__")), revSelectorsSoFar)
+  }
+
+  def errorMsgBase[T](direct: Seq[T],
+                      last0: T,
+                      revSelectorsSoFar: List[Segment],
+                      editSplit: String => String)
+                     (strings: T => Seq[String],
+                      segment: T => Segment)= {
+    val last = strings(last0)
     val similar =
       direct
-        .map(d => (d, Resolve.editDistance(d.split('.').last, last)))
+        .map(strings)
+        .filter(_.length == last.length)
+        .map(d => (d, d.zip(last).map{case (a, b) => Resolve.editDistance(editSplit(a), b)}.sum))
         .filter(_._2 < 3)
         .sortBy(_._2)
+
     val hint = similar match{
       case Nil => hintListLabel(revSelectorsSoFar)
       case items => " Did you mean " + items.head._1 + "?"
     }
-    Left(unableToResolveLabel(last, revSelectorsSoFar) + hint)
+    Left(unableToResolve(segment(last0), revSelectorsSoFar) + hint)
+  }
+  def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
+    errorMsgBase(direct, last, revSelectorsSoFar, _.split('.').last)(Seq(_), Segment.Label(_))
   }
 
   def errorMsgCross(crossKeys: Seq[Seq[String]],
                     last: Seq[String],
                     revSelectorsSoFar: List[Segment]) = {
-    val similar =
-      crossKeys
-        .filter(_.length == last.length)
-        .map(d => (d, d.zip(last).map{case (a, b) => Resolve.editDistance(a, b)}.sum))
-        .filter(_._2 < 3)
-        .sortBy(_._2)
-    val hint = similar match{
-      case Nil => hintListCross(revSelectorsSoFar)
-      case items =>
-        " Did you mean " +
-        Segments((Segment.Cross(items.head._1) :: revSelectorsSoFar).reverse: _*).render +
-        "?"
-    }
-    Left(unableToResolveCross(last, revSelectorsSoFar) + hint)
+    errorMsgBase(crossKeys, last, revSelectorsSoFar, x => x)(x => x, Segment.Cross(_))
   }
 
-  def endResolve(obj: Module,
-                 revSelectorsSoFar: List[Segment],
-                 last: String,
-                 discover: Discover[_],
-                 rest: Seq[String]) = {
-    val target =
-      obj
-        .millInternal
-        .reflect[Target[_]]
-        .find(_.label == last)
-        .map(Right(_))
+  def invokeCommand(target: Module,
+                    name: String,
+                    discover: Discover[_],
+                    rest: Seq[String]) = for {
+    (cls, entryPoints) <- discover.value
+    if cls.isAssignableFrom(target.getClass)
+    ep <- entryPoints
+    if ep._2.name == name
+  } yield Scripts.runMainMethod(
+    target,
+    ep._2.asInstanceOf[EntryPoint[Module]],
+    ammonite.main.Scripts.groupArgs(rest.toList)
+  ) match {
+    case Res.Success(v: Command[_]) => Right(v)
+    case Res.Failure(msg) => Left(msg)
+    case Res.Exception(ex, msg) =>
+      val sw = new java.io.StringWriter()
+      ex.printStackTrace(new java.io.PrintWriter(sw))
+      val prefix = if (msg.nonEmpty) msg + "\n" else msg
+      Left(prefix + sw.toString)
 
-    def invokeCommand(target: Module, name: String) = for {
-      (cls, entryPoints) <- discover.value
-      if cls.isAssignableFrom(target.getClass)
-      ep <- entryPoints
-      if ep._2.name == name
-    } yield Scripts.runMainMethod(
-      target,
-      ep._2.asInstanceOf[EntryPoint[Module]],
-      ammonite.main.Scripts.groupArgs(rest.toList)
-    ) match {
-      case Res.Success(v: Command[_]) => Right(v)
-      case Res.Failure(msg) => Left(msg)
-      case Res.Exception(ex, msg) =>
-        val sw = new java.io.StringWriter()
-        ex.printStackTrace(new java.io.PrintWriter(sw))
-        val prefix = if (msg.nonEmpty) msg + "\n" else msg
-        Left(prefix + sw.toString)
-
-    }
-
-    val runDefault = for {
-      child <- obj.millInternal.reflectNestedObjects[Module]
-      if child.millOuterCtx.segment == Segment.Label(last)
-      res <- child match {
-        case taskMod: TaskModule => Some(invokeCommand(child, taskMod.defaultCommandName()).headOption)
-        case _ => None
-      }
-    } yield res
-
-    val command = invokeCommand(obj, last).headOption
-
-    command orElse target orElse runDefault.flatten.headOption match {
-      case None =>
-        Resolve.errorMsgLabel(
-          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
-          last,
-          revSelectorsSoFar
-        )
-
-      // Contents of `either` *must* be a `Task`, because we only select
-      // methods returning `Task` in the discovery process
-      case Some(either) => either.right.map(Seq(_))
-    }
   }
+
+  def runDefault(obj: Module, last: Segment, discover: Discover[_], rest: Seq[String]) = for {
+    child <- obj.millInternal.reflectNestedObjects[Module]
+    if child.millOuterCtx.segment == last
+    res <- child match {
+      case taskMod: TaskModule =>
+        Some(invokeCommand(child, taskMod.defaultCommandName(), discover, rest).headOption)
+      case _ => None
+    }
+  } yield res
 
 }
 abstract class Resolve[R: ClassTag] {
-  def endResolve(obj: Module,
-                 revSelectorsSoFar: List[Segment],
-                 last: String,
-                 discover: Discover[_],
-                 rest: Seq[String]): Either[String, Seq[R]]
+  def endResolveCross(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: List[String],
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, Seq[R]]
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, Seq[R]]
 
   def resolve(remainingSelector: List[Segment],
               obj: mill.Module,
@@ -196,9 +263,10 @@ abstract class Resolve[R: ClassTag] {
               revSelectorsSoFar: List[Segment]): Either[String, Seq[R]] = {
 
     remainingSelector match{
-      case Segment.Cross(_) :: Nil => Left("Selector cannot start with a [cross] segment")
+      case Segment.Cross(last) :: Nil =>
+        endResolveCross(obj, revSelectorsSoFar, last.map(_.toString).toList, discover, rest)
       case Segment.Label(last) :: Nil =>
-        endResolve(obj, revSelectorsSoFar, last, discover, rest)
+        endResolveLabel(obj, revSelectorsSoFar, last, discover, rest)
 
       case head :: tail =>
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
@@ -252,7 +320,7 @@ abstract class Resolve[R: ClassTag] {
                 )
               case _ =>
                 Left(
-                  Resolve.unableToResolveCross(cross.map(_.toString), tail) +
+                  Resolve.unableToResolve(Segment.Cross(cross.map(_.toString)), tail) +
                   Resolve.hintListLabel(tail)
                 )
             }
