@@ -24,7 +24,6 @@ object ResolveMetadata extends Resolve[String]{
       if (isRootModule) ep._2.name
       else obj + "." + ep._2.name
     }
-
     modules ++ targets ++ commands
   }
   def endResolve(obj: Module,
@@ -35,8 +34,15 @@ object ResolveMetadata extends Resolve[String]{
 
     val direct = singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty)
     if (last == "__") {
-      Right(direct.toList ++ obj.millInternal.modules.flatMap(singleModuleMeta(_, discover, false)))
-    } else if (last == "_") Right(direct.toList)
+      Right(
+        // Filter out our own module in
+        obj.millInternal.modules
+          .filter(_ != obj)
+          .flatMap(m => singleModuleMeta(m, discover, m != obj))
+          .toList
+      )
+    }
+    else if (last == "_") Right(direct.toList)
     else direct.find(_.split('.').last == last) match{
       case None =>
         Left(
@@ -47,6 +53,7 @@ object ResolveMetadata extends Resolve[String]{
     }
   }
 }
+
 object Resolve extends Resolve[NamedTask[Any]]{
   def endResolve(obj: Module,
                  revSelectorsSoFar: List[Segment],

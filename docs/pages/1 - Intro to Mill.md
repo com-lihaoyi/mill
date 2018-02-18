@@ -66,6 +66,11 @@ $ mill foo.jar                     # bundle the classfiles into a jar
 $ mill foo.assembly                # bundle classfiles and all dependencies into a jar 
 ```
 
+You can run `mill resolve __` to see a full list of the different tasks that are
+available, `mill resolve foo._` to see the tasks within `foo`, `mill describe
+foo.compile` to see what an individual task depends on, or `mill show
+foo.scalaVersion` to inspect the output of any task.
+
 The most common **tasks** that Mill can run are cached **targets**, such as
 `compile`, and un-cached **commands** such as `foo.run`. Targets do not
 re-evaluate unless one of their inputs changes, where-as commands re-run every

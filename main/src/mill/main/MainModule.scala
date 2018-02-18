@@ -35,9 +35,14 @@ trait MainModule extends mill.Module{
     val resolved = RunScript.resolveTasks(
       mill.main.ResolveMetadata, evaluator, targets, multiSelect = true
     )
+
     resolved match{
       case Left(err) => Result.Failure(err)
-      case Right(r) => Result.Success(r.foreach(println))
+      case Right(rs) =>
+        for(r <- rs){
+          println(r)
+        }
+        Result.Success(())
     }
   }
 
