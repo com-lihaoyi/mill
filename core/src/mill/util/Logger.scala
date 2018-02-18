@@ -44,15 +44,37 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream, f: () => Unit) extends OutputStream{
-  override def write(b: Array[Byte]): Unit = { f(); wrapped.write(b) }
+class CallbackStream(wrapped: OutputStream,
+                     setPrintState0: PrintState => Unit) extends OutputStream{
+  def setPrintState(c: Char) = {
+    setPrintState0(
+      c match{
+        case '\n' => PrintState.Newline
+        case '\r' => PrintState.Newline
+        case _ => PrintState.Middle
+      }
+    )
+  }
+  override def write(b: Array[Byte]): Unit = {
+    if (b.nonEmpty) setPrintState(b(b.length-1).toChar)
+    wrapped.write(b)
+  }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-    f()
+    if (len != 0) setPrintState(b(off+len-1).toChar)
     wrapped.write(b, off, len)
   }
 
-  def write(b: Int) = {f(); wrapped.write(b)}
+  def write(b: Int) = {
+    setPrintState(b.toChar)
+    wrapped.write(b)
+  }
+}
+sealed trait PrintState
+object PrintState{
+  case object Ticker extends PrintState
+  case object Newline extends PrintState
+  case object Middle extends PrintState
 }
 case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
@@ -60,40 +82,38 @@ case class PrintLogger(colored: Boolean,
                        infoStream: PrintStream,
                        errStream: PrintStream) extends Logger {
 
-  var lastLineTicker = false
-  def falseTicker[T](t: T) = {
-    lastLineTicker = false
-    t
-  }
-  override val errorStream = new PrintStream(
-    new CallbackStream(errStream, () => lastLineTicker = false)
-  )
-  override val outputStream = new PrintStream(
-    new CallbackStream(outStream, () => lastLineTicker = false)
-  )
+  var printState: PrintState = PrintState.Newline
+
+  override val errorStream = new PrintStream(new CallbackStream(errStream, printState = _))
+  override val outputStream = new PrintStream(new CallbackStream(outStream, printState = _))
 
 
   def info(s: String) = {
-    lastLineTicker = false
+    printState = PrintState.Newline
     infoStream.println(colors.info()(s))
   }
   def error(s: String) = {
-    lastLineTicker = false
+    printState = PrintState.Newline
     errStream.println(colors.error()(s))
   }
   def ticker(s: String) = {
-    if (lastLineTicker){
-      val p = new PrintWriter(infoStream)
-      val nav = new ammonite.terminal.AnsiNav(p)
-      nav.up(1)
-      nav.clearLine(2)
-      nav.left(9999)
-      p.flush()
-    }else{
-      infoStream.println()
+    printState match{
+      case PrintState.Newline =>
+        infoStream.println(colors.info()(s))
+      case PrintState.Middle =>
+        infoStream.println()
+        infoStream.println(colors.info()(s))
+      case PrintState.Ticker =>
+        val p = new PrintWriter(infoStream)
+        val nav = new ammonite.terminal.AnsiNav(p)
+        nav.up(1)
+        nav.clearLine(2)
+        nav.left(9999)
+        p.flush()
+
+        infoStream.println(colors.info()(s))
     }
-    lastLineTicker = true
-    infoStream.println(colors.info()(s))
+    printState = PrintState.Ticker
   }
 }
 
