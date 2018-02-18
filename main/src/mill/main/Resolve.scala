@@ -100,15 +100,6 @@ object Resolve extends Resolve[NamedTask[Any]]{
         .find(_.label == last)
         .map(Right(_))
 
-    def shimArgsig[T](a: Router.ArgSig[T, _]) = {
-      ammonite.main.Router.ArgSig[T](
-        a.name,
-        a.typeString,
-        a.doc,
-        a.default
-      )
-    }
-
     def invokeCommand(target: Module, name: String) = for {
       (cls, entryPoints) <- discover.value
       if cls.isAssignableFrom(target.getClass)
