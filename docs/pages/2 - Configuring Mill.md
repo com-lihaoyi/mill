@@ -208,7 +208,7 @@ object foo extends ScalaModule {
 
 def lineCount = T{
   import ammonite.ops._
-  foo.sources().flatMap(ref => ls.rec(ref.path)).flatMap(read.lines).size
+  foo.sources().flatMap(ref => ls.rec(ref.path)).filter(_.isFile).flatMap(read.lines).size
 }
 
 def printLineCount() = T.command{
