@@ -2,16 +2,17 @@
 [Confused by SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
 Frustrated by Maven? Perplexed by Gradle? Give Mill a try!
 
-Mill is a general purpose build-tool. It has built in support for the
-[Scala](https://www.scala-lang.org/) programming language, and can serve as a
-replacement for [SBT](http://www.scala-sbt.org/), but can also be extended to
-support any other language or platform via modules (written in Java or Scala) or
-through external subprocesses.
+Mill aims for simplicity by re-using concepts you are already
+[familiar with](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html),
+borrowing ideas from modern tools like [Bazel](https://bazel.build/), to let you
+build your projects in a way that's simple, fast, and predictable.
 
-Mill aims for simplicity by
-[re-using concepts you are already familiar with](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html)
-to let you define your project's build. Mill's `build.sc` files are Scala
-scripts.
+Mill has built in support for the [Scala](https://www.scala-lang.org/)
+programming language, and can serve as a replacement for
+[SBT](http://www.scala-sbt.org/), but can also be
+[extended](http://www.lihaoyi.com/mill/page/extending-mill.html) to support any
+other language or platform via modules (written in Java or Scala) or through
+external subprocesses.
 
 To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
@@ -19,6 +20,10 @@ To get started, download Mill and install it into your system via the following
 ```bash
 sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.0/0.1.0 && sudo chmod +x /usr/local/bin/mill
 ```
+
+More recent, unstable versions of Mill are also
+[available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
+to try out the latest features and improvements that are currently in master.
 
 The simplest Mill build for a Scala project looks as follows:
 

@@ -18,11 +18,12 @@ isn't covered by the built-in `ScalaModule`s/`ScalaJSModule`s, simply write a
 custom Target (for cached computations) or Command (for un-cached actions) and
 you're done.
 
-For filesystem operations, you can use the
+For subprocess/filesystem operations, you can use the
 [Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library that comes bundled with
-Mill, or even plain `java.nio`. Each target gets it's own
-[T.ctx().dest](/page/tasks#millutilctxdestctx) folder that you can use to place
-files without worrying about colliding with other targets
+Mill, or even plain `java.nio`/`java.lang.Process. Each target gets it's own
+[T.ctx().dest](http://www.lihaoyi.com/mill/page/tasks#millutilctxdestctx) folder
+that you can use to place files without worrying about colliding with other
+targets.
 
 This covers use cases like:
 

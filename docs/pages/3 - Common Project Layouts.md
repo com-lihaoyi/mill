@@ -11,6 +11,9 @@ import mill.scalalib._
 object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
 class FooModule(val crossScalaVersion: String) extends CrossScalaModule{
    ...
+   object test extends Tests{
+     ...
+   }
 }
 ```
 
@@ -89,6 +92,9 @@ import mill.scalalib._
 object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
 class FooModule(val crossScalaVersion: String) extends CrossSbtModule{
    ...
+   object test extends Tests{
+     ...
+   }
 }
 ```
 
@@ -210,8 +216,8 @@ versions of Scala.
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
 
-A single cross-platform Scala.js/Scala-JVM module, including the setup necessary
-for publishing to Maven Central
+A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
+versions of Scala, including the setup necessary for publishing to Maven Central
 
 ## Ammonite
 
