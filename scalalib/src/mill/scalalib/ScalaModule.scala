@@ -246,7 +246,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     Jvm.interactiveSubprocess(
       mainClass = "scala.tools.nsc.MainGenericRunner",
       classPath = runClasspath().map(_.path),
-      mainArgs = Seq("-usejavacp")
+      mainArgs = Seq("-usejavacp"),
+      workingDir = pwd
     )
   }
 
