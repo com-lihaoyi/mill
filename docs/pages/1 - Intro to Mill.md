@@ -24,7 +24,9 @@ sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/dow
 
 More recent, unstable versions of Mill are also
 [available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
-to try out the latest features and improvements that are currently in master.
+to try out the latest features and improvements that are currently in master. 
+Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
+questions or say hi!
 
 The simplest Mill build for a Scala project looks as follows:
 
