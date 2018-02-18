@@ -14,6 +14,8 @@ import mill.util.{EitherOps, Logger, ParseArgs, Watched}
 import mill.util.Strict.Agg
 import upickle.Js
 
+import scala.reflect.ClassTag
+
 /**
   * Custom version of ammonite.main.Scripts, letting us run the build.sc script
   * directly without going through Ammonite's main-method/argument-parsing
@@ -129,58 +131,71 @@ object RunScript{
     } yield (module, discover)
   }
 
-  def resolveTasks[T](evaluator: Evaluator[T],
-                      scriptArgs: Seq[String],
-                      multiSelect: Boolean) = {
+  def resolveTasks[T, R: ClassTag](resolver: mill.main.Resolve[R],
+                                   evaluator: Evaluator[T],
+                                   scriptArgs: Seq[String],
+                                   multiSelect: Boolean) = {
     for {
       parsed <- ParseArgs(scriptArgs, multiSelect = multiSelect)
       (selectors, args) = parsed
       taskss <- {
         val selected = selectors.map { case (scopedSel, sel) =>
-          val (rootModule, discover, crossSelectors) =
-            prepareResolve(evaluator, scopedSel, sel)
+          for(res <- prepareResolve(evaluator, scopedSel, sel))
+          yield {
+            val (rootModule, discover, crossSelectors) = res
 
-          try {
-            // We inject the `evaluator.rootModule` into the TargetScopt, rather
-            // than the `rootModule`, because even if you are running an external
-            // module we still want you to be able to resolve targets from your
-            // main build. Resolving targets from external builds as CLI arguments
-            // is not currently supported
-            mill.eval.Evaluator.currentEvaluator.set(evaluator)
-            mill.main.Resolve.resolve(
-              sel.value.toList, rootModule, discover,
-              args, crossSelectors.toList, Nil
-            )
-          } finally{
-            mill.eval.Evaluator.currentEvaluator.set(null)
+
+            try {
+              // We inject the `evaluator.rootModule` into the TargetScopt, rather
+              // than the `rootModule`, because even if you are running an external
+              // module we still want you to be able to resolve targets from your
+              // main build. Resolving targets from external builds as CLI arguments
+              // is not currently supported
+              mill.eval.Evaluator.currentEvaluator.set(evaluator)
+              resolver.resolve(
+                sel.value.toList, rootModule, discover,
+                args, crossSelectors.toList, Nil
+              )
+            } finally {
+              mill.eval.Evaluator.currentEvaluator.set(null)
+            }
           }
         }
         EitherOps.sequence(selected)
       }
-    } yield taskss.flatten
+      res <- EitherOps.sequence(taskss)
+    } yield res.flatten
   }
 
-  def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
-    val (rootModule, discover) = scopedSel match {
-      case None => (evaluator.rootModule, evaluator.discover)
-      case Some(scoping) =>
-        val moduleCls =
-          evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$")
 
-        val rootModule = moduleCls.getField("MODULE$").get(moduleCls).asInstanceOf[ExternalModule]
-        (rootModule, rootModule.millDiscover)
+  def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
+    for {
+      res <- scopedSel match {
+        case None => Right((evaluator.rootModule, evaluator.discover))
+        case Some (scoping) =>
+        val moduleCls =
+          evaluator.rootModule.getClass.getClassLoader.loadClass (scoping.render + "$")
+
+        moduleCls.getField("MODULE$").get(moduleCls) match {
+          case rootModule: ExternalModule => Right ((rootModule, rootModule.millDiscover))
+          case _ => Left("External Module " + scoping.render + " not found")
+        }
+
+      }
+    } yield {
+      val (rootModule, discover) = res
+      val crossSelectors = sel.value.map {
+        case Segment.Cross(x) => x.toList.map(_.toString)
+        case _ => Nil
+      }
+      (rootModule, discover, crossSelectors)
     }
-    val crossSelectors = sel.value.map {
-      case Segment.Cross(x) => x.toList.map(_.toString)
-      case _ => Nil
-    }
-    (rootModule, discover, crossSelectors)
   }
 
   def evaluateTasks[T](evaluator: Evaluator[T],
                        scriptArgs: Seq[String],
                        multiSelect: Boolean) = {
-    for (targets <- resolveTasks(evaluator, scriptArgs, multiSelect)) yield {
+    for (targets <- resolveTasks(mill.main.Resolve, evaluator, scriptArgs, multiSelect)) yield {
       val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
       val watched2 = for{

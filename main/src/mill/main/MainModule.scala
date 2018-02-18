@@ -8,7 +8,7 @@ import upickle.Js
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
-    RunScript.resolveTasks(evaluator, targets, multiSelect) match{
+    RunScript.resolveTasks(mill.main.Resolve, evaluator, targets, multiSelect) match{
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
@@ -32,30 +32,12 @@ trait MainModule extends mill.Module{
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
   def resolve(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = for {
-      parsed <- ParseArgs(targets, multiSelect = true)
-      (selectors, args) = parsed
-      taskss <- {
-        val selected = selectors.map { case (scopedSel, sel) =>
-          val (rootModule, discover, crossSelectors) =
-            mill.main.RunScript.prepareResolve(evaluator, scopedSel, sel)
-
-          try {
-            mill.eval.Evaluator.currentEvaluator.set(evaluator)
-            mill.main.ResolveMetadata.resolve(
-              sel.value.toList, rootModule, discover,
-              args, crossSelectors.toList, Nil
-            )
-          } finally{
-            mill.eval.Evaluator.currentEvaluator.set(null)
-          }
-        }
-        EitherOps.sequence(selected)
-      }
-    } yield taskss.flatten
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveMetadata, evaluator, targets, multiSelect = true
+    )
     resolved match{
-      case Left(err) => throw new Exception(err)
-      case Right(r) => r.foreach(println)
+      case Left(err) => Result.Failure(err)
+      case Right(r) => Result.Success(r.foreach(println))
     }
   }
 

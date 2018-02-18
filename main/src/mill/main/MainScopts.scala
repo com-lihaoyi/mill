@@ -1,5 +1,5 @@
 package mill.main
-import mill.eval.{Evaluator}
+import mill.eval.Evaluator
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
@@ -9,7 +9,12 @@ object Tasks{
     def arity = 1
 
     def reads = s => {
-      RunScript.resolveTasks(Evaluator.currentEvaluator.get, Seq(s), multiSelect = false) match{
+      RunScript.resolveTasks(
+        mill.main.Resolve,
+        Evaluator.currentEvaluator.get,
+        Seq(s),
+        multiSelect = false
+      ) match{
         case Left(err) => throw new Exception(err)
         case Right(tasks) => Tasks(tasks).asInstanceOf[Tasks[T]]
       }
