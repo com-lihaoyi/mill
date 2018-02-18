@@ -1,9 +1,10 @@
 
-Above, we have shown how to work with the Mill default Scala module layout. Here
-we will explore some other common project layouts that you may want in your
+## Common Project Layouts
+Earlier, we have shown how to work with the Mill default Scala module layout.
+Here we will explore some other common project layouts that you may want in your
 Scala build:
 
-## Cross Scala-Version Modules
+### Cross Scala-Version Modules
 
 ```scala
 import mill._
@@ -38,7 +39,7 @@ foo/
 Code common to all Scala versions lives in `src`, while code specific to one
 version lives in `src-x.y`.
 
-## Scala.js Modules
+### Scala.js Modules
 
 ```scala
 import mill._
@@ -56,7 +57,7 @@ latter of which runs your code on Node.js, which must be pre-installed)
 `ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
 generating the optimized Javascript file.
 
-## SBT-Compatible Modules
+### SBT-Compatible Modules
 
 ```scala
 import mill._
@@ -84,7 +85,7 @@ Useful if you want to migrate an existing project built with SBT without having
 to re-organize all your files
 
 
-## SBT-Compatible Cross Scala-Version Modules
+### SBT-Compatible Cross Scala-Version Modules
 
 ```scala
 import mill._
@@ -117,7 +118,7 @@ foo/
             scala-2.12/
 ```
 
-## Publishing
+### Publishing
 ```scala
 import mill._
 import mill.scalalib._
@@ -188,7 +189,7 @@ Mill comes bundled with example builds for existing open-source projects, as
 integration tests and examples:
 
 
-## Acyclic
+### Acyclic
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1)
 
@@ -196,7 +197,7 @@ A small single-module cross-build, with few sources minimal dependencies, and
 wired up for publishing to Maven Central
 
 
-## Better-Files
+### Better-Files
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1)
 
@@ -205,21 +206,21 @@ A collection of small modules compiled for a single Scala version.
 Also demonstrates how to define shared configuration in a `trait`, enable Scala
 compiler flags, and download artifacts as part of the build.
 
-## Jawn
+### Jawn
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1)
 
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
-## Upickle
+### Upickle
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
 versions of Scala, including the setup necessary for publishing to Maven Central
 
-## Ammonite
+### Ammonite
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1)
 

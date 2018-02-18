@@ -47,7 +47,8 @@ object foo extends ScalaModule {
   def ivyDeps = Agg(
     ivy"com.lihaoyi::upickle:0.5.1",
     ivy"com.lihaoyi::pprint:0.5.2",
-    ivy"com.lihaoyi::fansi:0.2.4"
+    ivy"com.lihaoyi::fansi:0.2.4",
+    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 }
 ```
@@ -235,6 +236,19 @@ are un-cached and re-evaluate every time you run them, but can take parameters.
 Their return type needs to be JSON-writable as well, or `(): Unit` if you want
 to return nothing.
 
+Your custom targets can depend on each other using the `def bar = T{... foo()
+...}` syntax, and you can create arbitrarily long chains of dependent targets.
+Mill will handle the re-evaluation and caching of the targets' output for you,
+and will provide you a `T.ctx().dest` folder for you to use as scratch space or
+to store files you want to return.
+
+Custom targets and commands can contain arbitrary code. Whether you want to
+download files (e.g. using `mill.modules.Util.download`), shell-out to Webpack
+to compile some Javascript, generate sources to feed into a compiler, or create
+some custom jar/zip assembly with the files you want (e.g. using
+`mill.modules.Jvm.createJar`), all of these can simply be custom targets with
+your code running in the `T{...}` block.
+
 ## Custom Modules
 
 ```scala
@@ -295,6 +309,52 @@ object foo extends ScalaModule {
 
 You can re-define targets and commands to override them, and use `super` if you
 want to refer to the originally defined task. The above example shows how to
-override `compile` and `run` to add additional logging messages.
+override `compile` and `run` to add additional logging messages, but you can
+also override `ScalaModule#generatedSources` to feed generated code to your
+compiler, `ScalaModule#prependShellScript` to make your assemblies executable,
+or `ScalaModule#console` to use the Ammonite REPL instead of the normal Scala
+REPL.
 
 In Mill builds the `override` keyword is optional.
+
+## Unmanaged Jars
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def unmanagedClasspath = T{
+    if (!ammonite.ops.exists(millSourcePath / "lib")) Agg()
+    else Agg.from(ammonite.ops.ls(millSourcePath / "lib"))
+  }
+}
+```
+
+You can override `unmanagedClasspath` to point it at any jars you place on the
+filesystem, e.g. in the above snippet any jars that happen to live in the
+`foo/lib/` folder.
+
+## Downloading Non-Maven Jars
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def unmanagedClasspath = Agg(
+    mill.modules.Util.download(
+      "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
+      "fastjavaio.jar"
+    )
+  )
+}
+```
+
+You can also override `unmanagedClasspath` to point it at jars that you want to
+download from arbitrary URLs. Note that targets like `unmanagedClasspath` are
+cached, so your jar is downloaded only once and re-used indefinitely after that.

@@ -1,6 +1,7 @@
 [Mill](https://github.com/lihaoyi/mill) is your shiny new Scala build tool!
-[Confused by SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
-Frustrated by Maven? Perplexed by Gradle? Give Mill a try!
+[Scared of SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
+Melancholy over Maven? Grumbling about Gradle? Baffled by Bazel? Give Mill a
+try!
 
 Mill aims for simplicity by re-using concepts you are already
 [familiar with](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html),
@@ -81,6 +82,28 @@ The most common **tasks** that Mill can run are cached **targets**, such as
 re-evaluate unless one of their inputs changes, where-as commands re-run every
 time.
 
+## Output
+
+Mill puts all it's output in the top-level `out/` folder. The above commands
+would end up in:
+
+```text
+out/
+    foo/
+        compile/
+        run/
+        jar/
+        assembly/
+```
+
+Within the output folder for each task, there's a `meta.json` file containing
+the metadata returned by that task, and a `dest/` folder containing any files
+that the task generates. For example, `out/foo/compile/dest/` contains the
+compiled classfiles, while `out/foo/assembly/dest/` contains the self-contained
+assembly with the project's classfiles jar-ed up with all it's dependencies.
+
+Given a task `foo.bar`, all it's output and results can be found be within it's
+respective `out/foo/bar/` folder.
 
 ## Multiple Modules
 
@@ -224,6 +247,44 @@ mill all __.compile  # run compile for every module
 ### resolve
 
 ```bash
+$ mill resolve _
+main
+moduledefs
+core
+scalaworker
+scalalib
+scalajslib
+integration
+testRepos
+...
+
+$ mill resolve _.compile
+
+main.compile
+moduledefs.compile
+core.compile
+scalaworker.compile
+scalalib.compile
+scalajslib.compile
+integration.compile
+
+$ mill resolve core._
+
+core.test
+core.compile
+core.publishVersion
+core.runClasspath
+core.testArgs
+core.sources
+...
+```
+
+`resolve` lists the tasks that match a particular query, without running them.
+This is useful for "dry running" an `mill all` command to see what would be run
+before you run them, or to explore what modules or tasks are available from the
+command line using `resolve _`, `resolve foo._`, etc.
+
+```bash
 mill resolve foo.{compile,run}
 mill resolve "foo.{compile,run}"
 mill resolve foo.compile foo.run
@@ -234,12 +295,6 @@ mill resolve foo._              # list every task directly within the foo module
 mill resolve __                 # list every module or task recursively
 mill resolve foo._              # list every task recursively within the foo module
 ```
-
-`resolve` lists the tasks that match a particular query, without running them.
-This is useful for "dry running" an `mill all` command to see what would be run
-before you run them, or to explore what modules or tasks are available from the
-command line using `resolve _`, `resolve foo._`, etc.
-
 
 ### describe
 
@@ -278,13 +333,20 @@ mill describe foo._
 
 ### show
 
+```bash
+$ mill show core.scalaVersion
+"2.12.4"
+```
+
 By default, Mill does not print out the metadata from evaluating a task. Most
 people would not be interested in e.g. viewing the metadata related to
 incremental compilation: they just want to compile their code! However, if you
 want to inspect the build to debug problems, you can make Mill show you the
-metadata output for a task using the `show` flag:
+metadata output for a task using the `show` command:
 
-You can also ask Mill to display the metadata output of a task using `show`:
+All tasks return values that can be `show`n, not just configuration values. e.g.
+`compile` returns that path to the `classes` and `analysisFile` that are
+produced by the compilation:
 
 ```bash
 $ mill show foo.compile
@@ -296,7 +358,8 @@ $ mill show foo.compile
 }
 ```
 
-This also applies to tasks which hold simple configurable values:
+`show` is generally useful as a debugging tool, to see what is going on in your
+build:
 
 ```bash
 $ mill show foo.sources
@@ -323,11 +386,6 @@ generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within
 your build file itself.
-
-
-Any flags passed *before* the name of the task (e.g. `foo.compile`) are given to
-Mill, while any arguments passed *after* the task are given to the task itself.
-For example:
 
 ## The Build Repl
 
