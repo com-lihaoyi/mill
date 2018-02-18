@@ -71,7 +71,7 @@ case class Evaluator[T](outPath: Path,
 
         val additional =
           if (finalTaskOverrides == t.ctx.overrides) Nil
-          else Seq(Segment.Label("overriden"), Segment.Label(t.ctx.enclosing))
+          else Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split('.').map(Segment.Label)
 
         Right(Labelled(t, segments ++ additional))
       case t if goals.contains(t) => Left(t)

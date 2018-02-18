@@ -130,8 +130,6 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
 
     command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
       case None =>
-        pprint.log(revSelectorsSoFar)
-        pprint.log(last)
         Resolve.errorMsgLabel(
           singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
           last,
@@ -168,25 +166,26 @@ object Resolve{
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
-  def hintList(last: Segment, revSelectorsSoFar: List[Segment]) = {
-    val search = Segments((last :: revSelectorsSoFar).reverse: _*).render
+  def hintList(revSelectorsSoFar: List[Segment]) = {
+    val search = Segments(revSelectorsSoFar.reverse: _*).render
     s" Try `mill resolve $search` to see what's available."
   }
 
   def hintListLabel(revSelectorsSoFar: List[Segment]) = {
-    hintList(Segment.Label("_"), revSelectorsSoFar)
+    hintList(Segment.Label("_") :: revSelectorsSoFar)
   }
 
   def hintListCross(revSelectorsSoFar: List[Segment]) = {
-    hintList(Segment.Cross(Seq("__")), revSelectorsSoFar)
+    hintList(Segment.Cross(Seq("__")) :: revSelectorsSoFar)
   }
 
   def errorMsgBase[T](direct: Seq[T],
                       last0: T,
                       revSelectorsSoFar: List[Segment],
-                      editSplit: String => String)
+                      editSplit: String => String,
+                      defaultErrorMsg: String)
                      (strings: T => Seq[String],
-                      render: T => String)= {
+                      render: T => String): Left[String, Nothing] = {
     val last = strings(last0)
     val similar =
       direct
@@ -196,19 +195,29 @@ object Resolve{
         .filter(_._2 < 3)
         .sortBy(_._2)
 
-    val hint = similar match{
-      case Nil => hintListLabel(revSelectorsSoFar)
-      case items =>
-        " Did you mean " + render(items.head._1)+ "?"
+    if (similar.headOption.exists(_._1 == last0)){
+      // Special case: if the most similar segment is the desired segment itself,
+      // this means we are trying to resolve a module where a task is present.
+      // Special case the error message to make it something meaningful
+      Left("Task " + last0 + " is not a module and has no children.")
+    }else{
+
+      val hint = similar match{
+        case Nil => defaultErrorMsg
+        case items => " Did you mean " + render(items.head._1) + "?"
+      }
+      Left(unableToResolve(render(last0)) + hint)
     }
-    pprint.log(direct)
-    pprint.log(revSelectorsSoFar)
-    pprint.log(last0)
-    pprint.log(last)
-    Left(unableToResolve(render(last0)) + hint)
   }
+
   def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
-    errorMsgBase(direct, Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render, revSelectorsSoFar, _.split('.').last)(
+    errorMsgBase(
+      direct,
+      Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render,
+      revSelectorsSoFar,
+      _.split('.').last,
+      hintListLabel(revSelectorsSoFar)
+    )(
       rendered => Seq(rendered.split('.').last),
       x => x
     )
@@ -217,7 +226,13 @@ object Resolve{
   def errorMsgCross(crossKeys: Seq[Seq[String]],
                     last: Seq[String],
                     revSelectorsSoFar: List[Segment]) = {
-    errorMsgBase(crossKeys, last, revSelectorsSoFar, x => x)(
+    errorMsgBase(
+      crossKeys,
+      last,
+      revSelectorsSoFar,
+      x => x,
+      hintListCross(revSelectorsSoFar)
+    )(
       crossKeys => crossKeys,
       crossKeys => Segments((Segment.Cross(crossKeys) :: revSelectorsSoFar).reverse:_*).render
     )
@@ -308,10 +323,14 @@ abstract class Resolve[R: ClassTag] {
                   .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
                   .toSeq
               },
-              Resolve.errorMsgLabel(
+              if (singleLabel != "_") Resolve.errorMsgLabel(
                 singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
                 singleLabel,
                 revSelectorsSoFar
+              )
+              else Left(
+                "Cannot resolve " + Segments((remainingSelector.reverse ++ revSelectorsSoFar).reverse:_*).render +
+                ". Try `mill resolve " + Segments((Segment.Label("_") :: revSelectorsSoFar).reverse:_*).render + "` to see what's available"
               )
             )
           case Segment.Cross(cross) =>
@@ -329,7 +348,7 @@ abstract class Resolve[R: ClassTag] {
                   Resolve.errorMsgCross(
                     c.items.map(_._1.map(_.toString)),
                     cross.map(_.toString),
-                    newRevSelectorsSoFar
+                    revSelectorsSoFar
                   )
                 )
               case _ =>

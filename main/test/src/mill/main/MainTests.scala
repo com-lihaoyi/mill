@@ -27,19 +27,39 @@ object MainTests extends TestSuite{
     'single - {
       val check = MainTests.check(singleton) _
       'pos - check("single", Right(Seq(_.single)))
-      'neg1 - check("doesntExist", Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available."))
-      'neg2 - check("single.doesntExist", Left("Cannot resolve single. Try `mill resolve _` to see what's available."))
-      'neg3 - check("", Left("Selector cannot be empty"))
+      'neg1 - check("sngle", Left("Cannot resolve sngle. Did you mean single?"))
+      'neg2 - check("snigle", Left("Cannot resolve snigle. Did you mean single?"))
+      'neg3 - check("nsiigle", Left("Cannot resolve nsiigle. Did you mean single?"))
+      'neg4 - check("ansiigle", Left("Cannot resolve ansiigle. Try `mill resolve _` to see what's available."))
+      'neg5 - check("doesntExist", Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available."))
+      'neg6 - check("single.doesntExist", Left("Task single is not a module and has no children."))
+      'neg7 - check("", Left("Selector cannot be empty"))
     }
     'nested - {
       val check = MainTests.check(nestedModule) _
       'pos1 - check("single", Right(Seq(_.single)))
       'pos2 - check("nested.single", Right(Seq(_.nested.single)))
       'pos3 - check("classInstance.single", Right(Seq(_.classInstance.single)))
-      'neg1 - check("doesntExist", Left("Cannot resolve doesntExist"))
-      'neg2 - check("single.doesntExist", Left("Cannot resolve single"))
-      'neg3 - check("nested.doesntExist", Left("Cannot resolve nested.doesntExist"))
-      'neg4 - check("classInstance.doesntExist", Left("Cannot resolve classInstance.doesntExist"))
+      'neg1 - check(
+        "doesntExist",
+        Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available.")
+      )
+      'neg2 - check(
+        "single.doesntExist",
+        Left("Task single is not a module and has no children.")
+      )
+      'neg3 - check(
+        "nested.doesntExist",
+        Left("Cannot resolve nested.doesntExist. Try `mill resolve nested._` to see what's available.")
+      )
+      'neg3 - check(
+        "nested.singel",
+        Left("Cannot resolve nested.singel. Did you mean nested.single?")
+      )
+      'neg4 - check(
+        "classInstance.doesntExist",
+        Left("Cannot resolve classInstance.doesntExist. Try `mill resolve classInstance._` to see what's available.")
+      )
       'wildcard - check(
         "_.single",
         Right(Seq(
@@ -49,11 +69,15 @@ object MainTests extends TestSuite{
       )
       'wildcardNeg - check(
         "_._.single",
-        Left("Cannot resolve _")
+        Left("Cannot resolve _._.single. Try `mill resolve _` to see what's available")
       )
       'wildcardNeg2 - check(
         "_._.__",
-        Left("Cannot resolve _")
+        Left("Cannot resolve _._.__. Try `mill resolve _` to see what's available")
+      )
+      'wildcardNeg3 - check(
+        "nested._.foobar",
+        Left("Cannot resolve nested._.foobar. Try `mill resolve nested._` to see what's available")
       )
       'wildcard2 - check(
         "__.single",
@@ -78,9 +102,22 @@ object MainTests extends TestSuite{
         val check = MainTests.check(singleCross) _
         'pos1 - check("cross[210].suffix", Right(Seq(_.cross("210").suffix)))
         'pos2 - check("cross[211].suffix", Right(Seq(_.cross("211").suffix)))
-        'neg1 - check("cross[210].doesntExist", Left("Cannot resolve cross[210].doesntExist"))
-        'neg2 - check("cross[doesntExist].doesntExist", Left("Cannot resolve cross[doesntExist]"))
-        'neg2 - check("cross[doesntExist].suffix", Left("Cannot resolve cross[doesntExist]"))
+        'neg1 - check(
+          "cross[210].doesntExist",
+          Left("Cannot resolve cross[210].doesntExist. Try `mill resolve cross[210]._` to see what's available.")
+        )
+        'neg2 - check(
+          "cross[doesntExist].doesntExist",
+          Left("Cannot resolve cross[doesntExist]. Try `mill resolve cross[__]` to see what's available.")
+        )
+        'neg3 - check(
+          "cross[221].doesntExist",
+          Left("Cannot resolve cross[221]. Did you mean cross[211]?")
+        )
+        'neg4 - check(
+          "cross[doesntExist].suffix",
+          Left("Cannot resolve cross[doesntExist]. Try `mill resolve cross[__]` to see what's available.")
+        )
         'wildcard - check(
           "cross[_].suffix",
           Right(Seq(
@@ -111,7 +148,7 @@ object MainTests extends TestSuite{
         'wildcard - {
           'labelNeg - check(
             "_.suffix",
-            Left("Cannot resolve _.suffix")
+            Left("Cannot resolve _.suffix. Try `mill resolve _._` to see what's available.")
           )
           'labelPos - check(
             "__.suffix",
