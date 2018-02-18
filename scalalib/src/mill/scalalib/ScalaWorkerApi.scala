@@ -14,14 +14,14 @@ import mill.util.JsonFormatters._
 object ScalaWorkerApi extends mill.define.ExternalModule {
   def scalaWorkerClasspath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
-    if (scalaWorkerJar != null) Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_)))
-    else {
-      val mill.eval.Result.Success(v) = resolveDependencies(
+    if (scalaWorkerJar != null) {
+      mill.eval.Result.Success(Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_))))
+    } else {
+      resolveDependencies(
         Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
         "2.12.4",
         Seq(ivy"com.lihaoyi::mill-scalaworker:${sys.props("MILL_VERSION")}")
-      )
-      v.map(_.path)
+      ).map(_.map(_.path))
     }
   }
   def scalaWorker: Worker[ScalaWorkerApi] = T.worker{
