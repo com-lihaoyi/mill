@@ -3,6 +3,7 @@ package mill.main
 import mill.define._
 import mill.define.TaskModule
 import ammonite.util.Res
+import mill.main.ResolveMetadata.singleModuleMeta
 import mill.util.Router.EntryPoint
 import mill.util.{Router, Scripts}
 
@@ -44,17 +45,49 @@ object ResolveMetadata extends Resolve[String]{
     }
     else if (last == "_") Right(direct.toList)
     else direct.find(_.split('.').last == last) match{
-      case None =>
-        Left(
-          "Unable to resolve " +
-            Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render
-        )
+      case None => Resolve.errorMsg(direct, last, revSelectorsSoFar)
       case Some(s) => Right(List(s))
     }
   }
 }
 
 object Resolve extends Resolve[NamedTask[Any]]{
+  def minimum(i1: Int, i2: Int, i3: Int)= math.min(math.min(i1, i2), i3)
+
+  /**
+    * Short Levenshtein distance algorithm, based on
+    *
+    * https://rosettacode.org/wiki/Levenshtein_distance#Scala
+    */
+  def editDistance(s1: String, s2: String) = {
+    val dist = Array.tabulate(s2.length+1, s1.length+1){(j, i) => if(j==0) i else if (i==0) j else 0}
+
+    for(j <- 1 to s2.length; i <- 1 to s1.length)
+      dist(j)(i) = if(s2(j - 1) == s1(i-1)) dist(j - 1)(i-1)
+      else minimum(dist(j - 1)(i) + 1, dist(j)(i - 1) + 1, dist(j - 1)(i - 1) + 1)
+
+    dist(s2.length)(s1.length)
+  }
+
+  def errorMsg(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
+    val similar =
+      direct
+        .map(d => (d, Resolve.editDistance(d.split('.').last, last)))
+        .filter(_._2 < 3)
+        .sortBy(_._2)
+    val hint = similar match{
+      case Nil =>
+        val search = Segments((Segment.Label("_") :: revSelectorsSoFar).reverse: _*).render
+        s" Try `mill resolve $search` to see what's available."
+      case items => " Did you mean " + items.head._1 + "?"
+    }
+    Left(
+      "Unable to resolve " +
+        Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render +
+        "." + hint
+    )
+  }
+
   def endResolve(obj: Module,
                  revSelectorsSoFar: List[Segment],
                  last: String,
@@ -108,9 +141,13 @@ object Resolve extends Resolve[NamedTask[Any]]{
     val command = invokeCommand(obj, last).headOption
 
     command orElse target orElse runDefault.flatten.headOption match {
-      case None => Left("Cannot resolve " +
-        Segments((Segment.Label(last) :: revSelectorsSoFar).reverse: _*).render
-      )
+      case None =>
+        Resolve.errorMsg(
+          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+          last,
+          revSelectorsSoFar
+        )
+
       // Contents of `either` *must* be a `Task`, because we only select
       // methods returning `Task` in the discovery process
       case Some(either) => either.right.map(Seq(_))
