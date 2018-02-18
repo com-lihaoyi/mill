@@ -29,6 +29,14 @@ mill foo.runLocal
 Which runs it in-process within an isolated classloader. This may be faster
 since you avoid the JVM startup, but does not support `forkArgs` or `forkEnv`.
 
+If you want to pass main-method arguments to `run` or `runLocal`, simply pass
+them after the `foo.run`/`foo.runLocal`:
+
+```bash
+mill foo.run arg1 arg2 arg3
+mill foo.runLocal arg1 arg2 arg3
+```
+
 ## Adding Ivy Dependencies
 
 ```scala
@@ -110,6 +118,14 @@ mill foo.test.testLocal
 ```
 
 To run tests in-process in an isolated classloader.
+
+If you want to pass any arguments to the test framework, simply put them after
+`foo.test` in the command line. e.g. [uTest](https://github.com/lihaoyi/utest)
+lets you pass in a selector to decide which test to run, which in Mill would be:
+
+```bash
+mill foo.MyTestSuite.testCaseName
+```
 
 You can define multiple test suites if you want, e.g.:
 
