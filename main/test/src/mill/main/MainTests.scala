@@ -15,7 +15,7 @@ object MainTests extends TestSuite{
     val resolved = for{
       selectors <- mill.util.ParseArgs(Seq(selectorString), multiSelect = false).map(_._1.head)
       val crossSelectors = selectors._2.value.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
-      task <- mill.main.Resolve.resolve(
+      task <- mill.main.ResolveTasks.resolve(
         selectors._2.value.toList, module, discover, Nil, crossSelectors.toList, Nil
       )
     } yield task
@@ -27,8 +27,8 @@ object MainTests extends TestSuite{
     'single - {
       val check = MainTests.check(singleton) _
       'pos - check("single", Right(Seq(_.single)))
-      'neg1 - check("doesntExist", Left("Cannot resolve doesntExist"))
-      'neg2 - check("single.doesntExist", Left("Cannot resolve single"))
+      'neg1 - check("doesntExist", Left("Cannot resolve doesntExist. Try `mill resolve _` to see what's available."))
+      'neg2 - check("single.doesntExist", Left("Cannot resolve single. Try `mill resolve _` to see what's available."))
       'neg3 - check("", Left("Selector cannot be empty"))
     }
     'nested - {

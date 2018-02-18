@@ -12,7 +12,9 @@ sealed trait Segment{
   }
 }
 object Segment{
-  case class Label(value: String) extends Segment
+  case class Label(value: String) extends Segment{
+    assert(!value.contains('.'))
+  }
   case class Cross(value: Seq[Any]) extends Segment
 }
 

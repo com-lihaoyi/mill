@@ -269,7 +269,7 @@ object TestModule{
     val badTests = results.filter(x => Set("Error", "Failure").contains(x.status))
     if (badTests.isEmpty) Result.Success((doneMsg, results))
     else {
-      val suffix = if (badTests.length == 1) "" else "and " + (badTests.length-1) + " more"
+      val suffix = if (badTests.length == 1) "" else " and " + (badTests.length-1) + " more"
 
       Result.Failure(
         badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,

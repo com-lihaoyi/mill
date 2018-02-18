@@ -101,7 +101,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
         Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match{
           case None =>
             Left(
-              "Unable to find default task to evaluate for module " +
+              "Cannot find default task to evaluate for module " +
               Segments((Segment.Cross(last) :: revSelectorsSoFar).reverse:_*).render
             )
           case Some(v) => v.map(Seq(_))
@@ -130,6 +130,8 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
 
     command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
       case None =>
+        pprint.log(revSelectorsSoFar)
+        pprint.log(last)
         Resolve.errorMsgLabel(
           singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
           last,
@@ -160,16 +162,17 @@ object Resolve{
     dist(s2.length)(s1.length)
   }
 
-  def unableToResolve(last: Segment, revSelectorsSoFar: List[Segment]) = {
-    "Unable to resolve " +
-      Segments((last :: revSelectorsSoFar).reverse: _*).render +
-      "."
+  def unableToResolve(last: Segment, revSelectorsSoFar: List[Segment]): String = {
+    unableToResolve(Segments((last :: revSelectorsSoFar).reverse: _*).render)
   }
+
+  def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
   def hintList(last: Segment, revSelectorsSoFar: List[Segment]) = {
     val search = Segments((last :: revSelectorsSoFar).reverse: _*).render
     s" Try `mill resolve $search` to see what's available."
   }
+
   def hintListLabel(revSelectorsSoFar: List[Segment]) = {
     hintList(Segment.Label("_"), revSelectorsSoFar)
   }
@@ -183,30 +186,41 @@ object Resolve{
                       revSelectorsSoFar: List[Segment],
                       editSplit: String => String)
                      (strings: T => Seq[String],
-                      segment: T => Segment)= {
+                      render: T => String)= {
     val last = strings(last0)
     val similar =
       direct
-        .map(strings)
-        .filter(_.length == last.length)
-        .map(d => (d, d.zip(last).map{case (a, b) => Resolve.editDistance(editSplit(a), b)}.sum))
+        .map(x => (x, strings(x)))
+        .filter(_._2.length == last.length)
+        .map{ case (d, s) => (d, s.zip(last).map{case (a, b) => Resolve.editDistance(editSplit(a), b)}.sum)}
         .filter(_._2 < 3)
         .sortBy(_._2)
 
     val hint = similar match{
       case Nil => hintListLabel(revSelectorsSoFar)
-      case items => " Did you mean " + items.head._1 + "?"
+      case items =>
+        " Did you mean " + render(items.head._1)+ "?"
     }
-    Left(unableToResolve(segment(last0), revSelectorsSoFar) + hint)
+    pprint.log(direct)
+    pprint.log(revSelectorsSoFar)
+    pprint.log(last0)
+    pprint.log(last)
+    Left(unableToResolve(render(last0)) + hint)
   }
   def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
-    errorMsgBase(direct, last, revSelectorsSoFar, _.split('.').last)(Seq(_), Segment.Label(_))
+    errorMsgBase(direct, Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render, revSelectorsSoFar, _.split('.').last)(
+      rendered => Seq(rendered.split('.').last),
+      x => x
+    )
   }
 
   def errorMsgCross(crossKeys: Seq[Seq[String]],
                     last: Seq[String],
                     revSelectorsSoFar: List[Segment]) = {
-    errorMsgBase(crossKeys, last, revSelectorsSoFar, x => x)(x => x, Segment.Cross(_))
+    errorMsgBase(crossKeys, last, revSelectorsSoFar, x => x)(
+      crossKeys => crossKeys,
+      crossKeys => Segments((Segment.Cross(crossKeys) :: revSelectorsSoFar).reverse:_*).render
+    )
   }
 
   def invokeCommand(target: Module,
@@ -271,7 +285,7 @@ abstract class Resolve[R: ClassTag] {
       case head :: tail =>
         val newRevSelectorsSoFar = head :: revSelectorsSoFar
 
-        def recurse(searchModules: Seq[Module], resolveFailureMsg: Left[String, Nothing]) = {
+        def recurse(searchModules: Seq[Module], resolveFailureMsg: => Left[String, Nothing]) = {
           val matching = searchModules
             .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
 
@@ -315,7 +329,7 @@ abstract class Resolve[R: ClassTag] {
                   Resolve.errorMsgCross(
                     c.items.map(_._1.map(_.toString)),
                     cross.map(_.toString),
-                    revSelectorsSoFar
+                    newRevSelectorsSoFar
                   )
                 )
               case _ =>

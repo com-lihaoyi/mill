@@ -23,7 +23,7 @@ own codebase.
 Run unit test suite:
 
 ```bash
-sbt core/test
+sbt main/test
 ```
 
 Build a standalone executable jar:
@@ -38,8 +38,8 @@ core unit tests
 e.g.:
 ```bash
 ./target/bin/mill core.compile
-./target/bin/mill core.test.compile
-./target/bin/mill core.test
+./target/bin/mill main.test.compile
+./target/bin/mill main.test
 ./target/bin/mill scalalib.assembly
 ```
 
@@ -56,7 +56,7 @@ You can get Mill to show the JSON-structured output for a particular `Target` or
 ./target/bin/mill show core.scalaVersion
 ./target/bin/mill show core.compile
 ./target/bin/mill show core.assemblyClasspath
-./target/bin/mill show core.test
+./target/bin/mill show main.test
 ```
 
 Output will be generated into a the `./out` folder.
@@ -66,7 +66,7 @@ file in the repository root, you can skip the assembly process and directly run
 it via:
 
 ```bash
-sbt "~bin/test:run core.test"
+sbt "~bin/test:run main.test"
 sbt "~bin/test:run"
 ```
 
@@ -94,7 +94,7 @@ mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
 
 * Run multiple targets:
 ```bash
-mill all core.test scalalib.test 
+mill all main.test scalalib.test 
 ```
 
 **Note**: don't forget to put `--all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
@@ -285,8 +285,8 @@ The `out/` folder contains all the generated files & metadata for your build. It
 is structured with one folder per `Target`/`Command`, that is run, e.g.:
 
 - `out/core/compile/`
-- `out/core/test/compile/`
-- `out/core/test/forkTest/`
+- `out/main/test/compile/`
+- `out/main/test/forkTest/`
 - `out/scalalib/compile/`
 
 Each folder currently contains the following files:
