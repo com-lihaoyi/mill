@@ -167,22 +167,25 @@ object RunScript{
     } yield res.flatten
   }
 
+  def resolveRootModule[T](evaluator: Evaluator[T], scopedSel: Option[Segments]) = {
+    scopedSel match {
+      case None => Right((evaluator.rootModule, evaluator.discover))
+      case Some(scoping) =>
+        for {
+          moduleCls <-
+            try Right(evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
+            catch {case e: ClassNotFoundException => Left ("Cannot resolve external module " + scoping.render)}
+          rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
+            case rootModule: ExternalModule => Right(rootModule)
+            case _ => Left("Class " + scoping.render + " is not an external module")
+          }
+        } yield (rootModule, rootModule.millDiscover)
+    }
+  }
 
   def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
-    for {
-      res <- scopedSel match {
-        case None => Right((evaluator.rootModule, evaluator.discover))
-        case Some (scoping) =>
-        val moduleCls =
-          evaluator.rootModule.getClass.getClassLoader.loadClass (scoping.render + "$")
-
-        moduleCls.getField("MODULE$").get(moduleCls) match {
-          case rootModule: ExternalModule => Right ((rootModule, rootModule.millDiscover))
-          case _ => Left("External Module " + scoping.render + " not found")
-        }
-
-      }
-    } yield {
+    for (res <- resolveRootModule(evaluator, scopedSel))
+    yield {
       val (rootModule, discover) = res
       val crossSelectors = sel.value.map {
         case Segment.Cross(x) => x.toList.map(_.toString)
