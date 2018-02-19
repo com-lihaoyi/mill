@@ -62,6 +62,8 @@ By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
 
 ```scala
+import coursier.maven.MavenRepository
+
 def repositories = super.repositories ++ Seq(
   MavenRepository("https://oss.sonatype.org/content/repositories/releases")
 )
@@ -83,8 +85,8 @@ object foo extends ScalaModule {
 ```
 
 You can define a test suite by creating a nested module extending `Tests`, and
-specifying the ivy coordinates and name of your test framework. This expects the
-tests to be laid out as follows:
+specifying the ivy coordinates and name of your test framework's implementation
+of `sbt.testing.Framework`. This expects the tests to be laid out as follows:
 
 ```
 build.sc
