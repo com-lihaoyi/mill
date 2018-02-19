@@ -30,6 +30,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
   def getStagingProfileUri(groupId: String): String = {
     val response = withRetry(
       PatientHttp(s"$uri/staging/profiles").headers(commonHeaders))
+        .throwError
 
     val resourceUri =
       json
@@ -49,6 +50,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .option(HttpOptions.readTimeout(60000))
       .headers(commonHeaders)
       .asString
+      .throwError
 
     json.read(response.body)("type").str.toString
   }
@@ -59,6 +61,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .headers(commonHeaders)
       .postData(
         s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
+      .throwError
 
     json.read(response.body)("data")("stagedRepositoryId").str.toString
   }

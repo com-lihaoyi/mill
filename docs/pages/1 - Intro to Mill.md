@@ -513,7 +513,7 @@ Missing arguments: (--sonatypeCreds: String, --gpgPassphrase: String, --release:
 Arguments provided did not match expected signature:
 
 publish
-  --sonatypeCreds  String
+  --sonatypeCreds  String (format: "username:password")
   --gpgPassphrase  String
   --release        Boolean
 ```
