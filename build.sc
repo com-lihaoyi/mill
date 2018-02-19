@@ -188,7 +188,7 @@ object integration extends MillModule{
     scalaworker.testArgs() ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
-  def forkArgs() = testArgs()
+  def forkArgs = testArgs()
 }
 
 val assemblyProjects = Seq(scalalib, scalajslib)
