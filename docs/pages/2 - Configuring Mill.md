@@ -85,8 +85,8 @@ object foo extends ScalaModule {
 ```
 
 You can define a test suite by creating a nested module extending `Tests`, and
-specifying the ivy coordinates and name of your test framework's implementation
-of `sbt.testing.Framework`. This expects the tests to be laid out as follows:
+specifying the ivy coordinates and name of your test framework. This expects the
+tests to be laid out as follows:
 
 ```
 build.sc
@@ -156,6 +156,23 @@ Each of which will expect their sources to be in their respective `foo/test` and
 `Tests` modules are `ScalaModule`s like any other, and all the same
 configuration options apply.
 
+## Custom Test Frameworks
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+  def testFramework = "org.scalatest.tools.Framework"
+}
+```
+
+Integrating with test frameworks like Scalatest is simply a matter of adding it
+to `ivyDeps` and specifying the `testFramework` you want to use. After that you
+can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
+passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 
 ## Scala Compiler Plugins
 
@@ -355,24 +372,6 @@ Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
 some library you cna explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
-
-## Custom Test Frameworks
-
-```scala
-// build.sc
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-  def testFramework = "org.scalatest.tools.Framework"
-}
-```
-
-Integrating with test frameworks like Scalatest is simply a matter of adding it
-to `ivyDeps` and specifying the `testFramework` you want to use. After that you
-can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
-passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 
 ## Downloading Non-Maven Jars
 
