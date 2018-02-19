@@ -15,6 +15,68 @@ object MacroErrorTests extends TestSuite{
       assert(err.msg == expectedMsg)
     }
 
+    'badParameterSets - {
+      'command - {
+        val e = compileError("""
+          object foo extends mill.util.TestUtil.BaseModule{
+            def w = T.command{1}
+          }
+          mill.define.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`T.command` definitions must have 1 parameter list"),
+          e.pos.contains("def w = ")
+        )
+      }
+      'target - {
+        val e = compileError("""
+          object foo extends mill.util.TestUtil.BaseModule{
+            def x() = T{1}
+          }
+          mill.define.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`T{...}` definitions must have 0 parameter lists"),
+          e.pos.contains("def x() = ")
+        )
+      }
+      'input - {
+        val e = compileError("""
+          object foo extends mill.util.TestUtil.BaseModule{
+            def y() = T.input{1}
+          }
+          mill.define.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`T.input` definitions must have 0 parameter lists"),
+          e.pos.contains("def y() = ")
+        )
+      }
+      'sources - {
+        val e = compileError("""
+          object foo extends mill.util.TestUtil.BaseModule{
+            def z() = T.sources{ammonite.ops.pwd}
+          }
+          mill.define.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`T.sources` definitions must have 0 parameter lists"),
+          e.pos.contains("def z() = ")
+        )
+      }
+      'persistent - {
+        val e = compileError("""
+          object foo extends mill.util.TestUtil.BaseModule{
+            def a() = T.persistent{1}
+          }
+          mill.define.Discover[foo.type]
+        """)
+        assert(
+          e.msg.contains("`T.persistent` definitions must have 0 parameter lists"),
+          e.pos.contains("def a() = ")
+        )
+      }
+    }
     'badTmacro - {
       // Make sure we can reference values from outside the T{...} block as part
       // of our `Target#apply()` calls, but we cannot reference any values that

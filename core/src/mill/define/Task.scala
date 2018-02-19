@@ -231,7 +231,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def persistent[T](t: Result[T])(implicit r: R[T],
                                   w: W[T],
-                                  ctx: mill.define.Ctx): Target[T] = macro persistentImpl[T]
+                                  ctx: mill.define.Ctx): Persistent[T] = macro persistentImpl[T]
 
   def persistentImpl[T: c.WeakTypeTag](c: Context)
                                       (t: c.Expr[T])

@@ -212,13 +212,13 @@ def devAssembly = T{
   )
 }
 
-def dev(args: String*) = T.command{
+def dev(wd: Path, args: String*) = T.command{
   mill.modules.Jvm.interactiveSubprocess(
     "mill.Main",
     Agg.from(assemblyClasspath().flatten.map(_.path)),
     jvmArgs = scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs(),
     mainArgs = args,
-    workingDir = pwd
+    workingDir = wd
   )
 }
 

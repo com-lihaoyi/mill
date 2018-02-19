@@ -42,22 +42,44 @@ object Discover {
     }
     rec(weakTypeOf[T])
 
+    def assertParamListCounts(methods: Iterable[router.c.universe.MethodSymbol],
+                              cases: (c.Type, Int, String)*) = {
+      for (m <- methods.toList){
+        for ((tt, n, label) <- cases){
+          if (m.returnType <:< tt.asInstanceOf[router.c.Type] &&
+            m.paramLists.length != n){
+            c.abort(
+              m.pos.asInstanceOf[c.Position],
+              s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
+            )
+          }
+        }
+      }
+    }
     val router = new mill.util.Router(c)
     val mapping = for{
       discoveredModuleType <- seen
       val curCls = discoveredModuleType.asInstanceOf[router.c.Type]
       val methods = router.getValsOrMeths(curCls)
       val overridesRoutes = {
+        assertParamListCounts(
+          methods,
+          (weakTypeOf[mill.define.Sources], 0, "`T.sources`"),
+          (weakTypeOf[mill.define.Input[_]], 0, "`T.input`"),
+          (weakTypeOf[mill.define.Persistent[_]], 0, "`T.persistent`"),
+          (weakTypeOf[mill.define.Target[_]], 0, "`T{...}`"),
+          (weakTypeOf[mill.define.Command[_]], 1, "`T.command`")
+        )
+
         for{
           m <- methods.toList
           if m.returnType <:< weakTypeOf[mill.define.Command[_]].asInstanceOf[router.c.Type]
         } yield (m.overrides.length, router.extractMethod(m, curCls).asInstanceOf[c.Tree])
+
       }
       if overridesRoutes.nonEmpty
     } yield {
-      val (overrides, routes) = overridesRoutes.unzip
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      val clsType = discoveredModuleType.typeSymbol.asClass
       val rhs = q"scala.Seq[(Int, mill.util.Router.EntryPoint[_])](..$overridesRoutes)"
       q"$lhs -> $rhs"
     }

@@ -73,8 +73,15 @@ it via:
 ```bash
 sbt "~bin/test:run main.test"
 sbt "~bin/test:run"
-mill --watch dev main.test
-mill --watch dev
+mill --watch dev . main.test
+mill --watch dev .
+```
+
+You can also test out your current Mill code with one of the hello-world example
+repos via:
+
+```bash
+mill dev docs/example-1 foo.run
 ```
 
 Lastly, you can generate IntelliJ Scala project files using Mill via
