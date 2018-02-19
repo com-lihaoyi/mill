@@ -30,7 +30,8 @@ class Module(implicit outerCtx0: mill.define.Ctx)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
   }
-  override def toString = millModuleSegments.render
+  def name: String = millModuleSegments.render
+  override def toString = name
 }
 
 object Module{
