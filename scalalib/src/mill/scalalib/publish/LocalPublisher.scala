@@ -8,7 +8,7 @@ object LocalPublisher {
 
   def publish(jar: Path,
               sourcesJar: Path,
-              docsJar: Path,
+              docJar: Path,
               pom: Path,
               ivy: Path,
               artifact: Artifact): Unit = {
@@ -16,7 +16,7 @@ object LocalPublisher {
     writeFiles(
       jar -> releaseDir / "jars" / s"${artifact.id}.jar",
       sourcesJar -> releaseDir / "srcs" / s"${artifact.id}-sources.jar",
-      docsJar -> releaseDir / "docs" / s"${artifact.id}-javadoc.jar",
+      docJar -> releaseDir / "docs" / s"${artifact.id}-javadoc.jar",
       pom -> releaseDir / "poms" / s"${artifact.id}.pom",
       ivy -> releaseDir / "ivys" / "ivy.xml"
     )

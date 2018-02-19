@@ -43,14 +43,14 @@ object ParseArgsTest extends TestSuite {
         multiSelect = false
       )
       'multiSelectors - check(
-        input = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
-        expectedSelectors = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
+        input = Seq("core.jar", "core.docJar", "core.sourcesJar"),
+        expectedSelectors = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
       'multiSelectorsSeq - check(
-        input = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
-        expectedSelectors = Seq("core.jar", "core.docsJar", "core.sourcesJar"),
+        input = Seq("core.jar", "core.docJar", "core.sourcesJar"),
+        expectedSelectors = Seq("core.jar", "core.docJar", "core.sourcesJar"),
         expectedArgs = Seq.empty,
         multiSelect = true
       )
@@ -89,16 +89,16 @@ object ParseArgsTest extends TestSuite {
         List("application.compile", "core.compile")
       )
       'expandRight - check(
-        "application.{jar,docsJar,sourcesJar}",
-        List("application.jar", "application.docsJar", "application.sourcesJar")
+        "application.{jar,docJar,sourcesJar}",
+        List("application.jar", "application.docJar", "application.sourcesJar")
       )
       'expandBoth - check(
-        "{core,application}.{jar,docsJar}",
+        "{core,application}.{jar,docJar}",
         List(
           "core.jar",
-          "core.docsJar",
+          "core.docJar",
           "application.jar",
-          "application.docsJar"
+          "application.docJar"
         )
       )
       'expandNested - {

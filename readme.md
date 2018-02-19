@@ -209,7 +209,7 @@ Targets:
     .compilerBridge()
     .crossFullScalaVersion()
     .depClasspath()
-    .docsJar()
+    .docJar()
     .externalCompileDepClasspath()
     .externalCompileDepSources()
 ...
@@ -236,7 +236,7 @@ Targets:
     .compilerBridge()
     .crossFullScalaVersion()
     .depClasspath()
-    .docsJar()
+    .docJar()
     .externalCompileDepClasspath()
     .externalCompileDepSources()
 ...

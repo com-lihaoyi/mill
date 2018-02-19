@@ -172,7 +172,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def docsJar = T {
+  def docJar = T {
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
