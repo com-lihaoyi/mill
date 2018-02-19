@@ -56,7 +56,9 @@ object foo extends ScalaModule {
 You can define the `ivyDeps` field to add ivy dependencies to your module. The
 `ivy"com.lihaoyi::upickle:0.5.1"` syntax (with `::`) represents Scala
 dependencies; for Java dependencies you would use a single `:` e.g.
-`ivy"com.lihaoyi:upickle:0.5.1"`.
+`ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
+against the full Scala version (eg. `2.12.4` instead of just `2.12`),
+you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
 By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
