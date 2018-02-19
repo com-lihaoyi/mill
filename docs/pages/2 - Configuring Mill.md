@@ -62,6 +62,8 @@ By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
 
 ```scala
+import coursier.maven.MavenRepository
+
 def repositories = super.repositories ++ Seq(
   MavenRepository("https://oss.sonatype.org/content/repositories/releases")
 )
@@ -154,6 +156,23 @@ Each of which will expect their sources to be in their respective `foo/test` and
 `Tests` modules are `ScalaModule`s like any other, and all the same
 configuration options apply.
 
+## Custom Test Frameworks
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+  def testFramework = "org.scalatest.tools.Framework"
+}
+```
+
+Integrating with test frameworks like Scalatest is simply a matter of adding it
+to `ivyDeps` and specifying the `testFramework` you want to use. After that you
+can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
+passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 
 ## Scala Compiler Plugins
 
@@ -353,24 +372,6 @@ Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
 some library you cna explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
-
-## Custom Test Frameworks
-
-```scala
-// build.sc
-import mill._, scalalib._
-
-object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
-  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-  def testFramework = "org.scalatest.tools.Framework"
-}
-```
-
-Integrating with test frameworks like Scalatest is simply a matter of adding it
-to `ivyDeps` and specifying the `testFramework` you want to use. After that you
-can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
-passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 
 ## Downloading Non-Maven Jars
 
