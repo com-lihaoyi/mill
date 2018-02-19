@@ -4,10 +4,9 @@ package scalalib
 import java.io.File
 
 import ammonite.ops._
-import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module => CoursierModule}
+import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Dependency, Module => CoursierModule}
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
-
 
 object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
@@ -27,6 +26,37 @@ object Lib{
       .toIO
   }
 
+  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
+    dep match {
+      case Dep.Java(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+                (if (!cross) "" else platformSuffix)
+          )
+        )
+      case Dep.Scala(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+                (if (!cross) "" else platformSuffix) +
+                "_" + scalaBinaryVersion(scalaVersion)
+          )
+        )
+      case Dep.Point(dep, cross) =>
+        dep.copy(
+          module = dep.module.copy(
+            name =
+              dep.module.name +
+                (if (!cross) "" else platformSuffix) +
+                "_" + scalaVersion
+          )
+        )
+    }
+
+
   /**
     * Resolve dependencies using Coursier.
     *
@@ -40,34 +70,7 @@ object Lib{
                           platformSuffix: String = "",
                           sources: Boolean = false): Result[Agg[PathRef]] = {
 
-    val flattened = deps.map{
-      case Dep.Java(dep, cross) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-              (if (!cross) "" else platformSuffix)
-          )
-        )
-      case Dep.Scala(dep, cross) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-              (if (!cross) "" else platformSuffix) +
-              "_" + scalaBinaryVersion(scalaVersion)
-          )
-        )
-      case Dep.Point(dep, cross) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-              (if (!cross) "" else platformSuffix) +
-              "_" + scalaVersion
-          )
-        )
-    }.toSet
+    val flattened = deps.map(depToDependency(_, scalaVersion, platformSuffix)).toSet
     val start = Resolution(flattened)
 
     val fetch = Fetch.from(repositories, Cache.fetch())
