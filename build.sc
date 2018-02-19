@@ -212,8 +212,21 @@ def devAssembly = T{
   )
 }
 
+def dev(args: String*) = T.command{
+  mill.modules.Jvm.interactiveSubprocess(
+    "mill.Main",
+    Agg.from(assemblyClasspath().flatten.map(_.path)),
+    jvmArgs = scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs(),
+    mainArgs = args,
+    workingDir = pwd
+  )
+}
+
 def releaseAssembly = T{
-  assemblyBase(Agg.from(assemblyClasspath().flatten.map(_.path)), "-DMILL_VERSION=" + publishVersion()._2)
+  assemblyBase(
+    Agg.from(assemblyClasspath().flatten.map(_.path)),
+    "-DMILL_VERSION=" + publishVersion()._2
+  )
 }
 
 val isMasterCommit = {

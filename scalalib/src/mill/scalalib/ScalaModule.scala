@@ -251,6 +251,19 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
+  def ammoniteReplClasspath = T{
+    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.3")})()
+  }
+  def repl() = T.command{
+
+    Jvm.interactiveSubprocess(
+      mainClass = "ammonite.Main",
+      classPath = runClasspath().map(_.path) ++ ammoniteReplClasspath().map(_.path),
+      mainArgs = Nil,
+      workingDir = pwd
+    )
+  }
+
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
   def crossFullScalaVersion: T[Boolean] = false
 

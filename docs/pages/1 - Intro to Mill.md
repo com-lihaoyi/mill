@@ -71,7 +71,11 @@ $ mill foo.run                     # run the main method, if any
 
 $ mill foo.jar                     # bundle the classfiles into a jar
 
-$ mill foo.assembly                # bundle classfiles and all dependencies into a jar 
+$ mill foo.assembly                # bundle classfiles and all dependencies into a jar
+ 
+$ mill foo.console                 # start a Scala console within your project
+ 
+$ mill foo.repl                    # start an Ammonite REPL within your project 
 ```
 
 You can run `mill resolve __` to see a full list of the different tasks that are

@@ -24,12 +24,14 @@ Run unit test suite:
 
 ```bash
 sbt main/test
+mill main.test
 ```
 
 Build a standalone executable jar:
 
 ```bash
 sbt bin/test:assembly
+mill devAssembly
 ```
 
 Now you can re-build this very same project using the build.sc file, e.g. re-run
@@ -38,25 +40,28 @@ core unit tests
 e.g.:
 ```bash
 ./target/bin/mill core.compile
-./target/bin/mill main.test.compile
-./target/bin/mill main.test
-./target/bin/mill scalalib.assembly
+
+./out/devAssembly/dest/mill core.compile
+./out/devAssembly/dest/mill main.test.compile
+./out/devAssembly/dest/mill main.test
+./out/devAssembly/dest/mill scalalib.assembly
 ```
 
 There is already a `watch` option that looks for changes on files, e.g.:
 
 ```bash
 ./target/bin/mill --watch core.compile
+./out/devAssembly/dest/mill --watch core.compile
 ```
 
 You can get Mill to show the JSON-structured output for a particular `Target` or
 `Command` using the `show` flag:
 
 ```bash
-./target/bin/mill show core.scalaVersion
-./target/bin/mill show core.compile
-./target/bin/mill show core.assemblyClasspath
-./target/bin/mill show main.test
+./out/devAssembly/dest/mill show core.scalaVersion
+./out/devAssembly/dest/mill show core.compile
+./out/devAssembly/dest/mill show core.assemblyClasspath
+./out/devAssembly/dest/mill show main.test
 ```
 
 Output will be generated into a the `./out` folder.
@@ -68,6 +73,8 @@ it via:
 ```bash
 sbt "~bin/test:run main.test"
 sbt "~bin/test:run"
+mill --watch dev main.test
+mill --watch dev
 ```
 
 Lastly, you can generate IntelliJ Scala project files using Mill via
