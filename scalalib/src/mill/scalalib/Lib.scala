@@ -33,7 +33,7 @@ object Lib{
           module = dep.module.copy(
             name =
               dep.module.name +
-                (if (!cross) "" else platformSuffix)
+              (if (!cross) "" else platformSuffix)
           )
         )
       case Dep.Scala(dep, cross) =>
@@ -42,7 +42,7 @@ object Lib{
             name =
               dep.module.name +
                 (if (!cross) "" else platformSuffix) +
-                  "_" + scalaBinaryVersion(scalaVersion)
+                "_" + scalaBinaryVersion(scalaVersion)
           )
         )
       case Dep.Point(dep, cross) =>
@@ -51,7 +51,7 @@ object Lib{
             name =
               dep.module.name +
                 (if (!cross) "" else platformSuffix) +
-                  "_" + scalaVersion
+                "_" + scalaVersion
           )
         )
     }
