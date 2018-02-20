@@ -1,13 +1,15 @@
 package mill
 
-import java.io.{InputStream, OutputStream, PrintStream, RandomAccessFile}
-import java.nio.file.{Files, Path, Paths}
+import java.io._
 import java.util
+
+import ammonite.main.Cli
+import mill.main.MainRunner
 object Client{
-  def WithLock[T](index: Int)(f: Path => T): T = {
-    val lockFile = Paths.get("out/mill-worker-" + index + "/lock")
-    Files.createDirectories(lockFile.getParent)
-    val raf = new RandomAccessFile(lockFile.toFile, "rw")
+  def WithLock[T](index: Int)(f: String => T): T = {
+    val lockBase = "out/mill-worker-" + index
+    new java.io.File(lockBase).mkdirs()
+    val raf = new RandomAccessFile(lockBase+ "/lock", "rw")
     val channel = raf.getChannel
     channel.tryLock() match{
       case null =>
@@ -16,7 +18,7 @@ object Client{
         if (index < 5) WithLock(index + 1)(f)
         else throw new Exception("Reached max process limit: " + 5)
       case locked =>
-        try f(lockFile.getParent)
+        try f(lockBase)
         finally{
           locked.release()
           raf.close()
@@ -27,22 +29,31 @@ object Client{
 
   def main(args: Array[String]): Unit = {
     WithLock(1) { lockBase =>
-      val inFile = lockBase.resolve("stdin")
-      val outFile = lockBase.resolve("stdout")
-      val errFile = lockBase.resolve("stderr")
-      val runFile = lockBase.resolve("run")
-      val tmpRunFile = lockBase.resolve("run-tmp")
 
-      Files.createFile(outFile)
-      Files.createFile(errFile)
-
-      Files.write(tmpRunFile, java.util.Arrays.asList(args:_*))
-      Files.move(tmpRunFile, runFile)
       val start = System.currentTimeMillis()
-      val in = Files.newOutputStream(inFile)
-      val out = Files.newInputStream(outFile)
-      val err = Files.newInputStream(errFile)
-      if (!Files.exists(lockBase.resolve("pid"))){
+      val inFile = new java.io.File(lockBase + "/stdin")
+      val outFile = new java.io.File(lockBase + "/stdout")
+      val errFile = new java.io.File(lockBase + "/stderr")
+      val runFile = new java.io.File(lockBase + "/run")
+      val tmpRunFile = new java.io.File(lockBase + "/run-tmp")
+      val pidFile = new java.io.File(lockBase + "/pid")
+
+      outFile.createNewFile()
+      errFile.createNewFile()
+
+      val f = new FileOutputStream(tmpRunFile)
+      var i = 0
+      while (i < args.length){
+        f.write(args(i).getBytes)
+        f.write('\n')
+        i += 1
+      }
+      tmpRunFile.renameTo(runFile)
+
+      val in = new FileOutputStream(inFile)
+      val out = new FileInputStream(outFile)
+      val err = new FileInputStream(errFile)
+      if (!pidFile.exists()){
         val selfJar = getClass.getProtectionDomain.getCodeSource.getLocation.toURI.getPath
 
         val l = new java.util.ArrayList[String]
@@ -60,26 +71,26 @@ object Client{
 
         new java.lang.ProcessBuilder()
           .command(l)
-          .redirectInput(inFile.toFile)
-          .redirectOutput(outFile.toFile)
-          .redirectError(errFile.toFile)
+          .redirectInput(inFile)
+          .redirectOutput(outFile)
+          .redirectError(errFile)
           .start()
       }
-
-
       val buffer = new Array[Byte](1024)
       while({
         Thread.sleep(1)
-        forward(buffer, out, System.out) |
-        forward(buffer, err, System.err) |
-        forward(buffer, System.in, in) |
-        Files.exists(runFile)
-      })()
-      println("DELTA: " + (System.currentTimeMillis() - start))
+        while({
+          forward(buffer, out, System.out) |
+          forward(buffer, err, System.err) |
+          forward(buffer, System.in, in)
+        })()
 
-      Files.delete(inFile)
-      Files.delete(outFile)
-      Files.delete(errFile)
+        runFile.exists()
+      })()
+
+      inFile.delete()
+      outFile.delete()
+      errFile.delete()
 
     }
   }
@@ -93,27 +104,49 @@ object Client{
   }
 }
 
-
+class ProxyOutputStream(x: => java.io.OutputStream) extends java.io.OutputStream  {
+  def write(b: Int) = x.write(b)
+  override def write(b: Array[Byte], off: Int, len: Int) = x.write(b, off, len)
+  override def write(b: Array[Byte]) = x.write(b)
+}
+class ProxyInputStream(x: => java.io.InputStream) extends java.io.InputStream{
+  def read() = x.read()
+  override def read(b: Array[Byte], off: Int, len: Int) = x.read(b, off, len)
+  override def read(b: Array[Byte]) = x.read(b)
+}
 object Server{
   def main(args: Array[String]): Unit = {
+    import java.nio.file.{Paths, Files}
     val lockBase = Paths.get(args(0))
     val runFile = lockBase.resolve("run")
     var lastRun = System.currentTimeMillis()
     val pidFile = lockBase.resolve("pid")
+    var currentIn = System.in
+    var currentOut: OutputStream = System.out
+    var currentErr: OutputStream = System.err
+    System.setOut(new PrintStream(new ProxyOutputStream(currentOut), true))
+    System.setErr(new PrintStream(new ProxyOutputStream(currentErr), true))
+    System.setIn(new ProxyInputStream(currentIn))
     Files.createFile(pidFile)
+    var mainRunner = Option.empty[(Cli.Config, MainRunner)]
     try {
       while (System.currentTimeMillis() - lastRun < 60000) {
         if (!Files.exists(runFile)) Thread.sleep(10)
         else {
-          val in = Files.newInputStream(lockBase.resolve("stdin"))
-          val out = Files.newOutputStream(lockBase.resolve("stdout"))
-          val err = Files.newOutputStream(lockBase.resolve("stderr"))
+          val start = System.currentTimeMillis()
+          currentIn = Files.newInputStream(lockBase.resolve("stdin"))
+          currentOut = Files.newOutputStream(lockBase.resolve("stdout"))
+          currentErr = Files.newOutputStream(lockBase.resolve("stderr"))
           val args = new String(Files.readAllBytes(runFile)).split('\n')
           try {
-            System.setOut(new PrintStream(out))
-            System.setErr(new PrintStream(err))
-            System.setIn(in)
-            mill.Main.main0(args)
+
+            val (_, mr) = mill.Main.main0(args, mainRunner)
+            val end = System.currentTimeMillis()
+
+            mainRunner = mr
+            System.out.flush()
+            System.err.flush()
+            pprint.log(end - start)
           } finally {
             Files.delete(runFile)
             lastRun = System.currentTimeMillis()

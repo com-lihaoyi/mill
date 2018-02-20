@@ -19,13 +19,14 @@ import upickle.Js
 class MainRunner(config: ammonite.main.Cli.Config,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
-                 stdIn: InputStream)
+                 stdIn: InputStream,
+                 var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
 
-  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None
+
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(

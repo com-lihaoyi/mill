@@ -1,8 +1,12 @@
 package mill
 
+import java.io.PrintStream
+
+import ammonite.main.Cli
 import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
 import ammonite.util.Util
+import mill.main.MainRunner
 
 object Main {
   case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
@@ -12,11 +16,10 @@ object Main {
                     watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
-    val result = main0(args)
+    val (result, _) = main0(args, None)
     System.exit(if(result) 0 else 1)
   }
-  def main0(args: Array[String]): Boolean = {
-
+  def main0(args: Array[String], mainRunner: Option[(Cli.Config, MainRunner)]): (Boolean, Option[(Cli.Config, MainRunner)]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "home", "no-home-predef")
@@ -28,7 +31,7 @@ object Main {
     ) match{
       case Left(msg) =>
         System.err.println(msg)
-        false
+        (false, None)
       case Right((cliConfig, _)) if cliConfig.help =>
         val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
         System.out.println(
@@ -37,7 +40,7 @@ object Main {
            |
            |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
         )
-        true
+        (true, None)
       case Right((cliConfig, leftoverArgs)) =>
 
         val repl = leftoverArgs.isEmpty
@@ -61,13 +64,19 @@ object Main {
 
         val runner = new mill.main.MainRunner(
           config.copy(home = pwd / "out" / ".ammonite"),
-          System.out, System.err, System.in
+          System.out, System.err, System.in,
+          mainRunner match{
+            case Some((c, mr)) if c.copy(storageBackend = null) == cliConfig.copy(storageBackend = null) =>
+              mr.lastEvaluator
+            case _ => None
+          }
         )
+
         if (repl){
           runner.printInfo("Loading...")
-          runner.watchLoop(isRepl = true, printing = false, _.run())
+          (runner.watchLoop(isRepl = true, printing = false, _.run()), Some(cliConfig -> runner))
         } else {
-          runner.runScript(pwd / "build.sc", leftoverArgs)
+          (runner.runScript(pwd / "build.sc", leftoverArgs), Some(cliConfig -> runner))
         }
     }
   }
