@@ -9,18 +9,13 @@ import ammonite.util.Util
 import mill.main.MainRunner
 
 object Main {
-  case class Config(home: ammonite.ops.Path = pwd/'out/'ammonite,
-                    colored: Option[Boolean] = None,
-                    help: Boolean = false,
-                    repl: Boolean = false,
-                    watch: Boolean = false)
-
   def main(args: Array[String]): Unit = {
-    val (result, _) = main0(args, None, () => false)
+    val (result, _) = main0(args, None, ammonite.Main.isInteractive(), () => false)
     System.exit(if(result) 0 else 1)
   }
   def main0(args: Array[String],
             mainRunner: Option[(Cli.Config, MainRunner)],
+            mainInteractive: Boolean,
             watchInterrupted: () => Boolean): (Boolean, Option[(Cli.Config, MainRunner)]) = {
     import ammonite.main.Cli
 
@@ -65,7 +60,7 @@ object Main {
           )
 
         val runner = new mill.main.MainRunner(
-          config.copy(home = pwd / "out" / ".ammonite"),
+          config.copy(home = pwd / "out" / ".ammonite", colored = Some(mainInteractive)),
           System.out, System.err, System.in,
           watchInterrupted,
           mainRunner match{

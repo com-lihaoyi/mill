@@ -30,6 +30,7 @@ object Client{
   def main(args: Array[String]): Unit = {
     WithLock(1) { lockBase =>
 
+      val start = System.currentTimeMillis()
       val inFile = new java.io.File(lockBase + "/stdin")
       val outErrFile = new java.io.File(lockBase + "/stdouterr")
       val metaFile = new java.io.File(lockBase + "/stdmeta")
@@ -43,12 +44,16 @@ object Client{
       metaFile.createNewFile()
 
       val f = new FileOutputStream(tmpRunFile)
+      f.write(if (System.console() != null) 1 else 0)
+      f.write(args.length)
       var i = 0
       while (i < args.length){
+        f.write(args(i).length)
         f.write(args(i).getBytes)
-        f.write('\n')
         i += 1
       }
+      f.flush()
+
       tmpRunFile.renameTo(runFile)
 
       val in = new FileOutputStream(inFile)
@@ -78,6 +83,7 @@ object Client{
           .redirectError(outErrFile)
           .start()
       }
+
       val buffer = new Array[Byte](1024)
       val metaBuffer = new Array[Byte](1024)
       while({
@@ -141,9 +147,9 @@ class ProxyInputStream(x: => java.io.InputStream) extends java.io.InputStream{
   override def read(b: Array[Byte]) = x.read(b)
 }
 object Server{
-  def main(args: Array[String]): Unit = {
+  def main(args0: Array[String]): Unit = {
     import java.nio.file.{Paths, Files}
-    val lockBase = Paths.get(args(0))
+    val lockBase = Paths.get(args0(0))
     val runFile = lockBase.resolve("run")
     var lastRun = System.currentTimeMillis()
     val pidFile = lockBase.resolve("pid")
@@ -165,12 +171,20 @@ object Server{
           currentIn = Files.newInputStream(lockBase.resolve("stdin"))
           currentOutErr = Files.newOutputStream(lockBase.resolve("stdouterr"))
           currentMeta = Files.newOutputStream(lockBase.resolve("stdmeta"))
-          val args = new String(Files.readAllBytes(runFile)).split('\n')
+          val argStream = Files.newInputStream(lockBase.resolve("run"))
+          val interactive = argStream.read() != 0
+          val argsLength = argStream.read()
+          val args = Array.fill(argsLength){
+            val n = argStream.read()
+            val arr = new Array[Byte](n)
+            argStream.read(arr)
+            new String(arr)
+          }
           try {
-
             val (_, mr) = mill.Main.main0(
               args,
               mainRunner,
+              interactive,
               () => {
                 channel.tryLock()  match{
                   case null =>
