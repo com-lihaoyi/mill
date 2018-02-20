@@ -12,6 +12,10 @@ object Main {
                     watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
+    val result = main0(args)
+    System.exit(if(result) 0 else 1)
+  }
+  def main0(args: Array[String]): Boolean = {
 
     import ammonite.main.Cli
 
@@ -24,7 +28,7 @@ object Main {
     ) match{
       case Left(msg) =>
         System.err.println(msg)
-        System.exit(1)
+        false
       case Right((cliConfig, _)) if cliConfig.help =>
         val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
         System.out.println(
@@ -33,7 +37,7 @@ object Main {
            |
            |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
         )
-        System.exit(0)
+        true
       case Right((cliConfig, leftoverArgs)) =>
 
         val repl = leftoverArgs.isEmpty
@@ -61,13 +65,10 @@ object Main {
         )
         if (repl){
           runner.printInfo("Loading...")
-          runner.runRepl()
+          runner.watchLoop(isRepl = true, printing = false, _.run())
         } else {
-          val result = runner.runScript(pwd / "build.sc", leftoverArgs)
-          System.exit(if(result) 0 else 1)
+          runner.runScript(pwd / "build.sc", leftoverArgs)
         }
     }
   }
 }
-
-
