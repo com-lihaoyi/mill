@@ -30,7 +30,6 @@ object Client{
   def main(args: Array[String]): Unit = {
     WithLock(1) { lockBase =>
 
-      val start = System.currentTimeMillis()
       val inFile = new java.io.File(lockBase + "/stdin")
       val outErrFile = new java.io.File(lockBase + "/stdouterr")
       val metaFile = new java.io.File(lockBase + "/stdmeta")
@@ -42,6 +41,8 @@ object Client{
       metaFile.delete()
       outErrFile.createNewFile()
       metaFile.createNewFile()
+      inFile.createNewFile()
+      inFile.createNewFile()
 
       val f = new FileOutputStream(tmpRunFile)
       f.write(if (System.console() != null) 1 else 0)
@@ -151,6 +152,9 @@ object Server{
     import java.nio.file.{Paths, Files}
     val lockBase = Paths.get(args0(0))
     val runFile = lockBase.resolve("run")
+    val inFile = lockBase.resolve("stdin")
+    val outErrFile = lockBase.resolve("stdouterr")
+    val metaFile = lockBase.resolve("stdmeta")
     var lastRun = System.currentTimeMillis()
     val pidFile = lockBase.resolve("pid")
     var currentIn = System.in
@@ -159,19 +163,16 @@ object Server{
     val raf = new RandomAccessFile(lockBase + "/lock", "rw")
     val channel = raf.getChannel
 
-    System.setOut(new PrintStream(new ProxyOutputStream(currentOutErr, currentMeta, 0), true))
-    System.setErr(new PrintStream(new ProxyOutputStream(currentOutErr, currentMeta, 1), true))
-    System.setIn(new ProxyInputStream(currentIn))
     Files.createFile(pidFile)
     var mainRunner = Option.empty[(Cli.Config, MainRunner)]
     try {
       while (System.currentTimeMillis() - lastRun < 60000) {
         if (!Files.exists(runFile)) Thread.sleep(10)
         else {
-          currentIn = Files.newInputStream(lockBase.resolve("stdin"))
-          currentOutErr = Files.newOutputStream(lockBase.resolve("stdouterr"))
-          currentMeta = Files.newOutputStream(lockBase.resolve("stdmeta"))
-          val argStream = Files.newInputStream(lockBase.resolve("run"))
+          currentIn = Files.newInputStream(inFile)
+          currentOutErr = Files.newOutputStream(outErrFile)
+          currentMeta = Files.newOutputStream(metaFile)
+          val argStream = Files.newInputStream(runFile)
           val interactive = argStream.read() != 0
           val argsLength = argStream.read()
           val args = Array.fill(argsLength){
@@ -193,15 +194,18 @@ object Server{
                     lock.release()
                     true
                 }
-              }
+              },
+              new ProxyInputStream(currentIn),
+              new PrintStream(new ProxyOutputStream(currentOutErr, currentMeta, 0), true),
+              new PrintStream(new ProxyOutputStream(currentOutErr, currentMeta, 1), true)
             )
 
             mainRunner = mr
           } catch{case MainRunner.WatchInterrupted(mr) =>
             mainRunner = Some((mr.config, mr))
           } finally{
-            currentOutErr.flush()
             Files.delete(runFile)
+
             lastRun = System.currentTimeMillis()
           }
         }

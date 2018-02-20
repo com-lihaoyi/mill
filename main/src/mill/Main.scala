@@ -1,6 +1,6 @@
 package mill
 
-import java.io.PrintStream
+import java.io.{InputStream, OutputStream, PrintStream}
 
 import ammonite.main.Cli
 import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
@@ -10,13 +10,23 @@ import mill.main.MainRunner
 
 object Main {
   def main(args: Array[String]): Unit = {
-    val (result, _) = main0(args, None, ammonite.Main.isInteractive(), () => false)
+    val (result, _) = main0(
+      args,
+      None,
+      ammonite.Main.isInteractive(), () => false,
+      System.in,
+      System.out,
+      System.err
+    )
     System.exit(if(result) 0 else 1)
   }
   def main0(args: Array[String],
             mainRunner: Option[(Cli.Config, MainRunner)],
             mainInteractive: Boolean,
-            watchInterrupted: () => Boolean): (Boolean, Option[(Cli.Config, MainRunner)]) = {
+            watchInterrupted: () => Boolean,
+            stdin: InputStream,
+            stdout: PrintStream,
+            stderr: PrintStream): (Boolean, Option[(Cli.Config, MainRunner)]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "home", "no-home-predef")
@@ -61,7 +71,7 @@ object Main {
 
         val runner = new mill.main.MainRunner(
           config.copy(home = pwd / "out" / ".ammonite", colored = Some(mainInteractive)),
-          System.out, System.err, System.in,
+          stdout, stderr, stdin,
           watchInterrupted,
           mainRunner match{
             case Some((c, mr)) if c.copy(storageBackend = null) == cliConfig.copy(storageBackend = null) =>
