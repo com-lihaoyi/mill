@@ -16,10 +16,12 @@ object Main {
                     watch: Boolean = false)
 
   def main(args: Array[String]): Unit = {
-    val (result, _) = main0(args, None)
+    val (result, _) = main0(args, None, () => false)
     System.exit(if(result) 0 else 1)
   }
-  def main0(args: Array[String], mainRunner: Option[(Cli.Config, MainRunner)]): (Boolean, Option[(Cli.Config, MainRunner)]) = {
+  def main0(args: Array[String],
+            mainRunner: Option[(Cli.Config, MainRunner)],
+            watchInterrupted: () => Boolean): (Boolean, Option[(Cli.Config, MainRunner)]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "home", "no-home-predef")
@@ -65,6 +67,7 @@ object Main {
         val runner = new mill.main.MainRunner(
           config.copy(home = pwd / "out" / ".ammonite"),
           System.out, System.err, System.in,
+          watchInterrupted,
           mainRunner match{
             case Some((c, mr)) if c.copy(storageBackend = null) == cliConfig.copy(storageBackend = null) =>
               mr.lastEvaluator

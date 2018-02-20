@@ -7,26 +7,40 @@ import ammonite.ops.Path
 import ammonite.util._
 import mill.define.Discover
 import mill.eval.{Evaluator, PathRef}
+import mill.main.MainRunner.WatchInterrupted
 import mill.util.PrintLogger
 import mill.main.RunScript
 import upickle.Js
-
+object MainRunner{
+  case class WatchInterrupted(mr: MainRunner) extends Exception
+}
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(config: ammonite.main.Cli.Config,
+class MainRunner(val config: ammonite.main.Cli.Config,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
+                 interruptWatch: () => Boolean,
                  var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
 
+  override def watchAndWait(watched: Seq[(Path, Long)]) = {
+    printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    def statAll() = watched.forall{ case (file, lastMTime) =>
+      Interpreter.pathSignature(file) == lastMTime
+    }
 
+    while(statAll()) {
+      if (interruptWatch()) throw WatchInterrupted(this)
+      Thread.sleep(100)
+    }
+  }
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop(

@@ -124,6 +124,9 @@ object Server{
     var currentIn = System.in
     var currentOut: OutputStream = System.out
     var currentErr: OutputStream = System.err
+    val raf = new RandomAccessFile(lockBase + "/lock", "rw")
+    val channel = raf.getChannel
+
     System.setOut(new PrintStream(new ProxyOutputStream(currentOut), true))
     System.setErr(new PrintStream(new ProxyOutputStream(currentErr), true))
     System.setIn(new ProxyInputStream(currentIn))
@@ -140,14 +143,27 @@ object Server{
           val args = new String(Files.readAllBytes(runFile)).split('\n')
           try {
 
-            val (_, mr) = mill.Main.main0(args, mainRunner)
+            val (_, mr) = mill.Main.main0(
+              args,
+              mainRunner,
+              () => {
+                channel.tryLock()  match{
+                  case null =>
+                    false
+                  case lock =>
+                    lock.release()
+                    true
+                }
+              }
+            )
             val end = System.currentTimeMillis()
 
             mainRunner = mr
-            System.out.flush()
-            System.err.flush()
-            pprint.log(end - start)
-          } finally {
+          } catch{case MainRunner.WatchInterrupted(mr) =>
+            mainRunner = Some((mr.config, mr))
+          } finally{
+            currentOut.flush()
+            currentErr.flush()
             Files.delete(runFile)
             lastRun = System.currentTimeMillis()
           }
