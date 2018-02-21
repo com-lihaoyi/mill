@@ -160,6 +160,7 @@ object GenIdea {
       )
 
       val elem = moduleXmlTemplate(
+        mod.millModuleBasePath.value,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
@@ -243,7 +244,8 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(resourcePaths: Strict.Agg[Path],
+  def moduleXmlTemplate(basePath: Path,
+                        resourcePaths: Strict.Agg[Path],
                         normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
                         outputPath: Path,
@@ -253,27 +255,23 @@ object GenIdea {
       <component name="NewModuleRootManager">
         <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         <exclude-output />
-        {
-        for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
+        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
+          {
+          for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
-            </content>
-        }
-        {
-        for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
+          }
+          {
+          for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
-            </content>
-        }
-        {
-        for (resourcePath <- resourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(resourcePath)}>
+          }
+          {
+          for (resourcePath <- resourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />
-            </content>
-        }
+          }
+        </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
 
