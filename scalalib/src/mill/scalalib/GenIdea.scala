@@ -158,9 +158,11 @@ object GenIdea {
         evaluator.outPath,
         mod.compile.ctx.segments
       )
+      val Seq(scalaVersion: String) = evaluator.evaluate(Agg(mod.scalaVersion)).values
 
       val elem = moduleXmlTemplate(
         mod.millModuleBasePath.value,
+        scalaVersion,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
@@ -245,6 +247,7 @@ object GenIdea {
     </component>
   }
   def moduleXmlTemplate(basePath: Path,
+                        scalaVersion: String,
                         resourcePaths: Strict.Agg[Path],
                         normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
@@ -275,6 +278,7 @@ object GenIdea {
         </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
+        <orderEntry type="library" name={s"scala-sdk-$scalaVersion"} level="application" />
 
         {
         for(name <- libNames.toSeq.sorted)
