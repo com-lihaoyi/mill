@@ -12,7 +12,7 @@ import mill.util.PrintLogger
 import mill.main.RunScript
 import upickle.Js
 object MainRunner{
-  case class WatchInterrupted(mr: MainRunner) extends Exception
+  case class WatchInterrupted(stateCache: Option[Evaluator.State]) extends Exception
 }
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
@@ -24,12 +24,13 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
                  interruptWatch: () => Boolean,
-                 var lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])] = None)
+                 stateCache0: Option[Evaluator.State] = None)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
   ){
 
+  var stateCache  = stateCache0
   override def watchAndWait(watched: Seq[(Path, Long)]) = {
     printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
@@ -37,7 +38,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     }
 
     while(statAll()) {
-      if (interruptWatch()) throw WatchInterrupted(this)
+      if (interruptWatch()) throw WatchInterrupted(stateCache)
       Thread.sleep(100)
     }
   }
@@ -52,7 +53,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           scriptPath,
           mainCfg.instantiateInterpreter(),
           scriptArgs,
-          lastEvaluator,
+          stateCache,
           new PrintLogger(
             colors != ammonite.util.Colors.BlackWhite,
             colors,
@@ -66,9 +67,10 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           case Res.Success(data) =>
             val (eval, evaluationWatches, res) = data
 
-            lastEvaluator = Some((interpWatched, eval))
+            val watched = interpWatched ++ evaluationWatches
+            stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, watched))
 
-            (Res(res), interpWatched ++ evaluationWatches)
+            (Res(res), watched)
           case _ => (result, interpWatched)
         }
       }

@@ -17,7 +17,7 @@ object GenIdeaModule extends ExternalModule {
     mill.scalalib.GenIdea(
       implicitly,
       ev.rootModule,
-      ev.discover
+      ev.rootModule.millDiscover
     )
   }
 
@@ -34,7 +34,7 @@ object GenIdea {
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd / 'out, rootModule, discover, ctx.log)
+    val evaluator = new Evaluator(pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
       write.over(pwd/relPath, pp.format(xml))

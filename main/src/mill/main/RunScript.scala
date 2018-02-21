@@ -14,6 +14,7 @@ import mill.util.{EitherOps, Logger, ParseArgs, Watched}
 import mill.util.Strict.Agg
 import upickle.Js
 
+import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
@@ -26,31 +27,32 @@ object RunScript{
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
-                lastEvaluator: Option[(Seq[(Path, Long)], Evaluator[Any])],
+                stateCache: Option[Evaluator.State],
                 log: Logger)
   : (Res[(Evaluator[Any], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
-    val (evalRes, interpWatched) = lastEvaluator match{
-      case Some((prevInterpWatchedSig, prevEvaluator))
-        if watchedSigUnchanged(prevInterpWatchedSig) =>
-
-        (Res.Success(prevEvaluator), prevInterpWatchedSig)
-
+    val (evalState, interpWatched) = stateCache match{
+      case Some(s) if watchedSigUnchanged(s.classLoaderSig) => Res.Success(s) -> s.watched
       case _ =>
         instantiateInterpreter match{
           case Left((res, watched)) => (res, watched)
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for((mapping, discover) <- evaluateMapping(wd, path, interp))
-              yield new Evaluator[Any](
-                wd / 'out, wd / 'out, mapping, discover, log,
-                mapping.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature
+              for((rootModule, discover) <- evaluateMapping(wd, path, interp))
+              yield Evaluator.State(
+                rootModule,
+                rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
+                mutable.Map.empty[Segments, (Int, Any)],
+                interp.watchedFiles
               )
-
             (eval, interp.watchedFiles)
         }
     }
+
+    val evalRes =
+      for(s <- evalState)
+      yield new Evaluator[Any](wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
 
     val evaluated = for{
       evaluator <- evalRes
@@ -142,7 +144,7 @@ object RunScript{
         val selected = selectors.map { case (scopedSel, sel) =>
           for(res <- prepareResolve(evaluator, scopedSel, sel))
           yield {
-            val (rootModule, discover, crossSelectors) = res
+            val (rootModule, crossSelectors) = res
 
 
             try {
@@ -153,7 +155,7 @@ object RunScript{
               // is not currently supported
               mill.eval.Evaluator.currentEvaluator.set(evaluator)
               resolver.resolve(
-                sel.value.toList, rootModule, discover,
+                sel.value.toList, rootModule, rootModule.millDiscover,
                 args, crossSelectors.toList, Nil
               )
             } finally {
@@ -169,7 +171,7 @@ object RunScript{
 
   def resolveRootModule[T](evaluator: Evaluator[T], scopedSel: Option[Segments]) = {
     scopedSel match {
-      case None => Right((evaluator.rootModule, evaluator.discover))
+      case None => Right(evaluator.rootModule)
       case Some(scoping) =>
         for {
           moduleCls <-
@@ -179,19 +181,18 @@ object RunScript{
             case rootModule: ExternalModule => Right(rootModule)
             case _ => Left("Class " + scoping.render + " is not an external module")
           }
-        } yield (rootModule, rootModule.millDiscover)
+        } yield rootModule
     }
   }
 
   def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
-    for (res <- resolveRootModule(evaluator, scopedSel))
+    for (rootModule<- resolveRootModule(evaluator, scopedSel))
     yield {
-      val (rootModule, discover) = res
       val crossSelectors = sel.value.map {
         case Segment.Cross(x) => x.toList.map(_.toString)
         case _ => Nil
       }
-      (rootModule, discover, crossSelectors)
+      (rootModule, crossSelectors)
     }
   }
 

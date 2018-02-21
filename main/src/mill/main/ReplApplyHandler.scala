@@ -19,7 +19,6 @@ object ReplApplyHandler{
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd / 'out,
         rootModule,
-        discover,
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
           colors,
@@ -45,7 +44,7 @@ object ReplApplyHandler{
         else
           ctx.applyPrefixColor("\nChildren:").toString +:
             m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
-        (evaluator.discover.value.get(m.getClass) match{
+        (evaluator.rootModule.millDiscover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>
             ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>

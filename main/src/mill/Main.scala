@@ -6,6 +6,7 @@ import ammonite.main.Cli
 import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
 import ammonite.util.Util
+import mill.eval.Evaluator
 import mill.main.MainRunner
 
 object Main {
@@ -21,12 +22,12 @@ object Main {
     System.exit(if(result) 0 else 1)
   }
   def main0(args: Array[String],
-            mainRunner: Option[(Cli.Config, MainRunner)],
+            stateCache: Option[Evaluator.State],
             mainInteractive: Boolean,
             watchInterrupted: () => Boolean,
             stdin: InputStream,
             stdout: PrintStream,
-            stderr: PrintStream): (Boolean, Option[(Cli.Config, MainRunner)]) = {
+            stderr: PrintStream): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "home", "no-home-predef")
@@ -73,18 +74,15 @@ object Main {
           config.copy(home = pwd / "out" / ".ammonite", colored = Some(mainInteractive)),
           stdout, stderr, stdin,
           watchInterrupted,
-          mainRunner match{
-            case Some((c, mr)) if c.copy(storageBackend = null) == cliConfig.copy(storageBackend = null) =>
-              mr.lastEvaluator
-            case _ => None
-          }
+          stateCache
         )
+
 
         if (repl){
           runner.printInfo("Loading...")
-          (runner.watchLoop(isRepl = true, printing = false, _.run()), Some(cliConfig -> runner))
+          (runner.watchLoop(isRepl = true, printing = false, _.run()), stateCache)
         } else {
-          (runner.runScript(pwd / "build.sc", leftoverArgs), Some(cliConfig -> runner))
+          (runner.runScript(pwd / "build.sc", leftoverArgs), stateCache)
         }
     }
   }

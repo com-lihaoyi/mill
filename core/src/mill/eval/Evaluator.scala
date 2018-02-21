@@ -28,7 +28,6 @@ case class Labelled[T](task: NamedTask[T],
 case class Evaluator[T](outPath: Path,
                         externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
-                        discover: Discover[T],
                         log: Logger,
                         classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig,
                         workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
@@ -48,7 +47,7 @@ case class Evaluator[T](outPath: Path,
 
           case c: mill.define.Command[_] =>
             def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
-              discover.value.get(cls) match{
+              rootModule.millDiscover.value.get(cls) match{
                 case Some(v) => Some(v)
                 case None =>
                   cls.getSuperclass match{
@@ -329,6 +328,10 @@ case class Evaluator[T](outPath: Path,
 
 
 object Evaluator{
+  case class State(rootModule: mill.define.BaseModule,
+                   classLoaderSig: Seq[(Path, Long)],
+                   workerCache: mutable.Map[Segments, (Int, Any)],
+                   watched: Seq[(Path, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule

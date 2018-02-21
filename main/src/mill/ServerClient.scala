@@ -5,6 +5,7 @@ import java.nio.channels.FileChannel
 import java.util
 
 import ammonite.main.Cli
+import mill.eval.Evaluator
 import mill.main.MainRunner
 
 class ServerClient(lockBase: String){
@@ -199,7 +200,7 @@ class ProbeThread(lockChannel: FileChannel,
   var running = true
   def run() = {
     while({
-      Thread.sleep(1)
+      Thread.sleep(3)
       lockChannel.tryLock() match{
         case null => true && running
         case locked =>
@@ -219,7 +220,7 @@ class Server(lockBase: String) extends ServerClient(lockBase){
   var currentMeta: OutputStream = System.err
   val lockFile = new RandomAccessFile(lockBase + "/lock", "rw")
   val channel = lockFile.getChannel
-  var mainRunner = Option.empty[(Cli.Config, MainRunner)]
+  var stateCache = Option.empty[Evaluator.State]
 
   def run() = {
     val originalStdout = System.out
@@ -278,9 +279,9 @@ class Server(lockBase: String) extends ServerClient(lockBase){
     originalStdout.println("Parsed Args " + args.toList)
     try {
       originalStdout.println("Running Main")
-      val (_, mr) = mill.Main.main0(
+      val (_, newStateCache) = mill.Main.main0(
         args,
-        mainRunner,
+        stateCache,
         interactive,
         () => {
           channel.tryLock()  match{
@@ -296,9 +297,9 @@ class Server(lockBase: String) extends ServerClient(lockBase){
         new PrintStream(new ProxyOutputStream(currentOutErr, currentMeta, 1), true)
       )
       originalStdout.println("Finished Main")
-      mainRunner = mr
-    } catch{case MainRunner.WatchInterrupted(mr) =>
-      mainRunner = Some((mr.config, mr))
+      stateCache = newStateCache
+    } catch{case MainRunner.WatchInterrupted(sc) =>
+      stateCache = sc
     } finally{
 //      lockChannel.close()
 //      lockFile.close()
