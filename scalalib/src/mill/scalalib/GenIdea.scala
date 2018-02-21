@@ -271,6 +271,7 @@ object GenIdea {
             yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />
           }
+          <excludeFolder url={"file://$MODULE_DIR$/" +  relify(basePath) + "/target"} />
         </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
