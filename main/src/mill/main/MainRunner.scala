@@ -5,15 +5,14 @@ import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
-import mill.define.Discover
 import mill.eval.{Evaluator, PathRef}
 import mill.main.MainRunner.WatchInterrupted
 import mill.util.PrintLogger
-import mill.main.RunScript
-import upickle.Js
+
 object MainRunner{
   case class WatchInterrupted(stateCache: Option[Evaluator.State]) extends Exception
 }
+
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
   * `build.sc` scripts with mill-specific tweaks such as a custom
@@ -31,6 +30,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   ){
 
   var stateCache  = stateCache0
+
   override def watchAndWait(watched: Seq[(Path, Long)]) = {
     printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
@@ -67,11 +67,9 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           case Res.Success(data) =>
             val (eval, evaluationWatches, res) = data
 
-            val watched = interpWatched ++ evaluationWatches
+            stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, interpWatched))
 
-            stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, watched))
-
-            (Res(res), watched)
+            (Res(res), interpWatched ++ evaluationWatches)
           case _ => (result, interpWatched)
         }
       }
@@ -82,7 +80,6 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       case Res.Success(value) => true
       case _ => super.handleWatchRes(res, printing)
     }
-
   }
 
   override def initMain(isRepl: Boolean) = {
@@ -93,6 +90,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       wd = config.wd
     )
   }
+
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
     def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
       val wrapName = indexedWrapperName.backticked
