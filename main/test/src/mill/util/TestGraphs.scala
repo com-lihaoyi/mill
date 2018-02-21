@@ -1,6 +1,6 @@
 package mill.util
 import TestUtil.test
-import mill.define.Cross
+import mill.define.{Cross, Discover}
 import mill.{Module, T}
 
 /**
@@ -180,6 +180,7 @@ object TestGraphs{
   object canOverrideSuper extends TestUtil.BaseModule with BaseModule {
     override def foo = T{ super.foo() ++ Seq("object") }
     override def cmd(i: Int) = T.command{ super.cmd(i)() ++ Seq("object" + i) }
+    def millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   trait TraitWithModule extends Module{ outer =>
@@ -191,7 +192,9 @@ object TestGraphs{
 
 
   // Make sure nested objects inherited from traits work
-  object TraitWithModuleObject extends TestUtil.BaseModule with TraitWithModule
+  object TraitWithModuleObject extends TestUtil.BaseModule with TraitWithModule{
+    def millDiscover: Discover[this.type] = Discover[this.type]
+  }
 
 
   object singleCross extends TestUtil.BaseModule {

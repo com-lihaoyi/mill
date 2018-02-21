@@ -2,21 +2,20 @@ package mill.main
 
 import mill.define.{Discover, Segment, Task}
 import mill.util.TestGraphs._
-import mill.util.TestEvaluator.implicitDisover
+
 import utest._
 object MainTests extends TestSuite{
 
-  def check[T <: mill.Module](module: T)(
-                              selectorString: String,
-                              expected0: Either[String, Seq[T => Task[_]]])
-                             (implicit discover: Discover[T])= {
+  def check[T <: mill.define.BaseModule](module: T)(
+                                         selectorString: String,
+                                         expected0: Either[String, Seq[T => Task[_]]])= {
 
     val expected = expected0.map(_.map(_(module)))
     val resolved = for{
       selectors <- mill.util.ParseArgs(Seq(selectorString), multiSelect = false).map(_._1.head)
       val crossSelectors = selectors._2.value.map{case Segment.Cross(x) => x.toList.map(_.toString) case _ => Nil}
       task <- mill.main.ResolveTasks.resolve(
-        selectors._2.value.toList, module, discover, Nil, crossSelectors.toList, Nil
+        selectors._2.value.toList, module, module.millDiscover, Nil, crossSelectors.toList, Nil
       )
     } yield task
     assert(resolved == expected)

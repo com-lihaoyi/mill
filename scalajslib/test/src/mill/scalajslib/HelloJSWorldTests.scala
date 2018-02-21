@@ -6,12 +6,13 @@ import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
+import mill.define.Discover
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.util.TestEvaluator.implicitDisover
+
 
 import scala.collection.JavaConverters._
 
@@ -74,6 +75,7 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
     }
+    override def millDiscover = Discover[this.type]
   }
 
   val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"

@@ -39,7 +39,6 @@ case class Evaluator[T](outPath: Path,
     val topoSorted = Graph.topoSorted(transitive)
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case t: NamedTask[Any]   =>
-
         val segments = t.ctx.segments
         val finalTaskOverrides = t match{
           case t: Target[_] =>

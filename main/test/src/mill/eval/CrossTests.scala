@@ -3,7 +3,7 @@ package mill.eval
 import ammonite.ops._
 import mill.define.Discover
 import mill.util.TestEvaluator
-import mill.util.TestEvaluator.implicitDisover
+
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
 object CrossTests extends TestSuite{

@@ -10,7 +10,7 @@ import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.util.TestEvaluator.implicitDisover
+
 import utest.framework.TestPath
 
 import scala.collection.JavaConverters._
@@ -122,9 +122,9 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T, M <: TestUtil.BaseModule: Discover](m: M, resourcePath: Path = resourcePath)
-                                                         (t: TestEvaluator[M] => T)
-                                                         (implicit tp: TestPath): T = {
+  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
+                                                (t: TestEvaluator[M] => T)
+                                                (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)

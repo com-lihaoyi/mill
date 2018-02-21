@@ -8,12 +8,11 @@ import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
 import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
-import mill.util.TestEvaluator.implicitDisover
+
 import ammonite.ops._
 
 object EvaluationTests extends TestSuite{
-  class Checker[T <: TestUtil.BaseModule](module: T)
-                                        (implicit tp: TestPath, discover: Discover[T]) {
+  class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
     def evaluator = new TestEvaluator(module).evaluator

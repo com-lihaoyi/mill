@@ -10,7 +10,6 @@ import mill.util.{DummyLogger, Loose, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
 import utest._
 import mill._
-import TestEvaluator.implicitDisover
 object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
     mkdir(ctx.dest)

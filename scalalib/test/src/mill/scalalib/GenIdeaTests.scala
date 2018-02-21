@@ -5,7 +5,7 @@ import mill._
 import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-import mill.util.TestEvaluator.implicitDisover
+
 object GenIdeaTests extends TestSuite {
 
   val millSourcePath = pwd / 'target / 'workspace / "gen-idea"

@@ -4,7 +4,7 @@ import ammonite.ops._
 import mill.util.{TestEvaluator, TestUtil}
 import mill.T
 import mill.define.Discover
-import mill.util.TestEvaluator.implicitDisover
+
 import utest._
 
 object ModuleTests extends TestSuite{

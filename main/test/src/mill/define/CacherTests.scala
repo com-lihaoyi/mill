@@ -7,7 +7,7 @@ import mill.T
 import mill.eval.Result.Success
 import utest._
 import utest.framework.TestPath
-import mill.util.TestEvaluator.implicitDisover
+
 
 object CacherTests extends TestSuite{
   object Base extends Base
@@ -27,7 +27,7 @@ object CacherTests extends TestSuite{
 
   val tests = Tests{
     def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])
-                                         (implicit discover: Discover[T], tp: TestPath) = {
+                                         (implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).right.get._1
     }

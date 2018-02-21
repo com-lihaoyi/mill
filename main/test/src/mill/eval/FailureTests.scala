@@ -5,7 +5,7 @@ import ammonite.ops.{Path, pwd, rm}
 import mill.eval.Result.OuterStack
 import utest._
 import utest.framework.TestPath
-import mill.util.TestEvaluator.implicitDisover
+
 
 object FailureTests extends TestSuite{
 

@@ -3,7 +3,7 @@ package mill.eval
 import utest._
 import ammonite.ops._
 import mill.T
-import mill.util.TestEvaluator.implicitDisover
+
 import mill.util.TestEvaluator
 object TaskTests extends TestSuite{
   val tests = Tests{

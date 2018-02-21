@@ -11,20 +11,17 @@ import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
-  implicit def implicitDisover[T]: Discover[T] = macro applyImpl[T]
   val externalOutPath = pwd / 'target / 'external
 
 
   def static[T <: TestUtil.BaseModule](module: T)
-                                     (implicit discover: Discover[T],
-                                     fullName: sourcecode.FullName) = {
-    new TestEvaluator[T](module)(discover, fullName, TestPath(Nil))
+                                     (implicit fullName: sourcecode.FullName) = {
+    new TestEvaluator[T](module)(fullName, TestPath(Nil))
   }
 }
 
 class TestEvaluator[T <: TestUtil.BaseModule](module: T)
-                                            (implicit discover: Discover[T],
-                                             fullName: sourcecode.FullName,
+                                            (implicit fullName: sourcecode.FullName,
                                              tp: TestPath){
   val outPath =  TestUtil.getOutPath()
 
