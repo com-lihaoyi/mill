@@ -2,14 +2,14 @@ package mill
 
 import java.io.{InputStream, OutputStream, PrintStream}
 
-import ammonite.main.Cli
+
 import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
 import ammonite.util.Util
 import mill.eval.Evaluator
-import mill.main.MainRunner
 
 object Main {
+
   def main(args: Array[String]): Unit = {
     val (result, _) = main0(
       args,
@@ -21,6 +21,7 @@ object Main {
     )
     System.exit(if(result) 0 else 1)
   }
+
   def main0(args: Array[String],
             stateCache: Option[Evaluator.State],
             mainInteractive: Boolean,
@@ -77,12 +78,11 @@ object Main {
           stateCache
         )
 
-
         if (repl){
           runner.printInfo("Loading...")
-          (runner.watchLoop(isRepl = true, printing = false, _.run()), stateCache)
+          (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
         } else {
-          (runner.runScript(pwd / "build.sc", leftoverArgs), stateCache)
+          (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
         }
     }
   }

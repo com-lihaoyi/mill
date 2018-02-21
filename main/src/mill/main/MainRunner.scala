@@ -68,6 +68,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             val (eval, evaluationWatches, res) = data
 
             val watched = interpWatched ++ evaluationWatches
+
             stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, watched))
 
             (Res(res), watched)
@@ -83,6 +84,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     }
 
   }
+
   override def initMain(isRepl: Boolean) = {
     super.initMain(isRepl).copy(
       scriptCodeWrapper = CustomCodeWrapper,

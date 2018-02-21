@@ -32,14 +32,14 @@ object RunScript{
   : (Res[(Evaluator[Any], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
-      case Some(s) if watchedSigUnchanged(s.classLoaderSig) => Res.Success(s) -> s.watched
+      case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
       case _ =>
         instantiateInterpreter match{
           case Left((res, watched)) => (res, watched)
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for((rootModule, discover) <- evaluateMapping(wd, path, interp))
+              for(rootModule <- evaluateRootModule(wd, path, interp))
               yield Evaluator.State(
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
@@ -78,9 +78,9 @@ object RunScript{
     sig.forall{case (p, l) => Interpreter.pathSignature(p) == l}
   }
 
-  def evaluateMapping(wd: Path,
-                      path: Path,
-                      interp: ammonite.interp.Interpreter): Res[(mill.define.BaseModule, Discover[Any])] = {
+  def evaluateRootModule(wd: Path,
+                         path: Path,
+                         interp: ammonite.interp.Interpreter): Res[mill.define.BaseModule] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -118,19 +118,8 @@ object RunScript{
       } catch {
         case e: Throwable => Res.Exception(e, "")
       }
-      discover <- try {
-        Util.withContextClassloader(interp.evalClassloader) {
-          Res.Success(
-            buildCls.getMethod("millDiscover")
-                    .invoke(module)
-                    .asInstanceOf[Discover[Any]]
-          )
-        }
-      } catch {
-        case e: Throwable => Res.Exception(e, "")
-      }
 //      _ <- Res(consistencyCheck(mapping))
-    } yield (module, discover)
+    } yield module
   }
 
   def resolveTasks[T, R: ClassTag](resolver: mill.main.Resolve[R],
