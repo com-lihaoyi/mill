@@ -18,7 +18,7 @@ object DiscoverTests extends TestSuite{
       check(TestGraphs.triangleTask)(_.left, _.right)
     }
     'TraitWithModuleObject - {
-      check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFramework)
+      check(TestGraphs.TraitWithModuleObject)(_.TraitModule.testFrameworks)
     }
     'nestedModule - {
       check(TestGraphs.nestedModule)(_.single, _.nested.single, _.classInstance.single)

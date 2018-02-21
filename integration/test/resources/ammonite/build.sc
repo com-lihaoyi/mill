@@ -5,13 +5,13 @@ val fullCrossScalaVersions = Seq(
   "2.12.0", "2.12.1", "2.12.2", "2.12.3", "2.12.4"
 )
 trait AmmModule extends mill.scalalib.CrossSbtModule{
-  def testFramework = "utest.runner.Framework"
+  def testFrameworks = Seq("utest.runner.Framework")
   def scalacOptions = Seq("-P:acyclic:force", "-target:jvm-1.7")
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   trait Tests extends super.Tests{
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFramework = "utest.runner.Framework"
+    def testFrameworks = Seq("utest.runner.Framework")
   }
   def allIvyDeps = T{transitiveIvyDeps() ++ scalaLibraryIvyDeps()}
   def externalSources = T{

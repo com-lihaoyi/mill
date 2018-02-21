@@ -185,7 +185,7 @@ object TestGraphs{
 
   trait TraitWithModule extends Module{ outer =>
     object TraitModule extends Module{
-      def testFramework = T{ "mill.UTestFramework" }
+      def testFrameworks = T{ Seq("mill.UTestFramework") }
       def test() = T.command{ ()/*donothing*/ }
     }
   }

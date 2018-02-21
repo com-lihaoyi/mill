@@ -194,14 +194,14 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def test(args: String*) = T.command {
     val framework = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
         toolsClasspath().map(_.path),
-        testFramework(),
+        testFrameworks().head,
         fastOptTest().path.toIO
       )
 
     val (doneMsg, results) = mill.scalalib.ScalaWorkerApi
       .scalaWorker()
       .runTests(
-        _ => framework,
+        _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),
         args
