@@ -9,6 +9,7 @@ import mill.{T, scalalib}
 import mill.util.Ctx.Log
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
+import scala.util.Try
 
 
 object GenIdeaModule extends ExternalModule {
@@ -30,19 +31,35 @@ object GenIdea {
             rootModule: BaseModule,
             discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
+
+    val jdkInfo = extractCurrentJdk(pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
+
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
     val evaluator = new Evaluator(pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
+    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
+  def extractCurrentJdk(ideaPath: Path): Option[(String,String)] = {
+    import scala.xml.XML
+    Try {
+      val xml = XML.loadFile(ideaPath.toString)
+      ((xml \\ "component")
+        .filter(x => x.attribute("project-jdk-type").map(_.text) == Some("JavaSDK"))
+        .map { n => (n.attribute("languageLevel"), n.attribute("project-jdk-name")) }
+        .collect { case (Some(lang), Some(jdk)) => (lang.text, jdk.text) }
+        .headOption)
+    }.getOrElse(None)
+  }
+
   def xmlFileLayout[T](evaluator: Evaluator[T],
                        rootModule: mill.Module,
+                       jdkInfo: (String,String),
                        fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
@@ -96,7 +113,7 @@ object GenIdea {
       .toMap
 
     val fixedFiles = Seq(
-      Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
+      Tuple2(".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
         ".idea"/"modules.xml",
@@ -177,9 +194,9 @@ object GenIdea {
       </component>
     </project>
   }
-  def miscXmlTemplate() = {
+  def miscXmlTemplate(jdkInfo: (String,String)) = {
     <project version="4">
-      <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8 (1)" project-jdk-type="JavaSDK">
+      <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={jdkInfo._2} project-jdk-type="JavaSDK">
         <output url="file://$PROJECT_DIR$/target/idea_output"/>
       </component>
     </project>
