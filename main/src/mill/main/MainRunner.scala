@@ -1,7 +1,6 @@
 package mill.main
 import java.io.{InputStream, OutputStream, PrintStream}
 
-import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._

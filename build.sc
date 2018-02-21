@@ -201,7 +201,8 @@ def assemblyBase(classpath: Agg[Path], extraArgs: String)
     classpath,
     prependShellScript =
       "#!/usr/bin/env sh\n" +
-      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Client "$$@" """
+      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
+//      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Client "$$@" """
   )
 }
 
