@@ -49,11 +49,10 @@ object GenIdea {
     import scala.xml.XML
     Try {
       val xml = XML.loadFile(ideaPath.toString)
-      ((xml \\ "component")
-        .filter(x => x.attribute("project-jdk-type").map(_.text) == Some("JavaSDK"))
+      (xml \\ "component")
+        .filter(x => x.attribute("project-jdk-type").map(_.text).contains("JavaSDK"))
         .map { n => (n.attribute("languageLevel"), n.attribute("project-jdk-name")) }
-        .collect { case (Some(lang), Some(jdk)) => (lang.text, jdk.text) }
-        .headOption)
+        .collectFirst{ case (Some(lang), Some(jdk)) => (lang.text, jdk.text) }
     }.getOrElse(None)
   }
 
@@ -114,8 +113,7 @@ object GenIdea {
       .map{p => p.segments.last -> p}
       .groupBy(_._1)
       .filter(_._2.size > 1)
-      .map(_._1)
-      .toSet
+      .keySet
 
     val pathToLibName = allResolved
       .map{p =>
