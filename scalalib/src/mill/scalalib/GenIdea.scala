@@ -9,6 +9,7 @@ import mill.{T, scalalib}
 import mill.util.Ctx.Log
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
+import scala.util.Try
 
 
 object GenIdeaModule extends ExternalModule {
@@ -30,19 +31,34 @@ object GenIdea {
             rootModule: BaseModule,
             discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
+
+    val jdkInfo = extractCurrentJdk(pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
+
     rm! pwd/".idea"
     rm! pwd/".idea_modules"
 
 
     val evaluator = new Evaluator(pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule)){
+    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
       write.over(pwd/relPath, pp.format(xml))
     }
   }
 
+  def extractCurrentJdk(ideaPath: Path): Option[(String,String)] = {
+    import scala.xml.XML
+    Try {
+      val xml = XML.loadFile(ideaPath.toString)
+      (xml \\ "component")
+        .filter(x => x.attribute("project-jdk-type").map(_.text).contains("JavaSDK"))
+        .map { n => (n.attribute("languageLevel"), n.attribute("project-jdk-name")) }
+        .collectFirst{ case (Some(lang), Some(jdk)) => (lang.text, jdk.text) }
+    }.getOrElse(None)
+  }
+
   def xmlFileLayout[T](evaluator: Evaluator[T],
                        rootModule: mill.Module,
+                       jdkInfo: (String,String),
                        fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
@@ -91,12 +107,25 @@ object GenIdea {
       .takeWhile(_.distinct.length == 1)
       .length
 
+    // only resort to full long path names if the jar name is a duplicate
+    val pathShortLibNameDuplicate = allResolved
+      .distinct
+      .map{p => p.segments.last -> p}
+      .groupBy(_._1)
+      .filter(_._2.size > 1)
+      .keySet
+
     val pathToLibName = allResolved
-      .map{p => (p, p.segments.drop(commonPrefix).mkString("_"))}
+      .map{p =>
+        if (pathShortLibNameDuplicate(p.segments.last))
+          (p, p.segments.drop(commonPrefix).mkString("_"))
+        else
+          (p, p.segments.last)
+      }
       .toMap
 
     val fixedFiles = Seq(
-      Tuple2(".idea"/"misc.xml", miscXmlTemplate()),
+      Tuple2(".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
         ".idea"/"modules.xml",
@@ -141,8 +170,11 @@ object GenIdea {
         evaluator.outPath,
         mod.compile.ctx.segments
       )
+      val Seq(scalaVersion: String) = evaluator.evaluate(Agg(mod.scalaVersion)).values
 
       val elem = moduleXmlTemplate(
+        mod.millModuleBasePath.value,
+        scalaVersion,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
@@ -177,9 +209,9 @@ object GenIdea {
       </component>
     </project>
   }
-  def miscXmlTemplate() = {
+  def miscXmlTemplate(jdkInfo: (String,String)) = {
     <project version="4">
-      <component name="ProjectRootManager" version="2" languageLevel="JDK_1_8" project-jdk-name="1.8 (1)" project-jdk-type="JavaSDK">
+      <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={jdkInfo._2} project-jdk-type="JavaSDK">
         <output url="file://$PROJECT_DIR$/target/idea_output"/>
       </component>
     </project>
@@ -206,7 +238,10 @@ object GenIdea {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out"/>
-        <content url="file://$MODULE_DIR$/.." />
+        <content url="file://$MODULE_DIR$/..">
+          <excludeFolder url="file://$MODULE_DIR$/../project" />
+          <excludeFolder url="file://$MODULE_DIR$/../target" />
+        </content>
         <exclude-output/>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
@@ -226,7 +261,9 @@ object GenIdea {
       </library>
     </component>
   }
-  def moduleXmlTemplate(resourcePaths: Strict.Agg[Path],
+  def moduleXmlTemplate(basePath: Path,
+                        scalaVersion: String,
+                        resourcePaths: Strict.Agg[Path],
                         normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
                         outputPath: Path,
@@ -236,29 +273,27 @@ object GenIdea {
       <component name="NewModuleRootManager">
         <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
         <exclude-output />
-        {
-        for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(normalSourcePath)}>
+        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
+          {
+          for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
-            </content>
-        }
-        {
-        for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)}>
+          }
+          {
+          for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
-            </content>
-        }
-        {
-        for (resourcePath <- resourcePaths.toSeq.sorted)
-          yield
-            <content url={"file://$MODULE_DIR$/" + relify(resourcePath)}>
+          }
+          {
+          for (resourcePath <- resourcePaths.toSeq.sorted)
+            yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />
-            </content>
-        }
+          }
+          <excludeFolder url={"file://$MODULE_DIR$/" +  relify(basePath) + "/target"} />
+        </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
+        <orderEntry type="library" name={s"scala-sdk-$scalaVersion"} level="application" />
 
         {
         for(name <- libNames.toSeq.sorted)
