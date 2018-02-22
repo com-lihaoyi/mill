@@ -108,8 +108,22 @@ object GenIdea {
       .takeWhile(_.distinct.length == 1)
       .length
 
+    // only resort to full long path names if the jar name is a duplicate
+    val pathShortLibNameDuplicate = allResolved
+      .distinct
+      .map{p => p.segments.last -> p}
+      .groupBy(_._1)
+      .filter(_._2.size > 1)
+      .map(_._1)
+      .toSet
+
     val pathToLibName = allResolved
-      .map{p => (p, p.segments.drop(commonPrefix).mkString("_"))}
+      .map{p =>
+        if (pathShortLibNameDuplicate(p.segments.last))
+          (p, p.segments.drop(commonPrefix).mkString("_"))
+        else
+          (p, p.segments.last)
+      }
       .toMap
 
     val fixedFiles = Seq(
