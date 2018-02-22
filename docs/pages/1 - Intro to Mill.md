@@ -299,7 +299,7 @@ mill resolve __.compile         # list the compile tasks for every module
 mill resolve _                  # list every top level module or task
 mill resolve foo._              # list every task directly within the foo module
 mill resolve __                 # list every module or task recursively
-mill resolve foo._              # list every task recursively within the foo module
+mill resolve foo.__             # list every task recursively within the foo module
 ```
 
 ### describe
