@@ -2,7 +2,7 @@ package mill.scalalib
 import mill.util.JsonFormatters._
 object TestRunner {
 
-  def framework(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
+  def frameworks(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
     frameworkNames.map { name =>
       cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
     }

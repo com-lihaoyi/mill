@@ -37,7 +37,7 @@ object ScalaWorker{
   def main(args: Array[String]): Unit = {
     try{
       val result = new ScalaWorker(null, null).runTests(
-        frameworkInstances = TestRunner.framework(args(0).split(" ")),
+        frameworkInstances = TestRunner.frameworks(args(0).split(" ")),
         entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
         args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
