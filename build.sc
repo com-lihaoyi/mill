@@ -55,7 +55,7 @@ trait MillModule extends MillPublishModule{ outer =>
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFramework = "mill.UTestFramework"
+    def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
   }
 }

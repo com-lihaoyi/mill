@@ -32,6 +32,6 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest:0.6.0"
     )
-    def testFramework = "utest.runner.Framework"
+    def testFrameworks = Seq("utest.runner.Framework")
   }
 }

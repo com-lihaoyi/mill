@@ -294,7 +294,7 @@ object TestModule{
 }
 trait TestModule extends ScalaModule with TaskModule {
   override def defaultCommandName() = "test"
-  def testFramework: T[String]
+  def testFrameworks: T[Seq[String]]
 
   def forkWorkingDir = ammonite.ops.pwd
 
@@ -307,7 +307,7 @@ trait TestModule extends ScalaModule with TaskModule {
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
-        testFramework(),
+        testFrameworks().mkString(" "),
         runClasspath().map(_.path).mkString(" "),
         Seq(compile().classes.path).mkString(" "),
         args.mkString(" "),
@@ -326,7 +326,7 @@ trait TestModule extends ScalaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     mill.scalalib.ScalaWorkerApi.scalaWorker().runTests(
-      TestRunner.framework(testFramework()),
+      TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args

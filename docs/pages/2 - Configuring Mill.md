@@ -81,7 +81,7 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFramework = "mill.UTestFramework"
+    def testFrameworks = Seq("mill.UTestFramework")
   }
 }
 ```
@@ -143,11 +143,11 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFramework = "mill.UTestFramework"
+    def testFrameworks = Seq("mill.UTestFramework")
   }
   object integration extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFramework = "mill.UTestFramework"
+    def testFrameworks = Seq("mill.UTestFramework")
   }
 }
 ```
@@ -167,12 +167,12 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-  def testFramework = "org.scalatest.tools.Framework"
+  def testFrameworks = Seq("org.scalatest.tools.Framework")
 }
 ```
 
 Integrating with test frameworks like Scalatest is simply a matter of adding it
-to `ivyDeps` and specifying the `testFramework` you want to use. After that you
+to `ivyDeps` and specifying the `testFrameworks` you want to use. After that you
 can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
 passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 

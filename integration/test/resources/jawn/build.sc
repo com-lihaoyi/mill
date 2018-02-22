@@ -20,7 +20,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
         ivy"org.scalatest::scalatest:3.0.3",
         ivy"org.scalacheck::scalacheck:1.13.5"
       )
-      def testFramework = "org.scalatest.tools.Framework"
+      def testFrameworks = Seq("org.scalatest.tools.Framework")
     }
   }
   object parser extends JawnModule

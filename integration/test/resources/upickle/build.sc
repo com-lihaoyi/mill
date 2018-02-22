@@ -107,7 +107,7 @@ trait UpickleTestModule extends TestModule{
     millSourcePath / platformSegment / "src" / "test",
     millSourcePath / "shared" / "src" / "test"
   )
-  def testFramework = "utest.runner.Framework"
+  def testFrameworks = Seq("utest.runner.Framework")
 }
 
 object upickleJvm extends Cross[UpickleJvmModule]("2.11.11", "2.12.4")

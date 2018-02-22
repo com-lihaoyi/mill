@@ -37,7 +37,7 @@ object ScalaWorker{
   def main(args: Array[String]): Unit = {
     try{
       val result = new ScalaWorker(null, null).runTests(
-        frameworkInstance = TestRunner.framework(args(0)),
+        frameworkInstances = TestRunner.frameworks(args(0).split(" ")),
         entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
         testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
         args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
@@ -240,46 +240,51 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
   }
 
-  def runTests(frameworkInstance: ClassLoader => sbt.testing.Framework,
+  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
                entireClasspath: Agg[Path],
                testClassfilePath: Agg[Path],
                args: Seq[String])
               (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
-      val framework = frameworkInstance(cl)
+      val frameworks = frameworkInstances(cl)
 
-      val testClasses = discoverTests(cl, framework, testClassfilePath)
-
-      val runner = framework.runner(args.toArray, args.toArray, cl)
-
-      val tasks = runner.tasks(
-        for ((cls, fingerprint) <- testClasses.toArray)
-        yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-      )
       val events = mutable.Buffer.empty[Event]
-      for (t <- tasks) {
-        t.execute(
-          new EventHandler {
-            def handle(event: Event) = events.append(event)
-          },
-          Array(
-            new Logger {
-              def debug(msg: String) = ctx.log.info(msg)
 
-              def error(msg: String) = ctx.log.error(msg)
+      val doneMessages = frameworks.map { framework =>
+        val runner = framework.runner(args.toArray, args.toArray, cl)
 
-              def ansiCodesSupported() = true
+        val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-              def warn(msg: String) = ctx.log.info(msg)
-
-              def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-
-              def info(msg: String) = ctx.log.info(msg)
-            })
+        val tasks = runner.tasks(
+          for ((cls, fingerprint) <- testClasses.toArray)
+            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
         )
+
+        for (t <- tasks) {
+          t.execute(
+            new EventHandler {
+              def handle(event: Event) = events.append(event)
+            },
+            Array(
+              new Logger {
+                def debug(msg: String) = ctx.log.info(msg)
+
+                def error(msg: String) = ctx.log.error(msg)
+
+                def ansiCodesSupported() = true
+
+                def warn(msg: String) = ctx.log.info(msg)
+
+                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+
+                def info(msg: String) = ctx.log.info(msg)
+              })
+          )
+        }
+        runner.done()
       }
-      val doneMsg = runner.done()
+
       val results = for(e <- events) yield {
         val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
         Result(
@@ -298,7 +303,8 @@ class ScalaWorker(ctx0: mill.util.Ctx,
           ex.map(_.getStackTrace)
         )
       }
-      (doneMsg, results)
+
+      (doneMessages.mkString("\n"), results)
     })
 
   }

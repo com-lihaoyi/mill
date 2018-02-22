@@ -55,7 +55,7 @@ trait BetterFilesModule extends SbtModule{
       if (this == core.test) super.moduleDeps
       else super.moduleDeps ++ Seq(core.test)
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-    def testFramework = "org.scalatest.tools.Framework"
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 

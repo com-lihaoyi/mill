@@ -2,10 +2,10 @@ package mill.scalalib
 import mill.util.JsonFormatters._
 object TestRunner {
 
-  def framework(frameworkName: String)(cl: ClassLoader): sbt.testing.Framework  = {
-    cl.loadClass(frameworkName)
-      .newInstance()
-      .asInstanceOf[sbt.testing.Framework]
+  def frameworks(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
+    frameworkNames.map { name =>
+      cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
+    }
   }
 
   case class Result(fullyQualifiedName: String,

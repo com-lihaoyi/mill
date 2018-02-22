@@ -104,7 +104,7 @@ trait FooModule extends ScalaModule{
   def scalaVersion = "2.11.11"
   object test extends Tests{
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-    def testFramework = "org.scalatest.tools.Framework"
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 ```

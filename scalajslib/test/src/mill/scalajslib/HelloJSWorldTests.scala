@@ -57,7 +57,7 @@ object HelloJSWorldTests extends TestSuite {
       extends BuildModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
-        def testFramework: T[String] = "utest.runner.Framework"
+        def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
         )
@@ -69,7 +69,7 @@ object HelloJSWorldTests extends TestSuite {
       extends BuildModule(crossScalaVersion, sjsVersion0) {
       object test extends super.Tests {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
-        def testFramework: T[String] = "org.scalatest.tools.Framework"
+        def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
           ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
         )
