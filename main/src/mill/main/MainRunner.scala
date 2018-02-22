@@ -5,12 +5,9 @@ import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
-import mill.main.MainRunner.WatchInterrupted
+
 import mill.util.PrintLogger
 
-object MainRunner{
-  case class WatchInterrupted(stateCache: Option[Evaluator.State]) extends Exception
-}
 
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
@@ -37,7 +34,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     }
 
     while(statAll()) {
-      if (interruptWatch()) throw WatchInterrupted(stateCache)
+      if (interruptWatch()) throw mill.clientserver.WatchInterrupted(stateCache)
       Thread.sleep(100)
     }
   }
@@ -58,7 +55,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             colors,
             outprintStream,
             errPrintStream,
-            errPrintStream
+            errPrintStream,
+            stdIn
           )
         )
 

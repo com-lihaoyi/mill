@@ -63,6 +63,15 @@ def ammoniteRun(hole: SettingKey[File], args: String => List[String], suffix: St
   target
 }
 
+lazy val clientserver = project
+  .settings(
+    sharedSettings,
+    pluginSettings,
+    name := "mill-core",
+    libraryDependencies ++= Seq(
+      "org.scala-sbt.ipcsocket" % "ipcsocket" % "1.0.0"
+    )
+  )
 
 lazy val core = project
   .dependsOn(moduledefs)
@@ -83,7 +92,7 @@ lazy val core = project
   )
 
 lazy val main = project
-  .dependsOn(core)
+  .dependsOn(core, clientserver)
   .settings(
     sharedSettings,
     pluginSettings,

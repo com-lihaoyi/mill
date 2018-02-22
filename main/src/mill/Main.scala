@@ -2,12 +2,82 @@ package mill
 
 import java.io.{InputStream, OutputStream, PrintStream}
 
-
 import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
 import ammonite.ops._
 import ammonite.util.Util
+import mill.clientserver.{Client, FileLocks}
 import mill.eval.Evaluator
 
+
+object ClientMain {
+  def initServer(lockBase: String) = {
+    val selfJars = new java.lang.StringBuilder
+    var current = getClass.getClassLoader
+    while(current != null){
+      getClass.getClassLoader match{
+        case e: java.net.URLClassLoader =>
+          val urls = e.getURLs
+          var i = 0
+          while(i < urls.length){
+            if (selfJars.length() != 0) selfJars.append(':')
+            selfJars.append(urls(i))
+            i += 1
+          }
+        case _ =>
+      }
+      current = current.getParent
+    }
+
+    val l = new java.util.ArrayList[String]
+    l.add("java")
+    val props = System.getProperties
+    val keys = props.stringPropertyNames().iterator()
+    while(keys.hasNext){
+      val k = keys.next()
+      if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k))
+    }
+    l.add("-cp")
+    l.add(selfJars.toString)
+    l.add("mill.ServerMain")
+    l.add(lockBase)
+    new java.lang.ProcessBuilder()
+      .command(l)
+      .redirectOutput(new java.io.File(lockBase + "/logs"))
+      .redirectError(new java.io.File(lockBase + "/logs"))
+      .start()
+  }
+  def main(args: Array[String]): Unit = {
+    Client.WithLock(1) { lockBase =>
+      val c = new Client(
+        lockBase,
+        () => initServer(lockBase),
+        new FileLocks(lockBase),
+        System.in,
+        System.out,
+        System.err
+      )
+      c.run(args)
+    }
+    System.exit(0)
+  }
+}
+object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
+  def main0(args: Array[String],
+            stateCache: Option[Evaluator.State],
+            mainInteractive: Boolean,
+            watchInterrupted: () => Boolean,
+            stdin: InputStream,
+            stdout: PrintStream,
+            stderr: PrintStream) = Main.main0(
+    args,
+    stateCache,
+    mainInteractive,
+    watchInterrupted,
+    stdin,
+    stdout,
+    stderr
+  )
+}
 object Main {
 
   def main(args: Array[String]): Unit = {

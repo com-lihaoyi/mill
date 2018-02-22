@@ -29,6 +29,7 @@ trait Logger {
   def colored: Boolean
   val errorStream: PrintStream
   val outputStream: PrintStream
+  val inStream: InputStream
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
@@ -39,6 +40,7 @@ object DummyLogger extends Logger {
   def colored = false
   object errorStream extends PrintStream(_ => ())
   object outputStream extends PrintStream(_ => ())
+  val inStream = new ByteArrayInputStream(Array())
   def info(s: String) = ()
   def error(s: String) = ()
   def ticker(s: String) = ()
@@ -80,7 +82,8 @@ case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
                        outStream: PrintStream,
                        infoStream: PrintStream,
-                       errStream: PrintStream) extends Logger {
+                       errStream: PrintStream,
+                       inStream: InputStream) extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
@@ -133,6 +136,7 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
+  val inStream: InputStream = new ByteArrayInputStream(Array())
   override def close() = {
     if (outputStreamUsed)
       outputStream.close()
@@ -150,6 +154,10 @@ case class MultiLogger(colored: Boolean, streams: Logger*) extends Logger {
       override def flush() = streams.foreach(_.outputStream.flush())
       override def close() = streams.foreach(_.outputStream.close())
     }
+  lazy val inStream = streams.collect{case t: PrintLogger => t}.headOption match{
+    case Some(x) => x.inStream
+    case None => new ByteArrayInputStream(Array())
+  }
 
   def info(s: String) = streams.foreach(_.info(s))
   def error(s: String) = streams.foreach(_.error(s))

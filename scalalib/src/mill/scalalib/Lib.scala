@@ -112,8 +112,4 @@ object Lib{
       cross = false
     )
 
-  val DefaultShellScript: Seq[String] = Seq(
-    "#!/usr/bin/env sh",
-    "exec java -jar \"$0\" \"$@\""
-  )
 }

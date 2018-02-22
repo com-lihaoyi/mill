@@ -24,7 +24,8 @@ object ReplApplyHandler{
           colors,
           System.out,
           System.err,
-          System.err
+          System.err,
+          System.in
         )
       )
     )

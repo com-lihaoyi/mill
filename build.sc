@@ -1,11 +1,13 @@
 import $file.shared
 import $file.upload
 import java.io.File
+import java.nio.file.attribute.PosixFilePermission
 
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
-import mill.scalalib._, publish._
+import mill.scalalib._
+import publish._
 import mill.modules.Jvm.createAssembly
 import upickle.Js
 trait MillPublishModule extends PublishModule{
@@ -60,6 +62,13 @@ trait MillModule extends MillPublishModule{ outer =>
   }
 }
 
+object clientserver extends MillModule{
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  )
+  val test = new Tests(implicitly)
+}
+
 object core extends MillModule {
   def moduleDeps = Seq(moduledefs)
 
@@ -78,7 +87,8 @@ object core extends MillModule {
 }
 
 object main extends MillModule {
-  def moduleDeps = Seq(core)
+  def moduleDeps = Seq(core, clientserver)
+
 
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
@@ -191,42 +201,36 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
-val assemblyProjects = Seq(scalalib, scalajslib)
 
-def assemblyClasspath = mill.define.Task.traverse(assemblyProjects)(_.runClasspath)
+object dev extends MillModule{
+  def moduleDeps = Seq(scalalib, scalajslib)
+  def forkArgs = T{
+    scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()
+  }
+  def mainClass = Some("mill.ClientMain")
 
-def assemblyBase(classpath: Agg[Path], extraArgs: String)
-                (implicit ctx: mill.util.Ctx.Dest) = {
+  def run(wd: Path, args: String*) = T.command{
+    mill.modules.Jvm.interactiveSubprocess(
+      finalMainClass(),
+      runClasspath().map(_.path),
+      forkArgs(),
+      forkEnv(),
+      args,
+      workingDir = ammonite.ops.pwd
+    )
+  }
+}
+
+
+def release = T{
   createAssembly(
-    classpath,
-    prependShellScript =
-      "#!/usr/bin/env sh\n" +
-      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Main "$$@" """
-//      s"""exec java $extraArgs $$JAVA_OPTS -cp "$$0" mill.Client "$$@" """
-  )
-}
+    dev.runClasspath().map(_.path),
+    prependShellScript = mill.modules.Jvm.launcherShellScript(
+      dev.mainClass().get,
+      Agg("$0"),
+      Seq("-DMILL_VERSION=" + publishVersion()._2)
+    )
 
-def devAssembly = T{
-  assemblyBase(
-    Agg.from(assemblyClasspath().flatten.map(_.path)),
-    (scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()).mkString(" ")
-  )
-}
-
-def dev(wd: Path, args: String*) = T.command{
-  mill.modules.Jvm.interactiveSubprocess(
-    "mill.Main",
-    Agg.from(assemblyClasspath().flatten.map(_.path)),
-    jvmArgs = scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs(),
-    mainArgs = args,
-    workingDir = wd
-  )
-}
-
-def releaseAssembly = T{
-  assemblyBase(
-    Agg.from(assemblyClasspath().flatten.map(_.path)),
-    "-DMILL_VERSION=" + publishVersion()._2
   )
 }
 
@@ -262,15 +266,15 @@ def publishVersion = T.input{
 }
 
 def uploadToGithub(authKey: String) = T.command{
-  val (release, label) = publishVersion()
+  val (releaseTag, label) = publishVersion()
 
-  if (release != "unstable"){
+  if (releaseTag != "unstable"){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
         upickle.json.write(
           Js.Obj(
-            "tag_name" -> Js.Str(release),
-            "name" -> Js.Str(release)
+            "tag_name" -> Js.Str(releaseTag),
+            "name" -> Js.Str(releaseTag)
           )
         )
       )
@@ -278,5 +282,5 @@ def uploadToGithub(authKey: String) = T.command{
       .asString
   }
 
-  upload.apply(releaseAssembly().path, release, label, authKey)
+  upload.apply(release().path, releaseTag, label, authKey)
 }

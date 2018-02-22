@@ -6,6 +6,6 @@ set -eux
 sbt bin/test:assembly
 
 # Build Mill using SBT
-target/bin/mill all __.publishLocal releaseAssembly
+target/bin/mill all __.publishLocal release
 
-mv out/releaseAssembly/dest/out.jar ~/mill-release
+mv out/release/dest/out.jar ~/mill-release

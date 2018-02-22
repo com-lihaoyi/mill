@@ -286,21 +286,24 @@ case class Evaluator[T](outPath: Path,
           )
 
           val out = System.out
+          val in = System.in
           val err = System.err
           try{
+            System.setIn(multiLogger.inStream)
             System.setErr(multiLogger.errorStream)
             System.setOut(multiLogger.outputStream)
-            Console.withOut(multiLogger.outputStream){
-              Console.withErr(multiLogger.errorStream){
-                task.evaluate(args)
+            Console.withIn(multiLogger.inStream){
+              Console.withOut(multiLogger.outputStream){
+                Console.withErr(multiLogger.errorStream){
+                  task.evaluate(args)
+                }
               }
             }
-          }catch{ case NonFatal(e) =>
-
-            Result.Exception(e, new OuterStack(currentStack))
+          }catch{ case NonFatal(e) => Result.Exception(e, new OuterStack(currentStack))
           }finally{
             System.setErr(err)
             System.setOut(out)
+            System.setIn(in)
           }
         }
 

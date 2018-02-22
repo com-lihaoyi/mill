@@ -112,7 +112,17 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def prependShellScript: T[String] = T{ "" }
+  def prependShellScript: T[String] = T{
+    mainClass() match{
+      case None => ""
+      case Some(cls) =>
+        mill.modules.Jvm.launcherShellScript(
+          cls,
+          Agg("$0"),
+          forkArgs()
+        )
+    }
+  }
 
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
@@ -189,7 +199,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
-      runClasspath().filter(_.path.ext != "pom").map(_.path),
+      scalaCompilerClasspath().map(_.path) ++ runClasspath().filter(_.path.ext != "pom").map(_.path),
       mainArgs = (files ++ options).toSeq
     )
 
@@ -203,6 +213,20 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def forkArgs = T{ Seq.empty[String] }
 
   def forkEnv = T{ sys.env.toMap }
+
+  def launcher = T{
+    mainClass() match {
+      case None => Result.Failure("Need to specify a main class for launcher")
+      case Some(cls) =>
+        Result.Success(
+          Jvm.createLauncher(
+            cls,
+            runClasspath().map(_.path),
+            forkArgs()
+          )
+        )
+    }
+  }
 
   def runLocal(args: String*) = T.command {
     Jvm.runLocal(
@@ -219,7 +243,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd)
+      workingDir = ammonite.ops.pwd
+    )
   }
 
 

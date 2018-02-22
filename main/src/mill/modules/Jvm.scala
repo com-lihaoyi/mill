@@ -7,6 +7,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
+import mill.clientserver.{ClientInputPumper, ClientServer}
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.{Ctx, Loose}
@@ -27,6 +28,7 @@ object Jvm {
                             envArgs: Map[String, String] = Map.empty,
                             mainArgs: Seq[String] = Seq.empty,
                             workingDir: Path = null): Unit = {
+
     import ammonite.ops.ImplicitWd._
     val commandArgs =
       Vector("java") ++
@@ -34,7 +36,32 @@ object Jvm {
         Vector("-cp", classPath.mkString(":"), mainClass) ++
         mainArgs
 
-    %.copy(envArgs = envArgs)(commandArgs)(workingDir)
+    val builder = new java.lang.ProcessBuilder()
+    import collection.JavaConverters._
+    for ((k, v) <- envArgs){
+      if (v != null) builder.environment().put(k, v)
+      else builder.environment().remove(k)
+    }
+    builder.directory(workingDir.toIO)
+
+    val process =
+      builder
+        .command(commandArgs:_*)
+        .start()
+
+    val sources = Seq(
+      process.getInputStream -> System.out,
+      process.getErrorStream -> System.err,
+      System.in -> process.getOutputStream
+    )
+
+    for((std, dest) <- sources){
+      new Thread(new ClientInputPumper(std, dest)).start()
+    }
+
+    val exitCode = process.waitFor()
+    if (exitCode == 0) ()
+    else throw InteractiveShelloutException()
   }
 
   def runLocal(mainClass: String,
@@ -251,6 +278,29 @@ object Jvm {
       }
 
     }
+    PathRef(outputPath)
+  }
+  def launcherShellScript(mainClass: String,
+                          classPath: Agg[String],
+                          jvmArgs: Seq[String]) = {
+    s"""#!/usr/bin/env sh
+       |
+       |exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${classPath.mkString(":")}" $mainClass "$$@"
+     """.stripMargin
+  }
+  def createLauncher(mainClass: String,
+                     classPath: Agg[Path],
+                     jvmArgs: Seq[String])
+                    (implicit ctx: Ctx.Dest)= {
+    val outputPath = ctx.dest / "run"
+
+    write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
+
+    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+    perms.add(PosixFilePermission.GROUP_EXECUTE)
+    perms.add(PosixFilePermission.OWNER_EXECUTE)
+    perms.add(PosixFilePermission.OTHERS_EXECUTE)
+    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
     PathRef(outputPath)
   }
 

@@ -47,7 +47,8 @@ object ScalaWorker{
         else Colors.BlackWhite,
         System.out,
         System.err,
-        System.err
+        System.err,
+        System.in
       ))
       val outputPath = args(4)
 
