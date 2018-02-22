@@ -23,7 +23,10 @@ object GenIdeaTests extends TestSuite {
     'genIdeaTests - {
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
-      val layout = GenIdea.xmlFileLayout(helloWorldEvaluator.evaluator, HelloWorld, fetchMillModules = false)
+      val layout = GenIdea.xmlFileLayout(
+        helloWorldEvaluator.evaluator,
+        HelloWorld,
+        ("JDK_1_8", "1.8 (1)"), fetchMillModules = false)
       for((relPath, xml) <- layout){
         write.over(millSourcePath/ "generated"/ relPath, pp.format(xml))
       }
