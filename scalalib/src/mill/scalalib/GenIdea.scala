@@ -97,10 +97,10 @@ object GenIdea {
         mod.resolveDeps(scalacPluginsIvyDeps)()
       }
 
-      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef], resolvedSp: Loose.Agg[PathRef],
-      scalacOpts: Seq[String]) =
-        evaluator.evaluate(Agg(externalDependencies, externalSources, scalacPluginDependencies, scalacOptions))
-          .values
+      val resolvedCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalDependencies, Loose.Agg.empty)
+      val resolvedSrcs: Loose.Agg[PathRef] = evalOrElse(evaluator, externalSources, Loose.Agg.empty)
+      val resolvedSp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalacPluginDependencies, Loose.Agg.empty)
+      val scalacOpts: Seq[String] = evalOrElse(evaluator, scalacOptions, Seq())
 
       (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod,
         resolvedSp.map(_.path).filter(_.ext == "jar"), scalacOpts)
@@ -207,6 +207,12 @@ object GenIdea {
     fixedFiles ++ libraries ++ moduleFiles ++ buildLibraries
   }
 
+  def evalOrElse[T](evaluator: Evaluator[_], e: Task[T], default: => T): T = {
+    evaluator.evaluate(Agg(e)).values match {
+      case Seq() => default
+      case Seq(e: T) => e
+    }
+  }
 
   def relify(p: Path) = {
     val r = p.relativeTo(pwd/".idea_modules")
