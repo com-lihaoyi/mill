@@ -34,17 +34,14 @@ class Client(lockBase: String,
              stdout: OutputStream,
              stderr: OutputStream) extends ClientServer(lockBase){
   def run(args: Array[String]) = {
-    println("Client Run")
     val f = new FileOutputStream(runFile)
     ClientServer.writeArgs(System.console() != null, args, f)
     f.close()
     if (locks.processLock.probe()) initServer()
     while(locks.processLock.probe()) Thread.sleep(3)
 
-    println("Client Connect Socket")
-
     val ioSocket = ClientServer.retry(1000, new UnixDomainSocket(ioPath))
-    println("Client Connected Socket")
+
     val outErr = ioSocket.getInputStream
     val in = ioSocket.getOutputStream
     val outPump = new ClientOutputPumper(outErr, stdout, stderr)
@@ -55,10 +52,8 @@ class Client(lockBase: String,
     inThread.setDaemon(true)
     outThread.start()
     inThread.start()
-    println("Client Await Server Lock")
 
     locks.serverLock.await()
-    println("Client End")
 
   }
 }

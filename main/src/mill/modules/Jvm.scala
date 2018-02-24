@@ -35,7 +35,11 @@ object Jvm {
         jvmArgs ++
         Vector("-cp", classPath.mkString(":"), mainClass) ++
         mainArgs
-
+    baseInteractiveSubprocess(commandArgs, envArgs, workingDir)
+  }
+  def baseInteractiveSubprocess(commandArgs: Seq[String],
+                                envArgs: Map[String, String],
+                                workingDir: Path) = {
     val builder = new java.lang.ProcessBuilder()
     import collection.JavaConverters._
     for ((k, v) <- envArgs){

@@ -35,17 +35,13 @@ class Server[T](lockBase: String,
   val originalStdout = System.out
   def run() = {
     locks.processLock.tryLockBlock{
-      println("Server Process Lock")
       var running = true
       while (running) locks.serverLock.lockBlock{
-        println("Server Lock")
         new File(ioPath).delete()
-        println("Server Accept Socket")
         val ioSocket = new UnixDomainServerSocket(ioPath)
         val sockOpt = ClientServer.interruptWith(
           acceptTimeout,
           {
-            println("Server Socket Timing Out Close")
             try new UnixDomainSocket(ioPath).close()
             catch{case e: Throwable => }
           }
@@ -55,13 +51,10 @@ class Server[T](lockBase: String,
         sockOpt match{
           case None => running = false
           case Some(sock) =>
-            println("Server Handle Run")
             try handleRun(sock)
             catch{case e: Throwable => e.printStackTrace(originalStdout) }
         }
-        println("Server Unlock")
       }
-      println("Server Process Unlock")
     }.getOrElse(throw new Exception("PID already present"))
   }
 
@@ -97,7 +90,6 @@ class Server[T](lockBase: String,
     )
 
     t.start()
-    println("Server Poll Client/Done")
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
@@ -107,7 +99,6 @@ class Server[T](lockBase: String,
 
     t.interrupt()
     t.stop()
-    println("Server Socket Close")
     clientSocket.close()
   }
 }

@@ -2,7 +2,7 @@ package mill
 
 import java.io.{InputStream, OutputStream, PrintStream}
 
-import ammonite.main.Cli.{formatBlock, genericSignature, replSignature}
+import ammonite.main.Cli._
 import ammonite.ops._
 import ammonite.util.Util
 import mill.clientserver.{Client, FileLocks}
@@ -102,12 +102,26 @@ object Main {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "home", "no-home-predef")
-    val millArgSignature = Cli.genericSignature.filter(a => !removed(a.name))
+    var interactive = false
+    val interactiveSignature = Arg[Config, Unit](
+      "interactive", Some('i'),
+      "Run Mill in interactive mode, suitable for opening REPLs and taking user input",
+      (c, v) =>{
+        interactive = true
+        c
+      }
+    )
+    val millArgSignature =
+      Cli.genericSignature.filter(a => !removed(a.name)) :+ interactiveSignature
+
     Cli.groupArgs(
       args.toList,
       millArgSignature,
       Cli.Config(remoteLogging = false)
     ) match{
+      case _ if interactive =>
+        stderr.println("-i/--interactive must be passed in as the first argument")
+        (false, None)
       case Left(msg) =>
         System.err.println(msg)
         (false, None)

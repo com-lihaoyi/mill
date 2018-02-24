@@ -201,23 +201,56 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
+def launcherScript(jvmArgs: Seq[String],
+                   classPath: Agg[String]) = {
+  val jvmArgsStr = jvmArgs.mkString(" ")
+  val classPathStr = classPath.mkString(":")
+  s"""#!/usr/bin/env sh
+     |
+     |case "$$1" in
+     |  -i | --interactive )
+     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$${@:2}"
+     |    ;;
+     |  *)
+     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.ClientMain "$$@"
+     |    ;;
+     |esac
+     """.stripMargin
+}
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs = T{
     scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()
   }
-  def mainClass = Some("mill.ClientMain")
+  def launcher = T{
+    val outputPath = T.ctx().dest / "run"
 
-  def run(wd: Path, args: String*) = T.command{
-    mill.modules.Jvm.interactiveSubprocess(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = ammonite.ops.pwd
-    )
+    write(outputPath, prependShellScript())
+
+    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+    perms.add(PosixFilePermission.GROUP_EXECUTE)
+    perms.add(PosixFilePermission.OWNER_EXECUTE)
+    perms.add(PosixFilePermission.OTHERS_EXECUTE)
+    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    PathRef(outputPath)
+  }
+  def prependShellScript = launcherScript(forkArgs(), runClasspath().map(_.path.toString))
+
+  def run(args: String*) = T.command{
+    args match{
+      case Nil => mill.eval.Result.Failure("Need to pass in cwd as first argument to dev.run")
+      case wd0 +: rest =>
+        val wd = Path(wd0, pwd)
+        mkdir(wd)
+        mill.modules.Jvm.baseInteractiveSubprocess(
+          Seq(launcher().path.toString) ++ rest,
+          forkEnv(),
+          workingDir = wd
+        )
+        mill.eval.Result.Success(())
+    }
+
   }
 }
 
@@ -225,10 +258,9 @@ object dev extends MillModule{
 def release = T{
   createAssembly(
     dev.runClasspath().map(_.path),
-    prependShellScript = mill.modules.Jvm.launcherShellScript(
-      dev.mainClass().get,
-      Agg("$0"),
-      Seq("-DMILL_VERSION=" + publishVersion()._2)
+    prependShellScript = launcherScript(
+      Seq("-DMILL_VERSION=" + publishVersion()._2),
+      Agg("$0")
     )
 
   )
