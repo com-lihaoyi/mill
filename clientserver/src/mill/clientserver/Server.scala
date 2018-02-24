@@ -3,7 +3,7 @@ package mill.clientserver
 import java.io._
 import java.net.Socket
 
-import org.scalasbt.ipcsocket.UnixDomainServerSocket
+import org.scalasbt.ipcsocket.{UnixDomainServerSocket, UnixDomainSocket}
 
 trait ServerMain[T]{
   def main(args0: Array[String]): Unit = {
@@ -11,7 +11,7 @@ trait ServerMain[T]{
       args0(0),
       this,
       () => System.exit(0),
-      () => System.currentTimeMillis(),
+      60000,
       new FileLocks(args0(0))
     ).run()
   }
@@ -29,30 +29,39 @@ trait ServerMain[T]{
 class Server[T](lockBase: String,
                 sm: ServerMain[T],
                 interruptServer: () => Unit,
-                currentTimeMillis: () => Long,
+                acceptTimeout: Int,
                 locks: Locks) extends ClientServer(lockBase){
 
   val originalStdout = System.out
   def run() = {
     locks.processLock.tryLockBlock{
-      var lastRun = currentTimeMillis()
-      while (currentTimeMillis() - lastRun < 60000) locks.serverLock.lockBlock{
+      println("Server Process Lock")
+      var running = true
+      while (running) locks.serverLock.lockBlock{
+        println("Server Lock")
         new File(ioPath).delete()
+        println("Server Accept Socket")
         val ioSocket = new UnixDomainServerSocket(ioPath)
         val sockOpt = ClientServer.interruptWith(
-          1000,
-          ioSocket.close()
+          acceptTimeout,
+          {
+            println("Server Socket Timing Out Close")
+            try new UnixDomainSocket(ioPath).close()
+            catch{case e: Throwable => }
+          }
         ){
-          try Some(ioSocket.accept())
-          catch{ case e: IOException => None}
+          ioSocket.accept()
         }
-
-        sockOpt.foreach{sock =>
-          try handleRun(sock)
-          catch{case e: Throwable => e.printStackTrace(originalStdout) }
-          finally lastRun = currentTimeMillis()
+        sockOpt match{
+          case None => running = false
+          case Some(sock) =>
+            println("Server Handle Run")
+            try handleRun(sock)
+            catch{case e: Throwable => e.printStackTrace(originalStdout) }
         }
+        println("Server Unlock")
       }
+      println("Server Process Unlock")
     }.getOrElse(throw new Exception("PID already present"))
   }
 
@@ -88,7 +97,7 @@ class Server[T](lockBase: String,
     )
 
     t.start()
-
+    println("Server Poll Client/Done")
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
@@ -98,6 +107,7 @@ class Server[T](lockBase: String,
 
     t.interrupt()
     t.stop()
+    println("Server Socket Close")
     clientSocket.close()
   }
 }

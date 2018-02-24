@@ -48,17 +48,27 @@ object ClientServer{
     }
   }
 
-  def interruptWith[T](millis: Int, close: => Unit)(t: => T): T = {
-    var int = true
+  def interruptWith[T](millis: Int, close: => Unit)(t: => T): Option[T] = {
+    @volatile var interrupt = true
+    @volatile var interrupted = false
     new Thread(() => {
       Thread.sleep(millis)
-      if (int) close
+      if (interrupt) {
+        close
+        interrupted = true
+      }
     }).start()
 
-    try t
-    finally {
+    try {
+      val res =
+        try Some(t)
+        catch {case e: Throwable => None}
 
-      int = false
+      if (interrupted) None
+      else res
+
+    } finally {
+      interrupt = false
     }
   }
 

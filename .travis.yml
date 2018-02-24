@@ -18,10 +18,10 @@ matrix:
     env: CI_SCRIPT=ci/test-mill-built.sh
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
-  - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
-  - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
+#  - stage: release
+#    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+#  - stage: release
+#    env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
 
 script:
   - git fetch --unshallow --tags
