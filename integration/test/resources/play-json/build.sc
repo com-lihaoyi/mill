@@ -3,6 +3,7 @@ import $file.version
 import $ivy.`org.scalariform::scalariform:0.2.5`
 
 import ammonite.ops._
+import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
@@ -12,9 +13,7 @@ trait Scalariform extends ScalaModule {
   import scalariform.formatter.preferences._
   import scalariform.parser.ScalaParserException
 
-  val defaultPreferences = FormattingPreferences()
-
-  val playJsonPreferences = defaultPreferences
+  val playJsonPreferences = FormattingPreferences()
     .setPreference(SpacesAroundMultiImports, true)
     .setPreference(SpaceInsideParentheses, false)
     .setPreference(DanglingCloseParenthesis, Preserve)
@@ -277,6 +276,7 @@ def release() = T.command {
   println(s"version: ${version.current} released!")
 }
 
+// TODO: we should have a way to "take all modules in this build"
 val allModules = Seq(
   playJsonJvm("2.12.4"),
   playJsonJvm("2.12.4").test,
@@ -289,7 +289,6 @@ val allModules = Seq(
 )
 
 def validateCode() = T.command {
-  allModules.foreach { module =>
-    module.checkCodeFormat()
-  }
+  Task.traverse(allModules)(_.checkCodeFormat())
+  // TODO: check headers
 }
