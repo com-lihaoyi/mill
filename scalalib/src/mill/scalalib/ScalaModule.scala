@@ -11,7 +11,7 @@ import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, runLo
 import Lib._
 import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
-import mill.util.Strict
+import mill.util.{DummyInputStream, Strict}
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -268,25 +268,35 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def console() = T.command{
-    Jvm.interactiveSubprocess(
-      mainClass = "scala.tools.nsc.MainGenericRunner",
-      classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
-      mainArgs = Seq("-usejavacp"),
-      workingDir = pwd
-    )
+    if (T.ctx().log.inStream == DummyInputStream){
+      Result.Failure("repl needs to be run with the -i/--interactive flag")
+    }else{
+      Jvm.interactiveSubprocess(
+        mainClass = "scala.tools.nsc.MainGenericRunner",
+        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
+        mainArgs = Seq("-usejavacp"),
+        workingDir = pwd
+      )
+      Result.Success()
+    }
   }
 
   def ammoniteReplClasspath = T{
     resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.3")})()
   }
   def repl() = T.command{
+    if (T.ctx().log.inStream == DummyInputStream){
+      Result.Failure("repl needs to be run with the -i/--interactive flag")
+    }else{
+      Jvm.interactiveSubprocess(
+        mainClass = "ammonite.Main",
+        classPath = runClasspath().map(_.path) ++ ammoniteReplClasspath().map(_.path),
+        mainArgs = Nil,
+        workingDir = pwd
+      )
+      Result.Success()
+    }
 
-    Jvm.interactiveSubprocess(
-      mainClass = "ammonite.Main",
-      classPath = runClasspath().map(_.path) ++ ammoniteReplClasspath().map(_.path),
-      mainArgs = Nil,
-      workingDir = pwd
-    )
   }
 
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"

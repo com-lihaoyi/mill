@@ -209,7 +209,8 @@ def launcherScript(jvmArgs: Seq[String],
      |
      |case "$$1" in
      |  -i | --interactive )
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$${@:2}"
+     |    shift;
+     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
      |    ;;
      |  *)
      |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.ClientMain "$$@"

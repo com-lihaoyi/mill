@@ -13,6 +13,6 @@ target/bin/mill dev.assembly
 # Second build & run tests using Mill
 
 
-out/dev/assembly/dest/out.jar all {clientserver,main,scalalib,scalajslib}.test
-out/dev/assembly/dest/out.jar integration.test "mill.integration.forked.{AmmoniteTests,BetterFilesTests}"
-out/dev/assembly/dest/out.jar dev.assembly
+out/dev/assembly/dest/out.jar -i all {clientserver,main,scalalib,scalajslib}.test
+out/dev/assembly/dest/out.jar -i integration.test "mill.integration.forked.{AmmoniteTests,BetterFilesTests}"
+out/dev/assembly/dest/out.jar -i dev.assembly

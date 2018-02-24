@@ -1,12 +1,13 @@
 package mill
 
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
 
 import ammonite.main.Cli._
 import ammonite.ops._
 import ammonite.util.Util
 import mill.clientserver.{Client, FileLocks}
 import mill.eval.Evaluator
+import mill.util.DummyInputStream
 
 
 object ClientMain {
@@ -73,7 +74,7 @@ object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
     stateCache,
     mainInteractive,
     watchInterrupted,
-    stdin,
+    DummyInputStream,
     stdout,
     stderr
   )

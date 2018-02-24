@@ -41,13 +41,10 @@ class Server[T](lockBase: String,
         val ioSocket = new UnixDomainServerSocket(ioPath)
         val sockOpt = ClientServer.interruptWith(
           acceptTimeout,
-          {
-            try new UnixDomainSocket(ioPath).close()
-            catch{case e: Throwable => }
-          }
-        ){
+          new UnixDomainSocket(ioPath).close(),
           ioSocket.accept()
-        }
+        )
+
         sockOpt match{
           case None => running = false
           case Some(sock) =>

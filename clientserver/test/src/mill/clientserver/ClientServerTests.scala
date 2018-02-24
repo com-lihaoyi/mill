@@ -38,10 +38,9 @@ object ClientServerTests extends TestSuite{
 
   def tests = Tests{
     'hello - {
-      var currentTimeMillis = 0
       val (tmpDir, locks) = init()
 
-      def spawnEchoServer() = {
+      def spawnEchoServer(): Unit = {
         new Thread(() => new Server(
           tmpDir.toString,
           new EchoServer(),
@@ -55,7 +54,6 @@ object ClientServerTests extends TestSuite{
       def runClient(arg: String) = {
         val (in, out, err) = initStreams()
         locks.clientLock.lockBlock{
-          println("Client Lock")
           val c = new Client(
             tmpDir.toString,
             () => spawnEchoServer(),
@@ -65,7 +63,6 @@ object ClientServerTests extends TestSuite{
             err
           )
           c.run(Array(arg))
-          println("Client unlock")
           (new String(out.toByteArray), new String(err.toByteArray))
         }
       }
@@ -101,8 +98,6 @@ object ClientServerTests extends TestSuite{
       )
 
       // Make sure the server times out of not used for a while
-      println("Sleep 2000")
-      currentTimeMillis += 60001
       Thread.sleep(2000)
       assert(
         locks.clientLock.probe(),

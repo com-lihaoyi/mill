@@ -1,6 +1,6 @@
 package mill.modules
 
-import java.io.FileOutputStream
+import java.io.{ByteArrayInputStream, FileOutputStream}
 import java.lang.reflect.Modifier
 import java.net.URLClassLoader
 import java.nio.file.attribute.PosixFilePermission
@@ -28,39 +28,48 @@ object Jvm {
                             envArgs: Map[String, String] = Map.empty,
                             mainArgs: Seq[String] = Seq.empty,
                             workingDir: Path = null): Unit = {
-
-    import ammonite.ops.ImplicitWd._
-    val commandArgs =
+    baseInteractiveSubprocess(
       Vector("java") ++
         jvmArgs ++
         Vector("-cp", classPath.mkString(":"), mainClass) ++
-        mainArgs
-    baseInteractiveSubprocess(commandArgs, envArgs, workingDir)
+        mainArgs,
+      envArgs,
+      workingDir
+    )
   }
+
   def baseInteractiveSubprocess(commandArgs: Seq[String],
                                 envArgs: Map[String, String],
                                 workingDir: Path) = {
     val builder = new java.lang.ProcessBuilder()
-    import collection.JavaConverters._
+
     for ((k, v) <- envArgs){
       if (v != null) builder.environment().put(k, v)
       else builder.environment().remove(k)
     }
     builder.directory(workingDir.toIO)
 
-    val process =
-      builder
+    val process = if (System.in.isInstanceOf[ByteArrayInputStream]){
+
+      val process = builder
         .command(commandArgs:_*)
         .start()
 
-    val sources = Seq(
-      process.getInputStream -> System.out,
-      process.getErrorStream -> System.err,
-      System.in -> process.getOutputStream
-    )
+      val sources = Seq(
+        process.getInputStream -> System.out,
+        process.getErrorStream -> System.err,
+        System.in -> process.getOutputStream
+      )
 
-    for((std, dest) <- sources){
-      new Thread(new ClientInputPumper(std, dest)).start()
+      for((std, dest) <- sources){
+        new Thread(new ClientInputPumper(std, dest)).start()
+      }
+      process
+    }else{
+      builder
+        .command(commandArgs:_*)
+        .inheritIO()
+        .start()
     }
 
     val exitCode = process.waitFor()
