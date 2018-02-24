@@ -129,7 +129,7 @@ If you want to pass any arguments to the test framework, simply put them after
 lets you pass in a selector to decide which test to run, which in Mill would be:
 
 ```bash
-mill foo.MyTestSuite.testCaseName
+mill foo.test MyTestSuite.testCaseName
 ```
 
 You can define multiple test suites if you want, e.g.:
