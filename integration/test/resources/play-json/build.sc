@@ -1,14 +1,16 @@
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
-import $ivy.`org.scalariform::scalariform:0.2.5`
 import $file.version
+import $ivy.`org.scalariform::scalariform:0.2.5`
 
 import ammonite.ops._
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
+// TODO: make it ExternalModule
 trait Scalariform extends ScalaModule {
   import scalariform.formatter._
   import scalariform.formatter.preferences._
+  import scalariform.parser.ScalaParserException
 
   val defaultPreferences = FormattingPreferences()
 
@@ -19,19 +21,59 @@ trait Scalariform extends ScalaModule {
     .setPreference(PreserveSpaceBeforeArguments, true)
     .setPreference(DoubleIndentConstructorArguments, false)
 
-  def reformat = T {
-    val files = sources().filter(p => exists(p.path)).flatMap(f => ls.rec(f.path)).filterNot(_.isDir)
+  def compile = {
+    reformat()
+    super.compile()
+  }
+
+  def reformat() = T.command {
+    val files = filesToFormat(sources())
     T.ctx.log.info(s"Formatting ${files.size} Scala sources")
     files.foreach { path =>
-      val formatted = ScalaFormatter.format(
-        read(path),
-        playJsonPreferences,
-        scalaVersion = scalaVersion()
-      )
-      write.over(path, formatted)
+      try {
+        val formatted = ScalaFormatter.format(
+          read(path),
+          playJsonPreferences,
+          scalaVersion = scalaVersion()
+        )
+        write.over(path, formatted)
+      } catch {
+        case ex: ScalaParserException =>
+          T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
+      }
     }
-    PathRef(pwd)
   }
+
+  def checkCodeFormat() = T.command {
+    filesToFormat(sources()).foreach { path =>
+      try {
+        val input = read(path)
+        val formatted = ScalaFormatter.format(
+          input,
+          playJsonPreferences,
+          scalaVersion = scalaVersion()
+        )
+        if (input != formatted) sys.error(
+          s"""
+            |ERROR: Scalariform check failed at file: ${path}
+            |To fix, format your sources using `mill __.reformat` before submitting a pull request.
+            |Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request.
+          """.stripMargin
+        )
+      } catch {
+        case ex: ScalaParserException =>
+          T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
+      }
+    }
+  }
+
+  private def filesToFormat(sources: Seq[PathRef]) = {
+    for {
+      pathRef <- sources if exists(pathRef.path)
+      file <- ls.rec(pathRef.path) if file.isFile && file.ext == "scala"
+    } yield file
+  }
+
 }
 
 trait MiMa extends ScalaModule {
@@ -46,11 +88,6 @@ trait MiMa extends ScalaModule {
 }
 
 trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform {
-
-  def compile = T {
-    reformat()
-    super.compile()
-  }
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -70,6 +107,15 @@ trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform 
     )
   )
 
+  trait Tests extends super.Tests with Scalariform {
+    val specs2Core = T {
+      val v = Lib.scalaBinaryVersion(scalaVersion()) match {
+        case "2.10" => "3.9.1"
+        case _ => "4.0.2"
+      }
+      ivy"org.specs2::specs2-core:$v"
+    }
+  }
 
   def scalacOptions  = Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8")
   def javacOptions = Seq("-encoding", "UTF-8", "-Xlint:-options")
@@ -81,7 +127,6 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   def crossScalaVersion: String
   def millSourcePath = pwd /  "play-json"
   def artifactName = "play-json"
-
 
   def sources = T.sources(
     millSourcePath / platformSegment / "src" / "main",
@@ -104,7 +149,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
     mkdir(dir / "play-json")
     val file = dir / "play-json" / "Generated.scala"
 
-    val (reads, writes) = (1 to 22).map { i =>
+    val (writes, reads) = (1 to 22).map { i =>
       def commaSeparated(s: Int => String) = (1 to i).map(s).mkString(", ")
 
       def newlineSeparated(s: Int => String) = (1 to i).map(s).mkString("\n")
@@ -166,27 +211,30 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
   )
 
   object test extends Tests {
-    def ivyDeps = T {
-      val specsVersion = Lib.scalaBinaryVersion(scalaVersion()) match {
-        case "2.10" => "3.9.1"
-        case _ => "4.0.2"
-      }
+    def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest:3.0.5-M1",
         ivy"org.scalacheck::scalacheck:1.13.5",
         ivy"com.chuusai::shapeless:2.3.3",
         ivy"ch.qos.logback:logback-classic:1.2.3",
-        ivy"org.specs2::specs2-core:$specsVersion"
+        specs2Core()
+      )
+
+    def sources = {
+      val docSpecs = ls.rec(millSourcePath / up / "docs" / "manual" / "working" / "scalaGuide").filter(_.isDir).filter(_.last=="code").map(PathRef(_))
+      T.sources(
+        docSpecs ++
+        Seq(
+          PathRef(millSourcePath / platformSegment / "src" / "test"),
+          PathRef(millSourcePath / "shared" / "src" / "test")
+        )
       )
     }
 
-    def sources = T.sources(
-      millSourcePath / platformSegment / "src" / "test",
-      millSourcePath / "shared" / "src" / "test"
+    def testFrameworks = Seq(
+      "org.scalatest.tools.Framework",
+      "org.specs2.runner.Specs2Framework"
     )
-
-//    def testFramework = "org.scalatest.tools.Framework"
-    def testFramework = "org.specs2.runner.Specs2Framework"
   }
 
 }
@@ -214,8 +262,34 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
   def ivyDeps = Agg(
     ivy"joda-time:joda-time:2.9.9"
   )
+
+  object test extends Tests with Scalariform {
+    def ivyDeps = Agg(specs2Core())
+
+    def testFrameworks = Seq(
+      "org.specs2.runner.Specs2Framework"
+    )
+  }
+
 }
 
 def release() = T.command {
   println(s"version: ${version.current} released!")
+}
+
+val allModules = Seq(
+  playJsonJvm("2.12.4"),
+  playJsonJvm("2.12.4").test,
+
+  playJsonJs("2.12.4"),
+//  playJsonJs("2.12.4").test,
+
+  playJoda("2.12.4"),
+  playJoda("2.12.4").test
+)
+
+def validateCode() = T.command {
+  allModules.foreach { module =>
+    module.checkCodeFormat()
+  }
 }
