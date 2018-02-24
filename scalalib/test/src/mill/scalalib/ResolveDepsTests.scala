@@ -19,6 +19,13 @@ object ResolveDepsTests extends TestSuite {
       assert(paths.nonEmpty)
     }
 
+    'resolveValidDepsWithClassifier - {
+      val deps = Agg(ivy"org.lwjgl:lwjgl:3.1.1;classifier=natives-macos")
+      val Success(paths) = evalDeps(deps)
+      assert(paths.nonEmpty)
+      assert(paths.items.next.path.toString.contains("natives-macos"))
+    }
+
     'errOnInvalidOrgDeps - {
       val deps = Agg(ivy"xxx.yyy.invalid::pprint:0.5.3")
       val Failure(errMsg, _) = evalDeps(deps)
