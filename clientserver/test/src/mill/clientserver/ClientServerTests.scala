@@ -7,7 +7,6 @@ class EchoServer extends ServerMain[Int]{
   def main0(args: Array[String],
             stateCache: Option[Int],
             mainInteractive: Boolean,
-            watchInterrupted: () => Boolean,
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream) = {
