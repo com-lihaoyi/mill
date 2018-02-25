@@ -1,8 +1,6 @@
 package mill.scalajslib
 
-import java.io.{FileReader, StringWriter}
 import java.util.jar.JarFile
-import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
@@ -85,21 +83,6 @@ object HelloJSWorldTests extends TestSuite {
 
   val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
 
-  class Console {
-    val out = new StringWriter()
-    def log(s: String): Unit = out.append(s)
-  }
-
-  def runJS(path: Path): String = {
-    val engineManager = new ScriptEngineManager(null)
-    val engine = engineManager.getEngineByName("nashorn")
-    val console = new Console
-    val bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE)
-    bindings.put("console", console)
-    engine.eval(new FileReader(path.toIO))
-    console.out.toString
-  }
-
   def tests: Tests = Tests {
     prepareWorkspace()
     'compile - {
@@ -136,7 +119,7 @@ object HelloJSWorldTests extends TestSuite {
         case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
       }
       val Right((result, evalCount)) = helloWorldEvaluator(task)
-      val output = runJS(result.path)
+      val output = ScalaJsUtils.runJS(result.path)
       assert(output == "Hello Scala.js")
     }
 

@@ -1,7 +1,7 @@
 package mill
 package scalajslib
 
-import ammonite.ops.{Path, ls, mkdir, rm}
+import ammonite.ops.{Path, exists, ls, mkdir, rm}
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.PathRef
@@ -69,7 +69,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     link(
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
-      Seq(compile()),
       runClasspath(),
       mainClass(),
       FastOpt
@@ -80,7 +79,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     link(
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
-      Seq(compile()),
       runClasspath(),
       mainClass(),
       FullOpt
@@ -106,7 +104,6 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val linkedFile = link(
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
-      Seq(compile()),
       runClasspath(),
       Some(mainClass),
       FastOpt
@@ -120,8 +117,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def link(worker: ScalaJSWorker,
            toolsClasspath: Agg[PathRef],
-           input: Seq[CompilationResult],
-           libraries: Agg[PathRef],
+           runClasspath: Agg[PathRef],
            mainClass: Option[String],
            mode: OptimizeMode)(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.js"
@@ -129,16 +125,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mkdir(ctx.dest)
     rm(outputPath)
 
-    val inputFiles = Agg.from(for {
-      compiled <- input
-      file <- ls.rec(compiled.classes.path)
-      if file.ext == "sjsir"
-    } yield file)
-    val inputLibraries = libraries.map(_.path).filter(_.ext == "jar")
+    val classpath = runClasspath.map(_.path)
+    val sjsirFiles = classpath
+      .filter(path => exists(path) && path.isDir)
+      .flatMap(ls.rec)
+      .filter(_.ext == "sjsir")
+    val libraries = classpath.filter(_.ext == "jar")
     worker.link(
       toolsClasspath.map(_.path),
-      inputFiles,
-      inputLibraries,
+      sjsirFiles,
+      libraries,
       outputPath.toIO,
       mainClass,
       mode == FullOpt
@@ -182,7 +178,6 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     link(
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
-      compile() +: upstreamCompileOutput(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
       FastOpt
