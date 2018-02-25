@@ -254,7 +254,7 @@ object GenIdea {
   }
   def libraryXmlTemplate(name: String, url: String) = {
     <component name="libraryTable">
-      <library name={name} type={if(name.contains("org_scala-lang_scala-library_")) "Scala" else null}>
+      <library name={name} type={if(name.contains("scala-library-")) "Scala" else null}>
         <CLASSES>
           <root url={url}/>
         </CLASSES>
