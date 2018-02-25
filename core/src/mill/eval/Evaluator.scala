@@ -10,6 +10,7 @@ import mill.eval.Result.OuterStack
 import mill.util
 import mill.util._
 import mill.util.Strict.Agg
+import upickle.Js
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -141,10 +142,13 @@ case class Evaluator[T](outPath: Path,
         mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
-          (cachedHash, terminalResult) <- scala.util.Try(upickle.default.readJs[(Int, upickle.Js.Value)](json)).toOption
-          if cachedHash == inputsHash
+          obj <- scala.util.Try(upickle.default.readJs[Js.Obj](json).value.toMap).toOption
+          cacheInputsHash <- obj.get("inputsHash").map(_.num)
+          cacheValueHash <- obj.get("valueHash").map(_.num)
+          cacheValue <- obj.get("value")
+          if cacheInputsHash == inputsHash
           reader <- labelledNamedTask.format
-          parsed <- reader.read.lift(terminalResult)
+          parsed <- reader.read.lift(cacheValue)
         } yield parsed
 
         val workerCached = labelledNamedTask.task.asWorker
@@ -186,10 +190,20 @@ case class Evaluator[T](outPath: Path,
                     val terminalResult = labelledNamedTask
                       .writer
                       .asInstanceOf[Option[upickle.default.Writer[Any]]]
-                      .map(_.write(v))
+                      .map(_.write(v) -> v)
 
-                    for(t <- terminalResult){
-                      write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
+                    for((json, v) <- terminalResult){
+                      write.over(
+                        paths.meta,
+                        upickle.default.write(
+                          Js.Obj(
+                            "inputsHash" -> Js.Num(inputsHash),
+                            "valueHash" -> Js.Num(v.hashCode()),
+                            "value" -> json
+                          ),
+                          indent = 4
+                        )
+                      )
                     }
                 }
 

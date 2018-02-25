@@ -58,7 +58,7 @@ object RunScript{
       evaluator <- evalRes
       (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
     } yield {
-      val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
+      val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
       // If the file changed between the creation of the original
       // `PathRef` and the current moment, use random junk .sig values
       // to force an immediate re-run. Otherwise calculate the
