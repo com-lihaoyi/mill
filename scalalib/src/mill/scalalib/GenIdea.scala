@@ -90,14 +90,22 @@ object GenIdea {
       val externalSources = T.task{
         mod.resolveDeps(allIvyDeps, sources = true)()
       }
-      val Seq(resolvedCp: Loose.Agg[PathRef], resolvedSrcs: Loose.Agg[PathRef]) =
-        evaluator.evaluate(Agg(externalDependencies, externalSources))
-          .values
 
-      (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod)
+      val scalacPluginsIvyDeps = T.task{mod.scalacPluginIvyDeps()}
+      val scalacOptions = T.task{mod.scalacOptions()}
+      val scalacPluginDependencies = T.task{
+        mod.resolveDeps(scalacPluginsIvyDeps)()
+      }
+
+      val resolvedCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalDependencies, Loose.Agg.empty)
+      val resolvedSrcs: Loose.Agg[PathRef] = evalOrElse(evaluator, externalSources, Loose.Agg.empty)
+      val resolvedSp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalacPluginDependencies, Loose.Agg.empty)
+      val scalacOpts: Seq[String] = evalOrElse(evaluator, scalacOptions, Seq())
+
+      (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod,
+        resolvedSp.map(_.path).filter(_.ext == "jar"), scalacOpts)
     }
     val moduleLabels = modules.map(_.swap).toMap
-
 
 
     val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths
@@ -124,6 +132,13 @@ object GenIdea {
       }
       .toMap
 
+    val compilerSettings = resolved
+      .foldLeft(Map[(Loose.Agg[Path], Seq[String]), Vector[ScalaModule]]()) {
+        (r, q) =>
+          val key = (q._4, q._5)
+          r + (key -> (r.getOrElse(key, Vector()) :+ q._3))
+      }
+
     val fixedFiles = Seq(
       Tuple2(".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
@@ -140,6 +155,10 @@ object GenIdea {
           for(path <- buildLibraryPaths)
           yield pathToLibName(path)
         )
+      ),
+      Tuple2(
+        ".idea"/"scala_compiler.xml",
+        scalaCompilerTemplate(compilerSettings)
       )
     )
 
@@ -155,7 +174,7 @@ object GenIdea {
       Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
     }
 
-    val moduleFiles = resolved.map{ case (path, resolvedDeps, mod) =>
+    val moduleFiles = resolved.map{ case (path, resolvedDeps, mod, _, _) =>
       val Seq(
         resourcesPathRefs: Seq[PathRef],
         sourcesPathRef: Seq[PathRef],
@@ -188,6 +207,12 @@ object GenIdea {
     fixedFiles ++ libraries ++ moduleFiles ++ buildLibraries
   }
 
+  def evalOrElse[T](evaluator: Evaluator[_], e: Task[T], default: => T): T = {
+    evaluator.evaluate(Agg(e)).values match {
+      case Seq() => default
+      case Seq(e: T) => e
+    }
+  }
 
   def relify(p: Path) = {
     val r = p.relativeTo(pwd/".idea_modules")
@@ -306,5 +331,30 @@ object GenIdea {
         }
       </component>
     </module>
+  }
+  def scalaCompilerTemplate(settings: Map[(Loose.Agg[Path], Seq[String]), Seq[ScalaModule]]) = {
+
+    <project version="4">
+      <component name="ScalaCompilerConfiguration">
+        {
+        for((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
+        yield
+          <profile name={s"mill $i"} modules={mods.map(m => moduleName(m.millModuleSegments)).mkString(",")}>
+            <parameters>
+              {
+              for(param <- params)
+              yield <parameter value={param} />
+              }
+            </parameters>
+            <plugins>
+              {
+              for(plugin <- plugins.toSeq)
+              yield <plugin path={plugin.toString} />
+              }
+            </plugins>
+          </profile>
+        }
+      </component>
+    </project>
   }
 }
