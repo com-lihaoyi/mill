@@ -35,21 +35,26 @@ class Server[T](lockBase: String,
   def run() = {
     locks.processLock.tryLockBlock{
       var running = true
-      while (running) locks.serverLock.lockBlock{
-        new File(ioPath).delete()
-        val ioSocket = new UnixDomainServerSocket(ioPath)
-        val sockOpt = ClientServer.interruptWith(
-          acceptTimeout,
-          new UnixDomainSocket(ioPath).close(),
-          ioSocket.accept()
-        )
+      while (running) {
+        locks.serverLock.lockBlock{
+          new File(ioPath).delete()
+          val ioSocket = new UnixDomainServerSocket(ioPath)
+          val sockOpt = ClientServer.interruptWith(
+            acceptTimeout,
+            new UnixDomainSocket(ioPath).close(),
+            ioSocket.accept()
+          )
 
-        sockOpt match{
-          case None => running = false
-          case Some(sock) =>
-            try handleRun(sock)
-            catch{case e: Throwable => e.printStackTrace(originalStdout) }
+          sockOpt match{
+            case None => running = false
+            case Some(sock) =>
+              try handleRun(sock)
+              catch{case e: Throwable => e.printStackTrace(originalStdout) }
+          }
         }
+        // Make sure you give an opportunity for the client to probe the lock
+        // and realize the server has released it to signal completion
+        Thread.sleep(10)
       }
     }.getOrElse(throw new Exception("PID already present"))
   }

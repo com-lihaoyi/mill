@@ -82,6 +82,10 @@ object ClientServerTests extends TestSuite{
         err1 == "HELLOworld\n"
       )
 
+      // Give a bit of time for the server to release the lock and
+      // re-acquire it to signal to the client that it's done
+      Thread.sleep(100)
+
       assert(
         locks.clientLock.probe(),
         !locks.serverLock.probe(),
