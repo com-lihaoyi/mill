@@ -23,7 +23,7 @@ object GenIdeaModule extends ExternalModule {
   }
 
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 object GenIdea {
 

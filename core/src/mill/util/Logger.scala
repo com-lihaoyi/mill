@@ -136,7 +136,7 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
-  val inStream: InputStream = new ByteArrayInputStream(Array())
+  val inStream: InputStream = DummyInputStream
   override def close() = {
     if (outputStreamUsed)
       outputStream.close()

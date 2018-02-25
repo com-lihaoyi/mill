@@ -32,7 +32,7 @@ case class Evaluator[T](outPath: Path,
                         log: Logger,
                         classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig,
                         workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
-
+  val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(outPath)
 
@@ -82,7 +82,12 @@ case class Evaluator[T](outPath: Path,
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
-      val (newResults, newEvaluated) = evaluateGroupCached(terminal, group, results, counterMsg)
+      val (newResults, newEvaluated) = evaluateGroupCached(
+        terminal,
+        group,
+        results,
+        counterMsg)
+
       for(ev <- newEvaluated){
         evaluated.append(ev)
       }
@@ -114,13 +119,16 @@ case class Evaluator[T](outPath: Path,
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]]) = {
 
+    val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
+      group.items.flatMap(_.inputs).filter(!group.contains(_))
+        .flatMap(results(_).asSuccess.map(_.value._2))
+    )
 
-    val externalInputs = group.items.flatMap(_.inputs).filter(!group.contains(_)).toVector
+    val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
+      group.toIterator.map(_.sideHash)
+    )
 
-    val inputsHash =
-      externalInputs.map(results(_).map(_._2)).hashCode +
-      group.toIterator.map(_.sideHash).toVector.hashCode() +
-      classLoaderSig.hashCode()
+    val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
 
     terminal match{
       case Left(task) =>

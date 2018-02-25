@@ -13,7 +13,7 @@ object ModuleTests extends TestSuite{
     object inner extends mill.Module{
       def y = T{17}
     }
-    def millDiscover = Discover[this.type]
+    lazy val millDiscover = Discover[this.type]
   }
   object Build extends TestUtil.BaseModule{
     def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
@@ -36,7 +36,7 @@ object ModuleTests extends TestSuite{
       object Build extends mill.define.ExternalModule {
 
         def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
-        def millDiscover = Discover[this.type]
+        lazy val millDiscover = Discover[this.type]
       }
 
       intercept[java.lang.AssertionError]{ Build }

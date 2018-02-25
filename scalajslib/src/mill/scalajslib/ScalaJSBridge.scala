@@ -79,5 +79,5 @@ trait ScalaJSBridge {
 object ScalaJSBridge extends mill.define.ExternalModule {
 
   def scalaJSBridge = T.worker { new ScalaJSWorker() }
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }

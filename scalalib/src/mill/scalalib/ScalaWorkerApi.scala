@@ -42,7 +42,7 @@ object ScalaWorkerApi extends mill.define.ExternalModule {
       Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
     )
   }
-  def millDiscover = Discover[this.type]
+  lazy val millDiscover = Discover[this.type]
 }
 
 trait ScalaWorkerApi {

@@ -29,7 +29,7 @@ object RunScript{
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
                 log: Logger)
-  : (Res[(Evaluator[Any], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+  : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
       case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
@@ -58,18 +58,7 @@ object RunScript{
       evaluator <- evalRes
       (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
     } yield {
-      val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
-      // If the file changed between the creation of the original
-      // `PathRef` and the current moment, use random junk .sig values
-      // to force an immediate re-run. Otherwise calculate the
-      // pathSignatures the same way Ammonite would and hand over the
-      // values, so Ammonite can watch them and only re-run if they
-      // subsequently change
-      val evaluationWatches =
-        if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
-        else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
-
-      (evaluator, evaluationWatches, res.map(_.flatMap(_._2)))
+      (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
     (evaluated, interpWatched)
   }

@@ -137,7 +137,7 @@ object Bar extends mill.define.ExternalModule {
   def baz = T{ 1 }
   def qux() = T.command{ println(baz() + 1) }
 
-  def millDiscover = mill.define.Discover[this.type]
+  lazy val millDiscover = mill.define.Discover[this.type]
 }
 ```
 

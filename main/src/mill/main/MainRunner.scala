@@ -1,12 +1,14 @@
 package mill.main
 import java.io.{InputStream, OutputStream, PrintStream}
 
+import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
-
 import mill.util.PrintLogger
+
+import scala.annotation.tailrec
 
 
 /**
@@ -35,8 +37,27 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     while(statAll()) Thread.sleep(100)
   }
 
+  /**
+    * Custom version of [[watchLoop]] that lets us generate the watched-file
+    * signature only on demand, so if we don't have config.watch enabled we do
+    * not pay the cost of generating it
+    */
+  @tailrec final def watchLoop2[T](isRepl: Boolean,
+                                   printing: Boolean,
+                                   run: Main => (Res[T], () => Seq[(Path, Long)])): Boolean = {
+    val (result, watched) = run(initMain(isRepl))
+
+    val success = handleWatchRes(result, printing)
+    if (!config.watch) success
+    else{
+      watchAndWait(watched())
+      watchLoop2(isRepl, printing, run)
+    }
+  }
+
+
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
-    watchLoop(
+    watchLoop2(
       isRepl = false,
       printing = true,
       mainCfg => {
@@ -58,12 +79,22 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
         result match{
           case Res.Success(data) =>
-            val (eval, evaluationWatches, res) = data
+            val (eval, evalWatches, res) = data
 
             stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, interpWatched))
-
-            (Res(res), interpWatched ++ evaluationWatches)
-          case _ => (result, interpWatched)
+            val watched = () => {
+              val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
+              // If the file changed between the creation of the original
+              // `PathRef` and the current moment, use random junk .sig values
+              // to force an immediate re-run. Otherwise calculate the
+              // pathSignatures the same way Ammonite would and hand over the
+              // values, so Ammonite can watch them and only re-run if they
+              // subsequently change
+              if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
+              else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
+            }
+            (Res(res), () => interpWatched ++ watched())
+          case _ => (result, () => interpWatched)
         }
       }
     )
@@ -104,7 +135,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
          |  // doesn't get picked up during reflective child-module discovery
          |  def millSelf = Some(this)
          |
-         |  implicit def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+         |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
          |}
          |
          |sealed trait $wrapName extends mill.main.MainModule{

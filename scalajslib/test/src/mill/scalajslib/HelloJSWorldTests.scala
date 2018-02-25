@@ -75,7 +75,7 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
     }
-    override def millDiscover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
