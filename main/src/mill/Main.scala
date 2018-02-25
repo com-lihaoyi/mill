@@ -99,7 +99,7 @@ object Main {
             stderr: PrintStream): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
 
-    val removed = Set("predef-code", "home", "no-home-predef")
+    val removed = Set("predef-code", "no-home-predef")
     var interactive = false
     val interactiveSignature = Arg[Config, Unit](
       "interactive", Some('i'),
@@ -112,10 +112,12 @@ object Main {
     val millArgSignature =
       Cli.genericSignature.filter(a => !removed(a.name)) :+ interactiveSignature
 
+    val millHome = home / ".mill" / "ammonite"
+
     Cli.groupArgs(
       args.toList,
       millArgSignature,
-      Cli.Config(remoteLogging = false)
+      Cli.Config(home = millHome, remoteLogging = false)
     ) match{
       case _ if interactive =>
         stderr.println("-i/--interactive must be passed in as the first argument")
@@ -154,7 +156,7 @@ object Main {
           )
 
         val runner = new mill.main.MainRunner(
-          config.copy(home = pwd / "out" / ".ammonite", colored = Some(mainInteractive)),
+          config.copy(colored = Some(mainInteractive)),
           stdout, stderr, stdin,
           stateCache
         )
