@@ -15,7 +15,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val stdIn = new ByteArrayInputStream(Array())
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath),
-    stdOutErr, stdOutErr, stdIn, () => false
+    stdOutErr, stdOutErr, stdIn
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / "build.sc", s.toList)
