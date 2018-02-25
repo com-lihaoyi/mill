@@ -7,7 +7,7 @@ import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
-// TODO: make it ExternalModule
+// TODO: move it somewhere else
 trait Scalariform extends ScalaModule {
   import scalariform.formatter._
   import scalariform.formatter.preferences._
@@ -196,7 +196,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 
 object playJsonJvm extends Cross[PlayJsonJvm](ScalaVersions:_*)
 class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
-  def moduleDeps = Seq(playFunctional(crossScalaVersion))
+  def moduleDeps = Seq(playFunctionalJvm(crossScalaVersion))
 
   val jacksonVersion = "2.9.3"
 
@@ -240,13 +240,39 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
 
 object playJsonJs extends Cross[PlayJsonJs](ScalaVersions:_*)
 class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with ScalaJSModule {
-  def moduleDeps = Seq(playFunctional(crossScalaVersion))
+  def moduleDeps = Seq(playFunctionalJs(crossScalaVersion))
 
   def scalaJSVersion = "0.6.22"
+
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests {
+    def ivyDeps =
+      Agg(
+        ivy"org.scalatest::scalatest::3.0.5-M1",
+        ivy"org.scalacheck::scalacheck::1.13.5",
+        ivy"com.chuusai::shapeless::2.3.3"
+      )
+
+    def sources = T.sources(
+      millSourcePath / platformSegment / "src" / "test",
+      millSourcePath / "shared" / "src" / "test"
+    )
+
+    def testFrameworks = Seq(
+      "org.scalatest.tools.Framework"
+    )
+  }
 }
 
-object playFunctional extends Cross[PlayFunctional](ScalaVersions:_*)
-class PlayFunctional(val crossScalaVersion: String) extends PlayJsonModule {
+
+object playFunctionalJvm extends Cross[PlayFunctionalJvm](ScalaVersions:_*)
+class PlayFunctionalJvm(val crossScalaVersion: String) extends PlayJsonModule {
+  def millSourcePath = pwd / "play-functional"
+  def artifactName = "play-functional"
+}
+
+object playFunctionalJs extends Cross[PlayFunctionalJs](ScalaVersions:_*)
+class PlayFunctionalJs(val crossScalaVersion: String) extends PlayJsonModule with ScalaJSModule {
+  def scalaJSVersion = "0.6.22"
   def millSourcePath = pwd / "play-functional"
   def artifactName = "play-functional"
 }
