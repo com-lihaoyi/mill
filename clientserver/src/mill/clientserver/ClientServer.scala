@@ -7,6 +7,7 @@ import scala.annotation.tailrec
 
 class ClientServer(lockBase: String){
   val ioPath = lockBase + "/io"
+  val exitCodePath = lockBase + "/exitCode"
   val logFile = new java.io.File(lockBase + "/log")
   val runFile = new java.io.File(lockBase + "/run")
 }

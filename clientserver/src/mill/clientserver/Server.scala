@@ -69,7 +69,7 @@ class Server[T](lockBase: String,
       try {
         val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 0), true)
         val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
-        val (_, newStateCache) = sm.main0(
+        val (result, newStateCache) = sm.main0(
           args,
           sm.stateCache,
           interactive,
@@ -79,6 +79,10 @@ class Server[T](lockBase: String,
         )
 
         sm.stateCache = newStateCache
+        java.nio.file.Files.write(
+          java.nio.file.Paths.get(exitCodePath),
+          (if (result) 0 else 1).toString.getBytes
+        )
       } catch{case WatchInterrupted(sc: Option[T]) =>
         sm.stateCache = sc
       } finally{

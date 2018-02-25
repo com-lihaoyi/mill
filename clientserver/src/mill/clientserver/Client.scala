@@ -33,7 +33,7 @@ class Client(lockBase: String,
              stdin: InputStream,
              stdout: OutputStream,
              stderr: OutputStream) extends ClientServer(lockBase){
-  def run(args: Array[String]) = {
+  def run(args: Array[String]): Int = {
     val f = new FileOutputStream(runFile)
     ClientServer.writeArgs(System.console() != null, args, f)
     f.close()
@@ -55,5 +55,12 @@ class Client(lockBase: String,
 
     locks.serverLock.await()
 
+    try{
+      new BufferedReader(
+        new InputStreamReader(
+          new FileInputStream(exitCodePath)
+        )
+      ).readLine().toInt
+    } catch{case e: Throwable => 1}
   }
 }

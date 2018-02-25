@@ -21,7 +21,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     if (!fork) runner.runScript(workspacePath / "build.sc", s.toList)
     else{
       try {
-        %%(home / "mill-release", s)(workspacePath)
+        %%(home / "mill-release", "-i", s)(workspacePath)
         true
       }catch{case e: Throwable => false}
     }

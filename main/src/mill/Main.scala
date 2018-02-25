@@ -48,7 +48,7 @@ object ClientMain {
       .start()
   }
   def main(args: Array[String]): Unit = {
-    Client.WithLock(1) { lockBase =>
+    val exitCode = Client.WithLock(1) { lockBase =>
       val c = new Client(
         lockBase,
         () => initServer(lockBase),
@@ -59,7 +59,7 @@ object ClientMain {
       )
       c.run(args)
     }
-    System.exit(0)
+    System.exit(exitCode)
   }
 }
 object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
