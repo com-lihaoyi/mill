@@ -382,6 +382,20 @@ see what's going on, we should expect them to contribute code!
 
 ## Changelog
 
+### 0.1.2
+
+- Mill now keeps a long-lived work-daemon around in between commands; this
+  should improve performance of things like `compile` which benefit from the
+  warm JVM. You can use `-i`/`--interactive` for interactive consoles/REPLs and
+  for running commands without the daemon
+
+- Implemented the `ScalaModule#launcher` target for easily creating command-line
+  launchers you can run outside of Mill
+
+- `ScalaModule#docJar` no longer fails if you don't have `scala-compiler` on
+  classpath
+
+- Support for multiple `testFrameworks` in a test module.
 
 ### 0.1.1
 
