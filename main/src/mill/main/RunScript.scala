@@ -235,8 +235,8 @@ object RunScript{
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
-              val metadata = upickle.json.read(jsonFile.toIO)
-              Some(metadata(1))
+              val metadata = upickle.default.readJs[Evaluator.Cached](upickle.json.read(jsonFile.toIO))
+              Some(metadata.v)
 
             case _ => None
           }

@@ -141,21 +141,18 @@ case class Evaluator[T](outPath: Path,
 
         mkdir(paths.out)
         val cached = for{
-          json <- scala.util.Try(upickle.json.read(read(paths.meta))).toOption
-          obj <- scala.util.Try(upickle.default.readJs[Js.Obj](json).value.toMap).toOption
-          cacheInputsHash <- obj.get("inputsHash").map(_.num)
-          cacheValueHash <- obj.get("valueHash").map(_.num)
-          cacheValue <- obj.get("value")
-          if cacheInputsHash == inputsHash
+          json <- scala.util.Try(upickle.json.read(paths.meta.toIO)).toOption
+          cached <- scala.util.Try(upickle.default.readJs[Evaluator.Cached](json)).toOption
+          if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
-          parsed <- reader.read.lift(cacheValue)
-        } yield parsed
+          parsed <- reader.read.lift(cached.v)
+        } yield (parsed, cached.valueHash)
 
         val workerCached = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
           .collect{case (`inputsHash`, v) => v}
 
-        workerCached.map((_, inputsHash)) orElse cached.map(p => (p, p.hashCode())) match{
+        workerCached.map((_, inputsHash)) orElse cached match{
           case Some((v, hashCode)) =>
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
@@ -183,44 +180,11 @@ case class Evaluator[T](outPath: Path,
 
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>
-                labelledNamedTask.task.asWorker match{
-                  case Some(w) =>
-                    workerCache(w.ctx.segments) = (inputsHash, v)
-                  case None =>
-                    val terminalResult = labelledNamedTask
-                      .writer
-                      .asInstanceOf[Option[upickle.default.Writer[Any]]]
-                      .map(_.write(v) -> v)
-
-                    for((json, v) <- terminalResult){
-                      write.over(
-                        paths.meta,
-                        upickle.default.write(
-                          Js.Obj(
-                            "inputsHash" -> Js.Num(inputsHash),
-                            "valueHash" -> Js.Num(v.hashCode()),
-                            "value" -> json
-                          ),
-                          indent = 4
-                        )
-                      )
-                    }
-                }
+                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
 
               case Result.Success((v, hashCode)) =>
-                labelledNamedTask.task.asWorker match{
-                  case Some(w) =>
-                    workerCache(w.ctx.segments) = (inputsHash, v)
-                  case None =>
-                    val terminalResult = labelledNamedTask
-                      .writer
-                      .asInstanceOf[Option[upickle.default.Writer[Any]]]
-                      .map(_.write(v))
+                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
 
-                    for(t <- terminalResult){
-                      write.over(paths.meta, upickle.default.write(inputsHash -> t, indent = 4))
-                    }
-                }
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
                 // a following run won't look at the cached metadata file and
@@ -229,13 +193,34 @@ case class Evaluator[T](outPath: Path,
                 rm(paths.meta)
             }
 
-
-
             (newResults, newEvaluated)
         }
     }
   }
+  def handleTaskResult(v: Any,
+                       hashCode: Int,
+                       metaPath: Path,
+                       inputsHash: Int,
+                       labelledNamedTask: Labelled[_]) = {
+    labelledNamedTask.task.asWorker match{
+      case Some(w) => workerCache(w.ctx.segments) = (inputsHash, v)
+      case None =>
+        val terminalResult = labelledNamedTask
+          .writer
+          .asInstanceOf[Option[upickle.default.Writer[Any]]]
+          .map(_.write(v) -> v)
 
+        for((json, v) <- terminalResult){
+          write.over(
+            metaPath,
+            upickle.default.write(
+              Evaluator.Cached(json, hashCode, inputsHash),
+              indent = 4
+            )
+          )
+        }
+    }
+  }
 
   def evaluateGroup(group: Agg[Task[_]],
                     results: collection.Map[Task[_], Result[(Any, Int)]],
@@ -344,6 +329,12 @@ case class Evaluator[T](outPath: Path,
 
 
 object Evaluator{
+  case class Cached(v: Js.Value,
+                    valueHash: Int,
+                    inputsHash: Int)
+  object Cached{
+    implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
+  }
   case class State(rootModule: mill.define.BaseModule,
                    classLoaderSig: Seq[(Path, Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
