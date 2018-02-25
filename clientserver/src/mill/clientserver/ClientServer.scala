@@ -103,16 +103,21 @@ class ProxyInputStream(x: => java.io.InputStream) extends java.io.InputStream{
   override def read(b: Array[Byte]) = x.read(b)
 }
 
-class ClientInputPumper(src: InputStream, dest: OutputStream) extends Runnable{
+class ClientInputPumper(src: InputStream,
+                        dest: OutputStream,
+                        checkAvailable: Boolean = false) extends Runnable{
   var running = true
   def run() = {
     val buffer = new Array[Byte](1024)
     while(running){
-      val n = src.read(buffer)
-      if (n == -1) running = false
+      if (checkAvailable && src.available() == 0) Thread.sleep(2)
       else {
-        dest.write(buffer, 0, n)
-        dest.flush()
+        val n = src.read(buffer)
+        if (n == -1) running = false
+        else {
+          dest.write(buffer, 0, n)
+          dest.flush()
+        }
       }
     }
   }

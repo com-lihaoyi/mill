@@ -45,7 +45,7 @@ class Client(lockBase: String,
     val outErr = ioSocket.getInputStream
     val in = ioSocket.getOutputStream
     val outPump = new ClientOutputPumper(outErr, stdout, stderr)
-    val inPump = new ClientInputPumper(stdin, in)
+    val inPump = new ClientInputPumper(stdin, in, checkAvailable = true)
     val outThread = new Thread(outPump)
     outThread.setDaemon(true)
     val inThread = new Thread(inPump)
