@@ -66,14 +66,12 @@ object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
   def main0(args: Array[String],
             stateCache: Option[Evaluator.State],
             mainInteractive: Boolean,
-            watchInterrupted: () => Boolean,
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream) = Main.main0(
     args,
     stateCache,
     mainInteractive,
-    watchInterrupted,
     DummyInputStream,
     stdout,
     stderr
@@ -85,7 +83,7 @@ object Main {
     val (result, _) = main0(
       args,
       None,
-      ammonite.Main.isInteractive(), () => false,
+      ammonite.Main.isInteractive(),
       System.in,
       System.out,
       System.err
@@ -96,7 +94,6 @@ object Main {
   def main0(args: Array[String],
             stateCache: Option[Evaluator.State],
             mainInteractive: Boolean,
-            watchInterrupted: () => Boolean,
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream): (Boolean, Option[Evaluator.State]) = {
@@ -159,7 +156,6 @@ object Main {
         val runner = new mill.main.MainRunner(
           config.copy(home = pwd / "out" / ".ammonite", colored = Some(mainInteractive)),
           stdout, stderr, stdin,
-          watchInterrupted,
           stateCache
         )
 

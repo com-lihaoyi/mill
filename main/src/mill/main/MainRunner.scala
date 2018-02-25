@@ -18,7 +18,6 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
-                 interruptWatch: () => Boolean,
                  stateCache0: Option[Evaluator.State] = None)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
@@ -33,10 +32,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       Interpreter.pathSignature(file) == lastMTime
     }
 
-    while(statAll()) {
-      if (interruptWatch()) throw mill.clientserver.WatchInterrupted(stateCache)
-      Thread.sleep(100)
-    }
+    while(statAll()) Thread.sleep(100)
   }
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =

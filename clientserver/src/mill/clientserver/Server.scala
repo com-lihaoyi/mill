@@ -19,7 +19,6 @@ trait ServerMain[T]{
   def main0(args: Array[String],
             stateCache: Option[T],
             mainInteractive: Boolean,
-            watchInterrupted: () => Boolean,
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream): (Boolean, Option[T])
@@ -73,7 +72,6 @@ class Server[T](lockBase: String,
           args,
           sm.stateCache,
           interactive,
-          () => !locks.clientLock.probe(),
           socketIn,
           stdout, stderr
         )
@@ -97,6 +95,8 @@ class Server[T](lockBase: String,
     while(!done && !locks.clientLock.probe()) {
       Thread.sleep(3)
     }
+
+    if (!done) interruptServer()
 
     t.interrupt()
     t.stop()
