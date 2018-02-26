@@ -123,11 +123,11 @@ object Main {
         stderr.println("-i/--interactive must be passed in as the first argument")
         (false, None)
       case Left(msg) =>
-        System.err.println(msg)
+        stderr.println(msg)
         (false, None)
       case Right((cliConfig, _)) if cliConfig.help =>
         val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
-        System.out.println(
+        stdout.println(
         s"""Mill Build Tool
            |usage: mill [mill-options] [target [target-options]]
            |
