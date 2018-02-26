@@ -236,6 +236,12 @@ object dev extends MillModule{
     java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
     PathRef(outputPath)
   }
+
+  def assembly = T{
+    mv(super.assembly().path, T.ctx().dest / 'mill)
+    PathRef(T.ctx().dest / 'mill)
+  }
+
   def prependShellScript = launcherScript(forkArgs(), runClasspath().map(_.path.toString))
 
   def run(args: String*) = T.command{
@@ -257,14 +263,17 @@ object dev extends MillModule{
 
 
 def release = T{
-  createAssembly(
-    dev.runClasspath().map(_.path),
-    prependShellScript = launcherScript(
-      Seq("-DMILL_VERSION=" + publishVersion()._2),
-      Agg("$0")
-    )
-
+  mv(
+    createAssembly(
+      dev.runClasspath().map(_.path),
+      prependShellScript = launcherScript(
+        Seq("-DMILL_VERSION=" + publishVersion()._2),
+        Agg("$0")
+      )
+    ).path,
+    T.ctx().dest / 'mill
   )
+  PathRef(T.ctx().dest / 'mill)
 }
 
 val isMasterCommit = {

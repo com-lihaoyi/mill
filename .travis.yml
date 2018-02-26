@@ -2,20 +2,19 @@ language: scala
 sudo: required
 dist: trusty
 
-scala:
-  - 2.12.4
-
 jdk:
   - oraclejdk8
 
 matrix:
   include:
   - stage: build
-    env: CI_SCRIPT=ci/test-sbt.sh
+    env: CI_SCRIPT=ci/test-mill-0.sh
   - stage: build
-    env: CI_SCRIPT=ci/test-sbt-built.sh
+    env: CI_SCRIPT=ci/test-mill-1.sh
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-built.sh
+    env: CI_SCRIPT=ci/test-mill-2.sh
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
   - stage: release
@@ -24,16 +23,10 @@ matrix:
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
 
 script:
-  - git fetch --unshallow --tags
+  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.3/0.1.3 && chmod +x ~/bin/mill
+  - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
+
 cache:
   directories:
-  - $HOME/.sbt/0.13/dependency
-  - $HOME/.sbt/boot/scala*
-  - $HOME/.sbt/launchers
-  - $HOME/.ivy2/cache
   - $HOME/.coursier
-
-before_cache:
-  - find $HOME/.sbt -name "*.lock" -type f -delete
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete

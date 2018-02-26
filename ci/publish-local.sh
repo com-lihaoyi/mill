@@ -2,10 +2,6 @@
 
 set -eux
 
-# First build using SBT
-sbt bin/test:assembly
+mill all __.publishLocal release
 
-# Build Mill using SBT
-target/bin/mill all __.publishLocal release
-
-mv out/release/dest/out.jar ~/mill-release
+mv out/release/dest/mill ~/mill-release
