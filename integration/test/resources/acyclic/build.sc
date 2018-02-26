@@ -12,9 +12,7 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     description = artifactName(),
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/acyclic",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
+    licenses = Seq(License.MIT),
     scm = SCM(
       "git://github.com/lihaoyi/acyclic.git",
       "scm:git://github.com/lihaoyi/acyclic.git"

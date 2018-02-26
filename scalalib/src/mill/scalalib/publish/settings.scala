@@ -52,12 +52,6 @@ case class Dependency(
     scope: Scope
 )
 
-case class License(
-    name: String,
-    url: String,
-    distribution: String = "repo"
-)
-
 case class SCM(
     url: String,
     connection: String

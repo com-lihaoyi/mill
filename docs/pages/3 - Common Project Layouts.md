@@ -129,9 +129,7 @@ object foo extends ScalaModule with PublishModule{
     description = "My first library",
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/mill",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
+    licenses = Seq(License.MIT),
     scm = SCM(
       "git://github.com/lihaoyi/mill.git",
       "scm:git://github.com/lihaoyi/mill.git"
