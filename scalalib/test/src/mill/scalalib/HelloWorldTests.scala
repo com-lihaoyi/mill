@@ -9,6 +9,7 @@ import mill.define.{Discover, Target}
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
+import mill.scalalib.publish.VersionControl
 import utest._
 
 import utest.framework.TestPath
@@ -86,10 +87,7 @@ object HelloWorldTests extends TestSuite {
         description = "hello world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
         licenses = Seq(License.Common.Apache2),
-        scm = SCM(
-          "https://github.com/lihaoyi/hello-world-publish",
-          "scm:git:https://github.com/lihaoyi/hello-world-publish"
-        ),
+        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )

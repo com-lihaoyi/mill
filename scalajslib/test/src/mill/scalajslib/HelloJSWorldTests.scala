@@ -7,7 +7,7 @@ import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
-import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
@@ -39,10 +39,7 @@ object HelloJSWorldTests extends TestSuite {
         description = "hello js world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
         licenses = Seq(License.Common.Apache2),
-        scm = SCM(
-          "https://github.com/lihaoyi/hello-world-publish",
-          "scm:git:https://github.com/lihaoyi/hello-world-publish"
-        ),
+        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )

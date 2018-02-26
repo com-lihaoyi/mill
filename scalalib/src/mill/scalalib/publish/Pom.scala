@@ -2,7 +2,7 @@ package mill.scalalib.publish
 
 import mill.util.Loose.Agg
 
-import scala.xml.{Elem, NodeSeq, PrettyPrinter}
+import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 
 object Pom {
 
@@ -13,6 +13,24 @@ object Pom {
             dependencies: Agg[Dependency],
             name: String,
             pomSettings: PomSettings): String = {
+
+    // source: https://stackoverflow.com/a/5254068/449071
+    implicit def optionElem(e: Elem) = new {
+      def optionnal : NodeSeq = {
+        require(e.child.length == 1)
+        e.child.head match {
+          case atom: Atom[Option[_]] => atom.data match {
+            case None    => NodeSeq.Empty
+            case Some(x) => e.copy(child = x match {
+              case n: NodeSeq => n
+              case x => new Atom(x)
+            })
+          }
+          case _ => e
+        }      
+      }
+    }
+
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -32,8 +50,10 @@ object Pom {
           {pomSettings.licenses.map(renderLicense)}
         </licenses>
         <scm>
-          <url>{pomSettings.scm.url}</url>
-          <connection>{pomSettings.scm.connection}</connection>
+          <connection>{pomSettings.versionControl.connection}</connection>.optionnal
+          <developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optionnal
+          <tag>{pomSettings.versionControl.tag}</tag>.optionnal
+          <url>{pomSettings.versionControl.browsableRepository}</url>.optionnal
         </scm>
         <developers>
           {pomSettings.developers.map(renderDeveloper)}

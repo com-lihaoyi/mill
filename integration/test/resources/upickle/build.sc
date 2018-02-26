@@ -13,10 +13,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/upickle",
     licenses = Seq(License.MIT),
-    scm = SCM(
-      "git://github.com/lihaoyi/upickle.git",
-      "scm:git://github.com/lihaoyi/upickle.git"
-    ),
+    versionControl = VersionControl.github("lihaoyi", "upickle"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
