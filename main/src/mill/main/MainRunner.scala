@@ -116,38 +116,38 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   }
 
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
-    def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
+    def apply(code: String,
+              pkgName: Seq[ammonite.util.Name],
+              imports: ammonite.util.Imports,
+              printCode: String,
+              indexedWrapperName: ammonite.util.Name,
+              extraCode: String): (String, String, Int) = {
       val wrapName = indexedWrapperName.backticked
       val literalPath = pprint.Util.literalize(config.wd.toString)
-      s"""
-         |package ${pkgName.head.encoded}
-         |package ${Util.encodeScalaSourcePath(pkgName.tail)}
-         |$imports
-         |import mill._
-         |object $wrapName
-         |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
-         |with $wrapName{
-         |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-         |  // even if it does nothing...
-         |  def $$main() = Iterator[String]()
-         |
-         |  // Need to wrap the returned Module in Some(...) to make sure it
-         |  // doesn't get picked up during reflective child-module discovery
-         |  def millSelf = Some(this)
-         |
-         |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
-         |}
-         |
-         |sealed trait $wrapName extends mill.main.MainModule{
-         |""".stripMargin
-    }
+      val top = s"""
+        |package ${pkgName.head.encoded}
+        |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+        |$imports
+        |import mill._
+        |object $wrapName
+        |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
+        |with $wrapName{
+        |  // Stub to make sure Ammonite has something to call after it evaluates a script,
+        |  // even if it does nothing...
+        |  def $$main() = Iterator[String]()
+        |
+        |  // Need to wrap the returned Module in Some(...) to make sure it
+        |  // doesn't get picked up during reflective child-module discovery
+        |  def millSelf = Some(this)
+        |
+        |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+        |}
+        |
+        |sealed trait $wrapName extends mill.main.MainModule{
+        |""".stripMargin
+      val bottom = "}"
 
-
-    def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
-      // We need to disable the `$main` method definition inside the wrapper class,
-      // because otherwise it might get picked up by Ammonite and run as a static
-      // class method, which blows up since it's defined as an instance method
-      "\n}"
+      (top, bottom, 1)
     }
   }
 }

@@ -24,7 +24,7 @@ val sharedSettings = Seq(
   autoCompilerPlugins := true,
   addCompilerPlugin("com.lihaoyi" %% "acyclic" % "0.1.7"),
 
-  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-21-05b5d32" cross CrossVersion.full,
+  libraryDependencies += "com.lihaoyi" % "ammonite" % "1.0.3-49-7fa03d0" cross CrossVersion.full,
   mainClass in Test := Some("ammonite.Main")
 )
 
