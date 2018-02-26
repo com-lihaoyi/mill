@@ -56,11 +56,13 @@ class Client(lockBase: String,
     locks.serverLock.await()
 
     try{
-      new BufferedReader(
-        new InputStreamReader(
-          new FileInputStream(exitCodePath)
-        )
-      ).readLine().toInt
+      Integer.parseInt(
+        new BufferedReader(
+          new InputStreamReader(
+            new FileInputStream(exitCodePath)
+          )
+        ).readLine()
+      )
     } catch{case e: Throwable => 1}
   }
 }
