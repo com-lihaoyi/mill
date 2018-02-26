@@ -85,9 +85,7 @@ object HelloWorldTests extends TestSuite {
         organization = "com.lihaoyi",
         description = "hello world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(
-          License("Apache License, Version 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0")),
+        licenses = Seq(License.Common.Apache2),
         scm = SCM(
           "https://github.com/lihaoyi/hello-world-publish",
           "scm:git:https://github.com/lihaoyi/hello-world-publish"

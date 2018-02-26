@@ -22,6 +22,8 @@ trait MillPublishModule extends PublishModule{
     licenses = Seq(
       License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
     ),
+    // TODO 0.1.4
+    // licenses = Seq(License.MIT),
     scm = SCM(
       "git://github.com/lihaoyi/mill.git",
       "scm:git://github.com/lihaoyi/mill.git"

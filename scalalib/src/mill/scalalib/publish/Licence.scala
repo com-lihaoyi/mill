@@ -10,6 +10,10 @@ case class License(
 )
 
 object License {
+  @deprecated("use License.LicenseName (ex: License.`Apache-2.0`)", "0.1.0")
+  def apply(name: String, url: String): License =
+    License(name, name, url, false, false, "repo")
+
   /*
   wget https://raw.githubusercontent.com/spdx/license-list-data/master/json/licenses.json
 
