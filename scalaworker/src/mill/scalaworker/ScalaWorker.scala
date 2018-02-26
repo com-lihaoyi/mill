@@ -269,17 +269,17 @@ class ScalaWorker(ctx0: mill.util.Ctx,
             },
             Array(
               new Logger {
-                def debug(msg: String) = ctx.log.info(msg)
+                def debug(msg: String) = ctx.log.outputStream.println(msg)
 
-                def error(msg: String) = ctx.log.error(msg)
+                def error(msg: String) = ctx.log.outputStream.println(msg)
 
                 def ansiCodesSupported() = true
 
-                def warn(msg: String) = ctx.log.info(msg)
+                def warn(msg: String) = ctx.log.outputStream.println(msg)
 
                 def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
 
-                def info(msg: String) = ctx.log.info(msg)
+                def info(msg: String) = ctx.log.outputStream.println(msg)
               })
           )
         }
