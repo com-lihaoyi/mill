@@ -2,7 +2,7 @@ package mill.util
 
 import java.io._
 
-import ammonite.ops.Path
+import ammonite.ops.{Path, rm}
 import ammonite.util.Colors
 
 
@@ -124,11 +124,13 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
+    if (!outputStreamUsed) rm(file)
     outputStreamUsed = true
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
   lazy val errorStream = {
+    if (!outputStreamUsed) rm(file)
     outputStreamUsed = true
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }

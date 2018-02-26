@@ -147,7 +147,7 @@ case class Evaluator[T](outPath: Path,
           labelledNamedTask.segments
         )
 
-        mkdir(paths.out)
+        if (!exists(paths.out)) mkdir(paths.out)
         val cached = for{
           json <- scala.util.Try(upickle.json.read(paths.meta.toIO)).toOption
           cached <- scala.util.Try(upickle.default.readJs[Evaluator.Cached](json)).toOption
@@ -257,7 +257,6 @@ case class Evaluator[T](outPath: Path,
     val multiLogger = resolveLogger(paths.map(_.log))
     var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
     for (task <- nonEvaluatedTargets) {
-      val currentStack = new Exception().getStackTrace
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map(x => newResults.getOrElse(x, results(x)))
@@ -277,13 +276,12 @@ case class Evaluator[T](outPath: Path,
                   inner
                 )
               case _ =>
-                usedDest = Some((
-                  task,
-                  new Exception().getStackTrace.dropRight(currentStack.length)
-                ))
+
+
                 paths match{
                   case Some(dest) =>
-                    mkdir(dest.dest)
+                    if (usedDest.isEmpty) mkdir(dest.dest)
+                    usedDest = Some((task, new Exception().getStackTrace))
                     dest.dest
                   case None =>
                     throw new Exception("No `dest` folder available here")
@@ -302,11 +300,13 @@ case class Evaluator[T](outPath: Path,
             Console.withIn(multiLogger.inStream){
               Console.withOut(multiLogger.outputStream){
                 Console.withErr(multiLogger.errorStream){
-                  task.evaluate(args)
+                  try task.evaluate(args)
+                  catch { case NonFatal(e) =>
+                    Result.Exception(e, new OuterStack(new Exception().getStackTrace))
+                  }
                 }
               }
             }
-          }catch{ case NonFatal(e) => Result.Exception(e, new OuterStack(currentStack))
           }finally{
             System.setErr(err)
             System.setOut(out)
@@ -329,9 +329,7 @@ case class Evaluator[T](outPath: Path,
 
   def resolveLogger(logPath: Option[Path]): Logger = logPath match{
     case None => log
-    case Some(path) =>
-      rm(path)
-      MultiLogger(log.colored, log, FileLogger(log.colored, path))
+    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path))
   }
 }
 
