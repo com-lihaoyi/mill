@@ -32,7 +32,7 @@ object MultiModuleTests extends TestSuite {
       override def millSourcePath = workspacePath / 'shared
     }
 
-    override def millDiscover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val evaluator = TestEvaluator.static(MultiModule)

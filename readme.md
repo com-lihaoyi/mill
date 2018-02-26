@@ -382,6 +382,16 @@ see what's going on, we should expect them to contribute code!
 
 ## Changelog
 
+### 0.1.3
+
+- Greatly reduced the overhead of evaluating Mill tasks, with a warm
+  already-cached `mill dev.launcher` now taking ~450ms instead of ~1000ms
+
+- Mill now saves compiled build files in `~/.mill/ammonite`, which is
+  configurable via the `--home` CLI arg.
+
+- Fixed linking of multi-module Scala.js projects
+
 ### 0.1.2
 
 - Mill now keeps a long-lived work-daemon around in between commands; this

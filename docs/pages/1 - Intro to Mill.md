@@ -19,7 +19,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.2/0.1.2 && sudo chmod +x /usr/local/bin/mill
+sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.3/0.1.3 && sudo chmod +x /usr/local/bin/mill
 ```
 
 More recent, unstable versions of Mill are also
@@ -69,7 +69,7 @@ $ mill foo.compile                 # compile sources into classfiles
 
 $ mill foo.run                     # run the main method, if any
 
-$ mill foo.launcher                # prepares a foo/dest/run to run your code outside Mill 
+$ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
 
 $ mill foo.jar                     # bundle the classfiles into a jar
 

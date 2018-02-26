@@ -62,6 +62,7 @@ object ClientServerTests extends TestSuite{
             err
           )
           c.run(Array(arg))
+          Thread.sleep(100)
           (new String(out.toByteArray), new String(err.toByteArray))
         }
       }
