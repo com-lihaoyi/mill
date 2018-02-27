@@ -398,7 +398,7 @@ your build file itself.
 ## The Build Repl
 
 ```bash
-$ mill
+$ mill -i
 Loading...
 @ foo
 res1: foo.type = ammonite.predef.build#foo:2

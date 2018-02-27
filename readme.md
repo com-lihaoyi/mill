@@ -177,7 +177,8 @@ Mill provides a build REPL, which lets you explore the build interactively and
 run `Target`s from Scala code:
 
 ```scala
-lihaoyi mill$ target/bin/mill
+$ mill -i
+
 Loading...
 Compiling (synthetic)/ammonite/predef/interpBridge.sc
 Compiling (synthetic)/ammonite/predef/replBridge.sc

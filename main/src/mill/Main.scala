@@ -137,36 +137,42 @@ object Main {
       case Right((cliConfig, leftoverArgs)) =>
 
         val repl = leftoverArgs.isEmpty
-        val config =
-          if(!repl) cliConfig
-          else cliConfig.copy(
-            predefCode =
-              """import $file.build, build._
-                |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                |  interp.colors(),
-                |  repl.pprinter(),
-                |  build.millSelf.get,
-                |  build.millDiscover
-                |)
-                |repl.pprinter() = replApplyHandler.pprinter
-                |import replApplyHandler.generatedEval._
-                |
-              """.stripMargin,
-            welcomeBanner = None
+        if (repl && stdin == DummyInputStream) {
+          stderr.println("Build repl needs to be run with the -i/--interactive flag")
+          (false, stateCache)
+        }else{
+          val config =
+            if(!repl) cliConfig
+            else cliConfig.copy(
+              predefCode =
+                """import $file.build, build._
+                  |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                  |  interp.colors(),
+                  |  repl.pprinter(),
+                  |  build.millSelf.get,
+                  |  build.millDiscover
+                  |)
+                  |repl.pprinter() = replApplyHandler.pprinter
+                  |import replApplyHandler.generatedEval._
+                  |
+                """.stripMargin,
+              welcomeBanner = None
+            )
+
+          val runner = new mill.main.MainRunner(
+            config.copy(colored = Some(mainInteractive)),
+            stdout, stderr, stdin,
+            stateCache
           )
 
-        val runner = new mill.main.MainRunner(
-          config.copy(colored = Some(mainInteractive)),
-          stdout, stderr, stdin,
-          stateCache
-        )
+          if (repl){
+            runner.printInfo("Loading...")
+            (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
+          } else {
+            (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
+          }
+      }
 
-        if (repl){
-          runner.printInfo("Loading...")
-          (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
-        } else {
-          (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
-        }
     }
   }
 }
