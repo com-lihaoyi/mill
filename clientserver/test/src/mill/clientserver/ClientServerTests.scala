@@ -30,7 +30,7 @@ object ClientServerTests extends TestSuite{
   }
   def init() = {
     val tmpDir = java.nio.file.Files.createTempDirectory("")
-    val locks = new MemoryLocks()
+    val locks = Locks.memory()
 
     (tmpDir, locks)
   }
@@ -52,16 +52,16 @@ object ClientServerTests extends TestSuite{
 
       def runClient(arg: String) = {
         val (in, out, err) = initStreams()
-        locks.clientLock.lockBlock{
-          val c = new Client(
+        Server.lockBlock(locks.clientLock){
+          Client.run(
             tmpDir.toString,
             () => spawnEchoServer(),
             locks,
             in,
             out,
-            err
+            err,
+            Array(arg)
           )
-          c.run(Array(arg))
           Thread.sleep(100)
           (new String(out.toByteArray), new String(err.toByteArray))
         }

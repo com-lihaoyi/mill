@@ -215,7 +215,7 @@ def launcherScript(jvmArgs: Seq[String],
      |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
      |    ;;
      |  *)
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.ClientMain "$$@"
+     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.clientserver.Client "$$@"
      |    ;;
      |esac
      """.stripMargin

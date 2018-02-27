@@ -7,7 +7,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
-import mill.clientserver.{ClientInputPumper, ClientServer}
+import mill.clientserver.{ClientServer, InputPumper}
 import mill.define.Task
 import mill.eval.PathRef
 import mill.util.{Ctx, Loose}
@@ -62,7 +62,7 @@ object Jvm {
       )
 
       for((std, dest) <- sources){
-        new Thread(new ClientInputPumper(std, dest)).start()
+        new Thread(new InputPumper(std, dest, false)).start()
       }
       process
     }else{

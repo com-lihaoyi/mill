@@ -12,7 +12,7 @@ trait ServerMain[T]{
       this,
       () => System.exit(0),
       60000,
-      new FileLocks(args0(0))
+      Locks.files(args0(0))
     ).run()
   }
   var stateCache = Option.empty[T]
@@ -29,19 +29,19 @@ class Server[T](lockBase: String,
                 sm: ServerMain[T],
                 interruptServer: () => Unit,
                 acceptTimeout: Int,
-                locks: Locks) extends ClientServer(lockBase){
+                locks: Locks) {
 
   val originalStdout = System.out
   def run() = {
-    locks.processLock.tryLockBlock{
+    Server.tryLockBlock(locks.processLock){
       var running = true
       while (running) {
-        locks.serverLock.lockBlock{
-          new File(ioPath).delete()
-          val ioSocket = new UnixDomainServerSocket(ioPath)
-          val sockOpt = ClientServer.interruptWith(
+        Server.lockBlock(locks.serverLock){
+          new File(lockBase + "/io").delete()
+          val ioSocket = new UnixDomainServerSocket(lockBase + "/io")
+          val sockOpt = Server.interruptWith(
             acceptTimeout,
-            new UnixDomainSocket(ioPath).close(),
+            new UnixDomainSocket(lockBase + "/io").close(),
             ioSocket.accept()
           )
 
@@ -63,8 +63,9 @@ class Server[T](lockBase: String,
 
     val currentOutErr = clientSocket.getOutputStream
     val socketIn = clientSocket.getInputStream
-    val argStream = new FileInputStream(runFile)
-    val (interactive, args) = ClientServer.parseArgs(argStream)
+    val argStream = new FileInputStream(lockBase + "/run")
+    val interactive = argStream.read() != 0;
+    val args = ClientServer.parseArgs(argStream)
     argStream.close()
 
     var done = false
@@ -83,7 +84,7 @@ class Server[T](lockBase: String,
 
         sm.stateCache = newStateCache
         java.nio.file.Files.write(
-          java.nio.file.Paths.get(exitCodePath),
+          java.nio.file.Paths.get(lockBase + "/exitCode"),
           (if (result) 0 else 1).toString.getBytes
         )
       } catch{case WatchInterrupted(sc: Option[T]) =>
@@ -107,5 +108,57 @@ class Server[T](lockBase: String,
     t.stop()
     clientSocket.close()
   }
+}
+object Server{
+  def lockBlock[T](lock: Lock)(t: => T): T = {
+    val l = lock.lock()
+    try t
+    finally l.release()
+  }
+  def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
+    lock.tryLock() match{
+      case null => None
+      case l =>
+        try Some(t)
+        finally l.release()
+    }
+
+  }
+  def interruptWith[T](millis: Int, close: => Unit, t: => T): Option[T] = {
+    @volatile var interrupt = true
+    @volatile var interrupted = false
+    new Thread(() => {
+      Thread.sleep(millis)
+      if (interrupt) {
+        interrupted = true
+        close
+      }
+    }).start()
+
+    try {
+      val res =
+        try Some(t)
+        catch {case e: Throwable => None}
+
+      if (interrupted) None
+      else res
+
+    } finally {
+      interrupt = false
+    }
+  }
+}
+
+class ProxyOutputStream(x: => java.io.OutputStream,
+                        key: Int) extends java.io.OutputStream  {
+  override def write(b: Int) = x.synchronized{
+    x.write(key)
+    x.write(b)
+  }
+}
+class ProxyInputStream(x: => java.io.InputStream) extends java.io.InputStream{
+  def read() = x.read()
+  override def read(b: Array[Byte], off: Int, len: Int) = x.read(b, off, len)
+  override def read(b: Array[Byte]) = x.read(b)
 }
 case class WatchInterrupted[T](stateCache: Option[T]) extends Exception
