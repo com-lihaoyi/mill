@@ -45,20 +45,20 @@ import mill.scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::upickle:0.5.1",
-    ivy"com.lihaoyi::pprint:0.5.2",
-    ivy"com.lihaoyi::fansi:0.2.4",
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+    ivy"com.lihaoyi::upickle::0.5.1",
+    ivy"com.lihaoyi::pprint::0.5.2",
+    ivy"com.lihaoyi::fansi::0.2.4",
+    ivy"org.scala-lang:scala-reflect::${scalaVersion()}"
   )
 }
 ```
 
 You can define the `ivyDeps` field to add ivy dependencies to your module. The
-`ivy"com.lihaoyi::upickle:0.5.1"` syntax (with `::`) represents Scala
+`ivy"com.lihaoyi::upickle::0.5.1"` syntax (with first `::`) represents Scala
 dependencies; for Java dependencies you would use a single `:` e.g.
-`ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
+`ivy"com.lihaoyi:upickle::0.5.1"`. If you have dependencies cross-published
 against the full Scala version (eg. `2.12.4` instead of just `2.12`),
-you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
+you can use `:::` as in `ivy"org.scalamacros:::paradise::2.1.1"`.
 
 By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
@@ -80,7 +80,7 @@ object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
   object test extends Tests{ 
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.0")
     def testFrameworks = Seq("mill.UTestFramework")
   }
 }
@@ -142,11 +142,11 @@ object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
   object test extends Tests{ 
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.0")
     def testFrameworks = Seq("mill.UTestFramework")
   }
   object integration extends Tests{ 
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.0")
     def testFrameworks = Seq("mill.UTestFramework")
   }
 }
@@ -166,7 +166,7 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+  def ivyDeps = Agg(ivy"org.scalatest::scalatest::3.0.4")
   def testFrameworks = Seq("org.scalatest.tools.Framework")
 }
 ```
@@ -185,9 +185,9 @@ import mill.scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   
-  def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
+  def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic::0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
+  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic::0.1.7")
 }
 ```
 
