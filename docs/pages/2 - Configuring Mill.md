@@ -81,7 +81,7 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
@@ -143,11 +143,11 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
   object integration extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
