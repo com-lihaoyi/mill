@@ -70,7 +70,7 @@ def navBar(homePage: Boolean, contentHeaders: Seq[(String, Int)], pageHeaders: S
       div(paddingLeft := 40, NarrowStyles.disappear)(
         b(navLabel)
       ),
-      div(overflowY.scroll, flexShrink := 1, minHeight := 0)(
+      div(overflowY.auto, flexShrink := 1, minHeight := 0)(
         ul(
           overflow.hidden,
           textAlign.start,
