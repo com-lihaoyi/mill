@@ -28,6 +28,9 @@ trait MillPublishModule extends PublishModule{
       "git://github.com/lihaoyi/mill.git",
       "scm:git://github.com/lihaoyi/mill.git"
     ),
+    // TODO 0.1.4:
+    // versionControl = VersionControl.github("lihaoyi", "mill")
+
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )

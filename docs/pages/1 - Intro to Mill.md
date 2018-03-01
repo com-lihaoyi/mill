@@ -488,10 +488,7 @@ object foo extends PublishModule{
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/example",
     licenses = Seq(License.MIT),
-    scm = SCM(
-      "git://github.com/lihaoyi/example.git",
-      "scm:git://github.com/lihaoyi/example.git"
-    ),
+    versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
