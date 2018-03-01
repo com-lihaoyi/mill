@@ -1,92 +1,17 @@
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
 import $file.version
-import $ivy.`org.scalariform::scalariform:0.2.5`
+import $file.reformat
+import reformat.Scalariform
+import $file.mima
+import mima.MiMa
+import com.typesafe.tools.mima.core._
 
 import ammonite.ops._
 import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
-// TODO: move it somewhere else
-trait Scalariform extends ScalaModule {
-  import scalariform.formatter._
-  import scalariform.formatter.preferences._
-  import scalariform.parser.ScalaParserException
-
-  val playJsonPreferences = FormattingPreferences()
-    .setPreference(SpacesAroundMultiImports, true)
-    .setPreference(SpaceInsideParentheses, false)
-    .setPreference(DanglingCloseParenthesis, Preserve)
-    .setPreference(PreserveSpaceBeforeArguments, true)
-    .setPreference(DoubleIndentConstructorArguments, false)
-
-  def compile = {
-    reformat()
-    super.compile()
-  }
-
-  def reformat() = T.command {
-    val files = filesToFormat(sources())
-    T.ctx.log.info(s"Formatting ${files.size} Scala sources")
-    files.foreach { path =>
-      try {
-        val formatted = ScalaFormatter.format(
-          read(path),
-          playJsonPreferences,
-          scalaVersion = scalaVersion()
-        )
-        write.over(path, formatted)
-      } catch {
-        case ex: ScalaParserException =>
-          T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
-      }
-    }
-  }
-
-  def checkCodeFormat() = T.command {
-    filesToFormat(sources()).foreach { path =>
-      try {
-        val input = read(path)
-        val formatted = ScalaFormatter.format(
-          input,
-          playJsonPreferences,
-          scalaVersion = scalaVersion()
-        )
-        if (input != formatted) sys.error(
-          s"""
-            |ERROR: Scalariform check failed at file: ${path}
-            |To fix, format your sources using `mill __.reformat` before submitting a pull request.
-            |Additionally, please squash your commits (eg, use git commit --amend) if you're going to update this pull request.
-          """.stripMargin
-        )
-      } catch {
-        case ex: ScalaParserException =>
-          T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
-      }
-    }
-  }
-
-  private def filesToFormat(sources: Seq[PathRef]) = {
-    for {
-      pathRef <- sources if exists(pathRef.path)
-      file <- ls.rec(pathRef.path) if file.isFile && file.ext == "scala"
-    } yield file
-  }
-
-}
-
-trait MiMa extends ScalaModule {
-  def previousVersions = T {
-    scalaVersion().split('.')(1) match {
-      case "10" => Seq("2.6.0")
-      case "11" => Seq("2.6.0")
-      case "12" => Seq("2.6.0")
-      case _ => Nil
-    }
-  }
-}
-
-trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform {
+trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform with MiMa {
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -139,6 +64,21 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 
   def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
     ivy"org.scalamacros:::paradise:2.1.0"
+  )
+
+  def mimaBinaryIssueFilters = Seq(
+    // AbstractFunction1 is in scala.runtime and isn't meant to be used by end users
+    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsArray$"),
+    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsObject$"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
+    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.JsonConfiguration.optionHandlers")
   )
 
   def generatedSources = T {
@@ -244,7 +184,8 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
 
   def scalaJSVersion = "0.6.22"
 
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests {
+  // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
@@ -263,18 +204,17 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   }
 }
 
-
-object playFunctionalJvm extends Cross[PlayFunctionalJvm](ScalaVersions:_*)
-class PlayFunctionalJvm(val crossScalaVersion: String) extends PlayJsonModule {
+trait PlayFunctional extends PlayJsonModule {
   def millSourcePath = pwd / "play-functional"
   def artifactName = "play-functional"
 }
 
+object playFunctionalJvm extends Cross[PlayFunctionalJvm](ScalaVersions:_*)
+class PlayFunctionalJvm(val crossScalaVersion: String) extends PlayFunctional
+
 object playFunctionalJs extends Cross[PlayFunctionalJs](ScalaVersions:_*)
-class PlayFunctionalJs(val crossScalaVersion: String) extends PlayJsonModule with ScalaJSModule {
+class PlayFunctionalJs(val crossScalaVersion: String) extends PlayFunctional with ScalaJSModule {
   def scalaJSVersion = "0.6.22"
-  def millSourcePath = pwd / "play-functional"
-  def artifactName = "play-functional"
 }
 
 object playJoda extends Cross[PlayJoda](ScalaVersions:_*)
@@ -303,16 +243,45 @@ def release() = T.command {
 }
 
 // TODO: we should have a way to "take all modules in this build"
-val allModules = Seq(
-  playJsonJvm("2.12.4"),
+val testModules = Seq(
   playJsonJvm("2.12.4").test,
-
-  playJsonJs("2.12.4"),
-//  playJsonJs("2.12.4").test,
-
-  playJoda("2.12.4"),
+  playJsonJs("2.12.4").test,
   playJoda("2.12.4").test
 )
+
+val sourceModules = Seq(
+  playJsonJvm("2.12.4"),
+  playJsonJs("2.12.4"),
+  playJoda("2.12.4"),
+)
+
+val allModules = testModules ++ sourceModules
+
+def reportBinaryIssues() = T.command {
+  Task.traverse(sourceModules) { module =>
+    module.mimaReportBinaryIssues.map(issues => module.millModuleSegments.render -> issues)
+  }.map { issues =>
+    val issuesByModules = issues.map { case (moduleName, issues) =>
+      issues.foldLeft(Seq.empty[String]) { case (acc, (atrifact, problems)) =>
+        val elem = if(problems.nonEmpty) {
+          Some(
+            s"""
+               |Compared to artifact: ${atrifact}
+               |found ${problems.size} binary incompatibilities:
+               |${problems.mkString("\n")}
+               """.stripMargin
+          )
+        } else {
+          None
+        }
+        acc ++ elem
+      }.mkString("\n")
+    }
+    if(issuesByModules.nonEmpty) {
+      sys.error(issuesByModules.mkString("\n\n"))
+    }
+  }
+}
 
 def validateCode() = T.command {
   Task.traverse(allModules)(_.checkCodeFormat())
