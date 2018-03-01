@@ -261,12 +261,11 @@ def reportBinaryIssues() = T.command {
   Task.traverse(sourceModules) { module =>
     module.mimaReportBinaryIssues.map(issues => module.millModuleSegments.render -> issues)
   }.map { issues =>
-    val issuesByModules = issues.map { case (moduleName, issues) =>
-      issues.foldLeft(Seq.empty[String]) { case (acc, (atrifact, problems)) =>
+    val issuesByModules = issues.flatMap { case (moduleName, issues) =>
+      val messageForModule = issues.foldLeft(Seq.empty[String]) { case (acc, (artifact, problems)) =>
         val elem = if(problems.nonEmpty) {
           Some(
-            s"""
-               |Compared to artifact: ${atrifact}
+            s"""Compared to artifact: ${artifact}
                |found ${problems.size} binary incompatibilities:
                |${problems.mkString("\n")}
                """.stripMargin
@@ -275,10 +274,21 @@ def reportBinaryIssues() = T.command {
           None
         }
         acc ++ elem
-      }.mkString("\n")
+      }
+      if(messageForModule.nonEmpty) {
+        Some(
+          s"""
+            |For module: ${moduleName}:
+            |${messageForModule.mkString("\n")}
+          """.stripMargin
+          )
+      } else {
+        None
+      }
     }
+
     if(issuesByModules.nonEmpty) {
-      sys.error(issuesByModules.mkString("\n\n"))
+      sys.error(issuesByModules.mkString("\n"))
     }
   }
 }
