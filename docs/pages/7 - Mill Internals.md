@@ -300,14 +300,14 @@ Mill is largely inspired by [Bazel](https://bazel.build/). In particular, the
 single-build-hierarchy, where every Target has an on-disk-cache/output-directory
 according to their position in the hierarchy, comes from Bazel.
 
-Bazel is a bit odd in it’s own right. the underlying data model is good
-(hierarchy + cached dependency graph) but getting there is hell it (like SBT) is
+Bazel is a bit odd in it’s own right. The underlying data model is good
+(hierarchy + cached dependency graph) but getting there is hell. It (like SBT) is
 also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
 same: mutable python which performs global side effects (layer 3 is the same
-dependency-graph evaluator as SBT/mill)
+dependency-graph evaluator as SBT/mill).
 
 You end up having to deal with a non-trivial python codebase where everything
-happens via
+happens via:
 
 ```python
 do_something(name="blah")
