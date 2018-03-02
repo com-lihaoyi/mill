@@ -321,7 +321,10 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
     val fingerprints = framework.fingerprints()
     val testClasses = classpath.flatMap { base =>
-      listClassFiles(base).flatMap { path =>
+      // Don't blow up if there are no classfiles representing
+      // the tests to run Instead just don't run anything
+      if (!exists(base)) Nil
+      else listClassFiles(base).flatMap { path =>
         val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
         fingerprints.find {
           case f: SubclassFingerprint =>
