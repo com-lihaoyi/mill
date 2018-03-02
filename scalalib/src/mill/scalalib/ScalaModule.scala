@@ -20,17 +20,20 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
+    override def scalaWorker = outer.scalaWorker
     override def moduleDeps = Seq(outer)
   }
   def scalaVersion: T[String]
 
   def mainClass: T[Option[String]] = None
 
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   def finalMainClass: T[String] = T{
     mainClass() match {
       case Some(main) => Result.Success(main)
       case None =>
-        mill.scalalib.ScalaWorkerApi.scalaWorker().discoverMainClasses(compile()) match {
+        scalaWorker.scalaWorker().discoverMainClasses(compile()) match {
           case Seq() => Result.Failure("No main class specified or found")
           case Seq(main) => Result.Success(main)
           case mains =>
@@ -138,7 +141,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
   def compile: T[CompilationResult] = T.persistent{
-    mill.scalalib.ScalaWorkerApi.scalaWorker().compileScala(
+    scalaWorker.scalaWorker().compileScala(
       scalaVersion(),
       allSourceFiles().map(_.path),
       scalaCompilerBridgeSources().map(_.path),
@@ -338,7 +341,7 @@ trait TestModule extends ScalaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalaworker.ScalaWorker",
-      classPath = mill.scalalib.ScalaWorkerApi.scalaWorkerClasspath(),
+      classPath = scalaWorker.scalaWorkerClasspath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
@@ -360,7 +363,7 @@ trait TestModule extends ScalaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    mill.scalalib.ScalaWorkerApi.scalaWorker().runTests(
+    scalaWorker.scalaWorker().runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),

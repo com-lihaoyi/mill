@@ -11,7 +11,11 @@ import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
-object ScalaWorkerApi extends mill.define.ExternalModule {
+
+object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModule{
+  lazy val millDiscover = Discover[this.type]
+}
+trait ScalaWorkerModule extends mill.Module{
   def scalaWorkerClasspath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
     if (scalaWorkerJar != null) {
@@ -42,7 +46,7 @@ object ScalaWorkerApi extends mill.define.ExternalModule {
       Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
     )
   }
-  lazy val millDiscover = Discover[this.type]
+
 }
 
 trait ScalaWorkerApi {

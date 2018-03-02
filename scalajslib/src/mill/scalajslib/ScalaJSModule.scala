@@ -15,6 +15,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSVersion: T[String]
 
   trait Tests extends TestScalaJSModule {
+    override def scalaWorker = outer.scalaWorker
     override def scalaVersion = outer.scalaVersion()
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleDeps = Seq(outer)
@@ -193,7 +194,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         fastOptTest().path.toIO
       )
 
-    val (doneMsg, results) = mill.scalalib.ScalaWorkerApi
+    val (doneMsg, results) = scalaWorker
       .scalaWorker()
       .runTests(
         _ => Seq(framework),
