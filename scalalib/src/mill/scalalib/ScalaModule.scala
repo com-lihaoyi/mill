@@ -33,7 +33,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     mainClass() match {
       case Some(main) => Result.Success(main)
       case None =>
-        scalaWorker.scalaWorker().discoverMainClasses(compile()) match {
+        scalaWorker.worker().discoverMainClasses(compile()) match {
           case Seq() => Result.Failure("No main class specified or found")
           case Seq(main) => Result.Success(main)
           case mains =>
@@ -84,10 +84,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def repositories: Seq[Repository] = Seq(
-    Cache.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2")
-  )
+  def repositories: Seq[Repository] = scalaWorker.repositories
 
   def platformSuffix = T{ "" }
 
@@ -141,7 +138,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
   def compile: T[CompilationResult] = T.persistent{
-    scalaWorker.scalaWorker().compileScala(
+    scalaWorker.worker().compileScala(
       scalaVersion(),
       allSourceFiles().map(_.path),
       scalaCompilerBridgeSources().map(_.path),
@@ -341,7 +338,7 @@ trait TestModule extends ScalaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalaworker.ScalaWorker",
-      classPath = scalaWorker.scalaWorkerClasspath(),
+      classPath = scalaWorker.classpath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
@@ -363,7 +360,7 @@ trait TestModule extends ScalaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    scalaWorker.scalaWorker().runTests(
+    scalaWorker.worker().runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),

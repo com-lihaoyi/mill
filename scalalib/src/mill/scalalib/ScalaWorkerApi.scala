@@ -16,21 +16,23 @@ object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModu
   lazy val millDiscover = Discover[this.type]
 }
 trait ScalaWorkerModule extends mill.Module{
-  def scalaWorkerClasspath = T{
+  def repositories = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
+
+  def classpath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
     if (scalaWorkerJar != null) {
       mill.eval.Result.Success(Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_))))
     } else {
       resolveDependencies(
-        Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+        repositories,
         "2.12.4",
         Seq(ivy"com.lihaoyi::mill-scalaworker:${sys.props("MILL_VERSION")}")
       ).map(_.map(_.path))
     }
   }
-  def scalaWorker: Worker[ScalaWorkerApi] = T.worker{
+  def worker: Worker[ScalaWorkerApi] = T.worker{
     val cl = new java.net.URLClassLoader(
-      scalaWorkerClasspath().map(_.toNIO.toUri.toURL).toArray,
+      classpath().map(_.toNIO.toUri.toURL).toArray,
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalaworker.ScalaWorker")
@@ -41,7 +43,7 @@ trait ScalaWorkerModule extends mill.Module{
 
   def compilerInterfaceClasspath = T{
     resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      repositories,
       "2.12.4",
       Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
     )
