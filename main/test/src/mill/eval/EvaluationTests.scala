@@ -210,7 +210,7 @@ object EvaluationTests extends TestSuite{
         val public = ammonite.ops.read(checker.evaluator.outPath / 'foo / "meta.json")
         val overriden = ammonite.ops.read(
           checker.evaluator.outPath / 'foo /
-            'overriden / "mill" / "util" / "TestGraphs" / "BaseModule#foo"  / "meta.json"
+            'overriden / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo"  / "meta.json"
         )
         assert(
           public.contains("base"),
@@ -238,7 +238,7 @@ object EvaluationTests extends TestSuite{
         val public = ammonite.ops.read(checker.evaluator.outPath / 'cmd / "meta.json")
         val overriden = ammonite.ops.read(
           checker.evaluator.outPath / 'cmd /
-          'overriden / "mill" / "util" / "TestGraphs" / "BaseModule#cmd"  / "meta.json"
+          'overriden / "mill" / "util" / "TestGraphs" / "BaseModule"/ "cmd"  / "meta.json"
         )
         assert(
           public.contains("base1"),
