@@ -289,7 +289,7 @@ val isMasterCommit = {
 
 def gitHead = T.input{
   sys.env.get("TRAVIS_COMMIT").getOrElse(
-    %%('git, "rev-parse", "head")(pwd).out.string.trim()
+    %%('git, "rev-parse", "HEAD")(pwd).out.string.trim()
   )
 }
 
