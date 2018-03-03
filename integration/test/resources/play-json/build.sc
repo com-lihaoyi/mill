@@ -17,11 +17,8 @@ trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform 
     description = artifactName(),
     organization = "com.typesafe.play",
     url = "https://github.com/playframework/play-json",
-    licenses = Seq(License("Apache-2.0", "http://www.apache.org/licenses/LICENSE-2.0.html")),
-    scm = SCM(
-      "https://github.com/playframework/play-json",
-      "scm:git:git@github.com:playframework/play-json.git"
-    ),
+    licenses = Seq(License.`Apache-2.0`),
+    versionControl = VersionControl.github("playframework", "play-json"),
     developers = Seq(
       Developer(
         id = "playframework",
@@ -62,9 +59,14 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
     ivy"org.typelevel::macro-compat::1.1.1"
   )
 
-  def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
-    ivy"org.scalamacros:::paradise:2.1.0"
+  private val macroParadise = ivy"org.scalamacros:::paradise:2.1.0"
+
+  def compileIvyDeps = Agg(
+    macroParadise,
+    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
   )
+
+  def scalacPluginIvyDeps = Agg(macroParadise)
 
   def mimaBinaryIssueFilters = Seq(
     // AbstractFunction1 is in scala.runtime and isn't meant to be used by end users
