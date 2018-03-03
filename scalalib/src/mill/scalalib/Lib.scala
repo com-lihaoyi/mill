@@ -4,10 +4,9 @@ package scalalib
 import java.io.File
 
 import ammonite.ops._
-import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Module => CoursierModule}
+import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Dependency, Module => CoursierModule}
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
-
 
 object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
@@ -27,20 +26,8 @@ object Lib{
       .toIO
   }
 
-  /**
-    * Resolve dependencies using Coursier.
-    *
-    * We do not bother breaking this out into the separate ScalaWorker classpath,
-    * because Coursier is already bundled with mill/Ammonite to support the
-    * `import $ivy` syntax.
-    */
-  def resolveDependencies(repositories: Seq[Repository],
-                          scalaVersion: String,
-                          deps: TraversableOnce[Dep],
-                          platformSuffix: String = "",
-                          sources: Boolean = false): Result[Agg[PathRef]] = {
-
-    val flattened = deps.map{
+  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
+    dep match {
       case Dep.Java(dep, cross) =>
         dep.copy(
           module = dep.module.copy(
@@ -67,7 +54,24 @@ object Lib{
               "_" + scalaVersion
           )
         )
-    }.toSet
+    }
+
+
+
+  /**
+    * Resolve dependencies using Coursier.
+    *
+    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * because Coursier is already bundled with mill/Ammonite to support the
+    * `import $ivy` syntax.
+    */
+  def resolveDependencies(repositories: Seq[Repository],
+                          scalaVersion: String,
+                          deps: TraversableOnce[Dep],
+                          platformSuffix: String = "",
+                          sources: Boolean = false): Result[Agg[PathRef]] = {
+
+    val flattened = deps.map(depToDependency(_, scalaVersion, platformSuffix)).toSet
     val start = Resolution(flattened)
 
     val fetch = Fetch.from(repositories, Cache.fetch())
