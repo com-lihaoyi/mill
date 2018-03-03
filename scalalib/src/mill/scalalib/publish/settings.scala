@@ -82,8 +82,8 @@ object VersionControl {
   def github(owner: String, repo: String, tag: Option[String] = None): VersionControl = 
     VersionControl(
       browsableRepository = Some(s"https://github.com/$owner/$repo"),
-      connection = Some(VersionControlConnection.gitGit("github.com", "$owner/$repo.git")),
-      developerConnection = Some(VersionControlConnection.gitSsh("github.com", "$owner/$repo.git")),
+      connection = Some(VersionControlConnection.gitGit("github.com", s"$owner/$repo.git")),
+      developerConnection = Some(VersionControlConnection.gitSsh("github.com", s":$owner/$repo.git", username = Some("git"))),
       tag = tag
     )
 }
@@ -101,7 +101,7 @@ object VersionControlConnection {
       username match {
         case Some(user) =>
           val pass = password.map(":" + _).getOrElse("")
-          s"${user}${pass}"
+          s"${user}${pass}@"
         case None =>
           password match {
             case Some(p) => sys.error(s"no username set for password: $p")
@@ -109,66 +109,70 @@ object VersionControlConnection {
           }
       }
 
-    s"${scm}:${protocol}://${credentials}${hostname}${portPart}/$path"
+    val path0 =
+      if(path.startsWith(":") || path.startsWith("/")) path
+      else "/" + path
+
+    s"scm:${scm}:${protocol}://${credentials}${hostname}${portPart}${path0}"
   }
 
-  def file(scm: String, hostname: Option[String], path: String): String = {
-    val hostnamePart = hostname.getOrElse("")
-    "scm:$scm:file://${hostnamePart}/$path"
+  def file(scm: String, path: String): String = {
+    s"scm:$scm:file://$path"
   }
 
   def gitGit(hostname: String,
-             path: String,
+             path: String = "",
              port: Option[Int] = None): String = 
     network("git", "git", hostname, path, port = port)
 
   def gitHttp(hostname: String,
-              path: String,
+              path: String = "",
               port: Option[Int] = None): String =
     network("git", "http", hostname, path, port = port)
 
   def gitHttps(hostname: String,
-               path: String,
+               path: String = "",
                port: Option[Int] = None): String =
     network("git", "https", hostname, path, port = port)
 
   def gitSsh(hostname: String,
-             path: String,
+             path: String = "",
+             username: Option[String] = None,
              port: Option[Int] = None): String =
-    network("git", "ssh", hostname, path, port = port)
+    network("git", "ssh", hostname, path, username = username, port = port)
 
-  def gitFile(hostname: Option[String], path: String): String =
-    file("git", hostname, path)
+  def gitFile(path: String): String =
+    file("git", path)
 
   def svnSsh(hostname: String,
-             path: String,
-             username: Option[String],
-             port: Option[Int]): String =
+             path: String = "",
+             username: Option[String] = None,
+             port: Option[Int] = None): String =
     network("svn", "svn+ssh", hostname, path, username, None, port)
 
   def svnHttp(hostname: String,
-              path: String,
-              port: Option[Int],
-              username: Option[String],
-              password: Option[String]): String =
-    network("svn", "http", hostname, path, username, password)
+              path: String = "",
+              username: Option[String] = None,
+              password: Option[String] = None,
+              port: Option[Int] = None): String =
+    network("svn", "http", hostname, path, username, password, port)
 
   def svnHttps(hostname: String,
-               path: String,
-               port: Option[Int],
-               username: Option[String],
-               password: Option[String]): String =
-    network("svn", "https", hostname, path, username, password)
+               path: String = "",
+               username: Option[String] = None,
+               password: Option[String] = None,
+               port: Option[Int] = None): String =
+    network("svn", "https", hostname, path, username, password, port)
 
-  def svnSvn(username: Option[String],
-             password: Option[String],
-             hostname: String,
-             port: Option[Int],
-             path: String): String =
-    network("svn", "svn", hostname, path, username, password)
+  def svnSvn(hostname: String,
+             path: String = "",
+             username: Option[String] = None,
+             password: Option[String] = None,
+             port: Option[Int] = None): String =
+    network("svn", "svn", hostname, path, username, password, port)
 
-  def svnFile(hostname: Option[String], path: String): String =
-    file("svn", hostname, path)
+  def svnFile(path: String): String =
+    file("svn", path)
 }
 
 case class Developer(
