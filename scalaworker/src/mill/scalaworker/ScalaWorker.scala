@@ -76,6 +76,8 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val compiledDest = workingDir / 'compiled
     if (!exists(workingDir)) {
 
+      println("Compiling compiler interface...")
+
       mkdir(workingDir)
       mkdir(compiledDest)
 
