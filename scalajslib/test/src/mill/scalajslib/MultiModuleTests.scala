@@ -67,11 +67,9 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    def checkRun(mainClass: Option[String] = None) = {
-      val command = mainClass match {
-        case Some(main) => MultiModule.client.runMain(main)
-        case None => MultiModule.client.run()
-      }
+    'run - {
+      val command = MultiModule.client.run()
+      
       val Right((_, evalCount)) = evaluator(command)
 
       val paths = Evaluator.resolveDestPaths(
@@ -85,9 +83,6 @@ object MultiModuleTests extends TestSuite {
         log.contains("Hello from Scala.js, result is: 3")
       )
     }
-
-    'run - checkRun()
-    'runMain - checkRun(mainClass = Some("Main"))
   }
 
   def prepareWorkspace(): Unit = {
