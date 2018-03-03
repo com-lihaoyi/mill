@@ -37,7 +37,7 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     val env = new NodeJSEnv().loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
-    val jsConsole = ConsoleJSConsole
+
     val config = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
     val adapter =
       new TestAdapter(env, config)

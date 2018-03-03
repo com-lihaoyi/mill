@@ -4,7 +4,7 @@ package scalajslib
 import ammonite.ops.{Path, exists, ls, mkdir, rm}
 import coursier.Cache
 import coursier.maven.MavenRepository
-import mill.eval.PathRef
+import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
@@ -71,7 +71,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       runClasspath(),
-      mainClass(),
+      finalMainClassOpt().toOption,
       FastOpt
     )
   }
@@ -81,39 +81,32 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ScalaJSBridge.scalaJSBridge(),
       toolsClasspath(),
       runClasspath(),
-      mainClass(),
+      finalMainClassOpt().toOption,
       FullOpt
     )
   }
 
-  override  def runLocal(args: String*) = T.command { run(args:_*) }
+  override def runLocal(args: String*) = T.command { run(args:_*) }
 
   override def run(args: String*) = T.command {
-    if(mainClass().isEmpty) {
-      throw new RuntimeException("No mainClass provided!")
+    finalMainClassOpt() match{
+      case Left(err) => Result.Failure(err)
+      case Right(_) =>
+        ScalaJSBridge.scalaJSBridge().run(
+          toolsClasspath().map(_.path),
+          fastOpt().path.toIO
+        )
+        Result.Success(())
     }
 
-    ScalaJSBridge.scalaJSBridge().run(
-      toolsClasspath().map(_.path),
-      fastOpt().path.toIO
-    )
   }
 
-  override def runMainLocal(mainClass: String, args: String*) = T.command { runMain(mainClass, args:_*) }
+  override def runMainLocal(mainClass: String, args: String*) = T.command[Unit] {
+    mill.eval.Result.Failure("runMain is not supported in Scala.js")
+  }
 
-  override def runMain(mainClass: String, args: String*) = T.command {
-    val linkedFile = link(
-      ScalaJSBridge.scalaJSBridge(),
-      toolsClasspath(),
-      runClasspath(),
-      Some(mainClass),
-      FastOpt
-    )
-
-    ScalaJSBridge.scalaJSBridge().run(
-      toolsClasspath().map(_.path),
-      linkedFile.path.toIO
-    )
+  override def runMain(mainClass: String, args: String*) = T.command[Unit] {
+    mill.eval.Result.Failure("runMain is not supported in Scala.js")
   }
 
   def link(worker: ScalaJSWorker,

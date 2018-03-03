@@ -29,19 +29,26 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
 
-  def finalMainClass: T[String] = T{
-    mainClass() match {
-      case Some(main) => Result.Success(main)
+  def finalMainClassOpt: T[Either[String, String]] = T{
+    mainClass() match{
+      case Some(m) => Right(m)
       case None =>
-        scalaWorker.worker().discoverMainClasses(compile()) match {
-          case Seq() => Result.Failure("No main class specified or found")
-          case Seq(main) => Result.Success(main)
+        scalaWorker.worker().discoverMainClasses(compile())match {
+          case Seq() => Left("No main class specified or found")
+          case Seq(main) => Right(main)
           case mains =>
-            Result.Failure(
+            Left(
               s"Multiple main classes found (${mains.mkString(",")}) " +
-              "please explicitly specify which one to use by overriding mainClass"
+                "please explicitly specify which one to use by overriding mainClass"
             )
         }
+    }
+  }
+
+  def finalMainClass: T[String] = T{
+    finalMainClassOpt() match {
+      case Right(main) => Result.Success(main)
+      case Left(msg)   => Result.Failure(msg)
     }
   }
 
@@ -215,17 +222,13 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def forkEnv = T{ sys.env.toMap }
 
   def launcher = T{
-    mainClass() match {
-      case None => Result.Failure("Need to specify a main class for launcher")
-      case Some(cls) =>
-        Result.Success(
-          Jvm.createLauncher(
-            cls,
-            runClasspath().map(_.path),
-            forkArgs()
-          )
-        )
-    }
+    Result.Success(
+      Jvm.createLauncher(
+        finalMainClass(),
+        runClasspath().map(_.path),
+        forkArgs()
+      )
+    )
   }
 
   def runLocal(args: String*) = T.command {

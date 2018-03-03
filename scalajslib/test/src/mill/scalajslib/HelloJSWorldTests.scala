@@ -204,11 +204,8 @@ object HelloJSWorldTests extends TestSuite {
 //      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
     }
 
-    def checkRun(scalaVersion: String, scalaJSVersion: String, mainClass: Option[String] = None): Unit = {
-      val task = mainClass match {
-        case Some(main) => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).runMain(main)
-        case None => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
-      }
+    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
+      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
 
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
@@ -224,24 +221,6 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    'runMain - {
-      val mainClass = Some("Main")
-      'run_2118_0622  - checkRun("2.11.8", "0.6.22", mainClass)
-      'run_2124_0622  - checkRun("2.12.4", "0.6.22", mainClass)
-      'run_2118_100M2 - checkRun("2.11.8", "1.0.0-M2", mainClass)
-      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2", mainClass)
-
-      'wrongMain - {
-        val wrongMainClass = "Foo"
-        val task = HelloJSWorld.helloJsWorld("2.12.4", "0.6.22").runMain(wrongMainClass)
-
-        val Left(Result.Exception(ex, _)) = helloWorldEvaluator(task)
-
-        assert(
-          ex.isInstanceOf[Exception]
-        )
-      }
-    }
     'run - {
       'run_2118_0622  - checkRun("2.11.8", "0.6.22")
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
