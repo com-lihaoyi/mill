@@ -83,7 +83,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.0.3-49-7fa03d0",
+    ivy"com.lihaoyi:::ammonite:1.0.5",
     ivy"jline:jline:2.14.5"
   )
 
@@ -309,14 +309,14 @@ def publishVersion = T.input{
         %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
         %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
-      ("unstable", s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")
+      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")
   }
 }
 
 def uploadToGithub(authKey: String) = T.command{
   val (releaseTag, label) = publishVersion()
 
-  if (releaseTag != "unstable"){
+  if (releaseTag == label){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
         upickle.json.write(
