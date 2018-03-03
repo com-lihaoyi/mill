@@ -2,22 +2,19 @@ package mill.modules
 
 import java.io.{ByteArrayInputStream, FileOutputStream}
 import java.lang.reflect.Modifier
-import java.net.URLClassLoader
+import java.net.{URI, URLClassLoader}
+import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
-import mill.clientserver.{ClientServer, InputPumper}
-import mill.define.Task
+import geny.Generator
+import mill.clientserver.InputPumper
 import mill.eval.PathRef
-import mill.util.{Ctx, Loose}
-import mill.util.Ctx.Log
+import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
-import upickle.default.{Reader, Writer}
 
-import scala.annotation.tailrec
 import scala.collection.mutable
-import scala.reflect.ClassTag
 
 
 object Jvm {
@@ -231,68 +228,90 @@ object Jvm {
     PathRef(outputPath)
   }
 
+  def newOutputStream(p: java.nio.file.Path) = Files.newOutputStream(
+    p,
+    StandardOpenOption.TRUNCATE_EXISTING,
+    StandardOpenOption.CREATE
+  )
+
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
-                     prependShellScript: String = "")
-                    (implicit ctx: Ctx.Dest): PathRef = {
-    val outputPath = ctx.dest / "out.jar"
-    rm(outputPath)
+                     prependShellScript: String = "",
+                     base: Option[Path] = None)
+                    (implicit ctx: Ctx.Dest) = {
+    val tmp = ctx.dest / "out-tmp.jar"
 
-    if(inputPaths.nonEmpty) {
+    val baseUri = "jar:file:" + tmp
+    val hm = new java.util.HashMap[String, String]()
 
-      val output = new FileOutputStream(outputPath.toIO)
-
-      // Prepend shell script and make it executable
-      if (prependShellScript.nonEmpty) {
-        output.write((prependShellScript + "\n").getBytes)
-        val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
-        perms.add(PosixFilePermission.GROUP_EXECUTE)
-        perms.add(PosixFilePermission.OWNER_EXECUTE)
-        perms.add(PosixFilePermission.OTHERS_EXECUTE)
-        java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
-      }
-
-      val jar = new JarOutputStream(
-        output,
-        createManifest(mainClass)
-      )
-
-      val seen = mutable.Set("META-INF/MANIFEST.MF")
-      try{
-
-
-        for{
-          p <- inputPaths
-          if exists(p)
-          (file, mapping) <-
-            if (p.isFile) {
-              val jf = new JarFile(p.toIO)
-              import collection.JavaConverters._
-              for(entry <- jf.entries().asScala if !entry.isDirectory) yield {
-                read.bytes(jf.getInputStream(entry)) -> entry.getName
-              }
-            }
-            else {
-              ls.rec(p).iterator
-                .filter(_.isFile)
-                .map(sub => read.bytes(sub) -> sub.relativeTo(p).toString)
-            }
-          if !seen(mapping)
-        } {
-          seen.add(mapping)
-          val entry = new JarEntry(mapping.toString)
-          jar.putNextEntry(entry)
-          jar.write(file)
-          jar.closeEntry()
-        }
-      } finally {
-        jar.close()
-        output.close()
-      }
-
+    base match{
+      case Some(b) => cp(b, tmp)
+      case None => hm.put("create", "true")
     }
-    PathRef(outputPath)
+
+    val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm)
+
+    val manifest = createManifest(mainClass)
+    val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
+    Files.createDirectories(manifestPath.getParent)
+    val manifestOut = newOutputStream(manifestPath)
+    manifest.write(manifestOut)
+    manifestOut.close()
+
+    for(v <- classpathIterator(inputPaths)){
+      val (file, mapping) = v
+      val p = zipFs.getPath(mapping)
+      if (p.getParent != null) Files.createDirectories(p.getParent)
+      val outputStream = newOutputStream(p)
+      IO.stream(file, outputStream)
+      outputStream.close()
+      file.close()
+    }
+    zipFs.close()
+    val output = ctx.dest / "out.jar"
+
+    // Prepend shell script and make it executable
+    if (prependShellScript.isEmpty) mv(tmp, output)
+    else{
+      val outputStream = newOutputStream(output.toNIO)
+      IO.stream(new ByteArrayInputStream((prependShellScript + "\n").getBytes()), outputStream)
+      IO.stream(read.getInputStream(tmp), outputStream)
+      outputStream.close()
+
+      val perms = Files.getPosixFilePermissions(output.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(output.toNIO, perms)
+    }
+
+    PathRef(output)
   }
+
+
+  def classpathIterator(inputPaths: Agg[Path]) = {
+    Generator.from(inputPaths)
+      .filter(exists)
+      .flatMap{
+        p =>
+          if (p.isFile) {
+            val jf = new JarFile(p.toIO)
+            import collection.JavaConverters._
+            Generator.selfClosing((
+              for(entry <- jf.entries().asScala if !entry.isDirectory)
+                yield (jf.getInputStream(entry), entry.getName),
+              () => jf.close()
+            ))
+          }
+          else {
+            ls.rec.iter(p)
+              .filter(_.isFile)
+              .map(sub => read.getInputStream(sub) -> sub.relativeTo(p).toString)
+          }
+      }
+
+  }
+
   def launcherShellScript(mainClass: String,
                           classPath: Agg[String],
                           jvmArgs: Seq[String]) = {
@@ -309,11 +328,11 @@ object Jvm {
 
     write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
 
-    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+    val perms = Files.getPosixFilePermissions(outputPath.toNIO)
     perms.add(PosixFilePermission.GROUP_EXECUTE)
     perms.add(PosixFilePermission.OWNER_EXECUTE)
     perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    Files.setPosixFilePermissions(outputPath.toNIO, perms)
     PathRef(outputPath)
   }
 

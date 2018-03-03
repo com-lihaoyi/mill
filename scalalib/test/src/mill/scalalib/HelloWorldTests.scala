@@ -50,19 +50,6 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloWorldWithMainAssembly extends HelloBase {
-    object core extends HelloWorldModule{
-      def mainClass = Some("Main")
-      def assembly = T{
-        mill.modules.Jvm.createAssembly(
-          runClasspath().map(_.path).filter(exists),
-          prependShellScript = prependShellScript(),
-          mainClass = mainClass()
-        )
-      }
-    }
-  }
-
   object HelloWorldWarnUnused extends HelloBase{
     object core extends HelloWorldModule {
       def scalacOptions = T(Seq("-Ywarn-unused"))
@@ -392,8 +379,8 @@ object HelloWorldTests extends TestSuite {
     }
 
     'assembly - {
-      'assembly - workspaceTest(HelloWorldWithMainAssembly){ eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
+      'assembly - workspaceTest(HelloWorldWithMain){ eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
           exists(result.path),
           evalCount > 0
@@ -401,14 +388,15 @@ object HelloWorldTests extends TestSuite {
         val jarFile = new JarFile(result.path.toIO)
         val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        assert(entries.contains("Main.class"))
+        val mainPresent = entries.contains("Main.class")
+        assert(mainPresent)
         assert(entries.exists(s => s.contains("scala/Predef.class")))
 
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
-      'run - workspaceTest(HelloWorldWithMainAssembly){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
+      'run - workspaceTest(HelloWorldWithMain){eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
           exists(result.path),

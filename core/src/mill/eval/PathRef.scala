@@ -4,10 +4,11 @@ import java.io.IOException
 import java.nio.file.attribute.BasicFileAttributes
 import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.{file => jnio}
-import java.security.MessageDigest
+import java.security.{DigestOutputStream, MessageDigest}
+
 import upickle.default.{ReadWriter => RW}
 import ammonite.ops.Path
-import mill.util.JsonFormatters
+import mill.util.{DummyOutputStream, IO, JsonFormatters}
 
 
 /**
@@ -23,8 +24,7 @@ object PathRef{
   def apply(path: ammonite.ops.Path, quick: Boolean = false) = {
     val sig = {
       val digest = MessageDigest.getInstance("MD5")
-
-      val buffer = new Array[Byte](16 * 1024)
+      val digestOut = new DigestOutputStream(DummyOutputStream, digest)
       jnio.Files.walkFileTree(
         path.toNIO,
         new FileVisitor[jnio.Path] {
@@ -43,16 +43,7 @@ object PathRef{
               digest.update(value.toByte)
             }else {
               val is = jnio.Files.newInputStream(file)
-
-              def rec(): Unit = {
-                val length = is.read(buffer)
-                if (length != -1) {
-                  digest.update(buffer, 0, length)
-                  rec()
-                }
-              }
-              rec()
-
+              IO.stream(is, digestOut)
               is.close()
             }
             FileVisitResult.CONTINUE

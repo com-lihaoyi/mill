@@ -25,11 +25,11 @@ class TestEvaluator[T <: TestUtil.BaseModule](module: T)
                                              tp: TestPath){
   val outPath =  TestUtil.getOutPath()
 
-  val logger = DummyLogger
-//  val logger = new PrintLogger(
-//    true,
-//    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
-// )
+//  val logger = DummyLogger
+  val logger = new PrintLogger(
+    true,
+    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
+ )
   val evaluator = new Evaluator(outPath, TestEvaluator.externalOutPath, module, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {

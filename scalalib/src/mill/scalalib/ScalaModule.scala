@@ -2,16 +2,15 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import coursier.{Cache, MavenRepository, Repository}
-import mill.define.{Cross, Task}
+import coursier.Repository
+import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, interactiveSubprocess, runLocal, subprocess}
+import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import Lib._
-import mill.define.Cross.Resolver
 import mill.util.Loose.Agg
-import mill.util.{DummyInputStream, Strict}
+import mill.util.DummyInputStream
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -144,6 +143,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       if path.isFile && (path.ext == "scala" || path.ext == "java")
     } yield PathRef(path)
   }
+
   def compile: T[CompilationResult] = T.persistent{
     scalaWorker.worker().compileScala(
       scalaVersion(),
@@ -165,19 +165,35 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  def runClasspath = T{
+  def upstreamAssemblyClasspath = T{
     upstreamRunClasspath() ++
-    Agg(compile().classes) ++
-    resources() ++
     unmanagedClasspath() ++
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
+  def runClasspath = T{
+    Agg(compile().classes) ++
+    resources() ++
+    upstreamAssemblyClasspath()
+
+  }
+
+  /**
+    * Build the assembly for upstream dependencies separate from the current classpath
+    *
+    * This should allow much faster assembly creation in the common case where
+    * upstream dependencies do not change
+    */
+  def upstreamAssembly = T{
+    createAssembly(upstreamAssemblyClasspath().map(_.path), mainClass())
+  }
+
   def assembly = T{
     createAssembly(
-      runClasspath().map(_.path).filter(exists),
+      Agg.from(resources().map(_.path)) ++ Agg(compile().classes.path),
       mainClass(),
-      prependShellScript = prependShellScript()
+      prependShellScript(),
+      Some(upstreamAssembly().path)
     )
   }
 
