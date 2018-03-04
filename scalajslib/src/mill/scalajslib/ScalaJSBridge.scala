@@ -55,9 +55,10 @@ class ScalaJSWorker {
   }
 
   def getFramework(toolsClasspath: Agg[Path],
+                   config: NodeJSConfig,
                    frameworkName: String,
                    linkedFile: File): sbt.testing.Framework = {
-    bridge(toolsClasspath).getFramework(frameworkName, linkedFile)
+    bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
   }
 
 }
@@ -71,7 +72,8 @@ trait ScalaJSBridge {
 
   def run(config: NodeJSConfig, linkedFile: File): Unit
 
-  def getFramework(frameworkName: String,
+  def getFramework(config: NodeJSConfig,
+                   frameworkName: String,
                    linkedFile: File): sbt.testing.Framework
 
 }
