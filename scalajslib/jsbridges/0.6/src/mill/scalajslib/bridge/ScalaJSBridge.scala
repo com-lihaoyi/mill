@@ -35,10 +35,9 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
   def getFramework(config: NodeJSConfig,
                    frameworkName: String,
                    linkedFile: File): sbt.testing.Framework = {
-    val env = nodeJSEnv(config)
-      .loadLibs(
-        Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
-      )
+    val env = nodeJSEnv(config).loadLibs(
+      Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
+    )
 
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
     val adapter =
