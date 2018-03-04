@@ -26,12 +26,7 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
   }
 
   def run(config: NodeJSConfig, linkedFile: File): Unit = {
-    new NodeJSEnv(
-      NodeJSEnv.Config()
-        .withExecutable(config.executable)
-        .withArgs(config.args)
-        .withEnv(config.env)
-        .withSourceMap(config.sourceMap))
+    nodeJSEnv(config)
       .jsRunner(Seq(FileVirtualJSFile(linkedFile)))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
@@ -39,12 +34,7 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
   def getFramework(config: NodeJSConfig,
                    frameworkName: String,
                    linkedFile: File): sbt.testing.Framework = {
-    val env = new NodeJSEnv(
-      NodeJSEnv.Config()
-        .withExecutable(config.executable)
-        .withArgs(config.args)
-        .withEnv(config.env)
-        .withSourceMap(config.sourceMap))
+    val env = nodeJSEnv(config)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter =
@@ -55,5 +45,14 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
       .flatten
       .headOption
       .getOrElse(throw new RuntimeException("Failed to get framework"))
+  }
+
+  def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {
+    new NodeJSEnv(
+      NodeJSEnv.Config()
+        .withExecutable(config.executable)
+        .withArgs(config.args)
+        .withEnv(config.env)
+        .withSourceMap(config.sourceMap))
   }
 }
