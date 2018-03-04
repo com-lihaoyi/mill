@@ -4,6 +4,8 @@ import $file.reformat
 import reformat.Scalariform
 import $file.mima
 import mima.MiMa
+import $file.headers
+import headers.Headers
 import com.typesafe.tools.mima.core._
 
 import ammonite.ops._
@@ -11,7 +13,7 @@ import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
-trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform with MiMa {
+trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform with MiMa with Headers {
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -28,7 +30,7 @@ trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform 
     )
   )
 
-  trait Tests extends super.Tests with Scalariform {
+  trait Tests extends super.Tests with Scalariform with Headers {
     val specs2Core = T {
       val v = Lib.scalaBinaryVersion(scalaVersion()) match {
         case "2.10" => "3.9.1"
@@ -187,7 +189,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   def scalaJSVersion = "0.6.22"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform {
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with Headers {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
@@ -230,7 +232,7 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
     ivy"joda-time:joda-time:2.9.9"
   )
 
-  object test extends Tests with Scalariform {
+  object test extends Tests with Scalariform with Headers {
     def ivyDeps = Agg(specs2Core())
 
     def testFrameworks = Seq(
@@ -297,5 +299,5 @@ def reportBinaryIssues() = T.command {
 
 def validateCode() = T.command {
   Task.traverse(allModules)(_.checkCodeFormat())
-  // TODO: check headers
+  Task.traverse(allModules)(_.headerCheck())
 }
