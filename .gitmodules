@@ -1,0 +1,4 @@
+[submodule "scala-native"]
+	path = scala-native
+	url = git@github.com:Duhemm/scala-native.git
+	branch = topic/build-api
