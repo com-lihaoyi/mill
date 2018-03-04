@@ -15,6 +15,18 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
+## Installation
+
+### Arch Linux
+
+Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
+
+```bash
+pacaur -S mill
+```
+
+### Manual
+
 To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
@@ -22,11 +34,15 @@ To get started, download Mill and install it into your system via the following
 sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.4/0.1.4 && sudo chmod +x /usr/local/bin/mill
 ```
 
+### Development Releases
+
 More recent, unstable versions of Mill are also
 [available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
 to try out the latest features and improvements that are currently in master. 
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
+
+## Getting Started
 
 The simplest Mill build for a Scala project looks as follows:
 
