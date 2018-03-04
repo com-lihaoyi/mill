@@ -94,6 +94,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Right(_) =>
         ScalaJSBridge.scalaJSBridge().run(
           toolsClasspath().map(_.path),
+          nodeJsConfig(),
           fastOpt().path.toIO
         )
         Result.Success(())
@@ -156,6 +157,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
+
+  def nodeJsConfig = T { NodeJSConfig() }
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
