@@ -330,6 +330,24 @@ rm -rf out/
 
 ## Changelog
 
+### 0.1.4
+
+- Speed up Mill client initialization by another 50-100ms
+
+- Speed up incremental `assembly`s in the common case where upstream
+  dependencies do not change.
+
+- Make `ScalaJSModule#run` work with main-method discovery
+
+- Make `ScalaWorkerModule` user-defineable, so you can use your own custom
+  coursier resolvers when resolving Mill's own jars
+
+- Simplify definitions of `SCM` strings
+
+- Make the build REPL explicitly require `-i`/`--interactive` to run
+
+- Log a message when Mill is initializing the Zinc compiler interface
+
 ### 0.1.3
 
 - Greatly reduced the overhead of evaluating Mill tasks, with a warm
