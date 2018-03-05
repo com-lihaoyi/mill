@@ -46,6 +46,22 @@ trait MainModule extends mill.Module{
     }
   }
 
+  def plan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    )
+
+    resolved match{
+      case Left(err) => Result.Failure(err)
+      case Right(rs) =>
+        val (sortedGroups, transitive) = Evaluator.plan(evaluator.rootModule, rs)
+        for(Right(r) <- sortedGroups.keys()){
+          println(r.segments.render)
+        }
+        Result.Success(())
+    }
+  }
+
   def describe(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
       for{

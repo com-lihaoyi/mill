@@ -330,6 +330,11 @@ rm -rf out/
 
 ## Changelog
 
+### master
+
+- Introduced the `mill plan foo.bar` command, which shows you what the execution
+  plan of running the `foo.bar` task looks like without actually evaluating it.
+
 ### 0.1.4
 
 - Speed up Mill client initialization by another 50-100ms

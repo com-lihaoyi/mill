@@ -36,45 +36,7 @@ case class Evaluator[T](outPath: Path,
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(outPath)
 
-    val transitive = Graph.transitiveTargets(goals)
-    val topoSorted = Graph.topoSorted(transitive)
-    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-      case t: NamedTask[Any]   =>
-        val segments = t.ctx.segments
-        val finalTaskOverrides = t match{
-          case t: Target[_] =>
-            rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
-
-          case c: mill.define.Command[_] =>
-            def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
-              rootModule.millDiscover.value.get(cls) match{
-                case Some(v) => Some(v)
-                case None =>
-                  cls.getSuperclass match{
-                    case null => None
-                    case superCls => findMatching(superCls)
-                  }
-              }
-            }
-
-            findMatching(c.cls) match{
-              case Some(v) =>
-                v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
-              // For now we don't properly support overrides for external modules
-              // that do not appear in the Evaluator's main Discovered listing
-              case None => 0
-            }
-
-          case c: mill.define.Worker[_] => 0
-        }
-
-        val additional =
-          if (finalTaskOverrides == t.ctx.overrides) Nil
-          else Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
-
-        Right(Labelled(t, segments ++ additional))
-      case t if goals.contains(t) => Left(t)
-    }
+   val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
@@ -378,5 +340,47 @@ object Evaluator{
                      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]],
                      results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}
+  }
+  def plan(rootModule: BaseModule, goals: Agg[Task[_]]) = {
+    val transitive = Graph.transitiveTargets(goals)
+    val topoSorted = Graph.topoSorted(transitive)
+    val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
+      case t: NamedTask[Any]   =>
+        val segments = t.ctx.segments
+        val finalTaskOverrides = t match{
+          case t: Target[_] =>
+            rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
+
+          case c: mill.define.Command[_] =>
+            def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
+              rootModule.millDiscover.value.get(cls) match{
+                case Some(v) => Some(v)
+                case None =>
+                  cls.getSuperclass match{
+                    case null => None
+                    case superCls => findMatching(superCls)
+                  }
+              }
+            }
+
+            findMatching(c.cls) match{
+              case Some(v) =>
+                v.find(_._2.name == c.ctx.segment.pathSegments.head).get._1
+              // For now we don't properly support overrides for external modules
+              // that do not appear in the Evaluator's main Discovered listing
+              case None => 0
+            }
+
+          case c: mill.define.Worker[_] => 0
+        }
+
+        val additional =
+          if (finalTaskOverrides == t.ctx.overrides) Nil
+          else Seq(Segment.Label("overriden")) ++ t.ctx.enclosing.split("\\.|#| ").map(Segment.Label)
+
+        Right(Labelled(t, segments ++ additional))
+      case t if goals.contains(t) => Left(t)
+    }
+    (sortedGroups, transitive)
   }
 }
