@@ -217,6 +217,30 @@ consistent configuration: every module often has the same scala-version, uses
 the same testing framework, etc. and all that can be extracted out into the
 `trait`.
 
+## Global configuration
+
+Mill builds on ammonite which allows you to 
+[define global configuration](http://ammonite.io/#ScriptPredef). Depending on 
+how you start mill 2 different files will be loaded. For interactive mode it's 
+`~/.mill/ammonite/predef.sc` and from the command line it's 
+`~/.mill/ammonite/predefScript.sc`. You might want to create a symlink from one 
+to the other to avoid duplication.
+
+Example `~/.mill/ammonite/predef.sc`
+```scala
+val nexusUser = "myuser"
+val nexusPassword = "mysecret"
+```
+
+Everything declared in the above file will be available to any build you run.
+
+```scala
+  def repositories = super.repositories ++ Seq(
+    // login and pass are globally configured
+    MavenRepository("https://nexus.mycompany.com/repository/maven-releases", authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
+  )
+```
+
 ## Custom Tasks
 
 ```scala
