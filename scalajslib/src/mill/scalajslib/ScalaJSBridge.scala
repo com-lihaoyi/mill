@@ -50,14 +50,15 @@ class ScalaJSWorker {
     )
   }
 
-  def run(toolsClasspath: Agg[Path], linkedFile: File): Unit = {
-    bridge(toolsClasspath).run(linkedFile)
+  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File): Unit = {
+    bridge(toolsClasspath).run(config, linkedFile)
   }
 
   def getFramework(toolsClasspath: Agg[Path],
+                   config: NodeJSConfig,
                    frameworkName: String,
                    linkedFile: File): sbt.testing.Framework = {
-    bridge(toolsClasspath).getFramework(frameworkName, linkedFile)
+    bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
   }
 
 }
@@ -69,9 +70,10 @@ trait ScalaJSBridge {
            main: String,
            fullOpt: Boolean): Unit
 
-  def run(linkedFile: File): Unit
+  def run(config: NodeJSConfig, linkedFile: File): Unit
 
-  def getFramework(frameworkName: String,
+  def getFramework(config: NodeJSConfig,
+                   frameworkName: String,
                    linkedFile: File): sbt.testing.Framework
 
 }
