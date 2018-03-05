@@ -156,7 +156,8 @@ object scalalib extends MillModule {
       genTask(core)() ++
       genTask(main)() ++
       genTask(scalalib)() ++
-      genTask(scalajslib)()
+      genTask(scalajslib)() ++
+      genTask(scalanativelib)()
 
     worker.testArgs() ++
     main.graphviz.testArgs() ++
@@ -218,6 +219,27 @@ object twirllib extends MillModule {
 
 }
 
+object scalanativelib extends MillModule {
+  def moduleDeps = Seq(scalalib)
+
+  def testArgs = T{
+    val mapping = Map(
+      "MILL_SCALANATIVE_BRIDGE_0_3_7_SNAPSHOT" -> scalanativebridges("0.3.7-SNAPSHOT").compile().classes.path
+    )
+    scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+  }
+
+  object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3.7-SNAPSHOT")
+  class ScalaNativeBridgeModule(scalaNativeBinary: String) extends MillModule {
+    def moduleDeps = Seq(scalanativelib)
+    def ivyDeps = Agg(
+      ivy"org.scala-native::tools:$scalaNativeBinary",
+      ivy"org.scala-native::util:$scalaNativeBinary",
+      ivy"org.scala-native::nir:$scalaNativeBinary"
+    )
+  }
+}
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -238,10 +260,11 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
+  def moduleDeps = Seq(moduledefs, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
+    scalanativelib.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -290,17 +313,18 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
   def forkArgs =
     (
       scalalib.testArgs() ++
       scalajslib.testArgs() ++
+    scalanativelib.testArgs() ++
       scalalib.worker.testArgs() ++
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-      Seq(
         "-Djna.nosys=true",
         "-DMILL_VERSION=" + build.publishVersion()._2,
+      Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
