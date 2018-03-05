@@ -14,8 +14,9 @@ object NodeJSConfigTests extends TestSuite {
   val scalaVersion = "2.12.4"
   val scalaJSVersion = "0.6.22"
   val utestVersion = "0.6.3"
-  val scalaTestVersion = "3.0.4"
-  val nodeArg2G = "--max-old-space-size=2048"
+  val nodeArgsEmpty = List()
+  val nodeArgs2G = List("--max-old-space-size=2048")
+  val nodeArgs4G = List("--max-old-space-size=4096")
 
   trait HelloJSWorldModule extends CrossScalaModule with ScalaJSModule {
     override def millSourcePath = workspacePath
@@ -26,7 +27,7 @@ object NodeJSConfigTests extends TestSuite {
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq(scalaVersion)
-      nodeArgs <- Seq(Seq(), Seq(nodeArg2G))
+      nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -49,18 +50,6 @@ object NodeJSConfigTests extends TestSuite {
       }
     }
 
-    object buildScalaTest extends Cross[BuildModuleScalaTest](matrix:_*)
-    class BuildModuleScalaTest(crossScalaVersion: String, nodeArgs: List[String])
-      extends BuildModule(crossScalaVersion, nodeArgs) {
-      object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
-        def testFrameworks = Seq("org.scalatest.tools.Framework")
-        override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::$scalaTestVersion"
-        )
-        override def nodeJSConfig = T { NodeJSConfig(args = nodeArgs) }
-      }
-    }
     override lazy val millDiscover = Discover[this.type]
   }
 
@@ -73,39 +62,36 @@ object NodeJSConfigTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
 
-    def checkLog(command: define.Command[_], nodeArgs: List[String]) = {
+    def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
       val paths = Evaluator.resolveDestPaths(
         helloWorldEvaluator.outPath,
         command.ctx.segments
       )
       val log = read(paths.log)
-      assert(nodeArgs.forall(log.contains))
+      assert(
+        nodeArgs.forall(log.contains),
+        notNodeArgs.forall(!log.contains(_))
+      )
     }
 
     'test - {
 
-      def checkUtest(nodeArgs: List[String]) = {
-        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs)
+      def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) = {
+        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs, notNodeArgs)
       }
 
-      def checkScalaTest(nodeArgs: List[String]) = {
-        checkLog(HelloJSWorld.buildScalaTest(scalaVersion, nodeArgs).test.test(), nodeArgs)
-      }
-
-      'utest - checkUtest(List())
-      'utest_2G - checkUtest(List(nodeArg2G))
-      'scalaTest - checkScalaTest(List())
-      'scalaTest_2G - checkScalaTest(List(nodeArg2G))
+      'test - checkUtest(nodeArgsEmpty, nodeArgs2G)
+      'test2G - checkUtest(nodeArgs2G, nodeArgs4G)
     }
 
-    def checkRun(nodeArgs: List[String]): Unit = {
-      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs)
+    def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
+      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
     }
 
     'run - {
-      'run - checkRun(List())
-      'run_2G  - checkRun(List(nodeArg2G))
+      'run - checkRun(nodeArgsEmpty, nodeArgs2G)
+      'run2G - checkRun(nodeArgs2G, nodeArgs4G)
     }
   }
 
