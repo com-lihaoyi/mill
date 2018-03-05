@@ -38,10 +38,8 @@ mill dev.assembly
 Now you can re-build this very same project using the build.sc file, e.g. re-run
 core unit tests
 
-e.g.:
+e.g.:   
 ```bash
-./target/bin/mill core.compile
-
 ./out/dev/assembly/dest/mill core.compile
 ./out/dev/assembly/dest/mill main.test.compile
 ./out/dev/assembly/dest/mill main.test
@@ -85,7 +83,7 @@ mill dev.run docs/example-1 foo.run
 Lastly, you can generate IntelliJ Scala project files using Mill via
 
 ```bash
-./target/bin/mill mill.scalalib.GenIdeaModule/idea
+./out/dev/assembly/dest/mill mill.scalalib.GenIdeaModule/idea
 ```
 
 Allowing you to import a Mill project into Intellij without using SBT
