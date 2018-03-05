@@ -335,6 +335,9 @@ rm -rf out/
 - Introduced the `mill plan foo.bar` command, which shows you what the execution
   plan of running the `foo.bar` task looks like without actually evaluating it.
 
+- Mill now generates an `out/mill-profile.json` file containing task-timings, to
+  make it easier to see where your mill evaluation time is going
+
 ### 0.1.4
 
 - Speed up Mill client initialization by another 50-100ms

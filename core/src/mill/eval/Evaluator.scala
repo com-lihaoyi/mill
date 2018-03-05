@@ -41,14 +41,17 @@ case class Evaluator[T](outPath: Path,
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
 
+    val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
+      val startTime = System.currentTimeMillis()
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
-      val (newResults, newEvaluated) = evaluateGroupCached(
+      val (newResults, newEvaluated, cached) = evaluateGroupCached(
         terminal,
         group,
         results,
-        counterMsg)
+        counterMsg
+      )
 
       for(ev <- newEvaluated){
         evaluated.append(ev)
@@ -56,7 +59,9 @@ case class Evaluator[T](outPath: Path,
       for((k, v) <- newResults) {
         results.put(k, v)
       }
+      val endTime = System.currentTimeMillis()
 
+      timings.append((terminal, (endTime - startTime).toInt, cached))
     }
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
@@ -66,11 +71,21 @@ case class Evaluator[T](outPath: Path,
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
+    write.over(
+      outPath / "mill-profile.json",
+      upickle.default.write(
+        timings .map{case (k, v, b) =>
+          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
+        },
+        indent = 4
+      )
+    )
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
       transitive,
       failing,
+      timings,
       results.map{case (k, v) => (k, v.map(_._1))}
     )
   }
@@ -79,7 +94,7 @@ case class Evaluator[T](outPath: Path,
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]]) = {
+                          counterMsg: String): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -94,7 +109,7 @@ case class Evaluator[T](outPath: Path,
 
     terminal match{
       case Left(task) =>
-        evaluateGroup(
+        val (newResults, newEvaluated) = evaluateGroup(
           group,
           results,
           inputsHash,
@@ -102,6 +117,7 @@ case class Evaluator[T](outPath: Path,
           maybeTargetLabel = None,
           counterMsg = counterMsg
         )
+        (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
 
         val paths = Evaluator.resolveDestPaths(
@@ -127,7 +143,7 @@ case class Evaluator[T](outPath: Path,
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
 
-            (newResults, Nil)
+            (newResults, Nil, true)
 
           case _ =>
 
@@ -163,7 +179,7 @@ case class Evaluator[T](outPath: Path,
                 rm(paths.meta)
             }
 
-            (newResults, newEvaluated)
+            (newResults, newEvaluated, false)
         }
     }
   }
@@ -332,12 +348,18 @@ object Evaluator{
     case scl: SpecialClassLoader => scl.classpathSignature
     case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
     case _ => Nil
-
+  }
+  case class Timing(label: String,
+                    millis: Int,
+                    cached: Boolean)
+  object Timing{
+    implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
   }
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: Agg[Task[_]],
                      transitive: Agg[Task[_]],
                      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]],
+                     timings: IndexedSeq[(Either[Task[_], Labelled[_]], Int, Boolean)],
                      results: collection.Map[Task[_], Result[Any]]){
     def values = rawValues.collect{case Result.Success(v) => v}
   }
