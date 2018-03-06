@@ -5,11 +5,10 @@ import ammonite.ops.{Path, exists, ls}
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
-import mill.eval.Result.Success
 import mill.modules.Jvm
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
-
+import mill.T
 
 trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -23,7 +22,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def scalaNativeBridgeClasspath = T {
     val snBridgeKey = "MILL_SCALANATIVE_BRIDGE_" + scalaNativeBridgeVersion().replace('.', '_').replace('-', '_')
     val snBridgePath = sys.props(snBridgeKey)
-    if (snBridgePath != null) Success(
+    if (snBridgePath != null) Result.Success(
       Agg(PathRef(Path(snBridgePath), quick = true))
     ) else resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
@@ -42,14 +41,29 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-//  def nativeLinkIvyDeps = T{
-//    Seq(
-//      ivy"org.scala-native::nativelib::${scalaNativeVersion()}",
-//      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-//      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
-//      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
-//    )
-//  }
+  override def compileClasspath = T{
+    upstreamRunClasspath() ++
+      resources() ++
+      unmanagedClasspath() ++
+      resolveDeps(T.task{compileIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  }
+
+  override def upstreamAssemblyClasspath = T{
+    upstreamRunClasspath() ++
+      unmanagedClasspath() ++
+      resolveDeps(T.task{runIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  }
+
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
+
+  def nativeIvyDeps = T{
+    Seq(nativeLibIvy()) ++
+    Seq(
+      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
+    )
+  }
 
   def bridgeFullClassPath = T {
     resolveDependencies(
@@ -63,8 +77,6 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   override def scalacPluginIvyDeps = Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
 
   def releaseMode = T { false }
-
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
   def nativeWorkdir = T{ T.ctx().dest }
 
