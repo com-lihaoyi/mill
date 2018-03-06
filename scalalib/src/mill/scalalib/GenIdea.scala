@@ -190,6 +190,10 @@ object GenIdea {
         mod.compile.ctx.segments
       )
       val Seq(scalaVersion: String) = evaluator.evaluate(Agg(mod.scalaVersion)).values
+      val generatedSourceOutPath = Evaluator.resolveDestPaths(
+        evaluator.outPath,
+        mod.generatedSources.ctx.segments
+      )
 
       val elem = moduleXmlTemplate(
         mod.millModuleBasePath.value,
@@ -198,6 +202,7 @@ object GenIdea {
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
         paths.out,
+        generatedSourceOutPath.dest,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
       )
@@ -291,13 +296,15 @@ object GenIdea {
                         resourcePaths: Strict.Agg[Path],
                         normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
-                        outputPath: Path,
+                        compileOutputPath: Path,
+                        generatedSourceOutputPath: Path,
                         libNames: Strict.Agg[String],
                         depNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
-        <output url={"file://$MODULE_DIR$/" + relify(outputPath) + "/dest/classes"} />
+        <output url={"file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"} />
         <exclude-output />
+        <content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
         <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
           {
           for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
