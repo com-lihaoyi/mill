@@ -8,29 +8,28 @@ object Pom {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
+  implicit class XmlOps(val e: Elem) extends AnyVal {
+    // source: https://stackoverflow.com/a/5254068/449071
+    def optional : NodeSeq = {
+      require(e.child.length == 1)
+      e.child.head match {
+        case atom: Atom[Option[_]] => atom.data match {
+          case None    => NodeSeq.Empty
+          case Some(x) => e.copy(child = x match {
+            case n: NodeSeq => n
+            case x => new Atom(x)
+          })
+        }
+        case _ => e
+      }
+    }
+  }
+
   //TODO - not only jar packaging support?
   def apply(artifact: Artifact,
             dependencies: Agg[Dependency],
             name: String,
             pomSettings: PomSettings): String = {
-
-    // source: https://stackoverflow.com/a/5254068/449071
-    implicit def optionElem(e: Elem) = new {
-      def optionnal : NodeSeq = {
-        require(e.child.length == 1)
-        e.child.head match {
-          case atom: Atom[Option[_]] => atom.data match {
-            case None    => NodeSeq.Empty
-            case Some(x) => e.copy(child = x match {
-              case n: NodeSeq => n
-              case x => new Atom(x)
-            })
-          }
-          case _ => e
-        }      
-      }
-    }
-
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -50,10 +49,10 @@ object Pom {
           {pomSettings.licenses.map(renderLicense)}
         </licenses>
         <scm>
-          <connection>{pomSettings.versionControl.connection}</connection>.optionnal
-          <developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optionnal
-          <tag>{pomSettings.versionControl.tag}</tag>.optionnal
-          <url>{pomSettings.versionControl.browsableRepository}</url>.optionnal
+          { <connection>{pomSettings.versionControl.connection}</connection>.optional }
+          { <developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optional }
+          { <tag>{pomSettings.versionControl.tag}</tag>.optional }
+          { <url>{pomSettings.versionControl.browsableRepository}</url>.optional }
         </scm>
         <developers>
           {pomSettings.developers.map(renderDeveloper)}
@@ -79,16 +78,8 @@ object Pom {
     <developer>
       <id>{d.id}</id>
       <name>{d.name}</name>
-      {
-        d.organization.map { org =>
-          <organization>{org}</organization>
-        }.getOrElse(NodeSeq.Empty)
-      }
-      {
-        d.organizationUrl.map { orgUrl =>
-          <organizationUrl>{orgUrl}</organizationUrl>
-        }.getOrElse(NodeSeq.Empty)
-      }
+      { <organization>{d.organization}</organization>.optional }
+      { <organizationUrl>{d.organizationUrl}</organizationUrl>.optional }
     </developer>
   }
 
