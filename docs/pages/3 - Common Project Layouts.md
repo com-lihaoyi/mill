@@ -130,7 +130,7 @@ object foo extends ScalaModule with PublishModule{
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/mill",
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "mill"),
+    scm = SCM.github("lihaoyi", "mill")
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
