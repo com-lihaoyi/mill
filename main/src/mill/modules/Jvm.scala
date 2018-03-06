@@ -1,6 +1,6 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, FileOutputStream}
+import java.io.{ByteArrayInputStream, FileOutputStream, File}
 import java.lang.reflect.Modifier
 import java.net.{URI, URLClassLoader}
 import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
@@ -28,7 +28,7 @@ object Jvm {
     baseInteractiveSubprocess(
       Vector("java") ++
         jvmArgs ++
-        Vector("-cp", classPath.mkString(":"), mainClass) ++
+        Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
         mainArgs,
       envArgs,
       workingDir
@@ -137,7 +137,7 @@ object Jvm {
     val commandArgs =
       Vector("java") ++
       jvmArgs ++
-      Vector("-cp", classPath.mkString(":"), mainClass) ++
+      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
       mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
