@@ -36,21 +36,24 @@ object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{
+      val (frameworks, classpath, testCp, arguments, outputPath, colored) = args match {
+        case Array(fs, cp, tcp, op, c) => (fs, cp, tcp, "", op, c)
+        case Array(fs, cp, tcp, as, op, c) => (fs, cp, tcp, as, op, c)
+      }
       val result = new ScalaWorker(null, null).runTests(
-        frameworkInstances = TestRunner.frameworks(args(0).split(" ")),
-        entireClasspath = Agg.from(args(1).split(" ").map(Path(_))),
-        testClassfilePath = Agg.from(args(2).split(" ").map(Path(_))),
-        args = args(3) match{ case "" => Nil case x => x.split(" ").toList }
+        frameworkInstances = TestRunner.frameworks(frameworks.split(" ")),
+        entireClasspath = Agg.from(classpath.split(" ").map(Path(_))),
+        testClassfilePath = Agg.from(testCp.split(" ").map(Path(_))),
+        args = arguments match{ case "" => Nil case x => x.split(" ").toList }
       )(new PrintLogger(
-        args(5) == "true",
-        if(args(5) == "true") Colors.Default
+        colored == "true",
+        if(colored == "true") Colors.Default
         else Colors.BlackWhite,
         System.out,
         System.err,
         System.err,
         System.in
       ))
-      val outputPath = args(4)
 
       ammonite.ops.write(Path(outputPath), upickle.default.write(result))
     }catch{case e: Throwable =>
@@ -90,7 +93,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
         "-d", compiledDest.toString,
-        "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(":")
+        "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
       ) ++ ls.rec(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
 
       scalacMain.getMethods
