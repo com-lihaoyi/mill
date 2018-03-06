@@ -1,17 +1,22 @@
 package mill.scalanativelib.bridge
 
+import java.lang.System.{err, out}
+
 import scala.scalanative.{build => nativebuild}
 import scala.scalanative.build.{Logger, Mode}
 import scala.scalanative.{linker, nir}
 import scala.scalanative.io.VirtualDirectory
 import scalanative.util.{Scope => ResourceScope}
 import ammonite.ops.Path
-
-import mill.scalanativelib.{NativeConfig, LinkResult, OptimizerResult}
+import mill.scalanativelib.{LinkResult, NativeConfig, OptimizerResult}
 
 
 class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
-  val logger = Logger.default
+  val logger =
+    Logger(debugFn = msg => Unit, //err.println(msg),
+           infoFn  = msg => out.println(msg),
+           warnFn  = msg => out.println(msg),
+           errorFn = msg => err.println(msg))
 
   def llvmClangVersions: Seq[(String,String)] = nativebuild.llvm.clangVersions
   def llvmDiscover(binaryName: String, binaryVersions: Seq[(String, String)]): Path = Path(nativebuild.llvm.discover(binaryName, binaryVersions))
