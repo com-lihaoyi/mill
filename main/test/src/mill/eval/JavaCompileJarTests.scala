@@ -117,14 +117,14 @@ object JavaCompileJarTests extends TestSuite{
       assert(jarContents == expectedJarContents)
 
       val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
-      assert(executed == (31337 + 271828) + "\n")
+      assert(executed == (31337 + 271828) + System.lineSeparator)
 
       for(i <- 0 until 3){
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.string == (31337 + 271828) + "\n",
+          runOutput.out.string == (31337 + 271828) + System.lineSeparator,
           evalCount == 1
         )
       }
@@ -145,12 +145,12 @@ object JavaCompileJarTests extends TestSuite{
       )
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput2.out.string == "New Cls!\n",
+        runOutput2.out.string == "New Cls!" + System.lineSeparator,
         evalCount2 == 3
       )
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput3.out.string == "New Cls!\n",
+        runOutput3.out.string == "New Cls!" + System.lineSeparator,
         evalCount3 == 1
       )
     }
