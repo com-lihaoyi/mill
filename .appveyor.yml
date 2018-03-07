@@ -25,4 +25,4 @@ install:
   - bash -lc "mkdir /c/bin && curl -Lo /c/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.4/0.1.4-12-f5250d"
 
 build_script:
-  - bash -lc "cd /c/mill && mill -i all main.test scalalib.test scalajslib.test"
+  - bash -lc "cd /c/mill && mill -i all main.test scalajslib.test"
