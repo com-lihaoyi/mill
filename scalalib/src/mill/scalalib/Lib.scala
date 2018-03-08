@@ -1,10 +1,9 @@
 package mill
 package scalalib
 
-import java.io.File
-
 import ammonite.ops._
-import coursier.{Cache, Fetch, MavenRepository, Repository, Resolution, Dependency, Module => CoursierModule}
+import ammonite.util.Util
+import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
 
@@ -90,17 +89,35 @@ object Lib{
       val msg = header + errLines + "\n"
       Result.Failure(msg)
     } else {
+
+      def load(artifacts: Seq[coursier.Artifact]) = {
+        val logger = None
+        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
+          for (a <- artifacts)
+            yield coursier.Cache.file(a, logger = logger).run
+              .map(a.isOptional -> _)
+        ).unsafePerformSync
+
+        val errors = loadedArtifacts.collect {
+          case (false, scalaz.-\/(x)) => x
+          case (true, scalaz.-\/(x)) if !x.notFound => x
+        }
+        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
+        (errors, successes)
+      }
+
       val sourceOrJar =
         if (sources) resolution.classifiersArtifacts(Seq("sources"))
-        else resolution.artifacts
-      val localArtifacts: Seq[File] = scalaz.concurrent.Task
-        .gatherUnordered(sourceOrJar.map(Cache.file(_).run))
-        .unsafePerformSync
-        .flatMap(_.toOption)
-
-      Agg.from(
-        localArtifacts.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
-      )
+        else resolution.artifacts(true)
+      val (errors, successes) = load(sourceOrJar)
+      if(errors.isEmpty){
+        Agg.from(
+          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+        )
+      }else{
+        val errorDetails = errors.map(e => s"${Util.newLine}  ${e.describe}").mkString
+        Result.Failure("Failed to load source dependencies" + errorDetails)
+      }
     }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
