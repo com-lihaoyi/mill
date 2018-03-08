@@ -81,7 +81,7 @@ object GenIdea {
       }
 
     val resolved = for((path, mod) <- modules) yield {
-      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.scalaLibraryIvyDeps()}
+      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.scalaLibraryIvyDeps() ++ mod.compileIvyDeps()}
       val externalDependencies = T.task{
         mod.resolveDeps(allIvyDeps)() ++
         Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
