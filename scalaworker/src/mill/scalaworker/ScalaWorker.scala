@@ -333,8 +333,8 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
         fingerprints.find {
           case f: SubclassFingerprint =>
-
-            (f.isModule == cls.getName.endsWith("$")) &&
+            !cls.isInterface &&
+              (f.isModule == cls.getName.endsWith("$")) &&
               cl.loadClass(f.superclassName()).isAssignableFrom(cls)
           case f: AnnotatedFingerprint =>
             (f.isModule == cls.getName.endsWith("$")) &&
