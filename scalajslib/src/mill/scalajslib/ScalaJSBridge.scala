@@ -12,6 +12,12 @@ sealed trait OptimizeMode
 object FastOpt extends OptimizeMode
 object FullOpt extends OptimizeMode
 
+sealed trait ModuleKind
+object ModuleKind{
+  object NoModule extends ModuleKind
+  object CommonJSModule extends ModuleKind
+}
+
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSBridge)]
 
@@ -40,13 +46,15 @@ class ScalaJSWorker {
            libraries: Agg[Path],
            dest: File,
            main: Option[String],
-           fullOpt: Boolean): Unit = {
+           fullOpt: Boolean,
+           moduleKind: ModuleKind): Unit = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
       dest,
       main.orNull,
-      fullOpt
+      fullOpt,
+      moduleKind
     )
   }
 
@@ -68,7 +76,8 @@ trait ScalaJSBridge {
            libraries: Array[File],
            dest: File,
            main: String,
-           fullOpt: Boolean): Unit
+           fullOpt: Boolean,
+           moduleKind: ModuleKind): Unit
 
   def run(config: NodeJSConfig, linkedFile: File): Unit
 
