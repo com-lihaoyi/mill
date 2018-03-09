@@ -14,8 +14,8 @@ trait Scalariform extends ScalaModule {
     .setPreference(PreserveSpaceBeforeArguments, true)
     .setPreference(DoubleIndentConstructorArguments, false)
 
-  def compile = {
-    reformat()
+  def compile = T {
+    reformat()()
     super.compile()
   }
 
