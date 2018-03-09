@@ -15,7 +15,9 @@ import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
 
-trait PlayJsonModule extends CrossSbtModule with PublishModule with Scalariform with MiMa with Headers {
+trait BaseModule extends CrossSbtModule with Scalariform with Headers
+
+trait PlayJsonModule extends BaseModule with PublishModule with MiMa {
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -234,7 +236,7 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
     ivy"joda-time:joda-time:2.9.9"
   )
 
-  object test extends Tests with Scalariform with Headers {
+  object test extends Tests {
     def ivyDeps = Agg(specs2Core())
 
     def testFrameworks = Seq(
@@ -245,7 +247,7 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
 }
 
 object benchmarks extends Cross[Benchmarks](ScalaVersions:_*)
-class Benchmarks(val crossScalaVersion: String) extends PlayJsonModule with Jmh { // TODO: don't extend publishing module
+class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
   def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
 
   def millSourcePath = pwd / "benchmarks"
@@ -307,6 +309,5 @@ def reportBinaryIssues() = T.command {
 }
 
 def validateCode() = T.command {
-  Task.traverse(allModules)(_.checkCodeFormat())
-  Task.traverse(allModules)(_.headerCheck())
+  Task.traverse(allModules)(_.checkCodeFormat()).zip(Task.traverse(allModules)(_.headerCheck()))
 }
