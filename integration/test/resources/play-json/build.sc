@@ -5,6 +5,8 @@ import reformat.Scalariform
 import $file.mima
 import mima.MiMa
 import $file.headers
+import $file.jmh
+import jmh.Jmh
 import headers.Headers
 import com.typesafe.tools.mima.core._
 
@@ -240,6 +242,13 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
     )
   }
 
+}
+
+object benchmarks extends Cross[Benchmarks](ScalaVersions:_*)
+class Benchmarks(val crossScalaVersion: String) extends PlayJsonModule with Jmh { // TODO: don't extend publishing module
+  def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
+
+  def millSourcePath = pwd / "benchmarks"
 }
 
 def release() = T.command {
