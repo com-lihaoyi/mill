@@ -13,7 +13,7 @@ import com.typesafe.tools.mima.core._
 import ammonite.ops._
 import mill.define.Task
 
-val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M2")
+val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4") // it doesn't really work with "2.13.0-M2"
 
 trait BaseModule extends CrossSbtModule with Scalariform with Headers
 
