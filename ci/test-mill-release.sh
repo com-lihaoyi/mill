@@ -11,4 +11,4 @@ git clean -xdf
 
 # Second build & run tests using Mill
 
-~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests}"
+~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
