@@ -6,7 +6,7 @@ set -eux
 git clean -xdf
 
 # Build Mill using SBT
-mill dev.assembly
+mill -i dev.assembly
 
 # Second build & run tests using Mill
 out/dev/assembly/dest/mill -i all {clientserver,main,scalalib,scalajslib}.test

@@ -2,6 +2,6 @@
 
 set -eux
 
-mill all __.publishLocal release
+mill -i all __.publishLocal release
 
 mv out/release/dest/mill ~/mill-release
