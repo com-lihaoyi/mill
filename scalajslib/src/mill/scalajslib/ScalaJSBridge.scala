@@ -27,8 +27,8 @@ class ScalaJSWorker {
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val cl = new URLClassLoader(
-          toolsClasspath.map(_.toIO.toURI.toURL).toArray,
+        val cl = mill.util.ClassLoader.create(
+          toolsClasspath.map(_.toIO.toURI.toURL).toVector,
           getClass.getClassLoader
         )
         val bridge = cl
