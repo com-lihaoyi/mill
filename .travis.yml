@@ -2,28 +2,41 @@ language: scala
 sudo: required
 dist: trusty
 
-jdk:
-  - oraclejdk8
-
 matrix:
   include:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
+    jdk: oraclejdk9
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-0.sh
+    jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
+    jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-2.sh
+    jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk9
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk9
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk8
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    jdk: oraclejdk8
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
+    jdk: oraclejdk8
 
 script:
-  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.3/0.1.3 && chmod +x ~/bin/mill
+  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.4/0.1.4-22-95e6cb && chmod +x ~/bin/mill
   - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
 
