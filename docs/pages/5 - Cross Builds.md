@@ -72,7 +72,7 @@ mill show foo[212,jvm].suffix
 mill show foo[210,js].suffix
 mill show foo[211,js].suffix
 mill show foo[212,js].suffix
-mill show foo[212,native].suffix
+mill show foo[211,native].suffix
 ```
 
 ## Using Cross Modules from Outside
