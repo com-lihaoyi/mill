@@ -17,6 +17,14 @@ external subprocesses.
 
 ## Installation
 
+### OS X
+
+Installation via [homebrew](https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb):
+
+```sh
+brew install mill
+```
+
 ### Arch Linux
 
 Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
