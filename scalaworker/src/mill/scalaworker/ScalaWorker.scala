@@ -89,7 +89,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         .get
 
       val sourceFolder = mill.modules.Util.unpackZip(sourceJar)(workingDir)
-      val classloader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
+      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
         "-d", compiledDest.toString,
@@ -145,7 +145,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val compilerClassLoader = scalaClassloaderCache match{
       case Some((k, v)) if k == compilerClassloaderSig => v
       case _ =>
-        val classloader = new URLClassLoader(compilerJars.map(_.toURI.toURL), null)
+        val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
         scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
         classloader
     }
@@ -155,7 +155,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = new URLClassLoader(pluginJars.map(_.toURI.toURL), compilerClassLoader),
+          loader = mill.util.ClassLoader.create(pluginJars.map(_.toURI.toURL), compilerClassLoader),
           libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
           compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
           allJars = compilerJars ++ pluginJars,

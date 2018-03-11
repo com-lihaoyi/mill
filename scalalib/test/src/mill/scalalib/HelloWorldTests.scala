@@ -246,8 +246,8 @@ object HelloWorldTests extends TestSuite {
             read(runResult) == expectedOut
           )
         }
-        'v210 - workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox"))
-        'v211 - workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns"))
+        'v210 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox")))
+        'v211 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
         'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
         'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
       }
