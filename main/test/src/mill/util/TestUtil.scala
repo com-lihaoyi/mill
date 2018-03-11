@@ -78,4 +78,9 @@ object TestUtil {
       }
     }
   }
+  def disableInJava9OrAbove(f: => Any): Unit = {
+    if (!ammonite.util.Util.java9OrAbove) {
+      f
+    }
+  }
 }
