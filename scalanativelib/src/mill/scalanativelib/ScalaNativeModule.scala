@@ -137,40 +137,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       releaseMode())
   }
 
-  def nativeLinkNIR = T.task{
-    bridge().nativeLinkNIR(nativeConfig())
-  }
-
-  def nativeOptimizeNIR = T.task{
-    bridge().nativeOptimizeNIR(nativeConfig(), nativeLinkNIR())
-  }
-
-  def nativeGenerateLL = T{
-    bridge().nativeGenerateLL(nativeConfig(), nativeOptimizeNIR())
-    val llFiles = ls.rec(nativeWorkdir()).filter(_.name.endsWith(".ll"))
-    println(s"Produced ${llFiles.size} files")
-    llFiles
-  }
-
-  // XXX copy the resulting paths to task dir so we can return PathRef?
-  def nativeCompileLL = T{
-    bridge().compileLL(nativeConfig(), nativeGenerateLL())
-  }
-
-  def nativeUnpackLib = T{
-    bridge().unpackNativeLibrary(nativeLibJar().path, nativeWorkdir())
-  }
-
-  def nativeCompileLib = T{
-    bridge().nativeCompileLib(nativeConfig(), nativeUnpackLib(), nativeWorkdir(), nativeLinkNIR())
-  }
-
-  def nativeLinkLL = T{
-    bridge().linkLL(nativeConfig(), nativeLinkNIR(),  nativeCompileLL(), nativeCompileLib(), (T.ctx().dest / 'out))
-  }
-
   // Generates native binary
-  def nativeLink = T{ nativeLinkLL() }
+  def nativeLink = T{ bridge().nativeLink(nativeConfig(), (T.ctx().dest / 'out)) }
 
   // Runs the native binary
   override def run(args: String*) = T.command{
@@ -180,18 +148,18 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       workingDir = ammonite.ops.pwd)
   }
 
-  // List all symbols not available at link time
-  def nativeMissingDependencies = T{
-    (nativeExternalDependencies().toSet -- nativeAvailableDependencies().toSet).toList.sorted
-  }
-
-  // List all symbols available at link time
-  def nativeAvailableDependencies = T{
-    bridge().nativeAvailableDependencies(runClasspath().map(_.path).toSeq)
-  }
-
-  // List all external dependencies at link time
-  def nativeExternalDependencies = T{
-    bridge().nativeExternalDependencies(compile().classes.path)
-  }
+//  // List all symbols not available at link time
+//  def nativeMissingDependencies = T{
+//    (nativeExternalDependencies().toSet -- nativeAvailableDependencies().toSet).toList.sorted
+//  }
+//
+//  // List all symbols available at link time
+//  def nativeAvailableDependencies = T{
+//    bridge().nativeAvailableDependencies(runClasspath().map(_.path).toSeq)
+//  }
+//
+//  // List all external dependencies at link time
+//  def nativeExternalDependencies = T{
+//    bridge().nativeExternalDependencies(compile().classes.path)
+//  }
 }

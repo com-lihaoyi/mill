@@ -65,17 +65,7 @@ trait ScalaNativeBridge {
              releaseMode: Boolean): NativeConfig
 
   def defaultGarbageCollector: String
-
-  def nativeLinkNIR(config:NativeConfig): LinkResult
-  def nativeOptimizeNIR(nativeConfig: NativeConfig, linkResult: LinkResult): OptimizerResult
-  def nativeGenerateLL(nativeConfig: NativeConfig, optimized: OptimizerResult): Unit
-  def compileLL(nativeConfig: NativeConfig, nativeLL: Seq[Path]): Seq[Path]
-  def unpackNativeLibrary(nativeLib: Path, workDir: Path): Path
-  def nativeCompileLib(nativeConfig: NativeConfig, nativeLib: Path, workDir: Path, linkResult: LinkResult): Path
-  def linkLL(nativeConfig: NativeConfig, linkResult: LinkResult, compiledLL: Seq[Path], compiledLib: Path, out: Path): Path
-
-  def nativeAvailableDependencies(runClasspath: Seq[Path]): Seq[String]
-  def nativeExternalDependencies(compileClasses: Path): Seq[String]
+  def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path
 }
 
 object ScalaNativeBridge extends mill.define.ExternalModule {
