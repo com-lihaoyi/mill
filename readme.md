@@ -165,7 +165,7 @@ mill all __.test
 mill all bridges[_].compile
 ```
 
-**Note**: When you run multiple targets with `--all` flag, they are not
+**Note**: When you run multiple targets with `all` command, they are not
 guaranteed to run in that exact order. Mill will build task evaluation graph and
 run targets in correct order.
 
