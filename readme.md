@@ -328,13 +328,39 @@ rm -rf out/
 
 ## Changelog
 
-### master
+### 0.1.5
 
 - Introduced the `mill plan foo.bar` command, which shows you what the execution
   plan of running the `foo.bar` task looks like without actually evaluating it.
 
 - Mill now generates an `out/mill-profile.json` file containing task-timings, to
   make it easier to see where your mill evaluation time is going
+  
+- Introduced `ScalaModule#ivyDepsTree` command to show dependencies tree
+  
+- Rename `describe` to `inspect` for consistency with SBT
+
+- `mill resolve` now prints results sorted alphabetically
+
+- Node.js configuration can be customised with `ScalaJSModule#nodeJSConfig`
+
+- Scala.js `fullOpt` now uses Google Closure Compiler after generating the optimized Javascript output
+
+- Scala.js now supports `NoModule` and `CommonJSModule` module kinds
+
+- Include `compileIvyDeps` when generating IntelliJ projects
+
+- Fixed invalid POM generation
+
+- Support for Java 9 (and 10)
+
+- Fixes for Windows support
+
+- Fixed test classes discovery by skipping interfaces
+
+- Include "optional" artifacts in dependency resolution if they exist
+
+- `out/{module_name}` now added as a content root in generated IntelliJ project
 
 ### 0.1.4
 
