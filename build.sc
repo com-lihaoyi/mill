@@ -222,21 +222,27 @@ object twirllib extends MillModule {
 object scalanativelib extends MillModule {
   def moduleDeps = Seq(scalalib)
 
+  def scalacOptions = Seq[String]() // disable -P:acyclic:force
+
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_BRIDGE_0_3_7_SNAPSHOT" -> scalanativebridges("0.3.7-SNAPSHOT").compile().classes.path
+      "MILL_SCALANATIVE_BRIDGE_0_3" -> scalanativebridges("0.3").compile().classes.path
     )
     scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
-  object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3.7-SNAPSHOT")
+  object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
   class ScalaNativeBridgeModule(scalaNativeBinary: String) extends MillModule {
     def moduleDeps = Seq(scalanativelib)
-    def ivyDeps = Agg(
-      ivy"org.scala-native::tools:$scalaNativeBinary",
-      ivy"org.scala-native::util:$scalaNativeBinary",
-      ivy"org.scala-native::nir:$scalaNativeBinary"
-    )
+    def ivyDeps = scalaNativeBinary match {
+      case "0.3" =>
+        val nativeVersion = "0.3.7-SNAPSHOT"
+        Agg(
+          ivy"org.scala-native::tools:$nativeVersion",
+          ivy"org.scala-native::util:$nativeVersion",
+          ivy"org.scala-native::nir:$nativeVersion"
+        )
+    }
   }
 }
 

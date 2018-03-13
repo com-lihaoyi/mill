@@ -10,6 +10,8 @@ import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
+import org.scalatools.testing.Framework
+import sbt.testing.Fingerprint
 
 object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModule{
   lazy val millDiscover = Discover[this.type]
@@ -66,4 +68,6 @@ trait ScalaWorkerApi {
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]
+
+  def discoverTests(cl: ClassLoader, framework: sbt.testing.Framework, classpath: Agg[Path]): Loose.Agg[(Class[_], Fingerprint)]
 }

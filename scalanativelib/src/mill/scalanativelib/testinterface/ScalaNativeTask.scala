@@ -1,8 +1,6 @@
 package mill.scalanativelib
 package testinterface
 
-
-//import sbt.MessageOnlyException
 import sbt.testing.{EventHandler, Logger, Task, TaskDef}
 
 import scala.scalanative.testinterface.serialization.{

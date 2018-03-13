@@ -4,18 +4,96 @@ package scalanativelib
 import ammonite.ops.{Path, exists, ls}
 import coursier.Cache
 import coursier.maven.MavenRepository
-import mill.eval.{PathRef, Result}
+import mill.eval.Result
 import mill.modules.Jvm
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
-import mill.T
+import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule, TestRunner}
+import mill.{PathRef, T}
+import mill.util.Loose
+import sbt.testing.{AnnotatedFingerprint, Event, Framework, SubclassFingerprint}
+
+import scala.collection.mutable
+import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
+import sbt.testing.Fingerprint
+import testinterface.ScalaNativeFramework
+
 
 trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def scalaNativeVersion: T[String]
-  //override def platformSuffix = T{ "_native" + scalaNativeVersion().split('.').take(2).mkString(".") }
-  override def platformSuffix = T{ "_native" + scalaNativeVersion() }
+  override def platformSuffix = T{ "_native" + scalaNativeBridgeVersion() }
 
-  def scalaNativeBridgeVersion = T{ scalaNativeVersion() }
+  trait Tests extends TestScalaNativeModule { testOuter =>
+    override def scalaWorker = outer.scalaWorker
+    override def scalaVersion = outer.scalaVersion()
+    override def scalaNativeVersion = outer.scalaNativeVersion()
+    override def moduleDeps = Seq(outer)
+
+    override def testLocal(args: String*) = T.command { test(args:_*) }
+
+    override def test(args: String*) = T.command{
+      val outputPath = T.ctx().dest/"out.json"
+
+      val uTestPaths = resolveDeps(T.task{T.task{Agg(ivy"com.lihaoyi:utest_2.12:0.6.3")}()})().map(_.path)
+      println(s"uTestPaths=$uTestPaths")
+      val testClassloader = new URLClassLoader(uTestPaths.toSeq.map(_.toIO.toURI.toURL), this.getClass.getClassLoader)
+
+      val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
+      val testBinary = testrunner.nativeLink().toIO
+      val envVars = forkEnv()
+
+      val nativeFrameworks =  (cl: ClassLoader) =>
+        frameworkInstances.zipWithIndex.map{case(f,id) =>
+          new ScalaNativeFramework(f, id, testBinary, envVars): Framework
+        }
+
+      val (doneMsg, results) = scalaWorker.worker().runTests(
+        nativeFrameworks,
+        runClasspath().map(_.path),
+        Agg(compile().classes.path),
+        args
+      )
+
+      TestModule.handleResults(doneMsg, results)
+    }
+
+
+    object testrunner extends ScalaNativeModule {
+      override def scalaWorker = testOuter.scalaWorker
+      override def scalaVersion = testOuter.scalaVersion()
+      override def scalaNativeVersion = testOuter.scalaNativeVersion()
+      override def moduleDeps = Seq(testOuter)
+
+      override def ivyDeps = testOuter.ivyDeps() ++ Agg(
+        ivy"org.scala-native::test-interface_native0.3.7-SNAPSHOT:0.3.7-SNAPSHOT"
+      )
+      override def nativeLinkStubs = true
+
+      override def compileClasspath = T{
+        (upstreamRunClasspath() ++
+          resources() ++
+          unmanagedClasspath() ++
+          resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})())
+        .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
+      }
+
+      override def runClasspath = T{
+        Agg(compile().classes) ++
+          resources() ++
+          upstreamAssemblyClasspath()
+          .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
+          .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-lang")) // XXX remove me
+      }
+
+      override def generatedSources = T {
+        val outDir = T.ctx().dest
+        ammonite.ops.write.over(outDir / "TestMain.scala", testOuter.makeTestMain())
+        Seq(PathRef(outDir))
+      }
+    }
+  }
+
+
+  def scalaNativeBridgeVersion = T{ scalaNativeVersion().split('.').take(2).mkString(".") }
 
   def bridge = T.task{ ScalaNativeBridge.scalaNativeBridge().bridge(bridgeFullClassPath()) }
 
@@ -54,14 +132,14 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       resolveDeps(T.task{runIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeVersion()}:${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib_native${scalaNativeVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib_native${scalaNativeVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib_native${scalaNativeVersion()}:${scalaNativeVersion()}"
     )
   }
 
@@ -74,7 +152,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     ).map(t => (scalaNativeBridgeClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
-  override def scalacPluginIvyDeps = Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
+  override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
+    Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
 
   def releaseMode = T { false }
 
@@ -162,4 +241,64 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
 //  def nativeExternalDependencies = T{
 //    bridge().nativeExternalDependencies(compile().classes.path)
 //  }
+}
+
+trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
+  def scalaNativeTestDeps = T {
+    resolveDeps(T.task {
+      Loose.Agg(
+        ivy"org.scala-native::test-interface:${scalaNativeVersion()}"
+      )
+    })
+  }
+
+  case class TestDefinition(framework: String, clazz: Class[_], fingerprint: Fingerprint) {
+    def name = clazz.getName.reverse.dropWhile(_ == '$').reverse
+  }
+
+  def makeTestMain = T{
+    val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
+
+    val testClasses =
+      Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, cl => {
+        frameworkInstances(cl).flatMap { framework =>
+          val df = scalaWorker.worker().discoverTests(cl, framework, Agg(compile().classes.path))
+          df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
+        }
+      })
+
+    val frameworks = testClasses.map(_.framework).distinct
+
+    val frameworksList =
+      if (frameworks.isEmpty)
+        "Nil"
+      else
+        frameworks.mkString("List(new _root_.", ", new _root_.", ")")
+
+    val testsMap = makeTestsMap(testClasses)
+
+    s"""package scala.scalanative.testinterface
+       |object TestMain extends TestMainBase {
+       |  override val frameworks = $frameworksList
+       |  override val tests = Map[String, AnyRef]($testsMap)
+       |  def main(args: Array[String]): Unit =
+       |    testMain(args)
+       |}""".stripMargin
+  }
+
+
+  private def makeTestsMap(tests: Seq[TestDefinition]): String =
+    tests
+      .map { t =>
+        val isModule = t.fingerprint match {
+          case af: AnnotatedFingerprint => af.isModule
+          case sf: SubclassFingerprint  => sf.isModule
+        }
+
+        val inst =
+          if (isModule) s"_root_.${t.name}" else s"new _root_.${t.name}"
+        s""""${t.name}" -> $inst"""
+      }
+      .mkString(", ")
+
 }

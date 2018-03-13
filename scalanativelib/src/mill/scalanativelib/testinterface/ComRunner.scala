@@ -30,14 +30,12 @@ class ComRunner(bin: File,
   private[this] val runner = new Thread {
     override def run(): Unit = {
       val port = serverSocket.getLocalPort
-//      logger.info(s"Starting process '$bin' on port '$port'.")
-      println(s"Starting process '$bin' on port '$port'.")
+      val allArgs = Vector(bin.toString, port.toString) ++ args
+      println(s"Starting process $bin on port $port")
       Jvm.baseInteractiveSubprocess(
-        Vector(bin.toString, port.toString) ++ args,
+        allArgs,
         envVars,
         workingDir = ammonite.ops.pwd)
-
-      //Process(bin.toString +: port.toString +: args, None, envVars.toSeq: _*) ! logger
     }
   }
 
