@@ -328,6 +328,10 @@ rm -rf out/
 
 ## Changelog
 
+### 0.1.6
+
+- Fixes for non-interactive (client/server) mode on Java 9
+
 ### 0.1.5
 
 - Introduced the `mill plan foo.bar` command, which shows you what the execution
