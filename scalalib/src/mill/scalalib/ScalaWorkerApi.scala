@@ -31,8 +31,8 @@ trait ScalaWorkerModule extends mill.Module{
     }
   }
   def worker: Worker[ScalaWorkerApi] = T.worker{
-    val cl = new java.net.URLClassLoader(
-      classpath().map(_.toNIO.toUri.toURL).toArray,
+    val cl = mill.util.ClassLoader.create(
+      classpath().map(_.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalaworker.ScalaWorker")

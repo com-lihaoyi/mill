@@ -1,29 +1,38 @@
 package mill.clientserver;
 
+import io.github.retronym.java9rtexport.Export;
 import org.scalasbt.ipcsocket.UnixDomainSocket;
 
 import java.io.*;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 
 public class Client {
     static void initServer(String lockBase) throws IOException{
-        StringBuilder selfJars = new java.lang.StringBuilder();
+        ArrayList<String> selfJars = new ArrayList<String>();
         ClassLoader current = Client.class.getClassLoader();
         while(current != null){
             if (current instanceof java.net.URLClassLoader) {
                 URL[] urls = ((java.net.URLClassLoader) current).getURLs();
                 for (URL url: urls) {
-                    if (selfJars.length() != 0) selfJars.append(':');
-                    selfJars.append(url);
+                    selfJars.add(url.toString());
                 }
             }
             current = current.getParent();
         }
-
+        if (!System.getProperty("java.specification.version").startsWith("1.")) {
+            selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
+            File rtFile = new File(lockBase + "/rt-" + System.getProperty("java.version") + ".jar");
+            if (!rtFile.exists()) {
+                Files.copy(Export.export().toPath(), rtFile.toPath());
+            }
+            selfJars.add(rtFile.getCanonicalPath());
+        }
         ArrayList<String> l = new java.util.ArrayList<String>();
         l.add("java");
         Properties props = System.getProperties();
@@ -33,7 +42,7 @@ public class Client {
             if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k));
         }
         l.add("-cp");
-        l.add(selfJars.toString());
+        l.add(String.join(File.pathSeparator, selfJars));
         l.add("mill.ServerMain");
         l.add(lockBase);
         new java.lang.ProcessBuilder()
