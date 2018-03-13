@@ -107,7 +107,7 @@ mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
 mill all main.test scalalib.test 
 ```
 
-**Note**: don't forget to put `--all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
+**Note**: don't forget to put `all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
 
 * Run multiple commands with arguments:
 ```bash
