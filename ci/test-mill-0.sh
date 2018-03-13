@@ -6,4 +6,4 @@ set -eux
 git clean -xdf
 
 # Run tests using Mill built using SBT
-mill -i all {clientserver,main,scalalib,scalajslib}.test
+mill all {clientserver,main,scalalib,scalajslib}.test
