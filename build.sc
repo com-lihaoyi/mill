@@ -236,7 +236,7 @@ object dev extends MillModule{
 
     write(outputPath, prependShellScript())
 
-    if (!System.getProperty("os.name").toLowerCase.startsWith("windows")) {
+    if (!scala.util.Properties.isWin) {
       val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)

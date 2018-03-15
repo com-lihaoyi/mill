@@ -121,7 +121,7 @@ public class Client {
         while(ioSocket == null && System.currentTimeMillis() - retryStart < 1000){
             try{
                 ioSocket = ClientServer.isWindows?
-                        new Win32NamedPipeSocket("\\\\.\\pipe\\" + new File(lockBase).getName())
+                        new Win32NamedPipeSocket(ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
             }catch(Throwable e){
                 Thread.sleep(1);

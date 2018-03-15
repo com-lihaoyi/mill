@@ -8,6 +8,12 @@ import java.io.OutputStream;
 class ClientServer {
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
 
+    // Windows named pipe prefix (see https://github.com/sbt/ipcsocket/blob/v1.0.0/README.md)
+    // Win32NamedPipeServerSocket automatically adds this as a prefix (if it is not already is prefixed),
+    // but Win32NamedPipeSocket does not
+    // https://github.com/sbt/ipcsocket/blob/v1.0.0/src/main/java/org/scalasbt/ipcsocket/Win32NamedPipeServerSocket.java#L36
+    public static String WIN32_PIPE_PREFIX = "\\\\.\\pipe\\";
+
     public static String[] parseArgs(InputStream argStream) throws IOException {
 
         int argsLength = argStream.read();

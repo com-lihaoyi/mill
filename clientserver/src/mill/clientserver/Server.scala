@@ -37,24 +37,20 @@ class Server[T](lockBase: String,
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock){
-          val (serverSocket, sockOpt) = if (ClientServer.isWindows) {
-            val socketName = """\\.\pipe\""" + new File(lockBase).getName
-            val ioSocket = new Win32NamedPipeServerSocket(socketName)
-            (ioSocket, Server.interruptWith(
-              acceptTimeout,
-              new Win32NamedPipeSocket(socketName).close(),
-              ioSocket.accept()
-            ))
+          val (serverSocket, socket) = if (ClientServer.isWindows) {
+            val socketName = ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName
+            (new Win32NamedPipeServerSocket(socketName), new Win32NamedPipeSocket(socketName))
           } else {
             val socketName = lockBase + "/io"
             new File(socketName).delete()
-            val ioSocket = new UnixDomainServerSocket(socketName)
-            (ioSocket, Server.interruptWith(
-              acceptTimeout,
-              new UnixDomainSocket(socketName).close(),
-              ioSocket.accept()
-            ))
+            (new UnixDomainServerSocket(socketName), new UnixDomainSocket(socketName))
           }
+
+          val sockOpt = Server.interruptWith(
+            acceptTimeout,
+            socket.close(),
+            serverSocket.accept()
+          )
 
           sockOpt match{
             case None => running = false
@@ -122,7 +118,10 @@ class Server[T](lockBase: String,
     t.stop()
 
     if (ClientServer.isWindows) {
-      // Closing Win32NamedPipeSocket can take a second or more!
+      // Closing Win32NamedPipeSocket can often take ~5s
+      // It seems OK to exit the client early and subsequently
+      // start up mill client again (perhaps closing the server
+      // socket helps speed up the process).
       val t = new Thread(() => clientSocket.close())
       t.setDaemon(true)
       t.start()

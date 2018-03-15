@@ -278,7 +278,7 @@ object Jvm {
       IO.stream(read.getInputStream(tmp), outputStream)
       outputStream.close()
 
-      if (!mill.util.OS.isWindows) {
+      if (!scala.util.Properties.isWin) {
         val perms = Files.getPosixFilePermissions(output.toNIO)
         perms.add(PosixFilePermission.GROUP_EXECUTE)
         perms.add(PosixFilePermission.OWNER_EXECUTE)
@@ -330,7 +330,7 @@ object Jvm {
 
     write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
 
-    if (!mill.util.OS.isWindows) {
+    if (!scala.util.Properties.isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)
