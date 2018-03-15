@@ -6,6 +6,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 
 class ClientServer {
+    public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+
     public static String[] parseArgs(InputStream argStream) throws IOException {
 
         int argsLength = argStream.read();
