@@ -37,18 +37,18 @@ class Server[T](lockBase: String,
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock){
-          val (serverSocket, socket) = if (ClientServer.isWindows) {
+          val (serverSocket, socketClose) = if (ClientServer.isWindows) {
             val socketName = ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName
-            (new Win32NamedPipeServerSocket(socketName), new Win32NamedPipeSocket(socketName))
+            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
           } else {
             val socketName = lockBase + "/io"
             new File(socketName).delete()
-            (new UnixDomainServerSocket(socketName), new UnixDomainSocket(socketName))
+            (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
           }
 
           val sockOpt = Server.interruptWith(
             acceptTimeout,
-            socket.close(),
+            socketClose(),
             serverSocket.accept()
           )
 
