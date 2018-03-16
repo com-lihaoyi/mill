@@ -30,7 +30,8 @@ cache:
 install:
   - cmd: SET PATH=%JAVA_HOME%\bin;C:\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
   - cmd: java -version
-  - bash -lc "mkdir /c/bin && curl -Lo /c/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6"
+  - bash -lc "mkdir /c/bin && curl -Lo /c/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6-2-712f33"
 
 build_script:
-  - bash -lc "cd /c/mill && mill -i all main.test scalajslib.test"
+  - bash -lc "cd /c/mill && mill -i all __.publishLocal release"
+  - bash -lc "cd /c/mill && out/release/dest/mill all main.test scalajslib.test"
