@@ -15,8 +15,7 @@ import java.util.Iterator;
 import java.util.Properties;
 
 public class Client {
-
-    static void initServer(String lockBase) throws IOException,URISyntaxException{
+    static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
         ArrayList<String> selfJars = new ArrayList<String>();
         ClassLoader current = Client.class.getClassLoader();
         while(current != null){
@@ -44,6 +43,9 @@ public class Client {
             String k = keys.next();
             if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k));
         }
+        if (setJnaNoSys) {
+            l.add("-Djna.nosys=true");
+        }
         l.add("-cp");
         l.add(String.join(File.pathSeparator, selfJars));
         l.add("mill.ServerMain");
@@ -55,6 +57,10 @@ public class Client {
                 .start();
     }
     public static void main(String[] args) throws Exception{
+        boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+        if (setJnaNoSys) {
+            System.setProperty("jna.nosys", "true");
+        }
         int index = 0;
         while (index < 5) {
             index += 1;
@@ -73,7 +79,7 @@ public class Client {
                             @Override
                             public void run() {
                                 try{
-                                    initServer(lockBase);
+                                    initServer(lockBase, setJnaNoSys);
                                 }catch(Exception e){
                                     throw new RuntimeException(e);
                                 }
