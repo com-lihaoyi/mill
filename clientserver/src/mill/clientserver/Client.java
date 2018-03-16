@@ -44,6 +44,7 @@ public class Client {
             String k = keys.next();
             if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k));
         }
+        l.add("-Djna.nosys=true");
         l.add("-cp");
         l.add(String.join(File.pathSeparator, selfJars));
         l.add("mill.ServerMain");
@@ -55,6 +56,7 @@ public class Client {
                 .start();
     }
     public static void main(String[] args) throws Exception{
+        System.setProperty("jna.nosys", "true");
         int index = 0;
         while (index < 5) {
             index += 1;
