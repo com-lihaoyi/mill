@@ -236,11 +236,13 @@ object dev extends MillModule{
 
     write(outputPath, prependShellScript())
 
-    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!scala.util.Properties.isWin) {
+      val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 

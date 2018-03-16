@@ -241,7 +241,7 @@ object Jvm {
                     (implicit ctx: Ctx.Dest) = {
     val tmp = ctx.dest / "out-tmp.jar"
 
-    val baseUri = "jar:file:" + tmp
+    val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
     val hm = new java.util.HashMap[String, String]()
 
     base match{
@@ -278,11 +278,13 @@ object Jvm {
       IO.stream(read.getInputStream(tmp), outputStream)
       outputStream.close()
 
-      val perms = Files.getPosixFilePermissions(output.toNIO)
-      perms.add(PosixFilePermission.GROUP_EXECUTE)
-      perms.add(PosixFilePermission.OWNER_EXECUTE)
-      perms.add(PosixFilePermission.OTHERS_EXECUTE)
-      Files.setPosixFilePermissions(output.toNIO, perms)
+      if (!scala.util.Properties.isWin) {
+        val perms = Files.getPosixFilePermissions(output.toNIO)
+        perms.add(PosixFilePermission.GROUP_EXECUTE)
+        perms.add(PosixFilePermission.OWNER_EXECUTE)
+        perms.add(PosixFilePermission.OTHERS_EXECUTE)
+        Files.setPosixFilePermissions(output.toNIO, perms)
+      }
     }
 
     PathRef(output)
@@ -328,11 +330,13 @@ object Jvm {
 
     write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
 
-    val perms = Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!scala.util.Properties.isWin) {
+      val perms = Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 
