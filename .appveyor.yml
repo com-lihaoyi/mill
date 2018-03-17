@@ -10,28 +10,34 @@ clone_folder: c:\mill
 environment:
   matrix:
   - COMPILER: msys2
-    PLATFORM: x64
     MSYS2_ARCH: x86_64
     MSYS2_DIR: msys64
     MSYSTEM: MINGW64
-    BIT: 64
     JAVA_HOME: C:\Program Files\Java\jdk1.8.0
   - COMPILER: msys2
-    PLATFORM: x64
     MSYS2_ARCH: x86_64
     MSYS2_DIR: msys64
     MSYSTEM: MINGW64
-    BIT: 64
+    JAVA_HOME: C:\Program Files\Java\jdk9
+  - COMPILER: cygwin
+    CYGWIN_DIR: cygwin64
     JAVA_HOME: C:\Program Files\Java\jdk9
 
 cache:
   - '%LOCALAPPDATA%\Coursier\cache'
+  - '%USERPROFILE%\.coursier'
 
 install:
-  - cmd: SET PATH=%JAVA_HOME%\bin;C:\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%
-  - cmd: java -version
-  - bash -lc "mkdir /c/bin && curl -Lo /c/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6-2-712f33"
+  - if [%COMPILER%]==[cygwin] SET "PATH=%JAVA_HOME%\bin;C:\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%"
+  - if [%COMPILER%]==[msys2] SET "PATH=%JAVA_HOME%\bin;C:\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%"
+  - java -version
+  - md C:\bin
+  - curl -Lo C:\bin\mill https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6-3-43d230
 
 build_script:
-  - bash -lc "cd /c/mill && mill -i all __.publishLocal release"
-  - bash -lc "cd /c/mill && out/release/dest/mill all main.test scalajslib.test"
+  - if [%COMPILER%]==[cygwin] (
+      C:\%CYGWIN_DIR%\bin\bash -lc 'sed -i '"'"'0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}'"'"' /cygdrive/c/bin/mill' &&
+      C:\%CYGWIN_DIR%\bin\bash -lc "cd /cygdrive/c/mill && mill all main.test scalajslib.test")
+  - if [%COMPILER%]==[msys2] (
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i all __.publishLocal release"
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/release/dest/mill all main.test scalajslib.test")
