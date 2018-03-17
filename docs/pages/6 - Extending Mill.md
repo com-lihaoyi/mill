@@ -177,7 +177,7 @@ def idea(ev: Evaluator[Any]) = T.command{
 ```
 
 Many built-in tools are implemented as custom evaluator commands:
-[all](intro.html#all), [describe](intro.html#describe),
+[all](intro.html#all), [inspect](intro.html#inspect),
 [resolve](intro.html#resolve), [show](intro.html#show). If you want a way to run Mill
 commands and programmatically manipulate the tasks and outputs, you do so with
 your own evaluator command.

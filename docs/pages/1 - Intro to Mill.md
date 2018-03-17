@@ -46,7 +46,7 @@ sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/dow
 
 More recent, unstable versions of Mill are also
 [available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
-to try out the latest features and improvements that are currently in master. 
+to try out the latest features and improvements that are currently in master.
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
 
@@ -105,7 +105,7 @@ $ mill foo.repl                    # start an Ammonite REPL within your project
 ```
 
 You can run `mill resolve __` to see a full list of the different tasks that are
-available, `mill resolve foo._` to see the tasks within `foo`, `mill describe
+available, `mill resolve foo._` to see the tasks within `foo`, `mill inspect
 foo.compile` to see what an individual task depends on, or `mill show
 foo.scalaVersion` to inspect the output of any task.
 
@@ -328,10 +328,10 @@ mill resolve __                 # list every module or task recursively
 mill resolve foo.__             # list every task recursively within the foo module
 ```
 
-### describe
+### inspect
 
 ```bash
-$ mill describe core.run
+$ mill inspect core.run
 
 core.run(ScalaModule.scala:211)
 Inputs:
@@ -341,26 +341,26 @@ Inputs:
     core.forkEnv
 ```
 
-`describe` is a more verbose version of [resolve](#resolve). In addition to
+`inspect` is a more verbose version of [resolve](#resolve). In addition to
 printing out the name of one-or-more tasks, it also display's it's source
 location and a list of input tasks. This is very useful for debugging and
 interactively exploring the structure of your build from the command line.
 
-`describe` also works with the same `_`/`__` wildcard/query syntaxes that
+`inspect` also works with the same `_`/`__` wildcard/query syntaxes that
 [all](#all)/[resolve](#resolve) do:
 
 
 ```bash
-mill describe foo.compile
-mill describe foo.{compile,run}
-mill describe "foo.{compile,run}"
-mill describe foo.compile foo.run
-mill describe _.compile
-mill describe __.compile
-mill describe _
-mill describe foo._
-mill describe __
-mill describe foo._
+mill inspect foo.compile
+mill inspect foo.{compile,run}
+mill inspect "foo.{compile,run}"
+mill inspect foo.compile foo.run
+mill inspect _.compile
+mill inspect __.compile
+mill inspect _
+mill inspect foo._
+mill inspect __
+mill inspect foo._
 ```
 
 ### show
