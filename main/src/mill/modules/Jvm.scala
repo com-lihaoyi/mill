@@ -258,13 +258,18 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
+    def isSignatureFile(mapping: String): Boolean =
+      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
+
     for(v <- classpathIterator(inputPaths)){
       val (file, mapping) = v
       val p = zipFs.getPath(mapping)
       if (p.getParent != null) Files.createDirectories(p.getParent)
-      val outputStream = newOutputStream(p)
-      IO.stream(file, outputStream)
-      outputStream.close()
+      if (!isSignatureFile(mapping)) {
+        val outputStream = newOutputStream(p)
+        IO.stream(file, outputStream)
+        outputStream.close()
+      }
       file.close()
     }
     zipFs.close()
