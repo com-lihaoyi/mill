@@ -19,6 +19,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
+    override def repositories = outer.repositories
+    override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+    override def scalacOptions = outer.scalacOptions
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps = Seq(outer)
   }
