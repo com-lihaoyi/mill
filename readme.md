@@ -328,6 +328,18 @@ rm -rf out/
 
 ## Changelog
 
+### master
+
+- Support for non-interactive (client/server) mode on Windows.
+
+  Running on Windows requires either [MSYS2](https://www.msys2.org) or [Cygwin](https://www.cygwin.com).
+
+  On Cygwin, run the following after downloading mill:
+  
+  ```bash
+  sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' <mill-path>
+  ```
+  
 ### 0.1.6
 
 - Fixes for non-interactive (client/server) mode on Java 9
