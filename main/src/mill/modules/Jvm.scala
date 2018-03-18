@@ -238,7 +238,8 @@ object Jvm {
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
-                     base: Option[Path] = None)
+                     base: Option[Path] = None,
+                     isWin: Boolean = scala.util.Properties.isWin)
                     (implicit ctx: Ctx.Dest) = {
     val tmp = ctx.dest / "out-tmp.jar"
 
@@ -279,8 +280,9 @@ object Jvm {
     // Prepend shell script and make it executable
     if (prependShellScript.isEmpty) mv(tmp, output)
     else{
+      val lineSep = if (isWin) "\r\n" else "\n"
       val outputStream = newOutputStream(output.toNIO)
-      IO.stream(new ByteArrayInputStream((prependShellScript + "\n").getBytes()), outputStream)
+      IO.stream(new ByteArrayInputStream((prependShellScript + lineSep).getBytes()), outputStream)
       IO.stream(read.getInputStream(tmp), outputStream)
       outputStream.close()
 
@@ -320,23 +322,32 @@ object Jvm {
 
   }
 
-  def launcherShellScript(mainClass: String,
+  def launcherShellScript(isWin: Boolean,
+                          mainClass: String,
                           classPath: Agg[String],
                           jvmArgs: Seq[String]) = {
-    s"""#!/usr/bin/env sh
-       |
-       |exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${classPath.mkString(":")}" $mainClass "$$@"
-     """.stripMargin
+    val cp = classPath.mkString(File.pathSeparator)
+    if (isWin)
+      s"""@echo off
+         |
+         |java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "$cp" $mainClass %*
+       """.stripMargin
+    else
+      s"""#!/usr/bin/env sh
+         |
+         |exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "$cp" $mainClass "$$@"
+       """.stripMargin
   }
   def createLauncher(mainClass: String,
                      classPath: Agg[Path],
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
-    val outputPath = ctx.dest / "run"
+    val isWin = scala.util.Properties.isWin
+    val outputPath = ctx.dest / (if (isWin) "run.bat" else "run")
 
-    write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
+    write(outputPath, launcherShellScript(isWin, mainClass, classPath.map(_.toString), jvmArgs))
 
-    if (!scala.util.Properties.isWin) {
+    if (!isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)
