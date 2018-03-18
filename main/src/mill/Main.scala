@@ -112,11 +112,13 @@ object Main {
             stateCache
           )
 
-          if (repl){
-            runner.printInfo("Loading...")
-            (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
-          } else {
-            (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
+          mill.util.ClassLoader.withHome(millHome) {
+            if (repl) {
+              runner.printInfo("Loading...")
+              (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
+            } else {
+              (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
+            }
           }
       }
 
