@@ -261,8 +261,9 @@ object dev extends MillModule{
   }
 
   def assembly = T{
-    mv(super.assembly().path, T.ctx().dest / 'mill)
-    PathRef(T.ctx().dest / 'mill)
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    mv(super.assembly().path, T.ctx().dest / filename)
+    PathRef(T.ctx().dest / filename)
   }
 
   def prependShellScript = launcherScript(scala.util.Properties.isWin, forkArgs(), runClasspath().map(_.path.toString))
@@ -312,7 +313,15 @@ def release = T{
     T.ctx().dest,
     dev.runClasspath().map(_.path),
     publishVersion()._2,
-    scala.util.Properties.isWin)
+    false)
+}
+
+def releaseBatch = T{
+  releaseHelper(
+    T.ctx().dest,
+    dev.runClasspath().map(_.path),
+    publishVersion()._2,
+    true)
 }
 
 def releaseAll = T{
