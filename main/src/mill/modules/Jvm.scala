@@ -331,7 +331,7 @@ object Jvm {
       s"""@echo off
          |
          |java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "$cp" $mainClass %*
-       """.stripMargin
+       """.stripMargin.split('\n').mkString("\r\n")
     else
       s"""#!/usr/bin/env sh
          |
