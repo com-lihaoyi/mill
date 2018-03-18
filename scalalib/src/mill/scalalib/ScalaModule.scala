@@ -376,6 +376,7 @@ trait TestModule extends ScalaModule with TaskModule {
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
+        T.ctx().home.toString,
         testFrameworks().mkString(" "),
         runClasspath().map(_.path).mkString(" "),
         Seq(compile().classes.path).mkString(" "),

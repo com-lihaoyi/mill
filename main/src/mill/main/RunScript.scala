@@ -23,7 +23,8 @@ import scala.reflect.ClassTag
   * subsystem
   */
 object RunScript{
-  def runScript(wd: Path,
+  def runScript(home: Path,
+                wd: Path,
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
@@ -52,7 +53,7 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator[Any](wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
+      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
 
     val evaluated = for{
       evaluator <- evalRes

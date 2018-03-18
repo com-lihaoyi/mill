@@ -26,7 +26,8 @@ case class Labelled[T](task: NamedTask[T],
     case _ => None
   }
 }
-case class Evaluator[T](outPath: Path,
+case class Evaluator[T](home: Path,
+                        outPath: Path,
                         externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
@@ -266,7 +267,7 @@ case class Evaluator[T](outPath: Path,
                 }
             },
             multiLogger,
-            Ctx.defaultHome
+            home
           )
 
           val out = System.out

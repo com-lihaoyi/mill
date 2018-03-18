@@ -36,9 +36,9 @@ object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{
-      val (frameworks, classpath, testCp, arguments, outputPath, colored) = args match {
-        case Array(fs, cp, tcp, op, c) => (fs, cp, tcp, "", op, c)
-        case Array(fs, cp, tcp, as, op, c) => (fs, cp, tcp, as, op, c)
+      val (hm, frameworks, classpath, testCp, arguments, outputPath, colored) = args match {
+        case Array(h, fs, cp, tcp, op, c) => (h, fs, cp, tcp, "", op, c)
+        case Array(h, fs, cp, tcp, as, op, c) => (h, fs, cp, tcp, as, op, c)
       }
       val ctx = new Ctx.Log with Ctx.Home {
         val log = PrintLogger(
@@ -50,7 +50,7 @@ object ScalaWorker{
           System.err,
           System.in
         )
-        val home = Ctx.defaultHome
+        val home = Path(hm)
       }
       val result = new ScalaWorker(null, null).runTests(
         frameworkInstances = TestRunner.frameworks(frameworks.split(" ")),
