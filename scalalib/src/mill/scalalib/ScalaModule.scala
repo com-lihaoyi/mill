@@ -71,6 +71,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def transitiveIvyDeps: T[Agg[Dep]] = T{
     ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
+
   def upstreamCompileOutput = T{
     Task.traverse(moduleDeps)(_.compile)
   }
@@ -247,6 +248,20 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
+  def ivyDepsTree(inverse: Boolean = false) = T.command {
+    import coursier.{Cache, Fetch, Resolution}
+
+    val flattened = ivyDeps().map(depToDependency(_, scalaVersion(), platformSuffix())).toSeq
+    val start = Resolution(flattened.toSet)
+    val fetch = Fetch.from(repositories, Cache.fetch())
+    val resolution = start.process.run(fetch).unsafePerformSync
+
+    println(coursier.util.Print.dependencyTree(flattened, resolution,
+      printExclusions = false, reverse = inverse))
+
+    Result.Success()
+  }
+
   def runLocal(args: String*) = T.command {
     Jvm.runLocal(
       finalMainClass(),
@@ -301,7 +316,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ammoniteReplClasspath = T{
-    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.3")})()
+    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf")})()
   }
   def repl() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){

@@ -5,19 +5,27 @@ package bridge
 import java.io.File
 
 import org.scalajs.core.tools.io._
-import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker, Semantics}
+import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker, Semantics, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.ConsoleJSConsole
 import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
-  def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean): Unit = {
+  def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean, moduleKind: ModuleKind): Unit = {
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
     }
-    val config = StandardLinker.Config().withOptimizer(fullOpt).withClosureCompilerIfAvailable(fullOpt).withSemantics(semantics)
+    val scalaJSModuleKind = moduleKind match {
+      case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
+      case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
+    }
+    val config = StandardLinker.Config()
+      .withOptimizer(fullOpt)
+      .withClosureCompilerIfAvailable(fullOpt)
+      .withSemantics(semantics)
+      .withModuleKind(scalaJSModuleKind)
     val linker = StandardLinker(config)
     val cache = new IRFileCache().newCache
     val sourceIRs = sources.map(FileVirtualScalaJSIRFile)

@@ -1,29 +1,40 @@
 package mill.clientserver;
 
-import org.scalasbt.ipcsocket.UnixDomainSocket;
+import io.github.retronym.java9rtexport.Export;
+import org.scalasbt.ipcsocket.*;
 
 import java.io.*;
+import java.net.Socket;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 
 public class Client {
-    static void initServer(String lockBase) throws IOException{
-        StringBuilder selfJars = new java.lang.StringBuilder();
+    static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
+        ArrayList<String> selfJars = new ArrayList<String>();
         ClassLoader current = Client.class.getClassLoader();
         while(current != null){
             if (current instanceof java.net.URLClassLoader) {
                 URL[] urls = ((java.net.URLClassLoader) current).getURLs();
                 for (URL url: urls) {
-                    if (selfJars.length() != 0) selfJars.append(':');
-                    selfJars.append(url);
+                    selfJars.add(new File(url.toURI()).getCanonicalPath());
                 }
             }
             current = current.getParent();
         }
-
+        if (!System.getProperty("java.specification.version").startsWith("1.")) {
+            selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
+            File rtFile = new File(lockBase + "/rt-" + System.getProperty("java.version") + ".jar");
+            if (!rtFile.exists()) {
+                Files.copy(Export.export().toPath(), rtFile.toPath());
+            }
+            selfJars.add(rtFile.getCanonicalPath());
+        }
         ArrayList<String> l = new java.util.ArrayList<String>();
         l.add("java");
         Properties props = System.getProperties();
@@ -32,8 +43,11 @@ public class Client {
             String k = keys.next();
             if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k));
         }
+        if (setJnaNoSys) {
+            l.add("-Djna.nosys=true");
+        }
         l.add("-cp");
-        l.add(selfJars.toString());
+        l.add(String.join(File.pathSeparator, selfJars));
         l.add("mill.ServerMain");
         l.add(lockBase);
         new java.lang.ProcessBuilder()
@@ -43,6 +57,10 @@ public class Client {
                 .start();
     }
     public static void main(String[] args) throws Exception{
+        boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+        if (setJnaNoSys) {
+            System.setProperty("jna.nosys", "true");
+        }
         int index = 0;
         while (index < 5) {
             index += 1;
@@ -61,8 +79,8 @@ public class Client {
                             @Override
                             public void run() {
                                 try{
-                                    initServer(lockBase);
-                                }catch(IOException e){
+                                    initServer(lockBase, setJnaNoSys);
+                                }catch(Exception e){
                                     throw new RuntimeException(e);
                                 }
                             }
@@ -91,16 +109,26 @@ public class Client {
         FileOutputStream f = new FileOutputStream(lockBase + "/run");
         ClientServer.writeArgs(System.console() != null, args, f);
         f.close();
-        if (locks.processLock.probe()) initServer.run();
+
+        boolean serverInit = false;
+        if (locks.processLock.probe()) {
+            serverInit = true;
+            initServer.run();
+        }
         while(locks.processLock.probe()) Thread.sleep(3);
 
+        // Need to give sometime for Win32NamedPipeSocket to work
+        // if the server is just initialized
+        if (serverInit && ClientServer.isWindows) Thread.sleep(250);
 
-        UnixDomainSocket ioSocket = null;
+        Socket ioSocket = null;
 
         long retryStart = System.currentTimeMillis();
         while(ioSocket == null && System.currentTimeMillis() - retryStart < 1000){
             try{
-                ioSocket = new UnixDomainSocket(lockBase + "/io");
+                ioSocket = ClientServer.isWindows?
+                        new Win32NamedPipeSocket(ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName())
+                        : new UnixDomainSocket(lockBase + "/io");
             }catch(Throwable e){
                 Thread.sleep(1);
             }
@@ -178,7 +206,10 @@ class ClientOutputPumper implements Runnable{
                 }
             }
         }catch(IOException e){
-            throw new RuntimeException(e);
+            // Win32NamedPipeSocket input stream somehow doesn't return -1,
+            // but throw IOException whose message contains "ReadFile()" with a ccode
+            if (ClientServer.isWindows && e.getMessage().contains("ReadFile()")) running = false;
+            else throw new RuntimeException(e);
         }
     }
 

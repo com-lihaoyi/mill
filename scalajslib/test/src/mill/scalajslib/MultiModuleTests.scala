@@ -54,8 +54,8 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    'fastOpt - checkOpt(FastOpt)
-    'fullOpt - checkOpt(FullOpt)
+    'fastOpt - TestUtil.disableInJava9OrAbove(checkOpt(FastOpt))
+    'fullOpt - TestUtil.disableInJava9OrAbove(checkOpt(FullOpt))
 
     'test - {
       val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())

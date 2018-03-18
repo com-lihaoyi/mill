@@ -42,7 +42,7 @@ trait MainModule extends mill.Module{
     resolved match{
       case Left(err) => Result.Failure(err)
       case Right(rs) =>
-        for(r <- rs){
+        for(r <- rs.sorted) {
           println(r)
         }
         Result.Success(())

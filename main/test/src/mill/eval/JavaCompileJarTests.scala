@@ -114,7 +114,7 @@ object JavaCompileJarTests extends TestSuite{
           |test/FooTwo.class
           |hello.txt
           |""".stripMargin
-      assert(jarContents == expectedJarContents)
+      assert(jarContents.lines.toSeq == expectedJarContents.lines.toSeq)
 
       val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)

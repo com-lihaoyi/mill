@@ -69,6 +69,7 @@ trait MillModule extends MillPublishModule{ outer =>
 
 object clientserver extends MillModule{
   def ivyDeps = Agg(
+    ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf",
     ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   )
   val test = new Tests(implicitly)
@@ -83,7 +84,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.0.5",
+    ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf",
     ivy"jline:jline:2.14.5"
   )
 
@@ -235,11 +236,13 @@ object dev extends MillModule{
 
     write(outputPath, prependShellScript())
 
-    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!scala.util.Properties.isWin) {
+      val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 

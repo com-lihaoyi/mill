@@ -104,7 +104,7 @@ object Jvm {
                    body: ClassLoader => T): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, null){
+      new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, mill.util.ClassLoader.create(Seq(), null)){
         override def findClass(name: String) = {
           if (name.startsWith("sbt.testing.")){
             outerClassLoader.loadClass(name)
@@ -114,7 +114,7 @@ object Jvm {
         }
       }
     } else {
-      new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, null)
+      mill.util.ClassLoader.create(classPath.map(_.toIO.toURI.toURL).toVector, null)
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -241,7 +241,7 @@ object Jvm {
                     (implicit ctx: Ctx.Dest) = {
     val tmp = ctx.dest / "out-tmp.jar"
 
-    val baseUri = "jar:file:" + tmp
+    val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
     val hm = new java.util.HashMap[String, String]()
 
     base match{
@@ -258,13 +258,18 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
+    def isSignatureFile(mapping: String): Boolean =
+      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
+
     for(v <- classpathIterator(inputPaths)){
       val (file, mapping) = v
       val p = zipFs.getPath(mapping)
       if (p.getParent != null) Files.createDirectories(p.getParent)
-      val outputStream = newOutputStream(p)
-      IO.stream(file, outputStream)
-      outputStream.close()
+      if (!isSignatureFile(mapping)) {
+        val outputStream = newOutputStream(p)
+        IO.stream(file, outputStream)
+        outputStream.close()
+      }
       file.close()
     }
     zipFs.close()
@@ -278,11 +283,13 @@ object Jvm {
       IO.stream(read.getInputStream(tmp), outputStream)
       outputStream.close()
 
-      val perms = Files.getPosixFilePermissions(output.toNIO)
-      perms.add(PosixFilePermission.GROUP_EXECUTE)
-      perms.add(PosixFilePermission.OWNER_EXECUTE)
-      perms.add(PosixFilePermission.OTHERS_EXECUTE)
-      Files.setPosixFilePermissions(output.toNIO, perms)
+      if (!scala.util.Properties.isWin) {
+        val perms = Files.getPosixFilePermissions(output.toNIO)
+        perms.add(PosixFilePermission.GROUP_EXECUTE)
+        perms.add(PosixFilePermission.OWNER_EXECUTE)
+        perms.add(PosixFilePermission.OTHERS_EXECUTE)
+        Files.setPosixFilePermissions(output.toNIO, perms)
+      }
     }
 
     PathRef(output)
@@ -328,11 +335,13 @@ object Jvm {
 
     write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
 
-    val perms = Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!scala.util.Properties.isWin) {
+      val perms = Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 

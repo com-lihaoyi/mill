@@ -3,7 +3,7 @@ package mill.clientserver
 import java.io._
 import java.net.Socket
 
-import org.scalasbt.ipcsocket.{UnixDomainServerSocket, UnixDomainSocket}
+import org.scalasbt.ipcsocket._
 
 trait ServerMain[T]{
   def main(args0: Array[String]): Unit = {
@@ -11,7 +11,7 @@ trait ServerMain[T]{
       args0(0),
       this,
       () => System.exit(0),
-      60000,
+      300000,
       Locks.files(args0(0))
     ).run()
   }
@@ -37,18 +37,28 @@ class Server[T](lockBase: String,
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock){
-          new File(lockBase + "/io").delete()
-          val ioSocket = new UnixDomainServerSocket(lockBase + "/io")
+          val (serverSocket, socketClose) = if (ClientServer.isWindows) {
+            val socketName = ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName
+            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
+          } else {
+            val socketName = lockBase + "/io"
+            new File(socketName).delete()
+            (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
+          }
+
           val sockOpt = Server.interruptWith(
             acceptTimeout,
-            new UnixDomainSocket(lockBase + "/io").close(),
-            ioSocket.accept()
+            socketClose(),
+            serverSocket.accept()
           )
 
           sockOpt match{
             case None => running = false
             case Some(sock) =>
-              try handleRun(sock)
+              try {
+                handleRun(sock)
+                serverSocket.close()
+              }
               catch{case e: Throwable => e.printStackTrace(originalStdout) }
           }
         }
@@ -106,7 +116,16 @@ class Server[T](lockBase: String,
 
     t.interrupt()
     t.stop()
-    clientSocket.close()
+
+    if (ClientServer.isWindows) {
+      // Closing Win32NamedPipeSocket can often take ~5s
+      // It seems OK to exit the client early and subsequently
+      // start up mill client again (perhaps closing the server
+      // socket helps speed up the process).
+      val t = new Thread(() => clientSocket.close())
+      t.setDaemon(true)
+      t.start()
+    } else clientSocket.close()
   }
 }
 object Server{

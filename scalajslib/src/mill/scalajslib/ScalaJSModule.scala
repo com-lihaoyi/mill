@@ -72,7 +72,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
-      FastOpt
+      FastOpt,
+      moduleKind()
     )
   }
 
@@ -82,7 +83,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
-      FullOpt
+      FullOpt,
+      moduleKind()
     )
   }
 
@@ -114,7 +116,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            toolsClasspath: Agg[PathRef],
            runClasspath: Agg[PathRef],
            mainClass: Option[String],
-           mode: OptimizeMode)(implicit ctx: Ctx.Dest): PathRef = {
+           mode: OptimizeMode,
+           moduleKind: ModuleKind)(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.js"
 
     mkdir(ctx.dest)
@@ -132,7 +135,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       libraries,
       outputPath.toIO,
       mainClass,
-      mode == FullOpt
+      mode == FullOpt,
+      moduleKind
     )
     PathRef(outputPath)
   }
@@ -159,6 +163,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 
   def nodeJSConfig = T { NodeJSConfig() }
+
+  def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
@@ -177,7 +183,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       toolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
-      FastOpt
+      FastOpt,
+      moduleKind()
     )
   }
 

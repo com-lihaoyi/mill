@@ -107,7 +107,7 @@ mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
 mill all main.test scalalib.test 
 ```
 
-**Note**: don't forget to put `--all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
+**Note**: don't forget to put `all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
 
 * Run multiple commands with arguments:
 ```bash
@@ -165,7 +165,7 @@ mill all __.test
 mill all bridges[_].compile
 ```
 
-**Note**: When you run multiple targets with `--all` flag, they are not
+**Note**: When you run multiple targets with `all` command, they are not
 guaranteed to run in that exact order. Mill will build task evaluation graph and
 run targets in correct order.
 
@@ -330,11 +330,60 @@ rm -rf out/
 
 ### master
 
+- Support for non-interactive (client/server) mode on Windows.
+
+  Mill requires an `sh` environment to run on Windows;
+  it is recommended to use [MSYS2](https://www.msys2.org) on Windows.
+  
+  [Cygwin](https://www.cygwin.com) can also be used, 
+  but your mileage may vary when running mill on non-interactive (client/server) mode
+  (it failed intermittently in mill's AppVeyor tests).
+  On Cygwin, run the following after downloading mill:
+  
+  ```bash
+  sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' <mill-path>
+  ```
+  
+  Mill also runs on [Git-Bash](https://gitforwindows.org) and [WSL](https://docs.microsoft.com/windows/wsl)
+  but only on interactive mode.
+  
+### 0.1.6
+
+- Fixes for non-interactive (client/server) mode on Java 9
+
+### 0.1.5
+
 - Introduced the `mill plan foo.bar` command, which shows you what the execution
   plan of running the `foo.bar` task looks like without actually evaluating it.
 
 - Mill now generates an `out/mill-profile.json` file containing task-timings, to
   make it easier to see where your mill evaluation time is going
+  
+- Introduced `ScalaModule#ivyDepsTree` command to show dependencies tree
+  
+- Rename `describe` to `inspect` for consistency with SBT
+
+- `mill resolve` now prints results sorted alphabetically
+
+- Node.js configuration can be customised with `ScalaJSModule#nodeJSConfig`
+
+- Scala.js `fullOpt` now uses Google Closure Compiler after generating the optimized Javascript output
+
+- Scala.js now supports `NoModule` and `CommonJSModule` module kinds
+
+- Include `compileIvyDeps` when generating IntelliJ projects
+
+- Fixed invalid POM generation
+
+- Support for Java 9 (and 10)
+
+- Fixes for Windows support
+
+- Fixed test classes discovery by skipping interfaces
+
+- Include "optional" artifacts in dependency resolution if they exist
+
+- `out/{module_name}` now added as a content root in generated IntelliJ project
 
 ### 0.1.4
 
