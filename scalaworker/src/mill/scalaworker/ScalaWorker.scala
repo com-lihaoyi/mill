@@ -40,20 +40,24 @@ object ScalaWorker{
         case Array(fs, cp, tcp, op, c) => (fs, cp, tcp, "", op, c)
         case Array(fs, cp, tcp, as, op, c) => (fs, cp, tcp, as, op, c)
       }
+      val ctx = new Ctx.Log with Ctx.Home {
+        val log = PrintLogger(
+          colored == "true",
+          if(colored == "true") Colors.Default
+          else Colors.BlackWhite,
+          System.out,
+          System.err,
+          System.err,
+          System.in
+        )
+        val home = Ctx.defaultHome
+      }
       val result = new ScalaWorker(null, null).runTests(
         frameworkInstances = TestRunner.frameworks(frameworks.split(" ")),
         entireClasspath = Agg.from(classpath.split(" ").map(Path(_))),
         testClassfilePath = Agg.from(testCp.split(" ").map(Path(_))),
         args = arguments match{ case "" => Nil case x => x.split(" ").toList }
-      )(new PrintLogger(
-        colored == "true",
-        if(colored == "true") Colors.Default
-        else Colors.BlackWhite,
-        System.out,
-        System.err,
-        System.err,
-        System.in
-      ))
+      )(ctx)
 
       ammonite.ops.write(Path(outputPath), upickle.default.write(result))
     }catch{case e: Throwable =>
@@ -89,7 +93,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         .get
 
       val sourceFolder = mill.modules.Util.unpackZip(sourceJar)(workingDir)
-      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
+      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
         "-d", compiledDest.toString,
@@ -250,7 +254,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                entireClasspath: Agg[Path],
                testClassfilePath: Agg[Path],
                args: Seq[String])
-              (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
+              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[Result]) = {
 
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val frameworks = frameworkInstances(cl)

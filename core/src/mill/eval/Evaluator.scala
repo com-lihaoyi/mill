@@ -265,7 +265,8 @@ case class Evaluator[T](outPath: Path,
                     throw new Exception("No `dest` folder available here")
                 }
             },
-            multiLogger
+            multiLogger,
+            Ctx.defaultHome
           )
 
           val out = System.out

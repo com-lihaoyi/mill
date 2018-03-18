@@ -59,7 +59,7 @@ object Main {
     val millArgSignature =
       Cli.genericSignature.filter(a => !removed(a.name)) :+ interactiveSignature
 
-    val millHome = home / ".mill" / "ammonite"
+    val millHome = mill.util.Ctx.defaultHome
 
     Cli.groupArgs(
       args.toList,
@@ -112,13 +112,11 @@ object Main {
             stateCache
           )
 
-          mill.util.ClassLoader.withHome(millHome) {
-            if (repl) {
-              runner.printInfo("Loading...")
-              (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
-            } else {
-              (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
-            }
+          if (repl){
+            runner.printInfo("Loading...")
+            (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
+          } else {
+            (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
           }
       }
 
