@@ -375,14 +375,14 @@ trait TestModule extends ScalaModule with TaskModule {
       classPath = scalaWorker.classpath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
-      mainArgs = Seq(
-        testFrameworks().mkString(" "),
-        runClasspath().map(_.path).mkString(" "),
-        Seq(compile().classes.path).mkString(" "),
-        args.mkString(" "),
-        outputPath.toString,
-        T.ctx().log.colored.toString
-      ),
+      mainArgs =
+        Seq(testFrameworks().length.toString) ++
+        testFrameworks() ++
+        Seq(runClasspath().length.toString) ++
+        runClasspath().map(_.path.toString) ++
+        Seq(args.length.toString) ++
+        args ++
+        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString),
       workingDir = forkWorkingDir
     )
 

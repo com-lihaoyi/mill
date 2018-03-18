@@ -36,15 +36,25 @@ object ScalaWorker{
 
   def main(args: Array[String]): Unit = {
     try{
-      val (frameworks, classpath, testCp, arguments, outputPath, colored) = args match {
-        case Array(fs, cp, tcp, op, c) => (fs, cp, tcp, "", op, c)
-        case Array(fs, cp, tcp, as, op, c) => (fs, cp, tcp, as, op, c)
+      var i = 0
+      def readArray() = {
+        val count = args(i).toInt
+        val slice = args.slice(i + 1, i + count + 1)
+        i = i + count + 1
+        slice
       }
+      val frameworks = readArray()
+      val classpath = readArray()
+      val arguments = readArray()
+      val outputPath = args(i + 0)
+      val colored = args(i + 1)
+      val testCp = args(i + 2)
+
       val result = new ScalaWorker(null, null).runTests(
-        frameworkInstances = TestRunner.frameworks(frameworks.split(" ")),
-        entireClasspath = Agg.from(classpath.split(" ").map(Path(_))),
-        testClassfilePath = Agg.from(testCp.split(" ").map(Path(_))),
-        args = arguments match{ case "" => Nil case x => x.split(" ").toList }
+        frameworkInstances = TestRunner.frameworks(frameworks),
+        entireClasspath = Agg.from(classpath.map(Path(_))),
+        testClassfilePath = Agg(Path(testCp)),
+        args = arguments
       )(new PrintLogger(
         colored == "true",
         if(colored == "true") Colors.Default
@@ -251,7 +261,6 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                testClassfilePath: Agg[Path],
                args: Seq[String])
               (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
-
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val frameworks = frameworkInstances(cl)
 

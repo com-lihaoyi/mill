@@ -24,6 +24,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
     def reverse: Agg[V]
     def zip[T](other: Agg[T]): Agg[(V, T)]
     def ++[T >: V](other: TraversableOnce[T]): Agg[T]
+    def length: Int
   }
 
   object Agg{
@@ -88,6 +89,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
 
       def zip[T](other: Agg[T]) = Agg.from(items.zip(other.items))
       def ++[T >: V](other: TraversableOnce[T]) = Agg.from(items ++ other)
+      def length: Int = set0.size
 
       // Members declared in scala.collection.GenTraversableOnce
       def isTraversableAgain: Boolean = items.isTraversableAgain
