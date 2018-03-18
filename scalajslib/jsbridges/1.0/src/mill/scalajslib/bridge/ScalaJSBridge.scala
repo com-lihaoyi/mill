@@ -45,18 +45,21 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
 
   def getFramework(config: NodeJSConfig,
                    frameworkName: String,
-                   linkedFile: File): sbt.testing.Framework = {
+                   linkedFile: File): (() => Unit, sbt.testing.Framework) = {
     val env = nodeJSEnv(config)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter =
       new TestAdapter(env, Seq(FileVirtualJSFile(linkedFile)), tconfig)
 
-    adapter
-      .loadFrameworks(List(List(frameworkName)))
-      .flatten
-      .headOption
-      .getOrElse(throw new RuntimeException("Failed to get framework"))
+    (
+      () => adapter.close(),
+      adapter
+        .loadFrameworks(List(List(frameworkName)))
+        .flatten
+        .headOption
+        .getOrElse(throw new RuntimeException("Failed to get framework"))
+    )
   }
 
   def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {

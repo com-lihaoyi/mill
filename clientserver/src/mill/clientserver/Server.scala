@@ -11,7 +11,7 @@ trait ServerMain[T]{
       args0(0),
       this,
       () => System.exit(0),
-      60000,
+      300000,
       Locks.files(args0(0))
     ).run()
   }

@@ -191,7 +191,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override def test(args: String*) = T.command {
-    val framework = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
+    val (close, framework) = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
         toolsClasspath().map(_.path),
         nodeJSConfig(),
         testFrameworks().head,
@@ -206,7 +206,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         Agg(compile().classes.path),
         args
       )
-    TestModule.handleResults(doneMsg, results)
+    val res = TestModule.handleResults(doneMsg, results)
+    // Hack to try and let the Node.js subprocess finish streaming it's stdout
+    // to the JVM. Without this, the stdout can still be streaming when `close()`
+    // is called, and some of the output is dropped onto the floor.
+    Thread.sleep(100)
+    close()
+    res
   }
 
 }

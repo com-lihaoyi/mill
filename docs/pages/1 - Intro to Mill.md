@@ -99,9 +99,9 @@ $ mill foo.jar                     # bundle the classfiles into a jar
 
 $ mill foo.assembly                # bundle classfiles and all dependencies into a jar
  
-$ mill foo.console                 # start a Scala console within your project
+$ mill -i foo.console              # start a Scala console within your project (in interactive mode: "-i")
  
-$ mill foo.repl                    # start an Ammonite REPL within your project 
+$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ```
 
 You can run `mill resolve __` to see a full list of the different tasks that are
