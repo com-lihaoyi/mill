@@ -219,7 +219,12 @@ def launcherScript(isWin: Boolean,
        |if "%1" == "-i" set _I_=true
        |if "%1" == "--interactive" set _I_=true
        |if defined _I_ (
-       |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
+       |  if "%2" == "" (
+       |    echo mill repl is currently only available on a sh environment
+       |    exit /B 1
+       |  ) else (
+       |    java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
+       |  )
        |) else (
        |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.clientserver.Client %*
        |)
