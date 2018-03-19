@@ -101,7 +101,8 @@ object Jvm {
 
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
-                   body: ClassLoader => T): T = {
+                   body: ClassLoader => T)
+                  (implicit ctx: Ctx.Home): T = {
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
       new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, mill.util.ClassLoader.create(Seq(), null)){

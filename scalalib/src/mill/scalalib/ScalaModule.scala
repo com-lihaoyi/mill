@@ -19,6 +19,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   def defaultCommandName() = "run"
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
+    override def repositories = outer.repositories
+    override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+    override def scalacOptions = outer.scalacOptions
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps = Seq(outer)
   }
@@ -316,7 +319,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ammoniteReplClasspath = T{
-    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf")})()
+    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.5-7-f032887")})()
   }
   def repl() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
@@ -382,7 +385,7 @@ trait TestModule extends ScalaModule with TaskModule {
         runClasspath().map(_.path.toString) ++
         Seq(args.length.toString) ++
         args ++
-        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString),
+        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
       workingDir = forkWorkingDir
     )
 

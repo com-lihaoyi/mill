@@ -6,9 +6,10 @@ import coursier.maven.MavenRepository
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.{T, scalalib}
-import mill.util.Ctx.Log
+import mill.util.Ctx.{Home, Log}
 import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
+
 import scala.util.Try
 
 
@@ -27,7 +28,7 @@ object GenIdeaModule extends ExternalModule {
 }
 object GenIdea {
 
-  def apply(ctx: Log,
+  def apply(ctx: Log with Home,
             rootModule: BaseModule,
             discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
@@ -38,7 +39,7 @@ object GenIdea {
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(pwd / 'out, pwd / 'out, rootModule, ctx.log)
+    val evaluator = new Evaluator(ctx.home, pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
       write.over(pwd/relPath, pp.format(xml))

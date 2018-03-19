@@ -1,6 +1,5 @@
 package mill.clientserver;
 
-import io.github.retronym.java9rtexport.Export;
 import org.scalasbt.ipcsocket.*;
 
 import java.io.*;
@@ -8,7 +7,6 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.nio.file.Files;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Iterator;
@@ -29,11 +27,6 @@ public class Client {
         }
         if (!System.getProperty("java.specification.version").startsWith("1.")) {
             selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
-            File rtFile = new File(lockBase + "/rt-" + System.getProperty("java.version") + ".jar");
-            if (!rtFile.exists()) {
-                Files.copy(Export.export().toPath(), rtFile.toPath());
-            }
-            selfJars.add(rtFile.getCanonicalPath());
         }
         ArrayList<String> l = new java.util.ArrayList<String>();
         l.add("java");

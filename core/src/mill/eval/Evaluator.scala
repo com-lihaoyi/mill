@@ -26,7 +26,8 @@ case class Labelled[T](task: NamedTask[T],
     case _ => None
   }
 }
-case class Evaluator[T](outPath: Path,
+case class Evaluator[T](home: Path,
+                        outPath: Path,
                         externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
@@ -265,7 +266,8 @@ case class Evaluator[T](outPath: Path,
                     throw new Exception("No `dest` folder available here")
                 }
             },
-            multiLogger
+            multiLogger,
+            home
           )
 
           val out = System.out

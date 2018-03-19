@@ -20,6 +20,9 @@ object Ctx{
   trait Log{
     def log: Logger
   }
+  trait Home{
+    def home: Path
+  }
   object Log{
     implicit def logToCtx(l: Logger): Log = new Log { def log = l }
   }
@@ -27,13 +30,17 @@ object Ctx{
     def args: IndexedSeq[_]
   }
 
+  def defaultHome = ammonite.ops.home / ".mill" / "ammonite"
+
 }
 class Ctx(val args: IndexedSeq[_],
           dest0: () => Path,
-          val log: Logger)
+          val log: Logger,
+          val home: Path)
   extends Ctx.Dest
   with Ctx.Log
-  with Ctx.Args{
+  with Ctx.Args
+  with Ctx.Home{
 
   def dest = dest0()
   def length = args.length

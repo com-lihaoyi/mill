@@ -49,21 +49,25 @@ object ScalaWorker{
       val outputPath = args(i + 0)
       val colored = args(i + 1)
       val testCp = args(i + 2)
-
+      val homeStr = args(i + 3)
+      val ctx = new Ctx.Log with Ctx.Home {
+        val log = PrintLogger(
+          colored == "true",
+          if(colored == "true") Colors.Default
+          else Colors.BlackWhite,
+          System.out,
+          System.err,
+          System.err,
+          System.in
+        )
+        val home = Path(homeStr)
+      }
       val result = new ScalaWorker(null, null).runTests(
         frameworkInstances = TestRunner.frameworks(frameworks),
         entireClasspath = Agg.from(classpath.map(Path(_))),
         testClassfilePath = Agg(Path(testCp)),
         args = arguments
-      )(new PrintLogger(
-        colored == "true",
-        if(colored == "true") Colors.Default
-        else Colors.BlackWhite,
-        System.out,
-        System.err,
-        System.err,
-        System.in
-      ))
+      )(ctx)
 
       ammonite.ops.write(Path(outputPath), upickle.default.write(result))
     }catch{case e: Throwable =>
@@ -99,7 +103,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         .get
 
       val sourceFolder = mill.modules.Util.unpackZip(sourceJar)(workingDir)
-      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
+      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
         "-d", compiledDest.toString,
@@ -260,7 +264,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                entireClasspath: Agg[Path],
                testClassfilePath: Agg[Path],
                args: Seq[String])
-              (implicit ctx: mill.util.Ctx.Log): (String, Seq[Result]) = {
+              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[Result]) = {
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
       val frameworks = frameworkInstances(cl)
 

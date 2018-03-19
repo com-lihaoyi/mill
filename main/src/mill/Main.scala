@@ -59,7 +59,7 @@ object Main {
     val millArgSignature =
       Cli.genericSignature.filter(a => !removed(a.name)) :+ interactiveSignature
 
-    val millHome = home / ".mill" / "ammonite"
+    val millHome = mill.util.Ctx.defaultHome
 
     Cli.groupArgs(
       args.toList,
@@ -88,12 +88,14 @@ object Main {
           stderr.println("Build repl needs to be run with the -i/--interactive flag")
           (false, stateCache)
         }else{
+          val tqs = "\"\"\""
           val config =
             if(!repl) cliConfig
             else cliConfig.copy(
               predefCode =
-                """import $file.build, build._
+                s"""import $$file.build, build._
                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                  |  ammonite.ops.Path($tqs${cliConfig.home.toIO.getCanonicalPath.replaceAllLiterally("$", "$$")}$tqs),
                   |  interp.colors(),
                   |  repl.pprinter(),
                   |  build.millSelf.get,
