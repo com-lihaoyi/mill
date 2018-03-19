@@ -16,7 +16,16 @@ case class CompilationResult(analysisFile: Path, classes: PathRef)
 
 object Lib{
 
-  def scalaBinaryVersion(scalaVersion: String) = scalaVersion.split('.').dropRight(1).mkString(".")
+  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+
+  def scalaBinaryVersion(scalaVersion: String) = {
+    scalaVersion match {
+      case ReleaseVersion(major, minor, _) => s"$major.$minor"
+      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+      case _ => scalaVersion
+    }
+  }
 
   def grepJar(classPath: Agg[Path], s: String) = {
     classPath
