@@ -98,13 +98,19 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def platformSuffix = T{ "" }
 
-  def scalaCompilerBridgeSources = T{
+  def scalaCompilerBridgeSources = T {
+    val (scalaVersion0, scalaBinaryVersion0) =
+      if (scalaVersion().startsWith("2.13."))
+        ("2.13.0-M2", "2.13.0-M2")
+      else
+        (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+
     resolveDependencies(
       repositories,
-      scalaVersion(),
+      scalaVersion0,
       Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
       sources = true
-    )
+    ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar").map(_.path).get)
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
@@ -152,7 +158,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     scalaWorker.worker().compileScala(
       scalaVersion(),
       allSourceFiles().map(_.path),
-      scalaCompilerBridgeSources().map(_.path),
+      scalaCompilerBridgeSources(),
       compileClasspath().map(_.path),
       scalaCompilerClasspath().map(_.path),
       scalacOptions(),

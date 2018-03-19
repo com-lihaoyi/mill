@@ -77,7 +77,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 
   def compileZincBridge(scalaVersion: String,
-                        compileBridgeSources: Agg[Path],
+                        sourcesJar: Path,
                         compilerJars: Array[File]) = {
     val workingDir = ctx0.dest / scalaVersion
     val compiledDest = workingDir / 'compiled
@@ -88,11 +88,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       mkdir(workingDir)
       mkdir(compiledDest)
 
-      val sourceJar = compileBridgeSources
-        .find(_.last == s"compiler-bridge_${Lib.scalaBinaryVersion(scalaVersion)}-1.1.0-sources.jar")
-        .get
-
-      val sourceFolder = mill.modules.Util.unpackZip(sourceJar)(workingDir)
+      val sourceFolder = mill.modules.Util.unpackZip(sourcesJar)(workingDir)
       val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
@@ -127,7 +123,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],
-                   compileBridgeSources: Agg[Path],
+                   compilerBridgeSources: Path,
                    compileClasspath: Agg[Path],
                    compilerClasspath: Agg[Path],
                    scalacOptions: Seq[String],
@@ -138,7 +134,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
-    val compilerBridge = compileZincBridge(scalaVersion, compileBridgeSources, compilerJars)
+    val compilerBridge = compileZincBridge(scalaVersion, compilerBridgeSources, compilerJars)
 
     val pluginJars = scalacPluginClasspath.toArray.map(_.toIO)
 
