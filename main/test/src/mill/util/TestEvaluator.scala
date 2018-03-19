@@ -30,7 +30,7 @@ class TestEvaluator[T <: TestUtil.BaseModule](module: T)
 //    true,
 //    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
 // )
-  val evaluator = new Evaluator(outPath, TestEvaluator.externalOutPath, module, logger)
+  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

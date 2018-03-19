@@ -62,6 +62,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       printing = true,
       mainCfg => {
         val (result, interpWatched) = RunScript.runScript(
+          config.home,
           mainCfg.wd,
           scriptPath,
           mainCfg.instantiateInterpreter(),

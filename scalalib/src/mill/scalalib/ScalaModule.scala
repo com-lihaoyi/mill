@@ -319,7 +319,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ammoniteReplClasspath = T{
-    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf")})()
+    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.0.5-7-f032887")})()
   }
   def repl() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
@@ -379,6 +379,7 @@ trait TestModule extends ScalaModule with TaskModule {
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs = Seq(
+        T.ctx().home.toString,
         testFrameworks().mkString(" "),
         runClasspath().map(_.path).mkString(" "),
         Seq(compile().classes.path).mkString(" "),
