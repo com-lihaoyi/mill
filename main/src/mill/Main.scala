@@ -27,8 +27,12 @@ object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
 object Main {
 
   def main(args: Array[String]): Unit = {
+    val as = args match {
+      case Array(s, _*) if s == "-i" || s == "--interactive" => args.tail
+      case _ => args
+    }
     val (result, _) = main0(
-      args,
+      as,
       None,
       ammonite.Main.isInteractive(),
       System.in,
