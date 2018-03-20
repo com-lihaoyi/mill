@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
+import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
@@ -21,16 +21,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-
-  def scalaJSBinaryVersion = T{
-    scalaJSVersion() match {
-      case ReleaseVersion(major, minor, _) => s"$major.$minor"
-      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case _ => scalaJSVersion()
-    }
-  }
+  def scalaJSBinaryVersion = T { Lib.scalaBinaryVersion(scalaJSVersion()) }
 
   def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 

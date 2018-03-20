@@ -30,7 +30,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.0-M3")
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -250,6 +250,7 @@ object HelloWorldTests extends TestSuite {
         'v211 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
         'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
         'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
+        'v2130M3 - workspaceTest(CrossHelloWorld)(cross(_, "2.13.0-M3", "2.13.0-M3 idk"))
       }
 
 
