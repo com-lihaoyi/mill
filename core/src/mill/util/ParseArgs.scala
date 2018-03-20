@@ -113,7 +113,7 @@ object ParseArgs {
     }
 
   private def parseSelector(input: String) = {
-    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "_"
+    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_', '-')
     val ident = P( CharsWhileIn(identChars) ).!
     val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
     val segment = P( ident ).map( Segment.Label)
