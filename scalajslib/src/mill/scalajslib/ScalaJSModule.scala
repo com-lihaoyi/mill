@@ -117,7 +117,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            runClasspath: Agg[PathRef],
            mainClass: Option[String],
            mode: OptimizeMode,
-           moduleKind: ModuleKind)(implicit ctx: Ctx): PathRef = {
+           moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
     mkdir(ctx.dest)
@@ -137,8 +137,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass,
       mode == FullOpt,
       moduleKind
-    )
-    PathRef(outputPath)
+    ).map(PathRef(_))
   }
 
   override def scalacPluginIvyDeps = T{

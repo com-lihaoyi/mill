@@ -4,15 +4,21 @@ package bridge
 
 import java.io.File
 
+import mill.eval.Result
 import org.scalajs.core.tools.io._
-import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker, Semantics, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.ConsoleJSConsole
 import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
-  def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean, moduleKind: ModuleKind): Unit = {
+  def link(sources: Array[File],
+           libraries: Array[File],
+           dest: File,
+           main: String,
+           fullOpt: Boolean,
+           moduleKind: ModuleKind) = {
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -34,7 +40,13 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
     val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
-    linker.link(sourceIRs ++ libraryIRs, initializer.toSeq, destFile, logger)
+
+    try {
+      linker.link(sourceIRs ++ libraryIRs, initializer.toSeq, destFile, logger)
+      Result.Success(dest)
+    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
+      Result.Failure(e.getMessage)
+    }
   }
 
   def run(config: NodeJSConfig, linkedFile: File): Unit = {
