@@ -71,6 +71,24 @@ def repositories = super.repositories ++ Seq(
 )
 ```
 
+To add custom resolvers to the initial bootstrap of the build, you can create a 
+custom `ScalaWorkerModule`, and override the `scalaWorker` method in your 
+`ScalaModule` by pointing it to that custom object:
+
+```scala
+import coursier.maven.MavenRepository
+object CustomScalaWorkerModule extends ScalaWorkerModule {
+  def repositories() = super.repositories ++ Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )  
+}
+
+object YourBuild extends ScalaModule {
+  def scalaWorker = CustomScalaWorkerModule
+  // ... rest of your build definitions
+}
+```
+
 ## Adding a Test Suite
 
 ```scala
