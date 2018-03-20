@@ -98,12 +98,13 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def platformSuffix = T{ "" }
 
+  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
+
   def scalaCompilerBridgeSources = T {
-    val (scalaVersion0, scalaBinaryVersion0) =
-      if (scalaVersion().startsWith("2.13."))
-        ("2.13.0-M2", "2.13.0-M2")
-      else
-        (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion() match {
+      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
+      case _ => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+    }
 
     resolveDependencies(
       repositories,
