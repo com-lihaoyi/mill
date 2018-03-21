@@ -1,10 +1,13 @@
 package mill.main
 
+import ammonite.ops.Path
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
+import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
+
+import scala.util.{Failure, Success, Try}
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -30,6 +33,9 @@ trait MainModule extends mill.Module{
   implicit def millDiscover: mill.define.Discover[_]
   implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+
+  private val OutDir: String = "out"
+  private val BuildFile: String = "build.sc"
 
   /**
     * Resolves a mill query string and prints out the tasks it resolves to.
@@ -172,5 +178,35 @@ trait MainModule extends mill.Module{
         println(json)
       }
     }
+  }
+
+  /**
+    * Deletes the given targets from the out directory. Providing no targets will clean everything.
+    */
+  def clean(targets: String*) = mill.T.command {
+    val result = Try {
+      if (ammonite.ops.ls(ammonite.ops.pwd).contains(ammonite.ops.pwd / BuildFile)) {
+        targets match {
+          case Nil =>
+            remove(List(ammonite.ops.pwd / OutDir))
+          case _ =>
+            remove(targets
+              .map(_.replace(".", "/"))
+              .map(target => Path(target, ammonite.ops.pwd / OutDir))
+              .toList)
+        }
+      } else {
+        Result.Failure(s"Cannot find $BuildFile")
+      }
+    }
+    result match {
+      case Success(r) => r
+      case Failure(error) => Result.Exception(error, new Result.OuterStack(error.getStackTrace))
+    }
+  }
+
+  private def remove(paths: List[Path]): Result[String] = {
+    paths.filter(ammonite.ops.exists).foreach(ammonite.ops.rm)
+    Result.Success("Targets cleaned")
   }
 }
