@@ -208,21 +208,39 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
-def launcherScript(jvmArgs: Seq[String],
+def launcherScript(isWin: Boolean,
+                   jvmArgs: Seq[String],
                    classPath: Agg[String]) = {
   val jvmArgsStr = jvmArgs.mkString(" ")
-  val classPathStr = classPath.mkString(":")
-  s"""#!/usr/bin/env sh
-     |
-     |case "$$1" in
-     |  -i | --interactive )
-     |    shift;
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
-     |    ;;
-     |  *)
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.clientserver.Client "$$@"
-     |    ;;
-     |esac
+  val classPathStr = if (isWin) classPath.mkString(";") else classPath.mkString(":")
+  if (isWin)
+    s"""::#!
+       |@echo off
+       |if "%1" == "-i" set _I_=true
+       |if "%1" == "--interactive" set _I_=true
+       |if defined _I_ (
+       |  if "%2" == "" (
+       |    echo mill repl is currently only available on a sh environment
+       |    exit /B 1
+       |  ) else (
+       |    java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
+       |  )
+       |) else (
+       |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.clientserver.Client %*
+       |)
+       |EXIT /B %errorlevel%
+     """.stripMargin.split('\n').mkString("\r\n")
+  else
+    s"""#!/usr/bin/env sh
+       |
+       |case "$$1" in
+       |  -i | --interactive )
+       |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
+       |    ;;
+       |  *)
+       |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.clientserver.Client "$$@"
+       |    ;;
+       |esac
      """.stripMargin
 }
 
@@ -232,11 +250,12 @@ object dev extends MillModule{
     scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()
   }
   def launcher = T{
-    val outputPath = T.ctx().dest / "run"
+    val isWin = scala.util.Properties.isWin
+    val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
 
     write(outputPath, prependShellScript())
 
-    if (!scala.util.Properties.isWin) {
+    if (!isWin) {
       val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)
@@ -247,11 +266,12 @@ object dev extends MillModule{
   }
 
   def assembly = T{
-    mv(super.assembly().path, T.ctx().dest / 'mill)
-    PathRef(T.ctx().dest / 'mill)
+    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    mv(super.assembly().path, T.ctx().dest / filename)
+    PathRef(T.ctx().dest / filename)
   }
 
-  def prependShellScript = launcherScript(forkArgs(), runClasspath().map(_.path.toString))
+  def prependShellScript = launcherScript(scala.util.Properties.isWin, forkArgs(), runClasspath().map(_.path.toString))
 
   def run(args: String*) = T.command{
     args match{
@@ -271,18 +291,50 @@ object dev extends MillModule{
 }
 
 
-def release = T{
+private def releaseHelper(dest: Path,
+                          cp: Agg[Path],
+                          ver: String,
+                          isWin: Boolean)
+                         (implicit ctx: mill.util.Ctx.Dest): PathRef = {
+  val (filename, arg) =
+    if (isWin) ("mill.bat", "%~dp0%~nx0")
+    else ("mill", "$0")
   mv(
     createAssembly(
-      dev.runClasspath().map(_.path),
+      cp,
       prependShellScript = launcherScript(
-        Seq("-DMILL_VERSION=" + publishVersion()._2),
-        Agg("$0")
+        isWin,
+        Seq("-DMILL_VERSION=" + ver),
+        Agg(arg)
       )
     ).path,
-    T.ctx().dest / 'mill
+    dest / filename
   )
-  PathRef(T.ctx().dest / 'mill)
+  PathRef(dest / filename)
+}
+
+def release = T{
+  releaseHelper(
+    T.ctx().dest,
+    dev.runClasspath().map(_.path),
+    publishVersion()._2,
+    false)
+}
+
+def releaseBatch = T{
+  releaseHelper(
+    T.ctx().dest,
+    dev.runClasspath().map(_.path),
+    publishVersion()._2,
+    true)
+}
+
+def releaseAll = T{
+  val dest = T.ctx().dest
+  val cp = dev.runClasspath().map(_.path)
+  val ver = publishVersion()._2
+  for (isWin <- Seq(false, true))
+    yield (isWin, releaseHelper(dest, cp, ver, isWin))
 }
 
 val isMasterCommit = {
@@ -333,5 +385,8 @@ def uploadToGithub(authKey: String) = T.command{
       .asString
   }
 
-  upload.apply(release().path, releaseTag, label, authKey)
+  for ((isWin, pr) <- releaseAll())
+    upload.apply(pr.path, releaseTag,
+      if (isWin) s"mill-$label.bat" // so browser downloads it as mill-<version>.bat (?)
+      else label, authKey)
 }

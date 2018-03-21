@@ -54,7 +54,7 @@ trait ScalaWorkerModule extends mill.Module{
 trait ScalaWorkerApi {
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],
-                   compileBridgeSources: Agg[Path],
+                   compilerBridgeSources: Path,
                    compileClasspath: Agg[Path],
                    compilerClasspath: Agg[Path],
                    scalacOptions: Seq[String],

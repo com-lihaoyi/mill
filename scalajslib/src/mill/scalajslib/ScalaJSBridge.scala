@@ -5,6 +5,7 @@ import java.net.URLClassLoader
 
 import ammonite.ops.Path
 import mill.define.Discover
+import mill.eval.Result
 import mill.util.Ctx
 import mill.{Agg, T}
 
@@ -50,7 +51,7 @@ class ScalaJSWorker {
            main: Option[String],
            fullOpt: Boolean,
            moduleKind: ModuleKind)
-          (implicit ctx: Ctx.Home): Unit = {
+          (implicit ctx: Ctx.Home): Result[Path] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
@@ -58,7 +59,7 @@ class ScalaJSWorker {
       main.orNull,
       fullOpt,
       moduleKind
-    )
+    ).map(Path(_))
   }
 
   def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File)
@@ -82,7 +83,7 @@ trait ScalaJSBridge {
            dest: File,
            main: String,
            fullOpt: Boolean,
-           moduleKind: ModuleKind): Unit
+           moduleKind: ModuleKind): Result[File]
 
   def run(config: NodeJSConfig, linkedFile: File): Unit
 
