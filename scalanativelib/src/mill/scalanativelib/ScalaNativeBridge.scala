@@ -38,18 +38,15 @@ class ScalaNativeWorker {
 }
 
 
-// result wrappers to preserve some type saftey
+// result wrapper to preserve some type safety
 case class NativeConfig(config: Any)
-case class LinkResult(result: Any)
-case class OptimizerResult(result: Any)
 
 trait ScalaNativeBridge {
-  def llvmClangVersions: Seq[(String,String)]
-  def llvmDiscover(binaryName: String, binaryVersions: Seq[(String, String)]): Path
-  def llvmCheckThatClangIsRecentEnough(pathToClangBinary: Path): Unit
-  def llvmDetectTarget(clang: Path, workDir: Path): String
-  def llvmDefaultCompileOptions: Seq[String]
-  def llvmDefaultLinkingOptions: Seq[String]
+  def discoverClang: Path
+  def discoverClangPP: Path
+  def discoverTarget(clang: Path, workDir: Path): String
+  def discoverCompilationOptions: Seq[String]
+  def discoverLinkingOptions: Seq[String]
 
   def config(nativeLibJar: Path,
              mainClass: String,

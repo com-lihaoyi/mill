@@ -1,19 +1,19 @@
 package mill
 package scalanativelib
 
-import ammonite.ops.{Path, exists, ls}
+import java.net.URLClassLoader
+
+import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.Result
 import mill.modules.Jvm
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule, TestRunner}
+import mill.scalalib.{DepSyntax, TestModule, TestRunner}
 import mill.{PathRef, T}
 import mill.util.Loose
-import sbt.testing.{AnnotatedFingerprint, Event, Framework, SubclassFingerprint}
+import sbt.testing.{AnnotatedFingerprint, Framework, SubclassFingerprint}
 
-import scala.collection.mutable
-import scala.reflect.internal.util.ScalaClassLoader.URLClassLoader
 import sbt.testing.Fingerprint
 import testinterface.ScalaNativeFramework
 
@@ -33,9 +33,10 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     override def test(args: String*) = T.command{
       val outputPath = T.ctx().dest/"out.json"
 
+      // XXX Fix me
       val uTestPaths = resolveDeps(T.task{T.task{Agg(ivy"com.lihaoyi:utest_2.12:0.6.3")}()})().map(_.path)
       println(s"uTestPaths=$uTestPaths")
-      val testClassloader = new URLClassLoader(uTestPaths.toSeq.map(_.toIO.toURI.toURL), this.getClass.getClassLoader)
+      val testClassloader = new URLClassLoader(uTestPaths.map(_.toIO.toURI.toURL).toArray, this.getClass.getClassLoader)
 
       val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
       val testBinary = testrunner.nativeLink().toIO
@@ -160,18 +161,10 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def nativeWorkdir = T{ T.ctx().dest }
 
   // Location of the clang compiler
-  def nativeClang = T{
-    val clang = bridge().llvmDiscover("clang", bridge().llvmClangVersions)
-    bridge().llvmCheckThatClangIsRecentEnough(clang)
-    clang
-  }
+  def nativeClang = T{ bridge().discoverClang }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T{
-    val clang = bridge().llvmDiscover("clang++", bridge().llvmClangVersions)
-    bridge().llvmCheckThatClangIsRecentEnough(clang)
-    clang
-  }
+  def nativeClangPP = T{ bridge().discoverClangPP }
 
   // GC choice, either "none", "boehm" or "immix"
   def nativeGC = T{
@@ -179,13 +172,13 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       .getOrElse(bridge().defaultGarbageCollector)
   }
 
-  def nativeTarget = T{ bridge().llvmDetectTarget(nativeClang(), nativeWorkdir()) }
+  def nativeTarget = T{ bridge().discoverTarget(nativeClang(), nativeWorkdir()) }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T{ bridge().llvmDefaultCompileOptions }
+  def nativeCompileOptions = T{ bridge().discoverCompilationOptions }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = T{ bridge().llvmDefaultLinkingOptions }
+  def nativeLinkingOptions = T{ bridge().discoverLinkingOptions }
 
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
@@ -226,21 +219,6 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       forkEnv(),
       workingDir = ammonite.ops.pwd)
   }
-
-//  // List all symbols not available at link time
-//  def nativeMissingDependencies = T{
-//    (nativeExternalDependencies().toSet -- nativeAvailableDependencies().toSet).toList.sorted
-//  }
-//
-//  // List all symbols available at link time
-//  def nativeAvailableDependencies = T{
-//    bridge().nativeAvailableDependencies(runClasspath().map(_.path).toSeq)
-//  }
-//
-//  // List all external dependencies at link time
-//  def nativeExternalDependencies = T{
-//    bridge().nativeExternalDependencies(compile().classes.path)
-//  }
 }
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
@@ -287,7 +265,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   }
 
 
-  private def makeTestsMap(tests: Seq[TestDefinition]): String =
+  private def makeTestsMap(tests: Seq[TestDefinition]): String = {
     tests
       .map { t =>
         val isModule = t.fingerprint match {
@@ -300,5 +278,5 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
         s""""${t.name}" -> $inst"""
       }
       .mkString(", ")
-
+  }
 }
