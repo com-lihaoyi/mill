@@ -25,6 +25,9 @@ trait MillPublishModule extends PublishModule{
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
   )
+
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
+
 }
 object moduledefs extends MillPublishModule{
   def ivyDeps = Agg(

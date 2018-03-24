@@ -1,5 +1,8 @@
 import scala.collection._
 import java.nio.file.{Files, Paths}
+import java.sql.Date
+import java.time.LocalDate
+import javax.swing.JButton
 
 import Main.{args, greeting}
 object Main0{
@@ -10,7 +13,9 @@ object Main0{
   }
 }
 object Main extends App {
-
+  new JButton("hello from javax")
+  val now = Date.valueOf(LocalDate.now())
+  println(s"Today is the date: ${now}")
   val person = Person.fromString("rockjam:25")
   val greeting = s"hello ${person.name}, your age is: ${person.age}"
   println(greeting)
