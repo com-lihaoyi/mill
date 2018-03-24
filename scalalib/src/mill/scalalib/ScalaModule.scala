@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import coursier.Repository
+import coursier.{Dependency, Repository}
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
@@ -260,13 +260,32 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def ivyDepsTree(inverse: Boolean = false) = T.command {
+  private def getResolution(modules: Seq[Dependency]) = {
     import coursier.{Cache, Fetch, Resolution}
 
-    val flattened = ivyDeps().map(depToDependency(_, scalaVersion(), platformSuffix())).toSeq
-    val start = Resolution(flattened.toSet)
+    val start = Resolution(modules.toSet)
     val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
+    start.process.run(fetch).unsafePerformSync
+  }
+
+  def ivyWhatDependsOn(module: String) = T.command {
+
+    val root = depToDependency(Dep.parse(module), scalaVersion(), platformSuffix())
+    val flattened = ivyDeps().map(depToDependency(_, scalaVersion(), platformSuffix())).toSeq
+    val resolution = getResolution(flattened)
+    val colors = coursier.util.Print.Colors.get(true)
+
+    println(coursier.util.Print.reverseTree(Seq(root), resolution, withExclusions = false)
+      .render(_.repr(colors)))
+
+    Result.Success()
+  }
+
+  def ivyDepsTree(inverse: Boolean = false) = T.command {
+
+    val flattened = ivyDeps().map(depToDependency(_, scalaVersion(), platformSuffix())).toSeq
+    val resolution = getResolution(flattened)
+
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,
       printExclusions = false, reverse = inverse))
