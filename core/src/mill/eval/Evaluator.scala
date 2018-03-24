@@ -128,11 +128,15 @@ case class Evaluator[T](home: Path,
 
         if (!exists(paths.out)) mkdir(paths.out)
         val cached = for{
-          json <- scala.util.Try(upickle.json.read(paths.meta.toIO)).toOption
-          cached <- scala.util.Try(upickle.default.readJs[Evaluator.Cached](json)).toOption
+          cached <-
+            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+            catch {case e: Throwable => None}
+
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
-          parsed <- reader.read.lift(cached.v)
+          parsed <-
+            try Some(upickle.default.read(cached.v)(reader))
+            catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
 
         val workerCached = labelledNamedTask.task.asWorker
@@ -195,7 +199,7 @@ case class Evaluator[T](home: Path,
         val terminalResult = labelledNamedTask
           .writer
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map(_.write(v) -> v)
+          .map(w => upickle.default.writeJs(v)(w) -> v)
 
         for((json, v) <- terminalResult){
           write.over(

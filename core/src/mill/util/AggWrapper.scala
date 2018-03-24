@@ -30,10 +30,11 @@ sealed class AggWrapper(strictUniqueness: Boolean){
   object Agg{
     def empty[V]: Agg[V] = new Agg.Mutable[V]
     implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
-      upickle.default.ReadWriter[Agg[T]] (
-        oset => upickle.default.writeJs(oset.toList),
-        {case json => Agg.from(upickle.default.readJs[Seq[T]](json))}
+      upickle.default.readwriter[Seq[T]].bimap[Agg[T]](
+        _.toList,
+        Agg.from(_)
       )
+
     def apply[V](items: V*) = from(items)
 
     implicit def from[V](items: TraversableOnce[V]): Agg[V] = {
