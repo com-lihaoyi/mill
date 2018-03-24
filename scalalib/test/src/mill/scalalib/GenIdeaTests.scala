@@ -1,8 +1,8 @@
 package mill.scalalib
 
 import ammonite.ops._
+import coursier.Cache
 import mill._
-import mill.define.Discover
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
@@ -54,8 +54,7 @@ object GenIdeaTests extends TestSuite {
   }
 
 
-  private val libPathRegex =  """([\w/]+)/.coursier""".r
   private def normaliseLibraryPaths(in: String): String = {
-    libPathRegex.replaceAllIn(in, "COURSIER_HOME")
+    in.replaceAll(Cache.default.toPath.toAbsolutePath.toString, "COURSIER_HOME")
   }
 }
