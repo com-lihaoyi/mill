@@ -398,7 +398,7 @@ trait TestModule extends ScalaModule with TaskModule {
       workingDir = forkWorkingDir
     )
 
-    val jsonOutput = upickle.json.read(outputPath.toIO)
+    val jsonOutput = ujson.read(outputPath.toIO)
     val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
@@ -413,7 +413,7 @@ trait TestModule extends ScalaModule with TaskModule {
       args
     )
 
-    val jsonOutput = upickle.json.read(outputPath.toIO)
+    val jsonOutput = ujson.read(outputPath.toIO)
     val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 

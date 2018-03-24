@@ -2,7 +2,7 @@ package mill.scalalib.publish
 
 import java.util.Base64
 
-import upickle.json
+
 
 import scala.concurrent.duration._
 import scalaj.http.{BaseHttp, HttpOptions, HttpRequest, HttpResponse}
@@ -33,7 +33,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         .throwError
 
     val resourceUri =
-      json
+      ujson
         .read(response.body)("data")
         .arr
         .find(profile => profile("name").str == groupId)
@@ -52,7 +52,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       .asString
       .throwError
 
-    json.read(response.body)("type").str.toString
+    ujson.read(response.body)("type").str.toString
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
@@ -63,7 +63,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
         s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
       .throwError
 
-    json.read(response.body)("data")("stagedRepositoryId").str.toString
+    ujson.read(response.body)("data")("stagedRepositoryId").str.toString
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_finish.html
