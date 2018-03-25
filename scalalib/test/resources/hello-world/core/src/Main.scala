@@ -13,6 +13,8 @@ object Main0{
   }
 }
 object Main extends App {
+  // testing correct loading of java standard modules in java 9
+  // https://github.com/lihaoyi/mill/issues/251
   new JButton("hello from javax")
   val now = Date.valueOf(LocalDate.now())
   println(s"Today is the date: ${now}")
