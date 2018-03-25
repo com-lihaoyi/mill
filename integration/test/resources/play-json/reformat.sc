@@ -15,14 +15,14 @@ trait Scalariform extends ScalaModule {
     .setPreference(DoubleIndentConstructorArguments, false)
 
   def compile = T {
-    reformat()()
+    reformat()
     super.compile()
   }
 
-  def reformat() = T.command {
+  def reformat = T {
     val files = filesToFormat(sources())
     T.ctx.log.info(s"Formatting ${files.size} Scala sources")
-    files.foreach { path =>
+    files.map { path =>
       try {
         val formatted = ScalaFormatter.format(
           read(path),
@@ -34,6 +34,7 @@ trait Scalariform extends ScalaModule {
         case ex: ScalaParserException =>
           T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
       }
+      path
     }
   }
 
