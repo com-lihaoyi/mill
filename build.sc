@@ -57,6 +57,9 @@ trait MillModule extends MillPublishModule{ outer =>
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
+    def repositories = super.repositories ++ Seq(
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
     def forkArgs = T{ testArgs() }
     def moduleDeps =
       if (this == main.test) Seq(main)
@@ -69,8 +72,7 @@ trait MillModule extends MillPublishModule{ outer =>
 
 object clientserver extends MillModule{
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.0.5-14-daf7e0d",
-    ivy"com.lihaoyi::upickle:0.6.0-RC6",
+    ivy"com.lihaoyi:::ammonite:1.0.5-22-16b9cde",
     ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   )
   val test = new Tests(implicitly)
@@ -85,8 +87,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.0.5-14-daf7e0d",
-    ivy"com.lihaoyi::upickle:0.6.0-RC6",
+    ivy"com.lihaoyi:::ammonite:1.0.5-22-16b9cde",
     ivy"jline:jline:2.14.5"
   )
 

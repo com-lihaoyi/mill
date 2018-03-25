@@ -16,7 +16,11 @@ object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModu
   lazy val millDiscover = Discover[this.type]
 }
 trait ScalaWorkerModule extends mill.Module{
-  def repositories = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
+  def repositories = Seq(
+    Cache.ivy2Local,
+    MavenRepository("https://repo1.maven.org/maven2"),
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )
 
   def classpath = T{
     val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")

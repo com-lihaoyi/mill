@@ -31,7 +31,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     if (jsBridgePath != null) Success(
       Agg(PathRef(Path(jsBridgePath), quick = true))
     ) else resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      Seq(
+        Cache.ivy2Local,
+        MavenRepository("https://repo1.maven.org/maven2"),
+        MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+      ),
       "2.12.4",
       Seq(
         ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
