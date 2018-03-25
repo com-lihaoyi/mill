@@ -103,19 +103,16 @@ object Jvm {
                    classLoaderOverrideSbtTesting: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
+    val urls = classPath.map(_.toIO.toURI.toURL)
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, mill.util.ClassLoader.create(Seq(), null)){
-        override def findClass(name: String) = {
-          if (name.startsWith("sbt.testing.")){
-            outerClassLoader.loadClass(name)
-          }else{
-            super.findClass(name)
-          }
-        }
-      }
+      mill.util.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
+        if (name.startsWith("sbt.testing."))
+          Some(outerClassLoader.loadClass(name))
+        else None
+      })
     } else {
-      mill.util.ClassLoader.create(classPath.map(_.toIO.toURI.toURL).toVector, null)
+      mill.util.ClassLoader.create(urls.toVector, null)
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
