@@ -39,7 +39,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6 && sudo chmod +x /usr/local/bin/mill
+sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7 && sudo chmod +x /usr/local/bin/mill
 ```
 
 ### Development Releases
