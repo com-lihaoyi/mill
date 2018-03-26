@@ -253,10 +253,6 @@ class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
   def millSourcePath = pwd / "benchmarks"
 }
 
-def release() = T.command {
-  println(s"version: ${version.current} released!")
-}
-
 // TODO: we should have a way to "take all modules in this build"
 val testModules = Seq(
   playJsonJvm("2.12.4").test,
@@ -310,4 +306,70 @@ def reportBinaryIssues() = T.command {
 
 def validateCode() = T.command {
   Task.traverse(allModules)(_.checkCodeFormat()).zip(Task.traverse(allModules)(_.headerCheck()))
+}
+
+/**
+  * Release steps are:
+  * 1) clean
+  * 2) run tests
+  * 3) set release version
+  * 4) commit release version
+  * 5) make release tag
+  * 6) publish all modules to sonatype
+  * 7) set next version
+  * 8) commit next version
+  * 9) push everything to git
+  */
+object release extends Module {
+
+  implicit val wd = pwd
+
+  val versionFile = wd / "version.sc"
+
+  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
+
+  def clean() = T.command {
+    T.ctx.log.info("Cleaning output directory")
+    %%("rm", "-rf", "out")(pwd)
+    ()
+  }
+
+  def setReleaseVersion = T {
+    val releaseVersion = version.current match {
+      case MinorSnapshotVersion(major, minor, patch) =>
+        s"${major}.${minor}.${patch.toInt}"
+      case ReleaseVersion(major, minor, patch) =>
+        s"${major}.${minor}.${patch.toInt}"
+    }
+
+    T.ctx.log.info(s"Setting release version to ${releaseVersion}")
+
+    write.over(
+      versionFile,
+      s"""def current = "${releaseVersion}""""
+    )
+
+    %%("git", "commit", "-am", s"Setting release version to ${releaseVersion}")
+    %%("git", "tag", s"$releaseVersion")
+  }
+
+  def setNextVersion = T {
+    val nextVersion = version.current match {
+      case v@MinorSnapshotVersion(major, minor, patch) => v
+      case ReleaseVersion(major, minor, patch) =>
+        s"${major}.${minor}.${patch.toInt + 1}-SNAPSHOT"
+    }
+
+    T.ctx.log.info(s"Setting next version to ${nextVersion}")
+
+    write.over(
+      versionFile,
+      s"""def current = "${nextVersion}""""
+    )
+
+    %%("git", "commit", "-am", s"Setting next version to ${nextVersion}")
+    %%("git", "push", "origin", "master", "--tags")
+  }
+
 }
