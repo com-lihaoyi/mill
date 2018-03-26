@@ -169,7 +169,7 @@ trait MainModule extends mill.Module{
       multiSelect = false
     ) {res =>
       for(json <- res.flatMap(_._2)){
-        println(json)
+        println(json.render(indent = 4))
       }
     }
   }
