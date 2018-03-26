@@ -112,7 +112,7 @@ public class Client {
 
         // Need to give sometime for Win32NamedPipeSocket to work
         // if the server is just initialized
-        if (serverInit && ClientServer.isWindows) Thread.sleep(250);
+        if (serverInit && ClientServer.isWindows) Thread.sleep(1000);
 
         Socket ioSocket = null;
 
