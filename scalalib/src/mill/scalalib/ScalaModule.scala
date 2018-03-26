@@ -328,7 +328,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ammoniteReplClasspath = T{
-    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.1.0")})()
+    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.1.0-3-73d5734")})()
   }
   def repl() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
