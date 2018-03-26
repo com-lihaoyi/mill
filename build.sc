@@ -369,10 +369,10 @@ def uploadToGithub(authKey: String) = T.command{
   if (releaseTag == label){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
-        ujson.write(
+        upickle.json.write(
           Js.Obj(
-            "tag_name" -> releaseTag,
-            "name" -> releaseTag
+            "tag_name" -> Js.Str(releaseTag),
+            "name" -> Js.Str(releaseTag)
           )
         )
       )
