@@ -328,7 +328,7 @@ rm -rf out/
 
 ## Changelog
 
-### master
+### 0.1.7
 
 - Support for non-interactive (client/server) mode on Windows.
 
@@ -346,7 +346,28 @@ rm -rf out/
   
   Mill also runs on [Git-Bash](https://gitforwindows.org) and [WSL](https://docs.microsoft.com/windows/wsl)
   but only on interactive mode.
-  
+
+- More fixes for Java 9
+
+- Bumped the Mill daemon timeout from 1 minute to 5 minutes of inactivity before
+  it shuts down.
+
+- Avoid leaking Node.js subprocesses when running `ScalaJSModule` tests
+
+- Passing command-line arguments with spaces in them to tests no longer parses
+  wrongly
+
+- `ScalaModule#repositories`, `scalacPluginIvyDeps`, `scalacOptions`,
+  `javacOptions` are now automatically propagated to `Tests` modules
+
+- `ScalaJSModule` linking errors no longer show a useless stack trace
+
+- `ScalaModule#docJar` now properly uses the compileClasspath rather than
+  runClasspath
+
+- Bumped underlying Ammonite version to [1.1.0](http://ammonite.io/#1.1.0),
+  which provides the improved Windows and Java 9 support
+
 ### 0.1.6
 
 - Fixes for non-interactive (client/server) mode on Java 9
