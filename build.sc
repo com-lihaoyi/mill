@@ -19,22 +19,15 @@ trait MillPublishModule extends PublishModule{
     description = artifactName(),
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/mill",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    // TODO 0.1.4
-    // licenses = Seq(License.MIT),
-    scm = SCM(
-      "git://github.com/lihaoyi/mill.git",
-      "scm:git://github.com/lihaoyi/mill.git"
-    ),
-    // TODO 0.1.4:
-    // versionControl = VersionControl.github("lihaoyi", "mill")
-
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "mill"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
   )
+
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
+
 }
 object moduledefs extends MillPublishModule{
   def ivyDeps = Agg(

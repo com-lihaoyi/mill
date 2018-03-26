@@ -297,7 +297,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
               })
           )
         }
-        runner.done()
+        ctx.log.outputStream.println(runner.done())
       }
 
       val results = for(e <- events) yield {

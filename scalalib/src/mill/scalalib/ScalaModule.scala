@@ -235,7 +235,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
-      scalaCompilerClasspath().map(_.path) ++ runClasspath().filter(_.path.ext != "pom").map(_.path),
+      scalaCompilerClasspath().map(_.path) ++ compileClasspath().filter(_.path.ext != "pom").map(_.path),
       mainArgs = (files ++ options).toSeq
     )
 
