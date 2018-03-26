@@ -27,7 +27,7 @@ cache:
   - '%LOCALAPPDATA%\Coursier\cache'
 
 install:
-  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.6/0.1.6-3-43d230
+  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-8-b913c6
 
 build_script:
   - if [%COMPILER%]==[msys2] (
