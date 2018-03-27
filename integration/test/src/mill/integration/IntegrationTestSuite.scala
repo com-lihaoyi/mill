@@ -17,9 +17,15 @@ abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, 
     wrapper
   }
 
+  def buildFiles: Seq[Path] = {
+    Seq(buildFilePath / "build.sc")
+  }
+
   override def initWorkspace() = {
     super.initWorkspace()
-    cp.over(buildFilePath / "build.sc", workspacePath / "build.sc")
+    buildFiles.foreach { file =>
+      cp.over(file, workspacePath / file.name)
+    }
     assert(!ls.rec(workspacePath).exists(_.ext == "class"))
   }
 }
