@@ -65,7 +65,7 @@ trait MillModule extends MillPublishModule{ outer =>
 
 object clientserver extends MillModule{
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0",
+    ivy"com.lihaoyi:::ammonite:1.1.0-3-73d5734",
     ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   )
   val test = new Tests(implicitly)
@@ -80,7 +80,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.1.0",
+    ivy"com.lihaoyi:::ammonite:1.1.0-3-73d5734",
   )
 
   def generatedSources = T {
@@ -214,12 +214,7 @@ def launcherScript(isWin: Boolean,
        |if "%1" == "-i" set _I_=true
        |if "%1" == "--interactive" set _I_=true
        |if defined _I_ (
-       |  if "%2" == "" (
-       |    echo mill repl is currently only available on a sh environment
-       |    exit /B 1
-       |  ) else (
-       |    java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
-       |  )
+       |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
        |) else (
        |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.clientserver.Client %*
        |)
