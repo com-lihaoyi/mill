@@ -148,7 +148,7 @@ Once you've mixed in `PublishModule`, you can publish your libraries to maven
 central via:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         foo.publishArtifacts
@@ -159,7 +159,7 @@ them manually. You can also pass in the `--release true` flag to perform the
 staging/release automatically:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         foo.publishArtifacts \
@@ -170,7 +170,7 @@ If you want to publish/release multiple modules, you can use the `_` or `__`
 wildcard syntax:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         __.publishArtifacts \
