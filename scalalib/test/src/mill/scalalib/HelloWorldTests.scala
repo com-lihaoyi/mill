@@ -87,6 +87,17 @@ object HelloWorldTests extends TestSuite {
       override def scalaVersion: Target[String] = "2.11.11"
     }
   }
+
+  object HelloWorldIvyDeps extends HelloBase{
+    object moduleA extends HelloWorldModule {
+
+      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+    }
+    object moduleB extends HelloWorldModule {
+      override def moduleDeps = Seq(moduleA)
+      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+    }
+  }
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -412,6 +423,20 @@ object HelloWorldTests extends TestSuite {
           read(runResult) == "hello rockjam, your age is: 25"
         )
       }
+    }
+
+    'ivyDeps - workspaceTest(HelloWorldIvyDeps){ eval =>
+      val Right((result, _)) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
+      assert(
+        result.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
+        !result.exists(_.path.last == "sourcecode_2.12-0.1.4.jar")
+      )
+
+      val Right((result2, _)) = eval.apply(HelloWorldIvyDeps.moduleB.runClasspath)
+      assert(
+        result2.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
+        !result2.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
+      )
     }
   }
 

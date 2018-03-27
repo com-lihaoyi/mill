@@ -79,8 +79,10 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     Task.traverse(moduleDeps)(_.compile)
   }
 
-  def upstreamRunClasspath: T[Agg[PathRef]] = T{
-    Task.traverse(moduleDeps)(_.runClasspath)().flatten
+  def transitiveLocalClasspath: T[Agg[PathRef]] = T{
+    Task.traverse(moduleDeps)(m =>
+      T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
+    )().flatten
   }
 
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
@@ -170,25 +172,25 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-
+  def localClasspath = T{
+    resources() ++ Agg(compile().classes)
+  }
   def compileClasspath = T{
-    upstreamRunClasspath() ++
+    transitiveLocalClasspath() ++
     resources() ++
     unmanagedClasspath() ++
     resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   def upstreamAssemblyClasspath = T{
-    upstreamRunClasspath() ++
+    transitiveLocalClasspath() ++
     unmanagedClasspath() ++
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   def runClasspath = T{
-    Agg(compile().classes) ++
-    resources() ++
+    localClasspath() ++
     upstreamAssemblyClasspath()
-
   }
 
   /**
@@ -203,7 +205,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def assembly = T{
     createAssembly(
-      Agg.from(resources().map(_.path)) ++ Agg(compile().classes.path),
+      Agg.from(localClasspath().map(_.path)),
       mainClass(),
       prependShellScript(),
       Some(upstreamAssembly().path)
@@ -213,7 +215,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
 
   def jar = T{
     createJar(
-      (resources() ++ Seq(compile().classes)).map(_.path).filter(exists),
+      localClasspath().map(_.path).filter(exists),
       mainClass()
     )
   }
