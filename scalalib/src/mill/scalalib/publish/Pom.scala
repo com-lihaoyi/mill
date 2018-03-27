@@ -90,12 +90,28 @@ object Pom {
       case Scope.Test     => <scope>test</scope>
       case Scope.Runtime  => <scope>runtime</scope>
     }
-    <dependency>
-      <groupId>{d.artifact.group}</groupId>
-      <artifactId>{d.artifact.id}</artifactId>
-      <version>{d.artifact.version}</version>
-      {scope}
-    </dependency>
+    if (d.exclusions.isEmpty)
+      <dependency>
+        <groupId>{d.artifact.group}</groupId>
+        <artifactId>{d.artifact.id}</artifactId>
+        <version>{d.artifact.version}</version>
+        {scope}
+      </dependency>
+    else
+      <dependency>
+        <groupId>{d.artifact.group}</groupId>
+        <artifactId>{d.artifact.id}</artifactId>
+        <version>{d.artifact.version}</version>
+        <exclusions>
+          {d.exclusions.map(ex =>
+            <exclude>
+              <groupId>{ex._1}</groupId>
+              <artifactId>{ex._2}</artifactId>
+            </exclude>
+          )}.toSeq
+        </exclusions>
+        {scope}
+      </dependency>
   }
 
 }
