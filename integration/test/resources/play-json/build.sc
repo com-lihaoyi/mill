@@ -329,25 +329,27 @@ object release extends Module {
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  def clean() = T.command {
-    T.ctx.log.info("Cleaning output directory")
-    %%("rm", "-rf", "out")(pwd)
-    ()
+  private val releaseVersion = version.current match {
+    case MinorSnapshotVersion(major, minor, patch) =>
+      s"${major}.${minor}.${patch.toInt}"
+    case ReleaseVersion(major, minor, patch) =>
+      s"${major}.${minor}.${patch.toInt}"
+  }
+
+  private val nextVersion = version.current match {
+    case v@MinorSnapshotVersion(major, minor, patch) => v
+    case ReleaseVersion(major, minor, patch) =>
+      s"${major}.${minor}.${patch.toInt + 1}-SNAPSHOT"
   }
 
   def setReleaseVersion = T {
-    val releaseVersion = version.current match {
-      case MinorSnapshotVersion(major, minor, patch) =>
-        s"${major}.${minor}.${patch.toInt}"
-      case ReleaseVersion(major, minor, patch) =>
-        s"${major}.${minor}.${patch.toInt}"
-    }
-
     T.ctx.log.info(s"Setting release version to ${releaseVersion}")
 
     write.over(
       versionFile,
-      s"""def current = "${releaseVersion}""""
+      s"""def current = "${releaseVersion}"
+         |
+       """.stripMargin
     )
 
     %%("git", "commit", "-am", s"Setting release version to ${releaseVersion}")
@@ -355,12 +357,6 @@ object release extends Module {
   }
 
   def setNextVersion = T {
-    val nextVersion = version.current match {
-      case v@MinorSnapshotVersion(major, minor, patch) => v
-      case ReleaseVersion(major, minor, patch) =>
-        s"${major}.${minor}.${patch.toInt + 1}-SNAPSHOT"
-    }
-
     T.ctx.log.info(s"Setting next version to ${nextVersion}")
 
     write.over(
