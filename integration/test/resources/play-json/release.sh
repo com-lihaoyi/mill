@@ -10,5 +10,5 @@ mill mill.scalalib.PublishModule/publishAll \
     "$GPG_PASSPHRASE" \
     __.publishArtifacts \
     --release \
-    true \
+    true
 mill release.setNextVersion
