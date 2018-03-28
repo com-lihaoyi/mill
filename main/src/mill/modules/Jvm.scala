@@ -345,13 +345,11 @@ object Jvm {
                           shellClassPath: Agg[String],
                           cmdClassPath: Agg[String],
                           jvmArgs: Seq[String]) = {
-    val cp = classPath.mkString(File.pathSeparator)
-
     universalScript(
       shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${classPath.mkString(":")}" $mainClass "$$@"""",
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
       cmdCommands =
-        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${classPath.mkString(";")}" $mainClass %*""",
+        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
       shebang = !isWin
     )
   }
