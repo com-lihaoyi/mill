@@ -52,9 +52,10 @@ object ClassLoader {
 
   private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
     if (ammonite.util.Util.java9OrAbove) {
-      val rtFile = ctx.home / ammonite.runtime.Classpath.rtJarName
+
+      val rtFile = ctx.home / io.github.retronym.java9rtexport.Export.rtJarName
       if (!exists(rtFile)) {
-        cp(Path(Export.export()), rtFile)
+        cp(Path(Export.rt()), rtFile)
       }
       urls :+ rtFile.toNIO.toUri.toURL
     } else {

@@ -31,7 +31,7 @@ case class Evaluator[T](home: Path,
                         externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
-                        classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig,
+                        classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
                         workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
   val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
@@ -326,7 +326,7 @@ object Evaluator{
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
   case class State(rootModule: mill.define.BaseModule,
-                   classLoaderSig: Seq[(Path, Long)],
+                   classLoaderSig: Seq[(Either[String, Path], Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
                    watched: Seq[(Path, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
@@ -352,7 +352,8 @@ object Evaluator{
   // check if the build itself has changed
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {
     case scl: SpecialClassLoader => scl.classpathSignature
-    case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
+    case ucl: URLClassLoader =>
+      SpecialClassLoader.initialClasspathSignature(ucl).map{ case (k, v) => (Right(k), v)}
     case _ => Nil
   }
   case class Timing(label: String,
