@@ -212,21 +212,19 @@ def launcherScript(isWin: Boolean,
                       cmdCommands: String,
                       shebang: Boolean = true): String = {
     Seq(
-      Some("#!/usr/bin/env sh")
-        .filter(_ => shebang),
-      Some(
-        s""":; shopt -s expand_aliases
-           |:; alias ::=''
-           |${shellCommands.split("\r\n|\n").map(":: " + _).mkString("\n")}
-           |:: exit""".stripMargin.replaceAll("\r\n|\n", "\n")
-      ),
-      Some(
-        s"""@echo off
-           |$cmdCommands
-           |exit /B %errorlevel%
-           |""".stripMargin.replaceAll("\r\n|\n", "\r\n")
-      )
-    ).flatMap(_.toSeq).mkString("\n")
+      if (shebang) "#!/usr/bin/env sh" else "",
+      "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+      shellCommands.replaceAll("\r\n|\n", "\n"),
+      "exit",
+      Seq(
+        "",
+        ":BOF",
+        "@echo off",
+        cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+        "exit /B %errorlevel%",
+        ""
+      ).mkString("\r\n")
+    ).filterNot(_.isEmpty).mkString("\n")
   }
 
   val jvmArgsStr = jvmArgs.mkString(" ")
