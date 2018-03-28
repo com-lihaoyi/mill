@@ -15,7 +15,9 @@ object Artifact {
       case Dep.Java(dep, cross) =>
         Dependency(
           Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile
+          Scope.Compile,
+          if (dep.configuration == "" ) None else Some(dep.configuration),
+          dep.exclusions.toList
         )
       case Dep.Scala(dep, cross) =>
         Dependency(
@@ -24,7 +26,9 @@ object Artifact {
             s"${dep.module.name}_${scalaBin}",
             dep.version
           ),
-          Scope.Compile
+          Scope.Compile,
+          if (dep.configuration == "") None else Some(dep.configuration),
+          dep.exclusions.toList
         )
       case Dep.Point(dep, cross) =>
         Dependency(
@@ -33,7 +37,9 @@ object Artifact {
             s"${dep.module.name}_${scalaFull}",
             dep.version
           ),
-          Scope.Compile
+          Scope.Compile,
+          if (dep.configuration == "") None else Some(dep.configuration),
+          dep.exclusions.toList
         )
     }
   }
@@ -49,7 +55,9 @@ object Scope {
 
 case class Dependency(
     artifact: Artifact,
-    scope: Scope
+    scope: Scope,
+    configuration: Option[String] = None,
+    exclusions: Seq[(String, String)] = Nil
 )
 
 case class Developer(
