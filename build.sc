@@ -208,32 +208,56 @@ object integration extends MillModule{
 def launcherScript(isWin: Boolean,
                    jvmArgs: Seq[String],
                    classPath: Agg[String]) = {
+  def universalScript(shellCommands: String,
+                      cmdCommands: String,
+                      shebang: Boolean = true): String = {
+    Seq(
+      Some("#!/usr/bin/env sh")
+        .filter(_ => shebang),
+      Some(
+        s""":; shopt -s expand_aliases
+           |:; alias ::=''
+           |${shellCommands.split("\r\n|\n").map(":: " + _).mkString("\n")}
+           |:: exit""".stripMargin.replaceAll("\r\n|\n", "\n")
+      ),
+      Some(
+        s"""@echo off
+           |$cmdCommands
+           |exit /B %errorlevel%
+           |""".stripMargin.replaceAll("\r\n|\n", "\r\n")
+      )
+    ).flatMap(_.toSeq).mkString("\n")
+  }
+
   val jvmArgsStr = jvmArgs.mkString(" ")
-  val classPathStr = if (isWin) classPath.mkString(";") else classPath.mkString(":")
-  if (isWin)
-    s"""::#!
-       |@echo off
-       |if "%1" == "-i" set _I_=true
-       |if "%1" == "--interactive" set _I_=true
-       |if defined _I_ (
-       |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.Main %*
-       |) else (
-       |  java $jvmArgsStr %JAVA_OPTS% -cp "$classPathStr" mill.clientserver.Client %*
-       |)
-       |EXIT /B %errorlevel%
-     """.stripMargin.split('\n').mkString("\r\n")
-  else
-    s"""#!/usr/bin/env sh
-       |
-       |case "$$1" in
-       |  -i | --interactive )
-       |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
-       |    ;;
-       |  *)
-       |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.clientserver.Client "$$@"
-       |    ;;
-       |esac
-     """.stripMargin
+  universalScript(
+    shellCommands = {
+      def java(mainClass: String) =
+        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${classPath.mkString(":")}" mill.Main "$$@""""
+
+      s"""case "$$1" in
+         |  -i | --interactive )
+         |    ${java("mill.Main")}
+         |    ;;
+         |  *)
+         |    ${java("mill.clientserver.Client")}
+         |    ;;
+         |esac""".stripMargin
+    },
+    cmdCommands = {
+      def java(mainClass: String) =
+        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${classPath.mkString(";")}" $mainClass %*"""
+
+      s"""if "%1" == "-i" set _I_=true
+         |if "%1" == "--interactive" set _I_=true
+         |if defined _I_ (
+         |  ${java("mill.Main")}
+         |) else (
+         |  ${java("mill.clientserver.Client")}
+         |)""".stripMargin
+    },
+    shebang = !isWin
+  )
 }
 
 object dev extends MillModule{

@@ -139,7 +139,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
         mill.modules.Jvm.launcherShellScript(
           isWin,
           cls,
-          Agg(if (isWin) "%~dp0%~nx0" else "$0"),
+          "$0", "%~dpnx0",
           forkArgs()
         )
     }
