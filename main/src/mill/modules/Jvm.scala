@@ -325,6 +325,7 @@ object Jvm {
     Seq(
       if (shebang) "#!/usr/bin/env sh" else "",
       "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+      ":",
       shellCommands.replaceAll("\r\n|\n", "\n"),
       "exit",
       Seq(
