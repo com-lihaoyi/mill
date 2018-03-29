@@ -2,6 +2,8 @@ package mill
 
 import java.io.{InputStream, PrintStream}
 
+import scala.collection.JavaConverters._
+
 import ammonite.main.Cli._
 import ammonite.ops._
 import ammonite.util.Util
@@ -16,13 +18,15 @@ object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
             mainInteractive: Boolean,
             stdin: InputStream,
             stdout: PrintStream,
-            stderr: PrintStream) = Main.main0(
+            stderr: PrintStream,
+            env : Map[String, String]) = Main.main0(
     args,
     stateCache,
     mainInteractive,
     DummyInputStream,
     stdout,
-    stderr
+    stderr,
+    env
   )
 }
 object Main {
@@ -38,7 +42,8 @@ object Main {
       ammonite.Main.isInteractive(),
       System.in,
       System.out,
-      System.err
+      System.err,
+      System.getenv().asScala.toMap
     )
     System.exit(if(result) 0 else 1)
   }
@@ -48,7 +53,8 @@ object Main {
             mainInteractive: Boolean,
             stdin: InputStream,
             stdout: PrintStream,
-            stderr: PrintStream): (Boolean, Option[Evaluator.State]) = {
+            stderr: PrintStream,
+            env: Map[String, String]): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "no-home-predef")
@@ -116,7 +122,8 @@ object Main {
           val runner = new mill.main.MainRunner(
             config.copy(colored = Some(mainInteractive)),
             stdout, stderr, stdin,
-            stateCache
+            stateCache,
+            env
           )
 
           if (mill.clientserver.ClientServer.isJava9OrAbove) {

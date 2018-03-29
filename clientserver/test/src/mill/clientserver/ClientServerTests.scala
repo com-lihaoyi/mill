@@ -9,7 +9,8 @@ class EchoServer extends ServerMain[Int]{
             mainInteractive: Boolean,
             stdin: InputStream,
             stdout: PrintStream,
-            stderr: PrintStream) = {
+            stderr: PrintStream,
+            env: Map[String, String]) = {
 
     val reader = new BufferedReader(new InputStreamReader(stdin))
     val str = reader.readLine()

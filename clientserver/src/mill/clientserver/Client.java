@@ -101,6 +101,7 @@ public class Client {
 
         FileOutputStream f = new FileOutputStream(lockBase + "/run");
         ClientServer.writeArgs(System.console() != null, args, f);
+        ClientServer.writeEnv(f);
         f.close();
 
         boolean serverInit = false;

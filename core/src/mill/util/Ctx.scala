@@ -36,7 +36,8 @@ object Ctx{
 class Ctx(val args: IndexedSeq[_],
           dest0: () => Path,
           val log: Logger,
-          val home: Path)
+          val home: Path,
+          val env : Map[String, String])
   extends Ctx.Dest
   with Ctx.Log
   with Ctx.Args

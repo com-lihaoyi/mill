@@ -3,6 +3,7 @@ package mill.clientserver
 import java.io._
 import java.net.Socket
 
+import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 
 trait ServerMain[T]{
@@ -21,7 +22,8 @@ trait ServerMain[T]{
             mainInteractive: Boolean,
             stdin: InputStream,
             stdout: PrintStream,
-            stderr: PrintStream): (Boolean, Option[T])
+            stderr: PrintStream,
+            env : Map[String, String]): (Boolean, Option[T])
 }
 
 
@@ -76,6 +78,7 @@ class Server[T](lockBase: String,
     val argStream = new FileInputStream(lockBase + "/run")
     val interactive = argStream.read() != 0;
     val args = ClientServer.parseArgs(argStream)
+    val env = ClientServer.parseEnv(argStream)
     argStream.close()
 
     var done = false
@@ -89,7 +92,9 @@ class Server[T](lockBase: String,
           sm.stateCache,
           interactive,
           socketIn,
-          stdout, stderr
+          stdout,
+          stderr,
+          env.asScala.toMap
         )
 
         sm.stateCache = newStateCache
