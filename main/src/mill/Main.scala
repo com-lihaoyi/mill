@@ -5,6 +5,7 @@ import java.io.{InputStream, PrintStream}
 import ammonite.main.Cli._
 import ammonite.ops._
 import ammonite.util.Util
+import io.github.retronym.java9rtexport.Export
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
 
@@ -117,6 +118,14 @@ object Main {
             stdout, stderr, stdin,
             stateCache
           )
+
+          if (mill.clientserver.ClientServer.isJava9OrAbove) {
+            val rt = cliConfig.home / Export.rtJarName
+            if (!exists(rt)) {
+              runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")
+              Export.rtTo(rt.toIO, false)
+            }
+          }
 
           if (repl){
             runner.printInfo("Loading...")

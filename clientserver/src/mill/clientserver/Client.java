@@ -25,7 +25,7 @@ public class Client {
             }
             current = current.getParent();
         }
-        if (!System.getProperty("java.specification.version").startsWith("1.")) {
+        if (ClientServer.isJava9OrAbove) {
             selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
         }
         ArrayList<String> l = new java.util.ArrayList<String>();
@@ -166,14 +166,15 @@ class ClientOutputPumper implements Runnable{
         this.dest2 = dest2;
     }
 
-    boolean running = true;
     public void run() {
         byte[] buffer = new byte[1024];
         int state = 0;
-        try {
-            while(running){
-
+        boolean running = true;
+        boolean first = true;
+        while (running) {
+            try {
                 int n = src.read(buffer);
+                first = false;
                 if (n == -1) running = false;
                 else {
                     int i = 0;
@@ -197,12 +198,21 @@ class ClientOutputPumper implements Runnable{
                     dest1.flush();
                     dest2.flush();
                 }
+            } catch (IOException e) {
+                // Win32NamedPipeSocket input stream somehow doesn't return -1,
+                // instead it throws an IOException whose message contains "ReadFile()".
+                // However, if it throws an IOException before ever reading some bytes,
+                // it could not connect to the server, so exit.
+                if (ClientServer.isWindows && e.getMessage().contains("ReadFile()")) {
+                    if (first) {
+                        System.err.println("Failed to connect to server");
+                        System.exit(1);
+                    } else running = false;
+                } else {
+                    e.printStackTrace();
+                    System.exit(1);
+                }
             }
-        }catch(IOException e){
-            // Win32NamedPipeSocket input stream somehow doesn't return -1,
-            // but throw IOException whose message contains "ReadFile()" with a ccode
-            if (ClientServer.isWindows && e.getMessage().contains("ReadFile()")) running = false;
-            else throw new RuntimeException(e);
         }
     }
 

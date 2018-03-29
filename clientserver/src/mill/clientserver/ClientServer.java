@@ -5,8 +5,9 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 
-class ClientServer {
+public class ClientServer {
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
+    public static boolean isJava9OrAbove = !System.getProperty("java.specification.version").startsWith("1.");
 
     // Windows named pipe prefix (see https://github.com/sbt/ipcsocket/blob/v1.0.0/README.md)
     // Win32NamedPipeServerSocket automatically adds this as a prefix (if it is not already is prefixed),
