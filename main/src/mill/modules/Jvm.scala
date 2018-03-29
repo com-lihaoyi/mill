@@ -358,7 +358,7 @@ object Jvm {
     val outputPath = ctx.dest / "run"
     val classPathStrs = classPath.map(_.toString)
 
-    write(outputPath, launcherUniversalScript(isWin, mainClass, classPathStrs, classPathStrs, jvmArgs))
+    write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
     if (!isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)
