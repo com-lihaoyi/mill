@@ -321,7 +321,7 @@ object Jvm {
 
   def universalScript(shellCommands: String,
                       cmdCommands: String,
-                      shebang: Boolean = true): String = {
+                      shebang: Boolean = false): String = {
     Seq(
       if (shebang) "#!/usr/bin/env sh" else "",
       "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
@@ -339,17 +339,15 @@ object Jvm {
     ).filterNot(_.isEmpty).mkString("\n")
   }
 
-  def launcherShellScript(isWin: Boolean,
-                          mainClass: String,
-                          shellClassPath: Agg[String],
-                          cmdClassPath: Agg[String],
-                          jvmArgs: Seq[String]) = {
+  def launcherUniversalScript(mainClass: String,
+                              shellClassPath: Agg[String],
+                              cmdClassPath: Agg[String],
+                              jvmArgs: Seq[String]) = {
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
       cmdCommands =
         s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
-      shebang = !isWin
     )
   }
   def createLauncher(mainClass: String,
@@ -357,10 +355,10 @@ object Jvm {
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
     val isWin = scala.util.Properties.isWin
-    val outputPath = ctx.dest / (if (isWin) "run.bat" else "run")
+    val outputPath = ctx.dest / "run"
     val classPathStrs = classPath.map(_.toString)
 
-    write(outputPath, launcherShellScript(isWin, mainClass, classPathStrs, classPathStrs, jvmArgs))
+    write(outputPath, launcherUniversalScript(isWin, mainClass, classPathStrs, classPathStrs, jvmArgs))
 
     if (!isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)

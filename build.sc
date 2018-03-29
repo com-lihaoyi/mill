@@ -205,34 +205,34 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
-def launcherScript(isWin: Boolean,
-                   jvmArgs: Seq[String],
-                   classPath: Agg[String]) = {
-  def universalScript(shellCommands: String,
-                      cmdCommands: String,
-                      shebang: Boolean = true): String = {
+private def universalScript(shellCommands: String,
+                            cmdCommands: String,
+                            shebang: Boolean = false): String = {
+  Seq(
+    if (shebang) "#!/usr/bin/env sh" else "",
+    "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+    ":",
+    shellCommands.replaceAll("\r\n|\n", "\n"),
+    "exit",
     Seq(
-      if (shebang) "#!/usr/bin/env sh" else "",
-      "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
-      ":",
-      shellCommands.replaceAll("\r\n|\n", "\n"),
-      "exit",
-      Seq(
-        "",
-        ":BOF",
-        "@echo off",
-        cmdCommands.replaceAll("\r\n|\n", "\r\n"),
-        "exit /B %errorlevel%",
-        ""
-      ).mkString("\r\n")
-    ).filterNot(_.isEmpty).mkString("\n")
-  }
+      "",
+      ":BOF",
+      "@echo off",
+      cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+      "exit /B %errorlevel%",
+      ""
+    ).mkString("\r\n")
+  ).filterNot(_.isEmpty).mkString("\n")
+}
 
+def launcherScript(jvmArgs: Seq[String],
+                   shellClassPath: Agg[String],
+                   cmdClassPath: Agg[String]) = {
   val jvmArgsStr = jvmArgs.mkString(" ")
   universalScript(
     shellCommands = {
       def java(mainClass: String) =
-        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${classPath.mkString(":")}" mill.Main "$$@""""
+        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" mill.Main "$$@""""
 
       s"""case "$$1" in
          |  -i | --interactive )
@@ -245,7 +245,7 @@ def launcherScript(isWin: Boolean,
     },
     cmdCommands = {
       def java(mainClass: String) =
-        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${classPath.mkString(";")}" $mainClass %*"""
+        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
 
       s"""if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
@@ -254,8 +254,7 @@ def launcherScript(isWin: Boolean,
          |) else (
          |  ${java("mill.clientserver.Client")}
          |)""".stripMargin
-    },
-    shebang = !isWin
+    }
   )
 }
 
@@ -266,7 +265,7 @@ object dev extends MillModule{
   }
   def launcher = T{
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
+    val outputPath = T.ctx().dest / "run"
 
     write(outputPath, prependShellScript())
 
@@ -281,12 +280,15 @@ object dev extends MillModule{
   }
 
   def assembly = T{
-    val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+    val filename = "mill"
     mv(super.assembly().path, T.ctx().dest / filename)
     PathRef(T.ctx().dest / filename)
   }
 
-  def prependShellScript = launcherScript(scala.util.Properties.isWin, forkArgs(), runClasspath().map(_.path.toString))
+  def prependShellScript = T{
+    val classpath = runClasspath().map(_.path.toString)
+    launcherScript(forkArgs(), classpath, classpath)
+  }
 
   def run(args: String*) = T.command{
     args match{
@@ -308,48 +310,27 @@ object dev extends MillModule{
 
 private def releaseHelper(dest: Path,
                           cp: Agg[Path],
-                          ver: String,
-                          isWin: Boolean)
+                          ver: String)
                          (implicit ctx: mill.util.Ctx.Dest): PathRef = {
-  val (filename, arg) =
-    if (isWin) ("mill.bat", "%~dp0%~nx0")
-    else ("mill", "$0")
   mv(
     createAssembly(
       cp,
       prependShellScript = launcherScript(
-        isWin,
         Seq("-DMILL_VERSION=" + ver),
-        Agg(arg)
+        Agg("$0"),
+        Agg("%~dpnx0")
       )
     ).path,
-    dest / filename
+    dest / "mill"
   )
-  PathRef(dest / filename)
+  PathRef(dest / "mill")
 }
 
 def release = T{
   releaseHelper(
     T.ctx().dest,
     dev.runClasspath().map(_.path),
-    publishVersion()._2,
-    false)
-}
-
-def releaseBatch = T{
-  releaseHelper(
-    T.ctx().dest,
-    dev.runClasspath().map(_.path),
-    publishVersion()._2,
-    true)
-}
-
-def releaseAll = T{
-  val dest = T.ctx().dest
-  val cp = dev.runClasspath().map(_.path)
-  val ver = publishVersion()._2
-  for (isWin <- Seq(false, true))
-    yield (isWin, releaseHelper(dest, cp, ver, isWin))
+    publishVersion()._2)
 }
 
 val isMasterCommit = {
@@ -400,8 +381,5 @@ def uploadToGithub(authKey: String) = T.command{
       .asString
   }
 
-  for ((isWin, pr) <- releaseAll())
-    upload.apply(pr.path, releaseTag,
-      if (isWin) s"mill-$label.bat" // so browser downloads it as mill-<version>.bat (?)
-      else label, authKey)
+  upload.apply(release().path, releaseTag, label, authKey)
 }
