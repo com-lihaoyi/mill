@@ -277,7 +277,7 @@ object Jvm {
     // Prepend shell script and make it executable
     if (prependShellScript.isEmpty) mv(tmp, output)
     else{
-      val lineSep = if (isWin) "\r\n" else "\n"
+      val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
       val outputStream = newOutputStream(output.toNIO)
       IO.stream(new ByteArrayInputStream((prependShellScript + lineSep).getBytes()), outputStream)
       IO.stream(read.getInputStream(tmp), outputStream)
@@ -319,30 +319,46 @@ object Jvm {
 
   }
 
-  def launcherShellScript(isWin: Boolean,
-                          mainClass: String,
-                          classPath: Agg[String],
-                          jvmArgs: Seq[String]) = {
-    val cp = classPath.mkString(File.pathSeparator)
-    if (isWin)
-      s"""@echo off
-         |
-         |java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "$cp" $mainClass %*
-       """.stripMargin.split('\n').mkString("\r\n")
-    else
-      s"""#!/usr/bin/env sh
-         |
-         |exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "$cp" $mainClass "$$@"
-       """.stripMargin
+  def universalScript(shellCommands: String,
+                      cmdCommands: String,
+                      shebang: Boolean = false): String = {
+    Seq(
+      if (shebang) "#!/usr/bin/env sh" else "",
+      "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+      ":",
+      shellCommands.replaceAll("\r\n|\n", "\n"),
+      "exit",
+      Seq(
+        "",
+        ":BOF",
+        "@echo off",
+        cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+        "exit /B %errorlevel%",
+        ""
+      ).mkString("\r\n")
+    ).filterNot(_.isEmpty).mkString("\n")
+  }
+
+  def launcherUniversalScript(mainClass: String,
+                              shellClassPath: Agg[String],
+                              cmdClassPath: Agg[String],
+                              jvmArgs: Seq[String]) = {
+    universalScript(
+      shellCommands =
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
+      cmdCommands =
+        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
+    )
   }
   def createLauncher(mainClass: String,
                      classPath: Agg[Path],
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
     val isWin = scala.util.Properties.isWin
-    val outputPath = ctx.dest / (if (isWin) "run.bat" else "run")
+    val outputPath = ctx.dest / "run"
+    val classPathStrs = classPath.map(_.toString)
 
-    write(outputPath, launcherShellScript(isWin, mainClass, classPath.map(_.toString), jvmArgs))
+    write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
     if (!isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)

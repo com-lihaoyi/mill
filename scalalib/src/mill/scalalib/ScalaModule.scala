@@ -136,10 +136,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       case None => ""
       case Some(cls) =>
         val isWin = scala.util.Properties.isWin
-        mill.modules.Jvm.launcherShellScript(
-          isWin,
+        mill.modules.Jvm.launcherUniversalScript(
           cls,
-          Agg(if (isWin) "%~dp0%~nx0" else "$0"),
+          Agg("$0"), Agg("%~dpnx0"),
           forkArgs()
         )
     }
