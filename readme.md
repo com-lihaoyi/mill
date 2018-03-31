@@ -330,7 +330,7 @@ rm -rf out/
 
 ### Master
 
-- Universal (combined batch/sh) script 
+- Universal (combined batch/sh) script generation for launcher, assembly, and release
 
   For some shell (e.g., `ksh` or `fish`), a shebang line should be added, e.g., using GNU sed:
   
@@ -338,22 +338,24 @@ rm -rf out/
   sed -i '1s;^;#!/usr/bin/env sh\n;' <mill-path>
   ```
   
-  Or download directly using:
+  Or download directly with shebang added as follows:
   
   ```bash
   sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L <mill-url>) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
   ```
   
+  On Windows, save `<mill-url>` as `mill.bat`
+  
 - Windows client/server improvements
 
-- Windows repl support
-
-  MSYS2 subsystem/shell will be supported when a new jline3 (3.6.3) is released
+- Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3 v3.6.3 is released)
   
 - Fixed Java 9 support
 
 ### 0.1.7
 
+- Windows batch (.bat) generation for launcher, assembly, and release
+ 
 - Support for non-interactive (client/server) mode on Windows.
 
   On Cygwin, run the following after downloading mill:
