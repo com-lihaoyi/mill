@@ -20,6 +20,8 @@ sealed trait Dep {
 }
 object Dep{
 
+  val DefaultConfiguration = "default(compile)"
+
   implicit def parse(signature: String) = {
     val parts = signature.split(';')
     val module = parts.head
@@ -41,7 +43,7 @@ object Dep{
     }).configure(attributes = attributes)
   }
   def apply(org: String, name: String, version: String, cross: Boolean): Dep = {
-    this(coursier.Dependency(coursier.Module(org, name), version), cross)
+    this(coursier.Dependency(coursier.Module(org, name), version, DefaultConfiguration), cross)
   }
   case class Java(dep: coursier.Dependency, cross: Boolean) extends Dep {
     def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.copy(attributes = attributes))
@@ -49,7 +51,7 @@ object Dep{
   object Java{
     implicit def rw: RW[Java] = macroRW
     def apply(org: String, name: String, version: String, cross: Boolean): Dep = {
-      Java(coursier.Dependency(coursier.Module(org, name), version), cross)
+      Java(coursier.Dependency(coursier.Module(org, name), version, DefaultConfiguration), cross)
     }
   }
   implicit def default(dep: coursier.Dependency): Dep = new Java(dep, false)
@@ -60,7 +62,7 @@ object Dep{
   object Scala{
     implicit def rw: RW[Scala] = macroRW
     def apply(org: String, name: String, version: String, cross: Boolean): Dep = {
-      Scala(coursier.Dependency(coursier.Module(org, name), version), cross)
+      Scala(coursier.Dependency(coursier.Module(org, name), version, DefaultConfiguration), cross)
     }
   }
   case class Point(dep: coursier.Dependency, cross: Boolean) extends Dep {
@@ -69,7 +71,7 @@ object Dep{
   object Point{
     implicit def rw: RW[Point] = macroRW
     def apply(org: String, name: String, version: String, cross: Boolean): Dep = {
-      Point(coursier.Dependency(coursier.Module(org, name), version), cross)
+      Point(coursier.Dependency(coursier.Module(org, name), version, DefaultConfiguration), cross)
     }
   }
   implicit def rw = RW.merge[Dep](
