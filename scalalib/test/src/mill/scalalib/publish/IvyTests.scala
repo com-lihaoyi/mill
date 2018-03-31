@@ -26,9 +26,9 @@ object IvyTests extends TestSuite {
       'topLevel - {
         val info = singleNode(fullIvy \ "info")
         assert(
-          singleAttr(info, "organisation") == artifact.group
-        , singleAttr(info, "module") == artifact.id
-        , singleAttr(info, "revision") == artifact.version
+          singleAttr(info, "organisation") == artifact.group,
+          singleAttr(info, "module") == artifact.id,
+          singleAttr(info, "revision") == artifact.version
         )
       }
 
@@ -40,10 +40,10 @@ object IvyTests extends TestSuite {
 
         dependencies.zipWithIndex.foreach { case (dep, index) =>
           assert(
-            singleAttr(dep, "org") == ivyDeps(index).artifact.group
-          , singleAttr(dep, "name") == ivyDeps(index).artifact.id
-          , singleAttr(dep, "rev") == ivyDeps(index).artifact.version
-          , (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
+            singleAttr(dep, "org") == ivyDeps(index).artifact.group,
+            singleAttr(dep, "name") == ivyDeps(index).artifact.id,
+            singleAttr(dep, "rev") == ivyDeps(index).artifact.version,
+            (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
               singleAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
                 singleAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
             }
