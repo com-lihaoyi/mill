@@ -232,7 +232,7 @@ def launcherScript(jvmArgs: Seq[String],
   universalScript(
     shellCommands = {
       def java(mainClass: String) =
-        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" mill.Main "$$@""""
+        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
       s"""case "$$1" in
          |  -i | --interactive )

@@ -353,7 +353,7 @@ object Evaluator{
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {
     case scl: SpecialClassLoader => scl.classpathSignature
     case ucl: URLClassLoader =>
-      SpecialClassLoader.initialClasspathSignature(ucl).map{ case (k, v) => (Right(k), v)}
+      SpecialClassLoader.initialClasspathSignature(ucl)
     case _ => Nil
   }
   case class Timing(label: String,
