@@ -65,7 +65,7 @@ trait MillModule extends MillPublishModule{ outer =>
 
 object clientserver extends MillModule{
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-7-33b728c",
+    ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d",
     ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   )
   val test = new Tests(implicitly)
@@ -80,7 +80,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.1.0-7-33b728c",
+    ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d",
   )
 
   def generatedSources = T {
