@@ -258,6 +258,13 @@ def launcherScript(jvmArgs: Seq[String],
   )
 }
 
+val isBatch =
+  scala.util.Properties.isWin &&
+    !(org.jline.utils.OSUtils.IS_CYGWIN
+      || org.jline.utils.OSUtils.IS_MINGW
+      || "MSYS" == System.getProperty("MSYSTEM"))
+
+
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs = T{
@@ -265,7 +272,7 @@ object dev extends MillModule{
   }
   def launcher = T{
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx().dest / "run"
+    val outputPath = T.ctx().dest / (if (isBatch) "run.bat" else "run")
 
     write(outputPath, prependShellScript())
 
@@ -280,7 +287,7 @@ object dev extends MillModule{
   }
 
   def assembly = T{
-    val filename = "mill"
+    val filename = if (isBatch) "mill.bat" else "mill"
     mv(super.assembly().path, T.ctx().dest / filename)
     PathRef(T.ctx().dest / filename)
   }
@@ -307,29 +314,21 @@ object dev extends MillModule{
   }
 }
 
-private def releaseHelper(dest: Path,
-                          cp: Agg[Path],
-                          ver: String)
-                         (implicit ctx: mill.util.Ctx.Dest): PathRef = {
+def release = T{
+  val dest = T.ctx().dest
+  val filename = if (isBatch) "mill.bat" else "mill"
   mv(
     createAssembly(
-      cp,
+      dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        Seq("-DMILL_VERSION=" + ver),
+        Seq("-DMILL_VERSION=" + publishVersion()._2),
         Agg("$0"),
         Agg("%~dpnx0")
       )
     ).path,
-    dest / "mill"
+    dest / filename
   )
-  PathRef(dest / "mill")
-}
-
-def release = T{
-  releaseHelper(
-    T.ctx().dest,
-    dev.runClasspath().map(_.path),
-    publishVersion()._2)
+  PathRef(dest / filename)
 }
 
 val isMasterCommit = {

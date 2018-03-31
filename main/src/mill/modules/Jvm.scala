@@ -355,7 +355,11 @@ object Jvm {
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
     val isWin = scala.util.Properties.isWin
-    val outputPath = ctx.dest / "run"
+    val isBatch = isWin &&
+      !(org.jline.utils.OSUtils.IS_CYGWIN
+        || org.jline.utils.OSUtils.IS_MINGW
+        || "MSYS" == System.getProperty("MSYSTEM"))
+    val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
     val classPathStrs = classPath.map(_.toString)
 
     write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
