@@ -26,6 +26,14 @@ object ResolveDepsTests extends TestSuite {
       assert(paths.items.next.path.toString.contains("natives-macos"))
     }
 
+    'resolveTransitiveRuntimeDeps - {
+      val deps = Agg(ivy"org.mockito:mockito-core:2.7.22")
+      val Success(paths) = evalDeps(deps)
+      assert(paths.nonEmpty)
+      assert(paths.exists(_.path.toString.contains("objenesis")))
+      assert(paths.exists(_.path.toString.contains("byte-buddy")))
+    }
+
     'excludeTransitiveDeps - {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       val Success(paths) = evalDeps(deps)
