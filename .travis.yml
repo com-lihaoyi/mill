@@ -5,7 +5,7 @@ dist: trusty
 matrix:
   include:
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-0.sh
+    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
     jdk: oraclejdk9
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
@@ -36,7 +36,7 @@ matrix:
     jdk: oraclejdk8
 
 script:
-  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-8-b913c6 && chmod +x ~/bin/mill
+  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-29-f5097f && chmod +x ~/bin/mill
   - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
 
