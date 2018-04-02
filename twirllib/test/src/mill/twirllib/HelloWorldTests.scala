@@ -22,7 +22,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule {
-      override def twirlVersion = "1.2.1"
+      override def twirlVersion = "1.3.15"
     }
   }
 
@@ -50,7 +50,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.twirlVersion)
 
         assert(
-          result == "1.2.1",
+          result == "1.3.15",
           evalCount > 0
         )
       }
