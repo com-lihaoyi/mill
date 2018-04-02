@@ -3,20 +3,6 @@ import mill.util.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
 sealed trait Dep {
   def configure(attributes: coursier.Attributes): Dep
-  def exclude(exclusions: (String, String)*): Dep =
-    this match {
-      case dep : Dep.Java => dep.copy(dep = dep.dep.copy(exclusions = dep.dep.exclusions ++ exclusions))
-      case dep : Dep.Scala => dep.copy(dep = dep.dep.copy(exclusions = dep.dep.exclusions ++ exclusions))
-      case dep : Dep.Point => dep.copy(dep = dep.dep.copy(exclusions = dep.dep.exclusions ++ exclusions))
-    }
-  def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
-  def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
-  def withConfiguration(configuration: String): Dep =
-    this match {
-      case dep : Dep.Java => dep.copy(dep = dep.dep.copy(configuration = configuration))
-      case dep : Dep.Scala => dep.copy(dep = dep.dep.copy(configuration = configuration))
-      case dep : Dep.Point => dep.copy(dep = dep.dep.copy(configuration = configuration))
-    }
 }
 object Dep{
 
