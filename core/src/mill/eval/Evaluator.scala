@@ -171,10 +171,10 @@ case class Evaluator[T](home: Path,
 
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>
-                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
+                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case Result.Success((v, hashCode)) =>
-                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
+                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -301,7 +301,7 @@ case class Evaluator[T](home: Path,
       newResults(task) = for(v <- res) yield {
         (v,
           if (task.isInstanceOf[Worker[_]]) inputsHash
-          else v.hashCode
+          else v.##
         )
       }
     }
