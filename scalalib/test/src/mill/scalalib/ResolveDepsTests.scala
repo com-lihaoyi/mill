@@ -34,6 +34,24 @@ object ResolveDepsTests extends TestSuite {
       assert(paths.exists(_.path.toString.contains("byte-buddy")))
     }
 
+    'excludeTransitiveDeps - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
+    }
+
+    'excludeTransitiveDepsByOrg - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(path => path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")))
+    }
+
+    'excludeTransitiveDepsByName - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
+    }
+
     'errOnInvalidOrgDeps - {
       val deps = Agg(ivy"xxx.yyy.invalid::pprint:0.5.3")
       val Failure(errMsg, _) = evalDeps(deps)

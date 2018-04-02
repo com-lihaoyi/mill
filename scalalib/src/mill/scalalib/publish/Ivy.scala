@@ -41,8 +41,12 @@ object Ivy {
   }
 
   private def renderDependency(dep: Dependency) = {
-    val scope = scopeToConf(dep.scope)
-    <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"$scope->default(compile)"}></dependency>
+    if (dep.exclusions.isEmpty)
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"} />
+    else
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"}>
+        {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
+      </dependency>
   }
 
   private def scopeToConf(s: Scope): String = s match {
