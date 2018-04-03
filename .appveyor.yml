@@ -9,6 +9,8 @@ clone_folder: c:\mill
 
 environment:
   matrix:
+  - COMPILER: default
+    JAVA_HOME: C:\Program Files\Java\jdk9
   - COMPILER: cygwin
     CYGWIN_DIR: cygwin64
     JAVA_HOME: C:\Program Files\Java\jdk9
@@ -17,11 +19,6 @@ environment:
     MSYS2_DIR: msys64
     MSYSTEM: MINGW64
     JAVA_HOME: C:\Program Files\Java\jdk1.8.0
-  - COMPILER: msys2
-    MSYS2_ARCH: x86_64
-    MSYS2_DIR: msys64
-    MSYSTEM: MINGW64
-    JAVA_HOME: C:\Program Files\Java\jdk9
 
 cache:
   - '%LOCALAPPDATA%\Coursier\cache -> build.sc'
@@ -30,13 +27,18 @@ install:
   - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-29-f5097f
 
 build_script:
+  - if [%COMPILER%]==[default] (
+      SET "PATH=%JAVA_HOME%\bin;%PATH%" &&
+      MD C:\bin &&
+      curl -Lo C:\bin\mill.bat %MILL_URL% &&
+      cmd /C C:\bin\mill.bat -i all __.publishLocal release &&
+      cmd /C C:\mill\out\release\dest\mill.bat -i all main.test scalajslib.test)
   - if [%COMPILER%]==[msys2] (
       SET "PATH=%JAVA_HOME%\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'mkdir -p /usr/local/bin' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i all __.publishLocal release" &&
-      rd /s /q %USERPROFILE%\.mill &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/release/dest/mill -i all main.test scalajslib.test")
   - if [%COMPILER%]==[cygwin] (
       SET "PATH=%JAVA_HOME%\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%" &&
