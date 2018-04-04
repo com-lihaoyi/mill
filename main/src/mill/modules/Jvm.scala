@@ -9,7 +9,6 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import geny.Generator
-import mill.clientserver.InputPumper
 import mill.eval.PathRef
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
@@ -25,7 +24,7 @@ object Jvm {
                             envArgs: Map[String, String] = Map.empty,
                             mainArgs: Seq[String] = Seq.empty,
                             workingDir: Path = null): Unit = {
-    baseInteractiveSubprocess(
+    Util.interactiveSubprocess(
       Vector("java") ++
         jvmArgs ++
         Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
@@ -33,45 +32,6 @@ object Jvm {
       envArgs,
       workingDir
     )
-  }
-
-  def baseInteractiveSubprocess(commandArgs: Seq[String],
-                                envArgs: Map[String, String],
-                                workingDir: Path) = {
-    val builder = new java.lang.ProcessBuilder()
-
-    for ((k, v) <- envArgs){
-      if (v != null) builder.environment().put(k, v)
-      else builder.environment().remove(k)
-    }
-    builder.directory(workingDir.toIO)
-
-    val process = if (System.in.isInstanceOf[ByteArrayInputStream]){
-
-      val process = builder
-        .command(commandArgs:_*)
-        .start()
-
-      val sources = Seq(
-        process.getInputStream -> System.out,
-        process.getErrorStream -> System.err,
-        System.in -> process.getOutputStream
-      )
-
-      for((std, dest) <- sources){
-        new Thread(new InputPumper(std, dest, false)).start()
-      }
-      process
-    }else{
-      builder
-        .command(commandArgs:_*)
-        .inheritIO()
-        .start()
-    }
-
-    val exitCode = process.waitFor()
-    if (exitCode == 0) ()
-    else throw InteractiveShelloutException()
   }
 
   def runLocal(mainClass: String,

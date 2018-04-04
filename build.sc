@@ -303,7 +303,7 @@ object dev extends MillModule{
       case wd0 +: rest =>
         val wd = Path(wd0, pwd)
         mkdir(wd)
-        mill.modules.Jvm.baseInteractiveSubprocess(
+        mill.modules.Util.interactiveSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
