@@ -78,7 +78,7 @@ class Server[T](lockBase: String,
     val argStream = new FileInputStream(lockBase + "/run")
     val interactive = argStream.read() != 0;
     val args = ClientServer.parseArgs(argStream)
-    val env = ClientServer.parseEnv(argStream)
+    val env = ClientServer.parseMap(argStream)
     argStream.close()
 
     var done = false

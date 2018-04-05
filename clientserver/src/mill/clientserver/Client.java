@@ -7,10 +7,7 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Iterator;
-import java.util.Properties;
+import java.util.*;
 
 public class Client {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
@@ -51,6 +48,7 @@ public class Client {
     }
     public static void main(String[] args) throws Exception{
         boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
+        Map<String, String> env = System.getenv();
         if (setJnaNoSys) {
             System.setProperty("jna.nosys", "true");
         }
@@ -82,7 +80,8 @@ public class Client {
                         System.in,
                         System.out,
                         System.err,
-                        args
+                        args,
+                        env
                 );
                 System.exit(exitCode);
             }
@@ -97,11 +96,12 @@ public class Client {
                           InputStream stdin,
                           OutputStream stdout,
                           OutputStream stderr,
-                          String[] args) throws Exception{
+                          String[] args,
+                          Map<String, String> env) throws Exception{
 
         FileOutputStream f = new FileOutputStream(lockBase + "/run");
         ClientServer.writeArgs(System.console() != null, args, f);
-        ClientServer.writeEnv(f);
+        ClientServer.writeMap(env, f);
         f.close();
 
         boolean serverInit = false;

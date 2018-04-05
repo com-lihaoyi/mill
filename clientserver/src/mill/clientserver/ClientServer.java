@@ -43,16 +43,15 @@ public class ClientServer {
      * server (as the server remains alive over the course of several runs and
      * does not see the environment changes the client would)
      */
-    public static void writeEnv(OutputStream argStream) throws IOException {
-        Map<String, String> env = System.getenv();
-        argStream.write(env.size());
-        for (Map.Entry<String, String> kv : env.entrySet()) {
+    public static void writeMap(Map<String, String> map, OutputStream argStream) throws IOException {
+        argStream.write(map.size());
+        for (Map.Entry<String, String> kv : map.entrySet()) {
             writeString(argStream, kv.getKey());
             writeString(argStream, kv.getValue());
         }
     }
 
-    public static Map<String, String> parseEnv(InputStream argStream) throws IOException {
+    public static Map<String, String> parseMap(InputStream argStream) throws IOException {
         Map<String, String> env = new HashMap<>();
         int mapLength = argStream.read();
         for (int i = 0; i < mapLength; i++) {

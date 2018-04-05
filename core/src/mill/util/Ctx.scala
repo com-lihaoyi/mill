@@ -23,6 +23,9 @@ object Ctx{
   trait Home{
     def home: Path
   }
+  trait Env{
+    def env: Map[String, String]
+  }
   object Log{
     implicit def logToCtx(l: Logger): Log = new Log { def log = l }
   }
@@ -41,7 +44,8 @@ class Ctx(val args: IndexedSeq[_],
   extends Ctx.Dest
   with Ctx.Log
   with Ctx.Args
-  with Ctx.Home{
+  with Ctx.Home
+  with Ctx.Env {
 
   def dest = dest0()
   def length = args.length
