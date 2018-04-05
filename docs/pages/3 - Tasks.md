@@ -165,10 +165,10 @@ There are several APIs available to you within the body of a `T{...}` or
 `T.command{...}` block to help your write the code implementing your Target or
 Command:
 
-### mill.util.Ctx.DestCtx
+### mill.util.Ctx.Dest
 
 - `T.ctx().dest`
-- `implicitly[mill.util.Ctx.DestCtx]`
+- `implicitly[mill.util.Ctx.Dest]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
 assigned to every Target or Command. It is cleared before your task runs, and
@@ -177,16 +177,35 @@ artifacts. This is guaranteed to be unique for every `Target` or `Command`, so
 you can be sure that you will not collide or interfere with anyone else writing
 to those same paths.
 
-### mill.util.Ctx.LogCtx
+### mill.util.Ctx.Log
 
 - `T.ctx().log`
-- `implicitly[mill.util.Ctx.LogCtx]`
+- `implicitly[mill.util.Ctx.Log]`
 
 This is the default logger provided for every task. While your task is running,
 `System.out` and `System.in` are also redirected to this logger. The logs for a
 task are streamed to standard out/error as you would expect, but each task's
 specific output is also streamed to a log file on disk e.g. `out/run/log` or
 `out/classFiles/log` for you to inspect later.
+
+### mill.util.Ctx.Env
+
+- `T.ctx().env`
+- `implicitly[mill.util.Ctx.Env]`
+
+Mill keeps a long-lived JVM server to avoid paying the cost of recurrent 
+classloading. Because of this, running `System.getenv` in a task might not yield
+up to date environment variables, since it will be initialised when the server 
+starts, rather than when the client executes. To circumvent this, mill's client 
+sends the environment variables to the server as it sees them, and the server 
+makes them available as a `Map[String, String]` via the `Ctx` API. 
+
+If the intent is to always pull the latest environment values, the call should 
+be wrapped in an `Input` as such : 
+
+```scala
+def envVar = T.input { T.ctx().env.get("ENV_VAR") }
+```
 
 ## Other Tasks
 
