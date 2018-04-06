@@ -22,6 +22,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacOptions = outer.scalacOptions
+    override def javacOptions = outer.javacOptions
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps = Seq(outer)
   }
