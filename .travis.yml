@@ -5,6 +5,23 @@ dist: trusty
 matrix:
   include:
   - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk9
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk9
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
+    jdk: oraclejdk9
+
+  - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
     jdk: oraclejdk8
   - stage: build
@@ -12,23 +29,8 @@ matrix:
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-2.sh
-    jdk: oraclejdk8
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk8
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: oraclejdk8
+    jdk: oraclejdk9
 
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: oraclejdk9
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk9
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
-    jdk: oraclejdk9
 
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
