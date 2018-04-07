@@ -116,6 +116,20 @@ object HelloWorldTests extends TestSuite {
       )
     }
   }
+
+  object HelloWorldMacros extends HelloBase{
+    object core extends ScalaModule {
+      def scalaVersion = "2.11.8"
+
+      def ivyDeps = Agg(
+        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+      )
+      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+        ivy"org.scalamacros:::paradise:2.1.0"
+      )
+    }
+  }
+
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -473,6 +487,24 @@ object HelloWorldTests extends TestSuite {
           result.map(_.toString).exists(x => x.contains("typelevel") && x.contains("scala-library"))
 
         )
+      }
+    }
+    'macros - {
+      // make sure macros are applied when compiling/running
+      'runMain - workspaceTest(
+        HelloWorldMacros,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
+        assert(evalCount > 0)
+      }
+      // make sure macros are applied when compiling during scaladoc generation
+      'docJar - workspaceTest(
+        HelloWorldMacros,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
+        assert(evalCount > 0)
       }
     }
   }
