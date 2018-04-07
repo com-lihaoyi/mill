@@ -129,7 +129,8 @@ trait ScalaModule extends JavaModule { outer =>
       if p.isFile
     } yield p.toNIO.toString
 
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
+    val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
