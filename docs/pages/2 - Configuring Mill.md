@@ -414,7 +414,7 @@ object foo extends ScalaModule {
 
 Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
-some library you cna explicitly specify which one to use. This also adds the
+some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
 ## Downloading Non-Maven Jars
