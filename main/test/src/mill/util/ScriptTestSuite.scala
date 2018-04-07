@@ -10,8 +10,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   def scriptSourcePath: Path
 
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
-  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
-//  val stdOutErr = new PrintStream(System.out)
+//  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+  val stdOutErr = new PrintStream(System.out)
   val stdIn = new ByteArrayInputStream(Array())
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = workspacePath),
@@ -21,7 +21,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     if (!fork) runner.runScript(workspacePath / "build.sc", s.toList)
     else{
       try {
-        %%(home / "mill-release", "-i", s)(workspacePath)
+        %(home / "mill-release", "-i", s)(workspacePath)
         true
       }catch{case e: Throwable => false}
     }

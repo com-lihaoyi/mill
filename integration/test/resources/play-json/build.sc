@@ -1,5 +1,5 @@
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
-import $file.version
+import $file.playJsonVersion
 import $file.reformat
 import reformat.Scalariform
 import $file.mima
@@ -47,7 +47,7 @@ trait PlayJsonModule extends BaseModule with PublishModule with MiMa {
   def scalacOptions  = Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8")
   def javacOptions = Seq("-encoding", "UTF-8", "-Xlint:-options")
 
-  def publishVersion = version.current
+  def publishVersion = playJsonVersion.current
 }
 
 abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
@@ -329,14 +329,14 @@ object release extends Module {
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  private val releaseVersion = version.current match {
+  private val releaseVersion = playJsonVersion.current match {
     case MinorSnapshotVersion(major, minor, patch) =>
       s"${major}.${minor}.${patch.toInt}"
     case ReleaseVersion(major, minor, patch) =>
       s"${major}.${minor}.${patch.toInt}"
   }
 
-  private val nextVersion = version.current match {
+  private val nextVersion = playJsonVersion.current match {
     case v@MinorSnapshotVersion(major, minor, patch) => v
     case ReleaseVersion(major, minor, patch) =>
       s"${major}.${minor}.${patch.toInt + 1}-SNAPSHOT"

@@ -6,9 +6,6 @@ matrix:
   include:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
-    jdk: oraclejdk9
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-0.sh
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
@@ -18,16 +15,21 @@ matrix:
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk8
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-release.sh
     jdk: oraclejdk9
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk8
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
     jdk: oraclejdk9
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: oraclejdk8
+    env: CI_SCRIPT=ci/test-mill-0.sh
+    jdk: oraclejdk9
+
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
     jdk: oraclejdk8
