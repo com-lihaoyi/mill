@@ -12,6 +12,8 @@ mv out/release/dest/mill ~/mill-1
 # Clean up
 git clean -xdf
 
+rm -rf ~/.mill
+
 # Differentiate first and second builds
 echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 
@@ -21,6 +23,8 @@ mv out/release/dest/mill ~/mill-2
 
 # Clean up
 git clean -xdf
+
+rm -rf ~/.mill
 
 # Use second build to run tests using Mill
 ~/mill-2 -i all {clientserver,main,scalalib,scalajslib}.test
