@@ -27,7 +27,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
   def scalaVersion: T[String]
 
-  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
 
   override def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
@@ -81,6 +81,18 @@ trait ScalaModule extends JavaModule { outer =>
       T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
     )()
   }
+  override def compileClasspath = T{
+    transitiveLocalClasspath() ++
+    resources() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  }
+
+  override def upstreamAssemblyClasspath = T{
+    transitiveLocalClasspath() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  }
 
   override def compile: T[CompilationResult] = T.persistent{
     scalaWorker.worker().compileScala(
@@ -94,6 +106,17 @@ trait ScalaModule extends JavaModule { outer =>
       javacOptions(),
       upstreamCompileOutput()
     )
+  }
+
+  override def ivyDepsTree(inverse: Boolean = false) = T.command {
+    val (flattened, resolution) = Lib.resolveDependenciesMetadata(
+      repositories, scalaVersion(), ivyDeps(), platformSuffix(), Some(mapDependencies)
+    )
+
+    println(coursier.util.Print.dependencyTree(flattened, resolution,
+      printExclusions = false, reverse = inverse))
+
+    Result.Success()
   }
 
   override def docJar = T {
@@ -132,6 +155,17 @@ trait ScalaModule extends JavaModule { outer =>
       )
       Result.Success()
     }
+  }
+
+  override def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
+    resolveDependencies(
+      repositories,
+      scalaVersion(),
+      deps(),
+      platformSuffix(),
+      sources,
+      mapDependencies = Some(mapDependencies)
+    )
   }
 
   def ammoniteReplClasspath = T{

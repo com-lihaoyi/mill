@@ -1,12 +1,16 @@
 package mill
 package scalalib
 
+import java.nio.charset.Charset
+import java.util
+import javax.tools.{JavaFileObject, SimpleJavaFileObject, StandardJavaFileManager, ToolProvider}
+
 import ammonite.ops._
 import coursier.{Dependency, Repository}
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
-import mill.modules.Jvm
+import mill.modules.{Jvm, Util}
 import mill.modules.Jvm.{createAssembly, createJar, subprocess}
 import Lib._
 import mill.util.Loose.Agg
@@ -16,6 +20,8 @@ import mill.util.DummyInputStream
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   def defaultCommandName() = "run"
 
   def mainClass: T[Option[String]] = None
@@ -110,19 +116,13 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
 
-  def compile: T[CompilationResult] = T.persistent{
-//    scalaWorker.worker().compileScala(
-//      scalaVersion(),
-//      allSourceFiles().map(_.path),
-//      scalaCompilerBridgeSources(),
-//      compileClasspath().map(_.path),
-//      scalaCompilerClasspath().map(_.path),
-//      scalacOptions(),
-//      scalacPluginClasspath().map(_.path),
-//      javacOptions(),
-//      upstreamCompileOutput()
-//    )
-    Result.Failure[CompilationResult]("???", None)
+  def compile: T[CompilationResult] = T{
+    scalaWorker.worker().compileJava(
+      allSourceFiles().map(_.path.toIO).toArray,
+      compileClasspath().map(_.path.toIO).toArray,
+      javacOptions(),
+      upstreamCompileOutput()
+    )
   }
   def localClasspath = T{
     resources() ++ Agg(compile().classes)
@@ -173,29 +173,34 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def docJar = T[PathRef] {
-//    val outDir = T.ctx().dest
-//
-//    val javadocDir = outDir / 'javadoc
-//    mkdir(javadocDir)
-//
-//    val files = for{
-//      ref <- allSources()
-//      if exists(ref.path)
-//      p <- ls.rec(ref.path)
-//      if p.isFile
-//    } yield p.toNIO.toString
-//
-//    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp")
-//
-//    if (files.nonEmpty) subprocess(
-//      "scala.tools.nsc.ScalaDoc",
-//      scalaCompilerClasspath().map(_.path) ++ compileClasspath().filter(_.path.ext != "pom").map(_.path),
-//      mainArgs = (files ++ options).toSeq
-//    )
-//
-//
-//    createJar(Agg(javadocDir))(outDir)
-    Result.Failure[PathRef]("", None)
+    val outDir = T.ctx().dest
+
+    val javadocDir = outDir / 'javadoc
+    mkdir(javadocDir)
+
+    val files = for{
+      ref <- allSources()
+      if exists(ref.path)
+      p <- ls.rec(ref.path)
+      if p.isFile
+    } yield p.toNIO.toString
+
+    val options = Seq("-d", javadocDir.toNIO.toString)
+
+    if (files.nonEmpty) Jvm.baseInteractiveSubprocess(
+      commandArgs = Seq(
+        "javadoc"
+      ) ++ options ++
+      Seq(
+        "-classpath",
+        compileClasspath().filter(_.path.ext != "pom").mkString(java.io.File.pathSeparator)
+      ) ++
+      files.map(_.toString),
+      envArgs = Map(),
+      workingDir = T.ctx().dest
+    )
+
+    createJar(Agg(javadocDir))(outDir)
   }
 
   def sourceJar = T {

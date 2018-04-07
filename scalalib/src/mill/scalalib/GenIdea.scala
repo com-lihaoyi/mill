@@ -68,7 +68,7 @@ object GenIdea {
     val buildLibraryPaths =
       if (!fetchMillModules) Nil
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
-        case Some(found) => Agg.from(found.split(',').map(Path(_)).distinct)
+        case Some(found) => found.split(',').map(Path(_)).distinct.toList
         case None =>
           val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }
           val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
@@ -78,11 +78,15 @@ object GenIdea {
             for(name <- artifactNames)
             yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}"
           )
-          res.items.toSeq.map(_.path)
+          res.items.toList.map(_.path)
       }
 
     val resolved = for((path, mod) <- modules) yield {
-      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.compileIvyDeps()}
+      val scalaLibraryIvyDeps = mod match{
+        case x: ScalaModule => x.scalaLibraryIvyDeps
+        case _ => T.task{Nil}
+      }
+      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod.compileIvyDeps()}
       val externalDependencies = T.task{
         mod.resolveDeps(allIvyDeps)() ++
         Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
@@ -105,18 +109,27 @@ object GenIdea {
       val resolvedSp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalacPluginDependencies, Loose.Agg.empty)
       val scalacOpts: Seq[String] = evalOrElse(evaluator, scalacOptions, Seq())
 
-      (path, resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path), mod,
-        resolvedSp.map(_.path).filter(_.ext == "jar"), scalacOpts)
+      (
+        path,
+        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+        mod,
+        resolvedSp.map(_.path).filter(_.ext == "jar"),
+        scalacOpts
+      )
     }
     val moduleLabels = modules.map(_.swap).toMap
 
 
     val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths
-    val minResolvedLength = allResolved.map(_.segments.length).min
-    val commonPrefix = allResolved.map(_.segments.take(minResolvedLength))
-      .transpose
-      .takeWhile(_.distinct.length == 1)
-      .length
+    val commonPrefix =
+      if (allResolved.isEmpty) 0
+      else {
+        val minResolvedLength = allResolved.map(_.segments.length).min
+        allResolved.map(_.segments.take(minResolvedLength))
+          .transpose
+          .takeWhile(_.distinct.length == 1)
+          .length
+      }
 
     // only resort to full long path names if the jar name is a duplicate
     val pathShortLibNameDuplicate = allResolved

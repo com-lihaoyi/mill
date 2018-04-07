@@ -5,6 +5,7 @@ import java.lang.annotation.Annotation
 import java.net.URLClassLoader
 import java.util.Optional
 import java.util.zip.ZipInputStream
+import javax.tools.ToolProvider
 
 import ammonite.ops.{Path, exists, ls, mkdir, rm, up}
 import ammonite.util.Colors
@@ -18,9 +19,14 @@ import mill.scalalib.Lib.grepJar
 import mill.scalalib.TestRunner.Result
 import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
+import sbt.internal.inc.classfile.Analyze
+import sbt.internal.inc.classpath.ClasspathUtilities
+import sbt.internal.inc.javac.JavaCompiler
 import sbt.internal.util.{ConsoleOut, MainAppender}
+import sbt.io.PathFinder
 import sbt.testing._
-import sbt.util.LogExchange
+import sbt.util.{InterfaceUtil, LogExchange}
+import xsbti.AnalysisCallback
 
 import scala.collection.mutable
 
@@ -129,6 +135,29 @@ class ScalaWorker(ctx0: mill.util.Ctx,
           None
       }
       .getOrElse(Seq.empty[String])
+  }
+
+  def compileJava(sources: Array[java.io.File],
+                  classpath: Array[java.io.File],
+                  javaOpts: Seq[String],
+                  upstreamCompileOutput: Seq[CompilationResult])
+                 (implicit ctx: mill.util.Ctx) = {
+    val javac = ToolProvider.getSystemJavaCompiler()
+
+    rm(ctx.dest / 'classes)
+    mkdir(ctx.dest / 'classes)
+    val cpArgs =
+      if(classpath.isEmpty) Seq()
+      else Seq("-cp", classpath.mkString(File.pathSeparator))
+
+    val args = Seq("-d", ctx.dest / 'classes) ++ cpArgs ++ javaOpts ++ sources
+
+    javac.run(
+      ctx.log.inStream, ctx.log.outputStream, ctx.log.errorStream,
+      args.map(_.toString):_*
+    )
+    if (ls(ctx.dest / 'classes).isEmpty) mill.eval.Result.Failure("Compilation Failed")
+    else mill.eval.Result.Success(CompilationResult(ctx.dest / 'zinc, PathRef(ctx.dest / 'classes)))
   }
 
   def compileScala(scalaVersion: String,
