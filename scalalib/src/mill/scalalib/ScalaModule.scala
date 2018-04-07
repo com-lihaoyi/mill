@@ -15,8 +15,7 @@ import mill.util.DummyInputStream
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait ScalaModule extends mill.Module with TaskModule { outer =>
-  def defaultCommandName() = "run"
+trait ScalaModule extends JavaModule { outer =>
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories
@@ -28,11 +27,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
   def scalaVersion: T[String]
 
-  def mainClass: T[Option[String]] = None
-
   def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
 
-  def finalMainClassOpt: T[Either[String, String]] = T{
+  override def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
       case Some(m) => Right(m)
       case None =>
@@ -48,61 +45,12 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
-  def finalMainClass: T[String] = T{
-    finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg)   => Result.Failure(msg)
-    }
-  }
 
-  def ivyDeps = T{ Agg.empty[Dep] }
-  def compileIvyDeps = T{ Agg.empty[Dep] }
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
-  def runIvyDeps = T{ Agg.empty[Dep] }
 
   def scalacOptions = T{ Seq.empty[String] }
-  def javacOptions = T{ Seq.empty[String] }
 
-  def moduleDeps = Seq.empty[ScalaModule]
-
-
-  def transitiveModuleDeps: Seq[ScalaModule] = {
-    Seq(this) ++ moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-  }
-  def unmanagedClasspath = T{ Agg.empty[PathRef] }
-
-
-  def transitiveIvyDeps: T[Agg[Dep]] = T{
-    ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
-  }
-
-  def upstreamCompileOutput = T{
-    Task.traverse(moduleDeps)(_.compile)
-  }
-
-  def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    Task.traverse(moduleDeps)(m =>
-      T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
-    )().flatten
-  }
-
-  def mapDependencies(d: coursier.Dependency) = d
-
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
-    resolveDependencies(
-      repositories,
-      scalaVersion(),
-      deps(),
-      platformSuffix(),
-      sources,
-      mapDependencies = Some(mapDependencies)
-    )
-  }
-
-
-  def repositories: Seq[Repository] = scalaWorker.repositories
-
-  def platformSuffix = T{ "" }
+  override def repositories: Seq[Repository] = scalaWorker.repositories
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
@@ -134,35 +82,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )()
   }
 
-
-  def prependShellScript: T[String] = T{
-    mainClass() match{
-      case None => ""
-      case Some(cls) =>
-        val isWin = scala.util.Properties.isWin
-        mill.modules.Jvm.launcherUniversalScript(
-          cls,
-          Agg("$0"), Agg("%~dpnx0"),
-          forkArgs()
-        )
-    }
-  }
-
-  def sources = T.sources{ millSourcePath / 'src }
-  def resources = T.sources{ millSourcePath / 'resources }
-  def generatedSources = T{ Seq.empty[PathRef] }
-  def allSources = T{ sources() ++ generatedSources() }
-
-  def allSourceFiles = T{
-    for {
-      root <- allSources()
-      if exists(root.path)
-      path <- ls.rec(root.path)
-      if path.isFile && (path.ext == "scala" || path.ext == "java")
-    } yield PathRef(path)
-  }
-
-  def compile: T[CompilationResult] = T.persistent{
+  override def compile: T[CompilationResult] = T.persistent{
     scalaWorker.worker().compileScala(
       scalaVersion(),
       allSourceFiles().map(_.path),
@@ -175,55 +95,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-  def localClasspath = T{
-    resources() ++ Agg(compile().classes)
-  }
-  def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
-  }
 
-  def upstreamAssemblyClasspath = T{
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
-  }
-
-  def runClasspath = T{
-    localClasspath() ++
-    upstreamAssemblyClasspath()
-  }
-
-  /**
-    * Build the assembly for upstream dependencies separate from the current classpath
-    *
-    * This should allow much faster assembly creation in the common case where
-    * upstream dependencies do not change
-    */
-  def upstreamAssembly = T{
-    createAssembly(upstreamAssemblyClasspath().map(_.path), mainClass())
-  }
-
-  def assembly = T{
-    createAssembly(
-      Agg.from(localClasspath().map(_.path)),
-      mainClass(),
-      prependShellScript(),
-      Some(upstreamAssembly().path)
-    )
-  }
-
-
-  def jar = T{
-    createJar(
-      localClasspath().map(_.path).filter(exists),
-      mainClass()
-    )
-  }
-
-  def docJar = T {
+  override def docJar = T {
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
@@ -245,74 +118,6 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )
 
     createJar(Agg(javadocDir))(outDir)
-  }
-
-  def sourceJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(exists))
-  }
-
-  def forkArgs = T{ Seq.empty[String] }
-
-  def forkEnv = T{ sys.env.toMap }
-
-  def launcher = T{
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs()
-      )
-    )
-  }
-
-  def ivyDepsTree(inverse: Boolean = false) = T.command {
-    val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, scalaVersion(), ivyDeps(), platformSuffix(), Some(mapDependencies)
-    )
-
-    println(coursier.util.Print.dependencyTree(flattened, resolution,
-      printExclusions = false, reverse = inverse))
-
-    Result.Success()
-  }
-
-  def runLocal(args: String*) = T.command {
-    Jvm.runLocal(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      args
-    )
-  }
-
-  def run(args: String*) = T.command{
-    Jvm.interactiveSubprocess(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = ammonite.ops.pwd
-    )
-  }
-
-
-  def runMainLocal(mainClass: String, args: String*) = T.command {
-    Jvm.runLocal(
-      mainClass,
-      runClasspath().map(_.path),
-      args
-    )
-  }
-
-  def runMain(mainClass: String, args: String*) = T.command{
-    Jvm.interactiveSubprocess(
-      mainClass,
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = ammonite.ops.pwd
-    )
   }
 
   def console() = T.command{
@@ -361,9 +166,8 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     if (crossFullScalaVersion()) scalaVersion()
     else Lib.scalaBinaryVersion(scalaVersion())
   }
-  def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
-  def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
+  override def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
 }
 
 

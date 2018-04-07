@@ -97,7 +97,7 @@ object Lib{
     * `import $ivy` syntax.
     */
   def resolveDependencies(repositories: Seq[Repository],
-                          scalaVersion: String,
+                          scalaVersion: => String,
                           deps: TraversableOnce[Dep],
                           platformSuffix: String = "",
                           sources: Boolean = false,

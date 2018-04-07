@@ -62,7 +62,7 @@ object GenIdea {
                        fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
-      .collect{ case x: scalalib.ScalaModule => (x.millModuleSegments, x)}
+      .collect{ case x: scalalib.JavaModule => (x.millModuleSegments, x)}
       .toSeq
 
     val buildLibraryPaths =
@@ -70,7 +70,7 @@ object GenIdea {
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
         case Some(found) => Agg.from(found.split(',').map(Path(_)).distinct)
         case None =>
-          val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.scalaWorker.repositories }
+          val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }
           val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
@@ -82,7 +82,7 @@ object GenIdea {
       }
 
     val resolved = for((path, mod) <- modules) yield {
-      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.scalaLibraryIvyDeps() ++ mod.compileIvyDeps()}
+      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ mod.compileIvyDeps()}
       val externalDependencies = T.task{
         mod.resolveDeps(allIvyDeps)() ++
         Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
@@ -92,8 +92,10 @@ object GenIdea {
         mod.resolveDeps(allIvyDeps, sources = true)()
       }
 
-      val scalacPluginsIvyDeps = T.task{mod.scalacPluginIvyDeps()}
-      val scalacOptions = T.task{mod.scalacOptions()}
+      val (scalacPluginsIvyDeps, scalacOptions) = mod match{
+        case mod: ScalaModule => T.task{mod.scalacPluginIvyDeps()} -> T.task{mod.scalacOptions()}
+        case _ => T.task(Loose.Agg[Dep]()) -> T.task(Seq())
+      }
       val scalacPluginDependencies = T.task{
         mod.resolveDeps(scalacPluginsIvyDeps)()
       }
@@ -134,7 +136,7 @@ object GenIdea {
       .toMap
 
     val compilerSettings = resolved
-      .foldLeft(Map[(Loose.Agg[Path], Seq[String]), Vector[ScalaModule]]()) {
+      .foldLeft(Map[(Loose.Agg[Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
           val key = (q._4, q._5)
           r + (key -> (r.getOrElse(key, Vector()) :+ q._3))
@@ -190,7 +192,10 @@ object GenIdea {
         evaluator.outPath,
         mod.compile.ctx.segments
       )
-      val Seq(scalaVersion: String) = evaluator.evaluate(Agg(mod.scalaVersion)).values
+      val scalaVersionOpt = mod match {
+        case x: ScalaModule => Some(evaluator.evaluate(Agg(x.scalaVersion)).values.head.asInstanceOf[String])
+        case _ => None
+      }
       val generatedSourceOutPath = Evaluator.resolveDestPaths(
         evaluator.outPath,
         mod.generatedSources.ctx.segments
@@ -198,7 +203,7 @@ object GenIdea {
 
       val elem = moduleXmlTemplate(
         mod.millModuleBasePath.value,
-        scalaVersion,
+        scalaVersionOpt,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
@@ -293,7 +298,7 @@ object GenIdea {
     </component>
   }
   def moduleXmlTemplate(basePath: Path,
-                        scalaVersion: String,
+                        scalaVersionOpt: Option[String],
                         resourcePaths: Strict.Agg[Path],
                         normalSourcePaths: Strict.Agg[Path],
                         generatedSourcePaths: Strict.Agg[Path],
@@ -326,7 +331,10 @@ object GenIdea {
         </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
-        <orderEntry type="library" name={s"scala-sdk-$scalaVersion"} level="application" />
+        {
+          for(scalaVersion <- scalaVersionOpt.toSeq)
+          yield <orderEntry type="library" name={s"scala-sdk-$scalaVersion"} level="application" />
+        }
 
         {
         for(name <- libNames.toSeq.sorted)
@@ -340,7 +348,7 @@ object GenIdea {
       </component>
     </module>
   }
-  def scalaCompilerTemplate(settings: Map[(Loose.Agg[Path], Seq[String]), Seq[ScalaModule]]) = {
+  def scalaCompilerTemplate(settings: Map[(Loose.Agg[Path], Seq[String]), Seq[JavaModule]]) = {
 
     <project version="4">
       <component name="ScalaCompilerConfiguration">
