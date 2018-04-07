@@ -335,7 +335,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     unmanagedClasspath() ++
     resolveDeps(T.task{
       runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:1.1.0-7-33b728c")
+      Agg(ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d")
     })()
   }
 
