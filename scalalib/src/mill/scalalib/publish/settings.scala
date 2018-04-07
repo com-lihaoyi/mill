@@ -7,18 +7,22 @@ case class Artifact(group: String, id: String, version: String) {
 }
 
 object Artifact {
-
-  def fromDep(dep: Dep,
-              scalaFull: String,
-              scalaBin: String): Dependency = {
+  def fromDepJava(dep: Dep) = {
     dep match {
       case Dep.Java(dep, cross, force) =>
         Dependency(
           Artifact(dep.module.organization, dep.module.name, dep.version),
           Scope.Compile,
-          if (dep.configuration == "" ) None else Some(dep.configuration),
+          if (dep.configuration == "") None else Some(dep.configuration),
           dep.exclusions.toList
         )
+    }
+  }
+  def fromDep(dep: Dep,
+              scalaFull: String,
+              scalaBin: String): Dependency = {
+    dep match {
+      case d: Dep.Java => fromDepJava(d)
       case Dep.Scala(dep, cross, force) =>
         Dependency(
           Artifact(

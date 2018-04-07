@@ -36,7 +36,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         MavenRepository("https://repo1.maven.org/maven2"),
         MavenRepository("https://oss.sonatype.org/content/repositories/releases")
       ),
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4", ""),
       Seq(
         ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
       )
@@ -54,7 +54,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     }
     resolveDependencies(
       repositories,
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4", ""),
       commonDeps :+ envDep
     )
   }

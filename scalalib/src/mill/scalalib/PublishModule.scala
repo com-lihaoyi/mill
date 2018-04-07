@@ -9,28 +9,26 @@ import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */
-trait PublishModule extends ScalaModule { outer =>
+trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
   override def moduleDeps = Seq.empty[PublishModule]
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
-  def artifactId: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
+
   def publishSelfDependency = T{
-    Artifact(pomSettings().organization, artifactId(), publishVersion()),
+    Artifact(pomSettings().organization, artifactName(), publishVersion()),
   }
 
   def publishXmlDeps = T.task{
-    val ivyPomDeps = ivyDeps().map(
-      Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
-    )
+    val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
     val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
   def pom = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
-    val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
+    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactName(), pomSettings())
+    val pomPath = T.ctx().dest / s"${artifactName()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
   }
@@ -43,7 +41,7 @@ trait PublishModule extends ScalaModule { outer =>
   }
 
   def artifactMetadata: T[Artifact] = T {
-    Artifact(pomSettings().organization, artifactId(), publishVersion())
+    Artifact(pomSettings().organization, artifactName(), publishVersion())
   }
 
   def publishLocal(): define.Command[Unit] = T.command {
@@ -62,7 +60,7 @@ trait PublishModule extends ScalaModule { outer =>
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
   def publishArtifacts = T{
-    val baseName = s"${artifactId()}-${publishVersion()}"
+    val baseName = s"${artifactName()}-${publishVersion()}"
     PublishModule.PublishData(
       artifactMetadata(),
       Seq(

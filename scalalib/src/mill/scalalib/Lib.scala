@@ -34,16 +34,22 @@ object Lib{
       .toIO
   }
 
-  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
+
+  def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
     dep match {
       case Dep.Java(dep, cross, force) =>
         dep.copy(
           module = dep.module.copy(
             name =
               dep.module.name +
-              (if (!cross) "" else platformSuffix)
+                (if (!cross) "" else platformSuffix)
           )
         )
+    }
+  }
+  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
+    dep match {
+      case d: Dep.Java => depToDependencyJava(dep)
       case Dep.Scala(dep, cross, force) =>
         dep.copy(
           module = dep.module.copy(
@@ -66,15 +72,14 @@ object Lib{
 
 
   def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  scalaVersion: String,
+                                  depToDependency: Dep => coursier.Dependency,
                                   deps: TraversableOnce[Dep],
-                                  platformSuffix: String = "",
                                   mapDependencies: Option[Dependency => Dependency] = None) = {
     val depSeq = deps.toSeq
-    val flattened = depSeq.map(depToDependency(_, scalaVersion, platformSuffix))
+    val flattened = depSeq.map(depToDependency)
 
     val forceVersions = depSeq.filter(_.force)
-      .map(depToDependency(_, scalaVersion, platformSuffix))
+      .map(depToDependency)
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
       .map{d => d.module -> d.version}
       .toMap
@@ -97,14 +102,13 @@ object Lib{
     * `import $ivy` syntax.
     */
   def resolveDependencies(repositories: Seq[Repository],
-                          scalaVersion: => String,
+                          depToDependency: Dep => coursier.Dependency,
                           deps: TraversableOnce[Dep],
-                          platformSuffix: String = "",
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
-      repositories, scalaVersion, deps, platformSuffix, mapDependencies
+      repositories, depToDependency, deps, mapDependencies
     )
     val errs = resolution.metadataErrors
     if(errs.nonEmpty) {

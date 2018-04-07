@@ -2,12 +2,12 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import coursier.{Dependency, Repository}
+import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.modules.Jvm.{createJar, subprocess}
 import Lib._
 import mill.util.Loose.Agg
 import mill.util.DummyInputStream
@@ -27,7 +27,13 @@ trait ScalaModule extends JavaModule { outer =>
   }
   def scalaVersion: T[String]
 
+  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
+    Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
+  }
 
+  override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
+    publish.Artifact.fromDep(_: Dep, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+  }
 
   override def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
@@ -62,7 +68,7 @@ trait ScalaModule extends JavaModule { outer =>
 
     resolveDependencies(
       repositories,
-      scalaVersion0,
+      Lib.depToDependency(_, scalaVersion(), platformSuffix()),
       Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
       sources = true
     ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar").map(_.path).get)
@@ -108,17 +114,6 @@ trait ScalaModule extends JavaModule { outer =>
     )
   }
 
-  override def ivyDepsTree(inverse: Boolean = false) = T.command {
-    val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, scalaVersion(), ivyDeps(), platformSuffix(), Some(mapDependencies)
-    )
-
-    println(coursier.util.Print.dependencyTree(flattened, resolution,
-      printExclusions = false, reverse = inverse))
-
-    Result.Success()
-  }
-
   override def docJar = T {
     val outDir = T.ctx().dest
 
@@ -157,17 +152,6 @@ trait ScalaModule extends JavaModule { outer =>
     }
   }
 
-  override def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
-    resolveDependencies(
-      repositories,
-      scalaVersion(),
-      deps(),
-      platformSuffix(),
-      sources,
-      mapDependencies = Some(mapDependencies)
-    )
-  }
-
   def ammoniteReplClasspath = T{
     localClasspath() ++
     transitiveLocalClasspath() ++
@@ -201,7 +185,8 @@ trait ScalaModule extends JavaModule { outer =>
     else Lib.scalaBinaryVersion(scalaVersion())
   }
 
-  override def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
+  def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
+  override def artifactName: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
 }
 
 
