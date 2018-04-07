@@ -36,7 +36,7 @@ object Lib{
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep match {
-      case Dep.Java(dep, cross) =>
+      case Dep.Java(dep, cross, force) =>
         dep.copy(
           module = dep.module.copy(
             name =
@@ -44,7 +44,7 @@ object Lib{
               (if (!cross) "" else platformSuffix)
           )
         )
-      case Dep.Scala(dep, cross) =>
+      case Dep.Scala(dep, cross, force) =>
         dep.copy(
           module = dep.module.copy(
             name =
@@ -53,7 +53,7 @@ object Lib{
               "_" + scalaBinaryVersion(scalaVersion)
           )
         )
-      case Dep.Point(dep, cross) =>
+      case Dep.Point(dep, cross, force) =>
         dep.copy(
           module = dep.module.copy(
             name =
@@ -65,7 +65,30 @@ object Lib{
     }
 
 
+  def resolveDependenciesMetadata(repositories: Seq[Repository],
+                                  scalaVersion: String,
+                                  deps: TraversableOnce[Dep],
+                                  platformSuffix: String = "",
+                                  mapDependencies: Option[Dependency => Dependency] = None) = {
+    val depSeq = deps.toSeq
+    val flattened = depSeq.map(depToDependency(_, scalaVersion, platformSuffix))
 
+    val forceVersions = depSeq.filter(_.force)
+      .map(depToDependency(_, scalaVersion, platformSuffix))
+      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .map{d => d.module -> d.version}
+      .toMap
+
+    val start = Resolution(
+      flattened.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
+      forceVersions = forceVersions,
+      mapDependencies = mapDependencies
+    )
+
+    val fetch = Fetch.from(repositories, Cache.fetch())
+    val resolution = start.process.run(fetch).unsafePerformSync
+    (flattened, resolution)
+  }
   /**
     * Resolve dependencies using Coursier.
     *
@@ -77,13 +100,12 @@ object Lib{
                           scalaVersion: String,
                           deps: TraversableOnce[Dep],
                           platformSuffix: String = "",
-                          sources: Boolean = false): Result[Agg[PathRef]] = {
+                          sources: Boolean = false,
+                          mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
 
-    val flattened = deps.map(depToDependency(_, scalaVersion, platformSuffix)).toSet
-    val start = Resolution(flattened)
-
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
+    val (_, resolution) = resolveDependenciesMetadata(
+      repositories, scalaVersion, deps, platformSuffix, mapDependencies
+    )
     val errs = resolution.metadataErrors
     if(errs.nonEmpty) {
       val header =
@@ -130,16 +152,17 @@ object Lib{
     }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
-    ivy"org.scala-lang:scala-compiler:$scalaVersion",
-    ivy"org.scala-lang:scala-reflect:$scalaVersion"
+    ivy"org.scala-lang:scala-compiler:$scalaVersion".forceVersion(),
+    ivy"org.scala-lang:scala-reflect:$scalaVersion".forceVersion()
   )
   def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
-    ivy"org.scala-lang:scala-library:$scalaVersion"
+    ivy"org.scala-lang:scala-library:$scalaVersion".forceVersion()
   )
   def compilerBridgeIvyDep(scalaVersion: String) =
     Dep.Point(
       coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false),
-      cross = false
+      cross = false,
+      force = false
     )
 
 }
