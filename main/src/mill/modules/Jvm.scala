@@ -1,6 +1,6 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, FileOutputStream, File}
+import java.io.{ByteArrayInputStream, File, FileOutputStream}
 import java.lang.reflect.Modifier
 import java.net.{URI, URLClassLoader}
 import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
@@ -9,7 +9,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import geny.Generator
-import mill.clientserver.InputPumper
+import mill.client.InputPumper
 import mill.eval.PathRef
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg

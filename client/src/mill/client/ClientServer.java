@@ -1,4 +1,4 @@
-package mill.clientserver;
+package mill.client;
 
 
 import java.io.IOException;

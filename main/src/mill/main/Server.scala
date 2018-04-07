@@ -1,4 +1,4 @@
-package mill.clientserver
+package mill.main
 
 import java.io._
 import java.net.Socket
