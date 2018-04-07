@@ -12,14 +12,14 @@ object Artifact {
               scalaFull: String,
               scalaBin: String): Dependency = {
     dep match {
-      case Dep.Java(dep, cross) =>
+      case Dep.Java(dep, cross, force) =>
         Dependency(
           Artifact(dep.module.organization, dep.module.name, dep.version),
           Scope.Compile,
           if (dep.configuration == "" ) None else Some(dep.configuration),
           dep.exclusions.toList
         )
-      case Dep.Scala(dep, cross) =>
+      case Dep.Scala(dep, cross, force) =>
         Dependency(
           Artifact(
             dep.module.organization,
@@ -30,7 +30,7 @@ object Artifact {
           if (dep.configuration == "") None else Some(dep.configuration),
           dep.exclusions.toList
         )
-      case Dep.Point(dep, cross) =>
+      case Dep.Point(dep, cross, force) =>
         Dependency(
           Artifact(
             dep.module.organization,

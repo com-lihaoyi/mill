@@ -98,6 +98,24 @@ object HelloWorldTests extends TestSuite {
       override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
     }
   }
+
+  object HelloWorldTypeLevel extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "2.11.8"
+      override def mapDependencies(d: coursier.Dependency) = {
+        val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
+        if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
+        else d.copy(module = d.module.copy(organization = "org.typelevel"))
+      }
+
+      def ivyDeps = Agg(
+        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+      )
+      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+        ivy"org.scalamacros:::paradise:2.1.0"
+      )
+    }
+  }
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -437,6 +455,25 @@ object HelloWorldTests extends TestSuite {
         result2.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
         !result2.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
       )
+    }
+    'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
+      val classPathsToCheck = Seq(
+        HelloWorldTypeLevel.foo.runClasspath,
+        HelloWorldTypeLevel.foo.ammoniteReplClasspath,
+        HelloWorldTypeLevel.foo.compileClasspath
+      )
+      for(cp <- classPathsToCheck){
+        val Right((result, _)) = eval.apply(cp)
+        assert(
+          // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
+          !result.map(_.toString).exists(x =>
+            x.contains("scala-lang") &&
+            (x.contains("scala-library") || x.contains("scala-compiler") || x.contains("scala-reflect"))
+          ),
+          result.map(_.toString).exists(x => x.contains("typelevel") && x.contains("scala-library"))
+
+        )
+      }
     }
   }
 

@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import ammonite.ops._
-import coursier.Repository
+import coursier.{Dependency, Repository}
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
@@ -22,6 +22,7 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacOptions = outer.scalacOptions
+    override def javacOptions = outer.javacOptions
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps = Seq(outer)
   }
@@ -85,13 +86,16 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
     )().flatten
   }
 
+  def mapDependencies(d: coursier.Dependency) = d
+
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
       repositories,
       scalaVersion(),
       deps(),
       platformSuffix(),
-      sources
+      sources,
+      mapDependencies = Some(mapDependencies)
     )
   }
 
@@ -262,12 +266,9 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
-    import coursier.{Cache, Fetch, Resolution}
-
-    val flattened = ivyDeps().map(depToDependency(_, scalaVersion(), platformSuffix())).toSeq
-    val start = Resolution(flattened.toSet)
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
+    val (flattened, resolution) = Lib.resolveDependenciesMetadata(
+      repositories, scalaVersion(), ivyDeps(), platformSuffix(), Some(mapDependencies)
+    )
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,
       printExclusions = false, reverse = inverse))
@@ -329,15 +330,22 @@ trait ScalaModule extends mill.Module with TaskModule { outer =>
   }
 
   def ammoniteReplClasspath = T{
-    resolveDeps(T.task{Agg(ivy"com.lihaoyi:::ammonite:1.1.0-7-33b728c")})()
+    localClasspath() ++
+    transitiveLocalClasspath() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{
+      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
+      Agg(ivy"com.lihaoyi:::ammonite:1.1.0-7-33b728c")
+    })()
   }
+
   def repl() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.interactiveSubprocess(
         mainClass = "ammonite.Main",
-        classPath = runClasspath().map(_.path) ++ ammoniteReplClasspath().map(_.path),
+        classPath = ammoniteReplClasspath().map(_.path),
         mainArgs = Nil,
         workingDir = pwd
       )

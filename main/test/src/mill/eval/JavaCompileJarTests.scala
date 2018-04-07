@@ -11,10 +11,10 @@ import mill.util.Strict.Agg
 import utest._
 import mill._
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: mill.util.Loose.Agg[PathRef])(implicit ctx: Dest) = {
     mkdir(ctx.dest)
     import ammonite.ops._
-    %("javac", sources.map(_.path.toString()), "-d", ctx.dest)(wd = ctx.dest)
+    %("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest)(wd = ctx.dest)
     PathRef(ctx.dest)
   }
 
