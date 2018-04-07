@@ -277,4 +277,6 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
 
   def artifactName: T[String] = millModuleSegments.parts.mkString("-")
+
+  def artifactId: T[String] = artifactName()
 }

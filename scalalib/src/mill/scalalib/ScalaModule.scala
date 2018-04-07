@@ -68,7 +68,7 @@ trait ScalaModule extends JavaModule { outer =>
 
     resolveDependencies(
       repositories,
-      Lib.depToDependency(_, scalaVersion(), platformSuffix()),
+      Lib.depToDependency(_, scalaVersion0, platformSuffix()),
       Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
       sources = true
     ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar").map(_.path).get)
@@ -185,8 +185,10 @@ trait ScalaModule extends JavaModule { outer =>
     else Lib.scalaBinaryVersion(scalaVersion())
   }
 
-  def artifactSuffix: T[String] = T { s"_${artifactScalaVersion()}" }
-  override def artifactName: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
+  def artifactSuffix: T[String] = s"_${artifactScalaVersion()}"
+
+  override def artifactId: T[String] = artifactName() + artifactSuffix()
+
 }
 
 

@@ -476,6 +476,4 @@ object HelloWorldTests extends TestSuite {
       }
     }
   }
-
-
 }

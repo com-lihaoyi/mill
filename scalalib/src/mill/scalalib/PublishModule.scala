@@ -18,7 +18,7 @@ trait PublishModule extends JavaModule { outer =>
   def publishVersion: T[String]
 
   def publishSelfDependency = T{
-    Artifact(pomSettings().organization, artifactName(), publishVersion()),
+    Artifact(pomSettings().organization, artifactId(), publishVersion()),
   }
 
   def publishXmlDeps = T.task{
@@ -27,8 +27,8 @@ trait PublishModule extends JavaModule { outer =>
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
   def pom = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactName(), pomSettings())
-    val pomPath = T.ctx().dest / s"${artifactName()}-${publishVersion()}.pom"
+    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
+    val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
   }
@@ -41,7 +41,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def artifactMetadata: T[Artifact] = T {
-    Artifact(pomSettings().organization, artifactName(), publishVersion())
+    Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   def publishLocal(): define.Command[Unit] = T.command {
@@ -60,7 +60,7 @@ trait PublishModule extends JavaModule { outer =>
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
   def publishArtifacts = T{
-    val baseName = s"${artifactName()}-${publishVersion()}"
+    val baseName = s"${artifactId()}-${publishVersion()}"
     PublishModule.PublishData(
       artifactMetadata(),
       Seq(
