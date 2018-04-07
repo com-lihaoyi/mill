@@ -108,7 +108,7 @@ object Pom {
               <groupId>{ex._1}</groupId>
               <artifactId>{ex._2}</artifactId>
             </exclude>
-          )}.toSeq
+          )}
         </exclusions>
         {scope}
       </dependency>

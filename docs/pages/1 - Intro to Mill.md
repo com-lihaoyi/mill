@@ -453,13 +453,12 @@ res2: mill.scalalib.CompilationResult = CompilationResult(
 )
 ```
 
-You can run `mill` alone to open a build REPL; this is a Scala console with your
+You can run `mill -i` to open a build REPL; this is a Scala console with your
 `build.sc` loaded, which lets you run tasks interactively. The task-running
 syntax is slightly different from the command-line, but more in-line with how
 you would depend on tasks from within your build file.
 
-You can use this REPL to run build commands quicker, due to keeping the JVM warm
-between runs, or to interactively explore your build to see what is available.
+You can use this REPL to interactively explore your build to see what is available.
 
 ## Deploying your code
 
@@ -543,6 +542,5 @@ You also need to specify `release` as `true` or `false`, depending on whether
 you just want to stage your module on `oss.sonatype.org` or you want Mill to
 complete the release process to Maven Central.
 
-If you are publishing multiple artifacts, you can also use `target/bin/mill
-mill.scalalib.PublishModule/publishAll1 as described
+If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
 [here](http://www.lihaoyi.com/mill/page/common-project-layouts.html#publishing)

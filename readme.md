@@ -328,24 +328,41 @@ rm -rf out/
 
 ## Changelog
 
+### Master
+
+- Universal (combined batch/sh) script generation for launcher, assembly, and release
+
+  For some shell (e.g., `ksh` or `fish`), a shebang line should be added, e.g., using GNU sed:
+  
+  ```bash
+  sed -i '1s;^;#!/usr/bin/env sh\n;' <mill-path>
+  ```
+  
+  Or download directly with shebang added as follows:
+  
+  ```bash
+  sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L <mill-url>) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+  ```
+  
+  On Windows, save `<mill-url>` as `mill.bat`
+  
+- Windows client/server improvements
+
+- Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3 v3.6.3 is released)
+  
+- Fixed Java 9 support
+
 ### 0.1.7
 
+- Windows batch (.bat) generation for launcher, assembly, and release
+ 
 - Support for non-interactive (client/server) mode on Windows.
 
-  Mill requires an `sh` environment to run on Windows;
-  it is recommended to use [MSYS2](https://www.msys2.org) on Windows.
-  
-  [Cygwin](https://www.cygwin.com) can also be used, 
-  but your mileage may vary when running mill on non-interactive (client/server) mode
-  (it failed intermittently in mill's AppVeyor tests).
   On Cygwin, run the following after downloading mill:
   
   ```bash
   sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' <mill-path>
   ```
-  
-  Mill also runs on [Git-Bash](https://gitforwindows.org) and [WSL](https://docs.microsoft.com/windows/wsl)
-  but only on interactive mode.
 
 - More fixes for Java 9
 

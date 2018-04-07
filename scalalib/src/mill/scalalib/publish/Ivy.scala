@@ -42,10 +42,10 @@ object Ivy {
 
   private def renderDependency(dep: Dependency) = {
     if (dep.exclusions.isEmpty)
-      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${dep.scope}->default(${dep.configuration.getOrElse("compile")})"} />
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"} />
     else
-      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${dep.scope}->default(${dep.configuration.getOrElse("compile")})"}>
-        {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>).toSeq}
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"}>
+        {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
       </dependency>
   }
 

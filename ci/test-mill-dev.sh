@@ -8,8 +8,6 @@ git clean -xdf
 # Build Mill
 mill -i dev.assembly
 
-rm -fR ~/.mill
-
-# Second build & run tests using Mill
+# Second build & run tests
 out/dev/assembly/dest/mill -i all {clientserver,main,scalalib,scalajslib}.test
 
