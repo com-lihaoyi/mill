@@ -74,7 +74,7 @@ object GenIdea {
           val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
-            "2.12.4",
+            Lib.depToDependency(_, "2.12.4", ""),
             for(name <- artifactNames)
             yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}"
           )

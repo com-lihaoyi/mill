@@ -1,20 +1,17 @@
 package mill
 package scalalib
 
-import java.nio.charset.Charset
-import java.util
-import javax.tools.{JavaFileObject, SimpleJavaFileObject, StandardJavaFileManager, ToolProvider}
 
 import ammonite.ops._
-import coursier.{Dependency, Repository}
+import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
-import mill.modules.{Jvm, Util}
-import mill.modules.Jvm.{createAssembly, createJar, subprocess}
+import mill.modules.Jvm
+import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
+import mill.scalalib.publish.{Artifact, Scope}
 import mill.util.Loose.Agg
-import mill.util.DummyInputStream
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -23,6 +20,13 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
 
   def defaultCommandName() = "run"
+
+  def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
+    Artifact.fromDepJava(_: Dep)
+  }
+  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
+    Lib.depToDependencyJava(_: Dep)
+  }
 
   def mainClass: T[Option[String]] = None
 
@@ -74,9 +78,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
       repositories,
-      "???",
+      resolveCoursierDependency().apply(_),
       deps(),
-      platformSuffix(),
       sources,
       mapDependencies = Some(mapDependencies)
     )
@@ -223,7 +226,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, "???", ivyDeps(), platformSuffix(), Some(mapDependencies)
+      repositories, resolveCoursierDependency().apply(_), ivyDeps(), Some(mapDependencies)
     )
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,
@@ -275,5 +278,5 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
-  def artifactSuffix: T[String] = T { "" }
+  def artifactId: T[String] = artifactName()
 }

@@ -11,7 +11,7 @@ import publish._
 import mill.modules.Jvm.createAssembly
 import upickle.Js
 trait MillPublishModule extends PublishModule{
-  def scalaVersion = "2.12.4"
+
   def artifactName = "mill-" + super.artifactName()
   def publishVersion = build.publishVersion()._2
 
@@ -27,17 +27,18 @@ trait MillPublishModule extends PublishModule{
   )
 
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
-
 }
-object moduledefs extends MillPublishModule{
+
+object moduledefs extends MillPublishModule with ScalaModule{
+  def scalaVersion = T{ "2.12.4" }
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
   )
 }
 
-trait MillModule extends MillPublishModule{ outer =>
-
+trait MillModule extends MillPublishModule with ScalaModule{ outer =>
+  def scalaVersion = T{ "2.12.4" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")

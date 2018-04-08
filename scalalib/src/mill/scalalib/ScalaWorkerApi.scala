@@ -29,7 +29,7 @@ trait ScalaWorkerModule extends mill.Module{
     } else {
       resolveDependencies(
         repositories,
-        "2.12.4",
+        Lib.depToDependency(_, "2.12.4", ""),
         Seq(ivy"com.lihaoyi::mill-scalaworker:${sys.props("MILL_VERSION")}")
       ).map(_.map(_.path))
     }
@@ -48,7 +48,7 @@ trait ScalaWorkerModule extends mill.Module{
   def compilerInterfaceClasspath = T{
     resolveDependencies(
       repositories,
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4", ""),
       Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
     )
   }
