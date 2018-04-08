@@ -1,6 +1,9 @@
 package mill
 package scalalib
 
+import java.io.File
+import javax.tools.ToolProvider
+
 import ammonite.ops._
 import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
@@ -15,6 +18,28 @@ object CompilationResult {
 case class CompilationResult(analysisFile: Path, classes: PathRef)
 
 object Lib{
+  def compileJava(sources: Array[java.io.File],
+                  classpath: Array[java.io.File],
+                  javaOpts: Seq[String],
+                  upstreamCompileOutput: Seq[CompilationResult])
+                 (implicit ctx: mill.util.Ctx) = {
+    val javac = ToolProvider.getSystemJavaCompiler()
+
+    rm(ctx.dest / 'classes)
+    mkdir(ctx.dest / 'classes)
+    val cpArgs =
+      if(classpath.isEmpty) Seq()
+      else Seq("-cp", classpath.mkString(File.pathSeparator))
+
+    val args = Seq("-d", ctx.dest / 'classes) ++ cpArgs ++ javaOpts ++ sources
+
+    javac.run(
+      ctx.log.inStream, ctx.log.outputStream, ctx.log.errorStream,
+      args.map(_.toString):_*
+    )
+    if (ls(ctx.dest / 'classes).isEmpty) mill.eval.Result.Failure("Compilation Failed")
+    else mill.eval.Result.Success(CompilationResult(ctx.dest / 'zinc, PathRef(ctx.dest / 'classes)))
+  }
 
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r

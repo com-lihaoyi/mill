@@ -16,6 +16,8 @@ import mill.util.DummyInputStream
   * Core configuration required to compile a single Scala compilation target
   */
 trait ScalaModule extends JavaModule { outer =>
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   trait Tests extends TestModule{
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories

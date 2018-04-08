@@ -64,12 +64,10 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   }
 }
 
-object clientserver extends MillModule{
+object client extends MillPublishModule{
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d",
     ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   )
-  val test = new Tests(implicitly)
 }
 
 object core extends MillModule {
@@ -90,7 +88,7 @@ object core extends MillModule {
 }
 
 object main extends MillModule {
-  def moduleDeps = Seq(core, clientserver)
+  def moduleDeps = Seq(core, client)
 
 
   def compileIvyDeps = Agg(
@@ -240,7 +238,7 @@ def launcherScript(jvmArgs: Seq[String],
          |    ${java("mill.Main")}
          |    ;;
          |  *)
-         |    ${java("mill.clientserver.Client")}
+         |    ${java("mill.client.Main")}
          |    ;;
          |esac""".stripMargin
     },
@@ -253,7 +251,7 @@ def launcherScript(jvmArgs: Seq[String],
          |if defined _I_ (
          |  ${java("mill.Main")}
          |) else (
-         |  ${java("mill.clientserver.Client")}
+         |  ${java("mill.client.Main")}
          |)""".stripMargin
     }
   )

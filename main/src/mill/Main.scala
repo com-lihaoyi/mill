@@ -11,21 +11,6 @@ import mill.eval.Evaluator
 import mill.util.DummyInputStream
 
 
-object ServerMain extends mill.clientserver.ServerMain[Evaluator.State]{
-  def main0(args: Array[String],
-            stateCache: Option[Evaluator.State],
-            mainInteractive: Boolean,
-            stdin: InputStream,
-            stdout: PrintStream,
-            stderr: PrintStream) = Main.main0(
-    args,
-    stateCache,
-    mainInteractive,
-    DummyInputStream,
-    stdout,
-    stderr
-  )
-}
 object Main {
 
   def main(args: Array[String]): Unit = {

@@ -17,7 +17,6 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
-  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
 
   def defaultCommandName() = "run"
 
@@ -120,7 +119,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def compile: T[CompilationResult] = T{
-    scalaWorker.worker().compileJava(
+    Lib.compileJava(
       allSourceFiles().map(_.path.toIO).toArray,
       compileClasspath().map(_.path.toIO).toArray,
       javacOptions(),

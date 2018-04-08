@@ -12,10 +12,10 @@ import java.util.Arrays;
 import java.util.Iterator;
 import java.util.Properties;
 
-public class Client {
+public class Main {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
         ArrayList<String> selfJars = new ArrayList<String>();
-        ClassLoader current = Client.class.getClassLoader();
+        ClassLoader current = Main.class.getClassLoader();
         while(current != null){
             if (current instanceof java.net.URLClassLoader) {
                 URL[] urls = ((java.net.URLClassLoader) current).getURLs();
@@ -41,8 +41,9 @@ public class Client {
         }
         l.add("-cp");
         l.add(String.join(File.pathSeparator, selfJars));
-        l.add("mill.ServerMain");
+        l.add("mill.main.ServerMain");
         l.add(lockBase);
+
         new java.lang.ProcessBuilder()
                 .command(l)
                 .redirectOutput(new java.io.File(lockBase + "/logs"))
@@ -66,7 +67,7 @@ public class Client {
                 lockFile.close();
                 channel.close();
             } else {
-                int exitCode = Client.run(
+                int exitCode = Main.run(
                         lockBase,
                         new Runnable() {
                             @Override

@@ -4,27 +4,11 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.locks.ReentrantLock;
 
-
-abstract class Lock{
-    abstract public Locked lock() throws Exception;
-    abstract public Locked tryLock() throws Exception;
-    public void await() throws Exception{
-        lock().release();
-    }
-
-    /**
-      * Returns `true` if the lock is *available for taking*
-      */
-    abstract public boolean probe() throws Exception;
-}
-interface Locked{
-    void release() throws Exception;
-}
-class Locks{
+public class Locks{
     public Lock processLock;
     public Lock serverLock;
     public Lock clientLock;
-    static Locks files(String lockBase) throws Exception{
+    public static Locks files(String lockBase) throws Exception{
         return new Locks(){{
             processLock = new FileLock(lockBase + "/pid");
 
@@ -33,7 +17,7 @@ class Locks{
             clientLock = new FileLock(lockBase + "/clientLock");
         }};
     }
-    static Locks memory(){
+    public static Locks memory(){
         return new Locks(){{
             this.processLock = new MemoryLock();
             this.serverLock = new MemoryLock();

@@ -56,11 +56,6 @@ trait ScalaWorkerModule extends mill.Module{
 }
 
 trait ScalaWorkerApi {
-  def compileJava(sources: Array[java.io.File],
-                  classpath: Array[java.io.File],
-                  javaOpts: Seq[String],
-                  upstreamCompileOutput: Seq[CompilationResult])
-                 (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],

@@ -3,18 +3,13 @@ package mill.main
 import java.io._
 import java.net.Socket
 
+import mill.Main
 import org.scalasbt.ipcsocket._
+import mill.client._
+import mill.eval.Evaluator
+import mill.util.DummyInputStream
 
 trait ServerMain[T]{
-  def main(args0: Array[String]): Unit = {
-    new Server(
-      args0(0),
-      this,
-      () => System.exit(0),
-      300000,
-      Locks.files(args0(0))
-    ).run()
-  }
   var stateCache = Option.empty[T]
   def main0(args: Array[String],
             stateCache: Option[T],
@@ -22,6 +17,31 @@ trait ServerMain[T]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream): (Boolean, Option[T])
+}
+
+object ServerMain extends mill.main.ServerMain[Evaluator.State]{
+  def main(args0: Array[String]): Unit = {
+    new Server(
+      args0(0),
+      this,
+      () => System.exit(0),
+      300000,
+      mill.client.Locks.files(args0(0))
+    ).run()
+  }
+  def main0(args: Array[String],
+            stateCache: Option[Evaluator.State],
+            mainInteractive: Boolean,
+            stdin: InputStream,
+            stdout: PrintStream,
+            stderr: PrintStream) = Main.main0(
+    args,
+    stateCache,
+    mainInteractive,
+    DummyInputStream,
+    stdout,
+    stderr
+  )
 }
 
 
