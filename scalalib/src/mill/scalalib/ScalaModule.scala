@@ -25,7 +25,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacOptions = outer.scalacOptions
     override def javacOptions = outer.javacOptions
     override def scalaWorker = outer.scalaWorker
-    override def moduleDeps = Seq(outer)
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
   def scalaVersion: T[String]
 
