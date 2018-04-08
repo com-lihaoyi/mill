@@ -247,6 +247,32 @@ object EvaluationTests extends TestSuite{
           !overriden.contains("object1")
         )
       }
+      'nullTasks - {
+        import nullTasks._
+        val checker = new Checker(nullTasks)
+        checker(nullTarget1, null, Agg(nullTarget1), extraEvaled = -1)
+        checker(nullTarget1, null, Agg(), extraEvaled = -1)
+        checker(nullTarget2, null, Agg(nullTarget2), extraEvaled = -1)
+        checker(nullTarget2, null, Agg(), extraEvaled = -1)
+        checker(nullTarget3, null, Agg(nullTarget3), extraEvaled = -1)
+        checker(nullTarget3, null, Agg(), extraEvaled = -1)
+        checker(nullTarget4, null, Agg(nullTarget4), extraEvaled = -1)
+        checker(nullTarget4, null, Agg(), extraEvaled = -1)
+
+        val nc1 = nullCommand1()
+        val nc2 = nullCommand2()
+        val nc3 = nullCommand3()
+        val nc4 = nullCommand4()
+
+        checker(nc1, null, Agg(nc1), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc1, null, Agg(nc1), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc2, null, Agg(nc2), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc2, null, Agg(nc2), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc3, null, Agg(nc3), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc3, null, Agg(nc3), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc4, null, Agg(nc4), extraEvaled = -1, secondRunNoOp = false)
+        checker(nc4, null, Agg(nc4), extraEvaled = -1, secondRunNoOp = false)
+      }
 
       'tasksAreUncached - {
         // Make sure the tasks `left` and `middle` re-compute every time, while

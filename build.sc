@@ -79,7 +79,7 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d",
+    ivy"com.lihaoyi:::ammonite:1.1.0-14-037b8eb",
   )
 
   def generatedSources = T {
