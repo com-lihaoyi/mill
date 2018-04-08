@@ -12,10 +12,10 @@ import mill.util.Strict.Agg
 import scala.util.Try
 
 
-object GenIdeaModule extends ExternalModule {
+object GenIdea extends ExternalModule {
 
   def idea(ev: Evaluator[Any]) = T.command{
-    mill.scalalib.GenIdea(
+    mill.scalalib.GenIdeaImpl(
       implicitly,
       ev.rootModule,
       ev.rootModule.millDiscover
@@ -25,7 +25,7 @@ object GenIdeaModule extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
-object GenIdea {
+object GenIdeaImpl {
 
   def apply(ctx: Log with Home,
             rootModule: BaseModule,

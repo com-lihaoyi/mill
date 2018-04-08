@@ -23,7 +23,7 @@ object GenIdeaTests extends TestSuite {
     'genIdeaTests - {
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
-      val layout = GenIdea.xmlFileLayout(
+      val layout = GenIdeaImpl.xmlFileLayout(
         helloWorldEvaluator.evaluator,
         HelloWorld,
         ("JDK_1_8", "1.8 (1)"), fetchMillModules = false)
