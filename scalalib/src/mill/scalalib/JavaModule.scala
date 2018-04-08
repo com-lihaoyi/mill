@@ -196,7 +196,10 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       ) ++ options ++
       Seq(
         "-classpath",
-        compileClasspath().filter(_.path.ext != "pom").mkString(java.io.File.pathSeparator)
+        compileClasspath()
+          .map(_.path)
+          .filter(_.ext != "pom")
+          .mkString(java.io.File.pathSeparator)
       ) ++
       files.map(_.toString),
       envArgs = Map(),
