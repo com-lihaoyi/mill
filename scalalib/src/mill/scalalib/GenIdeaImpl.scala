@@ -166,7 +166,7 @@ object GenIdeaImpl {
         )
       ),
       Tuple2(
-        ".idea_modules"/"root.iml",
+        ".idea_modules"/"mill-build.iml",
         rootXmlTemplate(
           for(path <- buildLibraryPaths)
           yield pathToLibName(path)
@@ -270,7 +270,10 @@ object GenIdeaImpl {
     <project version="4">
       <component name="ProjectModuleManager">
         <modules>
-          <module fileurl="file://$PROJECT_DIR$/.idea_modules/root.iml" filepath="$PROJECT_DIR$/.idea_modules/root.iml" />
+          <module
+            fileurl="file://$PROJECT_DIR$/.idea_modules/mill-build.iml"
+            filepath="$PROJECT_DIR$/.idea_modules/mill-build.iml"
+          />
           {
           for(selector  <- selectors)
           yield {

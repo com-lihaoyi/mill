@@ -34,8 +34,8 @@ object GenIdeaTests extends TestSuite {
       Seq(
         "gen-idea/idea_modules/iml" ->
           millSourcePath / "generated" / ".idea_modules" /".iml",
-        "gen-idea/idea_modules/root.iml" ->
-          millSourcePath / "generated" / ".idea_modules" /"root.iml",
+        "gen-idea/idea_modules/mill-build.iml" ->
+          millSourcePath / "generated" / ".idea_modules" /"mill-build.iml",
         "gen-idea/idea/libraries/scala-library-2.12.4.jar.xml" ->
           millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
         "gen-idea/idea/libraries/scala-library-2.12.4-sources.jar.xml" ->
