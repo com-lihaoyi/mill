@@ -29,7 +29,8 @@ object RunScript{
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
-                log: Logger)
+                log: Logger,
+                env : Map[String, String])
   : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
@@ -53,7 +54,8 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
+      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log,
+        s.classLoaderSig, s.workerCache, env)
 
     val evaluated = for{
       evaluator <- evalRes

@@ -2,6 +2,8 @@ package mill.eval
 
 import java.net.URLClassLoader
 
+import scala.collection.JavaConverters._
+
 import mill.util.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
@@ -32,7 +34,8 @@ case class Evaluator[T](home: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
                         classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
-                        workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
+                        workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+                        env : Map[String, String] = Evaluator.defaultEnv){
   val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(outPath)
@@ -271,7 +274,8 @@ case class Evaluator[T](home: Path,
                 }
             },
             multiLogger,
-            home
+            home,
+            env
           )
 
           val out = System.out
@@ -334,6 +338,8 @@ object Evaluator{
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new ThreadLocal[mill.eval.Evaluator[_]]
+
+  val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
   case class Paths(out: Path,
                    dest: Path,

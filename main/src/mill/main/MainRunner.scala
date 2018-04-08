@@ -20,7 +20,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
-                 stateCache0: Option[Evaluator.State] = None)
+                 stateCache0: Option[Evaluator.State] = None,
+                 env : Map[String, String])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -75,7 +76,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             errPrintStream,
             errPrintStream,
             stdIn
-          )
+          ),
+          env
         )
 
         result match{
