@@ -8,7 +8,7 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.Result
 import mill.modules.Jvm
-import mill.scalalib.Lib.resolveDependencies
+import mill.scalalib.Lib
 import mill.scalalib.{DepSyntax, TestModule, TestRunner}
 import mill.{PathRef, T}
 import mill.util.Loose
@@ -69,24 +69,6 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       )
       override def nativeLinkStubs = true
 
-      override def compileClasspath = T{
-        (upstreamRunClasspath() ++
-          resources() ++
-          unmanagedClasspath() ++
-          resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})())
-         .filter(!_.path.toString.contains("0.3.0")) // XXX remove me
-         .filter(_.path.toString != "/Users/ajr/.coursier/cache/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar") // XXX remove me
-      }
-
-      override def runClasspath = T{
-        Agg(compile().classes) ++
-          resources() ++
-          upstreamAssemblyClasspath()
-          //.filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
-          .filter(!_.path.toString.contains("0.3.0")) // XXX remove me
-          .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-lang")) // XXX remove me
-      }
-
       override def generatedSources = T {
         val outDir = T.ctx().dest
         ammonite.ops.write.over(outDir / "TestMain.scala", testOuter.makeTestMain())
@@ -105,9 +87,9 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     val snBridgePath = sys.props(snBridgeKey)
     if (snBridgePath != null) Result.Success(
       Agg(PathRef(Path(snBridgePath), quick = true))
-    ) else resolveDependencies(
+    ) else Lib.resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4", ""),
       Seq(
         ivy"com.lihaoyi::mill-scalanativelib-scalanativebridges-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"
       )
@@ -123,16 +105,10 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   }
 
   override def compileClasspath = T{
-    upstreamRunClasspath() ++
-      resources() ++
-      unmanagedClasspath() ++
-      resolveDeps(T.task{compileIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
-  }
-
-  override def upstreamAssemblyClasspath = T{
-    upstreamRunClasspath() ++
-      unmanagedClasspath() ++
-      resolveDeps(T.task{runIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+    transitiveLocalClasspath() ++
+    resources() ++
+    unmanagedClasspath() ++
+    resolveDeps(T.task{compileIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}" }
@@ -147,11 +123,10 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   }
 
   def bridgeFullClassPath = T {
-    resolveDependencies(
+    Lib.resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      scalaVersion(),
-      toolsIvyDeps(),
-      platformSuffix()
+      Lib.depToDependency(_, scalaVersion(), platformSuffix()),
+      toolsIvyDeps()
     ).map(t => (scalaNativeBridgeClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
