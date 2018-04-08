@@ -190,9 +190,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         fastOptTest().path.toIO
       )
 
-    val (doneMsg, results) = scalaWorker
-      .worker()
-      .runTests(
+    val (doneMsg, results) = Lib.runTests(
         _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),

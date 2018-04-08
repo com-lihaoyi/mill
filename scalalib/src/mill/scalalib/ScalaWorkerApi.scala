@@ -5,7 +5,6 @@ import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.Agg
-import mill.scalalib.TestRunner.Result
 import mill.T
 import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
@@ -68,11 +67,6 @@ trait ScalaWorkerApi {
                    upstreamCompileOutput: Seq[CompilationResult])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
-  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
-               entireClasspath: Agg[Path],
-               testClassfilePath: Agg[Path],
-               args: Seq[String])
-              (implicit ctx: mill.util.Ctx.Log with mill.util.Ctx.Home): (String, Seq[Result])
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]

@@ -1,34 +1,19 @@
 package mill.scalaworker
 
-import java.io.{File, FileInputStream}
-import java.lang.annotation.Annotation
-import java.net.URLClassLoader
+import java.io.File
 import java.util.Optional
-import java.util.zip.ZipInputStream
-import javax.tools.ToolProvider
 
-import ammonite.ops.{Path, exists, ls, mkdir, rm, up}
+import ammonite.ops.{Path, exists, ls, mkdir}
 import ammonite.util.Colors
 import mill.Agg
-import mill.define.Worker
 import mill.eval.PathRef
-import mill.modules.Jvm
 import mill.scalalib.{CompilationResult, Lib, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.scalalib.Lib.grepJar
-import mill.scalalib.TestRunner.Result
 import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
-import sbt.internal.inc.classfile.Analyze
-import sbt.internal.inc.classpath.ClasspathUtilities
-import sbt.internal.inc.javac.JavaCompiler
 import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.io.PathFinder
-import sbt.testing._
-import sbt.util.{InterfaceUtil, LogExchange}
-import xsbti.AnalysisCallback
-
-import scala.collection.mutable
+import sbt.util.LogExchange
 
 case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
   override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
@@ -68,7 +53,7 @@ object ScalaWorker{
         )
         val home = Path(homeStr)
       }
-      val result = new ScalaWorker(null, null).runTests(
+      val result = Lib.runTests(
         frameworkInstances = TestRunner.frameworks(frameworks),
         entireClasspath = Agg.from(classpath.map(Path(_))),
         testClassfilePath = Agg(Path(testCp)),
@@ -261,105 +246,5 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
       mill.eval.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
     }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
-  }
-
-  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
-               entireClasspath: Agg[Path],
-               testClassfilePath: Agg[Path],
-               args: Seq[String])
-              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[Result]) = {
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
-      val frameworks = frameworkInstances(cl)
-
-      val events = mutable.Buffer.empty[Event]
-
-      val doneMessages = frameworks.map { framework =>
-        val runner = framework.runner(args.toArray, args.toArray, cl)
-
-        val testClasses = discoverTests(cl, framework, testClassfilePath)
-
-        val tasks = runner.tasks(
-          for ((cls, fingerprint) <- testClasses.toArray)
-            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-        )
-
-        for (t <- tasks) {
-          t.execute(
-            new EventHandler {
-              def handle(event: Event) = events.append(event)
-            },
-            Array(
-              new Logger {
-                def debug(msg: String) = ctx.log.outputStream.println(msg)
-
-                def error(msg: String) = ctx.log.outputStream.println(msg)
-
-                def ansiCodesSupported() = true
-
-                def warn(msg: String) = ctx.log.outputStream.println(msg)
-
-                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-
-                def info(msg: String) = ctx.log.outputStream.println(msg)
-              })
-          )
-        }
-        ctx.log.outputStream.println(runner.done())
-      }
-
-      val results = for(e <- events) yield {
-        val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
-        Result(
-          e.fullyQualifiedName(),
-          e.selector() match{
-            case s: NestedSuiteSelector => s.suiteId()
-            case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-            case s: SuiteSelector => s.toString
-            case s: TestSelector => s.testName()
-            case s: TestWildcardSelector => s.testWildcard()
-          },
-          e.duration(),
-          e.status().toString,
-          ex.map(_.getClass.getName),
-          ex.map(_.getMessage),
-          ex.map(_.getStackTrace)
-        )
-      }
-
-      (doneMessages.mkString("\n"), results)
-    })
-
-  }
-  def listClassFiles(base: Path): Iterator[String] = {
-    if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
-    else {
-      val zip = new ZipInputStream(new FileInputStream(base.toIO))
-      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
-    }
-  }
-  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
-
-
-    val fingerprints = framework.fingerprints()
-    val testClasses = classpath.flatMap { base =>
-      // Don't blow up if there are no classfiles representing
-      // the tests to run Instead just don't run anything
-      if (!exists(base)) Nil
-      else listClassFiles(base).flatMap { path =>
-        val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-        fingerprints.find {
-          case f: SubclassFingerprint =>
-            !cls.isInterface &&
-              (f.isModule == cls.getName.endsWith("$")) &&
-              cl.loadClass(f.superclassName()).isAssignableFrom(cls)
-          case f: AnnotatedFingerprint =>
-            (f.isModule == cls.getName.endsWith("$")) &&
-              cls.isAnnotationPresent(
-                cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
-              )
-        }.map { f => (cls, f) }
-      }
-    }
-    testClasses
   }
 }

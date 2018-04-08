@@ -17,7 +17,11 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
-
+  trait Tests extends TestModule{
+    override def moduleDeps = Seq(outer)
+    override def repositories = outer.repositories
+    override def javacOptions = outer.javacOptions
+  }
   def defaultCommandName() = "run"
 
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
@@ -281,4 +285,67 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
   def artifactId: T[String] = artifactName()
+}
+
+trait TestModule extends JavaModule with TaskModule {
+  override def defaultCommandName() = "test"
+  def testFrameworks: T[Seq[String]]
+
+  def forkWorkingDir = ammonite.ops.pwd
+
+  def test(args: String*) = T.command{
+    val outputPath = T.ctx().dest/"out.json"
+
+    Jvm.subprocess(
+      mainClass = "mill.scalaworker.ScalaWorker",
+      classPath = ScalaWorkerModule.classpath(),
+      jvmArgs = forkArgs(),
+      envArgs = forkEnv(),
+      mainArgs =
+        Seq(testFrameworks().length.toString) ++
+          testFrameworks() ++
+          Seq(runClasspath().length.toString) ++
+          runClasspath().map(_.path.toString) ++
+          Seq(args.length.toString) ++
+          args ++
+          Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+      workingDir = forkWorkingDir
+    )
+
+    val jsonOutput = ujson.read(outputPath.toIO)
+    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    TestModule.handleResults(doneMsg, results)
+
+  }
+  def testLocal(args: String*) = T.command{
+    val outputPath = T.ctx().dest/"out.json"
+
+    Lib.runTests(
+      TestRunner.frameworks(testFrameworks()),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args
+    )
+
+    val jsonOutput = ujson.read(outputPath.toIO)
+    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    TestModule.handleResults(doneMsg, results)
+
+  }
+}
+
+object TestModule{
+  def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
+
+    val badTests = results.filter(x => Set("Error", "Failure").contains(x.status))
+    if (badTests.isEmpty) Result.Success((doneMsg, results))
+    else {
+      val suffix = if (badTests.length == 1) "" else " and " + (badTests.length-1) + " more"
+
+      Result.Failure(
+        badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,
+        Some((doneMsg, results))
+      )
+    }
+  }
 }

@@ -1,14 +1,22 @@
 package mill
 package scalalib
 
-import java.io.File
+import java.io.{File, FileInputStream}
+import java.lang.annotation.Annotation
+import java.util.zip.ZipInputStream
 import javax.tools.ToolProvider
 
 import ammonite.ops._
 import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import mill.Agg
 import mill.eval.{PathRef, Result}
-import mill.util.Loose.Agg
+import mill.modules.Jvm
+
+import mill.util.Ctx
+import sbt.testing._
+
+import scala.collection.mutable
 
 object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
@@ -193,5 +201,110 @@ object Lib{
       cross = false,
       force = false
     )
+
+  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
+               entireClasspath: Agg[Path],
+               testClassfilePath: Agg[Path],
+               args: Seq[String])
+              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
+      val frameworks = frameworkInstances(cl)
+
+      val events = mutable.Buffer.empty[Event]
+
+      val doneMessages = frameworks.map { framework =>
+        val runner = framework.runner(args.toArray, args.toArray, cl)
+
+        val testClasses = discoverTests(cl, framework, testClassfilePath)
+
+        val tasks = runner.tasks(
+          for ((cls, fingerprint) <- testClasses.toArray)
+            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
+        )
+
+        for (t <- tasks) {
+          t.execute(
+            new EventHandler {
+              def handle(event: Event) = events.append(event)
+            },
+            Array(
+              new Logger {
+                def debug(msg: String) = ctx.log.outputStream.println(msg)
+
+                def error(msg: String) = ctx.log.outputStream.println(msg)
+
+                def ansiCodesSupported() = true
+
+                def warn(msg: String) = ctx.log.outputStream.println(msg)
+
+                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+
+                def info(msg: String) = ctx.log.outputStream.println(msg)
+              })
+          )
+        }
+        ctx.log.outputStream.println(runner.done())
+      }
+
+      val results = for(e <- events) yield {
+        val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
+        mill.scalalib.TestRunner.Result(
+          e.fullyQualifiedName(),
+          e.selector() match{
+            case s: NestedSuiteSelector => s.suiteId()
+            case s: NestedTestSelector => s.suiteId() + "." + s.testName()
+            case s: SuiteSelector => s.toString
+            case s: TestSelector => s.testName()
+            case s: TestWildcardSelector => s.testWildcard()
+          },
+          e.duration(),
+          e.status().toString,
+          ex.map(_.getClass.getName),
+          ex.map(_.getMessage),
+          ex.map(_.getStackTrace)
+        )
+      }
+
+      (doneMessages.mkString("\n"), results)
+    })
+  }
+
+  def listClassFiles(base: Path): Iterator[String] = {
+    if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+    else {
+      val zip = new ZipInputStream(new FileInputStream(base.toIO))
+      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
+    }
+  }
+
+  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
+
+    val fingerprints = framework.fingerprints()
+
+    val testClasses = classpath.flatMap { base =>
+      // Don't blow up if there are no classfiles representing
+      // the tests to run Instead just don't run anything
+      if (!exists(base)) Nil
+      else listClassFiles(base).flatMap { path =>
+        val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
+        fingerprints.find {
+          case f: SubclassFingerprint =>
+            !cls.isInterface &&
+            (f.isModule == cls.getName.endsWith("$")) &&
+            cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+          case f: AnnotatedFingerprint =>
+            val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+            (f.isModule == cls.getName.endsWith("$")) &&
+            (
+              cls.isAnnotationPresent(annotationCls) ||
+              cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
+            )
+
+        }.map { f => (cls, f) }
+      }
+    }
+
+    testClasses
+  }
 
 }
