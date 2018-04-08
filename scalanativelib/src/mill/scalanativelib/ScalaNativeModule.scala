@@ -30,20 +30,27 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
 
     override def testLocal(args: String*) = T.command { test(args:_*) }
 
+    // Looks up ivyDeps under the JVM rather than Native
+    def jvmIvyPaths = T {
+      Lib.resolveDependencies(
+        repositories,
+        Lib.depToDependency(_, scalaVersion(), ""),
+        ivyDeps()
+      )
+    }
+
     override def test(args: String*) = T.command{
       val outputPath = T.ctx().dest/"out.json"
 
-      // XXX Fix me
-      val uTestPaths = resolveDeps(T.task{T.task{Agg(ivy"com.lihaoyi:utest_2.12:0.6.4")}()})().map(_.path)
-      println(s"uTestPaths=$uTestPaths")
-      val testClassloader = new URLClassLoader(uTestPaths.map(_.toIO.toURI.toURL).toArray, this.getClass.getClassLoader)
-
+      // The test frameworks run under the JVM and communicate with the native binary over a socket
+      // So the test framework is loaded from a JVM classloader
+      val testClassloader = new URLClassLoader(jvmIvyPaths().map(_.path.toIO.toURI.toURL).toArray, this.getClass.getClassLoader)
       val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
       val testBinary = testrunner.nativeLink().toIO
       val envVars = forkEnv()
 
-      val nativeFrameworks =  (cl: ClassLoader) =>
-        frameworkInstances.zipWithIndex.map{case(f,id) =>
+      val nativeFrameworks = (cl: ClassLoader) =>
+        frameworkInstances.zipWithIndex.map { case (f, id) =>
           new ScalaNativeFramework(f, id, testBinary, envVars): Framework
         }
 
@@ -57,7 +64,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       TestModule.handleResults(doneMsg, results)
     }
 
-
+    // creates a specific binary used for running tests
     object testrunner extends ScalaNativeModule {
       override def scalaWorker = testOuter.scalaWorker
       override def scalaVersion = testOuter.scalaVersion()
@@ -65,7 +72,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       override def moduleDeps = Seq(testOuter)
 
       override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-        ivy"org.scala-native::test-interface_native0.3:0.3.7"
+        ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
       )
       override def nativeLinkStubs = true
 
@@ -111,14 +118,14 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     resolveDeps(T.task{compileIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
     )
   }
 
