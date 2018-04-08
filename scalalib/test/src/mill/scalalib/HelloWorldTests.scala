@@ -101,7 +101,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldTypeLevel extends HelloBase{
     object foo extends ScalaModule {
-      def scalaVersion = "2.11.8"
+      def scalaVersion = "2.12.4"
       override def mapDependencies(d: coursier.Dependency) = {
         val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
         if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
