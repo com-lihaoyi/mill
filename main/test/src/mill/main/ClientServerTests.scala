@@ -3,6 +3,7 @@ package mill.main
 import java.io._
 import java.nio.file.Path
 
+import mill.client.Locks
 import utest._
 class EchoServer extends ServerMain[Int]{
   def main0(args: Array[String],
@@ -54,7 +55,7 @@ object ClientServerTests extends TestSuite{
       def runClient(arg: String) = {
         val (in, out, err) = initStreams()
         Server.lockBlock(locks.clientLock){
-          Client.run(
+          mill.client.Main.run(
             tmpDir.toString,
             () => spawnEchoServer(),
             locks,
