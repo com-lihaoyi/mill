@@ -20,7 +20,7 @@ import testinterface.ScalaNativeFramework
 
 trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def scalaNativeVersion: T[String]
-  override def platformSuffix = T{ "_native" + scalaNativeBridgeVersion() }
+  override def platformSuffix = T{ "_native" + scalaNativeBinaryVersion() }
 
   trait Tests extends TestScalaNativeModule { testOuter =>
     override def scalaWorker = outer.scalaWorker
@@ -34,7 +34,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       val outputPath = T.ctx().dest/"out.json"
 
       // XXX Fix me
-      val uTestPaths = resolveDeps(T.task{T.task{Agg(ivy"com.lihaoyi:utest_2.12:0.6.3")}()})().map(_.path)
+      val uTestPaths = resolveDeps(T.task{T.task{Agg(ivy"com.lihaoyi:utest_2.12:0.6.4")}()})().map(_.path)
       println(s"uTestPaths=$uTestPaths")
       val testClassloader = new URLClassLoader(uTestPaths.map(_.toIO.toURI.toURL).toArray, this.getClass.getClassLoader)
 
@@ -65,7 +65,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       override def moduleDeps = Seq(testOuter)
 
       override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-        ivy"org.scala-native::test-interface_native0.3.7-SNAPSHOT:0.3.7-SNAPSHOT"
+        ivy"org.scala-native::test-interface_native0.3:0.3.7"
       )
       override def nativeLinkStubs = true
 
@@ -74,14 +74,16 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
           resources() ++
           unmanagedClasspath() ++
           resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})())
-        .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
+         .filter(!_.path.toString.contains("0.3.0")) // XXX remove me
+         .filter(_.path.toString != "/Users/ajr/.coursier/cache/v1/https/repo1.maven.org/maven2/org/scala-sbt/test-interface/1.0/test-interface-1.0.jar") // XXX remove me
       }
 
       override def runClasspath = T{
         Agg(compile().classes) ++
           resources() ++
           upstreamAssemblyClasspath()
-          .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
+          //.filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-native")) // XXX remove me
+          .filter(!_.path.toString.contains("0.3.0")) // XXX remove me
           .filter(!_.path.toString.contains("repo1.maven.org/maven2/org/scala-lang")) // XXX remove me
       }
 
@@ -94,12 +96,12 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   }
 
 
-  def scalaNativeBridgeVersion = T{ scalaNativeVersion().split('.').take(2).mkString(".") }
+  def scalaNativeBinaryVersion = T{ scalaNativeVersion().split('.').take(2).mkString(".") }
 
   def bridge = T.task{ ScalaNativeBridge.scalaNativeBridge().bridge(bridgeFullClassPath()) }
 
   def scalaNativeBridgeClasspath = T {
-    val snBridgeKey = "MILL_SCALANATIVE_BRIDGE_" + scalaNativeBridgeVersion().replace('.', '_').replace('-', '_')
+    val snBridgeKey = "MILL_SCALANATIVE_BRIDGE_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
     val snBridgePath = sys.props(snBridgeKey)
     if (snBridgePath != null) Result.Success(
       Agg(PathRef(Path(snBridgePath), quick = true))
@@ -107,7 +109,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       "2.12.4",
       Seq(
-        ivy"com.lihaoyi::mill-scalanativelib-scalanativebridges-${scalaNativeBridgeVersion()}:${sys.props("MILL_VERSION")}"
+        ivy"com.lihaoyi::mill-scalanativelib-scalanativebridges-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"
       )
     ).map(_.filter(_.path.toString.contains("mill-scalanativelib-scalanativebridges")))
   }
@@ -133,14 +135,14 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       resolveDeps(T.task{runIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeVersion()}:${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib_native${scalaNativeVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib_native${scalaNativeVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib_native${scalaNativeVersion()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib_native${scalaNativeBinaryVersion()}:${scalaNativeVersion()}"
     )
   }
 
@@ -175,7 +177,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def nativeTarget = T{ bridge().discoverTarget(nativeClang(), nativeWorkdir()) }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T{ bridge().discoverCompilationOptions }
+  def nativeCompileOptions = T{ bridge().discoverCompileOptions }
 
   // Options that are passed to clang during linking
   def nativeLinkingOptions = T{ bridge().discoverLinkingOptions }

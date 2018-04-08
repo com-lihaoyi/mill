@@ -45,7 +45,7 @@ trait ScalaNativeBridge {
   def discoverClang: Path
   def discoverClangPP: Path
   def discoverTarget(clang: Path, workDir: Path): String
-  def discoverCompilationOptions: Seq[String]
+  def discoverCompileOptions: Seq[String]
   def discoverLinkingOptions: Seq[String]
 
   def config(nativeLibJar: Path,

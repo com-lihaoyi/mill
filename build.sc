@@ -236,7 +236,7 @@ object scalanativelib extends MillModule {
     def moduleDeps = Seq(scalanativelib)
     def ivyDeps = scalaNativeBinary match {
       case "0.3" =>
-        val nativeVersion = "0.3.7-SNAPSHOT"
+        val nativeVersion = "0.3.7"
         Agg(
           ivy"org.scala-native::tools:$nativeVersion",
           ivy"org.scala-native::util:$nativeVersion",

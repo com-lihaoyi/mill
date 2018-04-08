@@ -14,19 +14,15 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
       errorFn = msg => err.println(msg))
 
   def discoverClang: Path = {
-    val clang = Discover.clang()
-    Discover.checkThatClangIsRecentEnough(clang)
-    Path(clang)
+    Path(Discover.clang())
   }
 
   def discoverClangPP: Path = {
-    val clang = Discover.clangpp()
-    Discover.checkThatClangIsRecentEnough(clang)
-    Path(clang)
+    Path(Discover.clangpp())
   }
 
-  def discoverTarget(clang: Path, workdir: Path): String = Discover.target(clang.toNIO, workdir.toNIO, logger)
-  def discoverCompilationOptions: Seq[String] = Discover.compilationOptions()
+  def discoverTarget(clang: Path, workdir: Path): String = Discover.targetTriple(clang.toNIO, workdir.toNIO)
+  def discoverCompileOptions: Seq[String] = Discover.compileOptions()
   def discoverLinkingOptions: Seq[String] = Discover.linkingOptions()
 
   private def nativeMode(release: Boolean = false): Mode = {
@@ -54,12 +50,12 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
       val config =
         Config.empty
           .withNativelib(nativeLibJar.toNIO)
-          .withEntry(entry)
-          .withClasspath(classpath.map(_.toNIO))
+          .withMainClass(entry)
+          .withClassPath(classpath.map(_.toNIO))
           .withWorkdir(nativeWorkdir.toNIO)
           .withClang(nativeClang.toNIO)
           .withClangPP(nativeClangPP.toNIO)
-          .withTarget(nativeTarget)
+          .withTargetTriple(nativeTarget)
           .withCompileOptions(nativeCompileOptions)
           .withLinkingOptions(nativeLinkingOptions)
           .withGC(GC(nativeGC))
