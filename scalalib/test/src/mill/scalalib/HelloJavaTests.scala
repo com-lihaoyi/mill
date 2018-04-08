@@ -66,7 +66,7 @@ object HelloJavaTests extends TestSuite {
         %%("jar", "tf", ref2.path).out.lines.contains("hello/Main.html")
       )
     }
-    'test  - {
+    'test - {
       val eval = init()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
@@ -86,6 +86,31 @@ object HelloJavaTests extends TestSuite {
         v2._2(1).fullyQualifiedName == "hello.MyAppTests.coreTest",
         v2._2(1).status == "Success"
       )
+    }
+    'failures - {
+      val eval = init()
+
+      val mainJava = HelloJava.millSourcePath / 'app / 'src / 'hello / "Main.java"
+      val coreJava = HelloJava.millSourcePath / 'core / 'src / 'hello / "Core.java"
+
+      val Right(_) = eval.apply(HelloJava.core.compile)
+      val Right(_) = eval.apply(HelloJava.app.compile)
+
+      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava) + "}")
+
+      val Right(_) = eval.apply(HelloJava.core.compile)
+      val Left(_) = eval.apply(HelloJava.app.compile)
+
+      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava) + "}")
+
+      val Left(_) = eval.apply(HelloJava.core.compile)
+      val Left(_) = eval.apply(HelloJava.app.compile)
+
+      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava).dropRight(1))
+      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava).dropRight(1))
+
+      val Right(_) = eval.apply(HelloJava.core.compile)
+      val Right(_) = eval.apply(HelloJava.app.compile)
     }
   }
 }
