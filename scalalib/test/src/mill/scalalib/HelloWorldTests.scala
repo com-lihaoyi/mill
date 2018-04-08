@@ -119,7 +119,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldMacros extends HelloBase{
     object core extends ScalaModule {
-      def scalaVersion = "2.11.8"
+      def scalaVersion = "2.12.4"
 
       def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
