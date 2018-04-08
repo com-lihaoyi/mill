@@ -219,11 +219,12 @@ object Lib{
 
         val tasks = runner.tasks(
           for ((cls, fingerprint) <- testClasses.toArray)
-            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
+          yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
         )
 
-        for (t <- tasks) {
-          t.execute(
+        val taskQueue = tasks.to[mutable.Queue]
+        while (taskQueue.nonEmpty){
+          val next = taskQueue.dequeue().execute(
             new EventHandler {
               def handle(event: Event) = events.append(event)
             },
@@ -242,6 +243,7 @@ object Lib{
                 def info(msg: String) = ctx.log.outputStream.println(msg)
               })
           )
+          taskQueue.enqueue(next:_*)
         }
         ctx.log.outputStream.println(runner.done())
       }
@@ -299,7 +301,6 @@ object Lib{
               cls.isAnnotationPresent(annotationCls) ||
               cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
             )
-
         }.map { f => (cls, f) }
       }
     }

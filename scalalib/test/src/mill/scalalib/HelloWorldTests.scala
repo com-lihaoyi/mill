@@ -130,6 +130,16 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloScalacheck extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "2.12.4"
+      object test extends Tests {
+        def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
+      }
+    }
+  }
+
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -182,6 +192,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'scalacOptions - {
       'emptyByDefault - workspaceTest(HelloWorld){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalacOptions)
@@ -200,6 +211,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'compile - {
       'fromScratch - workspaceTest(HelloWorld){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
@@ -260,6 +272,7 @@ object HelloWorldTests extends TestSuite {
 
       }
     }
+
     'runMain - {
       'runMainObject - workspaceTest(HelloWorld){eval =>
         val runResult = eval.outPath / 'core / 'runMain / 'dest / "hello-mill"
@@ -351,6 +364,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'run - {
       'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
         val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
@@ -388,6 +402,7 @@ object HelloWorldTests extends TestSuite {
 
       }
     }
+
     'jar - {
       'nonEmpty - workspaceTest(HelloWorldWithMain){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
@@ -413,6 +428,7 @@ object HelloWorldTests extends TestSuite {
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
+
       'logOutputToFile - workspaceTest(HelloWorld){eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
@@ -439,6 +455,7 @@ object HelloWorldTests extends TestSuite {
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
+
       'run - workspaceTest(HelloWorldWithMain){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
@@ -470,6 +487,7 @@ object HelloWorldTests extends TestSuite {
         !result2.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
       )
     }
+
     'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
@@ -489,6 +507,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'macros - {
       // make sure macros are applied when compiling/running
       'runMain - workspaceTest(
@@ -507,5 +526,22 @@ object HelloWorldTests extends TestSuite {
         assert(evalCount > 0)
       }
     }
+
+    'scalacheck - workspaceTest(
+      HelloScalacheck,
+      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
+    ){ eval =>
+      val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.test())
+      assert(
+        evalCount > 0,
+        res._2.map(_.selector) == Seq(
+          "String.startsWith",
+          "String.endsWith",
+          "String.substring",
+          "String.substring"
+        )
+      )
+    }
+
   }
 }
