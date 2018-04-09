@@ -70,6 +70,14 @@ object client extends MillPublishModule{
   )
 }
 
+
+object testng extends MillPublishModule{
+  def ivyDeps = Agg(
+    ivy"org.scala-sbt:test-interface:1.0",
+    ivy"org.testng:testng:6.11"
+  )
+}
+
 object core extends MillModule {
   def moduleDeps = Seq(moduledefs)
 
