@@ -44,9 +44,11 @@ sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/dow
 
 ### Development Releases
 
-More recent, unstable versions of Mill are also
-[available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
-to try out the latest features and improvements that are currently in master.
+In case you want to try out the latest features and improvements that are 
+currently in master, unstable versions of Mill are
+[available](https://github.com/lihaoyi/mill/releases) as binaries named 
+`#.#.#-n-hash` linked to the latest tag.
+
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
 
