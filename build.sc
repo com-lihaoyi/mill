@@ -341,7 +341,12 @@ def release = T{
     createAssembly(
       dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        Seq("-DMILL_VERSION=" + publishVersion()._2),
+        Seq(
+          "-DMILL_VERSION=" + publishVersion()._2,
+          // Workaround for Zinc/JNA bug
+          // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+          "-Djna.nosys=true"
+        ),
         Agg("$0"),
         Agg("%~dpnx0")
       )
