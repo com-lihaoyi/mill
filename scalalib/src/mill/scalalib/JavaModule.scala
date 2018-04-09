@@ -232,7 +232,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, resolveCoursierDependency().apply(_), ivyDeps(), Some(mapDependencies)
+      repositories, resolveCoursierDependency().apply(_), transitiveIvyDeps(), Some(mapDependencies)
     )
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,
