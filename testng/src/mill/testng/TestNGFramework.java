@@ -2,25 +2,27 @@ package mill.testng;
 
 
 
-import org.scalatools.testing.*;
+import sbt.testing.*;
 
 
 public class TestNGFramework implements Framework {
     public String name(){ return "TestNG"; }
-    public Fingerprint[] tests(){
-        return new Fingerprint[]{
-                new Annotated("org.testng.annotations.Test")
-        };
+
+    public Fingerprint[] fingerprints() {
+        return new Fingerprint[]{Annotated.instance};
     }
 
-    public Runner testRunner(ClassLoader testClassLoader, Logger[] loggers){
-        return new TestNGRunner(testClassLoader, loggers, sharedState);
+    @Override
+    public Runner runner(String[] args, String[] remoteArgs, ClassLoader classLoader) {
+        return new TestNGRunner(args, remoteArgs, classLoader, sharedState);
     }
+
 
     private TestRunState sharedState = new TestRunState();
 }
 
 class Annotated implements AnnotatedFingerprint{
+    final public static Annotated instance = new Annotated("org.testng.annotations.Test");
     String annotationName;
     public Annotated(String annotationName) {
         this.annotationName = annotationName;

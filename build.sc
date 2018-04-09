@@ -210,6 +210,7 @@ object integration extends MillModule{
   def testArgs = T{
     scalajslib.testArgs() ++
     scalaworker.testArgs() ++
+    Seq("-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(",")) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   def forkArgs = testArgs()

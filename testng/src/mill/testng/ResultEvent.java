@@ -1,40 +1,45 @@
 
 package mill.testng;
 
-import org.scalatools.testing.Event;
-import org.scalatools.testing.Result;
+import sbt.testing.*;
 import org.testng.ITestResult;
 
-public class ResultEvent implements Event {
-    public Result result;
-    public String testName;
-    public String description;
-    public Throwable error;
+public class ResultEvent {
+    static Event failure(ITestResult result){ return event(Status.Failure, result); }
+    static Event skipped(ITestResult result){ return event(Status.Skipped, result); }
+    static Event success(ITestResult result){ return event(Status.Success, result); }
 
-    public ResultEvent(Result result, String testName, String description, Throwable error) {
-        this.result = result;
-        this.testName = testName;
-        this.description = description;
-        this.error = error;
-    }
+    static Event event(Status result, ITestResult testNGResult) {
+        return new Event() {
+            public String fullyQualifiedName() {
+                return testNGResult.getTestClass().getName();
+            }
 
+            public Fingerprint fingerprint() {
+                return Annotated.instance;
+            }
 
-    public Result result(){ return result; }
-    public String testName(){ return testName; }
-    public String description(){ return description; }
-    public Throwable error(){ return error; }
+            public Selector selector() {
+                return new SuiteSelector();
+            }
 
-    static ResultEvent failure(ITestResult result){ return event(Result.Failure, result); }
-    static ResultEvent skipped(ITestResult result){ return event(Result.Skipped, result); }
-    static ResultEvent success(ITestResult result){ return event(Result.Success, result); }
+            public Status status() {
+                return result;
+            }
 
-    static ResultEvent event(Result result, ITestResult testNGResult) {
-        return new ResultEvent(
-                result,
-                testNGResult.getName(),
-                testNGResult.getName(),
-                result != Result.Success ? testNGResult.getThrowable() : null
-        );
+            public OptionalThrowable throwable() {
+                if (result != Status.Success){
+                    return new OptionalThrowable(testNGResult.getThrowable());
+                }else {
+                    return new OptionalThrowable();
+                }
+            }
+
+            @Override
+            public long duration() {
+                return testNGResult.getEndMillis() - testNGResult.getStartMillis();
+            }
+        };
     }
     static String classNameOf(ITestResult result){ return result.getTestClass().getName(); }
 }

@@ -1,16 +1,16 @@
 package mill.testng;
 
-import org.scalatools.testing.Event;
+import sbt.testing.Event;
 import org.testng.ITestResult;
 import org.testng.TestListenerAdapter;
 
-import org.scalatools.testing.EventHandler;
-import org.scalatools.testing.Logger;
+import sbt.testing.EventHandler;
+import sbt.testing.Logger;
 
 import java.util.HashMap;
 
 public class EventRecorder extends TestListenerAdapter {
-    private HashMap<String, java.util.List<Event>> basket = new HashMap<>();
+    private final HashMap<String, java.util.List<Event>> basket = new HashMap<>();
 
     String initKey(ITestResult result){
         String key = ResultEvent.classNameOf(result);

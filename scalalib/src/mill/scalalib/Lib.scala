@@ -3,6 +3,7 @@ package scalalib
 
 import java.io.{File, FileInputStream}
 import java.lang.annotation.Annotation
+import java.lang.reflect.Modifier
 import java.util.zip.ZipInputStream
 import javax.tools.ToolProvider
 
@@ -12,7 +13,6 @@ import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import mill.Agg
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-
 import mill.util.Ctx
 import sbt.testing._
 
@@ -293,14 +293,18 @@ object Lib{
           case f: SubclassFingerprint =>
             !cls.isInterface &&
             (f.isModule == cls.getName.endsWith("$")) &&
-            cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+            cl.loadClass(f.superclassName()).isAssignableFrom(cls) &&
+            cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1
+
           case f: AnnotatedFingerprint =>
             val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
             (f.isModule == cls.getName.endsWith("$")) &&
+              cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1 &&
             (
               cls.isAnnotationPresent(annotationCls) ||
               cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
             )
+
         }.map { f => (cls, f) }
       }
     }

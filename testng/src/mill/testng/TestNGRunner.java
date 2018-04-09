@@ -1,37 +1,72 @@
 package mill.testng;
 
-import org.scalatools.testing.Fingerprint;
-import org.scalatools.testing.Logger;
-import org.scalatools.testing.Runner2;
-import org.scalatools.testing.EventHandler;
+import sbt.testing.*;
 
-public class TestNGRunner extends Runner2 {
-    ClassLoader testClassLoader;
-    Logger[] loggers;
-    TestRunState state;
-    public TestNGRunner(ClassLoader testClassLoader, Logger[] loggers, TestRunState state) {
-        this.testClassLoader = testClassLoader;
-        this.loggers = loggers;
-        this.state = state;
+class TestNGTask implements Task {
+
+    TaskDef taskDef;
+    TestNGRunner runner;
+    public TestNGTask(TaskDef taskDef, TestNGRunner runner){
+        this.taskDef = taskDef;
+        this.runner = runner;
     }
-    public void run(String testClassname, Fingerprint fingerprint, EventHandler eventHandler, String[] testOptions) {
+
+    @Override
+    public String[] tags() {
+        return new String[0];
+    }
+
+    @Override
+    public Task[] execute(EventHandler eventHandler, Logger[] loggers) {
         if (TestRunState.permissionToExecute.tryAcquire()) {
             TestNGInstance.start(
                     TestNGInstance.loggingTo(loggers)
-                    .loadingClassesFrom(testClassLoader)
-                    .using(testOptions)
-                    .storingEventsIn(state.recorder)
+                            .loadingClassesFrom(runner.testClassLoader)
+                            .using(runner.args())
+                            .storingEventsIn(runner.state.recorder)
             );
 
-            state.testCompletion.countDown();
+            runner.state.testCompletion.countDown();
         }
 
         try{
-            state.testCompletion.await();
+            runner.state.testCompletion.await();
         }catch(InterruptedException e){
             throw new RuntimeException(e);
         }
 
-        state.recorder.replayTo(eventHandler, testClassname, loggers);
+        runner.state.recorder.replayTo(eventHandler, taskDef.fullyQualifiedName(), loggers);
+        return new Task[0];
     }
+
+    @Override
+    public TaskDef taskDef() {
+        return taskDef;
+    }
+}
+public class TestNGRunner implements Runner {
+    ClassLoader testClassLoader;
+    TestRunState state;
+    String[] args;
+    String[] remoteArgs;
+    public TestNGRunner(String[] args, String[] remoteArgs, ClassLoader testClassLoader, TestRunState state) {
+        this.testClassLoader = testClassLoader;
+        this.state = state;
+        this.args = args;
+        this.remoteArgs = remoteArgs;
+    }
+
+    public Task[] tasks(TaskDef[] taskDefs) {
+        Task[] out = new Task[taskDefs.length];
+        for (int i = 0; i < taskDefs.length; i += 1) {
+            out[i] = new TestNGTask(taskDefs[i], this);
+        }
+        return out;
+    }
+
+    public String done() { return null; }
+
+    public String[] remoteArgs() { return remoteArgs; }
+
+    public String[] args() { return args; }
 }

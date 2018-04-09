@@ -18,9 +18,9 @@ trait CaffeineModule extends MavenModule{
     MavenRepository("http://repo.spring.io/plugins-release")
   )
   trait Tests extends super.Tests{
-    def testFrameworks = Seq("de.johoop.testnginterface.TestNGFramework")
+    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
     def ivyDeps = Agg(
-      ivy"de.johoop:sbt-testng-interface_2.12:3.1.1",
+      ivy"com.novocode:junit-interface:0.11",
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
@@ -82,7 +82,7 @@ object caffeine extends CaffeineModule {
       testLibraries.jctools,
       testLibraries.guavaTestLib,
     ) ++
-    testLibraries.testng
+      testLibraries.testng
   }
 }
 
@@ -96,6 +96,11 @@ object guava extends CaffeineModule {
       testLibraries.jctools,
       testLibraries.easymock,
       testLibraries.guavaTestLib
+    )
+    def forkArgs = Seq(
+      "-Dguava.osgi.version=" + versions.guava,
+      "-Dcaffeine.osgi.jar=" + caffeine.jar().path,
+      "-Dcaffeine-guava.osgi.jar=" + guava.jar().path
     )
   }
 }
@@ -111,7 +116,7 @@ object jcache extends CaffeineModule {
       testLibraries.jcacheGuice,
       testLibraries.guavaTestLib
     ) ++
-    testLibraries.testng
+      testLibraries.testng
   }
 }
 

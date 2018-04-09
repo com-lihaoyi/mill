@@ -1,8 +1,7 @@
 package mill.testng;
 
 
-import org.scalatools.testing.EventHandler;
-import org.scalatools.testing.Logger;
+import sbt.testing.Logger;
 
 import org.testng.CommandLineArgs;
 import org.testng.TestNG;
