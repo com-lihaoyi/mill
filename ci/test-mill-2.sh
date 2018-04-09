@@ -6,4 +6,4 @@ set -eux
 git clean -xdf
 
 # Run tests
-mill integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
+mill integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,CaffeineTests}"

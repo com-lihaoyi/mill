@@ -177,6 +177,7 @@ object scalajslib extends MillModule {
     }
   }
 }
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -190,7 +191,9 @@ def testRepos = T{
     "MILL_UPICKLE_REPO" ->
       shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle"),
     "MILL_PLAY_JSON_REPO" ->
-      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx().dest/"play-json")
+      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx().dest/"play-json"),
+    "MILL_CAFFEINE_REPO" ->
+      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx().dest/"caffeine")
   )
 }
 

@@ -17,9 +17,7 @@ abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, 
     wrapper
   }
 
-  def buildFiles: Seq[Path] = {
-    Seq(buildFilePath / "build.sc")
-  }
+  def buildFiles: Seq[Path] = ls.rec(buildFilePath)
 
   override def initWorkspace() = {
     super.initWorkspace()
