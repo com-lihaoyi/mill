@@ -80,7 +80,7 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-14-037b8eb",
+    ivy"com.lihaoyi:::ammonite:1.1.0-16-147fdfe",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"
