@@ -212,7 +212,8 @@ object integration extends MillModule{
     scalaworker.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
-      "-DMILL_VERSION=" + build.publishVersion()._2
+      "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-Djna.nosys=true"
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
@@ -281,9 +282,14 @@ val isBatch =
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
-  def forkArgs = T{
-    scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()
-  }
+  def forkArgs =
+    scalalib.testArgs() ++
+    scalajslib.testArgs() ++
+    scalaworker.testArgs() ++
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    Seq("-Djna.nosys=true")
+
   def launcher = T{
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx().dest / (if (isBatch) "run.bat" else "run")
