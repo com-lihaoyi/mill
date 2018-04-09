@@ -21,6 +21,7 @@ trait CaffeineModule extends MavenModule{
     def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
     def ivyDeps = Agg(
       ivy"com.novocode:junit-interface:0.11",
+      ivy"com.lihaoyi:mill-testng:0.1.7-79-91f790",
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
@@ -73,6 +74,7 @@ object caffeine extends CaffeineModule {
   }
 
   object test extends Tests{
+    def testFrameworks = Seq("mill.testng.TestNGFramework")
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.ycsb,
       libraries.fastutil,

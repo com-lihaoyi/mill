@@ -294,12 +294,12 @@ object Lib{
             !cls.isInterface &&
             (f.isModule == cls.getName.endsWith("$")) &&
             cl.loadClass(f.superclassName()).isAssignableFrom(cls) &&
-            cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1
+            (f.isModule || cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1)
 
           case f: AnnotatedFingerprint =>
             val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
             (f.isModule == cls.getName.endsWith("$")) &&
-              cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1 &&
+            (f.isModule || cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1)
             (
               cls.isAnnotationPresent(annotationCls) ||
               cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))

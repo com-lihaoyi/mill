@@ -14,11 +14,8 @@ public class TestNGFramework implements Framework {
 
     @Override
     public Runner runner(String[] args, String[] remoteArgs, ClassLoader classLoader) {
-        return new TestNGRunner(args, remoteArgs, classLoader, sharedState);
+        return new TestNGRunner(args, remoteArgs, classLoader);
     }
-
-
-    private TestRunState sharedState = new TestRunState();
 }
 
 class Annotated implements AnnotatedFingerprint{

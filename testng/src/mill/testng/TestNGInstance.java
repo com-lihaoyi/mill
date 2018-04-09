@@ -1,42 +1,74 @@
 package mill.testng;
 
 
+import org.testng.*;
+import sbt.testing.EventHandler;
 import sbt.testing.Logger;
-
-import org.testng.CommandLineArgs;
-import org.testng.TestNG;
 
 import com.beust.jcommander.JCommander;
 
-public class TestNGInstance {
-    Logger[] loggers;
-    ConfigurableTestNG configurableTestNG = new ConfigurableTestNG();
-    public TestNGInstance(Logger[] loggers){
-        this.loggers = loggers;
+import java.net.URLClassLoader;
+import java.util.Arrays;
+
+class TestNGListener implements ITestListener{
+    EventHandler basket;
+    String lastName = "";
+    public TestNGListener(EventHandler basket){
+        this.basket = basket;
     }
-    TestNGInstance loadingClassesFrom(ClassLoader testClassLoader){
-        configurableTestNG.addClassLoader(testClassLoader);
-        return TestNGInstance.this;
+    public void onTestStart(ITestResult iTestResult) {
+        String newName = iTestResult.getTestClass().getName() + " " + iTestResult.getName() + " ";
+        if(!newName.equals(lastName)){
+            if (!lastName.equals("")){
+                System.out.println();
+            }
+            lastName = newName;
+            System.out.print(lastName);
+        }
     }
-    TestNGInstance using(String[] testOptions){
+
+    public void onTestSuccess(ITestResult iTestResult) {
+        System.out.print('+');
+        basket.handle(ResultEvent.success(iTestResult));
+    }
+
+    public void onTestFailure(ITestResult iTestResult) {
+        System.out.print('X');
+        basket.handle(ResultEvent.failure(iTestResult));
+    }
+
+    public void onTestSkipped(ITestResult iTestResult) {
+        System.out.print('-');
+        basket.handle(ResultEvent.skipped(iTestResult));
+    }
+
+    public void onTestFailedButWithinSuccessPercentage(ITestResult iTestResult) {
+        basket.handle(ResultEvent.failure(iTestResult));
+    }
+
+    public void onStart(ITestContext iTestContext) {}
+
+    public void onFinish(ITestContext iTestContext) {}
+}
+
+public class TestNGInstance extends TestNG{
+    public TestNGInstance(Logger[] loggers,
+                          ClassLoader testClassLoader,
+                          String[] testOptions,
+                          String suiteName,
+                          EventHandler eventHandler) {
+        addClassLoader(testClassLoader);
+
+        try{
+            this.setTestClasses(new Class[]{Class.forName(suiteName)});
+        }catch(ClassNotFoundException e){
+            throw new RuntimeException(e);
+        }
+        this.addListener(new TestNGListener(eventHandler));
         CommandLineArgs args = new CommandLineArgs();
         new JCommander(args, testOptions); // args is an output parameter of the constructor!
-        configurableTestNG.configure(args);
-        return TestNGInstance.this;
+        configure(args);
     }
-
-    TestNGInstance storingEventsIn(EventRecorder basket){
-        configurableTestNG.addListener(basket);
-        return TestNGInstance.this;
-    }
-
-    static void start(TestNGInstance testNG){
-        testNG.configurableTestNG.run();
-    }
-    static TestNGInstance loggingTo(Logger[] loggers){ return new TestNGInstance(loggers); }
 }
 
 
-class ConfigurableTestNG extends TestNG{ // the TestNG method we need is protected
-    public void configure(CommandLineArgs args) { super.configure(args); }
-}

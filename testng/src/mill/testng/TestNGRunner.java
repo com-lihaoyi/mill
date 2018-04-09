@@ -2,6 +2,9 @@ package mill.testng;
 
 import sbt.testing.*;
 
+import java.util.Arrays;
+import java.util.Collections;
+
 class TestNGTask implements Task {
 
     TaskDef taskDef;
@@ -18,24 +21,14 @@ class TestNGTask implements Task {
 
     @Override
     public Task[] execute(EventHandler eventHandler, Logger[] loggers) {
-        if (TestRunState.permissionToExecute.tryAcquire()) {
-            TestNGInstance.start(
-                    TestNGInstance.loggingTo(loggers)
-                            .loadingClassesFrom(runner.testClassLoader)
-                            .using(runner.args())
-                            .storingEventsIn(runner.state.recorder)
-            );
-
-            runner.state.testCompletion.countDown();
-        }
-
-        try{
-            runner.state.testCompletion.await();
-        }catch(InterruptedException e){
-            throw new RuntimeException(e);
-        }
-
-        runner.state.recorder.replayTo(eventHandler, taskDef.fullyQualifiedName(), loggers);
+        System.out.println("Executing " + taskDef.fullyQualifiedName());
+        new TestNGInstance(
+                loggers,
+                runner.testClassLoader,
+                runner.args(),
+                taskDef.fullyQualifiedName(),
+                eventHandler
+        ).run();
         return new Task[0];
     }
 
@@ -44,19 +37,19 @@ class TestNGTask implements Task {
         return taskDef;
     }
 }
+
 public class TestNGRunner implements Runner {
     ClassLoader testClassLoader;
-    TestRunState state;
     String[] args;
     String[] remoteArgs;
-    public TestNGRunner(String[] args, String[] remoteArgs, ClassLoader testClassLoader, TestRunState state) {
+    public TestNGRunner(String[] args, String[] remoteArgs, ClassLoader testClassLoader) {
         this.testClassLoader = testClassLoader;
-        this.state = state;
         this.args = args;
         this.remoteArgs = remoteArgs;
     }
 
     public Task[] tasks(TaskDef[] taskDefs) {
+        System.out.println("TestNGRunner#tasks " + Arrays.toString(taskDefs));
         Task[] out = new Task[taskDefs.length];
         for (int i = 0; i < taskDefs.length; i += 1) {
             out[i] = new TestNGTask(taskDefs[i], this);
