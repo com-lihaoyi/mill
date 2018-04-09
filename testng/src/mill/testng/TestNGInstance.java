@@ -54,19 +54,12 @@ class TestNGListener implements ITestListener{
 public class TestNGInstance extends TestNG{
     public TestNGInstance(Logger[] loggers,
                           ClassLoader testClassLoader,
-                          String[] testOptions,
-                          String suiteName,
+                          CommandLineArgs args,
                           EventHandler eventHandler) {
         addClassLoader(testClassLoader);
 
-        try{
-            this.setTestClasses(new Class[]{Class.forName(suiteName)});
-        }catch(ClassNotFoundException e){
-            throw new RuntimeException(e);
-        }
         this.addListener(new TestNGListener(eventHandler));
-        CommandLineArgs args = new CommandLineArgs();
-        new JCommander(args, testOptions); // args is an output parameter of the constructor!
+
         configure(args);
     }
 }

@@ -289,27 +289,38 @@ object Lib{
       if (!exists(base)) Nil
       else listClassFiles(base).flatMap { path =>
         val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
-        fingerprints.find {
-          case f: SubclassFingerprint =>
-            !cls.isInterface &&
-            (f.isModule == cls.getName.endsWith("$")) &&
-            cl.loadClass(f.superclassName()).isAssignableFrom(cls) &&
-            (f.isModule || cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1)
+        val publicConstructorCount =
+          cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers))
 
-          case f: AnnotatedFingerprint =>
-            val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
-            (f.isModule == cls.getName.endsWith("$")) &&
-            (f.isModule || cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers)) == 1)
-            (
-              cls.isAnnotationPresent(annotationCls) ||
-              cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
-            )
-
-        }.map { f => (cls, f) }
+        if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1) {
+          None
+        } else {
+          (cls.getName.endsWith("$"), publicConstructorCount == 0) match{
+            case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
+            case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
+            case _ => None
+          }
+        }
       }
     }
 
     testClasses
+  }
+  def matchFingerprints(cl: ClassLoader, cls: Class[_], fingerprints: Array[Fingerprint], isModule: Boolean) = {
+    fingerprints.find {
+      case f: SubclassFingerprint =>
+        f.isModule == isModule &&
+        cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+
+      case f: AnnotatedFingerprint =>
+        val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
+        f.isModule == isModule &&
+        (
+          cls.isAnnotationPresent(annotationCls) ||
+          cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
+        )
+
+    }.map { f => (cls, f) }
   }
 
 }

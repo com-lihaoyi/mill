@@ -21,7 +21,7 @@ trait CaffeineModule extends MavenModule{
     def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
     def ivyDeps = Agg(
       ivy"com.novocode:junit-interface:0.11",
-      ivy"com.lihaoyi:mill-testng:0.1.7-79-91f790",
+      ivy"com.lihaoyi:mill-testng:${sys.props("MILL_VERSION")}",
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
@@ -85,6 +85,8 @@ object caffeine extends CaffeineModule {
       testLibraries.guavaTestLib,
     ) ++
       testLibraries.testng
+
+    def allSourceFiles = super.allSourceFiles().filter(_.path.last != "OSGiTest.java")
   }
 }
 
@@ -99,6 +101,7 @@ object guava extends CaffeineModule {
       testLibraries.easymock,
       testLibraries.guavaTestLib
     )
+    def allSourceFiles = super.allSourceFiles().filter(_.path.last != "OSGiTest.java")
     def forkArgs = Seq(
       "-Dguava.osgi.version=" + versions.guava,
       "-Dcaffeine.osgi.jar=" + caffeine.jar().path,

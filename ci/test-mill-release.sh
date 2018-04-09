@@ -15,3 +15,5 @@ rm -rf ~/.mill
 
 # Run tests
 ~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+
+~/mill-release -i integration.test "mill.integration.local.CaffeineTests"

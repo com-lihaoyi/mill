@@ -60,6 +60,10 @@ object ScalaWorker{
         args = arguments
       )(ctx)
 
+      // Clear interrupted state in case some badly-behaved test suite
+      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
+      // that flag causes writing the results to disk to fail
+      Thread.interrupted()
       ammonite.ops.write(Path(outputPath), upickle.default.write(result))
     }catch{case e: Throwable =>
       println(e)

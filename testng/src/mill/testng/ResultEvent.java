@@ -16,7 +16,7 @@ public class ResultEvent {
             }
 
             public Fingerprint fingerprint() {
-                return Annotated.instance;
+                return TestNGFingerprint.instance;
             }
 
             public Selector selector() {

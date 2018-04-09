@@ -10,7 +10,7 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
       // type inference issues during the compile
       if (mill.client.ClientServer.isJava9OrAbove){
         assert(eval("caffeine.test.compile"))
-        assert(eval("guava.test"))
+
         val suites = Seq(
           "com.github.benmanes.caffeine.SingleConsumerQueueTest",
           "com.github.benmanes.caffeine.cache.AsyncTest",
@@ -22,8 +22,11 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
           "-testclass", suites.mkString(",")
         ))
         assert(eval("guava.test.compile"))
+        assert(eval("guava.test"))
+
         assert(eval("jcache.test.compile"))
         assert(eval("simulator.test.compile"))
+
       }
     }
 

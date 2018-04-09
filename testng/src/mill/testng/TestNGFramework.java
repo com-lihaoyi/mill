@@ -9,7 +9,7 @@ public class TestNGFramework implements Framework {
     public String name(){ return "TestNG"; }
 
     public Fingerprint[] fingerprints() {
-        return new Fingerprint[]{Annotated.instance};
+        return new Fingerprint[]{TestNGFingerprint.instance};
     }
 
     @Override
@@ -18,12 +18,8 @@ public class TestNGFramework implements Framework {
     }
 }
 
-class Annotated implements AnnotatedFingerprint{
-    final public static Annotated instance = new Annotated("org.testng.annotations.Test");
-    String annotationName;
-    public Annotated(String annotationName) {
-        this.annotationName = annotationName;
-    }
-    public String annotationName(){return annotationName;}
+class TestNGFingerprint implements AnnotatedFingerprint{
+    final public static TestNGFingerprint instance = new TestNGFingerprint();
+    public String annotationName(){return "org.testng.annotations.Test";}
     public boolean isModule(){return false;}
 }
