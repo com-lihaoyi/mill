@@ -104,10 +104,10 @@ object Pom {
         <version>{d.artifact.version}</version>
         <exclusions>
           {d.exclusions.map(ex =>
-            <exclude>
+            <exclusion>
               <groupId>{ex._1}</groupId>
               <artifactId>{ex._2}</artifactId>
-            </exclude>
+            </exclusion>
           )}
         </exclusions>
         {scope}
