@@ -34,7 +34,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def ivy = T {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps())
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), skipSourceJar(), skipDocJar())
     val ivyPath = T.ctx().dest / "ivy.xml"
     write.over(ivyPath, ivy)
     PathRef(ivyPath)
@@ -44,11 +44,14 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
+  def skipSourceJar = T {false}
+  def skipDocJar = T {false}
+
   def publishLocal(): define.Command[Unit] = T.command {
     LocalPublisher.publish(
       jar = jar().path,
-      sourcesJar = sourceJar().path,
-      docJar = docJar().path,
+      sourcesJar = if (skipSourceJar()) None else Some(sourceJar().path),
+      docJar = if (skipDocJar()) None else Some(docJar().path),
       pom = pom().path,
       ivy = ivy().path,
       artifact = artifactMetadata()
@@ -64,10 +67,10 @@ trait PublishModule extends JavaModule { outer =>
     PublishModule.PublishData(
       artifactMetadata(),
       Seq(
-        jar() -> s"$baseName.jar",
-        sourceJar() -> s"$baseName-sources.jar",
-        docJar() -> s"$baseName-javadoc.jar",
-        pom() -> s"$baseName.pom"
+        jar() -> s"$baseName.jar"
+      , sourceJar() -> s"$baseName-sources.jar"
+      , docJar() -> s"$baseName-javadoc.jar"
+      , pom() -> s"$baseName.pom"
       )
     )
   }

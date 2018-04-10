@@ -10,7 +10,9 @@ object Ivy {
 
   def apply(
       artifact: Artifact,
-      dependencies: Agg[Dependency]
+      dependencies: Agg[Dependency],
+      skipSource: Boolean = false,
+      skipDoc: Boolean = false
   ): String = {
     val xml =
       <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
@@ -30,8 +32,8 @@ object Ivy {
         <publications>
           <artifact name={artifact.id} type="pom" ext="pom" conf="pom"/>
           <artifact name={artifact.id} type="jar" ext="jar" conf="compile"/>
-          <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/>
-          <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
+          { if (skipSource) null else <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/> }
+          { if (skipDoc) null else <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/> }
         </publications>
         <dependencies>{dependencies.map(renderDependency).toSeq}</dependencies>
       </ivy-module>
