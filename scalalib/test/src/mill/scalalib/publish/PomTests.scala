@@ -118,8 +118,8 @@ object PomTests extends TestSuite {
               singleText(dep \ "version") == pomDeps(index).artifact.version,
               optText(dep \ "scope").isEmpty,
               (dep \ "exclusions").zipWithIndex.forall { case (node, j) =>
-                singleText(node \ "exclude" \ "groupId") == pomDeps(index).exclusions(j)._1 &&
-                  singleText(node \ "exclude" \ "artifactId") == pomDeps(index).exclusions(j)._2
+                singleText(node \ "exclusion" \ "groupId") == pomDeps(index).exclusions(j)._1 &&
+                  singleText(node \ "exclusion" \ "artifactId") == pomDeps(index).exclusions(j)._2
               }
             )
         }
