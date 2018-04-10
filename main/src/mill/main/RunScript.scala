@@ -228,7 +228,7 @@ object RunScript{
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
               val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
-              Some(metadata.v)
+              Some(metadata.value)
 
             case _ => None
           }

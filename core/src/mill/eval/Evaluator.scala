@@ -138,7 +138,7 @@ case class Evaluator[T](home: Path,
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
-            try Some(upickle.default.read(cached.v)(reader))
+            try Some(upickle.default.read(cached.value)(reader))
             catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
 
@@ -323,7 +323,7 @@ case class Evaluator[T](home: Path,
 
 
 object Evaluator{
-  case class Cached(v: Js.Value,
+  case class Cached(value: Js.Value,
                     valueHash: Int,
                     inputsHash: Int)
   object Cached{
