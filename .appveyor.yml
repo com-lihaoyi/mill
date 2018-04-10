@@ -24,7 +24,7 @@ cache:
   - '%LOCALAPPDATA%\Coursier\cache -> build.sc'
 
 install:
-  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-86-e1da1b
+  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-97-00b10e
 
 build_script:
   - if [%COMPILER%]==[default] (
