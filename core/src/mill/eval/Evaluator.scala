@@ -30,7 +30,6 @@ case class Labelled[T](task: NamedTask[T],
 }
 case class Evaluator[T](home: Path,
                         outPath: Path,
-                        externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
                         classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
@@ -124,9 +123,10 @@ case class Evaluator[T](home: Path,
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
 
+
         val paths = Evaluator.resolveDestPaths(
-          if (!labelledNamedTask.task.ctx.external) outPath else externalOutPath,
-          labelledNamedTask.segments
+          outPath,
+          destSegments(labelledNamedTask)
         )
 
         if (!exists(paths.out)) mkdir(paths.out)
@@ -191,6 +191,27 @@ case class Evaluator[T](home: Path,
         }
     }
   }
+
+  def destSegments(labelledTask : Labelled[_]) : Segments = {
+    import labelledTask.task.ctx
+    if (ctx.foreign) {
+      val prefix = "foreign-modules"
+      // Computing a path in "out" that uniquely reflects the location
+      // of the foreign module relatively to the current build.
+      val relative = labelledTask.task
+        .ctx.millSourcePath
+        .relativeTo(rootModule.millSourcePath)
+      // Encoding the number of `/..`
+      val ups = if (relative.ups > 0) Segments.labels(s"up-${relative.ups}")
+                else Segments()
+      Segments.labels(prefix)
+        .++(ups)
+        .++(Segments.labels(relative.segments: _*))
+        .++(labelledTask.segments.last)
+    } else labelledTask.segments
+  }
+
+
   def handleTaskResult(v: Any,
                        hashCode: Int,
                        metaPath: Path,

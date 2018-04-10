@@ -20,7 +20,6 @@ object ReplApplyHandler{
       new Evaluator(
         home,
         ammonite.ops.pwd / 'out,
-        ammonite.ops.pwd / 'out,
         rootModule,
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
