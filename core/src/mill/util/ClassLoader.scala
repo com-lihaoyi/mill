@@ -12,7 +12,12 @@ object ClassLoader {
     new URLClassLoader(
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
-    )
+    ) {
+      override def findClass(name: String): Class[_] = {
+        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
+        else super.findClass(name)
+      }
+    }
   }
 
   def create(urls: Seq[URL],
@@ -24,7 +29,8 @@ object ClassLoader {
       refinePlatformParent(parent)
     ) {
       override def findClass(name: String): Class[_] = {
-        customFindClass(name).getOrElse(super.findClass(name))
+        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
+        else customFindClass(name).getOrElse(super.findClass(name))
       }
     }
   }

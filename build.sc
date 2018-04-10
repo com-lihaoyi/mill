@@ -66,7 +66,10 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
 
 object client extends MillPublishModule{
   def ivyDeps = Agg(
-    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
+      "net.java.dev.jna" -> "jna",
+      "net.java.dev.jna" -> "jna-platform"
+    )
   )
 }
 
@@ -86,8 +89,10 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::sourcecode:0.1.4",
     ivy"com.lihaoyi:::ammonite:1.1.0-14-037b8eb",
+    // Necessary so we can share the JNA classes throughout the build process
+    ivy"net.java.dev.jna:jna:4.5.0",
+    ivy"net.java.dev.jna:jna-platform:4.5.0"
   )
 
   def generatedSources = T {
@@ -149,7 +154,7 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     scalaworker.testArgs() ++
-    Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
   }
 }
 
@@ -163,7 +168,7 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
       "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
-    scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    Seq("-Djna.nosys=true") ++ scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
