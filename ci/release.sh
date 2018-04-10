@@ -7,7 +7,10 @@ echo $GPG_PRIVATE_KEY_B64 | base64 --decode > gpg_key
 gpg --import gpg_key
 
 rm gpg_key
-mill mill.scalalib.PublishModule/publishAll \
+mill dev.launcher
+
+out/dev/launcher/dest/run \
+    mill.scalalib.PublishModule/publishAll \
     lihaoyi:$SONATYPE_PASSWORD \
     $GPG_PASSWORD \
     __.publishArtifacts \
@@ -15,4 +18,4 @@ mill mill.scalalib.PublishModule/publishAll \
     true \
 
 
-mill uploadToGithub $GITHUB_ACCESS_TOKEN
+out/dev/launcher/dest/run  uploadToGithub $GITHUB_ACCESS_TOKEN
