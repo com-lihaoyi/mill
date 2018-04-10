@@ -9,13 +9,12 @@ gpg --import gpg_key
 rm gpg_key
 mill dev.launcher
 
-out/dev/launcher/dest/run \
-    mill.scalalib.PublishModule/publishAll \
+out/dev/launcher/dest/run mill.scalalib.PublishModule/publishAll \
     lihaoyi:$SONATYPE_PASSWORD \
     $GPG_PASSWORD \
     __.publishArtifacts \
     --release \
-    true \
+    true
 
 
 out/dev/launcher/dest/run  uploadToGithub $GITHUB_ACCESS_TOKEN
