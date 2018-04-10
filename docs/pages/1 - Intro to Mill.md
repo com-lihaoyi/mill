@@ -1,4 +1,4 @@
-[Mill](https://github.com/lihaoyi/mill) is your shiny new Scala build tool!
+[Mill](https://github.com/lihaoyi/mill) is your shiny new Java/Scala build tool!
 [Scared of SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
 Melancholy over Maven? Grumbling about Gradle? Baffled by Bazel? Give Mill a
 try!
@@ -33,6 +33,28 @@ Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill
 pacaur -S mill
 ```
 
+### Windows
+
+To get started, download Mill from: https://github.com/lihaoyi/mill/releases/download/0.1.8/0.1.8,
+and save it as `mill.bat`.
+
+Mill also works on a sh environment on Windows (e.g.,
+[MSYS2](https://www.msys2.org),
+[Cygwin](https://www.cygwin.com),
+[Git-Bash](https://gitforwindows.org),
+[WSL](https://docs.microsoft.com/en-us/windows/wsl);
+to get started, follow the instructions in the [manual](#manual) section below. Note that:
+
+* In some environments (such as WSL), mill has be run using interactive mode (`-i`)
+
+* Git-Bash: run the instruciton in administrator mode instead of `sudo`
+
+* Cygwin: run the following after downloading mill:
+
+  ```bash
+  sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+  ```
+
 ### Manual
 
 To get started, download Mill and install it into your system via the following
@@ -54,6 +76,17 @@ questions or say hi!
 
 ## Getting Started
 
+The simplest Mill build for a Java project looks as follows:
+
+```scala
+// build.sc
+import mill._, mill.scalalib._
+
+object foo extends JavaModule {
+
+}
+```
+
 The simplest Mill build for a Scala project looks as follows:
 
 ```scala
@@ -66,13 +99,14 @@ object foo extends ScalaModule {
 }
 ```
 
-This would build a project laid out as follows:
+Both of these would build a project laid out as follows:
 
 ```
 build.sc
 foo/
     src/
-        Main.scala
+        FileA.java
+        FileB.scala
     resources/
         ...
 out/
@@ -100,7 +134,7 @@ $ mill foo.launcher                # prepares a foo/launcher/dest/run you can ru
 $ mill foo.jar                     # bundle the classfiles into a jar
 
 $ mill foo.assembly                # bundle classfiles and all dependencies into a jar
- 
+
 $ mill -i foo.console              # start a Scala console within your project (in interactive mode: "-i")
  
 $ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
@@ -141,10 +175,20 @@ respective `out/foo/bar/` folder.
 
 ## Multiple Modules
 
+### Java Example
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, mill.scalalib._
+object foo extends ScalaModule
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+}
+```
+
+### Scala Example
+```scala
+// build.sc
+import mill._, mill.scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
@@ -155,7 +199,7 @@ object bar extends ScalaModule {
 ```
 
 You can define multiple modules the same way you define a single module, using
-`def moduleDeps` to define the relationship between them. The above build
+`def moduleDeps` to define the relationship between them. The above builds
 expects the following project layout:
 
 ```

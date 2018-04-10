@@ -328,29 +328,43 @@ rm -rf out/
 
 ## Changelog
 
-### Master
+### 0.2.0
 
-- Universal (combined batch/sh) script generation for launcher, assembly, and release
+- Universal (combined batch/sh) script generation for launcher, assembly, and
+  release
 
-  For some shell (e.g., `ksh` or `fish`), a shebang line should be added, e.g., using GNU sed:
-  
-  ```bash
-  sed -i '1s;^;#!/usr/bin/env sh\n;' <mill-path>
-  ```
-  
-  Or download directly with shebang added as follows:
-  
-  ```bash
-  sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L <mill-url>) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
-  ```
-  
-  On Windows, save `<mill-url>` as `mill.bat`
-  
 - Windows client/server improvements
 
-- Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3 v3.6.3 is released)
+- Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3
+  v3.6.3 is released)
   
 - Fixed Java 9 support
+
+- Remove need for running `publishAll` using `--interactive` when on OSX and
+  your GPG key has a passphrase
+
+- First-class support for `JavaModule`s
+
+- Properly pass compiler plugins to Scaladoc ([#282](https://github.com/lihaoyi/mill/issues/282))
+
+- Support for ivy version-pinning via `ivy"...".forceVersion()`
+
+- Support for ivy excludes via `ivy"...".exclude()` ([#254](https://github.com/lihaoyi/mill/pull/254))
+
+- Make `ivyDepsTree` properly handle transitive dependencies ([#226](https://github.com/lihaoyi/mill/issues/226))
+
+- Fix handling of `runtime`-scoped ivy dependencies ([#173](https://github.com/lihaoyi/mill/issues/173))
+
+- Make environment variables available to Mill builds ([#257](https://github.com/lihaoyi/mill/issues/257))
+
+- Support ScalaCheck test runner ([#286](https://github.com/lihaoyi/mill/issues/286))
+
+- Support for using Typelevel Scala ([#275](https://github.com/lihaoyi/mill/issues/275))
+
+- If a module depends on multiple submodules with different versions of an
+  ivy dependency, only one version is resolved ([#273](https://github.com/lihaoyi/mill/issues/273))
+
+
 
 ### 0.1.7
 
