@@ -22,6 +22,9 @@ own codebase.
 
 Mill is built using Mill. To begin, first download & install Mill as described
 in the documentation above.
+As Mill is under active development, stable releases may not be able to build 
+the current development branch of Mill.
+It is recommended to install the latest unstable release manually.
 
 To run unit test suite:
 
