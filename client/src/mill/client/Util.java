@@ -7,7 +7,7 @@ import java.io.OutputStream;
 import java.util.HashMap;
 import java.util.Map;
 
-public class ClientServer {
+public class Util {
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
     public static boolean isJava9OrAbove = !System.getProperty("java.specification.version").startsWith("1.");
 
@@ -19,22 +19,18 @@ public class ClientServer {
 
     public static String[] parseArgs(InputStream argStream) throws IOException {
 
-        int argsLength = argStream.read();
+        int argsLength = readInt(argStream);
         String[] args = new String[argsLength];
         for (int i = 0; i < args.length; i++) {
             args[i] = readString(argStream);
         }
         return args;
     }
-    public static void writeArgs(Boolean interactive,
-                                 String[] args,
+    public static void writeArgs(String[] args,
                                  OutputStream argStream) throws IOException {
-        argStream.write(interactive ? 1 : 0);
-        argStream.write(args.length);
-        int i = 0;
-        while (i < args.length) {
-            writeString(argStream, args[i]);
-            i += 1;
+        writeInt(argStream, args.length);
+        for(String arg: args){
+            writeString(argStream, arg);
         }
     }
 
@@ -44,7 +40,7 @@ public class ClientServer {
      * does not see the environment changes the client would)
      */
     public static void writeMap(Map<String, String> map, OutputStream argStream) throws IOException {
-        argStream.write(map.size());
+        writeInt(argStream, map.size());
         for (Map.Entry<String, String> kv : map.entrySet()) {
             writeString(argStream, kv.getKey());
             writeString(argStream, kv.getValue());
@@ -53,7 +49,7 @@ public class ClientServer {
 
     public static Map<String, String> parseMap(InputStream argStream) throws IOException {
         Map<String, String> env = new HashMap<>();
-        int mapLength = argStream.read();
+        int mapLength = readInt(argStream);
         for (int i = 0; i < mapLength; i++) {
             String key = readString(argStream);
             String value = readString(argStream);
@@ -62,36 +58,38 @@ public class ClientServer {
         return env;
     }
 
-    private static String readString(InputStream inputStream) throws IOException {
+    public static String readString(InputStream inputStream) throws IOException {
         // Result is between 0 and 255, hence the loop.
-        int read = inputStream.read();
-        int bytesToRead = read;
-        while(read == 255){
-            read = inputStream.read();
-            bytesToRead += read;
-        }
-        byte[] arr = new byte[bytesToRead];
-        int readTotal = 0;
-        while (readTotal < bytesToRead) {
-            read = inputStream.read(arr, readTotal, bytesToRead - readTotal);
-            readTotal += read;
+        int length = readInt(inputStream);
+        byte[] arr = new byte[length];
+        int total = 0;
+        while(total < length){
+            int res = inputStream.read(arr, total, length-total);
+            if (res == -1) throw new IOException("Incomplete String");
+            else{
+                total += res;
+            }
         }
         return new String(arr);
     }
 
-    private static void writeString(OutputStream outputStream, String string) throws IOException {
-        // When written, an int > 255 gets splitted. This logic performs the
-        // split beforehand so that the reading side knows that there is still
-        // more metadata to come before it's able to read the actual data.
-        // Could do with rewriting using logical masks / shifts.
+    public static void writeString(OutputStream outputStream, String string) throws IOException {
         byte[] bytes = string.getBytes();
-        int toWrite = bytes.length;
-        while(toWrite >= 255){
-            outputStream.write(255);
-            toWrite = toWrite - 255;
-        }
-        outputStream.write(toWrite);
+        writeInt(outputStream, bytes.length);
         outputStream.write(bytes);
+    }
+
+    public static void writeInt(OutputStream out, int i) throws IOException{
+        out.write((byte)(i >>> 24));
+        out.write((byte)(i >>> 16));
+        out.write((byte)(i >>> 8));
+        out.write((byte)i);
+    }
+    public static int readInt(InputStream in) throws IOException{
+        return ((in.read() & 0xFF) << 24) +
+                ((in.read() & 0xFF) << 16) +
+                ((in.read() & 0xFF) << 8) +
+                (in.read() & 0xFF);
     }
 
 }

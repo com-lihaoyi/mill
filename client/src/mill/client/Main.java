@@ -22,7 +22,7 @@ public class Main {
             }
             current = current.getParent();
         }
-        if (ClientServer.isJava9OrAbove) {
+        if (Util.isJava9OrAbove) {
             selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
         }
         ArrayList<String> l = new java.util.ArrayList<String>();
@@ -90,7 +90,6 @@ public class Main {
         throw new Exception("Reached max process limit: " + 5);
     }
 
-
     public static int run(String lockBase,
                           Runnable initServer,
                           Locks locks,
@@ -101,8 +100,10 @@ public class Main {
                           Map<String, String> env) throws Exception{
 
         FileOutputStream f = new FileOutputStream(lockBase + "/run");
-        ClientServer.writeArgs(System.console() != null, args, f);
-        ClientServer.writeMap(env, f);
+        f.write(System.console() != null ? 1 : 0);
+        Util.writeString(f, System.getProperty("MILL_VERSION"));
+        Util.writeArgs(args, f);
+        Util.writeMap(env, f);
         f.close();
 
         boolean serverInit = false;
@@ -114,15 +115,15 @@ public class Main {
 
         // Need to give sometime for Win32NamedPipeSocket to work
         // if the server is just initialized
-        if (serverInit && ClientServer.isWindows) Thread.sleep(1000);
+        if (serverInit && Util.isWindows) Thread.sleep(1000);
 
         Socket ioSocket = null;
 
         long retryStart = System.currentTimeMillis();
         while(ioSocket == null && System.currentTimeMillis() - retryStart < 1000){
             try{
-                ioSocket = ClientServer.isWindows?
-                        new Win32NamedPipeSocket(ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName())
+                ioSocket = Util.isWindows?
+                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
             }catch(Throwable e){
                 Thread.sleep(1);
@@ -131,6 +132,7 @@ public class Main {
         if (ioSocket == null){
             throw new Exception("Failed to connect to server");
         }
+
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
         ClientOutputPumper outPump = new ClientOutputPumper(outErr, stdout, stderr);
@@ -205,7 +207,7 @@ class ClientOutputPumper implements Runnable{
                 // instead it throws an IOException whose message contains "ReadFile()".
                 // However, if it throws an IOException before ever reading some bytes,
                 // it could not connect to the server, so exit.
-                if (ClientServer.isWindows && e.getMessage().contains("ReadFile()")) {
+                if (Util.isWindows && e.getMessage().contains("ReadFile()")) {
                     if (first) {
                         System.err.println("Failed to connect to server");
                         System.exit(1);

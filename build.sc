@@ -71,6 +71,10 @@ object client extends MillPublishModule{
       "net.java.dev.jna" -> "jna-platform"
     )
   )
+  object test extends Tests{
+    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+    def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+  }
 }
 
 
@@ -111,7 +115,9 @@ object main extends MillModule {
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
-
+  def testArgs = Seq(
+    "-DMILL_VERSION=" + build.publishVersion()._2,
+  )
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
@@ -293,7 +299,7 @@ object dev extends MillModule{
     scalaworker.testArgs() ++
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    Seq("-Djna.nosys=true")
+    Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)
 
   def launcher = T{
     val isWin = scala.util.Properties.isWin
@@ -379,6 +385,11 @@ def publishVersion = T.input{
     )
     catch{case e => None}
 
+  val dirtySuffix = %%('git, 'diff)(pwd).out.string.trim() match{
+    case "" => ""
+    case s => "-DIRTY" + Integer.toHexString(s.hashCode)
+  }
+
   tag match{
     case Some(t) => (t, t)
     case None =>
@@ -388,7 +399,7 @@ def publishVersion = T.input{
         %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
         %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
-      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")
+      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
   }
 }
 

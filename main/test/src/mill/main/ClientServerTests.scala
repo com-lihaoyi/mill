@@ -2,7 +2,7 @@ package mill.main
 import java.io._
 import java.nio.file.Path
 
-import mill.client.{ClientServer, Locks}
+import mill.client.{Util, Locks}
 
 import scala.collection.JavaConverters._
 import utest._
@@ -77,7 +77,7 @@ object ClientServerTests extends TestSuite{
 
   def tests = Tests{
     'hello - {
-      if (!ClientServer.isWindows){
+      if (!Util.isWindows){
         val (tmpDir, locks) = init()
         def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
@@ -132,7 +132,7 @@ object ClientServerTests extends TestSuite{
       }
 
       'envVars - {
-        if (!ClientServer.isWindows){
+        if (!Util.isWindows){
           val (tmpDir, locks) = init()
 
           def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())

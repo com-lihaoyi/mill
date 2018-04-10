@@ -61,8 +61,8 @@ class Server[T](lockBase: String,
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock){
-          val (serverSocket, socketClose) = if (ClientServer.isWindows) {
-            val socketName = ClientServer.WIN32_PIPE_PREFIX + new File(lockBase).getName
+          val (serverSocket, socketClose) = if (Util.isWindows) {
+            val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
             (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
           } else {
             val socketName = lockBase + "/io"
@@ -96,19 +96,25 @@ class Server[T](lockBase: String,
   def handleRun(clientSocket: Socket) = {
 
     val currentOutErr = clientSocket.getOutputStream
+    val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 0), true)
+    val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
     val socketIn = clientSocket.getInputStream
     val argStream = new FileInputStream(lockBase + "/run")
-    val interactive = argStream.read() != 0;
-    val args = ClientServer.parseArgs(argStream)
-    val env = ClientServer.parseMap(argStream)
+    val interactive = argStream.read() != 0
+    val clientMillVersion = Util.readString(argStream)
+    val serverMillVersion = sys.props("MILL_VERSION")
+    if (clientMillVersion != serverMillVersion) {
+      stdout.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
+      System.exit(0)
+    }
+    val args = Util.parseArgs(argStream)
+    val env = Util.parseMap(argStream)
     argStream.close()
 
     var done = false
     val t = new Thread(() =>
 
       try {
-        val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 0), true)
-        val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
         val (result, newStateCache) = sm.main0(
           args,
           sm.stateCache,
@@ -144,7 +150,7 @@ class Server[T](lockBase: String,
     t.interrupt()
     t.stop()
 
-    if (ClientServer.isWindows) {
+    if (Util.isWindows) {
       // Closing Win32NamedPipeSocket can often take ~5s
       // It seems OK to exit the client early and subsequently
       // start up mill client again (perhaps closing the server

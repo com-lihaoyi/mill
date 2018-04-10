@@ -3,15 +3,11 @@ package mill
 import java.io.{InputStream, PrintStream}
 
 import scala.collection.JavaConverters._
-
 import ammonite.main.Cli._
 import ammonite.ops._
-import ammonite.util.Util
 import io.github.retronym.java9rtexport.Export
-import mill.client.ClientServer
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
-
 
 object Main {
 
@@ -73,7 +69,7 @@ object Main {
         s"""Mill Build Tool
            |usage: mill [mill-options] [target [target-options]]
            |
-           |${formatBlock(millArgSignature, leftMargin).mkString(Util.newLine)}""".stripMargin
+           |${formatBlock(millArgSignature, leftMargin).mkString(ammonite.util.Util.newLine)}""".stripMargin
         )
         (true, None)
       case Right((cliConfig, leftoverArgs)) =>
@@ -110,7 +106,7 @@ object Main {
             env
           )
 
-          if (ClientServer.isJava9OrAbove) {
+          if (mill.client.Util.isJava9OrAbove) {
             val rt = cliConfig.home / Export.rtJarName
             if (!exists(rt)) {
               runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")
