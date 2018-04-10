@@ -7,7 +7,7 @@ echo $GPG_PRIVATE_KEY_B64 | base64 --decode > gpg_key
 gpg --import gpg_key
 
 rm gpg_key
-mill release
+ci/publish-local.sh
 
 ~/mill-release mill.scalalib.PublishModule/publishAll \
     lihaoyi:$SONATYPE_PASSWORD \
