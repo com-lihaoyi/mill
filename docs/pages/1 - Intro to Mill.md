@@ -458,7 +458,7 @@ JSON it outputs is structured and easily parsed & manipulated.
 
 ## IntelliJ Support
 
-Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdeaModule/idea` to
+Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
 generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within
