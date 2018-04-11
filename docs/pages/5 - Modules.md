@@ -154,5 +154,5 @@ mill foo.Bar/qux
 that is shared by the entire build: for example,
 `mill.scalalib.ScalaWorkerApi/scalaWorker` provides a shared Scala compilation
 service & cache that is shared between all `ScalaModule`s, and
-`mill.scalalib.GenIdeaModule/idea` lets you generate IntelliJ projects without
+`mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `T.command` in your `build.sc` file
