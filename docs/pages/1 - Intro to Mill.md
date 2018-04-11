@@ -178,8 +178,8 @@ respective `out/foo/bar/` folder.
 ```scala
 // build.sc
 import mill._, mill.scalalib._
-object foo extends ScalaModule
-object bar extends ScalaModule {
+object foo extends JavaModule
+object bar extends JavaModule {
   def moduleDeps = Seq(foo)
 }
 ```
