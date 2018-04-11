@@ -331,9 +331,9 @@ rm -rf out/
 ### 0.2.0
 
 - Universal (combined batch/sh) script generation for launcher, assembly, and
-  release
+  release ([#264](https://github.com/lihaoyi/mill/issues/264))
 
-- Windows client/server improvements
+- Windows client/server improvements ([#262](https://github.com/lihaoyi/mill/issues/262))
 
 - Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3
   v3.6.3 is released)
@@ -367,16 +367,8 @@ rm -rf out/
 
 
 ### 0.1.7
-
-- Windows batch (.bat) generation for launcher, assembly, and release
  
 - Support for non-interactive (client/server) mode on Windows.
-
-  On Cygwin, run the following after downloading mill:
-  
-  ```bash
-  sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' <mill-path>
-  ```
 
 - More fixes for Java 9
 
@@ -402,6 +394,8 @@ rm -rf out/
 ### 0.1.6
 
 - Fixes for non-interactive (client/server) mode on Java 9
+
+- Windows batch (.bat) generation for launcher, assembly, and release
 
 ### 0.1.5
 
