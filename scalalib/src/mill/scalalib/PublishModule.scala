@@ -33,8 +33,8 @@ trait PublishModule extends JavaModule { outer =>
     PathRef(pomPath)
   }
 
-  def ivy = T {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), skipSourceJar(), skipDocJar())
+  def ivy(skipSource: Boolean = false, skipDoc: Boolean = false) = T.command {
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), skipSource, skipDoc)
     val ivyPath = T.ctx().dest / "ivy.xml"
     write.over(ivyPath, ivy)
     PathRef(ivyPath)
@@ -44,16 +44,13 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def skipSourceJar = T {false}
-  def skipDocJar = T {false}
-
-  def publishLocal(): define.Command[Unit] = T.command {
+  def publishLocal(skipSource: Boolean = false, skipDoc: Boolean = false): define.Command[Unit] = T.command {
     LocalPublisher.publish(
       jar = jar().path,
-      sourcesJar = if (skipSourceJar()) None else Some(sourceJar().path),
-      docJar = if (skipDocJar()) None else Some(docJar().path),
+      sourcesJar = if (skipSource) None else Some(sourceJar().path),
+      docJar = if (skipDoc) None else Some(docJar().path),
       pom = pom().path,
-      ivy = ivy().path,
+      ivy = ivy(skipSource, skipDoc)().path,
       artifact = artifactMetadata()
     )
   }
