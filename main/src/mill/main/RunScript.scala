@@ -224,11 +224,16 @@ object RunScript{
         val json = for(t <- targets.toSeq) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
-              val jsonFile = Evaluator
-                .resolveDestPaths(evaluator.outPath, t.ctx.segments)
-                .meta
-              val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
-              Some(metadata.value)
+              val sqlite = java.sql.DriverManager.getConnection(s"jdbc:sqlite:${evaluator.outPath}/sample.db")
+              val stmt = sqlite.prepareStatement(
+                "SELECT value FROM cache WHERE key = ?"
+              )
+              stmt.setString(1, t.ctx.segments.render)
+              val res = stmt.executeQuery()
+              val value = res.getString(1)
+              stmt.close()
+              sqlite.close()
+              Some(ujson.read(value))
 
             case _ => None
           }

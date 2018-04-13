@@ -32,8 +32,9 @@ object EvaluationTests extends TestSuite{
       val (matchingReturnedEvaled, extra) =
         evaled.evaluated.indexed.partition(expEvaled.contains)
 
+      val evaledValues = evaled.values
       assert(
-        evaled.values == Seq(expValue),
+        evaledValues == Seq(expValue),
         matchingReturnedEvaled.toSet == expEvaled.toSet,
         extraEvaled == -1 || extra.length == extraEvaled
       )
