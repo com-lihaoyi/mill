@@ -68,6 +68,4 @@ trait ScalaWorkerApi {
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]
-
-  def discoverTests(cl: ClassLoader, framework: sbt.testing.Framework, classpath: Agg[Path]): Loose.Agg[(Class[_], Fingerprint)]
 }

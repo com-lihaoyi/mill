@@ -49,7 +49,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
           new ScalaNativeFramework(f, id, testBinary, envVars): Framework
         }
 
-      val (doneMsg, results) = scalaWorker.worker().runTests(
+      val (doneMsg, results) = Lib.runTests(
         nativeFrameworks,
         testRunnerJvm.runClasspath().map(_.path),
         Agg(compile().classes.path),
@@ -99,7 +99,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       val testClasses =
         Jvm.inprocess(testRunnerJvm.runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, cl => {
           frameworkInstances(cl).flatMap { framework =>
-            val df = scalaWorker.worker().discoverTests(cl, framework, Agg(compile().classes.path))
+            val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
             df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
           }
         })
