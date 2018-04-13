@@ -1,9 +1,9 @@
 package mill.eval
 
 import java.net.URLClassLoader
+import java.sql.Connection
 
 import scala.collection.JavaConverters._
-
 import mill.util.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
@@ -36,11 +36,21 @@ case class Evaluator[T](home: Path,
                         classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
                         workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
                         env : Map[String, String] = Evaluator.defaultEnv){
-  val classLoaderSignHash = classLoaderSig.hashCode()
-  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
-    mkdir(outPath)
 
-   val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+  var sqlite: Connection = null
+  val classLoaderSignHash = classLoaderSig.hashCode()
+  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = try{
+    mkdir(outPath)
+    sqlite = java.sql.DriverManager.getConnection(s"jdbc:sqlite:$outPath/sample.db")
+    val stmt = sqlite.createStatement()
+    stmt.executeUpdate("CREATE TABLE IF NOT EXISTS cache (key TEXT, value TEXT, inputHash INT, valueHash TEXT)")
+    stmt.executeUpdate("CREATE UNIQUE INDEX IF NOT EXISTS cache_index ON cache (key)")
+    stmt.executeBatch()
+    stmt.close()
+    sqlite.setAutoCommit(false)
+
+
+    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
@@ -84,6 +94,7 @@ case class Evaluator[T](home: Path,
         indent = 4
       )
     )
+    sqlite.commit()
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
@@ -92,6 +103,11 @@ case class Evaluator[T](home: Path,
       timings,
       results.map{case (k, v) => (k, v.map(_._1))}
     )
+  }catch{case e: Throwable =>
+    if (sqlite != null) sqlite.rollback()
+    throw e
+  }finally{
+    if (sqlite != null) sqlite.close()
   }
 
 
@@ -130,17 +146,41 @@ case class Evaluator[T](home: Path,
         )
 
         if (!exists(paths.out)) mkdir(paths.out)
-        val cached = for{
-          cached <-
-            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch {case e: Throwable => None}
 
+
+
+        val cached = for{
+          cached <- {
+            val stmt = sqlite.prepareStatement(
+              "SELECT value, inputHash, valueHash FROM cache WHERE key = ?"
+            )
+
+            try {
+              stmt.setString(1, labelledNamedTask.segments.render)
+
+              val res = stmt.executeQuery()
+              if (!res.next()) None
+              else{
+                val value = res.getString(1)
+                val inputsHash = res.getInt(2)
+                val valueHash = res.getInt(3)
+                Some(Evaluator.Cached(ujson.read(value), valueHash, inputsHash))
+              }
+            }
+            catch {
+              case e: Throwable =>
+                e.printStackTrace()
+                None
+            }
+            finally stmt.close()
+          }
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
             try Some(upickle.default.read(cached.value)(reader))
             catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
+
 
         val workerCached = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
@@ -172,19 +212,15 @@ case class Evaluator[T](home: Path,
               counterMsg = counterMsg
             )
 
+
             newResults(labelledNamedTask.task) match{
-              case Result.Failure(_, Some((v, hashCode))) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
+              case Result.Failure(_, Some((v, hashCode)))  =>
+                handleTaskResult(v, v.##, labelledNamedTask.segments.render, inputsHash, labelledNamedTask)
 
               case Result.Success((v, hashCode)) =>
-                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
+                handleTaskResult(v, v.##, labelledNamedTask.segments.render, inputsHash, labelledNamedTask)
 
               case _ =>
-                // Wipe out any cached meta.json file that exists, so
-                // a following run won't look at the cached metadata file and
-                // assume it's associated with the possibly-borked state of the
-                // destPath after an evaluation failure.
-                rm(paths.meta)
             }
 
             (newResults, newEvaluated, false)
@@ -193,7 +229,7 @@ case class Evaluator[T](home: Path,
   }
   def handleTaskResult(v: Any,
                        hashCode: Int,
-                       metaPath: Path,
+                       taskSegments: String,
                        inputsHash: Int,
                        labelledNamedTask: Labelled[_]) = {
     labelledNamedTask.task.asWorker match{
@@ -202,16 +238,18 @@ case class Evaluator[T](home: Path,
         val terminalResult = labelledNamedTask
           .writer
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map(w => upickle.default.writeJs(v)(w) -> v)
+          .map(w => upickle.default.writeJs(v)(w))
 
-        for((json, v) <- terminalResult){
-          write.over(
-            metaPath,
-            upickle.default.write(
-              Evaluator.Cached(json, hashCode, inputsHash),
-              indent = 4
-            )
+        for(json <- terminalResult){
+          val stmt = sqlite.prepareStatement(
+            "INSERT OR REPLACE INTO cache (key, value, inputHash, valueHash) VALUES (?, ?, ?, ?)"
           )
+          stmt.setString(1, taskSegments)
+          stmt.setString(2, json.render())
+          stmt.setInt(3, inputsHash)
+          stmt.setInt(4, hashCode)
+          stmt.execute()
+          stmt.close()
         }
     }
   }
@@ -343,7 +381,6 @@ object Evaluator{
 
   case class Paths(out: Path,
                    dest: Path,
-                   meta: Path,
                    log: Path)
   def makeSegmentStrings(segments: Segments) = segments.value.flatMap{
     case Segment.Label(s) => Seq(s)
@@ -352,7 +389,7 @@ object Evaluator{
   def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
-    Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
+    Paths(targetPath, targetPath / 'dest, targetPath / 'log)
   }
 
   // check if the build itself has changed

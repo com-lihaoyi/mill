@@ -39,7 +39,7 @@ object TestUtil {
 
     def anon(inputs: Task[Int]*) = new Test(inputs)
     def apply(inputs: Task[Int]*)
-            (implicit ctx: mill.define.Ctx)= {
+             (implicit ctx: mill.define.Ctx)= {
       new TestTarget(inputs, pure = inputs.nonEmpty)
     }
   }

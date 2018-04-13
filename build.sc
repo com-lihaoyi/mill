@@ -83,7 +83,8 @@ object core extends MillModule {
     ivy"com.lihaoyi:::ammonite:1.1.0-14-037b8eb",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
-    ivy"net.java.dev.jna:jna-platform:4.5.0"
+    ivy"net.java.dev.jna:jna-platform:4.5.0",
+    ivy"org.xerial:sqlite-jdbc:3.21.0.1"
   )
 
   def generatedSources = T {
