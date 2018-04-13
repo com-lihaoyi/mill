@@ -1,4 +1,4 @@
-package mill.client;
+package mill.main.client;
 
 import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;

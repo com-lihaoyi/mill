@@ -340,7 +340,7 @@ $ mill resolve _.compile
 main.compile
 moduledefs.compile
 core.compile
-scalaworker.compile
+scalalib.worker.compile
 scalalib.compile
 scalajslib.compile
 integration.compile

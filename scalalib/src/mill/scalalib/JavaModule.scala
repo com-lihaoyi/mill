@@ -297,7 +297,7 @@ trait TestModule extends JavaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalaworker.ScalaWorker",
+      mainClass = "mill.scalalib.worker.ScalaWorker",
       classPath = ScalaWorkerModule.classpath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),

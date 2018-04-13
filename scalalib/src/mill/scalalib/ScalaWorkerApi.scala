@@ -29,7 +29,7 @@ trait ScalaWorkerModule extends mill.Module{
       resolveDependencies(
         repositories,
         Lib.depToDependency(_, "2.12.4", ""),
-        Seq(ivy"com.lihaoyi::mill-scalaworker:${sys.props("MILL_VERSION")}")
+        Seq(ivy"com.lihaoyi::mill-scalalib-worker:${sys.props("MILL_VERSION")}")
       ).map(_.map(_.path))
     }
   }
@@ -38,7 +38,7 @@ trait ScalaWorkerModule extends mill.Module{
       classpath().map(_.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
-    val cls = cl.loadClass("mill.scalaworker.ScalaWorker")
+    val cls = cl.loadClass("mill.scalalib.worker.ScalaWorker")
     val instance = cls.getConstructor(classOf[mill.util.Ctx], classOf[Array[String]])
       .newInstance(T.ctx(), compilerInterfaceClasspath().map(_.path.toString).toArray[String])
     instance.asInstanceOf[ScalaWorkerApi]

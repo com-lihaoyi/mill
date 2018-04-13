@@ -106,7 +106,7 @@ object Main {
             env
           )
 
-          if (mill.client.Util.isJava9OrAbove) {
+          if (mill.main.client.Util.isJava9OrAbove) {
             val rt = cliConfig.home / Export.rtJarName
             if (!exists(rt)) {
               runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")

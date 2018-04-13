@@ -2,7 +2,7 @@ package mill.main
 import java.io._
 import java.nio.file.Path
 
-import mill.client.{Util, Locks}
+import mill.main.client.{Util, Locks}
 
 import scala.collection.JavaConverters._
 import utest._
@@ -60,7 +60,7 @@ object ClientServerTests extends TestSuite{
                   (env : Map[String, String], args: Array[String]) = {
     val (in, out, err) = initStreams()
     Server.lockBlock(locks.clientLock){
-      mill.client.Main.run(
+      mill.main.client.Main.run(
         tmpDir.toString,
         () => spawnEchoServer(tmpDir, locks),
         locks,

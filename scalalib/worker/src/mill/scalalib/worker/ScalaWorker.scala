@@ -1,4 +1,4 @@
-package mill.scalaworker
+package mill.scalalib.worker
 
 import java.io.File
 import java.util.Optional

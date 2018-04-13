@@ -6,7 +6,7 @@ import java.net.Socket
 import mill.Main
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
-import mill.client._
+import mill.main.client._
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
 
@@ -28,7 +28,7 @@ object ServerMain extends mill.main.ServerMain[Evaluator.State]{
       this,
       () => System.exit(0),
       300000,
-      mill.client.Locks.files(args0(0))
+      mill.main.client.Locks.files(args0(0))
     ).run()
   }
   def main0(args: Array[String],

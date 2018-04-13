@@ -1,4 +1,4 @@
-package mill.client;
+package mill.main.client;
 
 import static org.junit.Assert.assertEquals;
 import org.junit.Test;

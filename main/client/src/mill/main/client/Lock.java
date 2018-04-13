@@ -1,4 +1,4 @@
-package mill.client;
+package mill.main.client;
 public abstract class Lock{
     abstract public Locked lock() throws Exception;
     abstract public Locked tryLock() throws Exception;

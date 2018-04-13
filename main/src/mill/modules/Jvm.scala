@@ -9,7 +9,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import geny.Generator
-import mill.client.InputPumper
+import mill.main.client.InputPumper
 import mill.eval.PathRef
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg

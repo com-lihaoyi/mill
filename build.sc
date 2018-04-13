@@ -64,19 +64,6 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   }
 }
 
-object client extends MillPublishModule{
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
-      "net.java.dev.jna" -> "jna",
-      "net.java.dev.jna" -> "jna-platform"
-    )
-  )
-  object test extends Tests{
-    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-    def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-  }
-}
-
 
 object testng extends MillPublishModule{
   def ivyDeps = Agg(
@@ -124,18 +111,19 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
-}
 
-
-object scalaworker extends MillModule{
-  def moduleDeps = Seq(main, scalalib)
-
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt::zinc:1.1.4"
-  )
-  def testArgs = Seq(
-    "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
-  )
+  object client extends MillPublishModule{
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
+        "net.java.dev.jna" -> "jna",
+        "net.java.dev.jna" -> "jna-platform"
+      )
+    )
+    object test extends Tests{
+      def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+      def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+    }
+  }
 }
 
 
@@ -159,8 +147,19 @@ object scalalib extends MillModule {
       genTask(scalalib)() ++
       genTask(scalajslib)()
 
-    scalaworker.testArgs() ++
+    worker.testArgs() ++
     Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+  }
+
+  object worker extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt::zinc:1.1.4"
+    )
+    def testArgs = Seq(
+      "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 }
 
@@ -174,7 +173,7 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
       "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
-    Seq("-Djna.nosys=true") ++ scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    Seq("-Djna.nosys=true") ++ scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
@@ -220,7 +219,7 @@ object integration extends MillModule{
   def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
     scalajslib.testArgs() ++
-    scalaworker.testArgs() ++
+    scalalib.worker.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -265,7 +264,7 @@ def launcherScript(jvmArgs: Seq[String],
          |    ${java("mill.Main")}
          |    ;;
          |  *)
-         |    ${java("mill.client.Main")}
+         |    ${java("mill.main.client.Main")}
          |    ;;
          |esac""".stripMargin
     },
@@ -278,7 +277,7 @@ def launcherScript(jvmArgs: Seq[String],
          |if defined _I_ (
          |  ${java("mill.Main")}
          |) else (
-         |  ${java("mill.client.Main")}
+         |  ${java("mill.main.client.Main")}
          |)""".stripMargin
     }
   )
@@ -296,7 +295,7 @@ object dev extends MillModule{
   def forkArgs =
     scalalib.testArgs() ++
     scalajslib.testArgs() ++
-    scalaworker.testArgs() ++
+    scalalib.worker.testArgs() ++
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)
