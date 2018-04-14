@@ -30,6 +30,7 @@ case class Labelled[T](task: NamedTask[T],
 }
 case class Evaluator[T](home: Path,
                         outPath: Path,
+                        externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
                         classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
@@ -123,9 +124,11 @@ case class Evaluator[T](home: Path,
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
 
+        val out = if (!labelledNamedTask.task.ctx.external) outPath
+          else externalOutPath
 
         val paths = Evaluator.resolveDestPaths(
-          outPath,
+          out,
           destSegments(labelledNamedTask)
         )
 

@@ -1,5 +1,6 @@
 package mill.util
 
+import ammonite.ops.pwd
 import mill.define.{Input, Target, Task}
 import mill.eval.Result.OuterStack
 import mill.eval.{Evaluator, Result}
@@ -9,6 +10,8 @@ import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
+  val externalOutPath = pwd / 'target / 'external
+
 
   def static[T <: TestUtil.BaseModule](module: T)
                                      (implicit fullName: sourcecode.FullName) = {
@@ -26,7 +29,7 @@ class TestEvaluator[T <: TestUtil.BaseModule](module: T)
 //    true,
 //    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
 // )
-  val evaluator = new Evaluator(Ctx.defaultHome, outPath, module, logger)
+  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))

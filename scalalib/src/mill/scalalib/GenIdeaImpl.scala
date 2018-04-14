@@ -38,7 +38,7 @@ object GenIdeaImpl {
     rm! pwd/".idea_modules"
 
 
-    val evaluator = new Evaluator(ctx.home, pwd / 'out, rootModule, ctx.log)
+    val evaluator = new Evaluator(ctx.home, pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
       write.over(pwd/relPath, pp.format(xml))
