@@ -214,6 +214,8 @@ object GenIdeaImpl {
         mod.generatedSources.ctx.segments
       )
 
+      val isTest = mod.isInstanceOf[TestModule]
+
       val elem = moduleXmlTemplate(
         mod.millModuleBasePath.value,
         scalaVersionOpt,
@@ -223,7 +225,8 @@ object GenIdeaImpl {
         paths.out,
         generatedSourceOutPath.dest,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct)
+        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
+        isTest
       )
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
@@ -321,7 +324,9 @@ object GenIdeaImpl {
                         compileOutputPath: Path,
                         generatedSourceOutputPath: Path,
                         libNames: Strict.Agg[String],
-                        depNames: Strict.Agg[String]) = {
+                        depNames: Strict.Agg[String],
+                        isTest: Boolean
+                       ) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
         <output url={"file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"} />
@@ -331,17 +336,17 @@ object GenIdeaImpl {
           {
           for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
             yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource="false" />
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} />
           }
           {
           for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
             yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource="false" generated="true" />
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" />
           }
           {
           for (resourcePath <- resourcePaths.toSeq.sorted)
             yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource="false"  type="java-resource" />
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource={isTest.toString}  type="java-resource" />
           }
           <excludeFolder url={"file://$MODULE_DIR$/" +  relify(basePath) + "/target"} />
         </content>
