@@ -1,0 +1,18 @@
+<module type="JAVA_MODULE" version="4">
+    <component name="NewModuleRootManager">
+        <output url="file://$MODULE_DIR$/../target/workspace/mill/scalalib/GenIdeaTests/helloWorldEvaluator/test/compile/dest/classes"/>
+        <exclude-output/>
+        <content url="file://$MODULE_DIR$/../target/workspace/mill/scalalib/GenIdeaTests/helloWorldEvaluator/test/generatedSources/dest"/>
+        <content url="file://$MODULE_DIR$/../target/workspace/gen-idea/test">
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/test/src" isTestSource="true"/>
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/test/resources" isTestSource="true" type="java-resource"/>
+            <excludeFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/test/target"/>
+        </content>
+        <orderEntry type="inheritedJdk"/>
+        <orderEntry type="sourceFolder" forTests="false"/>
+        <orderEntry type="library" name="scala-sdk-2.12.4" level="application"/>
+        <orderEntry type="library" name="scala-library-2.12.4-sources.jar" level="project"/>
+        <orderEntry type="library" name="scala-library-2.12.4.jar" level="project"/>
+        <orderEntry type="module" module-name="" exported=""/>
+    </component>
+</module>
