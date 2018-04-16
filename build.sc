@@ -228,7 +228,7 @@ object scalanativelib extends MillModule {
     val mapping = Map(
       "MILL_SCALANATIVE_BRIDGE_0_3" -> scalanativebridges("0.3").compile().classes.path
     )
-    scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
