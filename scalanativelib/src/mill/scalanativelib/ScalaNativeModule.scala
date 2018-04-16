@@ -8,7 +8,7 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.Result
 import mill.modules.Jvm
-import mill.scalalib.{DepSyntax, Lib, ScalaModule, TestModule, TestRunner}
+import mill.scalalib.{DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.{PathRef, T}
 import mill.util.Loose
 import sbt.testing.{AnnotatedFingerprint, Framework, SubclassFingerprint}
@@ -259,3 +259,6 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       workingDir = ammonite.ops.pwd)
   }
 }
+
+trait SbtNativeModule extends ScalaNativeModule with SbtModule
+

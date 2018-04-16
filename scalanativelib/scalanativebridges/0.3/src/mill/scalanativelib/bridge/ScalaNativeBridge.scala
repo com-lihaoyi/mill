@@ -65,7 +65,6 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
 
   def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path = {
     val config = nativeConfig.config.asInstanceOf[Config]
-    //val config  = nativeConfig.value.withLogger(logger)
     Build.build(config, outPath.toNIO)
     outPath
   }
