@@ -311,11 +311,7 @@ object HelloWorldTests extends TestSuite {
 
 
       'notRunInvalidMainObject - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
-
-        assert(
-          err.isInstanceOf[InteractiveShelloutException]
-        )
+        val Left(Result.Failure("subprocess failed", _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
       }
       'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
         write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")

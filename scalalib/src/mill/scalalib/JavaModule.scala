@@ -250,14 +250,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def run(args: String*) = T.command{
-    Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.interactiveSubprocess(
       finalMainClass(),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
       args,
       workingDir = ammonite.ops.pwd
-    )
+    )) catch { case e: InteractiveShelloutException =>
+       Result.Failure("subprocess failed")
+    }
   }
 
 
@@ -270,14 +272,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def runMain(mainClass: String, args: String*) = T.command{
-    Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.interactiveSubprocess(
       mainClass,
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
       args,
       workingDir = ammonite.ops.pwd
-    )
+    )) catch { case e: InteractiveShelloutException =>
+      Result.Failure("subprocess failed")
+    }
   }
 
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
