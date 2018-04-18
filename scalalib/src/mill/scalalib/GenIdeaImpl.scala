@@ -217,7 +217,7 @@ object GenIdeaImpl {
       val isTest = mod.isInstanceOf[TestModule]
 
       val elem = moduleXmlTemplate(
-        mod.millModuleBasePath.value,
+        mod.intellijModulePath,
         scalaVersionOpt,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
