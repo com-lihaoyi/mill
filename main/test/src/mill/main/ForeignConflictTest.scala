@@ -13,10 +13,13 @@ object ForeignConflictTest extends ScriptTestSuite(fork = false) {
   val tests = Tests {
     initWorkspace()
     'test - {
-      assert(
-        eval("checkPaths"),
-        eval("checkDests")
-      )
+      // see https://github.com/lihaoyi/mill/issues/302
+      if (!ammonite.util.Util.java9OrAbove) {
+        assert(
+          eval("checkPaths"),
+          eval("checkDests")
+        )
+      }
     }
   }
 }

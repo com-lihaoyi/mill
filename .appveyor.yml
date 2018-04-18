@@ -46,9 +46,6 @@ build_script:
       C:\%CYGWIN_DIR%\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'sed -i '"'"'0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}'"'"' /usr/local/bin/mill' &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
-#      C:\%CYGWIN_DIR%\bin\bash -lc "cd /cygdrive/c/mill && mill -i all __.publishLocal release" &&
-#      C:\%CYGWIN_DIR%\bin\bash -lc "cd /cygdrive/c/mill && out/release/dest/mill -i all main.test scalajslib.test")
       C:\%CYGWIN_DIR%\bin\bash -lc "cd /cygdrive/c/mill && mill -i all main.test scalajslib.test")
-
 
 skip_branch_with_pr: true
