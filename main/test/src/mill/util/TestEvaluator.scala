@@ -1,8 +1,7 @@
 package mill.util
 
-import ammonite.ops.{Path, pwd}
-import mill.define.Discover.applyImpl
-import mill.define.{Discover, Input, Target, Task}
+import ammonite.ops.pwd
+import mill.define.{Input, Target, Task}
 import mill.eval.Result.OuterStack
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg

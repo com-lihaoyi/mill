@@ -1,9 +1,10 @@
 package mill.main
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
 
 import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
+import ammonite.util.Util.CodeSource
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
 import mill.util.PrintLogger
@@ -120,20 +121,26 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
     def apply(code: String,
-              pkgName: Seq[ammonite.util.Name],
+              source: CodeSource,
               imports: ammonite.util.Imports,
               printCode: String,
               indexedWrapperName: ammonite.util.Name,
               extraCode: String): (String, String, Int) = {
+      import source.pkgName
       val wrapName = indexedWrapperName.backticked
-      val literalPath = pprint.Util.literalize(config.wd.toString)
+      val path = source
+        .path
+        .map(path => path.toNIO.getParent)
+        .getOrElse(config.wd.toNIO)
+      val literalPath = pprint.Util.literalize(path.toString)
+      val external = !(path.compareTo(config.wd.toNIO) == 0)
       val top = s"""
         |package ${pkgName.head.encoded}
         |package ${Util.encodeScalaSourcePath(pkgName.tail)}
         |$imports
         |import mill._
         |object $wrapName
-        |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
+        |extends mill.define.BaseModule(ammonite.ops.Path($literalPath), foreign0 = $external)
         |with $wrapName{
         |  // Stub to make sure Ammonite has something to call after it evaluates a script,
         |  // even if it does nothing...
