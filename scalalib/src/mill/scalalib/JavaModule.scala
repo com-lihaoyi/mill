@@ -307,18 +307,22 @@ trait TestModule extends JavaModule with TaskModule {
       envArgs = forkEnv(),
       mainArgs =
         Seq(testFrameworks().length.toString) ++
-          testFrameworks() ++
-          Seq(runClasspath().length.toString) ++
-          runClasspath().map(_.path.toString) ++
-          Seq(args.length.toString) ++
-          args ++
-          Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+        testFrameworks() ++
+        Seq(runClasspath().length.toString) ++
+        runClasspath().map(_.path.toString) ++
+        Seq(args.length.toString) ++
+        args ++
+        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
       workingDir = forkWorkingDir
     )
 
-    val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
-    TestModule.handleResults(doneMsg, results)
+    try {
+      val jsonOutput = ujson.read(outputPath.toIO)
+      val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+      TestModule.handleResults(doneMsg, results)
+    }catch{case e: Throwable =>
+      Result.Failure("Test reporting failed: " + e)
+    }
 
   }
   def testLocal(args: String*) = T.command{
