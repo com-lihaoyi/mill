@@ -66,12 +66,14 @@ trait MavenModule extends JavaModule{outer =>
   override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
   trait Tests extends super.Tests with MavenTests {
     override def millSourcePath = outer.millSourcePath
+    override def intellijModulePath = outer.millSourcePath / 'src / 'test
   }
 }
 
 trait SbtModule extends MavenModule with ScalaModule{ outer =>
   trait Tests extends super.Tests with MavenTests {
     override def millSourcePath = outer.millSourcePath
+    override def intellijModulePath = outer.millSourcePath / 'src / 'test
   }
 }
 
