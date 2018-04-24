@@ -27,6 +27,8 @@ object PathRef{
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
       jnio.Files.walkFileTree(
         path.toNIO,
+        java.util.EnumSet.of(jnio.FileVisitOption.FOLLOW_LINKS),
+        Integer.MAX_VALUE,
         new FileVisitor[jnio.Path] {
           def preVisitDirectory(dir: jnio.Path, attrs: BasicFileAttributes) = {
             digest.update(dir.toAbsolutePath.toString.getBytes)
