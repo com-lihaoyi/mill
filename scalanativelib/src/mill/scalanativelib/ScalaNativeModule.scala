@@ -6,19 +6,22 @@ import java.net.URLClassLoader
 import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
+import mill.define.Task
 import mill.eval.Result
 import mill.modules.Jvm
-import mill.scalalib.{DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
+import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.{PathRef, T}
 import mill.util.Loose
 import sbt.testing.{AnnotatedFingerprint, Framework, SubclassFingerprint}
 import sbt.testing.Fingerprint
 import testinterface.ScalaNativeFramework
+import mill.util.Loose.Agg
 
 
 trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   def scalaNativeVersion: T[String]
-  override def platformSuffix = T{ "_native" + scalaNativeBinaryVersion() }
+  override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
+  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   trait Tests extends ScalaNativeModule with TestModule { testOuter =>
     case class TestDefinition(framework: String, clazz: Class[_], fingerprint: Fingerprint) {
@@ -38,7 +41,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       // The test frameworks run under the JVM and communicate with the native binary over a socket
       // therefore the test framework is loaded from a JVM classloader
       val testClassloader =
-        new URLClassLoader(testRunnerJvm.runClasspath().map(_.path.toIO.toURI.toURL).toArray,
+        new URLClassLoader(testClasspathJvm().map(_.path.toIO.toURI.toURL).toArray,
           this.getClass.getClassLoader)
       val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
       val testBinary = testRunnerNative.nativeLink().toIO
@@ -51,7 +54,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
 
       val (doneMsg, results) = Lib.runTests(
         nativeFrameworks,
-        testRunnerJvm.runClasspath().map(_.path),
+        testClasspathJvm().map(_.path),
         Agg(compile().classes.path),
         args
       )
@@ -59,17 +62,25 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       TestModule.handleResults(doneMsg, results)
     }
 
-    // this is a dummy project used for extracting the JVM runClasspath()
-    // that is, it evaluates the ivyDeps of the test project in a JVM scala context
-    // ie get the JVM files from uTest, ScalaTest etc
-    // (it is resilient to changes un runClasspath() implementation)
-    object testRunnerJvm extends ScalaModule {
-      override def scalaVersion = outer.scalaVersion()
-      override def ivyDeps = testOuter.ivyDeps()
-      override def moduleDeps = Seq(testOuter)
+    private val supportedTestFrameworks = Set("utest", "scalatest")
+
+    // get the JVM classpath entries for supported test frameworks
+    def testFrameworksJvmClasspath = T{
+      Lib.resolveDependencies(
+        repositories,
+        Lib.depToDependency(_, scalaVersion(), ""),
+        transitiveIvyDeps().collect{ case x: Dep.Scala => x }.filter(d => supportedTestFrameworks(d.dep.module.name))
+      )
     }
 
-    // creates a specific binary used for running tests - has a different (generated) main class
+    def testClasspathJvm = T{
+      localClasspath() ++
+      transitiveLocalClasspath() ++
+      unmanagedClasspath() ++
+      testFrameworksJvmClasspath()
+    }
+
+      // creates a specific binary used for running tests - has a different (generated) main class
     // which knows the names of all the tests and references to invoke them
     object testRunnerNative extends ScalaNativeModule {
       override def scalaWorker = testOuter.scalaWorker
@@ -97,7 +108,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
       val testClasses =
-        Jvm.inprocess(testRunnerJvm.runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, cl => {
+        Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, cl => {
           frameworkInstances(cl).flatMap { framework =>
             val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
             df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
@@ -166,11 +177,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ nativeIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+  override def transitiveIvyDeps: T[Agg[Dep]] = T{
+    ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
