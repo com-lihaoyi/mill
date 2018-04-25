@@ -80,7 +80,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       testFrameworksJvmClasspath()
     }
 
-      // creates a specific binary used for running tests - has a different (generated) main class
+    // creates a specific binary used for running tests - has a different (generated) main class
     // which knows the names of all the tests and references to invoke them
     object testRunnerNative extends ScalaNativeModule {
       override def scalaWorker = testOuter.scalaWorker
