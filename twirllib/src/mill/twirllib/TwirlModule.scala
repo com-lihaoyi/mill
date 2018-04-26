@@ -22,7 +22,7 @@ trait TwirlModule extends mill.Module {
         Cache.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4"),
       Seq(ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}")
     )
   }
