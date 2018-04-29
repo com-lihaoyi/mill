@@ -1,7 +1,7 @@
 // build.sc
 import mill._, scalalib._, publish._
 
-object foo extends PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"
 

@@ -540,14 +540,14 @@ $ java -cp out/foo/assembly/dest/out.jar foo.Example
 Hello World!
 ```
 
-To publish to Maven Central, you need to make `foo` extend Mill's
+To publish to Maven Central, you need to make `foo` also extend Mill's
 `PublishModule` trait:
 
 ```scala
 // build.sc
 import mill._, scalalib._, publish._
 
-object foo extends PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"
 
