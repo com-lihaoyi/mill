@@ -23,7 +23,10 @@ trait TwirlModule extends mill.Module {
         MavenRepository("https://repo1.maven.org/maven2")
       ),
       Lib.depToDependency(_, "2.12.4"),
-      Seq(ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}")
+      Seq(
+        ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
+        ivy"org.scala-lang.modules::scala-parser-combinators:1.0.5"
+      )
     )
   }
 
