@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
         def run(mainClsName: String) = T.command{
-          %%('java, "-cp", classFiles().path, mainClsName)
+          %%('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
         }
       }
 
