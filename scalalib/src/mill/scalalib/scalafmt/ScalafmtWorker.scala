@@ -21,14 +21,9 @@ private[scalafmt] class ScalafmtWorker {
 
     if (toFormat.nonEmpty) {
       ctx.log.info(s"Formatting ${toFormat.size} Scala sources")
-
-      Jvm.subprocess(
-        "org.scalafmt.cli.Cli",
-        scalafmtClasspath,
-        mainArgs = toFormat
-          .map(_.path.toString) ++ Seq("--config", scalafmtConfig.path.toString)
-      )
-
+      reformatAction(toFormat.map(_.path),
+                     scalafmtConfig.path,
+                     scalafmtClasspath)
       reformatted ++= toFormat.map { ref =>
         val updRef = PathRef(ref.path)
         updRef.path -> updRef.sig
@@ -37,6 +32,15 @@ private[scalafmt] class ScalafmtWorker {
     } else {
       ctx.log.info(s"Everything is formatted already")
     }
-
   }
+
+  private def reformatAction(toFormat: Seq[Path],
+                             config: Path,
+                             classpath: Agg[Path])(implicit ctx: Ctx) =
+    Jvm.subprocess(
+      "org.scalafmt.cli.Cli",
+      classpath,
+      mainArgs = toFormat.map(_.toString) ++ Seq("--config", config.toString)
+    )
+
 }
