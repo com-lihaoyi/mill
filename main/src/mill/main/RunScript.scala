@@ -41,7 +41,7 @@ object RunScript{
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for(rootModule <- evaluateRootModule(wd, path, interp))
+              for(rootModule <- evaluateRootModule(wd, path, interp, log))
               yield Evaluator.State(
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
@@ -72,14 +72,19 @@ object RunScript{
 
   def evaluateRootModule(wd: Path,
                          path: Path,
-                         interp: ammonite.interp.Interpreter): Res[mill.define.BaseModule] = {
+                         interp: ammonite.interp.Interpreter,
+                         log: Logger
+                        ): Res[mill.define.BaseModule] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
       scriptTxt <-
         try Res.Success(Util.normalizeNewlines(read(path)))
-        catch { case e: NoSuchFileException => Res.Failure("Script file not found: " + path) }
+        catch { case _: NoSuchFileException =>
+          log.info("No build file found, you should create build.sc to do something useful")
+          Res.Success("")
+        }
 
       processed <- interp.processModule(
         scriptTxt,
