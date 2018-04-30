@@ -1,14 +1,9 @@
 package mill.twirllib
 
-import ammonite.ops.{Path, cp, exists, ls, mkdir, pwd, read, rm, write}
-import mill.eval.{Evaluator, Result}
+import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.util.{TestEvaluator, TestUtil}
-import utest.{TestSuite, Tests, assert}
-import ammonite.ops._
-import mill.T
-import utest._
-
 import utest.framework.TestPath
+import utest.{TestSuite, Tests, assert, _}
 
 object HelloWorldTests extends TestSuite {
 
@@ -21,9 +16,11 @@ object HelloWorldTests extends TestSuite {
   }
 
   object HelloWorld extends HelloBase {
+
     object core extends HelloWorldModule {
       override def twirlVersion = "1.3.15"
     }
+
   }
 
   val resourcePath: Path = pwd / 'twirllib / 'test / 'resources / "hello-world"
@@ -55,26 +52,25 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
-    'compileTwirl - {
-      'fromScratch - workspaceTest(HelloWorld) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+    'compileTwirl - workspaceTest(HelloWorld) { eval =>
+      val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
-        val outputFiles = ls.rec(result.classes.path)
-        val expectedClassfiles = compileClassfiles.map(
-          eval.outPath / 'core / 'compileTwirl / 'dest / 'html / _
-        )
-        assert(
-          result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest / 'html,
-          outputFiles.nonEmpty,
-          outputFiles.forall(expectedClassfiles.contains),
-          evalCount > 0
-        )
+      val outputFiles = ls.rec(result.classes.path)
+      val expectedClassfiles = compileClassfiles.map(
+        eval.outPath / 'core / 'compileTwirl / 'dest / 'html / _
+      )
+      assert(
+        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest / 'html,
+        outputFiles.nonEmpty,
+        outputFiles.forall(expectedClassfiles.contains),
+        outputFiles.size == 1,
+        evalCount > 0
+      )
 
-        // don't recompile if nothing changed
-        val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+      // don't recompile if nothing changed
+      val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
-        assert(unchangedEvalCount == 0)
-      }
+      assert(unchangedEvalCount == 0)
     }
   }
 }

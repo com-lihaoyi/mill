@@ -35,6 +35,3 @@ trait TwirlModule extends mill.Module {
         T.ctx().dest)
   }
 }
-
-trait TestTwirlModule extends TwirlModule with TestModule {
-}

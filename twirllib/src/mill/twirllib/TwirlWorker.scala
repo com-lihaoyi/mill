@@ -3,14 +3,11 @@ package twirllib
 
 import java.io.File
 import java.net.URLClassLoader
-import java.{lang, util}
+import java.util
 
 import ammonite.ops.{Path, ls}
 import mill.eval.PathRef
 import mill.scalalib.CompilationResult
-
-import scala.io.Codec
-import scala.reflect.runtime.universe._
 
 class TwirlWorker {
 
