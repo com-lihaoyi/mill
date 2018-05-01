@@ -5,7 +5,7 @@ import mill._
 import mill.define.{Command, Sources, Worker}
 import mill.scalalib._
 
-trait ScalafmtModule extends JavaModule {
+trait ScalafmtModule extends ScalaModule {
 
   def reformat(): Command[Unit] = T.command {
     worker().reformat(
@@ -19,9 +19,13 @@ trait ScalafmtModule extends JavaModule {
 
   def scalafmtConfig: Sources = T.sources(pwd / ".scalafmt.conf")
 
-  def scalafmtDeps = resolveDeps(
-    T { Agg(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}") }
-  )
+  def scalafmtDeps: T[Agg[PathRef]] = T {
+    Lib.resolveDependencies(
+      scalaWorker.repositories,
+      Lib.depToDependency(_, "2.12.4"),
+      Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
+    )
+  }
 
   def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
 
@@ -31,6 +35,5 @@ trait ScalafmtModule extends JavaModule {
       file <- ls.rec(pathRef.path) if file.isFile && file.ext == "scala"
     } yield PathRef(file)
   }
-
 
 }

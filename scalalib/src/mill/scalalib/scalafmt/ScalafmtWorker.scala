@@ -1,6 +1,6 @@
 package mill.scalalib.scalafmt
 
-import ammonite.ops.Path
+import ammonite.ops.{Path, exists}
 import mill.{Agg, PathRef}
 import mill.modules.Jvm
 import mill.util.Ctx
@@ -34,13 +34,18 @@ private[scalafmt] class ScalafmtWorker {
     }
   }
 
+  private val cliFlags = Seq("--non-interactive", "--quiet")
+
   private def reformatAction(toFormat: Seq[Path],
                              config: Path,
-                             classpath: Agg[Path])(implicit ctx: Ctx) =
+                             classpath: Agg[Path])(implicit ctx: Ctx) = {
+    val configFlags =
+      if (exists(config)) Seq("--config", config.toString) else Seq.empty
     Jvm.subprocess(
       "org.scalafmt.cli.Cli",
       classpath,
-      mainArgs = toFormat.map(_.toString) ++ Seq("--config", config.toString)
+      mainArgs = toFormat.map(_.toString) ++ configFlags ++ cliFlags
     )
+  }
 
 }
