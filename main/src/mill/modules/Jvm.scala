@@ -1,11 +1,13 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, File, FileOutputStream}
+import java.io._
 import java.lang.reflect.Modifier
-import java.net.{URI, URLClassLoader}
-import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
+import java.net.URI
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
+import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
+import java.util.regex.Pattern
 
 import ammonite.ops._
 import ammonite.util.Util
@@ -17,7 +19,35 @@ import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
 
 import scala.collection.mutable
+import scala.collection.JavaConverters._
 
+object Assembly {
+
+  val defaultRules: Seq[Rule] = Seq(
+    Rule.Append("reference.conf"),
+    Rule.Exclude(JarFile.MANIFEST_NAME),
+    Rule.ExcludePattern(".*\\.[sS][fF]"),
+    Rule.ExcludePattern(".*\\.[dD][sS][aA]"),
+    Rule.ExcludePattern(".*\\.[rR][sS][aA]")
+  )
+
+  sealed trait Rule extends Product with Serializable
+  object Rule {
+    case class Append(path: String) extends Rule
+
+    object AppendPattern {
+      def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
+    }
+    case class AppendPattern(pattern: Pattern) extends Rule
+
+    case class Exclude(path: String) extends Rule
+
+    object ExcludePattern {
+      def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
+    }
+    case class ExcludePattern(pattern: Pattern) extends Rule
+  }
+}
 
 object Jvm {
 
@@ -242,8 +272,10 @@ object Jvm {
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[Path] = None,
-                     isWin: Boolean = scala.util.Properties.isWin)
-                    (implicit ctx: Ctx.Dest) = {
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                    (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+    import Assembly._
+
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
@@ -263,20 +295,48 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    def isSignatureFile(mapping: String): Boolean =
-      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
+    val concatEntries: mutable.Map[String, List[AssemblyEntry]] = mutable.Map.empty
+    val seen: mutable.Set[String] = mutable.Set.empty
 
-    for(v <- classpathIterator(inputPaths)){
-      val (file, mapping) = v
-      val p = zipFs.getPath(mapping)
-      if (p.getParent != null) Files.createDirectories(p.getParent)
-      if (!isSignatureFile(mapping)) {
-        val outputStream = newOutputStream(p)
-        IO.stream(file, outputStream)
-        outputStream.close()
-      }
-      file.close()
+    val rulesMap = assemblyRules.collect {
+      case r@Rule.Append(path) => path -> r
+      case r@Rule.Exclude(path) => path -> r
+    }.toMap
+    val appendPatterns = assemblyRules.collect {
+      case Rule.AppendPattern(pattern) => pattern.asPredicate().test(_)
     }
+    val excludePatterns = assemblyRules.collect {
+      case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
+    }
+
+    for(entry <- classpathIterator(inputPaths)) {
+      val mapping = entry.mapping
+
+      def append() = concatEntries += mapping -> (entry :: concatEntries.getOrElse(mapping, Nil))
+
+      rulesMap.get(mapping) match {
+        case Some(_:Assembly.Rule.Append) =>
+          append()
+        case Some(_:Assembly.Rule.Exclude) =>
+          ctx.log.info(s"Excluding entry: ${mapping}")
+        case None =>
+          if(!excludePatterns.exists(_(mapping))) {
+            if(appendPatterns.exists(_(mapping))) {
+              append()
+            } else if(!seen(mapping)) {
+              writeEntry(zipFs, mapping, entry.is)
+              seen += mapping
+            }
+          }
+      }
+    }
+
+    concatEntries.foreach { case (mapping, entries) =>
+      ctx.log.info(s"Concatenating entry: ${mapping}")
+      val concatenated = new SequenceInputStream(Collections.enumeration(entries.map(_.is).asJava))
+      writeEntry(zipFs, mapping, concatenated)
+    }
+
     zipFs.close()
     val output = ctx.dest / "out.jar"
 
@@ -301,25 +361,46 @@ object Jvm {
     PathRef(output)
   }
 
+  sealed trait AssemblyEntry {
+    def mapping: String
+    def is: InputStream
+  }
 
-  def classpathIterator(inputPaths: Agg[Path]) = {
+  case class PathEntry(mapping: String, path: Path) extends AssemblyEntry {
+    def is: InputStream = read.getInputStream(path)
+  }
+
+  case class JarFileEntry(mapping: String, getIs: () => InputStream) extends AssemblyEntry {
+    def is: InputStream = getIs()
+  }
+
+  private def writeEntry(zipFs: java.nio.file.FileSystem, mapping: String, is: InputStream): Unit = {
+    val p = zipFs.getPath(mapping)
+    if (p.getParent != null) Files.createDirectories(p.getParent)
+    val outputStream = newOutputStream(p)
+
+    IO.stream(is, outputStream)
+
+    outputStream.close()
+    is.close()
+  }
+
+  private def classpathIterator(inputPaths: Agg[Path]): Generator[AssemblyEntry] = {
     Generator.from(inputPaths)
       .filter(exists)
-      .flatMap{
+      .flatMap {
         p =>
           if (p.isFile) {
             val jf = new JarFile(p.toIO)
-            import collection.JavaConverters._
-            Generator.selfClosing((
+            Generator.from(
               for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield (jf.getInputStream(entry), entry.getName),
-              () => jf.close()
-            ))
+                yield JarFileEntry(entry.getName, () => jf.getInputStream(entry))
+            )
           }
           else {
             ls.rec.iter(p)
               .filter(_.isFile)
-              .map(sub => read.getInputStream(sub) -> sub.relativeTo(p).toString)
+              .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
           }
       }
 
