@@ -2,17 +2,19 @@ package mill.scalalib.scalafmt
 
 import ammonite.ops._
 import mill._
-import mill.define.{Command, Sources, Worker}
+import mill.define.{Command, Sources}
 import mill.scalalib._
 
 trait ScalafmtModule extends ScalaModule {
 
   def reformat(): Command[Unit] = T.command {
-    worker().reformat(
-      filesToFormat(sources()),
-      scalafmtConfig().head,
-      scalafmtDeps().map(_.path)
-    )
+    ScalafmtWorkerModule
+      .worker()
+      .reformat(
+        filesToFormat(sources()),
+        scalafmtConfig().head,
+        scalafmtDeps().map(_.path)
+      )
   }
 
   def scalafmtVersion: T[String] = "1.5.1"
@@ -26,8 +28,6 @@ trait ScalafmtModule extends ScalaModule {
       Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
     )
   }
-
-  def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
 
   private def filesToFormat(sources: Seq[PathRef]) = {
     for {

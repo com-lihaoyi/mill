@@ -1,11 +1,18 @@
 package mill.scalalib.scalafmt
 
 import ammonite.ops.{Path, exists}
-import mill.{Agg, PathRef}
+import mill._
+import mill.define.{Discover, ExternalModule, Worker}
 import mill.modules.Jvm
 import mill.util.Ctx
 
 import scala.collection.mutable
+
+object ScalafmtWorkerModule extends ExternalModule {
+  def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
+
+  lazy val millDiscover = Discover[this.type]
+}
 
 private[scalafmt] class ScalafmtWorker {
   private val reformatted: mutable.Map[Path, Int] = mutable.Map.empty
