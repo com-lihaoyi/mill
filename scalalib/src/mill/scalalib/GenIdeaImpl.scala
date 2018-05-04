@@ -329,7 +329,13 @@ object GenIdeaImpl {
                        ) = {
     <module type="JAVA_MODULE" version="4">
       <component name="NewModuleRootManager">
-        <output url={"file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"} />
+        {
+          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"
+          if (isTest)
+            <output-test url={outputUrl} />
+          else
+            <output url={outputUrl} />
+        }
         <exclude-output />
         <content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
         <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
@@ -344,9 +350,10 @@ object GenIdeaImpl {
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" />
           }
           {
+          val resourceType = if (isTest) "java-test-resource" else "java-resource"
           for (resourcePath <- resourcePaths.toSeq.sorted)
             yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} isTestSource={isTest.toString}  type="java-resource" />
+              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} type={resourceType} />
           }
           <excludeFolder url={"file://$MODULE_DIR$/" +  relify(basePath) + "/target"} />
         </content>
