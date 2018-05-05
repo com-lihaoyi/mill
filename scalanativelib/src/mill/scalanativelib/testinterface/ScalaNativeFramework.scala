@@ -10,6 +10,7 @@ import scala.scalanative.testinterface.serialization.{Command, FrameworkInfo}
 
 class ScalaNativeFramework(val framework: Framework,
                            val id: Int,
+                           val logLevel: NativeLogLevel,
                            testBinary: File,
                            envVars: Map[String, String])
     extends Framework {

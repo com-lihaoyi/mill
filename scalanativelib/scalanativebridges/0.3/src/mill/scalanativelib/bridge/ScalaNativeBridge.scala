@@ -4,14 +4,15 @@ import java.lang.System.{err, out}
 
 import scala.scalanative.build.{Build, Config, Discover, GC, Logger, Mode}
 import ammonite.ops.Path
-import mill.scalanativelib.{NativeConfig, ReleaseMode}
+import mill.scalanativelib.{NativeConfig, NativeLogLevel, ReleaseMode}
 
 class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
-  val logger =
-    Logger(debugFn = msg => Unit, //err.println(msg),
-      infoFn  = msg => out.println(msg),
-      warnFn  = msg => out.println(msg),
-      errorFn = msg => err.println(msg))
+  def logger(level: NativeLogLevel) =
+    Logger(
+      debugFn = msg => if (level >= NativeLogLevel.Debug) out.println(msg),
+      infoFn  = msg => if (level >= NativeLogLevel.Info)  out.println(msg),
+      warnFn  = msg => if (level >= NativeLogLevel.Warn)  out.println(msg),
+      errorFn = msg => if (level >= NativeLogLevel.Error) err.println(msg))
 
   def discoverClang: Path = {
     Path(Discover.clang())
@@ -38,7 +39,8 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
              nativeLinkingOptions: Seq[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
-             releaseMode: ReleaseMode): NativeConfig =
+             releaseMode: ReleaseMode,
+             logLevel: NativeLogLevel): NativeConfig =
     {
       val entry = mainClass + "$"
 
@@ -56,6 +58,7 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
           .withGC(GC(nativeGC))
           .withLinkStubs(nativeLinkStubs)
           .withMode(Mode(releaseMode.name))
+          .withLogger(logger(logLevel))
       NativeConfig(config)
     }
 

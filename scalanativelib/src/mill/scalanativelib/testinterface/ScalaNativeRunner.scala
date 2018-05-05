@@ -44,7 +44,7 @@ class ScalaNativeRunner(val framework: ScalaNativeFramework,
   }
 
   private[this] def createRemoteRunner(): ComRunner = {
-    master = new ComRunner(bin, envVars, Seq.empty)
+    master = new ComRunner(bin, envVars, Seq.empty, framework.logLevel)
     val command = Command.NewRunner(framework.id, args, remoteArgs)
     send(command)
     master

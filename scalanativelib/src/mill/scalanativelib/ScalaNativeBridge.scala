@@ -59,7 +59,8 @@ trait ScalaNativeBridge {
              nativeLinkingOptions: Seq[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
-             releaseMode: ReleaseMode): NativeConfig
+             releaseMode: ReleaseMode,
+             logLevel: NativeLogLevel): NativeConfig
 
   def defaultGarbageCollector: String
   def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path

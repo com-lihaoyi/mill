@@ -18,6 +18,20 @@ import testinterface.ScalaNativeFramework
 import upickle.default.{ReadWriter => RW, macroRW}
 
 
+sealed abstract class NativeLogLevel(val level: Int) extends Ordered[NativeLogLevel] {
+  def compare(that: NativeLogLevel) =  this.level - that.level
+}
+
+object NativeLogLevel {
+  case object Error extends NativeLogLevel(200)
+  case object Warn extends NativeLogLevel(300)
+  case object Info extends NativeLogLevel(400)
+  case object Debug extends NativeLogLevel(500)
+  case object Trace extends NativeLogLevel(600)
+
+  implicit def rw: RW[NativeLogLevel] = macroRW
+}
+
 sealed abstract class ReleaseMode(val name: String)
 
 object ReleaseMode {
@@ -37,6 +51,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     override def scalaWorker = outer.scalaWorker
     override def scalaVersion = outer.scalaVersion()
     override def scalaNativeVersion = outer.scalaNativeVersion()
+    override def releaseMode = outer.releaseMode()
+    override def logLevel = outer.logLevel()
     override def moduleDeps = Seq(outer)
   }
 
@@ -92,6 +108,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
     Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
 
+  def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
+
   def releaseMode: Target[ReleaseMode] = T { ReleaseMode.Debug }
 
   def nativeWorkdir = T{ T.ctx().dest }
@@ -142,7 +160,8 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
       nativeLinkingOptions(),
       nativeGC(),
       nativeLinkStubs(),
-      releaseMode())
+      releaseMode(),
+      logLevel())
   }
 
   // Generates native binary
@@ -179,7 +198,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
     val nativeFrameworks = (cl: ClassLoader) =>
       frameworkInstances.zipWithIndex.map { case (f, id) =>
-        new ScalaNativeFramework(f, id, testBinary, envVars): Framework
+        new ScalaNativeFramework(f, id, logLevel(), testBinary, envVars): Framework
       }
 
     val (doneMsg, results) = Lib.runTests(
@@ -217,12 +236,13 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def scalaVersion = testOuter.scalaVersion()
     override def scalaNativeVersion = testOuter.scalaNativeVersion()
     override def moduleDeps = Seq(testOuter)
+    override def releaseMode = testOuter.releaseMode()
+    override def logLevel = testOuter.logLevel()
+    override def nativeLinkStubs = true
 
     override def ivyDeps = testOuter.ivyDeps() ++ Agg(
       ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
     )
-
-    override def nativeLinkStubs = true
 
     override def mainClass = Some("scala.scalanative.testinterface.TestMain")
 

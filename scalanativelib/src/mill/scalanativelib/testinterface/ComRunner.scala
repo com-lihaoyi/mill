@@ -1,6 +1,7 @@
 package mill.scalanativelib
 package testinterface
 
+import java.lang.System.{err => stderr, out => stdout}
 import java.io._
 import java.net.{ServerSocket, SocketTimeoutException}
 
@@ -13,7 +14,6 @@ import scala.concurrent.duration.Duration
 
 import scala.scalanative.testinterface.serialization.Log.Level
 import scala.scalanative.testinterface.serialization._
-//import scala.scalanative.sbtplugin.SBTCompat._
 
 case class MessageOnlyException(msg: String) extends Exception(msg)
 
@@ -21,11 +21,12 @@ case class MessageOnlyException(msg: String) extends Exception(msg)
  * Represents a distant program with whom we communicate over the network.
  * @param bin    The program to run
  * @param args   Arguments to pass to the program
- * @param logger Logger to log to.
+ * @param logLevel level to log at
  */
 class ComRunner(bin: File,
                 envVars: Map[String, String],
-                args: Seq[String]) {
+                args: Seq[String],
+                logLevel: NativeLogLevel) {
 
   private[this] val runner = new Thread {
     override def run(): Unit = {
@@ -116,13 +117,11 @@ class ComRunner(bin: File,
   }
 
   private def log(message: Log): Unit =
-    println(message)
-//    message.level match {
-//      case Level.Info  => logger.info(message.message)
-//      case Level.Warn  => logger.warn(message.message)
-//      case Level.Error => logger.error(message.message)
-//      case Level.Trace => message.throwable.foreach(logger.trace(_))
-//      case Level.Debug => logger.debug(message.message)
-//    }
-
+    message.level match {
+      case Level.Info  => if (logLevel >= NativeLogLevel.Info) stdout.println(message.message)
+      case Level.Warn  => if (logLevel >= NativeLogLevel.Warn) stdout.println(message.message)
+      case Level.Error => if (logLevel >= NativeLogLevel.Error) stderr.println(message.message)
+      case Level.Trace => if (logLevel >= NativeLogLevel.Trace) message.throwable.foreach(stdout.println)
+      case Level.Debug => if (logLevel >= NativeLogLevel.Debug) stdout.println(message.message)
+    }
 }
