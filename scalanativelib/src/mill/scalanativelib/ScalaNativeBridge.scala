@@ -59,7 +59,7 @@ trait ScalaNativeBridge {
              nativeLinkingOptions: Seq[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
-             releaseMode: Boolean): NativeConfig
+             releaseMode: ReleaseMode): NativeConfig
 
   def defaultGarbageCollector: String
   def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path

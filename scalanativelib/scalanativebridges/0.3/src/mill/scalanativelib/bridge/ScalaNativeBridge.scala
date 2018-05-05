@@ -2,9 +2,9 @@ package mill.scalanativelib.bridge
 
 import java.lang.System.{err, out}
 
-import scala.scalanative.build.{Config, GC, Logger, Mode, Discover, Build}
+import scala.scalanative.build.{Build, Config, Discover, GC, Logger, Mode}
 import ammonite.ops.Path
-import mill.scalanativelib.NativeConfig
+import mill.scalanativelib.{NativeConfig, ReleaseMode}
 
 class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
   val logger =
@@ -25,11 +25,6 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
   def discoverCompileOptions: Seq[String] = Discover.compileOptions()
   def discoverLinkingOptions: Seq[String] = Discover.linkingOptions()
 
-  private def nativeMode(release: Boolean = false): Mode = {
-    if (release) Mode.release
-    else Mode.debug
-  }
-
   def defaultGarbageCollector = GC.default.name
 
   def config(nativeLibJar: Path,
@@ -43,7 +38,7 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
              nativeLinkingOptions: Seq[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
-             releaseMode: Boolean): NativeConfig =
+             releaseMode: ReleaseMode): NativeConfig =
     {
       val entry = mainClass + "$"
 
@@ -60,6 +55,7 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
           .withLinkingOptions(nativeLinkingOptions)
           .withGC(GC(nativeGC))
           .withLinkStubs(nativeLinkStubs)
+          .withMode(Mode(releaseMode.name))
       NativeConfig(config)
     }
 

@@ -6,16 +6,26 @@ import java.net.URLClassLoader
 import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
-import mill.define.Task
+import mill.define.{Target, Task}
 import mill.eval.Result
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.{PathRef, T}
-import mill.util.Loose
+import mill.util.Loose.Agg
 import sbt.testing.{AnnotatedFingerprint, Framework, SubclassFingerprint}
 import sbt.testing.Fingerprint
 import testinterface.ScalaNativeFramework
-import mill.util.Loose.Agg
+import upickle.default.{ReadWriter => RW, macroRW}
+
+
+sealed abstract class ReleaseMode(val name: String)
+
+object ReleaseMode {
+  case object Debug extends ReleaseMode("debug")
+  case object Release extends ReleaseMode("release")
+
+  implicit def rw: RW[ReleaseMode] = macroRW
+}
 
 
 trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
@@ -82,7 +92,7 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
   override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
     Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
 
-  def releaseMode = T { false }
+  def releaseMode: Target[ReleaseMode] = T { ReleaseMode.Debug }
 
   def nativeWorkdir = T{ T.ctx().dest }
 
