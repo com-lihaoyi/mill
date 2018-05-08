@@ -3,11 +3,9 @@ package mill.main
 import ammonite.ops.Path
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
+import mill.util.{ParseArgs, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
-
-import scala.util.{Failure, Success, Try}
 
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
@@ -40,9 +38,7 @@ trait MainModule extends mill.Module{
     res
   }
 
-
   private val OutDir: String = "out"
-  private val BuildFile: String = "build.sc"
 
   /**
     * Resolves a mill query string and prints out the tasks it resolves to.
@@ -190,30 +186,34 @@ trait MainModule extends mill.Module{
   /**
     * Deletes the given targets from the out directory. Providing no targets will clean everything.
     */
-  def clean(targets: String*) = mill.T.command {
-    val result = Try {
-      if (ammonite.ops.ls(ammonite.ops.pwd).contains(ammonite.ops.pwd / BuildFile)) {
-        targets match {
-          case Nil =>
-            remove(List(ammonite.ops.pwd / OutDir))
-          case _ =>
-            remove(targets
-              .map(_.replace(".", "/"))
-              .map(target => Path(target, ammonite.ops.pwd / OutDir))
-              .toList)
-        }
-      } else {
-        Result.Failure(s"Cannot find $BuildFile")
+  def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
+
+    def success = Result.Success("Targets cleaned")
+
+    def remove(paths: List[Path]): Unit = paths.foreach(ammonite.ops.rm)
+
+    if (targets.isEmpty) {
+      remove(List(ammonite.ops.pwd / OutDir))
+      success
+    } else {
+      ParseArgs(targets, multiSelect = true) match {
+        case Left(errMsg) =>
+          Result.Failure(errMsg)
+
+        case Right((selectors, _)) =>
+          val pathsToRemove = selectors.map { case (scopedSel, sel) =>
+            val rootPath = scopedSel match {
+              case Some(scoped) =>
+                Evaluator.resolveDestPaths(ammonite.ops.pwd / OutDir, scoped).out
+              case None =>
+                ammonite.ops.pwd / OutDir
+            }
+            Evaluator.resolveDestPaths(rootPath, sel).out
+          }
+          remove(pathsToRemove)
+          success
       }
-    }
-    result match {
-      case Success(r) => r
-      case Failure(error) => Result.Exception(error, new Result.OuterStack(error.getStackTrace))
     }
   }
 
-  private def remove(paths: List[Path]): Result[String] = {
-    paths.filter(ammonite.ops.exists).foreach(ammonite.ops.rm)
-    Result.Success("Targets cleaned")
-  }
 }
