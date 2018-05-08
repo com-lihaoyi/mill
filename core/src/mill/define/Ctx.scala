@@ -1,7 +1,7 @@
 package mill.define
 
 
-import ammonite.ops.{Path, RelPath}
+import ammonite.ops.Path
 
 import scala.annotation.implicitNotFound
 
@@ -41,6 +41,7 @@ case class Segments(value: Segment*){
       }
       head +: stringSegments
   }
+  def last : Segments = Segments(value.last)
   def render = value.toList match {
     case Nil => ""
     case Segment.Label(head) :: rest =>
@@ -52,6 +53,13 @@ case class Segments(value: Segment*){
   }
 }
 
+object Segments {
+
+  def labels(values : String*) : Segments =
+    Segments(values.map(Segment.Label):_*)
+
+}
+
 @implicitNotFound("Modules, Targets and Commands can only be defined within a mill Module")
 case class Ctx(enclosing: String,
                lineNum: Int,
@@ -60,11 +68,13 @@ case class Ctx(enclosing: String,
                segments: Segments,
                overrides: Int,
                external: Boolean,
+               foreign: Boolean,
                fileName: String){
 }
 
 object Ctx{
   case class External(value: Boolean)
+  case class Foreign(value : Boolean)
   implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
                     millModuleLine0: sourcecode.Line,
                     millName0: sourcecode.Name,
@@ -72,6 +82,7 @@ object Ctx{
                     segments0: Segments,
                     overrides0: mill.util.Router.Overrides,
                     external0: External,
+                    foreign0: Foreign,
                     fileName: sourcecode.File): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
@@ -81,6 +92,7 @@ object Ctx{
       segments0,
       overrides0.value,
       external0.value,
+      foreign0.value,
       fileName.value
     )
   }

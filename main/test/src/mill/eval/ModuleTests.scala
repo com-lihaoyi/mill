@@ -22,9 +22,9 @@ object ModuleTests extends TestSuite{
     rm(TestEvaluator.externalOutPath)
     'externalModuleTargetsAreNamespacedByModulePackagePath - {
       val check = new TestEvaluator(Build)
-
-      val Right((30, 1)) = check.apply(Build.z)
+      val zresult = check.apply(Build.z)
       assert(
+        zresult == Right((30, 1)),
         read(check.evaluator.outPath / 'z / "meta.json").contains("30"),
         read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),
         read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")

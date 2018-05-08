@@ -26,6 +26,7 @@ class Module(implicit outerCtx0: mill.define.Ctx)
   def millOuterCtx = outerCtx0
   def millSourcePath: Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
+  implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)

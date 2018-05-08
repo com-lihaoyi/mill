@@ -4,6 +4,7 @@ package bridge
 
 import java.io.File
 
+import mill.eval.Result
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -14,7 +15,12 @@ import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
-  def link(sources: Array[File], libraries: Array[File], dest: File, main: String, fullOpt: Boolean, moduleKind: ModuleKind): Unit = {
+  def link(sources: Array[File],
+           libraries: Array[File],
+           dest: File,
+           main: String,
+           fullOpt: Boolean,
+           moduleKind: ModuleKind) = {
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -35,7 +41,12 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
     val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
-    linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
+    try {
+      linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
+      Result.Success(dest)
+    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
+      Result.Failure(e.getMessage)
+    }
   }
 
   def run(config: NodeJSConfig, linkedFile: File): Unit = {
@@ -46,7 +57,7 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
 
   def getFramework(config: NodeJSConfig,
                    frameworkName: String,
-                   linkedFile: File): sbt.testing.Framework = {
+                   linkedFile: File): (() => Unit, sbt.testing.Framework) = {
     val env = nodeJSEnv(config).loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
@@ -55,11 +66,14 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     val adapter =
       new TestAdapter(env, tconfig)
 
-    adapter
-      .loadFrameworks(List(List(frameworkName)))
-      .flatten
-      .headOption
-      .getOrElse(throw new RuntimeException("Failed to get framework"))
+    (
+      () => adapter.close(),
+      adapter
+        .loadFrameworks(List(List(frameworkName)))
+        .flatten
+        .headOption
+        .getOrElse(throw new RuntimeException("Failed to get framework"))
+    )
   }
 
   def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {

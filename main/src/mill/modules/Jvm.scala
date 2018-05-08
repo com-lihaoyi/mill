@@ -1,6 +1,6 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, FileOutputStream, File}
+import java.io.{ByteArrayInputStream, File, FileOutputStream}
 import java.lang.reflect.Modifier
 import java.net.{URI, URLClassLoader}
 import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
@@ -9,7 +9,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import geny.Generator
-import mill.clientserver.InputPumper
+import mill.main.client.InputPumper
 import mill.eval.PathRef
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
@@ -101,20 +101,18 @@ object Jvm {
 
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
-                   body: ClassLoader => T): T = {
+                   body: ClassLoader => T)
+                  (implicit ctx: Ctx.Home): T = {
+    val urls = classPath.map(_.toIO.toURI.toURL)
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      new URLClassLoader(classPath.map(_.toIO.toURI.toURL).toArray, mill.util.ClassLoader.create(Seq(), null)){
-        override def findClass(name: String) = {
-          if (name.startsWith("sbt.testing.")){
-            outerClassLoader.loadClass(name)
-          }else{
-            super.findClass(name)
-          }
-        }
-      }
+      mill.util.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
+        if (name.startsWith("sbt.testing."))
+          Some(outerClassLoader.loadClass(name))
+        else None
+      })
     } else {
-      mill.util.ClassLoader.create(classPath.map(_.toIO.toURI.toURL).toVector, null)
+      mill.util.ClassLoader.create(urls.toVector, null)
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -237,11 +235,12 @@ object Jvm {
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
-                     base: Option[Path] = None)
+                     base: Option[Path] = None,
+                     isWin: Boolean = scala.util.Properties.isWin)
                     (implicit ctx: Ctx.Dest) = {
     val tmp = ctx.dest / "out-tmp.jar"
 
-    val baseUri = "jar:file:" + tmp
+    val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
     val hm = new java.util.HashMap[String, String]()
 
     base match{
@@ -258,13 +257,18 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
+    def isSignatureFile(mapping: String): Boolean =
+      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
+
     for(v <- classpathIterator(inputPaths)){
       val (file, mapping) = v
       val p = zipFs.getPath(mapping)
       if (p.getParent != null) Files.createDirectories(p.getParent)
-      val outputStream = newOutputStream(p)
-      IO.stream(file, outputStream)
-      outputStream.close()
+      if (!isSignatureFile(mapping)) {
+        val outputStream = newOutputStream(p)
+        IO.stream(file, outputStream)
+        outputStream.close()
+      }
       file.close()
     }
     zipFs.close()
@@ -273,16 +277,19 @@ object Jvm {
     // Prepend shell script and make it executable
     if (prependShellScript.isEmpty) mv(tmp, output)
     else{
+      val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
       val outputStream = newOutputStream(output.toNIO)
-      IO.stream(new ByteArrayInputStream((prependShellScript + "\n").getBytes()), outputStream)
+      IO.stream(new ByteArrayInputStream((prependShellScript + lineSep).getBytes()), outputStream)
       IO.stream(read.getInputStream(tmp), outputStream)
       outputStream.close()
 
-      val perms = Files.getPosixFilePermissions(output.toNIO)
-      perms.add(PosixFilePermission.GROUP_EXECUTE)
-      perms.add(PosixFilePermission.OWNER_EXECUTE)
-      perms.add(PosixFilePermission.OTHERS_EXECUTE)
-      Files.setPosixFilePermissions(output.toNIO, perms)
+      if (!scala.util.Properties.isWin) {
+        val perms = Files.getPosixFilePermissions(output.toNIO)
+        perms.add(PosixFilePermission.GROUP_EXECUTE)
+        perms.add(PosixFilePermission.OWNER_EXECUTE)
+        perms.add(PosixFilePermission.OTHERS_EXECUTE)
+        Files.setPosixFilePermissions(output.toNIO, perms)
+      }
     }
 
     PathRef(output)
@@ -312,27 +319,58 @@ object Jvm {
 
   }
 
-  def launcherShellScript(mainClass: String,
-                          classPath: Agg[String],
-                          jvmArgs: Seq[String]) = {
-    s"""#!/usr/bin/env sh
-       |
-       |exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${classPath.mkString(":")}" $mainClass "$$@"
-     """.stripMargin
+  def universalScript(shellCommands: String,
+                      cmdCommands: String,
+                      shebang: Boolean = false): String = {
+    Seq(
+      if (shebang) "#!/usr/bin/env sh" else "",
+      "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+      ":",
+      shellCommands.replaceAll("\r\n|\n", "\n"),
+      "exit",
+      Seq(
+        "",
+        ":BOF",
+        "@echo off",
+        cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+        "exit /B %errorlevel%",
+        ""
+      ).mkString("\r\n")
+    ).filterNot(_.isEmpty).mkString("\n")
+  }
+
+  def launcherUniversalScript(mainClass: String,
+                              shellClassPath: Agg[String],
+                              cmdClassPath: Agg[String],
+                              jvmArgs: Seq[String]) = {
+    universalScript(
+      shellCommands =
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
+      cmdCommands =
+        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
+    )
   }
   def createLauncher(mainClass: String,
                      classPath: Agg[Path],
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
-    val outputPath = ctx.dest / "run"
+    val isWin = scala.util.Properties.isWin
+    val isBatch = isWin &&
+      !(org.jline.utils.OSUtils.IS_CYGWIN
+        || org.jline.utils.OSUtils.IS_MINGW
+        || "MSYS" == System.getProperty("MSYSTEM"))
+    val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
+    val classPathStrs = classPath.map(_.toString)
 
-    write(outputPath, launcherShellScript(mainClass, classPath.map(_.toString), jvmArgs))
+    write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
-    val perms = Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!isWin) {
+      val perms = Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 

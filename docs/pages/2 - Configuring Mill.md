@@ -71,6 +71,24 @@ def repositories = super.repositories ++ Seq(
 )
 ```
 
+To add custom resolvers to the initial bootstrap of the build, you can create a 
+custom `ScalaWorkerModule`, and override the `scalaWorker` method in your 
+`ScalaModule` by pointing it to that custom object:
+
+```scala
+import coursier.maven.MavenRepository
+object CustomScalaWorkerModule extends ScalaWorkerModule {
+  def repositories() = super.repositories ++ Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )  
+}
+
+object YourBuild extends ScalaModule {
+  def scalaWorker = CustomScalaWorkerModule
+  // ... rest of your build definitions
+}
+```
+
 ## Adding a Test Suite
 
 ```scala
@@ -194,6 +212,28 @@ object foo extends ScalaModule {
 You can use Scala compiler plugins by setting `scalacPluginIvyDeps`. The above
 example also adds the plugin to `compileIvyDeps`, since that plugin's artifact
 is needed on the compilation classpath (though not at runtime).
+
+## Reformatting your code
+
+Mill supports code formatting via [scalafmt](https://scalameta.org/scalafmt/) out of the box.
+
+To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+import mill.scalalib.scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = "2.12.4"
+}
+```
+
+Now you can reformat code with `mill foo.reformat` command.
+
+You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
+It will reformat all sources that matches `__.sources` query.
 
 ## Common Configuration
 
@@ -396,7 +436,7 @@ object foo extends ScalaModule {
 
 Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
-some library you cna explicitly specify which one to use. This also adds the
+some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
 ## Downloading Non-Maven Jars

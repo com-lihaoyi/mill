@@ -24,15 +24,17 @@ sealed class AggWrapper(strictUniqueness: Boolean){
     def reverse: Agg[V]
     def zip[T](other: Agg[T]): Agg[(V, T)]
     def ++[T >: V](other: TraversableOnce[T]): Agg[T]
+    def length: Int
   }
 
   object Agg{
     def empty[V]: Agg[V] = new Agg.Mutable[V]
     implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
-      upickle.default.ReadWriter[Agg[T]] (
-        oset => upickle.default.writeJs(oset.toList),
-        {case json => Agg.from(upickle.default.readJs[Seq[T]](json))}
+      upickle.default.readwriter[Seq[T]].bimap[Agg[T]](
+        _.toList,
+        Agg.from(_)
       )
+
     def apply[V](items: V*) = from(items)
 
     implicit def from[V](items: TraversableOnce[V]): Agg[V] = {
@@ -88,6 +90,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
 
       def zip[T](other: Agg[T]) = Agg.from(items.zip(other.items))
       def ++[T >: V](other: TraversableOnce[T]) = Agg.from(items ++ other)
+      def length: Int = set0.size
 
       // Members declared in scala.collection.GenTraversableOnce
       def isTraversableAgain: Boolean = items.isTraversableAgain

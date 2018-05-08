@@ -3,11 +3,12 @@ package mill.main
 import ammonite.ops.Path
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{PrintLogger, Watched}
+import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
 
 import scala.util.{Failure, Success, Try}
+
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -33,6 +34,12 @@ trait MainModule extends mill.Module{
   implicit def millDiscover: mill.define.Discover[_]
   implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  def version() = mill.T.command {
+    val res = System.getProperty("MILL_VERSION")
+    println(res)
+    res
+  }
+
 
   private val OutDir: String = "out"
   private val BuildFile: String = "build.sc"
@@ -175,7 +182,7 @@ trait MainModule extends mill.Module{
       multiSelect = false
     ) {res =>
       for(json <- res.flatMap(_._2)){
-        println(json)
+        println(json.render(indent = 4))
       }
     }
   }

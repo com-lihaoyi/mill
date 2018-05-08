@@ -90,7 +90,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   def platformSegment: String
 }
 
-trait UpickleTestModule extends TestModule{
+trait UpickleTestModule extends TestModule with ScalaModule{
   def platformSegment: String
 
   def ivyDeps = Agg(

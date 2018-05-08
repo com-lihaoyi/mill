@@ -5,6 +5,8 @@ import java.net.URLClassLoader
 
 import ammonite.ops.Path
 import mill.define.Discover
+import mill.eval.Result
+import mill.util.Ctx
 import mill.{Agg, T}
 
 sealed trait OptimizeMode
@@ -21,7 +23,8 @@ object ModuleKind{
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSBridge)]
 
-  private def bridge(toolsClasspath: Agg[Path]) = {
+  private def bridge(toolsClasspath: Agg[Path])
+                    (implicit ctx: Ctx.Home) = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     scalaInstanceCache match {
@@ -47,7 +50,8 @@ class ScalaJSWorker {
            dest: File,
            main: Option[String],
            fullOpt: Boolean,
-           moduleKind: ModuleKind): Unit = {
+           moduleKind: ModuleKind)
+          (implicit ctx: Ctx.Home): Result[Path] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
@@ -55,17 +59,19 @@ class ScalaJSWorker {
       main.orNull,
       fullOpt,
       moduleKind
-    )
+    ).map(Path(_))
   }
 
-  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File): Unit = {
+  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File)
+         (implicit ctx: Ctx.Home): Unit = {
     bridge(toolsClasspath).run(config, linkedFile)
   }
 
   def getFramework(toolsClasspath: Agg[Path],
                    config: NodeJSConfig,
                    frameworkName: String,
-                   linkedFile: File): sbt.testing.Framework = {
+                   linkedFile: File)
+                  (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
     bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
   }
 
@@ -77,13 +83,13 @@ trait ScalaJSBridge {
            dest: File,
            main: String,
            fullOpt: Boolean,
-           moduleKind: ModuleKind): Unit
+           moduleKind: ModuleKind): Result[File]
 
   def run(config: NodeJSConfig, linkedFile: File): Unit
 
   def getFramework(config: NodeJSConfig,
                    frameworkName: String,
-                   linkedFile: File): sbt.testing.Framework
+                   linkedFile: File): (() => Unit, sbt.testing.Framework)
 
 }
 

@@ -11,7 +11,7 @@ import publish._
 import mill.modules.Jvm.createAssembly
 import upickle.Js
 trait MillPublishModule extends PublishModule{
-  def scalaVersion = "2.12.4"
+
   def artifactName = "mill-" + super.artifactName()
   def publishVersion = build.publishVersion()._2
 
@@ -19,32 +19,26 @@ trait MillPublishModule extends PublishModule{
     description = artifactName(),
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/mill",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    // TODO 0.1.4
-    // licenses = Seq(License.MIT),
-    scm = SCM(
-      "git://github.com/lihaoyi/mill.git",
-      "scm:git://github.com/lihaoyi/mill.git"
-    ),
-    // TODO 0.1.4:
-    // versionControl = VersionControl.github("lihaoyi", "mill")
-
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "mill"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
   )
+
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
-object moduledefs extends MillPublishModule{
+
+object moduledefs extends MillPublishModule with ScalaModule{
+  def scalaVersion = T{ "2.12.4" }
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
   )
 }
 
-trait MillModule extends MillPublishModule{ outer =>
-
+trait MillModule extends MillPublishModule with ScalaModule{ outer =>
+  def scalaVersion = T{ "2.12.4" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -57,22 +51,25 @@ trait MillModule extends MillPublishModule{ outer =>
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
+    def repositories = super.repositories ++ Seq(
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
     def forkArgs = T{ testArgs() }
     def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
   }
 }
 
-object clientserver extends MillModule{
+
+object testng extends MillPublishModule{
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf",
-    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+    ivy"org.scala-sbt:test-interface:1.0",
+    ivy"org.testng:testng:6.11"
   )
-  val test = new Tests(implicitly)
 }
 
 object core extends MillModule {
@@ -83,9 +80,10 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi::sourcecode:0.1.4",
-    ivy"com.lihaoyi:::ammonite:1.0.5-4-c0cdbaf",
-    ivy"jline:jline:2.14.5"
+    ivy"com.lihaoyi:::ammonite:1.1.0-16-147fdfe",
+    // Necessary so we can share the JNA classes throughout the build process
+    ivy"net.java.dev.jna:jna:4.5.0",
+    ivy"net.java.dev.jna:jna-platform:4.5.0"
   )
 
   def generatedSources = T {
@@ -94,7 +92,7 @@ object core extends MillModule {
 }
 
 object main extends MillModule {
-  def moduleDeps = Seq(core, clientserver)
+  def moduleDeps = Seq(core, client)
 
 
   def compileIvyDeps = Agg(
@@ -104,25 +102,28 @@ object main extends MillModule {
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
-
+  def testArgs = Seq(
+    "-DMILL_VERSION=" + build.publishVersion()._2,
+  )
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
-}
 
-
-object scalaworker extends MillModule{
-  def moduleDeps = Seq(main, scalalib)
-
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt::zinc:1.0.5"
-  )
-  def testArgs = Seq(
-    "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
-  )
+  object client extends MillPublishModule{
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
+        "net.java.dev.jna" -> "jna",
+        "net.java.dev.jna" -> "jna-platform"
+      )
+    )
+    object test extends Tests{
+      def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+      def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+    }
+  }
 }
 
 
@@ -146,8 +147,19 @@ object scalalib extends MillModule {
       genTask(scalalib)() ++
       genTask(scalajslib)()
 
-    scalaworker.testArgs() ++
-    Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    worker.testArgs() ++
+    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+  }
+
+  object worker extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt::zinc:1.1.4"
+    )
+    def testArgs = Seq(
+      "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 }
 
@@ -161,7 +173,7 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
       "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
-    scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    Seq("-Djna.nosys=true") ++ scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
@@ -183,6 +195,7 @@ object scalajslib extends MillModule {
     }
   }
 }
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -194,7 +207,11 @@ def testRepos = T{
     "MILL_AMMONITE_REPO" ->
       shared.downloadTestRepo("lihaoyi/ammonite", "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac", T.ctx().dest/"ammonite"),
     "MILL_UPICKLE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle")
+      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle"),
+    "MILL_PLAY_JSON_REPO" ->
+      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx().dest/"play-json"),
+    "MILL_CAFFEINE_REPO" ->
+      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx().dest/"caffeine")
   )
 }
 
@@ -202,54 +219,113 @@ object integration extends MillModule{
   def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
     scalajslib.testArgs() ++
-    scalaworker.testArgs() ++
+    scalalib.worker.testArgs() ++
+    Seq(
+      "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
+      "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-Djna.nosys=true"
+    ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
   def forkArgs = testArgs()
 }
 
-def launcherScript(jvmArgs: Seq[String],
-                   classPath: Agg[String]) = {
-  val jvmArgsStr = jvmArgs.mkString(" ")
-  val classPathStr = classPath.mkString(":")
-  s"""#!/usr/bin/env sh
-     |
-     |case "$$1" in
-     |  -i | --interactive )
-     |    shift;
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.Main "$$@"
-     |    ;;
-     |  *)
-     |    exec java $jvmArgsStr $$JAVA_OPTS -cp "$classPathStr" mill.clientserver.Client "$$@"
-     |    ;;
-     |esac
-     """.stripMargin
+private def universalScript(shellCommands: String,
+                            cmdCommands: String,
+                            shebang: Boolean = false): String = {
+  Seq(
+    if (shebang) "#!/usr/bin/env sh" else "",
+    "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
+    ":",
+    shellCommands.replaceAll("\r\n|\n", "\n"),
+    "exit",
+    Seq(
+      "",
+      ":BOF",
+      "@echo off",
+      cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+      "exit /B %errorlevel%",
+      ""
+    ).mkString("\r\n")
+  ).filterNot(_.isEmpty).mkString("\n")
 }
+
+def launcherScript(jvmArgs: Seq[String],
+                   shellClassPath: Agg[String],
+                   cmdClassPath: Agg[String]) = {
+  val jvmArgsStr = jvmArgs.mkString(" ")
+  universalScript(
+    shellCommands = {
+      def java(mainClass: String) =
+        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+
+      s"""case "$$1" in
+         |  -i | --interactive )
+         |    ${java("mill.Main")}
+         |    ;;
+         |  *)
+         |    ${java("mill.main.client.Main")}
+         |    ;;
+         |esac""".stripMargin
+    },
+    cmdCommands = {
+      def java(mainClass: String) =
+        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+
+      s"""if "%1" == "-i" set _I_=true
+         |if "%1" == "--interactive" set _I_=true
+         |if defined _I_ (
+         |  ${java("mill.Main")}
+         |) else (
+         |  ${java("mill.main.client.Main")}
+         |)""".stripMargin
+    }
+  )
+}
+
+val isBatch =
+  scala.util.Properties.isWin &&
+    !(org.jline.utils.OSUtils.IS_CYGWIN
+      || org.jline.utils.OSUtils.IS_MINGW
+      || "MSYS" == System.getProperty("MSYSTEM"))
+
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
-  def forkArgs = T{
-    scalalib.testArgs() ++ scalajslib.testArgs() ++ scalaworker.testArgs()
-  }
+  def forkArgs =
+    scalalib.testArgs() ++
+    scalajslib.testArgs() ++
+    scalalib.worker.testArgs() ++
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)
+
   def launcher = T{
-    val outputPath = T.ctx().dest / "run"
+    val isWin = scala.util.Properties.isWin
+    val outputPath = T.ctx().dest / (if (isBatch) "run.bat" else "run")
 
     write(outputPath, prependShellScript())
 
-    val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
-    perms.add(PosixFilePermission.GROUP_EXECUTE)
-    perms.add(PosixFilePermission.OWNER_EXECUTE)
-    perms.add(PosixFilePermission.OTHERS_EXECUTE)
-    java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    if (!isWin) {
+      val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
+      perms.add(PosixFilePermission.GROUP_EXECUTE)
+      perms.add(PosixFilePermission.OWNER_EXECUTE)
+      perms.add(PosixFilePermission.OTHERS_EXECUTE)
+      java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+    }
     PathRef(outputPath)
   }
 
   def assembly = T{
-    mv(super.assembly().path, T.ctx().dest / 'mill)
-    PathRef(T.ctx().dest / 'mill)
+    val filename = if (isBatch) "mill.bat" else "mill"
+    mv(super.assembly().path, T.ctx().dest / filename)
+    PathRef(T.ctx().dest / filename)
   }
 
-  def prependShellScript = launcherScript(forkArgs(), runClasspath().map(_.path.toString))
+  def prependShellScript = T{
+    val classpath = runClasspath().map(_.path.toString)
+    launcherScript(forkArgs(), classpath, classpath)
+  }
 
   def run(args: String*) = T.command{
     args match{
@@ -268,19 +344,26 @@ object dev extends MillModule{
   }
 }
 
-
 def release = T{
+  val dest = T.ctx().dest
+  val filename = if (isBatch) "mill.bat" else "mill"
   mv(
     createAssembly(
       dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        Seq("-DMILL_VERSION=" + publishVersion()._2),
-        Agg("$0")
+        Seq(
+          "-DMILL_VERSION=" + publishVersion()._2,
+          // Workaround for Zinc/JNA bug
+          // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+          "-Djna.nosys=true"
+        ),
+        Agg("$0"),
+        Agg("%~dpnx0")
       )
     ).path,
-    T.ctx().dest / 'mill
+    dest / filename
   )
-  PathRef(T.ctx().dest / 'mill)
+  PathRef(dest / filename)
 }
 
 val isMasterCommit = {
@@ -301,6 +384,11 @@ def publishVersion = T.input{
     )
     catch{case e => None}
 
+  val dirtySuffix = %%('git, 'diff)(pwd).out.string.trim() match{
+    case "" => ""
+    case s => "-DIRTY" + Integer.toHexString(s.hashCode)
+  }
+
   tag match{
     case Some(t) => (t, t)
     case None =>
@@ -310,7 +398,7 @@ def publishVersion = T.input{
         %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
         %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
-      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}")
+      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
   }
 }
 
@@ -320,10 +408,10 @@ def uploadToGithub(authKey: String) = T.command{
   if (releaseTag == label){
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
-        upickle.json.write(
+        ujson.write(
           Js.Obj(
-            "tag_name" -> Js.Str(releaseTag),
-            "name" -> Js.Str(releaseTag)
+            "tag_name" -> releaseTag,
+            "name" -> releaseTag
           )
         )
       )

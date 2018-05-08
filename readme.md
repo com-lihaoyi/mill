@@ -22,6 +22,9 @@ own codebase.
 
 Mill is built using Mill. To begin, first download & install Mill as described
 in the documentation above.
+As Mill is under active development, stable releases may not be able to build 
+the current development branch of Mill.
+It is recommended to install the latest unstable release manually.
 
 To run unit test suite:
 
@@ -94,7 +97,7 @@ mill dev.run docs/example-1 foo.run
 Lastly, you can generate IntelliJ Scala project files using Mill via
 
 ```bash
-./out/dev/assembly/dest/mill mill.scalalib.GenIdeaModule/idea
+./out/dev/assembly/dest/mill mill.scalalib.GenIdea/idea
 ```
 
 Allowing you to import a Mill project into Intellij without using SBT
@@ -339,9 +342,74 @@ rm -rf out/
 
 ## Changelog
 
+### 0.2.0
+
+- Universal (combined batch/sh) script generation for launcher, assembly, and
+  release ([#264](https://github.com/lihaoyi/mill/issues/264))
+
+- Windows client/server improvements ([#262](https://github.com/lihaoyi/mill/issues/262))
+
+- Windows repl support (note: MSYS2 subsystem/shell will be supported when jline3
+  v3.6.3 is released)
+  
+- Fixed Java 9 support
+
+- Remove need for running `publishAll` using `--interactive` when on OSX and
+  your GPG key has a passphrase
+
+- First-class support for `JavaModule`s
+
+- Properly pass compiler plugins to Scaladoc ([#282](https://github.com/lihaoyi/mill/issues/282))
+
+- Support for ivy version-pinning via `ivy"...".forceVersion()`
+
+- Support for ivy excludes via `ivy"...".exclude()` ([#254](https://github.com/lihaoyi/mill/pull/254))
+
+- Make `ivyDepsTree` properly handle transitive dependencies ([#226](https://github.com/lihaoyi/mill/issues/226))
+
+- Fix handling of `runtime`-scoped ivy dependencies ([#173](https://github.com/lihaoyi/mill/issues/173))
+
+- Make environment variables available to Mill builds ([#257](https://github.com/lihaoyi/mill/issues/257))
+
+- Support ScalaCheck test runner ([#286](https://github.com/lihaoyi/mill/issues/286))
+
+- Support for using Typelevel Scala ([#275](https://github.com/lihaoyi/mill/issues/275))
+
+- If a module depends on multiple submodules with different versions of an
+  ivy dependency, only one version is resolved ([#273](https://github.com/lihaoyi/mill/issues/273))
+
+
+
+### 0.1.7
+ 
+- Support for non-interactive (client/server) mode on Windows.
+
+- More fixes for Java 9
+
+- Bumped the Mill daemon timeout from 1 minute to 5 minutes of inactivity before
+  it shuts down.
+
+- Avoid leaking Node.js subprocesses when running `ScalaJSModule` tests
+
+- Passing command-line arguments with spaces in them to tests no longer parses
+  wrongly
+
+- `ScalaModule#repositories`, `scalacPluginIvyDeps`, `scalacOptions`,
+  `javacOptions` are now automatically propagated to `Tests` modules
+
+- `ScalaJSModule` linking errors no longer show a useless stack trace
+
+- `ScalaModule#docJar` now properly uses the compileClasspath rather than
+  runClasspath
+
+- Bumped underlying Ammonite version to [1.1.0](http://ammonite.io/#1.1.0),
+  which provides the improved Windows and Java 9 support
+
 ### 0.1.6
 
 - Fixes for non-interactive (client/server) mode on Java 9
+
+- Windows batch (.bat) generation for launcher, assembly, and release
 
 ### 0.1.5
 

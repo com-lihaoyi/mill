@@ -23,12 +23,14 @@ import scala.reflect.ClassTag
   * subsystem
   */
 object RunScript{
-  def runScript(wd: Path,
+  def runScript(home: Path,
+                wd: Path,
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
-                log: Logger)
+                log: Logger,
+                env : Map[String, String])
   : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
@@ -39,7 +41,7 @@ object RunScript{
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for(rootModule <- evaluateRootModule(wd, path, interp))
+              for(rootModule <- evaluateRootModule(wd, path, interp, log))
               yield Evaluator.State(
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
@@ -52,7 +54,8 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator[Any](wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
+      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log,
+        s.classLoaderSig, s.workerCache, env)
 
     val evaluated = for{
       evaluator <- evalRes
@@ -69,14 +72,19 @@ object RunScript{
 
   def evaluateRootModule(wd: Path,
                          path: Path,
-                         interp: ammonite.interp.Interpreter): Res[mill.define.BaseModule] = {
+                         interp: ammonite.interp.Interpreter,
+                         log: Logger
+                        ): Res[mill.define.BaseModule] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
       scriptTxt <-
         try Res.Success(Util.normalizeNewlines(read(path)))
-        catch { case e: NoSuchFileException => Res.Failure("Script file not found: " + path) }
+        catch { case _: NoSuchFileException =>
+          log.info("No build file found, you should create build.sc to do something useful")
+          Res.Success("")
+        }
 
       processed <- interp.processModule(
         scriptTxt,
@@ -224,8 +232,8 @@ object RunScript{
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
-              val metadata = upickle.default.readJs[Evaluator.Cached](upickle.json.read(jsonFile.toIO))
-              Some(metadata.v)
+              val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              Some(metadata.value)
 
             case _ => None
           }

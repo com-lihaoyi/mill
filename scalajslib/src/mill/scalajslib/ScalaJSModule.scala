@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{CompilationResult, Dep, DepSyntax, TestModule}
+import mill.scalalib.{DepSyntax, Lib, TestModule}
 import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
@@ -21,16 +21,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-
-  def scalaJSBinaryVersion = T{
-    scalaJSVersion() match {
-      case ReleaseVersion(major, minor, _) => s"$major.$minor"
-      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case _ => scalaJSVersion()
-    }
-  }
+  def scalaJSBinaryVersion = T { Lib.scalaBinaryVersion(scalaJSVersion()) }
 
   def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
@@ -40,8 +31,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     if (jsBridgePath != null) Success(
       Agg(PathRef(Path(jsBridgePath), quick = true))
     ) else resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      "2.12.4",
+      Seq(
+        Cache.ivy2Local,
+        MavenRepository("https://repo1.maven.org/maven2"),
+        MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+      ),
+      Lib.depToDependency(_, "2.12.4", ""),
       Seq(
         ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
       )
@@ -59,7 +54,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     }
     resolveDependencies(
       repositories,
-      "2.12.4",
+      Lib.depToDependency(_, "2.12.4", ""),
       commonDeps :+ envDep
     )
   }
@@ -117,7 +112,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            runClasspath: Agg[PathRef],
            mainClass: Option[String],
            mode: OptimizeMode,
-           moduleKind: ModuleKind)(implicit ctx: Ctx.Dest): PathRef = {
+           moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
     mkdir(ctx.dest)
@@ -137,8 +132,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass,
       mode == FullOpt,
       moduleKind
-    )
-    PathRef(outputPath)
+    ).map(PathRef(_))
   }
 
   override def scalacPluginIvyDeps = T{
@@ -156,9 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def artifactSuffix: T[String] = T {
-    s"_sjs${artifactScalaJSVersion()}_${artifactScalaVersion()}"
-  }
+  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 
@@ -191,22 +183,26 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override def test(args: String*) = T.command {
-    val framework = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
+    val (close, framework) = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
         toolsClasspath().map(_.path),
         nodeJSConfig(),
         testFrameworks().head,
         fastOptTest().path.toIO
       )
 
-    val (doneMsg, results) = scalaWorker
-      .worker()
-      .runTests(
+    val (doneMsg, results) = Lib.runTests(
         _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),
         args
       )
-    TestModule.handleResults(doneMsg, results)
+    val res = TestModule.handleResults(doneMsg, results)
+    // Hack to try and let the Node.js subprocess finish streaming it's stdout
+    // to the JVM. Without this, the stdout can still be streaming when `close()`
+    // is called, and some of the output is dropped onto the floor.
+    Thread.sleep(100)
+    close()
+    res
   }
 
 }

@@ -10,7 +10,11 @@ import utest._
 object ResolveDepsTests extends TestSuite {
   val repos = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
-  def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(repos, "2.12.4", deps)
+  def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
+    repos,
+    Lib.depToDependency(_, "2.12.4", ""),
+    deps
+  )
 
   val tests = Tests {
     'resolveValidDeps - {
@@ -24,6 +28,32 @@ object ResolveDepsTests extends TestSuite {
       val Success(paths) = evalDeps(deps)
       assert(paths.nonEmpty)
       assert(paths.items.next.path.toString.contains("natives-macos"))
+    }
+
+    'resolveTransitiveRuntimeDeps - {
+      val deps = Agg(ivy"org.mockito:mockito-core:2.7.22")
+      val Success(paths) = evalDeps(deps)
+      assert(paths.nonEmpty)
+      assert(paths.exists(_.path.toString.contains("objenesis")))
+      assert(paths.exists(_.path.toString.contains("byte-buddy")))
+    }
+
+    'excludeTransitiveDeps - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
+    }
+
+    'excludeTransitiveDepsByOrg - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(path => path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")))
+    }
+
+    'excludeTransitiveDepsByName - {
+      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeName("fansi_2.12"))
+      val Success(paths) = evalDeps(deps)
+      assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
 
     'errOnInvalidOrgDeps - {

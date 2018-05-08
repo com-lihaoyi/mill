@@ -5,9 +5,11 @@ set -eux
 # Starting from scratch...
 git clean -xdf
 
-# Build Mill using SBT
+# Build Mill
 mill -i dev.assembly
 
-# Second build & run tests using Mill
-out/dev/assembly/dest/mill -i all {clientserver,main,scalalib,scalajslib}.test
+rm -rf ~/.mill
+
+# Second build & run tests
+out/dev/assembly/dest/mill -i all {main,scalalib,scalajslib}.test
 

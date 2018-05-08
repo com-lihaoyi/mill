@@ -219,10 +219,11 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       'multiSelectorsBraceExpansionInsideCross - check(
-        input = Seq("bridges[{2.11.11,2.11.8}].jar"),
+        input = Seq("bridges[{2.11.11,2.11.8,2.13.0-M3}].jar"),
         expectedSelectors = List(
           None -> List(Label("bridges"), Cross(Seq("2.11.11")), Label("jar")),
-          None -> List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar"))
+          None -> List(Label("bridges"), Cross(Seq("2.11.8")), Label("jar")),
+          None -> List(Label("bridges"), Cross(Seq("2.13.0-M3")), Label("jar"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true

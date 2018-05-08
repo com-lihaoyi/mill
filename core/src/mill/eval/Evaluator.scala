@@ -2,6 +2,8 @@ package mill.eval
 
 import java.net.URLClassLoader
 
+import scala.collection.JavaConverters._
+
 import mill.util.Router.EntryPoint
 import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
@@ -26,12 +28,14 @@ case class Labelled[T](task: NamedTask[T],
     case _ => None
   }
 }
-case class Evaluator[T](outPath: Path,
+case class Evaluator[T](home: Path,
+                        outPath: Path,
                         externalOutPath: Path,
                         rootModule: mill.define.BaseModule,
                         log: Logger,
-                        classLoaderSig: Seq[(Path, Long)] = Evaluator.classLoaderSig,
-                        workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty){
+                        classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
+                        workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+                        env : Map[String, String] = Evaluator.defaultEnv){
   val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     mkdir(outPath)
@@ -120,18 +124,25 @@ case class Evaluator[T](outPath: Path,
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
 
+        val out = if (!labelledNamedTask.task.ctx.external) outPath
+          else externalOutPath
+
         val paths = Evaluator.resolveDestPaths(
-          if (!labelledNamedTask.task.ctx.external) outPath else externalOutPath,
-          labelledNamedTask.segments
+          out,
+          destSegments(labelledNamedTask)
         )
 
         if (!exists(paths.out)) mkdir(paths.out)
         val cached = for{
-          json <- scala.util.Try(upickle.json.read(paths.meta.toIO)).toOption
-          cached <- scala.util.Try(upickle.default.readJs[Evaluator.Cached](json)).toOption
+          cached <-
+            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+            catch {case e: Throwable => None}
+
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
-          parsed <- reader.read.lift(cached.v)
+          parsed <-
+            try Some(upickle.default.read(cached.value)(reader))
+            catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
 
         val workerCached = labelledNamedTask.task.asWorker
@@ -166,10 +177,10 @@ case class Evaluator[T](outPath: Path,
 
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>
-                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
+                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case Result.Success((v, hashCode)) =>
-                handleTaskResult(v, v.hashCode, paths.meta, inputsHash, labelledNamedTask)
+                handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
                 // Wipe out any cached meta.json file that exists, so
@@ -183,6 +194,27 @@ case class Evaluator[T](outPath: Path,
         }
     }
   }
+
+  def destSegments(labelledTask : Labelled[_]) : Segments = {
+    import labelledTask.task.ctx
+    if (ctx.foreign) {
+      val prefix = "foreign-modules"
+      // Computing a path in "out" that uniquely reflects the location
+      // of the foreign module relatively to the current build.
+      val relative = labelledTask.task
+        .ctx.millSourcePath
+        .relativeTo(rootModule.millSourcePath)
+      // Encoding the number of `/..`
+      val ups = if (relative.ups > 0) Segments.labels(s"up-${relative.ups}")
+                else Segments()
+      Segments.labels(prefix)
+        .++(ups)
+        .++(Segments.labels(relative.segments: _*))
+        .++(labelledTask.segments.last)
+    } else labelledTask.segments
+  }
+
+
   def handleTaskResult(v: Any,
                        hashCode: Int,
                        metaPath: Path,
@@ -194,7 +226,7 @@ case class Evaluator[T](outPath: Path,
         val terminalResult = labelledNamedTask
           .writer
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map(_.write(v) -> v)
+          .map(w => upickle.default.writeJs(v)(w) -> v)
 
         for((json, v) <- terminalResult){
           write.over(
@@ -265,7 +297,9 @@ case class Evaluator[T](outPath: Path,
                     throw new Exception("No `dest` folder available here")
                 }
             },
-            multiLogger
+            multiLogger,
+            home,
+            env
           )
 
           val out = System.out
@@ -295,7 +329,7 @@ case class Evaluator[T](outPath: Path,
       newResults(task) = for(v <- res) yield {
         (v,
           if (task.isInstanceOf[Worker[_]]) inputsHash
-          else v.hashCode
+          else v.##
         )
       }
     }
@@ -313,14 +347,14 @@ case class Evaluator[T](outPath: Path,
 
 
 object Evaluator{
-  case class Cached(v: Js.Value,
+  case class Cached(value: Js.Value,
                     valueHash: Int,
                     inputsHash: Int)
   object Cached{
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
   case class State(rootModule: mill.define.BaseModule,
-                   classLoaderSig: Seq[(Path, Long)],
+                   classLoaderSig: Seq[(Either[String, Path], Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
                    watched: Seq[(Path, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
@@ -328,6 +362,8 @@ object Evaluator{
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
   // in directly) we are forced to pass it in via a ThreadLocal
   val currentEvaluator = new ThreadLocal[mill.eval.Evaluator[_]]
+
+  val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
   case class Paths(out: Path,
                    dest: Path,
@@ -346,7 +382,8 @@ object Evaluator{
   // check if the build itself has changed
   def classLoaderSig = Thread.currentThread().getContextClassLoader match {
     case scl: SpecialClassLoader => scl.classpathSignature
-    case ucl: URLClassLoader => SpecialClassLoader.initialClasspathSignature(ucl)
+    case ucl: URLClassLoader =>
+      SpecialClassLoader.initialClasspathSignature(ucl)
     case _ => Nil
   }
   case class Timing(label: String,

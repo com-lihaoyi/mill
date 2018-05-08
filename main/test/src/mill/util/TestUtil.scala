@@ -65,7 +65,7 @@ object TestUtil {
                   (implicit ctx0: mill.define.Ctx)
     extends Test(inputs) with Target[Int]{
     val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-    val readWrite = upickle.default.IntRW
+    val readWrite = upickle.default.readwriter[Int]
 
 
   }

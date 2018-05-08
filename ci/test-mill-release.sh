@@ -5,10 +5,15 @@ set -eux
 # Starting from scratch...
 git clean -xdf
 
+# Build Mill
 ci/publish-local.sh
 
+# Clean up
 git clean -xdf
 
-# Second build & run tests using Mill
+rm -rf ~/.mill
 
-~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests}"
+# Run tests
+~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
+
+~/mill-release -i integration.test "mill.integration.local.CaffeineTests"

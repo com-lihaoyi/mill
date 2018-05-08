@@ -5,5 +5,5 @@ set -eux
 # Starting from scratch...
 git clean -xdf
 
-# Run tests using Mill built using SBT
+# Run tests
 mill integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
