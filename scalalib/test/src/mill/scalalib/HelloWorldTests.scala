@@ -3,15 +3,13 @@ package mill.scalalib
 import java.util.jar.JarFile
 
 import ammonite.ops._
-import ammonite.ops.ImplicitWd._
 import mill._
-import mill.define.{Discover, Target}
+import mill.define.Target
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
 import mill.scalalib.publish.VersionControl
 import utest._
-
 import utest.framework.TestPath
 
 import scala.collection.JavaConverters._
@@ -48,6 +46,23 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule{
       def mainClass = Some("Main")
     }
+  }
+
+  object HelloWorldAkkaHttp extends HelloBase {
+    object core extends HelloWorldModule{
+      def mainClass = Some("Main")
+      def ivyDeps = Agg(
+        ivy"com.typesafe.akka::akka-http:10.0.13"
+      )
+    }
+  }
+
+  object HelloWorldMulti extends HelloBase {
+    object core extends HelloWorldModule {
+      def mainClass = Some("Main")
+      def moduleDeps = Seq(model)
+    }
+    object model extends HelloWorldModule
   }
 
   object HelloWorldWarnUnused extends HelloBase{
@@ -156,6 +171,15 @@ object HelloWorldTests extends TestSuite {
     import java.util.jar.Attributes._
     val attrs = jar.getManifest.getMainAttributes.asScala
     attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
+  }
+
+  def jarEntries(jar: JarFile): Set[String] = {
+    jar.entries().asScala.map(_.getName).toSet
+  }
+
+  def readFileFromJar(jar: JarFile, name: String): String = {
+    val is = jar.getInputStream(jar.getEntry(name))
+    read(is)
   }
 
   def compileClassfiles = Seq[RelPath](
@@ -421,10 +445,11 @@ object HelloWorldTests extends TestSuite {
         val jarFile = new JarFile(result.path.toIO)
         val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        val manifestFiles = Seq[RelPath](
-          "META-INF" / "MANIFEST.MF"
+        val otherFiles = Seq[RelPath](
+          "META-INF" / "MANIFEST.MF",
+          "reference.conf"
         )
-        val expectedFiles = compileClassfiles ++ manifestFiles
+        val expectedFiles = compileClassfiles ++ otherFiles
 
         assert(
           entries.nonEmpty,
@@ -452,7 +477,7 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
         val jarFile = new JarFile(result.path.toIO)
-        val entries = jarFile.entries().asScala.map(_.getName).toSet
+        val entries = jarEntries(jarFile)
 
         val mainPresent = entries.contains("Main.class")
         assert(mainPresent)
@@ -460,6 +485,52 @@ object HelloWorldTests extends TestSuite {
 
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
+      }
+
+      'assemblyRules - {
+        'appendWithDeps - workspaceTest(HelloWorldAkkaHttp) { eval =>
+          val Right((result, _)) = eval.apply(HelloWorldAkkaHttp.core.assembly)
+
+          val jarFile = new JarFile(result.path.toIO)
+
+          assert(jarEntries(jarFile).contains("reference.conf"))
+
+          val referenceContent = readFileFromJar(jarFile, "reference.conf")
+
+          assert(
+            // akka modules configs are present
+            referenceContent.contains("akka-http Reference Config File"),
+            referenceContent.contains("Akka Actor Reference Config File"),
+            referenceContent.contains("Akka Stream Reference Config File"),
+            // our application config is present too
+            referenceContent.contains("My application Reference Config File"),
+            referenceContent.contains(
+              """akka.http.client.user-agent-header="hello-world-client""""
+            )
+          )
+        }
+        'appendMultiModule - workspaceTest(
+          HelloWorldMulti,
+          resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
+        ) { eval =>
+          val Right((result, _)) = eval.apply(HelloWorldMulti.core.assembly)
+
+          val jarFile = new JarFile(result.path.toIO)
+
+          assert(jarEntries(jarFile).contains("reference.conf"))
+
+          val referenceContent = readFileFromJar(jarFile, "reference.conf")
+
+          assert(
+            // reference config from core module
+            referenceContent.contains("Core Reference Config File"),
+            // reference config from model module
+            referenceContent.contains("Model Reference Config File"),
+            // concatenated content
+            referenceContent.contains("bar.baz=hello"),
+            referenceContent.contains("foo.bar=2")
+          )
+        }
       }
 
       'run - workspaceTest(HelloWorldWithMain){eval =>
