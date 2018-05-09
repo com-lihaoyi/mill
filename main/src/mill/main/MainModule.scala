@@ -184,35 +184,29 @@ trait MainModule extends mill.Module{
   }
 
   /**
-    * Deletes the given targets from the out directory. Providing no targets will clean everything.
+    * Deletes the given targets from the out directory. Providing no targets
+    * will clean everything.
     */
   def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
 
-    def success = Result.Success("Targets cleaned")
+    val rootDir = ammonite.ops.pwd / OutDir
 
-    def remove(paths: List[Path]): Unit = paths.foreach(ammonite.ops.rm)
+    val pathsToRemove =
+      if (targets.isEmpty)
+        Right(List(rootDir))
+      else
+        RunScript.resolveTasks(
+          mill.main.ResolveSegments, evaluator, targets, multiSelect = true
+        ).map(_.map { segments =>
+          Evaluator.resolveDestPaths(rootDir, segments).out
+        })
 
-    if (targets.isEmpty) {
-      remove(List(ammonite.ops.pwd / OutDir))
-      success
-    } else {
-      ParseArgs(targets, multiSelect = true) match {
-        case Left(errMsg) =>
-          Result.Failure(errMsg)
-
-        case Right((selectors, _)) =>
-          val pathsToRemove = selectors.map { case (scopedSel, sel) =>
-            val rootPath = scopedSel match {
-              case Some(scoped) =>
-                Evaluator.resolveDestPaths(ammonite.ops.pwd / OutDir, scoped).out
-              case None =>
-                ammonite.ops.pwd / OutDir
-            }
-            Evaluator.resolveDestPaths(rootPath, sel).out
-          }
-          remove(pathsToRemove)
-          success
-      }
+    pathsToRemove match {
+      case Left(err) =>
+        Result.Failure(err)
+      case Right(paths) =>
+        paths.foreach(ammonite.ops.rm)
+        Result.Success(())
     }
   }
 

@@ -86,6 +86,61 @@ object ResolveMetadata extends Resolve[String]{
   }
 }
 
+object ResolveSegments extends Resolve[Segments] {
+
+  override def endResolveCross(obj: Module,
+                               revSelectorsSoFar: List[Segment],
+                               last: List[String],
+                               discover: Discover[_],
+                               rest: Seq[String]): Either[String, Seq[Segments]] = {
+    obj match{
+      case c: Cross[Module] =>
+        Right(c.items.map(_._2.millModuleSegments))
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
+            Resolve.hintListLabel(revSelectorsSoFar)
+        )
+    }
+  }
+
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, Seq[Segments]] = {
+    val target =
+      obj
+        .millInternal
+        .reflect[Target[_]]
+        .find(_.label == last)
+        .map(t => Right(t.ctx.segments))
+
+    val command =
+      Resolve
+        .invokeCommand(obj, last, discover, rest)
+        .headOption
+        .map(_.map(_.ctx.segments))
+
+    val module =
+      obj.millInternal
+        .reflectNestedObjects[Module]
+        .find(_.millOuterCtx.segment == Segment.Label(last))
+        .map(m => Right(m.millModuleSegments))
+
+    command orElse target orElse module match {
+      case None =>
+        Resolve.errorMsgLabel(
+          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+          last,
+          revSelectorsSoFar
+        )
+
+      case Some(either) => either.right.map(Seq(_))
+    }
+  }
+}
+
 object ResolveTasks extends Resolve[NamedTask[Any]]{
 
 
