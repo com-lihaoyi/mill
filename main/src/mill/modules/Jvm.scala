@@ -262,11 +262,12 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def newOutputStream(p: java.nio.file.Path) = Files.newOutputStream(
-    p,
-    StandardOpenOption.TRUNCATE_EXISTING,
-    StandardOpenOption.CREATE
-  )
+  def newOutputStream(p: java.nio.file.Path, append: Boolean = false) = {
+    val options =
+      if(append) Seq(StandardOpenOption.APPEND)
+      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+    Files.newOutputStream(p, options:_*)
+  }
 
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
@@ -320,11 +321,14 @@ object Jvm {
         case Some(_:Assembly.Rule.Exclude) =>
           ctx.log.info(s"Excluding entry: ${mapping}")
         case None =>
+          val path = zipFs.getPath(mapping)
           if(!excludePatterns.exists(_(mapping))) {
             if(appendPatterns.exists(_(mapping))) {
               append()
             } else if(!seen(mapping)) {
-              writeEntry(zipFs, mapping, entry.is)
+              if(!Files.exists(path)) {
+                writeEntry(path, entry.is, append = false)
+              }
               seen += mapping
             }
           }
@@ -334,7 +338,8 @@ object Jvm {
     concatEntries.foreach { case (mapping, entries) =>
       ctx.log.info(s"Concatenating entry: ${mapping}")
       val concatenated = new SequenceInputStream(Collections.enumeration(entries.map(_.is).asJava))
-      writeEntry(zipFs, mapping, concatenated)
+      val path = zipFs.getPath(mapping)
+      writeEntry(path, concatenated, append = Files.exists(path))
     }
 
     zipFs.close()
@@ -374,10 +379,9 @@ object Jvm {
     def is: InputStream = getIs()
   }
 
-  private def writeEntry(zipFs: java.nio.file.FileSystem, mapping: String, is: InputStream): Unit = {
-    val p = zipFs.getPath(mapping)
+  private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
-    val outputStream = newOutputStream(p)
+    val outputStream = newOutputStream(p, append)
 
     IO.stream(is, outputStream)
 
