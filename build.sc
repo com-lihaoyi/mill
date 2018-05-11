@@ -395,8 +395,7 @@ def publishVersion = T.input{
       val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
 
       val commitsSinceLastTag =
-        %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
-        %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
+        %%('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
       (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
   }
