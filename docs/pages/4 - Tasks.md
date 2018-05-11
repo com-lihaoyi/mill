@@ -32,12 +32,12 @@ def run(mainClsName: String) = T.command{
 }
 ```
 
-Here, we have two `T.source`s, `sourceRoot` and `resourceRoot`, which act as the
+Here, we have two `T.sources`, `sourceRoot` and `resourceRoot`, which act as the
 roots of our task graph. `allSources` depends on `sourceRoot` by calling
 `sourceRoot()` to extract it's value, `classFiles` depends on `allSources` the
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
 
-Filesystem o1perations in Mill are done using the
+Filesystem operations in Mill are done using the
 [Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library.
 
 The above build defines the following task graph:
