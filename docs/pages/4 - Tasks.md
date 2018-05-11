@@ -121,7 +121,7 @@ def sourceRootPath = pwd / 'src
 def sourceRoots = T.sources{ sourceRootPath }
 ```
 
-`Source`s are defined using `T.source{ ... }`, taking one-or-more
+`Source`s are defined using `T.sources{ ... }`, taking one-or-more
 `ammonite.ops.Path`s as arguments. A `Source` is a subclass of
 `Target[Seq[PathRef]]`: this means that it's build signature/`hashCode` depends
 not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of
