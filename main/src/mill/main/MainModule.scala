@@ -190,8 +190,8 @@ trait MainModule extends mill.Module{
   def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
     val rootDir = ammonite.ops.pwd / OutDir
 
-    val KeepPattern = "(mill-worker-[0-9]+)".r.anchored
-    
+    val KeepPattern = "(mill-.+)".r.anchored
+
     def keepPath(path: Path) = path.segments.lastOption match {
       case Some(KeepPattern(_)) => true
       case _ => false
@@ -212,10 +212,7 @@ trait MainModule extends mill.Module{
       case Left(err) =>
         Result.Failure(err)
       case Right(paths) =>
-        paths.foreach { p =>
-          println(p)
-          ammonite.ops.rm(p)
-        }
+        paths.foreach(ammonite.ops.rm)
         Result.Success(())
     }
   }
