@@ -95,7 +95,22 @@ object ResolveSegments extends Resolve[Segments] {
                                rest: Seq[String]): Either[String, Seq[Segments]] = {
     obj match{
       case c: Cross[Module] =>
-        Right(c.items.map(_._2.millModuleSegments))
+        last match{
+          case List("__") => Right(c.items.map(_._2.millModuleSegments))
+          case items =>
+            c.items
+              .filter(_._1.length == items.length)
+              .filter(_._1.zip(last).forall{case (a, b) => b == "_" || a.toString == b})
+              .map(_._2.millModuleSegments) match {
+              case Nil =>
+                Resolve.errorMsgCross(
+                  c.items.map(_._1.map(_.toString)),
+                  last,
+                  revSelectorsSoFar
+                )
+              case res => Right(res)
+            }
+        }
       case _ =>
         Left(
           Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
