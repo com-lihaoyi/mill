@@ -3,7 +3,7 @@ package mill.main
 import ammonite.ops.Path
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{ParseArgs, PrintLogger, Watched}
+import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
 
@@ -188,24 +188,34 @@ trait MainModule extends mill.Module{
     * will clean everything.
     */
   def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
-
     val rootDir = ammonite.ops.pwd / OutDir
+
+    val KeepPattern = "(mill-worker-[0-9]+)".r.anchored
+    
+    def keepPath(path: Path) = path.segments.lastOption match {
+      case Some(KeepPattern(_)) => true
+      case _ => false
+    }
 
     val pathsToRemove =
       if (targets.isEmpty)
-        Right(List(rootDir))
+        Right(ammonite.ops.ls(rootDir).filterNot(keepPath))
       else
         RunScript.resolveTasks(
           mill.main.ResolveSegments, evaluator, targets, multiSelect = true
-        ).map(_.map { segments =>
-          Evaluator.resolveDestPaths(rootDir, segments).out
-        })
+        ).map(
+          _.map { segments =>
+            Evaluator.resolveDestPaths(rootDir, segments).out
+          })
 
     pathsToRemove match {
       case Left(err) =>
         Result.Failure(err)
       case Right(paths) =>
-        paths.foreach(ammonite.ops.rm)
+        paths.foreach { p =>
+          println(p)
+          ammonite.ops.rm(p)
+        }
         Result.Success(())
     }
   }
