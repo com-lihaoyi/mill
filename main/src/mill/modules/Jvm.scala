@@ -7,7 +7,6 @@ import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
-import java.util.regex.Pattern
 
 import ammonite.ops._
 import ammonite.util.Util
@@ -20,34 +19,6 @@ import mill.util.Loose.Agg
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
-
-object Assembly {
-
-  val defaultRules: Seq[Rule] = Seq(
-    Rule.Append("reference.conf"),
-    Rule.Exclude(JarFile.MANIFEST_NAME),
-    Rule.ExcludePattern(".*\\.[sS][fF]"),
-    Rule.ExcludePattern(".*\\.[dD][sS][aA]"),
-    Rule.ExcludePattern(".*\\.[rR][sS][aA]")
-  )
-
-  sealed trait Rule extends Product with Serializable
-  object Rule {
-    case class Append(path: String) extends Rule
-
-    object AppendPattern {
-      def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
-    }
-    case class AppendPattern(pattern: Pattern) extends Rule
-
-    case class Exclude(path: String) extends Rule
-
-    object ExcludePattern {
-      def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
-    }
-    case class ExcludePattern(pattern: Pattern) extends Rule
-  }
-}
 
 object Jvm {
 
