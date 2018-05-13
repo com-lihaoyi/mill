@@ -61,11 +61,27 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldAkkaHttpExclude extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def ivyDeps = akkaHttpDeps
+
+      def assemblyRules = T { Seq(Assembly.Rule.Exclude("reference.conf")) }
+    }
+  }
+
   object HelloWorldAkkaHttpAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
 
       def assemblyRules = T { Seq(Assembly.Rule.AppendPattern(".*.conf")) }
+    }
+  }
+
+  object HelloWorldAkkaHttpExcludePattern extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def ivyDeps = akkaHttpDeps
+
+      def assemblyRules = T { Seq(Assembly.Rule.ExcludePattern(".*.conf")) }
     }
   }
 
@@ -78,11 +94,29 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
+  object HelloWorldMultiExclude extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def moduleDeps = Seq(model)
+
+      def assemblyRules = T { Seq(Assembly.Rule.Exclude("reference.conf")) }
+    }
+    object model extends HelloWorldModule
+  }
+
   object HelloWorldMultiAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
 
       def assemblyRules = T { Seq(Assembly.Rule.AppendPattern(".*.conf")) }
+    }
+    object model extends HelloWorldModule
+  }
+
+  object HelloWorldMultiExcludePattern extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def moduleDeps = Seq(model)
+
+      def assemblyRules = T { Seq(Assembly.Rule.ExcludePattern(".*.conf")) }
     }
     object model extends HelloWorldModule
   }
@@ -572,9 +606,36 @@ object HelloWorldTests extends TestSuite {
           HelloWorldAkkaHttpAppendPattern,
           HelloWorldAkkaHttpAppendPattern.core.assembly
         )
-        'appendMultiModule - checkAppendMulti(
+        'appendPatternMultiModule - checkAppendMulti(
           HelloWorldMultiAppendPattern,
           HelloWorldMultiAppendPattern.core.assembly
+        )
+
+        def checkExclude[M <: TestUtil.BaseModule](module: M,
+                                                   target: Target[PathRef]) =
+          workspaceTest(module) { eval =>
+            val Right((result, _)) = eval.apply(target)
+
+            val jarFile = new JarFile(result.path.toIO)
+
+            assert(!jarEntries(jarFile).contains("reference.conf"))
+          }
+
+        'excludeWithDeps - checkExclude(
+          HelloWorldAkkaHttpExclude,
+          HelloWorldAkkaHttpExclude.core.assembly
+        )
+        'excludeMultiModule - checkExclude(
+          HelloWorldMultiExclude,
+          HelloWorldMultiExclude.core.assembly
+        )
+        'excludePatternWithDeps - checkExclude(
+          HelloWorldAkkaHttpExcludePattern,
+          HelloWorldAkkaHttpExcludePattern.core.assembly
+        )
+        'excludePatternMultiModule - checkExclude(
+          HelloWorldMultiExcludePattern,
+          HelloWorldMultiExcludePattern.core.assembly
         )
       }
 
