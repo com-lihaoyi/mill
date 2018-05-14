@@ -1,16 +1,16 @@
 package mill.main
-import java.io.{InputStream, OutputStream, PrintStream}
+import java.io.{InputStream, PrintStream}
 
+import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
 import ammonite.ops.Path
+import ammonite.util.Util.CodeSource
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
-import mill.main.MainRunner.WatchInterrupted
 import mill.util.PrintLogger
 
-object MainRunner{
-  case class WatchInterrupted(stateCache: Option[Evaluator.State]) extends Exception
-}
+import scala.annotation.tailrec
+
 
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
@@ -21,8 +21,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
-                 interruptWatch: () => Boolean,
-                 stateCache0: Option[Evaluator.State] = None)
+                 stateCache0: Option[Evaluator.State] = None,
+                 env : Map[String, String])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -36,18 +36,35 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       Interpreter.pathSignature(file) == lastMTime
     }
 
-    while(statAll()) {
-      if (interruptWatch()) throw WatchInterrupted(stateCache)
-      Thread.sleep(100)
+    while(statAll()) Thread.sleep(100)
+  }
+
+  /**
+    * Custom version of [[watchLoop]] that lets us generate the watched-file
+    * signature only on demand, so if we don't have config.watch enabled we do
+    * not pay the cost of generating it
+    */
+  @tailrec final def watchLoop2[T](isRepl: Boolean,
+                                   printing: Boolean,
+                                   run: Main => (Res[T], () => Seq[(Path, Long)])): Boolean = {
+    val (result, watched) = run(initMain(isRepl))
+
+    val success = handleWatchRes(result, printing)
+    if (!config.watch) success
+    else{
+      watchAndWait(watched())
+      watchLoop2(isRepl, printing, run)
     }
   }
 
+
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
-    watchLoop(
+    watchLoop2(
       isRepl = false,
       printing = true,
       mainCfg => {
         val (result, interpWatched) = RunScript.runScript(
+          config.home,
           mainCfg.wd,
           scriptPath,
           mainCfg.instantiateInterpreter(),
@@ -58,18 +75,30 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             colors,
             outprintStream,
             errPrintStream,
-            errPrintStream
-          )
+            errPrintStream,
+            stdIn
+          ),
+          env
         )
 
         result match{
           case Res.Success(data) =>
-            val (eval, evaluationWatches, res) = data
+            val (eval, evalWatches, res) = data
 
             stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, interpWatched))
-
-            (Res(res), interpWatched ++ evaluationWatches)
-          case _ => (result, interpWatched)
+            val watched = () => {
+              val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
+              // If the file changed between the creation of the original
+              // `PathRef` and the current moment, use random junk .sig values
+              // to force an immediate re-run. Otherwise calculate the
+              // pathSignatures the same way Ammonite would and hand over the
+              // values, so Ammonite can watch them and only re-run if they
+              // subsequently change
+              if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
+              else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
+            }
+            (Res(res), () => interpWatched ++ watched())
+          case _ => (result, () => interpWatched)
         }
       }
     )
@@ -91,38 +120,44 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   }
 
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
-    def top(pkgName: Seq[Name], imports: Imports, indexedWrapperName: Name) = {
+    def apply(code: String,
+              source: CodeSource,
+              imports: ammonite.util.Imports,
+              printCode: String,
+              indexedWrapperName: ammonite.util.Name,
+              extraCode: String): (String, String, Int) = {
+      import source.pkgName
       val wrapName = indexedWrapperName.backticked
-      val literalPath = pprint.Util.literalize(config.wd.toString)
-      s"""
-         |package ${pkgName.head.encoded}
-         |package ${Util.encodeScalaSourcePath(pkgName.tail)}
-         |$imports
-         |import mill._
-         |object $wrapName
-         |extends mill.define.BaseModule(ammonite.ops.Path($literalPath))
-         |with $wrapName{
-         |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-         |  // even if it does nothing...
-         |  def $$main() = Iterator[String]()
-         |
-         |  // Need to wrap the returned Module in Some(...) to make sure it
-         |  // doesn't get picked up during reflective child-module discovery
-         |  def millSelf = Some(this)
-         |
-         |  implicit def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
-         |}
-         |
-         |sealed trait $wrapName extends mill.main.MainModule{
-         |""".stripMargin
-    }
+      val path = source
+        .path
+        .map(path => path.toNIO.getParent)
+        .getOrElse(config.wd.toNIO)
+      val literalPath = pprint.Util.literalize(path.toString)
+      val external = !(path.compareTo(config.wd.toNIO) == 0)
+      val top = s"""
+        |package ${pkgName.head.encoded}
+        |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+        |$imports
+        |import mill._
+        |object $wrapName
+        |extends mill.define.BaseModule(ammonite.ops.Path($literalPath), foreign0 = $external)
+        |with $wrapName{
+        |  // Stub to make sure Ammonite has something to call after it evaluates a script,
+        |  // even if it does nothing...
+        |  def $$main() = Iterator[String]()
+        |
+        |  // Need to wrap the returned Module in Some(...) to make sure it
+        |  // doesn't get picked up during reflective child-module discovery
+        |  def millSelf = Some(this)
+        |
+        |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+        |}
+        |
+        |sealed trait $wrapName extends mill.main.MainModule{
+        |""".stripMargin
+      val bottom = "}"
 
-
-    def bottom(printCode: String, indexedWrapperName: Name, extraCode: String) = {
-      // We need to disable the `$main` method definition inside the wrapper class,
-      // because otherwise it might get picked up by Ammonite and run as a static
-      // class method, which blows up since it's defined as an instance method
-      "\n}"
+      (top, bottom, 1)
     }
   }
 }

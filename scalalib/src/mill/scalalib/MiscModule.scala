@@ -50,19 +50,30 @@ trait CrossScalaModule extends ScalaModule with CrossModuleBase{ outer =>
   }
 }
 
-trait SbtModule extends ScalaModule { outer =>
+trait MavenTests extends TestModule{
+  override def sources = T.sources(
+    millSourcePath / 'src / 'test / 'scala,
+    millSourcePath / 'src / 'test / 'java
+  )
+  override def resources = T.sources{ millSourcePath / 'src / 'test / 'resources }
+}
+trait MavenModule extends JavaModule{outer =>
+
   override def sources = T.sources(
     millSourcePath / 'src / 'main / 'scala,
     millSourcePath / 'src / 'main / 'java
   )
   override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
-  trait Tests extends super.Tests {
+  trait Tests extends super.Tests with MavenTests {
     override def millSourcePath = outer.millSourcePath
-    override def sources = T.sources(
-      millSourcePath / 'src / 'test / 'scala,
-      millSourcePath / 'src / 'test / 'java
-    )
-    override def resources = T.sources{ millSourcePath / 'src / 'test / 'resources }
+    override def intellijModulePath = outer.millSourcePath / 'src / 'test
+  }
+}
+
+trait SbtModule extends MavenModule with ScalaModule{ outer =>
+  trait Tests extends super.Tests with MavenTests {
+    override def millSourcePath = outer.millSourcePath
+    override def intellijModulePath = outer.millSourcePath / 'src / 'test
   }
 }
 

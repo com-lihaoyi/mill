@@ -1,4 +1,4 @@
-[Mill](https://github.com/lihaoyi/mill) is your shiny new Scala build tool!
+[Mill](https://github.com/lihaoyi/mill) is your shiny new Java/Scala build tool!
 [Scared of SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)?
 Melancholy over Maven? Grumbling about Gradle? Baffled by Bazel? Give Mill a
 try!
@@ -15,18 +15,76 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
+## Installation
+
+### OS X
+
+Installation via [homebrew](https://github.com/Homebrew/homebrew-core/blob/master/Formula/mill.rb):
+
+```sh
+brew install mill
+```
+
+### Arch Linux
+
+Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
+
+```bash
+pacaur -S mill
+```
+
+### Windows
+
+To get started, download Mill from: https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0,
+and save it as `mill.bat`.
+
+Mill also works on a sh environment on Windows (e.g.,
+[MSYS2](https://www.msys2.org),
+[Cygwin](https://www.cygwin.com),
+[Git-Bash](https://gitforwindows.org),
+[WSL](https://docs.microsoft.com/en-us/windows/wsl);
+to get started, follow the instructions in the [manual](#manual) section below. Note that:
+
+* In some environments (such as WSL), mill might have to be run using interactive mode (`-i`)
+
+* On Cygwin, run the following after downloading mill:
+
+```bash
+sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+```
+
+### Manual
+
 To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.1/0.1.1 && sudo chmod +x /usr/local/bin/mill
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
-More recent, unstable versions of Mill are also
-[available](https://github.com/lihaoyi/mill/releases/tag/unstable), if you want
-to try out the latest features and improvements that are currently in master. 
+### Development Releases
+
+In case you want to try out the latest features and improvements that are 
+currently in master, unstable versions of Mill are
+[available](https://github.com/lihaoyi/mill/releases) as binaries named 
+`#.#.#-n-hash` linked to the latest tag.
+Installing the latest unstable release is recommended for bootstrapping mill.
+
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
+
+## Getting Started
+
+The simplest Mill build for a Java project looks as follows:
+
+```scala
+// build.sc
+import mill._, mill.scalalib._
+
+object foo extends JavaModule {
+
+}
+```
 
 The simplest Mill build for a Scala project looks as follows:
 
@@ -40,13 +98,14 @@ object foo extends ScalaModule {
 }
 ```
 
-This would build a project laid out as follows:
+Both of these would build a project laid out as follows:
 
 ```
 build.sc
 foo/
     src/
-        Main.scala
+        FileA.java
+        FileB.scala
     resources/
         ...
 out/
@@ -69,17 +128,19 @@ $ mill foo.compile                 # compile sources into classfiles
 
 $ mill foo.run                     # run the main method, if any
 
+$ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
+
 $ mill foo.jar                     # bundle the classfiles into a jar
 
 $ mill foo.assembly                # bundle classfiles and all dependencies into a jar
+
+$ mill -i foo.console              # start a Scala console within your project (in interactive mode: "-i")
  
-$ mill foo.console                 # start a Scala console within your project
- 
-$ mill foo.repl                    # start an Ammonite REPL within your project 
+$ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ```
 
 You can run `mill resolve __` to see a full list of the different tasks that are
-available, `mill resolve foo._` to see the tasks within `foo`, `mill describe
+available, `mill resolve foo._` to see the tasks within `foo`, `mill inspect
 foo.compile` to see what an individual task depends on, or `mill show
 foo.scalaVersion` to inspect the output of any task.
 
@@ -113,10 +174,20 @@ respective `out/foo/bar/` folder.
 
 ## Multiple Modules
 
+### Java Example
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, mill.scalalib._
+object foo extends JavaModule
+object bar extends JavaModule {
+  def moduleDeps = Seq(foo)
+}
+```
+
+### Scala Example
+```scala
+// build.sc
+import mill._, mill.scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
@@ -127,7 +198,7 @@ object bar extends ScalaModule {
 ```
 
 You can define multiple modules the same way you define a single module, using
-`def moduleDeps` to define the relationship between them. The above build
+`def moduleDeps` to define the relationship between them. The above builds
 expects the following project layout:
 
 ```
@@ -269,7 +340,7 @@ $ mill resolve _.compile
 main.compile
 moduledefs.compile
 core.compile
-scalaworker.compile
+scalalib.worker.compile
 scalalib.compile
 scalajslib.compile
 integration.compile
@@ -302,10 +373,10 @@ mill resolve __                 # list every module or task recursively
 mill resolve foo.__             # list every task recursively within the foo module
 ```
 
-### describe
+### inspect
 
 ```bash
-$ mill describe core.run
+$ mill inspect core.run
 
 core.run(ScalaModule.scala:211)
 Inputs:
@@ -315,26 +386,26 @@ Inputs:
     core.forkEnv
 ```
 
-`describe` is a more verbose version of [resolve](#resolve). In addition to
+`inspect` is a more verbose version of [resolve](#resolve). In addition to
 printing out the name of one-or-more tasks, it also display's it's source
 location and a list of input tasks. This is very useful for debugging and
 interactively exploring the structure of your build from the command line.
 
-`describe` also works with the same `_`/`__` wildcard/query syntaxes that
+`inspect` also works with the same `_`/`__` wildcard/query syntaxes that
 [all](#all)/[resolve](#resolve) do:
 
 
 ```bash
-mill describe foo.compile
-mill describe foo.{compile,run}
-mill describe "foo.{compile,run}"
-mill describe foo.compile foo.run
-mill describe _.compile
-mill describe __.compile
-mill describe _
-mill describe foo._
-mill describe __
-mill describe foo._
+mill inspect foo.compile
+mill inspect foo.{compile,run}
+mill inspect "foo.{compile,run}"
+mill inspect foo.compile foo.run
+mill inspect _.compile
+mill inspect __.compile
+mill inspect _
+mill inspect foo._
+mill inspect __
+mill inspect foo._
 ```
 
 ### show
@@ -387,7 +458,7 @@ JSON it outputs is structured and easily parsed & manipulated.
 
 ## IntelliJ Support
 
-Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdeaModule/idea` to
+Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
 generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within
@@ -396,7 +467,7 @@ your build file itself.
 ## The Build Repl
 
 ```bash
-$ mill
+$ mill -i
 Loading...
 @ foo
 res1: foo.type = ammonite.predef.build#foo:2
@@ -427,13 +498,12 @@ res2: mill.scalalib.CompilationResult = CompilationResult(
 )
 ```
 
-You can run `mill` alone to open a build REPL; this is a Scala console with your
+You can run `mill -i` to open a build REPL; this is a Scala console with your
 `build.sc` loaded, which lets you run tasks interactively. The task-running
 syntax is slightly different from the command-line, but more in-line with how
 you would depend on tasks from within your build file.
 
-You can use this REPL to run build commands quicker, due to keeping the JVM warm
-between runs, or to interactively explore your build to see what is available.
+You can use this REPL to interactively explore your build to see what is available.
 
 ## Deploying your code
 
@@ -470,14 +540,14 @@ $ java -cp out/foo/assembly/dest/out.jar foo.Example
 Hello World!
 ```
 
-To publish to Maven Central, you need to make `foo` extend Mill's
+To publish to Maven Central, you need to make `foo` also extend Mill's
 `PublishModule` trait:
 
 ```scala
 // build.sc
 import mill._, scalalib._, publish._
 
-object foo extends PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"
 
@@ -485,13 +555,8 @@ object foo extends PublishModule{
     description = "Hello",
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/example",
-    licenses = Seq(
-       License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    scm = SCM(
-      "git://github.com/lihaoyi/example.git",
-      "scm:git://github.com/lihaoyi/example.git"
-    ),
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
@@ -522,6 +587,5 @@ You also need to specify `release` as `true` or `false`, depending on whether
 you just want to stage your module on `oss.sonatype.org` or you want Mill to
 complete the release process to Maven Central.
 
-If you are publishing multiple artifacts, you can also use `target/bin/mill
-mill.scalalib.PublishModule/publishAll1 as described
+If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
 [here](http://www.lihaoyi.com/mill/page/common-project-layouts.html#publishing)

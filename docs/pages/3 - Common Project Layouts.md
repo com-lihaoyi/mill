@@ -4,6 +4,50 @@ Earlier, we have shown how to work with the Mill default Scala module layout.
 Here we will explore some other common project layouts that you may want in your
 Scala build:
 
+### Java Project with Test Suite
+
+```scala
+trait JUnitTests extends TestModule{
+  def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+  def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+}
+
+object core extends JavaModule{
+  object test extends Tests with JUnitTests
+}
+object app extends JavaModule{
+  def moduleDeps = Seq(core)
+  object test extends Tests with JUnitTests
+}
+```
+
+This build is a two-module Java project with junit test suites. It expects the
+following filesystem layout:
+
+```text
+build.sc
+app/
+    src/hello/
+        Main.java
+    test/src/hello/
+            MyAppTests.java
+core/
+    src/hello/
+        Core.java
+    test/src/hello/
+            MyCoreTests.java
+```
+
+You can then run the junit tests using `mill app.test` or `mill core.test`, and
+configure which exact tests you want to run using the flags defined on the
+[JUnit Test Interface](https://github.com/sbt/junit-interface#junit-interface).
+
+For a more more complex, real-world example of a Java build, check out our
+example build for the popular [Caffeine](https://github.com/ben-manes/caffeine)
+project:
+
+- [Example Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc)
+
 ### Cross Scala-Version Modules
 
 ```scala
@@ -129,13 +173,8 @@ object foo extends ScalaModule with PublishModule{
     description = "My first library",
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/mill",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    scm = SCM(
-      "git://github.com/lihaoyi/mill.git",
-      "scm:git://github.com/lihaoyi/mill.git"
-    ),
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "mill"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
@@ -153,7 +192,7 @@ Once you've mixed in `PublishModule`, you can publish your libraries to maven
 central via:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         foo.publishArtifacts
@@ -164,7 +203,7 @@ them manually. You can also pass in the `--release true` flag to perform the
 staging/release automatically:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         foo.publishArtifacts \
@@ -175,7 +214,7 @@ If you want to publish/release multiple modules, you can use the `_` or `__`
 wildcard syntax:
 
 ```bash
-target/bin/mill mill.scalalib.PublishModule/publishAll \
+mill mill.scalalib.PublishModule/publishAll \
         lihaoyi:$SONATYPE_PASSWORD \
         $GPG_PASSWORD \ 
         __.publishArtifacts \

@@ -32,7 +32,7 @@ object TestUtil {
                    millName0: sourcecode.Name,
                    overrides: Overrides)
     extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#")){
-    def millDiscover: Discover[this.type] = Discover[this.type]
+    lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   object test{
@@ -65,7 +65,7 @@ object TestUtil {
                   (implicit ctx0: mill.define.Ctx)
     extends Test(inputs) with Target[Int]{
     val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-    val readWrite = upickle.default.IntRW
+    val readWrite = upickle.default.readwriter[Int]
 
 
   }
@@ -76,6 +76,11 @@ object TestUtil {
       for(upstream <- t.inputs){
         assert(!seen(upstream))
       }
+    }
+  }
+  def disableInJava9OrAbove(f: => Any): Unit = {
+    if (!ammonite.util.Util.java9OrAbove) {
+      f
     }
   }
 }

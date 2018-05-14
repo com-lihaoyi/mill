@@ -12,13 +12,8 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
     description = artifactName(),
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/upickle",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    scm = SCM(
-      "git://github.com/lihaoyi/upickle.git",
-      "scm:git://github.com/lihaoyi/upickle.git"
-    ),
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "upickle"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )
@@ -95,7 +90,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   def platformSegment: String
 }
 
-trait UpickleTestModule extends TestModule{
+trait UpickleTestModule extends TestModule with ScalaModule{
   def platformSegment: String
 
   def ivyDeps = Agg(

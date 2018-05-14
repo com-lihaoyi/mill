@@ -7,33 +7,43 @@ case class Artifact(group: String, id: String, version: String) {
 }
 
 object Artifact {
-
+  def fromDepJava(dep: Dep) = {
+    dep match {
+      case Dep.Java(dep, cross, force) =>
+        Dependency(
+          Artifact(dep.module.organization, dep.module.name, dep.version),
+          Scope.Compile,
+          if (dep.configuration == "") None else Some(dep.configuration),
+          dep.exclusions.toList
+        )
+    }
+  }
   def fromDep(dep: Dep,
               scalaFull: String,
               scalaBin: String): Dependency = {
     dep match {
-      case Dep.Java(dep, cross) =>
-        Dependency(
-          Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile
-        )
-      case Dep.Scala(dep, cross) =>
+      case d: Dep.Java => fromDepJava(d)
+      case Dep.Scala(dep, cross, force) =>
         Dependency(
           Artifact(
             dep.module.organization,
             s"${dep.module.name}_${scalaBin}",
             dep.version
           ),
-          Scope.Compile
+          Scope.Compile,
+          if (dep.configuration == "") None else Some(dep.configuration),
+          dep.exclusions.toList
         )
-      case Dep.Point(dep, cross) =>
+      case Dep.Point(dep, cross, force) =>
         Dependency(
           Artifact(
             dep.module.organization,
             s"${dep.module.name}_${scalaFull}",
             dep.version
           ),
-          Scope.Compile
+          Scope.Compile,
+          if (dep.configuration == "") None else Some(dep.configuration),
+          dep.exclusions.toList
         )
     }
   }
@@ -49,18 +59,9 @@ object Scope {
 
 case class Dependency(
     artifact: Artifact,
-    scope: Scope
-)
-
-case class License(
-    name: String,
-    url: String,
-    distribution: String = "repo"
-)
-
-case class SCM(
-    url: String,
-    connection: String
+    scope: Scope,
+    configuration: Option[String] = None,
+    exclusions: Seq[(String, String)] = Nil
 )
 
 case class Developer(
@@ -76,6 +77,30 @@ case class PomSettings(
     organization: String,
     url: String,
     licenses: Seq[License],
-    scm: SCM,
+    versionControl: VersionControl,
     developers: Seq[Developer]
 )
+
+object PomSettings {
+  @deprecated("use VersionControl instead of SCM", "0.1.3")
+  def apply(description: String,
+            organization: String,
+            url: String,
+            licenses: Seq[License],
+            scm: SCM,
+            developers: Seq[Developer]): PomSettings = {
+    PomSettings(
+      description = description,
+      organization = organization,
+      url = url,
+      licenses = licenses,
+      versionControl = VersionControl(
+        browsableRepository = Some(scm.url),
+        connection = Some(scm.connection),
+        developerConnection = None,
+        tag = None
+      ),
+      developers = developers
+    )
+  }
+}

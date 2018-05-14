@@ -3,7 +3,7 @@ package mill.modules
 
 import ammonite.ops.{Path, RelPath, empty, mkdir, read}
 import mill.eval.PathRef
-import mill.util.Ctx
+import mill.util.{Ctx, IO}
 
 object Util {
   def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.Dest) = {
@@ -45,15 +45,7 @@ object Util {
             val entryDest = ctx.dest / dest / RelPath(entry.getName)
             mkdir(entryDest / ammonite.ops.up)
             val fileOut = new java.io.FileOutputStream(entryDest.toString)
-            val buffer = new Array[Byte](4096)
-            while ( {
-              zipStream.read(buffer) match {
-                case -1 => false
-                case n =>
-                  fileOut.write(buffer, 0, n)
-                  true
-              }
-            }) ()
+            IO.stream(zipStream, fileOut)
             fileOut.close()
           }
           zipStream.closeEntry()

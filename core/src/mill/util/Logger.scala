@@ -2,7 +2,7 @@ package mill.util
 
 import java.io._
 
-import ammonite.ops.Path
+import ammonite.ops.{Path, rm}
 import ammonite.util.Colors
 
 
@@ -29,6 +29,7 @@ trait Logger {
   def colored: Boolean
   val errorStream: PrintStream
   val outputStream: PrintStream
+  val inStream: InputStream
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
@@ -39,6 +40,7 @@ object DummyLogger extends Logger {
   def colored = false
   object errorStream extends PrintStream(_ => ())
   object outputStream extends PrintStream(_ => ())
+  val inStream = new ByteArrayInputStream(Array())
   def info(s: String) = ()
   def error(s: String) = ()
   def ticker(s: String) = ()
@@ -80,7 +82,8 @@ case class PrintLogger(colored: Boolean,
                        colors: ammonite.util.Colors,
                        outStream: PrintStream,
                        infoStream: PrintStream,
-                       errStream: PrintStream) extends Logger {
+                       errStream: PrintStream,
+                       inStream: InputStream) extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
@@ -121,11 +124,13 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
+    if (!outputStreamUsed) rm(file)
     outputStreamUsed = true
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
   lazy val errorStream = {
+    if (!outputStreamUsed) rm(file)
     outputStreamUsed = true
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
@@ -133,6 +138,7 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
+  val inStream: InputStream = DummyInputStream
   override def close() = {
     if (outputStreamUsed)
       outputStream.close()
@@ -150,6 +156,10 @@ case class MultiLogger(colored: Boolean, streams: Logger*) extends Logger {
       override def flush() = streams.foreach(_.outputStream.flush())
       override def close() = streams.foreach(_.outputStream.close())
     }
+  lazy val inStream = streams.collect{case t: PrintLogger => t}.headOption match{
+    case Some(x) => x.inStream
+    case None => new ByteArrayInputStream(Array())
+  }
 
   def info(s: String) = streams.foreach(_.info(s))
   def error(s: String) = streams.foreach(_.error(s))

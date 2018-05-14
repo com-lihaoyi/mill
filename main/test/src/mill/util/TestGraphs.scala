@@ -180,7 +180,7 @@ object TestGraphs{
   object canOverrideSuper extends TestUtil.BaseModule with BaseModule {
     override def foo = T{ super.foo() ++ Seq("object") }
     override def cmd(i: Int) = T.command{ super.cmd(i)() ++ Seq("object" + i) }
-    def millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
   trait TraitWithModule extends Module{ outer =>
@@ -193,9 +193,26 @@ object TestGraphs{
 
   // Make sure nested objects inherited from traits work
   object TraitWithModuleObject extends TestUtil.BaseModule with TraitWithModule{
-    def millDiscover: Discover[this.type] = Discover[this.type]
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 
+  object nullTasks extends  TestUtil.BaseModule{
+    val nullString: String = null
+    def nullTask1 = T.task{ nullString }
+    def nullTask2 = T.task{ nullTask1() }
+
+    def nullTarget1 = T{ nullString }
+    def nullTarget2 = T{ nullTarget1() }
+    def nullTarget3 = T{ nullTask1() }
+    def nullTarget4 = T{ nullTask2() }
+
+    def nullCommand1() = T.command{ nullString }
+    def nullCommand2() = T.command{ nullTarget1() }
+    def nullCommand3() = T.command{ nullTask1() }
+    def nullCommand4() = T.command{ nullTask2() }
+
+    override lazy val millDiscover: Discover[this.type] = Discover[this.type]
+  }
 
   object singleCross extends TestUtil.BaseModule {
     object cross extends mill.Cross[Cross]("210", "211", "212")

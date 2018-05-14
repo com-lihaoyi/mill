@@ -2,14 +2,16 @@ package mill.eval
 
 sealed trait Result[+T]{
   def map[V](f: T => V): Result[V]
+  def asSuccess: Option[Result.Success[T]] = None
 }
 object Result{
   implicit def create[T](t: => T): Result[T] = {
     try Success(t)
     catch { case e: Throwable => Exception(e, new OuterStack(new java.lang.Exception().getStackTrace)) }
   }
-  case class Success[T](value: T) extends Result[T]{
+  case class Success[+T](value: T) extends Result[T]{
     def map[V](f: T => V) = Result.Success(f(value))
+    override def asSuccess = Some(this)
   }
   case object Skipped extends Result[Nothing]{
     def map[V](f: Nothing => V) = this

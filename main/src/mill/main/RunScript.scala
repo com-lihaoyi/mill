@@ -23,13 +23,15 @@ import scala.reflect.ClassTag
   * subsystem
   */
 object RunScript{
-  def runScript(wd: Path,
+  def runScript(home: Path,
+                wd: Path,
                 path: Path,
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
-                log: Logger)
-  : (Res[(Evaluator[Any], Seq[(Path, Long)], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+                log: Logger,
+                env : Map[String, String])
+  : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
       case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
@@ -39,7 +41,7 @@ object RunScript{
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for(rootModule <- evaluateRootModule(wd, path, interp))
+              for(rootModule <- evaluateRootModule(wd, path, interp, log))
               yield Evaluator.State(
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
@@ -52,24 +54,14 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator[Any](wd / 'out, wd / 'out, s.rootModule, log, s.classLoaderSig, s.workerCache)
+      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log,
+        s.classLoaderSig, s.workerCache, env)
 
     val evaluated = for{
       evaluator <- evalRes
       (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
     } yield {
-      val alreadyStale = evalWatches.exists(p => p.sig != new PathRef(p.path, p.quick).sig)
-      // If the file changed between the creation of the original
-      // `PathRef` and the current moment, use random junk .sig values
-      // to force an immediate re-run. Otherwise calculate the
-      // pathSignatures the same way Ammonite would and hand over the
-      // values, so Ammonite can watch them and only re-run if they
-      // subsequently change
-      val evaluationWatches =
-        if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
-        else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
-
-      (evaluator, evaluationWatches, res.map(_.flatMap(_._2)))
+      (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
     (evaluated, interpWatched)
   }
@@ -80,14 +72,19 @@ object RunScript{
 
   def evaluateRootModule(wd: Path,
                          path: Path,
-                         interp: ammonite.interp.Interpreter): Res[mill.define.BaseModule] = {
+                         interp: ammonite.interp.Interpreter,
+                         log: Logger
+                        ): Res[mill.define.BaseModule] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
       scriptTxt <-
         try Res.Success(Util.normalizeNewlines(read(path)))
-        catch { case e: NoSuchFileException => Res.Failure("Script file not found: " + path) }
+        catch { case _: NoSuchFileException =>
+          log.info("No build file found, you should create build.sc to do something useful")
+          Res.Success("")
+        }
 
       processed <- interp.processModule(
         scriptTxt,
@@ -235,8 +232,8 @@ object RunScript{
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
-              val metadata = upickle.json.read(jsonFile.toIO)
-              Some(metadata(1))
+              val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              Some(metadata.value)
 
             case _ => None
           }

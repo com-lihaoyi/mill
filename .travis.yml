@@ -2,38 +2,48 @@ language: scala
 sudo: required
 dist: trusty
 
-scala:
-  - 2.12.4
-
-jdk:
-  - oraclejdk8
-
 matrix:
   include:
   - stage: build
-    env: CI_SCRIPT=ci/test-sbt.sh
-  - stage: build
-    env: CI_SCRIPT=ci/test-sbt-built.sh
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-built.sh
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: oraclejdk9
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk9
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
+    jdk: oraclejdk9
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-0.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-1.sh
+    jdk: oraclejdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-2.sh
+    jdk: oraclejdk8
+
+
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    jdk: oraclejdk8
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
+    jdk: oraclejdk8
 
 script:
-  - git fetch --unshallow --tags
+  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-97-00b10e && chmod +x ~/bin/mill
+  - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
+
 cache:
   directories:
-  - $HOME/.sbt/0.13/dependency
-  - $HOME/.sbt/boot/scala*
-  - $HOME/.sbt/launchers
-  - $HOME/.ivy2/cache
   - $HOME/.coursier
-
-before_cache:
-  - find $HOME/.sbt -name "*.lock" -type f -delete
-  - find $HOME/.ivy2/cache -name "ivydata-*.properties" -type f -delete

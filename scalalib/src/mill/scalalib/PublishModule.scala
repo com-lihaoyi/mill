@@ -9,22 +9,20 @@ import mill.util.Loose.Agg
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */
-trait PublishModule extends ScalaModule { outer =>
+trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
   override def moduleDeps = Seq.empty[PublishModule]
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
-  def artifactId: T[String] = T { s"${artifactName()}${artifactSuffix()}" }
+
   def publishSelfDependency = T{
     Artifact(pomSettings().organization, artifactId(), publishVersion()),
   }
 
   def publishXmlDeps = T.task{
-    val ivyPomDeps = ivyDeps().map(
-      Artifact.fromDep(_, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
-    )
+    val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
     val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
@@ -119,5 +117,5 @@ object PublishModule extends ExternalModule{
 
   implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
 
-  def millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

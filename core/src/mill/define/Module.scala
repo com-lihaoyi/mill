@@ -26,6 +26,7 @@ class Module(implicit outerCtx0: mill.define.Ctx)
   def millOuterCtx = outerCtx0
   def millSourcePath: Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
   implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
+  implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
     millOuterCtx.segments ++ Seq(millOuterCtx.segment)
@@ -56,22 +57,25 @@ object Module{
     lazy val millModuleLine = outer.millOuterCtx.lineNum
 
     def reflect[T: ClassTag] = {
-      outer
-        .getClass
-        .getMethods
-        .filter(!_.getName.contains('$'))
-        .filter(_.getParameterCount == 0)
-        .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
-        .map(_.invoke(outer).asInstanceOf[T])
+      val runtimeCls = implicitly[ClassTag[T]].runtimeClass
+      for{
+        m <- outer.getClass.getMethods
+        if
+          !m.getName.contains('$') &&
+          m.getParameterCount == 0 &&
+          (m.getModifiers & Modifier.STATIC) == 0 &&
+          runtimeCls.isAssignableFrom(m.getReturnType)
+      } yield m.invoke(outer).asInstanceOf[T]
+
     }
     def reflectNames[T: ClassTag] = {
-      outer
-        .getClass
-        .getMethods
-        .filter(x => (x.getModifiers & Modifier.STATIC) == 0)
-        .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _.getReturnType)
-        .map(_.getName)
+      val runtimeCls = implicitly[ClassTag[T]].runtimeClass
+      for{
+        m <- outer.getClass.getMethods
+        if
+          (m.getModifiers & Modifier.STATIC) == 0 &&
+          runtimeCls.isAssignableFrom(m.getReturnType)
+      } yield m.getName
     }
     // For some reason, this fails to pick up concrete `object`s nested directly within
     // another top-level concrete `object`. This is fine for now, since Mill's Ammonite

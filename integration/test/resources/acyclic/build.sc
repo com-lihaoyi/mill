@@ -1,6 +1,6 @@
 import mill.Cross
 import mill.scalalib.{SbtModule, PublishModule, Dep, CrossSbtModule, DepSyntax}
-import mill.scalalib.publish.{PomSettings, License, Developer, SCM}
+import mill.scalalib.publish.{PomSettings, License, Developer, VersionControl}
 
 object acyclic extends Cross[AcyclicModule]("2.10.6", "2.11.8", "2.12.3", "2.12.4")
 class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with PublishModule {
@@ -12,13 +12,8 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     description = artifactName(),
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/acyclic",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    scm = SCM(
-      "git://github.com/lihaoyi/acyclic.git",
-      "scm:git://github.com/lihaoyi/acyclic.git"
-    ),
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "acyclic"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )

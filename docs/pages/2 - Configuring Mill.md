@@ -71,6 +71,24 @@ def repositories = super.repositories ++ Seq(
 )
 ```
 
+To add custom resolvers to the initial bootstrap of the build, you can create a 
+custom `ScalaWorkerModule`, and override the `scalaWorker` method in your 
+`ScalaModule` by pointing it to that custom object:
+
+```scala
+import coursier.maven.MavenRepository
+object CustomScalaWorkerModule extends ScalaWorkerModule {
+  def repositories() = super.repositories ++ Seq(
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )  
+}
+
+object YourBuild extends ScalaModule {
+  def scalaWorker = CustomScalaWorkerModule
+  // ... rest of your build definitions
+}
+```
+
 ## Adding a Test Suite
 
 ```scala
@@ -81,7 +99,7 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
@@ -129,7 +147,7 @@ If you want to pass any arguments to the test framework, simply put them after
 lets you pass in a selector to decide which test to run, which in Mill would be:
 
 ```bash
-mill foo.MyTestSuite.testCaseName
+mill foo.test foo.MyTestSuite.testCaseName
 ```
 
 You can define multiple test suites if you want, e.g.:
@@ -143,11 +161,11 @@ object foo extends ScalaModule {
 
   object test extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
   object integration extends Tests{ 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("mill.UTestFramework")
+    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
@@ -195,6 +213,28 @@ You can use Scala compiler plugins by setting `scalacPluginIvyDeps`. The above
 example also adds the plugin to `compileIvyDeps`, since that plugin's artifact
 is needed on the compilation classpath (though not at runtime).
 
+## Reformatting your code
+
+Mill supports code formatting via [scalafmt](https://scalameta.org/scalafmt/) out of the box.
+
+To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+import mill.scalalib.scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = "2.12.4"
+}
+```
+
+Now you can reformat code with `mill foo.reformat` command.
+
+You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
+It will reformat all sources that matches `__.sources` query.
+
 ## Common Configuration
 
 ```scala
@@ -216,6 +256,30 @@ those modules extend. This is useful for providing convenience & ensuring
 consistent configuration: every module often has the same scala-version, uses
 the same testing framework, etc. and all that can be extracted out into the
 `trait`.
+
+## Global configuration
+
+Mill builds on ammonite which allows you to 
+[define global configuration](http://ammonite.io/#ScriptPredef). Depending on 
+how you start mill 2 different files will be loaded. For interactive mode it's 
+`~/.mill/ammonite/predef.sc` and from the command line it's 
+`~/.mill/ammonite/predefScript.sc`. You might want to create a symlink from one 
+to the other to avoid duplication.
+
+Example `~/.mill/ammonite/predef.sc`
+```scala
+val nexusUser = "myuser"
+val nexusPassword = "mysecret"
+```
+
+Everything declared in the above file will be available to any build you run.
+
+```scala
+  def repositories = super.repositories ++ Seq(
+    // login and pass are globally configured
+    MavenRepository("https://nexus.mycompany.com/repository/maven-releases", authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
+  )
+```
 
 ## Custom Tasks
 
@@ -372,7 +436,7 @@ object foo extends ScalaModule {
 
 Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
-some library you cna explicitly specify which one to use. This also adds the
+some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
 ## Downloading Non-Maven Jars

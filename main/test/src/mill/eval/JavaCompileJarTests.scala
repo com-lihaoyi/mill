@@ -11,10 +11,10 @@ import mill.util.Strict.Agg
 import utest._
 import mill._
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(sources: Seq[PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: mill.util.Loose.Agg[PathRef])(implicit ctx: Dest) = {
     mkdir(ctx.dest)
     import ammonite.ops._
-    %("javac", sources.map(_.path.toString()), "-d", ctx.dest)(wd = ctx.dest)
+    %("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest)(wd = ctx.dest)
     PathRef(ctx.dest)
   }
 
@@ -41,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
         def run(mainClsName: String) = T.command{
-          %%('java, "-cp", classFiles().path, mainClsName)
+          %%('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
         }
       }
 
@@ -114,17 +114,17 @@ object JavaCompileJarTests extends TestSuite{
           |test/FooTwo.class
           |hello.txt
           |""".stripMargin
-      assert(jarContents == expectedJarContents)
+      assert(jarContents.lines.toSeq == expectedJarContents.lines.toSeq)
 
       val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
-      assert(executed == (31337 + 271828) + "\n")
+      assert(executed == (31337 + 271828) + System.lineSeparator)
 
       for(i <- 0 until 3){
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))
         assert(
-          runOutput.out.string == (31337 + 271828) + "\n",
+          runOutput.out.string == (31337 + 271828) + System.lineSeparator,
           evalCount == 1
         )
       }
@@ -145,12 +145,12 @@ object JavaCompileJarTests extends TestSuite{
       )
       val Right((runOutput2, evalCount2)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput2.out.string == "New Cls!\n",
+        runOutput2.out.string == "New Cls!" + System.lineSeparator,
         evalCount2 == 3
       )
       val Right((runOutput3, evalCount3)) = eval(Build.run("test.BarFour"))
       assert(
-        runOutput3.out.string == "New Cls!\n",
+        runOutput3.out.string == "New Cls!" + System.lineSeparator,
         evalCount3 == 1
       )
     }

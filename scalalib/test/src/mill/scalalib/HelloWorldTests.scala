@@ -9,6 +9,7 @@ import mill.define.{Discover, Target}
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
+import mill.scalalib.publish.VersionControl
 import utest._
 
 import utest.framework.TestPath
@@ -29,7 +30,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4")
+    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.0-M3")
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -46,19 +47,6 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldWithMain extends HelloBase {
     object core extends HelloWorldModule{
       def mainClass = Some("Main")
-    }
-  }
-
-  object HelloWorldWithMainAssembly extends HelloBase {
-    object core extends HelloWorldModule{
-      def mainClass = Some("Main")
-      def assembly = T{
-        mill.modules.Jvm.createAssembly(
-          runClasspath().map(_.path).filter(exists),
-          prependShellScript = prependShellScript(),
-          mainClass = mainClass()
-        )
-      }
     }
   }
 
@@ -85,13 +73,8 @@ object HelloWorldTests extends TestSuite {
         organization = "com.lihaoyi",
         description = "hello world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(
-          License("Apache License, Version 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0")),
-        scm = SCM(
-          "https://github.com/lihaoyi/hello-world-publish",
-          "scm:git:https://github.com/lihaoyi/hello-world-publish"
-        ),
+        licenses = Seq(License.Common.Apache2),
+        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
@@ -104,6 +87,59 @@ object HelloWorldTests extends TestSuite {
       override def scalaVersion: Target[String] = "2.11.11"
     }
   }
+
+  object HelloWorldIvyDeps extends HelloBase{
+    object moduleA extends HelloWorldModule {
+
+      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+    }
+    object moduleB extends HelloWorldModule {
+      override def moduleDeps = Seq(moduleA)
+      override def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+    }
+  }
+
+  object HelloWorldTypeLevel extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "2.11.8"
+      override def mapDependencies(d: coursier.Dependency) = {
+        val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
+        if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
+        else d.copy(module = d.module.copy(organization = "org.typelevel"))
+      }
+
+      def ivyDeps = Agg(
+        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+      )
+      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+        ivy"org.scalamacros:::paradise:2.1.0"
+      )
+    }
+  }
+
+  object HelloWorldMacros extends HelloBase{
+    object core extends ScalaModule {
+      def scalaVersion = "2.12.4"
+
+      def ivyDeps = Agg(
+        ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
+      )
+      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+        ivy"org.scalamacros:::paradise:2.1.0"
+      )
+    }
+  }
+
+  object HelloScalacheck extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "2.12.4"
+      object test extends Tests {
+        def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
+      }
+    }
+  }
+
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -156,6 +192,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'scalacOptions - {
       'emptyByDefault - workspaceTest(HelloWorld){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalacOptions)
@@ -174,6 +211,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'compile - {
       'fromScratch - workspaceTest(HelloWorld){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
@@ -234,6 +272,7 @@ object HelloWorldTests extends TestSuite {
 
       }
     }
+
     'runMain - {
       'runMainObject - workspaceTest(HelloWorld){eval =>
         val runResult = eval.outPath / 'core / 'runMain / 'dest / "hello-mill"
@@ -263,19 +302,16 @@ object HelloWorldTests extends TestSuite {
             read(runResult) == expectedOut
           )
         }
-        'v210 - workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox"))
-        'v211 - workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns"))
+        'v210 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox")))
+        'v211 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
         'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
         'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
+        'v2130M3 - workspaceTest(CrossHelloWorld)(cross(_, "2.13.0-M3", "2.13.0-M3 idk"))
       }
 
 
       'notRunInvalidMainObject - workspaceTest(HelloWorld){eval =>
-        val Left(Result.Exception(err, _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
-
-        assert(
-          err.isInstanceOf[InteractiveShelloutException]
-        )
+        val Left(Result.Failure("subprocess failed", _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
       }
       'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
         write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
@@ -324,6 +360,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
     'run - {
       'runIfMainClassProvided - workspaceTest(HelloWorldWithMain){eval =>
         val runResult = eval.outPath / 'core / 'run / 'dest / "hello-mill"
@@ -361,6 +398,7 @@ object HelloWorldTests extends TestSuite {
 
       }
     }
+
     'jar - {
       'nonEmpty - workspaceTest(HelloWorldWithMain){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
@@ -386,6 +424,7 @@ object HelloWorldTests extends TestSuite {
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
+
       'logOutputToFile - workspaceTest(HelloWorld){eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
@@ -396,8 +435,8 @@ object HelloWorldTests extends TestSuite {
     }
 
     'assembly - {
-      'assembly - workspaceTest(HelloWorldWithMainAssembly){ eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
+      'assembly - workspaceTest(HelloWorldWithMain){ eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
           exists(result.path),
           evalCount > 0
@@ -405,14 +444,16 @@ object HelloWorldTests extends TestSuite {
         val jarFile = new JarFile(result.path.toIO)
         val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        assert(entries.contains("Main.class"))
+        val mainPresent = entries.contains("Main.class")
+        assert(mainPresent)
         assert(entries.exists(s => s.contains("scala/Predef.class")))
 
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
-      'run - workspaceTest(HelloWorldWithMainAssembly){eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorldWithMainAssembly.core.assembly)
+
+      'run - workspaceTest(HelloWorldWithMain){eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
           exists(result.path),
@@ -428,7 +469,75 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
+
+    'ivyDeps - workspaceTest(HelloWorldIvyDeps){ eval =>
+      val Right((result, _)) = eval.apply(HelloWorldIvyDeps.moduleA.runClasspath)
+      assert(
+        result.exists(_.path.last == "sourcecode_2.12-0.1.3.jar"),
+        !result.exists(_.path.last == "sourcecode_2.12-0.1.4.jar")
+      )
+
+      val Right((result2, _)) = eval.apply(HelloWorldIvyDeps.moduleB.runClasspath)
+      assert(
+        result2.exists(_.path.last == "sourcecode_2.12-0.1.4.jar"),
+        !result2.exists(_.path.last == "sourcecode_2.12-0.1.3.jar")
+      )
+    }
+
+    'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
+      val classPathsToCheck = Seq(
+        HelloWorldTypeLevel.foo.runClasspath,
+        HelloWorldTypeLevel.foo.ammoniteReplClasspath,
+        HelloWorldTypeLevel.foo.compileClasspath
+      )
+      for(cp <- classPathsToCheck){
+        val Right((result, _)) = eval.apply(cp)
+        assert(
+          // Make sure every relevant piece org.scala-lang has been substituted for org.typelevel
+          !result.map(_.toString).exists(x =>
+            x.contains("scala-lang") &&
+            (x.contains("scala-library") || x.contains("scala-compiler") || x.contains("scala-reflect"))
+          ),
+          result.map(_.toString).exists(x => x.contains("typelevel") && x.contains("scala-library"))
+
+        )
+      }
+    }
+
+    'macros - {
+      // make sure macros are applied when compiling/running
+      'runMain - workspaceTest(
+        HelloWorldMacros,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
+        assert(evalCount > 0)
+      }
+      // make sure macros are applied when compiling during scaladoc generation
+      'docJar - workspaceTest(
+        HelloWorldMacros,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
+        assert(evalCount > 0)
+      }
+    }
+
+    'scalacheck - workspaceTest(
+      HelloScalacheck,
+      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
+    ){ eval =>
+      val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.test())
+      assert(
+        evalCount > 0,
+        res._2.map(_.selector) == Seq(
+          "String.startsWith",
+          "String.endsWith",
+          "String.substring",
+          "String.substring"
+        )
+      )
+    }
+
   }
-
-
 }

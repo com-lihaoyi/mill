@@ -1,7 +1,7 @@
 // build.sc
 import mill._, scalalib._, publish._
 
-object foo extends PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"
 
@@ -9,13 +9,8 @@ object foo extends PublishModule{
     description = "Hello",
     organization = "com.lihaoyi",
     url = "https://github.com/lihaoyi/example",
-    licenses = Seq(
-      License("MIT license", "http://www.opensource.org/licenses/mit-license.php")
-    ),
-    scm = SCM(
-      "git://github.com/lihaoyi/example.git",
-      "scm:git://github.com/lihaoyi/example.git"
-    ),
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("lihaoyi", "example"),
     developers = Seq(
       Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
     )

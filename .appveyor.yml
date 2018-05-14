@@ -1,0 +1,51 @@
+version: 1.0.{build}
+
+image: Visual Studio 2017
+
+init:
+  - cmd: git config --global core.autocrlf true
+
+clone_folder: c:\mill
+
+environment:
+  matrix:
+  - COMPILER: default
+    JAVA_HOME: C:\Program Files\Java\jdk9
+  - COMPILER: cygwin
+    CYGWIN_DIR: cygwin64
+    JAVA_HOME: C:\Program Files\Java\jdk9
+  - COMPILER: msys2
+    MSYS2_ARCH: x86_64
+    MSYS2_DIR: msys64
+    MSYSTEM: MINGW64
+    JAVA_HOME: C:\Program Files\Java\jdk1.8.0
+
+cache:
+  - '%LOCALAPPDATA%\Coursier\cache -> build.sc'
+
+install:
+  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-97-00b10e
+
+build_script:
+  - if [%COMPILER%]==[default] (
+      SET "PATH=%JAVA_HOME%\bin;%PATH%" &&
+      MD C:\bin &&
+      curl -Lo C:\bin\mill.bat %MILL_URL% &&
+      cmd /C C:\bin\mill.bat -i all __.publishLocal release &&
+      cmd /C C:\mill\out\release\dest\mill.bat -i all main.test scalajslib.test)
+  - if [%COMPILER%]==[msys2] (
+      SET "PATH=%JAVA_HOME%\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%" &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc 'mkdir -p /usr/local/bin' &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i all __.publishLocal release" &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/release/dest/mill -i all main.test scalajslib.test")
+  - if [%COMPILER%]==[cygwin] (
+      SET "PATH=%JAVA_HOME%\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%" &&
+      C:\%CYGWIN_DIR%\bin\bash -lc 'mkdir -p /usr/local/bin' &&
+      C:\%CYGWIN_DIR%\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
+      C:\%CYGWIN_DIR%\bin\bash -lc 'sed -i '"'"'0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}'"'"' /usr/local/bin/mill' &&
+      C:\%CYGWIN_DIR%\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
+      C:\%CYGWIN_DIR%\bin\bash -lc "cd /cygdrive/c/mill && mill -i all main.test scalajslib.test")
+
+skip_branch_with_pr: true

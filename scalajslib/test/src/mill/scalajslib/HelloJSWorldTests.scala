@@ -1,15 +1,13 @@
 package mill.scalajslib
 
-import java.io.{FileReader, StringWriter}
 import java.util.jar.JarFile
-import javax.script.{ScriptContext, ScriptEngineManager}
 
 import ammonite.ops._
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
-import mill.scalalib.publish.{Developer, License, PomSettings, SCM}
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
@@ -40,13 +38,8 @@ object HelloJSWorldTests extends TestSuite {
         organization = "com.lihaoyi",
         description = "hello js world ready for real world publishing",
         url = "https://github.com/lihaoyi/hello-world-publish",
-        licenses = Seq(
-          License("Apache License, Version 2.0",
-            "http://www.apache.org/licenses/LICENSE-2.0")),
-        scm = SCM(
-          "https://github.com/lihaoyi/hello-world-publish",
-          "scm:git:https://github.com/lihaoyi/hello-world-publish"
-        ),
+        licenses = Seq(License.Common.Apache2),
+        versionControl = VersionControl.github("lihaoyi", "hello-world-publish"),
         developers =
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
@@ -59,7 +52,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi:utest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:0.6.3"
+          ivy"com.lihaoyi::utest::0.6.3"
         )
       }
     }
@@ -71,11 +64,11 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
-          ivy"org.scalatest:scalatest_sjs${scalaJSBinaryVersion()}_${Lib.scalaBinaryVersion(scalaVersion())}:3.0.4"
+          ivy"org.scalatest::scalatest::3.0.4"
         )
       }
     }
-    override def millDiscover = Discover[this.type]
+    override lazy val millDiscover = Discover[this.type]
   }
 
   val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
@@ -84,21 +77,6 @@ object HelloJSWorldTests extends TestSuite {
 
 
   val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
-
-  class Console {
-    val out = new StringWriter()
-    def log(s: String): Unit = out.append(s)
-  }
-
-  def runJS(path: Path): String = {
-    val engineManager = new ScriptEngineManager(null)
-    val engine = engineManager.getEngineByName("nashorn")
-    val console = new Console
-    val bindings = engine.getBindings(ScriptContext.ENGINE_SCOPE)
-    bindings.put("console", console)
-    engine.eval(new FileReader(path.toIO))
-    console.out.toString
-  }
 
   def tests: Tests = Tests {
     prepareWorkspace()
@@ -124,7 +102,7 @@ object HelloJSWorldTests extends TestSuite {
 
       'fromScratch_2124_0622 - testCompileFromScratch("2.12.4", "0.6.22")
       'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
-      'fromScratch_2118_0622 - testCompileFromScratch("2.11.8", "0.6.22")
+      'fromScratch_2118_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
       'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
@@ -136,21 +114,21 @@ object HelloJSWorldTests extends TestSuite {
         case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
       }
       val Right((result, evalCount)) = helloWorldEvaluator(task)
-      val output = runJS(result.path)
+      val output = ScalaJsUtils.runJS(result.path)
       assert(output == "Hello Scala.js")
     }
 
     'fullOpt - {
-      'run_2124_0622 - testRun("2.12.4", "0.6.22", FullOpt)
-      'run_2123_0622 - testRun("2.12.3", "0.6.22", FullOpt)
-      'run_2118_0622 - testRun("2.11.8", "0.6.22", FullOpt)
-      'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FullOpt)
+      'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
+      'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
+      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
+      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
     }
     'fastOpt - {
-      'run_2124_0622 - testRun("2.12.4", "0.6.22", FastOpt)
-      'run_2123_0622 - testRun("2.12.3", "0.6.22", FastOpt)
-      'run_2118_0622 - testRun("2.11.8", "0.6.22", FastOpt)
-      'run_2124_100M2 - testRun("2.12.4", "1.0.0-M2", FastOpt)
+      'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
+      'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
+      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
+      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
     }
     'jar - {
       'containsSJSIRs - {
@@ -214,23 +192,20 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'utest_2118_0622 - checkUtest("2.11.8", "0.6.22")
+      'utest_2118_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
       'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
-      'utest_2118_100M2 - checkUtest("2.11.8", "1.0.0-M2")
+      'utest_2118_100M2 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
       'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
 
-      'scalaTest_2118_0622 - checkScalaTest("2.11.8", "0.6.22")
+      'scalaTest_2118_0622 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
       'scalaTest_2124_0622 - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
 //      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
 //      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
     }
 
-    def checkRun(scalaVersion: String, scalaJSVersion: String, mainClass: Option[String] = None): Unit = {
-      val task = mainClass match {
-        case Some(main) => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).runMain(main)
-        case None => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
-      }
+    def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
+      val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
 
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
@@ -246,28 +221,10 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    'runMain - {
-      val mainClass = Some("Main")
-      'run_2118_0622  - checkRun("2.11.8", "0.6.22", mainClass)
-      'run_2124_0622  - checkRun("2.12.4", "0.6.22", mainClass)
-      'run_2118_100M2 - checkRun("2.11.8", "1.0.0-M2", mainClass)
-      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2", mainClass)
-
-      'wrongMain - {
-        val wrongMainClass = "Foo"
-        val task = HelloJSWorld.helloJsWorld("2.12.4", "0.6.22").runMain(wrongMainClass)
-
-        val Left(Result.Exception(ex, _)) = helloWorldEvaluator(task)
-
-        assert(
-          ex.isInstanceOf[Exception]
-        )
-      }
-    }
     'run - {
-      'run_2118_0622  - checkRun("2.11.8", "0.6.22")
+      'run_2118_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "0.6.22"))
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
-      'run_2118_100M2 - checkRun("2.11.8", "1.0.0-M2")
+      'run_2118_100M2 - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
       'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2")
     }
   }
