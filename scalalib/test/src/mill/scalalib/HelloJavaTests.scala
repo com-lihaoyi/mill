@@ -20,10 +20,19 @@ object HelloJavaTests extends TestSuite {
     }
 
     object core extends JavaModule{
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
       object test extends Tests with JUnitTests
     }
     object app extends JavaModule{
       def moduleDeps = Seq(core)
+      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
+      def compileIvyDeps = Agg(ivy"io.chrisdavenport::log4cats-core:0.0.4")
+      def webAssets = T.sources {
+        super.webAssets() :+ PathRef(millSourcePath / 'assets)
+      }
+      def webXmlFile = T.input {
+        Option(PathRef(millSourcePath / 'webxml / "web.xml"))
+      }
       object test extends Tests with JUnitTests
     }
   }
@@ -64,6 +73,27 @@ object HelloJavaTests extends TestSuite {
       assert(
         %%("jar", "tf", ref1.path).out.lines.contains("hello/Core.html"),
         %%("jar", "tf", ref2.path).out.lines.contains("hello/Main.html")
+      )
+    }
+    'packageWar - {
+      val eval = init()
+
+      val Right((ref1, _)) = eval.apply(HelloJava.core.packageWar)
+      val Right((ref2, _)) = eval.apply(HelloJava.app.packageWar)
+
+      val entries1 = %%("jar", "tf", ref1.path).out.lines
+      val entries2 = %%("jar", "tf", ref2.path).out.lines
+
+      assert(
+        entries1.contains("WEB-INF/lib/core.jar"),
+        entries1.contains("WEB-INF/lib/sourcecode_2.12-0.1.3.jar"),
+        entries2.contains("WEB-INF/lib/core.jar"),
+        entries2.contains("WEB-INF/lib/app.jar"),
+        entries2.contains("WEB-INF/lib/sourcecode_2.12-0.1.4.jar"),
+        !entries2.contains("WEB-INF/lib/sourcecode_2.12-0.1.3.jar"),
+        !entries2.contains("WEB-INF/lib/log4cast_2.12-0.0.4.jar"),
+        entries2.contains("foo"),
+        entries2.contains("WEB-INF/web.xml")
       )
     }
     'test - {

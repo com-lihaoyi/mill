@@ -5,6 +5,9 @@ package scalalib
 import ammonite.ops._
 import coursier.Repository
 import mill.define.Task
+import mill.define.Persistent
+import mill.define.Target
+import mill.define.Input
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
@@ -16,7 +19,7 @@ import mill.util.Loose.Agg
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait JavaModule extends mill.Module with TaskModule { outer =>
+trait JavaModule extends mill.Module with TaskModule with PackageWarSimple { outer =>
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
@@ -358,4 +361,299 @@ object TestModule{
       )
     }
   }
+}
+
+trait PackageWar extends mill.Module {
+  self: JavaModule =>
+
+  private def mkDir(dir: Path): Path = {
+    mkdir ! dir
+    dir
+  }
+
+  // persistent folder to prepare war layout
+  def warPreparationFolder: Persistent[Path] = T.persistent {
+    T.ctx().dest
+  }
+
+  def baseDir: Target[Path] = T {
+    mkDir(warPreparationFolder() / "WEB-INF")
+  }
+
+  def libDir: Target[Path] = T {
+    mkDir(baseDir() / 'lib)
+  }
+
+  def classDir: Target[Path] = T {
+    mkDir(baseDir() / 'classes)
+  }
+
+  def warFileName: Target[String] = T {
+    "out.war"
+  }
+
+  // disabling war compression yields significant speedup for minor space gains.
+  // production war files might want to use compression
+  def warUseCompression: Target[Boolean] = T {
+    false
+  }
+
+  def webAssets = T.sources {
+    Seq.empty
+  }
+
+  // web.xml is not really needed anymore but let's support it
+  def webXmlFile = T.sources {
+    Seq.empty
+  }
+
+  def manifestEntries: Target[Map[java.util.jar.Attributes.Name, String]] = T {
+    Map(
+      java.util.jar.Attributes.Name.MANIFEST_VERSION -> "1.0",
+      new java.util.jar.Attributes.Name("Created-By") -> s"mill version ${System.getProperty("MILL_VERSION")}"
+    )
+  }
+
+  def manifestEntriesFile: Target[PathRef] = T {
+    val manifestEntriesFile = T.ctx().dest / 'manifest_entries
+    write.over(
+      manifestEntriesFile,
+      manifestEntries()
+        .map({ case (k, v) => s"${k.toString}: $v" })
+        .mkString("", ammonite.util.Util.newLine, ammonite.util.Util.newLine))
+    PathRef(manifestEntriesFile)
+  }
+
+
+  def copyWebXml: Target[Long] = T {
+    val file = webXmlFile()
+    assert(file.size <= 1)
+    file
+      .headOption
+      .map(pr => copyMtime(pr.path, baseDir() / pr.path.name))
+      .getOrElse(0l)
+  }
+
+  def copyJar: Target[PathRef] = T {
+    // rename jar into artifact name
+    val fileToWrite = libDir() / s"${artifactName()}.jar"
+    cp.over(jar().path, fileToWrite)
+    PathRef(fileToWrite, true)
+  }
+
+  // select one of the two available strategies for a changed classpath
+  def copyClasspath: Target[Long] = T {
+    copyFullClasspath()
+  }
+
+  def copyModuleDeps = T {
+    Task
+      .traverse(moduleDeps)(m =>
+        T.task {
+          (s"${m.artifactName()}.jar", m.jar())
+        })()
+      .map(aj => {
+        // properly name artifacts before copying
+        val fileToWrite = libDir() / aj._1
+        cp.over(aj._2.path, fileToWrite)
+        PathRef(fileToWrite, true)
+      })
+  }
+
+  def copyWebAssets = T {
+    copyChanges(webAssets(), warPreparationFolder(), filterTarget = p => !(p.startsWith(baseDir())))
+  }
+
+  def packageWar: Target[PathRef] = T {
+    // needs to be first as it might remove the libdir for better performance
+    copyClasspath() // TODO: copy classfiles from the classpath into class folder
+    copyModuleDeps()
+    copyJar() // TODO: add option to copy class files instead of creating a jar
+    copyWebXml()
+    copyWebAssets()
+    val params = "cmf" + (if (warUseCompression()) "" else "0")
+    %%("jar", params, manifestEntriesFile().path.toString, T.ctx().dest / warFileName(), ".")(warPreparationFolder())
+    PathRef(T.ctx().dest / warFileName())
+  }
+
+
+  // if anything changes, just copy everything
+  // fastest but lots IO
+  // uses change time instead of PathRef as computing the signature of a large classpath can take significant time
+  def copyFullClasspath: Target[Long] = T {
+    val lDir = libDir()
+    val cDir = classDir()
+    rm ! lDir
+    rm ! cDir
+    mkdir ! lDir
+    mkdir ! cDir
+    runClasspath()
+      .filter(p => exists(p.path) && p.path.name.endsWith(".jar"))
+      .foreach(pr => copyMtime(pr.path, lDir / pr.path.name))
+    lDir.mtime.toMillis
+  }
+
+  def copyChangedClassPath: Target[Long] = T {
+    // TODO: class files in classpath?
+    copyChanges(runClasspath(), libDir(), _.path.name.endsWith(".jar"))
+  }
+
+  def compareChanges: (Path, PathRef) => Boolean = compareMtimeAndSize
+
+  val compareMtimeAndSize = (p: Path, pr: PathRef) => {
+    p.size == pr.path.size && p.mtime == pr.path.mtime
+  }
+
+  def comparePathRef(quick: Boolean): (Path, PathRef) => Boolean = (p: Path, pr: PathRef) => {
+    val lpr = if (pr.quick == quick) {
+      pr
+    } else {
+      PathRef(pr.path, quick)
+    }
+    PathRef(p, quick).sig == lpr.sig
+  }
+
+  // if anything changes, only copy the added deps and delete the removed ones
+  // uses change time instead of PathRef as computing the signature of a large classpath can take significant time
+  private def copyChanges(src: Seq[PathRef], target: Path, filterSrc: PathRef => Boolean = _ => true, filterTarget: Path => Boolean = _ => true) = {
+    // speed up lookups by using a map
+    val existingFilesMap =
+      ls
+        .rec(target)
+        .filter(filterTarget)
+        .map(p => (p.name, p))
+        .toMap
+    val newFilesMap =
+      src
+        .filter(p => exists(p.path) && filterSrc(p))
+        .map(p => (p.path.name, p))
+        .toMap
+    // delete existing files no longer needed
+    existingFilesMap
+      .filterKeys(!newFilesMap.contains(_))
+      .values
+      .foreach(rm ! _)
+    // copy files from classpath not yet existing
+    // -> either file not present or present but differs
+    newFilesMap
+      .filterNot(kv => {
+        existingFilesMap
+          .get(kv._1)
+          .map(p => compareChanges(p, kv._2))
+          .getOrElse(false)
+      })
+      .values
+      .foreach(pr => {
+        if (pr.path.isDir) {
+          ls
+            .rec(pr.path)
+            .foreach(p => copyMtime(p, target / p.relativeTo(pr.path)))
+        } else {
+          copyMtime(pr.path, target / pr.path.name)
+        }
+      })
+    System.currentTimeMillis()
+  }
+
+  private def copyMtime(from: Path, to: Path): Long = {
+    cp.over(from, to)
+    to.toIO.setLastModified(from.mtime.toMillis)
+    from.mtime.toMillis
+  }
+
+  implicit val rw: upickle.default.ReadWriter[java.util.jar.Attributes.Name] =
+    upickle.default.readwriter[String].bimap[java.util.jar.Attributes.Name](
+      attName => attName.toString,
+      str => new java.util.jar.Attributes.Name(str))
+
+}
+
+trait PackageWarSimple extends mill.Module {
+  self: JavaModule =>
+
+  def warFileName: Target[String] = T {
+    "out.war"
+  }
+
+  // disabling war compression yields significant speedup for minor space gains.
+  // production war files might want to use compression
+  def warUseCompression: Target[Boolean] = T {
+    false
+  }
+
+  def webAssets = T.sources {
+    Seq.empty
+  }
+
+  // web.xml is not really needed anymore but let's support it
+  def webXmlFile: Input[Option[PathRef]] = T.input {
+    None
+  }
+
+  def manifestEntries: Target[Map[java.util.jar.Attributes.Name, String]] = T {
+    Map(
+      java.util.jar.Attributes.Name.MANIFEST_VERSION -> "1.0",
+      new java.util.jar.Attributes.Name("Created-By") -> s"mill version ${System.getProperty("MILL_VERSION")}"
+    )
+  }
+
+  def packageWar: Target[PathRef] = T {
+    // folder layout:
+    // war  /  WEB-INF /  lib      /  <jars>
+    //                 /  classes  /  <classfiles>
+    //                 /  web.xml
+    //                 /  <resources>
+    //     / manifest_entries
+    val baseDir = T.ctx().dest / 'webapp
+    val webInfDir = baseDir / "WEB-INF"
+    val libDir = webInfDir / 'lib
+    mkdir ! libDir
+    // copy jars from classpath into META-INF/lib
+    // TODO: copy clases
+    runClasspath()
+      .filter(p => exists(p.path) && p.path.name.endsWith(".jar"))
+      .foreach(pr => cp.into(pr.path, libDir))
+    // copy module deps into META-INF/lib
+    Task
+      .traverse(moduleDeps)(m =>
+        T.task {
+          (m.jar().path, m.artifactName())
+        })()
+      .foreach(pn => cp.over(pn._1, libDir / s"${pn._2}.jar"))
+    // copy jar into into META-INF/lib
+    cp.over(jar().path, libDir / s"${artifactName()}.jar")
+    // copy web.xml into META-INF
+    webXmlFile()
+      .foreach(pr => cp.into(pr.path, webInfDir))
+    // copy assets into root of war - allows to overwrite anything?
+    webAssets()
+      .foreach(pr => {
+        if (pr.path.isDir)
+          ls.rec(pr.path).foreach(p => {
+            // skip already existings dirs
+            if (!(p.isDir && exists(p)))
+              cp.over(p, baseDir / p.relativeTo(pr.path))
+          })
+        else
+          cp(pr.path, baseDir)
+      })
+    // prepare manifest entries - not part of the war itself
+    val manifestEntriesFile = T.ctx().dest / 'manifest_entries
+    write(
+      manifestEntriesFile,
+      manifestEntries()
+        .iterator
+        .map({ case (k, v) => s"${k.toString}: $v" })
+        .mkString("", ammonite.util.Util.newLine, ammonite.util.Util.newLine))
+    // build war file
+    val params = "cmf" + (if (warUseCompression()) "" else "0")
+    %%("jar", params, manifestEntriesFile.toString, T.ctx().dest / warFileName(), ".")(baseDir)
+    PathRef(T.ctx().dest / warFileName())
+  }
+
+  implicit val rw: upickle.default.ReadWriter[java.util.jar.Attributes.Name] =
+    upickle.default.readwriter[String].bimap[java.util.jar.Attributes.Name](
+      attName => attName.toString,
+      str => new java.util.jar.Attributes.Name(str))
+
 }

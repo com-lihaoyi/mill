@@ -140,6 +140,27 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldWar extends HelloBase {
+    object core extends ScalaModule {
+      def scalaVersion = "2.12.4"
+      def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+      def webAssets = T.sources { millSourcePath / 'webassets }
+    }
+    object app extends ScalaModule {
+      def scalaVersion = "2.12.4"
+      def moduleDeps = Seq(core)
+      def ivyDeps = Agg(
+        ivy"com.lihaoyi::sourcecode:0.1.4",
+        ivy"com.github.julien-truffaut::monocle-macro::1.4.0")
+      def compileIvyDeps = Agg(ivy"io.chrisdavenport::log4cats-core:0.0.4")
+      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+        ivy"org.scalamacros:::paradise:2.1.0"
+      )
+      def webAssets = T.sources { millSourcePath / 'webassets }
+      def webXmlFile = T.input { Some(PathRef(millSourcePath / 'webxml / "web.xml")) }
+    }
+  }
+
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -431,6 +452,49 @@ object HelloWorldTests extends TestSuite {
 
         val logFile = outPath / 'core / 'compile / 'log
         assert(exists(logFile))
+      }
+    }
+
+    'war - {
+      'core - workspaceTest(
+        HelloWorldWar,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-war"
+      ) { eval =>
+        val Right((ref1, _)) = eval.apply(HelloWorldWar.core.packageWar)
+
+        assert(
+          exists(ref1.path)
+        )
+        val entries = %%("jar", "tf", ref1.path).out.lines
+        assert(
+          entries.contains("WEB-INF/web.xml"),
+          entries.contains("WEB-INF/lib/core.jar"),
+          entries.contains("WEB-INF/lib/scala-library-2.12.4.jar"),
+          entries.contains("WEB-INF/lib/sourcecode_2.12-0.1.3.jar"),
+          entries.contains("bar")
+        )
+      }
+      'app - workspaceTest(
+        HelloWorldWar,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-war"
+      ) { eval =>
+        val Right((ref1, _)) = eval.apply(HelloWorldWar.app.packageWar)
+
+        assert(
+          exists(ref1.path)
+        )
+        val entries = %%("jar", "tf", ref1.path).out.lines
+        assert(
+          entries.contains("WEB-INF/web.xml"),
+          entries.contains("WEB-INF/lib/core.jar"),
+          entries.contains("WEB-INF/lib/app.jar"),
+          entries.contains("WEB-INF/lib/monocle-macro_2.12-1.4.0.jar"),
+          entries.contains("WEB-INF/lib/sourcecode_2.12-0.1.4.jar"),
+          entries.contains("foo"),
+          !entries.contains("WEB-INF/lib/sourcecode_2.12-0.1.3.jar"),
+          !entries.contains("WEB-INF/lib/log4cast_2.12-0.0.4.jar"),
+          !entries.contains("WEB-INF/lib/paradise_2.12.4-2.1.0.jar")
+        )
       }
     }
 
