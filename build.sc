@@ -196,6 +196,9 @@ object scalajslib extends MillModule {
   }
 }
 
+object container extends MillModule {
+  def moduleDeps = Seq(scalalib)
+}
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
