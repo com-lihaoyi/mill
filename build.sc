@@ -232,11 +232,21 @@ object twirllib extends MillModule {
 
 }
 
-object contrib extends MillModule {
+object contrib extends Module {
 
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
+
+  object buildinfo extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    // why do I need this?
+    def testArgs = T{
+      Seq("-Djna.nosys=true") ++
+      scalalib.worker.testArgs() ++
+      scalalib.backgroundwrapper.testArgs()
+    }
+   }
 
 }
 
