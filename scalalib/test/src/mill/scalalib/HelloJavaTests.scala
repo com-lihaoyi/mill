@@ -20,13 +20,13 @@ object HelloJavaTests extends TestSuite {
     }
 
     object core extends JavaModule{
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.3")
+      def ivyDeps = Agg(ivy"com.lihaoyi:sourcecode_2.12:0.1.3")
       object test extends Tests with JUnitTests
     }
     object app extends JavaModule{
       def moduleDeps = Seq(core)
-      def ivyDeps = Agg(ivy"com.lihaoyi::sourcecode:0.1.4")
-      def compileIvyDeps = Agg(ivy"io.chrisdavenport::log4cats-core:0.0.4")
+      def ivyDeps = Agg(ivy"com.lihaoyi:sourcecode_2.12:0.1.4")
+      def compileIvyDeps = Agg(ivy"io.chrisdavenport:log4cats-core_2.12:0.0.4")
       def webAssets = T.sources {
         super.webAssets() :+ PathRef(millSourcePath / 'assets)
       }
