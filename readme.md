@@ -67,6 +67,17 @@ You can get Mill to show the JSON-structured output for a particular `Target` or
 
 Output will be generated into a the `./out` folder.
 
+You can clean the project using `clean`:
+
+```bash
+# Clean entire project.
+mill clean
+# Clean a single target.
+mill clean main
+# Clean multiple targets.
+mill clean main core
+```
+
 If you are repeatedly testing Mill manually by running it against the `build.sc`
 file in the repository root, you can skip the assembly process and directly run
 it via:
