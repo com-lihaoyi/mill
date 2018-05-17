@@ -456,6 +456,26 @@ $ mill show foo.compileDepClasspath
 `show` is also useful for interacting with Mill from external tools, since the
 JSON it outputs is structured and easily parsed & manipulated.
 
+### clean
+
+```bash
+$ mill clean
+```
+
+`clean` deletes all the cached outputs of previously executed tasks. It can
+apply to the entire project, entire modules, or specific tasks.
+
+```bash
+mill clean                     # clean all outputs
+mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
+mill clean foo.compile         # only clean outputs for task 'compile' in module 'foo'
+mill clean foo.{compile,run}
+mill clean "foo.{compile,run}"
+mill clean foo.compile foo.run
+mill clean _.compile
+mill clean __.compile
+```
+
 ## IntelliJ Support
 
 Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to

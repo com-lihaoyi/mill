@@ -1,6 +1,8 @@
 
-# ![Mill Logo](docs/logo.svg) Mill [![Build Status][travis-badge]][travis-link] [![Gitter Chat][gitter-badge]][gitter-link] [![Patreon][patreon-badge]][patreon-link]
+# ![Mill Logo](docs/logo.svg) Mill [![Build Status][travis-badge]][travis-link] [![Build (Windows)][appveyor-badge]][appveyor-link] [![Gitter Chat][gitter-badge]][gitter-link] [![Patreon][patreon-badge]][patreon-link]
 
+[appveyor-badge]: https://ci.appveyor.com/api/projects/status/github/lihaoyi/mill
+[appveyor-link]: https://ci.appveyor.com/project/lihaoyi/mill
 [travis-badge]: https://travis-ci.org/lihaoyi/mill.svg
 [travis-link]: https://travis-ci.org/lihaoyi/mill
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
@@ -66,6 +68,17 @@ You can get Mill to show the JSON-structured output for a particular `Target` or
 ```
 
 Output will be generated into a the `./out` folder.
+
+You can clean the project using `clean`:
+
+```bash
+# Clean entire project.
+mill clean
+# Clean a single target.
+mill clean main
+# Clean multiple targets.
+mill clean main core
+```
 
 If you are repeatedly testing Mill manually by running it against the `build.sc`
 file in the repository root, you can skip the assembly process and directly run
