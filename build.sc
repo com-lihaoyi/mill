@@ -235,7 +235,6 @@ def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
                    cmdClassPath: Agg[String]) = {
-  val jvmArgsStr = jvmArgs.mkString(" ")
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
