@@ -34,6 +34,27 @@ object MainTests extends TestSuite{
       'neg6 - check("single.doesntExist", Left("Task single is not a module and has no children."))
       'neg7 - check("", Left("Selector cannot be empty"))
     }
+    'nonJavaLegalIdentifiers - {
+      import mill.util.TestUtil.{test,BaseModule}
+      object hyphenated extends BaseModule {
+        val `two-words` = test()
+        val `three-word-target` = test()
+        object `nested-module` extends BaseModule {
+          val `nested-target` = test()
+        }
+      }
+      val check = MainTests.check(hyphenated) _
+      'pos1 - check("two-words", Right(Seq(_.`two-words`)))
+      'pos2 - check("three-word-target", Right(Seq(_.`three-word-target`)))
+      'neg1 - check("twowords", Left("Cannot resolve twowords. Did you mean two-words?"))
+      'neg2 - check("twow-ords", Left("Cannot resolve twow-ords. Did you mean two-words?"))
+      'neg3 - check("two-words.doesntExist", Left("Task two-words is not a module and has no children."))
+      'neg4 - check("", Left("Selector cannot be empty"))
+      'nested - {
+        'pos - check("nested-module.nested-target", Right(Seq(_.`nested-module`.`nested-target`)))
+        'neg - check("nested-module.doesntExist", Left("Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."))
+      }
+    }
     'nested - {
       val check = MainTests.check(nestedModule) _
       'pos1 - check("single", Right(Seq(_.single)))
