@@ -2,7 +2,7 @@
 # ![Mill Logo](docs/logo.svg) Mill [![Build Status][travis-badge]][travis-link] [![Build (Windows)][appveyor-badge]][appveyor-link] [![Gitter Chat][gitter-badge]][gitter-link] [![Patreon][patreon-badge]][patreon-link]
 
 [appveyor-badge]: https://ci.appveyor.com/api/projects/status/github/lihaoyi/mill
-[appveyor-link]: https://ci.appveyor.com/project/lihaoyi/ammonite
+[appveyor-link]: https://ci.appveyor.com/project/lihaoyi/mill
 [travis-badge]: https://travis-ci.org/lihaoyi/mill.svg
 [travis-link]: https://travis-ci.org/lihaoyi/mill
 [gitter-badge]: https://badges.gitter.im/Join%20Chat.svg
