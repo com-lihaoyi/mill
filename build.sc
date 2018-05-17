@@ -80,7 +80,7 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-16-147fdfe",
+    ivy"com.lihaoyi:::ammonite:1.1.0-21-ccc8024",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -230,31 +230,13 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
-private def universalScript(shellCommands: String,
-                            cmdCommands: String,
-                            shebang: Boolean = false): String = {
-  Seq(
-    if (shebang) "#!/usr/bin/env sh" else "",
-    "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
-    ":",
-    shellCommands.replaceAll("\r\n|\n", "\n"),
-    "exit",
-    Seq(
-      "",
-      ":BOF",
-      "@echo off",
-      cmdCommands.replaceAll("\r\n|\n", "\r\n"),
-      "exit /B %errorlevel%",
-      ""
-    ).mkString("\r\n")
-  ).filterNot(_.isEmpty).mkString("\n")
-}
 
 def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
                    cmdClassPath: Agg[String]) = {
-  universalScript(
+  val jvmArgsStr = jvmArgs.mkString(" ")
+  mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
