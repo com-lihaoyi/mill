@@ -188,7 +188,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       ref <- allSources()
       if exists(ref.path)
       p <- ls.rec(ref.path)
-      if p.isFile
+      if p.isFile && (p.ext == "java")
     } yield p.toNIO.toString
 
     val options = Seq("-d", javadocDir.toNIO.toString)

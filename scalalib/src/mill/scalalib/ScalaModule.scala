@@ -126,7 +126,7 @@ trait ScalaModule extends JavaModule { outer =>
       ref <- allSources()
       if exists(ref.path)
       p <- ls.rec(ref.path)
-      if p.isFile
+      if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
     } yield p.toNIO.toString
 
     val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
