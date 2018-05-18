@@ -165,14 +165,14 @@ trait ScalaModule extends JavaModule { outer =>
     })()
   }
 
-  def repl() = T.command{
+  def repl(replOptions: String*) = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.interactiveSubprocess(
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),
-        mainArgs = Nil,
+        mainArgs = replOptions,
         workingDir = pwd
       )
       Result.Success()
