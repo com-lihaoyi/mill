@@ -117,7 +117,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     for {
       root <- allSources()
       if exists(root.path)
-      path <- ls.rec(root.path)
+      path <- (ls.rec(root.path) if root.path.isDir else geny.Generator(root.path))
       if path.isFile && (path.ext == "scala" || path.ext == "java")
     } yield PathRef(path)
   }
