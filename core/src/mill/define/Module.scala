@@ -3,9 +3,10 @@ package mill.define
 import java.lang.reflect.Modifier
 
 import ammonite.ops.Path
+import mill.util.ParseArgs
 
 import scala.language.experimental.macros
-import scala.reflect.ClassTag
+import scala.reflect.{ClassTag,NameTransformer}
 
 /**
   * `Module` is a class meant to be extended by `trait`s *only*, in order to
@@ -61,7 +62,7 @@ object Module{
       for{
         m <- outer.getClass.getMethods
         if
-          !m.getName.contains('$') &&
+          !NameTransformer.decode(m.getName).contains('$') &&
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           runtimeCls.isAssignableFrom(m.getReturnType)
