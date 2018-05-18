@@ -130,7 +130,7 @@ trait ScalaModule extends JavaModule { outer =>
     } yield p.toNIO.toString
 
     val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalacOptions()
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
@@ -193,5 +193,3 @@ trait ScalaModule extends JavaModule { outer =>
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
 }
-
-
