@@ -187,7 +187,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val files = for{
       ref <- allSources()
       if exists(ref.path)
-      p <- ls.rec(ref.path)
+      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
       if p.isFile && (p.ext == "java")
     } yield p.toNIO.toString
 
