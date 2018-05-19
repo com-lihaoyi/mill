@@ -81,9 +81,6 @@ object core extends MillModule {
 
   def ivyDeps = Agg(
     ivy"com.lihaoyi:::ammonite:1.1.0-21-ccc8024",
-    // temporary explicit coursier dependency,
-    ivy"io.get-coursier::coursier:1.0.4-SNAPSHOT",
-    ivy"io.get-coursier::coursier-cache:1.0.4-SNAPSHOT",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"

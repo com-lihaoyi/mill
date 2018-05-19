@@ -10,10 +10,8 @@ private[dependency] class MavenMetadataLoader(mavenRepo: MavenRepository)
   private val fetch = Cache.fetch()
 
   override def getVersions(module: coursier.Module): List[Version] = {
-    1
-    val allVersions =
-      mavenRepo.versions(module, fetch).run.unsafePerformSync orElse
-        mavenRepo.versionsFromListing(module, fetch).run.unsafePerformSync
+    // TODO fallback to versionsFromListing if versions doesn't work? (needs to be made public in coursier first)
+    val allVersions = mavenRepo.versions(module, fetch).run.unsafePerformSync
     allVersions
       .map(_.available.map(Version(_)))
       .getOrElse(List.empty)
