@@ -4,11 +4,13 @@ import java.io._
 import java.net.Socket
 
 import mill.MillMain
+
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
+import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T]{
   var stateCache = Option.empty[T]
@@ -23,7 +25,17 @@ trait MillServerMain[T]{
 }
 
 object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
-  def main(args0: Array[String]): Unit = try{
+  def main(args0: Array[String]): Unit = {
+    // Disable SIGINT interrupt signal in the Mill server.
+    //
+    // This gets passed through from the client to server whenever the user
+    // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
+    // of running a background server. Furthermore, the background server already
+    // can detect when the Mill client goes away, which is necessary to handle
+    // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
+    Signal.handle(new Signal("INT"), new SignalHandler () {
+      def handle(sig: Signal) = {} // do nothing
+    })
     new Server(
       args0(0),
       this,
@@ -117,34 +129,33 @@ class Server[T](lockBase: String,
     val env = Util.parseMap(argStream)
     argStream.close()
 
-    var done = false
+    @volatile var done = false
     @volatile var idle = false
-    val t = new Thread(
-      () =>
+    val t = new Thread(() =>
 
-        try {
-          val (result, newStateCache) = sm.main0(
-            args,
-            sm.stateCache,
-            interactive,
-            socketIn,
-            stdout,
-            stderr,
-            env.asScala.toMap,
-            idle = _
-          )
+      try {
+        val (result, newStateCache) = sm.main0(
+          args,
+          sm.stateCache,
+          interactive,
+          socketIn,
+          stdout,
+          stderr,
+          env.asScala.toMap,
+          idle = _
+        )
 
-          sm.stateCache = newStateCache
-          java.nio.file.Files.write(
-            java.nio.file.Paths.get(lockBase + "/exitCode"),
-            (if (result) 0 else 1).toString.getBytes
-          )
-        } catch{case WatchInterrupted(sc: Option[T]) =>
-          sm.stateCache = sc
-        } finally{
-          done = true
-          idle = true
-        },
+        sm.stateCache = newStateCache
+        java.nio.file.Files.write(
+          java.nio.file.Paths.get(lockBase + "/exitCode"),
+          (if (result) 0 else 1).toString.getBytes
+        )
+      } catch{case WatchInterrupted(sc: Option[T]) =>
+        sm.stateCache = sc
+      } finally{
+        done = true
+        idle = true
+      },
       "MillServerActionRunner"
     )
     t.start()
@@ -190,7 +201,8 @@ object Server{
     @volatile var interrupted = false
     val thread = new Thread(
       () => {
-        Thread.sleep(millis)
+        try Thread.sleep(millis)
+        catch{ case t: InterruptedException => /* Do Nothing */ }
         if (interrupt) {
           interrupted = true
           close
