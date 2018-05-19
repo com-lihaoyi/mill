@@ -1,6 +1,7 @@
 package mill.scalalib.dependency
 
 import mill.define._
+import mill.scalalib.dependency.updates.UpdatesFinder
 import mill.scalalib.dependency.versions.VersionsFinder
 import mill.util.Ctx.{Home, Log}
 
@@ -13,18 +14,21 @@ object DependencyUpdatesImpl {
 
     val allDependencyVersions = VersionsFinder.findVersions(ctx, rootModule)
 
-    allDependencyVersions.foreach { dependencyVersions =>
+    val allUpdates = allDependencyVersions.map { dependencyVersions =>
+      UpdatesFinder.findUpdates(dependencyVersions, allowPreRelease = false)
+    }
+
+    allUpdates.foreach { dependencyUpdates =>
       println("----------")
-      println(dependencyVersions.module)
+      println(dependencyUpdates.module)
       println("----------")
-      dependencyVersions.dependencies.foreach { dependencyVersion =>
+      dependencyUpdates.dependencies.foreach { dependencyUpdate =>
         println(
-          s"${dependencyVersion.dependency.module} (${dependencyVersion.currentVersion})")
-        println(dependencyVersion.allversions)
+          s"${dependencyUpdate.dependency.module} (${dependencyUpdate.currentVersion})")
+        println(dependencyUpdate.updates)
         println()
       }
       println()
     }
-
   }
 }
