@@ -3,14 +3,16 @@ package mill.main
 import java.io._
 import java.net.Socket
 
-import mill.Main
+import mill.MillMain
+
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
+import sun.misc.{Signal, SignalHandler}
 
-trait ServerMain[T]{
+trait MillServerMain[T]{
   var stateCache = Option.empty[T]
   def main0(args: Array[String],
             stateCache: Option[T],
@@ -18,11 +20,22 @@ trait ServerMain[T]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String]): (Boolean, Option[T])
+            env : Map[String, String],
+            setIdle: Boolean => Unit): (Boolean, Option[T])
 }
 
-object ServerMain extends mill.main.ServerMain[Evaluator.State]{
+object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
   def main(args0: Array[String]): Unit = {
+    // Disable SIGINT interrupt signal in the Mill server.
+    //
+    // This gets passed through from the client to server whenever the user
+    // hits `Ctrl-C`, which by default kills the server, which defeats the purpose
+    // of running a background server. Furthermore, the background server already
+    // can detect when the Mill client goes away, which is necessary to handle
+    // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
+    Signal.handle(new Signal("INT"), new SignalHandler () {
+      def handle(sig: Signal) = {} // do nothing
+    })
     new Server(
       args0(0),
       this,
@@ -37,20 +50,24 @@ object ServerMain extends mill.main.ServerMain[Evaluator.State]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String]) = Main.main0(
-    args,
-    stateCache,
-    mainInteractive,
-    DummyInputStream,
-    stdout,
-    stderr,
-    env
-  )
+            env : Map[String, String],
+            setIdle: Boolean => Unit) = {
+    MillMain.main0(
+      args,
+      stateCache,
+      mainInteractive,
+      DummyInputStream,
+      stdout,
+      stderr,
+      env,
+      setIdle
+    )
+  }
 }
 
 
 class Server[T](lockBase: String,
-                sm: ServerMain[T],
+                sm: MillServerMain[T],
                 interruptServer: () => Unit,
                 acceptTimeout: Int,
                 locks: Locks) {
@@ -71,6 +88,7 @@ class Server[T](lockBase: String,
           }
 
           val sockOpt = Server.interruptWith(
+            "MillSocketTimeoutInterruptThread",
             acceptTimeout,
             socketClose(),
             serverSocket.accept()
@@ -111,7 +129,8 @@ class Server[T](lockBase: String,
     val env = Util.parseMap(argStream)
     argStream.close()
 
-    var done = false
+    @volatile var done = false
+    @volatile var idle = false
     val t = new Thread(() =>
 
       try {
@@ -122,7 +141,8 @@ class Server[T](lockBase: String,
           socketIn,
           stdout,
           stderr,
-          env.asScala.toMap
+          env.asScala.toMap,
+          idle = _
         )
 
         sm.stateCache = newStateCache
@@ -134,18 +154,18 @@ class Server[T](lockBase: String,
         sm.stateCache = sc
       } finally{
         done = true
-      }
+        idle = true
+      },
+      "MillServerActionRunner"
     )
-
     t.start()
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
-    while(!done && !locks.clientLock.probe()) {
-      Thread.sleep(3)
-    }
+    while(!done && !locks.clientLock.probe()) Thread.sleep(3)
 
-    if (!done) interruptServer()
+    if (!idle) interruptServer()
+
 
     t.interrupt()
     t.stop()
@@ -176,17 +196,22 @@ object Server{
     }
 
   }
-  def interruptWith[T](millis: Int, close: => Unit, t: => T): Option[T] = {
+  def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
     @volatile var interrupt = true
     @volatile var interrupted = false
-    new Thread(() => {
-      Thread.sleep(millis)
-      if (interrupt) {
-        interrupted = true
-        close
-      }
-    }).start()
+    val thread = new Thread(
+      () => {
+        try Thread.sleep(millis)
+        catch{ case t: InterruptedException => /* Do Nothing */ }
+        if (interrupt) {
+          interrupted = true
+          close
+        }
+      },
+      threadName
+    )
 
+    thread.start()
     try {
       val res =
         try Some(t)
@@ -196,6 +221,7 @@ object Server{
       else res
 
     } finally {
+      thread.interrupt()
       interrupt = false
     }
   }

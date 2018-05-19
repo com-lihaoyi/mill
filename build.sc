@@ -243,10 +243,10 @@ def launcherScript(shellJvmArgs: Seq[String],
 
       s"""case "$$1" in
          |  -i | --interactive )
-         |    ${java("mill.Main")}
+         |    ${java("mill.MillMain")}
          |    ;;
          |  *)
-         |    ${java("mill.main.client.Main")}
+         |    ${java("mill.main.client.MillClientMain")}
          |    ;;
          |esac""".stripMargin
     },
