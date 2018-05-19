@@ -258,9 +258,9 @@ def launcherScript(shellJvmArgs: Seq[String],
       s"""if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if defined _I_ (
-         |  ${java("mill.Main")}
+         |  ${java("mill.MillMain")}
          |) else (
-         |  ${java("mill.main.client.Main")}
+         |  ${java("mill.main.client.MillClientMain")}
          |)""".stripMargin
     }
   )
