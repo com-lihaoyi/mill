@@ -9,10 +9,10 @@ import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.util.*;
 
-public class Main {
+public class MillClientMain {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
         ArrayList<String> selfJars = new ArrayList<String>();
-        ClassLoader current = Main.class.getClassLoader();
+        ClassLoader current = MillClientMain.class.getClassLoader();
         while(current != null){
             if (current instanceof java.net.URLClassLoader) {
                 URL[] urls = ((java.net.URLClassLoader) current).getURLs();
@@ -38,7 +38,7 @@ public class Main {
         }
         l.add("-cp");
         l.add(String.join(File.pathSeparator, selfJars));
-        l.add("mill.main.ServerMain");
+        l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
         new java.lang.ProcessBuilder()
@@ -65,7 +65,7 @@ public class Main {
                 lockFile.close();
                 channel.close();
             } else {
-                int exitCode = Main.run(
+                int exitCode = MillClientMain.run(
                         lockBase,
                         new Runnable() {
                             @Override

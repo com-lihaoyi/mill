@@ -3,14 +3,14 @@ package mill.main
 import java.io._
 import java.net.Socket
 
-import mill.Main
+import mill.MillMain
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
 
-trait ServerMain[T]{
+trait MillServerMain[T]{
   var stateCache = Option.empty[T]
   def main0(args: Array[String],
             stateCache: Option[T],
@@ -18,11 +18,12 @@ trait ServerMain[T]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String]): (Boolean, Option[T])
+            env : Map[String, String],
+            setIdle: Boolean => Unit): (Boolean, Option[T])
 }
 
-object ServerMain extends mill.main.ServerMain[Evaluator.State]{
-  def main(args0: Array[String]): Unit = {
+object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
+  def main(args0: Array[String]): Unit = try{
     new Server(
       args0(0),
       this,
@@ -37,20 +38,24 @@ object ServerMain extends mill.main.ServerMain[Evaluator.State]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String]) = Main.main0(
-    args,
-    stateCache,
-    mainInteractive,
-    DummyInputStream,
-    stdout,
-    stderr,
-    env
-  )
+            env : Map[String, String],
+            setIdle: Boolean => Unit) = {
+    MillMain.main0(
+      args,
+      stateCache,
+      mainInteractive,
+      DummyInputStream,
+      stdout,
+      stderr,
+      env,
+      setIdle
+    )
+  }
 }
 
 
 class Server[T](lockBase: String,
-                sm: ServerMain[T],
+                sm: MillServerMain[T],
                 interruptServer: () => Unit,
                 acceptTimeout: Int,
                 locks: Locks) {
@@ -71,6 +76,7 @@ class Server[T](lockBase: String,
           }
 
           val sockOpt = Server.interruptWith(
+            "MillSocketTimeoutInterruptThread",
             acceptTimeout,
             socketClose(),
             serverSocket.accept()
@@ -112,40 +118,43 @@ class Server[T](lockBase: String,
     argStream.close()
 
     var done = false
-    val t = new Thread(() =>
+    @volatile var idle = false
+    val t = new Thread(
+      () =>
 
-      try {
-        val (result, newStateCache) = sm.main0(
-          args,
-          sm.stateCache,
-          interactive,
-          socketIn,
-          stdout,
-          stderr,
-          env.asScala.toMap
-        )
+        try {
+          val (result, newStateCache) = sm.main0(
+            args,
+            sm.stateCache,
+            interactive,
+            socketIn,
+            stdout,
+            stderr,
+            env.asScala.toMap,
+            idle = _
+          )
 
-        sm.stateCache = newStateCache
-        java.nio.file.Files.write(
-          java.nio.file.Paths.get(lockBase + "/exitCode"),
-          (if (result) 0 else 1).toString.getBytes
-        )
-      } catch{case WatchInterrupted(sc: Option[T]) =>
-        sm.stateCache = sc
-      } finally{
-        done = true
-      }
+          sm.stateCache = newStateCache
+          java.nio.file.Files.write(
+            java.nio.file.Paths.get(lockBase + "/exitCode"),
+            (if (result) 0 else 1).toString.getBytes
+          )
+        } catch{case WatchInterrupted(sc: Option[T]) =>
+          sm.stateCache = sc
+        } finally{
+          done = true
+          idle = true
+        },
+      "MillServerActionRunner"
     )
-
     t.start()
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
-    while(!done && !locks.clientLock.probe()) {
-      Thread.sleep(3)
-    }
+    while(!done && !locks.clientLock.probe()) Thread.sleep(3)
 
-    if (!done) interruptServer()
+    if (!idle) interruptServer()
+
 
     t.interrupt()
     t.stop()
@@ -176,17 +185,21 @@ object Server{
     }
 
   }
-  def interruptWith[T](millis: Int, close: => Unit, t: => T): Option[T] = {
+  def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
     @volatile var interrupt = true
     @volatile var interrupted = false
-    new Thread(() => {
-      Thread.sleep(millis)
-      if (interrupt) {
-        interrupted = true
-        close
-      }
-    }).start()
+    val thread = new Thread(
+      () => {
+        Thread.sleep(millis)
+        if (interrupt) {
+          interrupted = true
+          close
+        }
+      },
+      threadName
+    )
 
+    thread.start()
     try {
       val res =
         try Some(t)
@@ -196,6 +209,7 @@ object Server{
       else res
 
     } finally {
+      thread.interrupt()
       interrupt = false
     }
   }
