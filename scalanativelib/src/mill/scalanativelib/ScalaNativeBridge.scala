@@ -1,17 +1,19 @@
 package mill.scalanativelib
 
+import java.io.File
 import java.net.URLClassLoader
+
 import ammonite.ops.Path
-import mill.define.Discover
+import mill.define.{Discover, Worker}
 import mill.{Agg, T}
+import sbt.testing.Framework
 
 
 class ScalaNativeWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeBridge)]
 
-  def bridge(toolsClasspath: Agg[Path]) = {
-    val classloaderSig =
-      toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+  def bridge(toolsClasspath: Agg[Path]): ScalaNativeBridge = {
+    val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
@@ -64,9 +66,12 @@ trait ScalaNativeBridge {
 
   def defaultGarbageCollector: String
   def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path
+
+  def newScalaNativeFrameWork(framework: Framework, id: Int, testBinary: File,
+                              logLevel: NativeLogLevel, envVars: Map[String, String]): Framework
 }
 
 object ScalaNativeBridge extends mill.define.ExternalModule {
-  def scalaNativeBridge = T.worker { new ScalaNativeWorker() }
+  def scalaNativeBridge: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
   lazy val millDiscover = Discover[this.type]
 }

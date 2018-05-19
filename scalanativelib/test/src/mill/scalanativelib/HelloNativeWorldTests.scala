@@ -27,7 +27,7 @@ object HelloNativeWorldTests extends TestSuite {
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq("2.11.12")
-      scalaNative <- Seq("0.3.7")
+      scalaNative <- Seq("0.3.8-SNAPSHOT")
       mode <- List(ReleaseMode.Debug, ReleaseMode.Release)
     } yield (scala, scalaNative, mode)
 
@@ -103,13 +103,13 @@ object HelloNativeWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_21112_037 - testCompileFromScratch("2.11.12", "0.3.7", ReleaseMode.Debug)
+      'fromScratch_21112_037 - testCompileFromScratch("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug)
     }
 
     'jar - {
       'containsNirs - {
         val Right((result, evalCount)) =
-          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld("2.11.12", "0.3.7", ReleaseMode.Debug).jar)
+          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug).jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
@@ -124,7 +124,7 @@ object HelloNativeWorldTests extends TestSuite {
           HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode: ReleaseMode).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_037 - testArtifactId("2.11.12", "0.3.7", ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
+      'artifactId_038 - testArtifactId("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
     }
     'test - {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -170,10 +170,10 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
 
-      'utest_21112_037_debug - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.3.7", ReleaseMode.Debug))
-      'utest_21112_037_release - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.3.7", ReleaseMode.Release))
-      'scalaTest_21112_037_debug - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.3.7", ReleaseMode.Debug))
-      'scalaTest_21112_037_release - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.3.7", ReleaseMode.Release))
+      'utest_21112_038_debug - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug))
+      'utest_21112_038_release - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Release))
+      'scalaTest_21112_038_debug - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug))
+      'scalaTest_21112_038_release - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Release))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
@@ -193,8 +193,8 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     'run - {
-      'run_21112_037_debug  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.3.7", ReleaseMode.Debug))
-      'run_21112_037_release  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.3.7", ReleaseMode.Release))
+      'run_21112_038_debug  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Debug))
+      'run_21112_038_release  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.3.8-SNAPSHOT", ReleaseMode.Release))
     }
   }
 

@@ -10,11 +10,9 @@ import mill.define.{Target, Task}
 import mill.eval.Result
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
-import mill.{PathRef, T}
 import mill.util.Loose.Agg
-import sbt.testing.{AnnotatedFingerprint, Framework, SubclassFingerprint}
+import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
-import testinterface.ScalaNativeFramework
 import upickle.default.{ReadWriter => RW, macroRW}
 
 
@@ -42,7 +40,7 @@ object ReleaseMode {
 }
 
 
-trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
+trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
   override def platformSuffix = s"_native${scalaNativeBinaryVersion()}"
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
@@ -58,27 +56,34 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
 
   def scalaNativeBinaryVersion = T{ scalaNativeVersion().split('.').take(2).mkString(".") }
 
+  // This allows compilation and testing versus SNAPSHOT versions of scala-native
+  def scalaNativeToolsVersion = T{
+    if (scalaNativeVersion().endsWith("-SNAPSHOT"))
+      scalaNativeVersion()
+    else
+      scalaNativeBinaryVersion()
+  }
+
   def bridge = T.task{ ScalaNativeBridge.scalaNativeBridge().bridge(bridgeFullClassPath()) }
 
   def scalaNativeBridgeClasspath = T {
     val snBridgeKey = "MILL_SCALANATIVE_BRIDGE_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
     val snBridgePath = sys.props(snBridgeKey)
-    if (snBridgePath != null) Result.Success(
-      Agg(PathRef(Path(snBridgePath), quick = true))
-    ) else Lib.resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      Lib.depToDependency(_, "2.12.4", ""),
-      Seq(
-        ivy"com.lihaoyi::mill-scalanativelib-scalanativebridges-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"
+    if (snBridgePath != null)
+      Result.Success(Agg(snBridgePath.split(',').map(p => PathRef(Path(p), quick = true)): _*))
+    else
+      Lib.resolveDependencies(
+        Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+        Lib.depToDependency(_, "2.12.4", ""),
+        Seq(ivy"com.lihaoyi::mill-scalanativelib-scalanativebridges-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}")
       )
-    ).map(_.filter(_.path.toString.contains("mill-scalanativelib-scalanativebridges")))
   }
 
   def toolsIvyDeps = T{
     Seq(
-      ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:util_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:nir_2.12:${scalaNativeVersion()}"
+      ivy"org.scala-native:tools_2.12:${scalaNativeToolsVersion()}",
+      ivy"org.scala-native:util_2.12:${scalaNativeToolsVersion()}",
+      ivy"org.scala-native:nir_2.12:${scalaNativeToolsVersion()}"
     )
   }
 
@@ -86,14 +91,14 @@ trait ScalaNativeModule extends scalalib.ScalaModule { outer =>
     ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}",
+      ivy"org.scala-native::auxlib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}",
+      ivy"org.scala-native::scalalib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}"
     )
   }
 
@@ -198,7 +203,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
     val nativeFrameworks = (cl: ClassLoader) =>
       frameworkInstances.zipWithIndex.map { case (f, id) =>
-        new ScalaNativeFramework(f, id, logLevel(), testBinary, envVars): Framework
+        bridge().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
       }
 
     val (doneMsg, results) = Lib.runTests(
@@ -241,7 +246,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def nativeLinkStubs = true
 
     override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-      ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
+      ivy"org.scala-native::test-interface_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}"
     )
 
     override def mainClass = Some("scala.scalanative.testinterface.TestMain")

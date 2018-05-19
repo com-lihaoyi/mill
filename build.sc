@@ -226,7 +226,11 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_BRIDGE_0_3" -> scalanativebridges("0.3").compile().classes.path
+      "MILL_SCALANATIVE_BRIDGE_0_3" ->
+        scalanativebridges("0.3").runClasspath()
+          .map(_.path)
+          .filter(_.toIO.exists)
+          .mkString(",")
     )
     scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
@@ -236,11 +240,13 @@ object scalanativelib extends MillModule {
     def moduleDeps = Seq(scalanativelib)
     def ivyDeps = scalaNativeBinary match {
       case "0.3" =>
-        val nativeVersion = "0.3.7"
+        val nativeVersion = "0.3.8-SNAPSHOT"
         Agg(
           ivy"org.scala-native::tools:$nativeVersion",
           ivy"org.scala-native::util:$nativeVersion",
-          ivy"org.scala-native::nir:$nativeVersion"
+          ivy"org.scala-native::nir:$nativeVersion",
+          ivy"org.scala-native::nir:$nativeVersion",
+          ivy"org.scala-native::test-runner:$nativeVersion",
         )
     }
   }

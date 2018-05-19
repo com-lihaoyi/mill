@@ -1,10 +1,15 @@
 package mill.scalanativelib.bridge
 
+import java.io.File
 import java.lang.System.{err, out}
 
 import scala.scalanative.build.{Build, Config, Discover, GC, Logger, Mode}
 import ammonite.ops.Path
 import mill.scalanativelib.{NativeConfig, NativeLogLevel, ReleaseMode}
+import sbt.testing.Framework
+
+import scala.scalanative.testinterface.ScalaNativeFramework
+
 
 class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
   def logger(level: NativeLogLevel) =
@@ -14,19 +19,12 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
       warnFn  = msg => if (level >= NativeLogLevel.Warn)  out.println(msg),
       errorFn = msg => if (level >= NativeLogLevel.Error) err.println(msg))
 
-  def discoverClang: Path = {
-    Path(Discover.clang())
-  }
-
-  def discoverClangPP: Path = {
-    Path(Discover.clangpp())
-  }
-
+  def discoverClang: Path = Path(Discover.clang())
+  def discoverClangPP: Path = Path(Discover.clangpp())
   def discoverTarget(clang: Path, workdir: Path): String = Discover.targetTriple(clang.toNIO, workdir.toNIO)
   def discoverCompileOptions: Seq[String] = Discover.compileOptions()
   def discoverLinkingOptions: Seq[String] = Discover.linkingOptions()
-
-  def defaultGarbageCollector = GC.default.name
+  def defaultGarbageCollector: String = GC.default.name
 
   def config(nativeLibJar: Path,
              mainClass: String,
@@ -66,5 +64,11 @@ class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
     val config = nativeConfig.config.asInstanceOf[Config]
     Build.build(config, outPath.toNIO)
     outPath
+  }
+
+  override def newScalaNativeFrameWork(framework: Framework, id: Int, testBinary: File,
+                                       logLevel: NativeLogLevel, envVars: Map[String, String]): Framework =
+  {
+    new ScalaNativeFramework(framework, id, logger(logLevel), testBinary, envVars)
   }
 }
