@@ -8,9 +8,13 @@ import mill.scalalib.dependency.DependencyUpdatesImpl
 
 object Dependency extends ExternalModule {
 
-  def updates(ev: Evaluator[Any]) = T.command {
-    DependencyUpdatesImpl(implicitly, ev.rootModule, ev.rootModule.millDiscover)
-  }
+  def updates(ev: Evaluator[Any], allowPreRelease: Boolean = false) =
+    T.command {
+      DependencyUpdatesImpl(implicitly,
+                            ev.rootModule,
+                            ev.rootModule.millDiscover,
+                            allowPreRelease)
+    }
 
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] =
     new mill.main.EvaluatorScopt[T]()

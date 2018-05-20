@@ -13,13 +13,14 @@ object DependencyUpdatesImpl {
 
   def apply(ctx: Log with Home,
             rootModule: BaseModule,
-            discover: Discover[_]): Unit = {
+            discover: Discover[_],
+            allowPreRelease: Boolean): Unit = {
     println(s"Dependency updates")
 
     val allDependencyVersions = VersionsFinder.findVersions(ctx, rootModule)
 
     val allUpdates = allDependencyVersions.map { dependencyVersions =>
-      UpdatesFinder.findUpdates(dependencyVersions, allowPreRelease = false)
+      UpdatesFinder.findUpdates(dependencyVersions, allowPreRelease)
     }
 
     showAllUpdates(allUpdates)
