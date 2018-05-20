@@ -30,7 +30,7 @@ trait MillPublishModule extends PublishModule{
 }
 
 object moduledefs extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
@@ -38,7 +38,7 @@ object moduledefs extends MillPublishModule with ScalaModule{
 }
 
 trait MillModule extends MillPublishModule with ScalaModule{ outer =>
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
