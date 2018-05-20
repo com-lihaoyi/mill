@@ -316,7 +316,10 @@ object dev extends MillModule{
     val classpath = runClasspath().map(_.path.toString)
     val args = forkArgs().distinct
     val (shellArgs, cmdArgs) =
-      if (!scala.util.Properties.isWin) (args, args)
+      if (!scala.util.Properties.isWin) (
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+      )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
         Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
@@ -345,6 +348,7 @@ def release = T{
   val dest = T.ctx().dest
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val args = Seq(
+    "-DMILL_CLASSPATH=$0",
     "-DMILL_VERSION=" + publishVersion()._2,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130

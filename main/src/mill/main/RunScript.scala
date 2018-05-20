@@ -39,6 +39,24 @@ object RunScript{
         instantiateInterpreter match{
           case Left((res, watched)) => (res, watched)
           case Right(interp) =>
+            val mainThread = Thread.currentThread()
+            val allClassloaders = {
+              val all = mutable.Buffer.empty[ClassLoader]
+              var current = mainThread.getContextClassLoader
+              while(current != null){
+                all.append(current)
+                current = current.getParent
+              }
+              all
+            }
+
+            log.outputStream.println(pprint.apply(allClassloaders, height = 9999))
+            log.outputStream.println(pprint.apply(
+              allClassloaders
+                .collect{case cl: java.net.URLClassLoader => cl -> cl.getURLs.filter(_.getProtocol == "file")},
+                height = 9999
+            ))
+//            log.outputStream.println(pprint.apply(SpecialClassLoader.initialClasspathSignature(mainThread.getContextClassLoader), height = 9999))
             interp.watch(path)
             val eval =
               for(rootModule <- evaluateRootModule(wd, path, interp, log))
@@ -76,6 +94,7 @@ object RunScript{
                          log: Logger
                         ): Res[mill.define.BaseModule] = {
 
+    log.info("RunScript.evaluateRootModule")
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
