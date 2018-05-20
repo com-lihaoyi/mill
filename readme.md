@@ -19,7 +19,13 @@ If you want to use Mill in your own projects, check out our documentation:
 
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
-through the user-facing documentation linked above.
+through the user-facing documentation linked above. It's also worth spending a
+few minutes reading the following blog posts to get a sense of Mill's design &
+motivation:
+
+- [So, what's wrong with SBT?](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)
+- [Build Tools as Pure Functional Programs](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html)
+- [Mill: Better Scala Builds](http://www.lihaoyi.com/post/MillBetterScalaBuilds.html)
 
 ## How to build and test
 
@@ -145,7 +151,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### master
+### 0.2.1
 
 - Preserve caches when transitioning between `-i`/`--interactive` and the
   fast client/server mode ([329](https://github.com/lihaoyi/mill/issues/329))
