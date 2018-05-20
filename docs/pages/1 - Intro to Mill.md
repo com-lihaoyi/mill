@@ -609,3 +609,37 @@ complete the release process to Maven Central.
 
 If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
 [here](http://www.lihaoyi.com/mill/page/common-project-layouts.html#publishing)
+
+## Structure of the `out/` folder
+
+The `out/` folder contains all the generated files & metadata for your build. It
+is structured with one folder per `Target`/`Command`, that is run, e.g.:
+
+- `out/core/compile/`
+- `out/main/test/compile/`
+- `out/main/test/forkTest/`
+- `out/scalalib/compile/`
+
+Each folder currently contains the following files:
+
+- `dest/`: a path for the `Task` to use either as a scratch space, or to place
+  generated files that are returned using `PathRef`s. `Task`s should only output
+  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  conflicting with other `Task`s, but files within `dest/` can be named
+  arbitrarily.
+
+- `log`: the `stdout`/`stderr` of the `Task`. This is also streamed to the
+  console during evaluation.
+
+- `meta.json`: the cache-key and JSON-serialized return-value of the
+  `Target`/`Command`. The return-value can also be retrieved via `mill show
+  core.compile`. Binary blobs are typically not included in `meta.json`, and
+  instead stored as separate binary files in `dest/` which are then referenced
+  by `meta.json` via `PathRef`s
+
+The `out/` folder is intentionally kept simplistic and user-readable. If your
+build is not behaving as you would expect, feel free to poke around the various
+`dest/` folders to see what files are being created, or the `meta.json` files to
+see what is being returned by a particular task. You can also simply delete
+folders within `out/` if you want to force portions of your project to be
+re-built, e.g. deleting the `out/main/` or `out/main/test/compile/` folders.
