@@ -11,20 +11,8 @@ import java.util.*;
 
 public class MillClientMain {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        ArrayList<String> selfJars = new ArrayList<String>();
-        ClassLoader current = MillClientMain.class.getClassLoader();
-        while(current != null){
-            if (current instanceof java.net.URLClassLoader) {
-                URL[] urls = ((java.net.URLClassLoader) current).getURLs();
-                for (URL url: urls) {
-                    selfJars.add(new File(url.toURI()).getCanonicalPath());
-                }
-            }
-            current = current.getParent();
-        }
-        if (Util.isJava9OrAbove) {
-            selfJars.addAll(Arrays.asList(System.getProperty("java.class.path").split(File.pathSeparator)));
-        }
+        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(File.pathSeparator);
+
         ArrayList<String> l = new java.util.ArrayList<String>();
         l.add("java");
         Properties props = System.getProperties();

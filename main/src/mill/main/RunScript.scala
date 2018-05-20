@@ -76,6 +76,7 @@ object RunScript{
                          log: Logger
                         ): Res[mill.define.BaseModule] = {
 
+    log.info("RunScript.evaluateRootModule")
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
