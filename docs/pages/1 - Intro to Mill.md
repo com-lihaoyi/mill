@@ -35,8 +35,9 @@ pacaur -S mill
 
 ### Windows
 
-To get started, download Mill from: https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0,
-and save it as `mill.bat`.
+To get started, download Mill from:
+https://github.com/lihaoyi/mill/releases/download/0.2.1/0.2.1, and save it as
+`mill.bat`.
 
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
