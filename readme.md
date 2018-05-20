@@ -151,7 +151,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### 0.2.1
+### 0.2.2
 
 - Preserve caches when transitioning between `-i`/`--interactive` and the
   fast client/server mode ([329](https://github.com/lihaoyi/mill/issues/329))
