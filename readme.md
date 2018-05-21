@@ -17,321 +17,99 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
-The remainder of this readme is targeted at people who wish to work on Mill's
-own codebase.
+The remainder of this readme is developer-documentation targeted at people who
+wish to work on Mill's own codebase. The developer docs assume you have read
+through the user-facing documentation linked above. It's also worth spending a
+few minutes reading the following blog posts to get a sense of Mill's design &
+motivation:
+
+- [So, what's wrong with SBT?](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)
+- [Build Tools as Pure Functional Programs](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html)
+- [Mill: Better Scala Builds](http://www.lihaoyi.com/post/MillBetterScalaBuilds.html)
 
 ## How to build and test
 
 Mill is built using Mill. To begin, first download & install Mill as described
-in the documentation above.
-As Mill is under active development, stable releases may not be able to build 
-the current development branch of Mill.
-It is recommended to install the latest unstable release manually.
+in the documentation above. As Mill is under active development, stable releases
+may not be able to build the current development branch of Mill. It is
+recommended to install the latest unstable release manually.
 
-To run unit test suite:
+### IntelliJ Setup
+
+If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the
+IntelliJ project files via:
+
+```bash
+mill mill.scalalib.GenIdea/idea
+```
+
+### Automated Tests
+
+To run test suites:
 
 ```bash
 mill main.test
+mill scalalib.test
+mill scalajslib.test
+mill integration.test
 ```
 
-Build a standalone executable jar:
+### Manual Testing
+
+To manually test Mill on a small build, you can use the `scratch` folder:
 
 ```bash
-mill dev.assembly
+mill -i dev.run scratch -w show thingy
 ```
 
-Now you can re-build this very same project using the build.sc file, e.g. re-run
-core unit tests
+This runs your current checkout of Mill on the trivial build defined in
+`scratch/build.sc`. You can modify that build file to add additional modules,
+files, etc. and see how it behaves.
 
-e.g.:   
-```bash
-./out/dev/assembly/dest/mill core.compile
-./out/dev/assembly/dest/mill main.test.compile
-./out/dev/assembly/dest/mill main.test
-./out/dev/assembly/dest/mill scalalib.assembly
-```
-
-There is already a `watch` option that looks for changes on files, e.g.:
+More generally, you can use:
 
 ```bash
-./out/dev/assembly/dest/mill --watch core.compile
+mill -i dev.run [target-dir] [...args]
 ```
 
-You can get Mill to show the JSON-structured output for a particular `Target` or
-`Command` using the `show` flag:
+To create run your current checkout of Mill in the given `target-dir` with the
+given `args`. This is useful e.g. to test a modified version of Mill on some
+other project's Mill build.
+
+You can also create a launcher-script to let you run the current checkout of
+Mill without the bootstrap Mill process present:
 
 ```bash
-./out/dev/assembly/dest/mill show core.scalaVersion
-./out/dev/assembly/dest/mill show core.compile
-./out/dev/assembly/dest/mill show core.assemblyClasspath
-./out/dev/assembly/dest/mill show main.test
+mill -i dev.launcher
 ```
 
-Output will be generated into a the `./out` folder.
+This creates the `out/dev/launcher/dest/run` launcher script, which you can then
+use to run your current checkout of Mill where-ever you'd like. Note that this
+script relies on the compiled code already present in the Mill `out/` folder,
+and thus isn't suitable for testing on Mill's own Mill build since you would be
+over-writing the compiled code at the same time as the launcher script is using
+it.
 
-You can clean the project using `clean`:
+You can also run your current checkout of Mill on the build in your `scratch/`
+folder without the bootstrap Mill process being present via:
 
 ```bash
-# Clean entire project.
-mill clean
-# Clean a single target.
-mill clean main
-# Clean multiple targets.
-mill clean main core
+mill -i dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
 ```
 
-If you are repeatedly testing Mill manually by running it against the `build.sc`
-file in the repository root, you can skip the assembly process and directly run
-it via:
+### Bootstrapping: Building Mill with your current checkout of Mill
+
+To test bootstrapping of Mill's own Mill build using a version of Mill built
+from your checkout, you can run
 
 ```bash
-mill --watch dev.run . main.test
-mill --watch dev.run .
+ci/publish-local.sh
 ```
 
-You can also test out your current Mill code with one of the hello-world example
-repos via:
-
-```bash
-mill dev.run docs/example-1 foo.run
-```
-
-Lastly, you can generate IntelliJ Scala project files using Mill via
-
-```bash
-./out/dev/assembly/dest/mill mill.scalalib.GenIdea/idea
-```
-
-Allowing you to import a Mill project into Intellij without using SBT
-
-### Command line
-
-There is a number of ways to run targets and commands via command line:
-
-* Run single target:
-```bash
-mill core.compile
-```
-
-* Run single command with arguments:
-```bash
-mill bridges[2.12.4].publish --credentials foo --gpgPassphrase bar
-```
-
-* Run multiple targets:
-```bash
-mill all main.test scalalib.test 
-```
-
-**Note**: don't forget to put `all` flag when you run multiple commands, otherwise the only first command will be run, and subsequent commands will be passed as arguments to the first one.
-
-* Run multiple commands with arguments:
-```bash
-mill all bridges[2.11.11].publish bridges[2.12.4].publish -- --credentials foo --gpgPassphrase bar 
-```
-
-Here `--credentials foo --gpgPassphrase bar` arguments will be passed to both `bridges[2.11.11].publish` and `bridges[2.12.4].publish` command. 
-
-**Note**: arguments list should be separated with `--` from command list.
-
-
-Sometimes it is tedious to write multiple targets when you want to run same target in multiple modules, or multiple targets in one module.
-Here brace expansion from bash(or another shell that support brace expansion) comes to rescue. It allows you to make some "shortcuts" for multiple commands.
-
-* Run same targets in multiple modules with brace expansion:
-```bash
-mill all {core,scalalib,scalajslib,integration}.test
-```
-
-will run `test` target in `core`, `scalalib`, `scalajslib` and `integration` modules.
-
-* Run multiple targets in one module with brace expansion:
-```bash
-mill all scalalib.{compile,test}
-```
-
-will run `compile` and `test` targets in `scalalib` module.
-
-* Run multiple targets in multiple modules:
-```bash
-mill all {core,scalalib}.{scalaVersion,scalaBinaryVersion}
-```
-
-will run `scalaVersion` and `scalaBinaryVersion` targets in both `core` and `scalalib` modules. 
-
-* Run targets in different cross build modules
-
-```bash
-mill all bridges[{2.11.11,2.12.4}].publish --  --credentials foo --gpgPassphrase bar
-```
-
-will run `publish` command in both `brides[2.11.11]` and `bridges[2.12.4]` modules
-
-You can also use the `_` wildcard and `__` recursive-wildcard to run groups of
-tasks:
-
-```bash
-# Run the `test` command of all top-level modules
-mill all _.test
-
-# Run the `test` command of all modules, top-level or nested
-mill all __.test
-
-# Run `compile` in every cross-module of `bridges`
-mill all bridges[_].compile
-```
-
-**Note**: When you run multiple targets with `all` command, they are not
-guaranteed to run in that exact order. Mill will build task evaluation graph and
-run targets in correct order.
-
-### REPL
-
-Mill provides a build REPL, which lets you explore the build interactively and
-run `Target`s from Scala code:
-
-```scala
-$ mill -i
-
-Loading...
-Compiling (synthetic)/ammonite/predef/interpBridge.sc
-Compiling (synthetic)/ammonite/predef/replBridge.sc
-Compiling (synthetic)/ammonite/predef/DefaultPredef.sc
-Compiling /Users/lihaoyi/Dropbox/Workspace/mill/build.sc
-Compiling /Users/lihaoyi/Dropbox/Workspace/mill/out/run.sc
-Compiling (synthetic)/ammonite/predef/CodePredef.sc
-
-@ build
-res0: build.type = build
-
-@ build.
-!=            core          scalalib   bridges       getClass      isInstanceOf  |>
-==            MillModule    asInstanceOf  equals        hashCode      toString
-@ build.core
-res1: core = ammonite.predef.build#core:45
-Children:
-    .test
-Commands:
-    .console()()
-    .run(args: String*)()
-    .runMain(mainClass: String, args: String*)()
-Targets:
-    .allSources()
-    .artifactId()
-    .artifactName()
-    .artifactScalaVersion()
-    .assembly()
-    .assemblyClasspath()
-    .classpath()
-    .compile()
-    .compileDepClasspath()
-    .compileIvyDeps()
-    .compilerBridge()
-    .crossFullScalaVersion()
-    .depClasspath()
-    .docJar()
-    .externalCompileDepClasspath()
-    .externalCompileDepSources()
-...
-
-@ core
-res2: core.type = ammonite.predef.build#core:45
-Children:
-    .test
-Commands:
-    .console()()
-    .run(args: String*)()
-    .runMain(mainClass: String, args: String*)()
-Targets:
-    .allSources()
-    .artifactId()
-    .artifactName()
-    .artifactScalaVersion()
-    .assembly()
-    .assemblyClasspath()
-    .classpath()
-    .compile()
-    .compileDepClasspath()
-    .compileIvyDeps()
-    .compilerBridge()
-    .crossFullScalaVersion()
-    .depClasspath()
-    .docJar()
-    .externalCompileDepClasspath()
-    .externalCompileDepSources()
-...
-
-@ core.scalaV
-scalaVersion
-@ core.scalaVersion
-res3: mill.define.Target[String] = ammonite.predef.build#MillModule#scalaVersion:20
-Inputs:
-
-@ core.scalaVersion()
-[1/1] core.scalaVersion
-res4: String = "2.12.4"
-
-@ core.ivyDeps()
-Running core.ivyDeps
-[1/1] core.ivyDeps
-res5: Seq[mill.scalalib.Dep] = List(
-  Scala(Dependency(Module("com.lihaoyi", "sourcecode", Map()),
-   "0.1.4",
-...
-
-@ core.ivyDeps().foreach(println)
-Scala(Dependency(com.lihaoyi:sourcecode,0.1.4,,Set(),Attributes(,),false,true))
-Scala(Dependency(com.lihaoyi:pprint,0.5.3,,Set(),Attributes(,),false,true))
-Point(Dependency(com.lihaoyi:ammonite,1.0.3,,Set(),Attributes(,),false,true))
-Scala(Dependency(com.typesafe.play:play-json,2.6.6,,Set(),Attributes(,),false,true))
-Scala(Dependency(org.scala-sbt:zinc,1.0.5,,Set(),Attributes(,),false,true))
-Java(Dependency(org.scala-sbt:test-interface,1.0,,Set(),Attributes(,),false,true))
-
-// run multiple tasks with `eval` function.
-@ val (coreScala, bridge2106Scala) = eval(core.scalaVersion, bridges("2.10.6").scalaVersion)
-coreScala: String = "2.12.4"
-bridge2106Scala: String = "2.10.6"
-```
-
-### build.sc
-
-Into a `build.sc` file you can define separate `Module`s (e.g. `ScalaModule`).
-Within each `Module` you can define 3 type of task:
-
-- `Target`: take no argument, output is cached and should be serializable; run
-  from `bash` (e.g. `def foo = T{...}`)
-- `Command`: take serializable arguments, output is not cached; run from `bash`
-  (arguments with `scopt`) (e.g. `def foo = T.command{...}`)
-- `Task`: take arguments, output is not cached; do not run from `bash` (e.g.
-  `def foo = T.task{...}` )
-
-
-### Structure of the `out/` folder
-
-The `out/` folder contains all the generated files & metadata for your build. It
-is structured with one folder per `Target`/`Command`, that is run, e.g.:
-
-- `out/core/compile/`
-- `out/main/test/compile/`
-- `out/main/test/forkTest/`
-- `out/scalalib/compile/`
-
-Each folder currently contains the following files:
-
-- `dest/`: a path for the `Task` to use either as a scratch space, or to place
-  generated files that are returned using `PathRef`s. `Task`s should only output
-  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
-  conflicting with other `Task`s, but files within `dest/` can be named
-  arbitrarily.
-
-- `log`: the `stdout`/`stderr` of the `Task`. This is also streamed to the
-  console during evaluation.
-
-- `meta.json`: the cache-key and JSON-serialized return-value of the
-  `Target`/`Command`. The return-value can also be retrieved via `mill show
-  core.compile`. Binary blobs are typically not included in `meta.json`, and
-  instead stored as separate binary files in `dest/` which are then referenced
-  by `meta.json` via `PathRef`s
+This creates a standalone assembly at `~/mill-release` you can use, which
+references jars published locally in your `~/.ivy2/local` cache. You can then
+use this standalone assembly to build & re-build your current Mill checkout
+without worrying about stomping over compiled code that the assembly is using.
 
 ### Troubleshooting
 
@@ -342,7 +120,68 @@ restart from scratch removing the `out` directory:
 rm -rf out/
 ```
 
+## Project Layout
+
+The Mill project is organized roughly as follows:
+
+### Core modules that are included in the main assembly
+
+- `core`, `main`, `main.client`, `scalalib`, `scalajslib`.
+
+These are general lightweight and dependency-free: mostly configuration & wiring
+of a Mill build and without the heavy lifting.
+
+Heavy lifting is delegated to the worker modules (described below), which the
+core modules resolve from Maven Central (or from the local filesystem in
+dev) and load into isolated classloaders.
+
+### Worker modules that are resolved from Maven Central
+
+- `scalalib.worker`, `scalajslib.jsbridges[0.6]`, `scalajslib.jsbridges[1.0]`
+
+These modules are where the heavy-lifting happens, and include heavy
+dependencies like the Scala compiler, Scala.js optimizer, etc.. Rather than
+being bundled in the main assembly & classpath, these are resolved separately
+from Maven Central (or from the local filesystem in dev) and kept in isolated
+classloaders.
+
+This allows a single Mill build to use multiple versions of e.g. the Scala.js
+optimizer without classpath conflicts.
+
+
 ## Changelog
+
+### 0.2.2
+
+- Preserve caches when transitioning between `-i`/`--interactive` and the
+  fast client/server mode ([329](https://github.com/lihaoyi/mill/issues/329))
+
+- Keep Mill daemon running if you Ctrl-C during `-w`/`--watch` mode
+  ([327](https://github.com/lihaoyi/mill/issues/327))
+
+- Allow `mill version` to run without a build file
+  ([328](https://github.com/lihaoyi/mill/issues/328))
+
+- Make `docJar` (and thus publishing) robust against scratch files in the source
+  directories ([334](https://github.com/lihaoyi/mill/issues/334)) and work with
+  Scala compiler options ([336](https://github.com/lihaoyi/mill/issues/336))
+
+- Allow passing Ammonite command-line options to the `foo.repl` command
+  ([333](https://github.com/lihaoyi/mill/pull/333))
+
+- Add `mill clean` ([315](https://github.com/lihaoyi/mill/pull/315)) to easily
+  delete the Mill build caches for specific targets
+
+- Improve IntelliJ integration of `MavenModule`s/`SbtModule`s' test folders
+  ([298](https://github.com/lihaoyi/mill/pull/298))
+
+- Avoid showing useless stack traces when `foo.test` result-reporting fails or
+  `foo.run` fails
+
+- ScalaFmt support ([308](https://github.com/lihaoyi/mill/pull/308))
+
+- Allow `ScalaModule#generatedSources` to allow single files (previous you could
+  only pass in directories)
 
 ### 0.2.0
 

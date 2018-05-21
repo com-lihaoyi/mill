@@ -13,15 +13,15 @@ environment:
     JAVA_HOME: C:\Program Files\Java\jdk1.8.0
   - COMPILER: cygwin
     CYGWIN_DIR: cygwin64
-    JAVA_HOME: C:\Program Files\Java\jdk9
+    JAVA_HOME: C:\Program Files\Java\jdk10
   - COMPILER: msys2
     MSYS2_ARCH: x86_64
     MSYS2_DIR: msys64
     MSYSTEM: MINGW64
-    JAVA_HOME: C:\Program Files\Java\jdk9
+    JAVA_HOME: C:\Program Files\Java\jdk10
 
 install:
-  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-97-00b10e
+  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0-36-f8d1e7
 
 build_script:
   - if [%COMPILER%]==[default] (

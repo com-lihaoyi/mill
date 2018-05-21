@@ -9,7 +9,7 @@ import io.github.retronym.java9rtexport.Export
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
 
-object Main {
+object MillMain {
 
   def main(args: Array[String]): Unit = {
     val as = args match {
@@ -23,7 +23,8 @@ object Main {
       System.in,
       System.out,
       System.err,
-      System.getenv().asScala.toMap
+      System.getenv().asScala.toMap,
+      b => ()
     )
     System.exit(if(result) 0 else 1)
   }
@@ -34,7 +35,8 @@ object Main {
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env: Map[String, String]): (Boolean, Option[Evaluator.State]) = {
+            env: Map[String, String],
+            setIdle: Boolean => Unit): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
 
     val removed = Set("predef-code", "no-home-predef")
@@ -103,7 +105,8 @@ object Main {
             config.copy(colored = Some(mainInteractive)),
             stdout, stderr, stdin,
             stateCache,
-            env
+            env,
+            setIdle
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {
