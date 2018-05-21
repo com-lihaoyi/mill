@@ -36,17 +36,17 @@ private[dependency] object UpdatesFinder {
 
   import scala.Ordered._
 
-  def findUpdates(dependencyVersions: DependencyVersions,
-                  allowPreRelease: Boolean): DependencyUpdates = {
-    val dependencies = dependencyVersions.dependencies.map {
-      dependencyVersion =>
+  def findUpdates(dependencyVersions: ModuleDependenciesVersions,
+                  allowPreRelease: Boolean): ModuleDependenciesUpdates = {
+    val dependencies =
+      dependencyVersions.dependencies.map { dependencyVersion =>
         findUpdates(dependencyVersion, allowPreRelease)
-    }
-    DependencyUpdates(dependencyVersions.module, dependencies)
+      }
+    ModuleDependenciesUpdates(dependencyVersions.module, dependencies)
   }
 
-  def findUpdates(dependencyVersion: DependencyVersion,
-                  allowPreRelease: Boolean): DependencyUpdate = {
+  def findUpdates(dependencyVersion: DependencyVersions,
+                  allowPreRelease: Boolean): DependencyUpdates = {
     val current = dependencyVersion.currentVersion
     val versions = dependencyVersion.allversions.to[SortedSet]
 
@@ -54,9 +54,9 @@ private[dependency] object UpdatesFinder {
       .filter(isUpdate(current))
       .filterNot(lessStable(current, allowPreRelease))
 
-    DependencyUpdate(dependencyVersion.dependency,
-                     dependencyVersion.currentVersion,
-                     updates)
+    DependencyUpdates(dependencyVersion.dependency,
+                      dependencyVersion.currentVersion,
+                      updates)
   }
 
   private def lessStable(current: Version, allowPreRelease: Boolean)(

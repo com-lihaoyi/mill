@@ -28,7 +28,7 @@
  */
 package mill.scalalib.dependency.updates
 
-import mill.scalalib.dependency.versions.{DependencyVersion, Version}
+import mill.scalalib.dependency.versions.{DependencyVersions, Version}
 import utest._
 
 object UpdatesFinderTests extends TestSuite {
@@ -43,7 +43,7 @@ object UpdatesFinderTests extends TestSuite {
     val allVersions = available.map(Version(_)).toSet
 
     UpdatesFinder
-      .findUpdates(DependencyVersion(dependency, currentVersion, allVersions),
+      .findUpdates(DependencyVersions(dependency, currentVersion, allVersions),
                    allowPreRelease)
       .updates
       .map(_.toString)

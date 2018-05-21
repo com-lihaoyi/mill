@@ -2,8 +2,8 @@ package mill.scalalib.dependency
 
 import mill.define._
 import mill.scalalib.dependency.updates.{
-  DependencyUpdate,
   DependencyUpdates,
+  ModuleDependenciesUpdates,
   UpdatesFinder
 }
 import mill.scalalib.dependency.versions.VersionsFinder
@@ -15,18 +15,20 @@ object DependencyUpdatesImpl {
             rootModule: BaseModule,
             discover: Discover[_],
             allowPreRelease: Boolean): Unit = {
-    println(s"Dependency updates")
 
+    // 1. Find all available versions for each dependency
     val allDependencyVersions = VersionsFinder.findVersions(ctx, rootModule)
 
+    // 2. Extract updated versions from all available versions
     val allUpdates = allDependencyVersions.map { dependencyVersions =>
       UpdatesFinder.findUpdates(dependencyVersions, allowPreRelease)
     }
 
+    // 3. Print the results
     showAllUpdates(allUpdates)
   }
 
-  private def showAllUpdates(updates: Seq[DependencyUpdates]): Unit =
+  private def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
     updates.foreach { dependencyUpdates =>
       val module = dependencyUpdates.module.toString
       val actualUpdates =
@@ -39,7 +41,7 @@ object DependencyUpdatesImpl {
       }
     }
 
-  private def showUpdates(updates: Seq[DependencyUpdate]): Unit =
+  private def showUpdates(updates: Seq[DependencyUpdates]): Unit =
     updates.foreach { dependencyUpdate =>
       val module = s"${dependencyUpdate.dependency.module}"
       val allVersions =

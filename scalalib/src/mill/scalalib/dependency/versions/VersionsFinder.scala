@@ -4,14 +4,14 @@ import ammonite.ops.pwd
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
-import mill.scalalib.{Dep, JavaModule, Lib, dependency}
+import mill.scalalib.{Dep, JavaModule, Lib}
 import mill.util.Ctx.{Home, Log}
 import mill.util.{Loose, Strict}
 
 private[dependency] object VersionsFinder {
 
   def findVersions(ctx: Log with Home,
-                   rootModule: BaseModule): Seq[DependencyVersions] = {
+                   rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
     val evaluator =
       new Evaluator(ctx.home, pwd / 'out, pwd / 'out, rootModule, ctx.log)
 
@@ -46,13 +46,14 @@ private[dependency] object VersionsFinder {
 
         val versions = dependencies.map { dependency =>
           val currentVersion = Version(dependency.version)
-          val allVersions = metadataLoaders.flatMap { metadataLoader =>
-            metadataLoader.getVersions(dependency.module)
-          }.toSet
-          DependencyVersion(dependency, currentVersion, allVersions)
+          val allVersions =
+            metadataLoaders
+              .flatMap(_.getVersions(dependency.module))
+              .toSet
+          DependencyVersions(dependency, currentVersion, allVersions)
         }
 
-        dependency.versions.DependencyVersions(javaModule, versions)
+        ModuleDependenciesVersions(javaModule, versions)
     }
 
   private def eval[T](evaluator: Evaluator[_], e: Task[T]): T =
