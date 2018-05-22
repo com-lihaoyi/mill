@@ -2,6 +2,7 @@ package mill
 package twirllib
 
 import java.io.File
+import java.lang.reflect.Method
 import java.net.URLClassLoader
 
 import ammonite.ops.{Path, ls}
@@ -9,7 +10,6 @@ import mill.eval.PathRef
 import mill.scalalib.CompilationResult
 
 import scala.io.Codec
-import scala.util.Properties
 
 class TwirlWorker {
 
@@ -42,18 +42,18 @@ class TwirlWorker {
                                     sourceDirectory: File,
                                     generatedDirectory: File,
                                     formatterType: String,
-                                    additionalImports: Seq[String] = Nil,
-                                    constructorAnnotations: Seq[String] = Nil,
-                                    codec: Codec = Codec(Properties.sourceEncoding),
-                                    inclusiveDot: Boolean = false) {
+                                    additionalImports: Seq[String],
+                                    constructorAnnotations: Seq[String],
+                                    codec: Codec,
+                                    inclusiveDot: Boolean) {
             val o = compileMethod.invoke(null, source,
               sourceDirectory,
               generatedDirectory,
               formatterType,
-              defaultAdditionalImportsMethod.invoke(additionalImports),
-              defaultConstructorAnnotationsMethod.invoke(constructorAnnotations),
-              defaultCodecMethod.invoke(codec),
-              defaultFlagMethod.invoke(inclusiveDot))
+              defaultAdditionalImportsMethod.invoke(null),
+              defaultConstructorAnnotationsMethod.invoke(null),
+              defaultCodecMethod.invoke(null),
+              defaultFlagMethod.invoke(null))
           }
         }
         twirlInstanceCache = Some((classloaderSig, instance))
@@ -61,7 +61,13 @@ class TwirlWorker {
     }
   }
 
-  def compile(twirlClasspath: Agg[Path], sourceDirectories: Seq[Path], dest: Path)
+  def compile(twirlClasspath: Agg[Path],
+              sourceDirectories: Seq[Path],
+              dest: Path,
+              additionalImports: Seq[String],
+              constructorAnnotations: Seq[String],
+              codec: Codec,
+              inclusiveDot: Boolean)
              (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
 
@@ -72,7 +78,11 @@ class TwirlWorker {
           compiler.compileTwirl(template.toIO,
             inputDir.toIO,
             dest.toIO,
-            s"play.twirl.api.$extFormat"
+            s"play.twirl.api.$extFormat",
+            additionalImports,
+            constructorAnnotations,
+            codec,
+            inclusiveDot
           )
         }
     }
@@ -97,10 +107,10 @@ trait TwirlWorkerApi {
                    sourceDirectory: File,
                    generatedDirectory: File,
                    formatterType: String,
-                   additionalImports: Seq[String] = Nil,
-                   constructorAnnotations: Seq[String] = Nil,
-                   codec: Codec = Codec(Properties.sourceEncoding),
-                   inclusiveDot: Boolean = false)
+                   additionalImports: Seq[String],
+                   constructorAnnotations: Seq[String],
+                   codec: Codec,
+                   inclusiveDot: Boolean)
 }
 
 object TwirlWorkerApi {

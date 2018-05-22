@@ -20,7 +20,6 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule {
       override def twirlVersion = "1.3.15"
     }
-
   }
 
   val resourcePath: Path = pwd / 'twirllib / 'test / 'resources / "hello-world"
