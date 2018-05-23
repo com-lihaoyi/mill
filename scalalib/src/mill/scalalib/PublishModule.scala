@@ -73,7 +73,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publish(sonatypeCreds: String,
-              gpgPassphrase: String = "",
+              gpgPassphrase: String = null,
               signed: Boolean = true,
               release: Boolean): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
@@ -81,7 +81,7 @@ trait PublishModule extends JavaModule { outer =>
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
-      Some(gpgPassphrase).filter(_.nonEmpty),
+      Option(gpgPassphrase),
       signed,
       T.ctx().log
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
@@ -96,7 +96,7 @@ object PublishModule extends ExternalModule {
   }
 
   def publishAll(sonatypeCreds: String,
-                 gpgPassphrase: String = "",
+                 gpgPassphrase: String = null,
                  signed: Boolean = true,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  release: Boolean = false,
@@ -110,7 +110,7 @@ object PublishModule extends ExternalModule {
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
-      Some(gpgPassphrase).filter(_.nonEmpty),
+      Option(gpgPassphrase),
       signed,
       T.ctx().log
     ).publishAll(
