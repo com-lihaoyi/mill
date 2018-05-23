@@ -114,8 +114,8 @@ class Server[T](lockBase: String,
   def handleRun(clientSocket: Socket) = {
 
     val currentOutErr = clientSocket.getOutputStream
-    val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, -1), true)
-    val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
+    val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
+    val stderr = new PrintStream(new ProxyOutputStream(currentOutErr, -1), true)
     val socketIn = clientSocket.getInputStream
     val argStream = new FileInputStream(lockBase + "/run")
     val interactive = argStream.read() != 0
