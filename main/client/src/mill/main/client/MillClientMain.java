@@ -162,36 +162,24 @@ class ClientOutputPumper implements Runnable{
 
     public void run() {
         byte[] buffer = new byte[1024];
-        int state = 0;
         boolean running = true;
         boolean first = true;
         while (running) {
             try {
-                int n = src.read(buffer);
-                first = false;
-                if (n == -1) running = false;
-                else {
-                    int i = 0;
-                    while (i < n) {
-                        switch (state) {
-                            case 0:
-                                state = buffer[i] + 1;
-                                break;
-                            case 1:
-                                dest1.write(buffer[i]);
-                                state = 0;
-                                break;
-                            case 2:
-                                dest2.write(buffer[i]);
-                                state = 0;
-                                break;
-                        }
-
-                        i += 1;
+                int quantity0 = (byte)src.read();
+                int quantity = Math.abs(quantity0);
+                int offset = 0;
+                while(offset < quantity){
+                    int delta = src.read(buffer, offset, quantity - offset);
+                    if (delta == -1) {
+                        running = false;
+                        break;
+                    }else{
+                        offset += delta;
                     }
-                    dest1.flush();
-                    dest2.flush();
                 }
+                if (quantity0 < 0) dest1.write(buffer, 0, quantity);
+                else dest2.write(buffer, 0, quantity);
             } catch (IOException e) {
                 // Win32NamedPipeSocket input stream somehow doesn't return -1,
                 // instead it throws an IOException whose message contains "ReadFile()".
