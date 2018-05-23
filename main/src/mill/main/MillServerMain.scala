@@ -224,27 +224,4 @@ object Server{
   }
 }
 
-class ProxyOutputStream(out: java.io.OutputStream,
-                        key: Int) extends java.io.OutputStream  {
-  override def write(b: Int) = out.synchronized{
-    out.write(key)
-    out.write(b)
-  }
-
-  override def write(b: Array[Byte]): Unit = out.synchronized{
-    write(b, 0, b.length)
-  }
-
-  override def write(b: Array[Byte], off: Int, len: Int): Unit = out.synchronized{
-    var i = off
-    while(i < len){
-      val chunkLength = math.min(len - i, 127)
-      out.write(chunkLength * key)
-      out.write(b, i, chunkLength)
-      i += chunkLength
-    }
-  }
-  override def flush() = out.flush()
-  override def close() = out.close()
-}
 
