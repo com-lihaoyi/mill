@@ -480,7 +480,9 @@ mill clean __.compile
 ## IntelliJ Support
 
 Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
-generate an IntelliJ project config for your build.
+generate an IntelliJ project config for your build. If you update your
+dependencies, you may need to regenerate project files - but it is generally
+a good idea to delete all idea project files first (e.g. `rm -fr .idea*`).
 
 This also configures IntelliJ to allow easy navigate & code-completion within
 your build file itself.
