@@ -17,7 +17,7 @@ object CacherTests extends TestSuite{
   }
   object Middle extends Middle
   trait Middle extends Base{
-    def value = T{ super.value() + 2}
+    override def value = T{ super.value() + 2}
     def overriden = T{ super.value()}
   }
   object Terminal extends  Terminal
