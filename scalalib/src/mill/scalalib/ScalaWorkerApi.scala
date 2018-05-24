@@ -33,6 +33,21 @@ trait ScalaWorkerModule extends mill.Module{
       ).map(_.map(_.path))
     }
   }
+
+
+  def scalalibClasspath = T{
+    val scalaWorkerJar = sys.props("MILL_SCALA_LIB")
+    if (scalaWorkerJar != null) {
+      mill.eval.Result.Success(Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_))))
+    } else {
+      resolveDependencies(
+        repositories,
+        Lib.depToDependency(_, "2.12.4", ""),
+        Seq(ivy"com.lihaoyi::mill-scalalib:${sys.props("MILL_VERSION")}")
+      ).map(_.map(_.path))
+    }
+  }
+
   def worker: Worker[ScalaWorkerApi] = T.worker{
     val cl = mill.util.ClassLoader.create(
       classpath().map(_.toNIO.toUri.toURL).toVector,

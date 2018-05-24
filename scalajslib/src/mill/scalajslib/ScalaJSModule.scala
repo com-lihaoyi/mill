@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule}
+import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
@@ -190,7 +190,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         fastOptTest().path.toIO
       )
 
-    val (doneMsg, results) = Lib.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
         _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),

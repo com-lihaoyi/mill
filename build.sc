@@ -153,7 +153,11 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     worker.testArgs() ++
-    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    Seq(
+      "-Djna.nosys=true",
+      "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+      "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 
   object worker extends MillModule{
