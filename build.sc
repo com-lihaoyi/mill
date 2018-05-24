@@ -99,6 +99,11 @@ object main extends MillModule {
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 
+  def ivyDeps = Agg(
+    ivy"guru.nidi:graphviz-java:0.2.3",
+    ivy"org.jgrapht:jgrapht-core:1.2.0"
+  )
+
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
