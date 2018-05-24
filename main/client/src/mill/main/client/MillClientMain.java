@@ -129,7 +129,7 @@ public class MillClientMain {
 
         InputStream outErr = ioSocket.getInputStream();
         OutputStream in = ioSocket.getOutputStream();
-        ClientOutputPumper outPump = new ClientOutputPumper(outErr, stdout, stderr);
+        ProxyStreamPumper outPump = new ProxyStreamPumper(outErr, stdout, stderr);
         InputPumper inPump = new InputPumper(stdin, in, true);
         Thread outThread = new Thread(outPump);
         outThread.setDaemon(true);
@@ -148,66 +148,4 @@ public class MillClientMain {
             ioSocket.close();
         }
     }
-}
-
-class ClientOutputPumper implements Runnable{
-    private InputStream src;
-    private OutputStream dest1;
-    private OutputStream dest2;
-    public ClientOutputPumper(InputStream src, OutputStream dest1, OutputStream dest2){
-        this.src = src;
-        this.dest1 = dest1;
-        this.dest2 = dest2;
-    }
-
-    public void run() {
-        byte[] buffer = new byte[1024];
-        int state = 0;
-        boolean running = true;
-        boolean first = true;
-        while (running) {
-            try {
-                int n = src.read(buffer);
-                first = false;
-                if (n == -1) running = false;
-                else {
-                    int i = 0;
-                    while (i < n) {
-                        switch (state) {
-                            case 0:
-                                state = buffer[i] + 1;
-                                break;
-                            case 1:
-                                dest1.write(buffer[i]);
-                                state = 0;
-                                break;
-                            case 2:
-                                dest2.write(buffer[i]);
-                                state = 0;
-                                break;
-                        }
-
-                        i += 1;
-                    }
-                    dest1.flush();
-                    dest2.flush();
-                }
-            } catch (IOException e) {
-                // Win32NamedPipeSocket input stream somehow doesn't return -1,
-                // instead it throws an IOException whose message contains "ReadFile()".
-                // However, if it throws an IOException before ever reading some bytes,
-                // it could not connect to the server, so exit.
-                if (Util.isWindows && e.getMessage().contains("ReadFile()")) {
-                    if (first) {
-                        System.err.println("Failed to connect to server");
-                        System.exit(1);
-                    } else running = false;
-                } else {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
-            }
-        }
-    }
-
 }

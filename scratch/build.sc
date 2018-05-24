@@ -1,3 +1,4 @@
 def thingy = T {
-  12345678
+  val blob = (('0' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')).mkString
+  while(true) print(blob)
 }

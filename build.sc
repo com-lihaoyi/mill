@@ -197,6 +197,12 @@ object scalajslib extends MillModule {
   }
 }
 
+object twirllib extends MillModule {
+
+  def moduleDeps = Seq(scalalib)
+
+}
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
