@@ -65,7 +65,12 @@ object Util {
     } else {
       mill.modules.Jvm.resolveDependencies(
         repositories,
-        Seq(coursier.Dependency(coursier.Module("com.lihaoyi", artifact), sys.props("MILL_VERSION"))),
+        Seq(
+          coursier.Dependency(
+            coursier.Module("com.lihaoyi", artifact + "_2.12"),
+            sys.props("MILL_VERSION")
+          )
+        ),
         Nil
       )
     }
