@@ -9,6 +9,7 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+
 import upickle.Js
 trait MillPublishModule extends PublishModule{
 
@@ -240,6 +241,7 @@ object integration extends MillModule{
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
