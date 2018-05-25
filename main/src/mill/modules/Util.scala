@@ -56,7 +56,10 @@ object Util {
     PathRef(ctx.dest / dest)
   }
 
-  def millProjectModule(key: String, artifact: String, repositories: Seq[Repository]) = {
+  def millProjectModule(key: String,
+                        artifact: String,
+                        repositories: Seq[Repository],
+                        resolveFilter: Path => Boolean = _ => true) = {
     val localPath = sys.props(key)
     if (localPath != null) {
       mill.eval.Result.Success(
@@ -72,7 +75,7 @@ object Util {
           )
         ),
         Nil
-      )
+      ).map(_.filter(x => resolveFilter(x.path)))
     }
   }
 }

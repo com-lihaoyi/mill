@@ -30,8 +30,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.modules.Util.millProjectModule(
       jsBridgeKey,
       s"mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}",
-      repositories
-    ).map(_.filter(_.path.toString.contains("mill-scalajslib-jsbridges")))
+      repositories,
+      resolveFilter = _.toString.contains("mill-scalajslib-jsbridges")
+    )
   }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
