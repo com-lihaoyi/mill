@@ -5,7 +5,7 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.T
 import mill.define.{Graph, NamedTask, Task}
-import mill.eval.{Evaluator, Result}
+import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{Loose, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
@@ -220,39 +220,12 @@ trait MainModule extends mill.Module{
     }
   }
 
-  def repositories = Seq(
-    Cache.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
-
-  object visualize extends mill.define.TaskModule{
-    def defaultCommandName() = "run"
-    def classpath = T{
-      mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
-    }
-    /**
-      * Given a set of tasks, prints out the execution plan of what tasks will be
-      * executed in what order, without actually executing them.
-      */
-    def run(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-      val resolved = RunScript.resolveTasks(
-        mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-      )
-      resolved match{
-        case Left(err) => Result.Failure(err)
-        case Right(rs) =>
-          Result.Success(
-            mill.modules.Jvm.inprocess(classpath().map(_.path), false, isolated = false, cl => {
-              cl.loadClass("mill.main.graphviz.GraphvizTools")
-                .getMethod("apply", classOf[Seq[_]], classOf[Path])
-                .invoke(null, rs, T.ctx().dest)
-                .asInstanceOf[Seq[mill.eval.PathRef]]
-            })
-          )
-
-      }
-    }
+  val visualize: VisualizeModule = new VisualizeModule {
+    def repositories = Seq(
+      Cache.ivy2Local,
+      MavenRepository("https://repo1.maven.org/maven2"),
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
   }
 
 }
