@@ -9,6 +9,7 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+
 import upickle.Js
 trait MillPublishModule extends PublishModule{
 
@@ -124,6 +125,18 @@ object main extends MillModule {
       def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
+
+  object graphviz extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"guru.nidi:graphviz-java:0.2.3",
+      ivy"org.jgrapht:jgrapht-core:1.2.0"
+    )
+    def testArgs = Seq(
+      "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
+    )
+  }
 }
 
 
@@ -148,7 +161,12 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     worker.testArgs() ++
-    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    main.graphviz.testArgs() ++
+    Seq(
+      "-Djna.nosys=true",
+      "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+      "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 
   object worker extends MillModule{
@@ -229,6 +247,7 @@ object integration extends MillModule{
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")

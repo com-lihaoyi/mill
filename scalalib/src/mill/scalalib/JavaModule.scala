@@ -303,8 +303,8 @@ trait TestModule extends JavaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalalib.worker.ScalaWorker",
-      classPath = ScalaWorkerModule.classpath(),
+      mainClass = "mill.scalalib.TestRunner",
+      classPath = ScalaWorkerModule.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =
@@ -330,7 +330,7 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    Lib.runTests(
+    TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),

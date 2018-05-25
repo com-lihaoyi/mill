@@ -23,59 +23,6 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-object ScalaWorker{
-
-  def main(args: Array[String]): Unit = {
-    try{
-      var i = 0
-      def readArray() = {
-        val count = args(i).toInt
-        val slice = args.slice(i + 1, i + count + 1)
-        i = i + count + 1
-        slice
-      }
-      val frameworks = readArray()
-      val classpath = readArray()
-      val arguments = readArray()
-      val outputPath = args(i + 0)
-      val colored = args(i + 1)
-      val testCp = args(i + 2)
-      val homeStr = args(i + 3)
-      val ctx = new Ctx.Log with Ctx.Home {
-        val log = PrintLogger(
-          colored == "true",
-          if(colored == "true") Colors.Default
-          else Colors.BlackWhite,
-          System.out,
-          System.err,
-          System.err,
-          System.in
-        )
-        val home = Path(homeStr)
-      }
-      val result = Lib.runTests(
-        frameworkInstances = TestRunner.frameworks(frameworks),
-        entireClasspath = Agg.from(classpath.map(Path(_))),
-        testClassfilePath = Agg(Path(testCp)),
-        args = arguments
-      )(ctx)
-
-      // Clear interrupted state in case some badly-behaved test suite
-      // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
-      // that flag causes writing the results to disk to fail
-      Thread.interrupted()
-      ammonite.ops.write(Path(outputPath), upickle.default.write(result))
-    }catch{case e: Throwable =>
-      println(e)
-      e.printStackTrace()
-    }
-    // Tests are over, kill the JVM whether or not anyone's threads are still running
-    // Always return 0, even if tests fail. The caller can pick up the detailed test
-    // results from the outputPath
-    System.exit(0)
-  }
-}
-
 class ScalaWorker(ctx0: mill.util.Ctx,
                   compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
   @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]

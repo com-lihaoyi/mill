@@ -1,12 +1,15 @@
 package mill.main
 
 import ammonite.ops.Path
-import mill.define.{NamedTask, Task}
-import mill.eval.{Evaluator, Result}
-import mill.util.{PrintLogger, Watched}
+import coursier.Cache
+import coursier.maven.MavenRepository
+import mill.T
+import mill.define.{Graph, NamedTask, Task}
+import mill.eval.{Evaluator, PathRef, Result}
+import mill.util.{Loose, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
-
+import mill.util.JsonFormatters._
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -215,6 +218,14 @@ trait MainModule extends mill.Module{
         paths.foreach(ammonite.ops.rm)
         Result.Success(())
     }
+  }
+
+  val visualize: VisualizeModule = new VisualizeModule {
+    def repositories = Seq(
+      Cache.ivy2Local,
+      MavenRepository("https://repo1.maven.org/maven2"),
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
   }
 
 }
