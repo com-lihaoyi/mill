@@ -22,35 +22,16 @@ trait ScalaWorkerModule extends mill.Module{
   )
 
   def classpath = T{
-    val scalaWorkerJar = sys.props("MILL_SCALA_WORKER")
-    if (scalaWorkerJar != null) {
-      mill.eval.Result.Success(Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_))))
-    } else {
-      resolveDependencies(
-        repositories,
-        Lib.depToDependency(_, "2.12.4", ""),
-        Seq(ivy"com.lihaoyi::mill-scalalib-worker:${sys.props("MILL_VERSION")}")
-      ).map(_.map(_.path))
-    }
+    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories)
   }
 
-
   def scalalibClasspath = T{
-    val scalaWorkerJar = sys.props("MILL_SCALA_LIB")
-    if (scalaWorkerJar != null) {
-      mill.eval.Result.Success(Loose.Agg.from(scalaWorkerJar.split(',').map(Path(_))))
-    } else {
-      resolveDependencies(
-        repositories,
-        Lib.depToDependency(_, "2.12.4", ""),
-        Seq(ivy"com.lihaoyi::mill-scalalib:${sys.props("MILL_VERSION")}")
-      ).map(_.map(_.path))
-    }
+    mill.modules.Util.millProjectModule("MILL_SCALA_LIB", "mill-scalalib", repositories)
   }
 
   def worker: Worker[ScalaWorkerApi] = T.worker{
     val cl = mill.util.ClassLoader.create(
-      classpath().map(_.toNIO.toUri.toURL).toVector,
+      classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalalib.worker.ScalaWorker")

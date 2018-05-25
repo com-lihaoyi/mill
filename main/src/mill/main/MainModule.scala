@@ -1,14 +1,15 @@
 package mill.main
 
 import ammonite.ops.Path
-import guru.nidi.graphviz.model.Node
+import coursier.Cache
+import coursier.maven.MavenRepository
+import mill.T
 import mill.define.{Graph, NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{PrintLogger, Watched}
-import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
+import mill.util.{Loose, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
-
+import mill.util.JsonFormatters._
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -219,75 +220,38 @@ trait MainModule extends mill.Module{
     }
   }
 
-  /**
-    * Given a set of tasks, prints out the execution plan of what tasks will be
-    * executed in what order, without actually executing them.
-    */
-  def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-    )
-    resolved match{
-      case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        val transitive = Graph.transitiveTargets(rs.distinct)
-        val topoSorted = Graph.topoSorted(transitive)
-        val goalSet = rs.toSet
-        val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
-          case x: NamedTask[Any] if goalSet.contains(x) => x
-        }
-        import guru.nidi.graphviz.model.Factory._
-        import guru.nidi.graphviz.engine.{Format, Graphviz}
+  def repositories = Seq(
+    Cache.ivy2Local,
+    MavenRepository("https://repo1.maven.org/maven2"),
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )
 
-        val edgesIterator =
-          for((k, vs) <- sortedGroups.items())
-          yield (
-            k,
-            for {
-              v <- vs.items
-              dest <- v.inputs.collect { case v: NamedTask[Any] => v }
-              if goalSet.contains(dest)
-            } yield dest
+  object visualize extends mill.define.TaskModule{
+    def defaultCommandName() = "run"
+    def classpath = T{
+      mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
+    }
+    /**
+      * Given a set of tasks, prints out the execution plan of what tasks will be
+      * executed in what order, without actually executing them.
+      */
+    def run(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+      val resolved = RunScript.resolveTasks(
+        mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      )
+      resolved match{
+        case Left(err) => Result.Failure(err)
+        case Right(rs) =>
+          Result.Success(
+            mill.modules.Jvm.inprocess(classpath().map(_.path), false, isolated = false, cl => {
+              cl.loadClass("mill.main.graphviz.GraphvizTools")
+                .getMethod("apply", classOf[Seq[_]], classOf[Path])
+                .invoke(null, rs, T.ctx().dest)
+                .asInstanceOf[Seq[mill.eval.PathRef]]
+            })
           )
 
-        val edges = edgesIterator.map{case (k, v) => (k, v.toArray.distinct)}.toArray
-
-        val indexToTask = edges.flatMap{case (k, vs) => Iterator(k) ++ vs}.distinct
-        val taskToIndex = indexToTask.zipWithIndex.toMap
-
-        val jgraph = new SimpleDirectedGraph[Int, DefaultEdge](classOf[DefaultEdge])
-
-        for(i <- indexToTask.indices) jgraph.addVertex(i)
-        for((src, dests) <- edges; dest <- dests) {
-          jgraph.addEdge(taskToIndex(src), taskToIndex(dest))
-        }
-
-
-        org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
-        val nodes = indexToTask.map(t => node(t.ctx.segments.render))
-
-        var g = graph("example1").directed
-        for(i <- indexToTask.indices){
-          val outgoing = for{
-            e <- edges(i)._2
-            j = taskToIndex(e)
-            if jgraph.containsEdge(i, j)
-          } yield nodes(j)
-          g = g.`with`(nodes(i).link(outgoing:_*))
-        }
-
-        val gv = Graphviz.fromGraph(g).totalMemory(100 * 1000 * 1000)
-        val outputs = Seq(
-          Format.PLAIN -> "out.txt",
-          Format.XDOT -> "out.dot",
-          Format.JSON -> "out.json",
-          Format.PNG -> "out.png",
-          Format.SVG -> "out.svg"
-        )
-        for((fmt, name) <- outputs) {
-          gv.render(fmt).toFile((mill.T.ctx().dest / name).toIO)
-        }
-        Result.Success(outputs.map(x => mill.PathRef(mill.T.ctx().dest / x._2)))
+      }
     }
   }
 

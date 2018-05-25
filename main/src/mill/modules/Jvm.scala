@@ -8,9 +8,11 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
+import ammonite.util.Util
+import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import geny.Generator
 import mill.main.client.InputPumper
-import mill.eval.PathRef
+import mill.eval.{PathRef, Result}
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
 
@@ -78,7 +80,7 @@ object Jvm {
                classPath: Agg[Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
+    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, cl => {
       getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
@@ -101,6 +103,7 @@ object Jvm {
 
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
+                   isolated: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
@@ -111,8 +114,11 @@ object Jvm {
           Some(outerClassLoader.loadClass(name))
         else None
       })
-    } else {
+    } else if (isolated){
+
       mill.util.ClassLoader.create(urls.toVector, null)
+    }else{
+      mill.util.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -376,4 +382,87 @@ object Jvm {
     PathRef(outputPath)
   }
 
+  /**
+    * Resolve dependencies using Coursier.
+    *
+    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * because Coursier is already bundled with mill/Ammonite to support the
+    * `import $ivy` syntax.
+    */
+  def resolveDependencies(repositories: Seq[Repository],
+                          deps: TraversableOnce[coursier.Dependency],
+                          force: TraversableOnce[coursier.Dependency],
+                          sources: Boolean = false,
+                          mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
+
+    val (_, resolution) = resolveDependenciesMetadata(
+      repositories, deps, force, mapDependencies
+    )
+    val errs = resolution.metadataErrors
+    if(errs.nonEmpty) {
+      val header =
+        s"""|
+            |Resolution failed for ${errs.length} modules:
+            |--------------------------------------------
+            |""".stripMargin
+
+      val errLines = errs.map {
+        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
+      }.mkString("\n")
+      val msg = header + errLines + "\n"
+      Result.Failure(msg)
+    } else {
+
+      def load(artifacts: Seq[coursier.Artifact]) = {
+        val logger = None
+        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
+          for (a <- artifacts)
+            yield coursier.Cache.file(a, logger = logger).run
+              .map(a.isOptional -> _)
+        ).unsafePerformSync
+
+        val errors = loadedArtifacts.collect {
+          case (false, scalaz.-\/(x)) => x
+          case (true, scalaz.-\/(x)) if !x.notFound => x
+        }
+        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
+        (errors, successes)
+      }
+
+      val sourceOrJar =
+        if (sources) resolution.classifiersArtifacts(Seq("sources"))
+        else resolution.artifacts(true)
+      val (errors, successes) = load(sourceOrJar)
+      if(errors.isEmpty){
+        mill.Agg.from(
+          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+        )
+      }else{
+        val errorDetails = errors.map(e => s"${ammonite.util.Util.newLine}  ${e.describe}").mkString
+        Result.Failure("Failed to load source dependencies" + errorDetails)
+      }
+    }
+  }
+
+
+  def resolveDependenciesMetadata(repositories: Seq[Repository],
+                                  deps: TraversableOnce[coursier.Dependency],
+                                  force: TraversableOnce[coursier.Dependency],
+                                  mapDependencies: Option[Dependency => Dependency] = None) = {
+
+    val forceVersions = force
+      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .map{d => d.module -> d.version}
+      .toMap
+
+    val start = Resolution(
+      deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
+      forceVersions = forceVersions,
+      mapDependencies = mapDependencies
+    )
+
+    val fetch = Fetch.from(repositories, Cache.fetch())
+    val resolution = start.process.run(fetch).unsafePerformSync
+    (deps.toSeq, resolution)
+  }
 }

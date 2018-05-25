@@ -304,7 +304,7 @@ trait TestModule extends JavaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
-      classPath = ScalaWorkerModule.scalalibClasspath(),
+      classPath = ScalaWorkerModule.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =

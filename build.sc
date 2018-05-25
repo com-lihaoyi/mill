@@ -99,11 +99,6 @@ object main extends MillModule {
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
 
-  def ivyDeps = Agg(
-    ivy"guru.nidi:graphviz-java:0.2.3",
-    ivy"org.jgrapht:jgrapht-core:1.2.0"
-  )
-
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
@@ -129,6 +124,18 @@ object main extends MillModule {
       def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
+
+  object graphviz extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"guru.nidi:graphviz-java:0.2.3",
+      ivy"org.jgrapht:jgrapht-core:1.2.0"
+    )
+    def testArgs = Seq(
+      "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
+    )
+  }
 }
 
 
@@ -153,6 +160,7 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     worker.testArgs() ++
+    main.graphviz.testArgs() ++
     Seq(
       "-Djna.nosys=true",
       "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),

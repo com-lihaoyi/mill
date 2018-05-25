@@ -109,23 +109,12 @@ object Lib{
                                   deps: TraversableOnce[Dep],
                                   mapDependencies: Option[Dependency => Dependency] = None) = {
     val depSeq = deps.toSeq
-    val flattened = depSeq.map(depToDependency)
-
-    val forceVersions = depSeq.filter(_.force)
-      .map(depToDependency)
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map{d => d.module -> d.version}
-      .toMap
-
-    val start = Resolution(
-      flattened.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
-      forceVersions = forceVersions,
-      mapDependencies = mapDependencies
+    mill.modules.Jvm.resolveDependenciesMetadata(
+      repositories,
+      depSeq.map(depToDependency),
+      depSeq.filter(_.force).map(depToDependency),
+      mapDependencies
     )
-
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
-    (flattened, resolution)
   }
   /**
     * Resolve dependencies using Coursier.
@@ -139,54 +128,14 @@ object Lib{
                           deps: TraversableOnce[Dep],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
-
-    val (_, resolution) = resolveDependenciesMetadata(
-      repositories, depToDependency, deps, mapDependencies
+    val depSeq = deps.toSeq
+    mill.modules.Jvm.resolveDependencies(
+      repositories,
+      depSeq.map(depToDependency),
+      depSeq.filter(_.force).map(depToDependency),
+      sources,
+      mapDependencies
     )
-    val errs = resolution.metadataErrors
-    if(errs.nonEmpty) {
-      val header =
-        s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
-
-      val errLines = errs.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n"
-      Result.Failure(msg)
-    } else {
-
-      def load(artifacts: Seq[coursier.Artifact]) = {
-        val logger = None
-        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
-          for (a <- artifacts)
-            yield coursier.Cache.file(a, logger = logger).run
-              .map(a.isOptional -> _)
-        ).unsafePerformSync
-
-        val errors = loadedArtifacts.collect {
-          case (false, scalaz.-\/(x)) => x
-          case (true, scalaz.-\/(x)) if !x.notFound => x
-        }
-        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
-        (errors, successes)
-      }
-
-      val sourceOrJar =
-        if (sources) resolution.classifiersArtifacts(Seq("sources"))
-        else resolution.artifacts(true)
-      val (errors, successes) = load(sourceOrJar)
-      if(errors.isEmpty){
-        Agg.from(
-          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
-        )
-      }else{
-        val errorDetails = errors.map(e => s"${Util.newLine}  ${e.describe}").mkString
-        Result.Failure("Failed to load source dependencies" + errorDetails)
-      }
-    }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
     ivy"org.scala-lang:scala-compiler:$scalaVersion".forceVersion(),

@@ -67,7 +67,7 @@ object TestRunner {
                testClassfilePath: Agg[Path],
                args: Seq[String])
               (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
+    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, cl => {
       val frameworks = frameworkInstances(cl)
 
       val events = mutable.Buffer.empty[Event]
