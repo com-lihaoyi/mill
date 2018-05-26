@@ -1,12 +1,15 @@
 package mill.main
 
+import java.util.concurrent.LinkedBlockingQueue
+
 import ammonite.ops.Path
 import coursier.Cache
 import coursier.core.Repository
 import coursier.maven.MavenRepository
-import mill.T
+import mill.{T, eval}
 import mill.define.{Discover, ExternalModule}
 import mill.eval.{Evaluator, PathRef, Result}
+
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
@@ -24,27 +27,36 @@ trait VisualizeModule extends mill.define.TaskModule{
   def classpath = T{
     mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
   }
+
   /**
-    * Given a set of tasks, prints out the execution plan of what tasks will be
-    * executed in what order, without actually executing them.
+    * The J2V8-based Graphviz library has a limitation that it can only ever
+    * be called from a single thread. Since Mill forks off a new thread every
+    * time you execute something, we need to keep around a worker thread that
+    * everyone can use to call into Graphviz, which the Mill execution threads
+    * can communicate via in/out queues.
     */
-  def run(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+  def worker = T.worker{
+    val in = new LinkedBlockingQueue[(Seq[_], Path)]()
+    val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
+
+    val cl = mill.util.ClassLoader.create(
+      classpath().map(_.path.toNIO.toUri.toURL).toVector,
+      getClass.getClassLoader
     )
-    resolved match{
-      case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        Result.Success(
-          mill.modules.Jvm.inprocess(classpath().map(_.path), false, isolated = false, cl => {
-            cl.loadClass("mill.main.graphviz.GraphvizTools")
-              .getMethod("apply", classOf[Seq[_]], classOf[Path])
-              .invoke(null, rs, T.ctx().dest)
-              .asInstanceOf[Seq[PathRef]]
-          })
-        )
-
-    }
+    val visualizeThread = new java.lang.Thread(() =>
+      while(true){
+        val res = Result.create{
+          val (tasks, dest) = in.take()
+          cl.loadClass("mill.main.graphviz.GraphvizTools")
+            .getMethod("apply", classOf[Seq[_]], classOf[Path])
+            .invoke(null, tasks, dest)
+            .asInstanceOf[Seq[PathRef]]
+        }
+        out.put(res)
+      }
+    )
+    visualizeThread.setDaemon(true)
+    visualizeThread.start()
+    (in, out)
   }
-
 }

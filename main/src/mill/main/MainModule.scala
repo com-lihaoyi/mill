@@ -221,6 +221,15 @@ trait MainModule extends mill.Module{
   }
 
   def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    VisualizeModule.run(evaluator, targets:_*)
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    )
+    resolved match{
+      case Left(err) => Result.Failure(err)
+      case Right(rs) =>
+        val (in, out) = mill.main.VisualizeModule.worker()
+        in.put((rs, T.ctx().dest))
+        out.take()
+    }
   }
 }
