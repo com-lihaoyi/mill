@@ -1,10 +1,23 @@
 package mill.main
 
 import ammonite.ops.Path
+import coursier.Cache
 import coursier.core.Repository
+import coursier.maven.MavenRepository
 import mill.T
+import mill.define.{Discover, ExternalModule}
 import mill.eval.{Evaluator, PathRef, Result}
 
+object VisualizeModule extends ExternalModule with VisualizeModule {
+  def repositories = Seq(
+    Cache.ivy2Local,
+    MavenRepository("https://repo1.maven.org/maven2"),
+    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+  )
+
+  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  lazy val millDiscover = Discover[this.type]
+}
 trait VisualizeModule extends mill.define.TaskModule{
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"

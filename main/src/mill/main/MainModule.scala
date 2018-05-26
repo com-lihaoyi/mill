@@ -220,12 +220,7 @@ trait MainModule extends mill.Module{
     }
   }
 
-  val visualize: VisualizeModule = new VisualizeModule {
-    def repositories = Seq(
-      Cache.ivy2Local,
-      MavenRepository("https://repo1.maven.org/maven2"),
-      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-    )
+  def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    VisualizeModule.run(evaluator, targets:_*)
   }
-
 }
