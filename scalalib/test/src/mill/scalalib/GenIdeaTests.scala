@@ -43,8 +43,6 @@ object GenIdeaTests extends TestSuite {
           millSourcePath / "generated" / ".idea_modules" /"mill-build.iml",
         "gen-idea/idea/libraries/scala-library-2.12.4.jar.xml" ->
           millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
-        "gen-idea/idea/libraries/scala-library-2.12.4-sources.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4-sources.jar.xml",
         "gen-idea/idea/modules.xml" ->
           millSourcePath / "generated" / ".idea" / "modules.xml",
         "gen-idea/idea/misc.xml" ->

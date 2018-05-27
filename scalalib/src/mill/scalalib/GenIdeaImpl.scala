@@ -1,13 +1,14 @@
 package mill.scalalib
 
 import ammonite.ops._
-import coursier.Repository
+import ammonite.runtime.SpecialClassLoader
+import coursier.{Cache, CoursierPaths, Repository}
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.{T, scalalib}
 import mill.util.Ctx.{Home, Log}
-import mill.util.{Loose, PrintLogger, Strict}
 import mill.util.Strict.Agg
+import mill.util.{Loose, Strict}
+import mill.{T, scalalib}
 
 import scala.util.Try
 
@@ -34,7 +35,8 @@ object GenIdeaImpl {
 
     val jdkInfo = extractCurrentJdk(pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    rm! pwd/".idea"
+    rm! pwd/".idea"/"libraries"
+    rm! pwd/".idea"/"scala_compiler.xml"
     rm! pwd/".idea_modules"
 
 
@@ -81,6 +83,19 @@ object GenIdeaImpl {
           res.items.toList.map(_.path)
       }
 
+    val buildDepsPaths = Try(evaluator
+      .rootModule
+      .getClass
+      .getClassLoader
+      .asInstanceOf[SpecialClassLoader]
+    ).map {
+       _.allJars
+        .map(url => Path(url.getFile))
+        .filter(_.toIO.exists)
+        .filterNot(_.toString.endsWith("pom.xml"))
+        .filter(_.startsWith(Path(Cache.default.toPath)))
+    }.getOrElse(Seq())
+
     val resolved = for((path, mod) <- modules) yield {
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
@@ -119,8 +134,8 @@ object GenIdeaImpl {
     }
     val moduleLabels = modules.map(_.swap).toMap
 
+    val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths ++ buildDepsPaths
 
-    val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths
     val commonPrefix =
       if (allResolved.isEmpty) 0
       else {
@@ -148,6 +163,54 @@ object GenIdeaImpl {
       }
       .toMap
 
+    sealed trait ResolvedLibrary { def path : Path }
+    case class CoursierResolved(path : Path, pom : Path, sources : Option[Path])
+      extends ResolvedLibrary
+    case class OtherResolved(path : Path) extends ResolvedLibrary
+
+    // Tries to group jars with their poms and sources.
+    def toResolvedJar(path : Path) : Option[ResolvedLibrary] = {
+      val inCoursierCache = path.startsWith(Path(CoursierPaths.cacheDirectory()))
+      val isSource = path.segments.last.endsWith("sources.jar")
+      val isPom = path.ext == "pom"
+      if (inCoursierCache && (isSource || isPom)) {
+        // Remove sources and pom as they'll be recovered from the jar path
+        None
+      } else if (inCoursierCache && path.ext == "jar") {
+        val withoutExt = path.segments.last.dropRight(path.ext.length + 1)
+        val pom = path / up / s"$withoutExt.pom"
+        val sources = Some(path / up / s"$withoutExt-sources.jar")
+          .filter(_.toIO.exists())
+        Some(CoursierResolved(path, pom, sources))
+      } else Some(OtherResolved(path))
+    }
+
+    // Hack so that Intellij does not complain about unresolved magic
+    // imports in build.sc when in fact they are resolved
+    def sbtLibraryNameFromPom(pom : Path) : String = {
+      val xml = scala.xml.XML.loadFile(pom.toIO)
+
+      val groupId = (xml \ "groupId").text
+      val artifactId = (xml \ "artifactId").text
+      val version = (xml \ "version").text
+
+      // The scala version here is non incidental
+      s"SBT: $groupId:${artifactId}_2.12.6:$version:jar"
+    }
+
+    def libraryName(resolvedJar: ResolvedLibrary) : String = resolvedJar match {
+      case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) =>
+        sbtLibraryNameFromPom(pom)
+      case CoursierResolved(path, _, _) =>
+        pathToLibName(path)
+      case OtherResolved(path) =>
+        pathToLibName(path)
+    }
+
+    def resolvedLibraries(resolved : Seq[Path]) : Seq[ResolvedLibrary] = resolved
+      .map(toResolvedJar)
+      .collect { case Some(r) => r}
+
     val compilerSettings = resolved
       .foldLeft(Map[(Loose.Agg[Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
@@ -168,8 +231,8 @@ object GenIdeaImpl {
       Tuple2(
         ".idea_modules"/"mill-build.iml",
         rootXmlTemplate(
-          for(path <- buildLibraryPaths)
-          yield pathToLibName(path)
+          for(lib <- resolvedLibraries(buildLibraryPaths ++ buildDepsPaths))
+          yield libraryName(lib)
         )
       ),
       Tuple2(
@@ -178,16 +241,15 @@ object GenIdeaImpl {
       )
     )
 
-    val libraries = allResolved.map{path =>
+    val libraries = resolvedLibraries(allResolved).map{ resolved =>
+      import resolved.path
       val url = "jar://" + path + "!/"
-      val name = pathToLibName(path)
-      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
-    }
-
-    val buildLibraries = buildLibraryPaths.map{path =>
-      val url = "jar://" + path + "!/"
-      val name = pathToLibName(path)
-      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url))
+      val name = libraryName(resolved)
+      val sources = resolved match {
+        case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
+        case OtherResolved(_) => None
+      }
+      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url, sources))
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod, _, _) =>
@@ -231,7 +293,7 @@ object GenIdeaImpl {
       Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
 
-    fixedFiles ++ libraries ++ moduleFiles ++ buildLibraries
+    fixedFiles ++ libraries ++ moduleFiles
   }
 
   def evalOrElse[T](evaluator: Evaluator[_], e: Task[T], default: => T): T = {
@@ -307,12 +369,18 @@ object GenIdeaImpl {
       </component>
     </module>
   }
-  def libraryXmlTemplate(name: String, url: String) = {
+  def libraryXmlTemplate(name: String, url: String, sources: Option[String]) = {
     <component name="libraryTable">
       <library name={name} type={if(name.contains("scala-library-")) "Scala" else null}>
         <CLASSES>
           <root url={url}/>
         </CLASSES>
+        { if (sources.isDefined) {
+          <SOURCES>
+            <root url={sources.get}/>
+          </SOURCES>
+          }
+        }
       </library>
     </component>
   }
