@@ -92,8 +92,6 @@ object GenIdeaImpl {
        _.allJars
         .map(url => Path(url.getFile))
         .filter(_.toIO.exists)
-        .filterNot(_.toString.endsWith("pom.xml"))
-        .filter(_.startsWith(Path(Cache.default.toPath)))
     }.getOrElse(Seq())
 
     val resolved = for((path, mod) <- modules) yield {
