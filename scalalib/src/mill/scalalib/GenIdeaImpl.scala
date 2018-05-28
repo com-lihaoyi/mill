@@ -216,6 +216,9 @@ object GenIdeaImpl {
           r + (key -> (r.getOrElse(key, Vector()) :+ q._3))
       }
 
+    val allBuildLibraries : Set[ResolvedLibrary] =
+      resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
+
     val fixedFiles = Seq(
       Tuple2(".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
@@ -229,7 +232,7 @@ object GenIdeaImpl {
       Tuple2(
         ".idea_modules"/"mill-build.iml",
         rootXmlTemplate(
-          for(lib <- resolvedLibraries(buildLibraryPaths ++ buildDepsPaths))
+          for(lib <- allBuildLibraries)
           yield libraryName(lib)
         )
       ),
