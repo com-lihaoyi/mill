@@ -32,6 +32,11 @@ object Lib{
                   upstreamCompileOutput: Seq[CompilationResult])
                  (implicit ctx: mill.util.Ctx) = {
     val javac = ToolProvider.getSystemJavaCompiler()
+    if (javac == null) {
+      throw new Exception(
+        "Your Java installation is not a JDK, so it can't compile Java code;" +
+        " Please install the JDK version of Java")
+    }
 
     rm(ctx.dest / 'classes)
     mkdir(ctx.dest / 'classes)
