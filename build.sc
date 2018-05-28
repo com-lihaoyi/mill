@@ -277,7 +277,8 @@ object dev extends MillModule{
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_VERSION=" + build.publishVersion()._2
+        "-DMILL_VERSION=" + build.publishVersion()._2,
+        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
 
@@ -322,8 +323,8 @@ object dev extends MillModule{
     val args = forkArgs().distinct
     val (shellArgs, cmdArgs) =
       if (!scala.util.Properties.isWin) (
-        Seq("-DMILL_CLASSPATH=" + classpath.mkstring(",")) ++ args,
-        Seq("-DMILL_CLASSPATH=" + classpath.mkstring(",")) ++ args
+        args,
+        args
       )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
