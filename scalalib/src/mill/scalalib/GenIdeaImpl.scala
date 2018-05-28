@@ -193,7 +193,7 @@ object GenIdeaImpl {
       val version = (xml \ "version").text
 
       // The scala version here is non incidental
-      s"SBT: $groupId:${artifactId}_2.12.6:$version:jar"
+      s"SBT: $groupId:$artifactId:$version:jar"
     }
 
     def libraryName(resolvedJar: ResolvedLibrary) : String = resolvedJar match {
