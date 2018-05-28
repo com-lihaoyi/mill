@@ -11,7 +11,7 @@ import java.util.*;
 
 public class MillClientMain {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(File.pathSeparator);
+        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
 
         ArrayList<String> l = new java.util.ArrayList<String>();
         l.add("java");

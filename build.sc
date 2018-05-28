@@ -317,8 +317,8 @@ object dev extends MillModule{
     val args = forkArgs().distinct
     val (shellArgs, cmdArgs) =
       if (!scala.util.Properties.isWin) (
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+        Seq("-DMILL_CLASSPATH=" + classpath.mkstring(",")) ++ args,
+        Seq("-DMILL_CLASSPATH=" + classpath.mkstring(",")) ++ args
       )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
