@@ -320,7 +320,7 @@ object dev extends MillModule{
 
   def prependShellScript = T{
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs().distinct
+    val args = forkArgs()
     val (shellArgs, cmdArgs) =
       if (!scala.util.Properties.isWin) (
         args,
