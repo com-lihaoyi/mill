@@ -269,12 +269,17 @@ def launcherScript(shellJvmArgs: Seq[String],
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs =
-    (scalalib.testArgs() ++
-     scalajslib.testArgs() ++
-     scalalib.worker.testArgs() ++
-     // Workaround for Zinc/JNA bug
-     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-     Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)).distinct
+    (
+      scalalib.testArgs() ++
+      scalajslib.testArgs() ++
+      scalalib.worker.testArgs() ++
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      Seq(
+        "-Djna.nosys=true",
+        "-DMILL_VERSION=" + build.publishVersion()._2
+      )
+    ).distinct
 
   // Pass dev.assembly VM options via file in Window due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
