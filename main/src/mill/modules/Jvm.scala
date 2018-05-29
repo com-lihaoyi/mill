@@ -9,7 +9,6 @@ import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
-import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import geny.Generator
 import mill.main.client.InputPumper
@@ -244,9 +243,8 @@ object Jvm {
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[Path] = None,
-                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                     assemblyRules: Seq[Assembly.Rule])
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-    import Assembly._
 
     val tmp = ctx.dest / "out-tmp.jar"
 
@@ -267,50 +265,21 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    val rulesMap = assemblyRules.collect {
-      case r@Rule.Append(path) => path -> r
-      case r@Rule.Exclude(path) => path -> r
-    }.toMap
-    val appendPatterns = assemblyRules.collect {
-      case Rule.AppendPattern(pattern) => pattern.asPredicate().test(_)
-    }
-    val excludePatterns = assemblyRules.collect {
-      case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
-    }
-
-    val entries =
-      classpathIterator(inputPaths).foldLeft(Map.empty[String, Aggregated]) {
-        case (acc, entry) =>
-          val mapping = entry.mapping
-
-          rulesMap.get(mapping) match {
-            case Some(_: Assembly.Rule.Append) =>
-              val newEntry = acc.getOrElse(mapping, Append.empty).append(entry)
-              acc + (mapping -> newEntry)
-            case Some(_: Assembly.Rule.Exclude) =>
-              acc
-            case _ if excludePatterns.exists(_(mapping)) =>
-              acc
-            case _ if appendPatterns.exists(_(mapping)) =>
-              val newEntry = acc.getOrElse(mapping, Append.empty).append(entry)
-              acc + (mapping -> newEntry)
-            case _ =>
-              acc + (mapping -> WriteOnce(entry))
+    groupAssemblyEntries(inputPaths, assemblyRules).view
+      .map {
+        case (mapping, aggregate) =>
+          zipFs.getPath(mapping) -> aggregate
+      }
+      .foreach {
+        case (path, Append(entries)) =>
+          val concatenated = new SequenceInputStream(
+            Collections.enumeration(entries.map(_.inputStream).asJava))
+          writeEntry(path, concatenated, append = Files.exists(path))
+        case (path, WriteOnce(entry)) =>
+          if (Files.notExists(path)) {
+            writeEntry(path, entry.inputStream, append = false)
           }
       }
-
-    entries
-      .foreach {
-      case (mapping, Append(entries)) =>
-        val concatenated = new SequenceInputStream(Collections.enumeration(entries.map(_.inputStream).asJava))
-        val path = zipFs.getPath(mapping)
-        writeEntry(path, concatenated, append = Files.exists(path))
-      case (mapping, WriteOnce(entry)) =>
-        val path = zipFs.getPath(mapping)
-        if(Files.notExists(path)) {
-          writeEntry(path, entry.inputStream, append = false)
-        }
-    }
 
     zipFs.close()
     val output = ctx.dest / "out.jar"
@@ -334,6 +303,47 @@ object Jvm {
     }
 
     PathRef(output)
+  }
+
+  def groupAssemblyEntries(inputPaths: Agg[Path], assemblyRules: Seq[Assembly.Rule]): Map[String, Aggregated] = {
+    import Assembly._
+
+    val rulesMap = assemblyRules.collect {
+      case r@Rule.Append(path) => path -> r
+      case r@Rule.Exclude(path) => path -> r
+    }.toMap
+
+    val appendPatterns = assemblyRules.collect {
+      case Rule.AppendPattern(pattern) => pattern.asPredicate().test(_)
+    }
+
+    val excludePatterns = assemblyRules.collect {
+      case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
+    }
+
+    classpathIterator(inputPaths).foldLeft(Map.empty[String, Aggregated]) {
+      case (entries, entry) =>
+        val mapping = entry.mapping
+
+        rulesMap.get(mapping) match {
+          case Some(_: Assembly.Rule.Exclude) =>
+            entries
+          case Some(_: Assembly.Rule.Append) =>
+            val newEntry = entries.getOrElse(mapping, Append.empty).append(entry)
+            entries + (mapping -> newEntry)
+
+          case _ if excludePatterns.exists(_(mapping)) =>
+            entries
+          case _ if appendPatterns.exists(_(mapping)) =>
+            val newEntry = entries.getOrElse(mapping, Append.empty).append(entry)
+            entries + (mapping -> newEntry)
+
+          case _ if !entries.contains(mapping) =>
+            entries + (mapping -> WriteOnce(entry))
+          case _ =>
+            entries
+        }
+    }
   }
 
   sealed trait Aggregated {
