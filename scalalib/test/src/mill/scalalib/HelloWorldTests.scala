@@ -637,6 +637,12 @@ object HelloWorldTests extends TestSuite {
           HelloWorldMultiExcludePattern,
           HelloWorldMultiExcludePattern.core.assembly
         )
+
+        'writeFirstWhenNoRule - {
+          // on akka http single module. our reference.conf should not be there
+          // on multi module should contain only core's reference.conf
+
+        }
       }
 
       'run - workspaceTest(HelloWorldWithMain){eval =>

@@ -267,9 +267,6 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    val concatEntries: mutable.Map[String, List[AssemblyEntry]] = mutable.Map.empty
-    val seen: mutable.Set[String] = mutable.Set.empty
-
     val rulesMap = assemblyRules.collect {
       case r@Rule.Append(path) => path -> r
       case r@Rule.Exclude(path) => path -> r
@@ -281,36 +278,38 @@ object Jvm {
       case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
     }
 
-    for(entry <- classpathIterator(inputPaths)) {
-      val mapping = entry.mapping
+    val entries =
+      classpathIterator(inputPaths).foldLeft(Map.empty[String, Aggregated]) {
+        case (acc, entry) =>
+          val mapping = entry.mapping
 
-      def append() = concatEntries += mapping -> (entry :: concatEntries.getOrElse(mapping, Nil))
-
-      rulesMap.get(mapping) match {
-        case Some(_:Assembly.Rule.Append) =>
-          append()
-        case Some(_:Assembly.Rule.Exclude) =>
-          ctx.log.info(s"Excluding entry: ${mapping}")
-        case None =>
-          val path = zipFs.getPath(mapping)
-          if(!excludePatterns.exists(_(mapping))) {
-            if(appendPatterns.exists(_(mapping))) {
-              append()
-            } else if(!seen(mapping)) {
-              if(!Files.exists(path)) {
-                writeEntry(path, entry.is, append = false)
-              }
-              seen += mapping
-            }
+          rulesMap.get(mapping) match {
+            case Some(_: Assembly.Rule.Append) =>
+              val newEntry = acc.getOrElse(mapping, Append.empty).append(entry)
+              acc + (mapping -> newEntry)
+            case Some(_: Assembly.Rule.Exclude) =>
+              acc
+            case _ if excludePatterns.exists(_(mapping)) =>
+              acc
+            case _ if appendPatterns.exists(_(mapping)) =>
+              val newEntry = acc.getOrElse(mapping, Append.empty).append(entry)
+              acc + (mapping -> newEntry)
+            case _ =>
+              acc + (mapping -> WriteOnce(entry))
           }
       }
-    }
 
-    concatEntries.foreach { case (mapping, entries) =>
-      ctx.log.info(s"Concatenating entry: ${mapping}")
-      val concatenated = new SequenceInputStream(Collections.enumeration(entries.map(_.is).asJava))
-      val path = zipFs.getPath(mapping)
-      writeEntry(path, concatenated, append = Files.exists(path))
+    entries
+      .foreach {
+      case (mapping, Append(entries)) =>
+        val concatenated = new SequenceInputStream(Collections.enumeration(entries.map(_.inputStream).asJava))
+        val path = zipFs.getPath(mapping)
+        writeEntry(path, concatenated, append = Files.exists(path))
+      case (mapping, WriteOnce(entry)) =>
+        val path = zipFs.getPath(mapping)
+        if(Files.notExists(path)) {
+          writeEntry(path, entry.inputStream, append = false)
+        }
     }
 
     zipFs.close()
@@ -337,17 +336,33 @@ object Jvm {
     PathRef(output)
   }
 
+  sealed trait Aggregated {
+    def append(entry: AssemblyEntry): Aggregated
+  }
+
+  object Append {
+    val empty: Append = Append(Nil)
+  }
+
+  case class Append(entries: List[AssemblyEntry]) extends Aggregated {
+    def append(entry: AssemblyEntry): Aggregated = copy(entries = entry :: this.entries)
+  }
+
+  case class WriteOnce(entry: AssemblyEntry) extends Aggregated {
+    def append(entry: AssemblyEntry): Aggregated = this
+  }
+
   sealed trait AssemblyEntry {
     def mapping: String
-    def is: InputStream
+    def inputStream: InputStream
   }
 
   case class PathEntry(mapping: String, path: Path) extends AssemblyEntry {
-    def is: InputStream = read.getInputStream(path)
+    def inputStream: InputStream = read.getInputStream(path)
   }
 
   case class JarFileEntry(mapping: String, getIs: () => InputStream) extends AssemblyEntry {
-    def is: InputStream = getIs()
+    def inputStream: InputStream = getIs()
   }
 
   private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
