@@ -145,24 +145,58 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   }
 }
 
-case class MultiLogger(colored: Boolean, streams: Logger*) extends Logger {
-  lazy val outputStream: PrintStream =
-    new PrintStream(b => streams.foreach(_.outputStream.write(b))) {
-      override def flush() = streams.foreach(_.outputStream.flush())
-      override def close() = streams.foreach(_.outputStream.close())
-    }
-  lazy val errorStream: PrintStream =
-    new PrintStream(b => streams.foreach(_.outputStream.write(b))) {
-      override def flush() = streams.foreach(_.outputStream.flush())
-      override def close() = streams.foreach(_.outputStream.close())
-    }
-  lazy val inStream = streams.collect{case t: PrintLogger => t}.headOption match{
+
+
+class MultiStream(stream1: OutputStream, stream2: OutputStream) extends PrintStream(new OutputStream {
+  def write(b: Int): Unit = {
+    stream1.write(b)
+    stream2.write(b)
+  }
+  override def write(b: Array[Byte]): Unit = {
+    stream1.write(b)
+    stream2.write(b)
+  }
+  override def write(b: Array[Byte], off: Int, len: Int) = {
+    stream1.write(b, off, len)
+    stream2.write(b, off, len)
+  }
+  override def flush() = {
+    stream1.flush()
+    stream2.flush()
+  }
+  override def close() = {
+    stream1.close()
+    stream2.close()
+  }
+})
+
+case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) extends Logger {
+
+
+  lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
+
+  lazy val errorStream: PrintStream = new MultiStream(logger1.errorStream, logger2.errorStream)
+
+  lazy val inStream = Seq(logger1, logger2).collectFirst{case t: PrintLogger => t} match{
     case Some(x) => x.inStream
     case None => new ByteArrayInputStream(Array())
   }
 
-  def info(s: String) = streams.foreach(_.info(s))
-  def error(s: String) = streams.foreach(_.error(s))
-  def ticker(s: String) = streams.foreach(_.ticker(s))
-  override def close() = streams.foreach(_.close())
+  def info(s: String) = {
+    logger1.info(s)
+    logger2.info(s)
+  }
+  def error(s: String) = {
+    logger1.error(s)
+    logger2.error(s)
+  }
+  def ticker(s: String) = {
+    logger1.ticker(s)
+    logger2.ticker(s)
+  }
+
+  override def close() = {
+    logger1.close()
+    logger2.close()
+  }
 }

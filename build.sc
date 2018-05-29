@@ -9,6 +9,7 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+
 import upickle.Js
 trait MillPublishModule extends PublishModule{
 
@@ -30,7 +31,7 @@ trait MillPublishModule extends PublishModule{
 }
 
 object moduledefs extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
@@ -38,7 +39,7 @@ object moduledefs extends MillPublishModule with ScalaModule{
 }
 
 trait MillModule extends MillPublishModule with ScalaModule{ outer =>
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -80,7 +81,7 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-21-ccc8024",
+    ivy"com.lihaoyi:::ammonite:1.1.2-6-27842d9",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -124,6 +125,18 @@ object main extends MillModule {
       def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
+
+  object graphviz extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"guru.nidi:graphviz-java:0.2.3",
+      ivy"org.jgrapht:jgrapht-core:1.2.0"
+    )
+    def testArgs = Seq(
+      "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
+    )
+  }
 }
 
 
@@ -148,14 +161,19 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     worker.testArgs() ++
-    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    main.graphviz.testArgs() ++
+    Seq(
+      "-Djna.nosys=true",
+      "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+      "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 
   object worker extends MillModule{
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"org.scala-sbt::zinc:1.1.4"
+      ivy"org.scala-sbt::zinc:1.1.5"
     )
     def testArgs = Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -196,6 +214,12 @@ object scalajslib extends MillModule {
   }
 }
 
+object twirllib extends MillModule {
+
+  def moduleDeps = Seq(scalalib)
+
+}
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -223,6 +247,7 @@ object integration extends MillModule{
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
@@ -243,10 +268,10 @@ def launcherScript(shellJvmArgs: Seq[String],
 
       s"""case "$$1" in
          |  -i | --interactive )
-         |    ${java("mill.Main")}
+         |    ${java("mill.MillMain")}
          |    ;;
          |  *)
-         |    ${java("mill.main.client.Main")}
+         |    ${java("mill.main.client.MillClientMain")}
          |    ;;
          |esac""".stripMargin
     },
@@ -258,9 +283,9 @@ def launcherScript(shellJvmArgs: Seq[String],
       s"""if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if defined _I_ (
-         |  ${java("mill.Main")}
+         |  ${java("mill.MillMain")}
          |) else (
-         |  ${java("mill.main.client.Main")}
+         |  ${java("mill.main.client.MillClientMain")}
          |)""".stripMargin
     }
   )
@@ -316,7 +341,10 @@ object dev extends MillModule{
     val classpath = runClasspath().map(_.path.toString)
     val args = forkArgs().distinct
     val (shellArgs, cmdArgs) =
-      if (!scala.util.Properties.isWin) (args, args)
+      if (!scala.util.Properties.isWin) (
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+      )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
         Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
@@ -345,6 +373,7 @@ def release = T{
   val dest = T.ctx().dest
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val args = Seq(
+    "-DMILL_CLASSPATH=$0",
     "-DMILL_VERSION=" + publishVersion()._2,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130

@@ -22,7 +22,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
                  stateCache0: Option[Evaluator.State] = None,
-                 env : Map[String, String])
+                 env : Map[String, String],
+                 setIdle: Boolean => Unit)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -35,8 +36,9 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     def statAll() = watched.forall{ case (file, lastMTime) =>
       Interpreter.pathSignature(file) == lastMTime
     }
-
+    setIdle(true)
     while(statAll()) Thread.sleep(100)
+    setIdle(false)
   }
 
   /**

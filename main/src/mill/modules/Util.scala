@@ -2,8 +2,9 @@ package mill.modules
 
 
 import ammonite.ops.{Path, RelPath, empty, mkdir, read}
+import coursier.Repository
 import mill.eval.PathRef
-import mill.util.{Ctx, IO}
+import mill.util.{Ctx, IO, Loose}
 
 object Util {
   def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.Dest) = {
@@ -53,5 +54,28 @@ object Util {
       }
     })()
     PathRef(ctx.dest / dest)
+  }
+
+  def millProjectModule(key: String,
+                        artifact: String,
+                        repositories: Seq[Repository],
+                        resolveFilter: Path => Boolean = _ => true) = {
+    val localPath = sys.props(key)
+    if (localPath != null) {
+      mill.eval.Result.Success(
+        Loose.Agg.from(localPath.split(',').map(p => PathRef(Path(p), quick = true)))
+      )
+    } else {
+      mill.modules.Jvm.resolveDependencies(
+        repositories,
+        Seq(
+          coursier.Dependency(
+            coursier.Module("com.lihaoyi", artifact + "_2.12"),
+            sys.props("MILL_VERSION")
+          )
+        ),
+        Nil
+      ).map(_.filter(x => resolveFilter(x.path)))
+    }
   }
 }

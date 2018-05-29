@@ -4,7 +4,7 @@ import java.io.RandomAccessFile;
 import java.nio.channels.FileChannel;
 import java.util.concurrent.locks.ReentrantLock;
 
-public class Locks{
+public class Locks implements AutoCloseable{
     public Lock processLock;
     public Lock serverLock;
     public Lock clientLock;
@@ -23,6 +23,13 @@ public class Locks{
             this.serverLock = new MemoryLock();
             this.clientLock = new MemoryLock();
         }};
+    }
+
+    @Override
+    public void close() throws Exception {
+        processLock.close();
+        serverLock.close();
+        clientLock.close();
     }
 }
 class FileLocked implements Locked{
@@ -61,6 +68,12 @@ class FileLock extends Lock{
             return true;
         }
     }
+
+    @Override
+    public void close() throws Exception {
+        raf.close();
+        chan.close();
+    }
 }
 class MemoryLocked implements Locked{
     java.util.concurrent.locks.Lock l;
@@ -85,5 +98,10 @@ class MemoryLock extends Lock{
     public Locked tryLock() {
         if (innerLock.tryLock()) return new MemoryLocked(innerLock);
         else return null;
+    }
+
+    @Override
+    public void close() throws Exception {
+        innerLock.unlock();
     }
 }

@@ -1,12 +1,15 @@
 package mill.main
 
 import ammonite.ops.Path
-import mill.define.{NamedTask, Task}
-import mill.eval.{Evaluator, Result}
-import mill.util.{PrintLogger, Watched}
+import coursier.Cache
+import coursier.maven.MavenRepository
+import mill.T
+import mill.define.{Graph, NamedTask, Task}
+import mill.eval.{Evaluator, PathRef, Result}
+import mill.util.{Loose, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
-
+import mill.util.JsonFormatters._
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -217,4 +220,16 @@ trait MainModule extends mill.Module{
     }
   }
 
+  def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    )
+    resolved match{
+      case Left(err) => Result.Failure(err)
+      case Right(rs) =>
+        val (in, out) = mill.main.VisualizeModule.worker()
+        in.put((rs, T.ctx().dest))
+        out.take()
+    }
+  }
 }

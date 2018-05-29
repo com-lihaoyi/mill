@@ -117,7 +117,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     for {
       root <- allSources()
       if exists(root.path)
-      path <- ls.rec(root.path)
+      path <- (if (root.path.isDir) ls.rec(root.path) else Seq(root.path))
       if path.isFile && (path.ext == "scala" || path.ext == "java")
     } yield PathRef(path)
   }
@@ -187,8 +187,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val files = for{
       ref <- allSources()
       if exists(ref.path)
-      p <- ls.rec(ref.path)
-      if p.isFile
+      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
+      if p.isFile && (p.ext == "java")
     } yield p.toNIO.toString
 
     val options = Seq("-d", javadocDir.toNIO.toString)
@@ -303,8 +303,8 @@ trait TestModule extends JavaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalalib.worker.ScalaWorker",
-      classPath = ScalaWorkerModule.classpath(),
+      mainClass = "mill.scalalib.TestRunner",
+      classPath = ScalaWorkerModule.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =
@@ -330,7 +330,7 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    Lib.runTests(
+    TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
