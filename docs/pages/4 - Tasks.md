@@ -32,12 +32,13 @@ def run(mainClsName: String) = T.command{
 }
 ```
 
-Here, we have two `T.source`s, `sourceRoot` and `resourceRoot`, which act as the
+
+Here, we have two `T.sources`s, `sourceRoot` and `resourceRoot`, which act as the
 roots of our task graph. `allSources` depends on `sourceRoot` by calling
 `sourceRoot()` to extract it's value, `classFiles` depends on `allSources` the
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
 
-Filesystem o1perations in Mill are done using the
+Filesystem operations in Mill are done using the
 [Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library.
 
 The above build defines the following task graph:
@@ -71,7 +72,7 @@ arbitrary result from it's inputs.
 There are four primary kinds of *Tasks* that you should care about:
 
 - [Targets](#targets), defined using `T{...}`
-- [Sources](#sources), defined using `T.source{...}`
+- [Sources](#sources), defined using `T.sources{...}`
 - [Commands](#commands), defined using `T.command{...}`
 
 ### Targets
@@ -121,13 +122,13 @@ def sourceRootPath = pwd / 'src
 def sourceRoots = T.sources{ sourceRootPath }
 ```
 
-`Source`s are defined using `T.source{ ... }`, taking one-or-more
+`Source`s are defined using `T.sources{ ... }`, taking one-or-more
 `ammonite.ops.Path`s as arguments. A `Source` is a subclass of
 `Target[Seq[PathRef]]`: this means that it's build signature/`hashCode` depends
 not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of
 the filesystem tree under that path.
 
-`T.source` also has an overload which takes `Seq[PathRef]`, to let you
+`T.sources` also has an overload which takes `Seq[PathRef]`, to let you
 override-and-extend source lists the same way you would any other `T{...}`
 definition:
 

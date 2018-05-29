@@ -5,7 +5,7 @@
         <content url="file://$MODULE_DIR$/../target/workspace/mill/scalalib/GenIdeaTests/helloWorldEvaluator/generatedSources/dest"/>
         <content url="file://$MODULE_DIR$/../target/workspace/gen-idea">
             <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/src" isTestSource="false"/>
-            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/resources" isTestSource="false" type="java-resource"/>
+            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/resources" type="java-resource"/>
             <excludeFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea/target"/>
         </content>
         <orderEntry type="inheritedJdk"/>

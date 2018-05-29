@@ -213,6 +213,28 @@ You can use Scala compiler plugins by setting `scalacPluginIvyDeps`. The above
 example also adds the plugin to `compileIvyDeps`, since that plugin's artifact
 is needed on the compilation classpath (though not at runtime).
 
+## Reformatting your code
+
+Mill supports code formatting via [scalafmt](https://scalameta.org/scalafmt/) out of the box.
+
+To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+import mill.scalalib.scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = "2.12.4"
+}
+```
+
+Now you can reformat code with `mill foo.reformat` command.
+
+You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
+It will reformat all sources that matches `__.sources` query.
+
 ## Common Configuration
 
 ```scala

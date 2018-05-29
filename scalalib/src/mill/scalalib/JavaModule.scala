@@ -117,7 +117,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     for {
       root <- allSources()
       if exists(root.path)
-      path <- ls.rec(root.path)
+      path <- (if (root.path.isDir) ls.rec(root.path) else Seq(root.path))
       if path.isFile && (path.ext == "scala" || path.ext == "java")
     } yield PathRef(path)
   }
@@ -187,7 +187,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val files = for{
       ref <- allSources()
       if exists(ref.path)
-      p <- ls.rec(ref.path)
+      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
       if p.isFile && (p.ext == "java")
     } yield p.toNIO.toString
 
@@ -250,14 +250,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def run(args: String*) = T.command{
-    Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.interactiveSubprocess(
       finalMainClass(),
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
       args,
       workingDir = ammonite.ops.pwd
-    )
+    )) catch { case e: InteractiveShelloutException =>
+       Result.Failure("subprocess failed")
+    }
   }
 
 
@@ -270,14 +272,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def runMain(mainClass: String, args: String*) = T.command{
-    Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.interactiveSubprocess(
       mainClass,
       runClasspath().map(_.path),
       forkArgs(),
       forkEnv(),
       args,
       workingDir = ammonite.ops.pwd
-    )
+    )) catch { case e: InteractiveShelloutException =>
+      Result.Failure("subprocess failed")
+    }
   }
 
   // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
@@ -285,6 +289,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
   def artifactId: T[String] = artifactName()
+
+  def intellijModulePath: Path = millSourcePath
 }
 
 trait TestModule extends JavaModule with TaskModule {
@@ -297,24 +303,28 @@ trait TestModule extends JavaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalaworker.ScalaWorker",
+      mainClass = "mill.scalalib.worker.ScalaWorker",
       classPath = ScalaWorkerModule.classpath(),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =
         Seq(testFrameworks().length.toString) ++
-          testFrameworks() ++
-          Seq(runClasspath().length.toString) ++
-          runClasspath().map(_.path.toString) ++
-          Seq(args.length.toString) ++
-          args ++
-          Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+        testFrameworks() ++
+        Seq(runClasspath().length.toString) ++
+        runClasspath().map(_.path.toString) ++
+        Seq(args.length.toString) ++
+        args ++
+        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
       workingDir = forkWorkingDir
     )
 
-    val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
-    TestModule.handleResults(doneMsg, results)
+    try {
+      val jsonOutput = ujson.read(outputPath.toIO)
+      val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+      TestModule.handleResults(doneMsg, results)
+    }catch{case e: Throwable =>
+      Result.Failure("Test reporting failed: " + e)
+    }
 
   }
   def testLocal(args: String*) = T.command{

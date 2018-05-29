@@ -35,8 +35,9 @@ pacaur -S mill
 
 ### Windows
 
-To get started, download Mill from: https://github.com/lihaoyi/mill/releases/download/0.1.8/0.1.8,
-and save it as `mill.bat`.
+To get started, download Mill from:
+https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2, and save it as
+`mill.bat`.
 
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
@@ -45,15 +46,13 @@ Mill also works on a sh environment on Windows (e.g.,
 [WSL](https://docs.microsoft.com/en-us/windows/wsl);
 to get started, follow the instructions in the [manual](#manual) section below. Note that:
 
-* In some environments (such as WSL), mill has be run using interactive mode (`-i`)
+* In some environments (such as WSL), mill might have to be run using interactive mode (`-i`)
 
-* Git-Bash: run the instruciton in administrator mode instead of `sudo`
+* On Cygwin, run the following after downloading mill:
 
-* Cygwin: run the following after downloading mill:
-
-  ```bash
-  sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
-  ```
+```bash
+sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+```
 
 ### Manual
 
@@ -61,7 +60,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L -o /usr/local/bin/mill https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7 && sudo chmod +x /usr/local/bin/mill
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -70,6 +69,7 @@ In case you want to try out the latest features and improvements that are
 currently in master, unstable versions of Mill are
 [available](https://github.com/lihaoyi/mill/releases) as binaries named 
 `#.#.#-n-hash` linked to the latest tag.
+Installing the latest unstable release is recommended for bootstrapping mill.
 
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
@@ -179,8 +179,8 @@ respective `out/foo/bar/` folder.
 ```scala
 // build.sc
 import mill._, mill.scalalib._
-object foo extends ScalaModule
-object bar extends ScalaModule {
+object foo extends JavaModule
+object bar extends JavaModule {
   def moduleDeps = Seq(foo)
 }
 ```
@@ -341,7 +341,7 @@ $ mill resolve _.compile
 main.compile
 moduledefs.compile
 core.compile
-scalaworker.compile
+scalalib.worker.compile
 scalalib.compile
 scalajslib.compile
 integration.compile
@@ -457,9 +457,29 @@ $ mill show foo.compileDepClasspath
 `show` is also useful for interacting with Mill from external tools, since the
 JSON it outputs is structured and easily parsed & manipulated.
 
+### clean
+
+```bash
+$ mill clean
+```
+
+`clean` deletes all the cached outputs of previously executed tasks. It can
+apply to the entire project, entire modules, or specific tasks.
+
+```bash
+mill clean                     # clean all outputs
+mill clean foo                 # clean all outputs for module 'foo' (including nested modules)
+mill clean foo.compile         # only clean outputs for task 'compile' in module 'foo'
+mill clean foo.{compile,run}
+mill clean "foo.{compile,run}"
+mill clean foo.compile foo.run
+mill clean _.compile
+mill clean __.compile
+```
+
 ## IntelliJ Support
 
-Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdeaModule/idea` to
+Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
 generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within
@@ -541,14 +561,14 @@ $ java -cp out/foo/assembly/dest/out.jar foo.Example
 Hello World!
 ```
 
-To publish to Maven Central, you need to make `foo` extend Mill's
+To publish to Maven Central, you need to make `foo` also extend Mill's
 `PublishModule` trait:
 
 ```scala
 // build.sc
 import mill._, scalalib._, publish._
 
-object foo extends PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"
 
@@ -590,3 +610,37 @@ complete the release process to Maven Central.
 
 If you are publishing multiple artifacts, you can also use `mill mill.scalalib.PublishModule/publishAll` as described
 [here](http://www.lihaoyi.com/mill/page/common-project-layouts.html#publishing)
+
+## Structure of the `out/` folder
+
+The `out/` folder contains all the generated files & metadata for your build. It
+is structured with one folder per `Target`/`Command`, that is run, e.g.:
+
+- `out/core/compile/`
+- `out/main/test/compile/`
+- `out/main/test/forkTest/`
+- `out/scalalib/compile/`
+
+Each folder currently contains the following files:
+
+- `dest/`: a path for the `Task` to use either as a scratch space, or to place
+  generated files that are returned using `PathRef`s. `Task`s should only output
+  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  conflicting with other `Task`s, but files within `dest/` can be named
+  arbitrarily.
+
+- `log`: the `stdout`/`stderr` of the `Task`. This is also streamed to the
+  console during evaluation.
+
+- `meta.json`: the cache-key and JSON-serialized return-value of the
+  `Target`/`Command`. The return-value can also be retrieved via `mill show
+  core.compile`. Binary blobs are typically not included in `meta.json`, and
+  instead stored as separate binary files in `dest/` which are then referenced
+  by `meta.json` via `PathRef`s
+
+The `out/` folder is intentionally kept simplistic and user-readable. If your
+build is not behaving as you would expect, feel free to poke around the various
+`dest/` folders to see what files are being created, or the `meta.json` files to
+see what is being returned by a particular task. You can also simply delete
+folders within `out/` if you want to force portions of your project to be
+re-built, e.g. deleting the `out/main/` or `out/main/test/compile/` folders.

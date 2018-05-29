@@ -13,6 +13,9 @@ object GenIdeaTests extends TestSuite {
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
     override def millSourcePath = GenIdeaTests.millSourcePath
+    object test extends super.Tests {
+      def testFrameworks = Seq("utest.runner.Framework")
+    }
   }
 
   object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
@@ -34,6 +37,8 @@ object GenIdeaTests extends TestSuite {
       Seq(
         "gen-idea/idea_modules/iml" ->
           millSourcePath / "generated" / ".idea_modules" /".iml",
+        "gen-idea/idea_modules/test.iml" ->
+          millSourcePath / "generated" / ".idea_modules" /"test.iml",
         "gen-idea/idea_modules/mill-build.iml" ->
           millSourcePath / "generated" / ".idea_modules" /"mill-build.iml",
         "gen-idea/idea/libraries/scala-library-2.12.4.jar.xml" ->

@@ -154,5 +154,42 @@ mill foo.Bar/qux
 that is shared by the entire build: for example,
 `mill.scalalib.ScalaWorkerApi/scalaWorker` provides a shared Scala compilation
 service & cache that is shared between all `ScalaModule`s, and
-`mill.scalalib.GenIdeaModule/idea` lets you generate IntelliJ projects without
+`mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `T.command` in your `build.sc` file
+
+## Foreign Modules 
+
+Mill can load other mill projects from external (or sub) directories, 
+using Ammonite's `$file` magic import, allowing to depend on foreign modules. 
+This allows, for instance, to depend on other projects' sources, or split 
+your build logic into smaller files.
+     
+
+For instance, assuming the following stucture : 
+
+```text
+foo/
+    build.sc
+    bar/
+        build.sc 
+baz/
+    build.sc     
+```
+
+you can write the following in `foo/build.sc` : 
+
+```scala
+
+import $file.bar.build
+import $file.^.baz.build
+import mill._ 
+
+def someFoo = T {
+
+    ^.baz.build.someBaz(...)
+    bar.build.someBar(...) 
+    ...
+}
+```
+
+The output of the foreign tasks will be cached under `foo/out/foreign-modules/`. 

@@ -6,7 +6,9 @@ object BaseModule{
   case class Implicit(value: BaseModule)
 }
 
-abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
+abstract class BaseModule(millSourcePath0: Path,
+                          external0: Boolean = false,
+                          foreign0 : Boolean = false)
                          (implicit millModuleEnclosing0: sourcecode.Enclosing,
                           millModuleLine0: sourcecode.Line,
                           millName0: sourcecode.Name,
@@ -20,6 +22,7 @@ abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
       Segments(),
       mill.util.Router.Overrides(0),
       Ctx.External(external0),
+      Ctx.Foreign(foreign0),
       millFile0
     )
   ){
@@ -37,7 +40,7 @@ abstract class BaseModule(millSourcePath0: Path, external0: Boolean = false)
 abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                               millModuleLine0: sourcecode.Line,
                               millName0: sourcecode.Name)
-  extends BaseModule(ammonite.ops.pwd, external0 = true){
+  extends BaseModule(ammonite.ops.pwd, external0 = true, foreign0 = false){
 
   implicit def millDiscoverImplicit: Discover[_] = millDiscover
   assert(

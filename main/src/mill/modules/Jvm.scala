@@ -9,7 +9,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import geny.Generator
-import mill.client.InputPumper
+import mill.main.client.InputPumper
 import mill.eval.PathRef
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
@@ -342,12 +342,14 @@ object Jvm {
   def launcherUniversalScript(mainClass: String,
                               shellClassPath: Agg[String],
                               cmdClassPath: Agg[String],
-                              jvmArgs: Seq[String]) = {
+                              jvmArgs: Seq[String],
+                              shebang: Boolean = false) = {
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
       cmdCommands =
         s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
+      shebang = shebang
     )
   }
   def createLauncher(mainClass: String,

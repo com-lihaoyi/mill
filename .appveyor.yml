@@ -10,21 +10,18 @@ clone_folder: c:\mill
 environment:
   matrix:
   - COMPILER: default
-    JAVA_HOME: C:\Program Files\Java\jdk9
+    JAVA_HOME: C:\Program Files\Java\jdk1.8.0
   - COMPILER: cygwin
     CYGWIN_DIR: cygwin64
-    JAVA_HOME: C:\Program Files\Java\jdk9
+    JAVA_HOME: C:\Program Files\Java\jdk10
   - COMPILER: msys2
     MSYS2_ARCH: x86_64
     MSYS2_DIR: msys64
     MSYSTEM: MINGW64
-    JAVA_HOME: C:\Program Files\Java\jdk1.8.0
-
-cache:
-  - '%LOCALAPPDATA%\Coursier\cache -> build.sc'
+    JAVA_HOME: C:\Program Files\Java\jdk10
 
 install:
-  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.1.7/0.1.7-97-00b10e
+  - SET MILL_URL=https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0-36-f8d1e7
 
 build_script:
   - if [%COMPILER%]==[default] (
@@ -32,14 +29,16 @@ build_script:
       MD C:\bin &&
       curl -Lo C:\bin\mill.bat %MILL_URL% &&
       cmd /C C:\bin\mill.bat -i all __.publishLocal release &&
+      RD /S /Q %USERPROFILE%\.mill &&
       cmd /C C:\mill\out\release\dest\mill.bat -i all main.test scalajslib.test)
   - if [%COMPILER%]==[msys2] (
       SET "PATH=%JAVA_HOME%\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'mkdir -p /usr/local/bin' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
-      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i all __.publishLocal release" &&
-      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/release/dest/mill -i all main.test scalajslib.test")
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i dev.assembly" &&
+      RD /S /Q %USERPROFILE%\.mill &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/dev/assembly/dest/mill.bat -i all main.test scalajslib.test")
   - if [%COMPILER%]==[cygwin] (
       SET "PATH=%JAVA_HOME%\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%" &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'mkdir -p /usr/local/bin' &&

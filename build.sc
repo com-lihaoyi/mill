@@ -30,7 +30,7 @@ trait MillPublishModule extends PublishModule{
 }
 
 object moduledefs extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def ivyDeps = Agg(
     ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
     ivy"com.lihaoyi::sourcecode:0.1.4"
@@ -38,7 +38,7 @@ object moduledefs extends MillPublishModule with ScalaModule{
 }
 
 trait MillModule extends MillPublishModule with ScalaModule{ outer =>
-  def scalaVersion = T{ "2.12.4" }
+  def scalaVersion = T{ "2.12.6" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -64,19 +64,6 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   }
 }
 
-object client extends MillPublishModule{
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
-      "net.java.dev.jna" -> "jna",
-      "net.java.dev.jna" -> "jna-platform"
-    )
-  )
-  object test extends Tests{
-    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-    def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-  }
-}
-
 
 object testng extends MillPublishModule{
   def ivyDeps = Agg(
@@ -93,7 +80,7 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.0-14-037b8eb",
+    ivy"com.lihaoyi:::ammonite:1.1.2",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -124,18 +111,19 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
-}
 
-
-object scalaworker extends MillModule{
-  def moduleDeps = Seq(main, scalalib)
-
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt::zinc:1.1.4"
-  )
-  def testArgs = Seq(
-    "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
-  )
+  object client extends MillPublishModule{
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
+        "net.java.dev.jna" -> "jna",
+        "net.java.dev.jna" -> "jna-platform"
+      )
+    )
+    object test extends Tests{
+      def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+      def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+    }
+  }
 }
 
 
@@ -159,8 +147,19 @@ object scalalib extends MillModule {
       genTask(scalalib)() ++
       genTask(scalajslib)()
 
-    scalaworker.testArgs() ++
+    worker.testArgs() ++
     Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+  }
+
+  object worker extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt::zinc:1.1.5"
+    )
+    def testArgs = Seq(
+      "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 }
 
@@ -174,7 +173,7 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
       "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
-    Seq("-Djna.nosys=true") ++ scalaworker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    Seq("-Djna.nosys=true") ++ scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
@@ -220,7 +219,7 @@ object integration extends MillModule{
   def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
   def testArgs = T{
     scalajslib.testArgs() ++
-    scalaworker.testArgs() ++
+    scalalib.worker.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -231,83 +230,71 @@ object integration extends MillModule{
   def forkArgs = testArgs()
 }
 
-private def universalScript(shellCommands: String,
-                            cmdCommands: String,
-                            shebang: Boolean = false): String = {
-  Seq(
-    if (shebang) "#!/usr/bin/env sh" else "",
-    "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
-    ":",
-    shellCommands.replaceAll("\r\n|\n", "\n"),
-    "exit",
-    Seq(
-      "",
-      ":BOF",
-      "@echo off",
-      cmdCommands.replaceAll("\r\n|\n", "\r\n"),
-      "exit /B %errorlevel%",
-      ""
-    ).mkString("\r\n")
-  ).filterNot(_.isEmpty).mkString("\n")
-}
 
-def launcherScript(jvmArgs: Seq[String],
+def launcherScript(shellJvmArgs: Seq[String],
+                   cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
                    cmdClassPath: Agg[String]) = {
-  val jvmArgsStr = jvmArgs.mkString(" ")
-  universalScript(
+  mill.modules.Jvm.universalScript(
     shellCommands = {
+      val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
         s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
       s"""case "$$1" in
          |  -i | --interactive )
-         |    ${java("mill.Main")}
+         |    ${java("mill.MillMain")}
          |    ;;
          |  *)
-         |    ${java("mill.client.Main")}
+         |    ${java("mill.main.client.MillClientMain")}
          |    ;;
          |esac""".stripMargin
     },
     cmdCommands = {
+      val jvmArgsStr = cmdJvmArgs.mkString(" ")
       def java(mainClass: String) =
         s"""java $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
 
       s"""if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if defined _I_ (
-         |  ${java("mill.Main")}
+         |  ${java("mill.MillMain")}
          |) else (
-         |  ${java("mill.client.Main")}
+         |  ${java("mill.main.client.MillClientMain")}
          |)""".stripMargin
     }
   )
 }
 
-val isBatch =
-  scala.util.Properties.isWin &&
-    !(org.jline.utils.OSUtils.IS_CYGWIN
-      || org.jline.utils.OSUtils.IS_MINGW
-      || "MSYS" == System.getProperty("MSYSTEM"))
-
-
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs =
-    scalalib.testArgs() ++
-    scalajslib.testArgs() ++
-    scalaworker.testArgs() ++
-    // Workaround for Zinc/JNA bug
-    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-    Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)
+    (scalalib.testArgs() ++
+     scalajslib.testArgs() ++
+     scalalib.worker.testArgs() ++
+     // Workaround for Zinc/JNA bug
+     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+     Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)).distinct
+
+  // Pass dev.assembly VM options via file in Window due to small max args limit
+  def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
+    if (System.getProperty("java.specification.version").startsWith("1.")) {
+      throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
+    }
+    val vmOptionsFile = T.ctx().dest / "mill.vmoptions"
+    T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
+    write(vmOptionsFile, args.mkString("\r\n"))
+  }
 
   def launcher = T{
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx().dest / (if (isBatch) "run.bat" else "run")
+    val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
 
     write(outputPath, prependShellScript())
 
-    if (!isWin) {
+    if (isWin) {
+      windowsVmOptions("dev.launcher", outputPath, forkArgs())
+    } else {
       val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)
@@ -318,14 +305,26 @@ object dev extends MillModule{
   }
 
   def assembly = T{
-    val filename = if (isBatch) "mill.bat" else "mill"
-    mv(super.assembly().path, T.ctx().dest / filename)
-    PathRef(T.ctx().dest / filename)
+    val isWin = scala.util.Properties.isWin
+    val millPath = T.ctx().dest / (if (isWin) "mill.bat" else "mill")
+    mv(super.assembly().path, millPath)
+    if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
+    PathRef(millPath)
   }
 
   def prependShellScript = T{
     val classpath = runClasspath().map(_.path.toString)
-    launcherScript(forkArgs(), classpath, classpath)
+    val args = forkArgs().distinct
+    val (shellArgs, cmdArgs) =
+      if (!scala.util.Properties.isWin) (
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
+        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+      )
+      else (
+        Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
+        Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
+      )
+    launcherScript(shellArgs, cmdArgs, classpath, classpath)
   }
 
   def run(args: String*) = T.command{
@@ -347,17 +346,20 @@ object dev extends MillModule{
 
 def release = T{
   val dest = T.ctx().dest
-  val filename = if (isBatch) "mill.bat" else "mill"
+  val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
+  val args = Seq(
+    "-DMILL_CLASSPATH=$0",
+    "-DMILL_VERSION=" + publishVersion()._2,
+    // Workaround for Zinc/JNA bug
+    // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+    "-Djna.nosys=true"
+  )
   mv(
     createAssembly(
       dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        Seq(
-          "-DMILL_VERSION=" + publishVersion()._2,
-          // Workaround for Zinc/JNA bug
-          // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-          "-Djna.nosys=true"
-        ),
+        args,
+        args,
         Agg("$0"),
         Agg("%~dpnx0")
       )
@@ -396,8 +398,7 @@ def publishVersion = T.input{
       val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
 
       val commitsSinceLastTag =
-        %%('git, "rev-list", gitHead(), "--count")(pwd).out.trim.toInt -
-        %%('git, "rev-list", latestTaggedVersion, "--count")(pwd).out.trim.toInt
+        %%('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count")(pwd).out.trim.toInt
 
       (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
   }

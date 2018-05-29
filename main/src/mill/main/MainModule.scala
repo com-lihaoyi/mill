@@ -1,10 +1,12 @@
 package mill.main
 
+import ammonite.ops.Path
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
+import mill.util.{PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
+
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -35,6 +37,9 @@ trait MainModule extends mill.Module{
     println(res)
     res
   }
+
+  private val OutDir: String = "out"
+
   /**
     * Resolves a mill query string and prints out the tasks it resolves to.
     */
@@ -177,4 +182,39 @@ trait MainModule extends mill.Module{
       }
     }
   }
+
+  /**
+    * Deletes the given targets from the out directory. Providing no targets
+    * will clean everything.
+    */
+  def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
+    val rootDir = ammonite.ops.pwd / OutDir
+
+    val KeepPattern = "(mill-.+)".r.anchored
+
+    def keepPath(path: Path) = path.segments.lastOption match {
+      case Some(KeepPattern(_)) => true
+      case _ => false
+    }
+
+    val pathsToRemove =
+      if (targets.isEmpty)
+        Right(ammonite.ops.ls(rootDir).filterNot(keepPath))
+      else
+        RunScript.resolveTasks(
+          mill.main.ResolveSegments, evaluator, targets, multiSelect = true
+        ).map(
+          _.map { segments =>
+            Evaluator.resolveDestPaths(rootDir, segments).out
+          })
+
+    pathsToRemove match {
+      case Left(err) =>
+        Result.Failure(err)
+      case Right(paths) =>
+        paths.foreach(ammonite.ops.rm)
+        Result.Success(())
+    }
+  }
+
 }

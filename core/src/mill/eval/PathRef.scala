@@ -28,7 +28,7 @@ object PathRef{
       // Handle symbolic links.
       jnio.Files.walkFileTree(
         path.toNIO,
-        java.util.EnumSet.of(FileVisitOption.FOLLOW_LINKS),
+        java.util.EnumSet.of(jnio.FileVisitOption.FOLLOW_LINKS),
         Integer.MAX_VALUE,
         new FileVisitor[jnio.Path] {
           def preVisitDirectory(dir: jnio.Path, attrs: BasicFileAttributes) = {
