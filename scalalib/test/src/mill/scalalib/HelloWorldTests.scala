@@ -19,7 +19,7 @@ import scala.collection.JavaConverters._
 
 object HelloWorldTests extends TestSuite {
   trait HelloBase extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
@@ -40,25 +40,25 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldWithoutMain extends HelloBase {
     object core extends HelloWorldModule{
-      def mainClass = None
+      override def mainClass = None
     }
   }
 
   object HelloWorldWithMain extends HelloBase {
     object core extends HelloWorldModule{
-      def mainClass = Some("Main")
+      override def mainClass = Some("Main")
     }
   }
 
   object HelloWorldWarnUnused extends HelloBase{
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused"))
+      override def scalacOptions = T(Seq("-Ywarn-unused"))
     }
   }
 
   object HelloWorldFatalWarnings extends HelloBase{
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
 
   }
@@ -66,7 +66,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldWithPublish extends HelloBase{
     object core extends HelloWorldModule with PublishModule{
 
-      def artifactName = "hello-world"
+      override def artifactName = "hello-world"
       def publishVersion = "0.0.1"
 
       def pomSettings = PomSettings(
@@ -108,10 +108,10 @@ object HelloWorldTests extends TestSuite {
         else d.copy(module = d.module.copy(organization = "org.typelevel"))
       }
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
@@ -121,10 +121,10 @@ object HelloWorldTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
@@ -134,7 +134,7 @@ object HelloWorldTests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = "2.12.4"
       object test extends Tests {
-        def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        override def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
       }
     }
