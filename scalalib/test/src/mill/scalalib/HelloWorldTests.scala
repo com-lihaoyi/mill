@@ -85,6 +85,14 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldAkkaHttpNoRules extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def ivyDeps = akkaHttpDeps
+
+      def assemblyRules = Seq.empty
+    }
+  }
+
   object HelloWorldMultiAppend extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
@@ -117,6 +125,15 @@ object HelloWorldTests extends TestSuite {
       def moduleDeps = Seq(model)
 
       def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+    }
+    object model extends HelloWorldModule
+  }
+
+  object HelloWorldMultiNoRules extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def moduleDeps = Seq(model)
+
+      def assemblyRules = Seq.empty
     }
     object model extends HelloWorldModule
   }
@@ -568,12 +585,14 @@ object HelloWorldTests extends TestSuite {
             )
           }
 
+        val helloWorldMultiResourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
+
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
             target: Target[PathRef]) =
           workspaceTest(
             module,
-            resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
+            resourcePath = helloWorldMultiResourcePath
           ) { eval =>
             val Right((result, _)) = eval.apply(target)
 
@@ -612,8 +631,10 @@ object HelloWorldTests extends TestSuite {
         )
 
         def checkExclude[M <: TestUtil.BaseModule](module: M,
-                                                   target: Target[PathRef]) =
-          workspaceTest(module) { eval =>
+                                                   target: Target[PathRef],
+                                                   resourcePath: Path = resourcePath
+                                                  ) =
+          workspaceTest(module, resourcePath) { eval =>
             val Right((result, _)) = eval.apply(target)
 
             val jarFile = new JarFile(result.path.toIO)
@@ -627,7 +648,9 @@ object HelloWorldTests extends TestSuite {
         )
         'excludeMultiModule - checkExclude(
           HelloWorldMultiExclude,
-          HelloWorldMultiExclude.core.assembly
+          HelloWorldMultiExclude.core.assembly,
+          resourcePath = helloWorldMultiResourcePath
+
         )
         'excludePatternWithDeps - checkExclude(
           HelloWorldAkkaHttpExcludePattern,
@@ -635,13 +658,52 @@ object HelloWorldTests extends TestSuite {
         )
         'excludePatternMultiModule - checkExclude(
           HelloWorldMultiExcludePattern,
-          HelloWorldMultiExcludePattern.core.assembly
+          HelloWorldMultiExcludePattern.core.assembly,
+          resourcePath = helloWorldMultiResourcePath
         )
 
         'writeFirstWhenNoRule - {
-          // on akka http single module. our reference.conf should not be there
-          // on multi module should contain only core's reference.conf
+          'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
+            val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
+            val jarFile = new JarFile(result.path.toIO)
+
+            assert(jarEntries(jarFile).contains("reference.conf"))
+
+            val referenceContent = readFileFromJar(jarFile, "reference.conf")
+
+            val allOccurrences = Seq(
+              referenceContent.contains("akka-http Reference Config File"),
+              referenceContent.contains("Akka Actor Reference Config File"),
+              referenceContent.contains("Akka Stream Reference Config File"),
+              referenceContent.contains("My application Reference Config File")
+            )
+
+            val timesOcccurres = allOccurrences.find(identity).size
+
+            assert(timesOcccurres == 1)
+          }
+
+          'multiModule - workspaceTest(
+            HelloWorldMultiNoRules,
+            resourcePath = helloWorldMultiResourcePath
+          ) { eval =>
+            val Right((result, _)) = eval.apply(HelloWorldMultiNoRules.core.assembly)
+
+            val jarFile = new JarFile(result.path.toIO)
+
+            assert(jarEntries(jarFile).contains("reference.conf"))
+
+            val referenceContent = readFileFromJar(jarFile, "reference.conf")
+
+            assert(
+              referenceContent.contains("Model Reference Config File"),
+              referenceContent.contains("foo.bar=2"),
+
+              !referenceContent.contains("Core Reference Config File"),
+              !referenceContent.contains("bar.baz=hello")
+            )
+          }
         }
       }
 
