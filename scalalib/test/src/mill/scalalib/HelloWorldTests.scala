@@ -575,6 +575,7 @@ object HelloWorldTests extends TestSuite {
             assert(
               // akka modules configs are present
               referenceContent.contains("akka-http Reference Config File"),
+              referenceContent.contains("akka-http-core Reference Config File"),
               referenceContent.contains("Akka Actor Reference Config File"),
               referenceContent.contains("Akka Stream Reference Config File"),
               // our application config is present too
@@ -674,6 +675,7 @@ object HelloWorldTests extends TestSuite {
 
             val allOccurrences = Seq(
               referenceContent.contains("akka-http Reference Config File"),
+              referenceContent.contains("akka-http-core Reference Config File"),
               referenceContent.contains("Akka Actor Reference Config File"),
               referenceContent.contains("Akka Stream Reference Config File"),
               referenceContent.contains("My application Reference Config File")
