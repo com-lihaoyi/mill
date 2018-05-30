@@ -57,7 +57,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = T { Seq(Assembly.Rule.Append("reference.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
   }
 
@@ -65,7 +65,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = T { Seq(Assembly.Rule.Exclude("reference.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
   }
 
@@ -73,7 +73,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = T { Seq(Assembly.Rule.AppendPattern(".*.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
   }
 
@@ -81,7 +81,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = T { Seq(Assembly.Rule.ExcludePattern(".*.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
   }
 
@@ -89,7 +89,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
 
-      def assemblyRules = T { Seq(Assembly.Rule.Append("reference.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
     object model extends HelloWorldModule
   }
@@ -98,7 +98,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
 
-      def assemblyRules = T { Seq(Assembly.Rule.Exclude("reference.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
     object model extends HelloWorldModule
   }
@@ -107,7 +107,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
 
-      def assemblyRules = T { Seq(Assembly.Rule.AppendPattern(".*.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
     object model extends HelloWorldModule
   }
@@ -116,7 +116,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModuleWithMain {
       def moduleDeps = Seq(model)
 
-      def assemblyRules = T { Seq(Assembly.Rule.ExcludePattern(".*.conf")) }
+      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
     object model extends HelloWorldModule
   }

@@ -1,15 +1,14 @@
 import $file.shared
 import $file.upload
-import java.io.File
 import java.nio.file.attribute.PosixFilePermission
 
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
+import mill.modules.Assembly
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
-
 import upickle.Js
 trait MillPublishModule extends PublishModule{
 
@@ -393,7 +392,8 @@ def release = T{
         args,
         Agg("$0"),
         Agg("%~dpnx0")
-      )
+      ),
+      assemblyRules = Assembly.defaultRules
     ).path,
     dest / filename
   )

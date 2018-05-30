@@ -108,7 +108,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
-  def assemblyRules: T[Seq[Assembly.Rule]] = T { Assembly.defaultRules }
+  def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
@@ -164,7 +164,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       mainClass(),
-      assemblyRules = assemblyRules()
+      assemblyRules = assemblyRules
     )
   }
 
@@ -174,7 +174,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       mainClass(),
       prependShellScript(),
       Some(upstreamAssembly().path),
-      assemblyRules()
+      assemblyRules
     )
   }
 

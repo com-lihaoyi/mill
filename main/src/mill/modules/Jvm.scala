@@ -265,17 +265,17 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    groupAssemblyEntries(inputPaths, assemblyRules).view
+    Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .map {
         case (mapping, aggregate) =>
           zipFs.getPath(mapping) -> aggregate
       }
       .foreach {
-        case (path, Append(entries)) =>
+        case (path, AppendEntry(entries)) =>
           val concatenated = new SequenceInputStream(
             Collections.enumeration(entries.map(_.inputStream).asJava))
           writeEntry(path, concatenated, append = Files.exists(path))
-        case (path, WriteOnce(entry)) =>
+        case (path, WriteOnceEntry(entry)) =>
           if (Files.notExists(path)) {
             writeEntry(path, entry.inputStream, append = false)
           }
@@ -305,76 +305,6 @@ object Jvm {
     PathRef(output)
   }
 
-  def groupAssemblyEntries(inputPaths: Agg[Path], assemblyRules: Seq[Assembly.Rule]): Map[String, Aggregated] = {
-    import Assembly._
-
-    val rulesMap = assemblyRules.collect {
-      case r@Rule.Append(path) => path -> r
-      case r@Rule.Exclude(path) => path -> r
-    }.toMap
-
-    val appendPatterns = assemblyRules.collect {
-      case Rule.AppendPattern(pattern) => pattern.asPredicate().test(_)
-    }
-
-    val excludePatterns = assemblyRules.collect {
-      case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
-    }
-
-    classpathIterator(inputPaths).foldLeft(Map.empty[String, Aggregated]) {
-      case (entries, entry) =>
-        val mapping = entry.mapping
-
-        rulesMap.get(mapping) match {
-          case Some(_: Assembly.Rule.Exclude) =>
-            entries
-          case Some(_: Assembly.Rule.Append) =>
-            val newEntry = entries.getOrElse(mapping, Append.empty).append(entry)
-            entries + (mapping -> newEntry)
-
-          case _ if excludePatterns.exists(_(mapping)) =>
-            entries
-          case _ if appendPatterns.exists(_(mapping)) =>
-            val newEntry = entries.getOrElse(mapping, Append.empty).append(entry)
-            entries + (mapping -> newEntry)
-
-          case _ if !entries.contains(mapping) =>
-            entries + (mapping -> WriteOnce(entry))
-          case _ =>
-            entries
-        }
-    }
-  }
-
-  sealed trait Aggregated {
-    def append(entry: AssemblyEntry): Aggregated
-  }
-
-  object Append {
-    val empty: Append = Append(Nil)
-  }
-
-  case class Append(entries: List[AssemblyEntry]) extends Aggregated {
-    def append(entry: AssemblyEntry): Aggregated = copy(entries = entry :: this.entries)
-  }
-
-  case class WriteOnce(entry: AssemblyEntry) extends Aggregated {
-    def append(entry: AssemblyEntry): Aggregated = this
-  }
-
-  sealed trait AssemblyEntry {
-    def mapping: String
-    def inputStream: InputStream
-  }
-
-  case class PathEntry(mapping: String, path: Path) extends AssemblyEntry {
-    def inputStream: InputStream = read.getInputStream(path)
-  }
-
-  case class JarFileEntry(mapping: String, getIs: () => InputStream) extends AssemblyEntry {
-    def inputStream: InputStream = getIs()
-  }
-
   private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
     val outputStream = newOutputStream(p, append)
@@ -383,27 +313,6 @@ object Jvm {
 
     outputStream.close()
     is.close()
-  }
-
-  private def classpathIterator(inputPaths: Agg[Path]): Generator[AssemblyEntry] = {
-    Generator.from(inputPaths)
-      .filter(exists)
-      .flatMap {
-        p =>
-          if (p.isFile) {
-            val jf = new JarFile(p.toIO)
-            Generator.from(
-              for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield JarFileEntry(entry.getName, () => jf.getInputStream(entry))
-            )
-          }
-          else {
-            ls.rec.iter(p)
-              .filter(_.isFile)
-              .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
-          }
-      }
-
   }
 
   def universalScript(shellCommands: String,
