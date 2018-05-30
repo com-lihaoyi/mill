@@ -5,7 +5,6 @@ import java.nio.file.attribute.PosixFilePermission
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
-import mill.modules.Assembly
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
@@ -392,8 +391,7 @@ def release = T{
         args,
         Agg("$0"),
         Agg("%~dpnx0")
-      ),
-      assemblyRules = Assembly.defaultRules
+      )
     ).path,
     dest / filename
   )

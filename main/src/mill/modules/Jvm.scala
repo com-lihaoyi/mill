@@ -243,7 +243,7 @@ object Jvm {
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[Path] = None,
-                     assemblyRules: Seq[Assembly.Rule])
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
 
     val tmp = ctx.dest / "out-tmp.jar"
