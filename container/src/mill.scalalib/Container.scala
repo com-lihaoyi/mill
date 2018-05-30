@@ -3,6 +3,7 @@ package mill.scalalib
 import java.util.Locale
 
 import mill._
+import ammonite.ops.ImplicitWd._
 import ammonite.ops._
 import mill.define.Persistent
 import mill.util.Logger
@@ -62,6 +63,9 @@ trait TomcatContainer extends Container {
 
 trait Container extends mill.Module {
 
+  val os = System.getProperty("os.name", "generic").toLowerCase(Locale.ENGLISH)
+  val isWindows = os.contains("win")
+
   val containerBinaryInfo: VendorBinary.VendorBinaryInfo
 
   def containerCommand: T[Seq[String]]
@@ -91,28 +95,7 @@ trait Container extends mill.Module {
 
     T.ctx().log.info("Starting container")
     val builder = containerProcess(command, T.ctx().env)
-    Try(builder.start()) match {
-      case Failure(t) =>
-        T.ctx().log.error(t.getMessage)
-        T.ctx().log.error(t.getStackTrace.map(_.toString).mkString("- ", s"${ammonite.util.Util.newLine}  ", ""))
-        deletePidFile(pidFile)
-      case Success(t) =>
-        if (t.isAlive) {
-          T.ctx().log.info(s"Successfully started '$t'")
-          getPid(t) match {
-            case Some(pid) =>
-              T.ctx().log.info(s" with PID '$pid'")
-              write.over(pidFile, pid.toString)
-            //TODO: check after N seconds is process is still alive
-            //  -> startup errors
-            case None =>
-              deletePidFile(pidFile)
-          }
-        } else {
-          T.ctx().log.error(s"Started container '$t' but could not get PID")
-          deletePidFile(pidFile)
-        }
-    }
+    val pid = startProcess(builder, pidFile, T.ctx().log)
     PathRef(pidFile)
   }
 
@@ -160,19 +143,72 @@ trait Container extends mill.Module {
     rm ! pidFile
   }
 
-  private def getPid(process: Process) =
-    Try {
-      if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
-        val field = process.getClass().getDeclaredField("pid")
-        field.setAccessible(true)
-        val pid = field.getLong(process)
-        field.setAccessible(false)
-        pid
-      } else {
-        throw new Exception("Not supported")
-      }
+  private def startProcess(processBuilder: ProcessBuilder, pidFile: Path, log: Logger): Option[Long] = {
+    val oldProcessList = if (isWindows) {
+      %%("jps")
+        .out
+        .lines
+        .filter(!_.contains("Jps"))
+        .map(line => Try { line.trim.split(" ").apply(0).toLong }.toOption)
+        .flatten.toSet
+    } else {
+      val empty: Set[Long] = Set()
+      empty
     }
-      .toOption
+    Try(processBuilder.start()) match {
+      case Failure(t) =>
+        log.error(t.getMessage)
+        log.error(t.getStackTrace.map(_.toString).mkString("- ", s"${ammonite.util.Util.newLine}  ", ""))
+        deletePidFile(pidFile)
+        None
+      case Success(process) =>
+        if (process.isAlive) {
+          log.info(s"Successfully started '$process'")
+          val pid: Option[Long] = Try {
+            if (process.getClass().getName().equals("java.lang.UNIXProcess")) {
+              getUnixPid(process)
+            } else if (isWindows) {
+              getWindowsPid(oldProcessList)
+            } else {
+              throw new Exception()
+            }
+          }.toOption
+          pid match {
+            case Some(pid) =>
+              log.info(s" with PID '$pid'")
+              write.over(pidFile, pid.toString)
+              //TODO: check after N seconds is process is still alive
+              //  -> startup errors
+              Some(pid)
+            case None =>
+              deletePidFile(pidFile)
+              None
+          }
+        } else {
+          log.error(s"Started container '$process' but could not get PID")
+          deletePidFile(pidFile)
+          None
+        }
+    }
+  }
+
+  private def getUnixPid(process: Process): Long = {
+    val field = process.getClass().getDeclaredField("pid")
+    field.setAccessible(true)
+    val pid = field.getLong(process)
+    field.setAccessible(false)
+    pid
+  }
+
+  private def getWindowsPid(oldProcessList: scala.collection.immutable.Set[Long]): Long = {
+    val newProcessList = %%("jps")
+      .out
+      .lines
+      .filter(!_.contains("Jps"))
+      .map(line => Try { line.trim.split(" ").apply(0).toLong }.toOption)
+      .flatten.toSet
+    newProcessList.diff(oldProcessList).toSeq.head
+  }
 
   private def containerProcess(command: Seq[String], env: Map[String, String]) = {
     val builder = new java.lang.ProcessBuilder()
