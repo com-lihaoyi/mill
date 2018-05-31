@@ -32,6 +32,11 @@ object Lib{
                   upstreamCompileOutput: Seq[CompilationResult])
                  (implicit ctx: mill.util.Ctx) = {
     val javac = ToolProvider.getSystemJavaCompiler()
+    if (javac == null) {
+      throw new Exception(
+        "Your Java installation is not a JDK, so it can't compile Java code;" +
+        " Please install the JDK version of Java")
+    }
 
     rm(ctx.dest / 'classes)
     mkdir(ctx.dest / 'classes)
@@ -109,23 +114,12 @@ object Lib{
                                   deps: TraversableOnce[Dep],
                                   mapDependencies: Option[Dependency => Dependency] = None) = {
     val depSeq = deps.toSeq
-    val flattened = depSeq.map(depToDependency)
-
-    val forceVersions = depSeq.filter(_.force)
-      .map(depToDependency)
-      .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map{d => d.module -> d.version}
-      .toMap
-
-    val start = Resolution(
-      flattened.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
-      forceVersions = forceVersions,
-      mapDependencies = mapDependencies
+    mill.modules.Jvm.resolveDependenciesMetadata(
+      repositories,
+      depSeq.map(depToDependency),
+      depSeq.filter(_.force).map(depToDependency),
+      mapDependencies
     )
-
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
-    (flattened, resolution)
   }
   /**
     * Resolve dependencies using Coursier.
@@ -139,54 +133,14 @@ object Lib{
                           deps: TraversableOnce[Dep],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
-
-    val (_, resolution) = resolveDependenciesMetadata(
-      repositories, depToDependency, deps, mapDependencies
+    val depSeq = deps.toSeq
+    mill.modules.Jvm.resolveDependencies(
+      repositories,
+      depSeq.map(depToDependency),
+      depSeq.filter(_.force).map(depToDependency),
+      sources,
+      mapDependencies
     )
-    val errs = resolution.metadataErrors
-    if(errs.nonEmpty) {
-      val header =
-        s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
-
-      val errLines = errs.map {
-        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
-      }.mkString("\n")
-      val msg = header + errLines + "\n"
-      Result.Failure(msg)
-    } else {
-
-      def load(artifacts: Seq[coursier.Artifact]) = {
-        val logger = None
-        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
-          for (a <- artifacts)
-            yield coursier.Cache.file(a, logger = logger).run
-              .map(a.isOptional -> _)
-        ).unsafePerformSync
-
-        val errors = loadedArtifacts.collect {
-          case (false, scalaz.-\/(x)) => x
-          case (true, scalaz.-\/(x)) if !x.notFound => x
-        }
-        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
-        (errors, successes)
-      }
-
-      val sourceOrJar =
-        if (sources) resolution.classifiersArtifacts(Seq("sources"))
-        else resolution.artifacts(true)
-      val (errors, successes) = load(sourceOrJar)
-      if(errors.isEmpty){
-        Agg.from(
-          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
-        )
-      }else{
-        val errorDetails = errors.map(e => s"${Util.newLine}  ${e.describe}").mkString
-        Result.Failure("Failed to load source dependencies" + errorDetails)
-      }
-    }
   }
   def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
     ivy"org.scala-lang:scala-compiler:$scalaVersion".forceVersion(),
@@ -201,75 +155,6 @@ object Lib{
       cross = false,
       force = false
     )
-
-  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
-               entireClasspath: Agg[Path],
-               testClassfilePath: Agg[Path],
-               args: Seq[String])
-              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, cl => {
-      val frameworks = frameworkInstances(cl)
-
-      val events = mutable.Buffer.empty[Event]
-
-      val doneMessages = frameworks.map { framework =>
-        val runner = framework.runner(args.toArray, args.toArray, cl)
-
-        val testClasses = discoverTests(cl, framework, testClassfilePath)
-
-        val tasks = runner.tasks(
-          for ((cls, fingerprint) <- testClasses.toArray)
-          yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-        )
-
-        val taskQueue = tasks.to[mutable.Queue]
-        while (taskQueue.nonEmpty){
-          val next = taskQueue.dequeue().execute(
-            new EventHandler {
-              def handle(event: Event) = events.append(event)
-            },
-            Array(
-              new Logger {
-                def debug(msg: String) = ctx.log.outputStream.println(msg)
-
-                def error(msg: String) = ctx.log.outputStream.println(msg)
-
-                def ansiCodesSupported() = true
-
-                def warn(msg: String) = ctx.log.outputStream.println(msg)
-
-                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-
-                def info(msg: String) = ctx.log.outputStream.println(msg)
-              })
-          )
-          taskQueue.enqueue(next:_*)
-        }
-        ctx.log.outputStream.println(runner.done())
-      }
-
-      val results = for(e <- events) yield {
-        val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
-        mill.scalalib.TestRunner.Result(
-          e.fullyQualifiedName(),
-          e.selector() match{
-            case s: NestedSuiteSelector => s.suiteId()
-            case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-            case s: SuiteSelector => s.toString
-            case s: TestSelector => s.testName()
-            case s: TestWildcardSelector => s.testWildcard()
-          },
-          e.duration(),
-          e.status().toString,
-          ex.map(_.getClass.getName),
-          ex.map(_.getMessage),
-          ex.map(_.getStackTrace)
-        )
-      }
-
-      (doneMessages.mkString("\n"), results)
-    })
-  }
 
   def listClassFiles(base: Path): Iterator[String] = {
     if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)

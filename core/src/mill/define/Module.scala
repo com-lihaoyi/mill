@@ -64,9 +64,9 @@ object Module{
           !m.getName.contains('$') &&
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
+          (m.getModifiers & Modifier.ABSTRACT) == 0 &&
           runtimeCls.isAssignableFrom(m.getReturnType)
       } yield m.invoke(outer).asInstanceOf[T]
-
     }
     def reflectNames[T: ClassTag] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass

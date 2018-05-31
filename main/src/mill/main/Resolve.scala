@@ -86,6 +86,76 @@ object ResolveMetadata extends Resolve[String]{
   }
 }
 
+object ResolveSegments extends Resolve[Segments] {
+
+  override def endResolveCross(obj: Module,
+                               revSelectorsSoFar: List[Segment],
+                               last: List[String],
+                               discover: Discover[_],
+                               rest: Seq[String]): Either[String, Seq[Segments]] = {
+    obj match{
+      case c: Cross[Module] =>
+        last match{
+          case List("__") => Right(c.items.map(_._2.millModuleSegments))
+          case items =>
+            c.items
+              .filter(_._1.length == items.length)
+              .filter(_._1.zip(last).forall{case (a, b) => b == "_" || a.toString == b})
+              .map(_._2.millModuleSegments) match {
+              case Nil =>
+                Resolve.errorMsgCross(
+                  c.items.map(_._1.map(_.toString)),
+                  last,
+                  revSelectorsSoFar
+                )
+              case res => Right(res)
+            }
+        }
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
+            Resolve.hintListLabel(revSelectorsSoFar)
+        )
+    }
+  }
+
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]): Either[String, Seq[Segments]] = {
+    val target =
+      obj
+        .millInternal
+        .reflect[Target[_]]
+        .find(_.label == last)
+        .map(t => Right(t.ctx.segments))
+
+    val command =
+      Resolve
+        .invokeCommand(obj, last, discover, rest)
+        .headOption
+        .map(_.map(_.ctx.segments))
+
+    val module =
+      obj.millInternal
+        .reflectNestedObjects[Module]
+        .find(_.millOuterCtx.segment == Segment.Label(last))
+        .map(m => Right(m.millModuleSegments))
+
+    command orElse target orElse module match {
+      case None =>
+        Resolve.errorMsgLabel(
+          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+          last,
+          revSelectorsSoFar
+        )
+
+      case Some(either) => either.right.map(Seq(_))
+    }
+  }
+}
+
 object ResolveTasks extends Resolve[NamedTask[Any]]{
 
 
@@ -118,28 +188,37 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
                       revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
-                      rest: Seq[String]) = {
-    val target =
-      obj
-        .millInternal
-        .reflect[Target[_]]
-        .find(_.label == last)
-        .map(Right(_))
+                      rest: Seq[String]) = last match{
+    case "__" =>
+      Right(
+        obj.millInternal.modules
+          .filter(_ != obj)
+          .flatMap(m => m.millInternal.reflect[Target[_]])
+      )
+    case "_" => Right(obj.millInternal.reflect[Target[_]])
 
-    val command = Resolve.invokeCommand(obj, last, discover, rest).headOption
+    case _ =>
+      val target =
+        obj
+          .millInternal
+          .reflect[Target[_]]
+          .find(_.label == last)
+          .map(Right(_))
 
-    command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
-      case None =>
-        Resolve.errorMsgLabel(
-          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
-          last,
-          revSelectorsSoFar
-        )
+      val command = Resolve.invokeCommand(obj, last, discover, rest).headOption
 
-      // Contents of `either` *must* be a `Task`, because we only select
-      // methods returning `Task` in the discovery process
-      case Some(either) => either.right.map(Seq(_))
-    }
+      command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
+        case None =>
+          Resolve.errorMsgLabel(
+            singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+            last,
+            revSelectorsSoFar
+          )
+
+        // Contents of `either` *must* be a `Task`, because we only select
+        // methods returning `Task` in the discovery process
+        case Some(either) => either.right.map(Seq(_))
+      }
   }
 }
 object Resolve{

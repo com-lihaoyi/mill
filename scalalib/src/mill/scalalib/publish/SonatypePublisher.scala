@@ -11,7 +11,8 @@ import scalaj.http.HttpResponse
 class SonatypePublisher(uri: String,
                         snapshotUri: String,
                         credentials: String,
-                        gpgPassphrase: String,
+                        gpgPassphrase: Option[String],
+                        signed: Boolean,
                         log: Logger) {
 
   private val api = new SonatypeHttpApi(uri, credentials)
@@ -29,11 +30,11 @@ class SonatypePublisher(uri: String,
       ).mkString("/")
       val fileMapping = fileMapping0.map{ case (file, name) => (file, publishPath+"/"+name) }
 
-      val signedArtifacts = fileMapping ++ fileMapping.map {
+      val signedArtifacts = if (signed) fileMapping.map {
         case (file, name) => poorMansSign(file, gpgPassphrase) -> s"$name.asc"
-      }
+      } else Seq()
 
-      artifact -> signedArtifacts.flatMap {
+      artifact -> (fileMapping ++ signedArtifacts).flatMap {
         case (file, name) =>
           val content = read.bytes(file)
 
@@ -135,10 +136,15 @@ class SonatypePublisher(uri: String,
   }
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
-  private def poorMansSign(file: Path, passphrase: String): Path = {
+  private def poorMansSign(file: Path, maybePassphrase: Option[String]): Path = {
     val fileName = file.toString
     import ammonite.ops.ImplicitWd._
-    %("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
+    maybePassphrase match {
+      case Some(passphrase) =>
+        %("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
+      case None =>
+        %("gpg", "--batch", "--yes", "-a", "-b", fileName)
+    }
     Path(fileName + ".asc")
   }
 

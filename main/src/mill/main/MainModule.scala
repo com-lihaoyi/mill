@@ -1,10 +1,15 @@
 package mill.main
 
-import mill.define.{NamedTask, Task}
-import mill.eval.{Evaluator, Result}
-import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
+import ammonite.ops.Path
+import coursier.Cache
+import coursier.maven.MavenRepository
+import mill.T
+import mill.define.{Graph, NamedTask, Task}
+import mill.eval.{Evaluator, PathRef, Result}
+import mill.util.{Loose, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
+import mill.util.JsonFormatters._
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -35,6 +40,9 @@ trait MainModule extends mill.Module{
     println(res)
     res
   }
+
+  private val OutDir: String = "out"
+
   /**
     * Resolves a mill query string and prints out the tasks it resolves to.
     */
@@ -175,6 +183,53 @@ trait MainModule extends mill.Module{
       for(json <- res.flatMap(_._2)){
         println(json.render(indent = 4))
       }
+    }
+  }
+
+  /**
+    * Deletes the given targets from the out directory. Providing no targets
+    * will clean everything.
+    */
+  def clean(evaluator: Evaluator[Any], targets: String*) = mill.T.command {
+    val rootDir = ammonite.ops.pwd / OutDir
+
+    val KeepPattern = "(mill-.+)".r.anchored
+
+    def keepPath(path: Path) = path.segments.lastOption match {
+      case Some(KeepPattern(_)) => true
+      case _ => false
+    }
+
+    val pathsToRemove =
+      if (targets.isEmpty)
+        Right(ammonite.ops.ls(rootDir).filterNot(keepPath))
+      else
+        RunScript.resolveTasks(
+          mill.main.ResolveSegments, evaluator, targets, multiSelect = true
+        ).map(
+          _.map { segments =>
+            Evaluator.resolveDestPaths(rootDir, segments).out
+          })
+
+    pathsToRemove match {
+      case Left(err) =>
+        Result.Failure(err)
+      case Right(paths) =>
+        paths.foreach(ammonite.ops.rm)
+        Result.Success(())
+    }
+  }
+
+  def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    )
+    resolved match{
+      case Left(err) => Result.Failure(err)
+      case Right(rs) =>
+        val (in, out) = mill.main.VisualizeModule.worker()
+        in.put((rs, T.ctx().dest))
+        out.take()
     }
   }
 }

@@ -130,6 +130,16 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldFlags extends HelloBase{
+    object core extends ScalaModule {
+      def scalaVersion = "2.12.4"
+      
+      def scalacOptions = super.scalacOptions() ++ Seq(
+        "-Ypartial-unification"
+      )
+    }
+  }
+
   object HelloScalacheck extends HelloBase{
     object foo extends ScalaModule {
       def scalaVersion = "2.12.4"
@@ -583,6 +593,25 @@ object HelloWorldTests extends TestSuite {
         resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
+        assert(evalCount > 0)
+      }
+    }
+
+    'flags - {
+      // make sure flags are passed when compiling/running
+      'runMain - workspaceTest(
+        HelloWorldFlags,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.runMain("Main"))
+        assert(evalCount > 0)
+      }
+      // make sure flags are passed during ScalaDoc generation
+      'docJar - workspaceTest(
+        HelloWorldFlags,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.docJar)
         assert(evalCount > 0)
       }
     }

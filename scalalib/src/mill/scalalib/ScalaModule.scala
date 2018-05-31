@@ -125,12 +125,12 @@ trait ScalaModule extends JavaModule { outer =>
     val files = for{
       ref <- allSources()
       if exists(ref.path)
-      p <- ls.rec(ref.path)
-      if p.isFile
+      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
+      if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
     } yield p.toNIO.toString
 
     val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalacOptions()
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
@@ -161,18 +161,18 @@ trait ScalaModule extends JavaModule { outer =>
     unmanagedClasspath() ++
     resolveDeps(T.task{
       runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:1.1.0-12-f07633d")
+      Agg(ivy"com.lihaoyi:::ammonite:1.1.2")
     })()
   }
 
-  def repl() = T.command{
+  def repl(replOptions: String*) = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.interactiveSubprocess(
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),
-        mainArgs = Nil,
+        mainArgs = replOptions,
         workingDir = pwd
       )
       Result.Success()
@@ -193,5 +193,3 @@ trait ScalaModule extends JavaModule { outer =>
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
 }
-
-

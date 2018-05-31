@@ -3,9 +3,9 @@ package scalalib
 
 import ammonite.ops._
 import mill.define.{ExternalModule, Task}
-import mill.eval.{PathRef, Result}
+import mill.eval.PathRef
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
-import mill.util.Loose.Agg
+
 /**
   * Configuration necessary for publishing a Scala module to Maven Central or similar
   */
@@ -17,11 +17,11 @@ trait PublishModule extends JavaModule { outer =>
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
 
-  def publishSelfDependency = T{
-    Artifact(pomSettings().organization, artifactId(), publishVersion()),
+  def publishSelfDependency = T {
+    Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def publishXmlDeps = T.task{
+  def publishXmlDeps = T.task {
     val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
     val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
@@ -59,7 +59,7 @@ trait PublishModule extends JavaModule { outer =>
 
   def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
 
-  def publishArtifacts = T{
+  def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
     PublishModule.PublishData(
       artifactMetadata(),
@@ -73,20 +73,22 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publish(sonatypeCreds: String,
-              gpgPassphrase: String,
+              gpgPassphrase: String = null,
+              signed: Boolean = true,
               release: Boolean): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
-      gpgPassphrase,
+      Option(gpgPassphrase),
+      signed,
       T.ctx().log
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
   }
 }
 
-object PublishModule extends ExternalModule{
+object PublishModule extends ExternalModule {
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
 
   object PublishData{
@@ -94,11 +96,12 @@ object PublishModule extends ExternalModule{
   }
 
   def publishAll(sonatypeCreds: String,
-                 gpgPassphrase: String,
+                 gpgPassphrase: String = null,
+                 signed: Boolean = true,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  release: Boolean = false,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command{
+                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command {
 
     val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
       case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
@@ -107,7 +110,8 @@ object PublishModule extends ExternalModule{
       sonatypeUri,
       sonatypeSnapshotUri,
       sonatypeCreds,
-      gpgPassphrase,
+      Option(gpgPassphrase),
+      signed,
       T.ctx().log
     ).publishAll(
       release,

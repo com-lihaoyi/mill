@@ -1,7 +1,0 @@
-<component name="libraryTable">
-    <library name="scala-library-2.12.4-sources.jar" type="Scala">
-        <CLASSES>
-            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.4/scala-library-2.12.4-sources.jar!/"/>
-        </CLASSES>
-    </library>
-</component>

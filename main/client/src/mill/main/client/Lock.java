@@ -1,7 +1,8 @@
 package mill.main.client;
-public abstract class Lock{
+public abstract class Lock implements AutoCloseable{
     abstract public Locked lock() throws Exception;
     abstract public Locked tryLock() throws Exception;
+
     public void await() throws Exception{
         lock().release();
     }

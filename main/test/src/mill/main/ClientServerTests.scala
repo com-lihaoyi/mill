@@ -6,14 +6,15 @@ import mill.main.client.{Util, Locks}
 
 import scala.collection.JavaConverters._
 import utest._
-class EchoServer extends ServerMain[Int]{
+class EchoServer extends MillServerMain[Int]{
   def main0(args: Array[String],
             stateCache: Option[Int],
             mainInteractive: Boolean,
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env: Map[String, String]) = {
+            env: Map[String, String],
+            setIdle: Boolean => Unit) = {
 
     val reader = new BufferedReader(new InputStreamReader(stdin))
     val str = reader.readLine()
@@ -60,7 +61,7 @@ object ClientServerTests extends TestSuite{
                   (env : Map[String, String], args: Array[String]) = {
     val (in, out, err) = initStreams()
     Server.lockBlock(locks.clientLock){
-      mill.main.client.Main.run(
+      mill.main.client.MillClientMain.run(
         tmpDir.toString,
         () => spawnEchoServer(tmpDir, locks),
         locks,
