@@ -6,7 +6,12 @@ import java.io.File
 
 import mill.eval.Result
 import org.scalajs.core.tools.io._
-import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{
+  ModuleInitializer,
+  Semantics,
+  StandardLinker,
+  ModuleKind => ScalaJSModuleKind
+}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.ConsoleJSConsole
 import org.scalajs.jsenv.nodejs._
@@ -20,14 +25,15 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
            fullOpt: Boolean,
            moduleKind: ModuleKind) = {
     val semantics = fullOpt match {
-        case true => Semantics.Defaults.optimized
-        case false => Semantics.Defaults
+      case true  => Semantics.Defaults.optimized
+      case false => Semantics.Defaults
     }
     val scalaJSModuleKind = moduleKind match {
-      case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
+      case ModuleKind.NoModule       => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
     }
-    val config = StandardLinker.Config()
+    val config = StandardLinker
+      .Config()
       .withOptimizer(fullOpt)
       .withClosureCompilerIfAvailable(fullOpt)
       .withSemantics(semantics)
@@ -39,13 +45,16 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
     val libraryIRs = cache.cached(irContainers)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
-    val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val initializer = Option(main).map { cls =>
+      ModuleInitializer.mainMethodWithArgs(cls, "main")
+    }
 
     try {
       linker.link(sourceIRs ++ libraryIRs, initializer.toSeq, destFile, logger)
       Result.Success(dest)
-    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
-      Result.Failure(e.getMessage)
+    } catch {
+      case e: org.scalajs.core.tools.linker.LinkingException =>
+        Result.Failure(e.getMessage)
     }
   }
 
@@ -76,7 +85,8 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
 
   def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {
     new NodeJSEnv(
-      NodeJSEnv.Config()
+      NodeJSEnv
+        .Config()
         .withExecutable(config.executable)
         .withArgs(config.args)
         .withEnv(config.env)

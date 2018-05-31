@@ -10,7 +10,6 @@ import mill.{T, eval}
 import mill.define.{Discover, ExternalModule}
 import mill.eval.{Evaluator, PathRef, Result}
 
-
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
     Cache.ivy2Local,
@@ -21,11 +20,12 @@ object VisualizeModule extends ExternalModule with VisualizeModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
-trait VisualizeModule extends mill.define.TaskModule{
+trait VisualizeModule extends mill.define.TaskModule {
   def repositories: Seq[Repository]
   def defaultCommandName() = "run"
-  def classpath = T{
-    mill.modules.Util.millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
+  def classpath = T {
+    mill.modules.Util
+      .millProjectModule("MILL_GRAPHVIZ", "mill-main-graphviz", repositories)
   }
 
   /**
@@ -35,7 +35,7 @@ trait VisualizeModule extends mill.define.TaskModule{
     * everyone can use to call into Graphviz, which the Mill execution threads
     * can communicate via in/out queues.
     */
-  def worker = T.worker{
+  def worker = T.worker {
     val in = new LinkedBlockingQueue[(Seq[_], Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
@@ -44,8 +44,8 @@ trait VisualizeModule extends mill.define.TaskModule{
       getClass.getClassLoader
     )
     val visualizeThread = new java.lang.Thread(() =>
-      while(true){
-        val res = Result.create{
+      while (true) {
+        val res = Result.create {
           val (tasks, dest) = in.take()
           cl.loadClass("mill.main.graphviz.GraphvizTools")
             .getMethod("apply", classOf[Seq[_]], classOf[Path])
@@ -53,8 +53,7 @@ trait VisualizeModule extends mill.define.TaskModule{
             .asInstanceOf[Seq[PathRef]]
         }
         out.put(res)
-      }
-    )
+    })
     visualizeThread.setDaemon(true)
     visualizeThread.start()
     (in, out)

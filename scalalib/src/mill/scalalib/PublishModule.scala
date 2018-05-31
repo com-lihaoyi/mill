@@ -27,7 +27,8 @@ trait PublishModule extends JavaModule { outer =>
     ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
   def pom = T {
-    val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
+    val pom =
+      Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
     write.over(pomPath, pom)
     PathRef(pomPath)
@@ -57,7 +58,8 @@ trait PublishModule extends JavaModule { outer =>
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
 
-  def sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots"
+  def sonatypeSnapshotUri: String =
+    "https://oss.sonatype.org/content/repositories/snapshots"
 
   def publishArtifacts = T {
     val baseName = s"${artifactId()}-${publishVersion()}"
@@ -84,15 +86,18 @@ trait PublishModule extends JavaModule { outer =>
       Option(gpgPassphrase),
       signed,
       T.ctx().log
-    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
+    ).publish(artifacts.map { case (a, b) => (a.path, b) },
+              artifactInfo,
+              release)
   }
 }
 
 object PublishModule extends ExternalModule {
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
 
-  object PublishData{
-    implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
+  object PublishData {
+    implicit def jsonify: upickle.default.ReadWriter[PublishData] =
+      upickle.default.macroRW
   }
 
   def publishAll(sonatypeCreds: String,
@@ -101,25 +106,30 @@ object PublishModule extends ExternalModule {
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  release: Boolean = false,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots") = T.command {
+                 sonatypeSnapshotUri: String =
+                   "https://oss.sonatype.org/content/repositories/snapshots") =
+    T.command {
 
-    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
-      case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
+      val x: Seq[(Seq[(Path, String)], Artifact)] =
+        Task.sequence(publishArtifacts.value)().map {
+          case PublishModule.PublishData(a, s) =>
+            (s.map { case (p, f) => (p.path, f) }, a)
+        }
+      new SonatypePublisher(
+        sonatypeUri,
+        sonatypeSnapshotUri,
+        sonatypeCreds,
+        Option(gpgPassphrase),
+        signed,
+        T.ctx().log
+      ).publishAll(
+        release,
+        x: _*
+      )
     }
-    new SonatypePublisher(
-      sonatypeUri,
-      sonatypeSnapshotUri,
-      sonatypeCreds,
-      Option(gpgPassphrase),
-      signed,
-      T.ctx().log
-    ).publishAll(
-      release,
-      x:_*
-    )
-  }
 
   implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
 
-  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+  lazy val millDiscover: mill.define.Discover[this.type] =
+    mill.define.Discover[this.type]
 }

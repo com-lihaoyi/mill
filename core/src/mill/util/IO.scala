@@ -11,7 +11,7 @@ import scala.tools.nsc.interpreter.OutputStream
 object IO {
   def stream(src: InputStream, dest: OutputStream) = {
     val buffer = new Array[Byte](4096)
-    while ( {
+    while ({
       src.read(buffer) match {
         case -1 => false
         case n =>
@@ -25,7 +25,7 @@ object IO {
 import java.io.{ByteArrayInputStream, OutputStream}
 
 object DummyInputStream extends ByteArrayInputStream(Array())
-object DummyOutputStream extends OutputStream{
+object DummyOutputStream extends OutputStream {
   override def write(b: Int) = ()
   override def write(b: Array[Byte]) = ()
   override def write(b: Array[Byte], off: Int, len: Int) = ()

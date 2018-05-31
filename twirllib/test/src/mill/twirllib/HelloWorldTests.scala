@@ -8,7 +8,8 @@ import utest.{TestSuite, Tests, assert, _}
 object HelloWorldTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
@@ -24,9 +25,10 @@ object HelloWorldTests extends TestSuite {
 
   val resourcePath: Path = pwd / 'twirllib / 'test / 'resources / "hello-world"
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator[M] => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T, M <: TestUtil.BaseModule](
+      m: M,
+      resourcePath: Path = resourcePath)(t: TestEvaluator[M] => T)(
+      implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)
@@ -43,7 +45,8 @@ object HelloWorldTests extends TestSuite {
     'twirlVersion - {
 
       'fromBuild - workspaceTest(HelloWorld) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.core.twirlVersion)
+        val Right((result, evalCount)) =
+          eval.apply(HelloWorld.core.twirlVersion)
 
         assert(
           result == "1.3.15",
@@ -67,7 +70,8 @@ object HelloWorldTests extends TestSuite {
       )
 
       // don't recompile if nothing changed
-      val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+      val Right((_, unchangedEvalCount)) =
+        eval.apply(HelloWorld.core.compileTwirl)
 
       assert(unchangedEvalCount == 0)
     }

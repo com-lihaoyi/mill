@@ -4,8 +4,8 @@ import ammonite.ops._
 import utest._
 
 class AcyclicTests(fork: Boolean)
-  extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
-  val tests = Tests{
+    extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
@@ -16,7 +16,7 @@ class AcyclicTests(fork: Boolean)
         ls.rec(workspacePath).exists(_.last == "GraphAnalysis.class"),
         ls.rec(workspacePath).exists(_.last == "PluginPhase.class")
       )
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
+      for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")) {
         write.append(scalaFile, "\n}")
       }
 

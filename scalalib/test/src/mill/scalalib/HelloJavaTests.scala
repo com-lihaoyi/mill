@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-
 import ammonite.ops.{%, %%, cp, ls, mkdir, pwd, rm, up}
 import ammonite.ops.ImplicitWd._
 import mill.eval.Result
@@ -9,20 +8,20 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
 
-
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
-    trait JUnitTests extends TestModule{
+  object HelloJava extends TestUtil.BaseModule {
+    def millSourcePath =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    trait JUnitTests extends TestModule {
       def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
       def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
     }
 
-    object core extends JavaModule{
+    object core extends JavaModule {
       object test extends Tests with JUnitTests
     }
-    object app extends JavaModule{
+    object app extends JavaModule {
       def moduleDeps = Seq(core)
       object test extends Tests with JUnitTests
     }
@@ -55,7 +54,7 @@ object HelloJavaTests extends TestSuite {
         !ls.rec(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    'docJar  - {
+    'docJar - {
       val eval = init()
 
       val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
@@ -69,7 +68,8 @@ object HelloJavaTests extends TestSuite {
     'test - {
       val eval = init()
 
-      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
+      val Left(Result.Failure(ref1, Some(v1))) =
+        eval.apply(HelloJava.core.test.test())
 
       assert(
         v1._2(0).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
@@ -106,8 +106,10 @@ object HelloJavaTests extends TestSuite {
       val Left(_) = eval.apply(HelloJava.core.compile)
       val Left(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava).dropRight(1))
-      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava).dropRight(1))
+      ammonite.ops.write.over(mainJava,
+                              ammonite.ops.read(mainJava).dropRight(1))
+      ammonite.ops.write.over(coreJava,
+                              ammonite.ops.read(coreJava).dropRight(1))
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)

@@ -5,7 +5,6 @@ import java.io._
 import ammonite.ops.{Path, rm}
 import ammonite.util.Colors
 
-
 /**
   * The standard logging interface of the Mill build tool.
   *
@@ -46,24 +45,24 @@ object DummyLogger extends Logger {
   def ticker(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream,
-                     setPrintState0: PrintState => Unit) extends OutputStream{
+class CallbackStream(wrapped: OutputStream, setPrintState0: PrintState => Unit)
+    extends OutputStream {
   def setPrintState(c: Char) = {
     setPrintState0(
-      c match{
+      c match {
         case '\n' => PrintState.Newline
         case '\r' => PrintState.Newline
-        case _ => PrintState.Middle
+        case _    => PrintState.Middle
       }
     )
   }
   override def write(b: Array[Byte]): Unit = {
-    if (b.nonEmpty) setPrintState(b(b.length-1).toChar)
+    if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
     wrapped.write(b)
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-    if (len != 0) setPrintState(b(off+len-1).toChar)
+    if (len != 0) setPrintState(b(off + len - 1).toChar)
     wrapped.write(b, off, len)
   }
 
@@ -73,7 +72,7 @@ class CallbackStream(wrapped: OutputStream,
   }
 }
 sealed trait PrintState
-object PrintState{
+object PrintState {
   case object Ticker extends PrintState
   case object Newline extends PrintState
   case object Middle extends PrintState
@@ -83,13 +82,15 @@ case class PrintLogger(colored: Boolean,
                        outStream: PrintStream,
                        infoStream: PrintStream,
                        errStream: PrintStream,
-                       inStream: InputStream) extends Logger {
+                       inStream: InputStream)
+    extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream = new PrintStream(new CallbackStream(errStream, printState = _))
-  override val outputStream = new PrintStream(new CallbackStream(outStream, printState = _))
-
+  override val errorStream = new PrintStream(
+    new CallbackStream(errStream, printState = _))
+  override val outputStream = new PrintStream(
+    new CallbackStream(outStream, printState = _))
 
   def info(s: String) = {
     printState = PrintState.Newline
@@ -100,7 +101,7 @@ case class PrintLogger(colored: Boolean,
     errStream.println(colors.error()(s))
   }
   def ticker(s: String) = {
-    printState match{
+    printState match {
       case PrintState.Newline =>
         infoStream.println(colors.info()(s))
       case PrintState.Middle =>
@@ -145,41 +146,44 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   }
 }
 
+class MultiStream(stream1: OutputStream, stream2: OutputStream)
+    extends PrintStream(new OutputStream {
+      def write(b: Int): Unit = {
+        stream1.write(b)
+        stream2.write(b)
+      }
+      override def write(b: Array[Byte]): Unit = {
+        stream1.write(b)
+        stream2.write(b)
+      }
+      override def write(b: Array[Byte], off: Int, len: Int) = {
+        stream1.write(b, off, len)
+        stream2.write(b, off, len)
+      }
+      override def flush() = {
+        stream1.flush()
+        stream2.flush()
+      }
+      override def close() = {
+        stream1.close()
+        stream2.close()
+      }
+    })
 
+case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger)
+    extends Logger {
 
-class MultiStream(stream1: OutputStream, stream2: OutputStream) extends PrintStream(new OutputStream {
-  def write(b: Int): Unit = {
-    stream1.write(b)
-    stream2.write(b)
-  }
-  override def write(b: Array[Byte]): Unit = {
-    stream1.write(b)
-    stream2.write(b)
-  }
-  override def write(b: Array[Byte], off: Int, len: Int) = {
-    stream1.write(b, off, len)
-    stream2.write(b, off, len)
-  }
-  override def flush() = {
-    stream1.flush()
-    stream2.flush()
-  }
-  override def close() = {
-    stream1.close()
-    stream2.close()
-  }
-})
+  lazy val outputStream: PrintStream =
+    new MultiStream(logger1.outputStream, logger2.outputStream)
 
-case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) extends Logger {
+  lazy val errorStream: PrintStream =
+    new MultiStream(logger1.errorStream, logger2.errorStream)
 
-
-  lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
-
-  lazy val errorStream: PrintStream = new MultiStream(logger1.errorStream, logger2.errorStream)
-
-  lazy val inStream = Seq(logger1, logger2).collectFirst{case t: PrintLogger => t} match{
+  lazy val inStream = Seq(logger1, logger2).collectFirst {
+    case t: PrintLogger => t
+  } match {
     case Some(x) => x.inStream
-    case None => new ByteArrayInputStream(Array())
+    case None    => new ByteArrayInputStream(Array())
   }
 
   def info(s: String) = {

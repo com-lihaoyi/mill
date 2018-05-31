@@ -18,7 +18,7 @@ import mill.util.DummyInputStream
 trait ScalaModule extends JavaModule { outer =>
   def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
 
-  trait Tests extends TestModule with ScalaModule{
+  trait Tests extends TestModule with ScalaModule {
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
@@ -29,20 +29,24 @@ trait ScalaModule extends JavaModule { outer =>
   }
   def scalaVersion: T[String]
 
-  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
-    Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
-  }
+  override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
+    T.task {
+      Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
+    }
 
-  override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
-    publish.Artifact.fromDep(_: Dep, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
-  }
+  override def resolvePublishDependency: Task[Dep => publish.Dependency] =
+    T.task {
+      publish.Artifact.fromDep(_: Dep,
+                               scalaVersion(),
+                               Lib.scalaBinaryVersion(scalaVersion()))
+    }
 
-  override def finalMainClassOpt: T[Either[String, String]] = T{
-    mainClass() match{
+  override def finalMainClassOpt: T[Either[String, String]] = T {
+    mainClass() match {
       case Some(m) => Right(m)
       case None =>
-        scalaWorker.worker().discoverMainClasses(compile())match {
-          case Seq() => Left("No main class specified or found")
+        scalaWorker.worker().discoverMainClasses(compile()) match {
+          case Seq()     => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
             Left(
@@ -53,10 +57,9 @@ trait ScalaModule extends JavaModule { outer =>
     }
   }
 
+  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
 
-  def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
-
-  def scalacOptions = T{ Seq.empty[String] }
+  def scalacOptions = T { Seq.empty[String] }
 
   override def repositories: Seq[Repository] = scalaWorker.repositories
 
@@ -65,7 +68,7 @@ trait ScalaModule extends JavaModule { outer =>
   def scalaCompilerBridgeSources = T {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion() match {
       case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
-      case _ => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+      case _                  => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
     }
 
     resolveDependencies(
@@ -73,47 +76,60 @@ trait ScalaModule extends JavaModule { outer =>
       Lib.depToDependency(_, scalaVersion0, platformSuffix()),
       Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
       sources = true
-    ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar").map(_.path).get)
+    ).map(_.find(
+      _.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar")
+      .map(_.path)
+      .get)
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalacPluginIvyDeps)()
   }
 
-  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
+  def scalaLibraryIvyDeps = T { scalaRuntimeIvyDeps(scalaVersion()) }
+
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
-  def scalaCompilerClasspath: T[Agg[PathRef]] = T{
+  def scalaCompilerClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
+      T.task {
+        scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(
+          scalaVersion())
+      }
     )()
   }
-  override def compileClasspath = T{
+  override def compileClasspath = T {
     transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+      resources() ++
+      unmanagedClasspath() ++
+      resolveDeps(T.task {
+        compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
+      })()
   }
 
-  override def upstreamAssemblyClasspath = T{
+  override def upstreamAssemblyClasspath = T {
     transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+      unmanagedClasspath() ++
+      resolveDeps(T.task {
+        runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
+      })()
   }
 
-  override def compile: T[CompilationResult] = T.persistent{
-    scalaWorker.worker().compileScala(
-      scalaVersion(),
-      allSourceFiles().map(_.path),
-      scalaCompilerBridgeSources(),
-      compileClasspath().map(_.path),
-      scalaCompilerClasspath().map(_.path),
-      scalacOptions(),
-      scalacPluginClasspath().map(_.path),
-      javacOptions(),
-      upstreamCompileOutput()
-    )
+  override def compile: T[CompilationResult] = T.persistent {
+    scalaWorker
+      .worker()
+      .compileScala(
+        scalaVersion(),
+        allSourceFiles().map(_.path),
+        scalaCompilerBridgeSources(),
+        compileClasspath().map(_.path),
+        scalaCompilerClasspath().map(_.path),
+        scalacOptions(),
+        scalacPluginClasspath().map(_.path),
+        javacOptions(),
+        upstreamCompileOutput()
+      )
   }
 
   override def docJar = T {
@@ -122,32 +138,37 @@ trait ScalaModule extends JavaModule { outer =>
     val javadocDir = outDir / 'javadoc
     mkdir(javadocDir)
 
-    val files = for{
+    val files = for {
       ref <- allSources()
       if exists(ref.path)
       p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
       if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
     } yield p.toNIO.toString
 
-    val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
+    val pluginOptions = scalacPluginClasspath().map(pluginPathRef =>
+      s"-Xplugin:${pluginPathRef.path}")
     val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalacOptions()
 
-    if (files.nonEmpty) subprocess(
-      "scala.tools.nsc.ScalaDoc",
-      scalaCompilerClasspath().map(_.path) ++ compileClasspath().filter(_.path.ext != "pom").map(_.path),
-      mainArgs = (files ++ options).toSeq
-    )
+    if (files.nonEmpty)
+      subprocess(
+        "scala.tools.nsc.ScalaDoc",
+        scalaCompilerClasspath().map(_.path) ++ compileClasspath()
+          .filter(_.path.ext != "pom")
+          .map(_.path),
+        mainArgs = (files ++ options).toSeq
+      )
 
     createJar(Agg(javadocDir))(outDir)
   }
 
-  def console() = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+  def console() = T.command {
+    if (T.ctx().log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
-    }else{
+    } else {
       Jvm.interactiveSubprocess(
         mainClass = "scala.tools.nsc.MainGenericRunner",
-        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
+        classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
+          _.path),
         mainArgs = Seq("-usejavacp"),
         workingDir = pwd
       )
@@ -155,20 +176,20 @@ trait ScalaModule extends JavaModule { outer =>
     }
   }
 
-  def ammoniteReplClasspath = T{
+  def ammoniteReplClasspath = T {
     localClasspath() ++
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:1.1.2")
-    })()
+      transitiveLocalClasspath() ++
+      unmanagedClasspath() ++
+      resolveDeps(T.task {
+        runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
+          Agg(ivy"com.lihaoyi:::ammonite:1.1.2")
+      })()
   }
 
-  def repl(replOptions: String*) = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+  def repl(replOptions: String*) = T.command {
+    if (T.ctx().log.inStream == DummyInputStream) {
       Result.Failure("repl needs to be run with the -i/--interactive flag")
-    }else{
+    } else {
       Jvm.interactiveSubprocess(
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),

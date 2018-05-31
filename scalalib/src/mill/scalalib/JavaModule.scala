@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-
 import ammonite.ops._
 import coursier.Repository
 import mill.define.Task
@@ -17,68 +16,67 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
-  trait Tests extends TestModule{
+  trait Tests extends TestModule {
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
     override def javacOptions = outer.javacOptions
   }
   def defaultCommandName() = "run"
 
-  def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
+  def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task {
     Artifact.fromDepJava(_: Dep)
   }
-  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
+  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
     Lib.depToDependencyJava(_: Dep)
   }
 
   def mainClass: T[Option[String]] = None
 
-  def finalMainClassOpt: T[Either[String, String]] = T{
-    mainClass() match{
+  def finalMainClassOpt: T[Either[String, String]] = T {
+    mainClass() match {
       case Some(m) => Right(m)
-      case None => Left("No main class specified or found")
+      case None    => Left("No main class specified or found")
     }
   }
 
-  def finalMainClass: T[String] = T{
+  def finalMainClass: T[String] = T {
     finalMainClassOpt() match {
       case Right(main) => Result.Success(main)
       case Left(msg)   => Result.Failure(msg)
     }
   }
 
-  def ivyDeps = T{ Agg.empty[Dep] }
-  def compileIvyDeps = T{ Agg.empty[Dep] }
-  def runIvyDeps = T{ Agg.empty[Dep] }
+  def ivyDeps = T { Agg.empty[Dep] }
+  def compileIvyDeps = T { Agg.empty[Dep] }
+  def runIvyDeps = T { Agg.empty[Dep] }
 
-  def javacOptions = T{ Seq.empty[String] }
+  def javacOptions = T { Seq.empty[String] }
 
   def moduleDeps = Seq.empty[JavaModule]
-
 
   def transitiveModuleDeps: Seq[JavaModule] = {
     Seq(this) ++ moduleDeps.flatMap(_.transitiveModuleDeps).distinct
   }
-  def unmanagedClasspath = T{ Agg.empty[PathRef] }
+  def unmanagedClasspath = T { Agg.empty[PathRef] }
 
-
-  def transitiveIvyDeps: T[Agg[Dep]] = T{
+  def transitiveIvyDeps: T[Agg[Dep]] = T {
     ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def upstreamCompileOutput = T{
+  def upstreamCompileOutput = T {
     Task.traverse(moduleDeps)(_.compile)
   }
 
-  def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    Task.traverse(moduleDeps)(m =>
-      T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
-    )().flatten
+  def transitiveLocalClasspath: T[Agg[PathRef]] = T {
+    Task
+      .traverse(moduleDeps)(m =>
+        T.task { m.localClasspath() ++ m.transitiveLocalClasspath() })()
+      .flatten
   }
 
   def mapDependencies(d: coursier.Dependency) = d
 
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
+  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task {
     resolveDependencies(
       repositories,
       resolveCoursierDependency().apply(_),
@@ -88,32 +86,32 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-
   def repositories: Seq[Repository] = ScalaWorkerModule.repositories
 
-  def platformSuffix = T{ "" }
+  def platformSuffix = T { "" }
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
-  def prependShellScript: T[String] = T{
-    mainClass() match{
+  def prependShellScript: T[String] = T {
+    mainClass() match {
       case None => ""
       case Some(cls) =>
         val isWin = scala.util.Properties.isWin
         mill.modules.Jvm.launcherUniversalScript(
           cls,
-          Agg("$0"), Agg("%~dpnx0"),
+          Agg("$0"),
+          Agg("%~dpnx0"),
           forkArgs()
         )
     }
   }
 
-  def sources = T.sources{ millSourcePath / 'src }
-  def resources = T.sources{ millSourcePath / 'resources }
-  def generatedSources = T{ Seq.empty[PathRef] }
-  def allSources = T{ sources() ++ generatedSources() }
+  def sources = T.sources { millSourcePath / 'src }
+  def resources = T.sources { millSourcePath / 'resources }
+  def generatedSources = T { Seq.empty[PathRef] }
+  def allSources = T { sources() ++ generatedSources() }
 
-  def allSourceFiles = T{
+  def allSourceFiles = T {
     for {
       root <- allSources()
       if exists(root.path)
@@ -122,7 +120,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
 
-  def compile: T[CompilationResult] = T{
+  def compile: T[CompilationResult] = T {
     Lib.compileJava(
       allSourceFiles().map(_.path.toIO).toArray,
       compileClasspath().map(_.path.toIO).toArray,
@@ -130,25 +128,25 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
-  def localClasspath = T{
+  def localClasspath = T {
     resources() ++ Agg(compile().classes)
   }
-  def compileClasspath = T{
+  def compileClasspath = T {
     transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ transitiveIvyDeps()})()
+      resources() ++
+      unmanagedClasspath() ++
+      resolveDeps(T.task { compileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
-  def upstreamAssemblyClasspath = T{
+  def upstreamAssemblyClasspath = T {
     transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{runIvyDeps() ++ transitiveIvyDeps()})()
+      unmanagedClasspath() ++
+      resolveDeps(T.task { runIvyDeps() ++ transitiveIvyDeps() })()
   }
 
-  def runClasspath = T{
+  def runClasspath = T {
     localClasspath() ++
-    upstreamAssemblyClasspath()
+      upstreamAssemblyClasspath()
   }
 
   /**
@@ -157,11 +155,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * This should allow much faster assembly creation in the common case where
     * upstream dependencies do not change
     */
-  def upstreamAssembly = T{
+  def upstreamAssembly = T {
     createAssembly(upstreamAssemblyClasspath().map(_.path), mainClass())
   }
 
-  def assembly = T{
+  def assembly = T {
     createAssembly(
       Agg.from(localClasspath().map(_.path)),
       mainClass(),
@@ -170,8 +168,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-
-  def jar = T{
+  def jar = T {
     createJar(
       localClasspath().map(_.path).filter(exists),
       mainClass()
@@ -184,7 +181,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val javadocDir = outDir / 'javadoc
     mkdir(javadocDir)
 
-    val files = for{
+    val files = for {
       ref <- allSources()
       if exists(ref.path)
       p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
@@ -193,21 +190,22 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
     val options = Seq("-d", javadocDir.toNIO.toString)
 
-    if (files.nonEmpty) Jvm.baseInteractiveSubprocess(
-      commandArgs = Seq(
-        "javadoc"
-      ) ++ options ++
-      Seq(
-        "-classpath",
-        compileClasspath()
-          .map(_.path)
-          .filter(_.ext != "pom")
-          .mkString(java.io.File.pathSeparator)
-      ) ++
-      files.map(_.toString),
-      envArgs = Map(),
-      workingDir = T.ctx().dest
-    )
+    if (files.nonEmpty)
+      Jvm.baseInteractiveSubprocess(
+        commandArgs = Seq(
+          "javadoc"
+        ) ++ options ++
+          Seq(
+            "-classpath",
+            compileClasspath()
+              .map(_.path)
+              .filter(_.ext != "pom")
+              .mkString(java.io.File.pathSeparator)
+          ) ++
+          files.map(_.toString),
+        envArgs = Map(),
+        workingDir = T.ctx().dest
+      )
 
     createJar(Agg(javadocDir))(outDir)
   }
@@ -216,11 +214,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     createJar((allSources() ++ resources()).map(_.path).filter(exists))
   }
 
-  def forkArgs = T{ Seq.empty[String] }
+  def forkArgs = T { Seq.empty[String] }
 
-  def forkEnv = T{ sys.env.toMap }
+  def forkEnv = T { sys.env.toMap }
 
-  def launcher = T{
+  def launcher = T {
     Result.Success(
       Jvm.createLauncher(
         finalMainClass(),
@@ -232,11 +230,17 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, resolveCoursierDependency().apply(_), transitiveIvyDeps(), Some(mapDependencies)
+      repositories,
+      resolveCoursierDependency().apply(_),
+      transitiveIvyDeps(),
+      Some(mapDependencies)
     )
 
-    println(coursier.util.Print.dependencyTree(flattened, resolution,
-      printExclusions = false, reverse = inverse))
+    println(
+      coursier.util.Print.dependencyTree(flattened,
+                                         resolution,
+                                         printExclusions = false,
+                                         reverse = inverse))
 
     Result.Success()
   }
@@ -249,19 +253,21 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def run(args: String*) = T.command{
-    try Result.Success(Jvm.interactiveSubprocess(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = ammonite.ops.pwd
-    )) catch { case e: InteractiveShelloutException =>
-       Result.Failure("subprocess failed")
+  def run(args: String*) = T.command {
+    try Result.Success(
+      Jvm.interactiveSubprocess(
+        finalMainClass(),
+        runClasspath().map(_.path),
+        forkArgs(),
+        forkEnv(),
+        args,
+        workingDir = ammonite.ops.pwd
+      ))
+    catch {
+      case e: InteractiveShelloutException =>
+        Result.Failure("subprocess failed")
     }
   }
-
 
   def runMainLocal(mainClass: String, args: String*) = T.command {
     Jvm.runLocal(
@@ -271,16 +277,19 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )
   }
 
-  def runMain(mainClass: String, args: String*) = T.command{
-    try Result.Success(Jvm.interactiveSubprocess(
-      mainClass,
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = ammonite.ops.pwd
-    )) catch { case e: InteractiveShelloutException =>
-      Result.Failure("subprocess failed")
+  def runMain(mainClass: String, args: String*) = T.command {
+    try Result.Success(
+      Jvm.interactiveSubprocess(
+        mainClass,
+        runClasspath().map(_.path),
+        forkArgs(),
+        forkEnv(),
+        args,
+        workingDir = ammonite.ops.pwd
+      ))
+    catch {
+      case e: InteractiveShelloutException =>
+        Result.Failure("subprocess failed")
     }
   }
 
@@ -299,8 +308,8 @@ trait TestModule extends JavaModule with TaskModule {
 
   def forkWorkingDir = ammonite.ops.pwd
 
-  def test(args: String*) = T.command{
-    val outputPath = T.ctx().dest/"out.json"
+  def test(args: String*) = T.command {
+    val outputPath = T.ctx().dest / "out.json"
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
@@ -309,26 +318,31 @@ trait TestModule extends JavaModule with TaskModule {
       envArgs = forkEnv(),
       mainArgs =
         Seq(testFrameworks().length.toString) ++
-        testFrameworks() ++
-        Seq(runClasspath().length.toString) ++
-        runClasspath().map(_.path.toString) ++
-        Seq(args.length.toString) ++
-        args ++
-        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+          testFrameworks() ++
+          Seq(runClasspath().length.toString) ++
+          runClasspath().map(_.path.toString) ++
+          Seq(args.length.toString) ++
+          args ++
+          Seq(outputPath.toString,
+              T.ctx().log.colored.toString,
+              compile().classes.path.toString,
+              T.ctx().home.toString),
       workingDir = forkWorkingDir
     )
 
     try {
       val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+      val (doneMsg, results) =
+        upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
       TestModule.handleResults(doneMsg, results)
-    }catch{case e: Throwable =>
-      Result.Failure("Test reporting failed: " + e)
+    } catch {
+      case e: Throwable =>
+        Result.Failure("Test reporting failed: " + e)
     }
 
   }
-  def testLocal(args: String*) = T.command{
-    val outputPath = T.ctx().dest/"out.json"
+  def testLocal(args: String*) = T.command {
+    val outputPath = T.ctx().dest / "out.json"
 
     TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
@@ -338,19 +352,23 @@ trait TestModule extends JavaModule with TaskModule {
     )
 
     val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+    val (doneMsg, results) =
+      upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }
 }
 
-object TestModule{
+object TestModule {
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
 
-    val badTests = results.filter(x => Set("Error", "Failure").contains(x.status))
+    val badTests =
+      results.filter(x => Set("Error", "Failure").contains(x.status))
     if (badTests.isEmpty) Result.Success((doneMsg, results))
     else {
-      val suffix = if (badTests.length == 1) "" else " and " + (badTests.length-1) + " more"
+      val suffix =
+        if (badTests.length == 1) ""
+        else " and " + (badTests.length - 1) + " more"
 
       Result.Failure(
         badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,

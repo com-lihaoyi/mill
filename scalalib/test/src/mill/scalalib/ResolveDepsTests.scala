@@ -8,7 +8,8 @@ import mill.util.Loose.Agg
 import utest._
 
 object ResolveDepsTests extends TestSuite {
-  val repos = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
+  val repos =
+    Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
   def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
     repos,
@@ -39,7 +40,8 @@ object ResolveDepsTests extends TestSuite {
     }
 
     'excludeTransitiveDeps - {
-      val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
+      val deps = Agg(
+        ivy"com.lihaoyi::pprint:0.5.3".exclude("com.lihaoyi" -> "fansi_2.12"))
       val Success(paths) = evalDeps(deps)
       assert(!paths.exists(_.path.toString.contains("fansi_2.12")))
     }
@@ -47,7 +49,10 @@ object ResolveDepsTests extends TestSuite {
     'excludeTransitiveDepsByOrg - {
       val deps = Agg(ivy"com.lihaoyi::pprint:0.5.3".excludeOrg("com.lihaoyi"))
       val Success(paths) = evalDeps(deps)
-      assert(!paths.exists(path => path.path.toString.contains("com/lihaoyi") && !path.path.toString.contains("pprint_2.12")))
+      assert(
+        !paths.exists(path =>
+          path.path.toString.contains("com/lihaoyi") && !path.path.toString
+            .contains("pprint_2.12")))
     }
 
     'excludeTransitiveDepsByName - {

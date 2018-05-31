@@ -8,9 +8,8 @@ import mill.scalalib.{CrossScalaModule, DepSyntax}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
-
 object NodeJSConfigTests extends TestSuite {
-  val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
+  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
   val scalaVersion = "2.12.4"
   val scalaJSVersion = "0.6.22"
   val utestVersion = "0.6.3"
@@ -30,18 +29,19 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross[BuildModule](matrix:_*)
-    class BuildModule(val crossScalaVersion: String, nodeArgs: List[String]) extends HelloJSWorldModule {
+    object helloJsWorld extends Cross[BuildModule](matrix: _*)
+    class BuildModule(val crossScalaVersion: String, nodeArgs: List[String])
+        extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
       override def nodeJSConfig = T { NodeJSConfig(args = nodeArgs) }
     }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
+    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
-      extends BuildModule(crossScalaVersion, nodeArgs) {
+        extends BuildModule(crossScalaVersion, nodeArgs) {
       object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / 'src / 'utest }
+        override def sources = T.sources { millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -62,7 +62,9 @@ object NodeJSConfigTests extends TestSuite {
   def tests: Tests = Tests {
     prepareWorkspace()
 
-    def checkLog(command: define.Command[_], nodeArgs: List[String], notNodeArgs: List[String]) = {
+    def checkLog(command: define.Command[_],
+                 nodeArgs: List[String],
+                 notNodeArgs: List[String]) = {
       helloWorldEvaluator(command)
       val paths = Evaluator.resolveDestPaths(
         helloWorldEvaluator.outPath,
@@ -78,7 +80,9 @@ object NodeJSConfigTests extends TestSuite {
     'test - {
 
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) = {
-        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs, notNodeArgs)
+        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(),
+                 nodeArgs,
+                 notNodeArgs)
       }
 
       'test - checkUtest(nodeArgsEmpty, nodeArgs2G)
@@ -86,7 +90,9 @@ object NodeJSConfigTests extends TestSuite {
     }
 
     def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
-      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
+      checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(),
+               nodeArgs,
+               notNodeArgs)
     }
 
     'run - {

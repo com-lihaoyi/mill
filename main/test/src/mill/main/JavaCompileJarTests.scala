@@ -7,7 +7,7 @@ import utest._
 object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "java-compile-jar"
   def scriptSourcePath = pwd / 'main / 'test / 'resources / 'examples / 'javac
-  val tests = Tests{
+  val tests = Tests {
     initWorkspace()
     'test - {
       if (!ammonite.util.Util.java9OrAbove) {
@@ -31,7 +31,7 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
         )
 
         // If we update resources, classFiles are unchanged but jar changes
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "txt")){
+        for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "txt")) {
           write.append(scalaFile, "\n")
         }
 
@@ -48,14 +48,14 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
 
         // We can intentionally break the code, have the targets break, then
         // fix the code and have them recover.
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")){
+        for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")) {
           write.append(scalaFile, "\n}")
         }
 
         assert(!eval("classFiles"))
         assert(!eval("jar"))
 
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")){
+        for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")) {
           write.over(scalaFile, read(scalaFile).dropRight(2))
         }
 
@@ -65,4 +65,3 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
     }
   }
 }
-

@@ -5,8 +5,8 @@ import mill.define.{Segment, Segments}
 
 object ParseArgs {
 
-  def apply(scriptArgs: Seq[String],
-            multiSelect: Boolean): Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
+  def apply(scriptArgs: Seq[String], multiSelect: Boolean)
+    : Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
@@ -31,7 +31,8 @@ object ParseArgs {
     }
   }
 
-  private def validateSelectors(selectors: Seq[String]): Either[String, Unit] = {
+  private def validateSelectors(
+      selectors: Seq[String]): Either[String, Unit] = {
     if (selectors.isEmpty || selectors.exists(_.isEmpty))
       Left("Selector cannot be empty")
     else Right(())
@@ -106,23 +107,26 @@ object ParseArgs {
       .parse(input)
   }
 
-  def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
+  def extractSegments(
+      selectorString: String): Either[String, (Option[Segments], Segments)] =
     parseSelector(selectorString) match {
       case f: Parsed.Failure           => Left(s"Parsing exception ${f.msg}")
       case Parsed.Success(selector, _) => Right(selector)
     }
 
   private def parseSelector(input: String) = {
-    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_', '-')
-    val ident = P( CharsWhileIn(identChars) ).!
-    val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
-    val segment = P( ident ).map( Segment.Label)
-    val crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_',
+                                                                         '-')
+    val ident = P(CharsWhileIn(identChars)).!
+    val ident2 = P(CharsWhileIn(identChars ++ ".")).!
+    val segment = P(ident).map(Segment.Label)
+    val crossSegment =
+      P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
     val simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
-      case (h, rest) => Segments(h :: rest.toList:_*)
+      case (h, rest) => Segments(h :: rest.toList: _*)
     }
-    val query = P( simpleQuery ~ ("/" ~/ simpleQuery).?).map{
-      case (q, None) => (None, q)
+    val query = P(simpleQuery ~ ("/" ~/ simpleQuery).?).map {
+      case (q, None)     => (None, q)
       case (q, Some(q2)) => (Some(q), q2)
     }
     query.parse(input)

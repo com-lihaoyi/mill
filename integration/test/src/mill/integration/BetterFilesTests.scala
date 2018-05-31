@@ -4,8 +4,8 @@ import ammonite.ops._
 import utest._
 
 class BetterFilesTests(fork: Boolean)
-  extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "better-files", fork) {
-  val tests = Tests{
+    extends IntegrationTestSuite("MILL_BETTERFILES_REPO", "better-files", fork) {
+  val tests = Tests {
     initWorkspace()
     'test - {
 
@@ -17,7 +17,7 @@ class BetterFilesTests(fork: Boolean)
       assert(coreTestMeta.contains("better.files.FileSpec"))
       assert(coreTestMeta.contains("files should handle BOM"))
 
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
+      for (scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")) {
         write.append(scalaFile, "\n}")
       }
       assert(!eval("akka.test"))

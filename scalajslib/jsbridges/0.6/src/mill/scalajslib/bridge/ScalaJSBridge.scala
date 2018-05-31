@@ -8,7 +8,12 @@ import mill.eval.Result
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
-import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker, Semantics, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{
+  ModuleInitializer,
+  StandardLinker,
+  Semantics,
+  ModuleKind => ScalaJSModuleKind
+}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.jsenv.nodejs._
@@ -22,30 +27,38 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
            fullOpt: Boolean,
            moduleKind: ModuleKind) = {
     val semantics = fullOpt match {
-        case true => Semantics.Defaults.optimized
-        case false => Semantics.Defaults
+      case true  => Semantics.Defaults.optimized
+      case false => Semantics.Defaults
     }
     val scalaJSModuleKind = moduleKind match {
-      case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
+      case ModuleKind.NoModule       => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
     }
-    val config = StandardLinker.Config()
+    val config = StandardLinker
+      .Config()
       .withOptimizer(fullOpt)
       .withClosureCompilerIfAvailable(fullOpt)
       .withSemantics(semantics)
       .withModuleKind(scalaJSModuleKind)
     val linker = StandardLinker(config)
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
-    val jars = libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
+    val jars = libraries.map(jar =>
+      IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
-    val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val initializer = Option(main).map { cls =>
+      ModuleInitializer.mainMethodWithArgs(cls, "main")
+    }
     try {
-      linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
+      linker.link(sourceSJSIRs ++ jarSJSIRs,
+                  initializer.toSeq,
+                  destFile,
+                  logger)
       Result.Success(dest)
-    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
-      Result.Failure(e.getMessage)
+    } catch {
+      case e: org.scalajs.core.tools.linker.LinkingException =>
+        Result.Failure(e.getMessage)
     }
   }
 
@@ -78,7 +91,8 @@ class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
 
   def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {
     new NodeJSEnv(
-      NodeJSEnv.Config()
+      NodeJSEnv
+        .Config()
         .withExecutable(config.executable)
         .withArgs(config.args)
         .withEnv(config.env)

@@ -44,13 +44,12 @@ trait TwirlModule extends mill.Module {
 
   def compileTwirl: T[CompilationResult] = T.persistent {
     TwirlWorkerApi.twirlWorker
-      .compile(
-        twirlClasspath().map(_.path),
-        twirlSources().map(_.path),
-        T.ctx().dest,
-        twirlAdditionalImports,
-        twirlConstructorAnnotations,
-        twirlCodec,
-        twirlInclusiveDot)
+      .compile(twirlClasspath().map(_.path),
+               twirlSources().map(_.path),
+               T.ctx().dest,
+               twirlAdditionalImports,
+               twirlConstructorAnnotations,
+               twirlCodec,
+               twirlInclusiveDot)
   }
 }

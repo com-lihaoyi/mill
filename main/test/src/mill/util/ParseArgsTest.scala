@@ -146,9 +146,9 @@ object ParseArgsTest extends TestSuite {
                 multiSelect: Boolean) = {
         val Right((selectors0, args)) = ParseArgs(input, multiSelect)
 
-        val selectors = selectors0.map{
+        val selectors = selectors0.map {
           case (Some(v1), v2) => (Some(v1.value), v2.value)
-          case (None, v2) => (None, v2.value)
+          case (None, v2)     => (None, v2.value)
         }
         assert(
           selectors == expectedSelectors,
@@ -157,7 +157,9 @@ object ParseArgsTest extends TestSuite {
       }
 
       'rejectEmpty {
-        assert(ParseArgs(Seq.empty, multiSelect = false) == Left("Selector cannot be empty"))
+        assert(
+          ParseArgs(Seq.empty, multiSelect = false) == Left(
+            "Selector cannot be empty"))
       }
       'singleSelector - check(
         input = Seq("core.compile"),
@@ -170,7 +172,8 @@ object ParseArgsTest extends TestSuite {
       'externalSelector - check(
         input = Seq("foo.bar/core.compile"),
         expectedSelectors = List(
-          Some(List(Label("foo"), Label("bar"))) -> List(Label("core"), Label("compile"))
+          Some(List(Label("foo"), Label("bar"))) -> List(Label("core"),
+                                                         Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false
@@ -186,7 +189,9 @@ object ParseArgsTest extends TestSuite {
       'singleSelectorWithCross - check(
         input = Seq("bridges[2.12.4,jvm].compile"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("compile"))
+          None -> List(Label("bridges"),
+                       Cross(Seq("2.12.4", "jvm")),
+                       Label("compile"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = false
@@ -212,8 +217,12 @@ object ParseArgsTest extends TestSuite {
       'multiSelectorsBraceExpansionWithCross - check(
         input = Seq("bridges[2.12.4,jvm].{test,jar}"),
         expectedSelectors = List(
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("test")),
-          None -> List(Label("bridges"), Cross(Seq("2.12.4", "jvm")), Label("jar"))
+          None -> List(Label("bridges"),
+                       Cross(Seq("2.12.4", "jvm")),
+                       Label("test")),
+          None -> List(Label("bridges"),
+                       Cross(Seq("2.12.4", "jvm")),
+                       Label("jar"))
         ),
         expectedArgs = Seq.empty,
         multiSelect = true
@@ -229,7 +238,8 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       'multiSelectorsBraceExpansionWithoutAll - {
-        val res = ParseArgs(Seq("{core,application}.compile"), multiSelect = false)
+        val res =
+          ParseArgs(Seq("{core,application}.compile"), multiSelect = false)
         val expected = Right(
           List(
             None -> Segments(Label("core"), Label("compile")),

@@ -22,44 +22,59 @@ import scala.reflect.ClassTag
   * directly without going through Ammonite's main-method/argument-parsing
   * subsystem
   */
-object RunScript{
-  def runScript(home: Path,
-                wd: Path,
-                path: Path,
-                instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]), ammonite.interp.Interpreter],
-                scriptArgs: Seq[String],
-                stateCache: Option[Evaluator.State],
-                log: Logger,
-                env : Map[String, String])
-  : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+object RunScript {
+  def runScript(
+      home: Path,
+      wd: Path,
+      path: Path,
+      instantiateInterpreter: => Either[(Res.Failing, Seq[(Path, Long)]),
+                                        ammonite.interp.Interpreter],
+      scriptArgs: Seq[String],
+      stateCache: Option[Evaluator.State],
+      log: Logger,
+      env: Map[String, String])
+    : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])],
+       Seq[(Path, Long)]) = {
 
-    val (evalState, interpWatched) = stateCache match{
-      case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
+    val (evalState, interpWatched) = stateCache match {
+      case Some(s) if watchedSigUnchanged(s.watched) =>
+        Res.Success(s) -> s.watched
       case _ =>
-        instantiateInterpreter match{
+        instantiateInterpreter match {
           case Left((res, watched)) => (res, watched)
           case Right(interp) =>
             interp.watch(path)
             val eval =
-              for(rootModule <- evaluateRootModule(wd, path, interp, log))
-              yield Evaluator.State(
-                rootModule,
-                rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
-                mutable.Map.empty[Segments, (Int, Any)],
-                interp.watchedFiles
-              )
+              for (rootModule <- evaluateRootModule(wd, path, interp, log))
+                yield
+                  Evaluator.State(
+                    rootModule,
+                    rootModule.getClass.getClassLoader
+                      .asInstanceOf[SpecialClassLoader]
+                      .classpathSignature,
+                    mutable.Map.empty[Segments, (Int, Any)],
+                    interp.watchedFiles
+                  )
             (eval, interp.watchedFiles)
         }
     }
 
     val evalRes =
-      for(s <- evalState)
-      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log,
-        s.classLoaderSig, s.workerCache, env)
+      for (s <- evalState)
+        yield
+          new Evaluator[Any](home,
+                             wd / 'out,
+                             wd / 'out,
+                             s.rootModule,
+                             log,
+                             s.classLoaderSig,
+                             s.workerCache,
+                             env)
 
-    val evaluated = for{
+    val evaluated = for {
       evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
+      (evalWatches, res) <- Res(
+        evaluateTasks(evaluator, scriptArgs, multiSelect = false))
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
@@ -67,28 +82,31 @@ object RunScript{
   }
 
   def watchedSigUnchanged(sig: Seq[(Path, Long)]) = {
-    sig.forall{case (p, l) => Interpreter.pathSignature(p) == l}
+    sig.forall { case (p, l) => Interpreter.pathSignature(p) == l }
   }
 
   def evaluateRootModule(wd: Path,
                          path: Path,
                          interp: ammonite.interp.Interpreter,
-                         log: Logger
-                        ): Res[mill.define.BaseModule] = {
+                         log: Logger): Res[mill.define.BaseModule] = {
 
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
     for {
-      scriptTxt <-
-        try Res.Success(Util.normalizeNewlines(read(path)))
-        catch { case _: NoSuchFileException =>
-          log.info("No build file found, you should create build.sc to do something useful")
+      scriptTxt <- try Res.Success(Util.normalizeNewlines(read(path)))
+      catch {
+        case _: NoSuchFileException =>
+          log.info(
+            "No build file found, you should create build.sc to do something useful")
           Res.Success("")
-        }
+      }
 
       processed <- interp.processModule(
         scriptTxt,
-        CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),
+        CodeSource(wrapper,
+                   pkg,
+                   Seq(Name("ammonite"), Name("$file")),
+                   Some(path)),
         autoImport = true,
         extraCode = "",
         hardcoded = true
@@ -96,20 +114,20 @@ object RunScript{
 
       buildClsName <- processed.blockInfo.lastOption match {
         case Some(meta) => Res.Success(meta.id.wrapperPath)
-        case None => Res.Skip
+        case None       => Res.Skip
       }
 
-      buildCls = interp
-        .evalClassloader
+      buildCls = interp.evalClassloader
         .loadClass(buildClsName)
 
       module <- try {
         Util.withContextClassloader(interp.evalClassloader) {
           Res.Success(
-            buildCls.getMethod("millSelf")
-                    .invoke(null)
-                    .asInstanceOf[Some[mill.define.BaseModule]]
-                    .get
+            buildCls
+              .getMethod("millSelf")
+              .invoke(null)
+              .asInstanceOf[Some[mill.define.BaseModule]]
+              .get
           )
         }
       } catch {
@@ -127,27 +145,31 @@ object RunScript{
       parsed <- ParseArgs(scriptArgs, multiSelect = multiSelect)
       (selectors, args) = parsed
       taskss <- {
-        val selected = selectors.map { case (scopedSel, sel) =>
-          for(res <- prepareResolve(evaluator, scopedSel, sel))
-          yield {
-            val (rootModule, crossSelectors) = res
+        val selected = selectors.map {
+          case (scopedSel, sel) =>
+            for (res <- prepareResolve(evaluator, scopedSel, sel))
+              yield {
+                val (rootModule, crossSelectors) = res
 
-
-            try {
-              // We inject the `evaluator.rootModule` into the TargetScopt, rather
-              // than the `rootModule`, because even if you are running an external
-              // module we still want you to be able to resolve targets from your
-              // main build. Resolving targets from external builds as CLI arguments
-              // is not currently supported
-              mill.eval.Evaluator.currentEvaluator.set(evaluator)
-              resolver.resolve(
-                sel.value.toList, rootModule, rootModule.millDiscover,
-                args, crossSelectors.toList, Nil
-              )
-            } finally {
-              mill.eval.Evaluator.currentEvaluator.set(null)
-            }
-          }
+                try {
+                  // We inject the `evaluator.rootModule` into the TargetScopt, rather
+                  // than the `rootModule`, because even if you are running an external
+                  // module we still want you to be able to resolve targets from your
+                  // main build. Resolving targets from external builds as CLI arguments
+                  // is not currently supported
+                  mill.eval.Evaluator.currentEvaluator.set(evaluator)
+                  resolver.resolve(
+                    sel.value.toList,
+                    rootModule,
+                    rootModule.millDiscover,
+                    args,
+                    crossSelectors.toList,
+                    Nil
+                  )
+                } finally {
+                  mill.eval.Evaluator.currentEvaluator.set(null)
+                }
+              }
         }
         EitherOps.sequence(selected)
       }
@@ -155,40 +177,51 @@ object RunScript{
     } yield res.flatten
   }
 
-  def resolveRootModule[T](evaluator: Evaluator[T], scopedSel: Option[Segments]) = {
+  def resolveRootModule[T](evaluator: Evaluator[T],
+                           scopedSel: Option[Segments]) = {
     scopedSel match {
       case None => Right(evaluator.rootModule)
       case Some(scoping) =>
         for {
-          moduleCls <-
-            try Right(evaluator.rootModule.getClass.getClassLoader.loadClass(scoping.render + "$"))
-            catch {case e: ClassNotFoundException => Left ("Cannot resolve external module " + scoping.render)}
+          moduleCls <- try Right(
+            evaluator.rootModule.getClass.getClassLoader
+              .loadClass(scoping.render + "$"))
+          catch {
+            case e: ClassNotFoundException =>
+              Left("Cannot resolve external module " + scoping.render)
+          }
           rootModule <- moduleCls.getField("MODULE$").get(moduleCls) match {
             case rootModule: ExternalModule => Right(rootModule)
-            case _ => Left("Class " + scoping.render + " is not an external module")
+            case _ =>
+              Left("Class " + scoping.render + " is not an external module")
           }
         } yield rootModule
     }
   }
 
-  def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
-    for (rootModule<- resolveRootModule(evaluator, scopedSel))
-    yield {
-      val crossSelectors = sel.value.map {
-        case Segment.Cross(x) => x.toList.map(_.toString)
-        case _ => Nil
+  def prepareResolve[T](evaluator: Evaluator[T],
+                        scopedSel: Option[Segments],
+                        sel: Segments) = {
+    for (rootModule <- resolveRootModule(evaluator, scopedSel))
+      yield {
+        val crossSelectors = sel.value.map {
+          case Segment.Cross(x) => x.toList.map(_.toString)
+          case _                => Nil
+        }
+        (rootModule, crossSelectors)
       }
-      (rootModule, crossSelectors)
-    }
   }
 
   def evaluateTasks[T](evaluator: Evaluator[T],
                        scriptArgs: Seq[String],
                        multiSelect: Boolean) = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, multiSelect)) yield {
+    for (targets <- resolveTasks(mill.main.ResolveTasks,
+                                 evaluator,
+                                 scriptArgs,
+                                 multiSelect)) yield {
       val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 
-      val watched2 = for{
+      val watched2 = for {
         x <- res.right.toSeq
         (Watched(_, extraWatched), _) <- x
         w <- extraWatched
@@ -198,11 +231,10 @@ object RunScript{
     }
   }
 
-  def evaluate(evaluator: Evaluator[_],
-               targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+  def evaluate(evaluator: Evaluator[_], targets: Agg[Task[Any]])
+    : (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
     val evaluated = evaluator.evaluate(targets)
-    val watched = evaluated.results
-      .iterator
+    val watched = evaluated.results.iterator
       .collect {
         case (t: define.Sources, Result.Success(p: Seq[PathRef])) => p
       }
@@ -210,22 +242,24 @@ object RunScript{
       .toSeq
 
     val errorStr =
-      (for((k, fs) <- evaluated.failing.items()) yield {
-        val ks = k match{
-          case Left(t) => t.toString
+      (for ((k, fs) <- evaluated.failing.items()) yield {
+        val ks = k match {
+          case Left(t)  => t.toString
           case Right(t) => t.segments.render
         }
-        val fss = fs.map{
+        val fss = fs.map {
           case Result.Exception(t, outerStack) =>
             var current = List(t)
-            while(current.head.getCause != null){
+            while (current.head.getCause != null) {
               current = current.head.getCause :: current
             }
             current.reverse
-              .flatMap( ex =>
-                Seq(ex.toString) ++
-                ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-              )
+              .flatMap(
+                ex =>
+                  Seq(ex.toString) ++
+                    ex.getStackTrace
+                      .dropRight(outerStack.value.length)
+                      .map("    " + _))
               .mkString("\n")
           case Result.Failure(t, _) => t
         }
@@ -234,13 +268,14 @@ object RunScript{
 
     evaluated.failing.keyCount match {
       case 0 =>
-        val json = for(t <- targets.toSeq) yield {
+        val json = for (t <- targets.toSeq) yield {
           t match {
             case t: mill.define.NamedTask[_] =>
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
-              val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              val metadata = upickle.default
+                .readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
               Some(metadata.value)
 
             case _ => None

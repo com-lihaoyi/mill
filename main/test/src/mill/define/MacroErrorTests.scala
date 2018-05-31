@@ -3,15 +3,16 @@ package mill.define
 import utest._
 import mill.{T, Module}
 import mill.util.TestUtil
-object MacroErrorTests extends TestSuite{
+object MacroErrorTests extends TestSuite {
 
-  val tests = Tests{
+  val tests = Tests {
 
-    'errors{
+    'errors {
       val expectedMsg =
         "T{} members must be defs defined in a Cacher class/trait/object body"
 
-      val err = compileError("object Foo extends TestUtil.BaseModule{ val x = T{1} }")
+      val err =
+        compileError("object Foo extends TestUtil.BaseModule{ val x = T{1} }")
       assert(err.msg == expectedMsg)
     }
 
@@ -72,7 +73,8 @@ object MacroErrorTests extends TestSuite{
           mill.define.Discover[foo.type]
         """)
         assert(
-          e.msg.contains("`T.persistent` definitions must have 0 parameter lists"),
+          e.msg.contains(
+            "`T.persistent` definitions must have 0 parameter lists"),
           e.pos.contains("def a() = ")
         )
       }
@@ -93,8 +95,7 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(e.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"))
       }
       'neg - {
 
@@ -127,8 +128,9 @@ object MacroErrorTests extends TestSuite{
         }""")
         assert(err.msg == expectedMsg)
       }
-      'neg3{
-        val borkedCachedDiamond1 = utest.compileError("""
+      'neg3 {
+        val borkedCachedDiamond1 =
+          utest.compileError("""
           object borkedCachedDiamond1 {
             def up = T{ TestUtil.test() }
             def left = T{ TestUtil.test(up) }
@@ -137,8 +139,7 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"))
       }
     }
   }

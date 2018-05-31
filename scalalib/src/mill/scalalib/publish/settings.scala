@@ -18,9 +18,7 @@ object Artifact {
         )
     }
   }
-  def fromDep(dep: Dep,
-              scalaFull: String,
-              scalaBin: String): Dependency = {
+  def fromDep(dep: Dep, scalaFull: String, scalaBin: String): Dependency = {
     dep match {
       case d: Dep.Java => fromDepJava(d)
       case Dep.Scala(dep, cross, force) =>

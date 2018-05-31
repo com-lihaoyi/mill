@@ -8,14 +8,20 @@ import ammonite.util.Colors
 import mill.Agg
 import mill.eval.PathRef
 import mill.scalalib.{CompilationResult, Lib, TestRunner}
-import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+import xsbti.compile.{
+  CompilerCache => _,
+  FileAnalysisStore => _,
+  ScalaInstance => _,
+  _
+}
 import mill.scalalib.Lib.grepJar
 import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
 
-case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
+case class MockedLookup(am: File => Optional[CompileAnalysis])
+    extends PerClasspathEntryLookup {
   override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
     am(classpathEntry)
 
@@ -23,8 +29,8 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-class ScalaWorker(ctx0: mill.util.Ctx,
-                  compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
+class ScalaWorker(ctx0: mill.util.Ctx, compilerBridgeClasspath: Array[String])
+    extends mill.scalalib.ScalaWorkerApi {
   @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 
@@ -41,11 +47,14 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       mkdir(compiledDest)
 
       val sourceFolder = mill.modules.Util.unpackZip(sourcesJar)(workingDir)
-      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
+      val classloader = mill.util.ClassLoader
+        .create(compilerJars.map(_.toURI.toURL), null)(ctx0)
       val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
       val argsArray = Array[String](
-        "-d", compiledDest.toString,
-        "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
+        "-d",
+        compiledDest.toString,
+        "-classpath",
+        (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
       ) ++ ls.rec(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
 
       scalacMain.getMethods
@@ -57,22 +66,26 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     compiledDest
   }
 
-
-
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit ctx: mill.util.Ctx): Seq[String] = {
-    def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
+  def discoverMainClasses(compilationResult: CompilationResult)(
+      implicit ctx: mill.util.Ctx): Seq[String] = {
+    def toScala[A](o: Optional[A]): Option[A] =
+      if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
       .map(_.getAnalysis)
-      .flatMap{
+      .flatMap {
         case analysis: Analysis =>
-          Some(analysis.infos.allInfos.values.map(_.getMainClasses).flatten.toSeq.sorted)
+          Some(
+            analysis.infos.allInfos.values
+              .map(_.getMainClasses)
+              .flatten
+              .toSeq
+              .sorted)
         case _ =>
           None
       }
       .getOrElse(Seq.empty[String])
   }
-
 
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],
@@ -82,35 +95,43 @@ class ScalaWorker(ctx0: mill.util.Ctx,
                    scalacOptions: Seq[String],
                    scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
-                   upstreamCompileOutput: Seq[CompilationResult])
-                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+                   upstreamCompileOutput: Seq[CompilationResult])(
+      implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
-    val compilerBridge = compileZincBridge(scalaVersion, compilerBridgeSources, compilerJars)
+    val compilerBridge =
+      compileZincBridge(scalaVersion, compilerBridgeSources, compilerJars)
 
     val pluginJars = scalacPluginClasspath.toArray.map(_.toIO)
 
-    val compilerClassloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val compilerClassloaderSig =
+      compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     val scalaInstanceSig =
-      compilerClassloaderSig + scalacPluginClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+      compilerClassloaderSig + scalacPluginClasspath
+        .map(p => p.toString().hashCode + p.mtime.toMillis)
+        .sum
 
-    val compilerClassLoader = scalaClassloaderCache match{
+    val compilerClassLoader = scalaClassloaderCache match {
       case Some((k, v)) if k == compilerClassloaderSig => v
       case _ =>
-        val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
+        val classloader =
+          mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
         scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
         classloader
     }
 
-    val scalaInstance = scalaInstanceCache match{
+    val scalaInstance = scalaInstanceCache match {
       case Some((k, v)) if k == scalaInstanceSig => v
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = mill.util.ClassLoader.create(pluginJars.map(_.toURI.toURL), compilerClassLoader),
-          libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
-          compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+          loader = mill.util.ClassLoader
+            .create(pluginJars.map(_.toURI.toURL), compilerClassLoader),
+          libraryJar =
+            grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
+          compilerJar =
+            grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
           allJars = compilerJars ++ pluginJars,
           explicitActual = None
         )
@@ -123,12 +144,15 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
-      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-        ctx.log.outputStream
-      ))
+      val consoleAppender = MainAppender.defaultScreen(
+        ConsoleOut.printStreamOut(
+          ctx.log.outputStream
+        ))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
+      LogExchange.bindLoggerAppenders(
+        "Hello",
+        (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
 
@@ -136,10 +160,16 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       if (f.isFile) {
         Optional.empty[CompileAnalysis]
       } else {
-        upstreamCompileOutput.collectFirst {
-          case CompilationResult(zincPath, classFiles) if classFiles.path.toNIO == f.toPath =>
-            FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
-        }.getOrElse(Optional.empty[CompileAnalysis])
+        upstreamCompileOutput
+          .collectFirst {
+            case CompilationResult(zincPath, classFiles)
+                if classFiles.path.toNIO == f.toPath =>
+              FileAnalysisStore
+                .binary(zincPath.toIO)
+                .get()
+                .map[CompileAnalysis](_.getAnalysis)
+          }
+          .getOrElse(Optional.empty[CompileAnalysis])
       }
     }
 
@@ -159,7 +189,8 @@ class ScalaWorker(ctx0: mill.util.Ctx,
           classpath = classesIODir +: compileClasspathFiles,
           sources = sources.toArray.map(_.toIO),
           classesDirectory = classesIODir,
-          scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
+          scalacOptions = (scalacPluginClasspath
+            .map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
           javacOptions = javacOptions.toArray,
           maxErrors = 10,
           sourcePositionMappers = Array(),
@@ -196,6 +227,6 @@ class ScalaWorker(ctx0: mill.util.Ctx,
       )
 
       mill.eval.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
-    }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
+    } catch { case e: CompileFailed => mill.eval.Result.Failure(e.toString) }
   }
 }

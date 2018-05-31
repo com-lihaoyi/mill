@@ -11,7 +11,6 @@ import mill.util.PrintLogger
 
 import scala.annotation.tailrec
 
-
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
   * `build.sc` scripts with mill-specific tweaks such as a custom
@@ -22,22 +21,28 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
                  stateCache0: Option[Evaluator.State] = None,
-                 env : Map[String, String],
+                 env: Map[String, String],
                  setIdle: Boolean => Unit)
-  extends ammonite.MainRunner(
-    config, outprintStream, errPrintStream,
-    stdIn, outprintStream, errPrintStream
-  ){
+    extends ammonite.MainRunner(
+      config,
+      outprintStream,
+      errPrintStream,
+      stdIn,
+      outprintStream,
+      errPrintStream
+    ) {
 
-  var stateCache  = stateCache0
+  var stateCache = stateCache0
 
   override def watchAndWait(watched: Seq[(Path, Long)]) = {
-    printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
-    def statAll() = watched.forall{ case (file, lastMTime) =>
-      Interpreter.pathSignature(file) == lastMTime
+    printInfo(
+      s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    def statAll() = watched.forall {
+      case (file, lastMTime) =>
+        Interpreter.pathSignature(file) == lastMTime
     }
     setIdle(true)
-    while(statAll()) Thread.sleep(100)
+    while (statAll()) Thread.sleep(100)
     setIdle(false)
   }
 
@@ -46,19 +51,19 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     * signature only on demand, so if we don't have config.watch enabled we do
     * not pay the cost of generating it
     */
-  @tailrec final def watchLoop2[T](isRepl: Boolean,
-                                   printing: Boolean,
-                                   run: Main => (Res[T], () => Seq[(Path, Long)])): Boolean = {
+  @tailrec final def watchLoop2[T](
+      isRepl: Boolean,
+      printing: Boolean,
+      run: Main => (Res[T], () => Seq[(Path, Long)])): Boolean = {
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
     if (!config.watch) success
-    else{
+    else {
       watchAndWait(watched())
       watchLoop2(isRepl, printing, run)
     }
   }
-
 
   override def runScript(scriptPath: Path, scriptArgs: List[String]) =
     watchLoop2(
@@ -83,21 +88,29 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           env
         )
 
-        result match{
+        result match {
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
-            stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, interpWatched))
+            stateCache = Some(
+              Evaluator.State(eval.rootModule,
+                              eval.classLoaderSig,
+                              eval.workerCache,
+                              interpWatched))
             val watched = () => {
-              val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
+              val alreadyStale =
+                evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
               // If the file changed between the creation of the original
               // `PathRef` and the current moment, use random junk .sig values
               // to force an immediate re-run. Otherwise calculate the
               // pathSignatures the same way Ammonite would and hand over the
               // values, so Ammonite can watch them and only re-run if they
               // subsequently change
-              if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
-              else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
+              if (alreadyStale)
+                evalWatches.map(_.path -> util.Random.nextLong())
+              else
+                evalWatches.map(p =>
+                  p.path -> Interpreter.pathSignature(p.path))
             }
             (Res(res), () => interpWatched ++ watched())
           case _ => (result, () => interpWatched)
@@ -106,19 +119,21 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     )
 
   override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
-    res match{
+    res match {
       case Res.Success(value) => true
-      case _ => super.handleWatchRes(res, printing)
+      case _                  => super.handleWatchRes(res, printing)
     }
   }
 
   override def initMain(isRepl: Boolean) = {
-    super.initMain(isRepl).copy(
-      scriptCodeWrapper = CustomCodeWrapper,
-      // Ammonite does not properly forward the wd from CliConfig to Main, so
-      // force forward it outselves
-      wd = config.wd
-    )
+    super
+      .initMain(isRepl)
+      .copy(
+        scriptCodeWrapper = CustomCodeWrapper,
+        // Ammonite does not properly forward the wd from CliConfig to Main, so
+        // force forward it outselves
+        wd = config.wd
+      )
   }
 
   object CustomCodeWrapper extends Preprocessor.CodeWrapper {
@@ -130,8 +145,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
               extraCode: String): (String, String, Int) = {
       import source.pkgName
       val wrapName = indexedWrapperName.backticked
-      val path = source
-        .path
+      val path = source.path
         .map(path => path.toNIO.getParent)
         .getOrElse(config.wd.toNIO)
       val literalPath = pprint.Util.literalize(path.toString)

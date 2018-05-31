@@ -14,7 +14,7 @@ import scala.reflect.ClassTag
   * the concrete instance.
   */
 class Module(implicit outerCtx0: mill.define.Ctx)
-  extends mill.moduledefs.Cacher{ outer =>
+    extends mill.moduledefs.Cacher { outer =>
 
   /**
     * Miscellaneous machinery around traversing & querying the build hierarchy,
@@ -22,10 +22,13 @@ class Module(implicit outerCtx0: mill.define.Ctx)
     */
   object millInternal extends Module.Internal(this)
 
-  lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module].toSeq
+  lazy val millModuleDirectChildren =
+    millInternal.reflectNestedObjects[Module].toSeq
   def millOuterCtx = outerCtx0
-  def millSourcePath: Path = millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
-  implicit def millModuleExternal: Ctx.External = Ctx.External(millOuterCtx.external)
+  def millSourcePath: Path =
+    millOuterCtx.millSourcePath / millOuterCtx.segment.pathSegments
+  implicit def millModuleExternal: Ctx.External =
+    Ctx.External(millOuterCtx.external)
   implicit def millModuleShared: Ctx.Foreign = Ctx.Foreign(millOuterCtx.foreign)
   implicit def millModuleBasePath: BasePath = BasePath(millSourcePath)
   implicit def millModuleSegments: Segments = {
@@ -34,17 +37,19 @@ class Module(implicit outerCtx0: mill.define.Ctx)
   override def toString = millModuleSegments.render
 }
 
-object Module{
-  class Internal(outer: Module){
+object Module {
+  class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {
-      def rec(m: Module): Seq[T] = f(m) ++ m.millModuleDirectChildren.flatMap(rec)
+      def rec(m: Module): Seq[T] =
+        f(m) ++ m.millModuleDirectChildren.flatMap(rec)
       rec(outer)
     }
 
     lazy val modules = traverse(Seq(_))
-    lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
+    lazy val segmentsToModules =
+      modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets = traverse{_.millInternal.reflect[Target[_]]}.toSet
+    lazy val targets = traverse { _.millInternal.reflect[Target[_]] }.toSet
 
     lazy val segmentsToTargets = targets
       .map(t => (t.ctx.segments, t))
@@ -58,10 +63,9 @@ object Module{
 
     def reflect[T: ClassTag] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass
-      for{
+      for {
         m <- outer.getClass.getMethods
-        if
-          !m.getName.contains('$') &&
+        if !m.getName.contains('$') &&
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           (m.getModifiers & Modifier.ABSTRACT) == 0 &&
@@ -70,10 +74,9 @@ object Module{
     }
     def reflectNames[T: ClassTag] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass
-      for{
+      for {
         m <- outer.getClass.getMethods
-        if
-          (m.getModifiers & Modifier.STATIC) == 0 &&
+        if (m.getModifiers & Modifier.STATIC) == 0 &&
           runtimeCls.isAssignableFrom(m.getReturnType)
       } yield m.getName
     }
@@ -82,12 +85,13 @@ object Module{
     // script/REPL runner always wraps user code in a wrapper object/trait
     def reflectNestedObjects[T: ClassTag] = {
       (reflect[T] ++
-        outer
-          .getClass
-          .getClasses
+        outer.getClass.getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _)
-          .flatMap(c => c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T]))
-        ).distinct
+          .flatMap(
+            c =>
+              c.getFields
+                .find(_.getName == "MODULE$")
+                .map(_.get(c).asInstanceOf[T]))).distinct
     }
   }
 }
