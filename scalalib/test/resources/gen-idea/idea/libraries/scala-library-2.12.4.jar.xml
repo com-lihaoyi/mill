@@ -3,5 +3,8 @@
         <CLASSES>
             <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar!/"/>
         </CLASSES>
+        <SOURCES>
+            <root url="jar://COURSIER_HOME/https/repo1.maven.org/maven2/org/scala-lang/scala-library/2.12.4/scala-library-2.12.4-sources.jar!/"/>
+        </SOURCES>
     </library>
 </component>
