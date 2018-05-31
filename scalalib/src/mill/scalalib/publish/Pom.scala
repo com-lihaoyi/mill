@@ -10,16 +10,18 @@ object Pom {
 
   implicit class XmlOps(val e: Elem) extends AnyVal {
     // source: https://stackoverflow.com/a/5254068/449071
-    def optional : NodeSeq = {
+    def optional: NodeSeq = {
       require(e.child.length == 1)
       e.child.head match {
-        case atom: Atom[Option[_]] => atom.data match {
-          case None    => NodeSeq.Empty
-          case Some(x) => e.copy(child = x match {
-            case n: NodeSeq => n
-            case x => new Atom(x)
-          })
-        }
+        case atom: Atom[Option[_]] =>
+          atom.data match {
+            case None => NodeSeq.Empty
+            case Some(x) =>
+              e.copy(child = x match {
+                case n: NodeSeq => n
+                case x          => new Atom(x)
+              })
+          }
         case _ => e
       }
     }

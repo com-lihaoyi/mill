@@ -2,8 +2,6 @@ package mill.scalalib.publish
 
 import java.util.Base64
 
-
-
 import scala.concurrent.duration._
 import scalaj.http.{BaseHttp, HttpOptions, HttpRequest, HttpResponse}
 
@@ -29,8 +27,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
   def getStagingProfileUri(groupId: String): String = {
     val response = withRetry(
-      PatientHttp(s"$uri/staging/profiles").headers(commonHeaders))
-        .throwError
+      PatientHttp(s"$uri/staging/profiles").headers(commonHeaders)).throwError
 
     val resourceUri =
       ujson
@@ -60,8 +57,7 @@ class SonatypeHttpApi(uri: String, credentials: String) {
     val response = withRetry(PatientHttp(s"${profileUri}/start")
       .headers(commonHeaders)
       .postData(
-        s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""))
-      .throwError
+        s"""{"data": {"description": "fresh staging profile for ${groupId}"}}""")).throwError
 
     ujson.read(response.body)("data")("stagedRepositoryId").str.toString
   }

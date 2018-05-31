@@ -4,8 +4,10 @@ import ammonite.ops._
 import mill.util.ScriptTestSuite
 import utest._
 
-abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, fork: Boolean)
-  extends ScriptTestSuite(fork){
+abstract class IntegrationTestSuite(repoKey: String,
+                                    val workspaceSlug: String,
+                                    fork: Boolean)
+    extends ScriptTestSuite(fork) {
   val buildFilePath = pwd / 'integration / 'test / 'resources / workspaceSlug
   def scriptSourcePath = {
     // The unzipped git repo snapshots we get from github come with a

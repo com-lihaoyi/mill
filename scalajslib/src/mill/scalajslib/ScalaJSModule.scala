@@ -23,10 +23,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBinaryVersion = T { Lib.scalaBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
+  def scalaJSBridgeVersion = T {
+    scalaJSVersion().split('.').dropRight(1).mkString(".")
+  }
 
   def sjsBridgeClasspath = T {
-    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
+    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion()
+      .replace('.', '_')
     mill.modules.Util.millProjectModule(
       jsBridgeKey,
       s"mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}",
@@ -35,14 +38,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
+  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") => ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
-      case v if v.startsWith("1.0") => ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}"
+      case v if v.startsWith("0.6") =>
+        ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+      case v if v.startsWith("1.0") =>
+        ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}"
     }
     resolveDependencies(
       repositories,
@@ -75,25 +80,28 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: String*) = T.command { run(args:_*) }
+  override def runLocal(args: String*) = T.command { run(args: _*) }
 
   override def run(args: String*) = T.command {
-    finalMainClassOpt() match{
+    finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
-        ScalaJSBridge.scalaJSBridge().run(
-          toolsClasspath().map(_.path),
-          nodeJSConfig(),
-          fastOpt().path.toIO
-        )
+        ScalaJSBridge
+          .scalaJSBridge()
+          .run(
+            toolsClasspath().map(_.path),
+            nodeJSConfig(),
+            fastOpt().path.toIO
+          )
         Result.Success(())
     }
 
   }
 
-  override def runMainLocal(mainClass: String, args: String*) = T.command[Unit] {
-    mill.eval.Result.Failure("runMain is not supported in Scala.js")
-  }
+  override def runMainLocal(mainClass: String, args: String*) =
+    T.command[Unit] {
+      mill.eval.Result.Failure("runMain is not supported in Scala.js")
+    }
 
   override def runMain(mainClass: String, args: String*) = T.command[Unit] {
     mill.eval.Result.Failure("runMain is not supported in Scala.js")
@@ -116,22 +124,24 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       .flatMap(ls.rec)
       .filter(_.ext == "sjsir")
     val libraries = classpath.filter(_.ext == "jar")
-    worker.link(
-      toolsClasspath.map(_.path),
-      sjsirFiles,
-      libraries,
-      outputPath.toIO,
-      mainClass,
-      mode == FullOpt,
-      moduleKind
-    ).map(PathRef(_))
+    worker
+      .link(
+        toolsClasspath.map(_.path),
+        sjsirFiles,
+        libraries,
+        outputPath.toIO,
+        mainClass,
+        mode == FullOpt,
+        moduleKind
+      )
+      .map(PathRef(_))
   }
 
-  override def scalacPluginIvyDeps = T{
+  override def scalacPluginIvyDeps = T {
     super.scalacPluginIvyDeps() ++
-    Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
+      Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
   }
-  override def scalaLibraryIvyDeps = T{
+  override def scalaLibraryIvyDeps = T {
     Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
   }
 
@@ -142,7 +152,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     else scalaJSBinaryVersion()
   }
 
-  override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
+  override def artifactSuffix: T[String] =
+    s"${platformSuffix()}_${artifactScalaVersion()}"
 
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 
@@ -172,10 +183,12 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*) = T.command { test(args:_*) }
+  override def testLocal(args: String*) = T.command { test(args: _*) }
 
   override def test(args: String*) = T.command {
-    val (close, framework) = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
+    val (close, framework) = mill.scalajslib.ScalaJSBridge
+      .scalaJSBridge()
+      .getFramework(
         toolsClasspath().map(_.path),
         nodeJSConfig(),
         testFrameworks().head,
@@ -183,11 +196,11 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       )
 
     val (doneMsg, results) = TestRunner.runTests(
-        _ => Seq(framework),
-        runClasspath().map(_.path),
-        Agg(compile().classes.path),
-        args
-      )
+      _ => Seq(framework),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args
+    )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`

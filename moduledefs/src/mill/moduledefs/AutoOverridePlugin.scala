@@ -8,7 +8,8 @@ import scala.tools.nsc.plugins.{Plugin, PluginComponent}
 
 class AutoOverridePlugin(val global: Global) extends Plugin {
   import global._
-  override def init(options: List[String],  error: String => Unit): Boolean = true
+  override def init(options: List[String], error: String => Unit): Boolean =
+    true
 
   val name = "auto-override-plugin"
   val description = "automatically inserts `override` keywords for you"
@@ -37,14 +38,13 @@ class AutoOverridePlugin(val global: Global) extends Plugin {
 
         def apply(unit: global.CompilationUnit): Unit = {
           object AutoOverrider extends global.Transformer {
-            override def transform(tree: global.Tree) = tree match{
+            override def transform(tree: global.Tree) = tree match {
               case d: DefDef
-                if d.symbol.overrideChain.count(!_.isAbstract) > 1
-                && !d.mods.isOverride
-                && isCacher(d.symbol.owner) =>
-
-                  d.symbol.flags = d.symbol.flags | Flags.OVERRIDE
-                  copyDefDef(d)(mods = d.mods | Flags.OVERRIDE)
+                  if d.symbol.overrideChain.count(!_.isAbstract) > 1
+                    && !d.mods.isOverride
+                    && isCacher(d.symbol.owner) =>
+                d.symbol.flags = d.symbol.flags | Flags.OVERRIDE
+                copyDefDef(d)(mods = d.mods | Flags.OVERRIDE)
               case _ => super.transform(tree)
 
             }

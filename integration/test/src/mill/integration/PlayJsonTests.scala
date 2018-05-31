@@ -3,13 +3,14 @@ package mill.integration
 import ammonite.ops._
 import utest._
 
-class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_REPO", "play-json", fork) {
+class PlayJsonTests(fork: Boolean)
+    extends IntegrationTestSuite("MILL_PLAY_JSON_REPO", "play-json", fork) {
 
   override def buildFiles: Seq[Path] = {
     ls(buildFilePath).filter(_.ext == "sc")
   }
 
-  val tests = Tests{
+  val tests = Tests {
     initWorkspace()
 
     'jvm - {
@@ -37,7 +38,8 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
 
       assert(
         jsMeta.contains("play.api.libs.json.JsonSpec"),
-        jsMeta.contains("Complete JSON should create full object when lose precision when parsing BigDecimals")
+        jsMeta.contains(
+          "Complete JSON should create full object when lose precision when parsing BigDecimals")
       )
     }
     'playJoda - {

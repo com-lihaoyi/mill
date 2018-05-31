@@ -19,11 +19,11 @@ object Scripts {
     var keywordTokens = flatArgs
     var scriptArgs = Vector.empty[(String, Option[String])]
 
-    while(keywordTokens.nonEmpty) keywordTokens match{
-      case List(head, next, rest@_*) if head.startsWith("-") =>
+    while (keywordTokens.nonEmpty) keywordTokens match {
+      case List(head, next, rest @ _*) if head.startsWith("-") =>
         scriptArgs = scriptArgs :+ (head, Some(next))
         keywordTokens = rest.toList
-      case List(head, rest@_*) =>
+      case List(head, rest @ _*) =>
         scriptArgs = scriptArgs :+ (head, None)
         keywordTokens = rest.toList
 
@@ -38,14 +38,19 @@ object Scripts {
     interp.watch(path)
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
-    for{
-      scriptTxt <- try Res.Success(Util.normalizeNewlines(read(path))) catch{
-        case e: NoSuchFileException => Res.Failure("Script file not found: " + path)
+    for {
+      scriptTxt <- try Res.Success(Util.normalizeNewlines(read(path)))
+      catch {
+        case e: NoSuchFileException =>
+          Res.Failure("Script file not found: " + path)
       }
 
       processed <- interp.processModule(
         scriptTxt,
-        CodeSource(wrapper, pkg, Seq(Name("ammonite"), Name("$file")), Some(path)),
+        CodeSource(wrapper,
+                   pkg,
+                   Seq(Name("ammonite"), Name("$file")),
+                   Some(path)),
         autoImport = true,
         // Not sure why we need to wrap this in a separate `$routes` object,
         // but if we don't do it for some reason the `generateRoutes` macro
@@ -64,42 +69,39 @@ object Scripts {
         hardcoded = true
       )
 
-      routeClsName <- processed.blockInfo.lastOption match{
+      routeClsName <- processed.blockInfo.lastOption match {
         case Some(meta) => Res.Success(meta.id.wrapperPath)
-        case None => Res.Skip
+        case None       => Res.Skip
       }
 
-      mainCls =
-      interp
-        .evalClassloader
+      mainCls = interp.evalClassloader
         .loadClass(processed.blockInfo.last.id.wrapperPath + "$")
 
-      routesCls =
-      interp
-        .evalClassloader
+      routesCls = interp.evalClassloader
         .loadClass(routeClsName + "$$routes$")
 
-      scriptMains =
-      routesCls
+      scriptMains = routesCls
         .getField("MODULE$")
         .get(null)
         .asInstanceOf[() => Seq[Router.EntryPoint[Any]]]
         .apply()
 
-
       mainObj = mainCls.getField("MODULE$").get(null)
 
-      res <- Util.withContextClassloader(interp.evalClassloader){
+      res <- Util.withContextClassloader(interp.evalClassloader) {
         scriptMains match {
           // If there are no @main methods, there's nothing to do
           case Seq() =>
             if (scriptArgs.isEmpty) Res.Success(())
             else {
               val scriptArgString =
-                scriptArgs.flatMap{case (a, b) => Seq(a) ++ b}.map(literalize(_))
+                scriptArgs
+                  .flatMap { case (a, b) => Seq(a) ++ b }
+                  .map(literalize(_))
                   .mkString(" ")
 
-              Res.Failure("Script " + path.last + " does not take arguments: " + scriptArgString)
+              Res.Failure(
+                "Script " + path.last + " does not take arguments: " + scriptArgString)
             }
 
           // If there's one @main method, we run it with all args
@@ -109,7 +111,7 @@ object Scripts {
           // which method to run, and pass the rest to that main method
           case mainMethods =>
             val suffix = formatMainMethods(mainObj, mainMethods)
-            scriptArgs match{
+            scriptArgs match {
               case Seq() =>
                 Res.Failure(
                   s"Need to specify a subcommand to call when running " + path.last + suffix
@@ -120,7 +122,7 @@ object Scripts {
                     s"Did you mean `${head.drop(2)}` instead of `$head`?"
                 )
               case Seq((head, None), tail @ _*) =>
-                mainMethods.find(_.name == head) match{
+                mainMethods.find(_.name == head) match {
                   case None =>
                     Res.Failure(
                       s"Unable to find subcommand: " + backtickWrap(head) + suffix
@@ -135,11 +137,11 @@ object Scripts {
   }
   def formatMainMethods[T](base: T, mainMethods: Seq[Router.EntryPoint[T]]) = {
     if (mainMethods.isEmpty) ""
-    else{
+    else {
       val leftColWidth = getLeftColWidth(mainMethods.flatMap(_.argSignatures))
 
       val methods =
-        for(main <- mainMethods)
+        for (main <- mainMethods)
           yield formatMainMethodSignature(base, main, 2, leftColWidth)
 
       Util.normalizeNewlines(
@@ -152,9 +154,9 @@ object Scripts {
     }
   }
   def getLeftColWidth[T](items: Seq[ArgSig[T, _]]) = {
-    items.map(_.name.length + 2) match{
+    items.map(_.name.length + 2) match {
       case Nil => 0
-      case x => x.max
+      case x   => x.max
     }
   }
   def formatMainMethodSignature[T](base: T,
@@ -162,19 +164,20 @@ object Scripts {
                                    leftIndent: Int,
                                    leftColWidth: Int) = {
     // +2 for space on right of left col
-    val args = main.argSignatures.map(renderArg(base, _, leftColWidth + leftIndent + 2 + 2, 80))
+    val args = main.argSignatures.map(
+      renderArg(base, _, leftColWidth + leftIndent + 2 + 2, 80))
 
     val leftIndentStr = " " * leftIndent
     val argStrings =
-      for((lhs, rhs) <- args)
+      for ((lhs, rhs) <- args)
         yield {
           val lhsPadded = lhs.padTo(leftColWidth, ' ')
           val rhsPadded = rhs.lines.mkString(Util.newLine)
           s"$leftIndentStr  $lhsPadded  $rhsPadded"
         }
-    val mainDocSuffix = main.doc match{
+    val mainDocSuffix = main.doc match {
       case Some(d) => Util.newLine + leftIndentStr + softWrap(d, leftIndent, 80)
-      case None => ""
+      case None    => ""
     }
 
     s"""$leftIndentStr${main.name}$mainDocSuffix
@@ -185,17 +188,20 @@ object Scripts {
                        scriptArgs: Seq[(String, Option[String])]): Res[Any] = {
     val leftColWidth = getLeftColWidth(mainMethod.argSignatures)
 
-    def expectedMsg = formatMainMethodSignature(base: T, mainMethod, 0, leftColWidth)
+    def expectedMsg =
+      formatMainMethodSignature(base: T, mainMethod, 0, leftColWidth)
 
     def pluralize(s: String, n: Int) = {
       if (n == 1) s else s + "s"
     }
 
-    mainMethod.invoke(base, scriptArgs) match{
+    mainMethod.invoke(base, scriptArgs) match {
       case Router.Result.Success(x) => Res.Success(x)
-      case Router.Result.Error.Exception(x: AmmoniteExit) => Res.Success(x.value)
+      case Router.Result.Error.Exception(x: AmmoniteExit) =>
+        Res.Success(x.value)
       case Router.Result.Error.Exception(x) => Res.Exception(x, "")
-      case Router.Result.Error.MismatchedArguments(missing, unknown, duplicate, incomplete) =>
+      case Router.Result.Error
+            .MismatchedArguments(missing, unknown, duplicate, incomplete) =>
         val missingStr =
           if (missing.isEmpty) ""
           else {
@@ -207,12 +213,13 @@ object Scripts {
             s"Missing $argumentsStr: (${chunks.mkString(", ")})" + Util.newLine
           }
 
-
         val unknownStr =
           if (unknown.isEmpty) ""
           else {
             val argumentsStr = pluralize("argument", unknown.length)
-            s"Unknown $argumentsStr: " + unknown.map(literalize(_)).mkString(" ") + Util.newLine
+            s"Unknown $argumentsStr: " + unknown
+              .map(literalize(_))
+              .mkString(" ") + Util.newLine
           }
 
         val duplicateStr =
@@ -228,7 +235,7 @@ object Scripts {
             lines.mkString
 
           }
-        val incompleteStr = incomplete match{
+        val incompleteStr = incomplete match {
           case None => ""
           case Some(sig) =>
             s"Option (--${sig.name}: ${sig.typeString}) is missing a corresponding value" +
@@ -248,10 +255,10 @@ object Scripts {
 
       case Router.Result.Error.InvalidArguments(x) =>
         val argumentsStr = pluralize("argument", x.length)
-        val thingies = x.map{
+        val thingies = x.map {
           case Router.Result.ParamError.Invalid(p, v, ex) =>
             val literalV = literalize(v)
-            val rendered = {renderArgShort(p)}
+            val rendered = { renderArgShort(p) }
             s"$rendered: ${p.typeString} = $literalV failed to parse with $ex"
           case Router.Result.ParamError.DefaultFailed(p, ex) =>
             s"${renderArgShort(p)}'s default value failed to evaluate with $ex"
@@ -279,13 +286,13 @@ object Scripts {
 
     val output = new StringBuilder(oneLine.head)
     var currentLineWidth = oneLine.head.length
-    for(chunk <- oneLine.tail){
+    for (chunk <- oneLine.tail) {
       val addedWidth = currentLineWidth + chunk.length + 1
-      if (addedWidth > maxWidth){
+      if (addedWidth > maxWidth) {
         output.append(Util.newLine + indent)
         output.append(chunk)
         currentLineWidth = chunk.length
-      } else{
+      } else {
         currentLineWidth = addedWidth
         output.append(' ')
         output.append(chunk)
@@ -298,13 +305,13 @@ object Scripts {
                    arg: ArgSig[T, _],
                    leftOffset: Int,
                    wrappedWidth: Int): (String, String) = {
-    val suffix = arg.default match{
+    val suffix = arg.default match {
       case Some(f) => " (default " + f(base) + ")"
-      case None => ""
+      case None    => ""
     }
-    val docSuffix = arg.doc match{
+    val docSuffix = arg.doc match {
       case Some(d) => ": " + d
-      case None => ""
+      case None    => ""
     }
     val wrapped = softWrap(
       arg.typeString + suffix + docSuffix,
@@ -314,9 +321,8 @@ object Scripts {
     (renderArgShort(arg), wrapped)
   }
 
-
   def mainMethodDetails[T](ep: EntryPoint[T]) = {
-    ep.argSignatures.collect{
+    ep.argSignatures.collect {
       case ArgSig(name, tpe, Some(doc), default) =>
         Util.newLine + name + " // " + doc
     }.mkString
@@ -325,6 +331,7 @@ object Scripts {
   /**
     * Additional [[scopt.Read]] instance to teach it how to read Ammonite paths
     */
-  implicit def pathScoptRead: scopt.Read[Path] = scopt.Read.stringRead.map(Path(_, pwd))
+  implicit def pathScoptRead: scopt.Read[Path] =
+    scopt.Read.stringRead.map(Path(_, pwd))
 
 }

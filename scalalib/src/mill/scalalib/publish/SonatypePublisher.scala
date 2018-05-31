@@ -17,10 +17,13 @@ class SonatypePublisher(uri: String,
 
   private val api = new SonatypeHttpApi(uri, credentials)
 
-  def publish(fileMapping: Seq[(Path, String)], artifact: Artifact, release: Boolean): Unit = {
+  def publish(fileMapping: Seq[(Path, String)],
+              artifact: Artifact,
+              release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
   }
-  def publishAll(release: Boolean, artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
+  def publishAll(release: Boolean,
+                 artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
 
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = Seq(
@@ -28,7 +31,9 @@ class SonatypePublisher(uri: String,
         artifact.id,
         artifact.version
       ).mkString("/")
-      val fileMapping = fileMapping0.map{ case (file, name) => (file, publishPath+"/"+name) }
+      val fileMapping = fileMapping0.map {
+        case (file, name) => (file, publishPath + "/" + name)
+      }
 
       val signedArtifacts = if (signed) fileMapping.map {
         case (file, name) => poorMansSign(file, gpgPassphrase) -> s"$name.asc"
@@ -47,12 +52,15 @@ class SonatypePublisher(uri: String,
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
-    if(snapshots.nonEmpty) {
+    if (snapshots.nonEmpty) {
       publishSnapshot(snapshots.flatMap(_._2), snapshots.map(_._1))
     }
     val releaseGroups = releases.groupBy(_._1.group)
-    for((group, groupReleases) <- releaseGroups){
-      publishRelease(release, groupReleases.flatMap(_._2), group, releases.map(_._1))
+    for ((group, groupReleases) <- releaseGroups) {
+      publishRelease(release,
+                     groupReleases.flatMap(_._2),
+                     group,
+                     releases.map(_._1))
     }
   }
 
@@ -136,12 +144,20 @@ class SonatypePublisher(uri: String,
   }
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
-  private def poorMansSign(file: Path, maybePassphrase: Option[String]): Path = {
+  private def poorMansSign(file: Path,
+                           maybePassphrase: Option[String]): Path = {
     val fileName = file.toString
     import ammonite.ops.ImplicitWd._
     maybePassphrase match {
       case Some(passphrase) =>
-        %("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
+        %("gpg",
+          "--passphrase",
+          passphrase,
+          "--batch",
+          "--yes",
+          "-a",
+          "-b",
+          fileName)
       case None =>
         %("gpg", "--batch", "--yes", "-a", "-b", fileName)
     }

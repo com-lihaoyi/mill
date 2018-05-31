@@ -15,7 +15,7 @@ object FastOpt extends OptimizeMode
 object FullOpt extends OptimizeMode
 
 sealed trait ModuleKind
-object ModuleKind{
+object ModuleKind {
   object NoModule extends ModuleKind
   object CommonJSModule extends ModuleKind
 }
@@ -23,8 +23,7 @@ object ModuleKind{
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSBridge)]
 
-  private def bridge(toolsClasspath: Agg[Path])
-                    (implicit ctx: Ctx.Home) = {
+  private def bridge(toolsClasspath: Agg[Path])(implicit ctx: Ctx.Home) = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     scalaInstanceCache match {
@@ -50,28 +49,29 @@ class ScalaJSWorker {
            dest: File,
            main: Option[String],
            fullOpt: Boolean,
-           moduleKind: ModuleKind)
-          (implicit ctx: Ctx.Home): Result[Path] = {
-    bridge(toolsClasspath).link(
-      sources.items.map(_.toIO).toArray,
-      libraries.items.map(_.toIO).toArray,
-      dest,
-      main.orNull,
-      fullOpt,
-      moduleKind
-    ).map(Path(_))
+           moduleKind: ModuleKind)(implicit ctx: Ctx.Home): Result[Path] = {
+    bridge(toolsClasspath)
+      .link(
+        sources.items.map(_.toIO).toArray,
+        libraries.items.map(_.toIO).toArray,
+        dest,
+        main.orNull,
+        fullOpt,
+        moduleKind
+      )
+      .map(Path(_))
   }
 
-  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File)
-         (implicit ctx: Ctx.Home): Unit = {
+  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File)(
+      implicit ctx: Ctx.Home): Unit = {
     bridge(toolsClasspath).run(config, linkedFile)
   }
 
   def getFramework(toolsClasspath: Agg[Path],
                    config: NodeJSConfig,
                    frameworkName: String,
-                   linkedFile: File)
-                  (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
+                   linkedFile: File)(
+      implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
     bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
   }
 

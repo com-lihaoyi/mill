@@ -13,11 +13,13 @@ object IvyTests extends TestSuite {
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
     val deps = Agg(
       Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"),
-        Scope.Compile),
+                 Scope.Compile),
       Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"),
-        Scope.Compile),
+                 Scope.Compile),
       Dependency(Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
-        Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
+                 Scope.Compile,
+                 exclusions = List("com.lihaoyi" -> "fansi_2.12",
+                                   "*" -> "sourcecode_2.12"))
     )
 
     'fullIvy - {
@@ -38,16 +40,22 @@ object IvyTests extends TestSuite {
 
         assert(dependencies.size == ivyDeps.size)
 
-        dependencies.zipWithIndex.foreach { case (dep, index) =>
-          assert(
-            singleAttr(dep, "org") == ivyDeps(index).artifact.group,
-            singleAttr(dep, "name") == ivyDeps(index).artifact.id,
-            singleAttr(dep, "rev") == ivyDeps(index).artifact.version,
-            (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
-              singleAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
-                singleAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
-            }
-          )
+        dependencies.zipWithIndex.foreach {
+          case (dep, index) =>
+            assert(
+              singleAttr(dep, "org") == ivyDeps(index).artifact.group,
+              singleAttr(dep, "name") == ivyDeps(index).artifact.id,
+              singleAttr(dep, "rev") == ivyDeps(index).artifact.version,
+              (dep \ "exclude").zipWithIndex forall {
+                case (exclude, j) =>
+                  singleAttr(exclude, "org") == ivyDeps(index)
+                    .exclusions(j)
+                    ._1 &&
+                    singleAttr(exclude, "name") == ivyDeps(index)
+                      .exclusions(j)
+                      ._2
+              }
+            )
         }
       }
     }
@@ -56,5 +64,8 @@ object IvyTests extends TestSuite {
   def singleNode(seq: NodeSeq): Node =
     seq.headOption.getOrElse(throw new RuntimeException("empty seq"))
   def singleAttr(node: Node, attr: String): String =
-    node.attribute(attr).flatMap(_.headOption.map(_.text)).getOrElse(throw new RuntimeException(s"empty attr $attr"))
+    node
+      .attribute(attr)
+      .flatMap(_.headOption.map(_.text))
+      .getOrElse(throw new RuntimeException(s"empty attr $attr"))
 }

@@ -14,10 +14,10 @@ package mill.scalalib.publish
  *        (example: v2.12.4, HEAD, my-branch, fd8a2567ad32c11bcf8adbaca85bdba72bb4f935, ...)
  */
 case class VersionControl(
-  browsableRepository: Option[String] = None,
-  connection: Option[String] = None,
-  developerConnection: Option[String] = None,
-  tag: Option[String] = None
+    browsableRepository: Option[String] = None,
+    connection: Option[String] = None,
+    developerConnection: Option[String] = None,
+    tag: Option[String] = None
 )
 
 @deprecated("use VersionControl", "0.1.3")
@@ -27,11 +27,16 @@ case class SCM(
 )
 
 object VersionControl {
-  def github(owner: String, repo: String, tag: Option[String] = None): VersionControl = 
+  def github(owner: String,
+             repo: String,
+             tag: Option[String] = None): VersionControl =
     VersionControl(
       browsableRepository = Some(s"https://github.com/$owner/$repo"),
-      connection = Some(VersionControlConnection.gitGit("github.com", s"$owner/$repo.git")),
-      developerConnection = Some(VersionControlConnection.gitSsh("github.com", s":$owner/$repo.git", username = Some("git"))),
+      connection = Some(
+        VersionControlConnection.gitGit("github.com", s"$owner/$repo.git")),
+      developerConnection = Some(
+        VersionControlConnection
+          .gitSsh("github.com", s":$owner/$repo.git", username = Some("git"))),
       tag = tag
     )
 }
@@ -53,12 +58,12 @@ object VersionControlConnection {
         case None =>
           password match {
             case Some(p) => sys.error(s"no username set for password: $p")
-            case _ => ""
+            case _       => ""
           }
       }
 
     val path0 =
-      if(path.startsWith(":") || path.startsWith("/")) path
+      if (path.startsWith(":") || path.startsWith("/")) path
       else "/" + path
 
     s"scm:${scm}:${protocol}://${credentials}${hostname}${portPart}${path0}"
@@ -70,7 +75,7 @@ object VersionControlConnection {
 
   def gitGit(hostname: String,
              path: String = "",
-             port: Option[Int] = None): String = 
+             port: Option[Int] = None): String =
     network("git", "git", hostname, path, port = port)
 
   def gitHttp(hostname: String,

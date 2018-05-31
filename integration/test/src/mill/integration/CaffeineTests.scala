@@ -2,13 +2,14 @@ package mill.integration
 
 import utest._
 
-class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
-  val tests = Tests{
+class CaffeineTests(fork: Boolean)
+    extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
+  val tests = Tests {
     initWorkspace()
     'test - {
       // Caffeine only can build using Java 9 or up. Java 8 results in weird
       // type inference issues during the compile
-      if (mill.main.client.Util.isJava9OrAbove){
+      if (mill.main.client.Util.isJava9OrAbove) {
         assert(eval("caffeine.test.compile"))
 
         val suites = Seq(
@@ -17,10 +18,12 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
           "com.github.benmanes.caffeine.cache.CaffeineTest",
           "com.github.benmanes.caffeine.cache.TimerWheelTest"
         )
-        assert(eval(
-          "caffeine.test",
-          "-testclass", suites.mkString(",")
-        ))
+        assert(
+          eval(
+            "caffeine.test",
+            "-testclass",
+            suites.mkString(",")
+          ))
         assert(eval("guava.test.compile"))
         assert(eval("guava.test"))
 

@@ -14,7 +14,8 @@ object ClassLoader {
       refinePlatformParent(parent)
     ) {
       override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
+        if (name.startsWith("com.sun.jna"))
+          getClass.getClassLoader.loadClass(name)
         else super.findClass(name)
       }
     }
@@ -29,7 +30,8 @@ object ClassLoader {
       refinePlatformParent(parent)
     ) {
       override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
+        if (name.startsWith("com.sun.jna"))
+          getClass.getClassLoader.loadClass(name)
         else customFindClass(name).getOrElse(super.findClass(name))
       }
     }
@@ -43,7 +45,8 @@ object ClassLoader {
     *  `ClassLoader.getPlatformClassLoader` call is implemented via runtime reflection, cause otherwise
     *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
     */
-  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
+  private def refinePlatformParent(
+      parent: java.lang.ClassLoader): ClassLoader = {
     if (ammonite.util.Util.java9OrAbove) {
       if (parent == null)
         classOf[ClassLoader]

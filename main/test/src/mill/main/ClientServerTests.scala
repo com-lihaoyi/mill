@@ -6,7 +6,7 @@ import mill.main.client.{Util, Locks}
 
 import scala.collection.JavaConverters._
 import utest._
-class EchoServer extends MillServerMain[Int]{
+class EchoServer extends MillServerMain[Int] {
   def main0(args: Array[String],
             stateCache: Option[Int],
             mainInteractive: Boolean,
@@ -18,14 +18,14 @@ class EchoServer extends MillServerMain[Int]{
 
     val reader = new BufferedReader(new InputStreamReader(stdin))
     val str = reader.readLine()
-    if (args.nonEmpty){
+    if (args.nonEmpty) {
       stdout.println(str + args(0))
     }
-    env.toSeq.sortBy(_._1).foreach{
+    env.toSeq.sortBy(_._1).foreach {
       case (key, value) => stdout.println(s"$key=$value")
     }
     stdout.flush()
-    if (args.nonEmpty){
+    if (args.nonEmpty) {
       stderr.println(str.toUpperCase + args(0))
     }
     stderr.flush()
@@ -33,7 +33,7 @@ class EchoServer extends MillServerMain[Int]{
   }
 }
 
-object ClientServerTests extends TestSuite{
+object ClientServerTests extends TestSuite {
   def initStreams() = {
     val in = new ByteArrayInputStream("hello\n".getBytes())
     val out = new ByteArrayOutputStream()
@@ -47,20 +47,22 @@ object ClientServerTests extends TestSuite{
     (tmpDir, locks)
   }
 
-  def spawnEchoServer(tmpDir : Path, locks: Locks): Unit = {
-    new Thread(() => new Server(
-      tmpDir.toString,
-      new EchoServer(),
-      () => (),
-      1000,
-      locks
-    ).run()).start()
+  def spawnEchoServer(tmpDir: Path, locks: Locks): Unit = {
+    new Thread(
+      () =>
+        new Server(
+          tmpDir.toString,
+          new EchoServer(),
+          () => (),
+          1000,
+          locks
+        ).run()).start()
   }
 
-  def runClientAux(tmpDir : Path, locks: Locks)
-                  (env : Map[String, String], args: Array[String]) = {
+  def runClientAux(tmpDir: Path, locks: Locks)(env: Map[String, String],
+                                               args: Array[String]) = {
     val (in, out, err) = initStreams()
-    Server.lockBlock(locks.clientLock){
+    Server.lockBlock(locks.clientLock) {
       mill.main.client.MillClientMain.run(
         tmpDir.toString,
         () => spawnEchoServer(tmpDir, locks),
@@ -76,11 +78,12 @@ object ClientServerTests extends TestSuite{
     }
   }
 
-  def tests = Tests{
+  def tests = Tests {
     'hello - {
-      if (!Util.isWindows){
+      if (!Util.isWindows) {
         val (tmpDir, locks) = init()
-        def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
+        def runClient(s: String) =
+          runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
         // Make sure the simple "have the client start a server and
         // exchange one message" workflow works from end to end.
@@ -133,10 +136,11 @@ object ClientServerTests extends TestSuite{
       }
 
       'envVars - {
-        if (!Util.isWindows){
+        if (!Util.isWindows) {
           val (tmpDir, locks) = init()
 
-          def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())
+          def runClient(env: Map[String, String]) =
+            runClientAux(tmpDir, locks)(env, Array())
 
           // Make sure the simple "have the client start a server and
           // exchange one message" workflow works from end to end.
@@ -147,7 +151,7 @@ object ClientServerTests extends TestSuite{
             locks.processLock.probe()
           )
 
-          def longString(s : String) = Array.fill(1000)(s).mkString
+          def longString(s: String) = Array.fill(1000)(s).mkString
           val b1000 = longString("b")
           val c1000 = longString("c")
           val a1000 = longString("a")
@@ -157,7 +161,6 @@ object ClientServerTests extends TestSuite{
             "b" -> b1000,
             "c" -> c1000
           )
-
 
           val (out1, err1) = runClient(env)
           val expected = s"a=$a1000\nb=$b1000\nc=$c1000\n"

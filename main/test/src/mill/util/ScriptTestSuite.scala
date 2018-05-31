@@ -5,7 +5,7 @@ import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 import ammonite.ops._
 import utest._
 
-abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
+abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
   def workspaceSlug: String
   def scriptSourcePath: Path
   def buildPath: RelPath = "build.sc"
@@ -16,24 +16,28 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val stdIn = new ByteArrayInputStream(Array())
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = wd),
-    stdOutErr, stdOutErr, stdIn, None, Map.empty,
+    stdOutErr,
+    stdOutErr,
+    stdIn,
+    None,
+    Map.empty,
     b => ()
   )
   def eval(s: String*) = {
-    if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
-    else{
+    if (!fork) runner.runScript(workspacePath / buildPath, s.toList)
+    else {
       try {
         %(home / "mill-release", "-i", s)(wd)
         true
-      }catch{case e: Throwable => false}
+      } catch { case e: Throwable => false }
     }
   }
   def meta(s: String) = {
-    val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
+    val (List(selector), args) =
+      ParseArgs.apply(Seq(s), multiSelect = false).right.get
 
     read(wd / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
   }
-
 
   def initWorkspace() = {
     rm(workspacePath)

@@ -12,7 +12,7 @@ import mill.eval.Evaluator
 import mill.util.DummyInputStream
 import sun.misc.{Signal, SignalHandler}
 
-trait MillServerMain[T]{
+trait MillServerMain[T] {
   var stateCache = Option.empty[T]
   def main0(args: Array[String],
             stateCache: Option[T],
@@ -20,11 +20,11 @@ trait MillServerMain[T]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String],
+            env: Map[String, String],
             setIdle: Boolean => Unit): (Boolean, Option[T])
 }
 
-object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
+object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -33,7 +33,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
     // of running a background server. Furthermore, the background server already
     // can detect when the Mill client goes away, which is necessary to handle
     // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
-    Signal.handle(new Signal("INT"), new SignalHandler () {
+    Signal.handle(new Signal("INT"), new SignalHandler() {
       def handle(sig: Signal) = {} // do nothing
     })
     new Server(
@@ -50,7 +50,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
             stdin: InputStream,
             stdout: PrintStream,
             stderr: PrintStream,
-            env : Map[String, String],
+            env: Map[String, String],
             setIdle: Boolean => Unit) = {
     MillMain.main0(
       args,
@@ -65,7 +65,6 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
   }
 }
 
-
 class Server[T](lockBase: String,
                 sm: MillServerMain[T],
                 interruptServer: () => Unit,
@@ -74,41 +73,47 @@ class Server[T](lockBase: String,
 
   val originalStdout = System.out
   def run() = {
-    Server.tryLockBlock(locks.processLock){
-      var running = true
-      while (running) {
-        Server.lockBlock(locks.serverLock){
-          val (serverSocket, socketClose) = if (Util.isWindows) {
-            val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
-            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
-          } else {
-            val socketName = lockBase + "/io"
-            new File(socketName).delete()
-            (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
-          }
+    Server
+      .tryLockBlock(locks.processLock) {
+        var running = true
+        while (running) {
+          Server.lockBlock(locks.serverLock) {
+            val (serverSocket, socketClose) = if (Util.isWindows) {
+              val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase)
+                .getName
+              (new Win32NamedPipeServerSocket(socketName),
+               () => new Win32NamedPipeSocket(socketName).close())
+            } else {
+              val socketName = lockBase + "/io"
+              new File(socketName).delete()
+              (new UnixDomainServerSocket(socketName),
+               () => new UnixDomainSocket(socketName).close())
+            }
 
-          val sockOpt = Server.interruptWith(
-            "MillSocketTimeoutInterruptThread",
-            acceptTimeout,
-            socketClose(),
-            serverSocket.accept()
-          )
+            val sockOpt = Server.interruptWith(
+              "MillSocketTimeoutInterruptThread",
+              acceptTimeout,
+              socketClose(),
+              serverSocket.accept()
+            )
 
-          sockOpt match{
-            case None => running = false
-            case Some(sock) =>
-              try {
-                handleRun(sock)
-                serverSocket.close()
-              }
-              catch{case e: Throwable => e.printStackTrace(originalStdout) }
+            sockOpt match {
+              case None => running = false
+              case Some(sock) =>
+                try {
+                  handleRun(sock)
+                  serverSocket.close()
+                } catch {
+                  case e: Throwable => e.printStackTrace(originalStdout)
+                }
+            }
           }
+          // Make sure you give an opportunity for the client to probe the lock
+          // and realize the server has released it to signal completion
+          Thread.sleep(10)
         }
-        // Make sure you give an opportunity for the client to probe the lock
-        // and realize the server has released it to signal completion
-        Thread.sleep(10)
       }
-    }.getOrElse(throw new Exception("PID already present"))
+      .getOrElse(throw new Exception("PID already present"))
   }
 
   def handleRun(clientSocket: Socket) = {
@@ -122,7 +127,8 @@ class Server[T](lockBase: String,
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = sys.props("MILL_VERSION")
     if (clientMillVersion != serverMillVersion) {
-      stdout.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
+      stdout.println(
+        s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
       System.exit(0)
     }
     val args = Util.parseArgs(argStream)
@@ -131,27 +137,28 @@ class Server[T](lockBase: String,
 
     @volatile var done = false
     @volatile var idle = false
-    val t = new Thread(() =>
-      try {
-        val (result, newStateCache) = sm.main0(
-          args,
-          sm.stateCache,
-          interactive,
-          socketIn,
-          stdout,
-          stderr,
-          env.asScala.toMap,
-          idle = _
-        )
+    val t = new Thread(
+      () =>
+        try {
+          val (result, newStateCache) = sm.main0(
+            args,
+            sm.stateCache,
+            interactive,
+            socketIn,
+            stdout,
+            stderr,
+            env.asScala.toMap,
+            idle = _
+          )
 
-        sm.stateCache = newStateCache
-        java.nio.file.Files.write(
-          java.nio.file.Paths.get(lockBase + "/exitCode"),
-          (if (result) 0 else 1).toString.getBytes
-        )
-      } finally{
-        done = true
-        idle = true
+          sm.stateCache = newStateCache
+          java.nio.file.Files.write(
+            java.nio.file.Paths.get(lockBase + "/exitCode"),
+            (if (result) 0 else 1).toString.getBytes
+          )
+        } finally {
+          done = true
+          idle = true
       },
       "MillServerActionRunner"
     )
@@ -159,10 +166,9 @@ class Server[T](lockBase: String,
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
-    while(!done && !locks.clientLock.probe()) Thread.sleep(3)
+    while (!done && !locks.clientLock.probe()) Thread.sleep(3)
 
     if (!idle) interruptServer()
-
 
     t.interrupt()
     t.stop()
@@ -178,14 +184,14 @@ class Server[T](lockBase: String,
     } else clientSocket.close()
   }
 }
-object Server{
+object Server {
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
     try t
     finally l.release()
   }
   def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
-    lock.tryLock() match{
+    lock.tryLock() match {
       case null => None
       case l =>
         try Some(t)
@@ -193,13 +199,16 @@ object Server{
     }
 
   }
-  def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
+  def interruptWith[T](threadName: String,
+                       millis: Int,
+                       close: => Unit,
+                       t: => T): Option[T] = {
     @volatile var interrupt = true
     @volatile var interrupted = false
     val thread = new Thread(
       () => {
         try Thread.sleep(millis)
-        catch{ case t: InterruptedException => /* Do Nothing */ }
+        catch { case t: InterruptedException => /* Do Nothing */ }
         if (interrupt) {
           interrupted = true
           close
@@ -212,7 +221,7 @@ object Server{
     try {
       val res =
         try Some(t)
-        catch {case e: Throwable => None}
+        catch { case e: Throwable => None }
 
       if (interrupted) None
       else res
@@ -223,5 +232,3 @@ object Server{
     }
   }
 }
-
-
