@@ -42,6 +42,7 @@ object MainTests extends TestSuite{
       'neg2 - check("upt-arget", Left("Cannot resolve upt-arget. Did you mean up-target?"))
       'neg3 - check("up-target.doesntExist", Left("Task up-target is not a module and has no children."))
       'neg4 - check("", Left("Selector cannot be empty"))
+      'neg5 - check("invisible&", Left("Cannot resolve invisible. Try `mill resolve _` to see what's available."))
       'nested - {
         'pos - check("nested-module.nested-target", Right(Seq(_.`nested-module`.`nested-target`)))
         'neg - check("nested-module.doesntExist", Left("Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."))
