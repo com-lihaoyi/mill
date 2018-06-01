@@ -3,6 +3,7 @@ package mill.define
 import java.lang.reflect.Modifier
 
 import ammonite.ops.Path
+import mill.util.ParseArgs
 
 import scala.language.experimental.macros
 import scala.reflect.ClassTag
@@ -65,7 +66,7 @@ object Module{
         n = decode(m.getName)
         if
           filter(n) &&
-          !(m.getName.contains("$") && m.getName.equals(n)) && //ignore system methods
+          ParseArgs.isLegalIdentifier(n) &&
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           (m.getModifiers & Modifier.ABSTRACT) == 0 &&
