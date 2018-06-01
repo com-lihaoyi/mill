@@ -73,15 +73,6 @@ object Module{
           runtimeCls.isAssignableFrom(m.getReturnType)
       } yield m.invoke(outer).asInstanceOf[T]
     }
-    def reflectNames[T: ClassTag] = {
-      val runtimeCls = implicitly[ClassTag[T]].runtimeClass
-      for{
-        m <- outer.getClass.getMethods
-        if
-          (m.getModifiers & Modifier.STATIC) == 0 &&
-          runtimeCls.isAssignableFrom(m.getReturnType)
-      } yield m.getName
-    }
 
     def reflectAll[T: ClassTag]: Array[T] = reflect(Function.const(true))
 
