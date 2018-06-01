@@ -14,6 +14,12 @@ object BasePathTests extends TestSuite{
     'singleton - {
       check(testGraphs.singleton)(identity)
     }
+    'backtickIdentifiers - {
+      check(testGraphs.bactickIdentifiers)(
+        _.`nested-module`,
+        "nested-module"
+      )
+    }
     'separateGroups - {
       check(TestGraphs.triangleTask)(identity)
     }

@@ -15,7 +15,7 @@ object ResolveMetadata extends Resolve[String]{
     val targets =
       obj
         .millInternal
-        .reflect[Target[_]]
+        .reflectAll[Target[_]]
         .map(_.toString)
     val commands = for{
       (cls, entryPoints) <- discover.value
@@ -127,8 +127,7 @@ object ResolveSegments extends Resolve[Segments] {
     val target =
       obj
         .millInternal
-        .reflect[Target[_]]
-        .find(_.label == last)
+        .reflectSingle[Target[_]](last)
         .map(t => Right(t.ctx.segments))
 
     val command =
@@ -193,16 +192,15 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
       Right(
         obj.millInternal.modules
           .filter(_ != obj)
-          .flatMap(m => m.millInternal.reflect[Target[_]])
+          .flatMap(m => m.millInternal.reflectAll[Target[_]])
       )
-    case "_" => Right(obj.millInternal.reflect[Target[_]])
+    case "_" => Right(obj.millInternal.reflectAll[Target[_]])
 
     case _ =>
       val target =
         obj
           .millInternal
-          .reflect[Target[_]]
-          .find(_.label == last)
+          .reflectSingle[Target[_]](last)
           .map(Right(_))
 
       val command = Resolve.invokeCommand(obj, last, discover, rest).headOption
