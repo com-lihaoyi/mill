@@ -7,7 +7,7 @@ import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
-import mill.modules.Jvm
+import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
@@ -108,6 +108,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
+  def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
   def generatedSources = T{ Seq.empty[PathRef] }
@@ -130,6 +132,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
+
   def localClasspath = T{
     resources() ++ Agg(compile().classes)
   }
@@ -158,7 +161,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * upstream dependencies do not change
     */
   def upstreamAssembly = T{
-    createAssembly(upstreamAssemblyClasspath().map(_.path), mainClass())
+    createAssembly(
+      upstreamAssemblyClasspath().map(_.path),
+      mainClass(),
+      assemblyRules = assemblyRules
+    )
   }
 
   def assembly = T{
@@ -166,10 +173,10 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       Agg.from(localClasspath().map(_.path)),
       mainClass(),
       prependShellScript(),
-      Some(upstreamAssembly().path)
+      Some(upstreamAssembly().path),
+      assemblyRules
     )
   }
-
 
   def jar = T{
     createJar(
