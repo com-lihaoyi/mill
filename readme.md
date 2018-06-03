@@ -153,9 +153,9 @@ optimizer without classpath conflicts.
 
 ### 0.2.3
 
-- Added the [mill show visualize](http://www.lihaoyi.com/mill/#all) command,
-  making it easy to visualize the relationships between various tasks and
-  modules in your Mill build.
+- Added the [mill show visualize](http://www.lihaoyi.com/mill/#visualize)
+  command, making it easy to visualize the relationships between various tasks
+  and modules in your Mill build.
 
 - Improve Intellij support ([351](https://github.com/lihaoyi/mill/pull/351)):
   better jump-to-definition for third-party libraries, no longer stomping over
