@@ -469,10 +469,33 @@ core.localClasspath
 core.assembly
 ```
 
-`mill path` prints out a dependency chain between the first target and the
+`mill path` prints out a dependency chain between the first task and the
 second. It is very useful for exploring the build graph and trying to figure out
-how data gets from one target to another. If there are multiple possible
+how data gets from one task to another. If there are multiple possible
 dependency chains, one of them is picked arbitrarily.
+
+### plan
+
+```bash
+$ mill plan moduledefs.compileClasspath
+moduledefs.transitiveLocalClasspath
+moduledefs.resources
+moduledefs.unmanagedClasspath
+moduledefs.scalaVersion
+moduledefs.platformSuffix
+moduledefs.compileIvyDeps
+moduledefs.scalaLibraryIvyDeps
+moduledefs.ivyDeps
+moduledefs.transitiveIvyDeps
+moduledefs.compileClasspath
+```
+
+`mill plan foo` prints out what tasks would be evaluated, in what order, if you
+ran `mill foo`, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task `foo` is running things that it
+shouldn't be running, a quick `mill plan` will list out all the upstream tasks
+that `foo` needs to run, and you can then follow up with `mill path` on any
+individual upstream task to see exactly how `foo` depends on it.
 
 ### visualize
 
@@ -488,7 +511,7 @@ $ mill show visualize core._
 ```
 
 `mill show visualize` takes a subset of the Mill build graph (e.g. `core._` is
-every target directly under the `core` module) and draws out their relationships
+every task directly under the `core` module) and draws out their relationships
 in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
 and `.json` for easy processing by downstream tools.
 
@@ -502,7 +525,7 @@ Another use case is to view the relationships between modules:
 $ mill show visualize __.compile
 ```
 
-This command diagrams the relationships between the `compile` targets of each
+This command diagrams the relationships between the `compile` tasks of each
 module, which illustrates which module depends on which other module's
 compilation output:
 
