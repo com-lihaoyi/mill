@@ -65,6 +65,7 @@ object Module{
         n = decode(m.getName)
         if
           filter(n) &&
+          !(m.getName.contains("$") && m.getName.equals(n)) && //ignore system methods
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
           (m.getModifiers & Modifier.ABSTRACT) == 0 &&
