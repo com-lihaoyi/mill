@@ -212,6 +212,12 @@ object scalajslib extends MillModule {
   }
 }
 
+object container extends MillModule {
+  
+  def moduleDeps = Seq(scalalib)
+  
+}
+
 object twirllib extends MillModule {
 
   def moduleDeps = Seq(scalalib)
