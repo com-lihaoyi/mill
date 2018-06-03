@@ -151,6 +151,28 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.3
+
+- Added the [mill show visualize](http://www.lihaoyi.com/mill/#all) command,
+  making it easy to visualize the relationships between various tasks and
+  modules in your Mill build.
+
+- Improve Intellij support ([351](https://github.com/lihaoyi/mill/pull/351)):
+  better jump-to-definition for third-party libraries, no longer stomping over
+  manual configuration, and better handling of `import $ivy` in your build file.
+
+- Support for un-signed publishing and cases where your GPG key has no
+  passphrase ([346](https://github.com/lihaoyi/mill/pull/346))
+
+- Basic support for Twirl, Play Framework's templating language
+  ([271](https://github.com/lihaoyi/mill/pull/271))
+
+- Better performance for streaming large amounts of stdout from Mill's daemon
+  process.
+
+- Allow configuration of append/exclude rules in `ScalaModule#assembly`
+  ([309](https://github.com/lihaoyi/mill/pull/309))
+
 ### 0.2.2
 
 - Preserve caches when transitioning between `-i`/`--interactive` and the

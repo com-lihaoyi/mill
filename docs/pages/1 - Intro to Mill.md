@@ -442,20 +442,72 @@ build:
 ```bash
 $ mill show foo.sources
 [
-    {"path": "/Users/lihaoyi/Dropbox/Github/test/foo/src"}
+    "/Users/lihaoyi/Dropbox/Github/test/foo/src"
 ]
 
 $ mill show foo.compileDepClasspath
 [
-    {"path": ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar"},
-    {"path": ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar"},
-    {"path": ".../org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4.jar"},
-    {"path": ".../org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"}
+    ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar",
+    ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar",
+    ".../org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4.jar",
+    ".../org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
 ]
 ```
 
 `show` is also useful for interacting with Mill from external tools, since the
 JSON it outputs is structured and easily parsed & manipulated.
+
+### path
+
+```bash
+$ mill path core.assembly core.sources
+core.sources
+core.allSources
+core.allSourceFiles
+core.compile
+core.localClasspath
+core.assembly
+```
+
+`mill path` prints out a dependency chain between the first target and the
+second. It is very useful for exploring the build graph and trying to figure out
+how data gets from one target to another. If there are multiple possible
+dependency chains, one of them is picked arbitrarily.
+
+### visualize
+
+```bash
+$ mill show visualize core._
+[
+    ".../out/visualize/dest/out.txt",
+    ".../out/visualize/dest/out.dot",
+    ".../out/visualize/dest/out.json",
+    ".../out/visualize/dest/out.png",
+    ".../out/visualize/dest/out.svg"
+]
+```
+
+`mill show visualize` takes a subset of the Mill build graph (e.g. `core._` is
+every target directly under the `core` module) and draws out their relationships
+in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
+and `.json` for easy processing by downstream tools.
+
+The above command generates the following diagram:
+
+![VisualizeCore.svg](VisualizeCore.svg)
+
+Another use case is to view the relationships between modules:
+
+```bash
+$ mill show visualize __.compile
+```
+
+This command diagrams the relationships between the `compile` targets of each
+module, which illustrates which module depends on which other module's
+compilation output:
+
+![VisualizeCompile.svg](VisualizeCompile.svg)
+
 
 ### clean
 
