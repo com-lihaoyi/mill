@@ -36,7 +36,7 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.3, and save it as
 `mill.bat`.
 
 Mill also works on a sh environment on Windows (e.g.,
@@ -60,7 +60,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -442,20 +442,95 @@ build:
 ```bash
 $ mill show foo.sources
 [
-    {"path": "/Users/lihaoyi/Dropbox/Github/test/foo/src"}
+    "/Users/lihaoyi/Dropbox/Github/test/foo/src"
 ]
 
 $ mill show foo.compileDepClasspath
 [
-    {"path": ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar"},
-    {"path": ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar"},
-    {"path": ".../org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4.jar"},
-    {"path": ".../org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"}
+    ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar",
+    ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar",
+    ".../org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4.jar",
+    ".../org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
 ]
 ```
 
 `show` is also useful for interacting with Mill from external tools, since the
 JSON it outputs is structured and easily parsed & manipulated.
+
+### path
+
+```bash
+$ mill path core.assembly core.sources
+core.sources
+core.allSources
+core.allSourceFiles
+core.compile
+core.localClasspath
+core.assembly
+```
+
+`mill path` prints out a dependency chain between the first task and the
+second. It is very useful for exploring the build graph and trying to figure out
+how data gets from one task to another. If there are multiple possible
+dependency chains, one of them is picked arbitrarily.
+
+### plan
+
+```bash
+$ mill plan moduledefs.compileClasspath
+moduledefs.transitiveLocalClasspath
+moduledefs.resources
+moduledefs.unmanagedClasspath
+moduledefs.scalaVersion
+moduledefs.platformSuffix
+moduledefs.compileIvyDeps
+moduledefs.scalaLibraryIvyDeps
+moduledefs.ivyDeps
+moduledefs.transitiveIvyDeps
+moduledefs.compileClasspath
+```
+
+`mill plan foo` prints out what tasks would be evaluated, in what order, if you
+ran `mill foo`, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task `foo` is running things that it
+shouldn't be running, a quick `mill plan` will list out all the upstream tasks
+that `foo` needs to run, and you can then follow up with `mill path` on any
+individual upstream task to see exactly how `foo` depends on it.
+
+### visualize
+
+```bash
+$ mill show visualize core._
+[
+    ".../out/visualize/dest/out.txt",
+    ".../out/visualize/dest/out.dot",
+    ".../out/visualize/dest/out.json",
+    ".../out/visualize/dest/out.png",
+    ".../out/visualize/dest/out.svg"
+]
+```
+
+`mill show visualize` takes a subset of the Mill build graph (e.g. `core._` is
+every task directly under the `core` module) and draws out their relationships
+in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
+and `.json` for easy processing by downstream tools.
+
+The above command generates the following diagram:
+
+![VisualizeCore.svg](VisualizeCore.svg)
+
+Another use case is to view the relationships between modules:
+
+```bash
+$ mill show visualize __.compile
+```
+
+This command diagrams the relationships between the `compile` tasks of each
+module, which illustrates which module depends on which other module's
+compilation output:
+
+![VisualizeCompile.svg](VisualizeCompile.svg)
+
 
 ### clean
 

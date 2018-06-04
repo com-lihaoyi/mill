@@ -1,14 +1,14 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, File, FileOutputStream}
+import java.io._
 import java.lang.reflect.Modifier
-import java.net.{URI, URLClassLoader}
-import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
+import java.net.URI
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
+import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
-import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import geny.Generator
 import mill.main.client.InputPumper
@@ -17,7 +17,7 @@ import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
 
 import scala.collection.mutable
-
+import scala.collection.JavaConverters._
 
 object Jvm {
 
@@ -232,18 +232,20 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def newOutputStream(p: java.nio.file.Path) = Files.newOutputStream(
-    p,
-    StandardOpenOption.TRUNCATE_EXISTING,
-    StandardOpenOption.CREATE
-  )
+  def newOutputStream(p: java.nio.file.Path, append: Boolean = false) = {
+    val options =
+      if(append) Seq(StandardOpenOption.APPEND)
+      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+    Files.newOutputStream(p, options:_*)
+  }
 
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[Path] = None,
-                     isWin: Boolean = scala.util.Properties.isWin)
-                    (implicit ctx: Ctx.Dest) = {
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                    (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
@@ -263,20 +265,22 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    def isSignatureFile(mapping: String): Boolean =
-      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
-
-    for(v <- classpathIterator(inputPaths)){
-      val (file, mapping) = v
-      val p = zipFs.getPath(mapping)
-      if (p.getParent != null) Files.createDirectories(p.getParent)
-      if (!isSignatureFile(mapping)) {
-        val outputStream = newOutputStream(p)
-        IO.stream(file, outputStream)
-        outputStream.close()
+    Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
+      .map {
+        case (mapping, aggregate) =>
+          zipFs.getPath(mapping) -> aggregate
       }
-      file.close()
-    }
+      .foreach {
+        case (path, AppendEntry(entries)) =>
+          val concatenated = new SequenceInputStream(
+            Collections.enumeration(entries.map(_.inputStream).asJava))
+          writeEntry(path, concatenated, append = Files.exists(path))
+        case (path, WriteOnceEntry(entry)) =>
+          if (Files.notExists(path)) {
+            writeEntry(path, entry.inputStream, append = false)
+          }
+      }
+
     zipFs.close()
     val output = ctx.dest / "out.jar"
 
@@ -301,28 +305,14 @@ object Jvm {
     PathRef(output)
   }
 
+  private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
+    if (p.getParent != null) Files.createDirectories(p.getParent)
+    val outputStream = newOutputStream(p, append)
 
-  def classpathIterator(inputPaths: Agg[Path]) = {
-    Generator.from(inputPaths)
-      .filter(exists)
-      .flatMap{
-        p =>
-          if (p.isFile) {
-            val jf = new JarFile(p.toIO)
-            import collection.JavaConverters._
-            Generator.selfClosing((
-              for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield (jf.getInputStream(entry), entry.getName),
-              () => jf.close()
-            ))
-          }
-          else {
-            ls.rec.iter(p)
-              .filter(_.isFile)
-              .map(sub => read.getInputStream(sub) -> sub.relativeTo(p).toString)
-          }
-      }
+    IO.stream(is, outputStream)
 
+    outputStream.close()
+    is.close()
   }
 
   def universalScript(shellCommands: String,

@@ -1,0 +1,805 @@
+<svg width="3257pt" height="476pt"
+ viewBox="0.00 0.00 3257.17 476.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 472)">
+<title>example1</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-472 3253.1744,-472 3253.1744,4 -4,4"/>
+<!-- core.scalaVersion -->
+<g id="node1" class="node">
+<title>core.scalaVersion</title>
+<ellipse fill="none" stroke="#000000" cx="1488.2502" cy="-18" rx="79.8719" ry="18"/>
+<text text-anchor="middle" x="1488.2502" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaVersion</text>
+</g>
+<!-- core.sources -->
+<g id="node2" class="node">
+<title>core.sources</title>
+<ellipse fill="none" stroke="#000000" cx="587.2502" cy="-18" rx="59.0476" ry="18"/>
+<text text-anchor="middle" x="587.2502" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.sources</text>
+</g>
+<!-- core.generatedSources -->
+<g id="node3" class="node">
+<title>core.generatedSources</title>
+<ellipse fill="none" stroke="#000000" cx="762.2502" cy="-18" rx="98.3348" ry="18"/>
+<text text-anchor="middle" x="762.2502" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.generatedSources</text>
+</g>
+<!-- core.platformSuffix -->
+<g id="node4" class="node">
+<title>core.platformSuffix</title>
+<ellipse fill="none" stroke="#000000" cx="1698.2502" cy="-90" rx="87.4174" ry="18"/>
+<text text-anchor="middle" x="1698.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.platformSuffix</text>
+</g>
+<!-- core.transitiveLocalClasspath -->
+<g id="node5" class="node">
+<title>core.transitiveLocalClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2833.2502" cy="-90" rx="125.5739" ry="18"/>
+<text text-anchor="middle" x="2833.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.transitiveLocalClasspath</text>
+</g>
+<!-- core.resources -->
+<g id="node6" class="node">
+<title>core.resources</title>
+<ellipse fill="none" stroke="#000000" cx="1488.2502" cy="-90" rx="66.5506" ry="18"/>
+<text text-anchor="middle" x="1488.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.resources</text>
+</g>
+<!-- core.unmanagedClasspath -->
+<g id="node7" class="node">
+<title>core.unmanagedClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2337.2502" cy="-90" rx="112.2626" ry="18"/>
+<text text-anchor="middle" x="2337.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.unmanagedClasspath</text>
+</g>
+<!-- core.ivyDeps -->
+<g id="node8" class="node">
+<title>core.ivyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="62.2502" cy="-18" rx="62.0014" ry="18"/>
+<text text-anchor="middle" x="62.2502" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.ivyDeps</text>
+</g>
+<!-- core.scalacOptions -->
+<g id="node9" class="node">
+<title>core.scalacOptions</title>
+<ellipse fill="none" stroke="#000000" cx="899.2502" cy="-162" rx="84.4671" ry="18"/>
+<text text-anchor="middle" x="899.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacOptions</text>
+</g>
+<!-- core.scalacPluginIvyDeps -->
+<g id="node10" class="node">
+<title>core.scalacPluginIvyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="1215.2502" cy="-90" rx="111.677" ry="18"/>
+<text text-anchor="middle" x="1215.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacPluginIvyDeps</text>
+</g>
+<!-- core.javacOptions -->
+<g id="node11" class="node">
+<title>core.javacOptions</title>
+<ellipse fill="none" stroke="#000000" cx="2306.2502" cy="-162" rx="81.0388" ry="18"/>
+<text text-anchor="middle" x="2306.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.javacOptions</text>
+</g>
+<!-- core.upstreamCompileOutput -->
+<g id="node12" class="node">
+<title>core.upstreamCompileOutput</title>
+<ellipse fill="none" stroke="#000000" cx="2531.2502" cy="-162" rx="125.6029" ry="18"/>
+<text text-anchor="middle" x="2531.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.upstreamCompileOutput</text>
+</g>
+<!-- core.mainClass -->
+<g id="node13" class="node">
+<title>core.mainClass</title>
+<ellipse fill="none" stroke="#000000" cx="2692.2502" cy="-234" rx="70.101" ry="18"/>
+<text text-anchor="middle" x="2692.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.mainClass</text>
+</g>
+<!-- core.artifactName -->
+<g id="node14" class="node">
+<title>core.artifactName</title>
+<ellipse fill="none" stroke="#000000" cx="346.2502" cy="-162" rx="80.4302" ry="18"/>
+<text text-anchor="middle" x="346.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.artifactName</text>
+</g>
+<!-- core.crossFullScalaVersion -->
+<g id="node15" class="node">
+<title>core.crossFullScalaVersion</title>
+<ellipse fill="none" stroke="#000000" cx="995.2502" cy="-18" rx="116.9078" ry="18"/>
+<text text-anchor="middle" x="995.2502" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.crossFullScalaVersion</text>
+</g>
+<!-- core.publishVersion -->
+<g id="node16" class="node">
+<title>core.publishVersion</title>
+<ellipse fill="none" stroke="#000000" cx="179.2502" cy="-234" rx="89.1467" ry="18"/>
+<text text-anchor="middle" x="179.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.publishVersion</text>
+</g>
+<!-- core.runIvyDeps -->
+<g id="node17" class="node">
+<title>core.runIvyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="3052.2502" cy="-90" rx="75.8064" ry="18"/>
+<text text-anchor="middle" x="3052.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.runIvyDeps</text>
+</g>
+<!-- core.forkArgs -->
+<g id="node18" class="node">
+<title>core.forkArgs</title>
+<ellipse fill="none" stroke="#000000" cx="3184.2502" cy="-234" rx="64.8485" ry="18"/>
+<text text-anchor="middle" x="3184.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.forkArgs</text>
+</g>
+<!-- core.forkEnv -->
+<g id="node19" class="node">
+<title>core.forkEnv</title>
+<ellipse fill="none" stroke="#000000" cx="2752.2502" cy="-450" rx="61.9214" ry="18"/>
+<text text-anchor="middle" x="2752.2502" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.forkEnv</text>
+</g>
+<!-- core.testArgs -->
+<g id="node20" class="node">
+<title>core.testArgs</title>
+<ellipse fill="none" stroke="#000000" cx="2894.2502" cy="-450" rx="62.4956" ry="18"/>
+<text text-anchor="middle" x="2894.2502" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.testArgs</text>
+</g>
+<!-- core.allSources -->
+<g id="node21" class="node">
+<title>core.allSources</title>
+<ellipse fill="none" stroke="#000000" cx="762.2502" cy="-90" rx="70.0817" ry="18"/>
+<text text-anchor="middle" x="762.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.allSources</text>
+</g>
+<!-- core.allSources&#45;&gt;core.sources -->
+<g id="edge1" class="edge">
+<title>core.allSources&#45;&gt;core.sources</title>
+<path fill="none" stroke="#000000" d="M724.7083,-74.5542C697.5487,-63.38 660.7319,-48.2325 632.0363,-36.4263"/>
+<polygon fill="#000000" stroke="#000000" points="633.2214,-33.1293 622.6418,-32.5611 630.558,-39.6028 633.2214,-33.1293"/>
+</g>
+<!-- core.allSources&#45;&gt;core.generatedSources -->
+<g id="edge2" class="edge">
+<title>core.allSources&#45;&gt;core.generatedSources</title>
+<path fill="none" stroke="#000000" d="M762.2502,-71.8314C762.2502,-64.131 762.2502,-54.9743 762.2502,-46.4166"/>
+<polygon fill="#000000" stroke="#000000" points="765.7503,-46.4132 762.2502,-36.4133 758.7503,-46.4133 765.7503,-46.4132"/>
+</g>
+<!-- core.allSourceFiles -->
+<g id="node22" class="node">
+<title>core.allSourceFiles</title>
+<ellipse fill="none" stroke="#000000" cx="1087.2502" cy="-162" rx="85.1262" ry="18"/>
+<text text-anchor="middle" x="1087.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.allSourceFiles</text>
+</g>
+<!-- core.allSourceFiles&#45;&gt;core.allSources -->
+<g id="edge3" class="edge">
+<title>core.allSourceFiles&#45;&gt;core.allSources</title>
+<path fill="none" stroke="#000000" d="M1028.3951,-148.9613C971.0727,-136.2622 884.2187,-117.0207 825.4565,-104.0026"/>
+<polygon fill="#000000" stroke="#000000" points="826.0716,-100.5541 815.5513,-101.8082 824.5575,-107.3884 826.0716,-100.5541"/>
+</g>
+<!-- core.scalaCompilerBridgeSources -->
+<g id="node23" class="node">
+<title>core.scalaCompilerBridgeSources</title>
+<ellipse fill="none" stroke="#000000" cx="1849.2502" cy="-162" rx="142.8931" ry="18"/>
+<text text-anchor="middle" x="1849.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaCompilerBridgeSources</text>
+</g>
+<!-- core.scalaCompilerBridgeSources&#45;&gt;core.scalaVersion -->
+<g id="edge4" class="edge">
+<title>core.scalaCompilerBridgeSources&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1737.8174,-150.7445C1693.7223,-143.0101 1643.7614,-129.9717 1602.2502,-108 1581.6883,-97.1167 1582.2214,-86.774 1564.2502,-72 1551.1218,-61.2073 1535.9775,-50.1836 1522.6794,-40.9341"/>
+<polygon fill="#000000" stroke="#000000" points="1524.4694,-37.9173 1514.2471,-35.1324 1520.5015,-43.6841 1524.4694,-37.9173"/>
+</g>
+<!-- core.scalaCompilerBridgeSources&#45;&gt;core.platformSuffix -->
+<g id="edge5" class="edge">
+<title>core.scalaCompilerBridgeSources&#45;&gt;core.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1812.6973,-144.5708C1791.4657,-134.4471 1764.5755,-121.6253 1742.1959,-110.9542"/>
+<polygon fill="#000000" stroke="#000000" points="1743.4432,-107.6715 1732.9104,-106.5267 1740.4304,-113.99 1743.4432,-107.6715"/>
+</g>
+<!-- core.compileIvyDeps -->
+<g id="node24" class="node">
+<title>core.compileIvyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="1897.2502" cy="-90" rx="93.7824" ry="18"/>
+<text text-anchor="middle" x="1897.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compileIvyDeps</text>
+</g>
+<!-- core.compileIvyDeps&#45;&gt;core.scalaVersion -->
+<g id="edge6" class="edge">
+<title>core.compileIvyDeps&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1827.8689,-77.7862C1753.7094,-64.7312 1636.64,-44.1224 1561.1544,-30.834"/>
+<polygon fill="#000000" stroke="#000000" points="1561.7015,-27.3766 1551.2461,-29.0898 1560.4879,-34.2706 1561.7015,-27.3766"/>
+</g>
+<!-- core.scalaLibraryIvyDeps -->
+<g id="node25" class="node">
+<title>core.scalaLibraryIvyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="2578.2502" cy="-90" rx="111.0741" ry="18"/>
+<text text-anchor="middle" x="2578.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaLibraryIvyDeps</text>
+</g>
+<!-- core.scalaLibraryIvyDeps&#45;&gt;core.scalaVersion -->
+<g id="edge7" class="edge">
+<title>core.scalaLibraryIvyDeps&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M2499.9556,-77.1805C2486.0903,-75.2177 2471.767,-73.387 2458.2502,-72 2135.3632,-38.8688 1749.7764,-25.0337 1578.221,-20.2062"/>
+<polygon fill="#000000" stroke="#000000" points="1578.0709,-16.7008 1567.9775,-19.9215 1577.8764,-23.6981 1578.0709,-16.7008"/>
+</g>
+<!-- core.transitiveIvyDeps -->
+<g id="node26" class="node">
+<title>core.transitiveIvyDeps</title>
+<ellipse fill="none" stroke="#000000" cx="2108.2502" cy="-90" rx="98.934" ry="18"/>
+<text text-anchor="middle" x="2108.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.transitiveIvyDeps</text>
+</g>
+<!-- core.transitiveIvyDeps&#45;&gt;core.ivyDeps -->
+<g id="edge8" class="edge">
+<title>core.transitiveIvyDeps&#45;&gt;core.ivyDeps</title>
+<path fill="none" stroke="#000000" d="M2039.3028,-77.0232C2026.3687,-75.0116 2012.9289,-73.2046 2000.2502,-72 1344.7853,-9.7241 1177.3332,-56.9572 519.2502,-36 383.0378,-31.6622 224.0495,-25.0499 134.0536,-21.1628"/>
+<polygon fill="#000000" stroke="#000000" points="134.1031,-17.6618 123.961,-20.7258 133.8002,-24.6552 134.1031,-17.6618"/>
+</g>
+<!-- core.compileClasspath -->
+<g id="node27" class="node">
+<title>core.compileClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2108.2502" cy="-162" rx="98.9533" ry="18"/>
+<text text-anchor="middle" x="2108.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compileClasspath</text>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.platformSuffix -->
+<g id="edge9" class="edge">
+<title>core.compileClasspath&#45;&gt;core.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M2035.865,-149.6815C1958.0501,-136.4157 1839.4369,-116.1213 1794.2502,-108 1787.2509,-106.742 1779.9686,-105.4132 1772.6838,-104.0704"/>
+<polygon fill="#000000" stroke="#000000" points="1773.2448,-100.6149 1762.7747,-102.2361 1771.9705,-107.4979 1773.2448,-100.6149"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.transitiveLocalClasspath -->
+<g id="edge13" class="edge">
+<title>core.compileClasspath&#45;&gt;core.transitiveLocalClasspath</title>
+<path fill="none" stroke="#000000" d="M2178.7028,-149.313C2191.1829,-147.3358 2204.0776,-145.4659 2216.2502,-144 2429.5281,-118.3156 2484.582,-130.205 2698.2502,-108 2709.7337,-106.8066 2721.7479,-105.4136 2733.6725,-103.9406"/>
+<polygon fill="#000000" stroke="#000000" points="2734.1686,-107.4059 2743.6545,-102.687 2733.2963,-100.4604 2734.1686,-107.4059"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.resources -->
+<g id="edge14" class="edge">
+<title>core.compileClasspath&#45;&gt;core.resources</title>
+<path fill="none" stroke="#000000" d="M2037.8583,-149.3697C2025.675,-147.4096 2013.1136,-145.5308 2001.2502,-144 1824.6605,-121.2143 1778.9523,-129.897 1602.2502,-108 1586.8356,-106.0898 1570.3033,-103.686 1554.7436,-101.2626"/>
+<polygon fill="#000000" stroke="#000000" points="1555.1044,-97.7763 1544.6806,-99.6723 1554.0116,-104.6905 1555.1044,-97.7763"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.unmanagedClasspath -->
+<g id="edge15" class="edge">
+<title>core.compileClasspath&#45;&gt;core.unmanagedClasspath</title>
+<path fill="none" stroke="#000000" d="M2157.9398,-146.3771C2192.7168,-135.4428 2239.3877,-120.769 2276.3971,-109.1328"/>
+<polygon fill="#000000" stroke="#000000" points="2277.5821,-112.4293 2286.0719,-106.091 2275.4825,-105.7515 2277.5821,-112.4293"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.compileIvyDeps -->
+<g id="edge10" class="edge">
+<title>core.compileClasspath&#45;&gt;core.compileIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2061.6841,-146.1102C2029.6512,-135.1795 1986.9456,-120.607 1953.0843,-109.0524"/>
+<polygon fill="#000000" stroke="#000000" points="1953.9285,-105.6424 1943.334,-105.7253 1951.6678,-112.2673 1953.9285,-105.6424"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.scalaLibraryIvyDeps -->
+<g id="edge11" class="edge">
+<title>core.compileClasspath&#45;&gt;core.scalaLibraryIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2180.8395,-149.723C2192.6691,-147.7737 2204.7965,-145.8063 2216.2502,-144 2323.6619,-127.0611 2350.7043,-124.0652 2458.2502,-108 2467.451,-106.6256 2477.0484,-105.1897 2486.6316,-103.7545"/>
+<polygon fill="#000000" stroke="#000000" points="2487.225,-107.2048 2496.596,-102.2617 2486.1878,-100.282 2487.225,-107.2048"/>
+</g>
+<!-- core.compileClasspath&#45;&gt;core.transitiveIvyDeps -->
+<g id="edge12" class="edge">
+<title>core.compileClasspath&#45;&gt;core.transitiveIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2108.2502,-143.8314C2108.2502,-136.131 2108.2502,-126.9743 2108.2502,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2111.7503,-118.4132 2108.2502,-108.4133 2104.7503,-118.4133 2111.7503,-118.4132"/>
+</g>
+<!-- core.scalaCompilerClasspath -->
+<g id="node28" class="node">
+<title>core.scalaCompilerClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="1565.2502" cy="-162" rx="123.2883" ry="18"/>
+<text text-anchor="middle" x="1565.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaCompilerClasspath</text>
+</g>
+<!-- core.scalaCompilerClasspath&#45;&gt;core.scalaVersion -->
+<g id="edge16" class="edge">
+<title>core.scalaCompilerClasspath&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1499.0612,-146.722C1462.7208,-136.8489 1422.9066,-123.0617 1412.2502,-108 1403.009,-94.9386 1404.9111,-86.2175 1412.2502,-72 1419.127,-58.678 1430.9767,-47.927 1443.3006,-39.6306"/>
+<polygon fill="#000000" stroke="#000000" points="1445.2334,-42.55 1451.853,-34.2776 1441.5195,-36.6164 1445.2334,-42.55"/>
+</g>
+<!-- core.scalaCompilerClasspath&#45;&gt;core.platformSuffix -->
+<g id="edge17" class="edge">
+<title>core.scalaCompilerClasspath&#45;&gt;core.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1597.4458,-144.5708C1615.6305,-134.7264 1638.5281,-122.3308 1657.9027,-111.8422"/>
+<polygon fill="#000000" stroke="#000000" points="1659.6822,-114.8589 1666.81,-107.0202 1656.3497,-108.7031 1659.6822,-114.8589"/>
+</g>
+<!-- core.scalacPluginClasspath -->
+<g id="node29" class="node">
+<title>core.scalacPluginClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="1307.2502" cy="-162" rx="116.3475" ry="18"/>
+<text text-anchor="middle" x="1307.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacPluginClasspath</text>
+</g>
+<!-- core.scalacPluginClasspath&#45;&gt;core.scalaVersion -->
+<g id="edge18" class="edge">
+<title>core.scalacPluginClasspath&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1324.1664,-143.981C1342.4727,-124.9737 1372.9844,-94.6914 1402.2502,-72 1417.0415,-60.5315 1434.355,-49.2882 1449.5549,-40.0556"/>
+<polygon fill="#000000" stroke="#000000" points="1451.4427,-43.0048 1458.2252,-34.8655 1447.8473,-36.9987 1451.4427,-43.0048"/>
+</g>
+<!-- core.scalacPluginClasspath&#45;&gt;core.platformSuffix -->
+<g id="edge19" class="edge">
+<title>core.scalacPluginClasspath&#45;&gt;core.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1382.1763,-148.2029C1451.3936,-135.457 1553.6941,-116.619 1623.011,-103.8548"/>
+<polygon fill="#000000" stroke="#000000" points="1623.7901,-107.2702 1632.9909,-102.0171 1622.5224,-100.386 1623.7901,-107.2702"/>
+</g>
+<!-- core.scalacPluginClasspath&#45;&gt;core.scalacPluginIvyDeps -->
+<g id="edge20" class="edge">
+<title>core.scalacPluginClasspath&#45;&gt;core.scalacPluginIvyDeps</title>
+<path fill="none" stroke="#000000" d="M1284.5086,-144.2022C1272.8979,-135.1156 1258.6044,-123.9294 1246.0236,-114.0836"/>
+<polygon fill="#000000" stroke="#000000" points="1248.0812,-111.2494 1238.049,-107.8425 1243.767,-116.7619 1248.0812,-111.2494"/>
+</g>
+<!-- core.compile -->
+<g id="node30" class="node">
+<title>core.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1979.2502" cy="-234" rx="61.3551" ry="18"/>
+<text text-anchor="middle" x="1979.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compile</text>
+</g>
+<!-- core.compile&#45;&gt;core.scalacOptions -->
+<g id="edge25" class="edge">
+<title>core.compile&#45;&gt;core.scalacOptions</title>
+<path fill="none" stroke="#000000" d="M1917.8435,-233.5013C1762.4523,-231.6189 1341.2351,-222.6503 993.2502,-180 985.4806,-179.0477 977.3874,-177.8364 969.3528,-176.4936"/>
+<polygon fill="#000000" stroke="#000000" points="969.6878,-172.9993 959.2356,-174.732 968.487,-179.8956 969.6878,-172.9993"/>
+</g>
+<!-- core.compile&#45;&gt;core.javacOptions -->
+<g id="edge27" class="edge">
+<title>core.compile&#45;&gt;core.javacOptions</title>
+<path fill="none" stroke="#000000" d="M2028.5594,-223.1429C2084.5324,-210.8186 2176.168,-190.642 2238.749,-176.8627"/>
+<polygon fill="#000000" stroke="#000000" points="2239.52,-180.2768 2248.5334,-174.7083 2238.0147,-173.4406 2239.52,-180.2768"/>
+</g>
+<!-- core.compile&#45;&gt;core.upstreamCompileOutput -->
+<g id="edge28" class="edge">
+<title>core.compile&#45;&gt;core.upstreamCompileOutput</title>
+<path fill="none" stroke="#000000" d="M2035.578,-226.7742C2115.7151,-216.4786 2267.2364,-196.9543 2396.2502,-180 2406.9297,-178.5966 2418.0833,-177.1226 2429.204,-175.6477"/>
+<polygon fill="#000000" stroke="#000000" points="2429.9408,-179.0807 2439.3932,-174.2949 2429.0195,-172.1416 2429.9408,-179.0807"/>
+</g>
+<!-- core.compile&#45;&gt;core.allSourceFiles -->
+<g id="edge21" class="edge">
+<title>core.compile&#45;&gt;core.allSourceFiles</title>
+<path fill="none" stroke="#000000" d="M1918.2675,-232.3547C1784.5076,-228.2019 1455.4795,-215.0135 1182.2502,-180 1174.3783,-178.9912 1166.174,-177.7412 1158.0283,-176.3733"/>
+<polygon fill="#000000" stroke="#000000" points="1158.5998,-172.9203 1148.1479,-174.6548 1157.4002,-179.8167 1158.5998,-172.9203"/>
+</g>
+<!-- core.compile&#45;&gt;core.scalaCompilerBridgeSources -->
+<g id="edge22" class="edge">
+<title>core.compile&#45;&gt;core.scalaCompilerBridgeSources</title>
+<path fill="none" stroke="#000000" d="M1950.399,-218.0209C1932.7052,-208.2212 1909.7714,-195.5194 1890.2158,-184.6886"/>
+<polygon fill="#000000" stroke="#000000" points="1891.6567,-181.4858 1881.2131,-179.7025 1888.2652,-187.6093 1891.6567,-181.4858"/>
+</g>
+<!-- core.compile&#45;&gt;core.compileClasspath -->
+<g id="edge23" class="edge">
+<title>core.compile&#45;&gt;core.compileClasspath</title>
+<path fill="none" stroke="#000000" d="M2007.8795,-218.0209C2025.7741,-208.0332 2049.0698,-195.0309 2068.7131,-184.0672"/>
+<polygon fill="#000000" stroke="#000000" points="2070.4226,-187.1214 2077.4488,-179.1915 2067.011,-181.009 2070.4226,-187.1214"/>
+</g>
+<!-- core.compile&#45;&gt;core.scalaCompilerClasspath -->
+<g id="edge24" class="edge">
+<title>core.compile&#45;&gt;core.scalaCompilerClasspath</title>
+<path fill="none" stroke="#000000" d="M1926.3963,-224.808C1857.899,-212.8955 1737.4504,-191.9479 1654.618,-177.5422"/>
+<polygon fill="#000000" stroke="#000000" points="1655.1608,-174.0842 1644.7089,-175.8189 1653.9613,-180.9806 1655.1608,-174.0842"/>
+</g>
+<!-- core.compile&#45;&gt;core.scalacPluginClasspath -->
+<g id="edge26" class="edge">
+<title>core.compile&#45;&gt;core.scalacPluginClasspath</title>
+<path fill="none" stroke="#000000" d="M1920.1769,-229.0024C1819.9147,-220.3312 1610.0894,-201.366 1433.2502,-180 1422.943,-178.7547 1412.175,-177.3601 1401.4625,-175.9131"/>
+<polygon fill="#000000" stroke="#000000" points="1401.6077,-172.4005 1391.2256,-174.5128 1400.659,-179.3359 1401.6077,-172.4005"/>
+</g>
+<!-- core.localClasspath -->
+<g id="node31" class="node">
+<title>core.localClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2382.2502" cy="-306" rx="86.2717" ry="18"/>
+<text text-anchor="middle" x="2382.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.localClasspath</text>
+</g>
+<!-- core.localClasspath&#45;&gt;core.compile -->
+<g id="edge29" class="edge">
+<title>core.localClasspath&#45;&gt;core.compile</title>
+<path fill="none" stroke="#000000" d="M2316.6043,-294.2717C2240.6636,-280.7041 2116.5345,-258.5272 2041.8925,-245.1917"/>
+<polygon fill="#000000" stroke="#000000" points="2042.1585,-241.6839 2031.6988,-243.3705 2040.9273,-248.5747 2042.1585,-241.6839"/>
+</g>
+<!-- core.jar -->
+<g id="node32" class="node">
+<title>core.jar</title>
+<ellipse fill="none" stroke="#000000" cx="2425.2502" cy="-378" rx="40.0068" ry="18"/>
+<text text-anchor="middle" x="2425.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.jar</text>
+</g>
+<!-- core.jar&#45;&gt;core.mainClass -->
+<g id="edge31" class="edge">
+<title>core.jar&#45;&gt;core.mainClass</title>
+<path fill="none" stroke="#000000" d="M2441.5691,-361.268C2466.3051,-335.9658 2510.893,-290.6163 2515.2502,-288 2548.4664,-268.055 2589.6666,-254.9179 2623.9574,-246.6008"/>
+<polygon fill="#000000" stroke="#000000" points="2624.9555,-249.9618 2633.8959,-244.2767 2623.3616,-243.1457 2624.9555,-249.9618"/>
+</g>
+<!-- core.jar&#45;&gt;core.localClasspath -->
+<g id="edge30" class="edge">
+<title>core.jar&#45;&gt;core.localClasspath</title>
+<path fill="none" stroke="#000000" d="M2414.8411,-360.5708C2409.8824,-352.2679 2403.8399,-342.1502 2398.311,-332.8925"/>
+<polygon fill="#000000" stroke="#000000" points="2401.1448,-330.8114 2393.0125,-324.0206 2395.135,-334.4006 2401.1448,-330.8114"/>
+</g>
+<!-- core.pomSettings -->
+<g id="node33" class="node">
+<title>core.pomSettings</title>
+<ellipse fill="none" stroke="#000000" cx="364.2502" cy="-234" rx="78.2104" ry="18"/>
+<text text-anchor="middle" x="364.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.pomSettings</text>
+</g>
+<!-- core.pomSettings&#45;&gt;core.artifactName -->
+<g id="edge32" class="edge">
+<title>core.pomSettings&#45;&gt;core.artifactName</title>
+<path fill="none" stroke="#000000" d="M359.708,-215.8314C357.7618,-208.0463 355.4434,-198.7729 353.2839,-190.1347"/>
+<polygon fill="#000000" stroke="#000000" points="356.6744,-189.2658 350.8535,-180.4133 349.8834,-190.9636 356.6744,-189.2658"/>
+</g>
+<!-- core.artifactScalaVersion -->
+<g id="node34" class="node">
+<title>core.artifactScalaVersion</title>
+<ellipse fill="none" stroke="#000000" cx="977.2502" cy="-90" rx="108.7788" ry="18"/>
+<text text-anchor="middle" x="977.2502" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.artifactScalaVersion</text>
+</g>
+<!-- core.artifactScalaVersion&#45;&gt;core.scalaVersion -->
+<g id="edge34" class="edge">
+<title>core.artifactScalaVersion&#45;&gt;core.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1056.5232,-77.6238C1069.1381,-75.7063 1082.0477,-73.7747 1094.2502,-72 1203.3428,-56.1335 1329.6239,-39.0522 1409.2129,-28.444"/>
+<polygon fill="#000000" stroke="#000000" points="1409.7132,-31.9083 1419.1637,-27.1189 1408.7892,-24.9696 1409.7132,-31.9083"/>
+</g>
+<!-- core.artifactScalaVersion&#45;&gt;core.crossFullScalaVersion -->
+<g id="edge33" class="edge">
+<title>core.artifactScalaVersion&#45;&gt;core.crossFullScalaVersion</title>
+<path fill="none" stroke="#000000" d="M981.7923,-71.8314C983.7386,-64.0463 986.057,-54.7729 988.2165,-46.1347"/>
+<polygon fill="#000000" stroke="#000000" points="991.6169,-46.9636 990.6469,-36.4133 984.8259,-45.2658 991.6169,-46.9636"/>
+</g>
+<!-- core.artifactSuffix -->
+<g id="node35" class="node">
+<title>core.artifactSuffix</title>
+<ellipse fill="none" stroke="#000000" cx="526.2502" cy="-162" rx="81.5934" ry="18"/>
+<text text-anchor="middle" x="526.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.artifactSuffix</text>
+</g>
+<!-- core.artifactSuffix&#45;&gt;core.artifactScalaVersion -->
+<g id="edge35" class="edge">
+<title>core.artifactSuffix&#45;&gt;core.artifactScalaVersion</title>
+<path fill="none" stroke="#000000" d="M585.7192,-149.6793C595.8889,-147.6948 606.3612,-145.7274 616.2502,-144 706.4275,-128.2474 809.7809,-113.0783 882.7269,-102.8501"/>
+<polygon fill="#000000" stroke="#000000" points="883.3944,-106.2909 892.8136,-101.44 882.4253,-99.3583 883.3944,-106.2909"/>
+</g>
+<!-- core.artifactId -->
+<g id="node36" class="node">
+<title>core.artifactId</title>
+<ellipse fill="none" stroke="#000000" cx="526.2502" cy="-234" rx="65.403" ry="18"/>
+<text text-anchor="middle" x="526.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.artifactId</text>
+</g>
+<!-- core.artifactId&#45;&gt;core.artifactName -->
+<g id="edge36" class="edge">
+<title>core.artifactId&#45;&gt;core.artifactName</title>
+<path fill="none" stroke="#000000" d="M488.9541,-219.0816C461.7289,-208.1915 424.569,-193.3275 394.9942,-181.4976"/>
+<polygon fill="#000000" stroke="#000000" points="396.2653,-178.2365 385.6807,-177.7722 393.6655,-184.7358 396.2653,-178.2365"/>
+</g>
+<!-- core.artifactId&#45;&gt;core.artifactSuffix -->
+<g id="edge37" class="edge">
+<title>core.artifactId&#45;&gt;core.artifactSuffix</title>
+<path fill="none" stroke="#000000" d="M526.2502,-215.8314C526.2502,-208.131 526.2502,-198.9743 526.2502,-190.4166"/>
+<polygon fill="#000000" stroke="#000000" points="529.7503,-190.4132 526.2502,-180.4133 522.7503,-190.4133 529.7503,-190.4132"/>
+</g>
+<!-- core.artifactMetadata -->
+<g id="node37" class="node">
+<title>core.artifactMetadata</title>
+<ellipse fill="none" stroke="#000000" cx="183.2502" cy="-306" rx="93.1701" ry="18"/>
+<text text-anchor="middle" x="183.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.artifactMetadata</text>
+</g>
+<!-- core.artifactMetadata&#45;&gt;core.publishVersion -->
+<g id="edge40" class="edge">
+<title>core.artifactMetadata&#45;&gt;core.publishVersion</title>
+<path fill="none" stroke="#000000" d="M182.2408,-287.8314C181.813,-280.131 181.3043,-270.9743 180.8289,-262.4166"/>
+<polygon fill="#000000" stroke="#000000" points="184.3225,-262.2037 180.2731,-252.4133 177.3333,-262.592 184.3225,-262.2037"/>
+</g>
+<!-- core.artifactMetadata&#45;&gt;core.pomSettings -->
+<g id="edge38" class="edge">
+<title>core.artifactMetadata&#45;&gt;core.pomSettings</title>
+<path fill="none" stroke="#000000" d="M224.3219,-289.6621C251.4037,-278.8892 287.004,-264.7277 315.5182,-253.3851"/>
+<polygon fill="#000000" stroke="#000000" points="316.8958,-256.6039 324.894,-249.6555 314.3084,-250.0996 316.8958,-256.6039"/>
+</g>
+<!-- core.artifactMetadata&#45;&gt;core.artifactId -->
+<g id="edge39" class="edge">
+<title>core.artifactMetadata&#45;&gt;core.artifactId</title>
+<path fill="none" stroke="#000000" d="M249.7498,-293.3052C304.0664,-282.7669 382.7712,-267.1111 451.2502,-252 456.4806,-250.8458 461.9075,-249.6129 467.3419,-248.3539"/>
+<polygon fill="#000000" stroke="#000000" points="468.1523,-251.7589 477.091,-246.0712 466.5564,-244.9433 468.1523,-251.7589"/>
+</g>
+<!-- core.pom -->
+<g id="node38" class="node">
+<title>core.pom</title>
+<ellipse fill="none" stroke="#000000" cx="183.2502" cy="-378" rx="47.4743" ry="18"/>
+<text text-anchor="middle" x="183.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.pom</text>
+</g>
+<!-- core.pom&#45;&gt;core.ivyDeps -->
+<g id="edge41" class="edge">
+<title>core.pom&#45;&gt;core.ivyDeps</title>
+<path fill="none" stroke="#000000" d="M145.5957,-367.0357C123.5913,-358.7126 97.1114,-345.0396 81.2502,-324 56.6403,-291.3555 62.2502,-274.8816 62.2502,-234 62.2502,-234 62.2502,-234 62.2502,-162 62.2502,-121.876 62.2502,-75.4631 62.2502,-46.4177"/>
+<polygon fill="#000000" stroke="#000000" points="65.7503,-46.1853 62.2502,-36.1854 58.7503,-46.1854 65.7503,-46.1853"/>
+</g>
+<!-- core.pom&#45;&gt;core.artifactMetadata -->
+<g id="edge42" class="edge">
+<title>core.pom&#45;&gt;core.artifactMetadata</title>
+<path fill="none" stroke="#000000" d="M183.2502,-359.8314C183.2502,-352.131 183.2502,-342.9743 183.2502,-334.4166"/>
+<polygon fill="#000000" stroke="#000000" points="186.7503,-334.4132 183.2502,-324.4133 179.7503,-334.4133 186.7503,-334.4132"/>
+</g>
+<!-- core.ivy -->
+<g id="node39" class="node">
+<title>core.ivy</title>
+<ellipse fill="none" stroke="#000000" cx="49.2502" cy="-378" rx="42.3163" ry="18"/>
+<text text-anchor="middle" x="49.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.ivy</text>
+</g>
+<!-- core.ivy&#45;&gt;core.ivyDeps -->
+<g id="edge43" class="edge">
+<title>core.ivy&#45;&gt;core.ivyDeps</title>
+<path fill="none" stroke="#000000" d="M44.0702,-359.9889C36.7475,-332.8949 24.2502,-279.9269 24.2502,-234 24.2502,-234 24.2502,-234 24.2502,-162 24.2502,-120.3681 39.283,-74.14 50.4383,-45.567"/>
+<polygon fill="#000000" stroke="#000000" points="53.708,-46.817 54.1914,-36.2332 47.2133,-44.2055 53.708,-46.817"/>
+</g>
+<!-- core.ivy&#45;&gt;core.artifactMetadata -->
+<g id="edge44" class="edge">
+<title>core.ivy&#45;&gt;core.artifactMetadata</title>
+<path fill="none" stroke="#000000" d="M75.7243,-363.7751C94.8116,-353.5193 120.9277,-339.4867 142.6419,-327.8194"/>
+<polygon fill="#000000" stroke="#000000" points="144.4929,-330.7981 151.6452,-322.9818 141.1796,-324.6319 144.4929,-330.7981"/>
+</g>
+<!-- core.upstreamAssemblyClasspath -->
+<g id="node40" class="node">
+<title>core.upstreamAssemblyClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2816.2502" cy="-162" rx="141.7703" ry="18"/>
+<text text-anchor="middle" x="2816.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.upstreamAssemblyClasspath</text>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.platformSuffix -->
+<g id="edge45" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M2717.5199,-149.0405C2700.4462,-147.1178 2682.8515,-145.3367 2666.2502,-144 2279.6158,-112.8689 2179.6487,-151.8552 1794.2502,-108 1786.2847,-107.0936 1777.9872,-105.9081 1769.7519,-104.5774"/>
+<polygon fill="#000000" stroke="#000000" points="1770.2072,-101.1049 1759.7641,-102.8914 1769.0419,-108.0072 1770.2072,-101.1049"/>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.transitiveLocalClasspath -->
+<g id="edge49" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.transitiveLocalClasspath</title>
+<path fill="none" stroke="#000000" d="M2820.54,-143.8314C2822.3582,-136.131 2824.5201,-126.9743 2826.5407,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2830.0109,-118.95 2828.9026,-108.4133 2823.1983,-117.3414 2830.0109,-118.95"/>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.unmanagedClasspath -->
+<g id="edge50" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.unmanagedClasspath</title>
+<path fill="none" stroke="#000000" d="M2724.7438,-148.2454C2639.8524,-135.4851 2514.1632,-116.5924 2429.147,-103.8133"/>
+<polygon fill="#000000" stroke="#000000" points="2429.6541,-100.3503 2419.2449,-102.3249 2428.6136,-107.2725 2429.6541,-100.3503"/>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.runIvyDeps -->
+<g id="edge46" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.runIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2870.9865,-145.3008C2908.3602,-133.8986 2957.7552,-118.829 2995.5421,-107.3008"/>
+<polygon fill="#000000" stroke="#000000" points="2996.8339,-110.566 3005.3773,-104.3002 2994.7912,-103.8707 2996.8339,-110.566"/>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.scalaLibraryIvyDeps -->
+<g id="edge47" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.scalaLibraryIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2761.3493,-145.3913C2725.3081,-134.4881 2678.0856,-120.2023 2640.6252,-108.8697"/>
+<polygon fill="#000000" stroke="#000000" points="2641.4165,-105.4525 2630.8314,-105.9069 2639.3895,-112.1527 2641.4165,-105.4525"/>
+</g>
+<!-- core.upstreamAssemblyClasspath&#45;&gt;core.transitiveIvyDeps -->
+<g id="edge48" class="edge">
+<title>core.upstreamAssemblyClasspath&#45;&gt;core.transitiveIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2715.4527,-149.349C2699.0201,-147.4464 2682.1702,-145.5914 2666.2502,-144 2466.6062,-124.0435 2415.3859,-132.5147 2216.2502,-108 2207.3138,-106.8999 2197.9869,-105.5906 2188.7201,-104.1873"/>
+<polygon fill="#000000" stroke="#000000" points="2189.128,-100.7088 2178.7094,-102.6331 2188.054,-107.6259 2189.128,-100.7088"/>
+</g>
+<!-- core.runClasspath -->
+<g id="node41" class="node">
+<title>core.runClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2286.2502" cy="-378" rx="80.4766" ry="18"/>
+<text text-anchor="middle" x="2286.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.runClasspath</text>
+</g>
+<!-- core.runClasspath&#45;&gt;core.localClasspath -->
+<g id="edge51" class="edge">
+<title>core.runClasspath&#45;&gt;core.localClasspath</title>
+<path fill="none" stroke="#000000" d="M2309.4891,-360.5708C2321.8966,-351.2652 2337.3437,-339.6799 2350.8092,-329.5807"/>
+<polygon fill="#000000" stroke="#000000" points="2352.9925,-332.3183 2358.8925,-323.5182 2348.7925,-326.7183 2352.9925,-332.3183"/>
+</g>
+<!-- core.runClasspath&#45;&gt;core.upstreamAssemblyClasspath -->
+<g id="edge52" class="edge">
+<title>core.runClasspath&#45;&gt;core.upstreamAssemblyClasspath</title>
+<path fill="none" stroke="#000000" d="M2280.5311,-359.9649C2275.4462,-340.0922 2271.0604,-308.2664 2287.2502,-288 2314.368,-254.054 2576.0125,-203.7773 2720.8797,-178.2079"/>
+<polygon fill="#000000" stroke="#000000" points="2721.8608,-181.5892 2731.1035,-176.4102 2720.6484,-174.695 2721.8608,-181.5892"/>
+</g>
+<!-- core.finalMainClassOpt -->
+<g id="node42" class="node">
+<title>core.finalMainClassOpt</title>
+<ellipse fill="none" stroke="#000000" cx="2628.2502" cy="-306" rx="103.6059" ry="18"/>
+<text text-anchor="middle" x="2628.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.finalMainClassOpt</text>
+</g>
+<!-- core.finalMainClassOpt&#45;&gt;core.mainClass -->
+<g id="edge53" class="edge">
+<title>core.finalMainClassOpt&#45;&gt;core.mainClass</title>
+<path fill="none" stroke="#000000" d="M2644.0704,-288.2022C2651.8207,-279.4832 2661.2892,-268.8311 2669.7747,-259.2849"/>
+<polygon fill="#000000" stroke="#000000" points="2672.5842,-261.3924 2676.6119,-251.593 2667.3523,-256.7419 2672.5842,-261.3924"/>
+</g>
+<!-- core.finalMainClassOpt&#45;&gt;core.compile -->
+<g id="edge54" class="edge">
+<title>core.finalMainClassOpt&#45;&gt;core.compile</title>
+<path fill="none" stroke="#000000" d="M2543.2182,-295.7031C2521.6996,-293.1415 2498.6289,-290.4332 2477.2502,-288 2323.6419,-270.5169 2143.2244,-251.275 2047.3052,-241.1479"/>
+<polygon fill="#000000" stroke="#000000" points="2047.4741,-237.6463 2037.1621,-240.0777 2046.7396,-244.6077 2047.4741,-237.6463"/>
+</g>
+<!-- core.docJar -->
+<g id="node43" class="node">
+<title>core.docJar</title>
+<ellipse fill="none" stroke="#000000" cx="1103.2502" cy="-234" rx="55.0374" ry="18"/>
+<text text-anchor="middle" x="1103.2502" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.docJar</text>
+</g>
+<!-- core.docJar&#45;&gt;core.scalacOptions -->
+<g id="edge57" class="edge">
+<title>core.docJar&#45;&gt;core.scalacOptions</title>
+<path fill="none" stroke="#000000" d="M1065.3574,-220.6261C1033.6552,-209.4371 988.0586,-193.3441 952.6549,-180.8487"/>
+<polygon fill="#000000" stroke="#000000" points="953.5543,-177.4546 942.9595,-177.4268 951.2245,-184.0556 953.5543,-177.4546"/>
+</g>
+<!-- core.docJar&#45;&gt;core.allSources -->
+<g id="edge55" class="edge">
+<title>core.docJar&#45;&gt;core.allSources</title>
+<path fill="none" stroke="#000000" d="M1049.2697,-229.9938C974.3169,-223.4736 843.7004,-208.3498 806.2502,-180 786.3205,-164.9133 774.9004,-138.4005 768.7165,-118.0458"/>
+<polygon fill="#000000" stroke="#000000" points="772.0686,-117.0362 766.0148,-108.3412 765.3251,-118.9136 772.0686,-117.0362"/>
+</g>
+<!-- core.docJar&#45;&gt;core.compileClasspath -->
+<g id="edge59" class="edge">
+<title>core.docJar&#45;&gt;core.compileClasspath</title>
+<path fill="none" stroke="#000000" d="M1158.6079,-232.7233C1299.5927,-229.027 1683.5152,-216.1743 2001.2502,-180 2010.1844,-178.9828 2019.507,-177.7192 2028.7626,-176.3363"/>
+<polygon fill="#000000" stroke="#000000" points="2029.4082,-179.7782 2038.7579,-174.795 2028.3413,-172.86 2029.4082,-179.7782"/>
+</g>
+<!-- core.docJar&#45;&gt;core.scalaCompilerClasspath -->
+<g id="edge58" class="edge">
+<title>core.docJar&#45;&gt;core.scalaCompilerClasspath</title>
+<path fill="none" stroke="#000000" d="M1153.1312,-226.2263C1228.9619,-214.4086 1374.5761,-191.7154 1470.8279,-176.7152"/>
+<polygon fill="#000000" stroke="#000000" points="1471.5143,-180.1505 1480.856,-175.1523 1470.4363,-173.234 1471.5143,-180.1505"/>
+</g>
+<!-- core.docJar&#45;&gt;core.scalacPluginClasspath -->
+<g id="edge56" class="edge">
+<title>core.docJar&#45;&gt;core.scalacPluginClasspath</title>
+<path fill="none" stroke="#000000" d="M1141.1429,-220.6261C1171.8972,-209.7716 1215.7275,-194.3021 1250.6431,-181.979"/>
+<polygon fill="#000000" stroke="#000000" points="1251.9714,-185.2218 1260.2364,-178.5931 1249.6416,-178.6209 1251.9714,-185.2218"/>
+</g>
+<!-- core.ammoniteReplClasspath -->
+<g id="node44" class="node">
+<title>core.ammoniteReplClasspath</title>
+<ellipse fill="none" stroke="#000000" cx="2841.2502" cy="-378" rx="124.4552" ry="18"/>
+<text text-anchor="middle" x="2841.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.ammoniteReplClasspath</text>
+</g>
+<!-- core.ammoniteReplClasspath&#45;&gt;core.runIvyDeps -->
+<g id="edge60" class="edge">
+<title>core.ammoniteReplClasspath&#45;&gt;core.runIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2904.1054,-362.4013C2926.4973,-354.1556 2950.3311,-341.9024 2967.2502,-324 3023.1409,-264.8609 3042.7967,-166.1539 3049.2854,-118.0582"/>
+<polygon fill="#000000" stroke="#000000" points="3052.7684,-118.4114 3050.5417,-108.0533 3045.823,-117.5393 3052.7684,-118.4114"/>
+</g>
+<!-- core.ammoniteReplClasspath&#45;&gt;core.localClasspath -->
+<g id="edge61" class="edge">
+<title>core.ammoniteReplClasspath&#45;&gt;core.localClasspath</title>
+<path fill="none" stroke="#000000" d="M2756.7952,-364.7522C2672.5353,-351.5349 2544.0754,-331.3843 2461.6423,-318.4537"/>
+<polygon fill="#000000" stroke="#000000" points="2461.9961,-314.9664 2451.5744,-316.8744 2460.9112,-321.8819 2461.9961,-314.9664"/>
+</g>
+<!-- core.publishSelfDependency -->
+<g id="node45" class="node">
+<title>core.publishSelfDependency</title>
+<ellipse fill="none" stroke="#000000" cx="417.2502" cy="-306" rx="122.1369" ry="18"/>
+<text text-anchor="middle" x="417.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.publishSelfDependency</text>
+</g>
+<!-- core.publishSelfDependency&#45;&gt;core.publishVersion -->
+<g id="edge64" class="edge">
+<title>core.publishSelfDependency&#45;&gt;core.publishVersion</title>
+<path fill="none" stroke="#000000" d="M363.5416,-289.752C326.5404,-278.5584 277.3416,-263.6747 239.085,-252.1013"/>
+<polygon fill="#000000" stroke="#000000" points="239.6928,-248.6286 229.1077,-249.0829 237.6658,-255.3287 239.6928,-248.6286"/>
+</g>
+<!-- core.publishSelfDependency&#45;&gt;core.pomSettings -->
+<g id="edge62" class="edge">
+<title>core.publishSelfDependency&#45;&gt;core.pomSettings</title>
+<path fill="none" stroke="#000000" d="M403.876,-287.8314C397.6777,-279.411 390.1977,-269.2495 383.414,-260.0338"/>
+<polygon fill="#000000" stroke="#000000" points="386.1833,-257.8919 377.4364,-251.9134 380.546,-262.0417 386.1833,-257.8919"/>
+</g>
+<!-- core.publishSelfDependency&#45;&gt;core.artifactId -->
+<g id="edge63" class="edge">
+<title>core.publishSelfDependency&#45;&gt;core.artifactId</title>
+<path fill="none" stroke="#000000" d="M443.9146,-288.3868C458.5918,-278.6918 476.9507,-266.5648 492.6058,-256.2238"/>
+<polygon fill="#000000" stroke="#000000" points="494.5695,-259.1214 500.9844,-250.6893 490.7113,-253.2806 494.5695,-259.1214"/>
+</g>
+<!-- core.sourceJar -->
+<g id="node46" class="node">
+<title>core.sourceJar</title>
+<ellipse fill="none" stroke="#000000" cx="692.2502" cy="-162" rx="66.5506" ry="18"/>
+<text text-anchor="middle" x="692.2502" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.sourceJar</text>
+</g>
+<!-- core.sourceJar&#45;&gt;core.resources -->
+<g id="edge66" class="edge">
+<title>core.sourceJar&#45;&gt;core.resources</title>
+<path fill="none" stroke="#000000" d="M748.0701,-152.1726C766.5426,-149.1917 787.2353,-146.1427 806.2502,-144 1040.8637,-117.5627 1101.1688,-129.8894 1336.2502,-108 1362.9953,-105.5097 1392.3177,-102.1796 1418.0123,-99.0612"/>
+<polygon fill="#000000" stroke="#000000" points="1418.5382,-102.5231 1428.0384,-97.833 1417.687,-95.575 1418.5382,-102.5231"/>
+</g>
+<!-- core.sourceJar&#45;&gt;core.allSources -->
+<g id="edge65" class="edge">
+<title>core.sourceJar&#45;&gt;core.allSources</title>
+<path fill="none" stroke="#000000" d="M709.1952,-144.5708C717.9009,-135.6164 728.6589,-124.551 738.207,-114.7302"/>
+<polygon fill="#000000" stroke="#000000" points="740.7572,-117.128 745.2186,-107.5182 735.7383,-112.2484 740.7572,-117.128"/>
+</g>
+<!-- core.publishArtifacts -->
+<g id="node47" class="node">
+<title>core.publishArtifacts</title>
+<ellipse fill="none" stroke="#000000" cx="1004.2502" cy="-450" rx="92.0709" ry="18"/>
+<text text-anchor="middle" x="1004.2502" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.publishArtifacts</text>
+</g>
+<!-- core.publishArtifacts&#45;&gt;core.jar -->
+<g id="edge67" class="edge">
+<title>core.publishArtifacts&#45;&gt;core.jar</title>
+<path fill="none" stroke="#000000" d="M1096.002,-448.0118C1382.7888,-441.5709 2250.6382,-420.2836 2375.2502,-396 2378.8583,-395.2969 2382.5544,-394.3766 2386.2238,-393.3238"/>
+<polygon fill="#000000" stroke="#000000" points="2387.3231,-396.647 2395.7956,-390.2855 2385.2053,-389.9751 2387.3231,-396.647"/>
+</g>
+<!-- core.publishArtifacts&#45;&gt;core.pom -->
+<g id="edge70" class="edge">
+<title>core.publishArtifacts&#45;&gt;core.pom</title>
+<path fill="none" stroke="#000000" d="M919.8644,-442.5995C752.2004,-427.8958 381.125,-395.3532 239.5941,-382.9412"/>
+<polygon fill="#000000" stroke="#000000" points="239.6742,-379.4349 229.4067,-382.0478 239.0626,-386.4082 239.6742,-379.4349"/>
+</g>
+<!-- core.publishArtifacts&#45;&gt;core.docJar -->
+<g id="edge69" class="edge">
+<title>core.publishArtifacts&#45;&gt;core.docJar</title>
+<path fill="none" stroke="#000000" d="M1012.5206,-431.9555C1029.9252,-393.9817 1070.414,-305.6426 1090.9029,-260.9396"/>
+<polygon fill="#000000" stroke="#000000" points="1094.0881,-262.3902 1095.0729,-251.8413 1087.7246,-259.4736 1094.0881,-262.3902"/>
+</g>
+<!-- core.publishArtifacts&#45;&gt;core.sourceJar -->
+<g id="edge68" class="edge">
+<title>core.publishArtifacts&#45;&gt;core.sourceJar</title>
+<path fill="none" stroke="#000000" d="M984.7332,-431.9843C930.8545,-382.2501 779.9892,-242.9899 718.6679,-186.3856"/>
+<polygon fill="#000000" stroke="#000000" points="720.6887,-183.4878 710.9667,-179.2767 715.9407,-188.6314 720.6887,-183.4878"/>
+</g>
+<!-- core.finalMainClass -->
+<g id="node48" class="node">
+<title>core.finalMainClass</title>
+<ellipse fill="none" stroke="#000000" cx="2609.2502" cy="-378" rx="89.139" ry="18"/>
+<text text-anchor="middle" x="2609.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.finalMainClass</text>
+</g>
+<!-- core.finalMainClass&#45;&gt;core.finalMainClassOpt -->
+<g id="edge71" class="edge">
+<title>core.finalMainClass&#45;&gt;core.finalMainClassOpt</title>
+<path fill="none" stroke="#000000" d="M2614.0447,-359.8314C2616.0991,-352.0463 2618.5462,-342.7729 2620.8257,-334.1347"/>
+<polygon fill="#000000" stroke="#000000" points="2624.2237,-334.9753 2623.3911,-324.4133 2617.4554,-333.1892 2624.2237,-334.9753"/>
+</g>
+<!-- core.prependShellScript -->
+<g id="node49" class="node">
+<title>core.prependShellScript</title>
+<ellipse fill="none" stroke="#000000" cx="3118.2502" cy="-306" rx="104.1721" ry="18"/>
+<text text-anchor="middle" x="3118.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.prependShellScript</text>
+</g>
+<!-- core.prependShellScript&#45;&gt;core.mainClass -->
+<g id="edge72" class="edge">
+<title>core.prependShellScript&#45;&gt;core.mainClass</title>
+<path fill="none" stroke="#000000" d="M3043.5592,-293.3762C2963.8582,-279.9056 2838.6394,-258.7418 2761.2078,-245.6548"/>
+<polygon fill="#000000" stroke="#000000" points="2761.5191,-242.1579 2751.0757,-243.9423 2760.3525,-249.06 2761.5191,-242.1579"/>
+</g>
+<!-- core.prependShellScript&#45;&gt;core.forkArgs -->
+<g id="edge73" class="edge">
+<title>core.prependShellScript&#45;&gt;core.forkArgs</title>
+<path fill="none" stroke="#000000" d="M3134.5648,-288.2022C3142.6372,-279.396 3152.5172,-268.6179 3161.3345,-258.9989"/>
+<polygon fill="#000000" stroke="#000000" points="3163.946,-261.3296 3168.1232,-251.593 3158.7859,-256.5995 3163.946,-261.3296"/>
+</g>
+<!-- core.upstreamAssembly -->
+<g id="node50" class="node">
+<title>core.upstreamAssembly</title>
+<ellipse fill="none" stroke="#000000" cx="2854.2502" cy="-306" rx="104.1721" ry="18"/>
+<text text-anchor="middle" x="2854.2502" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.upstreamAssembly</text>
+</g>
+<!-- core.upstreamAssembly&#45;&gt;core.mainClass -->
+<g id="edge75" class="edge">
+<title>core.upstreamAssembly&#45;&gt;core.mainClass</title>
+<path fill="none" stroke="#000000" d="M2816.2684,-289.1192C2792.4686,-278.5415 2761.6886,-264.8615 2736.7473,-253.7765"/>
+<polygon fill="#000000" stroke="#000000" points="2738.0605,-250.5301 2727.5009,-249.667 2735.2175,-256.9268 2738.0605,-250.5301"/>
+</g>
+<!-- core.upstreamAssembly&#45;&gt;core.upstreamAssemblyClasspath -->
+<g id="edge74" class="edge">
+<title>core.upstreamAssembly&#45;&gt;core.upstreamAssemblyClasspath</title>
+<path fill="none" stroke="#000000" d="M2849.4375,-287.7623C2842.9275,-263.0928 2831.2548,-218.8598 2823.632,-189.9731"/>
+<polygon fill="#000000" stroke="#000000" points="2826.9596,-188.8656 2821.0238,-180.0896 2820.1913,-190.6517 2826.9596,-188.8656"/>
+</g>
+<!-- core.assembly -->
+<g id="node51" class="node">
+<title>core.assembly</title>
+<ellipse fill="none" stroke="#000000" cx="3049.2502" cy="-378" rx="66.0096" ry="18"/>
+<text text-anchor="middle" x="3049.2502" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.assembly</text>
+</g>
+<!-- core.assembly&#45;&gt;core.localClasspath -->
+<g id="edge76" class="edge">
+<title>core.assembly&#45;&gt;core.localClasspath</title>
+<path fill="none" stroke="#000000" d="M3001.8653,-365.4375C2992.7515,-363.3599 2983.2439,-361.4229 2974.2502,-360 2772.1375,-328.024 2718.7196,-345.7304 2515.2502,-324 2498.4001,-322.2004 2480.39,-319.9706 2463.2388,-317.7003"/>
+<polygon fill="#000000" stroke="#000000" points="2463.6313,-314.2217 2453.2549,-316.3618 2462.7011,-321.1596 2463.6313,-314.2217"/>
+</g>
+<!-- core.assembly&#45;&gt;core.prependShellScript -->
+<g id="edge77" class="edge">
+<title>core.assembly&#45;&gt;core.prependShellScript</title>
+<path fill="none" stroke="#000000" d="M3065.9532,-360.5708C3074.3874,-351.7698 3084.7759,-340.9297 3094.0655,-331.2362"/>
+<polygon fill="#000000" stroke="#000000" points="3096.8296,-333.4105 3101.2217,-323.7689 3091.7756,-328.5671 3096.8296,-333.4105"/>
+</g>
+<!-- core.assembly&#45;&gt;core.upstreamAssembly -->
+<g id="edge78" class="edge">
+<title>core.assembly&#45;&gt;core.upstreamAssembly</title>
+<path fill="none" stroke="#000000" d="M3009.789,-363.4297C2980.5411,-352.6305 2940.3376,-337.7861 2908.132,-325.8948"/>
+<polygon fill="#000000" stroke="#000000" points="2909.0082,-322.4874 2898.4149,-322.307 2906.5836,-329.0541 2909.0082,-322.4874"/>
+</g>
+<!-- core.launcher -->
+<g id="node52" class="node">
+<title>core.launcher</title>
+<ellipse fill="none" stroke="#000000" cx="2609.2502" cy="-450" rx="63.1235" ry="18"/>
+<text text-anchor="middle" x="2609.2502" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.launcher</text>
+</g>
+<!-- core.launcher&#45;&gt;core.forkArgs -->
+<g id="edge81" class="edge">
+<title>core.launcher&#45;&gt;core.forkArgs</title>
+<path fill="none" stroke="#000000" d="M2654.7211,-437.4362C2663.4721,-435.3587 2672.6048,-433.4221 2681.2502,-432 2876.1687,-399.9374 2937.8037,-461.2605 3124.2502,-396 3178.3513,-377.0634 3204.3122,-374.5952 3231.2502,-324 3238.7696,-309.877 3236.8581,-302.985 3231.2502,-288 3227.1812,-277.1273 3219.8245,-266.9998 3212.1209,-258.5213"/>
+<polygon fill="#000000" stroke="#000000" points="3214.5111,-255.9588 3205.033,-251.2243 3209.49,-260.8361 3214.5111,-255.9588"/>
+</g>
+<!-- core.launcher&#45;&gt;core.runClasspath -->
+<g id="edge80" class="edge">
+<title>core.launcher&#45;&gt;core.runClasspath</title>
+<path fill="none" stroke="#000000" d="M2559.1358,-438.829C2503.8285,-426.5004 2414.5404,-406.5972 2353.2561,-392.9363"/>
+<polygon fill="#000000" stroke="#000000" points="2353.814,-389.4748 2343.2921,-390.7152 2352.291,-396.3072 2353.814,-389.4748"/>
+</g>
+<!-- core.launcher&#45;&gt;core.finalMainClass -->
+<g id="edge79" class="edge">
+<title>core.launcher&#45;&gt;core.finalMainClass</title>
+<path fill="none" stroke="#000000" d="M2609.2502,-431.8314C2609.2502,-424.131 2609.2502,-414.9743 2609.2502,-406.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2612.7503,-406.4132 2609.2502,-396.4133 2605.7503,-406.4133 2612.7503,-406.4132"/>
+</g>
+</g>
+</svg>

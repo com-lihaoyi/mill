@@ -1,6 +1,5 @@
 import $file.shared
 import $file.upload
-import java.io.File
 import java.nio.file.attribute.PosixFilePermission
 
 import ammonite.ops._
@@ -9,7 +8,6 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
-
 import upickle.Js
 trait MillPublishModule extends PublishModule{
 
@@ -294,12 +292,18 @@ def launcherScript(shellJvmArgs: Seq[String],
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs =
-    (scalalib.testArgs() ++
-     scalajslib.testArgs() ++
-     scalalib.worker.testArgs() ++
-     // Workaround for Zinc/JNA bug
-     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-     Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)).distinct
+    (
+      scalalib.testArgs() ++
+      scalajslib.testArgs() ++
+      scalalib.worker.testArgs() ++
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      Seq(
+        "-Djna.nosys=true",
+        "-DMILL_VERSION=" + build.publishVersion()._2,
+        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
+      )
+    ).distinct
 
   // Pass dev.assembly VM options via file in Window due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
@@ -339,11 +343,11 @@ object dev extends MillModule{
 
   def prependShellScript = T{
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs().distinct
+    val args = forkArgs()
     val (shellArgs, cmdArgs) =
       if (!scala.util.Properties.isWin) (
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+        args,
+        args
       )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
