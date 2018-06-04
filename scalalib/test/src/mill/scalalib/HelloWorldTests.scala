@@ -134,7 +134,7 @@ object HelloWorldTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
       
-      def scalacOptions = super.scalacOptions() ++ Seq(
+      override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
       )
     }
