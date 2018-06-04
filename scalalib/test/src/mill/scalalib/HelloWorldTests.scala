@@ -18,7 +18,7 @@ import scala.collection.JavaConverters._
 
 object HelloWorldTests extends TestSuite {
   trait HelloBase extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
@@ -26,7 +26,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModuleWithMain extends HelloWorldModule {
-    def mainClass = Some("Main")
+    override def mainClass = Some("Main")
   }
 
   object HelloWorld extends HelloBase {
@@ -43,7 +43,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldWithoutMain extends HelloBase {
     object core extends HelloWorldModule{
-      def mainClass = None
+      override def mainClass = None
     }
   }
 
@@ -55,98 +55,98 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldAkkaHttpAppend extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
   }
 
   object HelloWorldAkkaHttpExclude extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
   }
 
   object HelloWorldAkkaHttpAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
   }
 
   object HelloWorldAkkaHttpExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
   }
 
   object HelloWorldAkkaHttpNoRules extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def ivyDeps = akkaHttpDeps
+      override def ivyDeps = akkaHttpDeps
 
-      def assemblyRules = Seq.empty
+      override def assemblyRules = Seq.empty
     }
   }
 
   object HelloWorldMultiAppend extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
 
-      def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.Append("reference.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiExclude extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
 
-      def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.Exclude("reference.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiAppendPattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
 
-      def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.AppendPattern(".*.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiExcludePattern extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
 
-      def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
+      override def assemblyRules = Seq(Assembly.Rule.ExcludePattern(".*.conf"))
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldMultiNoRules extends HelloBase {
     object core extends HelloWorldModuleWithMain {
-      def moduleDeps = Seq(model)
+      override def moduleDeps = Seq(model)
 
-      def assemblyRules = Seq.empty
+      override def assemblyRules = Seq.empty
     }
     object model extends HelloWorldModule
   }
 
   object HelloWorldWarnUnused extends HelloBase{
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused"))
+      override def scalacOptions = T(Seq("-Ywarn-unused"))
     }
   }
 
   object HelloWorldFatalWarnings extends HelloBase{
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      override def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
 
   }
@@ -154,7 +154,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldWithPublish extends HelloBase{
     object core extends HelloWorldModule with PublishModule{
 
-      def artifactName = "hello-world"
+      override def artifactName = "hello-world"
       def publishVersion = "0.0.1"
 
       def pomSettings = PomSettings(
@@ -196,10 +196,10 @@ object HelloWorldTests extends TestSuite {
         else d.copy(module = d.module.copy(organization = "org.typelevel"))
       }
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
@@ -209,10 +209,10 @@ object HelloWorldTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
 
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
       )
-      def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
       )
     }
@@ -222,7 +222,7 @@ object HelloWorldTests extends TestSuite {
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
       
-      def scalacOptions = super.scalacOptions() ++ Seq(
+      override def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
       )
     }
@@ -232,7 +232,7 @@ object HelloWorldTests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = "2.12.4"
       object test extends Tests {
-        def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
+        override def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
       }
     }

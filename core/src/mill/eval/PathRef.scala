@@ -2,7 +2,7 @@ package mill.eval
 
 import java.io.IOException
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileVisitResult, FileVisitor}
+import java.nio.file.{FileVisitOption, FileVisitResult, FileVisitor}
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 
@@ -25,6 +25,7 @@ object PathRef{
     val sig = {
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
+      // Handle symbolic links.
       jnio.Files.walkFileTree(
         path.toNIO,
         java.util.EnumSet.of(jnio.FileVisitOption.FOLLOW_LINKS),
