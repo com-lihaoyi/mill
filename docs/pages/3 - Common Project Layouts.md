@@ -7,15 +7,15 @@ Scala build:
 ### Java Project with Test Suite
 
 ```scala
-trait JUnitTests extends TestModule{
+trait JUnitTests extends TestModule {
   def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
   def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
 }
 
-object core extends JavaModule{
+object core extends JavaModule {
   object test extends Tests with JUnitTests
 }
-object app extends JavaModule{
+object app extends JavaModule {
   def moduleDeps = Seq(core)
   object test extends Tests with JUnitTests
 }
@@ -54,9 +54,9 @@ project:
 import mill._
 import mill.scalalib._
 object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
-class FooModule(val crossScalaVersion: String) extends CrossScalaModule{
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule {
    ...
-   object test extends Tests{
+   object test extends Tests {
      ...
    }
 }
@@ -135,9 +135,9 @@ to re-organize all your files
 import mill._
 import mill.scalalib._
 object foo extends Cross[FooModule]("2.10.6", "2.11.11", "2.12.4")
-class FooModule(val crossScalaVersion: String) extends CrossSbtModule{
+class FooModule(val crossScalaVersion: String) extends CrossSbtModule {
    ...
-   object test extends Tests{
+   object test extends Tests {
      ...
    }
 }
@@ -166,9 +166,9 @@ foo/
 ```scala
 import mill._
 import mill.scalalib._
-object foo extends ScalaModule with PublishModule{
+object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
-  def publishVersion = "0.0.1
+  def publishVersion = "0.0.1"
   def pomSettings = PomSettings(
     description = "My first library",
     organization = "com.lihaoyi",
@@ -232,8 +232,8 @@ integration tests and examples:
 
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1)
 
-A small single-module cross-build, with few sources minimal dependencies, and
-wired up for publishing to Maven Central
+A small single-module cross-build, with few sources, minimal dependencies, and
+wired up for publishing to Maven Central.
 
 
 ### Better-Files
@@ -257,7 +257,7 @@ versions of Scala.
 - [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
-versions of Scala, including the setup necessary for publishing to Maven Central
+versions of Scala, including the setup necessary for publishing to Maven Central.
 
 ### Ammonite
 

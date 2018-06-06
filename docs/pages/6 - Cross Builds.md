@@ -7,9 +7,9 @@ You can use this as follows:
 
 ```scala
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module{
-  def suffix = T{ crossVersion }
-  def bigSuffix = T{ suffix().toUpperCase() }
+class FooModule(crossVersion: String) extends Module {
+  def suffix = T { crossVersion }
+  def bigSuffix = T { suffix().toUpperCase() }
 }
 ```
 
@@ -48,15 +48,15 @@ foo/2.12/bigSuffix
 You can also have a cross-build with multiple inputs:
 
 ```scala
-val crossMatrix = for{
+val crossMatrix = for {
   crossVersion <- Seq("210", "211", "212")
   platform <- Seq("jvm", "js", "native")
   if !(platform == "native" && crossVersion != "212")
 } yield (crossVersion, platform)
 
 object foo extends mill.Cross[FooModule](crossMatrix:_*)
-class FooModule(crossVersion: String, platform: String) extends Module{
-  def suffix = T{ crossVersion + "_" + platform }
+class FooModule(crossVersion: String, platform: String) extends Module {
+  def suffix = T { crossVersion + "_" + platform }
 }
 ```
 
@@ -81,11 +81,11 @@ You can refer to targets defined in cross-modules as follows:
 
 ```scala
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module{
-  def suffix = T{ crossVersion }
+class FooModule(crossVersion: String) extends Module {
+  def suffix = T { crossVersion }
 }
 
-def bar = T{ "hello " + foo("2.10").suffix } 
+def bar = T { "hello " + foo("2.10").suffix } 
 ```
 
 Here, `foo("2.10")` references the `"2.10"` instance of `FooModule`. You can
@@ -94,11 +94,11 @@ versions of the cross-module in the same target:
 
 ```scala
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module{
-  def suffix = T{ crossVersion }
+class FooModule(crossVersion: String) extends Module {
+  def suffix = T { crossVersion }
 }
 
-def bar = T{ "hello " + foo("2.10").suffix + " world " + foo("2.12").suffix }
+def bar = T { "hello " + foo("2.10").suffix + " world " + foo("2.12").suffix }
 ```
 
 ## Using Cross Modules from other Cross Modules
@@ -108,13 +108,13 @@ targets:
 
 ```scala
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(crossVersion: String) extends Module{
-  def suffix = T{ crossVersion }
+class FooModule(crossVersion: String) extends Module {
+  def suffix = T { crossVersion }
 }
 
 object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-class BarModule(crossVersion: String) extends Module{
-  def bigSuffix = T{ foo(crossVersion).suffix().toUpperCase() }
+class BarModule(crossVersion: String) extends Module {
+  def bigSuffix = T { foo(crossVersion).suffix().toUpperCase() }
 }
 ```
 
@@ -132,31 +132,31 @@ mill show bar[2.12].bigSuffix
 
 ## Cross Resolvers
 
-You can define an implicit `mill.define.Cross.Resolve` within your
+You can define an implicit `mill.define.Cross.Resolver` within your
 cross-modules, which would let you use a shorthand `foo()` syntax when referring
 to other cross-modules with an identical set of cross values:
 
 ```scala
-trait MyModule extends Module{
+trait MyModule extends Module {
   def crossVersion: String
-  implicit object resolver extends mill.define.Cross.Resolver[MyModule]{
+  implicit object resolver extends mill.define.Cross.Resolver[MyModule] {
     def resolve[V <: MyModule](c: Cross[V]): V = c.itemMap(List(crossVersion))
   }
 }
 
 object foo extends mill.Cross[FooModule]("2.10", "2.11", "2.12")
-class FooModule(val crossVersion: String) extends MyModule{
-  def suffix = T{ crossVersion }
+class FooModule(val crossVersion: String) extends MyModule {
+  def suffix = T { crossVersion }
 }
 
 object bar extends mill.Cross[BarModule]("2.10", "2.11", "2.12")
-class BarModule(val crossVersion: String) extends MyModule{
-  def longSuffix = T{ "_" + foo().suffix() }
+class BarModule(val crossVersion: String) extends MyModule {
+  def longSuffix = T { "_" + foo().suffix() }
 }
 ```
 
 While the example `resolver` simply looks up the target `Cross` value for the
 cross-module instance with the same `crossVersion`, you can make the resolver
-arbitrarily complex. e.g. the `resolver` for `mill.scalalib.CrossSbtModule`
+arbitrarily complex. E.g. the `resolver` for `mill.scalalib.CrossSbtModule`
 looks for a cross-module instance whose `scalaVersion` is binary compatible
 (e.g. 2.10.5 is compatible with 2.10.3) with the current cross-module.
