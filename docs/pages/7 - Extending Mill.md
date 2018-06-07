@@ -8,8 +8,8 @@ The simplest way of adding custom functionality to Mill is to define a custom
 Target or Command:
 
 ```scala
-def foo = T{ ... }
-def bar(x: Int, s: String) = T.command{ ... }
+def foo = T { ... }
+def bar(x: Int, s: String) = T.command { ... }
 ```
 
 These can depend on other Targets, contain arbitrary code, and be placed
@@ -20,7 +20,7 @@ you're done.
 
 For subprocess/filesystem operations, you can use the
 [Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library that comes bundled with
-Mill, or even plain `java.nio`/`java.lang.Process`. Each target gets it's own
+Mill, or even plain `java.nio`/`java.lang.Process`. Each target gets its own
 [T.ctx().dest](http://www.lihaoyi.com/mill/page/tasks#millutilctxdestctx) folder
 that you can use to place files without worrying about colliding with other
 targets.
@@ -32,23 +32,23 @@ This covers use cases like:
 ```scala
 def doWebpackStuff(sources: Seq[PathRef]): PathRef = ???
 
-def javascriptSources = T.sources{ millSourcePath / "js" }
-def compiledJavascript = T{ doWebpackStuff(javascriptSources()) }  
-object foo extends ScalaModule{
-  def runClasspath = T{ super.runClasspath() ++ compiledJavascript() }
+def javascriptSources = T.sources { millSourcePath / "js" }
+def compiledJavascript = T { doWebpackStuff(javascriptSources()) }  
+object foo extends ScalaModule {
+  def runClasspath = T { super.runClasspath() ++ compiledJavascript() }
 }
 ```
 
 ### Deploy your compiled assembly to AWS
 
 ```scala
-object foo extends ScalaModule{
+object foo extends ScalaModule {
 
 }
 
 def deploy(assembly: PathRef, credentials: String) = ???
 
-def deployFoo(credentials: String) = T.command{ deployFoo(foo.assembly()) }
+def deployFoo(credentials: String) = T.command { deployFoo(foo.assembly()) }
 ```
 
 
@@ -56,31 +56,31 @@ def deployFoo(credentials: String) = T.command{ deployFoo(foo.assembly()) }
 
 [Custom Targets & Commands](#custom-targets--commands) are re-computed from
 scratch each time; sometimes you want to keep values around in-memory when using
-`--watch` or the Build REPL. e.g. you may want to keep a webpack process running
+`--watch` or the Build REPL. E.g. you may want to keep a webpack process running
 so webpack's own internal caches are hot and compilation is fast:
 
 ```scala
-def webpackWorker = T.worker{
+def webpackWorker = T.worker {
   // Spawn a process using java.lang.Process and return it
 }
 
-def javascriptSources = T.sources{ millSourcePath / "js" }
+def javascriptSources = T.sources { millSourcePath / "js" }
 
 def doWebpackStuff(webpackProcess: Process, sources: Seq[PathRef]): PathRef = ???
 
-def compiledJavascript = T{ doWebpackStuff(webpackWorker(), javascriptSources()) }
+def compiledJavascript = T { doWebpackStuff(webpackWorker(), javascriptSources()) }
 ```
 
-Mill itself uses `T.worker`s for it's built-in Scala support: we keep the Scala
+Mill itself uses `T.worker`s for its built-in Scala support: we keep the Scala
 compiler in memory between compilations, rather than discarding it each time, in
 order to improve performance.
 
 ## Custom Modules
 
 ```scala
-trait FooModule extends mill.Module{
-  def bar = T{ "hello" }
-  def baz = T{ "world" }
+trait FooModule extends mill.Module {
+  def bar = T { "hello" }
+  def baz = T { "world" }
 }
 ```
 
@@ -91,8 +91,8 @@ want in various `object`s:
 
 ```scala
 object foo1 extends FooModule
-object foo2 extends FooModule{
-  def qux = T{ "I am Cow" }
+object foo2 extends FooModule {
+  def qux = T { "I am Cow" }
 }  
 ```
 
@@ -100,9 +100,9 @@ You can also define a `trait` extending the built-in `ScalaModule` if you have
 common configuration you want to apply to all your `ScalaModule`s:
 
 ```scala
-trait FooModule extends ScalaModule{
+trait FooModule extends ScalaModule {
   def scalaVersion = "2.11.11"
-  object test extends Tests{
+  object test extends Tests {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
     def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
@@ -122,7 +122,7 @@ def fooValue() = 31337
 ```scala
 // build.sc
 import $file.foo
-def printFoo() = T.command{ println(foo.fooValue()) }
+def printFoo() = T.command { println(foo.fooValue()) }
 ```
 
 Mill's `import $file` syntax supports the full functionality of
@@ -131,14 +131,13 @@ Mill's `import $file` syntax supports the full functionality of
 ## import $ivy
 
 If you want to pull in artifacts from the public repositories (e.g. Maven
-Central) for use in your build, you can simple use `import $ivy`:
+Central) for use in your build, you can simply use `import $ivy`:
 
 ```scala
 // build.sc
 import $ivy.`com.lihaoyi::scalatags:0.6.2`
 
-
-def generatedHtml = T{
+def generatedHtml = T {
   import scalatags.Text.all._
   html(
     head(),
@@ -157,7 +156,7 @@ If you want to publish re-usable libraries that *other* people can use in their
 builds, simply publish your code as a library to maven central.
 
 For more information, see Ammonite's
-[Ivy Dependencies documentation](http://ammonite.io/#import$ivy)
+[Ivy Dependencies documentation](http://ammonite.io/#import$ivy).
 
 ## Evaluator Commands
 
@@ -167,7 +166,7 @@ example, here is the `mill.scalalib.GenIdea/idea` command which uses this to
 traverse the module-tree and generate an Intellij project config for your build.
 
 ```scala
-def idea(ev: Evaluator[Any]) = T.command{
+def idea(ev: Evaluator[Any]) = T.command {
   mill.scalalib.GenIdea(
     implicitly,
     ev.rootModule,

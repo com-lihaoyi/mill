@@ -10,10 +10,10 @@ path you would use to run tasks within that module from the command line. e.g.
 for the following build:
 
 ```scala
-object foo extends mill.Module{
-  def bar = T{ "hello" }
-  object baz extends mill.Module{
-    def qux = T{ "world" } 
+object foo extends mill.Module {
+  def bar = T { "hello" }
+  object baz extends mill.Module {
+    def qux = T { "world" } 
   } 
 }
 ```
@@ -28,9 +28,9 @@ Modules also provide a way to define and re-use common collections of tasks, via
 Scala `trait`s. For example, you can define your own `FooModule` trait:
 
 ```scala
-trait FooModule extends mill.Module{
-  def bar = T{ "hello" }
-  def baz = T{ "world" }
+trait FooModule extends mill.Module {
+  def bar = T { "hello" }
+  def baz = T { "world" }
 }
 ```
 
@@ -39,8 +39,8 @@ along with any other customizations such as `qux`:
 
 ```scala
 object foo1 extends FooModule
-object foo2 extends FooModule{
-  def qux = T{ "I am Cow" }
+object foo2 extends FooModule {
+  def qux = T { "I am Cow" }
 }  
 ```
 
@@ -62,13 +62,13 @@ typical Scala module.
 
 ```scala
 trait BaseModule extends Module {
-  def foo = T{ Seq("base") }
-  def cmd(i: Int) = T.command{ Seq("base" + i) }
+  def foo = T { Seq("base") }
+  def cmd(i: Int) = T.command { Seq("base" + i) }
 }
 
 object canOverrideSuper with BaseModule {
-  def foo = T{ super.foo() ++ Seq("object") }
-  def cmd(i: Int) = T.command{ super.cmd(i)() ++ Seq("object" + i) }
+  def foo = T { super.foo() ++ Seq("object") }
+  def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq("object" + i) }
 }
 ```
 
@@ -79,13 +79,13 @@ keyword in Mill builds.
 ## millSourcePath
 
 Each Module has a `millSourcePath` field that corresponds to the path that module
-expects it's input files to be on disk. Re-visiting our examples above:
+expects its input files to be on disk. Re-visiting our examples above:
 
 ```scala
-object foo extends mill.Module{
-  def bar = T{ "hello" }
-  object baz extends mill.Module{
-    def qux = T{ "world" } 
+object foo extends mill.Module {
+  def bar = T { "hello" }
+  object baz extends mill.Module {
+    def qux = T { "world" } 
   } 
 }
 ```
@@ -93,31 +93,31 @@ object foo extends mill.Module{
 The `foo` module has a `millSourcePath` of `./foo`, while the `foo.baz` module has a
 `millSourcePath` of `./foo/baz`.
 
-You can use `millSourcePath` to automatically set the source directories of your
+You can use `millSourcePath` to automatically set the source folders of your
 modules to match the build structure. You are not forced to rigidly use
 `millSourcePath` to define the source folders of all your code, but it can simplify
-the common case where you probably want your build-layout on on-disk-layout to
+the common case where you probably want your build-layout and on-disk-layout to
 be the same.
 
-e.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
+E.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
 default to be in `millSourcePath/"src"` while resources are automatically assumed to
 be in `millSourcePath/"resources"`.
 
 You can override `millSourcePath`:
 
 ```scala
-object foo extends mill.Module{
+object foo extends mill.Module {
   def millSourcePath = super.millSourcePath / "lols"
-  def bar = T{ "hello" }
-  object baz extends mill.Module{
-    def qux = T{ "world" } 
+  def bar = T { "hello" }
+  object baz extends mill.Module {
+    def qux = T { "world" } 
   } 
 }
 ```
 
 And any overrides propagate down to the module's children: in the above example,
-module `foo` would have it's `millSourcePath` be `./foo/lols` while module` foo.baz`
-would have it's `millSourcePath` be `./foo/lols/baz`.
+module `foo` would have its `millSourcePath` be `./foo/lols` while module` foo.baz`
+would have its `millSourcePath` be `./foo/lols/baz`.
 
 Note that `millSourcePath` is generally only used for a module's input source files.
 Output is always in the `out/` folder and cannot be changed, e.g. even with the
@@ -134,8 +134,8 @@ package foo
 import mill._
 
 object Bar extends mill.define.ExternalModule {
-  def baz = T{ 1 }
-  def qux() = T.command{ println(baz() + 1) }
+  def baz = T { 1 }
+  def qux() = T.command { println(baz() + 1) }
 
   lazy val millDiscover = mill.define.Discover[this.type]
 }
@@ -159,7 +159,7 @@ needing to define your own `T.command` in your `build.sc` file
 
 ## Foreign Modules 
 
-Mill can load other mill projects from external (or sub) directories, 
+Mill can load other mill projects from external (or sub) folders, 
 using Ammonite's `$file` magic import, allowing to depend on foreign modules. 
 This allows, for instance, to depend on other projects' sources, or split 
 your build logic into smaller files.

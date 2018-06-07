@@ -1,7 +1,7 @@
 
 ## Mill Design Principles
 
-A lot of mills design principles are intended to fix SBT's flaws, as described
+A lot of Mill's design principles are intended to fix SBT's flaws, as described
 in the blog post
 [What's wrong with SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html),
 building on the best ideas from tools like [CBT](https://github.com/cvogt/cbt)
@@ -14,7 +14,7 @@ from!
 ### Dependency graph first
 
 Mill's most important abstraction is the dependency graph of `Task`s.
-Constructed using the `T{...}` `T.task{...}` `T.command{...}` syntax, these
+Constructed using the `T {...}` `T.task {...}` `T.command {...}` syntax, these
 track the dependencies between steps of a build, so those steps can be executed
 in the correct order, queried, or parallelized.
 
@@ -22,7 +22,7 @@ While Mill provides helpers like `ScalaModule` and other things you can use to
 quickly instantiate a bunch of related tasks (resolve dependencies, find
 sources, compile, package into jar, ...) these are secondary. When Mill
 executes, the dependency graph is what matters: any other mode of organization
-(hierarchies, modules, inheritence, etc.) is only important to create this
+(hierarchies, modules, inheritance, etc.) is only important to create this
 dependency graph of `Task`s.
 
 ### Builds are hierarchical
@@ -32,7 +32,7 @@ the same as referencing a target in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
 in your `build.sc` file. Different parts of the hierarchy can have different
-`Target`s available: just add a new `def foo = T{...}` somewhere and you'll be
+`Target`s available: just add a new `def foo = T {...}` somewhere and you'll be
 able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
@@ -42,7 +42,7 @@ run something via `mill core.cross[a].printIt` while from code you use
 
 ### Caching by default
 
-Every `Target` in a build, defined by `def foo = T{...}`, is cached by default.
+Every `Target` in a build, defined by `def foo = T {...}`, is cached by default.
 Currently this is done using a `foo/meta.json` file in the `out/` folder. The
 `Target` is also provided a `foo/` path on the filesystem dedicated to it, for
 it to store output files etc.
@@ -99,12 +99,12 @@ sorts of useful operations on the graph before running it:
   with an exception
 
 In order to avoid making people using `.map` and `.zip` all over the place when
-defining their `Task`s, we use the `T{...}`/`T.task{...}`/`T.command{...}`
+defining their `Task`s, we use the `T {...}`/`T.task {...}`/`T.command {...}`
 macros which allow you to use `Task#apply()` within the block to "extract" a
 value.
 
 ```scala
-def test() = T.command{
+def test() = T.command {
   TestRunner.apply(
    "mill.UTestFramework",
    runDepClasspath().map(_.path) :+ compile().path,
@@ -113,10 +113,10 @@ def test() = T.command{
 }
 ```
 
-This is roughly to the following:
+This is roughly equivalent to the following:
 
 ```scala
-def test() = T.command{ T.zipMap(runDepClasspath, compile, compile){ 
+def test() = T.command { T.zipMap(runDepClasspath, compile, compile) { 
   (runDepClasspath1, compile2, compile3) =>
   TestRunner.apply(
     "mill.UTestFramework",
@@ -127,7 +127,7 @@ def test() = T.command{ T.zipMap(runDepClasspath, compile, compile){
 ```
 
 This is similar to SBT's `:=`/`.value` macros, or `scala-async`'s
-`async`/`await`. Like those, the `T{...}` macro should let users program most of
+`async`/`await`. Like those, the `T {...}` macro should let users program most of
 their code in a "direct" style and have it "automatically" lifted into a graph
 of `Task`s.
 
@@ -146,7 +146,7 @@ Build tools inherently encompass a huge number of different concepts:
 - How do tasks pass data to each other? What data do they pass?
 - What tasks are cached? Where?
 - How are tasks run from the command line?
-- How do you deal with the repetition inherent a build? (e.g. compile, run &
+- How do you deal with the repetition inherent in a build? (e.g. compile, run &
   test tasks for every "module")
 - What is a "Module"? How do they relate to "Tasks"?
 - How do you configure a Module to do something different?
@@ -202,7 +202,7 @@ are sure that it will never clash with any other `Target`'s data.
 ## The Call Graph
 
 The Scala call graph of "which target references which other target" is core to
-how Mill operates. This graph is reified via the `T{...}` macro to make it
+how Mill operates. This graph is reified via the `T {...}` macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:
 
 - Which `Target`s depend on which other `Target`s
@@ -219,7 +219,7 @@ available to the Mill execution engine at runtime. The call graph tells you:
   its return value)
 
 - Defining your own task that depends on others is as simple as `def foo =
-  T{...}`
+  T {...}`
 
 The call graph within your Scala code is essentially a data-flow graph: by
 defining a snippet of code:
@@ -236,15 +236,15 @@ you are telling everyone that the value `a` depends on the values of `b` `c` and
 knowing what `Target` depends on what other `Target`s, and what processing it
 does on its inputs!
 
-With Mill, you can take the Scala call graph, wrap everything in the `T{...}`
+With Mill, you can take the Scala call graph, wrap everything in the `T {...}`
 macro, and get a `Target`-dependency graph that matches exactly the call-graph
 you already had:
 
 ```scala
-val b = T{ ... }
-val c = T{ ... }
-val d = T{ ... }
-val a = T{ f(b(), c(), d()) }
+val b = T { ... }
+val c = T { ... }
+val d = T { ... }
+val a = T { f(b(), c(), d()) }
 ```
 
 Thus, if you are familiar with how data flows through a normal Scala program,
@@ -268,12 +268,12 @@ a build:
 
 - Replacing the default `Target`s within a project, making them do new
   things or depend on new `Target`s, is simply `override`-ing them during
-  inheritence.
+  inheritance
 
 - Modifying the default `Target`s within a project, making use of the old value
   to compute the new value, is simply `override`ing them and using `super.foo()`
 
-- Required configuration parameters within a `project` are `abstract` members.
+- Required configuration parameters within a `project` are `abstract` members
 
 - Cross-builds are modelled as instantiating a (possibly anonymous) class
   multiple times, each instance with its own distinct set of `Target`s
@@ -297,10 +297,10 @@ graph with an Applicative "idiom bracket" macro) where it makes sense.
 ### Bazel
 
 Mill is largely inspired by [Bazel](https://bazel.build/). In particular, the
-single-build-hierarchy, where every Target has an on-disk-cache/output-directory
+single-build-hierarchy, where every Target has an on-disk-cache/output-folder
 according to their position in the hierarchy, comes from Bazel.
 
-Bazel is a bit odd in it’s own right. The underlying data model is good
+Bazel is a bit odd in its own right. The underlying data model is good
 (hierarchy + cached dependency graph) but getting there is hell. It (like SBT) is
 also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
 same: mutable python which performs global side effects (layer 3 is the same
@@ -339,7 +339,7 @@ something that's easier to use.
 Mill's "direct-style" applicative syntax is inspired by my old
 [Scala.Rx](https://github.com/lihaoyi/scala.rx) project. While there are
 differences (Mill captures the dependency graph lexically using Macros, Scala.Rx
-captures it at runtime, they are pretty similar.
+captures it at runtime), they are pretty similar.
 
 The end-goal is the same: to write code in a "direct style" and have it
 automatically "lifted" into a dependency graph, which you can introspect and use
