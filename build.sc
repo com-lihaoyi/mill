@@ -142,8 +142,7 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(main)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0",
-    ivy"org.scala-lang.modules::scala-parser-combinators:1.1.0"
+    ivy"org.scala-sbt:test-interface:1.0"
   )
 
   def genTask(m: ScalaModule) = T.task{

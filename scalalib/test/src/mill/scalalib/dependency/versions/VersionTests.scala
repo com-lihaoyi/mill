@@ -29,6 +29,7 @@
 package mill.scalalib.dependency.versions
 
 import utest._
+import fastparse.core.Parsed
 
 object VersionTests extends TestSuite {
 
@@ -95,26 +96,42 @@ object VersionTests extends TestSuite {
     }
 
     'parser - {
+
+      Symbol("parse 1.0.5") - {
+        assertMatch(VersionParser.parse("1.0.5")) {
+          case Parsed.Success((Seq(1, 0, 5), Seq(), Seq()), _) =>
+        }
+      }
+
       Symbol("parse 1.0.M3") - {
         assertMatch(VersionParser.parse("1.0.M3")) {
-          case VersionParser.Success((List(1, 0), List("M3"), List()), _) =>
+          case Parsed.Success((Seq(1, 0), Seq("M3"), Seq()), _) =>
         }
       }
       Symbol("parse 1.0.3m") - {
         assertMatch(VersionParser.parse("1.0.3m")) {
-          case VersionParser.Success((List(1, 0), List("3m"), List()), _) =>
+          case Parsed.Success((Seq(1, 0), Seq("3m"), Seq()), _) =>
         }
       }
       Symbol("parse 1.0.3m.4") - {
         assertMatch(VersionParser.parse("1.0.3m.4")) {
-          case VersionParser.Success((List(1, 0), List("3m", "4"), List()),
-                                     _) =>
+          case Parsed.Success((Seq(1, 0), Seq("3m", "4"), Seq()), _) =>
         }
       }
       Symbol("parse  9.1-901-1.jdbc4") - {
         assertMatch(VersionParser.parse("9.1-901-1.jdbc4")) {
-          case VersionParser
-                .Success((List(9, 1), List("901", "1", "jdbc4"), List()), _) =>
+          case Parsed
+                .Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq()), _) =>
+        }
+      }
+      Symbol("parse 1.33.7+build/11.e0f985a") - {
+        assertMatch(VersionParser.parse("1.33.7+build/11.e0f985a")) {
+          case Parsed.Success((Seq(1, 33, 7), Seq(), Seq("build/11", "e0f985a")), _) =>
+        }
+      }
+      Symbol("parse 9.1-901-1.jdbc4+build/11.e0f985a") - {
+        assertMatch(VersionParser.parse("9.1-901-1.jdbc4+build/11.e0f985a")) {
+          case Parsed.Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq("build/11", "e0f985a")), _) =>
         }
       }
     }

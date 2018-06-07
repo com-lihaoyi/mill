@@ -30,7 +30,6 @@ package mill.scalalib.dependency.versions
 
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Groups
-import scala.util.parsing.combinator.RegexParsers
 
 private[dependency] sealed trait Version {
   def major: Long
@@ -63,7 +62,7 @@ private[dependency] case class InvalidVersion(text: String) extends Version {
 }
 
 private[dependency] object ReleaseVersion {
-  val releaseKeyword: Regex = "(?i)final|release".r
+  private val releaseKeyword: Regex = "(?i)final|release".r
 
   def unapply(v: Version): Option[List[Long]] = v match {
     case ValidVersion(_, releasePart, Nil, Nil) => Some(releasePart)
@@ -114,37 +113,16 @@ private[dependency] object Version {
   def apply(text: String): Version = synchronized {
     VersionParser
       .parse(text)
-      .map { case (a, b, c) => ValidVersion(text, a, b, c) }
-      .getOrElse(InvalidVersion(text))
+      .fold(
+        (_, _, _) => InvalidVersion(text),
+        { case ((a, b, c), _) => ValidVersion(text, a.toList, b.toList, c.toList)}
+      )
   }
 
-  implicit def versionOrdering: Ordering[Version] = new VersionOrdering
+  implicit def versionOrdering: Ordering[Version] = VersionOrdering
 }
 
-private[dependency] object VersionParser extends RegexParsers {
-
-  private val token = """[^-+.]+""".r
-  private val number = """\d{1,18}(?=[-+.]|$)""".r ^^ (_.toLong)
-
-  private val numericPart: Parser[List[Long]] = number ~ ("." ~> number).* ^^ {
-    case h ~ t => h :: t
-  }
-  private val part: Parser[List[String]] = token ~ (("." | "-") ~> token).* ^^ {
-    case h ~ t => h :: t
-  }
-
-  private val version: Parser[(List[Long], List[String], List[String])] =
-    numericPart ~ (("." | "-") ~> part).? ~ ("+" ~> part).? ^^ {
-      case a ~ b ~ c => (a, b.getOrElse(Nil), c.getOrElse(Nil))
-    }
-
-  def parse(text: String)
-    : VersionParser.ParseResult[(List[Long], List[String], List[String])] =
-    parseAll(version, text)
-
-}
-
-private[dependency] class VersionOrdering extends Ordering[Version] {
+private[dependency] object VersionOrdering extends Ordering[Version] {
 
   private val subParts = "(\\d+)?(\\D+)?".r
 
