@@ -80,6 +80,39 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Skipped)
       )
     }
+    'evaluateBacktickIdentifiers - {
+      val check = new TestEvaluator(bactickIdentifiers)
+      import bactickIdentifiers._
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      `up-target`.failure = Some("lols")
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Skipped)
+      )
+
+      `up-target`.failure = None
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      `up-target`.exception = Some(new IndexOutOfBoundsException())
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Skipped)
+      )
+    }
     'multipleUsesOfDest - {
       object build extends TestUtil.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok

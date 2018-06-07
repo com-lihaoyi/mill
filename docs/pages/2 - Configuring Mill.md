@@ -372,6 +372,44 @@ object foo extends MySpecialModule
 object bar extends MySpecialModule
 ```
 
+## Module/Task Names
+
+```scala
+// build.sc
+import mill._
+import mill.scalalib._
+
+object `hyphenated-module` extends Module {
+  def `hyphenated-target` = T{
+    println("This is a hyphenated target in a hyphenated module.")
+  }
+}
+
+object unhyphenatedModule extends Module {
+  def unhyphenated_target = T{
+    println("This is an unhyphenated target in an unhyphenated module.")
+  }
+  def unhyphenated_target2 = T{
+    println("This is the second unhyphenated target in an unhyphenated module.")
+  }
+}
+```
+
+Mill modules and tasks may be composed of any of the following characters types:
+ - Alphanumeric (A-Z, a-z, and 0-9)
+ - Underscore (_)
+ - Hyphen (-)
+
+Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).
+
+Using hyphenated names at the command line is unaffected by these restrictions.
+
+```bash
+mill hyphenated-module.hyphenated-target
+mill unhyphenatedModule.unhyphenated_target
+mill unhyphenatedModule.unhyphenated_target2
+```
+
 ## Overriding Tasks
 
 ```scala
