@@ -1,6 +1,5 @@
 import $file.shared
 import $file.upload
-import java.io.File
 import java.nio.file.attribute.PosixFilePermission
 
 import ammonite.ops._
@@ -80,7 +79,7 @@ object core extends MillModule {
   )
 
   def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.2",
+    ivy"com.lihaoyi:::ammonite:1.1.2-6-27842d9",
     // Necessary so we can share the JNA classes throughout the build process
     ivy"net.java.dev.jna:jna:4.5.0",
     ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -124,6 +123,18 @@ object main extends MillModule {
       def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
+
+  object graphviz extends MillModule{
+    def moduleDeps = Seq(main, scalalib)
+
+    def ivyDeps = Agg(
+      ivy"guru.nidi:graphviz-java:0.2.3",
+      ivy"org.jgrapht:jgrapht-core:1.2.0"
+    )
+    def testArgs = Seq(
+      "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
+    )
+  }
 }
 
 
@@ -149,7 +160,12 @@ object scalalib extends MillModule {
       genTask(scalajslib)()
 
     worker.testArgs() ++
-    Seq("-Djna.nosys=true") ++ Seq("-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","))
+    main.graphviz.testArgs() ++
+    Seq(
+      "-Djna.nosys=true",
+      "-DMILL_BUILD_LIBRARIES=" + genIdeaArgs.map(_.path).mkString(","),
+      "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
+    )
   }
 
   object worker extends MillModule{
@@ -230,6 +246,7 @@ object integration extends MillModule{
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
@@ -276,12 +293,18 @@ def launcherScript(shellJvmArgs: Seq[String],
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib)
   def forkArgs =
-    (scalalib.testArgs() ++
-     scalajslib.testArgs() ++
-     scalalib.worker.testArgs() ++
-     // Workaround for Zinc/JNA bug
-     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
-     Seq("-Djna.nosys=true", "-DMILL_VERSION=" + build.publishVersion()._2)).distinct
+    (
+      scalalib.testArgs() ++
+      scalajslib.testArgs() ++
+      scalalib.worker.testArgs() ++
+      // Workaround for Zinc/JNA bug
+      // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      Seq(
+        "-Djna.nosys=true",
+        "-DMILL_VERSION=" + build.publishVersion()._2,
+        "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
+      )
+    ).distinct
 
   // Pass dev.assembly VM options via file in Window due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
@@ -321,11 +344,11 @@ object dev extends MillModule{
 
   def prependShellScript = T{
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs().distinct
+    val args = forkArgs()
     val (shellArgs, cmdArgs) =
       if (!scala.util.Properties.isWin) (
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(":")) ++ args,
-        Seq("-DMILL_CLASSPATH=" + classpath.mkString(";")) ++ args
+        args,
+        args
       )
       else (
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),

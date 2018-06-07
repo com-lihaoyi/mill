@@ -1,21 +1,23 @@
 package mill.modules
 
-import java.io.{ByteArrayInputStream, File, FileOutputStream}
+import java.io._
 import java.lang.reflect.Modifier
-import java.net.{URI, URLClassLoader}
-import java.nio.file.{FileSystems, Files, OpenOption, StandardOpenOption}
+import java.net.URI
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
+import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
+import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import geny.Generator
 import mill.main.client.InputPumper
-import mill.eval.PathRef
+import mill.eval.{PathRef, Result}
 import mill.util.{Ctx, IO}
 import mill.util.Loose.Agg
 
 import scala.collection.mutable
-
+import scala.collection.JavaConverters._
 
 object Jvm {
 
@@ -78,7 +80,7 @@ object Jvm {
                classPath: Agg[Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, cl => {
+    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, cl => {
       getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
@@ -101,6 +103,7 @@ object Jvm {
 
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
+                   isolated: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
@@ -111,8 +114,11 @@ object Jvm {
           Some(outerClassLoader.loadClass(name))
         else None
       })
-    } else {
+    } else if (isolated){
+
       mill.util.ClassLoader.create(urls.toVector, null)
+    }else{
+      mill.util.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -226,18 +232,20 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def newOutputStream(p: java.nio.file.Path) = Files.newOutputStream(
-    p,
-    StandardOpenOption.TRUNCATE_EXISTING,
-    StandardOpenOption.CREATE
-  )
+  def newOutputStream(p: java.nio.file.Path, append: Boolean = false) = {
+    val options =
+      if(append) Seq(StandardOpenOption.APPEND)
+      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
+    Files.newOutputStream(p, options:_*)
+  }
 
   def createAssembly(inputPaths: Agg[Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[Path] = None,
-                     isWin: Boolean = scala.util.Properties.isWin)
-                    (implicit ctx: Ctx.Dest) = {
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                    (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
@@ -257,20 +265,22 @@ object Jvm {
     manifest.write(manifestOut)
     manifestOut.close()
 
-    def isSignatureFile(mapping: String): Boolean =
-      Set("sf", "rsa", "dsa").exists(ext => mapping.toLowerCase.endsWith(s".$ext"))
-
-    for(v <- classpathIterator(inputPaths)){
-      val (file, mapping) = v
-      val p = zipFs.getPath(mapping)
-      if (p.getParent != null) Files.createDirectories(p.getParent)
-      if (!isSignatureFile(mapping)) {
-        val outputStream = newOutputStream(p)
-        IO.stream(file, outputStream)
-        outputStream.close()
+    Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
+      .map {
+        case (mapping, aggregate) =>
+          zipFs.getPath(mapping) -> aggregate
       }
-      file.close()
-    }
+      .foreach {
+        case (path, AppendEntry(entries)) =>
+          val concatenated = new SequenceInputStream(
+            Collections.enumeration(entries.map(_.inputStream).asJava))
+          writeEntry(path, concatenated, append = Files.exists(path))
+        case (path, WriteOnceEntry(entry)) =>
+          if (Files.notExists(path)) {
+            writeEntry(path, entry.inputStream, append = false)
+          }
+      }
+
     zipFs.close()
     val output = ctx.dest / "out.jar"
 
@@ -295,28 +305,14 @@ object Jvm {
     PathRef(output)
   }
 
+  private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
+    if (p.getParent != null) Files.createDirectories(p.getParent)
+    val outputStream = newOutputStream(p, append)
 
-  def classpathIterator(inputPaths: Agg[Path]) = {
-    Generator.from(inputPaths)
-      .filter(exists)
-      .flatMap{
-        p =>
-          if (p.isFile) {
-            val jf = new JarFile(p.toIO)
-            import collection.JavaConverters._
-            Generator.selfClosing((
-              for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield (jf.getInputStream(entry), entry.getName),
-              () => jf.close()
-            ))
-          }
-          else {
-            ls.rec.iter(p)
-              .filter(_.isFile)
-              .map(sub => read.getInputStream(sub) -> sub.relativeTo(p).toString)
-          }
-      }
+    IO.stream(is, outputStream)
 
+    outputStream.close()
+    is.close()
   }
 
   def universalScript(shellCommands: String,
@@ -376,4 +372,87 @@ object Jvm {
     PathRef(outputPath)
   }
 
+  /**
+    * Resolve dependencies using Coursier.
+    *
+    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * because Coursier is already bundled with mill/Ammonite to support the
+    * `import $ivy` syntax.
+    */
+  def resolveDependencies(repositories: Seq[Repository],
+                          deps: TraversableOnce[coursier.Dependency],
+                          force: TraversableOnce[coursier.Dependency],
+                          sources: Boolean = false,
+                          mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
+
+    val (_, resolution) = resolveDependenciesMetadata(
+      repositories, deps, force, mapDependencies
+    )
+    val errs = resolution.metadataErrors
+    if(errs.nonEmpty) {
+      val header =
+        s"""|
+            |Resolution failed for ${errs.length} modules:
+            |--------------------------------------------
+            |""".stripMargin
+
+      val errLines = errs.map {
+        case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
+      }.mkString("\n")
+      val msg = header + errLines + "\n"
+      Result.Failure(msg)
+    } else {
+
+      def load(artifacts: Seq[coursier.Artifact]) = {
+        val logger = None
+        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
+          for (a <- artifacts)
+            yield coursier.Cache.file(a, logger = logger).run
+              .map(a.isOptional -> _)
+        ).unsafePerformSync
+
+        val errors = loadedArtifacts.collect {
+          case (false, scalaz.-\/(x)) => x
+          case (true, scalaz.-\/(x)) if !x.notFound => x
+        }
+        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
+        (errors, successes)
+      }
+
+      val sourceOrJar =
+        if (sources) resolution.classifiersArtifacts(Seq("sources"))
+        else resolution.artifacts(true)
+      val (errors, successes) = load(sourceOrJar)
+      if(errors.isEmpty){
+        mill.Agg.from(
+          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+        )
+      }else{
+        val errorDetails = errors.map(e => s"${ammonite.util.Util.newLine}  ${e.describe}").mkString
+        Result.Failure("Failed to load source dependencies" + errorDetails)
+      }
+    }
+  }
+
+
+  def resolveDependenciesMetadata(repositories: Seq[Repository],
+                                  deps: TraversableOnce[coursier.Dependency],
+                                  force: TraversableOnce[coursier.Dependency],
+                                  mapDependencies: Option[Dependency => Dependency] = None) = {
+
+    val forceVersions = force
+      .map(mapDependencies.getOrElse(identity[Dependency](_)))
+      .map{d => d.module -> d.version}
+      .toMap
+
+    val start = Resolution(
+      deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
+      forceVersions = forceVersions,
+      mapDependencies = mapDependencies
+    )
+
+    val fetch = Fetch.from(repositories, Cache.fetch())
+    val resolution = start.process.run(fetch).unsafePerformSync
+    (deps.toSeq, resolution)
+  }
 }

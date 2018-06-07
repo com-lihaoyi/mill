@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule}
+import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
@@ -27,20 +27,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def sjsBridgeClasspath = T {
     val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
-    val jsBridgePath = sys.props(jsBridgeKey)
-    if (jsBridgePath != null) Success(
-      Agg(PathRef(Path(jsBridgePath), quick = true))
-    ) else resolveDependencies(
-      Seq(
-        Cache.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2"),
-        MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-      ),
-      Lib.depToDependency(_, "2.12.4", ""),
-      Seq(
-        ivy"com.lihaoyi::mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}:${sys.props("MILL_VERSION")}"
-      )
-    ).map(_.filter(_.path.toString.contains("mill-scalajslib-jsbridges")))
+    mill.modules.Util.millProjectModule(
+      jsBridgeKey,
+      s"mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}",
+      repositories,
+      resolveFilter = _.toString.contains("mill-scalajslib-jsbridges")
+    )
   }
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
@@ -190,7 +182,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         fastOptTest().path.toIO
       )
 
-    val (doneMsg, results) = Lib.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
         _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),

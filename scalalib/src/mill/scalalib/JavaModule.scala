@@ -7,7 +7,7 @@ import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
-import mill.modules.Jvm
+import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
@@ -17,6 +17,8 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
@@ -108,6 +110,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
+  def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+
   def sources = T.sources{ millSourcePath / 'src }
   def resources = T.sources{ millSourcePath / 'resources }
   def generatedSources = T{ Seq.empty[PathRef] }
@@ -130,6 +134,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       upstreamCompileOutput()
     )
   }
+
   def localClasspath = T{
     resources() ++ Agg(compile().classes)
   }
@@ -158,7 +163,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * upstream dependencies do not change
     */
   def upstreamAssembly = T{
-    createAssembly(upstreamAssemblyClasspath().map(_.path), mainClass())
+    createAssembly(
+      upstreamAssemblyClasspath().map(_.path),
+      mainClass(),
+      assemblyRules = assemblyRules
+    )
   }
 
   def assembly = T{
@@ -166,10 +175,10 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       Agg.from(localClasspath().map(_.path)),
       mainClass(),
       prependShellScript(),
-      Some(upstreamAssembly().path)
+      Some(upstreamAssembly().path),
+      assemblyRules
     )
   }
-
 
   def jar = T{
     createJar(
@@ -303,8 +312,8 @@ trait TestModule extends JavaModule with TaskModule {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
-      mainClass = "mill.scalalib.worker.ScalaWorker",
-      classPath = ScalaWorkerModule.classpath(),
+      mainClass = "mill.scalalib.TestRunner",
+      classPath = scalaWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =
@@ -330,7 +339,7 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    Lib.runTests(
+    TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),

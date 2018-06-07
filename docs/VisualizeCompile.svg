@@ -1,0 +1,361 @@
+<svg width="2439pt" height="476pt"
+ viewBox="0.00 0.00 2439.44 476.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 472)">
+<title>example1</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-472 2435.4446,-472 2435.4446,4 -4,4"/>
+<!-- moduledefs.compile -->
+<g id="node1" class="node">
+<title>moduledefs.compile</title>
+<ellipse fill="none" stroke="#000000" cx="769.8174" cy="-18" rx="89.7283" ry="18"/>
+<text text-anchor="middle" x="769.8174" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compile</text>
+</g>
+<!-- main.client.compile -->
+<g id="node2" class="node">
+<title>main.client.compile</title>
+<ellipse fill="none" stroke="#000000" cx="945.8174" cy="-90" rx="87.9781" ry="18"/>
+<text text-anchor="middle" x="945.8174" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.client.compile</text>
+</g>
+<!-- testng.compile -->
+<g id="node3" class="node">
+<title>testng.compile</title>
+<ellipse fill="none" stroke="#000000" cx="2363.8174" cy="-450" rx="67.7546" ry="18"/>
+<text text-anchor="middle" x="2363.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">testng.compile</text>
+</g>
+<!-- core.compile -->
+<g id="node4" class="node">
+<title>core.compile</title>
+<ellipse fill="none" stroke="#000000" cx="769.8174" cy="-90" rx="61.3551" ry="18"/>
+<text text-anchor="middle" x="769.8174" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compile</text>
+</g>
+<!-- core.compile&#45;&gt;moduledefs.compile -->
+<g id="edge1" class="edge">
+<title>core.compile&#45;&gt;moduledefs.compile</title>
+<path fill="none" stroke="#000000" d="M769.8174,-71.8314C769.8174,-64.131 769.8174,-54.9743 769.8174,-46.4166"/>
+<polygon fill="#000000" stroke="#000000" points="773.3175,-46.4132 769.8174,-36.4133 766.3175,-46.4133 773.3175,-46.4132"/>
+</g>
+<!-- main.compile -->
+<g id="node5" class="node">
+<title>main.compile</title>
+<ellipse fill="none" stroke="#000000" cx="769.8174" cy="-162" rx="63.7434" ry="18"/>
+<text text-anchor="middle" x="769.8174" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.compile</text>
+</g>
+<!-- main.compile&#45;&gt;main.client.compile -->
+<g id="edge3" class="edge">
+<title>main.compile&#45;&gt;main.client.compile</title>
+<path fill="none" stroke="#000000" d="M806.2847,-147.0816C832.5183,-136.3496 868.1856,-121.7584 896.892,-110.0149"/>
+<polygon fill="#000000" stroke="#000000" points="898.4065,-113.177 906.3367,-106.1512 895.756,-106.6982 898.4065,-113.177"/>
+</g>
+<!-- main.compile&#45;&gt;core.compile -->
+<g id="edge2" class="edge">
+<title>main.compile&#45;&gt;core.compile</title>
+<path fill="none" stroke="#000000" d="M769.8174,-143.8314C769.8174,-136.131 769.8174,-126.9743 769.8174,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="773.3175,-118.4132 769.8174,-108.4133 766.3175,-118.4133 773.3175,-118.4132"/>
+</g>
+<!-- main.test.compile -->
+<g id="node6" class="node">
+<title>main.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="703.8174" cy="-306" rx="79.8914" ry="18"/>
+<text text-anchor="middle" x="703.8174" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.test.compile</text>
+</g>
+<!-- main.test.compile&#45;&gt;main.compile -->
+<g id="edge4" class="edge">
+<title>main.test.compile&#45;&gt;main.compile</title>
+<path fill="none" stroke="#000000" d="M711.9531,-288.0556C720.2028,-269.88 733.3521,-240.965 744.8174,-216 748.8272,-207.2689 753.2229,-197.755 757.195,-189.1792"/>
+<polygon fill="#000000" stroke="#000000" points="760.4257,-190.5319 761.4565,-179.9873 754.075,-187.5876 760.4257,-190.5319"/>
+</g>
+<!-- main.client.test.compile -->
+<g id="node7" class="node">
+<title>main.client.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="954.8174" cy="-162" rx="103.6252" ry="18"/>
+<text text-anchor="middle" x="954.8174" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.client.test.compile</text>
+</g>
+<!-- main.client.test.compile&#45;&gt;main.client.compile -->
+<g id="edge5" class="edge">
+<title>main.client.test.compile&#45;&gt;main.client.compile</title>
+<path fill="none" stroke="#000000" d="M952.5463,-143.8314C951.5838,-136.131 950.4392,-126.9743 949.3695,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="952.8325,-117.9019 948.1191,-108.4133 945.8865,-118.7702 952.8325,-117.9019"/>
+</g>
+<!-- scalalib.compile -->
+<g id="node8" class="node">
+<title>scalalib.compile</title>
+<ellipse fill="none" stroke="#000000" cx="827.8174" cy="-234" rx="74.1116" ry="18"/>
+<text text-anchor="middle" x="827.8174" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalalib.compile</text>
+</g>
+<!-- scalalib.compile&#45;&gt;main.compile -->
+<g id="edge6" class="edge">
+<title>scalalib.compile&#45;&gt;main.compile</title>
+<path fill="none" stroke="#000000" d="M813.4803,-216.2022C806.5269,-207.5704 798.0472,-197.0439 790.4168,-187.5717"/>
+<polygon fill="#000000" stroke="#000000" points="792.9885,-185.1849 783.9896,-179.593 787.5373,-189.5763 792.9885,-185.1849"/>
+</g>
+<!-- main.graphviz.compile -->
+<g id="node9" class="node">
+<title>main.graphviz.compile</title>
+<ellipse fill="none" stroke="#000000" cx="449.8174" cy="-306" rx="100.1433" ry="18"/>
+<text text-anchor="middle" x="449.8174" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.graphviz.compile</text>
+</g>
+<!-- main.graphviz.compile&#45;&gt;scalalib.compile -->
+<g id="edge7" class="edge">
+<title>main.graphviz.compile&#45;&gt;scalalib.compile</title>
+<path fill="none" stroke="#000000" d="M518.7089,-292.8778C586.9675,-279.8762 690.9147,-260.0767 759.1093,-247.0873"/>
+<polygon fill="#000000" stroke="#000000" points="760.1508,-250.4519 769.3192,-245.1425 758.8409,-243.5755 760.1508,-250.4519"/>
+</g>
+<!-- main.graphviz.test.compile -->
+<g id="node10" class="node">
+<title>main.graphviz.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="311.8174" cy="-378" rx="115.791" ry="18"/>
+<text text-anchor="middle" x="311.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">main.graphviz.test.compile</text>
+</g>
+<!-- main.graphviz.test.compile&#45;&gt;main.test.compile -->
+<g id="edge9" class="edge">
+<title>main.graphviz.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M386.9351,-364.2029C457.4949,-351.2429 562.3458,-331.9846 631.8587,-319.2169"/>
+<polygon fill="#000000" stroke="#000000" points="632.6469,-322.6308 641.85,-317.3818 631.3823,-315.7459 632.6469,-322.6308"/>
+</g>
+<!-- main.graphviz.test.compile&#45;&gt;main.graphviz.compile -->
+<g id="edge8" class="edge">
+<title>main.graphviz.test.compile&#45;&gt;main.graphviz.compile</title>
+<path fill="none" stroke="#000000" d="M345.2234,-360.5708C364.1771,-350.6819 388.0652,-338.2185 408.2258,-327.7"/>
+<polygon fill="#000000" stroke="#000000" points="409.9484,-330.749 417.1953,-323.0202 406.7104,-324.5429 409.9484,-330.749"/>
+</g>
+<!-- scalalib.test.compile -->
+<g id="node11" class="node">
+<title>scalalib.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="859.8174" cy="-378" rx="89.7595" ry="18"/>
+<text text-anchor="middle" x="859.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalalib.test.compile</text>
+</g>
+<!-- scalalib.test.compile&#45;&gt;main.test.compile -->
+<g id="edge11" class="edge">
+<title>scalalib.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M824.0279,-361.4817C801.4747,-351.0726 772.1839,-337.5538 748.1623,-326.4669"/>
+<polygon fill="#000000" stroke="#000000" points="749.4491,-323.206 738.9028,-322.1933 746.5157,-329.5618 749.4491,-323.206"/>
+</g>
+<!-- scalalib.test.compile&#45;&gt;scalalib.compile -->
+<g id="edge10" class="edge">
+<title>scalalib.test.compile&#45;&gt;scalalib.compile</title>
+<path fill="none" stroke="#000000" d="M855.7646,-359.7623C850.2825,-335.0928 840.4529,-290.8598 834.0336,-261.9731"/>
+<polygon fill="#000000" stroke="#000000" points="837.4234,-261.0922 831.8373,-252.0896 830.59,-262.6108 837.4234,-261.0922"/>
+</g>
+<!-- scalalib.worker.compile -->
+<g id="node12" class="node">
+<title>scalalib.worker.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1027.8174" cy="-306" rx="103.6296" ry="18"/>
+<text text-anchor="middle" x="1027.8174" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalalib.worker.compile</text>
+</g>
+<!-- scalalib.worker.compile&#45;&gt;scalalib.compile -->
+<g id="edge12" class="edge">
+<title>scalalib.worker.compile&#45;&gt;scalalib.compile</title>
+<path fill="none" stroke="#000000" d="M982.4343,-289.6621C951.6227,-278.5699 910.8323,-263.8854 878.8846,-252.3842"/>
+<polygon fill="#000000" stroke="#000000" points="879.869,-249.0187 869.2746,-248.9246 877.4979,-255.605 879.869,-249.0187"/>
+</g>
+<!-- scalalib.worker.test.compile -->
+<g id="node13" class="node">
+<title>scalalib.worker.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1087.8174" cy="-378" rx="119.7772" ry="18"/>
+<text text-anchor="middle" x="1087.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalalib.worker.test.compile</text>
+</g>
+<!-- scalalib.worker.test.compile&#45;&gt;main.test.compile -->
+<g id="edge14" class="edge">
+<title>scalalib.worker.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M1012.8668,-363.9468C944.1491,-351.0622 843.0839,-332.1125 775.4371,-319.4287"/>
+<polygon fill="#000000" stroke="#000000" points="775.7661,-315.9295 765.2923,-317.5266 774.476,-322.8096 775.7661,-315.9295"/>
+</g>
+<!-- scalalib.worker.test.compile&#45;&gt;scalalib.worker.compile -->
+<g id="edge13" class="edge">
+<title>scalalib.worker.test.compile&#45;&gt;scalalib.worker.compile</title>
+<path fill="none" stroke="#000000" d="M1072.6769,-359.8314C1065.5883,-351.3251 1057.019,-341.0419 1049.2774,-331.752"/>
+<polygon fill="#000000" stroke="#000000" points="1051.8359,-329.355 1042.7452,-323.9134 1046.4583,-333.8363 1051.8359,-329.355"/>
+</g>
+<!-- core.test.compile -->
+<g id="node14" class="node">
+<title>core.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="560.8174" cy="-378" rx="77.0023" ry="18"/>
+<text text-anchor="middle" x="560.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.test.compile</text>
+</g>
+<!-- core.test.compile&#45;&gt;main.test.compile -->
+<g id="edge15" class="edge">
+<title>core.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M593.2663,-361.6621C613.5996,-351.4244 640.0109,-338.1264 661.9192,-327.0956"/>
+<polygon fill="#000000" stroke="#000000" points="663.6442,-330.1458 671.0019,-322.5225 660.4961,-323.8935 663.6442,-330.1458"/>
+</g>
+<!-- scalajslib.compile -->
+<g id="node15" class="node">
+<title>scalajslib.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1692.8174" cy="-306" rx="80.4901" ry="18"/>
+<text text-anchor="middle" x="1692.8174" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.compile</text>
+</g>
+<!-- scalajslib.compile&#45;&gt;scalalib.compile -->
+<g id="edge16" class="edge">
+<title>scalajslib.compile&#45;&gt;scalalib.compile</title>
+<path fill="none" stroke="#000000" d="M1617.1904,-299.705C1454.9005,-286.1965 1074.508,-254.5338 908.1202,-240.6842"/>
+<polygon fill="#000000" stroke="#000000" points="908.2104,-237.1797 897.9545,-239.838 907.6297,-244.1555 908.2104,-237.1797"/>
+</g>
+<!-- dev.compile -->
+<g id="node16" class="node">
+<title>dev.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1976.8174" cy="-378" rx="58.5085" ry="18"/>
+<text text-anchor="middle" x="1976.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">dev.compile</text>
+</g>
+<!-- dev.compile&#45;&gt;scalajslib.compile -->
+<g id="edge17" class="edge">
+<title>dev.compile&#45;&gt;scalajslib.compile</title>
+<path fill="none" stroke="#000000" d="M1932.5805,-366.1957C1924.6723,-364.1124 1916.5048,-361.9783 1908.8174,-360 1857.7654,-346.8623 1799.8072,-332.3973 1756.7891,-321.7475"/>
+<polygon fill="#000000" stroke="#000000" points="1757.5666,-318.3344 1747.0188,-319.3307 1755.8857,-325.1296 1757.5666,-318.3344"/>
+</g>
+<!-- dev.test.compile -->
+<g id="node17" class="node">
+<title>dev.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1817.8174" cy="-450" rx="74.1566" ry="18"/>
+<text text-anchor="middle" x="1817.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">dev.test.compile</text>
+</g>
+<!-- dev.test.compile&#45;&gt;main.test.compile -->
+<g id="edge19" class="edge">
+<title>dev.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M1748.6515,-443.3587C1707.2477,-439.5749 1653.5577,-435.004 1605.8174,-432 1557.095,-428.9342 765.9126,-426.5291 727.8174,-396 709.657,-381.4465 704.3302,-354.8133 703.147,-334.2813"/>
+<polygon fill="#000000" stroke="#000000" points="706.6431,-334.0932 702.8599,-324.1969 699.646,-334.2924 706.6431,-334.0932"/>
+</g>
+<!-- dev.test.compile&#45;&gt;dev.compile -->
+<g id="edge18" class="edge">
+<title>dev.test.compile&#45;&gt;dev.compile</title>
+<path fill="none" stroke="#000000" d="M1853.1047,-434.0209C1877.1178,-423.147 1909.022,-408.6998 1934.4163,-397.2005"/>
+<polygon fill="#000000" stroke="#000000" points="1936.1344,-400.2647 1943.8001,-392.9512 1933.2468,-393.888 1936.1344,-400.2647"/>
+</g>
+<!-- scalajslib.test.compile -->
+<g id="node18" class="node">
+<title>scalajslib.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1321.8174" cy="-378" rx="96.1382" ry="18"/>
+<text text-anchor="middle" x="1321.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.test.compile</text>
+</g>
+<!-- scalajslib.test.compile&#45;&gt;main.test.compile -->
+<g id="edge21" class="edge">
+<title>scalajslib.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M1252.4455,-365.4537C1240.5799,-363.4952 1228.3596,-361.5951 1216.8174,-360 1066.727,-339.2579 890.9548,-322.3462 789.0039,-313.2618"/>
+<polygon fill="#000000" stroke="#000000" points="789.0353,-309.7509 778.7651,-312.3536 788.4168,-316.7235 789.0353,-309.7509"/>
+</g>
+<!-- scalajslib.test.compile&#45;&gt;scalajslib.compile -->
+<g id="edge20" class="edge">
+<title>scalajslib.test.compile&#45;&gt;scalajslib.compile</title>
+<path fill="none" stroke="#000000" d="M1389.0027,-364.9613C1454.8441,-352.1835 1554.816,-332.7819 1621.9086,-319.7613"/>
+<polygon fill="#000000" stroke="#000000" points="1622.8222,-323.1494 1631.9722,-317.8082 1621.4885,-316.2776 1622.8222,-323.1494"/>
+</g>
+<!-- scalajslib.jsbridges[0.6].compile -->
+<g id="node19" class="node">
+<title>scalajslib.jsbridges[0.6].compile</title>
+<ellipse fill="none" stroke="#000000" cx="1572.8174" cy="-378" rx="136.0514" ry="18"/>
+<text text-anchor="middle" x="1572.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[0.6].compile</text>
+</g>
+<!-- scalajslib.jsbridges[0.6].compile&#45;&gt;scalajslib.compile -->
+<g id="edge22" class="edge">
+<title>scalajslib.jsbridges[0.6].compile&#45;&gt;scalajslib.compile</title>
+<path fill="none" stroke="#000000" d="M1602.1727,-360.3868C1618.3625,-350.6729 1638.6214,-338.5176 1655.8783,-328.1634"/>
+<polygon fill="#000000" stroke="#000000" points="1657.8173,-331.0818 1664.5915,-322.9355 1654.2158,-325.0793 1657.8173,-331.0818"/>
+</g>
+<!-- scalajslib.jsbridges[0.6].test.compile -->
+<g id="node20" class="node">
+<title>scalajslib.jsbridges[0.6].test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="966.8174" cy="-450" rx="152.1988" ry="18"/>
+<text text-anchor="middle" x="966.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[0.6].test.compile</text>
+</g>
+<!-- scalajslib.jsbridges[0.6].test.compile&#45;&gt;main.test.compile -->
+<g id="edge24" class="edge">
+<title>scalajslib.jsbridges[0.6].test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M823.6978,-443.8679C686.8403,-436.4969 497.9192,-421.776 474.8174,-396 464.1387,-384.0851 464.8865,-372.545 474.8174,-360 493.062,-336.9528 563.1727,-322.7521 621.0644,-314.7355"/>
+<polygon fill="#000000" stroke="#000000" points="621.5308,-318.2043 630.9766,-313.4057 620.6,-311.2665 621.5308,-318.2043"/>
+</g>
+<!-- scalajslib.jsbridges[0.6].test.compile&#45;&gt;scalajslib.jsbridges[0.6].compile -->
+<g id="edge23" class="edge">
+<title>scalajslib.jsbridges[0.6].test.compile&#45;&gt;scalajslib.jsbridges[0.6].compile</title>
+<path fill="none" stroke="#000000" d="M1075.5811,-437.4125C1168.8049,-426.5803 1306.6679,-410.4586 1426.8174,-396 1438.6041,-394.5816 1450.9241,-393.0848 1463.1952,-391.5849"/>
+<polygon fill="#000000" stroke="#000000" points="1463.978,-395.0153 1473.4785,-390.3259 1463.1273,-388.0672 1463.978,-395.0153"/>
+</g>
+<!-- scalajslib.jsbridges[1.0].compile -->
+<g id="node21" class="node">
+<title>scalajslib.jsbridges[1.0].compile</title>
+<ellipse fill="none" stroke="#000000" cx="2189.8174" cy="-378" rx="136.0514" ry="18"/>
+<text text-anchor="middle" x="2189.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[1.0].compile</text>
+</g>
+<!-- scalajslib.jsbridges[1.0].compile&#45;&gt;scalajslib.compile -->
+<g id="edge25" class="edge">
+<title>scalajslib.jsbridges[1.0].compile&#45;&gt;scalajslib.compile</title>
+<path fill="none" stroke="#000000" d="M2097.7907,-364.6682C2003.6304,-351.0272 1858.9378,-330.0657 1770.3982,-317.2391"/>
+<polygon fill="#000000" stroke="#000000" points="1770.8162,-313.7632 1760.4177,-315.7932 1769.8125,-320.6908 1770.8162,-313.7632"/>
+</g>
+<!-- scalajslib.jsbridges[1.0].test.compile -->
+<g id="node22" class="node">
+<title>scalajslib.jsbridges[1.0].test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="2125.8174" cy="-450" rx="152.1988" ry="18"/>
+<text text-anchor="middle" x="2125.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[1.0].test.compile</text>
+</g>
+<!-- scalajslib.jsbridges[1.0].test.compile&#45;&gt;main.test.compile -->
+<g id="edge27" class="edge">
+<title>scalajslib.jsbridges[1.0].test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M2004.1561,-439.1879C1970.6876,-436.5078 1934.3684,-433.8707 1900.8174,-432 1837.5508,-428.4724 815.8414,-427.4241 760.8174,-396 748.2695,-388.8339 729.8034,-356.885 717.3187,-333.077"/>
+<polygon fill="#000000" stroke="#000000" points="720.3851,-331.3869 712.6909,-324.1033 714.1637,-334.5953 720.3851,-331.3869"/>
+</g>
+<!-- scalajslib.jsbridges[1.0].test.compile&#45;&gt;scalajslib.jsbridges[1.0].compile -->
+<g id="edge26" class="edge">
+<title>scalajslib.jsbridges[1.0].test.compile&#45;&gt;scalajslib.jsbridges[1.0].compile</title>
+<path fill="none" stroke="#000000" d="M2141.9673,-431.8314C2149.6048,-423.2392 2158.8538,-412.834 2167.1767,-403.4708"/>
+<polygon fill="#000000" stroke="#000000" points="2169.8666,-405.7128 2173.8944,-395.9134 2164.6348,-401.0622 2169.8666,-405.7128"/>
+</g>
+<!-- twirllib.compile -->
+<g id="node23" class="node">
+<title>twirllib.compile</title>
+<ellipse fill="none" stroke="#000000" cx="145.8174" cy="-306" rx="72.9871" ry="18"/>
+<text text-anchor="middle" x="145.8174" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">twirllib.compile</text>
+</g>
+<!-- twirllib.compile&#45;&gt;scalalib.compile -->
+<g id="edge28" class="edge">
+<title>twirllib.compile&#45;&gt;scalalib.compile</title>
+<path fill="none" stroke="#000000" d="M213.0767,-298.8993C340.072,-285.4922 614.4994,-256.5204 749.5358,-242.2643"/>
+<polygon fill="#000000" stroke="#000000" points="750.2237,-245.7113 759.8009,-241.1806 749.4887,-238.7499 750.2237,-245.7113"/>
+</g>
+<!-- twirllib.test.compile -->
+<g id="node24" class="node">
+<title>twirllib.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="88.8174" cy="-378" rx="88.6352" ry="18"/>
+<text text-anchor="middle" x="88.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">twirllib.test.compile</text>
+</g>
+<!-- twirllib.test.compile&#45;&gt;main.test.compile -->
+<g id="edge30" class="edge">
+<title>twirllib.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M152.7394,-365.4484C164.0648,-363.4565 175.7676,-361.5466 186.8174,-360 351.3196,-336.9755 393.7154,-342.2331 558.8174,-324 580.1485,-321.6443 603.2167,-318.8797 624.5444,-316.2339"/>
+<polygon fill="#000000" stroke="#000000" points="625.0429,-319.6989 634.5326,-314.9878 624.1762,-312.7527 625.0429,-319.6989"/>
+</g>
+<!-- twirllib.test.compile&#45;&gt;twirllib.compile -->
+<g id="edge29" class="edge">
+<title>twirllib.test.compile&#45;&gt;twirllib.compile</title>
+<path fill="none" stroke="#000000" d="M102.9073,-360.2022C109.6898,-351.6348 117.95,-341.2009 125.4051,-331.7839"/>
+<polygon fill="#000000" stroke="#000000" points="128.2292,-333.8555 131.6921,-323.8425 122.7408,-329.5106 128.2292,-333.8555"/>
+</g>
+<!-- integration.compile -->
+<g id="node25" class="node">
+<title>integration.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1813.8174" cy="-378" rx="86.2949" ry="18"/>
+<text text-anchor="middle" x="1813.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">integration.compile</text>
+</g>
+<!-- integration.compile&#45;&gt;scalajslib.compile -->
+<g id="edge31" class="edge">
+<title>integration.compile&#45;&gt;scalajslib.compile</title>
+<path fill="none" stroke="#000000" d="M1785.1421,-360.937C1768.7168,-351.1633 1747.9165,-338.7863 1730.2191,-328.2555"/>
+<polygon fill="#000000" stroke="#000000" points="1731.6703,-325.0464 1721.2869,-322.9405 1728.0908,-331.0619 1731.6703,-325.0464"/>
+</g>
+<!-- integration.test.compile -->
+<g id="node26" class="node">
+<title>integration.test.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1494.8174" cy="-450" rx="102.443" ry="18"/>
+<text text-anchor="middle" x="1494.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">integration.test.compile</text>
+</g>
+<!-- integration.test.compile&#45;&gt;main.test.compile -->
+<g id="edge33" class="edge">
+<title>integration.test.compile&#45;&gt;main.test.compile</title>
+<path fill="none" stroke="#000000" d="M1396.2345,-445.1341C1183.9625,-434.4251 701.7467,-408.7563 689.8174,-396 674.3166,-379.4246 680.5955,-353.1485 689.106,-333.2576"/>
+<polygon fill="#000000" stroke="#000000" points="692.3325,-334.6196 693.3774,-324.0764 685.9858,-331.6668 692.3325,-334.6196"/>
+</g>
+<!-- integration.test.compile&#45;&gt;integration.compile -->
+<g id="edge32" class="edge">
+<title>integration.test.compile&#45;&gt;integration.compile</title>
+<path fill="none" stroke="#000000" d="M1557.8415,-435.7751C1611.8837,-423.5775 1689.5947,-406.0377 1745.1949,-393.4885"/>
+<polygon fill="#000000" stroke="#000000" points="1745.9768,-396.9001 1754.9608,-391.2842 1744.4356,-390.0719 1745.9768,-396.9001"/>
+</g>
+</g>
+</svg>

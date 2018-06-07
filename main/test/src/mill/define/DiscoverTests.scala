@@ -14,6 +14,9 @@ object DiscoverTests extends TestSuite{
     'singleton - {
       check(testGraphs.singleton)(_.single)
     }
+    'backtickIdentifiers {
+      check(testGraphs.bactickIdentifiers)(_.`up-target`, _.`a-down-target`, _.`nested-module`.`nested-target`)
+    }
     'separateGroups - {
       check(TestGraphs.triangleTask)(_.left, _.right)
     }

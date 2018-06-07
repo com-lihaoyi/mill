@@ -217,8 +217,16 @@ object RunScript{
         }
         val fss = fs.map{
           case Result.Exception(t, outerStack) =>
-            t.toString +
-            t.getStackTrace.dropRight(outerStack.value.length).map("\n    " + _).mkString
+            var current = List(t)
+            while(current.head.getCause != null){
+              current = current.head.getCause :: current
+            }
+            current.reverse
+              .flatMap( ex =>
+                Seq(ex.toString) ++
+                ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
+              )
+              .mkString("\n")
           case Result.Failure(t, _) => t
         }
         s"$ks ${fss.mkString(", ")}"

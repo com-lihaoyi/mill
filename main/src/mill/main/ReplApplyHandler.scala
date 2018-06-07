@@ -44,10 +44,10 @@ object ReplApplyHandler{
   def pprintModule(m: mill.define.Module, evaluator: Evaluator[_]) = {
     pprint.Tree.Lazy( ctx =>
       Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
-        (if (m.millInternal.reflect[mill.Module].isEmpty) Nil
+        (if (m.millInternal.reflectAll[mill.Module].isEmpty) Nil
         else
           ctx.applyPrefixColor("\nChildren:").toString +:
-            m.millInternal.reflect[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
+            m.millInternal.reflectAll[mill.Module].map("\n    ." + _.millOuterCtx.segment.pathSegments.mkString("."))) ++
         (evaluator.rootModule.millDiscover.value.get(m.getClass) match{
           case None => Nil
           case Some(commands) =>
@@ -57,10 +57,10 @@ object ReplApplyHandler{
                 ")()"
             }
         }) ++
-        (if (m.millInternal.reflect[Target[_]].isEmpty) Nil
+        (if (m.millInternal.reflectAll[Target[_]].isEmpty) Nil
         else {
           Seq(ctx.applyPrefixColor("\nTargets:").toString) ++
-            m.millInternal.reflect[Target[_]].sortBy(_.label).map(t =>
+            m.millInternal.reflectAll[Target[_]].map(t =>
               "\n    ." + t.label + "()"
             )
         })

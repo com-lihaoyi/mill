@@ -61,6 +61,22 @@ object PathRef{
     }
     new PathRef(path, quick, sig)
   }
-  private implicit val pathFormat: RW[Path] = JsonFormatters.pathReadWrite
-  implicit def jsonFormatter: RW[PathRef] = upickle.default.macroRW
+
+  implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
+    p => {
+      (if (p.quick) "qref" else "ref") + ":" +
+      String.format("%08x", p.sig: Integer) + ":" +
+      p.path.toString()
+    },
+    s => {
+      val Array(prefix, hex, path) = s.split(":", 3)
+      PathRef(
+        Path(path),
+        prefix match{ case "qref" => true case "ref" => false},
+        // Parsing to a long and casting to an int is the only way to make
+        // round-trip handling of negative numbers work =(
+        java.lang.Long.parseLong(hex, 16).toInt
+      )
+    }
+  )
 }

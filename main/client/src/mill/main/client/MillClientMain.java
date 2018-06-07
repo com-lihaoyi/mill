@@ -11,25 +11,36 @@ import java.util.*;
 
 public class MillClientMain {
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(File.pathSeparator);
+        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
 
-        ArrayList<String> l = new java.util.ArrayList<String>();
+        List<String> l = new ArrayList<>();
+        List<String> vmOptions = new ArrayList<>();
         l.add("java");
-        Properties props = System.getProperties();
-        Iterator<String> keys = props.stringPropertyNames().iterator();
-        while(keys.hasNext()){
-            String k = keys.next();
-            if (k.startsWith("MILL_")) l.add("-D" + k + "=" + props.getProperty(k));
+        final Properties props = System.getProperties();
+        for(final String k: props.stringPropertyNames()){
+            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
+                vmOptions.add("-D" + k + "=" + props.getProperty(k));
+            }
         }
         if (setJnaNoSys) {
-            l.add("-Djna.nosys=true");
+            vmOptions.add("-Djna.nosys=true");
+        }
+        if(!Util.isWindows){
+            l.addAll(vmOptions);
+        } else {
+            final File vmOptionsFile = new File(lockBase, "vmoptions");
+            try (PrintWriter out = new PrintWriter(vmOptionsFile)) {
+                for(String opt: vmOptions)
+                out.println(opt);
+            }
+            l.add("-XX:VMOptionsFile=" + vmOptionsFile.getCanonicalPath());
         }
         l.add("-cp");
         l.add(String.join(File.pathSeparator, selfJars));
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
-        new java.lang.ProcessBuilder()
+        new ProcessBuilder()
                 .command(l)
                 .redirectOutput(new java.io.File(lockBase + "/logs"))
                 .redirectError(new java.io.File(lockBase + "/logs"))

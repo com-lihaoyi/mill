@@ -143,6 +143,8 @@ def main(publish: Boolean = false) = {
 
   cp(pwd/"favicon.png", targetFolder/"favicon.ico")
   cp(pwd/"logo-white.svg", targetFolder/"logo-white.svg")
+  cp(pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
+  cp(pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
 
   %('zip, "-r", targetFolder/"example-1.zip", "example-1")(pwd)
   %('zip, "-r", targetFolder/"example-2.zip", "example-2")(pwd)
