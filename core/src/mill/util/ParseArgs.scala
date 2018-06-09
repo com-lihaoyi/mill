@@ -112,9 +112,13 @@ object ParseArgs {
       case Parsed.Success(selector, _) => Right(selector)
     }
 
+  private val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_', '-')
+  private val ident = P( CharsWhileIn(identChars) ).!
+
+  def isLegalIdentifier(identifier: String): Boolean =
+    (Start ~ ident ~ End).parse(identifier).isInstanceOf[Parsed.Success[_]]
+
   private def parseSelector(input: String) = {
-    val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_', '-')
-    val ident = P( CharsWhileIn(identChars) ).!
     val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
     val segment = P( ident ).map( Segment.Label)
     val crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)

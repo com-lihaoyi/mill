@@ -17,6 +17,8 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
@@ -89,7 +91,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def repositories: Seq[Repository] = ScalaWorkerModule.repositories
+  def repositories: Seq[Repository] = scalaWorker.repositories
 
   def platformSuffix = T{ "" }
 
@@ -314,7 +316,7 @@ trait TestModule extends JavaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
-      classPath = ScalaWorkerModule.scalalibClasspath().map(_.path),
+      classPath = scalaWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =

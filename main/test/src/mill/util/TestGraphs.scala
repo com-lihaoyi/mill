@@ -20,6 +20,15 @@ class TestGraphs(){
     val single = test()
   }
 
+  object bactickIdentifiers extends TestUtil.BaseModule {
+    val `up-target` = test()
+    val `a-down-target` = test(`up-target`)
+    val `invisible&` = test()
+    object `nested-module` extends TestUtil.BaseModule {
+      val `nested-target` = test()
+    }
+  }
+
   // up---down
   object pair extends TestUtil.BaseModule{
     val up = test()
