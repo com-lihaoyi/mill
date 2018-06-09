@@ -474,6 +474,30 @@ compilation output, but if there is more than one or the main class comes from
 some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
+## Merge/exclude files from assembly
+
+When you make a runnable jar of your project with `assembly` command,
+you may want to exclude some files from a final jar (like signature files, and manifest files from library jars),
+and merge duplicated files (for instance reference.conf files from library dependencies).
+
+By default mill excludes all `*.sf`, `*.dsa`, `*.rsa`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
+You can also define your own merge/exclude rules.
+
+```scala
+// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def assemblyRules = Seq(
+    Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
+    Rule.ExcludePattern("*.temp") // all *.temp files will be excluded from a final jar
+  )
+}
+```
+
 ## Downloading Non-Maven Jars
 
 ```scala
