@@ -76,7 +76,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )().flatten
   }
 
-  def mapDependencies(d: coursier.Dependency) = d
+  def mapDependencies = T.task{ d: coursier.Dependency => d }
 
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
@@ -84,7 +84,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       resolveCoursierDependency().apply(_),
       deps(),
       sources,
-      mapDependencies = Some(mapDependencies)
+      mapDependencies = Some(mapDependencies())
     )
   }
 
@@ -239,7 +239,10 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, resolveCoursierDependency().apply(_), transitiveIvyDeps(), Some(mapDependencies)
+      repositories,
+      resolveCoursierDependency().apply(_),
+      transitiveIvyDeps(),
+      Some(mapDependencies())
     )
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,

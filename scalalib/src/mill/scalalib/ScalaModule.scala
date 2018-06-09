@@ -29,6 +29,12 @@ trait ScalaModule extends JavaModule { outer =>
   }
   def scalaVersion: T[String]
 
+  override def mapDependencies = T.task{ d: coursier.Dependency =>
+    val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
+    if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
+    else d.copy(version = scalaVersion())
+  }
+
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
     Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
   }
