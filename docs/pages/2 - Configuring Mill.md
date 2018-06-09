@@ -478,7 +478,7 @@ main class to your `foo.jar` and `foo.assembly` jars.
 
 When you make a runnable jar of your project with `assembly` command,
 you may want to exclude some files from a final jar (like signature files, and manifest files from library jars),
-and merge duplicated files (for instance reference.conf files from library dependencies).
+and merge duplicated files (for instance `reference.conf` files from library dependencies).
 
 By default mill excludes all `*.sf`, `*.dsa`, `*.rsa`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
 You can also define your own merge/exclude rules.
