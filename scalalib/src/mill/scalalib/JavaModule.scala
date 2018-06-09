@@ -91,7 +91,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def repositories: Seq[Repository] = ScalaWorkerModule.repositories
+  def repositories: Seq[Repository] = scalaWorker.repositories
 
   def platformSuffix = T{ "" }
 
