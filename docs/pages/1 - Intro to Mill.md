@@ -54,6 +54,13 @@ to get started, follow the instructions in the [manual](#manual) section below. 
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
 ```
 
+### Docker
+You can download and run a [Docker image containing OpenJDK, Scala and Mill](https://hub.docker.com/r/nightscape/scala-mill/) using
+```bash
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
+```
+
 ### Manual
 
 To get started, download Mill and install it into your system via the following
