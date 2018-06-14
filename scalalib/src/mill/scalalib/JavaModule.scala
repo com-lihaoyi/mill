@@ -17,6 +17,8 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
+  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
@@ -76,7 +78,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     )().flatten
   }
 
-  def mapDependencies(d: coursier.Dependency) = d
+  def mapDependencies = T.task{ d: coursier.Dependency => d }
 
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
     resolveDependencies(
@@ -84,12 +86,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       resolveCoursierDependency().apply(_),
       deps(),
       sources,
-      mapDependencies = Some(mapDependencies)
+      mapDependencies = Some(mapDependencies())
     )
   }
 
 
-  def repositories: Seq[Repository] = ScalaWorkerModule.repositories
+  def repositories: Seq[Repository] = scalaWorker.repositories
 
   def platformSuffix = T{ "" }
 
@@ -239,7 +241,10 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def ivyDepsTree(inverse: Boolean = false) = T.command {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories, resolveCoursierDependency().apply(_), transitiveIvyDeps(), Some(mapDependencies)
+      repositories,
+      resolveCoursierDependency().apply(_),
+      transitiveIvyDeps(),
+      Some(mapDependencies())
     )
 
     println(coursier.util.Print.dependencyTree(flattened, resolution,
@@ -311,7 +316,7 @@ trait TestModule extends JavaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
-      classPath = ScalaWorkerModule.scalalibClasspath().map(_.path),
+      classPath = scalaWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =

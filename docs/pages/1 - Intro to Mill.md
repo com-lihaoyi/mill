@@ -36,7 +36,7 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.3, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3, and save it as
 `mill.bat`.
 
 Mill also works on a sh environment on Windows (e.g.,
@@ -52,6 +52,13 @@ to get started, follow the instructions in the [manual](#manual) section below. 
 
 ```bash
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+```
+
+### Docker
+You can download and run a [Docker image containing OpenJDK, Scala and Mill](https://hub.docker.com/r/nightscape/scala-mill/) using
+```bash
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
 ```
 
 ### Manual
@@ -80,7 +87,7 @@ The simplest Mill build for a Java project looks as follows:
 
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
 
 object foo extends JavaModule {
 
@@ -91,8 +98,7 @@ The simplest Mill build for a Scala project looks as follows:
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
@@ -152,7 +158,7 @@ time.
 
 ## Output
 
-Mill puts all it's output in the top-level `out/` folder. The above commands
+Mill puts all its output in the top-level `out/` folder. The above commands
 would end up in:
 
 ```text
@@ -168,9 +174,9 @@ Within the output folder for each task, there's a `meta.json` file containing
 the metadata returned by that task, and a `dest/` folder containing any files
 that the task generates. For example, `out/foo/compile/dest/` contains the
 compiled classfiles, while `out/foo/assembly/dest/` contains the self-contained
-assembly with the project's classfiles jar-ed up with all it's dependencies.
+assembly with the project's classfiles jar-ed up with all its dependencies.
 
-Given a task `foo.bar`, all it's output and results can be found be within it's
+Given a task `foo.bar`, all its output and results can be found be within its
 respective `out/foo/bar/` folder.
 
 ## Multiple Modules
@@ -178,7 +184,8 @@ respective `out/foo/bar/` folder.
 ### Java Example
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
+
 object foo extends JavaModule
 object bar extends JavaModule {
   def moduleDeps = Seq(foo)
@@ -188,7 +195,8 @@ object bar extends JavaModule {
 ### Scala Example
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
@@ -244,8 +252,8 @@ Modules can also be nested:
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   object bar extends ScalaModule {
@@ -388,7 +396,7 @@ Inputs:
 ```
 
 `inspect` is a more verbose version of [resolve](#resolve). In addition to
-printing out the name of one-or-more tasks, it also display's it's source
+printing out the name of one-or-more tasks, it also displays its source
 location and a list of input tasks. This is very useful for debugging and
 interactively exploring the structure of your build from the command line.
 
@@ -614,7 +622,7 @@ build:
 // build.sc
 import mill._, scalalib._
 
-object foo extends ScalaModule{
+object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
 ```

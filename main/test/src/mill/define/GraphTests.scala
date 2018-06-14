@@ -25,6 +25,10 @@ object GraphTests extends TestSuite{
         targets = Agg(singleton.single),
         expected = Agg(singleton.single)
       )
+      'backtickIdentifiers - check(
+        targets = Agg(bactickIdentifiers.`a-down-target`),
+        expected = Agg(bactickIdentifiers.`up-target`, bactickIdentifiers.`a-down-target`)
+      )
       'pair - check(
         targets = Agg(pair.down),
         expected = Agg(pair.up, pair.down)
@@ -94,6 +98,14 @@ object GraphTests extends TestSuite{
         _.single,
         Agg(_.single),
         Agg(singleton.single -> 1)
+      )
+      'backtickIdentifiers - check(bactickIdentifiers)(
+        _.`a-down-target`,
+        Agg(_.`up-target`, _.`a-down-target`),
+        Agg(
+          bactickIdentifiers.`up-target` -> 1,
+          bactickIdentifiers.`a-down-target` -> 1
+        )
       )
       'pair - check(pair)(
         _.down,

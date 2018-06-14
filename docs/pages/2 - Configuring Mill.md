@@ -3,8 +3,8 @@ You can configure your Mill build in a number of ways:
 ## Compilation & Execution Flags
 
 ```scala
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   
@@ -40,8 +40,8 @@ mill foo.runLocal arg1 arg2 arg3
 ## Adding Ivy Dependencies
 
 ```scala
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   def ivyDeps = Agg(
@@ -77,6 +77,7 @@ custom `ScalaWorkerModule`, and override the `scalaWorker` method in your
 
 ```scala
 import coursier.maven.MavenRepository
+
 object CustomScalaWorkerModule extends ScalaWorkerModule {
   def repositories() = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
@@ -92,12 +93,12 @@ object YourBuild extends ScalaModule {
 ## Adding a Test Suite
 
 ```scala
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests{ 
+  object test extends Tests { 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
@@ -154,16 +155,16 @@ You can define multiple test suites if you want, e.g.:
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests{ 
+  object test extends Tests { 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
-  object integration extends Tests{ 
+  object integration extends Tests { 
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
@@ -198,8 +199,8 @@ passing args to the test suite via `mill foo.test arg1 arg2 arg3`
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   
@@ -221,9 +222,7 @@ To have a formatting per-module you need to make your module extend `mill.scalal
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
-import mill.scalalib.scalafmt._
+import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
   def scalaVersion = "2.12.4"
@@ -239,9 +238,9 @@ It will reformat all sources that matches `__.sources` query.
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
-trait CommonModule extends ScalaModule{
+import mill._, scalalib._
+
+trait CommonModule extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
  
@@ -285,28 +284,28 @@ Everything declared in the above file will be available to any build you run.
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
 
-def lineCount = T{
+def lineCount = T {
   import ammonite.ops._
   foo.sources().flatMap(ref => ls.rec(ref.path)).filter(_.isFile).flatMap(read.lines).size
 }
 
-def printLineCount() = T.command{
+def printLineCount() = T.command {
   println(lineCount())
 }
 ```
 
-You can define new cached Targets using the `T{...}` syntax, depending on
+You can define new cached Targets using the `T {...}` syntax, depending on
 existing Targets e.g. `foo.sources` via the `foo.sources()` syntax to extract
 their current value, as shown in `lineCount` above. The return-type of a Target
 has to be JSON-serializable (using
 [uPickle](https://github.com/lihaoyi/upickle)) and the Target is cached when
-first run until it's inputs change (in this case, if someone edits the
+first run until its inputs change (in this case, if someone edits the
 `foo.sources` files which live in `foo/src`. Cached Targets cannot take
 parameters.
 
@@ -316,12 +315,12 @@ You can print the value of your custom target using `show`, e.g.
 mill run show lineCount
 ```
 
-You can define new un-cached Commands using the `T.command{...}` syntax. These
+You can define new un-cached Commands using the `T.command {...}` syntax. These
 are un-cached and re-evaluate every time you run them, but can take parameters.
 Their return type needs to be JSON-writable as well, or `(): Unit` if you want
 to return nothing.
 
-Your custom targets can depend on each other using the `def bar = T{... foo()
+Your custom targets can depend on each other using the `def bar = T {... foo()
 ...}` syntax, and you can create arbitrarily long chains of dependent targets.
 Mill will handle the re-evaluation and caching of the targets' output for you,
 and will provide you a `T.ctx().dest` folder for you to use as scratch space or
@@ -332,15 +331,15 @@ download files (e.g. using `mill.modules.Util.download`), shell-out to Webpack
 to compile some Javascript, generate sources to feed into a compiler, or create
 some custom jar/zip assembly with the files you want (e.g. using
 `mill.modules.Jvm.createJar`), all of these can simply be custom targets with
-your code running in the `T{...}` block.
+your code running in the `T {...}` block.
 
 ## Custom Modules
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
-object qux extends Module{
+import mill._, scalalib._
+
+object qux extends Module {
   object foo extends ScalaModule {
     def scalaVersion = "2.12.4"
   }
@@ -365,27 +364,64 @@ to represent other things e.g. Javascript bundles, docker image building,:
 
 ```scala
 // build.sc
-trait MySpecialModule extends Module{
+trait MySpecialModule extends Module {
   ...
 }
 object foo extends MySpecialModule
 object bar extends MySpecialModule
 ```
 
-## Overriding Tasks
+## Module/Task Names
 
 ```scala
 // build.sc
 import mill._
 import mill.scalalib._
 
+object `hyphenated-module` extends Module {
+  def `hyphenated-target` = T{
+    println("This is a hyphenated target in a hyphenated module.")
+  }
+}
+
+object unhyphenatedModule extends Module {
+  def unhyphenated_target = T{
+    println("This is an unhyphenated target in an unhyphenated module.")
+  }
+  def unhyphenated_target2 = T{
+    println("This is the second unhyphenated target in an unhyphenated module.")
+  }
+}
+```
+
+Mill modules and tasks may be composed of any of the following characters types:
+ - Alphanumeric (A-Z, a-z, and 0-9)
+ - Underscore (_)
+ - Hyphen (-)
+
+Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).
+
+Using hyphenated names at the command line is unaffected by these restrictions.
+
+```bash
+mill hyphenated-module.hyphenated-target
+mill unhyphenatedModule.unhyphenated_target
+mill unhyphenatedModule.unhyphenated_target2
+```
+
+## Overriding Tasks
+
+```scala
+// build.sc
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  def compile = T{
+  def compile = T {
     println("Compiling...")
     super.compile()
   }
-  def run(args: String*) = T.command{
+  def run(args: String*) = T.command {
     println("Running..." + args.mkString(" "))
     super.run(args:_*)
   }
@@ -406,14 +442,13 @@ In Mill builds the `override` keyword is optional.
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  def unmanagedClasspath = T{
+  def unmanagedClasspath = T {
     if (!ammonite.ops.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(ammonite.ops.ls(millSourcePath / "lib"))
+    else Agg.from(ammonite.ops.ls(millSourcePath / "lib").map(PathRef(_)))
   }
 }
 ```
@@ -439,12 +474,35 @@ compilation output, but if there is more than one or the main class comes from
 some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
+## Merge/exclude files from assembly
+
+When you make a runnable jar of your project with `assembly` command,
+you may want to exclude some files from a final jar (like signature files, and manifest files from library jars),
+and merge duplicated files (for instance `reference.conf` files from library dependencies).
+
+By default mill excludes all `*.sf`, `*.dsa`, `*.rsa`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
+You can also define your own merge/exclude rules.
+
+```scala
+// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+  def assemblyRules = Seq(
+    Rule.Append("application.conf"), // all application.conf files will be concatenated into single file
+    Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
+    Rule.ExcludePattern("*.temp") // all *.temp files will be excluded from a final jar
+  )
+}
+```
+
 ## Downloading Non-Maven Jars
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"

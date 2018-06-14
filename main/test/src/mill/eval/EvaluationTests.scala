@@ -67,6 +67,18 @@ object EvaluationTests extends TestSuite{
         // After incrementing the counter, it forces re-evaluation
         check(single, expValue = 1, expEvaled = Agg(single))
       }
+      'backtickIdentifiers - {
+        import graphs.bactickIdentifiers._
+        val check = new Checker(bactickIdentifiers)
+
+        check(`a-down-target`, expValue = 0, expEvaled = Agg(`up-target`, `a-down-target`))
+
+        `a-down-target`.counter += 1
+        check(`a-down-target`, expValue = 1, expEvaled = Agg(`a-down-target`))
+
+        `up-target`.counter += 1
+        check(`a-down-target`, expValue = 2, expEvaled = Agg(`up-target`, `a-down-target`))
+      }
       'pair - {
         import pair._
         val check = new Checker(pair)
