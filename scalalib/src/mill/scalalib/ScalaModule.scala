@@ -38,7 +38,12 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
-    publish.Artifact.fromDep(_: Dep, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+    publish.Artifact.fromDep(
+      _: Dep,
+      scalaVersion(),
+      Lib.scalaBinaryVersion(scalaVersion()),
+      platformSuffix()
+    )
   }
 
   override def finalMainClassOpt: T[Either[String, String]] = T{
