@@ -1,28 +1,28 @@
-package mill.twirllib
+package mill.playlib
 
 import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
-object HelloWorldTests extends TestSuite {
+object HelloWorldRouterTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
-  trait HelloWorldModule extends mill.twirllib.TwirlModule {
-    def twirlVersion = "1.0.0"
+  trait HelloWorldModule extends mill.playlib.RouterModule {
+    def playVersion = "2.6.15"
   }
 
   object HelloWorld extends HelloBase {
 
     object core extends HelloWorldModule {
-      override def twirlVersion = "1.3.15"
+      override def playVersion = "2.6.14"
     }
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'twirllib / 'test / 'resources / "hello-world"
+  val resourcePath: Path = pwd / 'contrib / 'playlib / 'test / 'resources / "hello-world"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
                                                 (t: TestEvaluator[M] => T)
@@ -35,39 +35,41 @@ object HelloWorldTests extends TestSuite {
     t(eval)
   }
 
-  def compileClassfiles: Seq[RelPath] = Seq[RelPath](
-    "hello.template.scala"
-  )
-
   def tests: Tests = Tests {
     'twirlVersion - {
 
       'fromBuild - workspaceTest(HelloWorld) { eval =>
-        val Right((result, evalCount)) = eval.apply(HelloWorld.core.twirlVersion)
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.playVersion)
 
         assert(
-          result == "1.3.15",
+          result == "2.6.14",
           evalCount > 0
         )
       }
     }
-    'compileTwirl - workspaceTest(HelloWorld) { eval =>
-      val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+    'compileRouter - workspaceTest(HelloWorld) { eval =>
+      val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileRouter)
 
-      val outputFiles = ls.rec(result.classes.path)
-      val expectedClassfiles = compileClassfiles.map(
-        eval.outPath / 'core / 'compileTwirl / 'dest / 'html / _
+      val outputFiles = ls.rec(result.classes.path).filter(_.isFile)
+      val expectedClassfiles = Seq[RelPath](
+        RelPath("controllers/ReverseRoutes.scala"),
+        RelPath("controllers/routes.java"),
+        RelPath("router/Routes.scala"),
+        RelPath("router/RoutesPrefix.scala"),
+        RelPath("controllers/javascript/JavaScriptReverseRoutes.scala")
+      ).map(
+        eval.outPath / 'core / 'compileRouter / 'dest / _
       )
       assert(
-        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest / 'html,
+        result.classes.path == eval.outPath / 'core / 'compileRouter / 'dest,
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
-        outputFiles.size == 1,
+        outputFiles.size == 5,
         evalCount > 0
       )
 
       // don't recompile if nothing changed
-      val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileTwirl)
+      val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileRouter)
 
       assert(unchangedEvalCount == 0)
     }

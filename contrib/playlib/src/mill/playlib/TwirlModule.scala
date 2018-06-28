@@ -1,5 +1,5 @@
 package mill
-package twirllib
+package playlib
 
 import coursier.{Cache, MavenRepository}
 import mill.define.Sources

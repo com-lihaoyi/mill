@@ -230,7 +230,7 @@ object contrib extends MillModule {
     )
   }
 
-  object twirllib extends MillModule {
+  object playlib extends MillModule {
     def moduleDeps = Seq(scalalib)
 
   }
