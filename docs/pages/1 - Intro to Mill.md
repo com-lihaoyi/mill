@@ -39,6 +39,12 @@ To get started, download Mill from:
 https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3, and save it as
 `mill.bat`.
 
+If you're using [Scoop](https://scoop.sh) you can install Mill via
+
+```bash
+scoop install mill
+```
+
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
 [Cygwin](https://www.cygwin.com),
