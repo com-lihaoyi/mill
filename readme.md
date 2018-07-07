@@ -151,6 +151,16 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.4
+
+- Fix resolution of `scala-{library,compiler,reflect}` in case of conflict
+
+- Allow configuration of `JavaModule` and `ScalafmtModule` scala workers
+
+- Allow hyphens in module and task names
+
+- Fix publishing of ScalaJS modules to properly handle upstream ScalaJS dependencies
+
 ### 0.2.3
 
 - Added the [mill show visualize](http://www.lihaoyi.com/mill/#visualize)
