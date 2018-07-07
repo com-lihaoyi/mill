@@ -39,6 +39,12 @@ To get started, download Mill from:
 https://github.com/lihaoyi/mill/releases/download/0.2.4/0.2.4, and save it as
 `mill.bat`.
 
+If you're using [Scoop](https://scoop.sh) you can install Mill via
+
+```bash
+scoop install mill
+```
+
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
 [Cygwin](https://www.cygwin.com),
@@ -52,6 +58,13 @@ to get started, follow the instructions in the [manual](#manual) section below. 
 
 ```bash
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
+```
+
+### Docker
+You can download and run a [Docker image containing OpenJDK, Scala and Mill](https://hub.docker.com/r/nightscape/scala-mill/) using
+```bash
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
 ```
 
 ### Manual
