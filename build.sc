@@ -237,16 +237,16 @@ object scalanativelib extends MillModule {
 
   object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
   class ScalaNativeBridgeModule(scalaNativeBinary: String) extends MillModule {
+    def scalaNativeVersion = T{ "0.3.8" }
     def moduleDeps = Seq(scalanativelib)
     def ivyDeps = scalaNativeBinary match {
       case "0.3" =>
-        val nativeVersion = "0.3.8-SNAPSHOT"
         Agg(
-          ivy"org.scala-native::tools:$nativeVersion",
-          ivy"org.scala-native::util:$nativeVersion",
-          ivy"org.scala-native::nir:$nativeVersion",
-          ivy"org.scala-native::nir:$nativeVersion",
-          ivy"org.scala-native::test-runner:$nativeVersion",
+          ivy"org.scala-native::tools:${scalaNativeVersion()}",
+          ivy"org.scala-native::util:${scalaNativeVersion()}",
+          ivy"org.scala-native::nir:${scalaNativeVersion()}",
+          ivy"org.scala-native::nir:${scalaNativeVersion()}",
+          ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
         )
     }
   }
@@ -330,16 +330,17 @@ object dev extends MillModule{
     (
       scalalib.testArgs() ++
       scalajslib.testArgs() ++
-    scalanativelib.testArgs() ++
       scalalib.worker.testArgs() ++
+      scalanativelib.testArgs() ++
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
+      Seq(
         "-Djna.nosys=true",
         "-DMILL_VERSION=" + build.publishVersion()._2,
-      Seq(
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
+
 
   // Pass dev.assembly VM options via file in Window due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
@@ -448,7 +449,7 @@ def gitHead = T.input{
 def publishVersion = T.input{
   val tag =
     try Option(
-      %%('git, 'describe, "--exact-match", "--tags", gitHead())(pwd).out.string.trim()
+      %%('git, 'describe, "--exact-match", "--tags", "--always", gitHead())(pwd).out.string.trim()
     )
     catch{case e => None}
 
@@ -460,7 +461,7 @@ def publishVersion = T.input{
   tag match{
     case Some(t) => (t, t)
     case None =>
-      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
+      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--always", "--tags")(pwd).out.trim
 
       val commitsSinceLastTag =
         %%('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count")(pwd).out.trim.toInt

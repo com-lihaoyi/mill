@@ -81,9 +81,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def toolsIvyDeps = T{
     Seq(
-      ivy"org.scala-native:tools_2.12:${scalaNativeToolsVersion()}",
-      ivy"org.scala-native:util_2.12:${scalaNativeToolsVersion()}",
-      ivy"org.scala-native:nir_2.12:${scalaNativeToolsVersion()}"
+      ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
+      ivy"org.scala-native:util_2.12:${scalaNativeVersion()}",
+      ivy"org.scala-native:nir_2.12:${scalaNativeVersion()}"
     )
   }
 
@@ -91,14 +91,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}",
-      ivy"org.scala-native::auxlib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}",
-      ivy"org.scala-native::scalalib_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}"
+      ivy"org.scala-native::javalib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}"
     )
   }
 
@@ -190,7 +190,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override def test(args: String*) = T.command{
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.ctx().dest / "out.json"
 
     // The test frameworks run under the JVM and communicate with the native binary over a socket
     // therefore the test framework is loaded from a JVM classloader
@@ -206,7 +206,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
         bridge().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
       }
 
-    val (doneMsg, results) = Lib.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
       nativeFrameworks,
       testClasspathJvm().map(_.path),
       Agg(compile().classes.path),
@@ -246,7 +246,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def nativeLinkStubs = true
 
     override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-      ivy"org.scala-native::test-interface_native${scalaNativeToolsVersion()}:${scalaNativeToolsVersion()}"
+      ivy"org.scala-native::test-interface_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}"
     )
 
     override def mainClass = Some("scala.scalanative.testinterface.TestMain")
@@ -263,12 +263,14 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
     val testClasses =
-      Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, cl => {
-        frameworkInstances(cl).flatMap { framework =>
-          val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
-          df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
+      Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true,
+        cl => {
+          frameworkInstances(cl).flatMap { framework =>
+            val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
+            df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
+          }
         }
-      })
+      )
 
     val frameworks = testClasses.map(_.framework).distinct
 
