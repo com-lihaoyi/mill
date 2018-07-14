@@ -11,6 +11,7 @@ import mill.util.Strict.Agg
 import scala.collection.mutable
 object ReplApplyHandler{
   def apply[T](home: Path,
+               disableTicker: Boolean,
                colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
                rootModule: mill.define.BaseModule,
@@ -24,6 +25,7 @@ object ReplApplyHandler{
         rootModule,
         new mill.util.PrintLogger(
           colors != ammonite.util.Colors.BlackWhite,
+          disableTicker,
           colors,
           System.out,
           System.err,

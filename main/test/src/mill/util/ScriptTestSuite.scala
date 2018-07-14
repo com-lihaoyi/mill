@@ -14,8 +14,9 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val wd = workspacePath / buildPath / up
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
+  val disableTicker = false
   lazy val runner = new mill.main.MainRunner(
-    ammonite.main.Cli.Config(wd = wd),
+    ammonite.main.Cli.Config(wd = wd), disableTicker,
     stdOutErr, stdOutErr, stdIn, None, Map.empty,
     b => ()
   )
