@@ -566,6 +566,29 @@ mill clean _.compile
 mill clean __.compile
 ```
 
+### Search for dependency updates
+
+```bash
+$ mill mill.scalalib.Dependency/updates
+```
+
+Mill can search for updated versions of your project's dependencies,
+if available from your project's configured repositories. Note that it
+uses heuristics based on common versionning schemes, so it may not work
+as expected for dependencies with particularly weird version numbers.
+
+Current limitations:
+- Only works for `JavaModule`s (including `ScalaModule`s,
+`CrossScalaModule`s, etc.) and Maven repositories.
+- Always applies to all modules in the build.
+- Doesn't apply to `$ivy` dependencies used in the build definition
+itself.
+
+```bash
+mill mill.scalalib.Dependency/updates
+mill mill.scalalib.Dependency/updates --allowPreRelease true # also show pre-release versions
+```
+
 ## IntelliJ Support
 
 Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
