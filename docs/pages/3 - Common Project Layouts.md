@@ -101,6 +101,30 @@ latter of which runs your code on Node.js, which must be pre-installed)
 `ScalaJSModule` also exposes the `foo.fastOpt` and `foo.fullOpt` tasks for
 generating the optimized Javascript file.
 
+### Scala Native Modules
+
+```
+import mill._
+import mill.define._
+import mill.scalanativelib._
+
+object nativehello extends ScalaNativeModule {
+  def scalaVersion = "2.11.12"
+  def scalaNativeVersion = "0.3.7"
+  def logLevel = NativeLogLevel.Info // optional
+  def releaseMode = ReleaseMode.Debug // optional
+}
+```
+
+`ScalaNativeModule` builds scala sources to executable binaries using [Scala Native](http://www.scala-native.org). 
+You will need to have the [relevant parts](http://www.scala-native.org/en/latest/user/setup.html)
+of the LLVM toolchain installed on your system. Optimized binaries can be built by setting
+`releaseMode` (see above) and more verbose logging can be enabled using `logLevel`.
+Currently two test frameworks are supported [utest](https://github.com/lihaoyi/utest) and [scalatest](http://www.scalatest.org/).
+Support for [scalacheck](https://www.scalacheck.org/) should be possible when the relevant artifacts have been published
+for scala native.
+
+
 ### SBT-Compatible Modules
 
 ```scala

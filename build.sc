@@ -156,7 +156,8 @@ object scalalib extends MillModule {
       genTask(core)() ++
       genTask(main)() ++
       genTask(scalalib)() ++
-      genTask(scalajslib)()
+      genTask(scalajslib)() ++
+      genTask(scalanativelib)()
 
     worker.testArgs() ++
     main.graphviz.testArgs() ++
@@ -218,6 +219,39 @@ object twirllib extends MillModule {
 
 }
 
+object scalanativelib extends MillModule {
+  def moduleDeps = Seq(scalalib)
+
+  def scalacOptions = Seq[String]() // disable -P:acyclic:force
+
+  def testArgs = T{
+    val mapping = Map(
+      "MILL_SCALANATIVE_BRIDGE_0_3" ->
+        scalanativebridges("0.3").runClasspath()
+          .map(_.path)
+          .filter(_.toIO.exists)
+          .mkString(",")
+    )
+    scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+  }
+
+  object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
+  class ScalaNativeBridgeModule(scalaNativeBinary: String) extends MillModule {
+    def scalaNativeVersion = T{ "0.3.8" }
+    def moduleDeps = Seq(scalanativelib)
+    def ivyDeps = scalaNativeBinary match {
+      case "0.3" =>
+        Agg(
+          ivy"org.scala-native::tools:${scalaNativeVersion()}",
+          ivy"org.scala-native::util:${scalaNativeVersion()}",
+          ivy"org.scala-native::nir:${scalaNativeVersion()}",
+          ivy"org.scala-native::nir:${scalaNativeVersion()}",
+          ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
+        )
+    }
+  }
+}
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -238,10 +272,11 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(moduledefs, scalalib, scalajslib)
+  def moduleDeps = Seq(moduledefs, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
+    scalanativelib.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -290,12 +325,13 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
   def forkArgs =
     (
       scalalib.testArgs() ++
       scalajslib.testArgs() ++
       scalalib.worker.testArgs() ++
+      scalanativelib.testArgs() ++
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(
@@ -304,6 +340,7 @@ object dev extends MillModule{
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
+
 
   // Pass dev.assembly VM options via file in Window due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
@@ -412,7 +449,7 @@ def gitHead = T.input{
 def publishVersion = T.input{
   val tag =
     try Option(
-      %%('git, 'describe, "--exact-match", "--tags", gitHead())(pwd).out.string.trim()
+      %%('git, 'describe, "--exact-match", "--tags", "--always", gitHead())(pwd).out.string.trim()
     )
     catch{case e => None}
 
@@ -424,7 +461,7 @@ def publishVersion = T.input{
   tag match{
     case Some(t) => (t, t)
     case None =>
-      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags")(pwd).out.trim
+      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--always", "--tags")(pwd).out.trim
 
       val commitsSinceLastTag =
         %%('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count")(pwd).out.trim.toInt
