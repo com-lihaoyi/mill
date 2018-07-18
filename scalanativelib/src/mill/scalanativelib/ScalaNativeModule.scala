@@ -275,10 +275,14 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val frameworks = testClasses.map(_.framework).distinct
 
     val frameworksList =
-      if (frameworks.isEmpty)
-        "Nil"
-      else
-        frameworks.mkString("List(new _root_.", ", new _root_.", ")")
+      if (frameworks.nonEmpty) frameworks.mkString("List(new _root_.", ", new _root_.", ")")
+      else {
+        throw new Exception(
+          "Cannot find any tests; make sure you defined the test framework correctly, " +
+          "and extend whatever trait or annotation necessary to mark your test suites"
+        )
+      }
+
 
     val testsMap = makeTestsMap(testClasses)
 

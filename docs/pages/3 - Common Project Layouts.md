@@ -103,19 +103,35 @@ generating the optimized Javascript file.
 
 ### Scala Native Modules
 
-```
-import mill._
-import mill.define._
-import mill.scalanativelib._
+```scala
+import mill._, scalalib._, scalanativelib._
 
-object nativehello extends ScalaNativeModule {
+object hello extends ScalaNativeModule {
   def scalaVersion = "2.11.12"
-  def scalaNativeVersion = "0.3.7"
+  def scalaNativeVersion = "0.3.8"
   def logLevel = NativeLogLevel.Info // optional
   def releaseMode = ReleaseMode.Debug // optional
 }
 ```
-
+```text
+.
+├── build.sc
+└── hello
+    ├── src
+    │   └── hello
+    │       └── Hello.scala
+```
+```scala
+// hello/src/hello/Hello.scala
+package hello
+import scalatags.Text.all._
+object Hello{
+  def main(args: Array[String]): Unit = {
+    println("Hello! " + args.toList)
+    println(div("one"))
+  }
+}
+```
 `ScalaNativeModule` builds scala sources to executable binaries using [Scala Native](http://www.scala-native.org). 
 You will need to have the [relevant parts](http://www.scala-native.org/en/latest/user/setup.html)
 of the LLVM toolchain installed on your system. Optimized binaries can be built by setting
@@ -124,6 +140,57 @@ Currently two test frameworks are supported [utest](https://github.com/lihaoyi/u
 Support for [scalacheck](https://www.scalacheck.org/) should be possible when the relevant artifacts have been published
 for scala native.
 
+The normal commands `mill hello.compile`, `mill hello.run`, all work. If you
+want to build a standalone executable, you can use `mill show hello.nativeLink`
+to create it.
+
+Here's a slightly larger example, demonstrating how to use third party
+dependencies (note the two sets of double-colons `::` necessary) and a test
+suite:
+
+```scala
+import mill._, scalalib._, scalanativelib._
+
+object hello extends ScalaNativeModule {
+  def scalaNativeVersion = "0.3.8"
+  def scalaVersion = "2.11.12"
+  def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
+  object test extends Tests{
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
+    def testFrameworks = Seq("utest.runner.Framework")
+  }
+}
+```
+```text
+.
+├── build.sc
+└── hello
+    ├── src
+    │   └── hello
+    │       └── Hello.scala
+    └── test
+        └── src
+            └── HelloTests.scala
+```
+```scala
+// hello/test/src/HelloTests.scala
+package hello
+import utest._
+import scalatags.Text.all._
+object HelloTests extends TestSuite{
+  val tests = Tests{
+    'pass - {
+      assert(div("1").toString == "<div>1</div>")
+    }
+    'fail - {
+      assert(123 == 1243)
+    }
+  }
+}
+```
+
+The same `mill hello.compile` or `mill hello.run` still work, as does ``mill
+hello.test` to run the test suite defined here.
 
 ### SBT-Compatible Modules
 
