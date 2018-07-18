@@ -132,17 +132,20 @@ object Hello{
   }
 }
 ```
-`ScalaNativeModule` builds scala sources to executable binaries using [Scala Native](http://www.scala-native.org). 
-You will need to have the [relevant parts](http://www.scala-native.org/en/latest/user/setup.html)
-of the LLVM toolchain installed on your system. Optimized binaries can be built by setting
-`releaseMode` (see above) and more verbose logging can be enabled using `logLevel`.
-Currently two test frameworks are supported [utest](https://github.com/lihaoyi/utest) and [scalatest](http://www.scalatest.org/).
-Support for [scalacheck](https://www.scalacheck.org/) should be possible when the relevant artifacts have been published
-for scala native.
-
 The normal commands `mill hello.compile`, `mill hello.run`, all work. If you
 want to build a standalone executable, you can use `mill show hello.nativeLink`
 to create it.
+
+`ScalaNativeModule` builds scala sources to executable binaries using
+[Scala Native](http://www.scala-native.org). You will need to have the
+[relevant parts](http://www.scala-native.org/en/latest/user/setup.html) of the
+LLVM toolchain installed on your system. Optimized binaries can be built by
+setting `releaseMode` (see above) and more verbose logging can be enabled using
+`logLevel`. Currently two test frameworks are supported
+[utest](https://github.com/lihaoyi/utest) and
+[scalatest](http://www.scalatest.org/). Support for
+[scalacheck](https://www.scalacheck.org/) should be possible when the relevant
+artifacts have been published for scala native.
 
 Here's a slightly larger example, demonstrating how to use third party
 dependencies (note the two sets of double-colons `::` necessary) and a test
