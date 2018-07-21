@@ -274,6 +274,67 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
+  private[this] def backgroundSetup(dest: Path) = {
+    val token = java.util.UUID.randomUUID().toString
+    val procId = dest / ".mill-background-process-id"
+    val procTombstone = dest / ".mill-background-process-tombstone"
+    // The backgrounded subprocesses poll the procId file, and kill themselves
+    // when the procId file is deleted. This deletion happens immediately before
+    // the body of these commands run, but we cannot be sure the subprocess has
+    // had time to notice.
+    //
+    // To make sure we wait for the previous subprocess to
+    // die, we make the subprocess write a tombstone file out when it kills
+    // itself due to procId being deleted, and we wait a short time on task-start
+    // to see if such a tombstone appears. If a tombstone appears, we can be sure
+    // the subprocess has killed itself, and can continue. If a tombstone doesn't
+    // appear in a short amount of time, we assume the subprocess exited or was
+    // killed via some other means, and continue anyway.
+    val start = System.currentTimeMillis()
+    while({
+      if (exists(procTombstone)) {
+        Thread.sleep(10)
+        rm(procTombstone)
+        true
+      } else {
+        Thread.sleep(10)
+        System.currentTimeMillis() - start < 100
+      }
+    })()
+
+    write(procId, token)
+    write(procTombstone, token)
+    (procId, procTombstone, token)
+  }
+  def runBackground(args: String*) = T.command{
+    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    try Result.Success(Jvm.interactiveSubprocess(
+      "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      forkArgs(),
+      forkEnv(),
+      Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
+      workingDir = ammonite.ops.pwd,
+      background = true
+    )) catch { case e: InteractiveShelloutException =>
+       Result.Failure("subprocess failed")
+    }
+  }
+
+  def runMainBackground(mainClass: String, args: String*) = T.command{
+    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    try Result.Success(Jvm.interactiveSubprocess(
+      "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      forkArgs(),
+      forkEnv(),
+      Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
+      workingDir = ammonite.ops.pwd,
+      background = true
+    )) catch { case e: InteractiveShelloutException =>
+      Result.Failure("subprocess failed")
+    }
+  }
 
   def runMainLocal(mainClass: String, args: String*) = T.command {
     Jvm.runLocal(

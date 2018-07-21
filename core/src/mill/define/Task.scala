@@ -39,7 +39,6 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
 
   def asTarget: Option[Target[T]] = None
   def asCommand: Option[Command[T]] = None
-  def asPersistent: Option[Persistent[T]] = None
   def asWorker: Option[Worker[T]] = None
   def self = this
 }
@@ -293,7 +292,6 @@ class Persistent[+T](t: Task[T],
   extends TargetImpl[T](t, ctx0, readWrite) {
 
   override def flushDest = false
-  override def asPersistent = Some(this)
 }
 class Input[T](t: Task[T],
                ctx0: mill.define.Ctx,

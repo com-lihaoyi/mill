@@ -167,7 +167,16 @@ object scalalib extends MillModule {
       "-DMILL_SCALA_LIB=" + runClasspath().map(_.path).mkString(",")
     )
   }
-
+  object backgroundwrapper extends MillPublishModule{
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt:test-interface:1.0"
+    )
+    def testArgs = T{
+      Seq(
+        "-DMILL_BACKGROUNDWRAPPER=" + runClasspath().map(_.path).mkString(",")
+      )
+    }
+  }
   object worker extends MillModule{
     def moduleDeps = Seq(main, scalalib)
 
@@ -190,7 +199,10 @@ object scalajslib extends MillModule {
       "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
       "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
     )
-    Seq("-Djna.nosys=true") ++ scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    Seq("-Djna.nosys=true") ++
+    scalalib.worker.testArgs() ++
+    scalalib.backgroundwrapper.testArgs() ++
+    (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
@@ -232,7 +244,9 @@ object scalanativelib extends MillModule {
           .filter(_.toIO.exists)
           .mkString(",")
     )
-    scalalib.worker.testArgs() ++ (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    scalalib.worker.testArgs() ++
+    scalalib.backgroundwrapper.testArgs() ++
+    (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
   object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
@@ -276,6 +290,7 @@ object integration extends MillModule{
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
+    scalalib.backgroundwrapper.testArgs() ++
     scalanativelib.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
@@ -332,6 +347,7 @@ object dev extends MillModule{
       scalajslib.testArgs() ++
       scalalib.worker.testArgs() ++
       scalanativelib.testArgs() ++
+      scalalib.backgroundwrapper.testArgs() ++
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(

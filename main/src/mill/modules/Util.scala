@@ -59,7 +59,8 @@ object Util {
   def millProjectModule(key: String,
                         artifact: String,
                         repositories: Seq[Repository],
-                        resolveFilter: Path => Boolean = _ => true) = {
+                        resolveFilter: Path => Boolean = _ => true,
+                        artifactSuffix: String = "_2.12") = {
     val localPath = sys.props(key)
     if (localPath != null) {
       mill.eval.Result.Success(
@@ -70,7 +71,7 @@ object Util {
         repositories,
         Seq(
           coursier.Dependency(
-            coursier.Module("com.lihaoyi", artifact + "_2.12"),
+            coursier.Module("com.lihaoyi", artifact + artifactSuffix),
             sys.props("MILL_VERSION")
           )
         ),

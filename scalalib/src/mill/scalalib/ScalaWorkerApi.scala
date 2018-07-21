@@ -29,6 +29,13 @@ trait ScalaWorkerModule extends mill.Module{
     mill.modules.Util.millProjectModule("MILL_SCALA_LIB", "mill-scalalib", repositories)
   }
 
+  def backgroundWrapperClasspath = T{
+    mill.modules.Util.millProjectModule(
+      "MILL_BACKGROUNDWRAPPER", "mill-scalalib-backgroundwrapper",
+      repositories, artifactSuffix = ""
+    )
+  }
+
   def worker: Worker[ScalaWorkerApi] = T.worker{
     val cl = mill.util.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
