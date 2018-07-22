@@ -10,7 +10,7 @@ public class BackgroundWrapper {
             public void run() {
                 while (true) {
                     try{
-                        Thread.sleep(10);
+                        Thread.sleep(50);
                         String token = new String(
                             java.nio.file.Files.readAllBytes(java.nio.file.Paths.get(watched))
                         );

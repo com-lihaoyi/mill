@@ -36,7 +36,7 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.4/0.2.4, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.5/0.2.5, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -73,7 +73,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.4/0.2.4) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.5/0.2.5) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -140,6 +140,8 @@ This can be run from the Bash shell via:
 $ mill foo.compile                 # compile sources into classfiles
 
 $ mill foo.run                     # run the main method, if any
+
+$ mill foo.runBackground           # run the main method in the background
 
 $ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
 
@@ -314,11 +316,22 @@ the task as necessary when the inputs change:
 ```bash
 $ mill --watch foo.compile 
 $ mill --watch foo.run 
+$ mill -w foo.compile 
+$ mill -w foo.run 
 ```
 
 Mill's `--watch` flag watches both the files you are building using Mill, as
 well as Mill's own `build.sc` file and anything it imports, so any changes to
 your `build.sc` will automatically get picked up.
+
+For long-running processes like web-servers, you can use `.runBackground` to
+make sure they re-compile and re-start when code changes, forcefully terminating
+the previous process even though it may be still alive:
+
+```bash
+$ mill -w foo.compile 
+$ mill -w foo.runBackground 
+```
 
 ## Command-line Tools
 
