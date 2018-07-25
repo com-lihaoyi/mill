@@ -142,12 +142,12 @@ object Lib{
       mapDependencies
     )
   }
-  def scalaCompilerIvyDeps(scalaVersion: String) = Agg[Dep](
-    ivy"org.scala-lang:scala-compiler:$scalaVersion".forceVersion(),
-    ivy"org.scala-lang:scala-reflect:$scalaVersion".forceVersion()
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) = Agg[Dep](
+    ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
+    ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
   )
-  def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
-    ivy"org.scala-lang:scala-library:$scalaVersion".forceVersion()
+  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) = Agg[Dep](
+    ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
   )
 
   def listClassFiles(base: Path): Iterator[String] = {

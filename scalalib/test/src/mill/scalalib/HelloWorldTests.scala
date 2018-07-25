@@ -190,11 +190,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldTypeLevel extends HelloBase{
     object foo extends ScalaModule {
       def scalaVersion = "2.11.8"
-      override def mapDependencies = T.task{ d: coursier.Dependency =>
-        val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
-        if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
-        else d.copy(module = d.module.copy(organization = "org.typelevel"))
-      }
+      override def scalaOrganization = "org.typelevel"
 
       def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"

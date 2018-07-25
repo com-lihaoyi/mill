@@ -61,7 +61,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   )
 
   def ivyDeps = Agg(
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}",
+    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}",
     ivy"org.typelevel::macro-compat::1.1.1"
   )
 
@@ -69,7 +69,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 
   def compileIvyDeps = Agg(
     macroParadise,
-    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
+    ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
 
   def scalacPluginIvyDeps = Agg(macroParadise)

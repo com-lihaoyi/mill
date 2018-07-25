@@ -48,7 +48,7 @@ object foo extends ScalaModule {
     ivy"com.lihaoyi::upickle:0.5.1",
     ivy"com.lihaoyi::pprint:0.5.2",
     ivy"com.lihaoyi::fansi:0.2.4",
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
   )
 }
 ```

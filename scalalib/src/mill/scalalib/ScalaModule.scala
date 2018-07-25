@@ -17,6 +17,7 @@ import mill.util.DummyInputStream
   */
 trait ScalaModule extends JavaModule { outer =>
   trait Tests extends TestModule with ScalaModule{
+    override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
@@ -25,12 +26,13 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
+  def scalaOrganization: T[String] = "org.scala-lang"
   def scalaVersion: T[String]
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
     val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
-    if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
-    else d.copy(version = scalaVersion())
+    if (!artifacts(d.module.name)) d
+    else d.copy(module = d.module.copy(organization = scalaOrganization()), version = scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
@@ -89,13 +91,14 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(scalacPluginIvyDeps)()
   }
 
-  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
+  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion()) }
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T{
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
+      T.task{scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())}
     )()
   }
   override def compileClasspath = T{
