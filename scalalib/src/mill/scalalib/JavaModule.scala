@@ -55,12 +55,19 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def javacOptions = T{ Seq.empty[String] }
 
+  /** The direct dependencies of this module */
   def moduleDeps = Seq.empty[JavaModule]
 
-
-  def transitiveModuleDeps: Seq[JavaModule] = {
-    Seq(this) ++ moduleDeps.flatMap(_.transitiveModuleDeps).distinct
+  /** The direct and indirect dependencies of this module */
+  def recursiveModuleDeps: Seq[JavaModule] = {
+    moduleDeps.flatMap(_.transitiveModuleDeps).distinct
   }
+
+  /** Like `recursiveModuleDeps` but also include the module itself */
+  def transitiveModuleDeps: Seq[JavaModule] = {
+    Seq(this) ++ recursiveModuleDeps
+  }
+
   def unmanagedClasspath = T{ Agg.empty[PathRef] }
 
 
@@ -69,7 +76,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   def upstreamCompileOutput = T{
-    Task.traverse(moduleDeps)(_.compile)
+    Task.traverse(recursiveModuleDeps)(_.compile)
   }
 
   def transitiveLocalClasspath: T[Agg[PathRef]] = T{
