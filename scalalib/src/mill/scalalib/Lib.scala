@@ -149,12 +149,6 @@ object Lib{
   def scalaRuntimeIvyDeps(scalaVersion: String) = Agg[Dep](
     ivy"org.scala-lang:scala-library:$scalaVersion".forceVersion()
   )
-  def compilerBridgeIvyDep(scalaVersion: String) =
-    Dep.Point(
-      coursier.Dependency(coursier.Module("com.lihaoyi", "mill-bridge"), "0.1", transitive = false),
-      cross = false,
-      force = false
-    )
 
   def listClassFiles(base: Path): Iterator[String] = {
     if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
