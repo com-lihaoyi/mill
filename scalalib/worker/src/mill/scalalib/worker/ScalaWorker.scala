@@ -25,7 +25,6 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
 
 class ScalaWorker(ctx0: mill.util.Ctx,
                   compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
-  @volatile var scalaClassloaderCache = Option.empty[(Long, ClassLoader)]
   @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
 
   def compileZincBridge(scalaVersion: String,
@@ -89,29 +88,16 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
     val compilerBridge = compileZincBridge(scalaVersion, compilerBridgeSources, compilerJars)
 
-    val pluginJars = scalacPluginClasspath.toArray.map(_.toIO)
-
-    val compilerClassloaderSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
-    val scalaInstanceSig =
-      compilerClassloaderSig + scalacPluginClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
-
-    val compilerClassLoader = scalaClassloaderCache match{
-      case Some((k, v)) if k == compilerClassloaderSig => v
-      case _ =>
-        val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)
-        scalaClassloaderCache = Some((compilerClassloaderSig, classloader))
-        classloader
-    }
-
+    val scalaInstanceSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     val scalaInstance = scalaInstanceCache match{
       case Some((k, v)) if k == scalaInstanceSig => v
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = mill.util.ClassLoader.create(pluginJars.map(_.toURI.toURL), compilerClassLoader),
+          loader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null),
           libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
           compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
-          allJars = compilerJars ++ pluginJars,
+          allJars = compilerJars,
           explicitActual = None
         )
         scalaInstanceCache = Some((scalaInstanceSig, scalaInstance))
