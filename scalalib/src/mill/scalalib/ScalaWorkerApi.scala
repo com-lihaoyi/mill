@@ -51,7 +51,7 @@ trait ScalaWorkerModule extends mill.Module{
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, "2.12.4", ""),
-      Seq(ivy"org.scala-sbt:compiler-interface:1.1.0")
+      Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}")
     )
   }
 

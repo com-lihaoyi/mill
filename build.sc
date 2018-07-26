@@ -181,7 +181,8 @@ object scalalib extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"org.scala-sbt::zinc:1.1.5"
+      // Keep synchronized with zinc in Versions.scala
+      ivy"org.scala-sbt::zinc:1.1.7"
     )
     def testArgs = Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")

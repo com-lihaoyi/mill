@@ -80,9 +80,9 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion0, platformSuffix()),
-      Seq(ivy"org.scala-sbt::compiler-bridge:1.1.0"),
+      Seq(ivy"org.scala-sbt::compiler-bridge:${Versions.zinc}"),
       sources = true
-    ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-1.1.0-sources.jar").map(_.path).get)
+    ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-${Versions.zinc}-sources.jar").map(_.path).get)
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
