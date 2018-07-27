@@ -25,11 +25,14 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
 
 class ScalaWorker(ctx0: mill.util.Ctx,
                   compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
-  @volatile var scalaInstanceCache = Option.empty[(Long, ScalaInstance)]
+  @volatile var compilersCache = Option.empty[(Long, Compilers)]
 
-  def compileZincBridge(scalaVersion: String,
-                        sourcesJar: Path,
-                        compilerJars: Array[File]) = {
+  /** Compile the bridge if it doesn't exist yet and return the output directory.
+   *  TODO: Proper invalidation, see #389
+   */
+  def compileZincBridgeIfNeeded(scalaVersion: String,
+                                sourcesJar: Path,
+                                compilerJars: Array[File]): Path = {
     val workingDir = ctx0.dest / scalaVersion
     val compiledDest = workingDir / 'compiled
     if (!exists(workingDir)) {
@@ -52,7 +55,6 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         .get
         .invoke(null, argsArray)
     }
-
     compiledDest
   }
 
@@ -86,11 +88,14 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
-    val compilerBridge = compileZincBridge(scalaVersion, compilerBridgeSources, compilerJars)
+    val compilerBridge = compileZincBridgeIfNeeded(scalaVersion, compilerBridgeSources, compilerJars)
 
-    val scalaInstanceSig = compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
-    val scalaInstance = scalaInstanceCache match{
-      case Some((k, v)) if k == scalaInstanceSig => v
+    val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+
+    val compilerBridgeSig = compilerBridge.mtime.toMillis
+    val compilersSig = compilerBridgeSig + compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val compilers = compilersCache match {
+      case Some((k, v)) if k == compilersSig => v
       case _ =>
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
@@ -100,13 +105,18 @@ class ScalaWorker(ctx0: mill.util.Ctx,
           allJars = compilerJars,
           explicitActual = None
         )
-        scalaInstanceCache = Some((scalaInstanceSig, scalaInstance))
-        scalaInstance
+        val compilers = ic.compilers(
+          scalaInstance,
+          ClasspathOptionsUtil.boot,
+          None,
+          ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
+        )
+        compilersCache = Some((compilersSig, compilers))
+        compilers
     }
 
     mkdir(ctx.dest)
 
-    val ic = new sbt.internal.inc.IncrementalCompilerImpl()
 
     val logger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
@@ -150,12 +160,7 @@ class ScalaWorker(ctx0: mill.util.Ctx,
           maxErrors = 10,
           sourcePositionMappers = Array(),
           order = CompileOrder.Mixed,
-          compilers = ic.compilers(
-            scalaInstance,
-            ClasspathOptionsUtil.boot,
-            None,
-            ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
-          ),
+          compilers = compilers,
           setup = ic.setup(
             lookup,
             skip = false,
