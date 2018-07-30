@@ -234,6 +234,12 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloDotty extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "0.9.0-RC1"
+     }
+  }
+
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -811,5 +817,12 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
+    'dotty - workspaceTest(
+      HelloDotty,
+      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-dotty"
+    ){ eval =>
+      val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
+      assert(evalCount > 0)
+    }
   }
 }

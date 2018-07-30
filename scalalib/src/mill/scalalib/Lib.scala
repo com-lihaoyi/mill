@@ -56,14 +56,19 @@ object Lib{
 
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+  private val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
 
   def scalaBinaryVersion(scalaVersion: String) = {
     scalaVersion match {
       case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+      case DottyVersion(minor, _) => s"0.$minor"
       case _ => scalaVersion
     }
   }
+
+  def isDotty(scalaVersion: String) =
+    scalaVersion.startsWith("0.")
 
   def grepJar(classPath: Agg[Path], name: String, version: String) = {
     val mavenStylePath = s"$name-$version.jar"
@@ -144,10 +149,15 @@ object Lib{
       mapDependencies
     )
   }
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) = Agg[Dep](
-    ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
-    ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
-  )
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
+    if (isDotty(scalaVersion))
+      Agg(ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion())
+    else
+      Agg(
+        ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
+        ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
+      )
+
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) = Agg[Dep](
     ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
   )

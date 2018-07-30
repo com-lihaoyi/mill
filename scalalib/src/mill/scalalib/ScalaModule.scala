@@ -26,11 +26,22 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
-  def scalaOrganization: T[String] = "org.scala-lang"
+
+  def scalaOrganization: T[String] = T {
+    if (isDotty(scalaVersion()))
+      "ch.epfl.lamp"
+    else
+      "org.scala-lang"
+  }
+
   def scalaVersion: T[String]
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
-    val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
+    val artifacts =
+      if (isDotty(scalaVersion()))
+        Set("dotty-library", "dotty-compiler")
+      else
+        Set("scala-library", "scala-compiler", "scala-reflect")
     if (!artifacts(d.module.name)) d
     else d.copy(module = d.module.copy(organization = scalaOrganization()), version = scalaVersion())
   }
@@ -79,16 +90,26 @@ trait ScalaModule extends JavaModule { outer =>
       case _ => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
     }
 
+    val (bridgeDep, bridgeName, bridgeVersion) =
+      if (isDotty(scalaVersion0)) {
+        val org = scalaOrganization()
+        val name = "dotty-sbt-bridge"
+        val version = scalaVersion()
+        (ivy"$org:$name:$version", name, version)
+      } else {
+        val org = "org.scala-sbt"
+        val name = "compiler-bridge"
+        val version = Versions.zinc
+        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
+      }
+
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion0, platformSuffix()),
-      Seq(ivy"org.scala-sbt::compiler-bridge:${Versions.zinc}"),
+      Seq(bridgeDep),
       sources = true
     ).map(deps =>
-      grepJar(
-        deps.map(_.path),
-        s"compiler-bridge_${scalaBinaryVersion0}", s"${Versions.zinc}-sources"
-      )
+      grepJar(deps.map(_.path), bridgeName, s"$bridgeVersion-sources")
     )
   }
 
@@ -163,7 +184,11 @@ trait ScalaModule extends JavaModule { outer =>
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.interactiveSubprocess(
-        mainClass = "scala.tools.nsc.MainGenericRunner",
+        mainClass =
+          if (isDotty(scalaVersion()))
+            "dotty.tools.repl.Main"
+          else
+            "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
         mainArgs = Seq("-usejavacp"),
         workingDir = pwd
