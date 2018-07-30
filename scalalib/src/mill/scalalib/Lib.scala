@@ -65,11 +65,13 @@ object Lib{
     }
   }
 
-  def grepJar(classPath: Agg[Path], s: String) = {
+  def grepJar(classPath: Agg[Path], name: String, version: String) = {
+    val mavenStylePath = s"$name-$version.jar"
+    val ivyStylePath = s"$version/$name.jar"
+
     classPath
-      .find(_.toString.endsWith(s))
-      .getOrElse(throw new Exception("Cannot find " + s))
-      .toIO
+      .find(p => p.toString.endsWith(mavenStylePath) || p.toString.endsWith(ivyStylePath))
+      .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath"))
   }
 
 

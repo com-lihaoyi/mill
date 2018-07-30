@@ -100,8 +100,8 @@ class ScalaWorker(ctx0: mill.util.Ctx,
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
           loader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null),
-          libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
-          compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+          libraryJar = grepJar(compilerClasspath, "scala-library", scalaVersion).toIO,
+          compilerJar = grepJar(compilerClasspath, "scala-compiler", scalaVersion).toIO,
           allJars = compilerJars,
           explicitActual = None
         )
