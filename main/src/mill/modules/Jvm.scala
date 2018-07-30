@@ -26,20 +26,30 @@ object Jvm {
                             jvmArgs: Seq[String] = Seq.empty,
                             envArgs: Map[String, String] = Map.empty,
                             mainArgs: Seq[String] = Seq.empty,
-                            workingDir: Path = null): Unit = {
-    baseInteractiveSubprocess(
+                            workingDir: Path = null,
+                            background: Boolean = false): Unit = {
+    val args =
       Vector("java") ++
-        jvmArgs ++
-        Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
-        mainArgs,
-      envArgs,
-      workingDir
-    )
+      jvmArgs ++
+      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
+      mainArgs
+
+    if (background) baseInteractiveSubprocess0(args, envArgs, workingDir)
+    else baseInteractiveSubprocess(args, envArgs, workingDir)
   }
 
   def baseInteractiveSubprocess(commandArgs: Seq[String],
                                 envArgs: Map[String, String],
                                 workingDir: Path) = {
+    val process = baseInteractiveSubprocess0(commandArgs, envArgs, workingDir)
+
+    val exitCode = process.waitFor()
+    if (exitCode == 0) ()
+    else throw InteractiveShelloutException()
+  }
+  def baseInteractiveSubprocess0(commandArgs: Seq[String],
+                                 envArgs: Map[String, String],
+                                 workingDir: Path) = {
     val builder = new java.lang.ProcessBuilder()
 
     for ((k, v) <- envArgs){
@@ -48,7 +58,7 @@ object Jvm {
     }
     builder.directory(workingDir.toIO)
 
-    val process = if (System.in.isInstanceOf[ByteArrayInputStream]){
+    if (System.in.isInstanceOf[ByteArrayInputStream]){
 
       val process = builder
         .command(commandArgs:_*)
@@ -71,10 +81,8 @@ object Jvm {
         .start()
     }
 
-    val exitCode = process.waitFor()
-    if (exitCode == 0) ()
-    else throw InteractiveShelloutException()
   }
+
 
   def runLocal(mainClass: String,
                classPath: Agg[Path],

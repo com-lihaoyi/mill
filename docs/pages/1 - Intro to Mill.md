@@ -36,8 +36,14 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.6/0.2.6, and save it as
 `mill.bat`.
+
+If you're using [Scoop](https://scoop.sh) you can install Mill via
+
+```bash
+scoop install mill
+```
 
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
@@ -67,7 +73,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.3/0.2.3) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.6/0.2.6) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -134,6 +140,8 @@ This can be run from the Bash shell via:
 $ mill foo.compile                 # compile sources into classfiles
 
 $ mill foo.run                     # run the main method, if any
+
+$ mill foo.runBackground           # run the main method in the background
 
 $ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
 
@@ -308,11 +316,22 @@ the task as necessary when the inputs change:
 ```bash
 $ mill --watch foo.compile 
 $ mill --watch foo.run 
+$ mill -w foo.compile 
+$ mill -w foo.run 
 ```
 
 Mill's `--watch` flag watches both the files you are building using Mill, as
 well as Mill's own `build.sc` file and anything it imports, so any changes to
 your `build.sc` will automatically get picked up.
+
+For long-running processes like web-servers, you can use `.runBackground` to
+make sure they re-compile and re-start when code changes, forcefully terminating
+the previous process even though it may be still alive:
+
+```bash
+$ mill -w foo.compile 
+$ mill -w foo.runBackground 
+```
 
 ## Command-line Tools
 
@@ -558,6 +577,29 @@ mill clean "foo.{compile,run}"
 mill clean foo.compile foo.run
 mill clean _.compile
 mill clean __.compile
+```
+
+### Search for dependency updates
+
+```bash
+$ mill mill.scalalib.Dependency/updates
+```
+
+Mill can search for updated versions of your project's dependencies,
+if available from your project's configured repositories. Note that it
+uses heuristics based on common versionning schemes, so it may not work
+as expected for dependencies with particularly weird version numbers.
+
+Current limitations:
+- Only works for `JavaModule`s (including `ScalaModule`s,
+`CrossScalaModule`s, etc.) and Maven repositories.
+- Always applies to all modules in the build.
+- Doesn't apply to `$ivy` dependencies used in the build definition
+itself.
+
+```bash
+mill mill.scalalib.Dependency/updates
+mill mill.scalalib.Dependency/updates --allowPreRelease true # also show pre-release versions
 ```
 
 ## IntelliJ Support

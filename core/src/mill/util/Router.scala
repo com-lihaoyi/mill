@@ -71,7 +71,7 @@ object Router{
                            argSignatures: Seq[ArgSig[T, _]],
                            doc: Option[String],
                            varargs: Boolean,
-                           invoke0: (T, Map[String, String], Seq[String]) => Result[Any],
+                           invoke0: (T, Map[String, String], Seq[String], Seq[ArgSig[T, _]]) => Result[Any],
                            overrides: Int){
     def invoke(target: T, groupedArgs: Seq[(String, Option[String])]): Result[Any] = {
       var remainingArgSignatures = argSignatures.toList.filter(_.reads.arity > 0)
@@ -149,7 +149,7 @@ object Router{
           .collect{case (k, Seq(single)) => (k.name, single)}
           .toMap
 
-        try invoke0(target, mapping, leftoverArgs)
+        try invoke0(target, mapping, leftoverArgs, argSignatures)
         catch{case e: Throwable =>
           Result.Error.Exception(e)
         }
@@ -335,6 +335,7 @@ class Router [C <: Context](val c: C) {
       (vararg, unwrappedType)
     }
 
+    val argSigSymbol = q"${c.fresh[TermName]("argSigs")}"
 
     val (_, methodDoc) = getDocAnnotation(meth.annotations)
     val readArgSigs = for(
@@ -365,6 +366,7 @@ class Router [C <: Context](val c: C) {
         case Some(s) => q"scala.Some($s)"
       }
 
+
       val argSig = q"""
         mill.util.Router.ArgSig[$curCls, $docUnwrappedType](
           ${arg.name.toString},
@@ -377,21 +379,23 @@ class Router [C <: Context](val c: C) {
       val reader =
         if(vararg) q"""
           mill.util.Router.makeReadVarargsCall(
-            $argSig,
+            $argSigSymbol($i),
             $extrasSymbol
           )
         """ else q"""
         mill.util.Router.makeReadCall(
           $argListSymbol,
           $default,
-          $argSig
+          $argSigSymbol($i)
         )
         """
       c.internal.setPos(reader, meth.pos)
       (reader, argSig, vararg)
     }
 
-    val (readArgs, argSigs, varargs) = readArgSigs.unzip3
+    val readArgs = readArgSigs.map(_._1)
+    val argSigs = readArgSigs.map(_._2)
+    val varargs = readArgSigs.map(_._3)
     val (argNames, argNameCasts) = flattenedArgLists.map { arg =>
       val (vararg, unwrappedType) = unwrapVarargType(arg)
       (
@@ -412,7 +416,12 @@ class Router [C <: Context](val c: C) {
       case Some(s) => q"scala.Some($s)"
     }},
       ${varargs.contains(true)},
-      ($baseArgSym: $curCls, $argListSymbol: Map[String, String], $extrasSymbol: Seq[String]) =>
+      (
+        $baseArgSym: $curCls,
+        $argListSymbol: Map[String, String],
+        $extrasSymbol: Seq[String],
+        $argSigSymbol: Seq[mill.util.Router.ArgSig[$curCls, _]]
+      ) =>
         mill.util.Router.validate(Seq(..$readArgs)) match{
           case mill.util.Router.Result.Success(List(..$argNames)) =>
             mill.util.Router.Result.Success(
