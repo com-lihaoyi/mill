@@ -395,9 +395,10 @@ object unhyphenatedModule extends Module {
 ```
 
 Mill modules and tasks may be composed of any of the following characters types:
- - Alphanumeric (A-Z, a-z, and 0-9)
- - Underscore (_)
- - Hyphen (-)
+
+- Alphanumeric (A-Z, a-z, and 0-9)
+- Underscore (_)
+- Hyphen (-)
 
 Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).
 
