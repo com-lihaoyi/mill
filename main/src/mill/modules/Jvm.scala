@@ -199,7 +199,7 @@ object Jvm {
 
   def createJar(inputPaths: Agg[Path],
                 mainClass: Option[String] = None,
-                fileFilter: (RelPath => Boolean) = (p: RelPath) => true)
+                fileFilter: (Path, RelPath) => Boolean = (p: Path, r: RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
@@ -218,7 +218,7 @@ object Jvm {
         (file, mapping) <-
           if (p.isFile) Iterator(p -> empty/p.last)
           else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
-        if !seen(mapping) && fileFilter(mapping)
+        if !seen(mapping) && fileFilter(p, mapping)
       } {
         seen.add(mapping)
         val entry = new JarEntry(mapping.toString)
