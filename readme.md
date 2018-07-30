@@ -151,6 +151,15 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.6
+
+- Improve incremental compilation to work with transitive module dependencies
+
+- Speed up hot compilation performance by properly re-using classloaders
+
+- Speed up compilation time of `build.sc` files by removing duplicate macro
+  generated routing code
+
 ### 0.2.5
 
 - Add `.runBackground` and `.runMainBackground` commands, to run something in
