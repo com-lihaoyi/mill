@@ -10,6 +10,7 @@ import javax.tools.ToolProvider
 import ammonite.ops._
 import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import Dep.isDotty
 import mill.Agg
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
@@ -66,9 +67,6 @@ object Lib{
       case _ => scalaVersion
     }
   }
-
-  def isDotty(scalaVersion: String) =
-    scalaVersion.startsWith("0.")
 
   def grepJar(classPath: Agg[Path], name: String, version: String) = {
     val mavenStylePath = s"$name-$version.jar"

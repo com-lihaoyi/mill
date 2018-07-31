@@ -5,6 +5,8 @@ import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
+  import Dep.isDotty
+
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
     dep.module.name + suffix
@@ -17,11 +19,40 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
     dep.copy(module = dep.module.copy(name = artifactName(binaryVersion, fullVersion, platformSuffix)))
   def withConfiguration(configuration: String): Dep = copy(dep = dep.copy(configuration = configuration))
+
+  /**
+    * If scalaVersion is a Dotty version, replace the cross-version suffix
+    * by the Scala 2.x version that the Dotty version is retro-compatible with,
+    * otherwise do nothing.
+    *
+    * This setting is useful when your build contains dependencies that have only
+    * been published with Scala 2.x, if you have:
+    * {{{
+    * def ivyDeps = Agg(ivy"a::b:c")
+    * }}}
+    * you can replace it by:
+    * {{{
+    * def ivyDeps = Agg(ivy"a::b:c".withDottyCompat(scalaVersion()))
+    * }}}
+    * This will have no effect when compiling with Scala 2.x, but when compiling
+    * with Dotty this will change the cross-version to a Scala 2.x one. This
+    * works because Dotty is currently retro-compatible with Scala 2.x.
+    */
+  def withDottyCompat(scalaVersion: String): Dep =
+    cross match {
+      case cross: Binary if isDotty(scalaVersion) =>
+        copy(cross = Constant(value = "_2.12", platformed = cross.platformed))
+      case _ =>
+        this
+    }
 }
 
 object Dep {
 
   val DefaultConfiguration = "default(compile)"
+
+  def isDotty(scalaVersion: String) =
+    scalaVersion.startsWith("0.")
 
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')

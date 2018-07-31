@@ -9,7 +9,8 @@ import mill.Agg
 import mill.eval.PathRef
 import mill.scalalib.{CompilationResult, Lib, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import mill.scalalib.Lib.{grepJar, isDotty, scalaBinaryVersion}
+import mill.scalalib.Dep.isDotty
+import mill.scalalib.Lib.{grepJar, scalaBinaryVersion}
 import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}

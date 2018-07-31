@@ -8,6 +8,7 @@ import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createJar, subprocess}
+import Dep.isDotty
 import Lib._
 import mill.util.Loose.Agg
 import mill.util.DummyInputStream

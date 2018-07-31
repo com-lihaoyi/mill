@@ -237,6 +237,7 @@ object HelloWorldTests extends TestSuite {
   object HelloDotty extends HelloBase{
     object foo extends ScalaModule {
       def scalaVersion = "0.9.0-RC1"
+      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.2.0".withDottyCompat(scalaVersion()))
      }
   }
 
