@@ -13,3 +13,8 @@ object app extends JavaModule{
   def moduleDeps = Seq(core)
   object test extends Tests with JUnitTests
 }
+
+object scalapb extends mill.scalapblib.ScalaPBModule {
+  def scalaVersion = "2.12.4"
+  def scalaPBVersion = "0.7.4"
+}

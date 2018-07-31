@@ -232,6 +232,12 @@ object twirllib extends MillModule {
 
 }
 
+object scalapblib extends MillModule {
+
+  def moduleDeps = Seq(scalalib)
+
+}
+
 object scalanativelib extends MillModule {
   def moduleDeps = Seq(scalalib)
 
@@ -341,7 +347,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, scalapblib)
   def forkArgs =
     (
       scalalib.testArgs() ++
