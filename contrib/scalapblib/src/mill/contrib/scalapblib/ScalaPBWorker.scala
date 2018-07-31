@@ -1,5 +1,5 @@
 package mill
-package scalapblib
+package contrib.scalapblib
 
 import java.io.File
 import java.lang.reflect.Method

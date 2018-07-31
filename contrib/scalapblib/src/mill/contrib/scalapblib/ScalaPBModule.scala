@@ -1,5 +1,5 @@
 package mill
-package scalapblib
+package contrib.scalapblib
 
 import coursier.{Cache, MavenRepository}
 import coursier.core.Version

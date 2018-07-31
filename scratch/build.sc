@@ -14,7 +14,7 @@ object app extends JavaModule{
   object test extends Tests with JUnitTests
 }
 
-object scalapb extends mill.scalapblib.ScalaPBModule {
+object scalapb extends mill.contrib.scalapblib.ScalaPBModule {
   def scalaVersion = "2.12.4"
   def scalaPBVersion = "0.7.4"
 }

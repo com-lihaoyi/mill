@@ -1,4 +1,4 @@
-package mill.scalapblib
+package mill.contrib.scalapblib
 
 import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.eval.Result
@@ -12,7 +12,7 @@ object TutorialTests extends TestSuite {
     override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
-  trait TutorialModule extends mill.scalapblib.ScalaPBModule {
+  trait TutorialModule extends ScalaPBModule {
     def scalaVersion = "2.12.4"
     def scalaPBVersion = "0.7.4"
     def scalaPBFlatPackage = true
@@ -25,7 +25,7 @@ object TutorialTests extends TestSuite {
     }
   }
 
-  val resourcePath: Path = pwd / 'scalapblib / 'test / 'protobuf / 'tutorial
+  val resourcePath: Path = pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
 
   def protobufOutPath[M <: TestUtil.BaseModule](eval: TestEvaluator[M]): Path =
     eval.outPath / 'core / 'compileScalaPB / 'dest / 'com / 'example / 'tutorial
