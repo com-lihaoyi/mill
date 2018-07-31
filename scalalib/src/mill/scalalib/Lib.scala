@@ -79,42 +79,17 @@ object Lib{
       .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath"))
   }
 
-
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
-    dep match {
-      case Dep.Java(dep, cross, force) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-                (if (!cross) "" else platformSuffix)
-          )
-        )
-    }
+    assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
+    depToDependency(dep, "", platformSuffix)
   }
-  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
-    dep match {
-      case d: Dep.Java => depToDependencyJava(dep)
-      case Dep.Scala(dep, cross, force) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-              (if (!cross) "" else platformSuffix) +
-              "_" + scalaBinaryVersion(scalaVersion)
-          )
-        )
-      case Dep.Point(dep, cross, force) =>
-        dep.copy(
-          module = dep.module.copy(
-            name =
-              dep.module.name +
-              (if (!cross) "" else platformSuffix) +
-              "_" + scalaVersion
-          )
-        )
-    }
 
+  def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
+    dep.toDependency(
+      binaryVersion = scalaBinaryVersion(scalaVersion),
+      fullVersion = scalaVersion,
+      platformSuffix = platformSuffix
+    )
 
   def resolveDependenciesMetadata(repositories: Seq[Repository],
                                   depToDependency: Dep => coursier.Dependency,

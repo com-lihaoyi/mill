@@ -224,7 +224,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     Lib.resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion(), ""),
-      transitiveIvyDeps().collect{ case x: Dep.Scala => x }.filter(d => supportedTestFrameworks(d.dep.module.name))
+      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name))
     )
   }
 
