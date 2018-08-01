@@ -499,6 +499,20 @@ object foo extends ScalaModule {
 }
 ```
 
+To exclude Scala library from assembly
+
+```scala
+// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+
+  def scalaLibraryIvyDeps = T { Agg.empty }
+}
+```
+
 ## Downloading Non-Maven Jars
 
 ```scala
