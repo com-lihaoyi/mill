@@ -34,6 +34,20 @@ object MainTests extends TestSuite{
       'neg6 - check("single.doesntExist", Left("Task single is not a module and has no children."))
       'neg7 - check("", Left("Selector cannot be empty"))
     }
+    'backtickIdentifiers - {
+      val check = MainTests.check(bactickIdentifiers) _
+      'pos1 - check("up-target", Right(Seq(_.`up-target`)))
+      'pos2 - check("a-down-target", Right(Seq(_.`a-down-target`)))
+      'neg1 - check("uptarget", Left("Cannot resolve uptarget. Did you mean up-target?"))
+      'neg2 - check("upt-arget", Left("Cannot resolve upt-arget. Did you mean up-target?"))
+      'neg3 - check("up-target.doesntExist", Left("Task up-target is not a module and has no children."))
+      'neg4 - check("", Left("Selector cannot be empty"))
+      'neg5 - check("invisible&", Left("Cannot resolve invisible. Try `mill resolve _` to see what's available."))
+      'nested - {
+        'pos - check("nested-module.nested-target", Right(Seq(_.`nested-module`.`nested-target`)))
+        'neg - check("nested-module.doesntExist", Left("Cannot resolve nested-module.doesntExist. Try `mill resolve nested-module._` to see what's available."))
+      }
+    }
     'nested - {
       val check = MainTests.check(nestedModule) _
       'pos1 - check("single", Right(Seq(_.single)))

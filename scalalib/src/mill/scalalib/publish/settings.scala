@@ -20,14 +20,15 @@ object Artifact {
   }
   def fromDep(dep: Dep,
               scalaFull: String,
-              scalaBin: String): Dependency = {
+              scalaBin: String,
+              platformSuffix: String): Dependency = {
     dep match {
       case d: Dep.Java => fromDepJava(d)
       case Dep.Scala(dep, cross, force) =>
         Dependency(
           Artifact(
             dep.module.organization,
-            s"${dep.module.name}_${scalaBin}",
+            s"${dep.module.name}${platformSuffix}_${scalaBin}",
             dep.version
           ),
           Scope.Compile,
@@ -38,7 +39,7 @@ object Artifact {
         Dependency(
           Artifact(
             dep.module.organization,
-            s"${dep.module.name}_${scalaFull}",
+            s"${dep.module.name}${platformSuffix}_${scalaFull}",
             dep.version
           ),
           Scope.Compile,

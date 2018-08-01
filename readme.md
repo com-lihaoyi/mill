@@ -151,11 +151,36 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.5
+
+- Add `.runBackground` and `.runMainBackground` commands, to run something in
+  the background without waiting for it to return. The process will keep running
+  until it exits normally, or until the same `.runBackground` command is run a
+  second time to spawn a new version of the process. Can be used with `-w` for
+  auto-reloading of long-running servers.
+
+- [Scala-Native support](http://www.lihaoyi.com/mill/page/common-project-layouts.html#scala-native-modules).
+  Try it out!
+
+- Add `--disable-ticker` to reduce spam in CI
+
+- Fix propagation of `--color` flag
+
+### 0.2.4
+
+- Fix resolution of `scala-{library,compiler,reflect}` in case of conflict
+
+- Allow configuration of `JavaModule` and `ScalafmtModule` scala workers
+
+- Allow hyphens in module and task names
+
+- Fix publishing of ScalaJS modules to properly handle upstream ScalaJS dependencies
+
 ### 0.2.3
 
-- Added the [mill show visualize](http://www.lihaoyi.com/mill/#all) command,
-  making it easy to visualize the relationships between various tasks and
-  modules in your Mill build.
+- Added the [mill show visualize](http://www.lihaoyi.com/mill/#visualize)
+  command, making it easy to visualize the relationships between various tasks
+  and modules in your Mill build.
 
 - Improve Intellij support ([351](https://github.com/lihaoyi/mill/pull/351)):
   better jump-to-definition for third-party libraries, no longer stomping over

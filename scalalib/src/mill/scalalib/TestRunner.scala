@@ -31,6 +31,7 @@ object TestRunner {
       val ctx = new Ctx.Log with Ctx.Home {
         val log = PrintLogger(
           colored == "true",
+          true,
           if(colored == "true") Colors.Default
           else Colors.BlackWhite,
           System.out,

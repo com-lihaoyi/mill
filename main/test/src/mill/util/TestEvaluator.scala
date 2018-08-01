@@ -26,7 +26,7 @@ class TestEvaluator[T <: TestUtil.BaseModule](module: T)
 
 //  val logger = DummyLogger
   val logger = new PrintLogger(
-    true,
+    colored = true, disableTicker=false,
     ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
  )
   val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger)

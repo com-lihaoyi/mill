@@ -36,8 +36,14 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.5/0.2.5, and save it as
 `mill.bat`.
+
+If you're using [Scoop](https://scoop.sh) you can install Mill via
+
+```bash
+scoop install mill
+```
 
 Mill also works on a sh environment on Windows (e.g.,
 [MSYS2](https://www.msys2.org),
@@ -54,13 +60,20 @@ to get started, follow the instructions in the [manual](#manual) section below. 
 sed -i '0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}' /usr/local/bin/mill
 ```
 
+### Docker
+You can download and run a [Docker image containing OpenJDK, Scala and Mill](https://hub.docker.com/r/nightscape/scala-mill/) using
+```bash
+docker pull nightscape/scala-mill
+docker run -it nightscape/scala-mill
+```
+
 ### Manual
 
 To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.2/0.2.2) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.5/0.2.5) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -80,7 +93,7 @@ The simplest Mill build for a Java project looks as follows:
 
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
 
 object foo extends JavaModule {
 
@@ -91,8 +104,7 @@ The simplest Mill build for a Scala project looks as follows:
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
@@ -129,6 +141,8 @@ $ mill foo.compile                 # compile sources into classfiles
 
 $ mill foo.run                     # run the main method, if any
 
+$ mill foo.runBackground           # run the main method in the background
+
 $ mill foo.launcher                # prepares a foo/launcher/dest/run you can run later
 
 $ mill foo.jar                     # bundle the classfiles into a jar
@@ -152,7 +166,7 @@ time.
 
 ## Output
 
-Mill puts all it's output in the top-level `out/` folder. The above commands
+Mill puts all its output in the top-level `out/` folder. The above commands
 would end up in:
 
 ```text
@@ -168,9 +182,9 @@ Within the output folder for each task, there's a `meta.json` file containing
 the metadata returned by that task, and a `dest/` folder containing any files
 that the task generates. For example, `out/foo/compile/dest/` contains the
 compiled classfiles, while `out/foo/assembly/dest/` contains the self-contained
-assembly with the project's classfiles jar-ed up with all it's dependencies.
+assembly with the project's classfiles jar-ed up with all its dependencies.
 
-Given a task `foo.bar`, all it's output and results can be found be within it's
+Given a task `foo.bar`, all its output and results can be found be within its
 respective `out/foo/bar/` folder.
 
 ## Multiple Modules
@@ -178,7 +192,8 @@ respective `out/foo/bar/` folder.
 ### Java Example
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
+
 object foo extends JavaModule
 object bar extends JavaModule {
   def moduleDeps = Seq(foo)
@@ -188,7 +203,8 @@ object bar extends JavaModule {
 ### Scala Example
 ```scala
 // build.sc
-import mill._, mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
@@ -244,8 +260,8 @@ Modules can also be nested:
 
 ```scala
 // build.sc
-import mill._
-import mill.scalalib._
+import mill._, scalalib._
+
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   object bar extends ScalaModule {
@@ -300,11 +316,22 @@ the task as necessary when the inputs change:
 ```bash
 $ mill --watch foo.compile 
 $ mill --watch foo.run 
+$ mill -w foo.compile 
+$ mill -w foo.run 
 ```
 
 Mill's `--watch` flag watches both the files you are building using Mill, as
 well as Mill's own `build.sc` file and anything it imports, so any changes to
 your `build.sc` will automatically get picked up.
+
+For long-running processes like web-servers, you can use `.runBackground` to
+make sure they re-compile and re-start when code changes, forcefully terminating
+the previous process even though it may be still alive:
+
+```bash
+$ mill -w foo.compile 
+$ mill -w foo.runBackground 
+```
 
 ## Command-line Tools
 
@@ -388,7 +415,7 @@ Inputs:
 ```
 
 `inspect` is a more verbose version of [resolve](#resolve). In addition to
-printing out the name of one-or-more tasks, it also display's it's source
+printing out the name of one-or-more tasks, it also displays its source
 location and a list of input tasks. This is very useful for debugging and
 interactively exploring the structure of your build from the command line.
 
@@ -469,10 +496,33 @@ core.localClasspath
 core.assembly
 ```
 
-`mill path` prints out a dependency chain between the first target and the
+`mill path` prints out a dependency chain between the first task and the
 second. It is very useful for exploring the build graph and trying to figure out
-how data gets from one target to another. If there are multiple possible
+how data gets from one task to another. If there are multiple possible
 dependency chains, one of them is picked arbitrarily.
+
+### plan
+
+```bash
+$ mill plan moduledefs.compileClasspath
+moduledefs.transitiveLocalClasspath
+moduledefs.resources
+moduledefs.unmanagedClasspath
+moduledefs.scalaVersion
+moduledefs.platformSuffix
+moduledefs.compileIvyDeps
+moduledefs.scalaLibraryIvyDeps
+moduledefs.ivyDeps
+moduledefs.transitiveIvyDeps
+moduledefs.compileClasspath
+```
+
+`mill plan foo` prints out what tasks would be evaluated, in what order, if you
+ran `mill foo`, but without actually running them. This is a useful tool for
+debugging your build: e.g. if you suspect a task `foo` is running things that it
+shouldn't be running, a quick `mill plan` will list out all the upstream tasks
+that `foo` needs to run, and you can then follow up with `mill path` on any
+individual upstream task to see exactly how `foo` depends on it.
 
 ### visualize
 
@@ -488,7 +538,7 @@ $ mill show visualize core._
 ```
 
 `mill show visualize` takes a subset of the Mill build graph (e.g. `core._` is
-every target directly under the `core` module) and draws out their relationships
+every task directly under the `core` module) and draws out their relationships
 in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
 and `.json` for easy processing by downstream tools.
 
@@ -502,7 +552,7 @@ Another use case is to view the relationships between modules:
 $ mill show visualize __.compile
 ```
 
-This command diagrams the relationships between the `compile` targets of each
+This command diagrams the relationships between the `compile` tasks of each
 module, which illustrates which module depends on which other module's
 compilation output:
 
@@ -527,6 +577,29 @@ mill clean "foo.{compile,run}"
 mill clean foo.compile foo.run
 mill clean _.compile
 mill clean __.compile
+```
+
+### Search for dependency updates
+
+```bash
+$ mill mill.scalalib.Dependency/updates
+```
+
+Mill can search for updated versions of your project's dependencies,
+if available from your project's configured repositories. Note that it
+uses heuristics based on common versionning schemes, so it may not work
+as expected for dependencies with particularly weird version numbers.
+
+Current limitations:
+- Only works for `JavaModule`s (including `ScalaModule`s,
+`CrossScalaModule`s, etc.) and Maven repositories.
+- Always applies to all modules in the build.
+- Doesn't apply to `$ivy` dependencies used in the build definition
+itself.
+
+```bash
+mill mill.scalalib.Dependency/updates
+mill mill.scalalib.Dependency/updates --allowPreRelease true # also show pre-release versions
 ```
 
 ## IntelliJ Support
@@ -591,7 +664,7 @@ build:
 // build.sc
 import mill._, scalalib._
 
-object foo extends ScalaModule{
+object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
 ```

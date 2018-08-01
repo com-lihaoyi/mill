@@ -79,6 +79,7 @@ object PrintState{
   case object Middle extends PrintState
 }
 case class PrintLogger(colored: Boolean,
+                       disableTicker: Boolean,
                        colors: ammonite.util.Colors,
                        outStream: PrintStream,
                        infoStream: PrintStream,
@@ -100,26 +101,27 @@ case class PrintLogger(colored: Boolean,
     errStream.println(colors.error()(s))
   }
   def ticker(s: String) = {
-    printState match{
-      case PrintState.Newline =>
-        infoStream.println(colors.info()(s))
-      case PrintState.Middle =>
-        infoStream.println()
-        infoStream.println(colors.info()(s))
-      case PrintState.Ticker =>
-        // Should there be another way to suppress this if we're writing to a non-Ansi terminal?
-        if (colored) {
-          val p = new PrintWriter(infoStream)
-          val nav = new ammonite.terminal.AnsiNav(p)
-          nav.up(1)
-          nav.clearLine(2)
-          nav.left(9999)
-          p.flush()
-        }
-
-        infoStream.println(colors.info()(s))
+    if(!disableTicker) {
+      printState match{
+        case PrintState.Newline =>
+          infoStream.println(colors.info()(s))
+        case PrintState.Middle =>
+          infoStream.println()
+          infoStream.println(colors.info()(s))
+        case PrintState.Ticker =>
+          // Should there be another way to suppress this if we're writing to a non-Ansi terminal?
+          if (colored) {
+            val p = new PrintWriter(infoStream)
+            val nav = new ammonite.terminal.AnsiNav(p)
+            nav.up(1)
+            nav.clearLine(2)
+            nav.left(9999)
+            p.flush()
+          }
+          infoStream.println(colors.info()(s))
+      }
+      printState = PrintState.Ticker
     }
-    printState = PrintState.Ticker
   }
 }
 

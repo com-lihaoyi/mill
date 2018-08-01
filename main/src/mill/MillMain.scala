@@ -38,6 +38,8 @@ object MillMain {
             env: Map[String, String],
             setIdle: Boolean => Unit): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
+    
+    val millHome = mill.util.Ctx.defaultHome
 
     val removed = Set("predef-code", "no-home-predef")
     var interactive = false
@@ -49,10 +51,21 @@ object MillMain {
         c
       }
     )
-    val millArgSignature =
-      Cli.genericSignature.filter(a => !removed(a.name)) :+ interactiveSignature
 
-    val millHome = mill.util.Ctx.defaultHome
+
+
+    var disableTicker = false
+    val disableTickerSignature = Arg[Config, Unit](
+      "disable-ticker", None,
+      "Disable ticker log (e.g. short-lived prints of stages and progress bars)",
+      (c, v) =>{
+        disableTicker = true
+        c
+      }
+    )
+
+    val millArgSignature =
+      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature)
 
     Cli.groupArgs(
       args.toList,
@@ -89,6 +102,7 @@ object MillMain {
                 s"""import $$file.build, build._
                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
                   |  ammonite.ops.Path($tqs${cliConfig.home.toIO.getCanonicalPath.replaceAllLiterally("$", "$$")}$tqs),
+                  |  $disableTicker,
                   |  interp.colors(),
                   |  repl.pprinter(),
                   |  build.millSelf.get,
@@ -102,7 +116,8 @@ object MillMain {
             )
 
           val runner = new mill.main.MainRunner(
-            config.copy(colored = Some(mainInteractive && config.colored.getOrElse(true))),
+            config.copy(colored = config.colored orElse Option(mainInteractive)),
+            disableTicker,
             stdout, stderr, stdin,
             stateCache,
             env,

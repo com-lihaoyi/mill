@@ -18,6 +18,7 @@ import scala.annotation.tailrec
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
 class MainRunner(val config: ammonite.main.Cli.Config,
+                 disableTicker: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
                  stdIn: InputStream,
@@ -74,6 +75,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           stateCache,
           new PrintLogger(
             config.colored.getOrElse(true),
+            disableTicker,
             colors,
             outprintStream,
             errPrintStream,

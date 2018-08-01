@@ -173,7 +173,7 @@ trait MainModule extends mill.Module{
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         log = evaluator.log match{
-          case PrintLogger(c1, c2, o, i, e, in) => PrintLogger(c1, c2, e, i, e, in)
+          case PrintLogger(c1, d, c2, o, i, e, in) => PrintLogger(c1, d, c2, e, i, e, in)
           case l => l
         }
       ),

@@ -16,8 +16,6 @@ import mill.util.DummyInputStream
   * Core configuration required to compile a single Scala compilation target
   */
 trait ScalaModule extends JavaModule { outer =>
-  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
-
   trait Tests extends TestModule with ScalaModule{
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories
@@ -29,12 +27,23 @@ trait ScalaModule extends JavaModule { outer =>
   }
   def scalaVersion: T[String]
 
+  override def mapDependencies = T.task{ d: coursier.Dependency =>
+    val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
+    if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
+    else d.copy(version = scalaVersion())
+  }
+
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
     Lib.depToDependency(_: Dep, scalaVersion(), platformSuffix())
   }
 
   override def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
-    publish.Artifact.fromDep(_: Dep, scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+    publish.Artifact.fromDep(
+      _: Dep,
+      scalaVersion(),
+      Lib.scalaBinaryVersion(scalaVersion()),
+      platformSuffix()
+    )
   }
 
   override def finalMainClassOpt: T[Either[String, String]] = T{
