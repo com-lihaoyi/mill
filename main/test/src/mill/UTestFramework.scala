@@ -8,4 +8,8 @@ class UTestFramework extends utest.runner.Framework {
     import ammonite.ops._
     rm(pwd / 'target / 'workspace)
   }
+
+  override def formatColor: Boolean = {
+    false
+  }
 }

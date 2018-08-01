@@ -109,13 +109,15 @@ case class PrintLogger(colored: Boolean,
           infoStream.println()
           infoStream.println(colors.info()(s))
         case PrintState.Ticker =>
-          val p = new PrintWriter(infoStream)
-          val nav = new ammonite.terminal.AnsiNav(p)
-          nav.up(1)
-          nav.clearLine(2)
-          nav.left(9999)
-          p.flush()
-
+          // Should there be another way to suppress this if we're writing to a non-Ansi terminal?
+          if (colored) {
+            val p = new PrintWriter(infoStream)
+            val nav = new ammonite.terminal.AnsiNav(p)
+            nav.up(1)
+            nav.clearLine(2)
+            nav.left(9999)
+            p.flush()
+          }
           infoStream.println(colors.info()(s))
       }
       printState = PrintState.Ticker

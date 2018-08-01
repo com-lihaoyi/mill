@@ -95,7 +95,7 @@ object TestRunner {
 
                 def error(msg: String) = ctx.log.outputStream.println(msg)
 
-                def ansiCodesSupported() = true
+                def ansiCodesSupported() = ctx.log.colored
 
                 def warn(msg: String) = ctx.log.outputStream.println(msg)
 

@@ -2,6 +2,6 @@
 
 set -eux
 
-mill -i all __.publishLocal release
+mill-release -i --color false all __.publishLocal release
 
-mv out/release/dest/mill ~/mill-release
+mv out/release/dest/mill ~/bin/mill-release

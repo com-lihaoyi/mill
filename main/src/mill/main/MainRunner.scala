@@ -74,7 +74,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           scriptArgs,
           stateCache,
           new PrintLogger(
-            colors != ammonite.util.Colors.BlackWhite,
+            config.colored.getOrElse(true),
             disableTicker,
             colors,
             outprintStream,
