@@ -9,7 +9,8 @@ import mill.Agg
 import mill.eval.PathRef
 import mill.scalalib.{CompilationResult, Lib, TestRunner}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import mill.scalalib.Lib.grepJar
+import mill.scalalib.Dep.isDotty
+import mill.scalalib.Lib.{grepJar, scalaBinaryVersion}
 import mill.util.{Ctx, PrintLogger}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
@@ -44,15 +45,18 @@ class ScalaWorker(ctx0: mill.util.Ctx,
 
       val sourceFolder = mill.modules.Util.unpackZip(sourcesJar)(workingDir)
       val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
-      val scalacMain = classloader.loadClass("scala.tools.nsc.Main")
+      val compilerMain = classloader.loadClass(
+        if (isDotty(scalaVersion))
+          "dotty.tools.dotc.Main"
+        else
+          "scala.tools.nsc.Main"
+      )
       val argsArray = Array[String](
         "-d", compiledDest.toString,
         "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
       ) ++ ls.rec(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
 
-      scalacMain.getMethods
-        .find(_.getName == "process")
-        .get
+      compilerMain.getMethod("process", classOf[Array[String]])
         .invoke(null, argsArray)
     }
     compiledDest
@@ -97,11 +101,16 @@ class ScalaWorker(ctx0: mill.util.Ctx,
     val compilers = compilersCache match {
       case Some((k, v)) if k == compilersSig => v
       case _ =>
+        val compilerName =
+          if (isDotty(scalaVersion))
+            s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}"
+          else
+            "scala-compiler"
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
           loader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null),
-          libraryJar = grepJar(compilerClasspath, s"scala-library-$scalaVersion.jar"),
-          compilerJar = grepJar(compilerClasspath, s"scala-compiler-$scalaVersion.jar"),
+          libraryJar = grepJar(compilerClasspath, "scala-library", scalaVersion).toIO,
+          compilerJar = grepJar(compilerClasspath, compilerName, scalaVersion).toIO,
           allJars = compilerJars,
           explicitActual = None
         )

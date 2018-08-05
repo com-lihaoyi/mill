@@ -14,6 +14,7 @@ import utest._
 import utest.framework.TestPath
 
 import scala.collection.JavaConverters._
+import scala.util.Properties.isJavaAtLeast
 
 
 object HelloWorldTests extends TestSuite {
@@ -190,11 +191,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldTypeLevel extends HelloBase{
     object foo extends ScalaModule {
       def scalaVersion = "2.11.8"
-      override def mapDependencies = T.task{ d: coursier.Dependency =>
-        val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
-        if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
-        else d.copy(module = d.module.copy(organization = "org.typelevel"))
-      }
+      override def scalaOrganization = "org.typelevel"
 
       def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -236,6 +233,13 @@ object HelloWorldTests extends TestSuite {
         def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
       }
     }
+  }
+
+  object HelloDotty extends HelloBase{
+    object foo extends ScalaModule {
+      def scalaVersion = "0.9.0-RC1"
+      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.2.0".withDottyCompat(scalaVersion()))
+     }
   }
 
   val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
@@ -815,5 +819,17 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
+    'dotty - workspaceTest(
+      HelloDotty,
+      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-dotty"
+    ){ eval =>
+      if (isJavaAtLeast("9")) {
+        // Skip the test because Dotty does not support Java >= 9 yet
+        // (see https://github.com/lampepfl/dotty/pull/3138)
+      } else {
+        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
+        assert(evalCount > 0)
+      }
+    }
   }
 }

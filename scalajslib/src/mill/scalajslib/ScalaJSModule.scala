@@ -16,6 +16,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   trait Tests extends TestScalaJSModule {
     override def scalaWorker = outer.scalaWorker
+    override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
     override def scalaJSVersion = outer.scalaJSVersion()
     override def moduleDeps = Seq(outer)

@@ -8,6 +8,7 @@ import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createJar, subprocess}
+import Dep.isDotty
 import Lib._
 import mill.util.Loose.Agg
 import mill.util.DummyInputStream
@@ -17,6 +18,7 @@ import mill.util.DummyInputStream
   */
 trait ScalaModule extends JavaModule { outer =>
   trait Tests extends TestModule with ScalaModule{
+    override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
     override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
@@ -25,12 +27,24 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalaWorker = outer.scalaWorker
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
+
+  def scalaOrganization: T[String] = T {
+    if (isDotty(scalaVersion()))
+      "ch.epfl.lamp"
+    else
+      "org.scala-lang"
+  }
+
   def scalaVersion: T[String]
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
-    val artifacts = Set("scala-library", "scala-compiler", "scala-reflect")
-    if (d.module.organization != "org.scala-lang" || !artifacts(d.module.name)) d
-    else d.copy(version = scalaVersion())
+    val artifacts =
+      if (isDotty(scalaVersion()))
+        Set("dotty-library", "dotty-compiler")
+      else
+        Set("scala-library", "scala-compiler", "scala-reflect")
+    if (!artifacts(d.module.name)) d
+    else d.copy(module = d.module.copy(organization = scalaOrganization()), version = scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
@@ -77,25 +91,41 @@ trait ScalaModule extends JavaModule { outer =>
       case _ => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
     }
 
+    val (bridgeDep, bridgeName, bridgeVersion) =
+      if (isDotty(scalaVersion0)) {
+        val org = scalaOrganization()
+        val name = "dotty-sbt-bridge"
+        val version = scalaVersion()
+        (ivy"$org:$name:$version", name, version)
+      } else {
+        val org = "org.scala-sbt"
+        val name = "compiler-bridge"
+        val version = Versions.zinc
+        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
+      }
+
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion0, platformSuffix()),
-      Seq(ivy"org.scala-sbt::compiler-bridge:${Versions.zinc}"),
+      Seq(bridgeDep),
       sources = true
-    ).map(_.find(_.path.last == s"compiler-bridge_${scalaBinaryVersion0}-${Versions.zinc}-sources.jar").map(_.path).get)
+    ).map(deps =>
+      grepJar(deps.map(_.path), bridgeName, s"$bridgeVersion-sources")
+    )
   }
 
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalacPluginIvyDeps)()
   }
 
-  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaVersion()) }
+  def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion()) }
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T{
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaVersion()) ++ scalaRuntimeIvyDeps(scalaVersion())}
+      T.task{scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())}
     )()
   }
   override def compileClasspath = T{
@@ -155,7 +185,11 @@ trait ScalaModule extends JavaModule { outer =>
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.interactiveSubprocess(
-        mainClass = "scala.tools.nsc.MainGenericRunner",
+        mainClass =
+          if (isDotty(scalaVersion()))
+            "dotty.tools.repl.Main"
+          else
+            "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
         mainArgs = Seq("-usejavacp"),
         workingDir = pwd

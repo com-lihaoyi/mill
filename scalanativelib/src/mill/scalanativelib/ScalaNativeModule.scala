@@ -47,6 +47,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   trait Tests extends TestScalaNativeModule {
     override def scalaWorker = outer.scalaWorker
+    override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
     override def scalaNativeVersion = outer.scalaNativeVersion()
     override def releaseMode = outer.releaseMode()
@@ -223,7 +224,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     Lib.resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion(), ""),
-      transitiveIvyDeps().collect{ case x: Dep.Scala => x }.filter(d => supportedTestFrameworks(d.dep.module.name))
+      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name))
     )
   }
 
@@ -238,6 +239,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
   // which knows the names of all the tests and references to invoke them
   object testRunnerNative extends ScalaNativeModule {
     override def scalaWorker = testOuter.scalaWorker
+    override def scalaOrganization = testOuter.scalaOrganization()
     override def scalaVersion = testOuter.scalaVersion()
     override def scalaNativeVersion = testOuter.scalaNativeVersion()
     override def moduleDeps = Seq(testOuter)
