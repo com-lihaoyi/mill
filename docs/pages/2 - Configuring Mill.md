@@ -312,7 +312,7 @@ parameters.
 You can print the value of your custom target using `show`, e.g.
 
 ```bash
-mill run show lineCount
+mill show lineCount
 ```
 
 You can define new un-cached Commands using the `T.command {...}` syntax. These
