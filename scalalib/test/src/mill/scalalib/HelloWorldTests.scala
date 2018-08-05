@@ -14,6 +14,7 @@ import utest._
 import utest.framework.TestPath
 
 import scala.collection.JavaConverters._
+import scala.util.Properties.isJavaAtLeast
 
 
 object HelloWorldTests extends TestSuite {
@@ -822,8 +823,13 @@ object HelloWorldTests extends TestSuite {
       HelloDotty,
       resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-dotty"
     ){ eval =>
-      val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
-      assert(evalCount > 0)
+      if (isJavaAtLeast("9")) {
+        // Skip the test because Dotty does not support Java >= 9 yet
+        // (see https://github.com/lampepfl/dotty/pull/3138)
+      } else {
+        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
+        assert(evalCount > 0)
+      }
     }
   }
 }
