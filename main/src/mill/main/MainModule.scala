@@ -68,21 +68,29 @@ trait MainModule extends mill.Module{
     * executed in what order, without actually executing them.
     */
   def plan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    plan0(evaluator, targets) match{
+      case Right(success) => {
+        success.foreach(println)
+        Result.Success(success)
+      }
+      case Left(err) => Result.Failure(err)
+    }
+  }
+
+  private def plan0(evaluator: Evaluator[Any], targets: Seq[String]) = {
     val resolved = RunScript.resolveTasks(
       mill.main.ResolveTasks, evaluator, targets, multiSelect = true
     )
 
-    resolved match{
-      case Left(err) => Result.Failure(err)
+    resolved match {
+      case Left(err) => Left(err)
       case Right(rs) =>
         val (sortedGroups, transitive) = Evaluator.plan(evaluator.rootModule, rs)
-        val labels = sortedGroups
+        Right(sortedGroups
           .keys()
           .collect{ case Right(r) => r.segments.render}
           .toArray
-
-        labels.foreach(println)
-        Result.Success(labels)
+        )
     }
   }
 
