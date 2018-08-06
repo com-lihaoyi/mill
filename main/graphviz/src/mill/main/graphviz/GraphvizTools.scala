@@ -1,5 +1,6 @@
 package mill.main.graphviz
 import ammonite.ops.Path
+import guru.nidi.graphviz.attribute.Style
 import mill.define.{Graph, NamedTask}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools{
