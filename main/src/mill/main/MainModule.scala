@@ -231,15 +231,31 @@ trait MainModule extends mill.Module{
   }
 
   def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-    )
-    resolved match{
+    visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
+  }
+
+  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], Path)],
+    LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
+
+  private def visualize0(evaluator: Evaluator[Any], targets: Seq[String], ctx: Ctx, vizWorker: VizWorker) = {
+    def resolveTasks(targets: Seq[String]): Either[String, List[NamedTask[Any]]] = {
+      RunScript.resolveTasks(
+        mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      )
+    }
+
+    val resolved = resolveTasks(targets)
+
+    def callVisualizeModule(rs: List[NamedTask[Any]]) = {
+      val (in, out) = vizWorker
+      in.put((rs, ctx.dest))
+      out.take()
+    }
+
+    resolved match {
       case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        val (in, out) = mill.main.VisualizeModule.worker()
-        in.put((rs, T.ctx().dest))
-        out.take()
+      case Right(rs) => callVisualizeModule(rs)
     }
   }
+
 }
