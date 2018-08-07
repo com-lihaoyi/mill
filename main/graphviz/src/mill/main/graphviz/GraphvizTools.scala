@@ -11,8 +11,8 @@ object GraphvizTools{
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case x: NamedTask[Any] if goalSet.contains(x) => x
     }
-    import guru.nidi.graphviz.model.Factory._
     import guru.nidi.graphviz.engine.{Format, Graphviz}
+    import guru.nidi.graphviz.model.Factory._
 
     val edgesIterator =
       for((k, vs) <- sortedGroups.items())
