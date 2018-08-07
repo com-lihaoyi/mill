@@ -234,27 +234,42 @@ trait MainModule extends mill.Module{
     visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
   }
 
-  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], Path)],
+  def visualizePlan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    plan0(evaluator, targets) match {
+      case Right(planResults) =>
+        visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker(), Some(planResults))
+      case Left(err) => Result.Failure(err)
+    }
+  }
+
+  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], Path)],
     LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
 
-  private def visualize0(evaluator: Evaluator[Any], targets: Seq[String], ctx: Ctx, vizWorker: VizWorker) = {
+  private def visualize0(evaluator: Evaluator[Any], targets: Seq[String], ctx: Ctx, vizWorker: VizWorker,
+                         planTasks: Option[Array[String]] = None) = {
     def resolveTasks(targets: Seq[String]): Either[String, List[NamedTask[Any]]] = {
       RunScript.resolveTasks(
         mill.main.ResolveTasks, evaluator, targets, multiSelect = true
       )
     }
 
-    val resolved = resolveTasks(targets)
-
-    def callVisualizeModule(rs: List[NamedTask[Any]]) = {
+    def callVisualizeModule(rs: List[NamedTask[Any]], allRs: List[NamedTask[Any]]) = {
       val (in, out) = vizWorker
-      in.put((rs, ctx.dest))
+      in.put((rs, allRs, ctx.dest))
       out.take()
     }
 
+    val resolved = resolveTasks(targets)
+
     resolved match {
       case Left(err) => Result.Failure(err)
-      case Right(rs) => callVisualizeModule(rs)
+      case Right(rs) => planTasks match {
+        case Some(allTasks) => resolveTasks(allTasks) match {
+          case Left (err) => Result.Failure (err)
+          case Right (allRs) => callVisualizeModule (rs, allRs)
+        }
+        case None => callVisualizeModule(rs, rs)
+      }
     }
   }
 
