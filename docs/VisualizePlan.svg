@@ -1,0 +1,49 @@
+<svg width="454pt" height="188pt"
+ viewBox="0.00 0.00 454.06 188.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 184)">
+<title>example1</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-184 450.0647,-184 450.0647,4 -4,4"/>
+<!-- moduledefs.sources -->
+<g id="node1" class="node">
+<title>moduledefs.sources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="87.4606" cy="-18" rx="87.4212" ry="18"/>
+<text text-anchor="middle" x="87.4606" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.sources</text>
+</g>
+<!-- moduledefs.generatedSources -->
+<g id="node2" class="node">
+<title>moduledefs.generatedSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="319.4606" cy="-18" rx="126.7082" ry="18"/>
+<text text-anchor="middle" x="319.4606" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.generatedSources</text>
+</g>
+<!-- moduledefs.allSources -->
+<g id="node3" class="node">
+<title>moduledefs.allSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="203.4606" cy="-90" rx="98.9552" ry="18"/>
+<text text-anchor="middle" x="203.4606" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSources</text>
+</g>
+<!-- moduledefs.allSources&#45;&gt;moduledefs.sources -->
+<g id="edge1" class="edge">
+<title>moduledefs.allSources&#45;&gt;moduledefs.sources</title>
+<path fill="none" stroke="#000000" d="M175.3802,-72.5708C159.9918,-63.0194 140.734,-51.0662 124.1675,-40.7836"/>
+<polygon fill="#000000" stroke="#000000" points="125.6246,-37.5686 115.2824,-35.2687 121.933,-43.5161 125.6246,-37.5686"/>
+</g>
+<!-- moduledefs.allSources&#45;&gt;moduledefs.generatedSources -->
+<g id="edge2" class="edge">
+<title>moduledefs.allSources&#45;&gt;moduledefs.generatedSources</title>
+<path fill="none" stroke="#000000" d="M231.541,-72.5708C246.7031,-63.1599 265.6216,-51.4173 282.0211,-41.2383"/>
+<polygon fill="#000000" stroke="#000000" points="284.1823,-44.0163 290.833,-35.7689 280.4908,-38.0688 284.1823,-44.0163"/>
+</g>
+<!-- moduledefs.allSourceFiles -->
+<g id="node4" class="node">
+<title>moduledefs.allSourceFiles</title>
+<ellipse fill="none" stroke="#000000" cx="203.4606" cy="-162" rx="114" ry="18"/>
+<text text-anchor="middle" x="203.4606" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSourceFiles</text>
+</g>
+<!-- moduledefs.allSourceFiles&#45;&gt;moduledefs.allSources -->
+<g id="edge3" class="edge">
+<title>moduledefs.allSourceFiles&#45;&gt;moduledefs.allSources</title>
+<path fill="none" stroke="#000000" d="M203.4606,-143.8314C203.4606,-136.131 203.4606,-126.9743 203.4606,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="206.9607,-118.4132 203.4606,-108.4133 199.9607,-118.4133 206.9607,-118.4132"/>
+</g>
+</g>
+</svg>
