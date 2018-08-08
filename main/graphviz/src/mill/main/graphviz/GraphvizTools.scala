@@ -1,17 +1,18 @@
 package mill.main.graphviz
 import ammonite.ops.Path
+import guru.nidi.graphviz.attribute.Style
 import mill.define.{Graph, NamedTask}
 import org.jgrapht.graph.{DefaultEdge, SimpleDirectedGraph}
 object GraphvizTools{
-  def apply(rs: Seq[NamedTask[Any]], dest: Path) = {
+  def apply(targets: Seq[NamedTask[Any]], rs: Seq[NamedTask[Any]], dest: Path) = {
     val transitive = Graph.transitiveTargets(rs.distinct)
     val topoSorted = Graph.topoSorted(transitive)
     val goalSet = rs.toSet
     val sortedGroups = Graph.groupAroundImportantTargets(topoSorted){
       case x: NamedTask[Any] if goalSet.contains(x) => x
     }
-    import guru.nidi.graphviz.model.Factory._
     import guru.nidi.graphviz.engine.{Format, Graphviz}
+    import guru.nidi.graphviz.model.Factory._
 
     val edgesIterator =
       for((k, vs) <- sortedGroups.items())
@@ -38,7 +39,12 @@ object GraphvizTools{
 
 
     org.jgrapht.alg.TransitiveReduction.INSTANCE.reduce(jgraph)
-    val nodes = indexToTask.map(t => node(t.ctx.segments.render))
+    val nodes = indexToTask.map(t =>
+      node(t.ctx.segments.render).`with`{
+        if(targets.contains(t)) Style.SOLID
+        else Style.DOTTED
+      }
+    )
 
     var g = graph("example1").directed
     for(i <- indexToTask.indices){

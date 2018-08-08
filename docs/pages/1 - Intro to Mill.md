@@ -558,6 +558,29 @@ compilation output:
 
 ![VisualizeCompile.svg](VisualizeCompile.svg)
 
+### visualizePlan
+
+```bash
+$ mill show visualizePlan moduledefs.allSourceFiles
+[
+    ".../out/visualizePlan/dest/out.txt",
+    ".../out/visualizePlan/dest/out.dot",
+    ".../out/visualizePlan/dest/out.json",
+    ".../out/visualizePlan/dest/out.png",
+    ".../out/visualizePlan/dest/out.svg"
+]
+```
+
+`mill show visualizePlan` is similar except that it shows a graph of the entire
+build plan, including dependencies not directly resolved by the query. Targets
+directly resolved are shown with a solid border, and dependencies are shown with
+a dotted border.
+
+The above command generates the following diagram:
+
+![VisualizePlan.svg](VisualizePlan.svg)
+
+Currently, visualizePlan does not support graphs that contain external modules.
 
 ### clean
 
