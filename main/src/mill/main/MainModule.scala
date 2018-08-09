@@ -67,27 +67,22 @@ trait MainModule extends mill.Module{
   def plan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     plan0(evaluator, targets) match{
       case Right(success) => {
-        success.foreach(println)
-        Result.Success(success)
+        val renderedTasks = success.map{ _.segments.render}
+        renderedTasks.foreach(println)
+        Result.Success(renderedTasks)
       }
       case Left(err) => Result.Failure(err)
     }
   }
 
   private def plan0(evaluator: Evaluator[Any], targets: Seq[String]) = {
-    val resolved = RunScript.resolveTasks(
+    RunScript.resolveTasks(
       mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-    )
-
-    resolved match {
+    ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
-        val (sortedGroups, transitive) = Evaluator.plan(evaluator.rootModule, rs)
-        Right(sortedGroups
-          .keys()
-          .collect{ case Right(r) => r.segments.render}
-          .toArray
-        )
+        val (sortedGroups, _) = Evaluator.plan(evaluator.rootModule, rs)
+        Right(sortedGroups.keys().collect{ case Right(r) => r}.toArray)
     }
   }
 
@@ -233,9 +228,10 @@ trait MainModule extends mill.Module{
 
   def visualizePlan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     plan0(evaluator, targets) match {
-      case Right(planResults) =>
-        visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker(), Some(planResults))
       case Left(err) => Result.Failure(err)
+      case Right(planResults) => visualize0(
+        evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker(), Some(planResults.toList.map(_.task))
+      )
     }
   }
 
@@ -243,27 +239,20 @@ trait MainModule extends mill.Module{
     LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
 
   private def visualize0(evaluator: Evaluator[Any], targets: Seq[String], ctx: Ctx, vizWorker: VizWorker,
-                         planTasks: Option[Array[String]] = None) = {
-    def resolveTasks(targets: Seq[String]): Either[String, List[NamedTask[Any]]] = {
-      RunScript.resolveTasks(
-        mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-      )
-    }
-
+                         planTasks: Option[List[NamedTask[_]]] = None) = {
     def callVisualizeModule(rs: List[NamedTask[Any]], allRs: List[NamedTask[Any]]) = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))
       out.take()
     }
 
-    val resolved = resolveTasks(targets)
-
-    resolved match {
+    RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
-        case Some(allTasks) => resolveTasks(allTasks) match {
-          case Left (err) => Result.Failure (err)
-          case Right (allRs) => callVisualizeModule (rs, allRs)
+        case Some(allRs) => {
+          callVisualizeModule(rs, allRs)
         }
         case None => callVisualizeModule(rs, rs)
       }
