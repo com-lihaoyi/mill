@@ -561,7 +561,7 @@ compilation output:
 ### visualizePlan
 
 ```bash
-$ mill show visualizePlan moduledefs.allSourceFiles
+$ mill show visualizePlan core.launcher
 [
     ".../out/visualizePlan/dest/out.txt",
     ".../out/visualizePlan/dest/out.dot",
@@ -571,16 +571,14 @@ $ mill show visualizePlan moduledefs.allSourceFiles
 ]
 ```
 
-`mill show visualizePlan` is similar except that it shows a graph of the entire
-build plan, including dependencies not directly resolved by the query. Targets
-directly resolved are shown with a solid border, and dependencies are shown with
-a dotted border.
+`mill show visualizePlan` is similar to `mill show visualize` except that it
+shows a graph of the entire build plan, including tasks not directly resolved
+by the query. Tasks directly resolved are shown with a solid border,
+and dependencies are shown with a dotted border.
 
 The above command generates the following diagram:
 
 ![VisualizePlan.svg](VisualizePlan.svg)
-
-Currently, visualizePlan does not support graphs that contain external modules.
 
 ### clean
 
