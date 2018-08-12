@@ -410,15 +410,13 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    TestRunner.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args
     )
 
-    val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }
