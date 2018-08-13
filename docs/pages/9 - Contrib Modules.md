@@ -49,3 +49,24 @@ object example extends ScalaPBModule {
   override def scalaPBOptions = "flat_package,java_conversions"
 }
 ```
+
+### ScalaJS - JsDependencies
+
+This modules allows a ScalaJS build to *use* dependencies that declare dependencies on JavaScript libraries via `jsDependencies` in their (sbt) buildfile. 
+
+It is usually only needed for older scalajs libraries and is mainly a re-write of the [jsdependencies](https://github.com/scala-js/jsdependencies "jsdependencies") sbt-plugin for mill.
+
+It does not allow a mill build to declare dependencies on JavaScript libraries.
+
+To declare a module that uses JsDependencies you can extend the `mill.contrib.ScalaJSDependencies` trait when defining your module.
+
+#### Configuration options
+
+* `def useMinifiedJSDependencies: T[Boolean]`
+  If set to `true` the plugin will try to use the minified version of the JavaScript library.
+  
+* `def jsdependenciesOutputFileName: T[String]`
+  Name of the generated file that contains all the dependent JavaScript libraries.
+  Defaults to `out-deps.js` (or `out-deps-min.js` when `useMinifiedJSDependencies` is set to `true`) 
+
+

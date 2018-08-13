@@ -238,6 +238,16 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
+  object scalajsdependencies extends MillModule {
+    def moduleDeps = Seq(scalajslib)
+    def ivyDeps = Agg(ivy"org.scala-js::jsdependencies-core:1.0.0-M3")
+    def testArgs = T{
+      Seq("-Djna.nosys=true") ++
+      scalalib.worker.testArgs() ++
+      scalalib.backgroundwrapper.testArgs()
+    }
+  }
+
 }
 
 
