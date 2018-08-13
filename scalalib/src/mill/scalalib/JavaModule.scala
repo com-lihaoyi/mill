@@ -275,7 +275,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
     }
@@ -321,7 +321,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-      workingDir = ammonite.ops.pwd,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
@@ -336,7 +336,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-      workingDir = forkWorkingDir,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
@@ -358,7 +358,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = forkWorkingDir
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
     }
@@ -372,7 +372,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def intellijModulePath: Path = millSourcePath
 
-  def forkWorkingDir = ammonite.ops.pwd
+  def forkWorkingDir = T{ ammonite.ops.pwd }
 }
 
 trait TestModule extends JavaModule with TaskModule {
@@ -395,7 +395,7 @@ trait TestModule extends JavaModule with TaskModule {
         Seq(args.length.toString) ++
         args ++
         Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
-      workingDir = forkWorkingDir
+      workingDir = forkWorkingDir()
     )
 
     try {
