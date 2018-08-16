@@ -49,3 +49,61 @@ object example extends ScalaPBModule {
   override def scalaPBOptions = "flat_package,java_conversions"
 }
 ```
+
+### BuildInfo
+
+Generate scala code from your buildfile.  
+This plugin generates a single object containing information from your build.
+  
+To declare a module that uses BuildInfo you must extend the `mill.contrib.BuildInfo` trait when defining your module.
+
+Quickstart:
+  ```scala
+  object project extends BuildInfo {
+    val name = "poject-name"
+    def  buildInfoMembers: T[Map[String, String]] = T {
+      Map(
+        "name" -> name),
+        "scalaVersion" -> scalaVersion()
+      )
+    }
+  }
+  ```
+  
+#### Configuration options
+
+* `def buildInfoMembers: T[Map[String, String]]`  
+  The map containing all member names and values for the generated info object.
+
+* `def buildInfoObjectName: String`, default: `BuildInfo`  
+  The name of the object which contains all the members from `buildInfoMembers`.
+
+* `def buildInfoPackageName: Option[String]`, default: `None`  
+  The package name of the object.
+
+
+### Other Mill Plugins
+
+- [ensime](https://github.com/yyadavalli/mill-ensime "mill-ensime")
+
+  Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
+  
+  Quickstart:
+  ```scala
+  import $ivy.`fun.valycorp::mill-ensime:0.0.1`
+  ```
+  ```sh
+  sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
+  ```
+  
+- [dgraph](https://github.com/ajrnz/mill-dgraph "mill-dgraph")
+
+  Show transitive dependencies of your build in your browser.
+  
+  Quickstart:
+  ```scala
+  import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
+  ```
+  ```sh
+  sh> mill plugin.dgraph.browseDeps(proj)()
+  ```
