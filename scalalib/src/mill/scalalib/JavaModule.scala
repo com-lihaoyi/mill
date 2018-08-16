@@ -275,7 +275,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
     }
@@ -321,7 +321,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-      workingDir = ammonite.ops.pwd,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
@@ -336,7 +336,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-      workingDir = ammonite.ops.pwd,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
@@ -358,7 +358,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
     }
@@ -371,13 +371,13 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def artifactId: T[String] = artifactName()
 
   def intellijModulePath: Path = millSourcePath
+
+  def forkWorkingDir = T{ ammonite.ops.pwd }
 }
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFrameworks: T[Seq[String]]
-
-  def forkWorkingDir = ammonite.ops.pwd
 
   def test(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
@@ -395,7 +395,7 @@ trait TestModule extends JavaModule with TaskModule {
         Seq(args.length.toString) ++
         args ++
         Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
-      workingDir = forkWorkingDir
+      workingDir = forkWorkingDir()
     )
 
     try {
@@ -410,15 +410,13 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    TestRunner.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args
     )
 
-    val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }
