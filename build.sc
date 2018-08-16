@@ -232,7 +232,7 @@ object twirllib extends MillModule {
 
 }
 
-object contrib extends Module {
+object contrib extends MillModule {
 
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
