@@ -1,5 +1,5 @@
-import $file.shared
-import $file.upload
+import $file.ci.shared
+import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
 
 import ammonite.ops._
@@ -28,14 +28,6 @@ trait MillPublishModule extends PublishModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 
-object moduledefs extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.6" }
-  def ivyDeps = Agg(
-    ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-    ivy"com.lihaoyi::sourcecode:0.1.4"
-  )
-}
-
 trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   def scalaVersion = T{ "2.12.6" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -59,16 +51,8 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(moduledefs.jar())
+    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(core.moduledefs.jar())
   }
-}
-
-
-object testng extends MillPublishModule{
-  def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0",
-    ivy"org.testng:testng:6.11"
-  )
 }
 
 object core extends MillModule {
@@ -88,6 +72,15 @@ object core extends MillModule {
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
   }
+
+  object moduledefs extends MillPublishModule with ScalaModule{
+    def scalaVersion = T{ "2.12.6" }
+    def ivyDeps = Agg(
+      ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
+      ivy"com.lihaoyi::sourcecode:0.1.4"
+    )
+  }
+
 }
 
 object main extends MillModule {
@@ -152,7 +145,7 @@ object scalalib extends MillModule {
 
   def testArgs = T{
     val genIdeaArgs =
-      genTask(moduledefs)() ++
+      genTask(core.moduledefs)() ++
       genTask(core)() ++
       genTask(main)() ++
       genTask(scalalib)() ++
@@ -226,13 +219,19 @@ object scalajslib extends MillModule {
   }
 }
 
-object twirllib extends MillModule {
-
-  def moduleDeps = Seq(scalalib)
-
-}
 
 object contrib extends MillModule {
+  object testng extends MillPublishModule{
+    def ivyDeps = Agg(
+      ivy"org.scala-sbt:test-interface:1.0",
+      ivy"org.testng:testng:6.11"
+    )
+  }
+
+  object twirllib extends MillModule {
+    def moduleDeps = Seq(scalalib)
+
+  }
 
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
@@ -306,14 +305,14 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(moduledefs, scalalib, scalajslib, scalanativelib)
+  def moduleDeps = Seq(core.moduledefs, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
     scalanativelib.testArgs() ++
     Seq(
-      "-DMILL_TESTNG=" + testng.runClasspath().map(_.path).mkString(","),
+      "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
       "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"

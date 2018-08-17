@@ -22,7 +22,7 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  val resourcePath: Path = pwd / 'twirllib / 'test / 'resources / "hello-world"
+  val resourcePath: Path = pwd / 'contrib / 'twirllib / 'test / 'resources / "hello-world"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
                                                 (t: TestEvaluator[M] => T)
