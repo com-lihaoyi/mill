@@ -1,829 +1,355 @@
-<svg width="3925pt" height="836pt"
- viewBox="0.00 0.00 3924.79 836.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
-<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 832)">
+<svg width="3473pt" height="332pt"
+ viewBox="0.00 0.00 3473.15 332.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
 <title>example1</title>
-<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-832 3920.786,-832 3920.786,4 -4,4"/>
-<!-- core.mainClass -->
-<g id="node1" class="node">
-<title>core.mainClass</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2680.8309" cy="-594" rx="70.101" ry="18"/>
-<text text-anchor="middle" x="2680.8309" y="-589.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.mainClass</text>
-</g>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-328 3469.1473,-328 3469.1473,4 -4,4"/>
 <!-- mill.scalalib.ScalaWorkerModule.classpath -->
-<g id="node2" class="node">
+<g id="node1" class="node">
 <title>mill.scalalib.ScalaWorkerModule.classpath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3219.8309" cy="-162" rx="179.3473" ry="18"/>
-<text text-anchor="middle" x="3219.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.classpath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="179.1736" cy="-162" rx="179.3473" ry="18"/>
+<text text-anchor="middle" x="179.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.classpath</text>
 </g>
 <!-- mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath -->
-<g id="node3" class="node">
+<g id="node2" class="node">
 <title>mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3666.8309" cy="-162" rx="249.9102" ry="18"/>
-<text text-anchor="middle" x="3666.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="626.1736" cy="-162" rx="249.9102" ry="18"/>
+<text text-anchor="middle" x="626.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</text>
 </g>
 <!-- mill.scalalib.ScalaWorkerModule.worker -->
-<g id="node4" class="node">
+<g id="node3" class="node">
 <title>mill.scalalib.ScalaWorkerModule.worker</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3395.8309" cy="-234" rx="171.2452" ry="18"/>
-<text text-anchor="middle" x="3395.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.worker</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="626.1736" cy="-234" rx="171.2452" ry="18"/>
+<text text-anchor="middle" x="626.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.worker</text>
 </g>
 <!-- mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.classpath -->
 <g id="edge1" class="edge">
 <title>mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.classpath</title>
-<path fill="none" stroke="#000000" d="M3352.7765,-216.3868C3328.5023,-206.4565 3297.9913,-193.9747 3272.3229,-183.474"/>
-<polygon fill="#000000" stroke="#000000" points="3273.3262,-180.103 3262.7455,-179.556 3270.6758,-186.5818 3273.3262,-180.103"/>
+<path fill="none" stroke="#000000" d="M532.4677,-218.9064C459.9462,-207.2251 359.5232,-191.0496 284.2741,-178.9289"/>
+<polygon fill="#000000" stroke="#000000" points="284.7249,-175.4565 274.2956,-177.3217 283.6117,-182.3675 284.7249,-175.4565"/>
 </g>
 <!-- mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath -->
 <g id="edge2" class="edge">
 <title>mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</title>
-<path fill="none" stroke="#000000" d="M3459.0263,-217.2101C3498.5554,-206.7079 3549.6948,-193.121 3591.35,-182.054"/>
-<polygon fill="#000000" stroke="#000000" points="3592.4087,-185.3942 3601.1747,-179.4437 3590.6112,-178.6289 3592.4087,-185.3942"/>
-</g>
-<!-- core.scalaVersion -->
-<g id="node5" class="node">
-<title>core.scalaVersion</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2824.8309" cy="-378" rx="79.8719" ry="18"/>
-<text text-anchor="middle" x="2824.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaVersion</text>
-</g>
-<!-- core.sources -->
-<g id="node6" class="node">
-<title>core.sources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3094.8309" cy="-378" rx="59.0476" ry="18"/>
-<text text-anchor="middle" x="3094.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.sources</text>
-</g>
-<!-- core.generatedSources -->
-<g id="node7" class="node">
-<title>core.generatedSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3269.8309" cy="-378" rx="98.3348" ry="18"/>
-<text text-anchor="middle" x="3269.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.generatedSources</text>
-</g>
-<!-- core.allSources -->
-<g id="node8" class="node">
-<title>core.allSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3269.8309" cy="-450" rx="70.0817" ry="18"/>
-<text text-anchor="middle" x="3269.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.allSources</text>
-</g>
-<!-- core.allSources&#45;&gt;core.sources -->
-<g id="edge3" class="edge">
-<title>core.allSources&#45;&gt;core.sources</title>
-<path fill="none" stroke="#000000" d="M3232.289,-434.5542C3205.1294,-423.38 3168.3126,-408.2325 3139.6171,-396.4263"/>
-<polygon fill="#000000" stroke="#000000" points="3140.8021,-393.1293 3130.2225,-392.5611 3138.1387,-399.6028 3140.8021,-393.1293"/>
-</g>
-<!-- core.allSources&#45;&gt;core.generatedSources -->
-<g id="edge4" class="edge">
-<title>core.allSources&#45;&gt;core.generatedSources</title>
-<path fill="none" stroke="#000000" d="M3269.8309,-431.8314C3269.8309,-424.131 3269.8309,-414.9743 3269.8309,-406.4166"/>
-<polygon fill="#000000" stroke="#000000" points="3273.331,-406.4132 3269.8309,-396.4133 3266.331,-406.4133 3273.331,-406.4132"/>
-</g>
-<!-- core.allSourceFiles -->
-<g id="node9" class="node">
-<title>core.allSourceFiles</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3282.8309" cy="-522" rx="85.1262" ry="18"/>
-<text text-anchor="middle" x="3282.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.allSourceFiles</text>
-</g>
-<!-- core.allSourceFiles&#45;&gt;core.allSources -->
-<g id="edge5" class="edge">
-<title>core.allSourceFiles&#45;&gt;core.allSources</title>
-<path fill="none" stroke="#000000" d="M3279.5504,-503.8314C3278.1601,-496.131 3276.5068,-486.9743 3274.9617,-478.4166"/>
-<polygon fill="#000000" stroke="#000000" points="3278.3767,-477.6322 3273.1555,-468.4133 3271.4881,-478.8761 3278.3767,-477.6322"/>
-</g>
-<!-- core.platformSuffix -->
-<g id="node10" class="node">
-<title>core.platformSuffix</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2709.8309" cy="-450" rx="87.4174" ry="18"/>
-<text text-anchor="middle" x="2709.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.platformSuffix</text>
-</g>
-<!-- core.scalaCompilerBridgeSources -->
-<g id="node11" class="node">
-<title>core.scalaCompilerBridgeSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2785.8309" cy="-522" rx="142.8931" ry="18"/>
-<text text-anchor="middle" x="2785.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaCompilerBridgeSources</text>
-</g>
-<!-- core.scalaCompilerBridgeSources&#45;&gt;core.scalaVersion -->
-<g id="edge6" class="edge">
-<title>core.scalaCompilerBridgeSources&#45;&gt;core.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M2810.5953,-504.1108C2821.4455,-494.7286 2833.0158,-482.2266 2838.8309,-468 2846.9584,-448.1161 2842.5183,-423.9925 2836.5597,-405.7276"/>
-<polygon fill="#000000" stroke="#000000" points="2839.831,-404.481 2833.1634,-396.2473 2833.2412,-406.8419 2839.831,-404.481"/>
-</g>
-<!-- core.scalaCompilerBridgeSources&#45;&gt;core.platformSuffix -->
-<g id="edge7" class="edge">
-<title>core.scalaCompilerBridgeSources&#45;&gt;core.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M2766.6529,-503.8314C2757.3319,-495.001 2745.9896,-484.2556 2735.8972,-474.6944"/>
-<polygon fill="#000000" stroke="#000000" points="2738.144,-472.0017 2728.4773,-467.665 2733.3298,-477.0834 2738.144,-472.0017"/>
-</g>
-<!-- moduledefs.resources -->
-<g id="node12" class="node">
-<title>moduledefs.resources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2225.8309" cy="-162" rx="94.9242" ry="18"/>
-<text text-anchor="middle" x="2225.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.resources</text>
+<path fill="none" stroke="#000000" d="M626.1736,-215.8314C626.1736,-208.131 626.1736,-198.9743 626.1736,-190.4166"/>
+<polygon fill="#000000" stroke="#000000" points="629.6737,-190.4132 626.1736,-180.4133 622.6737,-190.4133 629.6737,-190.4132"/>
 </g>
 <!-- moduledefs.scalaVersion -->
-<g id="node13" class="node">
+<g id="node4" class="node">
 <title>moduledefs.scalaVersion</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1082.8309" cy="-18" rx="108.2456" ry="18"/>
-<text text-anchor="middle" x="1082.8309" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaVersion</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1907.1736" cy="-18" rx="108.2456" ry="18"/>
+<text text-anchor="middle" x="1907.1736" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaVersion</text>
 </g>
 <!-- moduledefs.sources -->
-<g id="node14" class="node">
+<g id="node5" class="node">
 <title>moduledefs.sources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1469.8309" cy="-90" rx="87.4212" ry="18"/>
-<text text-anchor="middle" x="1469.8309" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.sources</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="877.1736" cy="-90" rx="87.4212" ry="18"/>
+<text text-anchor="middle" x="877.1736" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.sources</text>
 </g>
 <!-- moduledefs.generatedSources -->
-<g id="node15" class="node">
+<g id="node6" class="node">
 <title>moduledefs.generatedSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1237.8309" cy="-90" rx="126.7082" ry="18"/>
-<text text-anchor="middle" x="1237.8309" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.generatedSources</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1109.1736" cy="-90" rx="126.7082" ry="18"/>
+<text text-anchor="middle" x="1109.1736" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.generatedSources</text>
 </g>
 <!-- moduledefs.allSources -->
-<g id="node16" class="node">
+<g id="node7" class="node">
 <title>moduledefs.allSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1413.8309" cy="-162" rx="98.9552" ry="18"/>
-<text text-anchor="middle" x="1413.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSources</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="993.1736" cy="-162" rx="98.9552" ry="18"/>
+<text text-anchor="middle" x="993.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSources</text>
 </g>
 <!-- moduledefs.allSources&#45;&gt;moduledefs.sources -->
-<g id="edge8" class="edge">
+<g id="edge3" class="edge">
 <title>moduledefs.allSources&#45;&gt;moduledefs.sources</title>
-<path fill="none" stroke="#000000" d="M1427.9621,-143.8314C1434.5112,-135.411 1442.4146,-125.2495 1449.5824,-116.0338"/>
-<polygon fill="#000000" stroke="#000000" points="1452.5215,-117.9558 1455.8982,-107.9134 1446.9961,-113.6581 1452.5215,-117.9558"/>
+<path fill="none" stroke="#000000" d="M965.0932,-144.5708C949.7048,-135.0194 930.447,-123.0662 913.8804,-112.7836"/>
+<polygon fill="#000000" stroke="#000000" points="915.3375,-109.5686 904.9953,-107.2687 911.646,-115.5161 915.3375,-109.5686"/>
 </g>
 <!-- moduledefs.allSources&#45;&gt;moduledefs.generatedSources -->
-<g id="edge9" class="edge">
+<g id="edge4" class="edge">
 <title>moduledefs.allSources&#45;&gt;moduledefs.generatedSources</title>
-<path fill="none" stroke="#000000" d="M1373.4529,-145.4817C1348.306,-135.1944 1315.7347,-121.8697 1288.8148,-110.857"/>
-<polygon fill="#000000" stroke="#000000" points="1290.1307,-107.6139 1279.55,-107.0669 1287.4803,-114.0927 1290.1307,-107.6139"/>
+<path fill="none" stroke="#000000" d="M1021.2539,-144.5708C1036.416,-135.1599 1055.3346,-123.4173 1071.7341,-113.2383"/>
+<polygon fill="#000000" stroke="#000000" points="1073.8953,-116.0163 1080.5459,-107.7689 1070.2037,-110.0688 1073.8953,-116.0163"/>
 </g>
 <!-- moduledefs.allSourceFiles -->
-<g id="node17" class="node">
+<g id="node8" class="node">
 <title>moduledefs.allSourceFiles</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1909.8309" cy="-234" rx="114" ry="18"/>
-<text text-anchor="middle" x="1909.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSourceFiles</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="961.1736" cy="-234" rx="114" ry="18"/>
+<text text-anchor="middle" x="961.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.allSourceFiles</text>
 </g>
 <!-- moduledefs.allSourceFiles&#45;&gt;moduledefs.allSources -->
-<g id="edge10" class="edge">
+<g id="edge5" class="edge">
 <title>moduledefs.allSourceFiles&#45;&gt;moduledefs.allSources</title>
-<path fill="none" stroke="#000000" d="M1826.4774,-221.7131C1813.2176,-219.7841 1799.6505,-217.8255 1786.8309,-216 1671.338,-199.5539 1642.2174,-197.1766 1526.8309,-180 1517.4248,-178.5998 1507.5851,-177.0938 1497.803,-175.5706"/>
-<polygon fill="#000000" stroke="#000000" points="1498.0715,-172.0701 1487.6504,-173.9808 1496.9885,-178.9858 1498.0715,-172.0701"/>
+<path fill="none" stroke="#000000" d="M969.2485,-215.8314C972.7838,-207.8771 977.0096,-198.369 980.9192,-189.5723"/>
+<polygon fill="#000000" stroke="#000000" points="984.1268,-190.9729 984.9899,-180.4133 977.7301,-188.1299 984.1268,-190.9729"/>
+</g>
+<!-- moduledefs.scalaOrganization -->
+<g id="node9" class="node">
+<title>moduledefs.scalaOrganization</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1789.1736" cy="-90" rx="128.43" ry="18"/>
+<text text-anchor="middle" x="1789.1736" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaOrganization</text>
+</g>
+<!-- moduledefs.scalaOrganization&#45;&gt;moduledefs.scalaVersion -->
+<g id="edge6" class="edge">
+<title>moduledefs.scalaOrganization&#45;&gt;moduledefs.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1818.0396,-72.3868C1833.5833,-62.9026 1852.9412,-51.0909 1869.6419,-40.9007"/>
+<polygon fill="#000000" stroke="#000000" points="1871.8922,-43.6278 1878.6055,-35.4313 1868.2461,-37.6523 1871.8922,-43.6278"/>
 </g>
 <!-- moduledefs.platformSuffix -->
-<g id="node18" class="node">
+<g id="node10" class="node">
 <title>moduledefs.platformSuffix</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="938.8309" cy="-162" rx="115.791" ry="18"/>
-<text text-anchor="middle" x="938.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.platformSuffix</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1645.1736" cy="-162" rx="115.791" ry="18"/>
+<text text-anchor="middle" x="1645.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.platformSuffix</text>
 </g>
 <!-- moduledefs.scalaCompilerBridgeSources -->
-<g id="node19" class="node">
+<g id="node11" class="node">
 <title>moduledefs.scalaCompilerBridgeSources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1606.8309" cy="-234" rx="171.2665" ry="18"/>
-<text text-anchor="middle" x="1606.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaCompilerBridgeSources</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1572.1736" cy="-234" rx="171.2665" ry="18"/>
+<text text-anchor="middle" x="1572.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaCompilerBridgeSources</text>
 </g>
-<!-- moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.scalaVersion -->
-<g id="edge11" class="edge">
-<title>moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M1492.4598,-220.6078C1359.7578,-202.5828 1152.6126,-165.9251 1101.8309,-108 1087.0861,-91.181 1082.7881,-65.8255 1081.9194,-46.309"/>
-<polygon fill="#000000" stroke="#000000" points="1085.4164,-46.0969 1081.745,-36.1585 1078.4174,-46.2172 1085.4164,-46.0969"/>
+<!-- moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.scalaOrganization -->
+<g id="edge7" class="edge">
+<title>moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1549.1918,-216.0058C1527.7117,-197.0191 1501.5334,-166.7539 1520.1736,-144 1539.1527,-120.8323 1604.3924,-107.3955 1665.8661,-99.7198"/>
+<polygon fill="#000000" stroke="#000000" points="1666.5785,-103.1595 1676.0892,-98.4908 1665.7429,-96.2095 1666.5785,-103.1595"/>
 </g>
 <!-- moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.platformSuffix -->
-<g id="edge12" class="edge">
+<g id="edge8" class="edge">
 <title>moduledefs.scalaCompilerBridgeSources&#45;&gt;moduledefs.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M1482.882,-221.5877C1325.6076,-205.8341 1073.9502,-180.6111 1068.8309,-180 1057.632,-178.6631 1045.9034,-177.1703 1034.2688,-175.6317"/>
-<polygon fill="#000000" stroke="#000000" points="1034.4599,-172.1262 1024.0843,-174.2707 1033.5326,-179.0646 1034.4599,-172.1262"/>
+<path fill="none" stroke="#000000" d="M1590.5946,-215.8314C1599.3932,-207.1533 1610.0669,-196.6257 1619.6335,-187.1902"/>
+<polygon fill="#000000" stroke="#000000" points="1622.3494,-189.4275 1627.0114,-179.9134 1617.4339,-184.4437 1622.3494,-189.4275"/>
 </g>
 <!-- moduledefs.transitiveLocalClasspath -->
-<g id="node20" class="node">
+<g id="node12" class="node">
 <title>moduledefs.transitiveLocalClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2492.8309" cy="-162" rx="153.9476" ry="18"/>
-<text text-anchor="middle" x="2492.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.transitiveLocalClasspath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3311.1736" cy="-162" rx="153.9476" ry="18"/>
+<text text-anchor="middle" x="3311.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.transitiveLocalClasspath</text>
+</g>
+<!-- moduledefs.resources -->
+<g id="node13" class="node">
+<title>moduledefs.resources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1912.1736" cy="-162" rx="94.9242" ry="18"/>
+<text text-anchor="middle" x="1912.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.resources</text>
 </g>
 <!-- moduledefs.unmanagedClasspath -->
-<g id="node21" class="node">
+<g id="node14" class="node">
 <title>moduledefs.unmanagedClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1709.8309" cy="-162" rx="140.636" ry="18"/>
-<text text-anchor="middle" x="1709.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.unmanagedClasspath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2166.1736" cy="-162" rx="140.636" ry="18"/>
+<text text-anchor="middle" x="2166.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.unmanagedClasspath</text>
 </g>
 <!-- moduledefs.compileIvyDeps -->
-<g id="node22" class="node">
+<g id="node15" class="node">
 <title>moduledefs.compileIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1990.8309" cy="-162" rx="122.1562" ry="18"/>
-<text text-anchor="middle" x="1990.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compileIvyDeps</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2447.1736" cy="-162" rx="122.1562" ry="18"/>
+<text text-anchor="middle" x="2447.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compileIvyDeps</text>
 </g>
 <!-- moduledefs.scalaLibraryIvyDeps -->
-<g id="node23" class="node">
+<g id="node16" class="node">
 <title>moduledefs.scalaLibraryIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1714.8309" cy="-90" rx="139.4477" ry="18"/>
-<text text-anchor="middle" x="1714.8309" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaLibraryIvyDeps</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2727.1736" cy="-162" rx="139.4477" ry="18"/>
+<text text-anchor="middle" x="2727.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaLibraryIvyDeps</text>
 </g>
-<!-- moduledefs.scalaLibraryIvyDeps&#45;&gt;moduledefs.scalaVersion -->
-<g id="edge13" class="edge">
-<title>moduledefs.scalaLibraryIvyDeps&#45;&gt;moduledefs.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M1613.4555,-77.6307C1597.5207,-75.7218 1581.2305,-73.791 1565.8309,-72 1433.8872,-56.6548 1281.5662,-39.7616 1183.8273,-29.0275"/>
-<polygon fill="#000000" stroke="#000000" points="1183.9812,-25.5234 1173.659,-27.9113 1183.2174,-32.4816 1183.9812,-25.5234"/>
+<!-- moduledefs.scalaLibraryIvyDeps&#45;&gt;moduledefs.scalaOrganization -->
+<g id="edge9" class="edge">
+<title>moduledefs.scalaLibraryIvyDeps&#45;&gt;moduledefs.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M2627.8676,-149.2761C2611.289,-147.3607 2594.2566,-145.5208 2578.1736,-144 2346.7806,-122.1197 2076.4061,-105.5642 1919.7849,-96.8588"/>
+<polygon fill="#000000" stroke="#000000" points="1919.8129,-93.3551 1909.6346,-96.2968 1919.4258,-100.3444 1919.8129,-93.3551"/>
 </g>
 <!-- moduledefs.ivyDeps -->
-<g id="node24" class="node">
+<g id="node17" class="node">
 <title>moduledefs.ivyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2404.8309" cy="-90" rx="90.8744" ry="18"/>
-<text text-anchor="middle" x="2404.8309" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.ivyDeps</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2519.1736" cy="-90" rx="90.8744" ry="18"/>
+<text text-anchor="middle" x="2519.1736" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.ivyDeps</text>
 </g>
 <!-- moduledefs.ivyDeps&#45;&gt;moduledefs.scalaVersion -->
-<g id="edge14" class="edge">
+<g id="edge10" class="edge">
 <title>moduledefs.ivyDeps&#45;&gt;moduledefs.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M2317.3234,-85.2341C2085.3638,-72.6009 1454.8346,-38.2604 1196.0201,-24.1646"/>
-<polygon fill="#000000" stroke="#000000" points="1196.0234,-20.6597 1185.8478,-23.6106 1195.6427,-27.6493 1196.0234,-20.6597"/>
+<path fill="none" stroke="#000000" d="M2441.0417,-80.808C2330.0875,-67.7546 2126.9212,-43.8527 2005.748,-29.597"/>
+<polygon fill="#000000" stroke="#000000" points="2006.0673,-26.1105 1995.7268,-28.418 2005.2494,-33.0626 2006.0673,-26.1105"/>
 </g>
 <!-- moduledefs.transitiveIvyDeps -->
-<g id="node25" class="node">
+<g id="node18" class="node">
 <title>moduledefs.transitiveIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2791.8309" cy="-162" rx="127.3073" ry="18"/>
-<text text-anchor="middle" x="2791.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.transitiveIvyDeps</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3012.1736" cy="-162" rx="127.3073" ry="18"/>
+<text text-anchor="middle" x="3012.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.transitiveIvyDeps</text>
 </g>
 <!-- moduledefs.transitiveIvyDeps&#45;&gt;moduledefs.ivyDeps -->
-<g id="edge15" class="edge">
+<g id="edge11" class="edge">
 <title>moduledefs.transitiveIvyDeps&#45;&gt;moduledefs.ivyDeps</title>
-<path fill="none" stroke="#000000" d="M2714.4458,-147.6028C2646.6776,-134.9947 2548.7568,-116.7769 2481.2709,-104.2214"/>
-<polygon fill="#000000" stroke="#000000" points="2481.5981,-100.7223 2471.1266,-102.3341 2480.3176,-107.6042 2481.5981,-100.7223"/>
+<path fill="none" stroke="#000000" d="M2923.4657,-149.0447C2832.3075,-135.7315 2691.4807,-115.1645 2602.384,-102.1524"/>
+<polygon fill="#000000" stroke="#000000" points="2602.7199,-98.6644 2592.3191,-100.6825 2601.7083,-105.591 2602.7199,-98.6644"/>
 </g>
 <!-- moduledefs.compileClasspath -->
-<g id="node26" class="node">
+<g id="node19" class="node">
 <title>moduledefs.compileClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2168.8309" cy="-234" rx="127.3266" ry="18"/>
-<text text-anchor="middle" x="2168.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compileClasspath</text>
-</g>
-<!-- moduledefs.compileClasspath&#45;&gt;moduledefs.resources -->
-<g id="edge21" class="edge">
-<title>moduledefs.compileClasspath&#45;&gt;moduledefs.resources</title>
-<path fill="none" stroke="#000000" d="M2183.2144,-215.8314C2189.8805,-207.411 2197.925,-197.2495 2205.2208,-188.0338"/>
-<polygon fill="#000000" stroke="#000000" points="2208.1865,-189.9264 2211.6494,-179.9134 2202.6982,-185.5814 2208.1865,-189.9264"/>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2210.1736" cy="-234" rx="127.3266" ry="18"/>
+<text text-anchor="middle" x="2210.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compileClasspath</text>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.platformSuffix -->
-<g id="edge16" class="edge">
+<g id="edge12" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M2079.6981,-221.136C2064.1018,-219.1904 2048.0115,-217.3769 2032.8309,-216 2026.8278,-215.4555 1343.3269,-181.863 1059.8685,-167.9424"/>
-<polygon fill="#000000" stroke="#000000" points="1059.7046,-164.4302 1049.5449,-167.4354 1059.3612,-171.4218 1059.7046,-164.4302"/>
+<path fill="none" stroke="#000000" d="M2117.2736,-221.6242C2102.8463,-219.7254 2088.1099,-217.7994 2074.1736,-216 1961.9195,-201.5066 1833.0759,-185.3532 1746.1261,-174.5231"/>
+<polygon fill="#000000" stroke="#000000" points="1746.3545,-171.0246 1735.9987,-173.2621 1745.4896,-177.971 1746.3545,-171.0246"/>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.transitiveLocalClasspath -->
-<g id="edge20" class="edge">
+<g id="edge16" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.transitiveLocalClasspath</title>
-<path fill="none" stroke="#000000" d="M2237.543,-218.7307C2288.3433,-207.4417 2357.7094,-192.027 2411.3143,-180.1148"/>
-<polygon fill="#000000" stroke="#000000" points="2412.1295,-183.5191 2421.1321,-177.9331 2410.6109,-176.6858 2412.1295,-183.5191"/>
+<path fill="none" stroke="#000000" d="M2299.3012,-221.0789C2314.8982,-219.1395 2330.99,-217.343 2346.1736,-216 2701.5893,-184.5626 2792.439,-207.5964 3148.1736,-180 3162.843,-178.862 3178.2325,-177.4499 3193.4534,-175.9208"/>
+<polygon fill="#000000" stroke="#000000" points="3193.8304,-179.4006 3203.4221,-174.9007 3193.1177,-172.4369 3193.8304,-179.4006"/>
+</g>
+<!-- moduledefs.compileClasspath&#45;&gt;moduledefs.resources -->
+<g id="edge17" class="edge">
+<title>moduledefs.compileClasspath&#45;&gt;moduledefs.resources</title>
+<path fill="none" stroke="#000000" d="M2145.8789,-218.4657C2097.2166,-206.7084 2030.5044,-190.59 1980.8102,-178.5833"/>
+<polygon fill="#000000" stroke="#000000" points="1981.3355,-175.1096 1970.7931,-176.1631 1979.6914,-181.9138 1981.3355,-175.1096"/>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.unmanagedClasspath -->
-<g id="edge22" class="edge">
+<g id="edge18" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.unmanagedClasspath</title>
-<path fill="none" stroke="#000000" d="M2083.5722,-220.6261C2005.7984,-208.4263 1890.8586,-190.3965 1809.0043,-177.5566"/>
-<polygon fill="#000000" stroke="#000000" points="1809.3615,-174.0699 1798.9399,-175.9779 1808.2767,-180.9854 1809.3615,-174.0699"/>
+<path fill="none" stroke="#000000" d="M2199.0705,-215.8314C2194.1061,-207.7079 2188.1514,-197.9637 2182.6808,-189.0118"/>
+<polygon fill="#000000" stroke="#000000" points="2185.6272,-187.121 2177.4261,-180.4133 2179.6542,-190.7712 2185.6272,-187.121"/>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.compileIvyDeps -->
-<g id="edge17" class="edge">
+<g id="edge13" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.compileIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2126.6474,-216.937C2101.3762,-206.715 2069.0651,-193.6453 2042.2987,-182.8184"/>
-<polygon fill="#000000" stroke="#000000" points="2043.2944,-179.4458 2032.7116,-178.9405 2040.6695,-185.935 2043.2944,-179.4458"/>
+<path fill="none" stroke="#000000" d="M2263.9525,-217.6621C2299.5573,-206.8454 2346.407,-192.6126 2383.8187,-181.247"/>
+<polygon fill="#000000" stroke="#000000" points="2385.0566,-184.529 2393.6074,-178.2733 2383.0218,-177.8313 2385.0566,-184.529"/>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.scalaLibraryIvyDeps -->
-<g id="edge18" class="edge">
+<g id="edge14" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.scalaLibraryIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2078.2017,-221.2913C2063.0681,-219.3742 2047.518,-217.5297 2032.8309,-216 1980.4069,-210.54 1595.6587,-218.6582 1559.8309,-180 1529.7262,-147.517 1581.006,-123.3341 1632.4816,-108.2625"/>
-<polygon fill="#000000" stroke="#000000" points="1633.7398,-111.5443 1642.415,-105.4622 1631.8404,-104.8069 1633.7398,-111.5443"/>
+<path fill="none" stroke="#000000" d="M2301.116,-221.3349C2390.853,-208.8377 2527.9263,-189.7482 2622.2309,-176.6148"/>
+<polygon fill="#000000" stroke="#000000" points="2622.9432,-180.0495 2632.3648,-175.2035 2621.9776,-173.1164 2622.9432,-180.0495"/>
 </g>
 <!-- moduledefs.compileClasspath&#45;&gt;moduledefs.transitiveIvyDeps -->
-<g id="edge19" class="edge">
+<g id="edge15" class="edge">
 <title>moduledefs.compileClasspath&#45;&gt;moduledefs.transitiveIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2271.5131,-223.252C2370.1225,-212.7796 2523.2527,-196.1221 2655.8309,-180 2666.8027,-178.6658 2678.2656,-177.2238 2689.6812,-175.757"/>
-<polygon fill="#000000" stroke="#000000" points="2690.2185,-179.2167 2699.6873,-174.4636 2689.3211,-172.2745 2690.2185,-179.2167"/>
+<path fill="none" stroke="#000000" d="M2300.4263,-221.236C2315.6763,-219.3142 2331.362,-217.4826 2346.1736,-216 2580.6566,-192.5281 2640.6794,-203.3605 2875.1736,-180 2886.9226,-178.8296 2899.2179,-177.4438 2911.4152,-175.9688"/>
+<polygon fill="#000000" stroke="#000000" points="2912.1266,-179.4078 2921.6238,-174.7116 2911.2709,-172.4602 2912.1266,-179.4078"/>
 </g>
 <!-- moduledefs.scalaCompilerClasspath -->
-<g id="node27" class="node">
+<g id="node20" class="node">
 <title>moduledefs.scalaCompilerClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="151.8309" cy="-234" rx="151.662" ry="18"/>
-<text text-anchor="middle" x="151.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaCompilerClasspath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1913.1736" cy="-234" rx="151.662" ry="18"/>
+<text text-anchor="middle" x="1913.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalaCompilerClasspath</text>
 </g>
-<!-- moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.scalaVersion -->
-<g id="edge23" class="edge">
-<title>moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M208.3744,-217.2043C273.163,-198.2363 382.6693,-167.0202 477.8309,-144 663.7666,-99.021 884.1854,-55.5738 1000.8536,-33.3444"/>
-<polygon fill="#000000" stroke="#000000" points="1001.6169,-36.762 1010.7869,-31.4553 1000.309,-29.8853 1001.6169,-36.762"/>
+<!-- moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.scalaOrganization -->
+<g id="edge20" class="edge">
+<title>moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1858.9423,-217.0532C1840.2937,-208.6864 1820.9213,-196.7021 1808.1736,-180 1794.7473,-162.4089 1790.2892,-137.491 1789.0244,-118.3329"/>
+<polygon fill="#000000" stroke="#000000" points="1792.5115,-117.9417 1788.609,-108.0917 1785.5172,-118.2254 1792.5115,-117.9417"/>
 </g>
 <!-- moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.platformSuffix -->
-<g id="edge24" class="edge">
+<g id="edge19" class="edge">
 <title>moduledefs.scalaCompilerClasspath&#45;&gt;moduledefs.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M260.4669,-221.349C277.9656,-219.4568 295.8908,-217.6051 312.8309,-216 518.3095,-196.5308 570.3392,-199.3299 775.8309,-180 795.2299,-178.1752 815.906,-176.0397 835.7901,-173.8899"/>
-<polygon fill="#000000" stroke="#000000" points="836.2284,-177.363 845.7905,-172.8005 835.4703,-170.4041 836.2284,-177.363"/>
+<path fill="none" stroke="#000000" d="M1851.689,-217.4817C1810.3987,-206.3888 1755.9632,-191.7644 1713.3467,-180.3152"/>
+<polygon fill="#000000" stroke="#000000" points="1714.1805,-176.9151 1703.6148,-177.7006 1712.3642,-183.6754 1714.1805,-176.9151"/>
 </g>
 <!-- moduledefs.scalacOptions -->
-<g id="node28" class="node">
+<g id="node21" class="node">
 <title>moduledefs.scalacOptions</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="434.8309" cy="-234" rx="112.8404" ry="18"/>
-<text text-anchor="middle" x="434.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacOptions</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2468.1736" cy="-234" rx="112.8404" ry="18"/>
+<text text-anchor="middle" x="2468.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacOptions</text>
 </g>
 <!-- moduledefs.scalacPluginIvyDeps -->
-<g id="node29" class="node">
+<g id="node22" class="node">
 <title>moduledefs.scalacPluginIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="626.8309" cy="-162" rx="140.0506" ry="18"/>
-<text text-anchor="middle" x="626.8309" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacPluginIvyDeps</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1333.1736" cy="-162" rx="140.0506" ry="18"/>
+<text text-anchor="middle" x="1333.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacPluginIvyDeps</text>
 </g>
 <!-- moduledefs.scalacPluginClasspath -->
-<g id="node30" class="node">
+<g id="node23" class="node">
 <title>moduledefs.scalacPluginClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="710.8309" cy="-234" rx="144.7212" ry="18"/>
-<text text-anchor="middle" x="710.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacPluginClasspath</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1238.1736" cy="-234" rx="144.7212" ry="18"/>
+<text text-anchor="middle" x="1238.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.scalacPluginClasspath</text>
 </g>
-<!-- moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalaVersion -->
-<g id="edge25" class="edge">
-<title>moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M733.0957,-216.1041C745.7887,-205.7532 761.8947,-192.3667 775.8309,-180 793.232,-164.5586 794.6065,-157.1018 813.8309,-144 882.3146,-97.3271 970.8212,-59.5994 1027.225,-37.9785"/>
-<polygon fill="#000000" stroke="#000000" points="1028.5744,-41.21 1036.6816,-34.3892 1026.0904,-34.6655 1028.5744,-41.21"/>
+<!-- moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalaOrganization -->
+<g id="edge22" class="edge">
+<title>moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1214.4491,-216.0272C1191.8382,-196.7846 1164.0038,-166.0502 1184.1736,-144 1215.1031,-110.1869 1482.9602,-97.3958 1651.7374,-92.668"/>
+<polygon fill="#000000" stroke="#000000" points="1652.0537,-96.1607 1661.9541,-92.3882 1651.862,-89.1634 1652.0537,-96.1607"/>
 </g>
 <!-- moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.platformSuffix -->
-<g id="edge26" class="edge">
+<g id="edge21" class="edge">
 <title>moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M763.999,-217.2101C798.0377,-206.461 842.3092,-192.4805 877.7848,-181.2777"/>
-<polygon fill="#000000" stroke="#000000" points="879.0599,-184.5455 887.5417,-178.1966 876.9519,-177.8704 879.0599,-184.5455"/>
+<path fill="none" stroke="#000000" d="M1321.5182,-219.256C1390.5664,-207.0411 1488.3678,-189.7396 1558.3574,-177.3581"/>
+<polygon fill="#000000" stroke="#000000" points="1559.2379,-180.7568 1568.4752,-175.5683 1558.0184,-173.8638 1559.2379,-180.7568"/>
 </g>
 <!-- moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalacPluginIvyDeps -->
-<g id="edge27" class="edge">
+<g id="edge23" class="edge">
 <title>moduledefs.scalacPluginClasspath&#45;&gt;moduledefs.scalacPluginIvyDeps</title>
-<path fill="none" stroke="#000000" d="M689.6342,-215.8314C679.3092,-206.9814 666.7403,-196.2081 655.567,-186.631"/>
-<polygon fill="#000000" stroke="#000000" points="657.6002,-183.764 647.7299,-179.9134 653.0447,-189.0788 657.6002,-183.764"/>
+<path fill="none" stroke="#000000" d="M1261.6567,-216.2022C1273.6461,-207.1156 1288.4056,-195.9294 1301.3967,-186.0836"/>
+<polygon fill="#000000" stroke="#000000" points="1303.7757,-188.6722 1309.6313,-179.8425 1299.5475,-183.0934 1303.7757,-188.6722"/>
 </g>
 <!-- moduledefs.javacOptions -->
-<g id="node31" class="node">
+<g id="node24" class="node">
 <title>moduledefs.javacOptions</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="982.8309" cy="-234" rx="109.4125" ry="18"/>
-<text text-anchor="middle" x="982.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.javacOptions</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2708.1736" cy="-234" rx="109.4125" ry="18"/>
+<text text-anchor="middle" x="2708.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.javacOptions</text>
 </g>
 <!-- moduledefs.upstreamCompileOutput -->
-<g id="node32" class="node">
+<g id="node25" class="node">
 <title>moduledefs.upstreamCompileOutput</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1263.8309" cy="-234" rx="153.9765" ry="18"/>
-<text text-anchor="middle" x="1263.8309" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.upstreamCompileOutput</text>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2989.1736" cy="-234" rx="153.9765" ry="18"/>
+<text text-anchor="middle" x="2989.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.upstreamCompileOutput</text>
 </g>
 <!-- moduledefs.compile -->
-<g id="node33" class="node">
+<g id="node26" class="node">
 <title>moduledefs.compile</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1263.8309" cy="-306" rx="89.7283" ry="18"/>
-<text text-anchor="middle" x="1263.8309" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compile</text>
+<ellipse fill="none" stroke="#000000" cx="1913.1736" cy="-306" rx="89.7283" ry="18"/>
+<text text-anchor="middle" x="1913.1736" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compile</text>
 </g>
 <!-- moduledefs.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker -->
-<g id="edge28" class="edge">
+<g id="edge24" class="edge">
 <title>moduledefs.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker</title>
-<path fill="none" stroke="#000000" d="M1352.3892,-303.0093C1674.8624,-292.119 2790.0705,-254.4572 3222.5429,-239.8521"/>
-<polygon fill="#000000" stroke="#000000" points="3222.7549,-243.3471 3232.631,-239.5114 3222.5186,-236.351 3222.7549,-243.3471"/>
+<path fill="none" stroke="#000000" d="M1824.9751,-302.6013C1641.2815,-295.2954 1204.2998,-276.7314 838.1736,-252 814.9556,-250.4316 790.326,-248.5451 766.3857,-246.592"/>
+<polygon fill="#000000" stroke="#000000" points="766.4274,-243.0836 756.174,-245.7515 765.8532,-250.06 766.4274,-243.0836"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.allSourceFiles -->
-<g id="edge29" class="edge">
+<g id="edge25" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.allSourceFiles</title>
-<path fill="none" stroke="#000000" d="M1345.9336,-298.6091C1449.0295,-289.0785 1631.2609,-271.4056 1786.8309,-252 1796.8929,-250.7449 1807.4047,-249.3441 1817.8621,-247.8935"/>
-<polygon fill="#000000" stroke="#000000" points="1818.4391,-251.347 1827.8553,-246.4906 1817.4658,-244.4149 1818.4391,-251.347"/>
+<path fill="none" stroke="#000000" d="M1824.9422,-302.5812C1673.232,-296.1824 1353.2871,-280.4098 1084.1736,-252 1073.657,-250.8898 1062.6601,-249.5451 1051.7519,-248.0964"/>
+<polygon fill="#000000" stroke="#000000" points="1052.1558,-244.6192 1041.7755,-246.7405 1051.213,-251.5555 1052.1558,-244.6192"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.scalaCompilerBridgeSources -->
-<g id="edge30" class="edge">
+<g id="edge26" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.scalaCompilerBridgeSources</title>
-<path fill="none" stroke="#000000" d="M1325.9456,-292.9613C1380.1673,-281.5795 1459.4254,-264.9423 1519.9353,-252.2405"/>
-<polygon fill="#000000" stroke="#000000" points="1520.7915,-255.6371 1529.8592,-250.1573 1519.3534,-248.7864 1520.7915,-255.6371"/>
+<path fill="none" stroke="#000000" d="M1851.0254,-292.8778C1797.0709,-281.4857 1718.3988,-264.8745 1658.3635,-252.1985"/>
+<polygon fill="#000000" stroke="#000000" points="1659.0251,-248.7611 1648.5177,-250.1196 1657.5789,-255.6101 1659.0251,-248.7611"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.compileClasspath -->
-<g id="edge31" class="edge">
+<g id="edge27" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.compileClasspath</title>
-<path fill="none" stroke="#000000" d="M1351.0505,-301.6258C1493.8048,-294.0734 1786.1599,-276.9607 2032.8309,-252 2044.4012,-250.8292 2056.5055,-249.4502 2068.519,-247.985"/>
-<polygon fill="#000000" stroke="#000000" points="2069.0827,-251.442 2078.5754,-246.7366 2068.2203,-244.4953 2069.0827,-251.442"/>
+<path fill="none" stroke="#000000" d="M1970.4382,-292.1177C2017.5307,-280.7013 2084.6092,-264.4398 2135.8416,-252.0199"/>
+<polygon fill="#000000" stroke="#000000" points="2136.9723,-255.3472 2145.8662,-249.5897 2135.3231,-248.5443 2136.9723,-255.3472"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.scalaCompilerClasspath -->
-<g id="edge32" class="edge">
+<g id="edge28" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.scalaCompilerClasspath</title>
-<path fill="none" stroke="#000000" d="M1175.5458,-302.5993C1007.4354,-295.7661 629.8392,-278.7011 312.8309,-252 298.7127,-250.8108 283.9166,-249.3927 269.2561,-247.8817"/>
-<polygon fill="#000000" stroke="#000000" points="269.4483,-244.3828 259.1382,-246.8225 268.7194,-251.3448 269.4483,-244.3828"/>
+<path fill="none" stroke="#000000" d="M1913.1736,-287.8314C1913.1736,-280.131 1913.1736,-270.9743 1913.1736,-262.4166"/>
+<polygon fill="#000000" stroke="#000000" points="1916.6737,-262.4132 1913.1736,-252.4133 1909.6737,-262.4133 1916.6737,-262.4132"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.scalacOptions -->
-<g id="edge33" class="edge">
+<g id="edge29" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.scalacOptions</title>
-<path fill="none" stroke="#000000" d="M1177.1224,-301.3447C1043.6178,-293.7332 779.7921,-276.9316 556.8309,-252 546.5921,-250.8551 535.8917,-249.5046 525.2652,-248.0663"/>
-<polygon fill="#000000" stroke="#000000" points="525.5019,-244.5658 515.117,-246.6642 524.5438,-251.4999 525.5019,-244.5658"/>
+<path fill="none" stroke="#000000" d="M1990.6775,-296.8652C2077.3697,-286.524 2221.9429,-268.9089 2346.1736,-252 2355.8791,-250.679 2366.012,-249.2553 2376.1097,-247.8077"/>
+<polygon fill="#000000" stroke="#000000" points="2376.7806,-251.2473 2386.1784,-246.3552 2375.781,-244.319 2376.7806,-251.2473"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.scalacPluginClasspath -->
-<g id="edge34" class="edge">
+<g id="edge30" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.scalacPluginClasspath</title>
-<path fill="none" stroke="#000000" d="M1188.3869,-296.1773C1093.5181,-283.8255 929.9092,-262.5238 821.0337,-248.3483"/>
-<polygon fill="#000000" stroke="#000000" points="821.3689,-244.8625 811.0007,-247.042 820.4651,-251.8039 821.3689,-244.8625"/>
+<path fill="none" stroke="#000000" d="M1832.8112,-297.9998C1730.4438,-287.7333 1548.0931,-269.1917 1392.1736,-252 1379.4875,-250.6012 1366.2179,-249.1031 1353.0162,-247.5905"/>
+<polygon fill="#000000" stroke="#000000" points="1353.2791,-244.0978 1342.9447,-246.4323 1352.4794,-251.0519 1353.2791,-244.0978"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.javacOptions -->
-<g id="edge35" class="edge">
+<g id="edge31" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.javacOptions</title>
-<path fill="none" stroke="#000000" d="M1208.3143,-291.7751C1163.4234,-280.2728 1099.9923,-264.02 1051.8368,-251.6812"/>
-<polygon fill="#000000" stroke="#000000" points="1052.6684,-248.2813 1042.1126,-249.1896 1050.9309,-255.0623 1052.6684,-248.2813"/>
+<path fill="none" stroke="#000000" d="M1999.6635,-301.095C2128.5703,-293.3335 2378.6208,-276.5404 2590.1736,-252 2599.9,-250.8717 2610.0558,-249.5467 2620.1512,-248.1361"/>
+<polygon fill="#000000" stroke="#000000" points="2620.803,-251.5786 2630.2083,-246.701 2619.8141,-244.6488 2620.803,-251.5786"/>
 </g>
 <!-- moduledefs.compile&#45;&gt;moduledefs.upstreamCompileOutput -->
-<g id="edge36" class="edge">
+<g id="edge32" class="edge">
 <title>moduledefs.compile&#45;&gt;moduledefs.upstreamCompileOutput</title>
-<path fill="none" stroke="#000000" d="M1263.8309,-287.8314C1263.8309,-280.131 1263.8309,-270.9743 1263.8309,-262.4166"/>
-<polygon fill="#000000" stroke="#000000" points="1267.331,-262.4132 1263.8309,-252.4133 1260.331,-262.4133 1267.331,-262.4132"/>
-</g>
-<!-- moduledefs.localClasspath -->
-<g id="node34" class="node">
-<title>moduledefs.localClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1408.8309" cy="-378" rx="114.6455" ry="18"/>
-<text text-anchor="middle" x="1408.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.localClasspath</text>
-</g>
-<!-- moduledefs.localClasspath&#45;&gt;moduledefs.compile -->
-<g id="edge37" class="edge">
-<title>moduledefs.localClasspath&#45;&gt;moduledefs.compile</title>
-<path fill="none" stroke="#000000" d="M1374.0998,-360.7542C1353.9565,-350.752 1328.4165,-338.0701 1306.9896,-327.4305"/>
-<polygon fill="#000000" stroke="#000000" points="1308.2915,-324.1693 1297.7783,-322.8566 1305.1783,-330.4389 1308.2915,-324.1693"/>
-</g>
-<!-- core.transitiveLocalClasspath -->
-<g id="node35" class="node">
-<title>core.transitiveLocalClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1424.8309" cy="-450" rx="125.5739" ry="18"/>
-<text text-anchor="middle" x="1424.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.transitiveLocalClasspath</text>
-</g>
-<!-- core.transitiveLocalClasspath&#45;&gt;moduledefs.localClasspath -->
-<g id="edge38" class="edge">
-<title>core.transitiveLocalClasspath&#45;&gt;moduledefs.localClasspath</title>
-<path fill="none" stroke="#000000" d="M1420.7934,-431.8314C1419.0822,-424.131 1417.0474,-414.9743 1415.1457,-406.4166"/>
-<polygon fill="#000000" stroke="#000000" points="1418.5088,-405.4159 1412.9227,-396.4133 1411.6755,-406.9344 1418.5088,-405.4159"/>
-</g>
-<!-- core.resources -->
-<g id="node36" class="node">
-<title>core.resources</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2332.8309" cy="-450" rx="66.5506" ry="18"/>
-<text text-anchor="middle" x="2332.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.resources</text>
-</g>
-<!-- core.unmanagedClasspath -->
-<g id="node37" class="node">
-<title>core.unmanagedClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2135.8309" cy="-450" rx="112.2626" ry="18"/>
-<text text-anchor="middle" x="2135.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.unmanagedClasspath</text>
-</g>
-<!-- core.compileIvyDeps -->
-<g id="node38" class="node">
-<title>core.compileIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2510.8309" cy="-450" rx="93.7824" ry="18"/>
-<text text-anchor="middle" x="2510.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compileIvyDeps</text>
-</g>
-<!-- core.compileIvyDeps&#45;&gt;core.scalaVersion -->
-<g id="edge39" class="edge">
-<title>core.compileIvyDeps&#45;&gt;core.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M2571.3733,-436.1177C2625.0597,-423.8074 2703.3147,-405.8636 2758.6412,-393.1772"/>
-<polygon fill="#000000" stroke="#000000" points="2759.7292,-396.5187 2768.694,-390.8722 2758.1647,-389.6958 2759.7292,-396.5187"/>
-</g>
-<!-- core.scalaLibraryIvyDeps -->
-<g id="node39" class="node">
-<title>core.scalaLibraryIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1894.8309" cy="-450" rx="111.0741" ry="18"/>
-<text text-anchor="middle" x="1894.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaLibraryIvyDeps</text>
-</g>
-<!-- core.scalaLibraryIvyDeps&#45;&gt;core.scalaVersion -->
-<g id="edge40" class="edge">
-<title>core.scalaLibraryIvyDeps&#45;&gt;core.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M1973.4611,-437.2588C1987.2244,-435.2995 2001.4266,-433.4496 2014.8309,-432 2085.122,-424.3982 2542.8725,-395.5366 2737.4944,-383.4137"/>
-<polygon fill="#000000" stroke="#000000" points="2737.9217,-386.8939 2747.6849,-382.7792 2737.4867,-379.9075 2737.9217,-386.8939"/>
-</g>
-<!-- core.ivyDeps -->
-<g id="node40" class="node">
-<title>core.ivyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1666.8309" cy="-378" rx="62.0014" ry="18"/>
-<text text-anchor="middle" x="1666.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.ivyDeps</text>
-</g>
-<!-- core.transitiveIvyDeps -->
-<g id="node41" class="node">
-<title>core.transitiveIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1666.8309" cy="-450" rx="98.934" ry="18"/>
-<text text-anchor="middle" x="1666.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.transitiveIvyDeps</text>
-</g>
-<!-- core.transitiveIvyDeps&#45;&gt;moduledefs.transitiveIvyDeps -->
-<g id="edge41" class="edge">
-<title>core.transitiveIvyDeps&#45;&gt;moduledefs.transitiveIvyDeps</title>
-<path fill="none" stroke="#000000" d="M1724.1665,-435.3221C1912.6096,-387.0806 2512.6386,-233.4732 2720.2926,-180.3138"/>
-<polygon fill="#000000" stroke="#000000" points="2721.3561,-183.6545 2730.1757,-177.7837 2719.6201,-176.8732 2721.3561,-183.6545"/>
-</g>
-<!-- core.transitiveIvyDeps&#45;&gt;core.ivyDeps -->
-<g id="edge42" class="edge">
-<title>core.transitiveIvyDeps&#45;&gt;core.ivyDeps</title>
-<path fill="none" stroke="#000000" d="M1666.8309,-431.8314C1666.8309,-424.131 1666.8309,-414.9743 1666.8309,-406.4166"/>
-<polygon fill="#000000" stroke="#000000" points="1670.331,-406.4132 1666.8309,-396.4133 1663.331,-406.4133 1670.331,-406.4132"/>
-</g>
-<!-- core.compileClasspath -->
-<g id="node42" class="node">
-<title>core.compileClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2261.8309" cy="-522" rx="98.9533" ry="18"/>
-<text text-anchor="middle" x="2261.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compileClasspath</text>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.platformSuffix -->
-<g id="edge43" class="edge">
-<title>core.compileClasspath&#45;&gt;core.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M2334.4184,-509.7111C2346.2482,-507.7633 2358.3761,-505.7994 2369.8309,-504 2478.1213,-486.9887 2505.7178,-486.1041 2613.8309,-468 2620.9596,-466.8063 2628.3759,-465.511 2635.7863,-464.1812"/>
-<polygon fill="#000000" stroke="#000000" points="2636.6461,-467.5824 2645.8602,-462.3526 2635.3959,-460.6949 2636.6461,-467.5824"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.transitiveLocalClasspath -->
-<g id="edge47" class="edge">
-<title>core.compileClasspath&#45;&gt;core.transitiveLocalClasspath</title>
-<path fill="none" stroke="#000000" d="M2191.9754,-509.26C2179.3133,-507.2639 2166.2024,-505.4013 2153.8309,-504 1890.5862,-474.1822 1822.5141,-493.6524 1558.8309,-468 1547.3321,-466.8813 1535.3017,-465.5275 1523.3691,-464.0702"/>
-<polygon fill="#000000" stroke="#000000" points="1523.7388,-460.5893 1513.3825,-462.8247 1522.8724,-467.5355 1523.7388,-460.5893"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.resources -->
-<g id="edge48" class="edge">
-<title>core.compileClasspath&#45;&gt;core.resources</title>
-<path fill="none" stroke="#000000" d="M2279.3815,-504.2022C2288.1513,-495.3088 2298.9045,-484.4042 2308.4606,-474.7135"/>
-<polygon fill="#000000" stroke="#000000" points="2310.9529,-477.1709 2315.4822,-467.593 2305.9686,-472.2559 2310.9529,-477.1709"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.unmanagedClasspath -->
-<g id="edge49" class="edge">
-<title>core.compileClasspath&#45;&gt;core.unmanagedClasspath</title>
-<path fill="none" stroke="#000000" d="M2231.6508,-504.7542C2214.6327,-495.0296 2193.1817,-482.7719 2174.8925,-472.3209"/>
-<polygon fill="#000000" stroke="#000000" points="2176.6204,-469.2772 2166.2015,-467.3546 2173.1474,-475.3549 2176.6204,-469.2772"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.compileIvyDeps -->
-<g id="edge44" class="edge">
-<title>core.compileClasspath&#45;&gt;core.compileIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2314.6374,-506.7307C2353.8895,-495.3806 2407.5643,-479.8602 2448.851,-467.9219"/>
-<polygon fill="#000000" stroke="#000000" points="2449.8938,-471.2638 2458.528,-465.1237 2447.9493,-464.5393 2449.8938,-471.2638"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.scalaLibraryIvyDeps -->
-<g id="edge45" class="edge">
-<title>core.compileClasspath&#45;&gt;core.scalaLibraryIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2194.5174,-508.7941C2132.8115,-496.6883 2041.3285,-478.7407 1975.6836,-465.8621"/>
-<polygon fill="#000000" stroke="#000000" points="1976.2726,-462.411 1965.7859,-463.9203 1974.925,-469.2801 1976.2726,-462.411"/>
-</g>
-<!-- core.compileClasspath&#45;&gt;core.transitiveIvyDeps -->
-<g id="edge46" class="edge">
-<title>core.compileClasspath&#45;&gt;core.transitiveIvyDeps</title>
-<path fill="none" stroke="#000000" d="M2190.7718,-509.4258C2178.4757,-507.4594 2165.7996,-505.5639 2153.8309,-504 1986.0544,-482.078 1942.6074,-489.922 1774.8309,-468 1766.1349,-466.8638 1757.0654,-465.5524 1748.0396,-464.166"/>
-<polygon fill="#000000" stroke="#000000" points="1748.3116,-460.666 1737.89,-462.5742 1747.2269,-467.5814 1748.3116,-460.666"/>
-</g>
-<!-- core.scalaCompilerClasspath -->
-<g id="node43" class="node">
-<title>core.scalaCompilerClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2501.8309" cy="-522" rx="123.2883" ry="18"/>
-<text text-anchor="middle" x="2501.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalaCompilerClasspath</text>
-</g>
-<!-- core.scalaCompilerClasspath&#45;&gt;core.scalaVersion -->
-<g id="edge50" class="edge">
-<title>core.scalaCompilerClasspath&#45;&gt;core.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M2588.3379,-509.0519C2675.395,-495.6557 2797.9363,-475.6439 2805.8309,-468 2822.0715,-452.275 2826.1608,-426.4215 2826.5714,-406.4492"/>
-<polygon fill="#000000" stroke="#000000" points="2830.0704,-406.3133 2826.4854,-396.3435 2823.0707,-406.3729 2830.0704,-406.3133"/>
-</g>
-<!-- core.scalaCompilerClasspath&#45;&gt;core.platformSuffix -->
-<g id="edge51" class="edge">
-<title>core.scalaCompilerClasspath&#45;&gt;core.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M2549.8115,-505.3913C2581.2338,-494.5144 2622.3809,-480.2711 2655.0814,-468.9517"/>
-<polygon fill="#000000" stroke="#000000" points="2656.6336,-472.1183 2664.9386,-465.5396 2654.3438,-465.5034 2656.6336,-472.1183"/>
-</g>
-<!-- core.scalacOptions -->
-<g id="node44" class="node">
-<title>core.scalacOptions</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1880.8309" cy="-522" rx="84.4671" ry="18"/>
-<text text-anchor="middle" x="1880.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacOptions</text>
-</g>
-<!-- core.scalacPluginIvyDeps -->
-<g id="node45" class="node">
-<title>core.scalacPluginIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3002.8309" cy="-450" rx="111.677" ry="18"/>
-<text text-anchor="middle" x="3002.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacPluginIvyDeps</text>
-</g>
-<!-- core.scalacPluginClasspath -->
-<g id="node46" class="node">
-<title>core.scalacPluginClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3062.8309" cy="-522" rx="116.3475" ry="18"/>
-<text text-anchor="middle" x="3062.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.scalacPluginClasspath</text>
-</g>
-<!-- core.scalacPluginClasspath&#45;&gt;core.scalaVersion -->
-<g id="edge52" class="edge">
-<title>core.scalacPluginClasspath&#45;&gt;core.scalaVersion</title>
-<path fill="none" stroke="#000000" d="M3088.9437,-504.3448C3113.4345,-485.6412 3143.559,-455.6102 3123.8309,-432 3109.8958,-415.3227 2989.9912,-397.739 2906.3285,-387.3272"/>
-<polygon fill="#000000" stroke="#000000" points="2906.6679,-383.8426 2896.3149,-386.0936 2905.8119,-390.7901 2906.6679,-383.8426"/>
-</g>
-<!-- core.scalacPluginClasspath&#45;&gt;core.platformSuffix -->
-<g id="edge53" class="edge">
-<title>core.scalacPluginClasspath&#45;&gt;core.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M2992.2445,-507.6028C2931.2557,-495.1631 2843.4932,-477.2626 2782.0365,-464.7275"/>
-<polygon fill="#000000" stroke="#000000" points="2782.5241,-461.255 2772.0263,-462.6858 2781.1251,-468.1137 2782.5241,-461.255"/>
-</g>
-<!-- core.scalacPluginClasspath&#45;&gt;core.scalacPluginIvyDeps -->
-<g id="edge54" class="edge">
-<title>core.scalacPluginClasspath&#45;&gt;core.scalacPluginIvyDeps</title>
-<path fill="none" stroke="#000000" d="M3047.6904,-503.8314C3040.6018,-495.3251 3032.0325,-485.0419 3024.2909,-475.752"/>
-<polygon fill="#000000" stroke="#000000" points="3026.8494,-473.355 3017.7587,-467.9134 3021.4718,-477.8363 3026.8494,-473.355"/>
-</g>
-<!-- core.javacOptions -->
-<g id="node47" class="node">
-<title>core.javacOptions</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2063.8309" cy="-522" rx="81.0388" ry="18"/>
-<text text-anchor="middle" x="2063.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.javacOptions</text>
-</g>
-<!-- core.upstreamCompileOutput -->
-<g id="node48" class="node">
-<title>core.upstreamCompileOutput</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1118.8309" cy="-378" rx="125.6029" ry="18"/>
-<text text-anchor="middle" x="1118.8309" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.upstreamCompileOutput</text>
-</g>
-<!-- core.upstreamCompileOutput&#45;&gt;moduledefs.compile -->
-<g id="edge55" class="edge">
-<title>core.upstreamCompileOutput&#45;&gt;moduledefs.compile</title>
-<path fill="none" stroke="#000000" d="M1153.9314,-360.5708C1174.0823,-350.5648 1199.5413,-337.9231 1220.8801,-327.3273"/>
-<polygon fill="#000000" stroke="#000000" points="1222.6521,-330.3552 1230.0521,-322.7729 1219.5389,-324.0856 1222.6521,-330.3552"/>
-</g>
-<!-- core.compile -->
-<g id="node49" class="node">
-<title>core.compile</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2501.8309" cy="-594" rx="61.3551" ry="18"/>
-<text text-anchor="middle" x="2501.8309" y="-589.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.compile</text>
-</g>
-<!-- core.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker -->
-<g id="edge56" class="edge">
-<title>core.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker</title>
-<path fill="none" stroke="#000000" d="M2552.0005,-583.6357C2567.8739,-580.7157 2585.5288,-577.8377 2601.8309,-576 2687.4923,-566.3434 3311.1535,-595.8355 3376.8309,-540 3407.978,-513.5204 3395.8309,-490.8816 3395.8309,-450 3395.8309,-450 3395.8309,-450 3395.8309,-378 3395.8309,-337.876 3395.8309,-291.4631 3395.8309,-262.4177"/>
-<polygon fill="#000000" stroke="#000000" points="3399.331,-262.1853 3395.8309,-252.1854 3392.331,-262.1854 3399.331,-262.1853"/>
-</g>
-<!-- core.compile&#45;&gt;core.allSourceFiles -->
-<g id="edge57" class="edge">
-<title>core.compile&#45;&gt;core.allSourceFiles</title>
-<path fill="none" stroke="#000000" d="M2552.274,-583.7367C2568.0817,-580.8395 2585.6306,-577.9489 2601.8309,-576 2860.8985,-544.8342 2928.9088,-572.3521 3187.8309,-540 3195.7651,-539.0086 3204.0357,-537.763 3212.2427,-536.3921"/>
-<polygon fill="#000000" stroke="#000000" points="3212.9402,-539.8234 3222.1952,-534.6664 3211.7442,-532.9264 3212.9402,-539.8234"/>
-</g>
-<!-- core.compile&#45;&gt;core.scalaCompilerBridgeSources -->
-<g id="edge58" class="edge">
-<title>core.compile&#45;&gt;core.scalaCompilerBridgeSources</title>
-<path fill="none" stroke="#000000" d="M2548.4097,-582.1913C2592.9082,-570.91 2660.6747,-553.7297 2712.4343,-540.6076"/>
-<polygon fill="#000000" stroke="#000000" points="2713.3986,-543.9739 2722.2318,-538.1237 2711.6784,-537.1886 2713.3986,-543.9739"/>
-</g>
-<!-- core.compile&#45;&gt;core.compileClasspath -->
-<g id="edge59" class="edge">
-<title>core.compile&#45;&gt;core.compileClasspath</title>
-<path fill="none" stroke="#000000" d="M2458.9237,-581.1278C2421.0228,-569.7576 2365.3288,-553.0494 2322.8043,-540.292"/>
-<polygon fill="#000000" stroke="#000000" points="2323.7054,-536.9083 2313.1214,-537.3871 2321.6939,-543.6131 2323.7054,-536.9083"/>
-</g>
-<!-- core.compile&#45;&gt;core.scalaCompilerClasspath -->
-<g id="edge60" class="edge">
-<title>core.compile&#45;&gt;core.scalaCompilerClasspath</title>
-<path fill="none" stroke="#000000" d="M2501.8309,-575.8314C2501.8309,-568.131 2501.8309,-558.9743 2501.8309,-550.4166"/>
-<polygon fill="#000000" stroke="#000000" points="2505.331,-550.4132 2501.8309,-540.4133 2498.331,-550.4133 2505.331,-550.4132"/>
-</g>
-<!-- core.compile&#45;&gt;core.scalacOptions -->
-<g id="edge61" class="edge">
-<title>core.compile&#45;&gt;core.scalacOptions</title>
-<path fill="none" stroke="#000000" d="M2442.2284,-589.6485C2344.197,-582.1008 2142.9273,-564.9603 1973.8309,-540 1966.6725,-538.9433 1959.2274,-537.7182 1951.8058,-536.4136"/>
-<polygon fill="#000000" stroke="#000000" points="1952.1918,-532.9268 1941.7289,-534.5939 1950.9477,-539.8154 1952.1918,-532.9268"/>
-</g>
-<!-- core.compile&#45;&gt;core.scalacPluginClasspath -->
-<g id="edge62" class="edge">
-<title>core.compile&#45;&gt;core.scalacPluginClasspath</title>
-<path fill="none" stroke="#000000" d="M2553.1037,-584.0458C2568.7119,-581.2114 2585.9409,-578.2784 2601.8309,-576 2750.4985,-554.6833 2788.8124,-558.7062 2937.8309,-540 2947.8873,-538.7376 2958.3876,-537.3442 2968.8437,-535.9083"/>
-<polygon fill="#000000" stroke="#000000" points="2969.4151,-539.3627 2978.8392,-534.5215 2968.453,-532.4291 2969.4151,-539.3627"/>
-</g>
-<!-- core.compile&#45;&gt;core.javacOptions -->
-<g id="edge63" class="edge">
-<title>core.compile&#45;&gt;core.javacOptions</title>
-<path fill="none" stroke="#000000" d="M2446.5594,-586.1802C2377.8138,-576.28 2256.9213,-558.2985 2153.8309,-540 2147.19,-538.8212 2140.2846,-537.5402 2133.3839,-536.2229"/>
-<polygon fill="#000000" stroke="#000000" points="2133.7907,-532.7368 2123.3081,-534.2746 2132.4617,-539.6095 2133.7907,-532.7368"/>
-</g>
-<!-- core.compile&#45;&gt;core.upstreamCompileOutput -->
-<g id="edge64" class="edge">
-<title>core.compile&#45;&gt;core.upstreamCompileOutput</title>
-<path fill="none" stroke="#000000" d="M2440.9324,-591.8976C2251.2151,-585.169 1672.3979,-563.2403 1485.8309,-540 1321.7508,-519.5608 1227.2408,-594.5582 1120.8309,-468 1106.6783,-451.1676 1107.4794,-425.6486 1111.0714,-406.0775"/>
-<polygon fill="#000000" stroke="#000000" points="1114.5175,-406.7003 1113.2079,-396.1867 1107.6753,-405.2222 1114.5175,-406.7003"/>
-</g>
-<!-- core.finalMainClassOpt -->
-<g id="node50" class="node">
-<title>core.finalMainClassOpt</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2680.8309" cy="-666" rx="103.6059" ry="18"/>
-<text text-anchor="middle" x="2680.8309" y="-661.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.finalMainClassOpt</text>
-</g>
-<!-- core.finalMainClassOpt&#45;&gt;core.mainClass -->
-<g id="edge65" class="edge">
-<title>core.finalMainClassOpt&#45;&gt;core.mainClass</title>
-<path fill="none" stroke="#000000" d="M2680.8309,-647.8314C2680.8309,-640.131 2680.8309,-630.9743 2680.8309,-622.4166"/>
-<polygon fill="#000000" stroke="#000000" points="2684.331,-622.4132 2680.8309,-612.4133 2677.331,-622.4133 2684.331,-622.4132"/>
-</g>
-<!-- core.finalMainClassOpt&#45;&gt;mill.scalalib.ScalaWorkerModule.worker -->
-<g id="edge66" class="edge">
-<title>core.finalMainClassOpt&#45;&gt;mill.scalalib.ScalaWorkerModule.worker</title>
-<path fill="none" stroke="#000000" d="M2773.5408,-657.8607C2974.8105,-638.9428 3433.8309,-588.5075 3433.8309,-522 3433.8309,-522 3433.8309,-522 3433.8309,-378 3433.8309,-336.3681 3418.7981,-290.14 3407.6428,-261.567"/>
-<polygon fill="#000000" stroke="#000000" points="3410.8677,-260.2055 3403.8897,-252.2332 3404.3731,-262.817 3410.8677,-260.2055"/>
-</g>
-<!-- core.finalMainClassOpt&#45;&gt;core.compile -->
-<g id="edge67" class="edge">
-<title>core.finalMainClassOpt&#45;&gt;core.compile</title>
-<path fill="none" stroke="#000000" d="M2639.3148,-649.3008C2611.7565,-638.2159 2575.5807,-623.6647 2547.2548,-612.2711"/>
-<polygon fill="#000000" stroke="#000000" points="2548.5572,-609.0224 2537.9734,-608.5378 2545.9449,-615.5168 2548.5572,-609.0224"/>
-</g>
-<!-- core.finalMainClass -->
-<g id="node51" class="node">
-<title>core.finalMainClass</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2670.8309" cy="-738" rx="89.139" ry="18"/>
-<text text-anchor="middle" x="2670.8309" y="-733.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.finalMainClass</text>
-</g>
-<!-- core.finalMainClass&#45;&gt;core.finalMainClassOpt -->
-<g id="edge68" class="edge">
-<title>core.finalMainClass&#45;&gt;core.finalMainClassOpt</title>
-<path fill="none" stroke="#000000" d="M2673.3543,-719.8314C2674.4238,-712.131 2675.6956,-702.9743 2676.8841,-694.4166"/>
-<polygon fill="#000000" stroke="#000000" points="2680.3645,-694.7997 2678.2735,-684.4133 2673.431,-693.8367 2680.3645,-694.7997"/>
-</g>
-<!-- core.localClasspath -->
-<g id="node52" class="node">
-<title>core.localClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2472.8309" cy="-666" rx="86.2717" ry="18"/>
-<text text-anchor="middle" x="2472.8309" y="-661.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.localClasspath</text>
-</g>
-<!-- core.localClasspath&#45;&gt;core.compile -->
-<g id="edge69" class="edge">
-<title>core.localClasspath&#45;&gt;core.compile</title>
-<path fill="none" stroke="#000000" d="M2480.1488,-647.8314C2483.3673,-639.8406 2487.2174,-630.2819 2490.7741,-621.4514"/>
-<polygon fill="#000000" stroke="#000000" points="2494.1262,-622.4969 2494.6158,-611.9134 2487.6331,-619.8816 2494.1262,-622.4969"/>
-</g>
-<!-- core.runIvyDeps -->
-<g id="node53" class="node">
-<title>core.runIvyDeps</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1205.8309" cy="-450" rx="75.8064" ry="18"/>
-<text text-anchor="middle" x="1205.8309" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.runIvyDeps</text>
-</g>
-<!-- core.upstreamAssemblyClasspath -->
-<g id="node54" class="node">
-<title>core.upstreamAssemblyClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1636.8309" cy="-522" rx="141.7703" ry="18"/>
-<text text-anchor="middle" x="1636.8309" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.upstreamAssemblyClasspath</text>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.platformSuffix -->
-<g id="edge70" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.platformSuffix</title>
-<path fill="none" stroke="#000000" d="M1735.8179,-509.1224C1753.1319,-507.1782 1770.9899,-505.3688 1787.8309,-504 2154.0827,-474.2314 2248.7754,-509.9647 2613.8309,-468 2621.7953,-467.0845 2630.0922,-465.8932 2638.3271,-464.5592"/>
-<polygon fill="#000000" stroke="#000000" points="2639.0382,-467.9887 2648.3146,-462.8703 2637.871,-461.0867 2639.0382,-467.9887"/>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.transitiveLocalClasspath -->
-<g id="edge74" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.transitiveLocalClasspath</title>
-<path fill="none" stroke="#000000" d="M1587.1263,-505.1192C1556.1822,-494.6099 1516.2211,-481.0382 1483.6953,-469.9917"/>
-<polygon fill="#000000" stroke="#000000" points="1484.4524,-466.5525 1473.8581,-466.6507 1482.2013,-473.1807 1484.4524,-466.5525"/>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.unmanagedClasspath -->
-<g id="edge75" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.unmanagedClasspath</title>
-<path fill="none" stroke="#000000" d="M1731.6135,-508.6144C1808.0791,-497.7782 1918.4024,-482.06 2014.8309,-468 2024.1115,-466.6468 2033.7909,-465.2249 2043.4552,-463.7981"/>
-<polygon fill="#000000" stroke="#000000" points="2044.1233,-467.2375 2053.5037,-462.3123 2043.0993,-460.3128 2044.1233,-467.2375"/>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.scalaLibraryIvyDeps -->
-<g id="edge72" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.scalaLibraryIvyDeps</title>
-<path fill="none" stroke="#000000" d="M1695.6979,-505.572C1735.4889,-494.4675 1788.0705,-479.7936 1829.2094,-468.313"/>
-<polygon fill="#000000" stroke="#000000" points="1830.1793,-471.6761 1838.8705,-465.6169 1828.2977,-464.9337 1830.1793,-471.6761"/>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.transitiveIvyDeps -->
-<g id="edge73" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.transitiveIvyDeps</title>
-<path fill="none" stroke="#000000" d="M1644.4012,-503.8314C1647.6802,-495.9617 1651.5929,-486.5712 1655.2254,-477.8533"/>
-<polygon fill="#000000" stroke="#000000" points="1658.5433,-478.9902 1659.1587,-468.4133 1652.0817,-476.2979 1658.5433,-478.9902"/>
-</g>
-<!-- core.upstreamAssemblyClasspath&#45;&gt;core.runIvyDeps -->
-<g id="edge71" class="edge">
-<title>core.upstreamAssemblyClasspath&#45;&gt;core.runIvyDeps</title>
-<path fill="none" stroke="#000000" d="M1541.5893,-508.6641C1471.731,-498.5215 1374.6644,-483.6771 1289.8309,-468 1283.7674,-466.8795 1277.4715,-465.6514 1271.1764,-464.3797"/>
-<polygon fill="#000000" stroke="#000000" points="1271.8182,-460.9385 1261.3184,-462.3547 1270.4096,-467.7954 1271.8182,-460.9385"/>
-</g>
-<!-- core.runClasspath -->
-<g id="node55" class="node">
-<title>core.runClasspath</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2472.8309" cy="-738" rx="80.4766" ry="18"/>
-<text text-anchor="middle" x="2472.8309" y="-733.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.runClasspath</text>
-</g>
-<!-- core.runClasspath&#45;&gt;core.localClasspath -->
-<g id="edge76" class="edge">
-<title>core.runClasspath&#45;&gt;core.localClasspath</title>
-<path fill="none" stroke="#000000" d="M2472.8309,-719.8314C2472.8309,-712.131 2472.8309,-702.9743 2472.8309,-694.4166"/>
-<polygon fill="#000000" stroke="#000000" points="2476.331,-694.4132 2472.8309,-684.4133 2469.331,-694.4133 2476.331,-694.4132"/>
-</g>
-<!-- core.runClasspath&#45;&gt;core.upstreamAssemblyClasspath -->
-<g id="edge77" class="edge">
-<title>core.runClasspath&#45;&gt;core.upstreamAssemblyClasspath</title>
-<path fill="none" stroke="#000000" d="M2419.9011,-724.3244C2275.5838,-687.0366 1875.0003,-583.5366 1709.6537,-540.8155"/>
-<polygon fill="#000000" stroke="#000000" points="1710.1395,-537.3261 1699.5819,-538.2132 1708.3884,-544.1035 1710.1395,-537.3261"/>
-</g>
-<!-- core.forkArgs -->
-<g id="node56" class="node">
-<title>core.forkArgs</title>
-<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2842.8309" cy="-738" rx="64.8485" ry="18"/>
-<text text-anchor="middle" x="2842.8309" y="-733.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.forkArgs</text>
-</g>
-<!-- core.launcher -->
-<g id="node57" class="node">
-<title>core.launcher</title>
-<ellipse fill="none" stroke="#000000" cx="2670.8309" cy="-810" rx="63.1235" ry="18"/>
-<text text-anchor="middle" x="2670.8309" y="-805.8" font-family="Times,serif" font-size="14.00" fill="#000000">core.launcher</text>
-</g>
-<!-- core.launcher&#45;&gt;core.finalMainClass -->
-<g id="edge78" class="edge">
-<title>core.launcher&#45;&gt;core.finalMainClass</title>
-<path fill="none" stroke="#000000" d="M2670.8309,-791.8314C2670.8309,-784.131 2670.8309,-774.9743 2670.8309,-766.4166"/>
-<polygon fill="#000000" stroke="#000000" points="2674.331,-766.4132 2670.8309,-756.4133 2667.331,-766.4133 2674.331,-766.4132"/>
-</g>
-<!-- core.launcher&#45;&gt;core.runClasspath -->
-<g id="edge79" class="edge">
-<title>core.launcher&#45;&gt;core.runClasspath</title>
-<path fill="none" stroke="#000000" d="M2631.7125,-795.7751C2601.1448,-784.6596 2558.377,-769.1077 2524.9128,-756.9389"/>
-<polygon fill="#000000" stroke="#000000" points="2525.8895,-753.5699 2515.2955,-753.4417 2523.4973,-760.1484 2525.8895,-753.5699"/>
-</g>
-<!-- core.launcher&#45;&gt;core.forkArgs -->
-<g id="edge80" class="edge">
-<title>core.launcher&#45;&gt;core.forkArgs</title>
-<path fill="none" stroke="#000000" d="M2706.4694,-795.0816C2732.9024,-784.0166 2769.1359,-768.8491 2797.6092,-756.93"/>
-<polygon fill="#000000" stroke="#000000" points="2799.0697,-760.113 2806.9426,-753.023 2796.3666,-753.6559 2799.0697,-760.113"/>
+<path fill="none" stroke="#000000" d="M2001.0969,-302.2904C2164.0181,-295.0851 2523.7813,-277.6224 2826.1736,-252 2840.4644,-250.7891 2855.4427,-249.3578 2870.2843,-247.8397"/>
+<polygon fill="#000000" stroke="#000000" points="2870.9422,-251.2903 2880.5274,-246.7764 2870.2195,-244.3277 2870.9422,-251.2903"/>
 </g>
 </g>
 </svg>

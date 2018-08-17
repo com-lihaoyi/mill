@@ -561,7 +561,7 @@ compilation output:
 ### visualizePlan
 
 ```bash
-$ mill show visualizePlan core.launcher
+$ mill show visualizePlan moduledefs.compile
 [
     ".../out/visualizePlan/dest/out.txt",
     ".../out/visualizePlan/dest/out.dot",
