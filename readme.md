@@ -72,7 +72,7 @@ More generally, you can use:
 mill -i dev.run [target-dir] [...args]
 ```
 
-To create run your current checkout of Mill in the given `target-dir` with the
+To run your current checkout of Mill in the given `target-dir` with the
 given `args`. This is useful e.g. to test a modified version of Mill on some
 other project's Mill build.
 

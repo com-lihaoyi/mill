@@ -29,8 +29,13 @@ object ClassLoader {
       refinePlatformParent(parent)
     ) {
       override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
-        else customFindClass(name).getOrElse(super.findClass(name))
+        if (
+          name.startsWith("com.sun.jna") ||
+          name.startsWith("com.sun.nio.zipfs")
+        )
+          getClass.getClassLoader.loadClass(name)
+        else
+          customFindClass(name).getOrElse(super.findClass(name))
       }
     }
   }
