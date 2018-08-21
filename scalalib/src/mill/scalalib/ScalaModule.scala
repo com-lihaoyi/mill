@@ -24,7 +24,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacOptions = outer.scalacOptions
     override def javacOptions = outer.javacOptions
-    override def scalaWorker = outer.scalaWorker
+    override def zincWorker = outer.zincWorker
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
 
@@ -64,7 +64,7 @@ trait ScalaModule extends JavaModule { outer =>
     mainClass() match{
       case Some(m) => Right(m)
       case None =>
-        scalaWorker.worker().discoverMainClasses(compile())match {
+        zincWorker.worker().discoverMainClasses(compile())match {
           case Seq() => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
@@ -81,7 +81,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def scalacOptions = T{ Seq.empty[String] }
 
-  override def repositories: Seq[Repository] = scalaWorker.repositories
+  override def repositories: Seq[Repository] = zincWorker.repositories
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
@@ -142,7 +142,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def compile: T[CompilationResult] = T.persistent{
-    scalaWorker.worker().compileScala(
+    zincWorker.worker().compileScala(
       scalaVersion(),
       allSourceFiles().map(_.path),
       scalaCompilerBridgeSources(),

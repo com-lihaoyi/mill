@@ -17,7 +17,7 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
-  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+  def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
@@ -98,7 +98,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def repositories: Seq[Repository] = scalaWorker.repositories
+  def repositories: Seq[Repository] = zincWorker.repositories
 
   def platformSuffix = T{ "" }
 
@@ -317,7 +317,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
     try Result.Success(Jvm.interactiveSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
@@ -332,7 +332,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
     try Result.Success(Jvm.interactiveSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
@@ -384,7 +384,7 @@ trait TestModule extends JavaModule with TaskModule {
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
-      classPath = scalaWorker.scalalibClasspath().map(_.path),
+      classPath = zincWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =

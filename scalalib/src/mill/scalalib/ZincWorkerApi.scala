@@ -11,10 +11,10 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
 
-object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModule{
+object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule{
   lazy val millDiscover = Discover[this.type]
 }
-trait ScalaWorkerModule extends mill.Module{
+trait ZincWorkerModule extends mill.Module{
   def repositories = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
@@ -36,15 +36,15 @@ trait ScalaWorkerModule extends mill.Module{
     )
   }
 
-  def worker: Worker[ScalaWorkerApi] = T.worker{
+  def worker: Worker[ZincWorkerApi] = T.worker{
     val cl = mill.util.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
-    val cls = cl.loadClass("mill.scalalib.worker.ScalaWorkerImpl")
+    val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(classOf[mill.util.Ctx], classOf[Array[String]])
       .newInstance(T.ctx(), compilerInterfaceClasspath().map(_.path.toString).toArray[String])
-    instance.asInstanceOf[ScalaWorkerApi]
+    instance.asInstanceOf[ZincWorkerApi]
   }
 
   def compilerInterfaceClasspath = T{
@@ -57,7 +57,7 @@ trait ScalaWorkerModule extends mill.Module{
 
 }
 
-trait ScalaWorkerApi {
+trait ZincWorkerApi {
 
   def compileScala(scalaVersion: String,
                    sources: Agg[Path],

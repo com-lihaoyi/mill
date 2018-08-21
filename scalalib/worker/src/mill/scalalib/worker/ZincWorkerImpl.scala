@@ -24,8 +24,8 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-class ScalaWorkerImpl(ctx0: mill.util.Ctx,
-                      compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
+class ZincWorkerImpl(ctx0: mill.util.Ctx,
+                     compilerBridgeClasspath: Array[String]) extends mill.scalalib.ZincWorkerApi{
   @volatile var compilersCache = Option.empty[(Long, Compilers)]
 
   /** Compile the bridge if it doesn't exist yet and return the output directory.

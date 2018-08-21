@@ -104,7 +104,7 @@ object Lib{
   /**
     * Resolve dependencies using Coursier.
     *
-    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * We do not bother breaking this out into the separate ZincWorker classpath,
     * because Coursier is already bundled with mill/Ammonite to support the
     * `import $ivy` syntax.
     */

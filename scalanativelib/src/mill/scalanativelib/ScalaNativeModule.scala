@@ -46,7 +46,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   override def artifactSuffix: T[String] = s"${platformSuffix()}_${artifactScalaVersion()}"
 
   trait Tests extends TestScalaNativeModule {
-    override def scalaWorker = outer.scalaWorker
+    override def zincWorker = outer.zincWorker
     override def scalaOrganization = outer.scalaOrganization()
     override def scalaVersion = outer.scalaVersion()
     override def scalaNativeVersion = outer.scalaNativeVersion()
@@ -238,7 +238,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
   // creates a specific binary used for running tests - has a different (generated) main class
   // which knows the names of all the tests and references to invoke them
   object testRunnerNative extends ScalaNativeModule {
-    override def scalaWorker = testOuter.scalaWorker
+    override def zincWorker = testOuter.zincWorker
     override def scalaOrganization = testOuter.scalaOrganization()
     override def scalaVersion = testOuter.scalaVersion()
     override def scalaNativeVersion = testOuter.scalaNativeVersion()
