@@ -60,28 +60,9 @@ trait ScalaModule extends JavaModule { outer =>
     )
   }
 
-  override def finalMainClassOpt: T[Either[String, String]] = T{
-    mainClass() match{
-      case Some(m) => Right(m)
-      case None =>
-        zincWorker.worker().discoverMainClasses(compile())match {
-          case Seq() => Left("No main class specified or found")
-          case Seq(main) => Right(main)
-          case mains =>
-            Left(
-              s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
-            )
-        }
-    }
-  }
-
-
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
 
   def scalacOptions = T{ Seq.empty[String] }
-
-  override def repositories: Seq[Repository] = zincWorker.repositories
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
@@ -142,16 +123,16 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def compile: T[CompilationResult] = T.persistent{
-    zincWorker.worker().compileScala(
-      scalaVersion(),
+    zincWorker.worker().compileMixed(
+      upstreamCompileOutput(),
       allSourceFiles().map(_.path),
-      scalaCompilerBridgeSources(),
       compileClasspath().map(_.path),
-      scalaCompilerClasspath().map(_.path),
-      scalacOptions(),
-      scalacPluginClasspath().map(_.path),
       javacOptions(),
-      upstreamCompileOutput()
+      scalaVersion(),
+      scalacOptions(),
+      scalaCompilerBridgeSources(),
+      scalaCompilerClasspath().map(_.path),
+      scalacPluginClasspath().map(_.path),
     )
   }
 

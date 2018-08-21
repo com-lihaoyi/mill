@@ -58,18 +58,24 @@ trait ZincWorkerModule extends mill.Module{
 }
 
 trait ZincWorkerApi {
+  /** Compile a Java-only project */
+  def compileJava(upstreamCompileOutput: Seq[CompilationResult],
+                  sources: Agg[Path],
+                  compileClasspath: Agg[Path],
+                  javacOptions: Seq[String])
+                 (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
-  def compileScala(scalaVersion: String,
+  /** Compile a mixed Scala/Java or Scala-only project */
+  def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
                    sources: Agg[Path],
-                   compilerBridgeSources: Path,
                    compileClasspath: Agg[Path],
-                   compilerClasspath: Agg[Path],
-                   scalacOptions: Seq[String],
-                   scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
-                   upstreamCompileOutput: Seq[CompilationResult])
+                   scalaVersion: String,
+                   scalacOptions: Seq[String],
+                   compilerBridgeSources: Path,
+                   compilerClasspath: Agg[Path],
+                   scalacPluginClasspath: Agg[Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
-
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]

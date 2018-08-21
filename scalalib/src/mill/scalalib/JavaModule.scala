@@ -23,6 +23,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
     override def javacOptions = outer.javacOptions
+    override def zincWorker = outer.zincWorker
   }
   def defaultCommandName() = "run"
 
@@ -38,7 +39,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
       case Some(m) => Right(m)
-      case None => Left("No main class specified or found")
+      case None =>
+        zincWorker.worker().discoverMainClasses(compile())match {
+          case Seq() => Left("No main class specified or found")
+          case Seq(main) => Right(main)
+          case mains =>
+            Left(
+              s"Multiple main classes found (${mains.mkString(",")}) " +
+                "please explicitly specify which one to use by overriding mainClass"
+            )
+        }
     }
   }
 
@@ -133,12 +143,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
 
-  def compile: T[CompilationResult] = T{
-    Lib.compileJava(
-      allSourceFiles().map(_.path.toIO).toArray,
-      compileClasspath().map(_.path.toIO).toArray,
-      javacOptions(),
-      upstreamCompileOutput()
+  def compile: T[CompilationResult] = T.persistent{
+    zincWorker.worker().compileJava(
+      upstreamCompileOutput(),
+      allSourceFiles().map(_.path),
+      compileClasspath().map(_.path),
+      javacOptions()
     )
   }
 
