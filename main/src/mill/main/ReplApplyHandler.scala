@@ -91,7 +91,7 @@ object ReplApplyHandler{
 
 }
 class ReplApplyHandler(pprinter0: pprint.PPrinter,
-                       evaluator: Evaluator[_]) extends ApplyHandler[Task] {
+                       val evaluator: Evaluator[_]) extends ApplyHandler[Task] {
   // Evaluate classLoaderSig only once in the REPL to avoid busting caches
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig
