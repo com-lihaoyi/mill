@@ -41,7 +41,7 @@ trait ScalaWorkerModule extends mill.Module{
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
-    val cls = cl.loadClass("mill.scalalib.worker.ScalaWorker")
+    val cls = cl.loadClass("mill.scalalib.worker.ScalaWorkerImpl")
     val instance = cls.getConstructor(classOf[mill.util.Ctx], classOf[Array[String]])
       .newInstance(T.ctx(), compilerInterfaceClasspath().map(_.path.toString).toArray[String])
     instance.asInstanceOf[ScalaWorkerApi]

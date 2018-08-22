@@ -35,7 +35,7 @@ class ScalaJSWorker {
           getClass.getClassLoader
         )
         val bridge = cl
-          .loadClass("mill.scalajslib.bridge.ScalaJSWorker")
+          .loadClass("mill.scalajslib.worker.ScalaJSWorkerImpl")
           .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[ScalaJSWorkerApi]

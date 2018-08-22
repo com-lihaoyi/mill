@@ -23,7 +23,7 @@ class ScalaNativeWorker {
         )
         try {
           val bridge = cl
-            .loadClass("mill.scalanativelib.bridge.ScalaNativeWorker")
+            .loadClass("mill.scalanativelib.worker.ScalaNativeWorkerImpl")
             .getDeclaredConstructor()
             .newInstance()
             .asInstanceOf[ScalaNativeWorkerApi]
