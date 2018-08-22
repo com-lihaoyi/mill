@@ -21,7 +21,7 @@ object ModuleKind{
 }
 
 class ScalaJSWorker {
-  private var scalaInstanceCache = Option.empty[(Long, ScalaJSBridge)]
+  private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
   private def bridge(toolsClasspath: Agg[Path])
                     (implicit ctx: Ctx.Home) = {
@@ -38,7 +38,7 @@ class ScalaJSWorker {
           .loadClass("mill.scalajslib.bridge.ScalaJSBridge")
           .getDeclaredConstructor()
           .newInstance()
-          .asInstanceOf[ScalaJSBridge]
+          .asInstanceOf[ScalaJSWorkerApi]
         scalaInstanceCache = Some((classloaderSig, bridge))
         bridge
     }
@@ -77,7 +77,7 @@ class ScalaJSWorker {
 
 }
 
-trait ScalaJSBridge {
+trait ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,
@@ -93,7 +93,7 @@ trait ScalaJSBridge {
 
 }
 
-object ScalaJSBridge extends mill.define.ExternalModule {
+object ScalaJSWorkerApi extends mill.define.ExternalModule {
 
   def scalaJSBridge = T.worker { new ScalaJSWorker() }
   lazy val millDiscover = Discover[this.type]

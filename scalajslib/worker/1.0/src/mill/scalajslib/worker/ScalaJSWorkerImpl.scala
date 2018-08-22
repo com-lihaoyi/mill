@@ -1,6 +1,6 @@
 package mill
 package scalajslib
-package bridge
+package worker
 
 import java.io.File
 
@@ -12,7 +12,7 @@ import org.scalajs.jsenv.ConsoleJSConsole
 import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
-class ScalaJSBridge extends mill.scalajslib.ScalaJSBridge {
+class ScalaJSWorkerImpl extends mill.scalajslib.ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,

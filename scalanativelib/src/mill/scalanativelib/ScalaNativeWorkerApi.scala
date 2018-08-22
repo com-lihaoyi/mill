@@ -10,9 +10,9 @@ import sbt.testing.Framework
 
 
 class ScalaNativeWorker {
-  private var scalaInstanceCache = Option.empty[(Long, ScalaNativeBridge)]
+  private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def bridge(toolsClasspath: Agg[Path]): ScalaNativeBridge = {
+  def bridge(toolsClasspath: Agg[Path]): ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
@@ -26,7 +26,7 @@ class ScalaNativeWorker {
             .loadClass("mill.scalanativelib.bridge.ScalaNativeBridge")
             .getDeclaredConstructor()
             .newInstance()
-            .asInstanceOf[ScalaNativeBridge]
+            .asInstanceOf[ScalaNativeWorkerApi]
           scalaInstanceCache = Some((classloaderSig, bridge))
           bridge
         }
@@ -43,7 +43,7 @@ class ScalaNativeWorker {
 // result wrapper to preserve some type safety
 case class NativeConfig(config: Any)
 
-trait ScalaNativeBridge {
+trait ScalaNativeWorkerApi {
   def discoverClang: Path
   def discoverClangPP: Path
   def discoverTarget(clang: Path, workDir: Path): String
@@ -71,7 +71,7 @@ trait ScalaNativeBridge {
                               logLevel: NativeLogLevel, envVars: Map[String, String]): Framework
 }
 
-object ScalaNativeBridge extends mill.define.ExternalModule {
+object ScalaNativeWorkerApi extends mill.define.ExternalModule {
   def scalaNativeBridge: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
   lazy val millDiscover = Discover[this.type]
 }

@@ -1,4 +1,4 @@
-package mill.scalanativelib.bridge
+package mill.scalanativelib.worker
 
 import java.io.File
 import java.lang.System.{err, out}
@@ -11,7 +11,7 @@ import sbt.testing.Framework
 import scala.scalanative.testinterface.ScalaNativeFramework
 
 
-class ScalaNativeBridge extends mill.scalanativelib.ScalaNativeBridge {
+class ScalaNativeWorkerImpl extends mill.scalanativelib.ScalaNativeWorkerApi {
   def logger(level: NativeLogLevel) =
     Logger(
       debugFn = msg => if (level >= NativeLogLevel.Debug) out.println(msg),

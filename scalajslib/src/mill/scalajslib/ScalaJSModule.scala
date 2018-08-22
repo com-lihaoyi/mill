@@ -56,7 +56,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def fastOpt = T {
     link(
-      ScalaJSBridge.scalaJSBridge(),
+      ScalaJSWorkerApi.scalaJSBridge(),
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
@@ -67,7 +67,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def fullOpt = T {
     link(
-      ScalaJSBridge.scalaJSBridge(),
+      ScalaJSWorkerApi.scalaJSBridge(),
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
@@ -82,7 +82,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     finalMainClassOpt() match{
       case Left(err) => Result.Failure(err)
       case Right(_) =>
-        ScalaJSBridge.scalaJSBridge().run(
+        ScalaJSWorkerApi.scalaJSBridge().run(
           toolsClasspath().map(_.path),
           nodeJSConfig(),
           fastOpt().path.toIO
@@ -164,7 +164,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   def fastOptTest = T {
     link(
-      ScalaJSBridge.scalaJSBridge(),
+      ScalaJSWorkerApi.scalaJSBridge(),
       toolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
@@ -176,7 +176,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override def test(args: String*) = T.command {
-    val (close, framework) = mill.scalajslib.ScalaJSBridge.scalaJSBridge().getFramework(
+    val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSBridge().getFramework(
         toolsClasspath().map(_.path),
         nodeJSConfig(),
         testFrameworks().head,
