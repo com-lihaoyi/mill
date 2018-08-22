@@ -12,7 +12,7 @@ import sbt.testing.Framework
 class ScalaNativeWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def bridge(toolsClasspath: Agg[Path]): ScalaNativeWorkerApi = {
+  def impl(toolsClasspath: Agg[Path]): ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
@@ -23,7 +23,7 @@ class ScalaNativeWorker {
         )
         try {
           val bridge = cl
-            .loadClass("mill.scalanativelib.bridge.ScalaNativeBridge")
+            .loadClass("mill.scalanativelib.bridge.ScalaNativeWorker")
             .getDeclaredConstructor()
             .newInstance()
             .asInstanceOf[ScalaNativeWorkerApi]
@@ -72,6 +72,6 @@ trait ScalaNativeWorkerApi {
 }
 
 object ScalaNativeWorkerApi extends mill.define.ExternalModule {
-  def scalaNativeBridge: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
+  def scalaNativeWorker: Worker[ScalaNativeWorker] = T.worker { new ScalaNativeWorker() }
   lazy val millDiscover = Discover[this.type]
 }

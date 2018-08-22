@@ -35,7 +35,7 @@ class ScalaJSWorker {
           getClass.getClassLoader
         )
         val bridge = cl
-          .loadClass("mill.scalajslib.bridge.ScalaJSBridge")
+          .loadClass("mill.scalajslib.bridge.ScalaJSWorker")
           .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[ScalaJSWorkerApi]
@@ -95,6 +95,6 @@ trait ScalaJSWorkerApi {
 
 object ScalaJSWorkerApi extends mill.define.ExternalModule {
 
-  def scalaJSBridge = T.worker { new ScalaJSWorker() }
+  def scalaJSWorker = T.worker { new ScalaJSWorker() }
   lazy val millDiscover = Discover[this.type]
 }

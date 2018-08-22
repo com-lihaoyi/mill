@@ -65,13 +65,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       scalaNativeBinaryVersion()
   }
 
-  def bridge = T.task{ ScalaNativeWorkerApi.scalaNativeBridge().bridge(bridgeFullClassPath()) }
+  def scalaNativeWorker = T.task{ ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath()) }
 
-  def scalaNativeBridgeClasspath = T {
-    val snBridgeKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
-    val snBridgePath = sys.props(snBridgeKey)
-    if (snBridgePath != null)
-      Result.Success(Agg(snBridgePath.split(',').map(p => PathRef(Path(p), quick = true)): _*))
+  def scalaNativeWorkerClasspath = T {
+    val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
+    val workerPath = sys.props(workerKey)
+    if (workerPath != null)
+      Result.Success(Agg(workerPath.split(',').map(p => PathRef(Path(p), quick = true)): _*))
     else
       Lib.resolveDependencies(
         Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
@@ -108,7 +108,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, scalaVersion(), platformSuffix()),
       toolsIvyDeps()
-    ).map(t => (scalaNativeBridgeClasspath().toSeq ++ t.toSeq).map(_.path))
+    ).map(t => (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
   override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
@@ -121,24 +121,24 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeWorkdir = T{ T.ctx().dest }
 
   // Location of the clang compiler
-  def nativeClang = T{ bridge().discoverClang }
+  def nativeClang = T{ scalaNativeWorker().discoverClang }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T{ bridge().discoverClangPP }
+  def nativeClangPP = T{ scalaNativeWorker().discoverClangPP }
 
   // GC choice, either "none", "boehm" or "immix"
   def nativeGC = T{
     Option(System.getenv.get("SCALANATIVE_GC"))
-      .getOrElse(bridge().defaultGarbageCollector)
+      .getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
-  def nativeTarget = T{ bridge().discoverTarget(nativeClang(), nativeWorkdir()) }
+  def nativeTarget = T{ scalaNativeWorker().discoverTarget(nativeClang(), nativeWorkdir()) }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T{ bridge().discoverCompileOptions }
+  def nativeCompileOptions = T{ scalaNativeWorker().discoverCompileOptions }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = T{ bridge().discoverLinkingOptions }
+  def nativeLinkingOptions = T{ scalaNativeWorker().discoverLinkingOptions }
 
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
@@ -154,7 +154,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeConfig = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
-    bridge().config(
+    scalaNativeWorker().config(
       nativeLibJar().path,
       finalMainClass(),
       classpath,
@@ -171,7 +171,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Generates native binary
-  def nativeLink = T{ bridge().nativeLink(nativeConfig(), (T.ctx().dest / 'out)) }
+  def nativeLink = T{ scalaNativeWorker().nativeLink(nativeConfig(), (T.ctx().dest / 'out)) }
 
   // Runs the native binary
   override def run(args: String*) = T.command{
@@ -204,7 +204,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
     val nativeFrameworks = (cl: ClassLoader) =>
       frameworkInstances.zipWithIndex.map { case (f, id) =>
-        bridge().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
+        scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
       }
 
     val (doneMsg, results) = TestRunner.runTests(
