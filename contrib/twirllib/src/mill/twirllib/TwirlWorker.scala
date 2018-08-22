@@ -20,7 +20,7 @@ class TwirlWorker {
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray)
+        val cl = new URLClassLoader(twirlClasspath.map(_.toIO.toURI.toURL).toArray, null)
         val twirlCompilerClass = cl.loadClass("play.twirl.compiler.TwirlCompiler")
         val compileMethod = twirlCompilerClass.getMethod("compile",
           classOf[java.io.File],
