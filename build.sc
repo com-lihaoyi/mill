@@ -191,8 +191,8 @@ object scalajslib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALAJS_BRIDGE_0_6" -> worker("0.6").compile().classes.path,
-      "MILL_SCALAJS_BRIDGE_1_0" -> worker("1.0").compile().classes.path
+      "MILL_SCALAJS_WORKER_0_6" -> worker("0.6").compile().classes.path,
+      "MILL_SCALAJS_WORKER_1_0" -> worker("1.0").compile().classes.path
     )
     Seq("-Djna.nosys=true") ++
     scalalib.worker.testArgs() ++
@@ -258,7 +258,7 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_BRIDGE_0_3" ->
+      "MILL_SCALANATIVE_WORKER_0_3" ->
         worker("0.3").runClasspath()
           .map(_.path)
           .filter(_.toIO.exists)

@@ -68,7 +68,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def bridge = T.task{ ScalaNativeWorkerApi.scalaNativeBridge().bridge(bridgeFullClassPath()) }
 
   def scalaNativeBridgeClasspath = T {
-    val snBridgeKey = "MILL_SCALANATIVE_BRIDGE_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
+    val snBridgeKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
     val snBridgePath = sys.props(snBridgeKey)
     if (snBridgePath != null)
       Result.Success(Agg(snBridgePath.split(',').map(p => PathRef(Path(p), quick = true)): _*))

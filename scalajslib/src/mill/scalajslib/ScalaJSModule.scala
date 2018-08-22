@@ -27,7 +27,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSBridgeVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
   def sjsBridgeClasspath = T {
-    val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
+    val jsBridgeKey = "MILL_SCALAJS_WORKER_" + scalaJSBridgeVersion().replace('.', '_')
     mill.modules.Util.millProjectModule(
       jsBridgeKey,
       s"mill-scalajslib-worker-${scalaJSBridgeVersion()}",
