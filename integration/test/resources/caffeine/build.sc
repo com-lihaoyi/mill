@@ -8,11 +8,11 @@ import deps.{benchmarkLibraries, benchmarkVersions, libraries, testLibraries, te
 
 trait CaffeineModule extends MavenModule{
   def repositories = super.repositories ++ Seq(
-    coursier.ivy.IvyRepository(
+    coursier.ivy.IvyRepository.parse(
       "https://dl.bintray.com/sbt/sbt-plugin-releases/" +
       coursier.ivy.Pattern.default.string,
       dropInfoAttributes = true
-    ),
+    ).toOption.get,
     MavenRepository("https://jcenter.bintray.com/"),
     MavenRepository("https://jitpack.io/"),
     MavenRepository("http://repo.spring.io/plugins-release")
@@ -25,7 +25,6 @@ trait CaffeineModule extends MavenModule{
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
-      ivy"org.hamcrest:hamcrest-library:1.3",
       testLibraries.awaitility,
     ) ++
       testLibraries.testng ++
