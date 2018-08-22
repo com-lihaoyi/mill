@@ -51,37 +51,10 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(core.moduledefs.jar())
+    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
 }
 
-object core extends MillModule {
-  def moduleDeps = Seq(moduledefs)
-
-  def compileIvyDeps = Agg(
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
-  )
-
-  def ivyDeps = Agg(
-    ivy"com.lihaoyi:::ammonite:1.1.2-6-27842d9",
-    // Necessary so we can share the JNA classes throughout the build process
-    ivy"net.java.dev.jna:jna:4.5.0",
-    ivy"net.java.dev.jna:jna-platform:4.5.0"
-  )
-
-  def generatedSources = T {
-    Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
-  }
-
-  object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.6" }
-    def ivyDeps = Agg(
-      ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-      ivy"com.lihaoyi::sourcecode:0.1.4"
-    )
-  }
-
-}
 
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
@@ -103,6 +76,34 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
+
+  object core extends MillModule {
+    def moduleDeps = Seq(moduledefs)
+
+    def compileIvyDeps = Agg(
+      ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+    )
+
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi:::ammonite:1.1.2-6-27842d9",
+      // Necessary so we can share the JNA classes throughout the build process
+      ivy"net.java.dev.jna:jna:4.5.0",
+      ivy"net.java.dev.jna:jna-platform:4.5.0"
+    )
+
+    def generatedSources = T {
+      Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
+    }
+  }
+
+  object moduledefs extends MillPublishModule with ScalaModule{
+    def scalaVersion = T{ "2.12.6" }
+    def ivyDeps = Agg(
+      ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
+      ivy"com.lihaoyi::sourcecode:0.1.4"
+    )
+  }
+
 
   object client extends MillPublishModule{
     def ivyDeps = Agg(
@@ -145,8 +146,8 @@ object scalalib extends MillModule {
 
   def testArgs = T{
     val genIdeaArgs =
-      genTask(core.moduledefs)() ++
-      genTask(core)() ++
+      genTask(main.moduledefs)() ++
+      genTask(main.core)() ++
       genTask(main)() ++
       genTask(scalalib)() ++
       genTask(scalajslib)() ++
@@ -190,8 +191,8 @@ object scalajslib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALAJS_BRIDGE_0_6" -> jsbridges("0.6").compile().classes.path,
-      "MILL_SCALAJS_BRIDGE_1_0" -> jsbridges("1.0").compile().classes.path
+      "MILL_SCALAJS_BRIDGE_0_6" -> worker("0.6").compile().classes.path,
+      "MILL_SCALAJS_BRIDGE_1_0" -> worker("1.0").compile().classes.path
     )
     Seq("-Djna.nosys=true") ++
     scalalib.worker.testArgs() ++
@@ -199,8 +200,8 @@ object scalajslib extends MillModule {
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
-  object jsbridges extends Cross[JsBridgeModule]("0.6", "1.0")
-  class JsBridgeModule(scalajsBinary: String) extends MillModule{
+  object worker extends Cross[WorkerModule]("0.6", "1.0")
+  class WorkerModule(scalajsBinary: String) extends MillModule{
     def moduleDeps = Seq(scalajslib)
     def ivyDeps = scalajsBinary match {
       case "0.6" =>
@@ -258,7 +259,7 @@ object scalanativelib extends MillModule {
   def testArgs = T{
     val mapping = Map(
       "MILL_SCALANATIVE_BRIDGE_0_3" ->
-        scalanativebridges("0.3").runClasspath()
+        worker("0.3").runClasspath()
           .map(_.path)
           .filter(_.toIO.exists)
           .mkString(",")
@@ -268,8 +269,8 @@ object scalanativelib extends MillModule {
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
-  object scalanativebridges extends Cross[ScalaNativeBridgeModule]("0.3")
-  class ScalaNativeBridgeModule(scalaNativeBinary: String) extends MillModule {
+  object worker extends Cross[WorkerModule]("0.3")
+  class WorkerModule(scalaNativeBinary: String) extends MillModule {
     def scalaNativeVersion = T{ "0.3.8" }
     def moduleDeps = Seq(scalanativelib)
     def ivyDeps = scalaNativeBinary match {
@@ -305,7 +306,7 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(core.moduledefs, scalalib, scalajslib, scalanativelib)
+  def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
