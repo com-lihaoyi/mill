@@ -137,7 +137,7 @@ dev) and load into isolated classloaders.
 
 ### Worker modules that are resolved from Maven Central
 
-- `scalalib.worker`, `scalajslib.jsbridges[0.6]`, `scalajslib.jsbridges[1.0]`
+- `scalalib.worker`, `scalajslib.worker[0.6]`, `scalajslib.worker[1.0]`
 
 These modules are where the heavy-lifting happens, and include heavy
 dependencies like the Scala compiler, Scala.js optimizer, etc.. Rather than

@@ -30,9 +30,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val jsBridgeKey = "MILL_SCALAJS_BRIDGE_" + scalaJSBridgeVersion().replace('.', '_')
     mill.modules.Util.millProjectModule(
       jsBridgeKey,
-      s"mill-scalajslib-jsbridges-${scalaJSBridgeVersion()}",
+      s"mill-scalajslib-worker-${scalaJSBridgeVersion()}",
       repositories,
-      resolveFilter = _.toString.contains("mill-scalajslib-jsbridges")
+      resolveFilter = _.toString.contains("mill-scalajslib-worker")
     )
   }
 
