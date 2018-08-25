@@ -24,9 +24,31 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-class ScalaWorkerImpl(ctx0: mill.util.Ctx,
-                      compilerBridgeClasspath: Array[String]) extends mill.scalalib.ScalaWorkerApi{
-  @volatile var compilersCache = Option.empty[(Long, Compilers)]
+class ZincWorkerImpl(ctx0: mill.util.Ctx,
+                     compilerBridgeClasspath: Array[String]) extends mill.scalalib.ZincWorkerApi{
+  private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
+  val javaOnlyCompilers = {
+    // Keep the classpath as written by the user
+    val classpathOptions = ClasspathOptions.of(false, false, false, false, false)
+
+    val dummyFile = new java.io.File("")
+    // Zinc does not have an entry point for Java-only compilation, so we need
+    // to make up a dummy ScalaCompiler instance.
+    val scalac = ZincUtil.scalaCompiler(
+      new ScalaInstance("", null, null, dummyFile, dummyFile, new Array(0), Some("")), null,
+      classpathOptions // this is used for javac too
+    )
+
+    ic.compilers(
+      instance = null,
+      classpathOptions,
+      None,
+      scalac
+    )
+  }
+
+  @volatile var mixedCompilersCache = Option.empty[(Long, Compilers)]
+
 
   /** Compile the bridge if it doesn't exist yet and return the output directory.
    *  TODO: Proper invalidation, see #389
@@ -78,27 +100,38 @@ class ScalaWorkerImpl(ctx0: mill.util.Ctx,
       .getOrElse(Seq.empty[String])
   }
 
+  def compileJava(upstreamCompileOutput: Seq[CompilationResult],
+                  sources: Agg[Path],
+                  compileClasspath: Agg[Path],
+                  javacOptions: Seq[String])
+                 (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+    compileInternal(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions,
+      scalacOptions = Nil,
+      javaOnlyCompilers
+    )
+  }
 
-  def compileScala(scalaVersion: String,
+  def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
                    sources: Agg[Path],
-                   compilerBridgeSources: Path,
                    compileClasspath: Agg[Path],
-                   compilerClasspath: Agg[Path],
-                   scalacOptions: Seq[String],
-                   scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
-                   upstreamCompileOutput: Seq[CompilationResult])
+                   scalaVersion: String,
+                   scalacOptions: Seq[String],
+                   compilerBridgeSources: Path,
+                   compilerClasspath: Agg[Path],
+                   scalacPluginClasspath: Agg[Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
-    val compileClasspathFiles = compileClasspath.map(_.toIO).toArray
     val compilerJars = compilerClasspath.toArray.map(_.toIO)
 
     val compilerBridge = compileZincBridgeIfNeeded(scalaVersion, compilerBridgeSources, compilerJars)
-
-    val ic = new sbt.internal.inc.IncrementalCompilerImpl()
-
     val compilerBridgeSig = compilerBridge.mtime.toMillis
+
     val compilersSig = compilerBridgeSig + compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
-    val compilers = compilersCache match {
+    val compilers = mixedCompilersCache match {
       case Some((k, v)) if k == compilersSig => v
       case _ =>
         val compilerName =
@@ -120,12 +153,28 @@ class ScalaWorkerImpl(ctx0: mill.util.Ctx,
           None,
           ZincUtil.scalaCompiler(scalaInstance, compilerBridge.toIO)
         )
-        compilersCache = Some((compilersSig, compilers))
+        mixedCompilersCache = Some((compilersSig, compilers))
         compilers
     }
 
-    mkdir(ctx.dest)
+    compileInternal(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions,
+      scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:${jar}").toSeq ++ scalacOptions,
+      compilers
+    )
+  }
 
+  private def compileInternal(upstreamCompileOutput: Seq[CompilationResult],
+                              sources: Agg[Path],
+                              compileClasspath: Agg[Path],
+                              javacOptions: Seq[String],
+                              scalacOptions: Seq[String],
+                              compilers: Compilers)
+                             (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+    mkdir(ctx.dest)
 
     val logger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
@@ -158,33 +207,35 @@ class ScalaWorkerImpl(ctx0: mill.util.Ctx,
 
     val store = FileAnalysisStore.binary(zincIOFile)
 
+    val inputs = ic.inputs(
+      classpath = classesIODir +: compileClasspath.map(_.toIO).toArray,
+      sources = sources.toArray.map(_.toIO),
+      classesDirectory = classesIODir,
+      scalacOptions = scalacOptions.toArray,
+      javacOptions = javacOptions.toArray,
+      maxErrors = 10,
+      sourcePositionMappers = Array(),
+      order = CompileOrder.Mixed,
+      compilers = compilers,
+      setup = ic.setup(
+        lookup,
+        skip = false,
+        zincIOFile,
+        new FreshCompilerCache,
+        IncOptions.of(),
+        new ManagedLoggedReporter(10, logger),
+        None,
+        Array()
+      ),
+      pr = {
+        val prev = store.get()
+        PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
+      }
+    )
+
     try {
       val newResult = ic.compile(
-        ic.inputs(
-          classpath = classesIODir +: compileClasspathFiles,
-          sources = sources.toArray.map(_.toIO),
-          classesDirectory = classesIODir,
-          scalacOptions = (scalacPluginClasspath.map(jar => s"-Xplugin:${jar}") ++ scalacOptions).toArray,
-          javacOptions = javacOptions.toArray,
-          maxErrors = 10,
-          sourcePositionMappers = Array(),
-          order = CompileOrder.Mixed,
-          compilers = compilers,
-          setup = ic.setup(
-            lookup,
-            skip = false,
-            zincIOFile,
-            new FreshCompilerCache,
-            IncOptions.of(),
-            new ManagedLoggedReporter(10, logger),
-            None,
-            Array()
-          ),
-          pr = {
-            val prev = store.get()
-            PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-          }
-        ),
+        in = inputs,
         logger = logger
       )
 

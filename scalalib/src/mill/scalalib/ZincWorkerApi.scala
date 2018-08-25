@@ -11,10 +11,10 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.util.Loose
 import mill.util.JsonFormatters._
 
-object ScalaWorkerModule extends mill.define.ExternalModule with ScalaWorkerModule{
+object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule{
   lazy val millDiscover = Discover[this.type]
 }
-trait ScalaWorkerModule extends mill.Module{
+trait ZincWorkerModule extends mill.Module{
   def repositories = Seq(
     Cache.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
@@ -36,15 +36,15 @@ trait ScalaWorkerModule extends mill.Module{
     )
   }
 
-  def worker: Worker[ScalaWorkerApi] = T.worker{
+  def worker: Worker[ZincWorkerApi] = T.worker{
     val cl = mill.util.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )
-    val cls = cl.loadClass("mill.scalalib.worker.ScalaWorkerImpl")
+    val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(classOf[mill.util.Ctx], classOf[Array[String]])
       .newInstance(T.ctx(), compilerInterfaceClasspath().map(_.path.toString).toArray[String])
-    instance.asInstanceOf[ScalaWorkerApi]
+    instance.asInstanceOf[ZincWorkerApi]
   }
 
   def compilerInterfaceClasspath = T{
@@ -57,19 +57,25 @@ trait ScalaWorkerModule extends mill.Module{
 
 }
 
-trait ScalaWorkerApi {
+trait ZincWorkerApi {
+  /** Compile a Java-only project */
+  def compileJava(upstreamCompileOutput: Seq[CompilationResult],
+                  sources: Agg[Path],
+                  compileClasspath: Agg[Path],
+                  javacOptions: Seq[String])
+                 (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
-  def compileScala(scalaVersion: String,
+  /** Compile a mixed Scala/Java or Scala-only project */
+  def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
                    sources: Agg[Path],
-                   compilerBridgeSources: Path,
                    compileClasspath: Agg[Path],
-                   compilerClasspath: Agg[Path],
-                   scalacOptions: Seq[String],
-                   scalacPluginClasspath: Agg[Path],
                    javacOptions: Seq[String],
-                   upstreamCompileOutput: Seq[CompilationResult])
+                   scalaVersion: String,
+                   scalacOptions: Seq[String],
+                   compilerBridgeSources: Path,
+                   compilerClasspath: Agg[Path],
+                   scalacPluginClasspath: Agg[Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
-
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]

@@ -3,33 +3,33 @@
 <g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 328)">
 <title>example1</title>
 <polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-328 3469.1473,-328 3469.1473,4 -4,4"/>
-<!-- mill.scalalib.ScalaWorkerModule.classpath -->
+<!-- mill.scalalib.ZincWorkerModule.classpath -->
 <g id="node1" class="node">
-<title>mill.scalalib.ScalaWorkerModule.classpath</title>
+<title>mill.scalalib.ZincWorkerModule.classpath</title>
 <ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="179.1736" cy="-162" rx="179.3473" ry="18"/>
-<text text-anchor="middle" x="179.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.classpath</text>
+<text text-anchor="middle" x="179.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.classpath</text>
 </g>
-<!-- mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath -->
+<!-- mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath -->
 <g id="node2" class="node">
-<title>mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</title>
+<title>mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</title>
 <ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="626.1736" cy="-162" rx="249.9102" ry="18"/>
-<text text-anchor="middle" x="626.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</text>
+<text text-anchor="middle" x="626.1736" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</text>
 </g>
-<!-- mill.scalalib.ScalaWorkerModule.worker -->
+<!-- mill.scalalib.ZincWorkerModule.worker -->
 <g id="node3" class="node">
-<title>mill.scalalib.ScalaWorkerModule.worker</title>
+<title>mill.scalalib.ZincWorkerModule.worker</title>
 <ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="626.1736" cy="-234" rx="171.2452" ry="18"/>
-<text text-anchor="middle" x="626.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ScalaWorkerModule.worker</text>
+<text text-anchor="middle" x="626.1736" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.worker</text>
 </g>
-<!-- mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.classpath -->
+<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.classpath -->
 <g id="edge1" class="edge">
-<title>mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.classpath</title>
+<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.classpath</title>
 <path fill="none" stroke="#000000" d="M532.4677,-218.9064C459.9462,-207.2251 359.5232,-191.0496 284.2741,-178.9289"/>
 <polygon fill="#000000" stroke="#000000" points="284.7249,-175.4565 274.2956,-177.3217 283.6117,-182.3675 284.7249,-175.4565"/>
 </g>
-<!-- mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath -->
+<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath -->
 <g id="edge2" class="edge">
-<title>mill.scalalib.ScalaWorkerModule.worker&#45;&gt;mill.scalalib.ScalaWorkerModule.compilerInterfaceClasspath</title>
+<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</title>
 <path fill="none" stroke="#000000" d="M626.1736,-215.8314C626.1736,-208.131 626.1736,-198.9743 626.1736,-190.4166"/>
 <polygon fill="#000000" stroke="#000000" points="629.6737,-190.4132 626.1736,-180.4133 622.6737,-190.4133 629.6737,-190.4132"/>
 </g>
@@ -297,9 +297,9 @@
 <ellipse fill="none" stroke="#000000" cx="1913.1736" cy="-306" rx="89.7283" ry="18"/>
 <text text-anchor="middle" x="1913.1736" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">moduledefs.compile</text>
 </g>
-<!-- moduledefs.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker -->
+<!-- moduledefs.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
 <g id="edge24" class="edge">
-<title>moduledefs.compile&#45;&gt;mill.scalalib.ScalaWorkerModule.worker</title>
+<title>moduledefs.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
 <path fill="none" stroke="#000000" d="M1824.9751,-302.6013C1641.2815,-295.2954 1204.2998,-276.7314 838.1736,-252 814.9556,-250.4316 790.326,-248.5451 766.3857,-246.592"/>
 <polygon fill="#000000" stroke="#000000" points="766.4274,-243.0836 756.174,-245.7515 765.8532,-250.06 766.4274,-243.0836"/>
 </g>

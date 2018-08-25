@@ -23,7 +23,7 @@ trait ScalafmtModule extends JavaModule {
 
   def scalafmtDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
-      scalaWorker.repositories,
+      zincWorker.repositories,
       Lib.depToDependency(_, "2.12.4"),
       Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
     )

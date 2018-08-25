@@ -10,6 +10,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import coursier.util.{Gather, Task}
 import geny.Generator
 import mill.main.client.InputPumper
 import mill.eval.{PathRef, Result}
@@ -383,7 +384,7 @@ object Jvm {
   /**
     * Resolve dependencies using Coursier.
     *
-    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
     * because Coursier is already bundled with mill/Ammonite to support the
     * `import $ivy` syntax.
     */
@@ -413,17 +414,19 @@ object Jvm {
 
       def load(artifacts: Seq[coursier.Artifact]) = {
         val logger = None
-        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
+
+        import scala.concurrent.ExecutionContext.Implicits.global
+        val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
-            yield coursier.Cache.file(a, logger = logger).run
+            yield coursier.Cache.file[Task](a, logger = logger).run
               .map(a.isOptional -> _)
-        ).unsafePerformSync
+        ).unsafeRun
 
         val errors = loadedArtifacts.collect {
-          case (false, scalaz.-\/(x)) => x
-          case (true, scalaz.-\/(x)) if !x.notFound => x
+          case (false, Left(x)) => x
+          case (true, Left(x)) if !x.notFound => x
         }
-        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
+        val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
         (errors, successes)
       }
 
@@ -459,8 +462,10 @@ object Jvm {
       mapDependencies = mapDependencies
     )
 
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
+    val fetch = Fetch.from(repositories, Cache.fetch[Task]())
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val resolution = start.process.run(fetch).unsafeRun()
     (deps.toSeq, resolution)
   }
 }
