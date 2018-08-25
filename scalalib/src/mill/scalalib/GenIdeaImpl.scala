@@ -73,7 +73,7 @@ object GenIdeaImpl {
         case Some(found) => found.split(',').map(Path(_)).distinct.toList
         case None =>
           val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }
-          val artifactNames = Seq("moduledefs", "core", "scalalib", "scalajslib")
+          val artifactNames = Seq("main-moduledefs", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
             Lib.depToDependency(_, "2.12.4", ""),
