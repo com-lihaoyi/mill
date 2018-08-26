@@ -40,9 +40,13 @@ object Lib{
     }
   }
 
-  def grepJar(classPath: Agg[Path], name: String, version: String) = {
-    val mavenStylePath = s"$name-$version.jar"
-    val ivyStylePath = s"$version/$name.jar"
+  def grepJar(classPath: Agg[Path], name: String, version: String, sources: Boolean = false) = {
+    val suffix = if (sources) "-sources" else ""
+    val mavenStylePath = s"$name-$version$suffix.jar"
+    val ivyStylePath = {
+      val dir = if (sources) "srcs" else "jars"
+      s"$version/$dir/$name$suffix.jar"
+    }
 
     classPath
       .find(p => p.toString.endsWith(mavenStylePath) || p.toString.endsWith(ivyStylePath))

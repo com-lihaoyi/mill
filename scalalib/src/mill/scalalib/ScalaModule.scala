@@ -91,7 +91,7 @@ trait ScalaModule extends JavaModule { outer =>
       Seq(bridgeDep),
       sources = true
     ).map(deps =>
-      grepJar(deps.map(_.path), bridgeName, s"$bridgeVersion-sources")
+      grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
     )
   }
 
