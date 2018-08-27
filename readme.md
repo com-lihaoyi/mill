@@ -151,6 +151,25 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.7
+
+- Add `visualizePlan` command
+
+- Basic build-info plugin in `mill-contrib-buildinfo`
+
+- ScalaPB integration in `mill-contrib-scalapblib`
+
+- Fixes for Twirl support, now in `mill-contrib-twirllib`
+
+- Support for building Dotty projects
+  [#397](https://github.com/lihaoyi/mill/pull/397)
+
+- Allow customization of `run`/`runBackground` working directory via
+  `forkWorkingDir`
+
+- Reduced executable size, improved incremental compilation in
+  [#414](https://github.com/lihaoyi/mill/pull/414)
+
 ### 0.2.6
 
 - Improve incremental compilation to work with transitive module dependencies
