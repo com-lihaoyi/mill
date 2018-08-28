@@ -1,3 +1,5 @@
+import $file.buildVersions
+import buildVersions.BuildVersions
 import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
@@ -9,6 +11,7 @@ import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
 import upickle.Js
+
 trait MillPublishModule extends PublishModule{
 
   def artifactName = "mill-" + super.artifactName()
@@ -29,7 +32,7 @@ trait MillPublishModule extends PublishModule{
 }
 
 trait MillModule extends MillPublishModule with ScalaModule{ outer =>
-  def scalaVersion = T{ "2.12.6" }
+  def scalaVersion = T{ BuildVersions.scala }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -85,8 +88,7 @@ object main extends MillModule {
     )
 
     def ivyDeps = Agg(
-      // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.1.2-30-53edc31",
+      ivy"com.lihaoyi:::ammonite:${BuildVersions.ammonite}",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -98,7 +100,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.6" }
+    def scalaVersion = T{ BuildVersions.scala }
     def ivyDeps = Agg(
       ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
       ivy"com.lihaoyi::sourcecode:0.1.4"
@@ -176,8 +178,7 @@ object scalalib extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.2.1"
+      ivy"org.scala-sbt::zinc:${BuildVersions.zinc}"
     )
     def testArgs = Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")

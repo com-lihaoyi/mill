@@ -7,7 +7,7 @@ import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.eval.Result.Success
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
+import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner, Versions}
 import mill.util.{Ctx, Loose}
 
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
@@ -47,7 +47,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     }
     resolveDependencies(
       repositories,
-      Lib.depToDependency(_, "2.12.4", ""),
+      Lib.depToDependency(_, Versions.scala, ""),
       commonDeps :+ envDep
     )
   }

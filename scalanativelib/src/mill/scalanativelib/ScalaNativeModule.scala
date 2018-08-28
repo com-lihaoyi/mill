@@ -9,7 +9,7 @@ import coursier.maven.MavenRepository
 import mill.define.{Target, Task}
 import mill.eval.Result
 import mill.modules.Jvm
-import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
+import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner, Versions}
 import mill.util.Loose.Agg
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
@@ -75,7 +75,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     else
       Lib.resolveDependencies(
         Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-        Lib.depToDependency(_, "2.12.4", ""),
+        Lib.depToDependency(_, Versions.scala, ""),
         Seq(ivy"com.lihaoyi::mill-scalanativelib-worker-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}")
       )
   }

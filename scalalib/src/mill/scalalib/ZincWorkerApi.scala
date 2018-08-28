@@ -50,7 +50,7 @@ trait ZincWorkerModule extends mill.Module{
   def compilerInterfaceClasspath = T{
     resolveDependencies(
       repositories,
-      Lib.depToDependency(_, "2.12.4", ""),
+      Lib.depToDependency(_, Versions.scala, ""),
       Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}")
     )
   }
