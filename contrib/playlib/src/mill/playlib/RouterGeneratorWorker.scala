@@ -8,6 +8,8 @@ import ammonite.ops.Path
 import mill.eval.PathRef
 import mill.scalalib.CompilationResult
 
+import scala.collection.JavaConverters._
+
 class RouterGeneratorWorker {
 
   private var routerGeneratorInstances = Option.empty[(Long, RouterGeneratorWorkerApi)]
@@ -34,11 +36,17 @@ class RouterGeneratorWorker {
           classOf[java.io.File])
         val instance = new RouterGeneratorWorkerApi {
           override def compile(task: RoutesCompilerTask, generatorType: String = "injected", generatedDir: File): Either[Seq[CompilationResult], Seq[File]] = {
-            val args = Array[AnyRef](task.file: java.io.File,
-              task.additionalImports: scala.collection.Seq[String],
-              Boolean.box(true),
-              Boolean.box(true),
-              Boolean.box(false))
+            // Since the classloader is isolated, we do not share any classes with the Mill classloader.
+            // Thus both classloaders have different copies of "scala.collection.Seq" which are not compatible.
+            val additionalImports = cl.loadClass("scala.collection.mutable.WrappedArray$ofRef")
+              .getConstructors()(0)
+              .newInstance(task.additionalImports.toArray)
+              .asInstanceOf[AnyRef]
+            val args = Array[AnyRef](task.file,
+              additionalImports,
+              Boolean.box(task.forwardsRouter),
+              Boolean.box(task.reverseRouter),
+              Boolean.box(task.namespaceReverseRouter))
             val routesCompilerTaskInstance = routerCompilerTaskConstructor.newInstance(args: _*).asInstanceOf[Object]
             val routesGeneratorInstance = generatorType match {
               case "injected" => injectedRoutesGeneratorModule.get(null)
@@ -49,9 +57,24 @@ class RouterGeneratorWorker {
               routesCompilerTaskInstance,
               routesGeneratorInstance,
               generatedDir)
-            result.asInstanceOf[Either[AnyVal, Seq[File]]] match {
-              case Right(value) => Right(value)
-              case Left(_) => Left(Seq(CompilationResult(Path(""), PathRef(Path(""))))) // FIXME: convert the error to a CompilationResult
+            // compile method returns an object of type Either[Seq[RoutesCompilationError], Seq[File]]
+            result.getClass.getName match {
+              case "scala.util.Right" =>
+                val files = cl.loadClass("scala.util.Right")
+                  .getMethod("value")
+                  .invoke(result)
+                val asJavaMethod = cl.loadClass("scala.collection.convert.DecorateAsJava")
+                  .getMethod("seqAsJavaListConverter", cl.loadClass("scala.collection.Seq"))
+                val javaConverters = cl.loadClass("scala.collection.JavaConverters$")
+                val javaConvertersInstance = javaConverters.getField("MODULE$").get(javaConverters)
+                val filesJava = cl.loadClass("scala.collection.convert.Decorators$AsJava")
+                  .getMethod("asJava")
+                  .invoke(asJavaMethod.invoke(javaConvertersInstance, files))
+                  .asInstanceOf[java.util.List[File]]
+                Right(filesJava.asScala)
+              case "scala.util.Left" =>
+                // TODO: convert the error of type RoutesCompilationError to a CompilationResult
+                Left(Seq(CompilationResult(Path(""), PathRef(Path("")))))
             }
           }
         }

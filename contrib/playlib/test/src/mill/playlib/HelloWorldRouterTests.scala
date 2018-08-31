@@ -36,7 +36,7 @@ object HelloWorldRouterTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'twirlVersion - {
+    'playVersion - {
 
       'fromBuild - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.playVersion)
