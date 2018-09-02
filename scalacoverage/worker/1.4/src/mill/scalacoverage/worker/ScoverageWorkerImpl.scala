@@ -145,10 +145,9 @@ class ScoverageWorkerImpl extends ScoverageWorkerApi {
 
     val coberturaDir = reportDir.resolve("coverage-report").toFile
     val scoverageDir = reportDir.resolve("scoverage-report").toFile
-    coberturaDir.mkdirs()
-    scoverageDir.mkdirs()
 
     if (options.outputCobertura) {
+      coberturaDir.mkdirs()
       new CoberturaXmlWriter(compileSourceDirectories, coberturaDir)
         .write(coverage)
       log.info(
@@ -156,6 +155,7 @@ class ScoverageWorkerImpl extends ScoverageWorkerApi {
     }
 
     if (options.outputXML) {
+      scoverageDir.mkdirs()
       new ScoverageXmlWriter(compileSourceDirectories, scoverageDir, false)
         .write(coverage)
       if (options.outputDebug) {
@@ -167,6 +167,7 @@ class ScoverageWorkerImpl extends ScoverageWorkerApi {
     }
 
     if (options.outputHTML) {
+      scoverageDir.mkdirs()
       new ScoverageHtmlWriter(compileSourceDirectories, scoverageDir, encoding)
         .write(coverage)
       log.info(
@@ -176,6 +177,7 @@ class ScoverageWorkerImpl extends ScoverageWorkerApi {
     // FIXME: team city
     /*
        if (options.outputTeamCity) {
+       scoverageDir.mkdirs()
        reportToTeamcity(coverage, outputHTML, scoverageDir, log)
        log.info("Written coverage report to TeamCity")
        }

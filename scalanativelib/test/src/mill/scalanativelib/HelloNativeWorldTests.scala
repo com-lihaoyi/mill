@@ -16,7 +16,7 @@ import scala.collection.JavaConverters._
 
 
 object HelloNativeWorldTests extends TestSuite {
-  val workspacePath =  TestUtil.getOutPathStatic() / "hello-native-world"
+  val workspacePath = TestUtil.getOutPathStatic() / "hello-native-world"
 
   trait HelloNativeWorldModule extends CrossScalaModule with ScalaNativeModule with PublishModule {
     override def millSourcePath = workspacePath
@@ -77,7 +77,6 @@ object HelloNativeWorldTests extends TestSuite {
 
   val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
 
-
   val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
 
   def tests: Tests = Tests {
@@ -130,7 +129,7 @@ object HelloNativeWorldTests extends TestSuite {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
         val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
-        val (doneMsg, testResults) = res
+        val (_, testResults) = res
         testResults
           .groupBy(_.fullyQualifiedName)
           .mapValues(_.map(e => e.selector -> e).toMap)

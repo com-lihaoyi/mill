@@ -2,7 +2,7 @@ package mill.scalacoverage
 import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
-import mill.define.{Sources, Task}
+import mill.define.{Sources, Target, Task}
 import mill.eval.Result
 import mill.scalalib.{Lib, ScalaModule, _}
 import mill.{Agg, PathRef, T}
@@ -57,15 +57,17 @@ trait ScoverageOptions {
 
 trait ScoverageReportModule extends ScoverageModule {
   /** The target to generate the coverage report. */
-  def coverageReport = T {
+  def coverageReport: T[Path] = T {
+    val reportDir = coverageReportDir()
     scalaCoverageWorker().coverageReport(
       options                  = this,
       dataDir                  = coverageDataDir(),
-      reportDir                = coverageReportDir(),
+      reportDir                = reportDir,
       compileSourceDirectories = sources().filter(_.path.toNIO.toFile.isDirectory).map(_.path),
       encoding                 = encoding(),
       log                      = T.ctx.log
     )
+    reportDir
   }
 }
 
@@ -84,15 +86,17 @@ trait ScoverageAggregateModule extends ScoverageModule {
   override def moduleDeps = coverageModules
 
   /** The target to generate the coverage report. */
-  def aggregateCoverage = T {
+  def aggregateCoverage: T[Path] = T {
+    val aggregateReportDir = coverageReportDir()
     scalaCoverageWorker().aggregateCoverage(
       options                  = this,
       coverageReportDirs       = coverageReportDirs(),
-      aggregateReportDir       = coverageReportDir(),
+      aggregateReportDir       = aggregateReportDir,
       compileSourceDirectories = sources().filter(_.path.toNIO.toFile.isDirectory).map(_.path),
       encoding                 = encoding(),
       log                      = T.ctx.log
     )
+    aggregateReportDir
   }
 }
 
@@ -104,10 +108,10 @@ trait ScoverageModule extends ScalaModule with ScoverageOptions {
   def coverageDataDir: T[Path] = T{ T.ctx().dest }
 
   /** The path to where the coverage data should be written */
-  def coverageReportDir: T[Path] = T{ coverageDataDir() / 'data }
+  def coverageReportDir: T[Path] = T{ coverageDataDir() }
 
   /** The specific test dependencies (ex. "org.scalatest::scalatest:3.0.1"). */
-  def testIvyDeps = T { Agg.empty[Dep] }
+  def testIvyDeps: T[Agg[Dep]]
 
   protected def _scoverageVersion = T { scoverageVersion }
 
@@ -158,7 +162,7 @@ trait ScoverageModule extends ScalaModule with ScoverageOptions {
     ScoverageWorkerApi.scoverageWorker().impl(bridgeFullClassPath())
   }
 
-  /** Adds the worker dependenices to the classpath. */
+  /** Adds the worker dependencies to the classpath. */
   private def scoverageWorkerClasspath = T {
     val workerKey = "MILL_SCALACOVERAGE_WORKER_" + scoverageBinaryVersion().replace('.', '_').replace('-', '_')
     val workerPath = sys.props(workerKey)

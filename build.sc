@@ -314,7 +314,8 @@ object scalacoverage extends MillModule {
     def ivyDeps = scalaCoverageBinary match {
       case "1.4" =>
         Agg(
-          ivy"org.scoverage::scalac-scoverage-runtime:${scalaCoverageVersion()}"
+          ivy"org.scoverage::scalac-scoverage-runtime:${scalaCoverageVersion()}",
+          ivy"org.scoverage::scalac-scoverage-plugin:${scalaCoverageVersion()}"
         )
     }
   }

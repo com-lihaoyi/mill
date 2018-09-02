@@ -23,7 +23,7 @@ class ScoverageWorker {
         )
         try {
           val bridge = cl
-            .loadClass("mill.scalacoverage.ScoverageWorkerImpl")
+            .loadClass("mill.scalacoverage.worker.ScoverageWorkerImpl")
             .getDeclaredConstructor()
             .newInstance()
             .asInstanceOf[ScoverageWorkerApi]
