@@ -8,17 +8,7 @@ import io.github.retronym.java9rtexport.Export
 object ClassLoader {
 
   def create(urls: Seq[URL], parent: java.lang.ClassLoader)(
-      implicit ctx: Ctx.Home): URLClassLoader = {
-    new URLClassLoader(
-      makeUrls(urls).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
-        else super.findClass(name)
-      }
-    }
-  }
+      implicit ctx: Ctx.Home): URLClassLoader = create(urls, parent, _ => None)
 
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
