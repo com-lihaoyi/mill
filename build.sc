@@ -137,8 +137,7 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(main)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0",
-    ivy"org.scoverage::scalac-scoverage-plugin:1.4.0-M3"
+    ivy"org.scala-sbt:test-interface:1.0"
   )
 
   def genTask(m: ScalaModule) = T.task{
@@ -153,7 +152,8 @@ object scalalib extends MillModule {
       genTask(main)() ++
       genTask(scalalib)() ++
       genTask(scalajslib)() ++
-      genTask(scalanativelib)()
+      genTask(scalanativelib)() ++
+      genTask(scalacoverage)()
 
     worker.testArgs() ++
     main.graphviz.testArgs() ++
@@ -288,6 +288,39 @@ object scalanativelib extends MillModule {
   }
 }
 
+
+object scalacoverage extends MillModule {
+  def moduleDeps = Seq(scalalib)
+
+  def scalacOptions = Seq[String]() // disable -P:acyclic:force
+
+  def testArgs = T{
+    val mapping = Map(
+      "MILL_SCALACOVERAGE_WORKER_1_4" ->
+        worker("1.4").runClasspath()
+          .map(_.path)
+          .filter(_.toIO.exists)
+          .mkString(",")
+    )
+    scalalib.worker.testArgs() ++
+      scalalib.backgroundwrapper.testArgs() ++
+      (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+  }
+
+  object worker extends Cross[WorkerModule]("1.4")
+  class WorkerModule(scalaCoverageBinary: String) extends MillModule {
+    def scalaCoverageVersion = T{ "1.4.0-M3" }
+    def moduleDeps = Seq(scalacoverage)
+    def ivyDeps = scalaCoverageBinary match {
+      case "1.4" =>
+        Agg(
+          ivy"org.scoverage::scalac-scoverage-runtime:${scalaCoverageVersion()}"
+        )
+    }
+  }
+}
+
+
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
@@ -308,12 +341,13 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+  def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib, scalacoverage)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
     scalanativelib.testArgs() ++
+    scalacoverage.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
       "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -362,13 +396,14 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, scalacoverage, contrib.scalapblib)
   def forkArgs =
     (
       scalalib.testArgs() ++
       scalajslib.testArgs() ++
       scalalib.worker.testArgs() ++
       scalanativelib.testArgs() ++
+      scalacoverage.testArgs() ++
       scalalib.backgroundwrapper.testArgs() ++
       // Workaround for Zinc/JNA bug
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
