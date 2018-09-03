@@ -6,4 +6,4 @@ set -eux
 git clean -xdf
 
 # Run tests
-mill -i all {main,scalalib,scalajslib,contrib.playlib,main.client,contrib.scalapblib}.test
+mill -i all {main,scalalib,scalajslib,contrib.twirllib,contrib.playlib,main.client,contrib.scalapblib}.test
