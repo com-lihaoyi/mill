@@ -11,7 +11,7 @@ object HelloWorldTests extends TestSuite {
     override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
-  trait HelloWorldModule extends TwirlModule {
+  trait HelloWorldModule extends mill.twirllib.TwirlModule {
     def twirlVersion = "1.0.0"
   }
 
