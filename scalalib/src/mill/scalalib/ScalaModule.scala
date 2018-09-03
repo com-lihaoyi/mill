@@ -145,12 +145,11 @@ trait ScalaModule extends JavaModule { outer =>
     val files = for{
       ref <- allSources()
       if exists(ref.path)
-      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
-      if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
+      p <- if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path)
+      if p.isFile && ((p.ext == "scala") || (p.ext == "java"))
     } yield p.toNIO.toString
 
-    val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalacOptions()
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ scalacOptions().filter(!_.startsWith("-Xplugin-require:"))
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",
