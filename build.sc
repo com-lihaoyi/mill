@@ -243,9 +243,12 @@ object contrib extends MillModule {
     )
   }
 
+  object twirllib extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
   object playlib extends MillModule {
     def moduleDeps = Seq(scalalib)
-
   }
 
   object scalapblib extends MillModule {
