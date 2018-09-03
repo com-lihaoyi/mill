@@ -1,17 +1,17 @@
-package mill.playlib
+package mill.twirllib
 
 import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
-object HelloWorldTwirlTests extends TestSuite {
+object HelloWorldTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
-  trait HelloWorldModule extends mill.playlib.TwirlModule {
+  trait HelloWorldModule extends TwirlModule {
     def twirlVersion = "1.0.0"
   }
 
@@ -22,7 +22,7 @@ object HelloWorldTwirlTests extends TestSuite {
     }
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'playlib / 'test / 'resources / "hello-world"
+  val resourcePath: Path = pwd / 'contrib / 'twirllib / 'test / 'resources / "hello-world"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
                                                 (t: TestEvaluator[M] => T)

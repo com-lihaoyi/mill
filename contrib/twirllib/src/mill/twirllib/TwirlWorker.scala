@@ -1,5 +1,5 @@
 package mill
-package playlib
+package twirllib
 
 import java.io.File
 import java.lang.reflect.Method
