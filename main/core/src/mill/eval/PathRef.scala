@@ -43,7 +43,7 @@ object PathRef{
               digest.update((value >>> 16).toByte)
               digest.update((value >>> 8).toByte)
               digest.update(value.toByte)
-            }else {
+            } else if (jnio.Files.isReadable(file)) {
               val is = jnio.Files.newInputStream(file)
               IO.stream(is, digestOut)
               is.close()
