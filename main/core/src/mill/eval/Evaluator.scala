@@ -28,6 +28,7 @@ case class Labelled[T](task: NamedTask[T],
     case _ => None
   }
 }
+
 case class Evaluator(home: Path,
                      outPath: Path,
                      externalOutPath: Path,
