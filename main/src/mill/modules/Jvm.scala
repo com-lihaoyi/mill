@@ -10,6 +10,7 @@ import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
 import ammonite.ops._
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import coursier.util.{Gather, Task}
 import geny.Generator
 import mill.main.client.InputPumper
 import mill.eval.{PathRef, Result}
@@ -88,7 +89,7 @@ object Jvm {
                classPath: Agg[Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, cl => {
+    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, closeContextClassLoaderWhenDone = true, cl => {
       getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
@@ -112,6 +113,7 @@ object Jvm {
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
                    isolated: Boolean,
+                   closeContextClassLoaderWhenDone: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
@@ -122,19 +124,21 @@ object Jvm {
           Some(outerClassLoader.loadClass(name))
         else None
       })
-    } else if (isolated){
-
+    } else if (isolated) {
       mill.util.ClassLoader.create(urls.toVector, null)
-    }else{
+    } else {
       mill.util.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
+
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
     try {
       body(cl)
-    }finally{
-      Thread.currentThread().setContextClassLoader(oldCl)
-      cl.close()
+    } finally {
+      if (closeContextClassLoaderWhenDone) {
+        Thread.currentThread().setContextClassLoader(oldCl)
+        cl.close()
+      }
     }
   }
 
@@ -383,7 +387,7 @@ object Jvm {
   /**
     * Resolve dependencies using Coursier.
     *
-    * We do not bother breaking this out into the separate ScalaWorker classpath,
+    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
     * because Coursier is already bundled with mill/Ammonite to support the
     * `import $ivy` syntax.
     */
@@ -413,17 +417,19 @@ object Jvm {
 
       def load(artifacts: Seq[coursier.Artifact]) = {
         val logger = None
-        val loadedArtifacts = scalaz.concurrent.Task.gatherUnordered(
+
+        import scala.concurrent.ExecutionContext.Implicits.global
+        val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
-            yield coursier.Cache.file(a, logger = logger).run
+            yield coursier.Cache.file[Task](a, logger = logger).run
               .map(a.isOptional -> _)
-        ).unsafePerformSync
+        ).unsafeRun
 
         val errors = loadedArtifacts.collect {
-          case (false, scalaz.-\/(x)) => x
-          case (true, scalaz.-\/(x)) if !x.notFound => x
+          case (false, Left(x)) => x
+          case (true, Left(x)) if !x.notFound => x
         }
-        val successes = loadedArtifacts.collect { case (_, scalaz.\/-(x)) => x }
+        val successes = loadedArtifacts.collect { case (_, Right(x)) => x }
         (errors, successes)
       }
 
@@ -459,8 +465,10 @@ object Jvm {
       mapDependencies = mapDependencies
     )
 
-    val fetch = Fetch.from(repositories, Cache.fetch())
-    val resolution = start.process.run(fetch).unsafePerformSync
+    val fetch = Fetch.from(repositories, Cache.fetch[Task]())
+
+    import scala.concurrent.ExecutionContext.Implicits.global
+    val resolution = start.process.run(fetch).unsafeRun()
     (deps.toSeq, resolution)
   }
 }

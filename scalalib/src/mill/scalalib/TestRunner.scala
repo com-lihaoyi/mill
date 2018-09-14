@@ -68,13 +68,14 @@ object TestRunner {
                testClassfilePath: Agg[Path],
                args: Seq[String])
               (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, cl => {
+    //Leave the context class loader set and open so that shutdown hooks can access it
+    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = false, cl => {
       val frameworks = frameworkInstances(cl)
 
       val events = mutable.Buffer.empty[Event]
 
       val doneMessages = frameworks.map{ framework =>
-        val runner = framework.runner(args.toArray, args.toArray, cl)
+        val runner = framework.runner(args.toArray, Array[String](), cl)
 
         val testClasses = discoverTests(cl, framework, testClassfilePath)
 

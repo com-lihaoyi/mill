@@ -33,7 +33,7 @@ class TerminalModule(val crossScalaVersion: String) extends AmmModule{
     ivy"com.lihaoyi::fansi:0.2.4"
   )
   def compileIvyDeps = Agg(
-    ivy"org.scala-lang:scala-reflect:$crossScalaVersion"
+    ivy"${scalaOrganization()}:scala-reflect:$crossScalaVersion"
   )
 
   object test extends Tests
@@ -49,7 +49,7 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
       ivy"com.lihaoyi::fansi:0.2.4"
     )
     def compileIvyDeps = Agg(
-      ivy"org.scala-lang:scala-reflect:$crossScalaVersion"
+      ivy"${scalaOrganization()}:scala-reflect:$crossScalaVersion"
     )
 
   }
@@ -75,8 +75,8 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
   class InterpModule(val crossScalaVersion: String) extends AmmModule{
     def moduleDeps = Seq(ops(), amm.util(), amm.runtime())
     def ivyDeps = Agg(
-      ivy"org.scala-lang:scala-compiler:$crossScalaVersion",
-      ivy"org.scala-lang:scala-reflect:$crossScalaVersion",
+      ivy"${scalaOrganization()}:scala-compiler:$crossScalaVersion",
+      ivy"${scalaOrganization()}:scala-reflect:$crossScalaVersion",
       ivy"com.lihaoyi::scalaparse:1.0.0",
       ivy"org.javassist:javassist:3.21.0-GA"
     )

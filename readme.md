@@ -137,7 +137,7 @@ dev) and load into isolated classloaders.
 
 ### Worker modules that are resolved from Maven Central
 
-- `scalalib.worker`, `scalajslib.jsbridges[0.6]`, `scalajslib.jsbridges[1.0]`
+- `scalalib.worker`, `scalajslib.worker[0.6]`, `scalajslib.worker[1.0]`
 
 These modules are where the heavy-lifting happens, and include heavy
 dependencies like the Scala compiler, Scala.js optimizer, etc.. Rather than
@@ -150,6 +150,25 @@ optimizer without classpath conflicts.
 
 
 ## Changelog
+
+### 0.2.7
+
+- Add `visualizePlan` command
+
+- Basic build-info plugin in `mill-contrib-buildinfo`
+
+- ScalaPB integration in `mill-contrib-scalapblib`
+
+- Fixes for Twirl support, now in `mill-contrib-twirllib`
+
+- Support for building Dotty projects
+  [#397](https://github.com/lihaoyi/mill/pull/397)
+
+- Allow customization of `run`/`runBackground` working directory via
+  `forkWorkingDir`
+
+- Reduced executable size, improved incremental compilation in
+  [#414](https://github.com/lihaoyi/mill/pull/414)
 
 ### 0.2.6
 

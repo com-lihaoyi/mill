@@ -23,8 +23,8 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   )
   def compileIvyDeps = Agg(
     ivy"com.lihaoyi::acyclic:0.1.5",
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}",
-    ivy"org.scala-lang:scala-compiler:${scalaVersion()}"
+    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}",
+    ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
   def ivyDeps = Agg(
     ivy"com.lihaoyi::sourcecode::0.1.3"
