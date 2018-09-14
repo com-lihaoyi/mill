@@ -74,7 +74,7 @@ object TestRunner {
       val events = mutable.Buffer.empty[Event]
 
       val doneMessages = frameworks.map{ framework =>
-        val runner = framework.runner(args.toArray, args.toArray, cl)
+        val runner = framework.runner(args.toArray, Array[String](), cl)
 
         val testClasses = discoverTests(cl, framework, testClassfilePath)
 

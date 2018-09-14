@@ -48,7 +48,7 @@ object foo extends ScalaModule {
     ivy"com.lihaoyi::upickle:0.5.1",
     ivy"com.lihaoyi::pprint:0.5.2",
     ivy"com.lihaoyi::fansi:0.2.4",
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+    ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
   )
 }
 ```
@@ -72,20 +72,20 @@ def repositories = super.repositories ++ Seq(
 ```
 
 To add custom resolvers to the initial bootstrap of the build, you can create a 
-custom `ScalaWorkerModule`, and override the `scalaWorker` method in your 
+custom `ZincWorkerModule`, and override the `zincWorker` method in your 
 `ScalaModule` by pointing it to that custom object:
 
 ```scala
 import coursier.maven.MavenRepository
 
-object CustomScalaWorkerModule extends ScalaWorkerModule {
+object CustomZincWorkerModule extends ZincWorkerModule {
   def repositories() = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )  
 }
 
 object YourBuild extends ScalaModule {
-  def scalaWorker = CustomScalaWorkerModule
+  def zincWorker = CustomZincWorkerModule
   // ... rest of your build definitions
 }
 ```
@@ -312,7 +312,7 @@ parameters.
 You can print the value of your custom target using `show`, e.g.
 
 ```bash
-mill run show lineCount
+mill show lineCount
 ```
 
 You can define new un-cached Commands using the `T.command {...}` syntax. These
@@ -496,6 +496,20 @@ object foo extends ScalaModule {
     Rule.AppendPattern(".*\\.conf"), // all *.conf files will be concatenated into single file
     Rule.ExcludePattern("*.temp") // all *.temp files will be excluded from a final jar
   )
+}
+```
+
+To exclude Scala library from assembly
+
+```scala
+// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+
+  def scalaLibraryIvyDeps = T { Agg.empty }
 }
 ```
 

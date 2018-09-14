@@ -237,63 +237,63 @@
 <path fill="none" stroke="#000000" d="M1389.0027,-364.9613C1454.8441,-352.1835 1554.816,-332.7819 1621.9086,-319.7613"/>
 <polygon fill="#000000" stroke="#000000" points="1622.8222,-323.1494 1631.9722,-317.8082 1621.4885,-316.2776 1622.8222,-323.1494"/>
 </g>
-<!-- scalajslib.jsbridges[0.6].compile -->
+<!-- scalajslib.worker[0.6].compile -->
 <g id="node19" class="node">
-<title>scalajslib.jsbridges[0.6].compile</title>
+<title>scalajslib.worker[0.6].compile</title>
 <ellipse fill="none" stroke="#000000" cx="1572.8174" cy="-378" rx="136.0514" ry="18"/>
-<text text-anchor="middle" x="1572.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[0.6].compile</text>
+<text text-anchor="middle" x="1572.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.worker[0.6].compile</text>
 </g>
-<!-- scalajslib.jsbridges[0.6].compile&#45;&gt;scalajslib.compile -->
+<!-- scalajslib.worker[0.6].compile&#45;&gt;scalajslib.compile -->
 <g id="edge22" class="edge">
-<title>scalajslib.jsbridges[0.6].compile&#45;&gt;scalajslib.compile</title>
+<title>scalajslib.worker[0.6].compile&#45;&gt;scalajslib.compile</title>
 <path fill="none" stroke="#000000" d="M1602.1727,-360.3868C1618.3625,-350.6729 1638.6214,-338.5176 1655.8783,-328.1634"/>
 <polygon fill="#000000" stroke="#000000" points="1657.8173,-331.0818 1664.5915,-322.9355 1654.2158,-325.0793 1657.8173,-331.0818"/>
 </g>
-<!-- scalajslib.jsbridges[0.6].test.compile -->
+<!-- scalajslib.worker[0.6].test.compile -->
 <g id="node20" class="node">
-<title>scalajslib.jsbridges[0.6].test.compile</title>
+<title>scalajslib.worker[0.6].test.compile</title>
 <ellipse fill="none" stroke="#000000" cx="966.8174" cy="-450" rx="152.1988" ry="18"/>
-<text text-anchor="middle" x="966.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[0.6].test.compile</text>
+<text text-anchor="middle" x="966.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.worker[0.6].test.compile</text>
 </g>
-<!-- scalajslib.jsbridges[0.6].test.compile&#45;&gt;main.test.compile -->
+<!-- scalajslib.worker[0.6].test.compile&#45;&gt;main.test.compile -->
 <g id="edge24" class="edge">
-<title>scalajslib.jsbridges[0.6].test.compile&#45;&gt;main.test.compile</title>
+<title>scalajslib.worker[0.6].test.compile&#45;&gt;main.test.compile</title>
 <path fill="none" stroke="#000000" d="M823.6978,-443.8679C686.8403,-436.4969 497.9192,-421.776 474.8174,-396 464.1387,-384.0851 464.8865,-372.545 474.8174,-360 493.062,-336.9528 563.1727,-322.7521 621.0644,-314.7355"/>
 <polygon fill="#000000" stroke="#000000" points="621.5308,-318.2043 630.9766,-313.4057 620.6,-311.2665 621.5308,-318.2043"/>
 </g>
-<!-- scalajslib.jsbridges[0.6].test.compile&#45;&gt;scalajslib.jsbridges[0.6].compile -->
+<!-- scalajslib.worker[0.6].test.compile&#45;&gt;scalajslib.worker[0.6].compile -->
 <g id="edge23" class="edge">
-<title>scalajslib.jsbridges[0.6].test.compile&#45;&gt;scalajslib.jsbridges[0.6].compile</title>
+<title>scalajslib.worker[0.6].test.compile&#45;&gt;scalajslib.worker[0.6].compile</title>
 <path fill="none" stroke="#000000" d="M1075.5811,-437.4125C1168.8049,-426.5803 1306.6679,-410.4586 1426.8174,-396 1438.6041,-394.5816 1450.9241,-393.0848 1463.1952,-391.5849"/>
 <polygon fill="#000000" stroke="#000000" points="1463.978,-395.0153 1473.4785,-390.3259 1463.1273,-388.0672 1463.978,-395.0153"/>
 </g>
-<!-- scalajslib.jsbridges[1.0].compile -->
+<!-- scalajslib.worker[1.0].compile -->
 <g id="node21" class="node">
-<title>scalajslib.jsbridges[1.0].compile</title>
+<title>scalajslib.worker[1.0].compile</title>
 <ellipse fill="none" stroke="#000000" cx="2189.8174" cy="-378" rx="136.0514" ry="18"/>
-<text text-anchor="middle" x="2189.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[1.0].compile</text>
+<text text-anchor="middle" x="2189.8174" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.worker[1.0].compile</text>
 </g>
-<!-- scalajslib.jsbridges[1.0].compile&#45;&gt;scalajslib.compile -->
+<!-- scalajslib.worker[1.0].compile&#45;&gt;scalajslib.compile -->
 <g id="edge25" class="edge">
-<title>scalajslib.jsbridges[1.0].compile&#45;&gt;scalajslib.compile</title>
+<title>scalajslib.worker[1.0].compile&#45;&gt;scalajslib.compile</title>
 <path fill="none" stroke="#000000" d="M2097.7907,-364.6682C2003.6304,-351.0272 1858.9378,-330.0657 1770.3982,-317.2391"/>
 <polygon fill="#000000" stroke="#000000" points="1770.8162,-313.7632 1760.4177,-315.7932 1769.8125,-320.6908 1770.8162,-313.7632"/>
 </g>
-<!-- scalajslib.jsbridges[1.0].test.compile -->
+<!-- scalajslib.worker[1.0].test.compile -->
 <g id="node22" class="node">
-<title>scalajslib.jsbridges[1.0].test.compile</title>
+<title>scalajslib.worker[1.0].test.compile</title>
 <ellipse fill="none" stroke="#000000" cx="2125.8174" cy="-450" rx="152.1988" ry="18"/>
-<text text-anchor="middle" x="2125.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.jsbridges[1.0].test.compile</text>
+<text text-anchor="middle" x="2125.8174" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">scalajslib.worker[1.0].test.compile</text>
 </g>
-<!-- scalajslib.jsbridges[1.0].test.compile&#45;&gt;main.test.compile -->
+<!-- scalajslib.worker[1.0].test.compile&#45;&gt;main.test.compile -->
 <g id="edge27" class="edge">
-<title>scalajslib.jsbridges[1.0].test.compile&#45;&gt;main.test.compile</title>
+<title>scalajslib.worker[1.0].test.compile&#45;&gt;main.test.compile</title>
 <path fill="none" stroke="#000000" d="M2004.1561,-439.1879C1970.6876,-436.5078 1934.3684,-433.8707 1900.8174,-432 1837.5508,-428.4724 815.8414,-427.4241 760.8174,-396 748.2695,-388.8339 729.8034,-356.885 717.3187,-333.077"/>
 <polygon fill="#000000" stroke="#000000" points="720.3851,-331.3869 712.6909,-324.1033 714.1637,-334.5953 720.3851,-331.3869"/>
 </g>
-<!-- scalajslib.jsbridges[1.0].test.compile&#45;&gt;scalajslib.jsbridges[1.0].compile -->
+<!-- scalajslib.worker[1.0].test.compile&#45;&gt;scalajslib.worker[1.0].compile -->
 <g id="edge26" class="edge">
-<title>scalajslib.jsbridges[1.0].test.compile&#45;&gt;scalajslib.jsbridges[1.0].compile</title>
+<title>scalajslib.worker[1.0].test.compile&#45;&gt;scalajslib.worker[1.0].compile</title>
 <path fill="none" stroke="#000000" d="M2141.9673,-431.8314C2149.6048,-423.2392 2158.8538,-412.834 2167.1767,-403.4708"/>
 <polygon fill="#000000" stroke="#000000" points="2169.8666,-405.7128 2173.8944,-395.9134 2164.6348,-401.0622 2169.8666,-405.7128"/>
 </g>

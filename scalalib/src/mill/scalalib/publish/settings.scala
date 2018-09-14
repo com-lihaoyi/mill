@@ -8,45 +8,29 @@ case class Artifact(group: String, id: String, version: String) {
 
 object Artifact {
   def fromDepJava(dep: Dep) = {
-    dep match {
-      case Dep.Java(dep, cross, force) =>
-        Dependency(
-          Artifact(dep.module.organization, dep.module.name, dep.version),
-          Scope.Compile,
-          if (dep.configuration == "") None else Some(dep.configuration),
-          dep.exclusions.toList
-        )
-    }
+    assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
+    fromDep(dep, "", "", "")
   }
+
   def fromDep(dep: Dep,
               scalaFull: String,
               scalaBin: String,
               platformSuffix: String): Dependency = {
-    dep match {
-      case d: Dep.Java => fromDepJava(d)
-      case Dep.Scala(dep, cross, force) =>
-        Dependency(
-          Artifact(
-            dep.module.organization,
-            s"${dep.module.name}${platformSuffix}_${scalaBin}",
-            dep.version
-          ),
-          Scope.Compile,
-          if (dep.configuration == "") None else Some(dep.configuration),
-          dep.exclusions.toList
-        )
-      case Dep.Point(dep, cross, force) =>
-        Dependency(
-          Artifact(
-            dep.module.organization,
-            s"${dep.module.name}${platformSuffix}_${scalaFull}",
-            dep.version
-          ),
-          Scope.Compile,
-          if (dep.configuration == "") None else Some(dep.configuration),
-          dep.exclusions.toList
-        )
-    }
+    val name = dep.artifactName(
+      binaryVersion = scalaBin,
+      fullVersion = scalaFull,
+      platformSuffix = platformSuffix
+    )
+    Dependency(
+      Artifact(
+        dep.dep.module.organization,
+        name,
+        dep.dep.version
+      ),
+      Scope.Compile,
+      if (dep.dep.configuration == "") None else Some(dep.dep.configuration),
+      dep.dep.exclusions.toList
+    )
   }
 }
 

@@ -1,15 +1,14 @@
 package mill.main
 
+import java.util.concurrent.LinkedBlockingQueue
+
 import ammonite.ops.Path
-import coursier.Cache
-import coursier.maven.MavenRepository
 import mill.T
-import mill.define.{Graph, NamedTask, Task}
+import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{Loose, PrintLogger, Watched}
+import mill.util.{Ctx, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 import upickle.Js
-import mill.util.JsonFormatters._
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator[Any], targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -66,21 +65,24 @@ trait MainModule extends mill.Module{
     * executed in what order, without actually executing them.
     */
   def plan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-    )
-
-    resolved match{
+    plan0(evaluator, targets) match{
+      case Right(success) => {
+        val renderedTasks = success.map{ _.segments.render}
+        renderedTasks.foreach(println)
+        Result.Success(renderedTasks)
+      }
       case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        val (sortedGroups, transitive) = Evaluator.plan(evaluator.rootModule, rs)
-        val labels = sortedGroups
-          .keys()
-          .collect{ case Right(r) => r.segments.render}
-          .toArray
+    }
+  }
 
-        labels.foreach(println)
-        Result.Success(labels)
+  private def plan0(evaluator: Evaluator[Any], targets: Seq[String]) = {
+    RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    ) match {
+      case Left(err) => Left(err)
+      case Right(rs) =>
+        val (sortedGroups, _) = Evaluator.plan(evaluator.rootModule, rs)
+        Right(sortedGroups.keys().collect{ case Right(r) => r}.toArray)
     }
   }
 
@@ -221,15 +223,40 @@ trait MainModule extends mill.Module{
   }
 
   def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
-    )
-    resolved match{
+    visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
+  }
+
+  def visualizePlan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    plan0(evaluator, targets) match {
       case Left(err) => Result.Failure(err)
-      case Right(rs) =>
-        val (in, out) = mill.main.VisualizeModule.worker()
-        in.put((rs, T.ctx().dest))
-        out.take()
+      case Right(planResults) => visualize0(
+        evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker(), Some(planResults.toList.map(_.task))
+      )
     }
   }
+
+  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], Path)],
+    LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
+
+  private def visualize0(evaluator: Evaluator[Any], targets: Seq[String], ctx: Ctx, vizWorker: VizWorker,
+                         planTasks: Option[List[NamedTask[_]]] = None) = {
+    def callVisualizeModule(rs: List[NamedTask[Any]], allRs: List[NamedTask[Any]]) = {
+      val (in, out) = vizWorker
+      in.put((rs, allRs, ctx.dest))
+      out.take()
+    }
+
+    RunScript.resolveTasks(
+      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+    ) match {
+      case Left(err) => Result.Failure(err)
+      case Right(rs) => planTasks match {
+        case Some(allRs) => {
+          callVisualizeModule(rs, allRs)
+        }
+        case None => callVisualizeModule(rs, rs)
+      }
+    }
+  }
+
 }

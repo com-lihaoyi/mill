@@ -17,12 +17,13 @@ import mill.util.Loose.Agg
   * Core configuration required to compile a single Scala compilation target
   */
 trait JavaModule extends mill.Module with TaskModule { outer =>
-  def scalaWorker: ScalaWorkerModule = mill.scalalib.ScalaWorkerModule
+  def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule{
     override def moduleDeps = Seq(outer)
     override def repositories = outer.repositories
     override def javacOptions = outer.javacOptions
+    override def zincWorker = outer.zincWorker
   }
   def defaultCommandName() = "run"
 
@@ -38,7 +39,16 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
       case Some(m) => Right(m)
-      case None => Left("No main class specified or found")
+      case None =>
+        zincWorker.worker().discoverMainClasses(compile())match {
+          case Seq() => Left("No main class specified or found")
+          case Seq(main) => Right(main)
+          case mains =>
+            Left(
+              s"Multiple main classes found (${mains.mkString(",")}) " +
+                "please explicitly specify which one to use by overriding mainClass"
+            )
+        }
     }
   }
 
@@ -98,7 +108,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
 
-  def repositories: Seq[Repository] = scalaWorker.repositories
+  def repositories: Seq[Repository] = zincWorker.repositories
 
   def platformSuffix = T{ "" }
 
@@ -133,12 +143,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     } yield PathRef(path)
   }
 
-  def compile: T[CompilationResult] = T{
-    Lib.compileJava(
-      allSourceFiles().map(_.path.toIO).toArray,
-      compileClasspath().map(_.path.toIO).toArray,
-      javacOptions(),
-      upstreamCompileOutput()
+  def compile: T[CompilationResult] = T.persistent{
+    zincWorker.worker().compileJava(
+      upstreamCompileOutput(),
+      allSourceFiles().map(_.path),
+      compileClasspath().map(_.path),
+      javacOptions()
     )
   }
 
@@ -275,7 +285,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
     }
@@ -317,11 +327,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
     try Result.Success(Jvm.interactiveSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-      workingDir = ammonite.ops.pwd,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
        Result.Failure("subprocess failed")
@@ -332,11 +342,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
     try Result.Success(Jvm.interactiveSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ scalaWorker.backgroundWrapperClasspath()).map(_.path),
+      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
       forkEnv(),
       Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-      workingDir = ammonite.ops.pwd,
+      workingDir = forkWorkingDir(),
       background = true
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
@@ -358,7 +368,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkArgs(),
       forkEnv(),
       args,
-      workingDir = ammonite.ops.pwd
+      workingDir = forkWorkingDir()
     )) catch { case e: InteractiveShelloutException =>
       Result.Failure("subprocess failed")
     }
@@ -371,20 +381,20 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def artifactId: T[String] = artifactName()
 
   def intellijModulePath: Path = millSourcePath
+
+  def forkWorkingDir = T{ ammonite.ops.pwd }
 }
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
   def testFrameworks: T[Seq[String]]
 
-  def forkWorkingDir = ammonite.ops.pwd
-
   def test(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.subprocess(
       mainClass = "mill.scalalib.TestRunner",
-      classPath = scalaWorker.scalalibClasspath().map(_.path),
+      classPath = zincWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),
       envArgs = forkEnv(),
       mainArgs =
@@ -395,7 +405,7 @@ trait TestModule extends JavaModule with TaskModule {
         Seq(args.length.toString) ++
         args ++
         Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
-      workingDir = forkWorkingDir
+      workingDir = forkWorkingDir()
     )
 
     try {
@@ -410,15 +420,13 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    TestRunner.runTests(
+    val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args
     )
 
-    val jsonOutput = ujson.read(outputPath.toIO)
-    val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
     TestModule.handleResults(doneMsg, results)
 
   }
