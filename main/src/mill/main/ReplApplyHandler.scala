@@ -35,7 +35,7 @@ object ReplApplyHandler{
       )
     )
   }
-  def pprintCross(c: mill.define.Cross[_], evaluator: Evaluator[_]) = {
+  def pprintCross(c: mill.define.Cross[_], evaluator: Evaluator) = {
     pprint.Tree.Lazy( ctx =>
       Iterator(c.millOuterCtx.enclosing , ":", c.millOuterCtx.lineNum.toString, ctx.applyPrefixColor("\nChildren:").toString) ++
         c.items.iterator.map(x =>
@@ -43,7 +43,7 @@ object ReplApplyHandler{
         )
     )
   }
-  def pprintModule(m: mill.define.Module, evaluator: Evaluator[_]) = {
+  def pprintModule(m: mill.define.Module, evaluator: Evaluator) = {
     pprint.Tree.Lazy( ctx =>
       Iterator(m.millInternal.millModuleEnclosing, ":", m.millInternal.millModuleLine.toString) ++
         (if (m.millInternal.reflectAll[mill.Module].isEmpty) Nil
@@ -69,7 +69,7 @@ object ReplApplyHandler{
 
     )
   }
-  def pprintTask(t: NamedTask[_], evaluator: Evaluator[_]) = {
+  def pprintTask(t: NamedTask[_], evaluator: Evaluator) = {
     val seen = mutable.Set.empty[Task[_]]
     def rec(t: Task[_]): Seq[Segments] = {
       if (seen(t)) Nil // do nothing
@@ -91,7 +91,7 @@ object ReplApplyHandler{
 
 }
 class ReplApplyHandler(pprinter0: pprint.PPrinter,
-                       val evaluator: Evaluator[_]) extends ApplyHandler[Task] {
+                       val evaluator: Evaluator) extends ApplyHandler[Task] {
   // Evaluate classLoaderSig only once in the REPL to avoid busting caches
   // as the user enters more REPL commands and changes the classpath
   val classLoaderSig = Evaluator.classLoaderSig

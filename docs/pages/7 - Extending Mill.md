@@ -166,7 +166,7 @@ example, here is the `mill.scalalib.GenIdea/idea` command which uses this to
 traverse the module-tree and generate an Intellij project config for your build.
 
 ```scala
-def idea(ev: Evaluator[Any]) = T.command {
+def idea(ev: Evaluator) = T.command {
   mill.scalalib.GenIdea(
     implicitly,
     ev.rootModule,

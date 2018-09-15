@@ -269,9 +269,9 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator[M] => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+                      (t: TestEvaluator => T)
+                      (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)
@@ -397,7 +397,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'runCross - {
-        def cross(eval: TestEvaluator[_], v: String, expectedOut: String) {
+        def cross(eval: TestEvaluator, v: String, expectedOut: String) {
 
           val runResult = eval.outPath / "hello-mill"
 

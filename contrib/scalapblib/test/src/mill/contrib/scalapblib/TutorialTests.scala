@@ -27,12 +27,11 @@ object TutorialTests extends TestSuite {
 
   val resourcePath: Path = pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
 
-  def protobufOutPath[M <: TestUtil.BaseModule](eval: TestEvaluator[M]): Path =
+  def protobufOutPath(eval: TestEvaluator): Path =
     eval.outPath / 'core / 'compileScalaPB / 'dest / 'com / 'example / 'tutorial
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M)
-                                                (t: TestEvaluator[M] => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)
+                      (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     println(m.millSourcePath)
