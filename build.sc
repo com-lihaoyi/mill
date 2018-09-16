@@ -379,7 +379,7 @@ object dev extends MillModule{
     ).distinct
 
 
-  // Pass dev.assembly VM options via file in Window due to small max args limit
+  // Pass dev.assembly VM options via file in Windows due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
     if (System.getProperty("java.specification.version").startsWith("1.")) {
       throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
@@ -450,19 +450,20 @@ object dev extends MillModule{
 def release = T{
   val dest = T.ctx().dest
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-  val args = Seq(
-    "-DMILL_CLASSPATH=$0",
+  val commonArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()._2,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
   )
+  val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
+  val cmdArgs = Seq("-DMILL_CLASSPATH=%0") ++ commonArgs
   mv(
     createAssembly(
       dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        args,
-        args,
+        shellArgs,
+        cmdArgs,
         Agg("$0"),
         Agg("%~dpnx0")
       )
