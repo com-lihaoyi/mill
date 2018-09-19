@@ -10,9 +10,8 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   val tests = Tests{
     initWorkspace()
     'test - {
-      assert(eval("resolve", "_"))
       assert(eval("doc", "core.test.ivyDeps"))
-      val inheritedIvyDeps = ujson.read(meta("doc")).str
+      val inheritedIvyDeps = ujson.read(meta("doc"))("value").str
       assert(
         inheritedIvyDeps.contains("build.core.test.ivyDeps"),
         inheritedIvyDeps.contains("Overriden ivyDeps Docs!!!"),
@@ -20,20 +19,20 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
         inheritedIvyDeps.contains("Any ivy dependencies you want to add to this Module"),
       )
 
-      assert(eval("doc core"))
-      val module = ujson.read(meta("doc")).str
+      assert(eval("doc", "core"))
+      val module = ujson.read(meta("doc"))("value").str
       assert(
         module.contains("The Core Module Docz!")
       )
 
-      assert(eval("core.task"))
-      val task = ujson.read(meta("doc")).str
+      assert(eval("doc", "core.task"))
+      val task = ujson.read(meta("doc"))("value").str
       assert(
         task.contains("Core Task Docz!")
       )
 
-      assert(eval("doc doc"))
-      val doc = ujson.read(meta("doc")).str
+      assert(eval("doc", "doc"))
+      val doc = ujson.read(meta("doc"))("value").str
       assert(
         doc.contains("Shows the documentation for the specific task")
       )
