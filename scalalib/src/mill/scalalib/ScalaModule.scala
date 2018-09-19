@@ -61,11 +61,11 @@ trait ScalaModule extends JavaModule { outer =>
 
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps = scalacPluginIvyDeps
+  def scalaDocPluginIvyDeps = T{ scalacPluginIvyDeps() }
 
   def scalacOptions = T{ Seq.empty[String] }
 
-  def scalaDocOptions = scalacOptions
+  def scalaDocOptions = T{ scalacOptions() }
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
