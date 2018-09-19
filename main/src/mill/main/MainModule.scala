@@ -259,4 +259,40 @@ trait MainModule extends mill.Module{
     }
   }
 
+  /**
+    * Shows the documentation for the specific task
+    */
+  def doc(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
+    val resolved = RunScript.resolveTasks(
+      mill.main.ResolveDocs, evaluator, targets, multiSelect = true
+    )
+
+    resolved match{
+      case Left(err) => Result.Failure(err)
+      case Right(rss) =>
+        val output = new StringBuilder
+        for((label, rs) <- rss){
+
+          val seen = collection.mutable.Set.empty[mill.docannotations.Scaladoc]
+          for((k, v) <- rs){
+            if (!seen(v)) {
+              seen.add(v)
+              if (label == "") output.append(k)
+              else output.append(
+                k.replace("ammonite.$file.", "").replace("$", ".").stripSuffix(".") + "." + label
+              )
+              output.append(
+                v.value.lines
+                  .map(_.dropWhile(_.isWhitespace).stripPrefix("/**").stripPrefix("*/").stripPrefix("*"))
+                  .mkString("\n")
+              )
+            }
+
+          }
+        }
+        println(output)
+        Result.Success(output.toString)
+    }
+  }
+
 }

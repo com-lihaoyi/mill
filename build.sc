@@ -33,7 +33,7 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-
+  def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(main.docannotations.jar())
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
@@ -51,7 +51,8 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+    def scalacPluginClasspath =
+      super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar(), main.docannotations.jar())
   }
 }
 
@@ -78,7 +79,7 @@ object main extends MillModule {
   }
 
   object core extends MillModule {
-    def moduleDeps = Seq(moduledefs)
+    def moduleDeps = Seq(moduledefs, docannotations)
 
     def compileIvyDeps = Agg(
       ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
@@ -101,7 +102,14 @@ object main extends MillModule {
     def scalaVersion = T{ "2.12.6" }
     def ivyDeps = Agg(
       ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-      ivy"com.lihaoyi::sourcecode:0.1.4"
+      ivy"com.lihaoyi::sourcecode:0.1.4",
+    )
+  }
+  object docannotations extends MillPublishModule with ScalaModule{
+    def scalaVersion = T{ "2.12.6" }
+    def ivyDeps = Agg(
+      ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
+      ivy"com.lihaoyi::sourcecode:0.1.4",
     )
   }
 
@@ -148,6 +156,7 @@ object scalalib extends MillModule {
   def testArgs = T{
     val genIdeaArgs =
       genTask(main.moduledefs)() ++
+      genTask(main.docannotations)() ++
       genTask(main.core)() ++
       genTask(main)() ++
       genTask(scalalib)() ++
@@ -307,7 +316,7 @@ def testRepos = T{
 }
 
 object integration extends MillModule{
-  def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+  def moduleDeps = Seq(main.moduledefs, main.docannotations, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++

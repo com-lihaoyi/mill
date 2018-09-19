@@ -219,6 +219,71 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
       }
   }
 }
+
+object ResolveDocs extends Resolve[(String, Seq[(String, mill.docannotations.Scaladoc)])]{
+
+  def resolveParents(c: Class[_]): Seq[Class[_]] = {
+    Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(resolveParents)
+  }
+  def endResolveCross(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: List[String],
+                      discover: Discover[_],
+                      rest: Seq[String])= {
+
+    obj match{
+      case c: Cross[Module] =>
+        val allDocs = resolveParents(obj.getClass)
+          .map(x => x.getName -> x.getAnnotation(classOf[mill.docannotations.Scaladoc]))
+          .filter(_._2 != null)
+
+        if (allDocs.isEmpty) Left(
+          "Cannot resolve documentation for module " +
+            Segments((Segment.Cross(last) :: revSelectorsSoFar).reverse:_*).render
+        )
+        else Right(Seq("" -> allDocs))
+
+      case _ =>
+        Left(
+          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
+          Resolve.hintListLabel(revSelectorsSoFar)
+        )
+    }
+  }
+
+  def endResolveLabel(obj: Module,
+                      revSelectorsSoFar: List[Segment],
+                      last: String,
+                      discover: Discover[_],
+                      rest: Seq[String]) = last match{
+    case _ =>
+      val allDocs0 = for{
+        c <- resolveParents(obj.getClass)
+        m <- c.getMethods
+        if m.getName == last
+
+        a = m.getAnnotation(classOf[mill.docannotations.Scaladoc])
+        if a != null
+      } yield c.getName -> a
+
+      val allDocs1 = for{
+        o <- obj.millInternal.reflectNestedObjects[mill.Module]
+                .find(_.millOuterCtx.segment.pathSegments.last == last)
+        if o.millOuterCtx.segment.pathSegments == Seq(last)
+        a = o.getClass.getAnnotation(classOf[mill.docannotations.Scaladoc])
+        if a != null
+      } yield o.getClass.getName -> a
+
+
+      val allDocs = allDocs0 ++ allDocs1
+      if (allDocs.isEmpty) Left(
+        "Cannot resolve documentation for " +
+        Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render
+      )
+      else Right(Seq(last -> allDocs))
+  }
+}
+
 object Resolve{
   def minimum(i1: Int, i2: Int, i3: Int)= math.min(math.min(i1, i2), i3)
 

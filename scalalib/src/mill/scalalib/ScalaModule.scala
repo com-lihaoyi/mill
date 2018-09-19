@@ -28,6 +28,10 @@ trait ScalaModule extends JavaModule { outer =>
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
 
+  /**
+    * What Scala organization to use
+    * @return
+    */
   def scalaOrganization: T[String] = T {
     if (isDotty(scalaVersion()))
       "ch.epfl.lamp"
@@ -35,6 +39,9 @@ trait ScalaModule extends JavaModule { outer =>
       "org.scala-lang"
   }
 
+  /**
+    * What version of Scala to use
+    */
   def scalaVersion: T[String]
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
@@ -60,8 +67,14 @@ trait ScalaModule extends JavaModule { outer =>
     )
   }
 
+  /**
+    * Allows you to make use of Scala compiler plugins from maven central
+    */
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
 
+  /**
+    * Command-line options to pass to the Scala compiler
+    */
   def scalacOptions = T{ Seq.empty[String] }
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
@@ -95,18 +108,29 @@ trait ScalaModule extends JavaModule { outer =>
     )
   }
 
+  /**
+    * The local classpath of Scala compiler plugins on-disk; you can add
+    * additional jars here if you have some copiler plugin that isn't present
+    * on maven central
+    */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalacPluginIvyDeps)()
   }
 
+  /**
+    * The ivy coordinates of Scala's own standard library
+    */
   def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion()) }
+
   /**
     * Classpath of the Scala Compiler & any compiler plugins
     */
   def scalaCompilerClasspath: T[Agg[PathRef]] = T{
     resolveDeps(
-      T.task{scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
-        scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())}
+      T.task{
+        scalaCompilerIvyDeps(scalaOrganization(), scalaVersion()) ++
+        scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+      }
     )()
   }
   override def compileClasspath = T{
@@ -161,6 +185,10 @@ trait ScalaModule extends JavaModule { outer =>
     createJar(Agg(javadocDir))(outDir)
   }
 
+  /**
+    * Opens up a Scala console with your module and all dependencies present,
+    * for you to test and operate your code interactively
+    */
   def console() = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
@@ -179,6 +207,9 @@ trait ScalaModule extends JavaModule { outer =>
     }
   }
 
+  /**
+    * Dependencies that are necessary to run the Ammonite Scala REPL
+    */
   def ammoniteReplClasspath = T{
     localClasspath() ++
     transitiveLocalClasspath() ++
@@ -189,6 +220,10 @@ trait ScalaModule extends JavaModule { outer =>
     })()
   }
 
+  /**
+    * Opens up an Ammonite Scala REPL with your module and all dependencies present,
+    * for you to test and operate your code interactively
+    */
   def repl(replOptions: String*) = T.command{
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
@@ -204,14 +239,22 @@ trait ScalaModule extends JavaModule { outer =>
 
   }
 
-  // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
+  /**
+    * Whether to publish artifacts with name "mill_2.12.4" instead of "mill_2.12"
+    */
   def crossFullScalaVersion: T[Boolean] = false
 
+  /**
+    * What Scala version string to use when publishing
+    */
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
     else Lib.scalaBinaryVersion(scalaVersion())
   }
 
+  /**
+    * The suffix appended to the artifact IDs during publishing
+    */
   def artifactSuffix: T[String] = s"_${artifactScalaVersion()}"
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()

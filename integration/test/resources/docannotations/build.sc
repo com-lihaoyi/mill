@@ -14,7 +14,7 @@ trait JUnitTests extends TestModule{
 }
 
 /**
-  * The Core Module Docz!
+    * The Core Module Docz!
   */
 object core extends JavaModule{
   object test extends Tests with JUnitTests
@@ -28,4 +28,3 @@ object core extends JavaModule{
     "Hello!"
   }
 }
-

@@ -1,0 +1,4 @@
+<plugin>
+    <name>MillScaladocPlugin</name>
+    <classname>mill.docannotations.EmbedScaladocAnnotationPlugin</classname>
+</plugin>

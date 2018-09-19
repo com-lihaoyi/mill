@@ -7,23 +7,22 @@ import io.github.retronym.java9rtexport.Export
 
 object ClassLoader {
 
-  def create(urls: Seq[URL], parent: java.lang.ClassLoader)(
-      implicit ctx: Ctx.Home): URLClassLoader = {
-    new URLClassLoader(
-      makeUrls(urls).toArray,
-      refinePlatformParent(parent)
-    ) {
-      override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
-        else super.findClass(name)
-      }
+  private class FirewallLoader(parent: ClassLoader) extends ClassLoader(parent) {
+    override def loadClass(name: String, resolve: Boolean) =  {
+      if (!name.startsWith("java.")) throw new ClassNotFoundException(name)
+      else super.loadClass(name, resolve)
     }
   }
 
   def create(urls: Seq[URL],
+             parent: java.lang.ClassLoader)
+            (implicit ctx: Ctx.Home): URLClassLoader = {
+    create(urls, parent, _ => None)
+  }
+  def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
-             customFindClass: String => Option[Class[_]])(
-      implicit ctx: Ctx.Home): URLClassLoader = {
+             customFindClass: String => Option[Class[_]])
+            (implicit ctx: Ctx.Home): URLClassLoader = {
     new URLClassLoader(
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
@@ -35,6 +34,7 @@ object ClassLoader {
     }
   }
 
+
   /**
     *  Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,
     *  otherwise return same parent class loader.
@@ -44,13 +44,18 @@ object ClassLoader {
     *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
     */
   private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (ammonite.util.Util.java9OrAbove) {
-      if (parent == null)
+    if (ammonite.util.Util.java9OrAbove && parent == null) {
+      // Make sure when `parent == null`, we only delegate java.* classes
+      // to the parent getPlatformClassLoader. This is necessary because
+      // in Java 9+, somehow the getPlatformClassLoader ends up with all
+      // sorts of other non-java stuff on it's classpath, which is not what
+      // we want for an "isolated" classloader!
+//      new FirewallLoader(
         classOf[ClassLoader]
           .getMethod("getPlatformClassLoader")
           .invoke(null)
           .asInstanceOf[ClassLoader]
-      else parent
+//      )
     } else {
       parent
     }
