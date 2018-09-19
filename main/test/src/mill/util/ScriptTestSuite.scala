@@ -12,7 +12,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
 
   val workspacePath = pwd / 'target / 'workspace / workspaceSlug
   val wd = workspacePath / buildPath / up
-  val stdOutErr = System.out
+  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
   lazy val runner = new mill.main.MainRunner(

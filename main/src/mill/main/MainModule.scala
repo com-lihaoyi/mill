@@ -135,6 +135,7 @@ trait MainModule extends mill.Module{
     */
   def inspect(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+      val output = new StringBuilder
       for{
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
@@ -149,8 +150,10 @@ trait MainModule extends mill.Module{
         val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
         str <- truncated ++ Iterator("\n")
       } {
-        print(str)
+        output.append(str)
       }
+      println(output)
+      output.toString
     }
   }
 
@@ -222,10 +225,16 @@ trait MainModule extends mill.Module{
     }
   }
 
+  /**
+    * Renders the dependencies between the given tasks as a SVG for you to look at
+    */
   def visualize(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
   }
 
+  /**
+    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
+    */
   def visualizePlan(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
     plan0(evaluator, targets) match {
       case Left(err) => Result.Failure(err)
@@ -258,41 +267,4 @@ trait MainModule extends mill.Module{
       }
     }
   }
-
-  /**
-    * Shows the documentation for the specific task
-    */
-  def doc(evaluator: Evaluator[Any], targets: String*) = mill.T.command{
-    val resolved = RunScript.resolveTasks(
-      mill.main.ResolveDocs, evaluator, targets, multiSelect = true
-    )
-
-    resolved match{
-      case Left(err) => Result.Failure(err)
-      case Right(rss) =>
-        val output = new StringBuilder
-        for((label, rs) <- rss){
-
-          val seen = collection.mutable.Set.empty[mill.docannotations.Scaladoc]
-          for((k, v) <- rs){
-            if (!seen(v)) {
-              seen.add(v)
-              if (label == "") output.append(k)
-              else output.append(
-                k.replace("ammonite.$file.", "").replace("$", ".").stripSuffix(".") + "." + label
-              )
-              output.append(
-                v.value.lines
-                  .map(_.dropWhile(_.isWhitespace).stripPrefix("/**").stripPrefix("*/").stripPrefix("*"))
-                  .mkString("\n")
-              )
-            }
-
-          }
-        }
-        println(output)
-        Result.Success(output.toString)
-    }
-  }
-
 }

@@ -10,31 +10,24 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   val tests = Tests{
     initWorkspace()
     'test - {
-      assert(eval("doc", "core.test.ivyDeps"))
-      val inheritedIvyDeps = ujson.read(meta("doc"))("value").str
+      assert(eval("inspect", "core.test.ivyDeps"))
+      val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
       assert(
-        inheritedIvyDeps.contains("build.core.test.ivyDeps"),
+        inheritedIvyDeps.contains("core.test.ivyDeps"),
         inheritedIvyDeps.contains("Overriden ivyDeps Docs!!!"),
-        inheritedIvyDeps.contains("mill.scalalib.JavaModule.Tests.ivyDeps"),
         inheritedIvyDeps.contains("Any ivy dependencies you want to add to this Module"),
       )
 
-      assert(eval("doc", "core"))
-      val module = ujson.read(meta("doc"))("value").str
-      assert(
-        module.contains("The Core Module Docz!")
-      )
-
-      assert(eval("doc", "core.task"))
-      val task = ujson.read(meta("doc"))("value").str
+      assert(eval("inspect", "core.task"))
+      val task = ujson.read(meta("inspect"))("value").str
       assert(
         task.contains("Core Task Docz!")
       )
 
-      assert(eval("doc", "doc"))
-      val doc = ujson.read(meta("doc"))("value").str
+      assert(eval("inspect", "inspect"))
+      val doc = ujson.read(meta("inspect"))("value").str
       assert(
-        doc.contains("Shows the documentation for the specific task")
+        doc.contains("Displays metadata about the given task without actually running it.")
       )
     }
   }

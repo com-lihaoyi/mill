@@ -10,7 +10,6 @@ import mill.T
 import mill.define.{Discover, ExternalModule}
 import mill.eval.{PathRef, Result}
 
-
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
     Cache.ivy2Local,
