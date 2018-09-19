@@ -199,11 +199,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * All individual source files fed into the compiler
     */
   def allSourceFiles = T{
+    def isHiddenFile(path: Path) = path.segments.last.startsWith(".")
     for {
       root <- allSources()
       if exists(root.path)
       path <- (if (root.path.isDir) ls.rec(root.path) else Seq(root.path))
-      if path.isFile && (path.ext == "scala" || path.ext == "java")
+      if path.isFile && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
     } yield PathRef(path)
   }
 

@@ -89,7 +89,7 @@ object Jvm {
                classPath: Agg[Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, cl => {
+    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, closeContextClassLoaderWhenDone = true, cl => {
       getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
     })
   }
@@ -113,6 +113,7 @@ object Jvm {
   def inprocess[T](classPath: Agg[Path],
                    classLoaderOverrideSbtTesting: Boolean,
                    isolated: Boolean,
+                   closeContextClassLoaderWhenDone: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
@@ -123,19 +124,21 @@ object Jvm {
           Some(outerClassLoader.loadClass(name))
         else None
       })
-    } else if (isolated){
-
+    } else if (isolated) {
       mill.util.ClassLoader.create(urls.toVector, null)
-    }else{
+    } else {
       mill.util.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
+
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
     try {
       body(cl)
-    }finally{
-      Thread.currentThread().setContextClassLoader(oldCl)
-      cl.close()
+    } finally {
+      if (closeContextClassLoaderWhenDone) {
+        Thread.currentThread().setContextClassLoader(oldCl)
+        cl.close()
+      }
     }
   }
 

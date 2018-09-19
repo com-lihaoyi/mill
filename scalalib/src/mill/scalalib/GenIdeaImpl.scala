@@ -15,7 +15,7 @@ import scala.util.Try
 
 object GenIdea extends ExternalModule {
 
-  def idea(ev: Evaluator[Any]) = T.command{
+  def idea(ev: Evaluator) = T.command{
     mill.scalalib.GenIdeaImpl(
       implicitly,
       ev.rootModule,
@@ -58,10 +58,10 @@ object GenIdeaImpl {
     }.getOrElse(None)
   }
 
-  def xmlFileLayout[T](evaluator: Evaluator[T],
-                       rootModule: mill.Module,
-                       jdkInfo: (String,String),
-                       fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
+  def xmlFileLayout(evaluator: Evaluator,
+                    rootModule: mill.Module,
+                    jdkInfo: (String,String),
+                    fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
       .collect{ case x: scalalib.JavaModule => (x.millModuleSegments, x)}
@@ -297,7 +297,7 @@ object GenIdeaImpl {
     fixedFiles ++ libraries ++ moduleFiles
   }
 
-  def evalOrElse[T](evaluator: Evaluator[_], e: Task[T], default: => T): T = {
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
     evaluator.evaluate(Agg(e)).values match {
       case Seq() => default
       case Seq(e: T) => e

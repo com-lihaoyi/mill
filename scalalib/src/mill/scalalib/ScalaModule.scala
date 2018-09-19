@@ -3,8 +3,7 @@ package scalalib
 
 import ammonite.ops._
 import coursier.Repository
-import mill.define.Task
-import mill.define.TaskModule
+import mill.define.{Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.{createJar, subprocess}
@@ -72,10 +71,14 @@ trait ScalaModule extends JavaModule { outer =>
     */
   def scalacPluginIvyDeps = T{ Agg.empty[Dep] }
 
+  def scalaDocPluginIvyDeps = T{ scalacPluginIvyDeps() }
+
   /**
     * Command-line options to pass to the Scala compiler
     */
   def scalacOptions = T{ Seq.empty[String] }
+
+  def scalaDocOptions = T{ scalacOptions() }
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
@@ -120,6 +123,10 @@ trait ScalaModule extends JavaModule { outer =>
   /**
     * The ivy coordinates of Scala's own standard library
     */
+  def scalaDocPluginClasspath: T[Agg[PathRef]] = T {
+    resolveDeps(scalaDocPluginIvyDeps)()
+  }
+
   def scalaLibraryIvyDeps = T{ scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion()) }
 
   /**
@@ -173,8 +180,8 @@ trait ScalaModule extends JavaModule { outer =>
       if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
     } yield p.toNIO.toString
 
-    val pluginOptions = scalacPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalacOptions()
+    val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
+    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalaDocOptions()
 
     if (files.nonEmpty) subprocess(
       "scala.tools.nsc.ScalaDoc",

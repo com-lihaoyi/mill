@@ -31,7 +31,7 @@ object RunScript{
                 stateCache: Option[Evaluator.State],
                 log: Logger,
                 env : Map[String, String])
-  : (Res[(Evaluator[Any], Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
+  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
       case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
@@ -54,7 +54,7 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator[Any](home, wd / 'out, wd / 'out, s.rootModule, log,
+      yield new Evaluator(home, wd / 'out, wd / 'out, s.rootModule, log,
         s.classLoaderSig, s.workerCache, env)
 
     val evaluated = for{
@@ -120,7 +120,7 @@ object RunScript{
   }
 
   def resolveTasks[T, R: ClassTag](resolver: mill.main.Resolve[R],
-                                   evaluator: Evaluator[T],
+                                   evaluator: Evaluator,
                                    scriptArgs: Seq[String],
                                    multiSelect: Boolean) = {
     for {
@@ -155,7 +155,7 @@ object RunScript{
     } yield res.flatten
   }
 
-  def resolveRootModule[T](evaluator: Evaluator[T], scopedSel: Option[Segments]) = {
+  def resolveRootModule[T](evaluator: Evaluator, scopedSel: Option[Segments]) = {
     scopedSel match {
       case None => Right(evaluator.rootModule)
       case Some(scoping) =>
@@ -171,7 +171,7 @@ object RunScript{
     }
   }
 
-  def prepareResolve[T](evaluator: Evaluator[T], scopedSel: Option[Segments], sel: Segments) = {
+  def prepareResolve[T](evaluator: Evaluator, scopedSel: Option[Segments], sel: Segments) = {
     for (rootModule<- resolveRootModule(evaluator, scopedSel))
     yield {
       val crossSelectors = sel.value.map {
@@ -182,7 +182,7 @@ object RunScript{
     }
   }
 
-  def evaluateTasks[T](evaluator: Evaluator[T],
+  def evaluateTasks[T](evaluator: Evaluator,
                        scriptArgs: Seq[String],
                        multiSelect: Boolean) = {
     for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, multiSelect)) yield {
@@ -198,7 +198,7 @@ object RunScript{
     }
   }
 
-  def evaluate(evaluator: Evaluator[_],
+  def evaluate(evaluator: Evaluator,
                targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
     val evaluated = evaluator.evaluate(targets)
     val watched = evaluated.results

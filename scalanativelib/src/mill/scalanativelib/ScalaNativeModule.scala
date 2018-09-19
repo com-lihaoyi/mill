@@ -265,7 +265,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
     val testClasses =
-      Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true,
+      Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
         cl => {
           frameworkInstances(cl).flatMap { framework =>
             val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
