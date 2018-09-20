@@ -92,7 +92,7 @@ object ReplApplyHandler{
       c <- resolveParents(t.ctx.enclosingCls)
       m <- c.getMethods
       if m.getName == t.ctx.segment.pathSegments.head
-      a = m.getAnnotation(classOf[mill.docannotations.Scaladoc])
+      a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
       if a != null
     }yield a
 

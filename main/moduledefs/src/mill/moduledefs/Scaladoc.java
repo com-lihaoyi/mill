@@ -1,4 +1,4 @@
-package mill.docannotations;
+package mill.moduledefs;
 
 
 import java.lang.annotation.*;
