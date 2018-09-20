@@ -44,20 +44,19 @@ object ClassLoader {
     *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
     */
   private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (ammonite.util.Util.java9OrAbove && parent == null) {
+    if (!ammonite.util.Util.java9OrAbove || parent != null) parent
+    else {
       // Make sure when `parent == null`, we only delegate java.* classes
       // to the parent getPlatformClassLoader. This is necessary because
       // in Java 9+, somehow the getPlatformClassLoader ends up with all
       // sorts of other non-java stuff on it's classpath, which is not what
       // we want for an "isolated" classloader!
-//      new FirewallLoader(
+      new FirewallLoader(
         classOf[ClassLoader]
           .getMethod("getPlatformClassLoader")
           .invoke(null)
           .asInstanceOf[ClassLoader]
-//      )
-    } else {
-      parent
+      )
     }
   }
 
