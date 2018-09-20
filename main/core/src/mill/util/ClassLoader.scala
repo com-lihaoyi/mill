@@ -5,15 +5,9 @@ import java.net.{URL, URLClassLoader}
 import ammonite.ops._
 import io.github.retronym.java9rtexport.Export
 
+import scala.util.Try
+
 object ClassLoader {
-
-  private class FirewallLoader(parent: ClassLoader) extends ClassLoader(parent) {
-    override def loadClass(name: String, resolve: Boolean) =  {
-      if (!name.startsWith("java.")) throw new ClassNotFoundException(name)
-      else super.loadClass(name, resolve)
-    }
-  }
-
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader)
             (implicit ctx: Ctx.Home): URLClassLoader = {
@@ -51,12 +45,10 @@ object ClassLoader {
       // in Java 9+, somehow the getPlatformClassLoader ends up with all
       // sorts of other non-java stuff on it's classpath, which is not what
       // we want for an "isolated" classloader!
-      new FirewallLoader(
-        classOf[ClassLoader]
-          .getMethod("getPlatformClassLoader")
-          .invoke(null)
-          .asInstanceOf[ClassLoader]
-      )
+      classOf[ClassLoader]
+        .getMethod("getPlatformClassLoader")
+        .invoke(null)
+        .asInstanceOf[ClassLoader]
     }
   }
 
