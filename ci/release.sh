@@ -9,11 +9,10 @@ gpg --import gpg_key
 rm gpg_key
 
 mill mill.scalalib.PublishModule/publishAll \
-    lihaoyi:$SONATYPE_PASSWORD \
-    $GPG_PASSWORD \
-    __.publishArtifacts \
-    --release \
-    true
+    --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
+    --gpgPassphrase $GPG_PASSWORD \
+    --publishArtifacts __.publishArtifacts \
+    --release true
 
 
 mill uploadToGithub $GITHUB_ACCESS_TOKEN
