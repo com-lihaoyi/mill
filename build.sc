@@ -361,9 +361,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
-  def assemblyRules = super.assemblyRules ++ Seq(
-    mill.modules.Assembly.Rule.Append("scalac-plugin.xml")
-  )
+
   def forkArgs =
     (
       scalalib.testArgs() ++
