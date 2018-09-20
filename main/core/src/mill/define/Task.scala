@@ -254,15 +254,6 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
 }
 
-case class Caller[A](value: A)
-object Caller {
-  def apply[T]()(implicit c: Caller[T]) = c.value
-  implicit def generate[T]: Caller[T] = macro impl[T]
-  def impl[T: c.WeakTypeTag](c: Context): c.Tree = {
-    import c.universe._
-    q"new _root_.mill.define.Caller[${weakTypeOf[T]}](this)"
-  }
-}
 abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends NamedTask[T]{
   def evaluate(args: mill.util.Ctx) = args[T](0)
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))

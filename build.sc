@@ -33,7 +33,6 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
@@ -51,7 +50,8 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+    def scalacPluginClasspath =
+      super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
 }
 
@@ -101,10 +101,9 @@ object main extends MillModule {
     def scalaVersion = T{ "2.12.6" }
     def ivyDeps = Agg(
       ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-      ivy"com.lihaoyi::sourcecode:0.1.4"
+      ivy"com.lihaoyi::sourcecode:0.1.4",
     )
   }
-
 
   object client extends MillPublishModule{
     def ivyDeps = Agg(
@@ -362,6 +361,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
+
   def forkArgs =
     (
       scalalib.testArgs() ++

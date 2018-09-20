@@ -28,4 +28,3 @@ object core extends JavaModule{
     "Hello!"
   }
 }
-

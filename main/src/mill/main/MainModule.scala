@@ -135,6 +135,7 @@ trait MainModule extends mill.Module{
     */
   def inspect(evaluator: Evaluator, targets: String*) = mill.T.command{
     MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+      val output = new StringBuilder
       for{
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
@@ -149,8 +150,10 @@ trait MainModule extends mill.Module{
         val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
         str <- truncated ++ Iterator("\n")
       } {
-        print(str)
+        output.append(str)
       }
+      println(output)
+      output.toString
     }
   }
 
@@ -222,10 +225,17 @@ trait MainModule extends mill.Module{
     }
   }
 
+
+  /**
+    * Renders the dependencies between the given tasks as a SVG for you to look at
+    */
   def visualize(evaluator: Evaluator, targets: String*) = mill.T.command{
     visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
   }
 
+  /**
+    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
+    */
   def visualizePlan(evaluator: Evaluator, targets: String*) = mill.T.command{
     plan0(evaluator, targets) match {
       case Left(err) => Result.Failure(err)
@@ -258,5 +268,4 @@ trait MainModule extends mill.Module{
       }
     }
   }
-
 }

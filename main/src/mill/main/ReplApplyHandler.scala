@@ -6,6 +6,7 @@ import mill.define.Applicative.ApplyHandler
 import mill.define.Segment.Label
 import mill.define._
 import mill.eval.{Evaluator, Result}
+
 import mill.util.Strict.Agg
 
 import scala.collection.mutable
@@ -69,6 +70,11 @@ object ReplApplyHandler{
 
     )
   }
+
+  def resolveParents(c: Class[_]): Seq[Class[_]] = {
+    Seq(c) ++ Option(c.getSuperclass).toSeq.flatMap(resolveParents) ++ c.getInterfaces.flatMap(resolveParents)
+  }
+
   def pprintTask(t: NamedTask[_], evaluator: Evaluator) = {
     val seen = mutable.Set.empty[Task[_]]
     def rec(t: Task[_]): Seq[Segments] = {
@@ -81,10 +87,24 @@ object ReplApplyHandler{
           t.inputs.flatMap(rec)
       }
     }
+
+    val annots = for {
+      c <- resolveParents(t.ctx.enclosingCls)
+      m <- c.getMethods
+      if m.getName == t.ctx.segment.pathSegments.head
+      a = m.getAnnotation(classOf[mill.moduledefs.Scaladoc])
+      if a != null
+    }yield a
+
+    val allDocs =
+      for(a <- annots.distinct)
+      yield mill.modules.Util.cleanupScaladoc(a.value).map("\n    " + _).mkString
+
     pprint.Tree.Lazy(ctx =>
       Iterator(
-        t.toString, "(", t.ctx.fileName.split('/').last, ":", t.ctx.lineNum.toString, ")",
-        "\n", ctx.applyPrefixColor("Inputs:").toString
+        ctx.applyPrefixColor(t.toString).toString, "(", t.ctx.fileName.split('/').last, ":", t.ctx.lineNum.toString, ")",
+        allDocs.mkString("\n"), "\n",
+        "\n", ctx.applyPrefixColor("Inputs").toString, ":"
       ) ++ t.inputs.iterator.flatMap(rec).map("\n    " + _.render)
     )
   }
