@@ -36,7 +36,7 @@ pacaur -S mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.2.7/0.2.7, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.2.8/0.2.8, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -73,7 +73,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.7/0.2.7) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.2.8/0.2.8) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -156,8 +156,8 @@ $ mill -i foo.repl                 # start an Ammonite REPL within your project 
 
 You can run `mill resolve __` to see a full list of the different tasks that are
 available, `mill resolve foo._` to see the tasks within `foo`, `mill inspect
-foo.compile` to see what an individual task depends on, or `mill show
-foo.scalaVersion` to inspect the output of any task.
+foo.compile` to inspect a task's doc-comment documentation or what it depends
+on, or `mill show foo.scalaVersion` to show the output of any task.
 
 The most common **tasks** that Mill can run are cached **targets**, such as
 `compile`, and un-cached **commands** such as `foo.run`. Targets do not
@@ -766,6 +766,11 @@ is structured with one folder per `Target`/`Command`, that is run, e.g.:
 - `out/main/test/compile/`
 - `out/main/test/forkTest/`
 - `out/scalalib/compile/`
+
+There are also top-level build-related files in the `out/` folder, prefixed as
+`mill-*`. The most useful is `mill-profile.json`, which logs the tasks run and
+time taken for the last Mill command you executed. This is very useful if you
+want to find out exactly what tasks are being run and Mill is being slow.
 
 Each folder currently contains the following files:
 

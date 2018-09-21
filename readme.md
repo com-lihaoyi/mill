@@ -151,6 +151,16 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.8
+
+- `mill inspect` now displays out the doc-comment documentation for a task.
+
+- Avoid shutdown hook failures in tests [#422](https://github.com/lihaoyi/mill/pull/422)
+
+- Ignore unreadable output files rather than crashing [#423](https://github.com/lihaoyi/mill/pull/423)
+
+- Don't compile hidden files [#428](https://github.com/lihaoyi/mill/pull/428)
+
 ### 0.2.7
 
 - Add `visualizePlan` command
