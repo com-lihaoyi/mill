@@ -491,6 +491,10 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
+  object webpacklib extends MillModule {
+    def moduleDeps = Seq(scalajslib)
+  }
+
 }
 
 
