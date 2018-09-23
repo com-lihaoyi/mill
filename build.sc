@@ -250,6 +250,9 @@ object contrib extends MillModule {
     }
    }
 
+  object webpacklib extends MillModule {
+    def moduleDeps = Seq(scalajslib)
+  }
 }
 
 
