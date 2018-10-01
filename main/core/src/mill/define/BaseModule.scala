@@ -12,7 +12,8 @@ abstract class BaseModule(millSourcePath0: Path,
                          (implicit millModuleEnclosing0: sourcecode.Enclosing,
                           millModuleLine0: sourcecode.Line,
                           millName0: sourcecode.Name,
-                          millFile0: sourcecode.File)
+                          millFile0: sourcecode.File,
+                          caller: Caller)
   extends Module()(
     mill.define.Ctx.make(
       implicitly,
@@ -23,7 +24,8 @@ abstract class BaseModule(millSourcePath0: Path,
       mill.util.Router.Overrides(0),
       Ctx.External(external0),
       Ctx.Foreign(foreign0),
-      millFile0
+      millFile0,
+      caller
     )
   ){
   // A BaseModule should provide an empty Segments list to it's children, since
@@ -40,7 +42,9 @@ abstract class BaseModule(millSourcePath0: Path,
 abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                               millModuleLine0: sourcecode.Line,
                               millName0: sourcecode.Name)
-  extends BaseModule(ammonite.ops.pwd, external0 = true, foreign0 = false){
+  extends BaseModule(ammonite.ops.pwd, external0 = true, foreign0 = false)(
+    implicitly, implicitly, implicitly, implicitly, Caller(())
+  ){
 
   implicit def millDiscoverImplicit: Discover[_] = millDiscover
   assert(

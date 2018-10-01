@@ -5,6 +5,7 @@ import java.util.jar.JarFile
 import ammonite.ops._
 import mill._
 import mill.define.Target
+import mill.eval.Result.Exception
 import mill.eval.{Evaluator, Result}
 import mill.modules.Assembly
 import mill.scalalib.publish._
@@ -139,17 +140,36 @@ object HelloWorldTests extends TestSuite {
     object model extends HelloWorldModule
   }
 
-  object HelloWorldWarnUnused extends HelloBase{
+  object HelloWorldWarnUnused extends HelloBase {
     object core extends HelloWorldModule {
       def scalacOptions = T(Seq("-Ywarn-unused"))
     }
   }
 
-  object HelloWorldFatalWarnings extends HelloBase{
+  object HelloWorldFatalWarnings extends HelloBase {
     object core extends HelloWorldModule {
       def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
     }
+  }
 
+  object HelloWorldWithDocVersion extends HelloBase {
+    object core extends HelloWorldModule {
+      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      def scalaDocOptions = super.scalaDocOptions() ++ Seq("-doc-version", "1.2.3")
+    }
+  }
+
+  object HelloWorldOnlyDocVersion extends HelloBase {
+    object core extends HelloWorldModule {
+      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
+    }
+  }
+
+  object HelloWorldDocTitle extends HelloBase {
+    object core extends HelloWorldModule {
+      def scalaDocOptions = T(Seq("-doc-title", "Hello World"))
+    }
   }
 
   object HelloWorldWithPublish extends HelloBase{
@@ -198,6 +218,9 @@ object HelloWorldTests extends TestSuite {
       )
       def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
         ivy"org.scalamacros:::paradise:2.1.0"
+      )
+      def scalaDocPluginIvyDeps = super.scalaDocPluginIvyDeps() ++ Agg(
+        ivy"com.typesafe.genjavadoc:::genjavadoc-plugin:0.11"
       )
     }
   }
@@ -269,9 +292,9 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator[M] => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+                      (t: TestEvaluator => T)
+                      (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)
@@ -318,6 +341,81 @@ object HelloWorldTests extends TestSuite {
 
         assert(
           result == Seq("-Ywarn-unused", "-Xfatal-warnings"),
+          evalCount > 0
+        )
+      }
+    }
+
+    'scalaDocOptions - {
+      'emptyByDefault - workspaceTest(HelloWorld){eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorld.core.scalaDocOptions)
+        assert(
+          result.isEmpty,
+          evalCount > 0
+        )
+      }
+      'override - workspaceTest(HelloWorldDocTitle){ eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldDocTitle.core.scalaDocOptions)
+        assert(
+          result == Seq("-doc-title", "Hello World"),
+          evalCount > 0
+        )
+      }
+      'extend - workspaceTest(HelloWorldWithDocVersion){ eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithDocVersion.core.scalaDocOptions)
+        assert(
+          result == Seq("-Ywarn-unused", "-Xfatal-warnings", "-doc-version", "1.2.3"),
+          evalCount > 0
+        )
+      }
+      // make sure options are passed during ScalaDoc generation
+      'docJarWithTitle - workspaceTest(
+        HelloWorldDocTitle,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldDocTitle.core.docJar)
+        assert(
+          evalCount > 0,
+          read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-title\">Hello World")
+        )
+      }
+      'docJarWithVersion - workspaceTest(
+        HelloWorldWithDocVersion,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+      ){ eval =>
+        // scaladoc generation fails because of "-Xfatal-warnings" flag
+        val Left(Result.Exception(InteractiveShelloutException(), outerStack)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
+      }
+      'docJarOnlyVersion - workspaceTest(
+        HelloWorldOnlyDocVersion,
+        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+      ){ eval =>
+        val Right((_, evalCount)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
+        assert(
+          evalCount > 0,
+          read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-version\">1.2.3")
+        )
+      }
+    }
+
+    'scalacPluginClasspath - {
+      'withMacroParadise - workspaceTest(HelloWorldTypeLevel){eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalacPluginClasspath)
+        assert(
+          result.nonEmpty,
+          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          evalCount > 0
+        )
+      }
+    }
+
+    'scalaDocPluginClasspath - {
+      'extend - workspaceTest(HelloWorldTypeLevel){eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
+        assert(
+          result.nonEmpty,
+          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
           evalCount > 0
         )
       }
@@ -380,7 +478,6 @@ object HelloWorldTests extends TestSuite {
       'passScalacOptions - workspaceTest(HelloWorldFatalWarnings){ eval =>
         // compilation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorldFatalWarnings.core.compile)
-
       }
     }
 
@@ -397,7 +494,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'runCross - {
-        def cross(eval: TestEvaluator[_], v: String, expectedOut: String) {
+        def cross(eval: TestEvaluator, v: String, expectedOut: String) {
 
           val runResult = eval.outPath / "hello-mill"
 

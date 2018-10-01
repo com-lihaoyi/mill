@@ -69,7 +69,8 @@ case class Ctx(enclosing: String,
                overrides: Int,
                external: Boolean,
                foreign: Boolean,
-               fileName: String){
+               fileName: String,
+               enclosingCls: Class[_]){
 }
 
 object Ctx{
@@ -83,7 +84,8 @@ object Ctx{
                     overrides0: mill.util.Router.Overrides,
                     external0: External,
                     foreign0: Foreign,
-                    fileName: sourcecode.File): Ctx = {
+                    fileName: sourcecode.File,
+                    enclosing: Caller): Ctx = {
     Ctx(
       millModuleEnclosing0.value,
       millModuleLine0.value,
@@ -93,7 +95,8 @@ object Ctx{
       overrides0.value,
       external0.value,
       foreign0.value,
-      fileName.value
+      fileName.value,
+      enclosing.value.getClass
     )
   }
 }

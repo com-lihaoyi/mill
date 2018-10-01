@@ -8,7 +8,7 @@ import mill.scalalib.dependency.DependencyUpdatesImpl
 
 object Dependency extends ExternalModule {
 
-  def updates(ev: Evaluator[Any], allowPreRelease: Boolean = false) =
+  def updates(ev: Evaluator, allowPreRelease: Boolean = false) =
     T.command {
       DependencyUpdatesImpl(implicitly,
                             ev.rootModule,

@@ -7,4 +7,4 @@ git clean -xdf
 
 mill contrib.testng.publishLocal # Needed for CaffeineTests
 # Run tests
-mill integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests}"
+mill integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"

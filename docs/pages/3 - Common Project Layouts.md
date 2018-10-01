@@ -260,6 +260,7 @@ foo/
 ```scala
 import mill._
 import mill.scalalib._
+import mill.scalalib.publish._
 object foo extends ScalaModule with PublishModule {
   def scalaVersion = "2.12.4"
   def publishVersion = "0.0.1"

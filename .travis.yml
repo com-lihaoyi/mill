@@ -40,7 +40,7 @@ matrix:
     jdk: oraclejdk8
 
 script:
-  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.0/0.2.0-36-f8d1e7 && chmod +x ~/bin/mill
+  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.7/0.2.7-10-db8525 && chmod +x ~/bin/mill
   - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
 

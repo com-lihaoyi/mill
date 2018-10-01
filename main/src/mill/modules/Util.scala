@@ -7,6 +7,19 @@ import mill.eval.PathRef
 import mill.util.{Ctx, IO, Loose}
 
 object Util {
+  def cleanupScaladoc(v: String) = {
+    v.lines.map(
+      _.dropWhile(_.isWhitespace)
+        .stripPrefix("/**")
+        .stripPrefix("*/")
+        .stripPrefix("*")
+        .dropWhile(_.isWhitespace)
+    ).toArray
+      .dropWhile(_.isEmpty)
+      .reverse
+      .dropWhile(_.isEmpty)
+      .reverse
+  }
   def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.Dest) = {
     val out = ctx.dest / dest
 
