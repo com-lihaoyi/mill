@@ -69,7 +69,7 @@ arbitrary result from its inputs.
 
 ## Different Kinds of Tasks
 
-There are four primary kinds of *Tasks* that you should care about:
+There are three primary kinds of *Tasks* that you should care about:
 
 - [Targets](#targets), defined using `T {...}`
 - [Sources](#sources), defined using `T.sources {...}`
