@@ -36,7 +36,8 @@ class SonatypeHttpApi(uri: String, credentials: String) {
       ujson
         .read(response.body)("data")
         .arr
-        .find(profile => profile("name").str == groupId)
+        .find(profile =>
+          groupId.split('.').startsWith(profile("name").str.split('.')))
         .map(_("resourceURI").str.toString)
 
     resourceUri.getOrElse(
