@@ -31,7 +31,8 @@ object TestUtil {
                    millModuleLine0: sourcecode.Line,
                    millName0: sourcecode.Name,
                    overrides: Overrides)
-    extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#")){
+    extends mill.define.BaseModule(getSrcPathBase() / millModuleEnclosing0.value.split("\\.| |#"))(
+      implicitly, implicitly, implicitly, implicitly, implicitly){
     lazy val millDiscover: Discover[this.type] = Discover[this.type]
   }
 

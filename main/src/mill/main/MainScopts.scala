@@ -23,9 +23,9 @@ object Tasks{
 }
 
 class EvaluatorScopt[T]()
-  extends scopt.Read[mill.eval.Evaluator[T]]{
+  extends scopt.Read[mill.eval.Evaluator]{
   def arity = 0
   def reads = s => try{
-    Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator[T]]
+    Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]
   }
 }

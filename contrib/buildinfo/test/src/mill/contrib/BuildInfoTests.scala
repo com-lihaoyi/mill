@@ -19,14 +19,14 @@ object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = "2.12.4"
   trait BuildInfoModule extends TestUtil.BaseModule with scalalib.ScalaModule with BuildInfo {
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
     def scalaVersion = scalaVersionString
   }
 
   object EmptyBuildInfo extends BuildInfoModule
 
   object BuildInfo extends BuildInfoModule {
-    def buildInfoMembers=T{
+    override def buildInfoMembers=T{
       Map(
         "scalaVersion" -> scalaVersion(),
       )
@@ -34,9 +34,9 @@ object BuildInfoTests extends TestSuite {
   }
 
   object BuildInfoSettings extends BuildInfoModule {
-    def buildInfoPackageName = Some("foo")
-    def buildInfoObjectName = "bar"
-    def buildInfoMembers=T{
+    override def buildInfoPackageName = Some("foo")
+    override def buildInfoObjectName = "bar"
+    override def buildInfoMembers=T{
       Map(
         "scalaVersion" -> scalaVersion()
       )
@@ -45,9 +45,9 @@ object BuildInfoTests extends TestSuite {
 
   val resourcePath = pwd / 'contrib / 'buildinfo / 'test / 'resources / "buildinfo"
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator[M] => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+                      (t: TestEvaluator => T)
+                      (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)

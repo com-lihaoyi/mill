@@ -22,9 +22,9 @@ object ScalafmtTests extends TestSuite {
 
   val resourcePath = pwd / 'scalalib / 'test / 'resources / 'scalafmt
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](
-      m: M,
-      resourcePath: Path = resourcePath)(t: TestEvaluator[M] => T)(
+  def workspaceTest[T](
+      m: TestUtil.BaseModule,
+      resourcePath: Path = resourcePath)(t: TestEvaluator => T)(
       implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
@@ -91,7 +91,7 @@ object ScalafmtTests extends TestSuite {
 
   case class FileInfo(content: String, modifyTime: Long, path: Path)
 
-  def getProjectFiles(m: ScalaModule, eval: TestEvaluator[_]) = {
+  def getProjectFiles(m: ScalaModule, eval: TestEvaluator) = {
     val Right((sources, _)) = eval.apply(m.sources)
     val Right((resources, _)) = eval.apply(m.resources)
 

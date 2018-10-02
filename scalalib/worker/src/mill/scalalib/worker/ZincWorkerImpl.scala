@@ -125,12 +125,20 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                    compilerClasspath: Agg[Path],
                    scalacPluginClasspath: Agg[Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
-    val compilerJars = compilerClasspath.toArray.map(_.toIO)
+    val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
+    val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
 
-    val compilerBridge = compileZincBridgeIfNeeded(scalaVersion, compilerBridgeSources, compilerJars)
+    val compilerBridge = compileZincBridgeIfNeeded(
+      scalaVersion,
+      compilerBridgeSources,
+      compilerClasspath.toArray.map(_.toIO)
+    )
     val compilerBridgeSig = compilerBridge.mtime.toMillis
 
-    val compilersSig = compilerBridgeSig + compilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val compilersSig =
+      compilerBridgeSig +
+      combinedCompilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+
     val compilers = mixedCompilersCache match {
       case Some((k, v)) if k == compilersSig => v
       case _ =>
@@ -141,10 +149,10 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
             "scala-compiler"
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null),
+          loader = mill.util.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null),
           libraryJar = grepJar(compilerClasspath, "scala-library", scalaVersion).toIO,
           compilerJar = grepJar(compilerClasspath, compilerName, scalaVersion).toIO,
-          allJars = compilerJars,
+          allJars = combinedCompilerJars,
           explicitActual = None
         )
         val compilers = ic.compilers(

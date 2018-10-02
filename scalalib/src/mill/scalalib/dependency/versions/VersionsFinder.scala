@@ -23,7 +23,7 @@ private[dependency] object VersionsFinder {
     resolveVersions(resolvedDependencies)
   }
 
-  private def resolveDependencies(evaluator: Evaluator[_],
+  private def resolveDependencies(evaluator: Evaluator,
                                   javaModules: Seq[JavaModule]) =
     javaModules.map { javaModule =>
       val depToDependency =
@@ -56,13 +56,13 @@ private[dependency] object VersionsFinder {
         ModuleDependenciesVersions(javaModule, versions)
     }
 
-  private def eval[T](evaluator: Evaluator[_], e: Task[T]): T =
+  private def eval[T](evaluator: Evaluator, e: Task[T]): T =
     evaluator.evaluate(Strict.Agg(e)).values match {
       case Seq()     => throw new NoSuchElementException
       case Seq(e: T) => e
     }
 
-  private def evalOrElse[T](evaluator: Evaluator[_],
+  private def evalOrElse[T](evaluator: Evaluator,
                             e: Task[T],
                             default: => T): T =
     evaluator.evaluate(Strict.Agg(e)).values match {

@@ -33,10 +33,11 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
-
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
+  def scalacPluginClasspath =
+    super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
   def testArgs = T{ Seq.empty[String] }
 
@@ -51,7 +52,8 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
       else Seq(outer, main.test)
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
     def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath = super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+    def scalacPluginClasspath =
+      super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
 }
 
@@ -101,10 +103,9 @@ object main extends MillModule {
     def scalaVersion = T{ "2.12.6" }
     def ivyDeps = Agg(
       ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-      ivy"com.lihaoyi::sourcecode:0.1.4"
+      ivy"com.lihaoyi::sourcecode:0.1.4",
     )
   }
-
 
   object client extends MillPublishModule{
     def ivyDeps = Agg(
@@ -362,6 +363,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
+
   def forkArgs =
     (
       scalalib.testArgs() ++
@@ -379,7 +381,7 @@ object dev extends MillModule{
     ).distinct
 
 
-  // Pass dev.assembly VM options via file in Window due to small max args limit
+  // Pass dev.assembly VM options via file in Windows due to small max args limit
   def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
     if (System.getProperty("java.specification.version").startsWith("1.")) {
       throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
@@ -450,19 +452,20 @@ object dev extends MillModule{
 def release = T{
   val dest = T.ctx().dest
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
-  val args = Seq(
-    "-DMILL_CLASSPATH=$0",
+  val commonArgs = Seq(
     "-DMILL_VERSION=" + publishVersion()._2,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
   )
+  val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
+  val cmdArgs = Seq("-DMILL_CLASSPATH=%0") ++ commonArgs
   mv(
     createAssembly(
       dev.runClasspath().map(_.path),
       prependShellScript = launcherScript(
-        args,
-        args,
+        shellArgs,
+        cmdArgs,
         Agg("$0"),
         Agg("%~dpnx0")
       )

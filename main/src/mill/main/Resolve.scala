@@ -219,6 +219,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
       }
   }
 }
+
 object Resolve{
   def minimum(i1: Int, i2: Int, i3: Int)= math.min(math.min(i1, i2), i3)
 
