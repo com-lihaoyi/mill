@@ -12,7 +12,7 @@ object GenIdeaTests extends TestSuite {
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
-    def millSourcePath = GenIdeaTests.millSourcePath
+    override def millSourcePath = GenIdeaTests.millSourcePath
     object test extends super.Tests {
       def testFrameworks = Seq("utest.runner.Framework")
     }

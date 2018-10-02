@@ -15,7 +15,7 @@ object TutorialTests extends TestSuite {
   trait TutorialModule extends ScalaPBModule {
     def scalaVersion = "2.12.4"
     def scalaPBVersion = "0.7.4"
-    def scalaPBFlatPackage = true
+    override def scalaPBFlatPackage = true
   }
 
   object Tutorial extends TutorialBase {

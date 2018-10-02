@@ -10,7 +10,7 @@ import utest.framework.TestPath
 object ScalafmtTests extends TestSuite {
 
   trait TestBase extends TestUtil.BaseModule {
-    def millSourcePath =
+    override def millSourcePath =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 

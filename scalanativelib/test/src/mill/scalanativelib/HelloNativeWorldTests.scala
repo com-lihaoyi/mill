@@ -35,7 +35,7 @@ object HelloNativeWorldTests extends TestSuite {
     class BuildModule(val crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode) extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
-      def releaseMode = T{ mode }
+      override def releaseMode = T{ mode }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",
