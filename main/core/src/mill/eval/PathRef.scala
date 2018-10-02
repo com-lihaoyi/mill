@@ -2,7 +2,7 @@ package mill.eval
 
 import java.io.IOException
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileVisitOption, FileVisitResult, FileVisitor}
+import java.nio.file.{FileVisitResult, FileVisitor}
 import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 
