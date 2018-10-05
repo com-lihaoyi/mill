@@ -94,7 +94,7 @@ return-value of targets has to be JSON-serializable via
 
 In case you want return your own
 case class (e.g. `MyCaseClass`), you can make it JSON-serializable by adding the
-following implicit def to it's companion object:
+following implicit def to its companion object:
 
 ```scala
 object MyCaseClass {
