@@ -52,11 +52,15 @@ This would make the following targets available from the command line
 - `mill show foo2.baz`
 - `mill show foo2.qux`
 
-The built in `mill.scalalib` package uses this to define
+The built-in `mill.scalalib` package uses this to define
 `mill.scalalib.ScalaModule`, `mill.scalalib.SbtModule` and
 `mill.scalalib.TestScalaModule`, all of which contain a set of "standard"
 operations such as `compile` `jar` or `assembly` that you may expect from a
 typical Scala module.
+
+When defining your own module abstractions, in general you should use `trait`s
+and not `class`es, except in the case of
+[Cross Builds](http://www.lihaoyi.com/mill/page/cross-builds.html).
 
 ## Overriding Targets
 
