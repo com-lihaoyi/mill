@@ -54,7 +54,7 @@ trait ScalaPBModule extends ScalaModule {
         Cache.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      Lib.depToDependency(_, "2.12.4"),
+      Lib.depToDependency(_, Versions.scala),
       Seq(ivy"com.thesamet.scalapb::scalapbc:${scalaPBVersion()}")
     )
   }

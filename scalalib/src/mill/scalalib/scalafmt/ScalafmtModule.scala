@@ -24,7 +24,7 @@ trait ScalafmtModule extends JavaModule {
   def scalafmtDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       zincWorker.repositories,
-      Lib.depToDependency(_, "2.12.4"),
+      Lib.depToDependency(_, Versions.scala),
       Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
     )
   }
