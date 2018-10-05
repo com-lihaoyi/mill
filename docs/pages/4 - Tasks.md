@@ -92,6 +92,16 @@ automatically JSON-serialized and stored at `out/classFiles/meta.json`. The
 return-value of targets has to be JSON-serializable via
 [uPickle](https://github.com/lihaoyi/upickle).
 
+In case you want return your own
+case class (e.g. `MyCaseClass`), you can make it JSON-serializable by adding the
+following implicit def to its companion object:
+
+```scala
+object MyCaseClass {
+  implicit def rw: upickle.default.ReadWriter[MyCaseClass] = upickle.default.macroRW
+}
+```
+
 If you want to return a file or a set of files as the result of a `Target`,
 write them to disk within your `T.ctx().dest` available through the
 [Task Context API](#task-context-api) and return a `PathRef` to the files you
