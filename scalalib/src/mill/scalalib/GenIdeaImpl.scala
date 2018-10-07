@@ -26,6 +26,14 @@ object GenIdea extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
+
+/**
+  * Marker trait to manipulate idea project generation.
+  */
+trait IdeaConfigModule extends mill.Module {
+  def skipIdea: Boolean = false
+}
+
 object GenIdeaImpl {
 
   def apply(ctx: Log with Home,
@@ -225,8 +233,12 @@ object GenIdeaImpl {
       Tuple2(
         ".idea"/"modules.xml",
         allModulesXmlTemplate(
-          for((path, mod) <- modules)
-            yield moduleName(path)
+          modules
+            .filter {
+              case (_, x: IdeaConfigModule) => !x.skipIdea
+              case _ => true
+            }
+            .map { case (path, mod) => moduleName(path) }
         )
       ),
       Tuple2(
