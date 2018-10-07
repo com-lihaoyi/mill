@@ -28,7 +28,7 @@ object GenIdea extends ExternalModule {
 }
 
 /**
-  * Marker trait to manipulate idea project generation.
+  * Module specific control over Idea project file generation.
   */
 trait IdeaConfigModule extends mill.Module {
   def skipIdea: Boolean = false
