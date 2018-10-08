@@ -27,13 +27,6 @@ object GenIdea extends ExternalModule {
   lazy val millDiscover = Discover[this.type]
 }
 
-/**
-  * Module specific control over Idea project file generation.
-  */
-trait IdeaConfigModule extends mill.Module {
-  def skipIdea: Boolean = false
-}
-
 object GenIdeaImpl {
 
   def apply(ctx: Log with Home,
@@ -234,10 +227,7 @@ object GenIdeaImpl {
         ".idea"/"modules.xml",
         allModulesXmlTemplate(
           modules
-            .filter {
-              case (_, x: IdeaConfigModule) => !x.skipIdea
-              case _ => true
-            }
+            .filter(!_._2.skipIdea)
             .map { case (path, mod) => moduleName(path) }
         )
       ),
