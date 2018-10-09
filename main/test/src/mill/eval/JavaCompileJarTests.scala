@@ -39,6 +39,8 @@ object JavaCompileJarTests extends TestSuite{
         def allSources = T{ sourceRoot().flatMap(p => ls.rec(p.path)).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
         def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
+        // Test createJar() with optional file filter.
+        def filterJar(fileFilter: (Path, RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), None, fileFilter) }
 
         def run(mainClsName: String) = T.command{
           %%('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
@@ -115,6 +117,13 @@ object JavaCompileJarTests extends TestSuite{
           |hello.txt
           |""".stripMargin
       assert(jarContents.lines.toSeq == expectedJarContents.lines.toSeq)
+
+      // Create the Jar again, but this time, filter out the Foo files.
+      def noFoos(s: String) = !s.contains("Foo")
+      val filterFunc = (p: Path, r: RelPath) => noFoos(r.last)
+      filterJar(filterFunc)
+      val filteredJarContents = %%('jar, "-tf", evaluator.outPath/'filterJar/'dest/"out.jar")(evaluator.outPath).out.string
+      assert(filteredJarContents.lines.toSeq == expectedJarContents.lines.filter(noFoos(_)).toSeq)
 
       val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)
