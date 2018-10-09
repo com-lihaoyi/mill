@@ -121,7 +121,7 @@ object JavaCompileJarTests extends TestSuite{
       // Create the Jar again, but this time, filter out the Foo files.
       def noFoos(s: String) = !s.contains("Foo")
       val filterFunc = (p: Path, r: RelPath) => noFoos(r.last)
-      filterJar(filterFunc)
+      eval(filterJar(filterFunc))
       val filteredJarContents = %%('jar, "-tf", evaluator.outPath/'filterJar/'dest/"out.jar")(evaluator.outPath).out.string
       assert(filteredJarContents.lines.toSeq == expectedJarContents.lines.filter(noFoos(_)).toSeq)
 
