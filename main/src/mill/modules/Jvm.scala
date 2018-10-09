@@ -209,6 +209,19 @@ object Jvm {
     m
   }
 
+  /**
+    * Create a jar file containing all files from the specified input Paths,
+    * called out.jar in the implicit ctx.dest folder. An optional main class may
+    * be provided for the jar. An optional filter function may also be provided to
+    * selectively include/exclude specific files.
+    * @param inputPaths - `Agg` of `Path`s containing files to be included in the jar
+    * @param mainClass - optional main class for the jar
+    * @param fileFilter - optional file filter to select files to be included.
+    *                   Given a `Path` (from inputPaths) and a `RelPath` for the individual file,
+    *                   return true if the file is to be included in the jar.
+    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
+    * @return - a `PathRef` for the created jar.
+    */
   def createJar(inputPaths: Agg[Path],
                 mainClass: Option[String] = None,
                 fileFilter: (Path, RelPath) => Boolean = (p: Path, r: RelPath) => true)
