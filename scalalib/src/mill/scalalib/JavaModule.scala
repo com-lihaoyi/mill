@@ -527,6 +527,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def intellijModulePath: Path = millSourcePath
 
   def forkWorkingDir = T{ ammonite.ops.pwd }
+
+  /**
+   * Skip Idea project file generation.
+   */
+  def skipIdea: Boolean = false
 }
 
 trait TestModule extends JavaModule with TaskModule {
