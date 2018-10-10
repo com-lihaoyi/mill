@@ -143,3 +143,24 @@ Quickstart:
   [40/40] project.publishM2Local
   Publishing to /tmp/m2repo
   ```
+
+- [osgi](https://github.com/lefou/mill-osgi "GitHub-Project lefou/mill-osgi")
+
+  Produce OSGi Bundles with mill.
+
+  Quickstart:
+  ```scala
+  import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.2`
+  import de.tobiasroeser.mill.osgi._
+
+  object project extends ScalaModule with OsgiBundleModule {
+
+    def bundleSymbolicName = "com.example.project"
+
+    def osgiHeaders = T{ osgiHeaders().copy(
+      `Export-Package`   = Seq("com.example.api"),
+      `Bundle-Activator` = Some("com.example.internal.Activator")
+    )}
+
+  }
+  ```
