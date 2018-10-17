@@ -12,17 +12,26 @@ import scala.util.matching.Regex
 trait TutModule extends ScalaModule {
   def tutSourceDirectory = T.sources { millSourcePath / 'tut }
   def tutTargetDirectory: T[Path] = T { T.ctx().dest }
-  def tutClasspath: T[Agg[PathRef]] = tutJar() ++ compileClasspath()
+  def tutClasspath: T[Agg[PathRef]] = T {
+    // Same as compileClasspath but with tut added to ivyDeps from the start
+    // This prevents duplicate copies of scala-library ending up on the classpath
+    transitiveLocalClasspath() ++
+    resources() ++
+    unmanagedClasspath() ++
+    tutIvyDeps()
+  }
   def tutScalacPluginIvyDeps: T[Agg[Dep]] = scalacPluginIvyDeps()
   def tutNameFilter: T[Regex] = T { """.*\.(md|markdown|txt|htm|html)""".r }
   def tutScalacOptions: T[Seq[String]] = scalacOptions()
   def tutVersion: T[String] = "0.6.7"
 
-  def tutJar: T[Agg[PathRef]] = T {
+  def tutIvyDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositories :+ MavenRepository(s"https://dl.bintray.com/tpolecat/maven"),
       Lib.depToDependency(_, scalaVersion()),
-      Seq(ivy"org.tpolecat::tut-core:${tutVersion()}")
+      compileIvyDeps() ++ transitiveIvyDeps() ++ Seq(
+        ivy"org.tpolecat::tut-core:${tutVersion()}"
+      )
     )
   }
 
