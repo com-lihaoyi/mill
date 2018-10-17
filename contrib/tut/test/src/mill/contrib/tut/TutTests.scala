@@ -18,7 +18,7 @@ object TutTests extends TestSuite {
   object TutTest extends TutTestModule
 
   object TutCustomTest extends TutTestModule {
-    def tutTargetDirectory = PathRef(millSourcePath)
+    def tutTargetDirectory = millSourcePath
   }
 
   val resourcePath = pwd / 'contrib / 'tut / 'test / 'tut

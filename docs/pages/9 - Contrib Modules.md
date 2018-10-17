@@ -128,7 +128,7 @@ example/
 
 * tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the `tut` folder at the root of the module.
 
-* tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the `tutTargetDirectory` task but this can be reconfigured so that documentation goes to the root of the module (e.g. `PathRef(millSourcePath)`) or to a dedicated folder (e.g. `millSourcePath / 'docs`)
+* tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the `tutTargetDirectory` task but this can be reconfigured so that documentation goes to the root of the module (e.g. `millSourcePath`) or to a dedicated folder (e.g. `millSourcePath / 'docs`)
 
 * tutJar - A task which determines how to fetch the Tut jar file and its dependencies and returns the resulting files.
 
