@@ -95,6 +95,53 @@ object project extends ScalaModule {
 }
 ```
 
+### Tut
+
+This module allows [Tut](https://tpolecat.github.io/tut) to be used in Mill builds. Tut is a documentation tool which compiles and evaluates Scala code in documentation files and provides various options for configuring how the results will be displayed in the compiled documentation.
+
+To declare a module that uses Tut you can extend the `mill.contrib.tut.TutModule` trait when defining your module.
+
+This creates a Scala module which compiles markdown, HTML and `.txt`files in the `tut` folder of the module with Tut.
+
+By default the resulting documents are simply placed in the Mill build output folder but they can be placed elsewhere by overriding the `tutTargetDirectory` task.
+
+```scala
+// build.sc
+import mill._, scalalib._, contrib.tut.__
+
+object example extends TutModule {
+  def scalaVersion = "2.12.6"
+}
+```
+
+This defines a project with the following layout:
+
+```
+build.sc
+example/
+    src/
+    tut/
+    resources/
+```
+
+#### Configuration options
+
+* tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the `tut` folder at the root of the module.
+
+* tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the `tutTargetDirectory` task but this can be reconfigured so that documentation goes to the root of the module (e.g. `PathRef(millSourcePath)`) or to a dedicated folder (e.g. `millSourcePath / 'docs`)
+
+* tutJar - A task which determines how to fetch the Tut jar file and its dependencies and returns the resulting files.
+
+* tutClasspath - A task which determines what classpath is used when compiling documentation. By default this is configured to use the result of the `tutJar` task and the `compileClasspath`.
+
+* tutScalacPluginIvyDeps - A task which determines the scalac plugins which will be used when compiling code examples with Tut. The default is to use the `scalacPluginIvyDeps` for the module.
+
+* tutNameFilter - A `scala.util.matching.Regex` task which will be used to determine which files should be compiled with tut. The default pattern is as follows: `.*\.(md|markdown|txt|htm|html)`.
+
+* tutScalacOptions - The scalac options which will be used when compiling code examples with Tut. The default is to use the `scalacOptions` for the module.
+
+* tutVersion - The version of Tut to use.
+
 ### Twirl
 
 Twirl templates support.

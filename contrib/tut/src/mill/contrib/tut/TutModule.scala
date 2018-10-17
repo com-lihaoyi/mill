@@ -12,7 +12,7 @@ trait TutModule extends ScalaModule {
   def tutSourceDirectory = T.sources { millSourcePath / 'tut }
   def tutTargetDirectory: T[PathRef] = T { PathRef(T.ctx().dest) }
   def tutClasspath: T[Agg[PathRef]] = tutJar() ++ compileClasspath()
-  def tutPluginJars: T[Agg[PathRef]] = scalacPluginClasspath()
+  def tutScalacPluginIvyDeps: T[Agg[Dep]] = scalacPluginIvyDeps()
   def tutNameFilter: T[Regex] = T { """.*\.(md|markdown|txt|htm|html)""".r }
   def tutScalacOptions: T[Seq[String]] = scalacOptions()
   def tutVersion: T[String] = "0.6.7"
@@ -24,6 +24,8 @@ trait TutModule extends ScalaModule {
       Seq(ivy"org.tpolecat::tut-core:${tutVersion()}")
     )
   }
+
+  def tutPluginJars: T[Agg[PathRef]] = resolveDeps(tutScalacPluginIvyDeps)()
 
   def tut: T[Unit] = T {
     val in = tutSourceDirectory().head.path.toIO.getAbsolutePath
