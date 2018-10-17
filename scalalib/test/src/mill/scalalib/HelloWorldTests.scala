@@ -384,7 +384,7 @@ object HelloWorldTests extends TestSuite {
         resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
       ){ eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Exception(InteractiveShelloutException(), outerStack)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
+        val Left(Result.Failure("docJar generation failed", None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
       'docJarOnlyVersion - workspaceTest(
         HelloWorldOnlyDocVersion,

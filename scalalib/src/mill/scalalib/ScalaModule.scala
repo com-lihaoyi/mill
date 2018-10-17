@@ -173,23 +173,24 @@ trait ScalaModule extends JavaModule { outer =>
     val javadocDir = outDir / 'javadoc
     mkdir(javadocDir)
 
-    val files = for{
-      ref <- allSources()
-      if exists(ref.path)
-      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
-      if (p.isFile && ((p.ext == "scala") || (p.ext == "java")))
-    } yield p.toNIO.toString
+    val files = allSourceFiles().map(_.path.toString)
 
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val options = Seq("-d", javadocDir.toNIO.toString, "-usejavacp") ++ pluginOptions ++ scalaDocOptions()
+    val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
+    val options = Seq(
+      "-d", javadocDir.toNIO.toString, "-usejavacp",
+      "-classpath", compileCp.mkString(":")
+    ) ++
+      pluginOptions ++
+      scalaDocOptions()
 
-    if (files.nonEmpty) subprocess(
-      "scala.tools.nsc.ScalaDoc",
-      scalaCompilerClasspath().map(_.path) ++ compileClasspath().filter(_.path.ext != "pom").map(_.path),
-      mainArgs = (files ++ options).toSeq
-    )
-
-    createJar(Agg(javadocDir))(outDir)
+    if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
+    else {
+      zincWorker.worker().docJar(files ++ options) match{
+        case true => Result.Success(createJar(Agg(javadocDir))(outDir))
+        case false => Result.Failure("docJar generation failed")
+      }
+    }
   }
 
   /**

@@ -49,7 +49,9 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
 
   @volatile var mixedCompilersCache = Option.empty[(Long, Compilers)]
 
-
+  def docJar(args: Seq[String]): Boolean = {
+    new scala.tools.nsc.ScalaDoc().process(args.toArray)
+  }
   /** Compile the bridge if it doesn't exist yet and return the output directory.
    *  TODO: Proper invalidation, see #389
    */
