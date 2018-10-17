@@ -3,6 +3,7 @@ package tut
 
 import ammonite.ops._
 import mill._
+import mill.eval.Result._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath

@@ -13,10 +13,11 @@ trait TutModule extends ScalaModule {
   def tutSourceDirectory = T.sources { millSourcePath / 'tut }
   def tutTargetDirectory: T[Path] = T { T.ctx().dest }
   def tutClasspath: T[Agg[PathRef]] = T {
-    // Same as compileClasspath but with tut added to ivyDeps from the start
+    // Same as runClasspath but with tut added to ivyDeps from the start
     // This prevents duplicate copies of scala-library ending up on the classpath
     transitiveLocalClasspath() ++
     resources() ++
+    localClasspath() ++
     unmanagedClasspath() ++
     tutIvyDeps()
   }
