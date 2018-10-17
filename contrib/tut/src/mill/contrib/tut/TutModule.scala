@@ -21,7 +21,7 @@ trait TutModule extends ScalaModule {
   def tutJar: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       repositories :+ MavenRepository(s"https://dl.bintray.com/tpolecat/maven"),
-      Lib.depToDependency(_, "2.12.4"),
+      Lib.depToDependency(_, scalaVersion()),
       Seq(ivy"org.tpolecat::tut-core:${tutVersion()}")
     )
   }
