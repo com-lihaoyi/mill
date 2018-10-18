@@ -26,6 +26,7 @@ object GenIdea extends ExternalModule {
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
+
 object GenIdeaImpl {
 
   def apply(ctx: Log with Home,
@@ -225,8 +226,9 @@ object GenIdeaImpl {
       Tuple2(
         ".idea"/"modules.xml",
         allModulesXmlTemplate(
-          for((path, mod) <- modules)
-            yield moduleName(path)
+          modules
+            .filter(!_._2.skipIdea)
+            .map { case (path, mod) => moduleName(path) }
         )
       ),
       Tuple2(
