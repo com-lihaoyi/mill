@@ -151,9 +151,9 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### 0.2.9
+### 0.3.0
 
-- Bump Ammonite to 1.3.1, Fastparse to 2.0.4
+- Bump Ammonite to 1.3.2, Fastparse to 2.0.4
 
 - Sped up `ScalaModule#docJar` task by about 10x, greatly speeding up publishing
 
