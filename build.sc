@@ -252,7 +252,7 @@ object contrib extends MillModule {
 
   object tut extends MillModule {
     def moduleDeps = Seq(scalalib)
-    def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._1)
+    def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
   }
 }
 
