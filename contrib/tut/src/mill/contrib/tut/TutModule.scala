@@ -1,12 +1,9 @@
 package mill
 package contrib.tut
 
-import ammonite.ops.Path
+import ammonite.ops._
 import coursier.MavenRepository
-import java.lang.reflect.Method
-import java.net.URLClassLoader
 import mill.scalalib._
-import mill.util._
 import scala.util.matching.Regex
 
 trait TutModule extends ScalaModule {
@@ -38,17 +35,21 @@ trait TutModule extends ScalaModule {
 
   def tutPluginJars: T[Agg[PathRef]] = resolveDeps(tutScalacPluginIvyDeps)()
 
-  def tut: T[Unit] = T {
+  def tutArgs: T[Seq[String]] = T {
     val in = tutSourceDirectory().head.path.toIO.getAbsolutePath
     val out = tutTargetDirectory().toIO.getAbsolutePath
-    val cp = tutClasspath()
+    val re = tutNameFilter()
     val opts = tutScalacOptions()
     val pOpts = tutPluginJars().map(pathRef => "-Xplugin:" + pathRef.path.toIO.getAbsolutePath)
-    val re = tutNameFilter()
-    val cl = new URLClassLoader(cp.map(_.path.toIO.toURI.toURL).toArray)
-    val tutMainClass = cl.loadClass("tut.TutMain")
-    val mainMethod = tutMainClass.getMethod("main", classOf[Array[java.lang.String]])
-    val argsList = List(in, out, re.pattern.toString) ++ opts ++ pOpts
-    mainMethod.invoke(null, argsList.toArray)
+    List(in, out, re.pattern.toString) ++ opts ++ pOpts
+  }
+
+  def tut: T[CommandResult] = T {
+    %%(
+      'java,
+      "-cp", tutClasspath().map(_.path.toIO.getAbsolutePath).mkString(java.io.File.pathSeparator),
+      "tut.TutMain",
+      tutArgs()
+    )(wd = millSourcePath)
   }
 }

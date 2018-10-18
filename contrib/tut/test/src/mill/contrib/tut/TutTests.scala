@@ -4,10 +4,10 @@ package tut
 import ammonite.ops._
 import mill._
 import mill.eval.Result._
+import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
-
 
 object TutTests extends TestSuite {
 
@@ -22,7 +22,14 @@ object TutTests extends TestSuite {
     def tutTargetDirectory = millSourcePath
   }
 
+  object TutLibrariesTest extends TutTestModule {
+    def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.4.0")
+    def tutSourceDirectory = T.sources { resourcePathWithLibraries }
+    def scalacPluginIvyDeps = Agg(ivy"org.spire-math::kind-projector:0.9.8")
+  }
+
   val resourcePath = pwd / 'contrib / 'tut / 'test / 'tut
+  val resourcePathWithLibraries = pwd / 'contrib / 'tut / 'test / "tut-with-libraries"
 
   def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
                       (t: TestEvaluator => T)
@@ -78,6 +85,36 @@ object TutTests extends TestSuite {
         assert(
           !exists(defaultPath) &&
             exists(expectedPath) &&
+            read! expectedPath == expected
+        )
+      }
+
+      'supportUsingLibraries - workspaceTest(TutLibrariesTest, resourcePath = resourcePathWithLibraries) { eval =>
+        val expectedPath =
+          eval.outPath / 'tutTargetDirectory / 'dest / "TutWithLibraries.md"
+
+        val expected =
+          """
+            |```scala
+            |import cats._
+            |import cats.arrow.FunctionK
+            |import cats.implicits._
+            |```
+            |
+            |```scala
+            |scala> List(1, 2, 3).combineAll
+            |res0: Int = 6
+            |
+            |scala> λ[FunctionK[List, Option]](_.headOption)(List(1, 2 ,3))
+            |res1: Option[Int] = Some(1)
+            |```
+            |
+          """.trim.stripMargin
+
+        val Right(_) = eval.apply(TutLibrariesTest.tut)
+
+        assert(
+          exists(expectedPath) &&
             read! expectedPath == expected
         )
       }
