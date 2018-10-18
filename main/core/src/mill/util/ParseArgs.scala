@@ -1,6 +1,6 @@
 package mill.util
 
-import fastparse.all._
+import fastparse._, NoWhitespace._
 import mill.define.{Segment, Segments}
 
 object ParseArgs {
@@ -69,41 +69,44 @@ object ParseArgs {
   }
 
   private object BraceExpansionParser {
-    val plainChars =
+    def plainChars[_: P] =
       P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
 
-    val toExpand: P[Fragment] =
+    def toExpand[_: P]: P[Fragment] =
       P("{" ~ braceParser.rep(1).rep(sep = ",") ~ "}").map(
         x => Fragment.Expand(x.toList.map(_.toList))
       )
 
-    val braceParser = P(toExpand | plainChars)
+    def braceParser[_: P] = P(toExpand | plainChars)
 
-    val parser = P(braceParser.rep(1).rep(sep = ",") ~ End)
+    def parser[_: P] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
+      def unfold(vss: List[Seq[String]]): Seq[String] = {
+        vss match {
+          case Nil => Seq("")
+          case head :: rest =>
+            for {
+              str <- head
+              r <- unfold(rest)
+            } yield
+              r match {
+                case "" => str
+                case _  => str + "," + r
+              }
+        }
+      }
+
+      val stringss = vss.map(x => Fragment.unfold(x.toList)).toList
+      unfold(stringss)
+    }
   }
 
   private def parseBraceExpansion(input: String) = {
-    def unfold(vss: List[Seq[String]]): Seq[String] = {
-      vss match {
-        case Nil => Seq("")
-        case head :: rest =>
-          for {
-            str <- head
-            r <- unfold(rest)
-          } yield
-            r match {
-              case "" => str
-              case _  => str + "," + r
-            }
-      }
-    }
 
-    BraceExpansionParser.parser
-      .map { vss =>
-        val stringss = vss.map(x => Fragment.unfold(x.toList)).toList
-        unfold(stringss)
-      }
-      .parse(input)
+
+      parse(
+        input,
+        BraceExpansionParser.parser(_)
+      )
   }
 
   def extractSegments(selectorString: String): Either[String, (Option[Segments], Segments)] =
@@ -112,23 +115,23 @@ object ParseArgs {
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private val identChars = ('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ Seq('_', '-')
-  private val ident = P( CharsWhileIn(identChars) ).!
+  private def ident[_: P] = P( CharsWhileIn("a-zA-Z0-9_\\-") ).!
 
+  def standaloneIdent[_: P] = P(Start ~ ident ~ End )
   def isLegalIdentifier(identifier: String): Boolean =
-    (Start ~ ident ~ End).parse(identifier).isInstanceOf[Parsed.Success[_]]
+    parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
 
   private def parseSelector(input: String) = {
-    val ident2 = P( CharsWhileIn(identChars ++ ".") ).!
-    val segment = P( ident ).map( Segment.Label)
-    val crossSegment = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
-    val simpleQuery = P(segment ~ ("." ~ segment | crossSegment).rep).map {
+    def ident2[_: P] = P( CharsWhileIn("a-zA-Z0-9_\\-.") ).!
+    def segment[_: P] = P( ident ).map( Segment.Label)
+    def crossSegment[_: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)
+    def simpleQuery[_: P] = P(segment ~ ("." ~ segment | crossSegment).rep).map {
       case (h, rest) => Segments(h :: rest.toList:_*)
     }
-    val query = P( simpleQuery ~ ("/" ~/ simpleQuery).?).map{
+    def query[_: P] = P( simpleQuery ~ ("/" ~/ simpleQuery).?).map{
       case (q, None) => (None, q)
       case (q, Some(q2)) => (Some(q), q2)
     }
-    query.parse(input)
+    parse(input, query(_))
   }
 }

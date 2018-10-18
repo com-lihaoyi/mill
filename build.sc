@@ -88,7 +88,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.1.2-30-53edc31",
+      ivy"com.lihaoyi:::ammonite:1.3.0",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"

@@ -29,7 +29,7 @@
 package mill.scalalib.dependency.versions
 
 import utest._
-import fastparse.core.Parsed
+import fastparse.Parsed
 
 object VersionTests extends TestSuite {
 
@@ -120,8 +120,7 @@ object VersionTests extends TestSuite {
       }
       Symbol("parse  9.1-901-1.jdbc4") - {
         assertMatch(VersionParser.parse("9.1-901-1.jdbc4")) {
-          case Parsed
-                .Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq()), _) =>
+          case Parsed.Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq()), _) =>
         }
       }
       Symbol("parse 1.33.7+build/11.e0f985a") - {

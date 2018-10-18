@@ -1,30 +1,30 @@
 package mill.scalalib.dependency.versions
 
-import fastparse.all._
+import fastparse._, NoWhitespace._
 
 private[dependency] object VersionParser {
 
-  private val numberParser =
-    P(CharIn('0' to '9').rep(1).!.map(_.toLong))
-  private val numericPartParser =
-    P(numberParser ~ &(CharIn(".", "-", "+") | End)).rep(min = 1, sep = ".")
+  private def numberParser[_: P] =
+    P(CharIn("0-9").rep(1).!.map(_.toLong))
+  private def numericPartParser[_: P] =
+    P(numberParser ~ &(CharIn(".\\-+") | End)).rep(min = 1, sep = ".")
 
-  private val tokenParser =
+  private def tokenParser[_: P] =
     CharPred(c => c != '.' && c != '-' && c != '+').rep(1).!
-  private val tokenPartParser =
-    tokenParser.rep(sep = CharIn(".", "-"))
+  private def tokenPartParser[_: P] =
+    tokenParser.rep(sep = CharIn(".\\-"))
 
-  private val firstPartParser =
-    P(CharIn(".", "-") ~ tokenPartParser).?
+  private def firstPartParser[_: P] =
+    P(CharIn(".\\-") ~ tokenPartParser).?
 
-  private val secondPartParser =
+  private def secondPartParser[_: P] =
     P("+" ~ tokenPartParser).?
 
-  private val versionParser =
+  private def versionParser[_: P] =
     P(numericPartParser ~ firstPartParser ~ secondPartParser).map {
       case (a, b, c) => (a, b.getOrElse(Seq.empty), c.getOrElse(Seq.empty))
     }
 
   def parse(text: String): Parsed[(Seq[Long], Seq[String], Seq[String])] =
-    versionParser.parse(text)
+    fastparse.parse(text, versionParser(_))
 }
