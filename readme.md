@@ -151,6 +151,17 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.2.9
+
+- Bump Ammonite to 1.3.1, Fastparse to 2.0.4
+
+- Sped up `ScalaModule#docJar` task by about 10x, greatly speeding up publishing
+
+- Add a flag `JavaModule#skipIdea` you can override to disable Intellij project
+  generation [#458](https://github.com/lihaoyi/mill/pull/458)
+
+- Allow sub-domains when publishing [#441](https://github.com/lihaoyi/mill/pull/441)
+
 ### 0.2.8
 
 - `mill inspect` now displays out the doc-comment documentation for a task.
