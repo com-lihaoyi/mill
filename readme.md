@@ -151,6 +151,10 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.3.1
+
+- Automatically detect main class to make `ScalaModule#assembly` self-executable
+
 ### 0.3.0
 
 - Bump Ammonite to 1.3.2, Fastparse to 2.0.4
