@@ -280,7 +280,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def assembly = T{
     createAssembly(
       Agg.from(localClasspath().map(_.path)),
-      mainClass(),
+      finalMainClassOpt().toOption,
       prependShellScript(),
       Some(upstreamAssembly().path),
       assemblyRules
