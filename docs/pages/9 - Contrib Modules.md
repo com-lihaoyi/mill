@@ -107,3 +107,39 @@ Quickstart:
   ```sh
   sh> mill plugin.dgraph.browseDeps(proj)()
   ```
+
+- [publishM2](https://github.com/lefou/mill-publishM2 "mill-publishM2")
+
+  Mill plugin to publish artifacts into a local Maven repository.
+
+  Quickstart:
+
+  Just mix-in the `PublishM2Module` into your project.
+  `PublishM2Module` already extends mill's built-in `PublishModule`.
+
+  File: `build.sc`
+  ```scala
+  import mill._, scalalib._, publish._
+
+  import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
+  import de.tobiasroeser.mill.publishM2._
+
+  object project extends PublishModule with PublishM2Module {
+    // ...
+  }
+  ```
+
+  Publishing to default local Maven repository
+
+  ```
+  > mill project.publishM2Local
+  [40/40] project.publishM2Local
+  Publishing to /home/user/.m2/repository
+  ```
+
+  Publishing to custom local Maven repository
+  ```
+  > mill project.publishM2Local /tmp/m2repo
+  [40/40] project.publishM2Local
+  Publishing to /tmp/m2repo
+  ```
