@@ -151,7 +151,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### 0.3.1
+### 0.3.2
 
 - Automatically detect main class to make `ScalaModule#assembly` self-executable
 
