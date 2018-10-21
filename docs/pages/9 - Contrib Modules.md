@@ -82,87 +82,101 @@ Quickstart:
   The package name of the object.
 
 
-### Other Mill Plugins
+## Thirdparty Mill Plugins
 
-- [ensime](https://github.com/yyadavalli/mill-ensime "mill-ensime")
+### DGraph
+  
+Show transitive dependencies of your build in your browser.
 
-  Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
-  
-  Quickstart:
-  ```scala
-  import $ivy.`fun.valycorp::mill-ensime:0.0.1`
-  ```
-  ```sh
-  sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
-  ```
-  
-- [dgraph](https://github.com/ajrnz/mill-dgraph "mill-dgraph")
+Project home: https://github.com/ajrnz/mill-dgraph
 
-  Show transitive dependencies of your build in your browser.
-  
-  Quickstart:
-  ```scala
-  import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
-  ```
-  ```sh
-  sh> mill plugin.dgraph.browseDeps(proj)()
-  ```
+#### Quickstart
 
-- [publishM2](https://github.com/lefou/mill-publishM2 "mill-publishM2")
-  
-  Mill plugin to publish artifacts into a local Maven repository.
-  
-  Quickstart:
-  
-  Just mix-in the `PublishM2Module` into your project.
-  `PublishM2Module` already extends mill's built-in `PublishModule`.
-  
-  File: `build.sc`
-  ```scala
-  import mill._, scalalib._, publish._
-  
-  import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
-  import de.tobiasroeser.mill.publishM2._
-  
-  object project extends PublishModule with PublishM2Module {
-    // ...
-  }
-  ```
-  
-  Publishing to default local Maven repository
-  
-  ```bash
-  > mill project.publishM2Local
-  [40/40] project.publishM2Local
-  Publishing to /home/user/.m2/repository
-  ```
-  
-  Publishing to custom local Maven repository
-  
-  ```bash
-  > mill project.publishM2Local /tmp/m2repo
-  [40/40] project.publishM2Local
-  Publishing to /tmp/m2repo
-  ```
+```scala
+import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
+```
 
-- [osgi](https://github.com/lefou/mill-osgi "GitHub-Project lefou/mill-osgi")
+```sh
+sh> mill plugin.dgraph.browseDeps(proj)()
+```
+
+### Ensime
+
+Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
+
+Project home: https://github.com/yyadavalli/mill-ensime
   
-  Produce OSGi Bundles with mill.
-  
-  Quickstart:
-  ```scala
-  import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.2`
-  import de.tobiasroeser.mill.osgi._
-  
-  object project extends ScalaModule with OsgiBundleModule {
-  
-    def bundleSymbolicName = "com.example.project"
-  
-    def osgiHeaders = T{ osgiHeaders().copy(
-      `Export-Package`   = Seq("com.example.api"),
-      `Bundle-Activator` = Some("com.example.internal.Activator")
-    )}
-  
-  }
-  ```
+#### Quickstart
+
+```scala
+import $ivy.`fun.valycorp::mill-ensime:0.0.1`
+```
+
+```sh
+sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
+```
+
+### OSGi
+
+Produce OSGi Bundles with mill.
+
+Project home: https://github.com/lefou/mill-osgi
+
+#### Quickstart
+
+```scala
+import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.2`
+import de.tobiasroeser.mill.osgi._
+
+object project extends ScalaModule with OsgiBundleModule {
+
+  def bundleSymbolicName = "com.example.project"
+
+  def osgiHeaders = T{ osgiHeaders().copy(
+    `Export-Package`   = Seq("com.example.api"),
+    `Bundle-Activator` = Some("com.example.internal.Activator")
+  )}
+
+}
+```
+
+
+### PublishM2
+
+Mill plugin to publish artifacts into a local Maven repository.
+
+Project home: https://github.com/lefou/mill-publishM2
+
+#### Quickstart
+
+Just mix-in the `PublishM2Module` into your project.
+`PublishM2Module` already extends mill's built-in `PublishModule`.
+
+File: `build.sc`
+```scala
+import mill._, scalalib._, publish._
+
+import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
+import de.tobiasroeser.mill.publishM2._
+
+object project extends PublishModule with PublishM2Module {
+  // ...
+}
+```
+
+Publishing to default local Maven repository
+
+```bash
+> mill project.publishM2Local
+[40/40] project.publishM2Local
+Publishing to /home/user/.m2/repository
+```
+
+Publishing to custom local Maven repository
+
+```bash
+> mill project.publishM2Local /tmp/m2repo
+[40/40] project.publishM2Local
+Publishing to /tmp/m2repo
+```
 
