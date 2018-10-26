@@ -58,27 +58,27 @@ This plugin generates a single object containing information from your build.
 To declare a module that uses BuildInfo you must extend the `mill.contrib.BuildInfo` trait when defining your module.
 
 Quickstart:
-  ```scala
-  object project extends BuildInfo {
-    val name = "poject-name"
-    def  buildInfoMembers: T[Map[String, String]] = T {
-      Map(
-        "name" -> name),
-        "scalaVersion" -> scalaVersion()
-      )
-    }
+```scala
+object project extends BuildInfo {
+  val name = "poject-name"
+  def  buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      "name" -> name),
+      "scalaVersion" -> scalaVersion()
+    )
   }
-  ```
+}
+```
   
 #### Configuration options
 
-* `def buildInfoMembers: T[Map[String, String]]`  
+* `def buildInfoMembers: T[Map[String, String]]`
   The map containing all member names and values for the generated info object.
 
-* `def buildInfoObjectName: String`, default: `BuildInfo`  
+* `def buildInfoObjectName: String`, default: `BuildInfo`
   The name of the object which contains all the members from `buildInfoMembers`.
 
-* `def buildInfoPackageName: Option[String]`, default: `None`  
+* `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
 
 
