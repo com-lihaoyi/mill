@@ -1,5 +1,36 @@
 ## Contrib Modules
 
+### BuildInfo
+
+Generate scala code from your buildfile.
+This plugin generates a single object containing information from your build.
+
+To declare a module that uses BuildInfo you must extend the `mill.contrib.BuildInfo` trait when defining your module.
+
+Quickstart:
+```scala
+object project extends BuildInfo {
+  val name = "poject-name"
+  def  buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      "name" -> name),
+      "scalaVersion" -> scalaVersion()
+    )
+  }
+}
+```
+
+#### Configuration options
+
+* `def buildInfoMembers: T[Map[String, String]]`
+  The map containing all member names and values for the generated info object.
+
+* `def buildInfoObjectName: String`, default: `BuildInfo`
+  The name of the object which contains all the members from `buildInfoMembers`.
+
+* `def buildInfoPackageName: Option[String]`, default: `None`
+  The package name of the object.
+
 ### ScalaPB
 
 This module allows [ScalaPB](https://scalapb.github.io) to be used in Mill builds. ScalaPB is a [Protocol Buffers](https://developers.google.com/protocol-buffers/) compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
@@ -50,42 +81,29 @@ object example extends ScalaPBModule {
 }
 ```
 
-### BuildInfo
+### TestNG
 
-Generate scala code from your buildfile.  
-This plugin generates a single object containing information from your build.
-  
-To declare a module that uses BuildInfo you must extend the `mill.contrib.BuildInfo` trait when defining your module.
+Provides support for [TestNG](https://testng.org/doc/index.html).
 
-Quickstart:
+To use TestNG as test framework, you need to add it to the `TestModule.testFrameworks` property.
+
 ```scala
-object project extends BuildInfo {
-  val name = "poject-name"
-  def  buildInfoMembers: T[Map[String, String]] = T {
-    Map(
-      "name" -> name),
-      "scalaVersion" -> scalaVersion()
-    )
+object project extends ScalaModule {
+  object test extends Tests{
+    def testFrameworks = Seq("mill.testng.TestNGFramework")
   }
 }
 ```
-  
-#### Configuration options
 
-* `def buildInfoMembers: T[Map[String, String]]`
-  The map containing all member names and values for the generated info object.
+### Twirl
 
-* `def buildInfoObjectName: String`, default: `BuildInfo`
-  The name of the object which contains all the members from `buildInfoMembers`.
-
-* `def buildInfoPackageName: Option[String]`, default: `None`
-  The package name of the object.
+(todo)
 
 
 ## Thirdparty Mill Plugins
 
 ### DGraph
-  
+
 Show transitive dependencies of your build in your browser.
 
 Project home: https://github.com/ajrnz/mill-dgraph
@@ -105,7 +123,7 @@ sh> mill plugin.dgraph.browseDeps(proj)()
 Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
 
 Project home: https://github.com/yyadavalli/mill-ensime
-  
+
 #### Quickstart
 
 ```scala
@@ -179,4 +197,3 @@ Publishing to custom local Maven repository
 [40/40] project.publishM2Local
 Publishing to /tmp/m2repo
 ```
-
