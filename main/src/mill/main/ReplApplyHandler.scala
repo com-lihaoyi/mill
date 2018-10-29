@@ -16,7 +16,8 @@ object ReplApplyHandler{
                colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,
                rootModule: mill.define.BaseModule,
-               discover: Discover[_]) = {
+               discover: Discover[_],
+               debugLog: Boolean) = {
     new ReplApplyHandler(
       pprinter0,
       new Evaluator(
@@ -32,7 +33,7 @@ object ReplApplyHandler{
           System.err,
           System.err,
           System.in,
-          debugEnabled = false
+          debugEnabled = debugLog
         )
       )
     )

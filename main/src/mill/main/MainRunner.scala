@@ -24,7 +24,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  stdIn: InputStream,
                  stateCache0: Option[Evaluator.State] = None,
                  env : Map[String, String],
-                 setIdle: Boolean => Unit)
+                 setIdle: Boolean => Unit,
+                 debugLog: Boolean)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -81,7 +82,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             errPrintStream,
             errPrintStream,
             stdIn,
-            debugEnabled = false // TODO: read from cmdline args
+            debugEnabled = debugLog
           ),
           env
         )
