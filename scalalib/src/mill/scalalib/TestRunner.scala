@@ -37,7 +37,8 @@ object TestRunner {
           System.out,
           System.err,
           System.err,
-          System.in
+          System.in,
+          debugEnabled = false
         )
         val home = Path(homeStr)
       }
