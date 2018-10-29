@@ -151,6 +151,13 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### {master}
+
+- Added new `debug` method to context logger, to log additional debug info into the
+  task specific output dir (`out/<task>/log`)
+
+- Added `--debug` option to enable debug output to STDERR
+
 ### 0.3.2
 
 - Automatically detect main class to make `ScalaModule#assembly` self-executable
