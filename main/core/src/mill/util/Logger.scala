@@ -5,20 +5,23 @@ import java.io._
 import ammonite.ops.{Path, rm}
 import ammonite.util.Colors
 
-
 /**
   * The standard logging interface of the Mill build tool.
   *
-  * Contains four primary logging methods, in order of increasing importance:
+  * Contains these primary logging methods, in order of increasing importance:
+  *
+  * - `debug` : internal debug messages normally not shown to the user;
+  * mostly useful when debugging issues
   *
   * - `ticker`: short-lived logging output where consecutive lines over-write
-  *   each other; useful for information which is transient and disposable
+  * each other; useful for information which is transient and disposable
   *
   * - `info`: miscellaneous logging output which isn't part of the main output
-  *   a user is looking for, but useful to provide context on what Mill is doing
+  * a user is looking for, but useful to provide context on what Mill is doing
   *
   * - `error`: logging output which represents problems the user should care
-  *   about
+  * about
+  *
   *
   * Also contains the two forwarded stdout and stderr streams, for code executed
   * by Mill to use directly. Typically these correspond to the stdout and stderr,
@@ -27,23 +30,30 @@ import ammonite.util.Colors
   */
 trait Logger {
   def colored: Boolean
+
   val errorStream: PrintStream
   val outputStream: PrintStream
   val inStream: InputStream
+
   def info(s: String): Unit
   def error(s: String): Unit
   def ticker(s: String): Unit
+  def debug(s: String): Unit
+
   def close(): Unit = ()
 }
 
 object DummyLogger extends Logger {
   def colored = false
+
   object errorStream extends PrintStream(_ => ())
   object outputStream extends PrintStream(_ => ())
   val inStream = new ByteArrayInputStream(Array())
+
   def info(s: String) = ()
   def error(s: String) = ()
   def ticker(s: String) = ()
+  def debug(s: String) = ()
 }
 
 class CallbackStream(wrapped: OutputStream,
@@ -78,13 +88,17 @@ object PrintState{
   case object Newline extends PrintState
   case object Middle extends PrintState
 }
-case class PrintLogger(colored: Boolean,
-                       disableTicker: Boolean,
-                       colors: ammonite.util.Colors,
-                       outStream: PrintStream,
-                       infoStream: PrintStream,
-                       errStream: PrintStream,
-                       inStream: InputStream) extends Logger {
+
+case class PrintLogger(
+                        colored: Boolean,
+                        disableTicker: Boolean,
+                        colors: ammonite.util.Colors,
+                        outStream: PrintStream,
+                        infoStream: PrintStream,
+                        errStream: PrintStream,
+                        inStream: InputStream,
+                        debugEnabled: Boolean
+                      ) extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
@@ -121,9 +135,14 @@ case class PrintLogger(colored: Boolean,
       printState = PrintState.Ticker
     }
   }
+
+  def debug(s: String) = if (debugEnabled) {
+    printState = PrintState.Newline
+    errStream.println(colors.info()(s))
+  }
 }
 
-case class FileLogger(colored: Boolean, file: Path) extends Logger {
+case class FileLogger(colored: Boolean, file: Path, debugEnabled: Boolean) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
@@ -141,6 +160,7 @@ case class FileLogger(colored: Boolean, file: Path) extends Logger {
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
   def ticker(s: String) = outputStream.println(s)
+  def debug(s: String) = if (debugEnabled) outputStream.println(s)
   val inStream: InputStream = DummyInputStream
   override def close() = {
     if (outputStreamUsed)
@@ -196,6 +216,11 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) exten
   def ticker(s: String) = {
     logger1.ticker(s)
     logger2.ticker(s)
+  }
+
+  def debug(s: String) = {
+    logger1.debug(s)
+    logger2.debug(s)
   }
 
   override def close() = {

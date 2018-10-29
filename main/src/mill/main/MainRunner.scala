@@ -80,7 +80,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             outprintStream,
             errPrintStream,
             errPrintStream,
-            stdIn
+            stdIn,
+            debugEnabled = false // TODO: read from cmdline args
           ),
           env
         )
