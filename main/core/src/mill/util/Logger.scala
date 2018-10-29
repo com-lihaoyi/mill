@@ -138,7 +138,7 @@ case class PrintLogger(
 
   def debug(s: String) = if (debugEnabled) {
     printState = PrintState.Newline
-    errStream.println(colors.info()(s))
+    errStream.println(s)
   }
 }
 

@@ -64,8 +64,18 @@ object MillMain {
       }
     )
 
+    var debugLog = false
+    val debugLogSignature = Arg[Config, Unit](
+      name = "debug", shortName = Some('d'),
+      doc = "Show debug output on STDOUT",
+      (c, v) => {
+        debugLog = true
+        c
+      }
+    )
+
     val millArgSignature =
-      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature)
+      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature, debugLogSignature)
 
     Cli.groupArgs(
       args.toList,
@@ -105,7 +115,8 @@ object MillMain {
                   |  interp.colors(),
                   |  repl.pprinter(),
                   |  build.millSelf.get,
-                  |  build.millDiscover
+                  |  build.millDiscover,
+                  |  $debugLog
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -120,7 +131,8 @@ object MillMain {
             stdout, stderr, stdin,
             stateCache,
             env,
-            setIdle
+            setIdle,
+            debugLog
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {
