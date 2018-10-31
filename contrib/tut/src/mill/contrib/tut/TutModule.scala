@@ -21,6 +21,7 @@ import scala.util.matching.Regex
   *
   * object example extends TutModule {
   *   def scalaVersion = "2.12.6"
+  *   def tutVersion = "0.6.7"
   * }
   * }}}
   *
