@@ -1,19 +1,23 @@
 package mill.eval
 
 import java.net.URLClassLoader
+import java.util.concurrent.{ExecutorCompletionService, Executors}
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.concurrent.ExecutionException
+import scala.util.control.NonFatal
 
 import mill.util.Router.EntryPoint
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
 import mill.eval.Result.OuterStack
 import mill.util
-import mill.util._
+import mill.util.Router.EntryPoint
 import mill.util.Strict.Agg
+import mill.util.{Strict, _}
 
-import scala.collection.mutable
-import scala.util.control.NonFatal
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
   def format = task match{
@@ -35,36 +39,161 @@ case class Evaluator(home: os.Path,
                      classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
                      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
                      env : Map[String, String] = Evaluator.defaultEnv){
+
+  log.debug("Created Evaluator")
+
   val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     os.makeDir.all(outPath)
 
-   val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
+    // Mutable collector for all evaluated tasks
     val evaluated = new Agg.Mutable[Task[_]]
+
+    // Mutable collector for all task results
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
 
+    // Mutable collector for timings
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
-    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
-      val startTime = System.currentTimeMillis()
-      // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
-      val counterMsg = (i+1) + "/" + sortedGroups.keyCount
-      val (newResults, newEvaluated, cached) = evaluateGroupCached(
-        terminal,
-        group,
-        results,
-        counterMsg
-      )
 
-      for(ev <- newEvaluated){
-        evaluated.append(ev)
+    // Increment the counter message by 1 to go from 1/10 to 10/10
+    object NextCounterMsg extends Function0[String] {
+      val taskCount = sortedGroups.keyCount
+      var counter: Int = 0
+      def apply(): String = {
+        counter += 1
+        counter + "/" + taskCount
       }
-      for((k, v) <- newResults) {
-        results.put(k, v)
-      }
-      val endTime = System.currentTimeMillis()
+    }
 
-      timings.append((terminal, (endTime - startTime).toInt, cached))
+    val runParallel = true
+    if (runParallel) {
+
+      // TODO: check for interactivity
+      // TODO: make sure, multiple goals run in order, e.g. clean compile
+
+      val executorService = Executors.newFixedThreadPool(4)
+      log.debug(s"Created executor: ${executorService}")
+      val completionService = new ExecutorCompletionService[(TerminalGroup, Evaluated)](executorService)
+
+      val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = findInterGroupDeps(sortedGroups)
+
+      // State holders, only written to from same thread
+      // The unprocessed terminal groups
+      var work = sortedGroups.items().toList
+      // The currently scheduled (maybe not started yet) terminal groups
+      var inProgress = List[TerminalGroup]()
+      // The finished terminal groups
+      var done = List[TerminalGroup]()
+      // The scheduled and not yet finished futures (Java!)
+      var futures = List[java.util.concurrent.Future[(TerminalGroup, Evaluated)]]()
+
+      /**
+       * Checks for terminal groups, that have no unresolved dependencies and schedule them to run via the executor service.
+       */
+      def scheduleWork(): Unit = {
+        // early exit
+        if (work.isEmpty) return
+
+        //        log.debug(s"scheduleWork state:")
+        //        log.debug(s"  work:       ${work.size} -- ${work.map(_._1).mkString(", ")}")
+        //        log.debug(s"  inProgress: ${inProgress.size} -- ${inProgress.map(_._1).mkString(", ")}")
+        //        log.debug(s"  done:       ${done.size} -- ${done.map(_._1).mkString(", ")}")
+        //        log.debug(s"  executor:   ${executorService}")
+
+        // newInProgress: the terminal groups without unresolved dependencies
+        val (newInProgress, newWork) = work.partition { termGroup =>
+          val deps = interGroupDeps(termGroup)
+          deps.isEmpty || deps.forall(d => done.contains(d))
+        }
+
+        // update state
+        work = newWork
+        inProgress = inProgress ++ newInProgress
+
+        // schedule for parallel execution
+        newInProgress.foreach {
+          case curWork @ (terminal, group) =>
+            val workerFut: java.util.concurrent.Future[(TerminalGroup, Evaluated)] =
+              completionService.submit { () =>
+                log.debug(s"Starting evaluation of terminal group: ${terminal}")
+                val startTime = System.currentTimeMillis()
+
+                val res @ Evaluated(newResults, newEvaluated, cached) =
+                  evaluateGroupCached(
+                    terminal,
+                    group,
+                    results,
+                    NextCounterMsg
+                  )
+
+                val endTime = System.currentTimeMillis()
+                log.debug(s"Finished evaluation of terminal group: ${terminal}")
+                curWork -> res
+
+              }
+            log.debug(s"New future: ${workerFut} for task: ${curWork._1}")
+            futures = futures ++ List(workerFut)
+        }
+        log.debug("Finished scheduleWork")
+      }
+
+      scheduleWork()
+
+      while (futures.size > 0) {
+        log.debug(s"Waiting for next future completion of ${executorService}")
+        val compFuture = completionService.take()
+        log.debug(s"Completed future: ${compFuture}")
+        futures = futures.filterNot(_ == compFuture)
+        try {
+          val (
+            finishedWork,
+            Evaluated(newResults, newEvaluated, cached)) = compFuture.get()
+
+          // Update state
+          evaluated.appendAll(newEvaluated)
+          newResults.foreach { case (k, v) => results.put(k, v) }
+          inProgress = inProgress.filterNot(_ == finishedWork)
+          done = done ++ Seq(finishedWork)
+
+          // Try to schedule more tasks
+          scheduleWork()
+
+        } catch {
+          case e: ExecutionException =>
+            log.debug(s"task future failed: ${e.getCause()}")
+            // stop pending jobs
+            futures.foreach(_.cancel(false))
+            // break while-loop
+            futures = List()
+        }
+      }
+
+      // done, cleanup
+      log.debug(s"Shuting down executor service: ${executorService}")
+      executorService.shutdown()
+
+    } else {
+      sortedGroups.items().foreach {
+        case (terminal, group) => {
+          //          log.debug(s"Terminal: ${terminal}\nGroup: ${group.mkString(", ")}")
+          val startTime = System.currentTimeMillis()
+          val Evaluated(newResults, newEvaluated, cached) =
+            evaluateGroupCached(
+              terminal,
+              group,
+              results,
+              NextCounterMsg
+            )
+
+          evaluated.appendAll(newEvaluated)
+          newResults.foreach { case (k, v) => results.put(k, v) }
+          val endTime = System.currentTimeMillis()
+
+          timings.append((terminal, (endTime - startTime).toInt, cached))
+        }
+      }
     }
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
@@ -93,11 +222,36 @@ case class Evaluator(home: os.Path,
     )
   }
 
+  type TerminalGroup = (Either[Task[_], Labelled[Any]], Strict.Agg[Task[_]])
 
-  def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
-                          group: Agg[Task[_]],
-                          results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
+  private def findInterGroupDeps(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
+    val groupDeps: Map[(Either[Task[_], Labelled[Any]], Strict.Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
+      case g @ (terminal, group) => {
+        val externalDeps = group.toSeq.flatMap(_.inputs).filterNot(d => group.contains(d)).distinct
+        g -> externalDeps
+      }
+    }.toMap
+
+    val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = groupDeps.map {
+      case (group, deps) =>
+        val depGroups = sortedGroups.items.toList.filter {
+          case (otherTerminal, otherGroup) =>
+            otherGroup.toList.exists(d => deps.contains(d))
+        }
+        group -> depGroups
+    }
+
+    interGroupDeps
+  }
+
+  case class Evaluated(newResults: collection.Map[Task[_], Result[(Any, Int)]], newEvaluated: Seq[Task[_]], cached: Boolean)
+
+  protected def evaluateGroupCached(
+    terminal: Either[Task[_], Labelled[_]],
+    group: Agg[Task[_]],
+    results: collection.Map[Task[_], Result[(Any, Int)]],
+    nextCounterMsg: () => String
+  ): Evaluated = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -110,7 +264,7 @@ case class Evaluator(home: os.Path,
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
 
-    terminal match{
+    terminal match {
       case Left(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
           group,
@@ -118,9 +272,9 @@ case class Evaluator(home: os.Path,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
-          counterMsg = counterMsg
+          nextCounterMsg = nextCounterMsg
         )
-        (newResults, newEvaluated, false)
+        Evaluated(newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
 
         val out = if (!labelledNamedTask.task.ctx.external) outPath
@@ -153,7 +307,7 @@ case class Evaluator(home: os.Path,
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
 
-            (newResults, Nil, true)
+            Evaluated(newResults, Nil, true)
 
           case _ =>
             val Seq(first, rest @_*) = labelledNamedTask.segments.value
@@ -170,7 +324,7 @@ case class Evaluator(home: os.Path,
               inputsHash,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
-              counterMsg = counterMsg
+              nextCounterMsg = nextCounterMsg
             )
 
             newResults(labelledNamedTask.task) match{
@@ -188,7 +342,7 @@ case class Evaluator(home: os.Path,
                 os.remove.all(paths.meta)
             }
 
-            (newResults, newEvaluated, false)
+            Evaluated(newResults, newEvaluated, false)
         }
     }
   }
@@ -238,13 +392,14 @@ case class Evaluator(home: os.Path,
     }
   }
 
-  def evaluateGroup(group: Agg[Task[_]],
-                    results: collection.Map[Task[_], Result[(Any, Int)]],
-                    inputsHash: Int,
-                    paths: Option[Evaluator.Paths],
-                    maybeTargetLabel: Option[String],
-                    counterMsg: String) = {
-
+  protected def evaluateGroup(
+    group: Agg[Task[_]],
+    results: collection.Map[Task[_], Result[(Any, Int)]],
+    inputsHash: Int,
+    paths: Option[Evaluator.Paths],
+    maybeTargetLabel: Option[String],
+    nextCounterMsg: () => String
+  ) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
@@ -259,7 +414,12 @@ case class Evaluator(home: os.Path,
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
-      if(logRun) { log.ticker(s"[$counterMsg] $targetLabel ") }
+      // we need to consume once, even when we don't log,
+      // to have proper counter at the end
+      val counterMsg = nextCounterMsg()
+      if (logRun) {
+        log.ticker(s"[$counterMsg] $targetLabel ")
+      }
     }
 
     val multiLogger = resolveLogger(paths.map(_.log))
