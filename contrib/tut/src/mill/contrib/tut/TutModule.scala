@@ -91,7 +91,7 @@ trait TutModule extends ScalaModule {
   /**
     * The version of Tut to use.
     */
-  def tutVersion: T[String] = "0.6.7"
+  def tutVersion: T[String]
 
   /**
     * A task which determines how to fetch the Tut jar file and all of the dependencies required to compile documentation for the module and returns the resulting files.

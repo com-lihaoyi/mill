@@ -14,6 +14,7 @@ object TutTests extends TestSuite {
   trait TutTestModule extends TestUtil.BaseModule with TutModule {
     def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
     def scalaVersion = "2.12.4"
+    def tutVersion = "0.6.7"
   }
 
   object TutTest extends TutTestModule
