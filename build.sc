@@ -250,6 +250,10 @@ object contrib extends MillModule {
     }
    }
 
+  object tut extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
+  }
 }
 
 
@@ -362,7 +366,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut)
 
   def forkArgs =
     (

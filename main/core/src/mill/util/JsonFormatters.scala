@@ -3,12 +3,19 @@ package mill.util
 import ammonite.ops.{Bytes, Path}
 import upickle.Js
 import upickle.default.{ReadWriter => RW}
+import scala.util.matching.Regex
 object JsonFormatters extends JsonFormatters
 trait JsonFormatters {
   implicit val pathReadWrite: RW[ammonite.ops.Path] = upickle.default.readwriter[String]
     .bimap[ammonite.ops.Path](
       _.toString,
       Path(_)
+    )
+
+  implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
+    .bimap[Regex](
+      _.pattern.toString,
+      _.r
     )
 
   implicit val bytesReadWrite: RW[Bytes] = upickle.default.readwriter[String]
