@@ -113,26 +113,20 @@ trait TutModule extends ScalaModule {
   def tutPluginJars: T[Agg[PathRef]] = resolveDeps(tutScalacPluginIvyDeps)()
 
   /**
-    * A task which collects and formats the argument Strings to be passed to the Tut main method.
+    * Run Tut using the configuration specified in this module. The working directory used is the [[mill.contrib.tut.TutModule#millSourcePath]].
     */
-  def tutArgs: T[Seq[String]] = T {
+  def tut: T[CommandResult] = T {
     val in = tutSourceDirectory().head.path.toIO.getAbsolutePath
     val out = tutTargetDirectory().toIO.getAbsolutePath
     val re = tutNameFilter()
     val opts = tutScalacOptions()
     val pOpts = tutPluginJars().map(pathRef => "-Xplugin:" + pathRef.path.toIO.getAbsolutePath)
-    List(in, out, re.pattern.toString) ++ opts ++ pOpts
-  }
-
-  /**
-    * Run Tut using the configuration specified in this module. The working directory used is the [[mill.contrib.tut.TutModule#millSourcePath]].
-    */
-  def tut: T[CommandResult] = T {
+    val tutArgs = List(in, out, re.pattern.toString) ++ opts ++ pOpts
     %%(
       'java,
       "-cp", tutClasspath().map(_.path.toIO.getAbsolutePath).mkString(java.io.File.pathSeparator),
       "tut.TutMain",
-      tutArgs()
+      tutArgs
     )(wd = millSourcePath)
   }
 }

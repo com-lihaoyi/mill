@@ -151,8 +151,6 @@ sh> mill example.tut
 
 * tutPluginJars - A task which performs the dependency resolution for the scalac plugins to be used with Tut.
 
-* tutArgs - A task which collects and formats the argument Strings to be passed to the Tut main method.
-
 ### Twirl
 
 Twirl templates support.
