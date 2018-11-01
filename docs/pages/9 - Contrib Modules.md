@@ -158,7 +158,7 @@ as the result all templates will get this line at the top:
 @import "my.other.stuff._"
 ```
 
-Besides that, twirl compiler has default additional imports, at the moment these:
+Besides that, twirl compiler has default imports, at the moment these:
 ```scala
 Seq(
     "_root_.play.twirl.api.TwirlFeatureImports._",
@@ -170,7 +170,7 @@ Seq(
 )
 ``` 
 
-This is now supported by the `TwirlModule` (they will always be added, you don't have to list them if you override twirlAdditionalImports)
+These imports will always be added to every template.  You don't need to list them if you override `twirlAdditionalImports`.
 
 #### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
