@@ -195,11 +195,13 @@ case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) ex
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
-  lazy val errorStream = {
-    if (!outputStreamUsed) os.remove.all(file)
-    outputStreamUsed = true
-    new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
-  }
+  lazy val errorStream = outputStream
+  //  {
+  //    if (!outputStreamUsed) os.remove.all(file)
+  //    outputStreamUsed = true
+  //    file.toIO.getAbsoluteFile().getParentFile().mkdirs()
+  //    new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
+  //  }
 
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
