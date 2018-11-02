@@ -5,7 +5,14 @@ import mill.util.MultiBiMap
 import mill.util.Strict.Agg
 
 object Graph {
-  class TopoSorted private[Graph](val values: Agg[Task[_]])
+
+  /**
+    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
+    * That's why the constructor is package private.
+    * @see [[Graph.topoSorted]]
+    */
+  class TopoSorted private[Graph] (val values: Agg[Task[_]])
+
   def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
                                     (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
 
@@ -27,6 +34,10 @@ object Graph {
     output
   }
 
+  /**
+   * Collects all transitive dependencies (targets) of the given targets,
+   * including the given targets.
+   */
   def transitiveTargets(sourceTargets: Agg[Task[_]]): Agg[Task[_]] = {
     val transitiveTargets = new Agg.Mutable[Task[_]]
     def rec(t: Task[_]): Unit = {

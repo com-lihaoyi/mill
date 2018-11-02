@@ -209,7 +209,22 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
+  /**
+    * Create a jar file containing all files from the specified input Paths,
+    * called out.jar in the implicit ctx.dest folder. An optional main class may
+    * be provided for the jar. An optional filter function may also be provided to
+    * selectively include/exclude specific files.
+    * @param inputPaths - `Agg` of `Path`s containing files to be included in the jar
+    * @param mainClass - optional main class for the jar
+    * @param fileFilter - optional file filter to select files to be included.
+    *                   Given a `Path` (from inputPaths) and a `RelPath` for the individual file,
+    *                   return true if the file is to be included in the jar.
+    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
+    * @return - a `PathRef` for the created jar.
+    */
+  def createJar(inputPaths: Agg[Path],
+                mainClass: Option[String] = None,
+                fileFilter: (Path, RelPath) => Boolean = (p: Path, r: RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     rm(outputPath)
@@ -228,7 +243,7 @@ object Jvm {
         (file, mapping) <-
           if (p.isFile) Iterator(p -> empty/p.last)
           else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
-        if !seen(mapping)
+        if !seen(mapping) && fileFilter(p, mapping)
       } {
         seen.add(mapping)
         val entry = new JarEntry(mapping.toString)

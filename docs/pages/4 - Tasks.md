@@ -199,6 +199,9 @@ task are streamed to standard out/error as you would expect, but each task's
 specific output is also streamed to a log file on disk, e.g. `out/run/log` or
 `out/classFiles/log` for you to inspect later.
 
+Messages logged with `log.debug` appear by default only in the log files.
+You can use the `--debug` option when running mill to show them on the console too.
+
 ### mill.util.Ctx.Env
 
 - `T.ctx().env`

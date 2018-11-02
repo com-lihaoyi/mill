@@ -342,7 +342,7 @@ case class Evaluator(home: Path,
 
   def resolveLogger(logPath: Option[Path]): Logger = logPath match{
     case None => log
-    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path))
+    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path, debugEnabled = true))
   }
 }
 

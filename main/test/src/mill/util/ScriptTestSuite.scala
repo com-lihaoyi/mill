@@ -15,10 +15,11 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val stdOutErr = new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
+  val debugLog = false
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = wd), disableTicker,
     stdOutErr, stdOutErr, stdIn, None, Map.empty,
-    b => ()
+    b => (), debugLog
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)

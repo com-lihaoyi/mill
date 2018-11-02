@@ -2,10 +2,11 @@ package mill.util
 
 import scala.collection.mutable
 import Strict.Agg
+
 /**
   * A map from keys to collections of values: you can assign multiple values
   * to any particular key. Also allows lookups in both directions: what values
-  * are assigned to a key or what key a value is assigned ti.
+  * are assigned to a key or what key a value is assigned to.
   */
 trait MultiBiMap[K, V]{
   def containsValue(v: V): Boolean
@@ -22,6 +23,7 @@ trait MultiBiMap[K, V]{
 }
 
 object MultiBiMap{
+
   class Mutable[K, V]() extends MultiBiMap[K, V]{
     private[this] val valueToKey = mutable.LinkedHashMap.empty[V, K]
     private[this] val keyToValues = mutable.LinkedHashMap.empty[K, Agg.Mutable[V]]
