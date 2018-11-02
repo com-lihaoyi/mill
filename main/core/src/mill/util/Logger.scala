@@ -55,64 +55,85 @@ object DummyLogger extends Logger {
   def debug(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream,
-                     setPrintState0: PrintState => Unit) extends OutputStream{
-  def setPrintState(c: Char) = {
-    setPrintState0(
-      c match{
-        case '\n' => PrintState.Newline
-        case '\r' => PrintState.Newline
-        case _ => PrintState.Middle
-      }
-    )
+class CallbackStream(
+  wrapped: OutputStream,
+  setPrintState0: PrintState => Unit
+) extends OutputStream {
+
+  private[this] var printState: PrintState = _
+
+  private[this] def setPrintState(c: Char) = {
+    printState = c match {
+      case '\n' => PrintState.Newline
+      case '\r' => PrintState.Newline
+      case _ => PrintState.Middle
+    }
+    setPrintState0(printState)
   }
+
+  private[this] def addPrefix(): Unit = {
+    PrintLogger.getContext.map { p =>
+      if (printState == PrintState.Newline || printState == null) {
+        wrapped.write(p.getBytes())
+      }
+    }
+  }
+
   override def write(b: Array[Byte]): Unit = {
-    if (b.nonEmpty) setPrintState(b(b.length-1).toChar)
+    if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
+    addPrefix()
     wrapped.write(b)
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-    if (len != 0) setPrintState(b(off+len-1).toChar)
+    if (len != 0) setPrintState(b(off + len - 1).toChar)
+    addPrefix()
     wrapped.write(b, off, len)
   }
 
-  def write(b: Int) = {
+  override def write(b: Int): Unit = {
     setPrintState(b.toChar)
+    addPrefix()
     wrapped.write(b)
   }
 }
+
 sealed trait PrintState
-object PrintState{
+
+object PrintState {
   case object Ticker extends PrintState
   case object Newline extends PrintState
   case object Middle extends PrintState
 }
 
 case class PrintLogger(
-                        colored: Boolean,
-                        disableTicker: Boolean,
-                        colors: ammonite.util.Colors,
-                        outStream: PrintStream,
-                        infoStream: PrintStream,
-                        errStream: PrintStream,
-                        inStream: InputStream,
-                        debugEnabled: Boolean
-                      ) extends Logger {
+  colored: Boolean,
+  disableTicker: Boolean,
+  colors: ammonite.util.Colors,
+  outStream: PrintStream,
+  infoStream: PrintStream,
+  errStream: PrintStream,
+  inStream: InputStream,
+  debugEnabled: Boolean
+) extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
   override val errorStream = new PrintStream(new CallbackStream(errStream, printState = _))
   override val outputStream = new PrintStream(new CallbackStream(outStream, printState = _))
 
+  private[this] def context = PrintLogger.getContext.getOrElse("")
 
   def info(s: String) = {
     printState = PrintState.Newline
-    infoStream.println(colors.info()(s))
+    infoStream.println(context + colors.info()(s))
   }
+
   def error(s: String) = {
     printState = PrintState.Newline
-    errStream.println(colors.error()(s))
+    errStream.println(context + colors.error()(s))
   }
+
   def ticker(s: String) = {
     if(!disableTicker) {
       printState match{
@@ -137,8 +158,28 @@ case class PrintLogger(
 
   def debug(s: String) = if (debugEnabled) {
     printState = PrintState.Newline
-    errStream.println(s)
+    errStream.println(context + s)
   }
+}
+
+object PrintLogger {
+
+  private[this] val _context: InheritableThreadLocal[Option[String]] = new InheritableThreadLocal[Option[String]]() {
+    override def initialValue(): Option[String] = None
+  }
+
+  def withContext[T](context: Option[String])(f: => T): T = {
+    val oldContext = _context.get()
+    _context.set(context)
+    try {
+      f
+    } finally {
+      _context.set(oldContext)
+    }
+  }
+
+  def getContext: Option[String] = _context.get()
+
 }
 
 case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) extends Logger {
