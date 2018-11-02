@@ -80,5 +80,10 @@ trait ZincWorkerApi {
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]
 
-  def docJar(args: Seq[String]): Boolean
+  def docJar(scalaVersion: String,
+             compilerBridgeSources: Path,
+             compilerClasspath: Agg[Path],
+             scalacPluginClasspath: Agg[Path],
+             args: Seq[String])
+            (implicit ctx: mill.util.Ctx): Boolean
 }

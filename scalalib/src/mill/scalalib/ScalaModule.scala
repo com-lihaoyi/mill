@@ -178,7 +178,7 @@ trait ScalaModule extends JavaModule { outer =>
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
-      "-d", javadocDir.toNIO.toString, "-usejavacp",
+      "-d", javadocDir.toNIO.toString,
       "-classpath", compileCp.mkString(":")
     ) ++
       pluginOptions ++
@@ -186,7 +186,13 @@ trait ScalaModule extends JavaModule { outer =>
 
     if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
     else {
-      zincWorker.worker().docJar(files ++ options) match{
+      zincWorker.worker().docJar(
+        scalaVersion(),
+        scalaCompilerBridgeSources(),
+        scalaCompilerClasspath().map(_.path),
+        scalacPluginClasspath().map(_.path),
+        files ++ options
+      ) match{
         case true => Result.Success(createJar(Agg(javadocDir))(outDir))
         case false => Result.Failure("docJar generation failed")
       }

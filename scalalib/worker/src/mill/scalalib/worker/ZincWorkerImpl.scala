@@ -49,8 +49,21 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
 
   @volatile var mixedCompilersCache = Option.empty[(Long, Compilers)]
 
-  def docJar(args: Seq[String]): Boolean = {
-    new scala.tools.nsc.ScalaDoc().process(args.toArray)
+  def docJar(scalaVersion: String,
+             compilerBridgeSources: Path,
+             compilerClasspath: Agg[Path],
+             scalacPluginClasspath: Agg[Path],
+             args: Seq[String])
+            (implicit ctx: mill.util.Ctx): Boolean = {
+    val compilers: Compilers = prepareCompilers(
+      scalaVersion,
+      compilerBridgeSources,
+      compilerClasspath,
+      scalacPluginClasspath
+    )
+    val scaladocClass = compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
+    val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
+    scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
   }
   /** Compile the bridge if it doesn't exist yet and return the output directory.
    *  TODO: Proper invalidation, see #389
@@ -127,6 +140,28 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                    compilerClasspath: Agg[Path],
                    scalacPluginClasspath: Agg[Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+    val compilers: Compilers = prepareCompilers(
+      scalaVersion,
+      compilerBridgeSources,
+      compilerClasspath,
+      scalacPluginClasspath
+    )
+
+    compileInternal(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions,
+      scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:${jar}").toSeq ++ scalacOptions,
+      compilers
+    )
+  }
+
+  private def prepareCompilers(scalaVersion: String,
+                               compilerBridgeSources: Path,
+                               compilerClasspath: Agg[Path],
+                               scalacPluginClasspath: Agg[Path])
+                              (implicit ctx: mill.util.Ctx)= {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
 
@@ -139,7 +174,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
 
     val compilersSig =
       compilerBridgeSig +
-      combinedCompilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+        combinedCompilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
 
     val compilers = mixedCompilersCache match {
       case Some((k, v)) if k == compilersSig => v
@@ -166,15 +201,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
         mixedCompilersCache = Some((compilersSig, compilers))
         compilers
     }
-
-    compileInternal(
-      upstreamCompileOutput,
-      sources,
-      compileClasspath,
-      javacOptions,
-      scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:${jar}").toSeq ++ scalacOptions,
-      compilers
-    )
+    compilers
   }
 
   private def compileInternal(upstreamCompileOutput: Seq[CompilationResult],
