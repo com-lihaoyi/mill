@@ -191,6 +191,7 @@ case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) ex
   lazy val outputStream = {
     if (!outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
+    file.toIO.getAbsoluteFile().getParentFile().mkdirs()
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
