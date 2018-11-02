@@ -151,12 +151,14 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### {master}
+### 0.3.3
 
 - Added new `debug` method to context logger, to log additional debug info into the
   task specific output dir (`out/<task>/log`)
 
 - Added `--debug` option to enable debug output to STDERR
+
+- Fix `ScalaModule#docJar` task when Scala minor versions differ [475](https://github.com/lihaoyi/mill/issues/475)
 
 ### 0.3.2
 
