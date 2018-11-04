@@ -1,4 +1,4 @@
-import ammonite.ops._
+
 import mill._, scalalib._, modules._
 
 trait Jmh extends ScalaModule {
@@ -19,13 +19,13 @@ trait Jmh extends ScalaModule {
   def compileGeneratedSources = T {
     val dest = T.ctx.dest
     val (sourcesDir, _) = generateBenchmarkSources()
-    val sources = ls.rec(sourcesDir).filter(_.isFile)
-    %%("javac",
+    val sources = os.walk(sourcesDir).filter(os.isFile)
+    os.proc("javac",
        sources.map(_.toString),
        "-cp",
        (runClasspath() ++ generatorDeps()).map(_.path.toString).mkString(":"),
        "-d",
-       dest)(wd = dest)
+       dest).call(dest)
     PathRef(dest)
   }
 
@@ -36,10 +36,10 @@ trait Jmh extends ScalaModule {
     val sourcesDir = dest / 'jmh_sources
     val resourcesDir = dest / 'jmh_resources
 
-    rm(sourcesDir)
-    mkdir(sourcesDir)
-    rm(resourcesDir)
-    mkdir(resourcesDir)
+    os.remove.all(sourcesDir)
+    os.makeDir.all(sourcesDir)
+    os.remove.all(resourcesDir)
+    os.makeDir.all(resourcesDir)
 
     Jvm.subprocess(
       "org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator",

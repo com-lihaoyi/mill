@@ -1,15 +1,14 @@
 package mill.util
 
-import ammonite.ops.{Bytes, Path}
 import upickle.Js
 import upickle.default.{ReadWriter => RW}
 import scala.util.matching.Regex
 object JsonFormatters extends JsonFormatters
 trait JsonFormatters {
-  implicit val pathReadWrite: RW[ammonite.ops.Path] = upickle.default.readwriter[String]
-    .bimap[ammonite.ops.Path](
+  implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
+    .bimap[os.Path](
       _.toString,
-      Path(_)
+      os.Path(_)
     )
 
   implicit val regexReadWrite: RW[Regex] = upickle.default.readwriter[String]
@@ -18,14 +17,14 @@ trait JsonFormatters {
       _.r
     )
 
-  implicit val bytesReadWrite: RW[Bytes] = upickle.default.readwriter[String]
+  implicit val bytesReadWrite: RW[os.Bytes] = upickle.default.readwriter[String]
     .bimap(
-      o => javax.xml.bind.DatatypeConverter.printBase64Binary(o.array),
-      str => new Bytes(javax.xml.bind.DatatypeConverter.parseBase64Binary(str))
+      o => java.util.Base64.getEncoder.encodeToString(o.array),
+      str => new os.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
 
-  implicit lazy val crFormat: RW[ammonite.ops.CommandResult] = upickle.default.macroRW
+  implicit lazy val crFormat: RW[os.CommandResult] = upickle.default.macroRW
 
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
   implicit lazy val depFormat: RW[coursier.Dependency]= upickle.default.macroRW

@@ -1,7 +1,6 @@
 package mill.main
 
 
-import ammonite.ops.Path
 import mill.define.Applicative.ApplyHandler
 import mill.define.Segment.Label
 import mill.define._
@@ -11,7 +10,7 @@ import mill.util.Strict.Agg
 
 import scala.collection.mutable
 object ReplApplyHandler{
-  def apply[T](home: Path,
+  def apply[T](home: os.Path,
                disableTicker: Boolean,
                colors: ammonite.util.Colors,
                pprinter0: pprint.PPrinter,

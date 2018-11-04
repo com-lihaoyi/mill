@@ -1,6 +1,5 @@
 package mill.define
 
-import ammonite.ops.pwd
 import mill.util.{DummyLogger, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
 import mill.T

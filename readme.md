@@ -117,7 +117,7 @@ In case of troubles with caching and/or incremental compilation, you can always
 restart from scratch removing the `out` directory:
 
 ```bash
-rm -rf out/
+os.remove.all -rf out/
 ```
 
 ## Project Layout

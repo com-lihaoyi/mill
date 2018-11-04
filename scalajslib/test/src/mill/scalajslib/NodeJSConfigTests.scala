@@ -1,6 +1,5 @@
 package mill.scalajslib
 
-import ammonite.ops._
 import mill._
 import mill.define.Discover
 import mill.eval.Evaluator
@@ -53,7 +52,7 @@ object NodeJSConfigTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
+  val millSourcePath = os.pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
 
@@ -68,7 +67,7 @@ object NodeJSConfigTests extends TestSuite {
         helloWorldEvaluator.outPath,
         command.ctx.segments
       )
-      val log = read(paths.log)
+      val log = os.read(paths.log)
       assert(
         nodeArgs.forall(log.contains),
         notNodeArgs.forall(!log.contains(_))
@@ -96,9 +95,9 @@ object NodeJSConfigTests extends TestSuite {
   }
 
   def prepareWorkspace(): Unit = {
-    rm(workspacePath)
-    mkdir(workspacePath / up)
-    cp(millSourcePath, workspacePath)
+    os.remove.all(workspacePath)
+    os.makeDir.all(workspacePath / os.up)
+    os.copy(millSourcePath, workspacePath)
   }
 
 }

@@ -1,8 +1,6 @@
 package mill
 package scalalib
 
-
-import ammonite.ops._
 import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
@@ -199,12 +197,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * All individual source files fed into the compiler
     */
   def allSourceFiles = T{
-    def isHiddenFile(path: Path) = path.segments.last.startsWith(".")
+    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
     for {
       root <- allSources()
-      if exists(root.path)
-      path <- (if (root.path.isDir) ls.rec(root.path) else Seq(root.path))
-      if path.isFile && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
+      if os.exists(root.path)
+      path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
+      if os.isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
     } yield PathRef(path)
   }
 
@@ -293,7 +291,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     */
   def jar = T{
     createJar(
-      localClasspath().map(_.path).filter(exists),
+      localClasspath().map(_.path).filter(os.exists),
       mainClass()
     )
   }
@@ -306,13 +304,13 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
-    mkdir(javadocDir)
+    os.makeDir.all(javadocDir)
 
     val files = for{
       ref <- allSources()
-      if exists(ref.path)
-      p <- (if (ref.path.isDir) ls.rec(ref.path) else Seq(ref.path))
-      if p.isFile && (p.ext == "java")
+      if os.exists(ref.path)
+      p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
+      if os.isFile(p) && (p.ext == "java")
     } yield p.toNIO.toString
 
     val options = Seq("-d", javadocDir.toNIO.toString)
@@ -340,7 +338,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * The source jar, containing only source code for publishing to Maven Central
     */
   def sourceJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(exists))
+    createJar((allSources() ++ resources()).map(_.path).filter(os.exists))
   }
 
   /**
@@ -409,12 +407,12 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkEnv(),
       args,
       workingDir = forkWorkingDir()
-    )) catch { case e: InteractiveShelloutException =>
+    )) catch { case e: Exception =>
        Result.Failure("subprocess failed")
     }
   }
 
-  private[this] def backgroundSetup(dest: Path) = {
+  private[this] def backgroundSetup(dest: os.Path) = {
     val token = java.util.UUID.randomUUID().toString
     val procId = dest / ".mill-background-process-id"
     val procTombstone = dest / ".mill-background-process-tombstone"
@@ -432,9 +430,9 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     // killed via some other means, and continue anyway.
     val start = System.currentTimeMillis()
     while({
-      if (exists(procTombstone)) {
+      if (os.exists(procTombstone)) {
         Thread.sleep(10)
-        rm(procTombstone)
+        os.remove.all(procTombstone)
         true
       } else {
         Thread.sleep(10)
@@ -442,8 +440,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       }
     })()
 
-    write(procId, token)
-    write(procTombstone, token)
+    os.write(procId, token)
+    os.write(procTombstone, token)
     (procId, procTombstone, token)
   }
 
@@ -468,7 +466,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
       workingDir = forkWorkingDir(),
       background = true
-    )) catch { case e: InteractiveShelloutException =>
+    )) catch { case e: Exception =>
        Result.Failure("subprocess failed")
     }
   }
@@ -486,7 +484,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
       workingDir = forkWorkingDir(),
       background = true
-    )) catch { case e: InteractiveShelloutException =>
+    )) catch { case e: Exception =>
       Result.Failure("subprocess failed")
     }
   }
@@ -513,7 +511,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       forkEnv(),
       args,
       workingDir = forkWorkingDir()
-    )) catch { case e: InteractiveShelloutException =>
+    )) catch { case e: Exception =>
       Result.Failure("subprocess failed")
     }
   }
@@ -524,7 +522,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
 
   def artifactId: T[String] = artifactName()
 
-  def intellijModulePath: Path = millSourcePath
+  def intellijModulePath: os.Path = millSourcePath
 
   def forkWorkingDir = T{ ammonite.ops.pwd }
 

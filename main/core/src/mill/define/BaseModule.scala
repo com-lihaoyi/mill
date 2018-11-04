@@ -1,12 +1,11 @@
 package mill.define
 
-import ammonite.ops.Path
 
 object BaseModule{
   case class Implicit(value: BaseModule)
 }
 
-abstract class BaseModule(millSourcePath0: Path,
+abstract class BaseModule(millSourcePath0: os.Path,
                           external0: Boolean = false,
                           foreign0 : Boolean = false)
                          (implicit millModuleEnclosing0: sourcecode.Enclosing,

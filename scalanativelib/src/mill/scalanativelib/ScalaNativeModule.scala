@@ -3,7 +3,6 @@ package scalanativelib
 
 import java.net.URLClassLoader
 
-import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.define.{Target, Task}
@@ -71,7 +70,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
     val workerPath = sys.props(workerKey)
     if (workerPath != null)
-      Result.Success(Agg(workerPath.split(',').map(p => PathRef(Path(p), quick = true)): _*))
+      Result.Success(Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*))
     else
       Lib.resolveDependencies(
         Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),

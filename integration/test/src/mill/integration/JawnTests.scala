@@ -1,6 +1,5 @@
 package mill.integration
 
-import ammonite.ops._
 import utest._
 
 class JawnTests(fork: Boolean)
@@ -13,12 +12,12 @@ class JawnTests(fork: Boolean)
 
       assert(
         firstCompile,
-        ls.rec(workspacePath).exists(_.last == "AsyncParser.class"),
-        ls.rec(workspacePath).exists(_.last == "CharBuilderSpec.class")
+        os.walk(workspacePath).exists(_.last == "AsyncParser.class"),
+        os.walk(workspacePath).exists(_.last == "CharBuilderSpec.class")
       )
 
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
-        write.append(scalaFile, "\n}")
+      for(scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")){
+        os.write.append(scalaFile, "\n}")
       }
 
       val brokenCompile = eval(s"jawn[$scalaVersion].parser.test")

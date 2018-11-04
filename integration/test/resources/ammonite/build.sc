@@ -65,8 +65,8 @@ object amm extends Cross[MainModule](fullCrossScalaVersions:_*){
     )
 
     def generatedSources = T{
-      import ammonite.ops._
-      cp(build.millSourcePath/'project/"Constants.scala", T.ctx().dest/"Constants.scala")
+
+      os.copy(build.millSourcePath/'project/"Constants.scala", T.ctx().dest/"Constants.scala")
       Seq(PathRef(T.ctx().dest))
     }
   }

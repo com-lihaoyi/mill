@@ -2,7 +2,6 @@ package mill.define
 
 import mill.util.{TestGraphs, TestUtil}
 import utest._
-import ammonite.ops._
 import mill.{Module, T}
 object BasePathTests extends TestSuite{
   val testGraphs = new TestGraphs
@@ -54,7 +53,7 @@ object BasePathTests extends TestSuite{
     }
     'overriden - {
       object overridenBasePath extends TestUtil.BaseModule {
-        override def millSourcePath = pwd / 'overridenBasePathRootValue
+        override def millSourcePath = os.pwd / 'overridenBasePathRootValue
         object nested extends Module{
           override def millSourcePath = super.millSourcePath / 'overridenBasePathNested
           object nested extends Module{
@@ -63,9 +62,9 @@ object BasePathTests extends TestSuite{
         }
       }
       assert(
-        overridenBasePath.millSourcePath == pwd / 'overridenBasePathRootValue,
-        overridenBasePath.nested.millSourcePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested,
-        overridenBasePath.nested.nested.millSourcePath == pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested / 'nested / 'overridenBasePathDoubleNested
+        overridenBasePath.millSourcePath == os.pwd / 'overridenBasePathRootValue,
+        overridenBasePath.nested.millSourcePath == os.pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested,
+        overridenBasePath.nested.nested.millSourcePath == os.pwd / 'overridenBasePathRootValue / 'nested / 'overridenBasePathNested / 'nested / 'overridenBasePathDoubleNested
       )
     }
 

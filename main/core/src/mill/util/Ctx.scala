@@ -1,6 +1,5 @@
 package mill.util
 
-import ammonite.ops.Path
 import mill.define.Applicative.ImplicitStub
 
 import scala.annotation.compileTimeOnly
@@ -12,16 +11,16 @@ object Ctx{
   implicit def taskCtx: Ctx = ???
 
   object Dest {
-    implicit def pathToCtx(path: Path): Dest = new Dest { def dest = path }
+    implicit def pathToCtx(path: os.Path): Dest = new Dest { def dest = path }
   }
   trait Dest{
-    def dest: Path
+    def dest: os.Path
   }
   trait Log{
     def log: Logger
   }
   trait Home{
-    def home: Path
+    def home: os.Path
   }
   trait Env{
     def env: Map[String, String]
@@ -37,9 +36,9 @@ object Ctx{
 
 }
 class Ctx(val args: IndexedSeq[_],
-          dest0: () => Path,
+          dest0: () => os.Path,
           val log: Logger,
-          val home: Path,
+          val home: os.Path,
           val env : Map[String, String])
   extends Ctx.Dest
   with Ctx.Log

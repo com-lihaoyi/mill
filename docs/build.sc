@@ -4,7 +4,7 @@ import $file.pageStyles, pageStyles._
 import $file.pages, pages._
 import scalatags.Text.all._
 
-import ammonite.ops._
+
 import collection.JavaConverters._
 import org.pegdown.{PegDownProcessor, ToHtmlSerializer, LinkRenderer, Extensions}
 import org.pegdown.ast.{VerbatimNode, ExpImageNode, HeaderNode, TextNode, SimpleNode, TableNode}
@@ -134,18 +134,18 @@ def formatRssDate(date: java.time.LocalDate) = {
 @main
 def main(publish: Boolean = false) = {
 
-  rm! targetFolder
+  os.remove.all! targetFolder
 
-  mkdir! targetFolder/'page
+  os.makeDir.all! targetFolder/'page
   for(otherFile <- otherFiles){
-    cp(otherFile, targetFolder/'page/(otherFile relativeTo postsFolder))
+    os.copy(otherFile, targetFolder/'page/(otherFile relativeTo postsFolder))
   }
 
-  cp(pwd/"favicon.png", targetFolder/"favicon.ico")
-  cp(pwd/"logo-white.svg", targetFolder/"logo-white.svg")
-  cp(pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
-  cp(pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
-  cp(pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
+  os.copy(pwd/"favicon.png", targetFolder/"favicon.ico")
+  os.copy(pwd/"logo-white.svg", targetFolder/"logo-white.svg")
+  os.copy(pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
+  os.copy(pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
+  os.copy(pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
 
   %('zip, "-r", targetFolder/"example-1.zip", "example-1")(pwd)
   %('zip, "-r", targetFolder/"example-2.zip", "example-2")(pwd)
@@ -171,7 +171,7 @@ def main(publish: Boolean = false) = {
     )
 
 
-    write(
+    os.write(
       if (i == 0) targetFolder / "index.html"
       else targetFolder/'page/s"${sanitize(post.name)}.html",
       postContent(

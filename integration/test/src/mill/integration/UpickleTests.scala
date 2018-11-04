@@ -1,6 +1,5 @@
 package mill.integration
 
-import ammonite.ops._
 import utest._
 
 class UpickleTests(fork: Boolean) extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {

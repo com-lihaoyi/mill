@@ -1,6 +1,6 @@
 import $ivy.`com.github.rockjam::license-headers:0.0.1`
 
-import ammonite.ops._
+
 import mill._, scalalib._
 import mill.eval.PathRef
 import de.heikoseeberger.sbtheader.{CommentStyle, FileType, HeaderCreator, License}
@@ -24,7 +24,7 @@ trait Headers extends ScalaModule {
 
     val updatedFiles = withoutHeaders.map {
       case (file, updated) =>
-        write.over(file, updated)
+        os.write.over(file, updated)
         file
     }
 
@@ -47,15 +47,15 @@ trait Headers extends ScalaModule {
 
   private def filesWithoutHeaders(input: Seq[PathRef]) = {
     for {
-      ref <- input if exists(ref.path)
-      file <- ls.rec(ref.path) if file.isFile
+      ref <- input if os.exists(ref.path)
+      file <- os.walk(ref.path) if os.isFile(file)
       (fileType, commentStyle) <- headerMappings.get(file.ext)
       updatedContent <- HeaderCreator(
         fileType,
         commentStyle,
         license,
         log = _ => (),
-        read.getInputStream(file)
+        os.read.inputStream(file)
       ).createText
     } yield file -> updatedContent
   }

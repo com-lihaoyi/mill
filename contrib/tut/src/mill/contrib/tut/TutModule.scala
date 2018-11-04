@@ -1,7 +1,6 @@
 package mill
 package contrib.tut
 
-import ammonite.ops._
 import coursier.MavenRepository
 import mill.scalalib._
 import scala.util.matching.Regex
@@ -51,7 +50,7 @@ trait TutModule extends ScalaModule {
     * A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for this task,
     * but this can be reconfigured so that documentation goes to the root of the module (e.g. `millSourcePath`) or to a dedicated folder (e.g. `millSourcePath / 'docs`)
     */
-  def tutTargetDirectory: T[Path] = T { T.ctx().dest }
+  def tutTargetDirectory: T[os.Path] = T { T.ctx().dest }
 
   /**
     * A task which determines what classpath is used when compiling documentation. By default this is configured to use the same inputs as the [[mill.contrib.tut.TutModule#runClasspath]],
@@ -115,18 +114,18 @@ trait TutModule extends ScalaModule {
   /**
     * Run Tut using the configuration specified in this module. The working directory used is the [[mill.contrib.tut.TutModule#millSourcePath]].
     */
-  def tut: T[CommandResult] = T {
+  def tut: T[os.CommandResult] = T {
     val in = tutSourceDirectory().head.path.toIO.getAbsolutePath
     val out = tutTargetDirectory().toIO.getAbsolutePath
     val re = tutNameFilter()
     val opts = tutScalacOptions()
     val pOpts = tutPluginJars().map(pathRef => "-Xplugin:" + pathRef.path.toIO.getAbsolutePath)
     val tutArgs = List(in, out, re.pattern.toString) ++ opts ++ pOpts
-    %%(
+    os.proc(
       'java,
       "-cp", tutClasspath().map(_.path.toIO.getAbsolutePath).mkString(java.io.File.pathSeparator),
       "tut.TutMain",
       tutArgs
-    )(wd = millSourcePath)
+    ).call(millSourcePath)
   }
 }

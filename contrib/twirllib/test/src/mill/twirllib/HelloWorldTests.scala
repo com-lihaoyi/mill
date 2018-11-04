@@ -1,6 +1,5 @@
 package mill.twirllib
 
-import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -8,7 +7,7 @@ import utest.{TestSuite, Tests, assert, _}
 object HelloWorldTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: os.Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
@@ -22,20 +21,20 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'twirllib / 'test / 'resources / "hello-world"
+  val resourcePath: os.Path = os.pwd / 'contrib / 'twirllib / 'test / 'resources / "hello-world"
 
-  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
                       (t: TestEvaluator => T)
                       (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath / up)
-    cp(resourcePath, m.millSourcePath)
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(m.millSourcePath / os.up)
+    os.copy(resourcePath, m.millSourcePath)
     t(eval)
   }
 
-  def compileClassfiles: Seq[RelPath] = Seq[RelPath](
+  def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
     "hello.template.scala"
   )
 
@@ -54,7 +53,7 @@ object HelloWorldTests extends TestSuite {
     'compileTwirl - workspaceTest(HelloWorld) { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
-      val outputFiles = ls.rec(result.classes.path)
+      val outputFiles = os.walk(result.classes.path)
       val expectedClassfiles = compileClassfiles.map(
         eval.outPath / 'core / 'compileTwirl / 'dest / 'html / _
       )

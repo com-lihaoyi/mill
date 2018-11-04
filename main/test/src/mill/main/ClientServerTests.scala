@@ -1,6 +1,5 @@
 package mill.main
 import java.io._
-import java.nio.file.Path
 
 import mill.main.client.{Util, Locks}
 
@@ -47,7 +46,7 @@ object ClientServerTests extends TestSuite{
     (tmpDir, locks)
   }
 
-  def spawnEchoServer(tmpDir : Path, locks: Locks): Unit = {
+  def spawnEchoServer(tmpDir : java.nio.file.Path, locks: Locks): Unit = {
     new Thread(() => new Server(
       tmpDir.toString,
       new EchoServer(),
@@ -57,7 +56,7 @@ object ClientServerTests extends TestSuite{
     ).run()).start()
   }
 
-  def runClientAux(tmpDir : Path, locks: Locks)
+  def runClientAux(tmpDir : java.nio.file.Path, locks: Locks)
                   (env : Map[String, String], args: Array[String]) = {
     val (in, out, err) = initStreams()
     Server.lockBlock(locks.clientLock){

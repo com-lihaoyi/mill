@@ -1,7 +1,6 @@
 package mill.contrib
 package tut
 
-import ammonite.ops._
 import mill._
 import mill.eval.Result._
 import mill.scalalib._
@@ -29,17 +28,17 @@ object TutTests extends TestSuite {
     def scalacPluginIvyDeps = Agg(ivy"org.spire-math::kind-projector:0.9.8")
   }
 
-  val resourcePath = pwd / 'contrib / 'tut / 'test / 'tut
-  val resourcePathWithLibraries = pwd / 'contrib / 'tut / 'test / "tut-with-libraries"
+  val resourcePath = os.pwd / 'contrib / 'tut / 'test / 'tut
+  val resourcePathWithLibraries = os.pwd / 'contrib / 'tut / 'test / "tut-with-libraries"
 
-  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
                       (t: TestEvaluator => T)
                       (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath)
-    cp(resourcePath, m.millSourcePath / 'tut)
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(m.millSourcePath)
+    os.copy(resourcePath, m.millSourcePath / 'tut)
     t(eval)
   }
 
@@ -61,8 +60,8 @@ object TutTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(TutTest.tut)
 
         assert(
-          exists(expectedPath) &&
-            read! expectedPath == expected
+          os.exists(expectedPath) &&
+          os.read(expectedPath) == expected
         )
       }
 
@@ -84,9 +83,9 @@ object TutTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(TutCustomTest.tut)
 
         assert(
-          !exists(defaultPath) &&
-            exists(expectedPath) &&
-            read! expectedPath == expected
+          !os.exists(defaultPath) &&
+            os.exists(expectedPath) &&
+            os.read(expectedPath) == expected
         )
       }
 
@@ -115,8 +114,8 @@ object TutTests extends TestSuite {
         val Right(_) = eval.apply(TutLibrariesTest.tut)
 
         assert(
-          exists(expectedPath) &&
-            read! expectedPath == expected
+          os.exists(expectedPath) &&
+          os.read(expectedPath) == expected
         )
       }
     }

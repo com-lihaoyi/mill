@@ -1,7 +1,7 @@
 import $ivy.`org.scalariform::scalariform:0.2.5`
 
 import mill._, scalalib._
-import ammonite.ops._
+
 import scalariform.formatter._
 import scalariform.formatter.preferences._
 import scalariform.parser.ScalaParserException
@@ -25,11 +25,11 @@ trait Scalariform extends ScalaModule {
     files.map { path =>
       try {
         val formatted = ScalaFormatter.format(
-          read(path),
+          os.read(path),
           playJsonPreferences,
           scalaVersion = scalaVersion()
         )
-        write.over(path, formatted)
+        os.write.over(path, formatted)
       } catch {
         case ex: ScalaParserException =>
           T.ctx.log.error(s"Failed to format file: ${path}. Error: ${ex.getMessage}")
@@ -41,7 +41,7 @@ trait Scalariform extends ScalaModule {
   def checkCodeFormat() = T.command {
     filesToFormat(sources()).foreach { path =>
       try {
-        val input = read(path)
+        val input = os.read(path)
         val formatted = ScalaFormatter.format(
           input,
           playJsonPreferences,
@@ -63,8 +63,8 @@ trait Scalariform extends ScalaModule {
 
   private def filesToFormat(sources: Seq[PathRef]) = {
     for {
-      pathRef <- sources if exists(pathRef.path)
-      file <- ls.rec(pathRef.path) if file.isFile && file.ext == "scala"
+      pathRef <- sources if os.exists(pathRef.path)
+      file <- os.walk(pathRef.path) if os.isFile(file) && file.ext == "scala"
     } yield file
   }
 

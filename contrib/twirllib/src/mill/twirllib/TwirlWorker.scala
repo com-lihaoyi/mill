@@ -5,7 +5,6 @@ import java.io.File
 import java.lang.reflect.Method
 import java.net.URLClassLoader
 
-import ammonite.ops.{Path, ls}
 import mill.eval.PathRef
 import mill.scalalib.CompilationResult
 
@@ -15,8 +14,8 @@ class TwirlWorker {
 
   private var twirlInstanceCache = Option.empty[(Long, TwirlWorkerApi)]
 
-  private def twirl(twirlClasspath: Agg[Path]) = {
-    val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+  private def twirl(twirlClasspath: Agg[os.Path]) = {
+    val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
@@ -61,9 +60,9 @@ class TwirlWorker {
     }
   }
 
-  def compile(twirlClasspath: Agg[Path],
-              sourceDirectories: Seq[Path],
-              dest: Path,
+  def compile(twirlClasspath: Agg[os.Path],
+              sourceDirectories: Seq[os.Path],
+              dest: os.Path,
               additionalImports: Seq[String],
               constructorAnnotations: Seq[String],
               codec: Codec,
@@ -71,10 +70,10 @@ class TwirlWorker {
              (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
 
-    def compileTwirlDir(inputDir: Path) {
-      ls.rec(inputDir).filter(_.name.matches(".*.scala.(html|xml|js|txt)"))
+    def compileTwirlDir(inputDir: os.Path) {
+      os.walk(inputDir).filter(_.last.matches(".*.scala.(html|xml|js|txt)"))
         .foreach { template =>
-          val extFormat = twirlExtensionFormat(template.name)
+          val extFormat = twirlExtensionFormat(template.last)
           compiler.compileTwirl(template.toIO,
             inputDir.toIO,
             dest.toIO,

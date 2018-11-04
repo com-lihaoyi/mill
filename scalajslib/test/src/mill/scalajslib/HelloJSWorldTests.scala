@@ -1,8 +1,6 @@
 package mill.scalajslib
 
 import java.util.jar.JarFile
-
-import ammonite.ops._
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
@@ -71,7 +69,7 @@ object HelloJSWorldTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
+  val millSourcePath = os.pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
 
@@ -87,7 +85,7 @@ object HelloJSWorldTests extends TestSuite {
           helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).compile)
 
         val outPath = result.classes.path
-        val outputFiles = ls.rec(outPath)
+        val outputFiles = os.walk(outPath)
         val expectedClassfiles = compileClassfiles(outPath)
         assert(
           outputFiles.toSet == expectedClassfiles,
@@ -213,7 +211,7 @@ object HelloJSWorldTests extends TestSuite {
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val log = read(paths.log)
+      val log = os.read(paths.log)
       assert(
         evalCount > 0,
         log.contains("node"),
@@ -229,7 +227,7 @@ object HelloJSWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: Path) = Set(
+  def compileClassfiles(parentDir: os.Path) = Set(
     parentDir / "ArgsParser$.class",
     parentDir / "ArgsParser$.sjsir",
     parentDir / "ArgsParser.class",
@@ -241,9 +239,9 @@ object HelloJSWorldTests extends TestSuite {
   )
 
   def prepareWorkspace(): Unit = {
-    rm(workspacePath)
-    mkdir(workspacePath / up)
-    cp(millSourcePath, workspacePath)
+    os.remove.all(workspacePath)
+    os.makeDir.all(workspacePath / os.up)
+    os.copy(millSourcePath, workspacePath)
   }
 
 }

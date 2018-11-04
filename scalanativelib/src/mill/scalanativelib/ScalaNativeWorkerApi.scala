@@ -3,7 +3,6 @@ package mill.scalanativelib
 import java.io.File
 import java.net.URLClassLoader
 
-import ammonite.ops.Path
 import mill.define.{Discover, Worker}
 import mill.{Agg, T}
 import sbt.testing.Framework
@@ -12,8 +11,8 @@ import sbt.testing.Framework
 class ScalaNativeWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def impl(toolsClasspath: Agg[Path]): ScalaNativeWorkerApi = {
-    val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+  def impl(toolsClasspath: Agg[os.Path]): ScalaNativeWorkerApi = {
+    val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
@@ -44,18 +43,18 @@ class ScalaNativeWorker {
 case class NativeConfig(config: Any)
 
 trait ScalaNativeWorkerApi {
-  def discoverClang: Path
-  def discoverClangPP: Path
-  def discoverTarget(clang: Path, workDir: Path): String
+  def discoverClang: os.Path
+  def discoverClangPP: os.Path
+  def discoverTarget(clang: os.Path, workDir: os.Path): String
   def discoverCompileOptions: Seq[String]
   def discoverLinkingOptions: Seq[String]
 
-  def config(nativeLibJar: Path,
+  def config(nativeLibJar: os.Path,
              mainClass: String,
-             classpath: Seq[Path],
-             nativeWorkdir: Path,
-             nativeClang: Path,
-             nativeClangPP: Path,
+             classpath: Seq[os.Path],
+             nativeWorkdir: os.Path,
+             nativeClang: os.Path,
+             nativeClangPP: os.Path,
              nativeTarget: String,
              nativeCompileOptions: Seq[String],
              nativeLinkingOptions: Seq[String],
@@ -65,7 +64,7 @@ trait ScalaNativeWorkerApi {
              logLevel: NativeLogLevel): NativeConfig
 
   def defaultGarbageCollector: String
-  def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path
+  def nativeLink(nativeConfig: NativeConfig, outPath: os.Path): os.Path
 
   def newScalaNativeFrameWork(framework: Framework, id: Int, testBinary: File,
                               logLevel: NativeLogLevel, envVars: Map[String, String]): Framework

@@ -1,6 +1,5 @@
 package mill.util
 
-import ammonite.ops.pwd
 import mill.define.{Input, Target, Task}
 import mill.eval.Result.OuterStack
 import mill.eval.{Evaluator, Result}
@@ -10,7 +9,7 @@ import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
-  val externalOutPath = pwd / 'target / 'external
+  val externalOutPath = os.pwd / 'target / 'external
 
 
   def static(module: TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {

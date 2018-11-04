@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-import ammonite.ops._
 import coursier.Repository
 import mill.define.{Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
@@ -171,7 +170,7 @@ trait ScalaModule extends JavaModule { outer =>
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
-    mkdir(javadocDir)
+    os.makeDir.all(javadocDir)
 
     val files = allSourceFiles().map(_.path.toString)
 
@@ -215,7 +214,7 @@ trait ScalaModule extends JavaModule { outer =>
             "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
         mainArgs = Seq("-usejavacp"),
-        workingDir = pwd
+        workingDir = os.pwd
       )
       Result.Success()
     }
@@ -246,7 +245,7 @@ trait ScalaModule extends JavaModule { outer =>
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),
         mainArgs = replOptions,
-        workingDir = pwd
+        workingDir = os.pwd
       )
       Result.Success()
     }

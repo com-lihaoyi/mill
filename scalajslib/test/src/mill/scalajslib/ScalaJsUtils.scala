@@ -3,10 +3,8 @@ package mill.scalajslib
 import java.io.{FileReader, StringWriter}
 import javax.script.{ScriptContext, ScriptEngineManager}
 
-import ammonite.ops.Path
-
 object ScalaJsUtils {
-  def runJS(path: Path): String = {
+  def runJS(path: os.Path): String = {
     val engineManager = new ScriptEngineManager(null)
     val engine = engineManager.getEngineByName("nashorn")
     val console = new Console

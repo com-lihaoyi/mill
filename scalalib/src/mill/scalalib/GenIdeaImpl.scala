@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import coursier.{Cache, CoursierPaths, Repository}
 import mill.define._
@@ -34,21 +33,21 @@ object GenIdeaImpl {
             discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
 
-    val jdkInfo = extractCurrentJdk(pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
+    val jdkInfo = extractCurrentJdk(os.pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    rm! pwd/".idea"/"libraries"
-    rm! pwd/".idea"/"scala_compiler.xml"
-    rm! pwd/".idea_modules"
+    os.remove.all(os.pwd/".idea"/"libraries")
+    os.remove.all(os.pwd/".idea"/"scala_compiler.xml")
+    os.remove.all(os.pwd/".idea_modules")
 
 
-    val evaluator = new Evaluator(ctx.home, pwd / 'out, pwd / 'out, rootModule, ctx.log)
+    val evaluator = new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
-      write.over(pwd/relPath, pp.format(xml))
+      os.write.over(os.pwd/relPath, pp.format(xml))
     }
   }
 
-  def extractCurrentJdk(ideaPath: Path): Option[(String,String)] = {
+  def extractCurrentJdk(ideaPath: os.Path): Option[(String,String)] = {
     import scala.xml.XML
     Try {
       val xml = XML.loadFile(ideaPath.toString)
@@ -62,7 +61,7 @@ object GenIdeaImpl {
   def xmlFileLayout(evaluator: Evaluator,
                     rootModule: mill.Module,
                     jdkInfo: (String,String),
-                    fetchMillModules: Boolean = true): Seq[(RelPath, scala.xml.Node)] = {
+                    fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
       .collect{ case x: scalalib.JavaModule => (x.millModuleSegments, x)}
@@ -71,7 +70,7 @@ object GenIdeaImpl {
     val buildLibraryPaths =
       if (!fetchMillModules) Nil
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
-        case Some(found) => found.split(',').map(Path(_)).distinct.toList
+        case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
         case None =>
           val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }
           val artifactNames = Seq("main-moduledefs", "main-core", "scalalib", "scalajslib")
@@ -91,7 +90,7 @@ object GenIdeaImpl {
       .asInstanceOf[SpecialClassLoader]
     ).map {
        _.allJars
-        .map(url => Path(url.getFile))
+        .map(url => os.Path(url.getFile))
         .filter(_.toIO.exists)
     }.getOrElse(Seq())
 
@@ -138,8 +137,8 @@ object GenIdeaImpl {
     val commonPrefix =
       if (allResolved.isEmpty) 0
       else {
-        val minResolvedLength = allResolved.map(_.segments.length).min
-        allResolved.map(_.segments.take(minResolvedLength))
+        val minResolvedLength = allResolved.map(_.segmentCount).min
+        allResolved.map(_.segments.take(minResolvedLength).toList)
           .transpose
           .takeWhile(_.distinct.length == 1)
           .length
@@ -148,37 +147,37 @@ object GenIdeaImpl {
     // only resort to full long path names if the jar name is a duplicate
     val pathShortLibNameDuplicate = allResolved
       .distinct
-      .map{p => p.segments.last -> p}
+      .map{p => p.last -> p}
       .groupBy(_._1)
       .filter(_._2.size > 1)
       .keySet
 
     val pathToLibName = allResolved
       .map{p =>
-        if (pathShortLibNameDuplicate(p.segments.last))
+        if (pathShortLibNameDuplicate(p.last))
           (p, p.segments.drop(commonPrefix).mkString("_"))
         else
-          (p, p.segments.last)
+          (p, p.last)
       }
       .toMap
 
-    sealed trait ResolvedLibrary { def path : Path }
-    case class CoursierResolved(path : Path, pom : Path, sources : Option[Path])
+    sealed trait ResolvedLibrary { def path : os.Path }
+    case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path])
       extends ResolvedLibrary
-    case class OtherResolved(path : Path) extends ResolvedLibrary
+    case class OtherResolved(path : os.Path) extends ResolvedLibrary
 
     // Tries to group jars with their poms and sources.
-    def toResolvedJar(path : Path) : Option[ResolvedLibrary] = {
-      val inCoursierCache = path.startsWith(Path(CoursierPaths.cacheDirectory()))
-      val isSource = path.segments.last.endsWith("sources.jar")
+    def toResolvedJar(path : os.Path) : Option[ResolvedLibrary] = {
+      val inCoursierCache = path.startsWith(os.Path(CoursierPaths.cacheDirectory()))
+      val isSource = path.last.endsWith("sources.jar")
       val isPom = path.ext == "pom"
       if (inCoursierCache && (isSource || isPom)) {
         // Remove sources and pom as they'll be recovered from the jar path
         None
       } else if (inCoursierCache && path.ext == "jar") {
-        val withoutExt = path.segments.last.dropRight(path.ext.length + 1)
-        val pom = path / up / s"$withoutExt.pom"
-        val sources = Some(path / up / s"$withoutExt-sources.jar")
+        val withoutExt = path.last.dropRight(path.ext.length + 1)
+        val pom = path / os.up / s"$withoutExt.pom"
+        val sources = Some(path / os.up / s"$withoutExt-sources.jar")
           .filter(_.toIO.exists())
         Some(CoursierResolved(path, pom, sources))
       } else Some(OtherResolved(path))
@@ -186,7 +185,7 @@ object GenIdeaImpl {
 
     // Hack so that Intellij does not complain about unresolved magic
     // imports in build.sc when in fact they are resolved
-    def sbtLibraryNameFromPom(pom : Path) : String = {
+    def sbtLibraryNameFromPom(pom : os.Path) : String = {
       val xml = scala.xml.XML.loadFile(pom.toIO)
 
       val groupId = (xml \ "groupId").text
@@ -206,12 +205,12 @@ object GenIdeaImpl {
         pathToLibName(path)
     }
 
-    def resolvedLibraries(resolved : Seq[Path]) : Seq[ResolvedLibrary] = resolved
+    def resolvedLibraries(resolved : Seq[os.Path]) : Seq[ResolvedLibrary] = resolved
       .map(toResolvedJar)
       .collect { case Some(r) => r}
 
     val compilerSettings = resolved
-      .foldLeft(Map[(Loose.Agg[Path], Seq[String]), Vector[JavaModule]]()) {
+      .foldLeft(Map[(Loose.Agg[os.Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
           val key = (q._4, q._5)
           r + (key -> (r.getOrElse(key, Vector()) :+ q._3))
@@ -221,10 +220,10 @@ object GenIdeaImpl {
       resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
 
     val fixedFiles = Seq(
-      Tuple2(".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
-      Tuple2(".idea"/"scala_settings.xml", scalaSettingsTemplate()),
+      Tuple2(os.rel/".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
+      Tuple2(os.rel/".idea"/"scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
-        ".idea"/"modules.xml",
+        os.rel/".idea"/"modules.xml",
         allModulesXmlTemplate(
           modules
             .filter(!_._2.skipIdea)
@@ -232,14 +231,14 @@ object GenIdeaImpl {
         )
       ),
       Tuple2(
-        ".idea_modules"/"mill-build.iml",
+        os.rel/".idea_modules"/"mill-build.iml",
         rootXmlTemplate(
           for(lib <- allBuildLibraries)
           yield libraryName(lib)
         )
       ),
       Tuple2(
-        ".idea"/"scala_compiler.xml",
+        os.rel/".idea"/"scala_compiler.xml",
         scalaCompilerTemplate(compilerSettings)
       )
     )
@@ -252,7 +251,7 @@ object GenIdeaImpl {
         case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
         case OtherResolved(_) => None
       }
-      Tuple2(".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url, sources))
+      Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url, sources))
     }
 
     val moduleFiles = resolved.map{ case (path, resolvedDeps, mod, _, _) =>
@@ -293,7 +292,7 @@ object GenIdeaImpl {
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
         isTest
       )
-      Tuple2(".idea_modules"/s"${moduleName(path)}.iml", elem)
+      Tuple2(os.rel/".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
 
     fixedFiles ++ libraries ++ moduleFiles
@@ -306,8 +305,8 @@ object GenIdeaImpl {
     }
   }
 
-  def relify(p: Path) = {
-    val r = p.relativeTo(pwd/".idea_modules")
+  def relify(p: os.Path) = {
+    val r = p.relativeTo(os.pwd/".idea_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
@@ -387,13 +386,13 @@ object GenIdeaImpl {
       </library>
     </component>
   }
-  def moduleXmlTemplate(basePath: Path,
+  def moduleXmlTemplate(basePath: os.Path,
                         scalaVersionOpt: Option[String],
-                        resourcePaths: Strict.Agg[Path],
-                        normalSourcePaths: Strict.Agg[Path],
-                        generatedSourcePaths: Strict.Agg[Path],
-                        compileOutputPath: Path,
-                        generatedSourceOutputPath: Path,
+                        resourcePaths: Strict.Agg[os.Path],
+                        normalSourcePaths: Strict.Agg[os.Path],
+                        generatedSourcePaths: Strict.Agg[os.Path],
+                        compileOutputPath: os.Path,
+                        generatedSourceOutputPath: os.Path,
                         libNames: Strict.Agg[String],
                         depNames: Strict.Agg[String],
                         isTest: Boolean
@@ -447,7 +446,7 @@ object GenIdeaImpl {
       </component>
     </module>
   }
-  def scalaCompilerTemplate(settings: Map[(Loose.Agg[Path], Seq[String]), Seq[JavaModule]]) = {
+  def scalaCompilerTemplate(settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]) = {
 
     <project version="4">
       <component name="ScalaCompilerConfiguration">

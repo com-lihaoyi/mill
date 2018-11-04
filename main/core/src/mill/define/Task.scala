@@ -109,11 +109,11 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
 
-  def sources(values: Result[ammonite.ops.Path]*)
+  def sources(values: Result[os.Path]*)
              (implicit ctx: mill.define.Ctx): Sources = macro sourcesImpl1
 
   def sourcesImpl1(c: Context)
-                  (values: c.Expr[Result[ammonite.ops.Path]]*)
+                  (values: c.Expr[Result[os.Path]]*)
                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Sources] = {
     import c.universe._
     val wrapped =

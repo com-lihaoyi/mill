@@ -244,7 +244,7 @@ object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
   override def generatedSources = T{
     val classes = compileTwirl().classes
-    Seq(classes.copy(path = classes.path / up)) // we just move one dir up
+    Seq(classes.copy(path = classes.path / os.up)) // we just move one dir up
   }
 }
 ``` 

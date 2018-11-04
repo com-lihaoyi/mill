@@ -1,12 +1,12 @@
 package mill.integration
 
-import ammonite.ops._
+
 import utest._
 
 class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_REPO", "play-json", fork) {
 
-  override def buildFiles: Seq[Path] = {
-    ls(buildFilePath).filter(_.ext == "sc")
+  override def buildFiles: Seq[os.Path] = {
+    os.list(buildFilePath).filter(_.ext == "sc")
   }
 
   val tests = Tests{

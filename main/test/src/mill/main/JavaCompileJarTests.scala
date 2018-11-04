@@ -1,12 +1,11 @@
 package mill.main
 
-import ammonite.ops._
 import mill.util.ScriptTestSuite
 import utest._
 
 object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "java-compile-jar"
-  def scriptSourcePath = pwd / 'main / 'test / 'resources / 'examples / 'javac
+  def scriptSourcePath = os.pwd / 'main / 'test / 'resources / 'examples / 'javac
   val tests = Tests{
     initWorkspace()
     'test - {
@@ -31,8 +30,8 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
         )
 
         // If we update resources, classFiles are unchanged but jar changes
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "txt")){
-          write.append(scalaFile, "\n")
+        for(scalaFile <- os.walk(workspacePath).filter(_.ext == "txt")){
+          os.write.append(scalaFile, "\n")
         }
 
         assert(eval("classFiles"))
@@ -48,15 +47,15 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
 
         // We can intentionally break the code, have the targets break, then
         // fix the code and have them recover.
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")){
-          write.append(scalaFile, "\n}")
+        for(scalaFile <- os.walk(workspacePath).filter(_.ext == "java")){
+          os.write.append(scalaFile, "\n}")
         }
 
         assert(!eval("classFiles"))
         assert(!eval("jar"))
 
-        for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "java")){
-          write.over(scalaFile, read(scalaFile).dropRight(2))
+        for(scalaFile <- os.walk(workspacePath).filter(_.ext == "java")){
+          os.write.over(scalaFile, os.read(scalaFile).dropRight(2))
         }
 
         assert(eval("classFiles"))

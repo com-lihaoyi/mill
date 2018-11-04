@@ -1,6 +1,5 @@
 package mill.scalalib.scalafmt
 
-import ammonite.ops._
 import mill.main.Tasks
 import mill.scalalib.ScalaModule
 import mill.util.{TestEvaluator, TestUtil}
@@ -20,17 +19,17 @@ object ScalafmtTests extends TestSuite {
     }
   }
 
-  val resourcePath = pwd / 'scalalib / 'test / 'resources / 'scalafmt
+  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / 'scalafmt
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: Path = resourcePath)(t: TestEvaluator => T)(
+      resourcePath: os.Path = resourcePath)(t: TestEvaluator => T)(
       implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath / up)
-    cp(resourcePath, m.millSourcePath)
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(m.millSourcePath / os.up)
+    os.copy(resourcePath, m.millSourcePath)
     t(eval)
   }
 
@@ -68,7 +67,7 @@ object ScalafmtTests extends TestSuite {
           )
 
           // reformat after change
-          write.over(cached("Main.scala").path,
+          os.write.over(cached("Main.scala").path,
                      cached("Main.scala").content + "\n object Foo")
 
           val Right(_) = eval.apply(reformatCommand)
@@ -89,16 +88,16 @@ object ScalafmtTests extends TestSuite {
     }
   }
 
-  case class FileInfo(content: String, modifyTime: Long, path: Path)
+  case class FileInfo(content: String, modifyTime: Long, path: os.Path)
 
   def getProjectFiles(m: ScalaModule, eval: TestEvaluator) = {
     val Right((sources, _)) = eval.apply(m.sources)
     val Right((resources, _)) = eval.apply(m.resources)
 
-    val sourcesFiles = sources.flatMap(p => ls.rec(p.path))
-    val resourcesFiles = resources.flatMap(p => ls.rec(p.path))
+    val sourcesFiles = sources.flatMap(p => os.walk(p.path))
+    val resourcesFiles = resources.flatMap(p => os.walk(p.path))
     (sourcesFiles ++ resourcesFiles).map { p =>
-      p.name -> FileInfo(read(p), p.mtime.toMillis, p)
+      p.last -> FileInfo(os.read(p), os.mtime(p), p)
     }.toMap
   }
 

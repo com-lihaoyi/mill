@@ -1,6 +1,5 @@
 package mill.scalalib.dependency.versions
 
-import ammonite.ops.pwd
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
@@ -13,7 +12,7 @@ private[dependency] object VersionsFinder {
   def findVersions(ctx: Log with Home,
                    rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
     val evaluator =
-      new Evaluator(ctx.home, pwd / 'out, pwd / 'out, rootModule, ctx.log)
+      new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
 
     val javaModules = rootModule.millInternal.modules.collect {
       case javaModule: JavaModule => javaModule

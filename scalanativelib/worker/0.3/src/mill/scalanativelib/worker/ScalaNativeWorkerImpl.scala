@@ -4,7 +4,6 @@ import java.io.File
 import java.lang.System.{err, out}
 
 import scala.scalanative.build.{Build, Config, Discover, GC, Logger, Mode}
-import ammonite.ops.Path
 import mill.scalanativelib.{NativeConfig, NativeLogLevel, ReleaseMode}
 import sbt.testing.Framework
 
@@ -19,19 +18,19 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.ScalaNativeWorkerApi {
       warnFn  = msg => if (level >= NativeLogLevel.Warn)  out.println(msg),
       errorFn = msg => if (level >= NativeLogLevel.Error) err.println(msg))
 
-  def discoverClang: Path = Path(Discover.clang())
-  def discoverClangPP: Path = Path(Discover.clangpp())
-  def discoverTarget(clang: Path, workdir: Path): String = Discover.targetTriple(clang.toNIO, workdir.toNIO)
+  def discoverClang: os.Path = os.Path(Discover.clang())
+  def discoverClangPP: os.Path = os.Path(Discover.clangpp())
+  def discoverTarget(clang: os.Path, workdir: os.Path): String = Discover.targetTriple(clang.toNIO, workdir.toNIO)
   def discoverCompileOptions: Seq[String] = Discover.compileOptions()
   def discoverLinkingOptions: Seq[String] = Discover.linkingOptions()
   def defaultGarbageCollector: String = GC.default.name
 
-  def config(nativeLibJar: Path,
+  def config(nativeLibJar: os.Path,
              mainClass: String,
-             classpath: Seq[Path],
-             nativeWorkdir: Path,
-             nativeClang: Path,
-             nativeClangPP: Path,
+             classpath: Seq[os.Path],
+             nativeWorkdir: os.Path,
+             nativeClang: os.Path,
+             nativeClangPP: os.Path,
              nativeTarget: String,
              nativeCompileOptions: Seq[String],
              nativeLinkingOptions: Seq[String],
@@ -60,7 +59,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.ScalaNativeWorkerApi {
       NativeConfig(config)
     }
 
-  def nativeLink(nativeConfig: NativeConfig, outPath: Path): Path = {
+  def nativeLink(nativeConfig: NativeConfig, outPath: os.Path): os.Path = {
     val config = nativeConfig.config.asInstanceOf[Config]
     Build.build(config, outPath.toNIO)
     outPath

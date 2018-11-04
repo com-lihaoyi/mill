@@ -3,7 +3,6 @@ import java.io.{InputStream, PrintStream}
 
 import ammonite.Main
 import ammonite.interp.{Interpreter, Preprocessor}
-import ammonite.ops.Path
 import ammonite.util.Util.CodeSource
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
@@ -33,7 +32,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
   var stateCache  = stateCache0
 
-  override def watchAndWait(watched: Seq[(Path, Long)]) = {
+  override def watchAndWait(watched: Seq[(os.Path, Long)]) = {
     printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       Interpreter.pathSignature(file) == lastMTime
@@ -50,7 +49,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     */
   @tailrec final def watchLoop2[T](isRepl: Boolean,
                                    printing: Boolean,
-                                   run: Main => (Res[T], () => Seq[(Path, Long)])): Boolean = {
+                                   run: Main => (Res[T], () => Seq[(os.Path, Long)])): Boolean = {
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
@@ -62,7 +61,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   }
 
 
-  override def runScript(scriptPath: Path, scriptArgs: List[String]) =
+  override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
     watchLoop2(
       isRepl = false,
       printing = true,
@@ -146,7 +145,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         |$imports
         |import mill._
         |object $wrapName
-        |extends mill.define.BaseModule(ammonite.ops.Path($literalPath), foreign0 = $external)(
+        |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $external)(
         |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
         |)
         |with $wrapName{

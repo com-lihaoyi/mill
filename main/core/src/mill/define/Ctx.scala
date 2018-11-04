@@ -1,8 +1,6 @@
 package mill.define
 
 
-import ammonite.ops.Path
-
 import scala.annotation.implicitNotFound
 
 sealed trait Segment{
@@ -18,7 +16,7 @@ object Segment{
   case class Cross(value: Seq[Any]) extends Segment
 }
 
-case class BasePath(value: Path)
+case class BasePath(value: os.Path)
 
 
 /**
@@ -64,7 +62,7 @@ object Segments {
 case class Ctx(enclosing: String,
                lineNum: Int,
                segment: Segment,
-               millSourcePath: Path,
+               millSourcePath: os.Path,
                segments: Segments,
                overrides: Int,
                external: Boolean,
