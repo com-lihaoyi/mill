@@ -33,8 +33,7 @@ trait TwirlModule extends mill.Module {
     )
   }
 
-  // REMIND currently it's not possible to override these default settings
-  private def twirlAdditionalImports: Seq[String] = Nil
+  def twirlAdditionalImports: Seq[String] = Nil
 
   private def twirlConstructorAnnotations: Seq[String] = Nil
 
