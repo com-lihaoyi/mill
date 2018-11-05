@@ -185,11 +185,11 @@ object PrintLogger {
 
 }
 
-case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) extends Logger {
+case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
-    if (!outputStreamUsed) os.remove.all(file)
+    if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
     file.toIO.getAbsoluteFile().getParentFile().mkdirs()
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
