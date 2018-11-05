@@ -151,6 +151,11 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### master
+
+- Mill is now bundled with [OS-Lib](https://github.com/lihaoyi/os-lib),
+  providing a simpler way of dealing with filesystem APIs and subprocesses
+
 ### 0.3.3
 
 - Added new `debug` method to context logger, to log additional debug info into the

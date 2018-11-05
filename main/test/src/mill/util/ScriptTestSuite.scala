@@ -24,7 +24,12 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
     else{
       try {
-        os.proc(os.home / "mill-release", "-i", s).call(wd)
+        os.proc(os.home / "mill-release", "-i", s).call(
+          wd,
+          stdin = os.Inherit,
+          stdout = os.Inherit,
+          stderr = os.Inherit,
+        )
         true
       }catch{case e: Throwable => false}
     }

@@ -400,7 +400,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * Runs this module's code in a subprocess and waits for it to finish
     */
   def run(args: String*) = T.command{
-    try Result.Success(Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.runSubprocess(
       finalMainClass(),
       runClasspath().map(_.path),
       forkArgs(),
@@ -458,7 +458,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     */
   def runBackground(args: String*) = T.command{
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
-    try Result.Success(Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
@@ -476,7 +476,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     */
   def runMainBackground(mainClass: String, args: String*) = T.command{
     val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
-    try Result.Success(Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
       forkArgs(),
@@ -504,7 +504,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * Same as `run`, but lets you specify a main class to run
     */
   def runMain(mainClass: String, args: String*) = T.command{
-    try Result.Success(Jvm.interactiveSubprocess(
+    try Result.Success(Jvm.runSubprocess(
       mainClass,
       runClasspath().map(_.path),
       forkArgs(),
@@ -545,7 +545,7 @@ trait TestModule extends JavaModule with TaskModule {
   def test(args: String*) = T.command{
     val outputPath = T.ctx().dest/"out.json"
 
-    Jvm.subprocess(
+    Jvm.runSubprocess(
       mainClass = "mill.scalalib.TestRunner",
       classPath = zincWorker.scalalibClasspath().map(_.path),
       jvmArgs = forkArgs(),

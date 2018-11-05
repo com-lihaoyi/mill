@@ -5,7 +5,7 @@ import coursier.Repository
 import mill.define.{Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createJar, subprocess}
+import mill.modules.Jvm.createJar
 import Dep.isDotty
 import Lib._
 import mill.util.Loose.Agg
@@ -206,7 +206,7 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
-      Jvm.interactiveSubprocess(
+      Jvm.runSubprocess(
         mainClass =
           if (isDotty(scalaVersion()))
             "dotty.tools.repl.Main"
@@ -241,7 +241,7 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
-      Jvm.interactiveSubprocess(
+      Jvm.runSubprocess(
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),
         mainArgs = replOptions,

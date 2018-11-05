@@ -20,67 +20,115 @@ import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 object Jvm {
+  /**
+    * Runs a JVM subprocess with the given configuration and returns a
+    * [[os.CommandResult]] with it's aggregated output and error streams
+    */
+  def callSubprocess(mainClass: String,
+                     classPath: Agg[os.Path],
+                     jvmArgs: Seq[String] = Seq.empty,
+                     envArgs: Map[String, String] = Map.empty,
+                     mainArgs: Seq[String] = Seq.empty,
+                     workingDir: os.Path = null,
+                     streamOut: Boolean = true)
+                    (implicit ctx: Ctx) = {
 
-  def interactiveSubprocess(mainClass: String,
-                            classPath: Agg[os.Path],
-                            jvmArgs: Seq[String] = Seq.empty,
-                            envArgs: Map[String, String] = Map.empty,
-                            mainArgs: Seq[String] = Seq.empty,
-                            workingDir: os.Path = null,
-                            background: Boolean = false): Unit = {
+    val commandArgs =
+      Vector("java") ++
+      jvmArgs ++
+      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
+      mainArgs
+
+    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
+    os.makeDir.all(workingDir1)
+
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
+  }
+
+  /**
+    * Runs a JVM subprocess with the given configuration and streams
+    * it's stdout and stderr to the console.
+    */
+  def runSubprocess(mainClass: String,
+                    classPath: Agg[os.Path],
+                    jvmArgs: Seq[String] = Seq.empty,
+                    envArgs: Map[String, String] = Map.empty,
+                    mainArgs: Seq[String] = Seq.empty,
+                    workingDir: os.Path = null,
+                    background: Boolean = false): Unit = {
     val args =
       Vector("java") ++
       jvmArgs ++
       Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
       mainArgs
 
-    if (background) baseInteractiveSubprocess0(args, envArgs, workingDir)
-    else baseInteractiveSubprocess(args, envArgs, workingDir)
+    if (background) spawnSubprocess(args, envArgs, workingDir)
+    else runSubprocess(args, envArgs, workingDir)
   }
 
+  @deprecated("Use runSubprocess instead")
   def baseInteractiveSubprocess(commandArgs: Seq[String],
                                 envArgs: Map[String, String],
                                 workingDir: os.Path) = {
-    val process = baseInteractiveSubprocess0(commandArgs, envArgs, workingDir)
+    runSubprocess(commandArgs, envArgs, workingDir)
+  }
 
-    val exitCode = process.waitFor()
-    if (exitCode == 0) ()
+  /**
+    * Runs a generic subprocess and waits for it to terminate.
+    */
+  def runSubprocess(commandArgs: Seq[String],
+                    envArgs: Map[String, String],
+                    workingDir: os.Path) = {
+    val process = spawnSubprocess(commandArgs, envArgs, workingDir)
+
+    process.waitFor()
+    if (process.exitCode() == 0) ()
     else throw new Exception("Interactive Subprocess Failed")
   }
-  def baseInteractiveSubprocess0(commandArgs: Seq[String],
-                                 envArgs: Map[String, String],
-                                 workingDir: os.Path) = {
-    val builder = new java.lang.ProcessBuilder()
 
-    for ((k, v) <- envArgs){
-      if (v != null) builder.environment().put(k, v)
-      else builder.environment().remove(k)
-    }
-    builder.directory(workingDir.toIO)
-
+  /**
+    * Spawns a generic subprocess, streaming the stdout and stderr to the
+    * console. If the System.out/System.err have been substituted, makes sure
+    * that the subprocess's stdout and stderr streams go to the subtituted
+    * streams
+    */
+  def spawnSubprocess(commandArgs: Seq[String],
+                      envArgs: Map[String, String],
+                      workingDir: os.Path) = {
+    // If System.in is fake, then we pump output manually rather than relying
+    // on `os.Inherit`. That is because `os.Inherit` does not follow changes
+    // to System.in/System.out/System.err, so the subprocess's streams get sent
+    // to the parent process's origin outputs even if we want to direct them
+    // elsewhere
     if (System.in.isInstanceOf[ByteArrayInputStream]){
-
-      val process = builder
-        .command(commandArgs:_*)
-        .start()
+      val process = os.proc(commandArgs).spawn(
+        cwd = workingDir,
+        env = envArgs,
+        stdin = os.Pipe,
+        stdout = os.Pipe,
+        stderr = os.Pipe
+      )
 
       val sources = Seq(
-        process.getInputStream -> System.out,
-        process.getErrorStream -> System.err,
-        System.in -> process.getOutputStream
+        process.stdout -> System.out,
+        process.stderr -> System.err,
+        System.in -> process.stdin
       )
 
       for((std, dest) <- sources){
         new Thread(new InputPumper(std, dest, false)).start()
       }
+
       process
     }else{
-      builder
-        .command(commandArgs:_*)
-        .inheritIO()
-        .start()
+      os.proc(commandArgs).spawn(
+        cwd = workingDir,
+        env = envArgs,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
     }
-
   }
 
 
@@ -106,7 +154,6 @@ object Jvm {
       throw new NoSuchMethodException(mainClassName + ".main is not static")
     method
   }
-
 
 
   def inprocess[T](classPath: Agg[os.Path],
@@ -141,62 +188,6 @@ object Jvm {
     }
   }
 
-  def subprocess(mainClass: String,
-                 classPath: Agg[os.Path],
-                 jvmArgs: Seq[String] = Seq.empty,
-                 envArgs: Map[String, String] = Map.empty,
-                 mainArgs: Seq[String] = Seq.empty,
-                 workingDir: os.Path = null)
-                (implicit ctx: Ctx) = {
-
-    val commandArgs =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
-      mainArgs
-
-    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
-    os.makeDir.all(workingDir1)
-    val builder =
-      new java.lang.ProcessBuilder()
-        .directory(workingDir1.toIO)
-        .command(commandArgs:_*)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-
-    for((k, v) <- envArgs) builder.environment().put(k, v)
-    val proc = builder.start()
-    val stdout = proc.getInputStream
-    val stderr = proc.getErrorStream
-    val sources = Seq(
-      (stdout, Left(_: os.Bytes), ctx.log.outputStream),
-      (stderr, Right(_: os.Bytes),ctx.log.errorStream )
-    )
-    val chunks = mutable.Buffer.empty[Either[os.Bytes, os.Bytes]]
-    while(
-    // Process.isAlive doesn't exist on JDK 7 =/
-      util.Try(proc.exitValue).isFailure ||
-        stdout.available() > 0 ||
-        stderr.available() > 0
-    ){
-      var readSomething = false
-      for ((subStream, wrapper, parentStream) <- sources){
-        while (subStream.available() > 0){
-          readSomething = true
-          val array = new Array[Byte](subStream.available())
-          val actuallyRead = subStream.read(array)
-          chunks.append(wrapper(new os.Bytes(array)))
-          parentStream.write(array, 0, actuallyRead)
-        }
-      }
-      // if we did not read anything sleep briefly to avoid spinning
-      if(!readSomething)
-        Thread.sleep(2)
-    }
-
-    if (proc.exitValue() != 0) throw new Exception("Subprocess failed")
-    else os.CommandResult(proc.exitValue(), chunks)
-  }
 
   private def createManifest(mainClass: Option[String]) = {
     val m = new java.util.jar.Manifest()
@@ -291,14 +282,14 @@ object Jvm {
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .foreach {
         case (mapping, AppendEntry(entries)) =>
-          val path = zipFs.getPath(mapping)
+          val path = zipFs.getPath(mapping).toAbsolutePath
           val concatenated = new SequenceInputStream(
             Collections.enumeration(entries.map(_.inputStream).asJava))
-          writeEntry(os.Path(path), concatenated, append = true)
+          writeEntry(path, concatenated, append = true)
         case (mapping, WriteOnceEntry(entry)) =>
-          val path = zipFs.getPath(mapping)
+          val path = zipFs.getPath(mapping).toAbsolutePath
           if (Files.notExists(path)) {
-            writeEntry(os.Path(path), entry.inputStream, append = false)
+            writeEntry(path, entry.inputStream, append = false)
           }
       }
 
@@ -331,14 +322,17 @@ object Jvm {
     PathRef(output)
   }
 
-  private def writeEntry(p: os.Path, is: InputStream, append: Boolean): Unit = {
-    if (p.toNIO.getParent != null) Files.createDirectories(p.toNIO.getParent)
-    if (append) os.write(p, is)
-    else os.write.append(p, is)
+  private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
+    if (p.getParent != null) Files.createDirectories(p.getParent)
+    val options =
+      if(append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
+    val outputStream = java.nio.file.Files.newOutputStream(p, options:_*)
+    IO.stream(is, outputStream)
+    outputStream.close()
     is.close()
   }
-
   def universalScript(shellCommands: String,
                       cmdCommands: String,
                       shebang: Boolean = false): String = {

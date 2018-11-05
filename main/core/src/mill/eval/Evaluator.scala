@@ -268,13 +268,7 @@ case class Evaluator(home: os.Path,
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
-        .map{x =>
-          val res = newResults.getOrElse(x, results(x))
-          if (!res.isInstanceOf[Result.Success[_]]){
-            println("FAILURE " + x)
-          }
-          res
-        }
+        .map{x => newResults.getOrElse(x, results(x))}
         .collect{ case Result.Success((v, hashCode)) => v }
 
       val res =

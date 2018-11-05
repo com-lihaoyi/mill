@@ -44,7 +44,7 @@ object caffeine extends CaffeineModule {
       "com.github.benmanes.caffeine.cache.NodeFactoryGenerator",
       "com.github.benmanes.caffeine.cache.LocalCacheFactoryGenerator",
     )
-    for(mainCls <- mains) Jvm.interactiveSubprocess(
+    for(mainCls <- mains) Jvm.runSubprocess(
       mainCls,
       javaPoet.runClasspath().map(_.path),
       javaPoet.forkArgs(),

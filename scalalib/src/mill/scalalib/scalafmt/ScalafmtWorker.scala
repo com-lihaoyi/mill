@@ -47,7 +47,7 @@ private[scalafmt] class ScalafmtWorker {
                              classpath: Agg[os.Path])(implicit ctx: Ctx) = {
     val configFlags =
       if (os.exists(config)) Seq("--config", config.toString) else Seq.empty
-    Jvm.subprocess(
+    Jvm.runSubprocess(
       "org.scalafmt.cli.Cli",
       classpath,
       mainArgs = toFormat.map(_.toString) ++ configFlags ++ cliFlags
