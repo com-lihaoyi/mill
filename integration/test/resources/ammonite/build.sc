@@ -1,17 +1,6 @@
 import mill._, scalalib._, publish._
 import ammonite.ops._, ImplicitWd._
 
-val isMasterCommit =
-  sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
-    (sys.env.get("TRAVIS_BRANCH") == Some("master") || sys.env("TRAVIS_TAG") != "")
-
-val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--tags").out.trim
-
-val commitsSinceTaggedVersion = {
-  %%('git, "rev-list", 'master, "--not", latestTaggedVersion, "--count").out.trim.toInt
-}
-
-
 val binCrossScalaVersions = Seq("2.11.12", "2.12.7")
 val fullCrossScalaVersions = Seq(
   "2.11.3", "2.11.4", "2.11.5", "2.11.6", "2.11.7", "2.11.8", "2.11.9", "2.11.11", "2.11.12",
@@ -20,12 +9,7 @@ val fullCrossScalaVersions = Seq(
 
 val latestAssemblies = binCrossScalaVersions.map(amm(_).assembly)
 
-val (buildVersion, unstable) = sys.env.get("TRAVIS_TAG") match{
-  case Some(v) if v != "" => (v, false)
-  case _ =>
-    val gitHash = %%("git", "rev-parse", "--short", "HEAD").out.trim
-    (s"$latestTaggedVersion-$commitsSinceTaggedVersion-${gitHash}", true)
-}
+val buildVersion = "dev"
 
 trait AmmInternalModule extends mill.scalalib.CrossSbtModule{
   def artifactName = "ammonite-" + millOuterCtx.segments.parts.last

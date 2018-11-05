@@ -11,7 +11,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
 
   val workspacePath = os.pwd / 'target / 'workspace / workspaceSlug
   val wd = workspacePath / buildPath / os.up
-  val stdOutErr = new PrintStream(new ByteArrayOutputStream())
+  val stdOutErr = System.out // new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
   val debugLog = false
