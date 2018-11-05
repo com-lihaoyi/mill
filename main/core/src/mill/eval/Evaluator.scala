@@ -49,6 +49,10 @@ case class Evaluator(home: os.Path,
     // we need to collect all relevant logging info while developing
     val evalLog = MultiLogger(true, this.log, new FileLogger(false, outPath / "evaluator.log", true, append = true))
 
+    val threadCount = 4
+
+    evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
+
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     // Mutable collector for all evaluated tasks
@@ -76,7 +80,7 @@ case class Evaluator(home: os.Path,
       // TODO: check for interactivity
       // TODO: make sure, multiple goals run in order, e.g. clean compile
 
-      val executorService = Executors.newFixedThreadPool(4)
+      val executorService = Executors.newFixedThreadPool(threadCount)
       evalLog.debug(s"Created executor: ${executorService}")
       val completionService = new ExecutorCompletionService[(TerminalGroup, Evaluated)](executorService)
 
