@@ -184,11 +184,10 @@ def main(publish: Boolean = false) = {
   }
 
   if (publish){
-    implicit val wd = os.pwd/'target
-    os.proc("git", 'init).call()
-    os.proc("git", 'add, "-A", ".").call()
-    os.proc("git", 'commit, "-am", "first commit").call()
-    os.proc("git", 'remote, 'add, 'origin, "git@github.com:lihaoyi/mill.git").call()
-    os.proc("git", 'push, "-uf", 'origin, "master:gh-pages").call()
+    os.proc("git", 'init).call(cwd = cwd / 'target)
+    os.proc("git", 'add, "-A", ".").call(cwd = cwd / 'target)
+    os.proc("git", 'commit, "-am", "first commit").call(cwd = cwd / 'target)
+    os.proc("git", 'remote, 'add, 'origin, "git@github.com:lihaoyi/mill.git").call(cwd = cwd / 'target)
+    os.proc("git", 'push, "-uf", 'origin, "master:gh-pages").call(cwd = cwd / 'target)
   }
 }
