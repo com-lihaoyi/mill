@@ -15,7 +15,7 @@ by Gradle? Give Mill a try!
 
 If you want to use Mill in your own projects, check out our documentation:
 
-- [Documentation](http://www.lihaoyi.com/mill/)
+- [Documentation](http://www.lihaoyi.com/post/MillBetterScalaBuilds.html)
 
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
