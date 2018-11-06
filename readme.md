@@ -151,7 +151,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### master
+### 0.3.4
 
 - Mill is now bundled with [OS-Lib](https://github.com/lihaoyi/os-lib),
   providing a simpler way of dealing with filesystem APIs and subprocesses

@@ -9,14 +9,14 @@ import collection.JavaConverters._
 import org.pegdown.{PegDownProcessor, ToHtmlSerializer, LinkRenderer, Extensions}
 import org.pegdown.ast.{VerbatimNode, ExpImageNode, HeaderNode, TextNode, SimpleNode, TableNode}
 
-val postsFolder = cwd/'pages
+val postsFolder = os.pwd/'pages
 
 interp.watch(postsFolder)
 
-val targetFolder = cwd/'target
+val targetFolder = os.pwd/'target
 
 
-val (markdownFiles, otherFiles) = ls! postsFolder partition (_.ext == "md")
+val (markdownFiles, otherFiles) = os.list(postsFolder).partition(_.ext == "md")
 markdownFiles.foreach(println)
 // Walk the posts/ folder and parse out the name, full- and first-paragraph-
 // HTML of each post to be used on their respective pages and on the index
@@ -30,7 +30,7 @@ val posts = {
     val processor = new PegDownProcessor(
       Extensions.FENCED_CODE_BLOCKS | Extensions.TABLES | Extensions.AUTOLINKS
     )
-    val ast = processor.parseMarkdown(read! path toArray)
+    val ast = processor.parseMarkdown(os.read(path).toArray)
     val headers = collection.mutable.Buffer.empty[(String, Int)]
     class Serializer extends ToHtmlSerializer(new LinkRenderer){
       override def printImageTag(rendering: LinkRenderer.Rendering) {
@@ -134,21 +134,21 @@ def formatRssDate(date: java.time.LocalDate) = {
 @main
 def main(publish: Boolean = false) = {
 
-  os.remove.all! targetFolder
+  os.remove.all(targetFolder)
 
-  os.makeDir.all! targetFolder/'page
+  os.makeDir.all(targetFolder/'page)
   for(otherFile <- otherFiles){
     os.copy(otherFile, targetFolder/'page/(otherFile relativeTo postsFolder))
   }
 
-  os.copy(pwd/"favicon.png", targetFolder/"favicon.ico")
-  os.copy(pwd/"logo-white.svg", targetFolder/"logo-white.svg")
-  os.copy(pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
-  os.copy(pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
-  os.copy(pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
+  os.copy(os.pwd/"favicon.png", targetFolder/"favicon.ico")
+  os.copy(os.pwd/"logo-white.svg", targetFolder/"logo-white.svg")
+  os.copy(os.pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
+  os.copy(os.pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
+  os.copy(os.pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
 
-  %('zip, "-r", targetFolder/"example-1.zip", "example-1")(pwd)
-  %('zip, "-r", targetFolder/"example-2.zip", "example-2")(pwd)
+  os.proc('zip, "-r", targetFolder/"example-1.zip", "example-1").call()
+  os.proc('zip, "-r", targetFolder/"example-2.zip", "example-2").call()
   for(i <- posts.indices){
     val post = posts(i)
 
@@ -184,11 +184,11 @@ def main(publish: Boolean = false) = {
   }
 
   if (publish){
-    implicit val wd = cwd/'target
-    %git 'init
-    %git('add, "-A", ".")
-    %git('commit, "-am", "first commit")
-    %git('remote, 'add, 'origin, "git@github.com:lihaoyi/mill.git")
-    %git('push, "-uf", 'origin, "master:gh-pages")
+    implicit val wd = os.pwd/'target
+    os.proc("git", 'init).call()
+    os.proc("git", 'add, "-A", ".").call()
+    os.proc("git", 'commit, "-am", "first commit").call()
+    os.proc("git", 'remote, 'add, 'origin, "git@github.com:lihaoyi/mill.git").call()
+    os.proc("git", 'push, "-uf", 'origin, "master:gh-pages").call()
   }
 }
