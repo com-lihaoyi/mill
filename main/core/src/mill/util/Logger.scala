@@ -185,7 +185,7 @@ object PrintLogger {
 
 }
 
-case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
+class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
