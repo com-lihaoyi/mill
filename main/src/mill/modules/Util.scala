@@ -74,7 +74,7 @@ object Util {
                         repositories: Seq[Repository],
                         resolveFilter: Path => Boolean = _ => true,
                         artifactSuffix: String = "_2.12") = {
-    val localPath = sys.props(key)
+    val localPath = millProperty(key)
     if (localPath != null) {
       mill.eval.Result.Success(
         Loose.Agg.from(localPath.split(',').map(p => PathRef(Path(p), quick = true)))
@@ -90,6 +90,20 @@ object Util {
         ),
         Nil
       ).map(_.filter(x => resolveFilter(x.path)))
+    }
+  }
+  
+  def millProperty(key: String): String = {
+    val sysPropValue = sys.props(key)
+    if(sysPropValue != null) sysPropValue // system property has priority
+    else {
+      val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
+      if(millOptionsPath == null) null
+      else {
+        val props = new java.util.Properties()
+        props.load(new java.io.FileInputStream(millOptionsPath))
+        props.getProperty(key)
+      }
     }
   }
 }

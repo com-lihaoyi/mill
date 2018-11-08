@@ -58,6 +58,7 @@ object GenIdeaTests extends TestSuite {
 
 
   private def normaliseLibraryPaths(in: String): String = {
-    in.replaceAll(Cache.default.toPath.toAbsolutePath.toString, "COURSIER_HOME")
+    val coursierHome = Cache.default.toPath.toAbsolutePath.toString.replace("\\", "\\\\")
+    in.replaceAll(coursierHome, "COURSIER_HOME")
   }
 }

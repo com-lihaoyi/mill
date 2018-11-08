@@ -22,6 +22,17 @@ import scala.collection.JavaConverters._
 
 object Jvm {
 
+  private val LongProps = Vector(
+      "MILL_CLASSPATH",
+      "MILL_SCALA_WORKER",
+      "MILL_SCALA_LIB",
+      "MILL_BUILD_LIBRARIES",
+      "MILL_BACKGROUNDWRAPPER",
+      "MILL_GRAPHVIZ",
+      "MILL_SCALAJS_WORKER",
+      "MILL_SCALANATIVE_WORKER"
+  ).map("-D" + _)
+
   def interactiveSubprocess(mainClass: String,
                             classPath: Agg[Path],
                             jvmArgs: Seq[String] = Seq.empty,
@@ -142,6 +153,14 @@ object Jvm {
     }
   }
 
+  // pass Mill dev options as filepath due to Windows command line length limit
+  def millOptions(taskName: String, args: Seq[String])(implicit ctx: Ctx): Path = {
+    val vmOptionsFile = ctx.dest / "mill.properties"
+    // drop -D prefix, replace \ with /
+    write(vmOptionsFile, args.map(_.drop(2).replace("\\", "/")).mkString("\r\n"))
+    vmOptionsFile
+  }
+
   def subprocess(mainClass: String,
                  classPath: Agg[Path],
                  jvmArgs: Seq[String] = Seq.empty,
@@ -150,9 +169,12 @@ object Jvm {
                  workingDir: Path = null)
                 (implicit ctx: Ctx) = {
 
+    val (millArgs, otherArgs) = jvmArgs.partition(arg => LongProps.exists(arg.startsWith))
+    val millOptionsPath = mill.modules.Jvm.millOptions(mainClass, millArgs)
+
     val commandArgs =
       Vector("java") ++
-      jvmArgs ++
+      otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$millOptionsPath") ++
       Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
       mainArgs
 

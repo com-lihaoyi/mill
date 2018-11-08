@@ -380,26 +380,13 @@ object dev extends MillModule{
       )
     ).distinct
 
-
-  // Pass dev.assembly VM options via file in Windows due to small max args limit
-  def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
-    if (System.getProperty("java.specification.version").startsWith("1.")) {
-      throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
-    }
-    val vmOptionsFile = T.ctx().dest / "mill.vmoptions"
-    T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
-    write(vmOptionsFile, args.mkString("\r\n"))
-  }
-
   def launcher = T{
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
 
     write(outputPath, prependShellScript())
 
-    if (isWin) {
-      windowsVmOptions("dev.launcher", outputPath, forkArgs())
-    } else {
+    if (!isWin) {
       val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
       perms.add(PosixFilePermission.GROUP_EXECUTE)
       perms.add(PosixFilePermission.OWNER_EXECUTE)
@@ -413,23 +400,24 @@ object dev extends MillModule{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx().dest / (if (isWin) "mill.bat" else "mill")
     mv(super.assembly().path, millPath)
-    if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
     PathRef(millPath)
   }
 
   def prependShellScript = T{
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs()
-    val (shellArgs, cmdArgs) =
-      if (!scala.util.Properties.isWin) (
-        args,
-        args
-      )
-      else (
-        Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
-        Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
-      )
-    launcherScript(shellArgs, cmdArgs, classpath, classpath)
+    val (millArgs, otherArgs) = forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+    val millOptionsPath = millOptions("dev.launcher", millArgs) 
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$millOptionsPath")
+    val classPath = runClasspath().map(_.path)
+    launcherScript(jvmArgs, jvmArgs, classpath, classpath)
+  }
+
+  // TODO replace with Jvm.millOptions once mill is published
+  def millOptions(taskName: String, args: Seq[String])(implicit ctx: mill.util.Ctx): Path = {
+    val vmOptionsFile = T.ctx().dest / "mill.properties"
+    T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's launcher script")
+    write(vmOptionsFile, args.map(_.drop(2).replace("\\", "/")).mkString("\r\n")) // drop -D prefix, replace \ with /
+    vmOptionsFile
   }
 
   def run(args: String*) = T.command{
@@ -459,7 +447,7 @@ def release = T{
     "-Djna.nosys=true"
   )
   val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-  val cmdArgs = Seq("-DMILL_CLASSPATH=%0") ++ commonArgs
+  val cmdArgs = Seq("-DMILL_CLASSPATH=%~dpnx0") ++ commonArgs
   mv(
     createAssembly(
       dev.runClasspath().map(_.path),

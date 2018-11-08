@@ -70,7 +70,7 @@ object GenIdeaImpl {
 
     val buildLibraryPaths =
       if (!fetchMillModules) Nil
-      else sys.props.get("MILL_BUILD_LIBRARIES") match {
+      else Option(mill.modules.Util.millProperty("MILL_BUILD_LIBRARIES")) match {
         case Some(found) => found.split(',').map(Path(_)).distinct.toList
         case None =>
           val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }

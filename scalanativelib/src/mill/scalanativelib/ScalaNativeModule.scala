@@ -69,7 +69,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def scalaNativeWorkerClasspath = T {
     val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
-    val workerPath = sys.props(workerKey)
+    val workerPath = mill.modules.Util.millProperty(workerKey)
     if (workerPath != null)
       Result.Success(Agg(workerPath.split(',').map(p => PathRef(Path(p), quick = true)): _*))
     else
