@@ -6,7 +6,7 @@ import mill.scalalib._
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = T.command {
+  def reformat: Command[Unit] = T.command {
     ScalafmtWorkerModule
       .worker()
       .reformat(
