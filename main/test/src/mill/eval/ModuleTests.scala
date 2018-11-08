@@ -1,6 +1,6 @@
 package mill.eval
 
-import ammonite.ops._
+
 import mill.util.{TestEvaluator, TestUtil}
 import mill.T
 import mill.define.Discover
@@ -19,15 +19,15 @@ object ModuleTests extends TestSuite{
     def z = T{ ExternalModule.x() + ExternalModule.inner.y() }
   }
   val tests = Tests {
-    rm(TestEvaluator.externalOutPath)
+    os.remove.all(TestEvaluator.externalOutPath)
     'externalModuleTargetsAreNamespacedByModulePackagePath - {
       val check = new TestEvaluator(Build)
       val zresult = check.apply(Build.z)
       assert(
         zresult == Right((30, 1)),
-        read(check.evaluator.outPath / 'z / "meta.json").contains("30"),
-        read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),
-        read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")
+        os.read(check.evaluator.outPath / 'z / "meta.json").contains("30"),
+        os.read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'x / "meta.json").contains("13"),
+        os.read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")
       )
     }
     'externalModuleMustBeGlobalStatic - {

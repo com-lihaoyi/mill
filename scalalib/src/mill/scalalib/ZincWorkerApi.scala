@@ -1,7 +1,5 @@
 package mill.scalalib
 
-
-import ammonite.ops.Path
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.Agg
@@ -60,25 +58,30 @@ trait ZincWorkerModule extends mill.Module{
 trait ZincWorkerApi {
   /** Compile a Java-only project */
   def compileJava(upstreamCompileOutput: Seq[CompilationResult],
-                  sources: Agg[Path],
-                  compileClasspath: Agg[Path],
+                  sources: Agg[os.Path],
+                  compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
   def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
-                   sources: Agg[Path],
-                   compileClasspath: Agg[Path],
+                   sources: Agg[os.Path],
+                   compileClasspath: Agg[os.Path],
                    javacOptions: Seq[String],
                    scalaVersion: String,
                    scalacOptions: Seq[String],
-                   compilerBridgeSources: Path,
-                   compilerClasspath: Agg[Path],
-                   scalacPluginClasspath: Agg[Path])
+                   compilerBridgeSources: os.Path,
+                   compilerClasspath: Agg[os.Path],
+                   scalacPluginClasspath: Agg[os.Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult]
 
   def discoverMainClasses(compilationResult: CompilationResult)
                          (implicit ctx: mill.util.Ctx): Seq[String]
 
-  def docJar(args: Seq[String]): Boolean
+  def docJar(scalaVersion: String,
+             compilerBridgeSources: os.Path,
+             compilerClasspath: Agg[os.Path],
+             scalacPluginClasspath: Agg[os.Path],
+             args: Seq[String])
+            (implicit ctx: mill.util.Ctx): Boolean
 }

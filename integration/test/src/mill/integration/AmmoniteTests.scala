@@ -1,6 +1,5 @@
 package mill.integration
 
-import ammonite.ops._
 import utest._
 
 class AmmoniteTests(fork: Boolean)
@@ -25,12 +24,11 @@ class AmmoniteTests(fork: Boolean)
 
       assert(
         compileResult,
-        ls.rec(workspacePath / 'out / 'integration / scalaVersion / 'test / 'compile)
-          .exists(_.name == "ErrorTruncationTests.class")
+        os.walk(workspacePath / 'out / 'integration / scalaVersion / 'test / 'compile)
+          .exists(_.last == "ErrorTruncationTests.class")
       )
     }
 
-    'scala2118 - check("2.11.8")
     'scala2124 - check("2.12.4")
 
   }

@@ -1,14 +1,13 @@
 package mill.modules
 
 
-import ammonite.ops.{Path, RelPath, empty, mkdir, read}
 import coursier.Repository
 import mill.eval.PathRef
 import mill.util.{Ctx, IO, Loose}
 
 object Util {
   def cleanupScaladoc(v: String) = {
-    v.lines.map(
+    v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
         .stripPrefix("/**")
         .stripPrefix("*/")
@@ -20,7 +19,7 @@ object Util {
       .dropWhile(_.isEmpty)
       .reverse
   }
-  def download(url: String, dest: RelPath = "download")(implicit ctx: Ctx.Dest) = {
+  def download(url: String, dest: os.RelPath = "download")(implicit ctx: Ctx.Dest) = {
     val out = ctx.dest / dest
 
     val website = new java.net.URI(url).toURL
@@ -38,26 +37,26 @@ object Util {
     }
   }
 
-  def downloadUnpackZip(url: String, dest: RelPath = "unpacked")
+  def downloadUnpackZip(url: String, dest: os.RelPath = "unpacked")
                        (implicit ctx: Ctx.Dest) = {
 
-    val tmpName = if (dest == empty / "tmp.zip") "tmp2.zip" else "tmp.zip"
+    val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, tmpName)
     unpackZip(downloaded.path, dest)
   }
 
-  def unpackZip(src: Path, dest: RelPath = "unpacked")
+  def unpackZip(src: os.Path, dest: os.RelPath = "unpacked")
                (implicit ctx: Ctx.Dest) = {
 
-    val byteStream = read.getInputStream(src)
+    val byteStream = os.read.inputStream(src)
     val zipStream = new java.util.zip.ZipInputStream(byteStream)
     while({
       zipStream.getNextEntry match{
         case null => false
         case entry =>
           if (!entry.isDirectory) {
-            val entryDest = ctx.dest / dest / RelPath(entry.getName)
-            mkdir(entryDest / ammonite.ops.up)
+            val entryDest = ctx.dest / dest / os.RelPath(entry.getName)
+            os.makeDir.all(entryDest / ammonite.ops.up)
             val fileOut = new java.io.FileOutputStream(entryDest.toString)
             IO.stream(zipStream, fileOut)
             fileOut.close()
@@ -72,12 +71,12 @@ object Util {
   def millProjectModule(key: String,
                         artifact: String,
                         repositories: Seq[Repository],
-                        resolveFilter: Path => Boolean = _ => true,
+                        resolveFilter: os.Path => Boolean = _ => true,
                         artifactSuffix: String = "_2.12") = {
     val localPath = millProperty(key)
     if (localPath != null) {
       mill.eval.Result.Success(
-        Loose.Agg.from(localPath.split(',').map(p => PathRef(Path(p), quick = true)))
+        Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
       )
     } else {
       mill.modules.Jvm.resolveDependencies(

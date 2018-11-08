@@ -8,7 +8,6 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
-import ammonite.ops._
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import geny.Generator
@@ -21,7 +20,7 @@ import scala.collection.mutable
 import scala.collection.JavaConverters._
 
 object Jvm {
-
+  
   private val LongProps = Vector(
       "MILL_CLASSPATH",
       "MILL_SCALA_WORKER",
@@ -33,71 +32,123 @@ object Jvm {
       "MILL_SCALANATIVE_WORKER"
   ).map("-D" + _)
 
-  def interactiveSubprocess(mainClass: String,
-                            classPath: Agg[Path],
-                            jvmArgs: Seq[String] = Seq.empty,
-                            envArgs: Map[String, String] = Map.empty,
-                            mainArgs: Seq[String] = Seq.empty,
-                            workingDir: Path = null,
-                            background: Boolean = false): Unit = {
-    val args =
+  /**
+    * Runs a JVM subprocess with the given configuration and returns a
+    * [[os.CommandResult]] with it's aggregated output and error streams
+    */
+  def callSubprocess(mainClass: String,
+                     classPath: Agg[os.Path],
+                     jvmArgs: Seq[String] = Seq.empty,
+                     envArgs: Map[String, String] = Map.empty,
+                     mainArgs: Seq[String] = Seq.empty,
+                     workingDir: os.Path = null,
+                     streamOut: Boolean = true)
+                    (implicit ctx: Ctx) = {
+
+    val commandArgs =
       Vector("java") ++
       jvmArgs ++
       Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
       mainArgs
 
-    if (background) baseInteractiveSubprocess0(args, envArgs, workingDir)
-    else baseInteractiveSubprocess(args, envArgs, workingDir)
+    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
+    os.makeDir.all(workingDir1)
+    
+    os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
   }
 
+  /**
+    * Runs a JVM subprocess with the given configuration and streams
+    * it's stdout and stderr to the console.
+    */
+  def runSubprocess(mainClass: String,
+                    classPath: Agg[os.Path],
+                    jvmArgs: Seq[String] = Seq.empty,
+                    envArgs: Map[String, String] = Map.empty,
+                    mainArgs: Seq[String] = Seq.empty,
+                    workingDir: os.Path = null,
+                    background: Boolean = false): Unit = {
+
+    val (millArgs, otherArgs) = jvmArgs.partition(arg => LongProps.exists(arg.startsWith))
+    val millOptionsPath = millOptions(mainClass, millArgs)
+
+    val args =
+      Vector("java") ++
+      otherArgs ++ Vector(s"-DMILL_OPTIONS_PATH=$millOptionsPath") ++
+      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
+      mainArgs
+
+    if (background) spawnSubprocess(args, envArgs, workingDir)
+    else runSubprocess(args, envArgs, workingDir)
+  }
+
+  @deprecated("Use runSubprocess instead")
   def baseInteractiveSubprocess(commandArgs: Seq[String],
                                 envArgs: Map[String, String],
-                                workingDir: Path) = {
-    val process = baseInteractiveSubprocess0(commandArgs, envArgs, workingDir)
-
-    val exitCode = process.waitFor()
-    if (exitCode == 0) ()
-    else throw InteractiveShelloutException()
+                                workingDir: os.Path) = {
+    runSubprocess(commandArgs, envArgs, workingDir)
   }
-  def baseInteractiveSubprocess0(commandArgs: Seq[String],
-                                 envArgs: Map[String, String],
-                                 workingDir: Path) = {
-    val builder = new java.lang.ProcessBuilder()
 
-    for ((k, v) <- envArgs){
-      if (v != null) builder.environment().put(k, v)
-      else builder.environment().remove(k)
-    }
-    builder.directory(workingDir.toIO)
+  /**
+    * Runs a generic subprocess and waits for it to terminate.
+    */
+  def runSubprocess(commandArgs: Seq[String],
+                    envArgs: Map[String, String],
+                    workingDir: os.Path) = {
+    val process = spawnSubprocess(commandArgs, envArgs, workingDir)
 
+    process.waitFor()
+    if (process.exitCode() == 0) ()
+    else throw new Exception("Interactive Subprocess Failed")
+  }
+
+  /**
+    * Spawns a generic subprocess, streaming the stdout and stderr to the
+    * console. If the System.out/System.err have been substituted, makes sure
+    * that the subprocess's stdout and stderr streams go to the subtituted
+    * streams
+    */
+  def spawnSubprocess(commandArgs: Seq[String],
+                      envArgs: Map[String, String],
+                      workingDir: os.Path) = {
+    // If System.in is fake, then we pump output manually rather than relying
+    // on `os.Inherit`. That is because `os.Inherit` does not follow changes
+    // to System.in/System.out/System.err, so the subprocess's streams get sent
+    // to the parent process's origin outputs even if we want to direct them
+    // elsewhere
     if (System.in.isInstanceOf[ByteArrayInputStream]){
-
-      val process = builder
-        .command(commandArgs:_*)
-        .start()
+      val process = os.proc(commandArgs).spawn(
+        cwd = workingDir,
+        env = envArgs,
+        stdin = os.Pipe,
+        stdout = os.Pipe,
+        stderr = os.Pipe
+      )
 
       val sources = Seq(
-        process.getInputStream -> System.out,
-        process.getErrorStream -> System.err,
-        System.in -> process.getOutputStream
+        process.stdout -> System.out,
+        process.stderr -> System.err,
+        System.in -> process.stdin
       )
 
       for((std, dest) <- sources){
         new Thread(new InputPumper(std, dest, false)).start()
       }
+
       process
     }else{
-      builder
-        .command(commandArgs:_*)
-        .inheritIO()
-        .start()
+      os.proc(commandArgs).spawn(
+        cwd = workingDir,
+        env = envArgs,
+        stdin = os.Inherit,
+        stdout = os.Inherit,
+        stderr = os.Inherit
+      )
     }
-
   }
 
-
   def runLocal(mainClass: String,
-               classPath: Agg[Path],
+               classPath: Agg[os.Path],
                mainArgs: Seq[String] = Seq.empty)
               (implicit ctx: Ctx): Unit = {
     inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, closeContextClassLoaderWhenDone = true, cl => {
@@ -119,9 +170,7 @@ object Jvm {
     method
   }
 
-
-
-  def inprocess[T](classPath: Agg[Path],
+  def inprocess[T](classPath: Agg[os.Path],
                    classLoaderOverrideSbtTesting: Boolean,
                    isolated: Boolean,
                    closeContextClassLoaderWhenDone: Boolean,
@@ -161,66 +210,6 @@ object Jvm {
     vmOptionsFile
   }
 
-  def subprocess(mainClass: String,
-                 classPath: Agg[Path],
-                 jvmArgs: Seq[String] = Seq.empty,
-                 envArgs: Map[String, String] = Map.empty,
-                 mainArgs: Seq[String] = Seq.empty,
-                 workingDir: Path = null)
-                (implicit ctx: Ctx) = {
-
-    val (millArgs, otherArgs) = jvmArgs.partition(arg => LongProps.exists(arg.startsWith))
-    val millOptionsPath = mill.modules.Jvm.millOptions(mainClass, millArgs)
-
-    val commandArgs =
-      Vector("java") ++
-      otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$millOptionsPath") ++
-      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
-      mainArgs
-
-    val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
-    mkdir(workingDir1)
-    val builder =
-      new java.lang.ProcessBuilder()
-        .directory(workingDir1.toIO)
-        .command(commandArgs:_*)
-        .redirectOutput(ProcessBuilder.Redirect.PIPE)
-        .redirectError(ProcessBuilder.Redirect.PIPE)
-
-    for((k, v) <- envArgs) builder.environment().put(k, v)
-    val proc = builder.start()
-    val stdout = proc.getInputStream
-    val stderr = proc.getErrorStream
-    val sources = Seq(
-      (stdout, Left(_: Bytes), ctx.log.outputStream),
-      (stderr, Right(_: Bytes),ctx.log.errorStream )
-    )
-    val chunks = mutable.Buffer.empty[Either[Bytes, Bytes]]
-    while(
-    // Process.isAlive doesn't exist on JDK 7 =/
-      util.Try(proc.exitValue).isFailure ||
-        stdout.available() > 0 ||
-        stderr.available() > 0
-    ){
-      var readSomething = false
-      for ((subStream, wrapper, parentStream) <- sources){
-        while (subStream.available() > 0){
-          readSomething = true
-          val array = new Array[Byte](subStream.available())
-          val actuallyRead = subStream.read(array)
-          chunks.append(wrapper(new ammonite.ops.Bytes(array)))
-          parentStream.write(array, 0, actuallyRead)
-        }
-      }
-      // if we did not read anything sleep briefly to avoid spinning
-      if(!readSomething)
-        Thread.sleep(2)
-    }
-
-    if (proc.exitValue() != 0) throw new InteractiveShelloutException()
-    else ammonite.ops.CommandResult(proc.exitValue(), chunks)
-  }
-
   private def createManifest(mainClass: Option[String]) = {
     val m = new java.util.jar.Manifest()
     m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
@@ -231,32 +220,47 @@ object Jvm {
     m
   }
 
-  def createJar(inputPaths: Agg[Path], mainClass: Option[String] = None)
+  /**
+    * Create a jar file containing all files from the specified input Paths,
+    * called out.jar in the implicit ctx.dest folder. An optional main class may
+    * be provided for the jar. An optional filter function may also be provided to
+    * selectively include/exclude specific files.
+    * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
+    * @param mainClass - optional main class for the jar
+    * @param fileFilter - optional file filter to select files to be included.
+    *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
+    *                   return true if the file is to be included in the jar.
+    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
+    * @return - a `PathRef` for the created jar.
+    */
+  def createJar(inputPaths: Agg[os.Path],
+                mainClass: Option[String] = None,
+                fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
-    rm(outputPath)
+    os.remove.all(outputPath)
 
-    val seen = mutable.Set.empty[RelPath]
-    seen.add("META-INF" / "MANIFEST.MF")
+    val seen = mutable.Set.empty[os.RelPath]
+    seen.add(os.rel / "META-INF" / "MANIFEST.MF")
     val jar = new JarOutputStream(
       new FileOutputStream(outputPath.toIO),
       createManifest(mainClass)
     )
 
     try{
-      assert(inputPaths.forall(exists(_)))
+      assert(inputPaths.forall(os.exists(_)))
       for{
         p <- inputPaths
         (file, mapping) <-
-          if (p.isFile) Iterator(p -> empty/p.last)
-          else ls.rec(p).filter(_.isFile).map(sub => sub -> sub.relativeTo(p))
-        if !seen(mapping)
+          if (os.isFile(p)) Iterator(p -> os.rel / p.last)
+          else os.walk(p).filter(os.isFile).map(sub => sub -> sub.relativeTo(p)).sorted
+        if !seen(mapping) && fileFilter(p, mapping)
       } {
         seen.add(mapping)
         val entry = new JarEntry(mapping.toString)
-        entry.setTime(file.mtime.toMillis)
+        entry.setTime(os.mtime(file))
         jar.putNextEntry(entry)
-        jar.write(read.bytes(file))
+        jar.write(os.read.bytes(file))
         jar.closeEntry()
       }
     } finally {
@@ -266,17 +270,10 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  def newOutputStream(p: java.nio.file.Path, append: Boolean = false) = {
-    val options =
-      if(append) Seq(StandardOpenOption.APPEND)
-      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
-    Files.newOutputStream(p, options:_*)
-  }
-
-  def createAssembly(inputPaths: Agg[Path],
+  def createAssembly(inputPaths: Agg[os.Path],
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
-                     base: Option[Path] = None,
+                     base: Option[os.Path] = None,
                      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
 
@@ -286,7 +283,7 @@ object Jvm {
     val hm = new java.util.HashMap[String, String]()
 
     base match{
-      case Some(b) => cp(b, tmp)
+      case Some(b) => os.copy(b, tmp)
       case None => hm.put("create", "true")
     }
 
@@ -295,21 +292,23 @@ object Jvm {
     val manifest = createManifest(mainClass)
     val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
     Files.createDirectories(manifestPath.getParent)
-    val manifestOut = newOutputStream(manifestPath)
+    val manifestOut = Files.newOutputStream(
+      manifestPath,
+      StandardOpenOption.TRUNCATE_EXISTING,
+      StandardOpenOption.CREATE
+    )
     manifest.write(manifestOut)
     manifestOut.close()
 
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
-      .map {
-        case (mapping, aggregate) =>
-          zipFs.getPath(mapping) -> aggregate
-      }
       .foreach {
-        case (path, AppendEntry(entries)) =>
+        case (mapping, AppendEntry(entries)) =>
+          val path = zipFs.getPath(mapping).toAbsolutePath
           val concatenated = new SequenceInputStream(
             Collections.enumeration(entries.map(_.inputStream).asJava))
-          writeEntry(path, concatenated, append = Files.exists(path))
-        case (path, WriteOnceEntry(entry)) =>
+          writeEntry(path, concatenated, append = true)
+        case (mapping, WriteOnceEntry(entry)) =>
+          val path = zipFs.getPath(mapping).toAbsolutePath
           if (Files.notExists(path)) {
             writeEntry(path, entry.inputStream, append = false)
           }
@@ -319,20 +318,25 @@ object Jvm {
     val output = ctx.dest / "out.jar"
 
     // Prepend shell script and make it executable
-    if (prependShellScript.isEmpty) mv(tmp, output)
+    if (prependShellScript.isEmpty) os.move(tmp, output)
     else{
       val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-      val outputStream = newOutputStream(output.toNIO)
-      IO.stream(new ByteArrayInputStream((prependShellScript + lineSep).getBytes()), outputStream)
-      IO.stream(read.getInputStream(tmp), outputStream)
-      outputStream.close()
+      os.write(
+        output,
+        Seq[os.Source](
+          prependShellScript + lineSep,
+          os.read.inputStream(tmp)
+        )
+      )
 
       if (!scala.util.Properties.isWin) {
-        val perms = Files.getPosixFilePermissions(output.toNIO)
-        perms.add(PosixFilePermission.GROUP_EXECUTE)
-        perms.add(PosixFilePermission.OWNER_EXECUTE)
-        perms.add(PosixFilePermission.OTHERS_EXECUTE)
-        Files.setPosixFilePermissions(output.toNIO, perms)
+        os.perms.set(
+          output,
+          os.perms(output)
+            + PosixFilePermission.GROUP_EXECUTE
+            + PosixFilePermission.OWNER_EXECUTE
+            + PosixFilePermission.OTHERS_EXECUTE
+        )
       }
     }
 
@@ -341,10 +345,12 @@ object Jvm {
 
   private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
-    val outputStream = newOutputStream(p, append)
+    val options =
+      if(append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+      else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
+    val outputStream = java.nio.file.Files.newOutputStream(p, options:_*)
     IO.stream(is, outputStream)
-
     outputStream.close()
     is.close()
   }
@@ -382,8 +388,9 @@ object Jvm {
       shebang = shebang
     )
   }
+
   def createLauncher(mainClass: String,
-                     classPath: Agg[Path],
+                     classPath: Agg[os.Path],
                      jvmArgs: Seq[String])
                     (implicit ctx: Ctx.Dest)= {
     val isWin = scala.util.Properties.isWin
@@ -394,7 +401,7 @@ object Jvm {
     val outputPath = ctx.dest / (if (isBatch) "run.bat" else "run")
     val classPathStrs = classPath.map(_.toString)
 
-    write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
+    os.write(outputPath, launcherUniversalScript(mainClass, classPathStrs, classPathStrs, jvmArgs))
 
     if (!isWin) {
       val perms = Files.getPosixFilePermissions(outputPath.toNIO)
@@ -461,7 +468,7 @@ object Jvm {
       val (errors, successes) = load(sourceOrJar)
       if(errors.isEmpty){
         mill.Agg.from(
-          successes.map(p => PathRef(Path(p), quick = true)).filter(_.path.ext == "jar")
+          successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
         )
       }else{
         val errorDetails = errors.map(e => s"${ammonite.util.Util.newLine}  ${e.describe}").mkString

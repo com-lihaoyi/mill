@@ -1,6 +1,5 @@
 package mill.scalalib.scalafmt
 
-import ammonite.ops.{Path, exists}
 import mill._
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.modules.Jvm
@@ -15,12 +14,12 @@ object ScalafmtWorkerModule extends ExternalModule {
 }
 
 private[scalafmt] class ScalafmtWorker {
-  private val reformatted: mutable.Map[Path, Int] = mutable.Map.empty
+  private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
   def reformat(input: Seq[PathRef],
                scalafmtConfig: PathRef,
-               scalafmtClasspath: Agg[Path])(implicit ctx: Ctx): Unit = {
+               scalafmtClasspath: Agg[os.Path])(implicit ctx: Ctx): Unit = {
     val toFormat =
       if (scalafmtConfig.sig != configSig) input
       else
@@ -43,12 +42,12 @@ private[scalafmt] class ScalafmtWorker {
 
   private val cliFlags = Seq("--non-interactive", "--quiet")
 
-  private def reformatAction(toFormat: Seq[Path],
-                             config: Path,
-                             classpath: Agg[Path])(implicit ctx: Ctx) = {
+  private def reformatAction(toFormat: Seq[os.Path],
+                             config: os.Path,
+                             classpath: Agg[os.Path])(implicit ctx: Ctx) = {
     val configFlags =
-      if (exists(config)) Seq("--config", config.toString) else Seq.empty
-    Jvm.subprocess(
+      if (os.exists(config)) Seq("--config", config.toString) else Seq.empty
+    Jvm.runSubprocess(
       "org.scalafmt.cli.Cli",
       classpath,
       mainArgs = toFormat.map(_.toString) ++ configFlags ++ cliFlags

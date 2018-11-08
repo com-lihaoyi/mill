@@ -1,7 +1,6 @@
 package mill.eval
 import mill.T
 import mill.util.{TestEvaluator, TestUtil}
-import ammonite.ops.{Path, pwd, rm}
 import mill.eval.Result.OuterStack
 import utest._
 import utest.framework.TestPath

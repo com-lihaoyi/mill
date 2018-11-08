@@ -1,13 +1,12 @@
 package mill
 package scalalib
 
-import ammonite.ops.{Path, RelPath}
 import mill.define.Cross.Resolver
 import mill.define.{Cross, Task}
 import mill.eval.{PathRef, Result}
 import mill.util.Loose.Agg
 object CrossModuleBase{
-  def scalaVersionPaths(scalaVersion: String, f: String => Path) = {
+  def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {
     for(segments <- scalaVersion.split('.').inits.filter(_.nonEmpty))
     yield PathRef(f(segments.mkString(".")))
   }

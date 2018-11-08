@@ -9,7 +9,7 @@ import mill.util.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
-import ammonite.ops._
+
 
 object EvaluationTests extends TestSuite{
   class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {

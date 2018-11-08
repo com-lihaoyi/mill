@@ -43,7 +43,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   def generatedSources = T{
     val dir = T.ctx().dest
     val file = dir / "upickle" / "Generated.scala"
-    ammonite.ops.mkdir(dir / "upickle")
+    os.makeDir.all(dir / "upickle")
     val tuplesAndCases = (1 to 22).map{ i =>
       def commaSeparated(s: Int => String) = (1 to i).map(s).mkString(", ")
       val writerTypes = commaSeparated(j => s"T$j: Writer")

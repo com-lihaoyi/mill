@@ -1,6 +1,5 @@
 package mill.integration
 
-import ammonite.ops._
 import utest._
 
 class AcyclicTests(fork: Boolean)
@@ -13,11 +12,11 @@ class AcyclicTests(fork: Boolean)
 
       assert(
         firstCompile,
-        ls.rec(workspacePath).exists(_.last == "GraphAnalysis.class"),
-        ls.rec(workspacePath).exists(_.last == "PluginPhase.class")
+        os.walk(workspacePath).exists(_.last == "GraphAnalysis.class"),
+        os.walk(workspacePath).exists(_.last == "PluginPhase.class")
       )
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
-        write.append(scalaFile, "\n}")
+      for(scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")){
+        os.write.append(scalaFile, "\n}")
       }
 
       val brokenCompile = eval(s"acyclic[$scalaVersion].compile")

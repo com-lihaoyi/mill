@@ -5,7 +5,6 @@ import java.net.URLClassLoader
 import scala.collection.JavaConverters._
 
 import mill.util.Router.EntryPoint
-import ammonite.ops._
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
 import mill.eval.Result.OuterStack
@@ -29,17 +28,17 @@ case class Labelled[T](task: NamedTask[T],
   }
 }
 
-case class Evaluator(home: Path,
-                     outPath: Path,
-                     externalOutPath: Path,
+case class Evaluator(home: os.Path,
+                     outPath: os.Path,
+                     externalOutPath: os.Path,
                      rootModule: mill.define.BaseModule,
                      log: Logger,
-                     classLoaderSig: Seq[(Either[String, Path], Long)] = Evaluator.classLoaderSig,
+                     classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
                      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
                      env : Map[String, String] = Evaluator.defaultEnv){
   val classLoaderSignHash = classLoaderSig.hashCode()
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
-    mkdir(outPath)
+    os.makeDir.all(outPath)
 
    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
@@ -76,7 +75,7 @@ case class Evaluator(home: Path,
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
-    write.over(
+    os.write.over(
       outPath / "mill-profile.json",
       upickle.default.write(
         timings .map{case (k, v, b) =>
@@ -133,7 +132,7 @@ case class Evaluator(home: Path,
           destSegments(labelledNamedTask)
         )
 
-        if (!exists(paths.out)) mkdir(paths.out)
+        if (!os.exists(paths.out)) os.makeDir.all(paths.out)
         val cached = for{
           cached <-
             try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
@@ -158,14 +157,13 @@ case class Evaluator(home: Path,
             (newResults, Nil, true)
 
           case _ =>
-
             val Seq(first, rest @_*) = labelledNamedTask.segments.value
             val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
               case Segment.Label(s) => "." + s
               case Segment.Cross(s) => "[" + s.mkString(",") + "]"
             }
 
-            if (labelledNamedTask.task.flushDest) rm(paths.dest)
+            if (labelledNamedTask.task.flushDest) os.remove.all(paths.dest)
 
             val (newResults, newEvaluated) = evaluateGroup(
               group,
@@ -188,7 +186,7 @@ case class Evaluator(home: Path,
                 // a following run won't look at the cached metadata file and
                 // assume it's associated with the possibly-borked state of the
                 // destPath after an evaluation failure.
-                rm(paths.meta)
+                os.remove.all(paths.meta)
             }
 
             (newResults, newEvaluated, false)
@@ -218,7 +216,7 @@ case class Evaluator(home: Path,
 
   def handleTaskResult(v: Any,
                        hashCode: Int,
-                       metaPath: Path,
+                       metaPath: os.Path,
                        inputsHash: Int,
                        labelledNamedTask: Labelled[_]) = {
     labelledNamedTask.task.asWorker match{
@@ -230,7 +228,7 @@ case class Evaluator(home: Path,
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
         for((json, v) <- terminalResult){
-          write.over(
+          os.write.over(
             metaPath,
             upickle.default.write(
               Evaluator.Cached(json, hashCode, inputsHash),
@@ -270,7 +268,7 @@ case class Evaluator(home: Path,
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
-        .map(x => newResults.getOrElse(x, results(x)))
+        .map{x => newResults.getOrElse(x, results(x))}
         .collect{ case Result.Success((v, hashCode)) => v }
 
       val res =
@@ -291,7 +289,7 @@ case class Evaluator(home: Path,
 
                 paths match{
                   case Some(dest) =>
-                    if (usedDest.isEmpty) mkdir(dest.dest)
+                    if (usedDest.isEmpty) os.makeDir.all(dest.dest)
                     usedDest = Some((task, new Exception().getStackTrace))
                     dest.dest
                   case None =>
@@ -340,9 +338,9 @@ case class Evaluator(home: Path,
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[Path]): Logger = logPath match{
+  def resolveLogger(logPath: Option[os.Path]): Logger = logPath match{
     case None => log
-    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path))
+    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path, debugEnabled = true))
   }
 }
 
@@ -355,9 +353,9 @@ object Evaluator{
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
   case class State(rootModule: mill.define.BaseModule,
-                   classLoaderSig: Seq[(Either[String, Path], Long)],
+                   classLoaderSig: Seq[(Either[String, os.Path], Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
-                   watched: Seq[(Path, Long)])
+                   watched: Seq[(os.Path, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
@@ -366,15 +364,15 @@ object Evaluator{
 
   val defaultEnv: Map[String, String] = System.getenv().asScala.toMap
 
-  case class Paths(out: Path,
-                   dest: Path,
-                   meta: Path,
-                   log: Path)
+  case class Paths(out: os.Path,
+                   dest: os.Path,
+                   meta: os.Path,
+                   log: os.Path)
   def makeSegmentStrings(segments: Segments) = segments.value.flatMap{
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
-  def resolveDestPaths(workspacePath: Path, segments: Segments): Paths = {
+  def resolveDestPaths(workspacePath: os.Path, segments: Segments): Paths = {
     val segmentStrings = makeSegmentStrings(segments)
     val targetPath = workspacePath / segmentStrings
     Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)

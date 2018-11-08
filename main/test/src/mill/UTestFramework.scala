@@ -5,7 +5,7 @@ class UTestFramework extends utest.runner.Framework {
     s.getClassName.startsWith("mill.")
   }
   override def setup() = {
-    import ammonite.ops._
-    rm(pwd / 'target / 'workspace)
+
+    os.remove.all(os.pwd / 'target / 'workspace)
   }
 }

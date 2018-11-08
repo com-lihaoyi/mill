@@ -1,4 +1,4 @@
-import ammonite.ops._
+
 import $ivy.`com.typesafe::mima-reporter:0.1.18`
 import com.typesafe.tools.mima.lib.MiMaLib
 import com.typesafe.tools.mima.core._
@@ -34,7 +34,7 @@ trait MiMa extends ScalaModule with PublishModule {
       com.typesafe.tools.mima.core.Config.setup("sbt-mima-plugin", Array.empty)
       val cpstring = classpath
         .map(_.path)
-        .filter(exists)
+        .filter(os.exists)
         .mkString(System.getProperty("path.separator"))
       new MiMaLib(
         com.typesafe.tools.mima.core.reporterClassPath(cpstring)

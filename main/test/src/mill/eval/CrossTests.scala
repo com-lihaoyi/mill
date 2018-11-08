@@ -1,6 +1,6 @@
 package mill.eval
 
-import ammonite.ops._
+
 import mill.define.Discover
 import mill.util.TestEvaluator
 

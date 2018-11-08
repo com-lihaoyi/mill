@@ -1,7 +1,6 @@
 package mill
 package scalajslib
 
-import ammonite.ops.{Path, exists, ls, mkdir, rm}
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
@@ -108,13 +107,13 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
-    mkdir(ctx.dest)
-    rm(outputPath)
+    os.makeDir.all(ctx.dest)
+    os.remove.all(outputPath)
 
     val classpath = runClasspath.map(_.path)
     val sjsirFiles = classpath
-      .filter(path => exists(path) && path.isDir)
-      .flatMap(ls.rec)
+      .filter(path => os.exists(path) && os.isDir(path))
+      .flatMap(os.walk(_))
       .filter(_.ext == "sjsir")
     val libraries = classpath.filter(_.ext == "jar")
     worker.link(

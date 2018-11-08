@@ -1,6 +1,5 @@
 import $file.inner.{build => innerBuild}
 import mill._
-import ammonite.ops._
 
 // In this build, we have a local module targeting
 // the 'inner sub-directory, and an imported foreign
@@ -20,5 +19,5 @@ def checkDests : T[Unit] = T {
 }
 
 object inner extends mill.Module {
-  def selfDest = T { T.ctx().dest / up / up }
+  def selfDest = T { T.ctx().dest / os.up / os.up }
 }

@@ -1,8 +1,8 @@
 package mill.scalalib
 
+import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 
-import ammonite.ops._
 import mill._
 import mill.define.Target
 import mill.eval.Result.Exception
@@ -265,7 +265,7 @@ object HelloWorldTests extends TestSuite {
      }
   }
 
-  val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
     import java.util.jar.Attributes._
@@ -279,10 +279,12 @@ object HelloWorldTests extends TestSuite {
 
   def readFileFromJar(jar: JarFile, name: String): String = {
     val is = jar.getInputStream(jar.getEntry(name))
-    read(is)
+    val baos = new ByteArrayOutputStream()
+    os.Internals.transfer(is, baos)
+    new String(baos.toByteArray)
   }
 
-  def compileClassfiles = Seq[RelPath](
+  def compileClassfiles = Seq[os.RelPath](
     "Main.class",
     "Main$.class",
     "Main0.class",
@@ -292,14 +294,14 @@ object HelloWorldTests extends TestSuite {
     "Person$.class"
   )
 
-  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: Path = resourcePath)
+  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
                       (t: TestEvaluator => T)
                       (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath / up)
-    cp(resourcePath, m.millSourcePath)
+    os.remove.all(m.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(m.millSourcePath / os.up)
+    os.copy(resourcePath, m.millSourcePath)
     t(eval)
   }
 
@@ -371,29 +373,29 @@ object HelloWorldTests extends TestSuite {
       // make sure options are passed during ScalaDoc generation
       'docJarWithTitle - workspaceTest(
         HelloWorldDocTitle,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldDocTitle.core.docJar)
         assert(
           evalCount > 0,
-          read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-title\">Hello World")
+          os.read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-title\">Hello World")
         )
       }
       'docJarWithVersion - workspaceTest(
         HelloWorldWithDocVersion,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
       ){ eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
         val Left(Result.Failure("docJar generation failed", None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
       'docJarOnlyVersion - workspaceTest(
         HelloWorldOnlyDocVersion,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldOnlyDocVersion.core.docJar)
         assert(
           evalCount > 0,
-          read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-version\">1.2.3")
+          os.read(eval.outPath / 'core / 'docJar / 'dest / 'javadoc / "index.html").contains("<span id=\"doc-version\">1.2.3")
         )
       }
     }
@@ -426,13 +428,13 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
 
         val analysisFile = result.analysisFile
-        val outputFiles = ls.rec(result.classes.path)
+        val outputFiles = os.walk(result.classes.path)
         val expectedClassfiles = compileClassfiles.map(
           eval.outPath / 'core / 'compile / 'dest / 'classes / _
         )
         assert(
           result.classes.path == eval.outPath / 'core / 'compile / 'dest / 'classes,
-          exists(analysisFile),
+          os.exists(analysisFile),
           outputFiles.nonEmpty,
           outputFiles.forall(expectedClassfiles.contains),
           evalCount > 0
@@ -447,13 +449,13 @@ object HelloWorldTests extends TestSuite {
         val Right((_, freshCount)) = eval.apply(HelloWorld.core.compile)
         assert(freshCount > 0)
 
-        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "\n")
+        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "\n")
 
         val Right((_, incCompileCount)) = eval.apply(HelloWorld.core.compile)
         assert(incCompileCount > 0, incCompileCount < freshCount)
       }
       'failOnError - workspaceTest(HelloWorld){eval =>
-        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
+        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.compile)
 
@@ -464,13 +466,13 @@ object HelloWorldTests extends TestSuite {
         )
 
         assert(
-          ls.rec(paths.dest / 'classes).isEmpty,
-          !exists(paths.meta)
+          os.walk(paths.dest / 'classes).isEmpty,
+          !os.exists(paths.meta)
         )
         // Works when fixed
-        write.over(
+        os.write.over(
           HelloWorld.millSourcePath / 'core / 'src / "Main.scala",
-          read(HelloWorld.millSourcePath / 'core / 'src / "Main.scala").dropRight("val x: ".length)
+          os.read(HelloWorld.millSourcePath / 'core / 'src / "Main.scala").dropRight("val x: ".length)
         )
 
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.compile)
@@ -489,8 +491,8 @@ object HelloWorldTests extends TestSuite {
         assert(evalCount > 0)
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
       'runCross - {
@@ -506,8 +508,8 @@ object HelloWorldTests extends TestSuite {
 
 
           assert(
-            exists(runResult),
-            read(runResult) == expectedOut
+            os.exists(runResult),
+            os.read(runResult) == expectedOut
           )
         }
         'v210 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox")))
@@ -522,7 +524,7 @@ object HelloWorldTests extends TestSuite {
         val Left(Result.Failure("subprocess failed", _)) = eval.apply(HelloWorld.core.runMain("Invalid"))
       }
       'notRunWhenCompileFailed - workspaceTest(HelloWorld){eval =>
-        write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
+        os.write.append(HelloWorld.millSourcePath / 'core / 'src / "Main.scala", "val x: ")
 
         val Left(Result.Failure("Compilation failed", _)) = eval.apply(HelloWorld.core.runMain("Main"))
 
@@ -540,13 +542,13 @@ object HelloWorldTests extends TestSuite {
 
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
       'notRunWithoutMainClass - workspaceTest(
         HelloWorldWithoutMain,
-        pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
+        os.pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
       ){eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.run())
       }
@@ -563,8 +565,8 @@ object HelloWorldTests extends TestSuite {
 
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
     }
@@ -580,8 +582,8 @@ object HelloWorldTests extends TestSuite {
 
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
       'runWithDefaultMain - workspaceTest(HelloWorldDefaultMain){eval =>
@@ -594,13 +596,13 @@ object HelloWorldTests extends TestSuite {
 
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
       'notRunWithoutMainClass - workspaceTest(
         HelloWorldWithoutMain,
-        pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
+        os.pwd / 'scalalib / 'test / 'resources / "hello-world-no-main"
       ){eval =>
         val Left(Result.Failure(_, None)) = eval.apply(HelloWorldWithoutMain.core.runLocal())
 
@@ -612,15 +614,15 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.jar)
 
         assert(
-          exists(result.path),
+          os.exists(result.path),
           evalCount > 0
         )
 
         val jarFile = new JarFile(result.path.toIO)
         val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        val otherFiles = Seq[RelPath](
-          "META-INF" / "MANIFEST.MF",
+        val otherFiles = Seq[os.RelPath](
+          os.rel / "META-INF" / "MANIFEST.MF",
           "reference.conf"
         )
         val expectedFiles = compileClassfiles ++ otherFiles
@@ -639,7 +641,7 @@ object HelloWorldTests extends TestSuite {
         eval.apply(HelloWorld.core.compile)
 
         val logFile = outPath / 'core / 'compile / 'log
-        assert(exists(logFile))
+        assert(os.exists(logFile))
       }
     }
 
@@ -647,7 +649,7 @@ object HelloWorldTests extends TestSuite {
       'assembly - workspaceTest(HelloWorldWithMain){ eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
         assert(
-          exists(result.path),
+          os.exists(result.path),
           evalCount > 0
         )
         val jarFile = new JarFile(result.path.toIO)
@@ -687,7 +689,7 @@ object HelloWorldTests extends TestSuite {
             )
           }
 
-        val helloWorldMultiResourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
+        val helloWorldMultiResourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
 
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
@@ -734,7 +736,7 @@ object HelloWorldTests extends TestSuite {
 
         def checkExclude[M <: TestUtil.BaseModule](module: M,
                                                    target: Target[PathRef],
-                                                   resourcePath: Path = resourcePath
+                                                   resourcePath: os.Path = resourcePath
                                                   ) =
           workspaceTest(module, resourcePath) { eval =>
             val Right((result, _)) = eval.apply(target)
@@ -814,16 +816,16 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldWithMain.core.assembly)
 
         assert(
-          exists(result.path),
+          os.exists(result.path),
           evalCount > 0
         )
         val runResult = eval.outPath / "hello-mill"
 
-        %%("java", "-jar", result.path, runResult)(wd = eval.outPath)
+        os.proc("java", "-jar", result.path, runResult).call(cwd = eval.outPath)
 
         assert(
-          exists(runResult),
-          read(runResult) == "hello rockjam, your age is: 25"
+          os.exists(runResult),
+          os.read(runResult) == "hello rockjam, your age is: 25"
         )
       }
     }
@@ -866,7 +868,7 @@ object HelloWorldTests extends TestSuite {
       // make sure macros are applied when compiling/running
       'runMain - workspaceTest(
         HelloWorldMacros,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.runMain("Main"))
         assert(evalCount > 0)
@@ -874,7 +876,7 @@ object HelloWorldTests extends TestSuite {
       // make sure macros are applied when compiling during scaladoc generation
       'docJar - workspaceTest(
         HelloWorldMacros,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-macros"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldMacros.core.docJar)
         assert(evalCount > 0)
@@ -885,7 +887,7 @@ object HelloWorldTests extends TestSuite {
       // make sure flags are passed when compiling/running
       'runMain - workspaceTest(
         HelloWorldFlags,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.runMain("Main"))
         assert(evalCount > 0)
@@ -893,7 +895,7 @@ object HelloWorldTests extends TestSuite {
       // make sure flags are passed during ScalaDoc generation
       'docJar - workspaceTest(
         HelloWorldFlags,
-        resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
+        resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-flags"
       ){ eval =>
         val Right((_, evalCount)) = eval.apply(HelloWorldFlags.core.docJar)
         assert(evalCount > 0)
@@ -902,7 +904,7 @@ object HelloWorldTests extends TestSuite {
 
     'scalacheck - workspaceTest(
       HelloScalacheck,
-      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
+      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
     ){ eval =>
       val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.test())
       assert(
@@ -918,7 +920,7 @@ object HelloWorldTests extends TestSuite {
 
     'dotty - workspaceTest(
       HelloDotty,
-      resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-dotty"
+      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-dotty"
     ){ eval =>
       if (isJavaAtLeast("9")) {
         // Skip the test because Dotty does not support Java >= 9 yet

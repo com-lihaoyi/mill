@@ -1,7 +1,5 @@
 package mill.eval
 
-import ammonite.ops.ImplicitWd._
-import ammonite.ops._
 import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.util.Ctx.Dest
@@ -12,19 +10,19 @@ import utest._
 import mill._
 object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: mill.util.Loose.Agg[PathRef])(implicit ctx: Dest) = {
-    mkdir(ctx.dest)
-    import ammonite.ops._
-    %("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest)(wd = ctx.dest)
+    os.makeDir.all(ctx.dest)
+
+    os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)
     PathRef(ctx.dest)
   }
 
   val tests = Tests{
     'javac {
-      val javacSrcPath = pwd / 'main / 'test / 'resources / 'examples / 'javac
+      val javacSrcPath = os.pwd / 'main / 'test / 'resources / 'examples / 'javac
       val javacDestPath =  TestUtil.getOutPath() / 'src
 
-      mkdir(javacDestPath / up)
-      cp(javacSrcPath, javacDestPath)
+      os.makeDir.all(javacDestPath / os.up)
+      os.copy(javacSrcPath, javacDestPath)
 
       object Build extends TestUtil.BaseModule{
         def sourceRootPath = javacDestPath / 'src
@@ -36,12 +34,14 @@ object JavaCompileJarTests extends TestSuite{
         //           resourceRoot ---->  jar
         def sourceRoot = T.sources{ sourceRootPath }
         def resourceRoot = T.sources{ resourceRootPath }
-        def allSources = T{ sourceRoot().flatMap(p => ls.rec(p.path)).map(PathRef(_)) }
+        def allSources = T{ sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
         def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
+        // Test createJar() with optional file filter.
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), None, fileFilter) }
 
         def run(mainClsName: String) = T.command{
-          %%('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
+          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName).call()
         }
       }
 
@@ -55,7 +55,7 @@ object JavaCompileJarTests extends TestSuite{
         evaluator.check(targets, expected)
       }
 
-      def append(path: Path, txt: String) = ammonite.ops.write.append(path, txt)
+      def append(path: os.Path, txt: String) = ammonite.ops.write.append(path, txt)
 
 
       check(
@@ -65,7 +65,6 @@ object JavaCompileJarTests extends TestSuite{
 
       // Re-running with no changes results in nothing being evaluated
       check(targets = Agg(jar), expected = Agg())
-
       // Appending an empty string gets ignored due to file-content hashing
       append(sourceRootPath / "Foo.java", "")
       check(targets = Agg(jar), expected = Agg())
@@ -104,7 +103,7 @@ object JavaCompileJarTests extends TestSuite{
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = %%('jar, "-tf", evaluator.outPath/'jar/'dest/"out.jar")(evaluator.outPath).out.string
+      val jarContents = os.proc('jar, "-tf", evaluator.outPath/'jar/'dest/"out.jar").call(evaluator.outPath).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |test/Bar.class
@@ -114,9 +113,16 @@ object JavaCompileJarTests extends TestSuite{
           |test/FooTwo.class
           |hello.txt
           |""".stripMargin
-      assert(jarContents.lines.toSeq == expectedJarContents.lines.toSeq)
+      assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)
 
-      val executed = %%('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo")(evaluator.outPath).out.string
+      // Create the Jar again, but this time, filter out the Foo files.
+      def noFoos(s: String) = !s.contains("Foo")
+      val filterFunc = (p: os.Path, r: os.RelPath) => noFoos(r.last)
+      eval(filterJar(filterFunc))
+      val filteredJarContents = os.proc('jar, "-tf", evaluator.outPath/'filterJar/'dest/"out.jar").call(evaluator.outPath).out.string
+      assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(noFoos(_)).toSeq)
+
+      val executed = os.proc('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo").call(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)
 
       for(i <- 0 until 3){

@@ -1,6 +1,5 @@
 package mill.contrib
 
-import ammonite.ops.write
 import mill.T
 import mill.define.Target
 import mill.eval.PathRef
@@ -26,7 +25,7 @@ trait BuildInfo extends ScalaModule {
           case (name, value) => s"""  def ${name} = "${value}""""
         }
         .mkString("\n")
-    write(outputFile,
+    os.write(outputFile,
       s"""|${buildInfoPackageName.map(p => s"package ${p}").getOrElse("")}
           |object ${buildInfoObjectName} {
           |$internalMembers

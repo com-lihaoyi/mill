@@ -1,16 +1,15 @@
 package mill.scalalib.publish
 
-import ammonite.ops._
 
 object LocalPublisher {
 
-  private val root: Path = home / ".ivy2" / "local"
+  private val root: os.Path = os.home / ".ivy2" / "local"
 
-  def publish(jar: Path,
-              sourcesJar: Path,
-              docJar: Path,
-              pom: Path,
-              ivy: Path,
+  def publish(jar: os.Path,
+              sourcesJar: os.Path,
+              docJar: os.Path,
+              pom: os.Path,
+              ivy: os.Path,
               artifact: Artifact): Unit = {
     val releaseDir = root / artifact.group / artifact.id / artifact.version
     writeFiles(
@@ -22,11 +21,11 @@ object LocalPublisher {
     )
   }
 
-  private def writeFiles(fromTo: (Path, Path)*): Unit = {
+  private def writeFiles(fromTo: (os.Path, os.Path)*): Unit = {
     fromTo.foreach {
       case (from, to) =>
-        mkdir(to / up)
-        cp.over(from, to)
+        os.makeDir.all(to / os.up)
+        os.copy.over(from, to)
     }
   }
 

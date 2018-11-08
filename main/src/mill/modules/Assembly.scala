@@ -4,7 +4,6 @@ import java.io.InputStream
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 
-import ammonite.ops._
 import geny.Generator
 import mill.Agg
 
@@ -37,7 +36,7 @@ object Assembly {
     case class ExcludePattern(pattern: Pattern) extends Rule
   }
 
-  def groupAssemblyEntries(inputPaths: Agg[Path], assemblyRules: Seq[Assembly.Rule]): Map[String, GroupedEntry] = {
+  def groupAssemblyEntries(inputPaths: Agg[os.Path], assemblyRules: Seq[Assembly.Rule]): Map[String, GroupedEntry] = {
     val rulesMap = assemblyRules.collect {
       case r@Rule.Append(path) => path -> r
       case r@Rule.Exclude(path) => path -> r
@@ -76,12 +75,12 @@ object Assembly {
     }
   }
 
-  private def classpathIterator(inputPaths: Agg[Path]): Generator[AssemblyEntry] = {
+  private def classpathIterator(inputPaths: Agg[os.Path]): Generator[AssemblyEntry] = {
     Generator.from(inputPaths)
-      .filter(exists)
+      .filter(os.exists)
       .flatMap {
         p =>
-          if (p.isFile) {
+          if (os.isFile(p)) {
             val jf = new JarFile(p.toIO)
             Generator.from(
               for(entry <- jf.entries().asScala if !entry.isDirectory)
@@ -89,8 +88,8 @@ object Assembly {
             )
           }
           else {
-            ls.rec.iter(p)
-              .filter(_.isFile)
+            os.walk.stream(p)
+              .filter(os.isFile)
               .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
           }
       }
@@ -118,8 +117,8 @@ private[this] sealed trait AssemblyEntry {
   def inputStream: InputStream
 }
 
-private[this] case class PathEntry(mapping: String, path: Path) extends AssemblyEntry {
-  def inputStream: InputStream = read.getInputStream(path)
+private[this] case class PathEntry(mapping: String, path: os.Path) extends AssemblyEntry {
+  def inputStream: InputStream = os.read.inputStream(path)
 }
 
 private[this] case class JarFileEntry(mapping: String, getIs: () => InputStream) extends AssemblyEntry {

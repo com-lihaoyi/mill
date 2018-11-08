@@ -2,8 +2,6 @@ package mill
 package scalalib
 
 
-import ammonite.ops.{%, %%, cp, ls, mkdir, pwd, rm, up}
-import ammonite.ops.ImplicitWd._
 import mill.eval.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -27,14 +25,14 @@ object HelloJavaTests extends TestSuite {
       object test extends Tests with JUnitTests
     }
   }
-  val resourcePath = pwd / 'scalalib / 'test / 'resources / "hello-java"
+  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-java"
 
   def init()(implicit tp: TestPath) = {
     val eval = new TestEvaluator(HelloJava)
-    rm(HelloJava.millSourcePath)
-    rm(eval.outPath)
-    mkdir(HelloJava.millSourcePath / up)
-    cp(resourcePath, HelloJava.millSourcePath)
+    os.remove.all(HelloJava.millSourcePath)
+    os.remove.all(eval.outPath)
+    os.makeDir.all(HelloJava.millSourcePath / os.up)
+    os.copy(resourcePath, HelloJava.millSourcePath)
     eval
   }
   def tests: Tests = Tests {
@@ -49,10 +47,10 @@ object HelloJavaTests extends TestSuite {
         res1 == res2,
         n1 != 0,
         n2 != 0,
-        ls.rec(res1.classes.path).exists(_.last == "Core.class"),
-        !ls.rec(res1.classes.path).exists(_.last == "Main.class"),
-        ls.rec(res3.classes.path).exists(_.last == "Main.class"),
-        !ls.rec(res3.classes.path).exists(_.last == "Core.class")
+        os.walk(res1.classes.path).exists(_.last == "Core.class"),
+        !os.walk(res1.classes.path).exists(_.last == "Main.class"),
+        os.walk(res3.classes.path).exists(_.last == "Main.class"),
+        !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
     'docJar  - {
@@ -62,8 +60,8 @@ object HelloJavaTests extends TestSuite {
       val Right((ref2, _)) = eval.apply(HelloJava.app.docJar)
 
       assert(
-        %%("jar", "tf", ref1.path).out.lines.contains("hello/Core.html"),
-        %%("jar", "tf", ref2.path).out.lines.contains("hello/Main.html")
+        os.proc("jar", "tf", ref1.path).call().out.lines.contains("hello/Core.html"),
+        os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html")
       )
     }
     'test - {

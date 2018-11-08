@@ -2,7 +2,7 @@ import $ivy.`com.lihaoyi::scalatags:0.6.7`
 import scalatags.Text.implicits._
 import scalatags.Text.svgTags._
 import scalatags.Text.svgAttrs._
-import ammonite.ops._
+
 
 val svgWidth = 24
 val svgHeight = 24

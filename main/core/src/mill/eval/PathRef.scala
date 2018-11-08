@@ -7,54 +7,41 @@ import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 
 import upickle.default.{ReadWriter => RW}
-import ammonite.ops.Path
 import mill.util.{DummyOutputStream, IO, JsonFormatters}
 
 
 /**
-  * A wrapper around `ammonite.ops.Path` that calculates it's hashcode based
+  * A wrapper around `os.Path` that calculates it's hashcode based
   * on the contents of the filesystem underneath it. Used to ensure filesystem
   * changes can bust caches which are keyed off hashcodes.
   */
-case class PathRef(path: ammonite.ops.Path, quick: Boolean, sig: Int){
+case class PathRef(path: os.Path, quick: Boolean, sig: Int){
   override def hashCode() = sig
 }
 
 object PathRef{
-  def apply(path: ammonite.ops.Path, quick: Boolean = false) = {
+  def apply(path: os.Path, quick: Boolean = false) = {
     val sig = {
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
-      jnio.Files.walkFileTree(
-        path.toNIO,
-        java.util.EnumSet.of(jnio.FileVisitOption.FOLLOW_LINKS),
-        Integer.MAX_VALUE,
-        new FileVisitor[jnio.Path] {
-          def preVisitDirectory(dir: jnio.Path, attrs: BasicFileAttributes) = {
-            digest.update(dir.toAbsolutePath.toString.getBytes)
-            FileVisitResult.CONTINUE
-          }
-
-          def visitFile(file: jnio.Path, attrs: BasicFileAttributes) = {
-            digest.update(file.toAbsolutePath.toString.getBytes)
+      if (os.exists(path)){
+        for((path, attrs) <- os.walk.attrs(path, includeTarget = true, followLinks = true)){
+          digest.update(path.toString.getBytes)
+          if (!attrs.isDir) {
             if (quick){
-              val value = (path.mtime.toMillis, path.size).hashCode()
+              val value = (attrs.mtime, attrs.size).hashCode()
               digest.update((value >>> 24).toByte)
               digest.update((value >>> 16).toByte)
               digest.update((value >>> 8).toByte)
               digest.update(value.toByte)
-            } else if (jnio.Files.isReadable(file)) {
-              val is = jnio.Files.newInputStream(file)
+            } else if (jnio.Files.isReadable(path.toNIO)) {
+              val is = os.read.inputStream(path)
               IO.stream(is, digestOut)
               is.close()
             }
-            FileVisitResult.CONTINUE
           }
-
-          def visitFileFailed(file: jnio.Path, exc: IOException) = FileVisitResult.CONTINUE
-          def postVisitDirectory(dir: jnio.Path, exc: IOException) = FileVisitResult.CONTINUE
         }
-      )
+      }
 
       java.util.Arrays.hashCode(digest.digest())
 
@@ -71,7 +58,7 @@ object PathRef{
     s => {
       val Array(prefix, hex, path) = s.split(":", 3)
       PathRef(
-        Path(path),
+        os.Path(path),
         prefix match{ case "qref" => true case "ref" => false},
         // Parsing to a long and casting to an int is the only way to make
         // round-trip handling of negative numbers work =(

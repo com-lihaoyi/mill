@@ -7,7 +7,6 @@ import java.lang.reflect.Modifier
 import java.util.zip.ZipInputStream
 import javax.tools.ToolProvider
 
-import ammonite.ops._
 import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
 import Dep.isDotty
@@ -23,8 +22,8 @@ object CompilationResult {
   implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
 }
 
-// analysisFile is represented by Path, so we won't break caches after file changes
-case class CompilationResult(analysisFile: Path, classes: PathRef)
+// analysisFile is represented by os.Path, so we won't break caches after file changes
+case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 
 object Lib{
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
@@ -40,7 +39,7 @@ object Lib{
     }
   }
 
-  def grepJar(classPath: Agg[Path], name: String, version: String, sources: Boolean = false) = {
+  def grepJar(classPath: Agg[os.Path], name: String, version: String, sources: Boolean = false) = {
     val suffix = if (sources) "-sources" else ""
     val mavenStylePath = s"$name-$version$suffix.jar"
     val ivyStylePath = {
@@ -111,22 +110,22 @@ object Lib{
     ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
   )
 
-  def listClassFiles(base: Path): Iterator[String] = {
-    if (base.isDir) ls.rec(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+  def listClassFiles(base: os.Path): Iterator[String] = {
+    if (os.isDir(base)) os.walk(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
     else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
 
-  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[Path]) = {
+  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[os.Path]) = {
 
     val fingerprints = framework.fingerprints()
 
     val testClasses = classpath.flatMap { base =>
       // Don't blow up if there are no classfiles representing
       // the tests to run Instead just don't run anything
-      if (!exists(base)) Nil
+      if (!os.exists(base)) Nil
       else listClassFiles(base).flatMap { path =>
         val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
         val publicConstructorCount =

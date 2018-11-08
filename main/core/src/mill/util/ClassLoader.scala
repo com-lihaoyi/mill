@@ -2,7 +2,7 @@ package mill.util
 
 import java.net.{URL, URLClassLoader}
 
-import ammonite.ops._
+
 import io.github.retronym.java9rtexport.Export
 
 import scala.util.Try

@@ -2,7 +2,7 @@
 
 set -eux
 
-rm -rf out
+os.remove.all -rf out
 mill __.test
 mill release.setReleaseVersion
 mill mill.scalalib.PublishModule/publishAll \

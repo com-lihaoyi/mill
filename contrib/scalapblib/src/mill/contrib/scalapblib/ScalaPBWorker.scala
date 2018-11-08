@@ -5,15 +5,14 @@ import java.io.File
 import java.lang.reflect.Method
 import java.net.URLClassLoader
 
-import ammonite.ops.{Path, ls}
 import mill.eval.PathRef
 
 class ScalaPBWorker {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Agg[Path]) = {
-    val classloaderSig = scalaPBClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+  private def scalaPB(scalaPBClasspath: Agg[os.Path]) = {
+    val classloaderSig = scalaPBClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
@@ -40,14 +39,14 @@ class ScalaPBWorker {
     }
   }
 
-  def compile(scalaPBClasspath: Agg[Path], scalaPBSources: Seq[Path], scalaPBOptions: String, dest: Path)
+  def compile(scalaPBClasspath: Agg[os.Path], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path)
              (implicit ctx: mill.util.Ctx): mill.eval.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
 
-    def compileScalaPBDir(inputDir: Path) {
+    def compileScalaPBDir(inputDir: os.Path) {
       // ls throws if the path doesn't exist
       if (inputDir.toIO.exists) {
-        ls.rec(inputDir).filter(_.name.matches(".*.proto"))
+        os.walk(inputDir).filter(_.last.matches(".*.proto"))
           .foreach { proto =>
             compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO)
           }

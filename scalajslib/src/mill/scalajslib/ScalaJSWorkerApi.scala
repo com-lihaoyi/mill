@@ -3,7 +3,6 @@ package mill.scalajslib
 import java.io.File
 import java.net.URLClassLoader
 
-import ammonite.ops.Path
 import mill.define.Discover
 import mill.eval.Result
 import mill.util.Ctx
@@ -23,10 +22,10 @@ object ModuleKind{
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
-  private def bridge(toolsClasspath: Agg[Path])
+  private def bridge(toolsClasspath: Agg[os.Path])
                     (implicit ctx: Ctx.Home) = {
     val classloaderSig =
-      toolsClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+      toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
@@ -44,14 +43,14 @@ class ScalaJSWorker {
     }
   }
 
-  def link(toolsClasspath: Agg[Path],
-           sources: Agg[Path],
-           libraries: Agg[Path],
+  def link(toolsClasspath: Agg[os.Path],
+           sources: Agg[os.Path],
+           libraries: Agg[os.Path],
            dest: File,
            main: Option[String],
            fullOpt: Boolean,
            moduleKind: ModuleKind)
-          (implicit ctx: Ctx.Home): Result[Path] = {
+          (implicit ctx: Ctx.Home): Result[os.Path] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
@@ -59,15 +58,15 @@ class ScalaJSWorker {
       main.orNull,
       fullOpt,
       moduleKind
-    ).map(Path(_))
+    ).map(os.Path(_))
   }
 
-  def run(toolsClasspath: Agg[Path], config: NodeJSConfig, linkedFile: File)
+  def run(toolsClasspath: Agg[os.Path], config: NodeJSConfig, linkedFile: File)
          (implicit ctx: Ctx.Home): Unit = {
     bridge(toolsClasspath).run(config, linkedFile)
   }
 
-  def getFramework(toolsClasspath: Agg[Path],
+  def getFramework(toolsClasspath: Agg[os.Path],
                    config: NodeJSConfig,
                    frameworkName: String,
                    linkedFile: File)

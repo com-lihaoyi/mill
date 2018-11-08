@@ -1,6 +1,5 @@
 package mill.scalajslib
 
-import ammonite.ops._
 import mill._
 import mill.define.Discover
 import mill.eval.Evaluator
@@ -10,7 +9,7 @@ import utest._
 
 object MultiModuleTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "multi-module"
-  val sourcePath = pwd / 'scalajslib / 'test / 'resources / "multi-module"
+  val sourcePath = os.pwd / 'scalajslib / 'test / 'resources / "multi-module"
 
   object MultiModule extends TestUtil.BaseModule {
     trait BaseModule extends ScalaJSModule {
@@ -76,7 +75,7 @@ object MultiModuleTests extends TestSuite {
         evaluator.outPath,
         command.ctx.segments
       )
-      val log = read(paths.log)
+      val log = os.read(paths.log)
       assert(
         evalCount > 0,
         log.contains("node"),
@@ -86,9 +85,9 @@ object MultiModuleTests extends TestSuite {
   }
 
   def prepareWorkspace(): Unit = {
-    rm(workspacePath)
-    mkdir(workspacePath / up)
-    cp(sourcePath, workspacePath)
+    os.remove.all(workspacePath)
+    os.makeDir.all(workspacePath / os.up)
+    os.copy(sourcePath, workspacePath)
   }
 
 }

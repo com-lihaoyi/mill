@@ -3,7 +3,6 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 
-import ammonite.ops.{Path, exists, ls, mkdir}
 import ammonite.util.Colors
 import mill.Agg
 import mill.eval.PathRef
@@ -49,23 +48,36 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
 
   @volatile var mixedCompilersCache = Option.empty[(Long, Compilers)]
 
-  def docJar(args: Seq[String]): Boolean = {
-    new scala.tools.nsc.ScalaDoc().process(args.toArray)
+  def docJar(scalaVersion: String,
+             compilerBridgeSources: os.Path,
+             compilerClasspath: Agg[os.Path],
+             scalacPluginClasspath: Agg[os.Path],
+             args: Seq[String])
+            (implicit ctx: mill.util.Ctx): Boolean = {
+    val compilers: Compilers = prepareCompilers(
+      scalaVersion,
+      compilerBridgeSources,
+      compilerClasspath,
+      scalacPluginClasspath
+    )
+    val scaladocClass = compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
+    val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
+    scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
   }
   /** Compile the bridge if it doesn't exist yet and return the output directory.
    *  TODO: Proper invalidation, see #389
    */
   def compileZincBridgeIfNeeded(scalaVersion: String,
-                                sourcesJar: Path,
-                                compilerJars: Array[File]): Path = {
+                                sourcesJar: os.Path,
+                                compilerJars: Array[File]): os.Path = {
     val workingDir = ctx0.dest / scalaVersion
     val compiledDest = workingDir / 'compiled
-    if (!exists(workingDir)) {
+    if (!os.exists(workingDir)) {
 
       ctx0.log.info("Compiling compiler interface...")
 
-      mkdir(workingDir)
-      mkdir(compiledDest)
+      os.makeDir.all(workingDir)
+      os.makeDir.all(compiledDest)
 
       val sourceFolder = mill.modules.Util.unpackZip(sourcesJar)(workingDir)
       val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
@@ -78,7 +90,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
       val argsArray = Array[String](
         "-d", compiledDest.toString,
         "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
-      ) ++ ls.rec(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
+      ) ++ os.walk(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
 
       compilerMain.getMethod("process", classOf[Array[String]])
         .invoke(null, argsArray)
@@ -103,8 +115,8 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
   }
 
   def compileJava(upstreamCompileOutput: Seq[CompilationResult],
-                  sources: Agg[Path],
-                  compileClasspath: Agg[Path],
+                  sources: Agg[os.Path],
+                  compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
     compileInternal(
@@ -118,15 +130,37 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
   }
 
   def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
-                   sources: Agg[Path],
-                   compileClasspath: Agg[Path],
+                   sources: Agg[os.Path],
+                   compileClasspath: Agg[os.Path],
                    javacOptions: Seq[String],
                    scalaVersion: String,
                    scalacOptions: Seq[String],
-                   compilerBridgeSources: Path,
-                   compilerClasspath: Agg[Path],
-                   scalacPluginClasspath: Agg[Path])
+                   compilerBridgeSources: os.Path,
+                   compilerClasspath: Agg[os.Path],
+                   scalacPluginClasspath: Agg[os.Path])
                   (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+    val compilers: Compilers = prepareCompilers(
+      scalaVersion,
+      compilerBridgeSources,
+      compilerClasspath,
+      scalacPluginClasspath
+    )
+
+    compileInternal(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions,
+      scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:${jar}").toSeq ++ scalacOptions,
+      compilers
+    )
+  }
+
+  private def prepareCompilers(scalaVersion: String,
+                               compilerBridgeSources: os.Path,
+                               compilerClasspath: Agg[os.Path],
+                               scalacPluginClasspath: Agg[os.Path])
+                              (implicit ctx: mill.util.Ctx)= {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
 
@@ -135,11 +169,11 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
       compilerBridgeSources,
       compilerClasspath.toArray.map(_.toIO)
     )
-    val compilerBridgeSig = compilerBridge.mtime.toMillis
+    val compilerBridgeSig = os.mtime(compilerBridge)
 
     val compilersSig =
       compilerBridgeSig +
-      combinedCompilerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+        combinedCompilerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
 
     val compilers = mixedCompilersCache match {
       case Some((k, v)) if k == compilersSig => v
@@ -166,25 +200,17 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
         mixedCompilersCache = Some((compilersSig, compilers))
         compilers
     }
-
-    compileInternal(
-      upstreamCompileOutput,
-      sources,
-      compileClasspath,
-      javacOptions,
-      scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:${jar}").toSeq ++ scalacOptions,
-      compilers
-    )
+    compilers
   }
 
   private def compileInternal(upstreamCompileOutput: Seq[CompilationResult],
-                              sources: Agg[Path],
-                              compileClasspath: Agg[Path],
+                              sources: Agg[os.Path],
+                              compileClasspath: Agg[os.Path],
                               javacOptions: Seq[String],
                               scalacOptions: Seq[String],
                               compilers: Compilers)
                              (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
-    mkdir(ctx.dest)
+    os.makeDir.all(ctx.dest)
 
     val logger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(

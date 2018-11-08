@@ -2,7 +2,6 @@ package mill.scalanativelib
 
 import java.util.jar.JarFile
 
-import ammonite.ops._
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
@@ -73,7 +72,7 @@ object HelloNativeWorldTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = pwd / 'scalanativelib / 'test / 'resources / "hello-native-world"
+  val millSourcePath = os.pwd / 'scalanativelib / 'test / 'resources / "hello-native-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
 
@@ -90,7 +89,7 @@ object HelloNativeWorldTests extends TestSuite {
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).compile)
 
         val outPath = result.classes.path
-        val outputFiles = ls.rec(outPath).filter(_.isFile)
+        val outputFiles = os.walk(outPath).filter(os.isFile)
         val expectedClassfiles = compileClassfiles(outPath / 'hello)
         assert(
           outputFiles.toSet == expectedClassfiles,
@@ -185,7 +184,7 @@ object HelloNativeWorldTests extends TestSuite {
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val log = read(paths.log)
+      val log = os.read(paths.log)
       assert(
         evalCount > 0,
         log.contains("Scala Native")
@@ -198,7 +197,7 @@ object HelloNativeWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: Path) = Set(
+  def compileClassfiles(parentDir: os.Path) = Set(
     parentDir / "ArgsParser$.class",
     parentDir / "ArgsParser$.nir",
     parentDir / "ArgsParser.class",
@@ -210,8 +209,8 @@ object HelloNativeWorldTests extends TestSuite {
   )
 
   def prepareWorkspace(): Unit = {
-    rm(workspacePath)
-    mkdir(workspacePath / up)
-    cp(millSourcePath, workspacePath)
+    os.remove.all(workspacePath)
+    os.makeDir.all(workspacePath / os.up)
+    os.copy(millSourcePath, workspacePath)
   }
 }

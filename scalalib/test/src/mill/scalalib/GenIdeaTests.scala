@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import ammonite.ops._
 import coursier.Cache
 import mill._
 import mill.util.{TestEvaluator, TestUtil}
@@ -8,7 +7,7 @@ import utest._
 
 object GenIdeaTests extends TestSuite {
 
-  val millSourcePath = pwd / 'target / 'workspace / "gen-idea"
+  val millSourcePath = os.pwd / 'target / 'workspace / "gen-idea"
 
   trait HelloWorldModule extends scalalib.ScalaModule {
     def scalaVersion = "2.12.4"
@@ -31,7 +30,7 @@ object GenIdeaTests extends TestSuite {
         HelloWorld,
         ("JDK_1_8", "1.8 (1)"), fetchMillModules = false)
       for((relPath, xml) <- layout){
-        write.over(millSourcePath/ "generated"/ relPath, pp.format(xml))
+        os.write.over(millSourcePath/ "generated"/ relPath, pp.format(xml))
       }
 
       Seq(
@@ -49,7 +48,7 @@ object GenIdeaTests extends TestSuite {
           millSourcePath / "generated" / ".idea" / "misc.xml"
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
-          val generatedString = normaliseLibraryPaths(read! generated)
+          val generatedString = normaliseLibraryPaths(os.read(generated))
 
           assert(resourceString == generatedString)
         }

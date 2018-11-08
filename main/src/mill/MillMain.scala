@@ -4,7 +4,6 @@ import java.io.{InputStream, PrintStream}
 
 import scala.collection.JavaConverters._
 import ammonite.main.Cli._
-import ammonite.ops._
 import io.github.retronym.java9rtexport.Export
 import mill.eval.Evaluator
 import mill.util.DummyInputStream
@@ -64,8 +63,18 @@ object MillMain {
       }
     )
 
+    var debugLog = false
+    val debugLogSignature = Arg[Config, Unit](
+      name = "debug", shortName = Some('d'),
+      doc = "Show debug output on STDOUT",
+      (c, v) => {
+        debugLog = true
+        c
+      }
+    )
+
     val millArgSignature =
-      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature)
+      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature, debugLogSignature)
 
     Cli.groupArgs(
       args.toList,
@@ -100,12 +109,13 @@ object MillMain {
               predefCode =
                 s"""import $$file.build, build._
                   |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                  |  ammonite.ops.Path(${pprint.apply(cliConfig.home.toIO.getCanonicalPath.replaceAllLiterally("$", "$$")).plainText}),
+                  |  os.Path(${pprint.apply(cliConfig.home.toIO.getCanonicalPath.replaceAllLiterally("$", "$$")).plainText}),
                   |  $disableTicker,
                   |  interp.colors(),
                   |  repl.pprinter(),
                   |  build.millSelf.get,
-                  |  build.millDiscover
+                  |  build.millDiscover,
+                  |  $debugLog
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -120,12 +130,13 @@ object MillMain {
             stdout, stderr, stdin,
             stateCache,
             env,
-            setIdle
+            setIdle,
+            debugLog
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {
             val rt = cliConfig.home / Export.rtJarName
-            if (!exists(rt)) {
+            if (!os.exists(rt)) {
               runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")
               Export.rtTo(rt.toIO, false)
             }
@@ -135,7 +146,7 @@ object MillMain {
             runner.printInfo("Loading...")
             (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
           } else {
-            (runner.runScript(pwd / "build.sc", leftoverArgs), runner.stateCache)
+            (runner.runScript(os.pwd / "build.sc", leftoverArgs), runner.stateCache)
           }
       }
 

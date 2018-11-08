@@ -2,7 +2,6 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 
-import ammonite.ops.Path
 import mill.T
 import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, PathRef, Result}
@@ -178,7 +177,7 @@ trait MainModule extends mill.Module{
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         log = evaluator.log match{
-          case PrintLogger(c1, d, c2, o, i, e, in) => PrintLogger(c1, d, c2, e, i, e, in)
+          case PrintLogger(c1, d, c2, o, i, e, in, de) => PrintLogger(c1, d, c2, e, i, e, in, de)
           case l => l
         }
       ),
@@ -200,7 +199,7 @@ trait MainModule extends mill.Module{
 
     val KeepPattern = "(mill-.+)".r.anchored
 
-    def keepPath(path: Path) = path.segments.lastOption match {
+    def keepPath(path: os.Path) = path.segments.toSeq.lastOption match {
       case Some(KeepPattern(_)) => true
       case _ => false
     }
@@ -220,7 +219,7 @@ trait MainModule extends mill.Module{
       case Left(err) =>
         Result.Failure(err)
       case Right(paths) =>
-        paths.foreach(ammonite.ops.rm)
+        paths.foreach(os.remove.all)
         Result.Success(())
     }
   }
@@ -245,7 +244,7 @@ trait MainModule extends mill.Module{
     }
   }
 
-  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], Path)],
+  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
     LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
 
   private def visualize0(evaluator: Evaluator, targets: Seq[String], ctx: Ctx, vizWorker: VizWorker,

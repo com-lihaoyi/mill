@@ -10,7 +10,7 @@ import jmh.Jmh
 import headers.Headers
 import com.typesafe.tools.mima.core._
 
-import ammonite.ops._
+
 import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M3")
@@ -52,7 +52,7 @@ trait PlayJsonModule extends BaseModule with PublishModule with MiMa {
 
 abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   def crossScalaVersion: String
-  def millSourcePath = pwd /  "play-json"
+  def millSourcePath = os.pwd /  "play-json"
   def artifactName = "play-json"
 
   def sources = T.sources(
@@ -90,10 +90,10 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   )
 
   def generatedSources = T {
-    import ammonite.ops._
+
 
     val dir = T.ctx().dest
-    mkdir(dir / "play-json")
+    os.makeDir.all(dir / "play-json")
     val file = dir / "play-json" / "Generated.scala"
 
     val (writes, reads) = (1 to 22).map { i =>
@@ -126,7 +126,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
         """)
     }.unzip
 
-    write(file, s"""
+    os.write(file, s"""
         package play.api.libs.json
 
         trait GeneratedReads {
@@ -168,7 +168,11 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
       )
 
     def sources = {
-      val docSpecs = ls.rec(millSourcePath / up / "docs" / "manual" / "working" / "scalaGuide").filter(_.isDir).filter(_.last=="code").map(PathRef(_))
+      val docSpecs = os.walk(millSourcePath / os.up / "docs" / "manual" / "working" / "scalaGuide")
+        .filter(os.isDir)
+        .filter(_.last=="code")
+        .map(PathRef(_))
+
       T.sources(
         docSpecs ++
         Seq(
@@ -213,7 +217,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
 }
 
 trait PlayFunctional extends PlayJsonModule {
-  def millSourcePath = pwd / "play-functional"
+  def millSourcePath = os.pwd / "play-functional"
   def artifactName = "play-functional"
 }
 
@@ -229,7 +233,7 @@ object playJoda extends Cross[PlayJoda](ScalaVersions:_*)
 class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
   def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
 
-  def millSourcePath = pwd / "play-json-joda"
+  def millSourcePath = os.pwd / "play-json-joda"
   def artifactName = "play-json-joda"
 
   def ivyDeps = Agg(
@@ -250,7 +254,7 @@ object benchmarks extends Cross[Benchmarks](ScalaVersions:_*)
 class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
   def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
 
-  def millSourcePath = pwd / "benchmarks"
+  def millSourcePath = os.pwd / "benchmarks"
 }
 
 // TODO: we should have a way to "take all modules in this build"
@@ -322,7 +326,7 @@ def validateCode() = T.command {
   */
 object release extends Module {
 
-  implicit val wd = pwd
+  implicit val wd = os.pwd
 
   val versionFile = wd / "version.sc"
 
@@ -345,27 +349,27 @@ object release extends Module {
   def setReleaseVersion = T {
     T.ctx.log.info(s"Setting release version to ${releaseVersion}")
 
-    write.over(
+    os.write.over(
       versionFile,
       s"""def current = "${releaseVersion}"
          |
        """.stripMargin
     )
 
-    %%("git", "commit", "-am", s"Setting release version to ${releaseVersion}")
-    %%("git", "tag", s"$releaseVersion")
+    os.proc("git", "commit", "-am", s"Setting release version to ${releaseVersion}").call()
+    os.proc("git", "tag", s"$releaseVersion").call()
   }
 
   def setNextVersion = T {
     T.ctx.log.info(s"Setting next version to ${nextVersion}")
 
-    write.over(
+    os.write.over(
       versionFile,
       s"""def current = "${nextVersion}""""
     )
 
-    %%("git", "commit", "-am", s"Setting next version to ${nextVersion}")
-    %%("git", "push", "origin", "master", "--tags")
+    os.proc("git", "commit", "-am", s"Setting next version to ${nextVersion}").call()
+    os.proc("git", "push", "origin", "master", "--tags").call()
   }
 
 }

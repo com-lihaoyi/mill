@@ -117,7 +117,7 @@ In case of troubles with caching and/or incremental compilation, you can always
 restart from scratch removing the `out` directory:
 
 ```bash
-rm -rf out/
+os.remove.all -rf out/
 ```
 
 ## Project Layout
@@ -150,6 +150,20 @@ optimizer without classpath conflicts.
 
 
 ## Changelog
+
+### 0.3.4
+
+- Mill is now bundled with [OS-Lib](https://github.com/lihaoyi/os-lib),
+  providing a simpler way of dealing with filesystem APIs and subprocesses
+
+### 0.3.3
+
+- Added new `debug` method to context logger, to log additional debug info into the
+  task specific output dir (`out/<task>/log`)
+
+- Added `--debug` option to enable debug output to STDERR
+
+- Fix `ScalaModule#docJar` task when Scala minor versions differ [475](https://github.com/lihaoyi/mill/issues/475)
 
 ### 0.3.2
 

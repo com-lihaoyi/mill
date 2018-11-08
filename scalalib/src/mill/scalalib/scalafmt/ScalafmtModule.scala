@@ -1,6 +1,5 @@
 package mill.scalalib.scalafmt
 
-import ammonite.ops.{exists, ls, pwd}
 import mill._
 import mill.define._
 import mill.scalalib._
@@ -19,7 +18,7 @@ trait ScalafmtModule extends JavaModule {
 
   def scalafmtVersion: T[String] = "1.5.1"
 
-  def scalafmtConfig: Sources = T.sources(pwd / ".scalafmt.conf")
+  def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
 
   def scalafmtDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
@@ -31,8 +30,8 @@ trait ScalafmtModule extends JavaModule {
 
   protected def filesToFormat(sources: Seq[PathRef]) = {
     for {
-      pathRef <- sources if exists(pathRef.path)
-      file <- ls.rec(pathRef.path) if file.isFile && file.ext == "scala"
+      pathRef <- sources if os.exists(pathRef.path)
+      file <- os.walk(pathRef.path) if os.isFile(file) && file.ext == "scala"
     } yield PathRef(file)
   }
 

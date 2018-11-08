@@ -88,7 +88,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.3.2",
+      ivy"com.lihaoyi:::ammonite:1.4.2",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -250,6 +250,10 @@ object contrib extends MillModule {
     }
    }
 
+  object tut extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
+  }
 }
 
 
@@ -297,7 +301,7 @@ def testRepos = T{
     "MILL_BETTERFILES_REPO" ->
       shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx().dest/"better-files"),
     "MILL_AMMONITE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/ammonite", "96ea548d5e3b72ab6ad4d9765e205bf6cc1c82ac", T.ctx().dest/"ammonite"),
+      shared.downloadTestRepo("lihaoyi/ammonite", "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e", T.ctx().dest/"ammonite"),
     "MILL_UPICKLE_REPO" ->
       shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle"),
     "MILL_PLAY_JSON_REPO" ->
@@ -362,7 +366,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut)
 
   def forkArgs =
     (

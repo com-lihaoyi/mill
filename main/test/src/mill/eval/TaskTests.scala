@@ -1,7 +1,7 @@
 package mill.eval
 
 import utest._
-import ammonite.ops._
+
 import mill.T
 
 import mill.util.TestEvaluator
@@ -34,15 +34,15 @@ object TaskTests extends TestSuite{
 
       def persistent = T.persistent{
         input() // force re-computation
-        mkdir(T.ctx().dest)
-        write.append(T.ctx().dest/'count, "hello\n")
-        read.lines(T.ctx().dest/'count).length
+        os.makeDir.all(T.ctx().dest)
+        os.write.append(T.ctx().dest/'count, "hello\n")
+        os.read.lines(T.ctx().dest/'count).length
       }
       def nonPersistent = T{
         input() // force re-computation
-        mkdir(T.ctx().dest)
-        write.append(T.ctx().dest/'count, "hello\n")
-        read.lines(T.ctx().dest/'count).length
+        os.makeDir.all(T.ctx().dest)
+        os.write.append(T.ctx().dest/'count, "hello\n")
+        os.read.lines(T.ctx().dest/'count).length
       }
 
       def staticWorkerDownstream = T{

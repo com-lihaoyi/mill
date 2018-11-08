@@ -1,6 +1,5 @@
 package mill.util
 
-import ammonite.ops.pwd
 import mill.define.{Input, Target, Task}
 import mill.eval.Result.OuterStack
 import mill.eval.{Evaluator, Result}
@@ -10,7 +9,7 @@ import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
-  val externalOutPath = pwd / 'target / 'external
+  val externalOutPath = os.pwd / 'target / 'external
 
 
   def static(module: TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {
@@ -26,7 +25,7 @@ class TestEvaluator(module: TestUtil.BaseModule)
 //  val logger = DummyLogger
   val logger = new PrintLogger(
     colored = true, disableTicker=false,
-    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in
+    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false
  )
   val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger)
 

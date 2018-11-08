@@ -1,12 +1,11 @@
 import mill._
-import ammonite.ops._
 
 trait PathAware extends mill.Module {
   def selfPath = T { millSourcePath }
 }
 
 trait DestAware extends mill.Module {
-  def selfDest = T { T.ctx().dest / up / up }
+  def selfDest = T { T.ctx().dest / os.up / os.up }
 }
 
 object sub extends PathAware with DestAware {

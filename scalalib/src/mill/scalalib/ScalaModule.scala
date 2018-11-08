@@ -1,12 +1,11 @@
 package mill
 package scalalib
 
-import ammonite.ops._
 import coursier.Repository
 import mill.define.{Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.modules.Jvm.{createJar, subprocess}
+import mill.modules.Jvm.createJar
 import Dep.isDotty
 import Lib._
 import mill.util.Loose.Agg
@@ -171,14 +170,14 @@ trait ScalaModule extends JavaModule { outer =>
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
-    mkdir(javadocDir)
+    os.makeDir.all(javadocDir)
 
     val files = allSourceFiles().map(_.path.toString)
 
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
-      "-d", javadocDir.toNIO.toString, "-usejavacp",
+      "-d", javadocDir.toNIO.toString,
       "-classpath", compileCp.mkString(":")
     ) ++
       pluginOptions ++
@@ -186,7 +185,13 @@ trait ScalaModule extends JavaModule { outer =>
 
     if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
     else {
-      zincWorker.worker().docJar(files ++ options) match{
+      zincWorker.worker().docJar(
+        scalaVersion(),
+        scalaCompilerBridgeSources(),
+        scalaCompilerClasspath().map(_.path),
+        scalacPluginClasspath().map(_.path),
+        files ++ options
+      ) match{
         case true => Result.Success(createJar(Agg(javadocDir))(outDir))
         case false => Result.Failure("docJar generation failed")
       }
@@ -201,7 +206,7 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
-      Jvm.interactiveSubprocess(
+      Jvm.runSubprocess(
         mainClass =
           if (isDotty(scalaVersion()))
             "dotty.tools.repl.Main"
@@ -209,7 +214,7 @@ trait ScalaModule extends JavaModule { outer =>
             "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(_.path),
         mainArgs = Seq("-usejavacp"),
-        workingDir = pwd
+        workingDir = os.pwd
       )
       Result.Success()
     }
@@ -236,11 +241,11 @@ trait ScalaModule extends JavaModule { outer =>
     if (T.ctx().log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
-      Jvm.interactiveSubprocess(
+      Jvm.runSubprocess(
         mainClass = "ammonite.Main",
         classPath = ammoniteReplClasspath().map(_.path),
         mainArgs = replOptions,
-        workingDir = pwd
+        workingDir = os.pwd
       )
       Result.Success()
     }

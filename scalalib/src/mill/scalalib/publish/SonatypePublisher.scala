@@ -3,7 +3,6 @@ package mill.scalalib.publish
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import ammonite.ops._
 import mill.util.Logger
 
 import scalaj.http.HttpResponse
@@ -17,10 +16,10 @@ class SonatypePublisher(uri: String,
 
   private val api = new SonatypeHttpApi(uri, credentials)
 
-  def publish(fileMapping: Seq[(Path, String)], artifact: Artifact, release: Boolean): Unit = {
+  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
   }
-  def publishAll(release: Boolean, artifacts: (Seq[(Path, String)], Artifact)*): Unit = {
+  def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
 
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = Seq(
@@ -36,7 +35,7 @@ class SonatypePublisher(uri: String,
 
       artifact -> (fileMapping ++ signedArtifacts).flatMap {
         case (file, name) =>
-          val content = read.bytes(file)
+          val content = os.read.bytes(file)
 
           Seq(
             name -> content,
@@ -136,16 +135,17 @@ class SonatypePublisher(uri: String,
   }
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
-  private def poorMansSign(file: Path, maybePassphrase: Option[String]): Path = {
+  private def poorMansSign(file: os.Path, maybePassphrase: Option[String]): os.Path = {
     val fileName = file.toString
-    import ammonite.ops.ImplicitWd._
     maybePassphrase match {
       case Some(passphrase) =>
-        %("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
+        os.proc("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
+          .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
       case None =>
-        %("gpg", "--batch", "--yes", "-a", "-b", fileName)
+        os.proc("gpg", "--batch", "--yes", "-a", "-b", fileName)
+          .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
     }
-    Path(fileName + ".asc")
+    os.Path(fileName + ".asc")
   }
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =

@@ -1,6 +1,5 @@
 package mill.integration
 
-import ammonite.ops._
 import utest._
 
 class BetterFilesTests(fork: Boolean)
@@ -17,8 +16,8 @@ class BetterFilesTests(fork: Boolean)
       assert(coreTestMeta.contains("better.files.FileSpec"))
       assert(coreTestMeta.contains("files should handle BOM"))
 
-      for(scalaFile <- ls.rec(workspacePath).filter(_.ext == "scala")){
-        write.append(scalaFile, "\n}")
+      for(scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")){
+        os.write.append(scalaFile, "\n}")
       }
       assert(!eval("akka.test"))
     }

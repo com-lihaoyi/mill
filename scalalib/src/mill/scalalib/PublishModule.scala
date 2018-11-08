@@ -1,7 +1,6 @@
 package mill
 package scalalib
 
-import ammonite.ops._
 import mill.define.{ExternalModule, Task}
 import mill.eval.PathRef
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
@@ -29,14 +28,14 @@ trait PublishModule extends JavaModule { outer =>
   def pom = T {
     val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
-    write.over(pomPath, pom)
+    os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
   def ivy = T {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps())
     val ivyPath = T.ctx().dest / "ivy.xml"
-    write.over(ivyPath, ivy)
+    os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
@@ -103,7 +102,7 @@ object PublishModule extends ExternalModule {
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
                  signed: Boolean = true) = T.command {
 
-    val x: Seq[(Seq[(Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
       case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
     new SonatypePublisher(
