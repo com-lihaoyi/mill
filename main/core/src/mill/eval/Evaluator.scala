@@ -2,7 +2,7 @@ package mill.eval
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
-import java.util.concurrent.{ExecutorCompletionService, Executors, Future, TimeUnit}
+import java.util.concurrent.{ExecutorCompletionService, Executors, Future}
 
 import scala.collection.JavaConverters._
 import scala.collection.mutable
@@ -127,12 +127,6 @@ case class Evaluator(
           // early exit
           if (work.isEmpty) return
 
-          //          log.debug(s"scheduleWork state:")
-          //          log.debug(s"  work:       ${work.size} -- ${work.map(t => printTerm(t._1)).mkString(", ")}")
-          //          log.debug(s"  inProgress: ${inProgress.size} -- ${inProgress.map(t => printTerm(t._1)).mkString(", ")}")
-          //          log.debug(s"  done:       ${done.size} -- ${done.map(t => printTerm(t._1)).mkString(", ")}")
-          //          log.debug(s"  executor:   ${executorService}")
-
           // newInProgress: the terminal groups without unresolved dependencies
           // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
           val (newInProgress, newWork) = work.partition { termGroup =>
@@ -229,7 +223,7 @@ case class Evaluator(
       } finally {
 
         // done, cleanup
-        evalLog.debug(s"Shuting down executor service: ${executorService}")
+        evalLog.debug(s"Shutting down executor service: ${executorService}")
         executorService.shutdownNow()
       }
 
