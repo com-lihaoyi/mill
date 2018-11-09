@@ -226,7 +226,7 @@ case class Evaluator(
 
       } catch {
         case NonFatal(e) =>
-          evalLog.error(s"Execption caught: ${e}")
+          evalLog.error(s"Execption caught: ${printException(e)}")
           evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
           // stop pending jobs
           futures.foreach(_._1.cancel(false))
@@ -495,7 +495,9 @@ case class Evaluator(
       val inputResults = for {
         target <- nonEvaluatedTargets
         item <- target.inputs.filterNot(group.contains)
-      } yield results(item).map(_._1)
+      } yield results.get(item).map(_.map(_._1)).getOrElse {
+        throw new NoSuchElementException(s"key not found: ${item}\nExisting keys: ${results.keySet.mkString(", ")}")
+      }
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
@@ -509,8 +511,10 @@ case class Evaluator(
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
-        .map{x => newResults.getOrElse(x, results(x))}
-        .collect{ case Result.Success((v, hashCode)) => v }
+        .map { x => newResults.getOrElse(x, results.get(x).getOrElse{
+          throw new NoSuchElementException(s"key not found: ${x}\nExisting keys: ${results.keySet.mkString(", ")}")
+        }) }
+        .collect { case Result.Success((v, hashCode)) => v }
 
       val res =
         if (targetInputValues.length != task.inputs.length) Result.Skipped
