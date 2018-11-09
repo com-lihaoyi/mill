@@ -40,6 +40,8 @@ case class Evaluator(
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv
 ) {
+  type Terminal = Either[Task[_], Labelled[Any]]
+  type TerminalGroup = (Terminal, Strict.Agg[Task[_]])
 
   log.debug("Created Evaluator")
 
@@ -287,9 +289,6 @@ case class Evaluator(
       results.map{case (k, v) => (k, v.map(_._1))}
     )
   }
-
-  type Terminal = Either[Task[_], Labelled[Any]]
-  type TerminalGroup = (Either[Task[_], Labelled[Any]], Strict.Agg[Task[_]])
 
   def printTerm(term: Terminal): String = term match {
     case Left(t) => t.toString()
