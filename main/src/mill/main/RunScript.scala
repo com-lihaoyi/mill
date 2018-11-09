@@ -28,7 +28,8 @@ object RunScript{
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
                 log: Logger,
-                env : Map[String, String])
+                env : Map[String, String],
+                threadCount: Option[Int])
   : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
@@ -53,7 +54,7 @@ object RunScript{
     val evalRes =
       for(s <- evalState)
       yield new Evaluator(home, wd / 'out, wd / 'out, s.rootModule, log,
-        s.classLoaderSig, s.workerCache, env)
+        s.classLoaderSig, s.workerCache, env, threadCount = threadCount)
 
     val evaluated = for{
       evaluator <- evalRes

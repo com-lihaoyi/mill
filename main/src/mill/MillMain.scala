@@ -37,7 +37,7 @@ object MillMain {
             env: Map[String, String],
             setIdle: Boolean => Unit): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
-    
+
     val millHome = mill.util.Ctx.defaultHome
 
     val removed = Set("predef-code", "no-home-predef")
@@ -50,8 +50,6 @@ object MillMain {
         c
       }
     )
-
-
 
     var disableTicker = false
     val disableTickerSignature = Arg[Config, Unit](
@@ -73,8 +71,23 @@ object MillMain {
       }
     )
 
+    var threadCount: Option[Int] = None
+    val threadCountSignature = Arg[Config, Int](
+      name = "jobs", Some('j'),
+      doc = "Allow processing N targets in parallel. Use 1 to disable parallel and 0 to let mill decide (most probably <number-of-cpu-cores> threads).",
+      (c, v) => {
+        threadCount = if(v == 0) None else Some(v)
+        c
+      }
+    )
+
     val millArgSignature =
-      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature, debugLogSignature)
+      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(
+        interactiveSignature,
+        disableTickerSignature,
+        debugLogSignature,
+        threadCountSignature
+      )
 
     Cli.groupArgs(
       args.toList,
@@ -115,7 +128,8 @@ object MillMain {
                   |  repl.pprinter(),
                   |  build.millSelf.get,
                   |  build.millDiscover,
-                  |  $debugLog
+                  |  $debugLog,
+                  |  $threadCount
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -131,7 +145,8 @@ object MillMain {
             stateCache,
             env,
             setIdle,
-            debugLog
+            debugLog,
+            threadCount
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {

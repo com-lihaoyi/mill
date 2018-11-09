@@ -16,7 +16,8 @@ object ReplApplyHandler{
                pprinter0: pprint.PPrinter,
                rootModule: mill.define.BaseModule,
                discover: Discover[_],
-               debugLog: Boolean) = {
+               debugLog: Boolean,
+               threadCount: Option[Int]) = {
     new ReplApplyHandler(
       pprinter0,
       new Evaluator(
@@ -33,7 +34,8 @@ object ReplApplyHandler{
           System.err,
           System.in,
           debugEnabled = debugLog
-        )
+        ),
+        threadCount = threadCount
       )
     )
   }

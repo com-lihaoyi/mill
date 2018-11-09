@@ -38,7 +38,8 @@ case class Evaluator(
   log: Logger,
   classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-  env: Map[String, String] = Evaluator.defaultEnv
+  env: Map[String, String] = Evaluator.defaultEnv,
+  threadCount: Option[Int] = None
 ) {
   type Terminal = Either[Task[_], Labelled[Any]]
   type TerminalGroup = (Terminal, Strict.Agg[Task[_]])
@@ -58,7 +59,11 @@ case class Evaluator(
         override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
       })
 
-    val threadCount = 4
+    // As long as this feature is experimental, we default to 1,
+    // later we may want to default to nr of processors.
+    val threadCount = this.threadCount.
+      // getOrElse(Runtime.getRuntime().availableProcessors())
+      getOrElse(1)
 
     evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
 
@@ -88,7 +93,7 @@ case class Evaluator(
       }
     }
 
-    val runParallel = true
+    val runParallel = threadCount != 1
     if (runParallel) {
 
       // TODO: check for interactivity
