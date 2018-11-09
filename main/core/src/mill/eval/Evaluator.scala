@@ -68,7 +68,7 @@ case class Evaluator(
     val evaluated = new Agg.Mutable[Task[_]]
 
     // Mutable collector for all task results
-    val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    @volatile var results = Map.empty[Task[_], Result[(Any, Int)]]
 
     type Timing = (Either[Task[_], Labelled[_]], Int, Boolean)
 
@@ -200,16 +200,7 @@ case class Evaluator(
 
             // Update state
             evaluated.appendAll(newEvaluated)
-            newResults.foreach {
-              case r @ (k, v) =>
-                evalLog.debug(s"Memorizing result of task [${r._1}] is [${r._2}]")
-                val oldResultSize = results.size
-                val old = results.put(k, v)
-                old.foreach { or => evalLog.debug(s"Overridden older memorized result: ${or}") }
-                if (old.isEmpty && results.size <= oldResultSize) {
-                  evalLog.error(s"Internal state issue, results map didn't grow although it should. Old size: ${oldResultSize}, new site: ${results.size}")
-                }
-            }
+            results ++= newResults
             timings.append((finishedWork._1, time, cached))
 
             inProgress = inProgress.filterNot(_ == finishedWork)
@@ -256,7 +247,7 @@ case class Evaluator(
             )
 
           evaluated.appendAll(newEvaluated)
-          newResults.foreach { case (k, v) => results.put(k, v) }
+          results ++= newResults
           val endTime = System.currentTimeMillis()
 
           timings.append((terminal, (endTime - startTime).toInt, cached))
