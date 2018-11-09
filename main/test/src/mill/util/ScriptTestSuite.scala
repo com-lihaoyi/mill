@@ -2,6 +2,8 @@ package mill.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
+import scala.util.Try
+
 import utest._
 
 abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
@@ -15,10 +17,11 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
   val debugLog = false
+  val threadCount = Try(sys.props("MILL_THREAD_COUNT").toInt).toOption
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = wd), disableTicker,
     stdOutErr, stdOutErr, stdIn, None, Map.empty,
-    b => (), debugLog
+    b => (), debugLog, threadCount
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
