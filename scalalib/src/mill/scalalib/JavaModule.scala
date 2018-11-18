@@ -563,7 +563,7 @@ trait TestModule extends JavaModule with TaskModule {
 
     try {
       val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.readJs[(String, Seq[TestRunner.Result])](jsonOutput)
+      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
       TestModule.handleResults(doneMsg, results)
     }catch{case e: Throwable =>
       Result.Failure("Test reporting failed: " + e)

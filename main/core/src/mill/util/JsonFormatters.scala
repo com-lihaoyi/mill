@@ -1,6 +1,5 @@
 package mill.util
 
-import upickle.Js
 import upickle.default.{ReadWriter => RW}
 import scala.util.matching.Regex
 object JsonFormatters extends JsonFormatters
@@ -29,14 +28,14 @@ trait JsonFormatters {
   implicit lazy val modFormat: RW[coursier.Module] = upickle.default.macroRW
   implicit lazy val depFormat: RW[coursier.Dependency]= upickle.default.macroRW
   implicit lazy val attrFormat: RW[coursier.Attributes] = upickle.default.macroRW
-  implicit val stackTraceRW = upickle.default.readwriter[Js.Obj].bimap[StackTraceElement](
-    ste => Js.Obj(
-      "declaringClass" -> Js.Str(ste.getClassName),
-      "methodName" -> Js.Str(ste.getMethodName),
-      "fileName" -> Js.Str(ste.getFileName),
-      "lineNumber" -> Js.Num(ste.getLineNumber)
+  implicit val stackTraceRW = upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
+    ste => ujson.Obj(
+      "declaringClass" -> ujson.Str(ste.getClassName),
+      "methodName" -> ujson.Str(ste.getMethodName),
+      "fileName" -> ujson.Str(ste.getFileName),
+      "lineNumber" -> ujson.Num(ste.getLineNumber)
     ),
-    {case json: Js.Obj =>
+    {case json: ujson.Obj =>
       new StackTraceElement(
         json("declaringClass").str.toString,
         json("methodName").str.toString,

@@ -7,7 +7,6 @@ import mill.define.{NamedTask, Task}
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{Ctx, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
-import upickle.Js
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -17,7 +16,7 @@ object MainModule{
     }
   }
   def evaluateTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
-                      (f: Seq[(Any, Option[Js.Value])] => T) = {
+                      (f: Seq[(Any, Option[ujson.Value])] => T) = {
     RunScript.evaluateTasks(evaluator, targets, multiSelect) match{
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))

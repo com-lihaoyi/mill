@@ -11,7 +11,6 @@ import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, Logger, ParseArgs, Watched}
 import mill.util.Strict.Agg
-import upickle.Js
 
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -30,7 +29,7 @@ object RunScript{
                 stateCache: Option[Evaluator.State],
                 log: Logger,
                 env : Map[String, String])
-  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[Js.Value]])], Seq[(os.Path, Long)]) = {
+  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
 
     val (evalState, interpWatched) = stateCache match{
       case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched
@@ -198,7 +197,7 @@ object RunScript{
   }
 
   def evaluate(evaluator: Evaluator,
-               targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[upickle.Js.Value])]]) = {
+               targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
     val evaluated = evaluator.evaluate(targets)
     val watched = evaluated.results
       .iterator
@@ -239,7 +238,7 @@ object RunScript{
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments)
                 .meta
-              val metadata = upickle.default.readJs[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
               Some(metadata.value)
 
             case _ => None

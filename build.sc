@@ -8,7 +8,6 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
-import upickle.Js
 trait MillPublishModule extends PublishModule{
 
   def artifactName = "mill-" + super.artifactName()
@@ -88,7 +87,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.4.2",
+      ivy"com.lihaoyi:::ammonite:1.4.4",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -521,7 +520,7 @@ def uploadToGithub(authKey: String) = T.command{
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
         ujson.write(
-          Js.Obj(
+          ujson.Js.Obj(
             "tag_name" -> releaseTag,
             "name" -> releaseTag
           )

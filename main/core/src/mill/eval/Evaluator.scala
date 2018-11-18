@@ -11,7 +11,6 @@ import mill.eval.Result.OuterStack
 import mill.util
 import mill.util._
 import mill.util.Strict.Agg
-import upickle.Js
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -346,7 +345,7 @@ case class Evaluator(home: os.Path,
 
 
 object Evaluator{
-  case class Cached(value: Js.Value,
+  case class Cached(value: ujson.Value,
                     valueHash: Int,
                     inputsHash: Int)
   object Cached{

@@ -151,6 +151,10 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### 0.3.5
+
+- Bump uPickle to 0.7.1
+
 ### 0.3.4
 
 - Mill is now bundled with [OS-Lib](https://github.com/lihaoyi/os-lib),
