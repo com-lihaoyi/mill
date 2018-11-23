@@ -217,6 +217,8 @@ foo/
             scala/
         test/
             scala/
+        it/
+            scala/
 ```
 
 Useful if you want to migrate an existing project built with SBT without having
