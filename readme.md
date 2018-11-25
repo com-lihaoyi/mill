@@ -11,7 +11,7 @@
 [patreon-link]: https://www.patreon.com/lihaoyi
 
 Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed
-by Gradle? Give Mill a try!
+by Gradle? Infuriated by Fury? Give Mill a try!
 
 If you want to use Mill in your own projects, check out our documentation:
 
