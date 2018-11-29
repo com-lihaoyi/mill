@@ -27,11 +27,18 @@ case class SCM(
 )
 
 object VersionControl {
-  def github(owner: String, repo: String, tag: Option[String] = None): VersionControl = 
+  def github(owner: String, repo: String, tag: Option[String] = None): VersionControl =
     VersionControl(
       browsableRepository = Some(s"https://github.com/$owner/$repo"),
       connection = Some(VersionControlConnection.gitGit("github.com", s"$owner/$repo.git")),
       developerConnection = Some(VersionControlConnection.gitSsh("github.com", s":$owner/$repo.git", username = Some("git"))),
+      tag = tag
+    )
+  def gitlab(owner: String, repo: String, tag: Option[String] = None): VersionControl =
+    VersionControl(
+      browsableRepository = Some(s"https://gitlab.com/$owner/$repo"),
+      connection = Some(VersionControlConnection.gitGit("gitlab.com", s"$owner/$repo.git")),
+      developerConnection = Some(VersionControlConnection.gitSsh("gitlab.com", s":$owner/$repo.git", username = Some("git"))),
       tag = tag
     )
 }
@@ -70,7 +77,7 @@ object VersionControlConnection {
 
   def gitGit(hostname: String,
              path: String = "",
-             port: Option[Int] = None): String = 
+             port: Option[Int] = None): String =
     network("git", "git", hostname, path, port = port)
 
   def gitHttp(hostname: String,
