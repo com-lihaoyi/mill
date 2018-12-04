@@ -8,7 +8,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
-import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import coursier.{Cache, Dependency, Fetch, Repository, Resolution, CachePolicy}
 import coursier.util.{Gather, Task}
 import geny.Generator
 import mill.main.client.InputPumper
@@ -402,10 +402,11 @@ object Jvm {
                           deps: TraversableOnce[coursier.Dependency],
                           force: TraversableOnce[coursier.Dependency],
                           sources: Boolean = false,
-                          mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
+                          mapDependencies: Option[Dependency => Dependency] = None,
+                          ctx: Option[mill.util.Ctx.Log] = None): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
-      repositories, deps, force, mapDependencies
+      repositories, deps, force, mapDependencies, ctx
     )
     val errs = resolution.metadataErrors
     if(errs.nonEmpty) {
@@ -459,7 +460,10 @@ object Jvm {
   def resolveDependenciesMetadata(repositories: Seq[Repository],
                                   deps: TraversableOnce[coursier.Dependency],
                                   force: TraversableOnce[coursier.Dependency],
-                                  mapDependencies: Option[Dependency => Dependency] = None) = {
+                                  mapDependencies: Option[Dependency => Dependency] = None,
+                                  ctx: Option[mill.util.Ctx.Log] = None) = {
+
+    val cachePolicies = CachePolicy.default
 
     val forceVersions = force
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
@@ -472,10 +476,68 @@ object Jvm {
       mapDependencies = mapDependencies
     )
 
-    val fetch = Fetch.from(repositories, Cache.fetch[Task]())
+    val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
+    val fetches = cachePolicies.map { p =>
+      Cache.fetch[Task](
+        logger = resolutionLogger,
+        cachePolicy = p
+      )
+    }
+
+    val fetch = Fetch.from(repositories, fetches.head, fetches.tail: _*)
 
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()
     (deps.toSeq, resolution)
   }
+
+  class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends Cache.Logger {
+    case class DownloadState(var current: Long, var total: Long)
+    var downloads = new mutable.TreeMap[String,DownloadState]()
+    var totalDownloadCount = 0
+    var finishedCount = 0
+    var finishedState = DownloadState(0,0)
+
+    def updateTicker(): Unit = {
+      val sums = downloads.values
+        .fold(DownloadState(0,0)) {
+          (s1, s2) => DownloadState(
+            s1.current + s2.current,
+            Math.max(s1.current,s1.total) + Math.max(s2.current,s2.total)
+          )
+        }
+      sums.current += finishedState.current
+      sums.total += finishedState.total
+      ctx.log.ticker(s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)")
+    }
+
+    override def downloadingArtifact(url: String, file: File): Unit = synchronized {
+      totalDownloadCount += 1
+      downloads += url -> DownloadState(0,0)
+      updateTicker()
+    }
+
+    override def downloadLength(url: String, totalLength: Long, alreadyDownloaded: Long, watching: Boolean): Unit = synchronized {
+      val state = downloads(url)
+      state.current = alreadyDownloaded
+      state.total = totalLength
+      updateTicker()
+    }
+
+    override def downloadProgress(url: String, downloaded: Long): Unit = synchronized {
+      val state = downloads(url)
+      state.current = downloaded
+      updateTicker()
+    }
+
+    override def downloadedArtifact(url: String, success: Boolean): Unit = synchronized {
+      val state = downloads(url)
+      finishedState.current += state.current
+      finishedState.total += Math.max(state.current, state.total)
+      finishedCount += 1
+      downloads -= url
+      updateTicker()
+    }
+  }
+
 }

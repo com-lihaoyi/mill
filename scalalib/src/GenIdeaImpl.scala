@@ -42,7 +42,7 @@ object GenIdeaImpl {
 
     val evaluator = new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
 
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
+    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo, ctx)){
       os.write.over(os.pwd/relPath, pp.format(xml), createFolders = true)
     }
   }
@@ -61,6 +61,7 @@ object GenIdeaImpl {
   def xmlFileLayout(evaluator: Evaluator,
                     rootModule: mill.Module,
                     jdkInfo: (String,String),
+                    ctx: Log,
                     fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
@@ -78,7 +79,10 @@ object GenIdeaImpl {
             repos.toList,
             Lib.depToDependency(_, "2.12.4", ""),
             for(name <- artifactNames)
-            yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}"
+            yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
+            false,
+            None,
+            Some(ctx)
           )
           res.items.toList.map(_.path)
       }
