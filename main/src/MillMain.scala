@@ -23,54 +23,57 @@ object MillMain {
       System.out,
       System.err,
       System.getenv().asScala.toMap,
-      b => ()
+      b => (),
+      System.getProperties().asScala.toMap
     )
-    System.exit(if(result) 0 else 1)
+    System.exit(if (result) 0 else 1)
   }
 
-  def main0(args: Array[String],
-            stateCache: Option[Evaluator.State],
-            mainInteractive: Boolean,
-            stdin: InputStream,
-            stdout: PrintStream,
-            stderr: PrintStream,
-            env: Map[String, String],
-            setIdle: Boolean => Unit): (Boolean, Option[Evaluator.State]) = {
+  def main0(
+    args: Array[String],
+    stateCache: Option[Evaluator.State],
+    mainInteractive: Boolean,
+    stdin: InputStream,
+    stdout: PrintStream,
+    stderr: PrintStream,
+    env: Map[String, String],
+    setIdle: Boolean => Unit,
+    initialSystemProperties: Map[String, String]
+  ): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
-    
+
     val millHome = mill.api.Ctx.defaultHome
 
     val removed = Set("predef-code", "no-home-predef")
+
     var interactive = false
     val interactiveSignature = Arg[Config, Unit](
       "interactive", Some('i'),
       "Run Mill in interactive mode, suitable for opening REPLs and taking user input. In this mode, no mill server will be used.",
-      (c, v) =>{
+      (c, v) => {
         interactive = true
         c
       }
     )
 
-
-
     var disableTicker = false
     val disableTickerSignature = Arg[Config, Unit](
-      "disable-ticker", None,
-      "Disable ticker log (e.g. short-lived prints of stages and progress bars)",
-      (c, v) =>{
-        disableTicker = true
-        c
-      }
+      name = "disable-ticker", shortName = None,
+      doc = "Disable ticker log (e.g. short-lived prints of stages and progress bars)",
+      action = (c, v) => {
+      disableTicker = true
+      c
+    }
     )
 
     var debugLog = false
     val debugLogSignature = Arg[Config, Unit](
       name = "debug", shortName = Some('d'),
       doc = "Show debug output on STDOUT",
-      (c, v) => {
-        debugLog = true
-        c
-      }
+      action = (c, v) => {
+      debugLog = true
+      c
+    }
     )
 
     var keepGoing = false
@@ -82,27 +85,46 @@ object MillMain {
       }
     )
 
+    var extraSystemProperties = Map[String, String]()
+    val extraSystemPropertiesSignature = Arg[Config, String](
+      name = "define", shortName = Some('D'),
+      doc = "Define (or overwrite) a system property",
+      action = { (c, v) =>
+      extraSystemProperties += (v.split("[=]", 2) match {
+        case Array(k, v) => k -> v
+        case Array(k) => k -> ""
+      })
+      c
+    }
+    )
+
     val millArgSignature =
       Cli.genericSignature.filter(a => !removed(a.name)) ++
-        Seq(interactiveSignature, disableTickerSignature, debugLogSignature, keepGoingSignature)
+        Seq(
+          interactiveSignature,
+          disableTickerSignature,
+          debugLogSignature,
+          keepGoingSignature,
+          extraSystemPropertiesSignature
+        )
 
     Cli.groupArgs(
       args.toList,
       millArgSignature,
       Cli.Config(home = millHome, remoteLogging = false)
-    ) match{
-      case _ if interactive =>
-        stderr.println("-i/--interactive must be passed in as the first argument")
-        (false, None)
-      case Left(msg) =>
-        stderr.println(msg)
-        (false, None)
-      case Right((cliConfig, _)) if cliConfig.help =>
-        val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
-        stdout.println(
-        s"""Mill Build Tool
-           |usage: mill [mill-options] [target [target-options]]
-           |
+    ) match {
+        case _ if interactive =>
+          stderr.println("-i/--interactive must be passed in as the first argument")
+          (false, None)
+        case Left(msg) =>
+          stderr.println(msg)
+          (false, None)
+        case Right((cliConfig, _)) if cliConfig.help =>
+          val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
+          stdout.println(
+            s"""Mill Build Tool
+             |usage: mill [mill-options] [target [target-options]]
+             |
            |${formatBlock(millArgSignature, leftMargin).mkString(ammonite.util.Util.newLine)}""".stripMargin
         )
         (true, None)
@@ -126,42 +148,44 @@ object MillMain {
                   |  build.millSelf.get,
                   |  build.millDiscover,
                   |  $debugLog,
-                  |  keepGoing = $keepGoing
+                  |  keepGoing = $keepGoing,
+                  |  ${initialSystemProperties ++ extraSystemProperties}
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
                   |
                 """.stripMargin,
-              welcomeBanner = None
+                welcomeBanner = None
+              )
+
+            val runner = new mill.main.MainRunner(
+              config.copy(colored = config.colored orElse Option(mainInteractive)),
+              disableTicker,
+              stdout, stderr, stdin,
+              stateCache,
+              env,
+              setIdle,
+              debugLog,
+              keepGoing = keepGoing,
+              initialSystemProperties ++ extraSystemProperties
             )
 
-          val runner = new mill.main.MainRunner(
-            config.copy(colored = config.colored orElse Option(mainInteractive)),
-            disableTicker,
-            stdout, stderr, stdin,
-            stateCache,
-            env,
-            setIdle,
-            debugLog,
-            keepGoing = keepGoing
-          )
+            if (mill.main.client.Util.isJava9OrAbove) {
+              val rt = cliConfig.home / Export.rtJarName
+              if (!os.exists(rt)) {
+                runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")
+                Export.rtTo(rt.toIO, false)
+              }
+            }
 
-          if (mill.main.client.Util.isJava9OrAbove) {
-            val rt = cliConfig.home / Export.rtJarName
-            if (!os.exists(rt)) {
-              runner.printInfo(s"Preparing Java ${System.getProperty("java.version")} runtime; this may take a minute or two ...")
-              Export.rtTo(rt.toIO, false)
+            if (repl) {
+              runner.printInfo("Loading...")
+              (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
+            } else {
+              (runner.runScript(os.pwd / "build.sc", leftoverArgs), runner.stateCache)
             }
           }
 
-          if (repl){
-            runner.printInfo("Loading...")
-            (runner.watchLoop(isRepl = true, printing = false, _.run()), runner.stateCache)
-          } else {
-            (runner.runScript(os.pwd / "build.sc", leftoverArgs), runner.stateCache)
-          }
       }
-
-    }
   }
 }
