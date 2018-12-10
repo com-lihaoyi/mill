@@ -13,7 +13,8 @@ class EchoServer extends MillServerMain[Int]{
             stdout: PrintStream,
             stderr: PrintStream,
             env: Map[String, String],
-            setIdle: Boolean => Unit) = {
+            setIdle: Boolean => Unit,
+            systemProperties: Map[String, String]) = {
 
     val reader = new BufferedReader(new InputStreamReader(stdin))
     val str = reader.readLine()
@@ -21,6 +22,9 @@ class EchoServer extends MillServerMain[Int]{
       stdout.println(str + args(0))
     }
     env.toSeq.sortBy(_._1).foreach{
+      case (key, value) => stdout.println(s"$key=$value")
+    }
+    systemProperties.toSeq.sortBy(_._1).foreach{
       case (key, value) => stdout.println(s"$key=$value")
     }
     stdout.flush()
