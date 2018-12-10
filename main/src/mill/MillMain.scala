@@ -44,7 +44,7 @@ object MillMain {
     var interactive = false
     val interactiveSignature = Arg[Config, Unit](
       "interactive", Some('i'),
-      "Run Mill in interactive mode, suitable for opening REPLs and taking user input",
+      "Run Mill in interactive mode, suitable for opening REPLs and taking user input. In this mode, no mill server will be used.",
       (c, v) =>{
         interactive = true
         c
