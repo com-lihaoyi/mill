@@ -30,7 +30,7 @@ object GenIdeaTests extends TestSuite {
         HelloWorld,
         ("JDK_1_8", "1.8 (1)"), fetchMillModules = false)
       for((relPath, xml) <- layout){
-        os.write.over(millSourcePath/ "generated"/ relPath, pp.format(xml))
+        os.write.over(millSourcePath/ "generated"/ relPath, pp.format(xml), createFolders = true)
       }
 
       Seq(
