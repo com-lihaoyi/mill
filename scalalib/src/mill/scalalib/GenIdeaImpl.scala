@@ -4,7 +4,7 @@ import ammonite.runtime.SpecialClassLoader
 import coursier.{Cache, CoursierPaths, Repository}
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.Ctx.{Home, Log}
+import mill.api.Ctx.{Home, Log}
 import mill.util.Strict.Agg
 import mill.util.{Loose, Strict}
 import mill.{T, scalalib}

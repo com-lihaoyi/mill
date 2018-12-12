@@ -6,37 +6,14 @@ import java.net.URLClassLoader
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.define.{Target, Task}
-import mill.eval.Result
+import mill.api.Result
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.util.Loose.Agg
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
 import upickle.default.{ReadWriter => RW, macroRW}
-
-
-sealed abstract class NativeLogLevel(val level: Int) extends Ordered[NativeLogLevel] {
-  def compare(that: NativeLogLevel) =  this.level - that.level
-}
-
-object NativeLogLevel {
-  case object Error extends NativeLogLevel(200)
-  case object Warn extends NativeLogLevel(300)
-  case object Info extends NativeLogLevel(400)
-  case object Debug extends NativeLogLevel(500)
-  case object Trace extends NativeLogLevel(600)
-
-  implicit def rw: RW[NativeLogLevel] = macroRW
-}
-
-sealed abstract class ReleaseMode(val name: String)
-
-object ReleaseMode {
-  case object Debug extends ReleaseMode("debug")
-  case object Release extends ReleaseMode("release")
-
-  implicit def rw: RW[ReleaseMode] = macroRW
-}
+import mill.scalanativelib.api._
 
 
 trait ScalaNativeModule extends ScalaModule { outer =>

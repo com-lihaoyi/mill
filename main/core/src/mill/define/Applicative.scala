@@ -25,7 +25,7 @@ object Applicative {
     def self: M[T]
     def apply()(implicit handler: ApplyHandler[M]): T = handler(self)
   }
-  class ImplicitStub extends StaticAnnotation
+
   type Id[+T] = T
 
   trait Applyer[W[_], T[_], Z[_], Ctx] extends ApplyerGenerated[T, Z, Ctx] {
@@ -81,7 +81,7 @@ object Applicative {
         tempIdent
       case (t, api)
         if t.symbol != null
-        && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[ImplicitStub]) =>
+        && t.symbol.annotations.exists(_.tree.tpe =:= typeOf[mill.api.Ctx.ImplicitStub]) =>
 
         val tempIdent = Ident(ctxSym)
         c.internal.setType(tempIdent, t.tpe)

@@ -1,4 +1,4 @@
-package mill.util
+package mill.api
 
 import java.net.{URL, URLClassLoader}
 
@@ -8,6 +8,7 @@ import io.github.retronym.java9rtexport.Export
 import scala.util.Try
 
 object ClassLoader {
+  def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader)
             (implicit ctx: Ctx.Home): URLClassLoader = {
@@ -38,7 +39,7 @@ object ClassLoader {
     *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
     */
   private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
-    if (!ammonite.util.Util.java9OrAbove || parent != null) parent
+    if (!java9OrAbove || parent != null) parent
     else {
       // Make sure when `parent == null`, we only delegate java.* classes
       // to the parent getPlatformClassLoader. This is necessary because
@@ -53,7 +54,7 @@ object ClassLoader {
   }
 
   private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
-    if (ammonite.util.Util.java9OrAbove) {
+    if (java9OrAbove) {
       urls :+ Export.rtAt(ctx.home.toIO).toURI.toURL
     } else {
       urls

@@ -2,8 +2,9 @@ package mill.modules
 
 
 import coursier.Repository
-import mill.eval.PathRef
-import mill.util.{Ctx, IO, Loose}
+import mill.api.{PathRef, IO}
+import mill.util.{Ctx, Loose}
+
 
 object Util {
   def cleanupScaladoc(v: String) = {
@@ -42,31 +43,9 @@ object Util {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, tmpName)
-    unpackZip(downloaded.path, dest)
+    IO.unpackZip(downloaded.path, dest)
   }
 
-  def unpackZip(src: os.Path, dest: os.RelPath = "unpacked")
-               (implicit ctx: Ctx.Dest) = {
-
-    val byteStream = os.read.inputStream(src)
-    val zipStream = new java.util.zip.ZipInputStream(byteStream)
-    while({
-      zipStream.getNextEntry match{
-        case null => false
-        case entry =>
-          if (!entry.isDirectory) {
-            val entryDest = ctx.dest / dest / os.RelPath(entry.getName)
-            os.makeDir.all(entryDest / ammonite.ops.up)
-            val fileOut = new java.io.FileOutputStream(entryDest.toString)
-            IO.stream(zipStream, fileOut)
-            fileOut.close()
-          }
-          zipStream.closeEntry()
-          true
-      }
-    })()
-    PathRef(ctx.dest / dest)
-  }
 
   def millProjectModule(key: String,
                         artifact: String,
@@ -75,7 +54,7 @@ object Util {
                         artifactSuffix: String = "_2.12") = {
     val localPath = sys.props(key)
     if (localPath != null) {
-      mill.eval.Result.Success(
+      mill.api.Result.Success(
         Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
       )
     } else {

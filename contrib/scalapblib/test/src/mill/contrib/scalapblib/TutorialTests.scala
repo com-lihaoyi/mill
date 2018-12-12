@@ -1,6 +1,6 @@
 package mill.contrib.scalapblib
 
-import mill.eval.Result
+import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}

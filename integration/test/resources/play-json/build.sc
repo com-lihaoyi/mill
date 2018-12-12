@@ -36,7 +36,7 @@ trait PlayJsonModule extends BaseModule with PublishModule with MiMa {
 
   trait Tests extends super.Tests with Scalariform with Headers {
     val specs2Core = T {
-      val v = Lib.scalaBinaryVersion(scalaVersion()) match {
+      val v = mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()) match {
         case "2.10" => "3.9.1"
         case _ => "4.0.2"
       }

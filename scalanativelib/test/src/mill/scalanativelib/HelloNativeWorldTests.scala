@@ -12,7 +12,7 @@ import utest._
 
 
 import scala.collection.JavaConverters._
-
+import mill.scalanativelib.api._
 
 object HelloNativeWorldTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-native-world"

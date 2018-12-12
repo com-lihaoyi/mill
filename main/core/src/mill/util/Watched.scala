@@ -1,6 +1,6 @@
 package mill.util
 
-import mill.eval.PathRef
+import mill.api.PathRef
 
 case class Watched[T](value: T, watched: Seq[PathRef])
 object Watched{

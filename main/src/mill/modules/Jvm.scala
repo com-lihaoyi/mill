@@ -13,7 +13,8 @@ import coursier.util.{Gather, Task}
 import geny.Generator
 import mill.main.client.InputPumper
 import mill.eval.{PathRef, Result}
-import mill.util.{Ctx, IO}
+import mill.util.Ctx
+import mill.api.IO
 import mill.util.Loose.Agg
 
 import scala.collection.mutable
@@ -165,15 +166,15 @@ object Jvm {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      mill.util.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
+      mill.api.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
         if (name.startsWith("sbt.testing."))
           Some(outerClassLoader.loadClass(name))
         else None
       })
     } else if (isolated) {
-      mill.util.ClassLoader.create(urls.toVector, null)
+      mill.api.ClassLoader.create(urls.toVector, null)
     } else {
-      mill.util.ClassLoader.create(urls.toVector, getClass.getClassLoader)
+      mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
 
     val oldCl = Thread.currentThread().getContextClassLoader

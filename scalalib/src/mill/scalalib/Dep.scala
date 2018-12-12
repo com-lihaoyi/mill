@@ -5,7 +5,7 @@ import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
-  import Dep.isDotty
+  import mill.scalalib.api.Util.isDotty
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -50,9 +50,6 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 object Dep {
 
   val DefaultConfiguration = "default(compile)"
-
-  def isDotty(scalaVersion: String) =
-    scalaVersion.startsWith("0.")
 
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')

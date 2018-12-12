@@ -11,7 +11,7 @@ import utest._
 
 
 import scala.collection.JavaConverters._
-
+import mill.scalajslib.api._
 
 object HelloJSWorldTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"

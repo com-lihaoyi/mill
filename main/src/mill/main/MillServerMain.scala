@@ -9,7 +9,7 @@ import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
-import mill.util.DummyInputStream
+import mill.api.DummyInputStream
 import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T]{

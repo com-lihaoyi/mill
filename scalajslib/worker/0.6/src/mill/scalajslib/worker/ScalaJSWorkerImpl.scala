@@ -4,7 +4,7 @@ package worker
 
 import java.io.File
 
-import mill.eval.Result
+import mill.api.Result
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -13,8 +13,8 @@ import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
-
-class ScalaJSWorkerImpl extends mill.scalajslib.ScalaJSWorkerApi {
+import mill.scalajslib.api.{ModuleKind, NodeJSConfig}
+class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,

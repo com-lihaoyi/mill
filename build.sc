@@ -26,8 +26,7 @@ trait MillPublishModule extends PublishModule{
 
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
-
-trait MillModule extends MillPublishModule with ScalaModule{ outer =>
+trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.12.6" }
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
@@ -35,6 +34,8 @@ trait MillModule extends MillPublishModule with ScalaModule{ outer =>
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
+}
+trait MillModule extends MillApiModule{ outer =>
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
@@ -77,9 +78,14 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
     }
   }
-
+  object api extends MillApiModule{
+    def ivyDeps = Agg(
+      ivy"com.lihaoyi::os-lib:0.2.6",
+      ivy"com.lihaoyi::upickle:0.7.1",
+    )
+  }
   object core extends MillModule {
-    def moduleDeps = Seq(moduledefs)
+    def moduleDeps = Seq(moduledefs, api)
 
     def compileIvyDeps = Agg(
       ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
@@ -134,7 +140,7 @@ object main extends MillModule {
 
 
 object scalalib extends MillModule {
-  def moduleDeps = Seq(main)
+  def moduleDeps = Seq(main, scalalib.api)
 
   def ivyDeps = Agg(
     ivy"org.scala-sbt:test-interface:1.0"
@@ -172,23 +178,27 @@ object scalalib extends MillModule {
       )
     }
   }
-  object worker extends MillModule{
-    def moduleDeps = Seq(main, scalalib)
+  object api extends MillApiModule{
+    def moduleDeps = Seq(main.api)
+  }
+  object worker extends MillApiModule{
+
+    def moduleDeps = Seq(scalalib.api)
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
       ivy"org.scala-sbt::zinc:1.2.1"
     )
-    def testArgs = Seq(
+    def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
-    )
+    )}
   }
 }
 
 
 object scalajslib extends MillModule {
 
-  def moduleDeps = Seq(scalalib)
+  def moduleDeps = Seq(scalalib, scalajslib.api)
 
   def testArgs = T{
     val mapping = Map(
@@ -201,9 +211,12 @@ object scalajslib extends MillModule {
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
+  object api extends MillApiModule{
+    def moduleDeps = Seq(main.core)
+  }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
-  class WorkerModule(scalajsBinary: String) extends MillModule{
-    def moduleDeps = Seq(scalajslib)
+  class WorkerModule(scalajsBinary: String) extends MillApiModule{
+    def moduleDeps = Seq(scalajslib.api)
     def ivyDeps = scalajsBinary match {
       case "0.6" =>
         Agg(
@@ -257,7 +270,7 @@ object contrib extends MillModule {
 
 
 object scalanativelib extends MillModule {
-  def moduleDeps = Seq(scalalib)
+  def moduleDeps = Seq(scalalib, scalanativelib.api)
 
   def scalacOptions = Seq[String]() // disable -P:acyclic:force
 
@@ -273,11 +286,13 @@ object scalanativelib extends MillModule {
     scalalib.backgroundwrapper.testArgs() ++
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
-
+  object api extends MillApiModule{
+    def moduleDeps = Seq(main.core)
+  }
   object worker extends Cross[WorkerModule]("0.3")
-  class WorkerModule(scalaNativeBinary: String) extends MillModule {
+  class WorkerModule(scalaNativeBinary: String) extends MillApiModule {
     def scalaNativeVersion = T{ "0.3.8" }
-    def moduleDeps = Seq(scalanativelib)
+    def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = scalaNativeBinary match {
       case "0.3" =>
         Agg(

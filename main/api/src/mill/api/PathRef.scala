@@ -1,4 +1,4 @@
-package mill.eval
+package mill.api
 
 import java.io.IOException
 import java.nio.file.attribute.BasicFileAttributes
@@ -7,7 +7,6 @@ import java.nio.{file => jnio}
 import java.security.{DigestOutputStream, MessageDigest}
 
 import upickle.default.{ReadWriter => RW}
-import mill.util.{DummyOutputStream, IO, JsonFormatters}
 
 
 /**
@@ -66,4 +65,58 @@ object PathRef{
       )
     }
   )
+}
+
+
+import java.io.{InputStream, OutputStream}
+
+/**
+  * Misc IO utilities, eventually probably should be pushed upstream into
+  * ammonite-ops
+  */
+object IO {
+  def stream(src: InputStream, dest: OutputStream) = {
+    val buffer = new Array[Byte](4096)
+    while ( {
+      src.read(buffer) match {
+        case -1 => false
+        case n =>
+          dest.write(buffer, 0, n)
+          true
+      }
+    }) ()
+  }
+
+
+  def unpackZip(src: os.Path, dest: os.RelPath = "unpacked")
+               (implicit ctx: Ctx.Dest) = {
+
+    val byteStream = os.read.inputStream(src)
+    val zipStream = new java.util.zip.ZipInputStream(byteStream)
+    while({
+      zipStream.getNextEntry match{
+        case null => false
+        case entry =>
+          if (!entry.isDirectory) {
+            val entryDest = ctx.dest / dest / os.RelPath(entry.getName)
+            os.makeDir.all(entryDest / os.up)
+            val fileOut = new java.io.FileOutputStream(entryDest.toString)
+            IO.stream(zipStream, fileOut)
+            fileOut.close()
+          }
+          zipStream.closeEntry()
+          true
+      }
+    })()
+    PathRef(ctx.dest / dest)
+  }
+}
+
+import java.io.{ByteArrayInputStream, OutputStream}
+
+object DummyInputStream extends ByteArrayInputStream(Array())
+object DummyOutputStream extends java.io.OutputStream{
+  override def write(b: Int) = ()
+  override def write(b: Array[Byte]) = ()
+  override def write(b: Array[Byte], off: Int, len: Int) = ()
 }

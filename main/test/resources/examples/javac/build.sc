@@ -1,6 +1,6 @@
 import mill.T
 import mill.eval.JavaCompileJarTests.compileAll
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.modules.Jvm
 import mill.util.Loose
 

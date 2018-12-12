@@ -2,7 +2,7 @@ package mill.eval
 
 import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
-import mill.util.Ctx.Dest
+import mill.api.Ctx.Dest
 import mill.{Module, T}
 import mill.util.{DummyLogger, Loose, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg

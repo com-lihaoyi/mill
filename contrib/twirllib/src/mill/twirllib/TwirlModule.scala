@@ -3,7 +3,7 @@ package twirllib
 
 import coursier.{Cache, MavenRepository}
 import mill.define.Sources
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.util.Loose
@@ -41,7 +41,7 @@ trait TwirlModule extends mill.Module {
 
   private def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[CompilationResult] = T.persistent {
+  def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
     TwirlWorkerApi.twirlWorker
       .compile(
         twirlClasspath().map(_.path),
