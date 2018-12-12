@@ -7,7 +7,7 @@ import scala.collection.JavaConverters._
 import mill.util.Router.EntryPoint
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
-import mill.eval.Result.OuterStack
+import mill.api.Result.OuterStack
 import mill.util
 import mill.util._
 import mill.util.Strict.Agg

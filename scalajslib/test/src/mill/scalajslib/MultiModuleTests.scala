@@ -6,7 +6,7 @@ import mill.eval.Evaluator
 import mill.util._
 import mill.scalalib._
 import utest._
-
+import mill.scalajslib.api._
 object MultiModuleTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "multi-module"
   val sourcePath = os.pwd / 'scalajslib / 'test / 'resources / "multi-module"

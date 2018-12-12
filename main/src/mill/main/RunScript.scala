@@ -9,7 +9,8 @@ import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{EitherOps, Logger, ParseArgs, Watched}
+import mill.util.{EitherOps, ParseArgs, Watched}
+import mill.api.Logger
 import mill.util.Strict.Agg
 
 import scala.collection.mutable

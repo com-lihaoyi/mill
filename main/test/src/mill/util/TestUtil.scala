@@ -2,8 +2,8 @@ package mill.util
 
 import mill.util.Router.Overrides
 import mill.define._
-import mill.eval.Result
-import mill.eval.Result.OuterStack
+import mill.api.Result
+import mill.api.Result.OuterStack
 import utest.assert
 import mill.util.Strict.Agg
 import utest.framework.TestPath

@@ -6,10 +6,10 @@ import mill.define.{Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import Dep.isDotty
+import mill.scalalib.api.Util.isDotty
 import Lib._
 import mill.util.Loose.Agg
-import mill.util.DummyInputStream
+import mill.api.DummyInputStream
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -60,7 +60,7 @@ trait ScalaModule extends JavaModule { outer =>
     publish.Artifact.fromDep(
       _: Dep,
       scalaVersion(),
-      Lib.scalaBinaryVersion(scalaVersion()),
+      mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()),
       platformSuffix()
     )
   }
@@ -84,7 +84,7 @@ trait ScalaModule extends JavaModule { outer =>
   def scalaCompilerBridgeSources = T {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion() match {
       case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
-      case _ => (scalaVersion(), Lib.scalaBinaryVersion(scalaVersion()))
+      case _ => (scalaVersion(), mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()))
     }
 
     val (bridgeDep, bridgeName, bridgeVersion) =
@@ -106,7 +106,7 @@ trait ScalaModule extends JavaModule { outer =>
       Seq(bridgeDep),
       sources = true
     ).map(deps =>
-      grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
+      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
     )
   }
 
@@ -152,7 +152,7 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  override def compile: T[CompilationResult] = T.persistent{
+  override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent{
     zincWorker.worker().compileMixed(
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),
@@ -262,7 +262,7 @@ trait ScalaModule extends JavaModule { outer =>
     */
   def artifactScalaVersion: T[String] = T {
     if (crossFullScalaVersion()) scalaVersion()
-    else Lib.scalaBinaryVersion(scalaVersion())
+    else mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion())
   }
 
   /**

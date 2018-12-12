@@ -3,8 +3,8 @@ package scalajslib
 package worker
 
 import java.io.File
-
-import mill.eval.Result
+import mill.scalajslib.api.{ModuleKind, NodeJSConfig}
+import mill.api.Result
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
@@ -12,7 +12,7 @@ import org.scalajs.jsenv.ConsoleJSConsole
 import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
-class ScalaJSWorkerImpl extends mill.scalajslib.ScalaJSWorkerApi {
+class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,

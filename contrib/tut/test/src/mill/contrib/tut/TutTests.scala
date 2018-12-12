@@ -2,7 +2,7 @@ package mill.contrib
 package tut
 
 import mill._
-import mill.eval.Result._
+import mill.api.Result._
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._

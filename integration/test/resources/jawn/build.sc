@@ -42,7 +42,7 @@ class JawnModule(crossVersion: String) extends mill.Module{
 
     object play extends Support(){
       def ivyDeps = mill.T{
-        Lib.scalaBinaryVersion(scalaVersion()) match{
+        mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()) match{
           case "2.10" => Agg(ivy"com.typesafe.play::play-json:2.4.11")
           case "2.11" => Agg(ivy"com.typesafe.play::play-json:2.5.15")
           case _ => Agg(ivy"com.typesafe.play::play-json:2.6.0")

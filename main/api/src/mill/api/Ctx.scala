@@ -1,8 +1,7 @@
-package mill.util
+package mill.api
 
-import mill.define.Applicative.ImplicitStub
 
-import scala.annotation.compileTimeOnly
+import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
 
 object Ctx{
@@ -32,8 +31,9 @@ object Ctx{
     def args: IndexedSeq[_]
   }
 
-  def defaultHome = ammonite.ops.home / ".mill" / "ammonite"
+  def defaultHome = os.home / ".mill" / "ammonite"
 
+  class ImplicitStub extends StaticAnnotation
 }
 class Ctx(val args: IndexedSeq[_],
           dest0: () => os.Path,

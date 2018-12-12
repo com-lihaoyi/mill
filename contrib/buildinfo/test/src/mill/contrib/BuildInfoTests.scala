@@ -3,7 +3,7 @@ package mill.contrib
 import java.util.jar.JarFile
 import mill._
 import mill.define.Target
-import mill.eval.Result._
+import mill.api.Result._
 import mill.eval.{Evaluator, Result}
 import mill.modules.Assembly
 import mill.scalalib.publish.VersionControl

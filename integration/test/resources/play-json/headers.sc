@@ -2,7 +2,7 @@ import $ivy.`com.github.rockjam::license-headers:0.0.1`
 
 
 import mill._, scalalib._
-import mill.eval.PathRef
+import mill.api.PathRef
 import de.heikoseeberger.sbtheader.{CommentStyle, FileType, HeaderCreator, License}
 
 trait Headers extends ScalaModule {

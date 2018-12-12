@@ -9,49 +9,17 @@ import javax.tools.ToolProvider
 
 import ammonite.util.Util
 import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
-import Dep.isDotty
+import mill.scalalib.api.Util.isDotty
 import mill.Agg
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
-import mill.util.Ctx
+import mill.api.Ctx
 import sbt.testing._
 
 import scala.collection.mutable
 
-object CompilationResult {
-  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
-}
-
-// analysisFile is represented by os.Path, so we won't break caches after file changes
-case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 
 object Lib{
-  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-  private val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
-
-  def scalaBinaryVersion(scalaVersion: String) = {
-    scalaVersion match {
-      case ReleaseVersion(major, minor, _) => s"$major.$minor"
-      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case DottyVersion(minor, _) => s"0.$minor"
-      case _ => scalaVersion
-    }
-  }
-
-  def grepJar(classPath: Agg[os.Path], name: String, version: String, sources: Boolean = false) = {
-    val suffix = if (sources) "-sources" else ""
-    val mavenStylePath = s"$name-$version$suffix.jar"
-    val ivyStylePath = {
-      val dir = if (sources) "srcs" else "jars"
-      s"$version/$dir/$name$suffix.jar"
-    }
-
-    classPath
-      .find(p => p.toString.endsWith(mavenStylePath) || p.toString.endsWith(ivyStylePath))
-      .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath"))
-  }
-
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
     assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
     depToDependency(dep, "", platformSuffix)
@@ -59,7 +27,7 @@ object Lib{
 
   def depToDependency(dep: Dep, scalaVersion: String, platformSuffix: String = ""): Dependency =
     dep.toDependency(
-      binaryVersion = scalaBinaryVersion(scalaVersion),
+      binaryVersion = mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion),
       fullVersion = scalaVersion,
       platformSuffix = platformSuffix
     )
@@ -98,7 +66,7 @@ object Lib{
     )
   }
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (isDotty(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion())
     else
       Agg(

@@ -1,7 +1,7 @@
 package mill.util
 
 import mill.define.{Input, Target, Task}
-import mill.eval.Result.OuterStack
+import mill.api.Result.OuterStack
 import mill.eval.{Evaluator, Result}
 import mill.util.Strict.Agg
 import utest.assert

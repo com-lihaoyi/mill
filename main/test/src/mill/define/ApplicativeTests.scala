@@ -1,6 +1,6 @@
 package mill.define
 
-import mill.define.Applicative.ImplicitStub
+import mill.api.Ctx.ImplicitStub
 import utest._
 
 import scala.annotation.compileTimeOnly

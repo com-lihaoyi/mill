@@ -176,10 +176,10 @@ There are several APIs available to you within the body of a `T {...}` or
 `T.command {...}` block to help your write the code implementing your Target or
 Command:
 
-### mill.util.Ctx.Dest
+### mill.api.Ctx.Dest
 
 - `T.ctx().dest`
-- `implicitly[mill.util.Ctx.Dest]`
+- `implicitly[mill.api.Ctx.Dest]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
 assigned to every Target or Command. It is cleared before your task runs, and
@@ -188,10 +188,10 @@ artifacts. This is guaranteed to be unique for every `Target` or `Command`, so
 you can be sure that you will not collide or interfere with anyone else writing
 to those same paths.
 
-### mill.util.Ctx.Log
+### mill.api.Ctx.Log
 
 - `T.ctx().log`
-- `implicitly[mill.util.Ctx.Log]`
+- `implicitly[mill.api.Ctx.Log]`
 
 This is the default logger provided for every task. While your task is running,
 `System.out` and `System.in` are also redirected to this logger. The logs for a
@@ -202,10 +202,10 @@ specific output is also streamed to a log file on disk, e.g. `out/run/log` or
 Messages logged with `log.debug` appear by default only in the log files.
 You can use the `--debug` option when running mill to show them on the console too.
 
-### mill.util.Ctx.Env
+### mill.api.Ctx.Env
 
 - `T.ctx().env`
-- `implicitly[mill.util.Ctx.Env]`
+- `implicitly[mill.api.Ctx.Env]`
 
 Mill keeps a long-lived JVM server to avoid paying the cost of recurrent 
 classloading. Because of this, running `System.getenv` in a task might not yield

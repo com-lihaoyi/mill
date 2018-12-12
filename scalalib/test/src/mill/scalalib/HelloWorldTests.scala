@@ -5,7 +5,7 @@ import java.util.jar.JarFile
 
 import mill._
 import mill.define.Target
-import mill.eval.Result.Exception
+import mill.api.Result.Exception
 import mill.eval.{Evaluator, Result}
 import mill.modules.Assembly
 import mill.scalalib.publish._
