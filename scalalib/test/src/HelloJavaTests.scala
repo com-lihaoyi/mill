@@ -88,8 +88,8 @@ object HelloJavaTests extends TestSuite {
     'failures - {
       val eval = init()
 
-      val mainJava = HelloJava.millSourcePath / 'app / 'src / 'hello / "Main.java"
-      val coreJava = HelloJava.millSourcePath / 'core / 'src / 'hello / "Core.java"
+      val mainJava = HelloJava.millSourcePath / 'app / 'src / "Main.java"
+      val coreJava = HelloJava.millSourcePath / 'core / 'src / "Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)
