@@ -276,17 +276,20 @@ Project home: https://github.com/lefou/mill-osgi
 #### Quickstart
 
 ```scala
-import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.2`
+import mill._, mill.scalalib._
+import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
 import de.tobiasroeser.mill.osgi._
 
 object project extends ScalaModule with OsgiBundleModule {
 
   def bundleSymbolicName = "com.example.project"
 
-  def osgiHeaders = T{ osgiHeaders().copy(
+  def osgiHeaders = T{ super.osgiHeaders().copy(
     `Export-Package`   = Seq("com.example.api"),
     `Bundle-Activator` = Some("com.example.internal.Activator")
   )}
+
+  // other settings ...
 
 }
 ```
