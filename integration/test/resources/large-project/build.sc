@@ -1,4 +1,3 @@
-import $file.conf
 import mill._, scalalib._
 
 trait TModule extends SbtModule {
