@@ -79,18 +79,12 @@ object Discover {
       }
       if overridesRoutes.nonEmpty
     } yield {
-      // by grouping the `overridesRoutes` into a sequence of lambda functions
-      // containing chunks of 512 elements we kind of work around the problem
-      // of generating a *huge* macro method body that finally exceeds the
+      // by wrapping the `overridesRoutes` in a lambda function we kind of work around
+      // the problem of generating a *huge* macro method body that finally exceeds the
       // JVM's maximum allowed method size
-      val splitSize = 512
-      val groupedLambdas =
-        overridesRoutes
-          .sliding(splitSize, splitSize).toSeq
-          .map(grp => q"(() => $grp)()")
-          .reduce((a, b) => q"$a ++ $b")
+      val overridesLambda = q"(() => $overridesRoutes)()"
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      q"$lhs -> $groupedLambdas"
+      q"$lhs -> $overridesLambda"
     }
 
     c.Expr[Discover[T]](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
