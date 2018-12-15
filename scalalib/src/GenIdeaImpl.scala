@@ -43,7 +43,7 @@ object GenIdeaImpl {
     val evaluator = new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo)){
-      os.write.over(os.pwd/relPath, pp.format(xml))
+      os.write.over(os.pwd/relPath, pp.format(xml), createFolders = true)
     }
   }
 
