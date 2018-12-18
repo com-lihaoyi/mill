@@ -28,7 +28,7 @@ object GenIdeaTests extends TestSuite {
       val layout = GenIdeaImpl.xmlFileLayout(
         helloWorldEvaluator.evaluator,
         HelloWorld,
-        ("JDK_1_8", "1.8 (1)"), fetchMillModules = false)
+        ("JDK_1_8", "1.8 (1)"), None, fetchMillModules = false)
       for((relPath, xml) <- layout){
         os.write.over(millSourcePath/ "generated"/ relPath, pp.format(xml), createFolders = true)
       }
