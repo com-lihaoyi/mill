@@ -88,7 +88,6 @@ class ZincWorkerImpl(compilerBridge: Either[
           )
           val argsArray = Array[String](
             "-d", compiledDest.toString,
-            "-Ylog-classpath",
             "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
           ) ++ os.walk(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
 
@@ -212,7 +211,6 @@ class ZincWorkerImpl(compilerBridge: Either[
                              (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
-    println("compileClasspath " + compileClasspath)
     val logger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
         ctx.log.outputStream
