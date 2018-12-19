@@ -189,7 +189,10 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) exten
   }
 }
 
-
+/**
+  * A Logger that forwards all logging to another Logger.  Intended to be
+  * used as a base class for wrappers that modify logging behavior.
+  */
 case class ProxyLogger(logger: Logger) extends Logger {
   def colored = logger.colored
 
