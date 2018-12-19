@@ -3,17 +3,17 @@ package mill.eval
 import java.net.URLClassLoader
 
 import scala.collection.JavaConverters._
+import scala.collection.mutable
+import scala.util.control.NonFatal
 
-import mill.util.Router.EntryPoint
 import ammonite.runtime.SpecialClassLoader
+import mill.util.Router.EntryPoint
 import mill.define.{Ctx => _, _}
-import mill.api.Result.OuterStack
+import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.util
 import mill.util._
 import mill.api.Strict.Agg
 
-import scala.collection.mutable
-import scala.util.control.NonFatal
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
   def format = task match{
@@ -34,18 +34,31 @@ case class Evaluator(home: os.Path,
                      log: Logger,
                      classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
                      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-                     env : Map[String, String] = Evaluator.defaultEnv){
+                     env : Map[String, String] = Evaluator.defaultEnv,
+                     failFast: Boolean = true
+                    ){
+
   val classLoaderSignHash = classLoaderSig.hashCode()
+
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
     os.makeDir.all(outPath)
 
-   val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
-    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
+    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex)
+      if(failFast && someTaskFailed) {
+        // we exit early and set aborted state for all left tasks
+        group.foreach { task =>
+          results.put(task, Aborted)
+        }
+
+      } else {
+
       val startTime = System.currentTimeMillis()
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
@@ -55,6 +68,7 @@ case class Evaluator(home: os.Path,
         results,
         counterMsg
       )
+      someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
       for(ev <- newEvaluated){
         evaluated.append(ev)
@@ -97,7 +111,8 @@ case class Evaluator(home: os.Path,
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
+                          counterMsg: String
+                         ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -232,7 +247,8 @@ case class Evaluator(home: os.Path,
             upickle.default.write(
               Evaluator.Cached(json, hashCode, inputsHash),
               indent = 4
-            )
+            ),
+            createFolders = true
           )
         }
     }
@@ -243,7 +259,7 @@ case class Evaluator(home: os.Path,
                     inputsHash: Int,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
-                    counterMsg: String) = {
+                    counterMsg: String): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
