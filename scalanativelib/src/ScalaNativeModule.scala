@@ -52,7 +52,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       Lib.resolveDependencies(
         Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
         Lib.depToDependency(_, "2.12.4", ""),
-        Seq(ivy"com.lihaoyi::mill-scalanativelib-worker-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}")
+        Seq(ivy"com.lihaoyi::mill-scalanativelib-worker-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"),
+        ctx = Some(implicitly[mill.util.Ctx.Log])
       )
   }
 
@@ -83,7 +84,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     Lib.resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, scalaVersion(), platformSuffix()),
-      toolsIvyDeps()
+      toolsIvyDeps(),
+      ctx = Some(implicitly[mill.util.Ctx.Log])
     ).map(t => (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
@@ -200,7 +202,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     Lib.resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion(), ""),
-      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name))
+      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name)),
+      ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }
 

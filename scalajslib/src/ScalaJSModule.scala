@@ -48,7 +48,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, "2.12.4", ""),
-      commonDeps :+ envDep
+      commonDeps :+ envDep,
+      ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }
 
