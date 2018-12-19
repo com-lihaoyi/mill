@@ -58,7 +58,7 @@ trait ZincWorkerModule extends mill.Module{
         Left((
           T.ctx(),
           compilerInterfaceClasspath().map(_.path).toArray,
-          scalaCompilerBridgeSourceJar _
+          scalaCompilerBridgeSourceJar(_, _).asSuccess.get.value
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
