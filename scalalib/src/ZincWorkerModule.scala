@@ -4,8 +4,10 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
+import mill.api.KeyedLockedCache
 import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
+import mill.scalalib.api.Util.isDotty
 import mill.util.Loose
 import mill.util.JsonFormatters._
 
@@ -41,8 +43,48 @@ trait ZincWorkerModule extends mill.Module{
     )
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
     val instance = cls.getConstructor(classOf[mill.api.Ctx], classOf[Array[String]])
-      .newInstance(T.ctx(), compilerInterfaceClasspath().map(_.path.toString).toArray[String])
+      .newInstance(
+        Left((
+          T.ctx(),
+          compilerInterfaceClasspath().map(_.path.toString).toArray[String],
+          scalaCompilerBridgeSourceJar _
+        )),
+        mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
+        mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
+        new KeyedLockedCache.RandomBoundedCache(1, 1)
+      )
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
+  }
+
+  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
+  def scalaCompilerBridgeSourceJar(scalaVersion: String,
+                                   scalaOrganization: String) = {
+    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
+      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
+      case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
+    }
+
+    val (bridgeDep, bridgeName, bridgeVersion) =
+      if (isDotty(scalaVersion0)) {
+        val org = scalaOrganization
+        val name = "dotty-sbt-bridge"
+        val version = scalaVersion
+        (ivy"$org:$name:$version", name, version)
+      } else {
+        val org = "org.scala-sbt"
+        val name = "compiler-bridge"
+        val version = Versions.zinc
+        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
+      }
+
+    resolveDependencies(
+      repositories,
+      Lib.depToDependency(_, scalaVersion0, ""),
+      Seq(bridgeDep),
+      sources = true
+    ).map(deps =>
+      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
+    )
   }
 
   def compilerInterfaceClasspath = T{

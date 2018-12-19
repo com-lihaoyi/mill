@@ -1,18 +1,16 @@
 package mill.scalalib.worker
 
-import mill.scalalib.worker._
-
 import java.io.File
 import java.util.Optional
 
 import mill.api.Loose.Agg
-import mill.api.PathRef
+import mill.api.{KeyedLockedCache, PathRef}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import mill.scalalib.api.Util.{isDotty, grepJar, scalaBinaryVersion}
+import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
-import mill.scalalib.api.CompilationResult
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
   override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
     am(classpathEntry)
@@ -21,51 +19,14 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-trait KeyedCache[T]{
-  def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V
-}
-
-object KeyedCache{
-  class RandomBoundedCache[T](hotParallelism: Int, coldCacheSize: Int) extends KeyedCache[T]{
-    private[this] val random = new scala.util.Random(313373)
-    val available = new java.util.concurrent.Semaphore(hotParallelism)
-
-    // Awful asymptotic complexity, but our caches are tiny n < 10 so it doesn't matter
-    var cache = Array.fill[Option[(Long, T)]](coldCacheSize)(None)
-
-    def withCachedValue[V](key: Long)(f: => T)(f2: T => V): V = {
-      available.acquire()
-      val pickedValue = synchronized{
-        cache.indexWhere(_.exists(_._1 == key)) match {
-          case -1 => f
-          case i =>
-            val (k, v) = cache(i).get
-            cache(i) = None
-            v
-        }
-      }
-      val result = f2(pickedValue)
-      synchronized{
-        cache.indexWhere(_.isEmpty) match{
-          // Random eviction #YOLO
-          case -1 => cache(random.nextInt(cache.length)) = Some((key, pickedValue))
-          case i => cache(i) = Some((key, pickedValue))
-        }
-      }
-
-      available.release()
-      result
-    }
-  }
-}
-
-object ZincWorkerImpl{
-  type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
-}
-class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path], String => os.Path), String => os.Path],
-                     libraryJarNameGrep: (Agg[os.Path], String) => os.Path = grepJar(_, "scala-library", _),
-                     compilerJarNameGrep: (Agg[os.Path], String) => os.Path = grepJar(_, "scala-compiler", _),
-                     compilerCache: KeyedCache[Compilers] = new KeyedCache.RandomBoundedCache(1, 1)) {
+class ZincWorkerImpl(compilerBridge: Either[
+                       (ZincWorkerApi.Ctx, Array[os.Path], (String, String) => os.Path),
+                       String => os.Path
+                     ],
+                     libraryJarNameGrep: (Agg[os.Path], String) => os.Path,
+                     compilerJarNameGrep: (Agg[os.Path], String) => os.Path,
+                     compilerCache: KeyedLockedCache[Compilers])
+    extends ZincWorkerApi{
   private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   lazy val javaOnlyCompilers = {
     // Keep the classpath as written by the user
@@ -88,12 +49,14 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
   }
 
   def docJar(scalaVersion: String,
+             scalaOrganization: String,
              compilerClasspath: Agg[os.Path],
              scalacPluginClasspath: Agg[os.Path],
              args: Seq[String])
-            (implicit ctx: ZincWorkerImpl.Ctx): Boolean = {
+            (implicit ctx: ZincWorkerApi.Ctx): Boolean = {
     withCompilers(
       scalaVersion,
+      scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
     ) { compilers: Compilers =>
@@ -105,7 +68,7 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
   /** Compile the bridge if it doesn't exist yet and return the output directory.
     *  TODO: Proper invalidation, see #389
     */
-  def compileZincBridgeIfNeeded(scalaVersion: String, compilerJars: Array[File]): os.Path = {
+  def compileZincBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerJars: Array[File]): os.Path = {
     compilerBridge match{
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, compilerBridgeClasspath, srcJars)) =>
@@ -117,7 +80,7 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
           os.makeDir.all(workingDir)
           os.makeDir.all(compiledDest)
 
-          val sourceFolder = mill.api.IO.unpackZip(srcJars(scalaVersion))(workingDir)
+          val sourceFolder = mill.api.IO.unpackZip(srcJars(scalaVersion, scalaOrganization))(workingDir)
           val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
           val compilerMain = classloader.loadClass(
             if (isDotty(scalaVersion)) "dotty.tools.dotc.Main"
@@ -140,14 +103,14 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
 
 
   def discoverMainClasses(compilationResult: CompilationResult)
-                         (implicit ctx: ZincWorkerImpl.Ctx): Seq[String] = {
+                         (implicit ctx: ZincWorkerApi.Ctx): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
       .map(_.getAnalysis)
       .flatMap{
         case analysis: Analysis =>
-          Some(analysis.infos.allInfos.values.map(_.getMainClasses).flatten.toSeq.sorted)
+          Some(analysis.infos.allInfos.values.flatMap(_.getMainClasses).toSeq.sorted)
         case _ =>
           None
       }
@@ -158,7 +121,7 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
                   sources: Agg[os.Path],
                   compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
-                 (implicit ctx: ZincWorkerImpl.Ctx): mill.api.Result[CompilationResult] = {
+                 (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
     compileInternal(
       upstreamCompileOutput,
       sources,
@@ -174,12 +137,14 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
                    compileClasspath: Agg[os.Path],
                    javacOptions: Seq[String],
                    scalaVersion: String,
+                   scalaOrganization: String,
                    scalacOptions: Seq[String],
                    compilerClasspath: Agg[os.Path],
                    scalacPluginClasspath: Agg[os.Path])
-                  (implicit ctx: ZincWorkerImpl.Ctx): mill.api.Result[CompilationResult] = {
+                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
     withCompilers(
       scalaVersion,
+      scalaOrganization,
       compilerClasspath,
       scalacPluginClasspath,
     ) {compilers: Compilers =>
@@ -195,15 +160,19 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
   }
 
   private def withCompilers[T](scalaVersion: String,
+                               scalaOrganization: String,
                                compilerClasspath: Agg[os.Path],
                                scalacPluginClasspath: Agg[os.Path])
                               (f: Compilers => T)
-                              (implicit ctx: ZincWorkerImpl.Ctx)= {
+                              (implicit ctx: ZincWorkerApi.Ctx)= {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
 
-    val compiledCompilerBridge =
-      compileZincBridgeIfNeeded(scalaVersion, compilerClasspath.toArray.map(_.toIO))
+    val compiledCompilerBridge = compileZincBridgeIfNeeded(
+      scalaVersion,
+      scalaOrganization,
+      compilerClasspath.toArray.map(_.toIO)
+    )
 
     val compilerBridgeSig = os.mtime(compiledCompilerBridge)
 
@@ -240,7 +209,7 @@ class ZincWorkerImpl(compilerBridge: Either[(ZincWorkerImpl.Ctx, Array[os.Path],
                               javacOptions: Seq[String],
                               scalacOptions: Seq[String],
                               compilers: Compilers)
-                             (implicit ctx: ZincWorkerImpl.Ctx): mill.api.Result[CompilationResult] = {
+                             (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
     println("compileClasspath " + compileClasspath)
