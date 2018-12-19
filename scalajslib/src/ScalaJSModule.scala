@@ -7,7 +7,8 @@ import mill.eval.{PathRef, Result}
 import mill.api.Result.Success
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
-import mill.util.{Ctx, Loose}
+import mill.util.Ctx
+import mill.api.Loose
 import mill.scalajslib.api._
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 

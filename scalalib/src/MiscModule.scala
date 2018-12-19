@@ -4,7 +4,7 @@ package scalalib
 import mill.define.Cross.Resolver
 import mill.define.{Cross, Task}
 import mill.eval.{PathRef, Result}
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 object CrossModuleBase{
   def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {
     for(segments <- scalaVersion.split('.').inits.filter(_.nonEmpty))

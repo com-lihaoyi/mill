@@ -1,6 +1,6 @@
 package mill.scalalib.publish
 
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 
 import scala.xml.{Atom, Elem, NodeSeq, PrettyPrinter}
 

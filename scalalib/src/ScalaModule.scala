@@ -8,7 +8,7 @@ import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.isDotty
 import Lib._
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 import mill.api.DummyInputStream
 
 /**

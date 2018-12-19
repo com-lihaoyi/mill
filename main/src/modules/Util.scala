@@ -3,7 +3,8 @@ package mill.modules
 
 import coursier.Repository
 import mill.api.{PathRef, IO}
-import mill.util.{Ctx, Loose}
+import mill.util.Ctx
+import mill.api.Loose
 
 
 object Util {
@@ -55,7 +56,7 @@ object Util {
     val localPath = sys.props(key)
     if (localPath != null) {
       mill.api.Result.Success(
-        Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
+        mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
       )
     } else {
       mill.modules.Jvm.resolveDependencies(

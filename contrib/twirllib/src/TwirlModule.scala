@@ -6,7 +6,7 @@ import mill.define.Sources
 import mill.api.PathRef
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
-import mill.util.Loose
+import mill.api.Loose
 
 import scala.io.Codec
 import scala.util.Properties

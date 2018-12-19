@@ -9,7 +9,7 @@ import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.isDotty
 import mill.scalalib.api.ZincWorkerApi
-import mill.util.Loose
+import mill.api.Loose
 import mill.util.JsonFormatters._
 
 object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule{
@@ -57,7 +57,7 @@ trait ZincWorkerModule extends mill.Module{
       .newInstance(
         Left((
           T.ctx(),
-          compilerInterfaceClasspath().map(_.path.toString).toArray[String],
+          compilerInterfaceClasspath().toArray,
           scalaCompilerBridgeSourceJar _
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),

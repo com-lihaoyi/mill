@@ -10,7 +10,7 @@ import mill.define.{Ctx => _, _}
 import mill.api.Result.OuterStack
 import mill.util
 import mill.util._
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 
 import scala.collection.mutable
 import scala.util.control.NonFatal
