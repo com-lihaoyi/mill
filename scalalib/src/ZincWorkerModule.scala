@@ -8,6 +8,7 @@ import mill.api.KeyedLockedCache
 import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.isDotty
+import mill.scalalib.api.ZincWorkerApi
 import mill.util.Loose
 import mill.util.JsonFormatters._
 
@@ -42,7 +43,17 @@ trait ZincWorkerModule extends mill.Module{
       getClass.getClassLoader
     )
     val cls = cl.loadClass("mill.scalalib.worker.ZincWorkerImpl")
-    val instance = cls.getConstructor(classOf[mill.api.Ctx], classOf[Array[String]])
+    val instance = cls.getConstructor(
+      classOf[
+        Either[
+          (ZincWorkerApi.Ctx, Array[os.Path], (String, String) => os.Path),
+          String => os.Path
+        ]
+      ],
+      classOf[(Agg[os.Path], String) => os.Path],
+      classOf[(Agg[os.Path], String) => os.Path],
+      classOf[KeyedLockedCache[_]]
+    )
       .newInstance(
         Left((
           T.ctx(),
