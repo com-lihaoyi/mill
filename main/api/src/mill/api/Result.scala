@@ -33,6 +33,13 @@ object Result {
   }
 
   /**
+   * A task execution was skipped/aborted because of earlier (maybe unrelated) tasks failed and the evaluation was in fail-fast mode.
+   */
+  case object Aborted extends Result[Nothing] {
+    def map[V](f: Nothing => V) = this
+  }
+
+  /**
    * A failed task execution.
    * @tparam T The result type of the computed task.
    */
