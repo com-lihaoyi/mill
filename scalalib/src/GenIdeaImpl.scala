@@ -5,8 +5,8 @@ import coursier.{Cache, CoursierPaths, Repository}
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.api.Ctx.{Home, Log}
-import mill.util.Strict.Agg
-import mill.util.{Loose, Strict}
+import mill.api.Strict.Agg
+import mill.api.{Loose, Strict}
 import mill.{T, scalalib}
 
 import scala.util.Try

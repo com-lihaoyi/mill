@@ -15,7 +15,7 @@ import mill.main.client.InputPumper
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import mill.api.IO
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._

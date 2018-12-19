@@ -4,7 +4,7 @@ package mill.define
 import mill.eval.Evaluator
 import mill.util.{TestGraphs, TestUtil}
 import utest._
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 object GraphTests extends TestSuite{
 
   val tests = Tests{

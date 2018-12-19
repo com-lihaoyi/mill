@@ -5,7 +5,7 @@ import mill.define._
 import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 import utest.framework.TestPath
 
 import scala.collection.mutable

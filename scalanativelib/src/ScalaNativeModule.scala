@@ -9,7 +9,7 @@ import mill.define.{Target, Task}
 import mill.api.Result
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
 import upickle.default.{ReadWriter => RW, macroRW}
