@@ -35,13 +35,15 @@ object Lib{
   def resolveDependenciesMetadata(repositories: Seq[Repository],
                                   depToDependency: Dep => coursier.Dependency,
                                   deps: TraversableOnce[Dep],
-                                  mapDependencies: Option[Dependency => Dependency] = None) = {
+                                  mapDependencies: Option[Dependency => Dependency] = None,
+                                  ctx: Option[mill.util.Ctx.Log] = None) = {
     val depSeq = deps.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
       repositories,
       depSeq.map(depToDependency),
       depSeq.filter(_.force).map(depToDependency),
-      mapDependencies
+      mapDependencies,
+      ctx
     )
   }
   /**
@@ -55,14 +57,16 @@ object Lib{
                           depToDependency: Dep => coursier.Dependency,
                           deps: TraversableOnce[Dep],
                           sources: Boolean = false,
-                          mapDependencies: Option[Dependency => Dependency] = None): Result[Agg[PathRef]] = {
+                          mapDependencies: Option[Dependency => Dependency] = None,
+                          ctx: Option[mill.util.Ctx.Log] = None): Result[Agg[PathRef]] = {
     val depSeq = deps.toSeq
     mill.modules.Jvm.resolveDependencies(
       repositories,
       depSeq.map(depToDependency),
       depSeq.filter(_.force).map(depToDependency),
       sources,
-      mapDependencies
+      mapDependencies,
+      ctx
     )
   }
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
