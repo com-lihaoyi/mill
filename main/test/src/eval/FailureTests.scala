@@ -79,6 +79,40 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Skipped)
       )
     }
+
+    "evaluatePair (failFast=true)"- {
+      val check = new TestEvaluator(pair, failFast = true)
+      check.fail(
+        pair.down,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      pair.up.failure = Some("lols")
+
+      check.fail(
+        pair.down,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Aborted)
+      )
+
+      pair.up.failure = None
+
+      check.fail(
+        pair.down,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      pair.up.exception = Some(new IndexOutOfBoundsException())
+
+      check.fail(
+        pair.down,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Aborted)
+      )
+    }
+
     'evaluateBacktickIdentifiers - {
       val check = new TestEvaluator(bactickIdentifiers)
       import bactickIdentifiers._
@@ -112,6 +146,41 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Skipped)
       )
     }
+
+    "evaluateBacktickIdentifiers (failFast=true)" - {
+      val check = new TestEvaluator(bactickIdentifiers, failFast = true)
+      import bactickIdentifiers._
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      `up-target`.failure = Some("lols")
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Aborted)
+      )
+
+      `up-target`.failure = None
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 0,
+        expectedRawValues = Seq(Result.Success(0))
+      )
+
+      `up-target`.exception = Some(new IndexOutOfBoundsException())
+
+      check.fail(
+        `a-down-target`,
+        expectedFailCount = 1,
+        expectedRawValues = Seq(Result.Aborted)
+      )
+    }
+
     'multipleUsesOfDest - {
       object build extends TestUtil.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok

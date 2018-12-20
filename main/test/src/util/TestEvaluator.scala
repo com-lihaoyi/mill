@@ -17,7 +17,7 @@ object TestEvaluator{
   }
 }
 
-class TestEvaluator(module: TestUtil.BaseModule)
+class TestEvaluator(module: TestUtil.BaseModule, failFast: Boolean = false)
                                             (implicit fullName: sourcecode.FullName,
                                              tp: TestPath){
   val outPath =  TestUtil.getOutPath()
@@ -27,7 +27,7 @@ class TestEvaluator(module: TestUtil.BaseModule)
     colored = true, disableTicker=false,
     ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false
  )
-  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger)
+  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger, failFast = failFast)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
