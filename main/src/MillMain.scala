@@ -73,8 +73,18 @@ object MillMain {
       }
     )
 
+    var keepGoing = false
+    val keepGoingSignature = Arg[Config, Unit] (
+      name = "keep-going", shortName = Some('k'), doc = "Continue build, even after build failures",
+      (c,v) => {
+        keepGoing = true
+        c
+      }
+    )
+
     val millArgSignature =
-      Cli.genericSignature.filter(a => !removed(a.name)) ++ Seq(interactiveSignature, disableTickerSignature, debugLogSignature)
+      Cli.genericSignature.filter(a => !removed(a.name)) ++
+        Seq(interactiveSignature, disableTickerSignature, debugLogSignature, keepGoingSignature)
 
     Cli.groupArgs(
       args.toList,
@@ -115,7 +125,8 @@ object MillMain {
                   |  repl.pprinter(),
                   |  build.millSelf.get,
                   |  build.millDiscover,
-                  |  $debugLog
+                  |  $debugLog,
+                  |  keepGoing = $keepGoing
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -131,7 +142,8 @@ object MillMain {
             stateCache,
             env,
             setIdle,
-            debugLog
+            debugLog,
+            keepGoing = keepGoing
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {

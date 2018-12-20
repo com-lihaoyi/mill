@@ -55,12 +55,12 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
     MillMain.main0(
       args,
       stateCache,
-      mainInteractive,
+      mainInteractive = mainInteractive,
       DummyInputStream,
       stdout,
       stderr,
       env,
-      setIdle
+      setIdle = setIdle
     )
   }
 }
@@ -141,7 +141,7 @@ class Server[T](lockBase: String,
           stdout,
           stderr,
           env.asScala.toMap,
-          idle = _
+          idle = _,
         )
 
         sm.stateCache = newStateCache
