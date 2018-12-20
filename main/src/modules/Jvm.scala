@@ -495,8 +495,8 @@ object Jvm {
     * A Coursier Cache.Logger implementation that updates the ticker with the count and
     * overall byte size of artifacts being downloaded.
     *
-    * In practice, this ticket output gets prefixed with the current target for which
-    * dependencies are being resolved, using a ProxyLogger subclass.
+    * In practice, this ticker output gets prefixed with the current target for which
+    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
     */
   class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends Cache.Logger {
     case class DownloadState(var current: Long, var total: Long)
