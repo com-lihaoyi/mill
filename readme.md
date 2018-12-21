@@ -165,10 +165,13 @@ optimizer without classpath conflicts.
 
 - Zinc worker: configurable scala library/compiler jar discovery
 
-- Zinc workder: configurable compiler cache supporting parallelism
+- Zinc worker: configurable compiler cache supporting parallelism
 
 - Version bumps: ammonite 1.6.0, scala 2.12.8, zinc 1.2.5
 
+- Mill now by default fails fast, so in case a build tasks fails, it exists immediately
+
+- Added new `-k`/--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
 ### 0.3.5
 
