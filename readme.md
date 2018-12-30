@@ -151,6 +151,32 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### {master}
+
+- Started to splitting out mill.api from mill.core
+
+- Avoid unnecessary dependency downloading by providing fetches per cache policy
+
+- Added detailed dependency download progress to the progress ticker
+
+- Fixed internal code generator to support large projects
+
+- Zinc worker: compiler bridge can be either pre-compiled or on-demand-compiled
+
+- Zinc worker: configurable scala library/compiler jar discovery
+
+- Zinc worker: configurable compiler cache supporting parallelism
+
+- Version bumps: ammonite 1.6.0, scala 2.12.8, zinc 1.2.5
+
+- Mill now by default fails fast, so in case a build tasks fails, it exists immediately
+
+- Added new `-k`/--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
+
+### 0.3.5
+
+- Bump uPickle to 0.7.1
+
 ### 0.3.4
 
 - Mill is now bundled with [OS-Lib](https://github.com/lihaoyi/os-lib),

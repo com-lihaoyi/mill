@@ -41,7 +41,7 @@ def generateTarget(dir: Path) = {
     val parameters = lowercases.zip(uppercases).map { case (lower, upper) => s"$lower: TT[$upper]" }.mkString(", ")
     val body       = uppercases.zipWithIndex.map { case (t, i) => s"args[$t]($i)" }.mkString(", ")
 
-    s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($zipArgs), (args: mill.util.Ctx) => ($body))"
+    s"def zip[$typeArgs]($parameters) = makeT[($typeArgs)](Seq($zipArgs), (args: mill.api.Ctx) => ($body))"
   }
 
   write(
@@ -50,7 +50,7 @@ def generateTarget(dir: Path) = {
        |import scala.language.higherKinds
        |trait TargetGenerated {
        |  type TT[+X]
-       |  def makeT[X](inputs: Seq[TT[_]], evaluate: mill.util.Ctx => mill.eval.Result[X]): TT[X]
+       |  def makeT[X](inputs: Seq[TT[_]], evaluate: mill.api.Ctx => mill.api.Result[X]): TT[X]
        |  ${(3 to 22).map(generate).mkString("\n")}
        |}""".stripMargin
   )
@@ -74,7 +74,7 @@ def generateEval(dir: Path) = {
     s"""package mill.main
        |import mill.eval.Evaluator
        |import mill.define.Task
-       |import mill.util.Strict.Agg
+       |import mill.api.Strict.Agg
        |class EvalGenerated(evaluator: Evaluator) {
        |  type TT[+X] = Task[X]
        |  ${(1 to 22).map(generate).mkString("\n")}

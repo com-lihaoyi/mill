@@ -280,7 +280,7 @@ def generateConstantsFile(version: String = buildVersion,
                           unstableCurlUrl: String = "<fill-me-in-in-Constants.scala>",
                           oldCurlUrls: Seq[(String, String)] = Nil,
                           oldUnstableCurlUrls: Seq[(String, String)] = Nil)
-                         (implicit ctx: mill.util.Ctx.Dest)= {
+                         (implicit ctx: mill.api.Ctx.Dest)= {
   val versionTxt = s"""
     package ammonite
     object Constants{
@@ -305,7 +305,7 @@ def generateConstantsFile(version: String = buildVersion,
 def generateDependenciesFile(scalaVersion: String,
                              fileName: String,
                              deps: Seq[coursier.Dependency])
-                            (implicit ctx: mill.util.Ctx.Dest) = {
+                            (implicit ctx: mill.api.Ctx.Dest) = {
 
   val dir = ctx.dest / "extra-resources"
   val dest = dir / fileName
@@ -322,7 +322,7 @@ def generateDependenciesFile(scalaVersion: String,
     .mkString("\n")
 
   println(s"Writing $dest")
-  write(dest, content.getBytes("UTF-8"))
+  write(dest, content.getBytes("UTF-8"), createFolders = true)
 
   dir
 }
