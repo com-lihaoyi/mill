@@ -168,8 +168,10 @@ object app extends ScalaModule with TwirlModule {
 #### Configuration options
 
 * `def twirlVersion: T[String]` (mandatory) - the version of the twirl compiler to use, like "1.3.15"
-* `def twirlAdditionalImports: Seq[String] = Nil` - the additional imports that will be added by twirl compiler to the top
-  of all templates
+* `def twirlAdditionalImports: Seq[String] = Nil` - the additional imports that will be added by twirl compiler to the top of all templates
+* `def twirlConstructorAnnotations: Seq[String] = Nil` - annotations added to the generated classes' constructors (note it only applies to templates with `@this(...)` constructors) 
+* `def twirlCodec = Codec(Properties.sourceEncoding)` - the codec used to generate the files (the default is the same sbt plugin uses) 
+* `def twirlInclusiveDot: Boolean = false`  
   
 #### Details
 
