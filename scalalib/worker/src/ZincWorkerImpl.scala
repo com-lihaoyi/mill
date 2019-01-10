@@ -123,13 +123,13 @@ class ZincWorkerImpl(compilerBridge: Either[
                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for(res <- compileJava0(
-      upstreamCompileOutput,
+      upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
       sources,
       compileClasspath,
       javacOptions
     )) yield CompilationResult(res._1, PathRef(res._2))
   }
-  def compileJava0(upstreamCompileOutput: Seq[CompilationResult],
+  def compileJava0(upstreamCompileOutput: Seq[(os.Path, os.Path)],
                    sources: Agg[os.Path],
                    compileClasspath: Agg[os.Path],
                    javacOptions: Seq[String])
@@ -156,7 +156,7 @@ class ZincWorkerImpl(compilerBridge: Either[
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for (res <- compileMixed0(
-      upstreamCompileOutput,
+      upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
       sources,
       compileClasspath,
       javacOptions,
@@ -168,7 +168,7 @@ class ZincWorkerImpl(compilerBridge: Either[
     )) yield CompilationResult(res._1, PathRef(res._2))
   }
 
-  def compileMixed0(upstreamCompileOutput: Seq[CompilationResult],
+  def compileMixed0(upstreamCompileOutput: Seq[(os.Path, os.Path)],
                     sources: Agg[os.Path],
                     compileClasspath: Agg[os.Path],
                     javacOptions: Seq[String],
@@ -239,7 +239,7 @@ class ZincWorkerImpl(compilerBridge: Either[
     }(f)
   }
 
-  private def compileInternal(upstreamCompileOutput: Seq[CompilationResult],
+  private def compileInternal(upstreamCompileOutput: Seq[(os.Path, os.Path)],
                               sources: Agg[os.Path],
                               compileClasspath: Agg[os.Path],
                               javacOptions: Seq[String],
@@ -263,7 +263,7 @@ class ZincWorkerImpl(compilerBridge: Either[
         Optional.empty[CompileAnalysis]
       } else {
         upstreamCompileOutput.collectFirst {
-          case CompilationResult(zincPath, classFiles) if classFiles.path.toNIO == f.toPath =>
+          case (zincPath, classFiles) if classFiles.toNIO == f.toPath =>
             FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
         }.getOrElse(Optional.empty[CompileAnalysis])
       }
