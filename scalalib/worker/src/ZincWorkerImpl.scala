@@ -121,12 +121,13 @@ class ZincWorkerImpl(compilerBridge: Either[
                   compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
-    for((zincFile, classesDir) <- compileJava0(
+    val res = compileJava0(
       upstreamCompileOutput,
       sources,
       compileClasspath,
       javacOptions
-    )) yield CompilationResult(zincFile, PathRef(classesDir))
+    )
+    for((zincFile, classesDir) <- res) yield CompilationResult(zincFile, PathRef(classesDir))
   }
   def compileJava0(upstreamCompileOutput: Seq[CompilationResult],
                    sources: Agg[os.Path],
@@ -153,7 +154,7 @@ class ZincWorkerImpl(compilerBridge: Either[
                    compilerClasspath: Agg[os.Path],
                    scalacPluginClasspath: Agg[os.Path])
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
-    for ((zincFile, classesDir) <- compileMixed0(
+    val res = compileMixed0(
       upstreamCompileOutput,
       sources,
       compileClasspath,
@@ -163,7 +164,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       scalacOptions,
       compilerClasspath,
       scalacPluginClasspath
-    )) yield CompilationResult(zincFile, PathRef(classesDir))
+    )
+    for ((zincFile, classesDir) <- res) yield CompilationResult(zincFile, PathRef(classesDir))
   }
 
   def compileMixed0(upstreamCompileOutput: Seq[CompilationResult],
