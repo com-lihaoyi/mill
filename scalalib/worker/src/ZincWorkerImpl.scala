@@ -121,6 +121,19 @@ class ZincWorkerImpl(compilerBridge: Either[
                   compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
+
+    for(res <- compileJava0(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions
+    )) yield CompilationResult(res._1, PathRef(res._2))
+  }
+  def compileJava0(upstreamCompileOutput: Seq[CompilationResult],
+                   sources: Agg[os.Path],
+                   compileClasspath: Agg[os.Path],
+                   javacOptions: Seq[String])
+                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput,
       sources,
@@ -141,6 +154,30 @@ class ZincWorkerImpl(compilerBridge: Either[
                    compilerClasspath: Agg[os.Path],
                    scalacPluginClasspath: Agg[os.Path])
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
+
+    for (res <- compileMixed0(
+      upstreamCompileOutput,
+      sources,
+      compileClasspath,
+      javacOptions,
+      scalaVersion,
+      scalaOrganization,
+      scalacOptions,
+      compilerClasspath,
+      scalacPluginClasspath
+    )) yield CompilationResult(res._1, PathRef(res._2))
+  }
+
+  def compileMixed0(upstreamCompileOutput: Seq[CompilationResult],
+                    sources: Agg[os.Path],
+                    compileClasspath: Agg[os.Path],
+                    javacOptions: Seq[String],
+                    scalaVersion: String,
+                    scalaOrganization: String,
+                    scalacOptions: Seq[String],
+                    compilerClasspath: Agg[os.Path],
+                    scalacPluginClasspath: Agg[os.Path])
+                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion,
       scalaOrganization,
@@ -208,7 +245,7 @@ class ZincWorkerImpl(compilerBridge: Either[
                               javacOptions: Seq[String],
                               scalacOptions: Seq[String],
                               compilers: Compilers)
-                             (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
+                             (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
     val logger = {
@@ -281,7 +318,7 @@ class ZincWorkerImpl(compilerBridge: Either[
         )
       )
 
-      mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
+      mill.api.Result.Success((zincFile, classesDir))
     }catch{case e: CompileFailed => mill.api.Result.Failure(e.toString)}
   }
 }
