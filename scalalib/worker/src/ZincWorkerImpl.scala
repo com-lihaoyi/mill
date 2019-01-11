@@ -285,7 +285,7 @@ class ZincWorkerImpl(compilerBridge: Either[
 
     val zincFile = ctx.dest / 'zinc
     val classesDir = 
-      if (jarOut) ctx.dest / "classes.jar"
+      if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
     val zincIOFile = zincFile.toIO
