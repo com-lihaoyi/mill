@@ -25,8 +25,9 @@ class ZincWorkerImpl(compilerBridge: Either[
                      ],
                      libraryJarNameGrep: (Agg[os.Path], String) => os.Path,
                      compilerJarNameGrep: (Agg[os.Path], String) => os.Path,
-                     compilerCache: KeyedLockedCache[Compilers])
-    extends ZincWorkerApi{
+                     compilerCache: KeyedLockedCache[Compilers],
+                     compileToJar: Boolean)
+  extends ZincWorkerApi{
   private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   lazy val javaOnlyCompilers = {
     // Keep the classpath as written by the user
@@ -195,6 +196,19 @@ class ZincWorkerImpl(compilerBridge: Either[
     }
   }
 
+  // for now this just grows unbounded; YOLO
+  val classloaderCache = collection.mutable.LinkedHashMap.empty[Long, ClassLoader]
+
+  def getCachedClassLoader(compilersSig: Long,
+                           combinedCompilerJars: Array[java.io.File])
+                          (implicit ctx: ZincWorkerApi.Ctx)= {
+    classloaderCache.synchronized{
+      classloaderCache.getOrElseUpdate(
+        compilersSig,
+        mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null)
+      )
+    }
+  }
   private def withCompilers[T](scalaVersion: String,
                                scalaOrganization: String,
                                compilerClasspath: Agg[os.Path],
@@ -214,7 +228,7 @@ class ZincWorkerImpl(compilerBridge: Either[
 
     val compilersSig =
       compilerBridgeSig +
-        combinedCompilerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+      combinedCompilerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
 
     compilerCache.withCachedValue(compilersSig){
       val compilerJar =
@@ -224,7 +238,7 @@ class ZincWorkerImpl(compilerBridge: Either[
           compilerJarNameGrep(compilerClasspath, scalaVersion)
       val scalaInstance = new ScalaInstance(
         version = scalaVersion,
-        loader = mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null),
+        loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
         libraryJar = libraryJarNameGrep(compilerClasspath, scalaVersion).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
@@ -258,21 +272,21 @@ class ZincWorkerImpl(compilerBridge: Either[
       l
     }
 
+    val analysisMap0 = upstreamCompileOutput.map(_.swap).toMap
+
     def analysisMap(f: File): Optional[CompileAnalysis] = {
-      if (f.isFile) {
-        Optional.empty[CompileAnalysis]
-      } else {
-        upstreamCompileOutput.collectFirst {
-          case (zincPath, classFiles) if classFiles.toNIO == f.toPath =>
-            FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
-        }.getOrElse(Optional.empty[CompileAnalysis])
+      analysisMap0.get(os.Path(f)) match{
+        case Some(zincPath) => FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
+        case None => Optional.empty[CompileAnalysis]
       }
     }
 
     val lookup = MockedLookup(analysisMap)
 
     val zincFile = ctx.dest / 'zinc
-    val classesDir = ctx.dest / 'classes
+    val classesDir = 
+      if (jarOut) ctx.dest / "classes.jar"
+      else ctx.dest / "classes"
 
     val zincIOFile = zincFile.toIO
     val classesIODir = classesDir.toIO
@@ -302,7 +316,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       pr = {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-      }
+      },
+      Optional.empty[java.io.File]
     )
 
     try {
