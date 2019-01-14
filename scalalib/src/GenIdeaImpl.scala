@@ -249,7 +249,7 @@ object GenIdeaImpl {
 
     val libraries = resolvedLibraries(allResolved).map{ resolved =>
       import resolved.path
-      val url = "jar://" + path + "!/"
+      val url = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
       val name = libraryName(resolved)
       val sources = resolved match {
         case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
