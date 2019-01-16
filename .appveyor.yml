@@ -33,7 +33,7 @@ build_script:
       cmd /C C:\mill\out\release\dest\mill.bat -i all main.test scalajslib.test)
   - if [%COMPILER%]==[msys2] (
       SET "PATH=%JAVA_HOME%\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%" &&
-      C:\%MSYS2_DIR%\usr\bin\bash -lc 'os.makeDir.all -p /usr/local/bin' &&
+      C:\%MSYS2_DIR%\usr\bin\bash -lc 'mkdir -p /usr/local/bin' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i dev.assembly" &&
@@ -41,7 +41,7 @@ build_script:
       C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/dev/assembly/dest/mill.bat -i all main.test scalajslib.test")
   - if [%COMPILER%]==[cygwin] (
       SET "PATH=%JAVA_HOME%\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%" &&
-      C:\%CYGWIN_DIR%\bin\bash -lc 'os.makeDir.all -p /usr/local/bin' &&
+      C:\%CYGWIN_DIR%\bin\bash -lc 'mkdir -p /usr/local/bin' &&
       C:\%CYGWIN_DIR%\bin\bash -lc "curl -Lo /usr/local/bin/mill %MILL_URL%" &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'sed -i '"'"'0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}; 0,/-cp "\$0"/{s/-cp "\$0"/-cp `cygpath -w "\$0"`/}'"'"' /usr/local/bin/mill' &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&

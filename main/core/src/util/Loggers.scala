@@ -111,11 +111,7 @@ case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) ex
     new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
   }
 
-  lazy val errorStream = {
-    if (!outputStreamUsed) os.remove.all(file)
-    outputStreamUsed = true
-    new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath))
-  }
+  lazy val errorStream = outputStream
 
   def info(s: String) = outputStream.println(s)
   def error(s: String) = outputStream.println(s)
