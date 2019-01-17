@@ -151,7 +151,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### {master}
+### 0.3.6
 
 - Started to splitting out mill.api from mill.core
 
