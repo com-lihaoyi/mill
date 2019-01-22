@@ -17,7 +17,7 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
-If you like Mill, please support it by donating to our Patreon:
+If you use Mill and like it, please support it by donating to our Patreon:
 
 - [https://www.patreon.com/lihaoyi](https://www.patreon.com/lihaoyi)
 
