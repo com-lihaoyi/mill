@@ -740,13 +740,15 @@ your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
 
 ```bash
 $ mill foo.publish
-Missing arguments: (--sonatypeCreds: String, --gpgPassphrase: String, --release: Boolean)
+Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 
 Arguments provided did not match expected signature:
 
 publish
   --sonatypeCreds  String (format: "username:password")
-  --gpgPassphrase  String
+  --gpgPassphrase  String (default null)
+  --gpgKeyName     String (default null)
+  --signed         Boolean (default true)
   --release        Boolean
 ```
 
