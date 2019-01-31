@@ -8,6 +8,7 @@ import mill.api.Ctx.{Home, Log}
 import mill.api.Strict.Agg
 import mill.api.{Loose, Strict}
 import mill.{T, scalalib}
+import os.Path
 
 import scala.util.Try
 
@@ -98,12 +99,33 @@ object GenIdeaImpl {
         .filter(_.toIO.exists)
     }.getOrElse(Seq())
 
+    case class ResolvedModule(
+                             path: Segments,
+                             classpath: Loose.Agg[Path],
+                             module: JavaModule,
+                             pluginClasspath: Loose.Agg[Path],
+                             scalaOptions: Seq[String],
+                             compilerClasspath: Loose.Agg[Path],
+                             libraryClasspath: Loose.Agg[Path]
+                             )
+
     val resolved = for((path, mod) <- modules) yield {
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
-        case _ => T.task{Nil}
+        case _ => T.task{Loose.Agg.empty[Dep]}
       }
       val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod.compileIvyDeps()}
+
+      val scalaCompilerClasspath = mod match{
+        case x: ScalaModule => x.scalaCompilerClasspath
+        case _ => T.task{Loose.Agg.empty[PathRef]}
+      }
+
+
+      val externalLibraryDependencies = T.task{
+        mod.resolveDeps(scalaLibraryIvyDeps)()
+      }
+
       val externalDependencies = T.task{
         mod.resolveDeps(allIvyDeps)() ++
         Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
@@ -124,19 +146,26 @@ object GenIdeaImpl {
       val resolvedCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalDependencies, Loose.Agg.empty)
       val resolvedSrcs: Loose.Agg[PathRef] = evalOrElse(evaluator, externalSources, Loose.Agg.empty)
       val resolvedSp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalacPluginDependencies, Loose.Agg.empty)
+      val resolvedCompilerCp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalaCompilerClasspath, Loose.Agg.empty)
+      val resolvedLibraryCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalLibraryDependencies, Loose.Agg.empty)
       val scalacOpts: Seq[String] = evalOrElse(evaluator, scalacOptions, Seq())
 
-      (
+      ResolvedModule(
         path,
         resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
         mod,
         resolvedSp.map(_.path).filter(_.ext == "jar"),
-        scalacOpts
+        scalacOpts,
+        resolvedCompilerCp.map(_.path),
+        resolvedLibraryCp.map(_.path)
       )
     }
+
     val moduleLabels = modules.map(_.swap).toMap
 
-    val allResolved = resolved.flatMap(_._2) ++ buildLibraryPaths ++ buildDepsPaths
+    val allResolved = resolved.flatMap(_.classpath) ++ buildLibraryPaths ++ buildDepsPaths
+
+    val librariesProperties = resolved.flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath)).toMap
 
     val commonPrefix =
       if (allResolved.isEmpty) 0
@@ -216,8 +245,8 @@ object GenIdeaImpl {
     val compilerSettings = resolved
       .foldLeft(Map[(Loose.Agg[os.Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
-          val key = (q._4, q._5)
-          r + (key -> (r.getOrElse(key, Vector()) :+ q._3))
+          val key = (q.pluginClasspath, q.scalaOptions)
+          r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
       }
 
     val allBuildLibraries : Set[ResolvedLibrary] =
@@ -249,16 +278,15 @@ object GenIdeaImpl {
 
     val libraries = resolvedLibraries(allResolved).map{ resolved =>
       import resolved.path
-      val url = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
       val name = libraryName(resolved)
       val sources = resolved match {
         case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
         case OtherResolved(_) => None
       }
-      Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, url, sources))
+      Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
     }
 
-    val moduleFiles = resolved.map{ case (path, resolvedDeps, mod, _, _) =>
+    val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _) =>
       val Seq(
         resourcesPathRefs: Seq[PathRef],
         sourcesPathRef: Seq[PathRef],
@@ -375,9 +403,21 @@ object GenIdeaImpl {
       </component>
     </module>
   }
-  def libraryXmlTemplate(name: String, url: String, sources: Option[String]) = {
+  def libraryXmlTemplate(name: String, path: os.Path, sources: Option[String], compilerClassPath: Loose.Agg[Path]) = {
+    val url = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
+    val isScalaLibrary = compilerClassPath.nonEmpty
     <component name="libraryTable">
-      <library name={name} type={if(name.contains("scala-library-")) "Scala" else null}>
+      <library name={name} type={if(isScalaLibrary) "Scala" else null}>
+        { if(isScalaLibrary) {
+        <properties>
+          <compiler-classpath>
+            {
+            compilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://" + p}/>)
+            }
+          </compiler-classpath>
+        </properties>
+          }
+        }
         <CLASSES>
           <root url={url}/>
         </CLASSES>
