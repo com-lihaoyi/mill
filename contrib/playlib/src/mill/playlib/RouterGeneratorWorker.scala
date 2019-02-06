@@ -6,7 +6,7 @@ import java.net.URLClassLoader
 
 import ammonite.ops.Path
 import mill.eval.PathRef
-import mill.scalalib.CompilationResult
+import mill.scalalib.api.CompilationResult
 
 import scala.collection.JavaConverters._
 
@@ -15,7 +15,7 @@ class RouterGeneratorWorker {
   private var routerGeneratorInstances = Option.empty[(Long, RouterGeneratorWorkerApi)]
 
   private def router(routerClasspath: Agg[Path]) = {
-    val classloaderSig = routerClasspath.map(p => p.toString().hashCode + p.mtime.toMillis).sum
+    val classloaderSig = routerClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     routerGeneratorInstances match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
@@ -73,7 +73,7 @@ class RouterGeneratorWorker {
                   .asInstanceOf[java.util.List[File]]
                 Right(filesJava.asScala)
               case "scala.util.Left" =>
-                // TODO: convert the error of type RoutesCompilationError to a CompilationResult
+                // TODO: convert the error of type RoutesCompilationError to a CompilationResult                
                 Left(Seq(CompilationResult(Path(""), PathRef(Path("")))))
             }
           }

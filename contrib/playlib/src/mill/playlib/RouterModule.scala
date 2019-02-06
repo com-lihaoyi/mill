@@ -2,9 +2,11 @@ package mill
 package playlib
 
 import coursier.{Cache, MavenRepository}
-import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib._
-import mill.util.Loose
+import scalalib.Lib
+import scalalib.Lib.resolveDependencies
+import scalalib.api._
+import scalalib._
+import mill.api.Loose
 
 trait RouterModule extends mill.Module {
 
