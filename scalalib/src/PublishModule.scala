@@ -22,9 +22,17 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps = T.task {
     val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
+
+    val compileIvyPomDeps = compileIvyDeps()
+      .map(resolvePublishDependency().apply(_))
+      .filter(!ivyPomDeps.contains(_))
+      .map(_.copy(scope = Scope.Provided))
+
     val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
-    ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
+
+    ivyPomDeps ++ compileIvyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
+
   def pom = T {
     val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
