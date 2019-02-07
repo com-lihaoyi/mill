@@ -155,6 +155,10 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
+### {master}
+
+- Publish compileIvyDeps as provided scope
+
 ### 0.3.6
 
 - Started to splitting out mill.api from mill.core
