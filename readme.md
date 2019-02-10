@@ -179,7 +179,7 @@ optimizer without classpath conflicts.
 
 - Mill now by default fails fast, so in case a build tasks fails, it exits immediately
 
-- Added new `-k`/--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
+- Added new `-k`/`--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
 ### 0.3.5
 
