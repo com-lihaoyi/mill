@@ -177,7 +177,7 @@ optimizer without classpath conflicts.
 
 - Version bumps: ammonite 1.6.0, scala 2.12.8, zinc 1.2.5
 
-- Mill now by default fails fast, so in case a build tasks fails, it exists immediately
+- Mill now by default fails fast, so in case a build tasks fails, it exits immediately
 
 - Added new `-k`/--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
