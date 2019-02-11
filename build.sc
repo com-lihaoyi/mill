@@ -248,9 +248,43 @@ object contrib extends MillModule {
   }
 
   object playlib extends MillModule {
-    def moduleDeps = Seq(scalalib)
-  }
+    def moduleDeps = Seq(scalalib, playlib.api)
 
+    def testArgs = T {
+      val mapping = Map(
+        "MILL_PLAYLIB_ROUTECOMPILER_WORKER_2_6_0" -> worker("2.6.0").compile().classes.path,
+        "MILL_PLAYLIB_ROUTECOMPILER_WORKER_2_7_0" -> worker("2.7.0").compile().classes.path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6_0" -> worker("2.6.0").compile().classes.path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7_0" -> worker("2.7.0").compile().classes.path
+      )
+      scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    }
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(scalalib)
+    }
+
+    object worker extends Cross[WorkerModule]("2.6.0", "2.7.0")
+
+    class WorkerModule(scalajsBinary: String) extends MillApiModule {
+      def moduleDeps = Seq(playlib.api)
+
+      def ivyDeps = scalajsBinary match {
+        case "2.6.0" =>
+          Agg(
+            ivy"com.typesafe.play::routes-compiler::2.6.0"
+          )
+        case "2.7.0" =>
+          Agg(
+            ivy"com.typesafe.play::routes-compiler::2.7.0"
+          )
+      }
+    }
+
+  }
+  
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
