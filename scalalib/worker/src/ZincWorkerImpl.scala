@@ -3,6 +3,8 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 
+import scala.ref.WeakReference
+
 import mill.api.Loose.Agg
 import mill.api.{KeyedLockedCache, PathRef}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
@@ -197,18 +199,23 @@ class ZincWorkerImpl(compilerBridge: Either[
   }
 
   // for now this just grows unbounded; YOLO
-  val classloaderCache = collection.mutable.LinkedHashMap.empty[Long, ClassLoader]
+  // But at least we do not prevent unloading/garbage collecting of classloaders
+  private[this] val classloaderCache = collection.mutable.LinkedHashMap.empty[Long, WeakReference[ClassLoader]]
 
   def getCachedClassLoader(compilersSig: Long,
                            combinedCompilerJars: Array[java.io.File])
-                          (implicit ctx: ZincWorkerApi.Ctx)= {
-    classloaderCache.synchronized{
-      classloaderCache.getOrElseUpdate(
-        compilersSig,
-        mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null)
-      )
+                          (implicit ctx: ZincWorkerApi.Ctx) = {
+    classloaderCache.synchronized {
+      classloaderCache.get(compilersSig) match {
+        case Some(WeakReference(cl)) => cl
+        case _ =>
+          val cl = mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null)
+          classloaderCache.update(compilersSig, WeakReference(cl))
+          cl
+      }
     }
   }
+
   private def withCompilers[T](scalaVersion: String,
                                scalaOrganization: String,
                                compilerClasspath: Agg[os.Path],
