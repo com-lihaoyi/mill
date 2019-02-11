@@ -2,34 +2,41 @@ package mill
 package playlib
 
 import coursier.{Cache, MavenRepository}
-import scalalib.Lib
-import scalalib.Lib.resolveDependencies
-import scalalib.api._
-import scalalib._
 import mill.api.Loose
+import mill.playlib.api.RouteCompilerType
+import mill.scalalib.Lib.resolveDependencies
+import mill.scalalib._
+import mill.scalalib.api._
 
-trait RouterModule extends mill.Module {
+trait RouterModule extends mill.Module with ScalaModule {
 
+  /**
+    * Defines the version of playframework to be used to compile this projects
+    * routes.
+    */
   def playVersion: T[String]
 
+  override def generatedSources = T{ super.generatedSources() ++ Seq(compileRouter().classes) }
+
+  /**
+    * The [[PathRef]] to the main routes file.
+    *
+    * This is the default path for play projects and it should be fine but you
+    * can override it if needed.
+    */
   def routesFile: T[PathRef] = T {
     val routesPath = millSourcePath / "conf" / "routes"
     PathRef(routesPath)
   }
 
-  def routerClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        Cache.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, "2.12.4"),
-      Seq(
-        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
-      )
-    )
-  }
-
+  /**
+    * A [[Seq]] of additional imports to be added to the routes file.
+    * Defaults to :
+    * <ul>
+    * <li> controllers.Assets.Asset
+    * <li> play.libs.F
+    * </ul>
+    */
   def routesAdditionalImport: Seq[String] = Seq(
     "controllers.Assets.Asset",
     "play.libs.F"
@@ -41,14 +48,63 @@ trait RouterModule extends mill.Module {
 
   def namespaceReverseRouter: Boolean = false
 
-  def compileRouter: T[CompilationResult] = T.persistent {
-    RouterGeneratorWorkerApi.routerGeneratorWorker
-      .compile(routerClasspath().map(_.path),
-        routesFile().path,
-        routesAdditionalImport,
-        generateForwardsRouter,
-        generateReverseRouter,
-        namespaceReverseRouter,
-        T.ctx().dest)
+  /**
+    * The routes compiler type to be used. Can only be one of:
+    * <ul>
+    *   <li>[[RouteCompilerType.InjectedGenerator]]
+    *   <li>[[RouteCompilerType.StaticGenerator]]
+    * </ul>
+    * @return
+    */
+  def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
+
+  def routerClasspath: T[Loose.Agg[PathRef]] = T {
+    resolveDependencies(
+      Seq(
+        Cache.ivy2Local,
+        MavenRepository("https://repo1.maven.org/maven2")
+      ),
+      Lib.depToDependency(_, scalaVersion()),
+      Seq(
+        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
+      )
+    )
+  }
+
+  final def compileRouter: T[CompilationResult] = T {
+    T.ctx().log.debug(s"compiling play routes with ${playVersion()} worker")
+    RouteCompilerWorkerModule.routeCompilerWorker().compile(
+      toolsClasspath().map(_.path),
+      routesFile().path,
+      routesAdditionalImport,
+      generateForwardsRouter,
+      generateReverseRouter,
+      namespaceReverseRouter,
+      generatorType,
+      T.ctx().dest)
+  }
+
+  private def playMinorVersion: T[String] = T {
+    playVersion().split("\\.").take(2).mkString("", ".", ".0")
+  }
+
+  private def playRouteCompilerWorkerClasspath = T {
+    val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".",
+      "_")
+    T.ctx.log.debug(s"classpath worker key: $workerKey")
+
+    //While the following seems to work (tests pass), I am not completely
+    //confident that the strings I used for artifact and resolveFilter are
+    //actually correct
+    mill.modules.Util.millProjectModule(
+      workerKey,
+      s"mill-contrib-playlib-worker-${playVersion()}",
+      repositories,
+      resolveFilter = _.toString.contains("mill-contrib-playlib-worker")
+    )
+  }
+
+  private def toolsClasspath = T {
+    playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 }
