@@ -1,6 +1,8 @@
 package mill.playlib
 
 import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
+import mill.T
+import mill.api.Result.Failure
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -19,13 +21,20 @@ object HelloWorldTests extends TestSuite {
 
     object core extends HelloWorldModule {
       override def playVersion = "2.6.14"
+
+      /**
+        * What version of Scala to use
+        */
+      override def scalaVersion: T[String] = "2.12.8"
     }
+
   }
 
   val resourcePath: Path = pwd / 'contrib / 'playlib / 'test / 'resources / "hello-world"
+  val invalidResourcePath: Path = pwd / 'contrib / 'playlib / 'test / 'resources / "invalid"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator[M] => T)
+                                                (t: TestEvaluator => T)
                                                 (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
@@ -48,8 +57,8 @@ object HelloWorldTests extends TestSuite {
       }
     }
     'compileRouter - workspaceTest(HelloWorld) { eval =>
-      val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileRouter)
-
+      val eitherResult = eval.apply(HelloWorld.core.compileRouter)
+      val Right((result, evalCount)) = eitherResult
       val outputFiles = ls.rec(result.classes.path).filter(_.isFile)
       val expectedClassfiles = Seq[RelPath](
         RelPath("controllers/ReverseRoutes.scala"),
@@ -72,6 +81,16 @@ object HelloWorldTests extends TestSuite {
       val Right((_, unchangedEvalCount)) = eval.apply(HelloWorld.core.compileRouter)
 
       assert(unchangedEvalCount == 0)
+    }
+    'compileRouter - workspaceTest(HelloWorld, resourcePath = invalidResourcePath) { eval =>
+      val eitherResult = eval.apply(HelloWorld.core.compileRouter)
+      val Left(Failure(message, x)) = eitherResult
+      val expectedMessage = "Unable to compile play routes, compilation error in " +
+        HelloWorld.millSourcePath.toIO.getAbsolutePath + "/core/conf/routes at line 2, column 1: " +
+        "HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
+      assert(
+        message == expectedMessage
+      )
     }
   }
 }
