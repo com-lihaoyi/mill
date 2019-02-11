@@ -233,7 +233,66 @@ These imports will always be added to every template.  You don't need to list th
 #### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
 
+### Play Framework
 
+Play framework routes generation support.
+
+ 
+To declare a module that needs to generate Play Framework routes, you must mix-in the 
+`mill.playlib.routesModule` trait when defining your module. 
+
+ 
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-playlib:0.3.3`,  mill.playlib._
+object app extends RouterModule {
+// ...
+} 
+``` 
+
+#### Configuration options
+
+  * `def playVersion: T[String]` (mandatory) - The version of play to use to compile the routes file.
+  * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
+  * `def routesFile: T[PathRef]` - The path to the main routes file. (Defaults to the standard play path : `conf/routes`.)
+  * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
+  * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
+  * `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
+  * `def namespaceReverseRouter: Boolean = false` - Enables the namespacing of reverse routers.
+  * `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator
+  
+#### Details
+
+The following filesystem layout is expected by default:
+
+```text
+build.sc
+conf/
+    routes
+```
+
+`RouterModule` adds the `compileRouter` task to the module:
+```
+mill app.compileRouter
+```
+
+(it will be automatically run whenever you compile your module)
+
+This task will compile `routes` templates into the `out/app/compileRouter/dest` 
+directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
+```scala
+object app extends ScalaModule with RouterModule {
+  def playVersion= T{"2.7.0"}
+  def scalaVersion= T{"2.12.8"}
+}
+``` 
+
+To add additional imports to all of the twirl templates:
+```scala
+object app extends ScalaModule with RouterModule {
+  def playVersion = "2.7.0"
+  override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._") 
+}
+``` 
 
 ## Thirdparty Mill Plugins
 
