@@ -14,6 +14,8 @@ object Util {
         .stripPrefix("/**")
         .stripPrefix("*/")
         .stripPrefix("*")
+        .stripSuffix("**/")
+        .stripSuffix("*/")
         .dropWhile(_.isWhitespace)
     ).toArray
       .dropWhile(_.isEmpty)
