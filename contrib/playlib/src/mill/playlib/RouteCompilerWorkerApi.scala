@@ -35,7 +35,7 @@ class RouteCompilerWorker {
 
 
   def compile(routerClasspath: Agg[Path],
-              file: Path,
+              files: Seq[Path],
               additionalImports: Seq[String],
               forwardsRouter: Boolean,
               reverseRouter: Boolean,
@@ -43,9 +43,11 @@ class RouteCompilerWorker {
               generatorType: RouteCompilerType,
               dest: Path)(implicit ctx: Ctx)
   : Result[CompilationResult] = {
+    //the routes file must come last as it can include the routers generated
+    //by the others
     bridge(routerClasspath)
       .compile(
-        file,
+        files,
         additionalImports,
         forwardsRouter,
         reverseRouter,
@@ -54,6 +56,7 @@ class RouteCompilerWorker {
         dest
       )(ctx)
   }
+
 
 
 }

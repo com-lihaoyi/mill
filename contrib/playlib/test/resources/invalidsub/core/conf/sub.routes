@@ -1,0 +1,3 @@
+GET        /                    controllers.SubController.index
+GET        /assets/*file        controllers.Assets.versioned(path="/public/sub", file: Asset)
+BOB        =error               controllers.HomeController.error(foo)

@@ -8,7 +8,7 @@ import mill.scalalib.api.CompilationResult
 
 
 trait RouteCompilerWorkerApi {
-  def compile(file: Path,
+  def compile(files: Seq[Path],
               additionalImports: Seq[String],
               forwardsRouter: Boolean,
               reverseRouter: Boolean,
