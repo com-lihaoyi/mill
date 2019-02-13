@@ -7,6 +7,7 @@ import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
+import os.Path
 
 trait RouterModule extends mill.Module with ScalaModule {
 
@@ -16,7 +17,9 @@ trait RouterModule extends mill.Module with ScalaModule {
     */
   def playVersion: T[String]
 
-  override def generatedSources = T{ super.generatedSources() ++ Seq(compileRouter().classes) }
+  override def generatedSources = T {
+    super.generatedSources() ++ Seq(compileRouter().classes)
+  }
 
   /**
     * The [[PathRef]] to the main routes file.
@@ -24,10 +27,21 @@ trait RouterModule extends mill.Module with ScalaModule {
     * This is the default path for play projects and it should be fine but you
     * can override it if needed.
     */
-  def routesFile: T[PathRef] = T {
-    val routesPath = millSourcePath / "conf" / "routes"
-    PathRef(routesPath)
+  def routesDirectory = T.sources {
+    millSourcePath / "conf"
   }
+
+  private def routesFiles = T {
+    val files = routesDirectory()
+    locateFilesBy(files, _.last.endsWith(".routes")) ++ locateFilesBy(files, _.last == "routes")
+  }
+
+  private def locateFilesBy(files: Seq[PathRef], p: Path => Boolean) = {
+    files.flatMap(file => {
+      os.walk(file.path).filter(p).map(f => PathRef(f))
+    })
+  }
+
 
   /**
     * A [[Seq]] of additional imports to be added to the routes file.
@@ -51,9 +65,10 @@ trait RouterModule extends mill.Module with ScalaModule {
   /**
     * The routes compiler type to be used. Can only be one of:
     * <ul>
-    *   <li>[[RouteCompilerType.InjectedGenerator]]
-    *   <li>[[RouteCompilerType.StaticGenerator]]
+    * <li>[[RouteCompilerType.InjectedGenerator]]
+    * <li>[[RouteCompilerType.StaticGenerator]]
     * </ul>
+    *
     * @return
     */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
@@ -75,7 +90,7 @@ trait RouterModule extends mill.Module with ScalaModule {
     T.ctx().log.debug(s"compiling play routes with ${playVersion()} worker")
     RouteCompilerWorkerModule.routeCompilerWorker().compile(
       toolsClasspath().map(_.path),
-      routesFile().path,
+      routesFiles().map(_.path),
       routesAdditionalImport,
       generateForwardsRouter,
       generateReverseRouter,
