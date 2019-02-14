@@ -253,7 +253,7 @@ object app extends RouterModule {
 
   * `def playVersion: T[String]` (mandatory) - The version of play to use to compile the routes file.
   * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
-  * `def routesFile: T[PathRef]` - The path to the main routes file. (Defaults to the standard play path : `conf/routes`.)
+  * `def conf: Sources` - The directory which contains your route files. (Defaults to : `routes/` )  
   * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
   * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
   * `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
@@ -265,9 +265,11 @@ object app extends RouterModule {
 The following filesystem layout is expected by default:
 
 ```text
-build.sc
-conf/
-    routes
+.
+├── app
+│   └── routes
+│       └── routes
+└── build.sc
 ```
 
 `RouterModule` adds the `compileRouter` task to the module:
@@ -286,13 +288,32 @@ object app extends ScalaModule with RouterModule {
 }
 ``` 
 
-To add additional imports to all of the twirl templates:
+To add additional imports to all of the routes:
 ```scala
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.7.0"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._") 
 }
 ``` 
+
+If you want to use playframework's default of storing the routes in `conf/` you can do the 
+follwing: 
+```scala
+object app extends ScalaModule with RouterModule {
+  def playVersion = "2.7.0"
+  override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
+  override def routes = T.sources{ millSourcePath / 'conf } 
+}
+``` 
+
+which will work with the following directory structure:
+```text
+.
+├── app
+│   └── conf
+│       └── routes
+└── build.sc
+```
 
 ## Thirdparty Mill Plugins
 

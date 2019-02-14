@@ -85,21 +85,24 @@ object HelloWorldTests extends TestSuite {
 
       assert(unchangedEvalCount == 0)
     }
-    'compileRouter - workspaceTest(HelloWorld, resourcePath = invalidResourcePath) { eval =>
+    "compileRouter invalid routes"- workspaceTest(HelloWorld, resourcePath = invalidResourcePath) {
+      eval =>
       val eitherResult = eval.apply(HelloWorld.core.compileRouter)
       val Left(Failure(message, x)) = eitherResult
       val expectedMessage = "Unable to compile play routes\ncompilation error in " +
-        HelloWorld.millSourcePath.toIO.getAbsolutePath + "/core/conf/routes at line 4, column" +
+        HelloWorld.core.millSourcePath.toIO.getAbsolutePath + "/routes/routes at line 4, " +
+        "column" +
         " 1: HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
       assert(
         message == expectedMessage
       )
     }
-    'compileRouter - workspaceTest(HelloWorld, resourcePath = invalidSubResourcePath) { eval =>
+    "compileRouter invalid sub.routes " - workspaceTest(HelloWorld, resourcePath = invalidSubResourcePath) {
+      eval =>
       val eitherResult = eval.apply(HelloWorld.core.compileRouter)
       val Left(Failure(message, x)) = eitherResult
       val expectedMessage = "Unable to compile play routes\ncompilation error in " +
-        HelloWorld.millSourcePath.toIO.getAbsolutePath + "/core/conf/sub.routes at line 3, column" +
+        HelloWorld.core.millSourcePath.toIO.getAbsolutePath + "/routes/sub.routes at line 3, column" +
         " 1: HTTP Verb (GET, POST, ...), include (->), comment (#), or modifier line (+) expected"
       assert(
         message == expectedMessage

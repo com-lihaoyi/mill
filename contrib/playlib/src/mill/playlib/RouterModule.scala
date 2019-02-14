@@ -7,41 +7,22 @@ import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
-import os.Path
 
 trait RouterModule extends mill.Module with ScalaModule {
 
-  /**
-    * Defines the version of playframework to be used to compile this projects
-    * routes.
-    */
   def playVersion: T[String]
 
   override def generatedSources = T {
     super.generatedSources() ++ Seq(compileRouter().classes)
   }
 
-  /**
-    * The [[PathRef]] to the main routes file.
-    *
-    * This is the default path for play projects and it should be fine but you
-    * can override it if needed.
-    */
-  def routesDirectory = T.sources {
-    millSourcePath / "conf"
-  }
+  def routes = T.sources { millSourcePath / 'routes }
 
-  private def routesFiles = T {
-    val files = routesDirectory()
-    locateFilesBy(files, _.last.endsWith(".routes")) ++ locateFilesBy(files, _.last == "routes")
+  private def routeFiles = T {
+    val paths = routes().flatMap(file => os.walk(file.path))
+    val routeFiles=paths.filter(_.ext=="routes") ++ paths.filter(_.last == "routes")
+    routeFiles.map(f=>PathRef(f))
   }
-
-  private def locateFilesBy(files: Seq[PathRef], p: Path => Boolean) = {
-    files.flatMap(file => {
-      os.walk(file.path).filter(p).map(f => PathRef(f))
-    })
-  }
-
 
   /**
     * A [[Seq]] of additional imports to be added to the routes file.
@@ -88,7 +69,7 @@ trait RouterModule extends mill.Module with ScalaModule {
     T.ctx().log.debug(s"compiling play routes with ${playVersion()} worker")
     RouteCompilerWorkerModule.routeCompilerWorker().compile(
       toolsClasspath().map(_.path),
-      routesFiles().map(_.path),
+      routeFiles().map(_.path),
       routesAdditionalImport,
       generateForwardsRouter,
       generateReverseRouter,
