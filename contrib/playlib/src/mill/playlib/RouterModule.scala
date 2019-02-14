@@ -46,10 +46,9 @@ trait RouterModule extends mill.Module with ScalaModule {
   /**
     * A [[Seq]] of additional imports to be added to the routes file.
     * Defaults to :
-    * <ul>
-    * <li> controllers.Assets.Asset
-    * <li> play.libs.F
-    * </ul>
+    *
+    * - controllers.Assets.Asset
+    * - play.libs.F
     */
   def routesAdditionalImport: Seq[String] = Seq(
     "controllers.Assets.Asset",
@@ -63,13 +62,12 @@ trait RouterModule extends mill.Module with ScalaModule {
   def namespaceReverseRouter: Boolean = false
 
   /**
-    * The routes compiler type to be used. Can only be one of:
-    * <ul>
-    * <li>[[RouteCompilerType.InjectedGenerator]]
-    * <li>[[RouteCompilerType.StaticGenerator]]
-    * </ul>
+    * The routes compiler type to be used.
     *
-    * @return
+    * Can only be one of:
+    *
+    * - [[RouteCompilerType.InjectedGenerator]]
+    * - [[RouteCompilerType.StaticGenerator]]
     */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
