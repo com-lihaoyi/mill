@@ -248,7 +248,7 @@ object contrib extends MillModule {
   }
 
   object playlib extends MillModule {
-    def moduleDeps = Seq(scalalib, playlib.api)
+    def moduleDeps = Seq(scalalib, twirllib, playlib.api)
 
     def testArgs = T {
       val mapping = Map(
