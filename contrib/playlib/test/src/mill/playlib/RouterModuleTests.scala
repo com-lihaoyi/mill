@@ -7,7 +7,7 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
-object HelloWorldTests extends TestSuite {
+object RouterModuleTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath: Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
