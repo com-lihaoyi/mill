@@ -7,7 +7,7 @@ import mill.api.Result
 import mill.scalalib.api.CompilationResult
 
 
-trait RouteCompilerWorkerApi {
+private[playlib] trait RouteCompilerWorkerApi {
   def compile(files: Seq[Path],
               additionalImports: Seq[String],
               forwardsRouter: Boolean,
