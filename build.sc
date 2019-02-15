@@ -252,11 +252,10 @@ object contrib extends MillModule {
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_PLAYLIB_ROUTECOMPILER_WORKER_2_6_0" -> worker("2.6.0").compile().classes.path,
-        "MILL_PLAYLIB_ROUTECOMPILER_WORKER_2_7_0" -> worker("2.7.0").compile().classes.path,
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6_0" -> worker("2.6.0").compile().classes.path,
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7_0" -> worker("2.7.0").compile().classes.path
       )
+
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
         (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
@@ -266,7 +265,7 @@ object contrib extends MillModule {
       def moduleDeps = Seq(scalalib)
     }
 
-    object worker extends Cross[WorkerModule]("2.6.0", "2.7.0")
+    object worker extends Cross[WorkerModule]( "2.6.0", "2.7.0")
 
     class WorkerModule(scalajsBinary: String) extends MillApiModule {
       def moduleDeps = Seq(playlib.api)
