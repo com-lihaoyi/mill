@@ -349,6 +349,42 @@ import $ivy.`fun.valycorp::mill-ensime:0.0.1`
 sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
 ```
 
+### JBake
+
+Create static sites/blogs with JBake.
+
+Plugin home: https://github.com/lefou/mill-jbake
+
+JBake home: https://jbake.org
+
+#### Quickstart
+
+```scala
+// build.sc
+import mill._
+import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
+import de.tobiasroeser.mill.jbake._
+
+object site extends JBakeModule {
+
+  def jbakeVersion = "2.3.2"
+
+}
+```
+
+Generate the site:
+
+```sh
+bash> mill site.jbake
+```
+
+Start a local Web-Server on Port 8820 with the generated site:
+
+```sh
+bash> mill site.jbakeServe
+```
+
+
 ### OSGi
 
 Produce OSGi Bundles with mill.
