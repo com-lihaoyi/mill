@@ -1,4 +1,4 @@
-package mill.contrib
+package mill.contrib.buildinfo
 
 import mill.T
 import mill.define.Target
