@@ -46,7 +46,10 @@ This creates a Scala module which compiles `.proto` files in the `protobuf` fold
 
 ```scala
 // build.sc
-import mill._, scalalib._, contrib.scalapblib.__
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:VERSION`
+import contrib.scalapblib._
 
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
@@ -79,6 +82,12 @@ example/
 If you'd like to configure the options that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
 ```scala
+// build.sc
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:VERSION`
+import contrib.scalapblib._
+
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
   def scalaPBVersion = "0.7.4"
@@ -93,6 +102,9 @@ Provides support for [TestNG](https://testng.org/doc/index.html).
 To use TestNG as test framework, you need to add it to the `TestModule.testFrameworks` property.
 
 ```scala
+// build.sc
+import mill.scalalib._
+
 object project extends ScalaModule {
   object test extends Tests{
     def testFrameworks = Seq("mill.testng.TestNGFramework")
@@ -112,7 +124,10 @@ By default the resulting documents are simply placed in the Mill build output fo
 
 ```scala
 // build.sc
-import mill._, scalalib._, contrib.tut.__
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-tut:VERSION`
+import contrib.tut._
 
 object example extends TutModule {
   def scalaVersion = "2.12.6"
@@ -164,7 +179,12 @@ To declare a module that needs to compile twirl templates you must extend the `m
 Also note that twirl templates get compiled into scala code, so you also need to extend `ScalaModule`.
  
 ```scala
-import $ivy.`com.lihaoyi::mill-contrib-twirllib:0.3.2`,  mill.twirllib._
+// build.sc
+import mill.scalalib._
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:VERSION`,  mill.twirllib._
+
 object app extends ScalaModule with TwirlModule {
 // ...
 } 
@@ -200,6 +220,12 @@ mill app.compileTwirl
 This task will compile `*.scala.html` templates (and others, like `*.scala.txt`) into the `out/app/compileTwirl/dest` 
 directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
 ```scala
+// build.sc
+import mill.scalalib._
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:VERSION`,  mill.twirllib._
+
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
   def generatedSources = T{ Seq(compileTwirl().classes) }
@@ -208,6 +234,12 @@ object app extends ScalaModule with TwirlModule {
 
 To add additional imports to all of the twirl templates:
 ```scala
+// build.sc
+import mill.scalalib._
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:VERSION`,  mill.twirllib._
+
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
   override def twirlAdditionalImports = Seq("my.additional.stuff._", "my.other.stuff._")
@@ -248,7 +280,11 @@ To declare a module that needs to generate Play Framework routes, you must mix-i
 
  
 ```scala
-import $ivy.`com.lihaoyi::mill-contrib-playlib:0.3.3`,  mill.playlib._
+// build.sc
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
 object app extends RouterModule {
 // ...
 } 
@@ -295,6 +331,12 @@ object app extends ScalaModule with RouterModule {
 
 To add additional imports to all of the routes:
 ```scala
+// build.sc
+import mill.scalalib._
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.7.0"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._") 
@@ -304,6 +346,12 @@ object app extends ScalaModule with RouterModule {
 If you want to use playframework's default of storing the routes in `conf/` you can do the 
 follwing: 
 ```scala
+// build.sc
+import mill.scalalib._
+
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
 object app extends ScalaModule with RouterModule {
   def playVersion = "2.7.0"
   override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
