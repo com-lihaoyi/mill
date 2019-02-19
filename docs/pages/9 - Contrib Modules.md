@@ -420,7 +420,7 @@ import de.tobiasroeser.mill.jbake._
 
 object site extends JBakeModule {
 
-  def jbakeVersion = "2.3.2"
+  def jbakeVersion = "2.6.4"
 
 }
 ```
