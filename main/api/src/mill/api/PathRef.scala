@@ -38,7 +38,7 @@ object PathRef {
               digest.update(value.toByte)
             } else if (jnio.Files.isReadable(path.toNIO)) {
               val is = os.read.inputStream(path)
-              IO.stream(is, digestOut)
+              StreamSupport.stream(is, digestOut)
               is.close()
             }
           }
