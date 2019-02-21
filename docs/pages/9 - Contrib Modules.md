@@ -402,6 +402,111 @@ import $ivy.`fun.valycorp::mill-ensime:0.0.1`
 sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
 ```
 
+### Integration Testing Mill Plugins
+
+Integration testing for mill plugins.
+
+#### Quickstart
+
+We assume, you have a mill plugin named `mill-demo`
+
+```scala
+// build.sc
+import mill._, mill.scalalib._
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+```
+
+Add an new test sub-project, e.g. `it`.
+
+```scala
+import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest:0.1.0`
+import de.tobiasroeser.mill.integrationtest._
+
+object it extends MillIntegrationTest {
+
+  def millTestVersion = "{exampleMillVersion}"
+
+  def pluginsUnderTest = Seq(demo)
+
+}
+```
+
+Your project should now look similar to this:
+
+```text
+.
++-- demo/
+|   +-- src/
+|
++-- it/
+    +-- src/
+        +-- 01-first-test/
+        |   +-- build.sc
+        |   +-- src/
+        |
+        +-- 02-second-test/
+            +-- build.sc
+```
+
+As the buildfiles `build.sc` in your test cases typically want to access the locally built plugin(s),
+the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
+The mill version used in the integration test then used that temporary ivy repository.
+
+Instead of referring to your plugin with `import $ivy.'your::plugin:version'`,
+you can use the following line instead, which ensures you will use the correct locally build plugins.
+
+```scala
+// build.sc
+import $exec.plugins
+```
+
+Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
+
+#### Configuration and Targets
+
+The mill-integrationtest plugin provides the following targets.
+
+##### Mandatory configuration
+
+* `def millTestVersion: T[String]`
+  The mill version used for executing the test cases.
+  Used by `downloadMillTestVersion` to automatically download.
+
+* `def pluginsUnderTest: Seq[PublishModule]` -
+  The plugins used in the integration test.
+  You should at least add your plugin under test here.
+  You can also add additional libraries, e.g. those that assist you in the test result validation (e.g. a local test support project).
+  The defined modules will be published into a temporary ivy repository before the tests are executed.
+  In your test `build.sc` file, instead of the typical `import $ivy.` line,
+  you should use `import $exec.plugins` to include all plugins that are defined here.
+
+##### Optional configuration
+
+* `def sources: Sources` -
+  Locations where integration tests are located.
+  Each integration test is a sub-directory, containing a complete test mill project.
+
+* `def testCases: T[Seq[PathRef]]` -
+  The directories each representing a mill test case.
+  Derived from `sources`.
+
+* `def testTargets: T[Seq[String]]` -
+  The targets which are called to test the project.
+  Defaults to `verify`, which should implement test result validation.
+
+* `def downloadMillTestVersion: T[PathRef]` -
+  Download the mill version as defined by `millTestVersion`.
+  Override this, if you need to use a custom built mill version.
+  Returns the `PathRef` to the mill executable (must have the executable flag).
+
+##### Commands
+
+* `def test(): Command[Unit]` -
+  Run the integration tests.
+
+
 ### JBake
 
 Create static sites/blogs with JBake.
