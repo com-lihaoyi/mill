@@ -126,10 +126,11 @@ object Lib{
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
         f.isModule == isModule &&
-        (
-          cls.isAnnotationPresent(annotationCls) ||
-          cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
-        )
+          (
+            cls.isAnnotationPresent(annotationCls) ||
+            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+            cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
+          )
 
     }.map { f => (cls, f) }
   }
