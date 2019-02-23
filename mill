@@ -14,7 +14,7 @@ if [ "x$1" = "x--mill-version" ] ; then
     MILL_VERSION="$1"
     shift
   else
-    echo "You specified -v without a version."
+    echo "You specified --mill-version without a version."
     echo "Please provide a version that matches one provided on"
     echo "https://github.com/lihaoyi/mill/releases"
     false
