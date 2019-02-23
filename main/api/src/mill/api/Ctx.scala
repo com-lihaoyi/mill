@@ -29,7 +29,10 @@ object Ctx {
     implicit def logToCtx(l: Logger): Log = new Log { def log = l }
   }
 
-  /** Access to the projects home path. */
+  /**
+   * Access to some internal storage dir used by underlying ammonite.
+   * You should not need this in a buildscript.
+   */
   trait Home {
     def home: os.Path
   }
