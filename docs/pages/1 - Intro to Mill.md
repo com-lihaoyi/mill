@@ -33,6 +33,14 @@ Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill
 pacaur -S mill
 ```
 
+### FreeBSD
+
+Installation via [pkg(8)](http://man.freebsd.org/pkg/8):
+
+```sh
+pkg install mill
+```
+
 ### Windows
 
 To get started, download Mill from:
