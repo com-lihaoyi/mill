@@ -18,9 +18,17 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val keepGoing = false
   val systemProperties = Map[String, String]()
   lazy val runner = new mill.main.MainRunner(
-    ammonite.main.Cli.Config(wd = wd), disableTicker,
-    stdOutErr, stdOutErr, stdIn, None, Map.empty,
-    b => (), debugLog, keepGoing = keepGoing, systemProperties
+    config = ammonite.main.Cli.Config(wd = wd),
+    disableTicker = disableTicker,
+    outprintStream = stdOutErr,
+    errPrintStream = stdOutErr,
+    stdIn = stdIn,
+    stateCache0 = None,
+    env = Map.empty,
+    setIdle = b => (),
+    debugLog = debugLog,
+    keepGoing = keepGoing,
+    systemProperties = systemProperties
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
