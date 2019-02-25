@@ -236,11 +236,19 @@ object scalajslib extends MillModule {
 
 
 object contrib extends MillModule {
-  object testng extends MillPublishModule{
+  object testng extends MillModule{
     def ivyDeps = Agg(
       ivy"org.scala-sbt:test-interface:1.0",
       ivy"org.testng:testng:6.11"
     )
+    def moduleDeps = Seq(scalalib)
+    override def testArgs = T{
+//      "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4000",
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
+        "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(","),
+      )++scalalib.worker.testArgs()
+    }
   }
 
   object twirllib extends MillModule {
