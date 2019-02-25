@@ -190,7 +190,7 @@ object app extends ScalaModule with TwirlModule {
 } 
 ``` 
 
-#### Configuration options
+#### Twirl configuration options
 
 * `def twirlVersion: T[String]` (mandatory) - the version of the twirl compiler to use, like "1.3.15"
 * `def twirlAdditionalImports: Seq[String] = Nil` - the additional imports that will be added by twirl compiler to the top of all templates
@@ -272,36 +272,253 @@ There's an [example project](https://github.com/lihaoyi/cask/tree/master/example
 
 ### Play Framework
 
-Play framework routes generation support.
+This module adds basic Play Framework support to mill: 
+- configures mill for Play default directory layout,
+- integrates the Play routes compiler,
+- optionally: integrates the Twirl template engine,
+- optionally: configures mill for single module play applications.
 
- 
-To declare a module that needs to generate Play Framework routes, you must mix-in the 
-`mill.playlib.routesModule` trait when defining your module. 
+There is no specific Play Java support, building a Play Java application will require a bit 
+of customization (mostly adding the proper dependencies).  
 
- 
+#### Using the plugin
+
+There are 2 base modules and 2 helper traits in this plugin, all of which can be found
+ in `mill.playlib`.
+
+The base modules:  
+- `PlayModule` applies the default Play configuration (layout, dependencies, routes compilation, 
+Twirl compilation and Akka HTTP server)
+- `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful 
+if your Play app is a pure API server or if you want to use a different templating engine.
+
+The two helper traits: 
+- `SingleModule` can be useful to configure mill for a single module Play application such as the 
+[play-scala-seed project](https://github.com/playframework/play-scala-seed.g8). Mill is 
+multi-module by default and requires a bit more configuration to have source, resource, and test 
+directories at the top level alongside the `build.sc` file. This trait takes care of that (See 
+[Using SingleModule](#using-singlemodule) below). 
+- `RouterModule` allows you to use the Play router without the rest of the configuration (see 
+[Using the router module directly](#using-the-router-module-directly).)
+
+#### Using `PlayModule`
+
+In order to use the `PlayModule` for your application, you need to provide the scala, Play and 
+Twirl versions. You also need to define your own test object which extends the provided 
+`PlayTests` trait. 
+
 ```scala
 // build.sc
-
+import mill._
 // You have to replace VERSION
 import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
 
-object app extends RouterModule {
-// ...
-} 
+
+object core extends PlayModule {
+    //config
+    override def scalaVersion= T{"2.12.8"}
+    override def playVersion= T{"2.7.0"}
+    override def twirlVersion= T{"1.4.0"}
+    
+    object test extends PlayTests
+}  
 ``` 
 
-#### Configuration options
+Using the above definition, your build will be configured to use the default Play layout:
+```text
+.
+├── build.sc
+└── core
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...    
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+```
 
-  * `def playVersion: T[String]` (mandatory) - The version of play to use to compile the routes file.
+The following compile dependencies will automatically be added to your build:
+```
+    ivy"com.typesafe.play::play:${playVersion()}",
+    ivy"com.typesafe.play::play-guice:${playVersion()}",
+    ivy"com.typesafe.play::play-server:${playVersion()}",
+    ivy"com.typesafe.play::play-logback:${playVersion()}"
+```
+
+Scala test will be setup as the default test framework and the following test dependencies will be 
+added (the actual version depends on the version of Play you are pulling `2.6.x` or `2.7.x`):
+```
+    ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
+```
+
+In order to have a working `start` command the following runtime dependency is also added: 
+```
+    ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
+```
+#### Using `PlayApiModule`
+
+The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
+.html files and you don't need to define the `twirlVersion:
+
+```scala
+// build.sc
+import mill._
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
+
+object core extends PlayApiModule {
+    //config
+    override def scalaVersion= T{"2.12.8"}
+    override def playVersion= T{"2.7.0"}   
+    
+    object test extends PlayTests
+}  
+``` 
+
+#### Play configuration options
+
+The Play modules themselves don't have specific configuration options at this point but the [router 
+module configuration options](#router-configuration-options) and the [Twirl module configuration 
+options](#twirl-configuration-options) are applicable. 
+
+#### Commands equivalence
+
+Mill commands are targets on a named build. For example if your build is called `core`:
+- compile: `core.compile`
+- run: *NOT Implemented yet*. It can be approximated with `mill -w core.runBackground` but this 
+starts a server in *PROD* mode which: 
+  - doesn't do any kind of classloading magic (meaning potentially slower restarts)
+  - returns less detailed error messages (no source code extract and line numbers)
+  - can sometimes fail because of a leftover RUNNING_PID file   
+- start: `core.start` or `core.run` both start the server in *PROD* mode. 
+- test: `core.test`
+- dist: *NOT Implemented yet*. However you can use the equivalent `core.assembly` 
+command to get a runnable fat jar of the project. The packaging is slightly different but should 
+be find for a production deployment.
+
+#### Using `SingleModule`
+
+The `SingleModule` trait allows you to have the build descriptor at the same level as the source
+ code on the filesystem. You can move from there to a multi-module build either by refactoring 
+ your directory layout into multiple subdirectories or by using mill's nested modules feature.
+
+Looking back at the sample build definition in [Using PlayModule](#using-playmodule):
+```scala
+// build.sc
+import mill._
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
+
+object core extends PlayModule {
+    //config
+    override def scalaVersion= T{"2.12.8"}
+    override def playVersion= T{"2.7.0"}
+    override def twirlVersion= T{"1.4.0"}
+    
+    object test extends PlayTests
+}  
+``` 
+The directory layout was:
+```text
+.
+├── build.sc
+└── core
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...   
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+```
+by mixing in the `SingleModule` trait in your build:
+ ```scala
+ // build.sc
+ import mill._
+ // You have to replace VERSION
+ import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+ 
+ 
+ object core extends PlayModule with SingleModule {
+     //config
+     override def scalaVersion= T{"2.12.8"}
+     override def playVersion= T{"2.7.0"}
+     override def twirlVersion= T{"1.4.0"}
+     
+     object test extends PlayTests
+ }  
+ ```
+the layout becomes: 
+```text
+.
+└── core
+    ├── build.sc
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...   
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+```
+
+##### Using the router module directly
+If you want to use the router module in a project which doesn't use the default Play layout, you 
+can mix-in the `mill.playlib.routesModule` trait directly when defining your module. Your app must
+define `playVersion` and `scalaVersion`. 
+
+```scala
+// build.sc
+import mill._
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
+
+object app extends ScalaModule with RouterModule {
+  def playVersion= T{"2.7.0"}
+  def scalaVersion= T{"2.12.8"}
+}  
+``` 
+
+###### Router Configuration options
+
+  * `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes 
+  file.
   * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
-  * `def conf: Sources` - The directory which contains your route files. (Defaults to : `routes/` )  
-  * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
+  * `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)  
+  * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. 
+  (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
   * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
   * `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
   * `def namespaceReverseRouter: Boolean = false` - Enables the namespacing of reverse routers.
-  * `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator
+  * `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes 
+  compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator
   
-#### Details
+###### Details
 
 The following filesystem layout is expected by default:
 
@@ -321,13 +538,9 @@ mill app.compileRouter
 (it will be automatically run whenever you compile your module)
 
 This task will compile `routes` templates into the `out/app/compileRouter/dest` 
-directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
-```scala
-object app extends ScalaModule with RouterModule {
-  def playVersion= T{"2.7.0"}
-  def scalaVersion= T{"2.12.8"}
-}
-``` 
+directory. This directory must be added to the generated sources of the module to be compiled and 
+made accessible from the rest of the code. This is done by default in the trait, but if you need 
+to have a custom override for `generatedSources` you can get the list of files from `routerClasses` 
 
 To add additional imports to all of the routes:
 ```scala
@@ -343,30 +556,6 @@ object app extends ScalaModule with RouterModule {
 }
 ``` 
 
-If you want to use playframework's default of storing the routes in `conf/` you can do the 
-follwing: 
-```scala
-// build.sc
-import mill.scalalib._
-
-// You have to replace VERSION
-import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
-
-object app extends ScalaModule with RouterModule {
-  def playVersion = "2.7.0"
-  override def routesAdditionalImport = Seq("my.additional.stuff._", "my.other.stuff._")
-  override def routes = T.sources{ millSourcePath / 'conf } 
-}
-``` 
-
-which will work with the following directory structure:
-```text
-.
-├── app
-│   └── conf
-│       └── routes
-└── build.sc
-```
 
 ## Thirdparty Mill Plugins
 
