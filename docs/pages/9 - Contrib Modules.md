@@ -275,6 +275,7 @@ There's an [example project](https://github.com/lihaoyi/cask/tree/master/example
 This module adds basic Play Framework support to mill: 
 - configures mill for Play default directory layout,
 - integrates the Play routes compiler,
+- provides helpers for commonly used framework libraries,
 - optionally: integrates the Twirl template engine,
 - optionally: configures mill for single module play applications.
 
@@ -389,6 +390,40 @@ object core extends PlayApiModule {
 The Play modules themselves don't have specific configuration options at this point but the [router 
 module configuration options](#router-configuration-options) and the [Twirl module configuration 
 options](#twirl-configuration-options) are applicable. 
+
+#### Additional play libraries
+
+The following helpers are available to provide additional Play Framework dependencies: 
+- `core()` - added by default ,
+- `guice()` - added by default,
+- `server()` - added by default,
+- `logback()` - added by default,
+- `evolutions()` - optional,
+- `jdbc()` - optional,
+- `filters()` - optional,
+- `ws()` - optional,
+- `caffeine()` - optional. 
+
+If you want to add an optional library using the helper you can do so by overriding `ivyDeps` 
+like in the following example build: 
+
+```scala
+// build.sc
+import mill._
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
+
+object core extends PlayApiModule {
+    //config
+    override def scalaVersion= T{"2.12.8"}
+    override def playVersion= T{"2.7.0"}   
+    
+    object test extends PlayTests
+    
+    override def ivyDeps = T{ super.ivyDeps() ++ Agg(ws(), filters()) }
+}  
+``` 
 
 #### Commands equivalence
 

@@ -14,7 +14,7 @@ object PlayModuleTests extends TestSuite {
       override def twirlVersion = T{"1.4.0"}
       override def scalaVersion = T{"2.12.8"}
       object test extends PlayTests
-
+      override def ivyDeps = T { super.ivyDeps() ++ Agg(ws())}
     }
   }
 
@@ -56,6 +56,23 @@ object PlayModuleTests extends TestSuite {
           resources== conf,
           testSources.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/test"),
           testResources.map(_.path.relativeTo(playmulti.millSourcePath).toString()) == Seq("core/test/resources")
+        )
+      }
+    }
+    'dependencies - {
+      'fromBuild - workspaceTest(playmulti) { eval =>
+        val Right((deps, evalCount)) = eval.apply(playmulti.core.ivyDeps)
+        val expectedModules = Seq[String](
+          "play",
+          "play-guice",
+          "play-server",
+          "play-logback",
+          "play-ahc-ws"
+        )
+        val outputModules = deps.map(_.dep.module.name)
+        assert(
+          outputModules.forall(expectedModules.contains),
+          evalCount > 0
         )
       }
     }
