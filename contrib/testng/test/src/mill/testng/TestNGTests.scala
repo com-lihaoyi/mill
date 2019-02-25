@@ -23,7 +23,9 @@ object TestNGTests extends TestSuite {
       override def runClasspath: Target[Seq[PathRef]] = T{super.runClasspath() ++ testngClasspath()}
       override def ivyDeps = T{
         super.ivyDeps() ++
-          Agg(ivy"org.testng:testng:6.11",
+          Agg(
+            ivy"org.testng:testng:6.11",
+            ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
           )
       }
       def testFrameworks = T {
@@ -54,14 +56,13 @@ object TestNGTests extends TestSuite {
           result == Seq("mill.testng.TestNGFramework"),
           evalCount > 0
         )
-        val evalRes = eval.apply(demo.test.test())
-        evalRes match {
-          case Left(Exception(ex, outerStack)) =>
-            println(outerStack.value.mkString("\t", "\n\t\t", ""))
-            println(ex.getMessage)
-            ex.printStackTrace()
-          case _ => ()
-        }
+      }
+      "Test case lookup from inherited annotations" - workspaceTest(demo) { eval =>
+        val Right((result, evalCount)) = eval.apply(demo.test.test())
+        val tres = result.asInstanceOf[(String, Seq[mill.scalalib.TestRunner.Result])]
+        assert(
+          tres._2.size == 8
+        )
       }
     }
   }
