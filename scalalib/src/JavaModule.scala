@@ -298,9 +298,11 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   /**
-   * Additional options for the used doc tool (e.g. javadoc).
+   * Additional options to be used by the javadoc tool.
+   * You should not set the `-d` setting for specifying the target directory,
+   * as that is done in the [[docJar]] target.
    */
-  def docOptions: T[Seq[String]] = T { Seq[String]() }
+  def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
   /**
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
@@ -319,7 +321,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       if os.isFile(p) && (p.ext == "java")
     } yield p.toNIO.toString
 
-    val options = docOptions() ++ Seq("-d", javadocDir.toNIO.toString)
+    val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
 
     if (files.nonEmpty) Jvm.runSubprocess(
       commandArgs = Seq(
