@@ -50,7 +50,7 @@ object PlaySingleApiModuleTests extends TestSuite {
           conf.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("conf"),
           app.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
           sources== app,
-          resources== conf,
+          resources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()).contains("conf"),
           testSources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("test"),
           testResources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("test/resources")
         )
