@@ -49,8 +49,8 @@ object PlaySingleModuleTests extends TestSuite {
         assert(
           conf.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("conf"),
           app.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("app"),
-          sources== app,
-          resources== conf,
+          sources == app,
+          resources.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains("conf"),
           testSources.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("test"),
           testResources.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("test/resources")
         )
