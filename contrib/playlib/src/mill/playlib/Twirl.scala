@@ -3,7 +3,7 @@ package playlib
 
 import mill.twirllib._
 
-private[playlib] trait Twirl extends TwirlModule with Layout {
+trait Twirl extends TwirlModule with Layout {
 
   override def twirlSources=T.sources{ app() }
 
