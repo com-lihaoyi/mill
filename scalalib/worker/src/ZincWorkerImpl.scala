@@ -85,17 +85,30 @@ class ZincWorkerImpl(compilerBridge: Either[
 
           val sourceFolder = mill.api.IO.unpackZip(srcJars(scalaVersion, scalaOrganization))(workingDir)
           val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
-          val compilerMain = classloader.loadClass(
-            if (isDotty(scalaVersion)) "dotty.tools.dotc.Main"
-            else "scala.tools.nsc.Main"
-          )
+
+          val sources = os.walk(sourceFolder.path).filter(a => a.ext == "scala" || a.ext == "java")
+
           val argsArray = Array[String](
             "-d", compiledDest.toString,
             "-classpath", (compilerJars ++ compilerBridgeClasspath).mkString(File.pathSeparator)
-          ) ++ os.walk(sourceFolder.path).filter(_.ext == "scala").map(_.toString)
+          ) ++ sources.map(_.toString)
 
-          compilerMain.getMethod("process", classOf[Array[String]])
-            .invoke(null, argsArray)
+          val allScala = sources.forall(_.ext == "scala")
+          val allJava = sources.forall(_.ext == "java")
+          if (allJava) {
+            import scala.sys.process._
+            (Seq("javac") ++ argsArray).!
+          } else if (allScala) {
+            val compilerMain = classloader.loadClass(
+              if (isDotty(scalaVersion)) "dotty.tools.dotc.Main"
+              else "scala.tools.nsc.Main"
+            )
+            compilerMain.getMethod("process", classOf[Array[String]])
+              .invoke(null, argsArray)
+          } else {
+            throw new IllegalArgumentException("Currently not implemented case.")
+          }
+
         }
         compiledDest
     }
