@@ -143,7 +143,8 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(main, scalalib.api)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0"
+    ivy"org.scala-sbt:test-interface:1.0",
+    ivy"org.scoverage::scalac-scoverage-plugin:1.3.1"
   )
 
   def genTask(m: ScalaModule) = T.task{
