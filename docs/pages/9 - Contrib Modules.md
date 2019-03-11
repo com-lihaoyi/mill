@@ -211,6 +211,7 @@ app/
 ```
 
 `TwirlModule` adds the `compileTwirl` task to the module:
+
 ```
 mill app.compileTwirl
 ```
@@ -219,6 +220,7 @@ mill app.compileTwirl
 
 This task will compile `*.scala.html` templates (and others, like `*.scala.txt`) into the `out/app/compileTwirl/dest` 
 directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
+
 ```scala
 // build.sc
 import mill.scalalib._
@@ -233,6 +235,7 @@ object app extends ScalaModule with TwirlModule {
 ``` 
 
 To add additional imports to all of the twirl templates:
+
 ```scala
 // build.sc
 import mill.scalalib._
@@ -248,12 +251,14 @@ object app extends ScalaModule with TwirlModule {
 ``` 
 
 as the result all templates will get this line at the top:
+
 ```scala
 @import "my.additional.stuff._"
 @import "my.other.stuff._"
 ```
 
 Besides that, twirl compiler has default imports, at the moment these:
+
 ```scala
 Seq(
     "_root_.play.twirl.api.TwirlFeatureImports._",
@@ -273,11 +278,11 @@ There's an [example project](https://github.com/lihaoyi/cask/tree/master/example
 ### Play Framework
 
 This module adds basic Play Framework support to mill: 
-- configures mill for Play default directory layout,
-- integrates the Play routes compiler,
-- provides helpers for commonly used framework libraries,
-- optionally: integrates the Twirl template engine,
-- optionally: configures mill for single module play applications.
+* configures mill for Play default directory layout,
+* integrates the Play routes compiler,
+* provides helpers for commonly used framework libraries,
+* optionally: integrates the Twirl template engine,
+* optionally: configures mill for single module play applications.
 
 There is no specific Play Java support, building a Play Java application will require a bit 
 of customization (mostly adding the proper dependencies).  
@@ -288,18 +293,18 @@ There are 2 base modules and 2 helper traits in this plugin, all of which can be
  in `mill.playlib`.
 
 The base modules:  
-- `PlayModule` applies the default Play configuration (layout, dependencies, routes compilation, 
+* `PlayModule` applies the default Play configuration (layout, dependencies, routes compilation, 
 Twirl compilation and Akka HTTP server)
-- `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful 
+* `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful 
 if your Play app is a pure API server or if you want to use a different templating engine.
 
 The two helper traits: 
-- `SingleModule` can be useful to configure mill for a single module Play application such as the 
+* `SingleModule` can be useful to configure mill for a single module Play application such as the 
 [play-scala-seed project](https://github.com/playframework/play-scala-seed.g8). Mill is 
 multi-module by default and requires a bit more configuration to have source, resource, and test 
 directories at the top level alongside the `build.sc` file. This trait takes care of that (See 
 [Using SingleModule](#using-singlemodule) below). 
-- `RouterModule` allows you to use the Play router without the rest of the configuration (see 
+* `RouterModule` allows you to use the Play router without the rest of the configuration (see 
 [Using the router module directly](#using-the-router-module-directly).)
 
 #### Using `PlayModule`
@@ -326,6 +331,7 @@ object core extends PlayModule {
 ``` 
 
 Using the above definition, your build will be configured to use the default Play layout:
+
 ```text
 .
 ├── build.sc
@@ -347,6 +353,7 @@ Using the above definition, your build will be configured to use the default Pla
 ```
 
 The following compile dependencies will automatically be added to your build:
+
 ```
     ivy"com.typesafe.play::play:${playVersion()}",
     ivy"com.typesafe.play::play-guice:${playVersion()}",
@@ -356,14 +363,17 @@ The following compile dependencies will automatically be added to your build:
 
 Scala test will be setup as the default test framework and the following test dependencies will be 
 added (the actual version depends on the version of Play you are pulling `2.6.x` or `2.7.x`):
+
 ```
     ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
 ```
 
 In order to have a working `start` command the following runtime dependency is also added: 
+
 ```
     ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ```
+
 #### Using `PlayApiModule`
 
 The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
@@ -383,26 +393,25 @@ object core extends PlayApiModule {
     
     object test extends PlayTests
 }  
-``` 
+```
 
 #### Play configuration options
 
 The Play modules themselves don't have specific configuration options at this point but the [router 
-module configuration options](#router-configuration-options) and the [Twirl module configuration 
-options](#twirl-configuration-options) are applicable. 
+module configuration options](#router-configuration-options) and the [Twirl module configuration options](#twirl-configuration-options) are applicable. 
 
 #### Additional play libraries
 
 The following helpers are available to provide additional Play Framework dependencies: 
-- `core()` - added by default ,
-- `guice()` - added by default,
-- `server()` - added by default,
-- `logback()` - added by default,
-- `evolutions()` - optional,
-- `jdbc()` - optional,
-- `filters()` - optional,
-- `ws()` - optional,
-- `caffeine()` - optional. 
+* `core()` - added by default ,
+* `guice()` - added by default,
+* `server()` - added by default,
+* `logback()` - added by default,
+* `evolutions()` - optional,
+* `jdbc()` - optional,
+* `filters()` - optional,
+* `ws()` - optional,
+* `caffeine()` - optional. 
 
 If you want to add an optional library using the helper you can do so by overriding `ivyDeps` 
 like in the following example build: 
@@ -428,15 +437,15 @@ object core extends PlayApiModule {
 #### Commands equivalence
 
 Mill commands are targets on a named build. For example if your build is called `core`:
-- compile: `core.compile`
-- run: *NOT Implemented yet*. It can be approximated with `mill -w core.runBackground` but this 
+* compile: `core.compile`
+* run: *NOT Implemented yet*. It can be approximated with `mill -w core.runBackground` but this 
 starts a server in *PROD* mode which: 
-  - doesn't do any kind of classloading magic (meaning potentially slower restarts)
-  - returns less detailed error messages (no source code extract and line numbers)
-  - can sometimes fail because of a leftover RUNNING_PID file   
-- start: `core.start` or `core.run` both start the server in *PROD* mode. 
-- test: `core.test`
-- dist: *NOT Implemented yet*. However you can use the equivalent `core.assembly` 
+  * doesn't do any kind of classloading magic (meaning potentially slower restarts)
+  * returns less detailed error messages (no source code extract and line numbers)
+  * can sometimes fail because of a leftover RUNNING_PID file   
+* start: `core.start` or `core.run` both start the server in *PROD* mode. 
+* test: `core.test`
+* dist: *NOT Implemented yet*. However you can use the equivalent `core.assembly` 
 command to get a runnable fat jar of the project. The packaging is slightly different but should 
 be find for a production deployment.
 
@@ -447,6 +456,7 @@ The `SingleModule` trait allows you to have the build descriptor at the same lev
  your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
 Looking back at the sample build definition in [Using PlayModule](#using-playmodule):
+
 ```scala
 // build.sc
 import mill._
@@ -462,8 +472,10 @@ object core extends PlayModule {
     
     object test extends PlayTests
 }  
-``` 
+```
+
 The directory layout was:
+
 ```text
 .
 ├── build.sc
@@ -483,7 +495,9 @@ The directory layout was:
     └── test
         └── controllers
 ```
+
 by mixing in the `SingleModule` trait in your build:
+
  ```scala
  // build.sc
  import mill._
@@ -500,7 +514,9 @@ by mixing in the `SingleModule` trait in your build:
      object test extends PlayTests
  }  
  ```
+
 the layout becomes: 
+
 ```text
 .
 └── core
@@ -522,6 +538,7 @@ the layout becomes:
 ```
 
 ##### Using the router module directly
+
 If you want to use the router module in a project which doesn't use the default Play layout, you 
 can mix-in the `mill.playlib.routesModule` trait directly when defining your module. Your app must
 define `playVersion` and `scalaVersion`. 
@@ -541,16 +558,15 @@ object app extends ScalaModule with RouterModule {
 
 ###### Router Configuration options
 
-  * `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes 
-  file.
-  * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
-  * `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)  
-  * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. 
+* `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes file.
+* `def scalaVersion: T[String]` - The scalaVersion in use in your project.
+* `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)  
+* `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers. 
   (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
-  * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
-  * `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
-  * `def namespaceReverseRouter: Boolean = false` - Enables the namespacing of reverse routers.
-  * `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes 
+* `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
+* `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
+* `def namespaceReverseRouter: Boolean = false` - Enables the namespacing of reverse routers.
+* `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes 
   compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator
   
 ###### Details
@@ -566,6 +582,7 @@ The following filesystem layout is expected by default:
 ```
 
 `RouterModule` adds the `compileRouter` task to the module:
+
 ```
 mill app.compileRouter
 ```
@@ -578,6 +595,7 @@ made accessible from the rest of the code. This is done by default in the trait,
 to have a custom override for `generatedSources` you can get the list of files from `routerClasses` 
 
 To add additional imports to all of the routes:
+
 ```scala
 // build.sc
 import mill.scalalib._
