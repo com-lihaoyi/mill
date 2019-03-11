@@ -10,6 +10,12 @@ import java.nio.channels.FileChannel;
 import java.util.*;
 
 public class MillClientMain {
+
+    // use methods instead of constants to avoid inlining by compiler
+    public static final int ExitClientCodeCannotReadFromExitCodeFile() { return 1; }
+	public static final int ExitServerCodeWhenIdle() { return 0; }
+	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
+
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
         String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
 
@@ -56,7 +62,8 @@ public class MillClientMain {
             System.setProperty("jna.nosys", "true");
         }
         int index = 0;
-        while (index < 5) {
+        final int processLimit = 5;
+        while (index < processLimit) {
             index += 1;
             String lockBase = "out/mill-worker-" + index;
             new java.io.File(lockBase).mkdirs();
@@ -91,7 +98,7 @@ public class MillClientMain {
 
             }
         }
-        throw new Exception("Reached max process limit: " + 5);
+        throw new Exception("Reached max process limit: " + processLimit);
     }
 
     public static int run(String lockBase,
@@ -151,10 +158,10 @@ public class MillClientMain {
 
         locks.serverLock.await();
 
-        try(FileInputStream fos = new FileInputStream(lockBase + "/exitCode")){
-            return Integer.parseInt(new BufferedReader(new InputStreamReader(fos)).readLine());
+        try(FileInputStream fis = new FileInputStream(lockBase + "/exitCode")){
+            return Integer.parseInt(new BufferedReader(new InputStreamReader(fis)).readLine());
         } catch(Throwable e){
-            return 1;
+            return ExitClientCodeCannotReadFromExitCodeFile();
         } finally{
             ioSocket.close();
         }

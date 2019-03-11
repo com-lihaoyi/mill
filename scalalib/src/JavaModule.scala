@@ -298,36 +298,43 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   /**
-    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
-    * publishing to Maven Central
-    */
+   * Additional options to be used by the javadoc tool.
+   * You should not set the `-d` setting for specifying the target directory,
+   * as that is done in the [[docJar]] target.
+   */
+  def javadocOptions: T[Seq[String]] = T { Seq[String]() }
+
+  /**
+   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
+   * publishing to Maven Central
+   */
   def docJar = T[PathRef] {
     val outDir = T.ctx().dest
 
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
 
-    val files = for{
+    val files = for {
       ref <- allSources()
       if os.exists(ref.path)
       p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
       if os.isFile(p) && (p.ext == "java")
     } yield p.toNIO.toString
 
-    val options = Seq("-d", javadocDir.toNIO.toString)
+    val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
 
-    if (files.nonEmpty) Jvm.baseInteractiveSubprocess(
+    if (files.nonEmpty) Jvm.runSubprocess(
       commandArgs = Seq(
         "javadoc"
       ) ++ options ++
-      Seq(
-        "-classpath",
-        compileClasspath()
+        Seq(
+          "-classpath",
+          compileClasspath()
           .map(_.path)
           .filter(_.ext != "pom")
           .mkString(java.io.File.pathSeparator)
-      ) ++
-      files.map(_.toString),
+        ) ++
+          files.map(_.toString),
       envArgs = Map(),
       workingDir = T.ctx().dest
     )

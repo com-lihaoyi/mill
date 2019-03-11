@@ -66,12 +66,15 @@ object Util{
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
   private val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
+  private val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
+
 
   def scalaBinaryVersion(scalaVersion: String) = {
     scalaVersion match {
       case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
       case DottyVersion(minor, _) => s"0.$minor"
+      case TypelevelVersion(major, minor, _) => s"$major.$minor"
       case _ => scalaVersion
     }
   }

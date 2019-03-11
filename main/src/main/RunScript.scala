@@ -30,6 +30,7 @@ object RunScript{
                 stateCache: Option[Evaluator.State],
                 log: Logger,
                 env : Map[String, String],
+                keepGoing: Boolean,
                 threadCount: Option[Int])
   : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
 
@@ -55,7 +56,7 @@ object RunScript{
     val evalRes =
       for(s <- evalState)
       yield new Evaluator(home, wd / 'out, wd / 'out, s.rootModule, log,
-        s.classLoaderSig, s.workerCache, env, threadCount = threadCount)
+        s.classLoaderSig, s.workerCache, env, failFast = !keepGoing, threadCount = threadCount)
 
     val evaluated = for{
       evaluator <- evalRes

@@ -21,7 +21,7 @@ def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) 
 def classFiles = T { 
   os.makeDir.all(T.ctx().dest)
   
-  %("javac", sources().map(_.path.toString()), "-d", T.ctx().dest)(wd = T.ctx().dest)
+  %("javac", allSources().map(_.path.toString()), "-d", T.ctx().dest)(wd = T.ctx().dest)
   PathRef(T.ctx().dest) 
 }
 

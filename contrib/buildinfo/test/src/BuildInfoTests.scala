@@ -1,4 +1,4 @@
-package mill.contrib
+package mill.contrib.buildinfo
 
 import java.util.jar.JarFile
 import mill._

@@ -187,7 +187,7 @@ object scalalib extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.2.5"
+      ivy"org.scala-sbt::zinc:1.3.0-M1"
     )
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -245,9 +245,44 @@ object contrib extends MillModule {
 
   object twirllib extends MillModule {
     def moduleDeps = Seq(scalalib)
-
   }
 
+  object playlib extends MillModule {
+    def moduleDeps = Seq(scalalib, twirllib, playlib.api)
+
+    def testArgs = T {
+      val mapping = Map(
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").compile().classes.path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").compile().classes.path
+      )
+
+      scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    }
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(scalalib)
+    }
+    object worker extends Cross[WorkerModule]( "2.6", "2.7")
+
+    class WorkerModule(scalajsBinary: String) extends MillApiModule {
+      def moduleDeps = Seq(playlib.api)
+
+      def ivyDeps = scalajsBinary match {
+        case  "2.6"=>
+          Agg(
+            ivy"com.typesafe.play::routes-compiler::2.6.0"
+          )
+        case "2.7" =>
+          Agg(
+            ivy"com.typesafe.play::routes-compiler::2.7.0"
+          )
+      }
+    }
+
+  }
+  
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }

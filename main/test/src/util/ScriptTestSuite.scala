@@ -17,11 +17,12 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val stdIn = new ByteArrayInputStream(Array())
   val disableTicker = false
   val debugLog = false
+  val keepGoing = false
   val threadCount = Try(sys.props("MILL_THREAD_COUNT").toInt).toOption
   lazy val runner = new mill.main.MainRunner(
     ammonite.main.Cli.Config(wd = wd), disableTicker,
     stdOutErr, stdOutErr, stdIn, None, Map.empty,
-    b => (), debugLog, threadCount
+    b => (), debugLog, keepGoing = keepGoing, threadCount = threadCount
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)

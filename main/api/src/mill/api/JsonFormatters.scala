@@ -2,7 +2,12 @@ package mill.api
 
 import upickle.default.{ReadWriter => RW}
 import scala.util.matching.Regex
+
 object JsonFormatters extends JsonFormatters
+
+/**
+ * Defines various default JSON formatters used in mill.
+ */
 trait JsonFormatters {
   implicit val pathReadWrite: RW[os.Path] = upickle.default.readwriter[String]
     .bimap[os.Path](
@@ -22,7 +27,6 @@ trait JsonFormatters {
       str => new os.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
-
   implicit lazy val crFormat: RW[os.CommandResult] = upickle.default.macroRW
 
   implicit val stackTraceRW = upickle.default.readwriter[ujson.Obj].bimap[StackTraceElement](
@@ -32,13 +36,14 @@ trait JsonFormatters {
       "fileName" -> ujson.Str(ste.getFileName),
       "lineNumber" -> ujson.Num(ste.getLineNumber)
     ),
-    {case json: ujson.Obj =>
-      new StackTraceElement(
-        json("declaringClass").str.toString,
-        json("methodName").str.toString,
-        json("fileName").str.toString,
-        json("lineNumber").num.toInt
-      )
+    {
+      case json: ujson.Obj =>
+        new StackTraceElement(
+          json("declaringClass").str.toString,
+          json("methodName").str.toString,
+          json("fileName").str.toString,
+          json("lineNumber").num.toInt
+        )
     }
   )
 }

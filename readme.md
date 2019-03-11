@@ -17,6 +17,10 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
+If you use Mill and like it, please support it by donating to our Patreon:
+
+- [https://www.patreon.com/lihaoyi](https://www.patreon.com/lihaoyi)
+
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
 through the user-facing documentation linked above. It's also worth spending a
@@ -153,6 +157,10 @@ optimizer without classpath conflicts.
 
 ### {master}
 
+- Publish compileIvyDeps as provided scope
+
+### 0.3.6
+
 - Started to splitting out mill.api from mill.core
 
 - Avoid unnecessary dependency downloading by providing fetches per cache policy
@@ -165,10 +173,13 @@ optimizer without classpath conflicts.
 
 - Zinc worker: configurable scala library/compiler jar discovery
 
-- Zinc workder: configurable compiler cache supporting parallelism
+- Zinc worker: configurable compiler cache supporting parallelism
 
 - Version bumps: ammonite 1.6.0, scala 2.12.8, zinc 1.2.5
 
+- Mill now by default fails fast, so in case a build tasks fails, it exits immediately
+
+- Added new `-k`/`--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
 ### 0.3.5
 

@@ -37,9 +37,9 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
       def handle(sig: Signal) = {} // do nothing
     })
     new Server(
-      args0(0),
+      lockBase = args0(0),
       this,
-      () => System.exit(0),
+      () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
       300000,
       mill.main.client.Locks.files(args0(0))
     ).run()
@@ -55,12 +55,12 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
     MillMain.main0(
       args,
       stateCache,
-      mainInteractive,
+      mainInteractive = mainInteractive,
       DummyInputStream,
       stdout,
       stderr,
       env,
-      setIdle
+      setIdle = setIdle
     )
   }
 }
@@ -122,8 +122,13 @@ class Server[T](lockBase: String,
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = sys.props("MILL_VERSION")
     if (clientMillVersion != serverMillVersion) {
+      // FIXME: exiting with 0 isn't correct, see https://github.com/lihaoyi/mill/issues/557
       stdout.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
-      System.exit(0)
+      java.nio.file.Files.write(
+        java.nio.file.Paths.get(lockBase + "/exitCode"),
+        s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
+      )
+      System.exit(MillClientMain.ExitServerCodeWhenVersionMismatch())
     }
     val args = Util.parseArgs(argStream)
     val env = Util.parseMap(argStream)
@@ -141,7 +146,7 @@ class Server[T](lockBase: String,
           stdout,
           stderr,
           env.asScala.toMap,
-          idle = _
+          idle = _,
         )
 
         sm.stateCache = newStateCache

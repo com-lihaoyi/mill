@@ -10,8 +10,9 @@ import scala.concurrent.ExecutionException
 import scala.util.control.NonFatal
 
 import ammonite.runtime.SpecialClassLoader
+import mill.util.Router.EntryPoint
 import mill.define.{Ctx => _, _}
-import mill.api.Result.OuterStack
+import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util._
@@ -39,6 +40,7 @@ case class Evaluator(
   classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv,
+  failFast: Boolean = true,
   threadCount: Option[Int] = None
 ) {
 
@@ -53,13 +55,22 @@ case class Evaluator(
 
     os.makeDir.all(outPath)
 
-   val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
-    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex){
+    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex)
+      if(failFast && someTaskFailed) {
+        // we exit early and set aborted state for all left tasks
+        group.foreach { task =>
+          results.put(task, Aborted)
+        }
+
+      } else {
+
       val startTime = System.currentTimeMillis()
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
@@ -69,6 +80,8 @@ case class Evaluator(
         results,
         counterMsg
       )
+      someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+
       for(ev <- newEvaluated){
         evaluated.append(ev)
       }
@@ -245,7 +258,8 @@ case class Evaluator(
             upickle.default.write(
               Evaluator.Cached(json, hashCode, inputsHash),
               indent = 4
-            )
+            ),
+            createFolders = true
           )
         }
     }

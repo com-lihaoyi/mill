@@ -17,6 +17,7 @@ object ReplApplyHandler{
                rootModule: mill.define.BaseModule,
                discover: Discover[_],
                debugLog: Boolean,
+               keepGoing: Boolean,
                threadCount: Option[Int]) = {
     new ReplApplyHandler(
       pprinter0,
@@ -35,6 +36,7 @@ object ReplApplyHandler{
           System.in,
           debugEnabled = debugLog
         ),
+        failFast = !keepGoing,
         threadCount = threadCount
       )
     )

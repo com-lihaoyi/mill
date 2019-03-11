@@ -71,6 +71,15 @@ object MillMain {
       }
     )
 
+    var keepGoing = false
+    val keepGoingSignature = Arg[Config, Unit] (
+      name = "keep-going", shortName = Some('k'), doc = "Continue build, even after build failures",
+      (c,v) => {
+        keepGoing = true
+        c
+      }
+    )
+
     var threadCount: Option[Int] = None
     val threadCountSignature = Arg[Config, Int](
       name = "jobs", Some('j'),
@@ -86,6 +95,7 @@ object MillMain {
         interactiveSignature,
         disableTickerSignature,
         debugLogSignature,
+        keepGoingSignature,
         threadCountSignature
       )
 
@@ -129,7 +139,8 @@ object MillMain {
                   |  build.millSelf.get,
                   |  build.millDiscover,
                   |  $debugLog,
-                  |  $threadCount
+                  |  keepGoing = $keepGoing,
+                  |  threadCount = $threadCount
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -146,7 +157,8 @@ object MillMain {
             env,
             setIdle,
             debugLog,
-            threadCount
+            keepGoing = keepGoing,
+            threadCount = threadCount
           )
 
           if (mill.main.client.Util.isJava9OrAbove) {

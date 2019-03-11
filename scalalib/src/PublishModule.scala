@@ -22,9 +22,17 @@ trait PublishModule extends JavaModule { outer =>
 
   def publishXmlDeps = T.task {
     val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
+
+    val compileIvyPomDeps = compileIvyDeps()
+      .map(resolvePublishDependency().apply(_))
+      .filter(!ivyPomDeps.contains(_))
+      .map(_.copy(scope = Scope.Provided))
+
     val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
-    ivyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
+
+    ivyPomDeps ++ compileIvyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
+
   def pom = T {
     val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
@@ -73,6 +81,7 @@ trait PublishModule extends JavaModule { outer =>
 
   def publish(sonatypeCreds: String,
               gpgPassphrase: String = null,
+              gpgKeyName: String = null,
               signed: Boolean = true,
               release: Boolean): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
@@ -81,6 +90,7 @@ trait PublishModule extends JavaModule { outer =>
       sonatypeSnapshotUri,
       sonatypeCreds,
       Option(gpgPassphrase),
+      Option(gpgKeyName),
       signed,
       T.ctx().log
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
@@ -96,6 +106,7 @@ object PublishModule extends ExternalModule {
 
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String = null,
+                 gpgKeyName: String = null,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  release: Boolean = false,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
@@ -110,6 +121,7 @@ object PublishModule extends ExternalModule {
       sonatypeSnapshotUri,
       sonatypeCreds,
       Option(gpgPassphrase),
+      Option(gpgKeyName),
       signed,
       T.ctx().log
     ).publishAll(

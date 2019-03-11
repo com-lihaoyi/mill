@@ -4,13 +4,14 @@ import java.math.BigInteger
 import java.security.MessageDigest
 
 import mill.api.Logger
-
+import os.Shellable
 import scalaj.http.HttpResponse
 
 class SonatypePublisher(uri: String,
                         snapshotUri: String,
                         credentials: String,
                         gpgPassphrase: Option[String],
+                        gpgKeyName: Option[String],
                         signed: Boolean,
                         log: Logger) {
 
@@ -19,6 +20,7 @@ class SonatypePublisher(uri: String,
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)
   }
+
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
 
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
@@ -27,10 +29,10 @@ class SonatypePublisher(uri: String,
         artifact.id,
         artifact.version
       ).mkString("/")
-      val fileMapping = fileMapping0.map{ case (file, name) => (file, publishPath+"/"+name) }
+      val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
 
       val signedArtifacts = if (signed) fileMapping.map {
-        case (file, name) => poorMansSign(file, gpgPassphrase) -> s"$name.asc"
+        case (file, name) => poorMansSign(file, gpgPassphrase, gpgKeyName) -> s"$name.asc"
       } else Seq()
 
       artifact -> (fileMapping ++ signedArtifacts).flatMap {
@@ -46,11 +48,11 @@ class SonatypePublisher(uri: String,
     }
 
     val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
-    if(snapshots.nonEmpty) {
+    if (snapshots.nonEmpty) {
       publishSnapshot(snapshots.flatMap(_._2), snapshots.map(_._1))
     }
     val releaseGroups = releases.groupBy(_._1.group)
-    for((group, groupReleases) <- releaseGroups){
+    for ((group, groupReleases) <- releaseGroups) {
       publishRelease(release, groupReleases.flatMap(_._2), group, releases.map(_._1))
     }
   }
@@ -122,6 +124,7 @@ class SonatypePublisher(uri: String,
                               attempts: Int = 20): Unit = {
     def isRightStatus =
       api.getStagingRepoState(stagingRepoId).equalsIgnoreCase(status)
+
     var attemptsLeft = attempts
 
     while (attemptsLeft > 0 && !isRightStatus) {
@@ -135,16 +138,15 @@ class SonatypePublisher(uri: String,
   }
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
-  private def poorMansSign(file: os.Path, maybePassphrase: Option[String]): os.Path = {
+  private def poorMansSign(file: os.Path, maybePassphrase: Option[String], maybeKeyName: Option[String]): os.Path = {
     val fileName = file.toString
-    maybePassphrase match {
-      case Some(passphrase) =>
-        os.proc("gpg", "--passphrase", passphrase, "--batch", "--yes", "-a", "-b", fileName)
-          .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
-      case None =>
-        os.proc("gpg", "--batch", "--yes", "-a", "-b", fileName)
-          .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
-    }
+    val optionFlag = (flag: String, ov: Option[String]) => ov.map(flag :: _ :: Nil).getOrElse(Nil)
+    val command = "gpg" ::
+      optionFlag("--passphrase", maybePassphrase) ++ optionFlag("-u", maybeKeyName) ++
+        Seq("--batch", "--yes", "-a", "-b", fileName)
+
+    os.proc(command.map(v => v: Shellable))
+      .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
     os.Path(fileName + ".asc")
   }
 

@@ -35,11 +35,11 @@ trait TwirlModule extends mill.Module {
 
   def twirlAdditionalImports: Seq[String] = Nil
 
-  private def twirlConstructorAnnotations: Seq[String] = Nil
+  def twirlConstructorAnnotations: Seq[String] = Nil
 
-  private def twirlCodec: Codec = Codec(Properties.sourceEncoding)
+  def twirlCodec: Codec = Codec(Properties.sourceEncoding)
 
-  private def twirlInclusiveDot: Boolean = false
+  def twirlInclusiveDot: Boolean = false
 
   def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
     TwirlWorkerApi.twirlWorker

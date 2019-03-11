@@ -52,7 +52,8 @@ trait ZincWorkerModule extends mill.Module{
       ],
       classOf[(Agg[os.Path], String) => os.Path],
       classOf[(Agg[os.Path], String) => os.Path],
-      classOf[KeyedLockedCache[_]]
+      classOf[KeyedLockedCache[_]],
+      classOf[Boolean]
     )
       .newInstance(
         Left((
@@ -62,7 +63,8 @@ trait ZincWorkerModule extends mill.Module{
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
-        new KeyedLockedCache.RandomBoundedCache(1, 1)
+        new KeyedLockedCache.RandomBoundedCache(1, 1),
+        false.asInstanceOf[AnyRef]
       )
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
   }

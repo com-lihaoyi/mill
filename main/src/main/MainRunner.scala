@@ -25,6 +25,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  env : Map[String, String],
                  setIdle: Boolean => Unit,
                  debugLog: Boolean,
+                 keepGoing: Boolean,
                  threadCount: Option[Int])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
@@ -85,6 +86,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             debugEnabled = debugLog
           ),
           env,
+          keepGoing = keepGoing,
           threadCount = threadCount
         )
 
