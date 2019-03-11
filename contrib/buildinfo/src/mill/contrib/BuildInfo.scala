@@ -2,9 +2,9 @@ package mill.contrib
 
 import mill.T
 import mill.define.Target
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.scalalib.ScalaModule
-import mill.util.Ctx
+import mill.api.Ctx
 
 trait BuildInfo extends ScalaModule {
 

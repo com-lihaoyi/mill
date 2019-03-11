@@ -5,11 +5,10 @@ import java.io.File
 import java.lang.reflect.Method
 import java.net.URLClassLoader
 
-import mill.eval.PathRef
-import mill.scalalib.CompilationResult
+import mill.api.PathRef
+import mill.scalalib.api.CompilationResult
 
 import scala.io.Codec
-
 class TwirlWorker {
 
   private var twirlInstanceCache = Option.empty[(Long, TwirlWorkerApi)]
@@ -103,7 +102,7 @@ class TwirlWorker {
               constructorAnnotations: Seq[String],
               codec: Codec,
               inclusiveDot: Boolean)
-             (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+             (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
 
     def compileTwirlDir(inputDir: os.Path) {
@@ -127,7 +126,7 @@ class TwirlWorker {
     val zincFile = ctx.dest / 'zinc
     val classesDir = ctx.dest
 
-    mill.eval.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
+    mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
   }
 
   private def twirlExtensionFormat(name: String) =

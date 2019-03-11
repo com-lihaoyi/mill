@@ -1,4 +1,4 @@
-package mill.eval
+package mill.api
 
 sealed trait Result[+T]{
   def map[V](f: T => V): Result[V]

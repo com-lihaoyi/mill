@@ -3,7 +3,7 @@ package mill.scalalib.publish
 import java.math.BigInteger
 import java.security.MessageDigest
 
-import mill.util.Logger
+import mill.api.Logger
 
 import scalaj.http.HttpResponse
 

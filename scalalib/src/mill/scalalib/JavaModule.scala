@@ -209,7 +209,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   /**
     * Compiles the current module to generate compiled classfiles/bytecode
     */
-  def compile: T[CompilationResult] = T.persistent{
+  def compile: T[mill.scalalib.api.CompilationResult] = T.persistent{
     zincWorker.worker().compileJava(
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),

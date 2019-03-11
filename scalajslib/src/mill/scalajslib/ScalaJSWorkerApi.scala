@@ -4,21 +4,10 @@ import java.io.File
 import java.net.URLClassLoader
 
 import mill.define.Discover
-import mill.eval.Result
-import mill.util.Ctx
+import mill.api.Result
+import mill.api.Ctx
 import mill.{Agg, T}
-
-sealed trait OptimizeMode
-
-object FastOpt extends OptimizeMode
-object FullOpt extends OptimizeMode
-
-sealed trait ModuleKind
-object ModuleKind{
-  object NoModule extends ModuleKind
-  object CommonJSModule extends ModuleKind
-}
-
+import mill.scalajslib.api._
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
@@ -29,7 +18,7 @@ class ScalaJSWorker {
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val cl = mill.util.ClassLoader.create(
+        val cl = mill.api.ClassLoader.create(
           toolsClasspath.map(_.toIO.toURI.toURL).toVector,
           getClass.getClassLoader
         )
@@ -73,22 +62,6 @@ class ScalaJSWorker {
                   (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
     bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
   }
-
-}
-
-trait ScalaJSWorkerApi {
-  def link(sources: Array[File],
-           libraries: Array[File],
-           dest: File,
-           main: String,
-           fullOpt: Boolean,
-           moduleKind: ModuleKind): Result[File]
-
-  def run(config: NodeJSConfig, linkedFile: File): Unit
-
-  def getFramework(config: NodeJSConfig,
-                   frameworkName: String,
-                   linkedFile: File): (() => Unit, sbt.testing.Framework)
 
 }
 

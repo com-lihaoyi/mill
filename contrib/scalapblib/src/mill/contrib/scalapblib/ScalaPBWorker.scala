@@ -5,7 +5,7 @@ import java.io.File
 import java.lang.reflect.Method
 import java.net.URLClassLoader
 
-import mill.eval.PathRef
+import mill.api.PathRef
 
 class ScalaPBWorker {
 
@@ -40,7 +40,7 @@ class ScalaPBWorker {
   }
 
   def compile(scalaPBClasspath: Agg[os.Path], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path)
-             (implicit ctx: mill.util.Ctx): mill.eval.Result[PathRef] = {
+             (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
 
     def compileScalaPBDir(inputDir: os.Path) {
@@ -55,7 +55,7 @@ class ScalaPBWorker {
 
     scalaPBSources.foreach(compileScalaPBDir)
 
-    mill.eval.Result.Success(PathRef(dest))
+    mill.api.Result.Success(PathRef(dest))
   }
 }
 

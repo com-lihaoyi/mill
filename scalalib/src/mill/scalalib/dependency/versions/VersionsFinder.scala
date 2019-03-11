@@ -4,7 +4,7 @@ import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
 import mill.scalalib.{Dep, JavaModule, Lib}
-import mill.util.Ctx.{Home, Log}
+import mill.api.Ctx.{Home, Log}
 import mill.util.{Loose, Strict}
 
 private[dependency] object VersionsFinder {

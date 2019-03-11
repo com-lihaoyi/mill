@@ -3,7 +3,7 @@ package mill.scalalib.scalafmt
 import mill._
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.modules.Jvm
-import mill.util.Ctx
+import mill.api.Ctx
 
 import scala.collection.mutable
 

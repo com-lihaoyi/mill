@@ -3,18 +3,14 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 
-import ammonite.util.Colors
-import mill.Agg
-import mill.eval.PathRef
-import mill.scalalib.{CompilationResult, Lib, TestRunner}
+import mill.api.Loose.Agg
+import mill.api.PathRef
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
-import mill.scalalib.Dep.isDotty
-import mill.scalalib.Lib.{grepJar, scalaBinaryVersion}
-import mill.util.{Ctx, PrintLogger}
+import mill.scalalib.api.Util.{isDotty, grepJar, scalaBinaryVersion}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
-
+import mill.scalalib.api.CompilationResult
 case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
   override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
     am(classpathEntry)
@@ -23,8 +19,8 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
     Locate.definesClass(classpathEntry)
 }
 
-class ZincWorkerImpl(ctx0: mill.util.Ctx,
-                     compilerBridgeClasspath: Array[String]) extends mill.scalalib.ZincWorkerApi{
+class ZincWorkerImpl(ctx0: mill.api.Ctx,
+                     compilerBridgeClasspath: Array[String]) extends mill.scalalib.api.ZincWorkerApi{
   private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   val javaOnlyCompilers = {
     // Keep the classpath as written by the user
@@ -53,7 +49,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
              compilerClasspath: Agg[os.Path],
              scalacPluginClasspath: Agg[os.Path],
              args: Seq[String])
-            (implicit ctx: mill.util.Ctx): Boolean = {
+            (implicit ctx: mill.api.Ctx): Boolean = {
     val compilers: Compilers = prepareCompilers(
       scalaVersion,
       compilerBridgeSources,
@@ -79,8 +75,8 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
       os.makeDir.all(workingDir)
       os.makeDir.all(compiledDest)
 
-      val sourceFolder = mill.modules.Util.unpackZip(sourcesJar)(workingDir)
-      val classloader = mill.util.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
+      val sourceFolder = mill.api.IO.unpackZip(sourcesJar)(workingDir)
+      val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
       val compilerMain = classloader.loadClass(
         if (isDotty(scalaVersion))
           "dotty.tools.dotc.Main"
@@ -100,7 +96,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
 
 
 
-  def discoverMainClasses(compilationResult: CompilationResult)(implicit ctx: mill.util.Ctx): Seq[String] = {
+  def discoverMainClasses(compilationResult: CompilationResult)(implicit ctx: mill.api.Ctx): Seq[String] = {
     def toScala[A](o: Optional[A]): Option[A] = if (o.isPresent) Some(o.get) else None
 
     toScala(FileAnalysisStore.binary(compilationResult.analysisFile.toIO).get())
@@ -118,7 +114,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                   sources: Agg[os.Path],
                   compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String])
-                 (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+                 (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     compileInternal(
       upstreamCompileOutput,
       sources,
@@ -138,7 +134,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                    compilerBridgeSources: os.Path,
                    compilerClasspath: Agg[os.Path],
                    scalacPluginClasspath: Agg[os.Path])
-                  (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+                  (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     val compilers: Compilers = prepareCompilers(
       scalaVersion,
       compilerBridgeSources,
@@ -160,7 +156,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                                compilerBridgeSources: os.Path,
                                compilerClasspath: Agg[os.Path],
                                scalacPluginClasspath: Agg[os.Path])
-                              (implicit ctx: mill.util.Ctx)= {
+                              (implicit ctx: mill.api.Ctx)= {
     val combinedCompilerClasspath = compilerClasspath ++ scalacPluginClasspath
     val combinedCompilerJars = combinedCompilerClasspath.toArray.map(_.toIO)
 
@@ -185,7 +181,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
             "scala-compiler"
         val scalaInstance = new ScalaInstance(
           version = scalaVersion,
-          loader = mill.util.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null),
+          loader = mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null),
           libraryJar = grepJar(compilerClasspath, "scala-library", scalaVersion).toIO,
           compilerJar = grepJar(compilerClasspath, compilerName, scalaVersion).toIO,
           allJars = combinedCompilerJars,
@@ -209,7 +205,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
                               javacOptions: Seq[String],
                               scalacOptions: Seq[String],
                               compilers: Compilers)
-                             (implicit ctx: mill.util.Ctx): mill.eval.Result[CompilationResult] = {
+                             (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     os.makeDir.all(ctx.dest)
 
     val logger = {
@@ -282,7 +278,7 @@ class ZincWorkerImpl(ctx0: mill.util.Ctx,
         )
       )
 
-      mill.eval.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
-    }catch{case e: CompileFailed => mill.eval.Result.Failure(e.toString)}
+      mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
+    }catch{case e: CompileFailed => mill.api.Result.Failure(e.toString)}
   }
 }

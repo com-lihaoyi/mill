@@ -6,7 +6,7 @@ import mill.eval.Evaluator
 import mill.scalalib.{CrossScalaModule, DepSyntax}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
-
+import mill.scalajslib.api._
 
 object NodeJSConfigTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"

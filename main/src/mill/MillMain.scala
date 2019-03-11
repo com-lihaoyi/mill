@@ -6,7 +6,7 @@ import scala.collection.JavaConverters._
 import ammonite.main.Cli._
 import io.github.retronym.java9rtexport.Export
 import mill.eval.Evaluator
-import mill.util.DummyInputStream
+import mill.api.DummyInputStream
 
 object MillMain {
 
@@ -38,7 +38,7 @@ object MillMain {
             setIdle: Boolean => Unit): (Boolean, Option[Evaluator.State]) = {
     import ammonite.main.Cli
 
-    val millHome = mill.util.Ctx.defaultHome
+    val millHome = mill.api.Ctx.defaultHome
 
     val removed = Set("predef-code", "no-home-predef")
     var interactive = false

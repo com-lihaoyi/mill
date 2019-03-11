@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import mill.define.{ExternalModule, Task}
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
 /**

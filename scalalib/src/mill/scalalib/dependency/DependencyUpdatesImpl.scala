@@ -7,7 +7,7 @@ import mill.scalalib.dependency.updates.{
   UpdatesFinder
 }
 import mill.scalalib.dependency.versions.VersionsFinder
-import mill.util.Ctx.{Home, Log}
+import mill.api.Ctx.{Home, Log}
 
 object DependencyUpdatesImpl {
 

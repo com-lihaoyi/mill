@@ -27,7 +27,7 @@ abstract class Task[+T] extends Task.Ops[T] with Applyable[Task, T]{
   /**
     * Evaluate this target
     */
-  def evaluate(args: mill.util.Ctx): Result[T]
+  def evaluate(args: mill.api.Ctx): Result[T]
 
   /**
     * Even if this target's inputs did not change, does it need to re-evaluate
@@ -53,7 +53,7 @@ trait Target[+T] extends NamedTask[T]{
   def readWrite: RW[_]
 }
 
-object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.util.Ctx] {
+object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
 
   implicit def apply[T](t: T)
                        (implicit rw: RW[T],
@@ -64,7 +64,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                   (rw: c.Expr[RW[T]],
                                    ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
-    val lhs = Applicative.impl0[Task, T, mill.util.Ctx](c)(reify(Result.Success(t.splice)).tree)
+    val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
 
     mill.moduledefs.Cacher.impl0[TargetImpl[T]](c)(
       reify(
@@ -85,7 +85,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
       reify(
         new TargetImpl[T](
-          Applicative.impl0[Task, T, mill.util.Ctx](c)(t.tree).splice,
+          Applicative.impl0[Task, T, mill.api.Ctx](c)(t.tree).splice,
           ctx.splice,
           rw.splice
         )
@@ -118,7 +118,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
     val wrapped =
       for (value <- values.toList)
-      yield Applicative.impl0[Task, PathRef, mill.util.Ctx](c)(
+      yield Applicative.impl0[Task, PathRef, mill.api.Ctx](c)(
         reify(value.splice.map(PathRef(_))).tree
       ).tree
 
@@ -144,7 +144,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Sources](c)(
       reify(
         new Sources(
-          Applicative.impl0[Task, Seq[PathRef], mill.util.Ctx](c)(values.tree).splice,
+          Applicative.impl0[Task, Seq[PathRef], mill.api.Ctx](c)(values.tree).splice,
           ctx.splice
         )
       )
@@ -163,7 +163,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Input[T]](c)(
       reify(
         new Input[T](
-          Applicative.impl[Task, T, mill.util.Ctx](c)(value).splice,
+          Applicative.impl[Task, T, mill.api.Ctx](c)(value).splice,
           ctx.splice,
           rw.splice
         )
@@ -194,7 +194,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     import c.universe._
     reify(
       new Command[T](
-        Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice,
+        Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
         ctx.splice,
         w.splice,
         cls.splice.value,
@@ -214,11 +214,11 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Worker[T]] = {
     import c.universe._
     reify(
-      new Worker[T](Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice, ctx.splice)
+      new Worker[T](Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice, ctx.splice)
     )
   }
 
-  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.util.Ctx]
+  def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
   def persistent[T](t: Result[T])(implicit rw: RW[T],
                                   ctx: mill.define.Ctx): Persistent[T] = macro persistentImpl[T]
@@ -233,7 +233,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Persistent[T]](c)(
       reify(
         new Persistent[T](
-          Applicative.impl[Task, T, mill.util.Ctx](c)(t).splice,
+          Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice,
           ctx.splice,
           rw.splice
         )
@@ -242,20 +242,20 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   type TT[+X] = Task[X]
-  def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.util.Ctx => Result[X]) = new Task[X] {
+  def makeT[X](inputs0: Seq[TT[_]], evaluate0: mill.api.Ctx => Result[X]) = new Task[X] {
     val inputs = inputs0
-    def evaluate(x: mill.util.Ctx) = evaluate0(x)
+    def evaluate(x: mill.api.Ctx) = evaluate0(x)
   }
 
   def underlying[A](v: Task[A]) = v
-  def mapCtx[A, B](t: Task[A])(f: (A, mill.util.Ctx) => Result[B]) = t.mapDest(f)
+  def mapCtx[A, B](t: Task[A])(f: (A, mill.api.Ctx) => Result[B]) = t.mapDest(f)
   def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
 }
 
 abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends NamedTask[T]{
-  def evaluate(args: mill.util.Ctx) = args[T](0)
+  def evaluate(args: mill.api.Ctx) = args[T](0)
   val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
   val inputs = Seq(t)
 }
@@ -303,12 +303,12 @@ object Task {
   class Task0[T](t: T) extends Task[T]{
     lazy val t0 = t
     val inputs = Nil
-    def evaluate(args: mill.util.Ctx)  = t0
+    def evaluate(args: mill.api.Ctx)  = t0
   }
 
   abstract class Ops[+T]{ this: Task[T] =>
     def map[V](f: T => V) = new Task.Mapped(this, f)
-    def mapDest[V](f: (T, mill.util.Ctx) => Result[V]) = new Task.MappedDest(this, f)
+    def mapDest[V](f: (T, mill.api.Ctx) => Result[V]) = new Task.MappedDest(this, f)
 
     def filter(f: T => Boolean) = this
     def withFilter(f: T => Boolean) = this
@@ -323,22 +323,22 @@ object Task {
 
   class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
     val inputs = inputs0
-    def evaluate(args: mill.util.Ctx) = {
+    def evaluate(args: mill.api.Ctx) = {
       for (i <- 0 until args.length)
       yield args(i).asInstanceOf[T]
     }
 
   }
   class Mapped[+T, +V](source: Task[T], f: T => V) extends Task[V]{
-    def evaluate(args: mill.util.Ctx) = f(args(0))
+    def evaluate(args: mill.api.Ctx) = f(args(0))
     val inputs = List(source)
   }
-  class MappedDest[+T, +V](source: Task[T], f: (T, mill.util.Ctx) => Result[V]) extends Task[V]{
-    def evaluate(args: mill.util.Ctx) = f(args(0), args)
+  class MappedDest[+T, +V](source: Task[T], f: (T, mill.api.Ctx) => Result[V]) extends Task[V]{
+    def evaluate(args: mill.api.Ctx) = f(args(0), args)
     val inputs = List(source)
   }
   class Zipped[+T, +V](source1: Task[T], source2: Task[V]) extends Task[(T, V)]{
-    def evaluate(args: mill.util.Ctx) = (args(0), args(1))
+    def evaluate(args: mill.api.Ctx) = (args(0), args(1))
     val inputs = List(source1, source2)
   }
 }

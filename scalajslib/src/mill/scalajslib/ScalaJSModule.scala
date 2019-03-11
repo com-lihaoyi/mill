@@ -4,11 +4,11 @@ package scalajslib
 import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
-import mill.eval.Result.Success
+import mill.api.Result.Success
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.{Ctx, Loose}
-
+import mill.scalajslib.api._
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSVersion: T[String]
@@ -21,7 +21,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaJSBinaryVersion = T { Lib.scalaBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaBinaryVersion(scalaJSVersion()) }
 
   def scalaJSWorkerVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
@@ -92,11 +92,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def runMainLocal(mainClass: String, args: String*) = T.command[Unit] {
-    mill.eval.Result.Failure("runMain is not supported in Scala.js")
+    mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
   override def runMain(mainClass: String, args: String*) = T.command[Unit] {
-    mill.eval.Result.Failure("runMain is not supported in Scala.js")
+    mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
   def link(worker: ScalaJSWorker,

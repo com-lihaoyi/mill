@@ -37,7 +37,7 @@ trait VisualizeModule extends mill.define.TaskModule{
     val in = new LinkedBlockingQueue[(Seq[_], Seq[_], os.Path)]()
     val out = new LinkedBlockingQueue[Result[Seq[PathRef]]]()
 
-    val cl = mill.util.ClassLoader.create(
+    val cl = mill.api.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
     )

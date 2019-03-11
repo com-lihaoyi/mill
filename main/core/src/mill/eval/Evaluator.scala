@@ -11,7 +11,7 @@ import scala.util.control.NonFatal
 
 import ammonite.runtime.SpecialClassLoader
 import mill.define.{Ctx => _, _}
-import mill.eval.Result.OuterStack
+import mill.api.Result.OuterStack
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util.Strict.Agg

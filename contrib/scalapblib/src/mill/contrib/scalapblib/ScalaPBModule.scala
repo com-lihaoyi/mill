@@ -4,7 +4,7 @@ package contrib.scalapblib
 import coursier.{Cache, MavenRepository}
 import coursier.core.Version
 import mill.define.Sources
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.util.Loose

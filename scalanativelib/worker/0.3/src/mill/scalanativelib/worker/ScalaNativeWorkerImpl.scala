@@ -4,13 +4,13 @@ import java.io.File
 import java.lang.System.{err, out}
 
 import scala.scalanative.build.{Build, Config, Discover, GC, Logger, Mode}
-import mill.scalanativelib.{NativeConfig, NativeLogLevel, ReleaseMode}
+import mill.scalanativelib.api.{NativeConfig, NativeLogLevel, ReleaseMode}
 import sbt.testing.Framework
 
 import scala.scalanative.testinterface.ScalaNativeFramework
 
 
-class ScalaNativeWorkerImpl extends mill.scalanativelib.ScalaNativeWorkerApi {
+class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
   def logger(level: NativeLogLevel) =
     Logger(
       debugFn = msg => if (level >= NativeLogLevel.Debug) out.println(msg),

@@ -3,7 +3,7 @@ package mill.define
 import mill.util.{DummyLogger, TestEvaluator, TestUtil}
 import mill.util.Strict.Agg
 import mill.T
-import mill.eval.Result.Success
+import mill.api.Result.Success
 import utest._
 import utest.framework.TestPath
 
