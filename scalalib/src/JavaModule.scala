@@ -138,7 +138,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       resolveCoursierDependency().apply(_),
       deps(),
       sources,
-      mapDependencies = Some(mapDependencies())
+      mapDependencies = Some(mapDependencies()),
+      Some(implicitly[mill.util.Ctx.Log])
     )
   }
 

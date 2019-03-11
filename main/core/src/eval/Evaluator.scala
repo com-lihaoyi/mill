@@ -263,7 +263,7 @@ case class Evaluator(
 
     val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
-    maybeTargetLabel.foreach { targetLabel =>
+    val tickerPrefix = maybeTargetLabel.map { targetLabel =>
       val inputResults = for {
         target <- nonEvaluatedTargets
         item <- target.inputs.filterNot(group.contains)
@@ -271,10 +271,16 @@ case class Evaluator(
 
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
-      if(logRun) { log.ticker(s"[$counterMsg] $targetLabel ") }
+      val prefix = s"[$counterMsg] $targetLabel "
+      if(logRun) log.ticker(prefix)
+      prefix + "| "
     }
 
-    val multiLogger = resolveLogger(paths.map(_.log))
+    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log))) {
+      override def ticker(s: String): Unit = {
+        super.ticker(tickerPrefix.getOrElse("")+s)
+      }
+    }
     var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)

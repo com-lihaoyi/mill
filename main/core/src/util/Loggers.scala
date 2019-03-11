@@ -235,3 +235,21 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) exten
     logger2.close()
   }
 }
+
+/**
+  * A Logger that forwards all logging to another Logger.  Intended to be
+  * used as a base class for wrappers that modify logging behavior.
+  */
+case class ProxyLogger(logger: Logger) extends Logger {
+  def colored = logger.colored
+
+  lazy val outputStream = logger.outputStream
+  lazy val errorStream = logger.errorStream
+  lazy val inStream = logger.inStream
+
+  def info(s: String) = logger.info(s)
+  def error(s: String) = logger.error(s)
+  def ticker(s: String) = logger.ticker(s)
+  def debug(s: String) = logger.debug(s)
+  override def close() = logger.close()
+}

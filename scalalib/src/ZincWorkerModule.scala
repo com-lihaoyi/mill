@@ -102,7 +102,8 @@ trait ZincWorkerModule extends mill.Module{
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, "2.12.4", ""),
-      Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}")
+      Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
+      ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }
 
