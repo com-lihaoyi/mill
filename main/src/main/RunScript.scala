@@ -11,7 +11,7 @@ import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, ParseArgs, Watched}
 import mill.api.Logger
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 
 import scala.collection.mutable
 import scala.reflect.ClassTag

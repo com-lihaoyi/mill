@@ -14,8 +14,8 @@ import mill.define.{Ctx => _, _}
 import mill.api.Result.OuterStack
 import mill.util
 import mill.util.Router.EntryPoint
-import mill.util.Strict.Agg
-import mill.util.{Strict, _}
+import mill.util._
+import mill.api.Strict.Agg
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -355,7 +355,7 @@ case class Evaluator(
   }
 
   type Terminal = Either[Task[_], Labelled[Any]]
-  type TerminalGroup = (Terminal, Strict.Agg[Task[_]])
+  type TerminalGroup = (Terminal, Agg[Task[_]])
 
   def evaluateParallel(goals: Agg[Task[_]], threadCount: Option[Int] = None): Evaluator.Results = {
     os.makeDir.all(outPath)
@@ -583,7 +583,7 @@ case class Evaluator(
   }
 
   private def findInterGroupDeps(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
-    val groupDeps: Map[(Either[Task[_], Labelled[Any]], Strict.Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
+    val groupDeps: Map[(Either[Task[_], Labelled[Any]], Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
       case g @ (terminal, group) => {
         val externalDeps = group.toSeq.flatMap(_.inputs).filterNot(d => group.contains(d)).distinct
         g -> externalDeps

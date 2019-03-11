@@ -9,7 +9,7 @@ import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 
 /**
   * Core configuration required to compile a single Scala compilation target

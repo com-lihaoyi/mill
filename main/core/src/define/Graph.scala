@@ -2,7 +2,7 @@ package mill.define
 
 import mill.eval.Tarjans
 import mill.util.MultiBiMap
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 
 object Graph {
 

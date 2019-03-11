@@ -4,12 +4,13 @@ import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
 import mill.api.Ctx.Dest
 import mill.{Module, T}
-import mill.util.{DummyLogger, Loose, TestEvaluator, TestUtil}
-import mill.util.Strict.Agg
+import mill.util.{DummyLogger, TestEvaluator, TestUtil}
+import mill.api.Strict.Agg
+import mill.api.Loose
 import utest._
 import mill._
 object JavaCompileJarTests extends TestSuite{
-  def compileAll(sources: mill.util.Loose.Agg[PathRef])(implicit ctx: Dest) = {
+  def compileAll(sources: mill.api.Loose.Agg[PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
     os.proc("javac", sources.map(_.path.toString()).toSeq, "-d", ctx.dest).call(ctx.dest)

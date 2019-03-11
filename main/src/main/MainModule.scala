@@ -32,6 +32,10 @@ trait MainModule extends mill.Module{
   implicit def millDiscover: mill.define.Discover[_]
   implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+
+  /**
+    * Show the mill version.
+    */
   def version() = mill.T.command {
     val res = System.getProperty("MILL_VERSION")
     println(res)

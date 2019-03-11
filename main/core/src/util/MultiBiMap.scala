@@ -1,7 +1,7 @@
 package mill.util
 
 import scala.collection.mutable
-import Strict.Agg
+import mill.api.Strict.Agg
 
 /**
   * A map from keys to collections of values: you can assign multiple values

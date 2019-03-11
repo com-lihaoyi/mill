@@ -79,9 +79,12 @@ object Discover {
       }
       if overridesRoutes.nonEmpty
     } yield {
+      // by wrapping the `overridesRoutes` in a lambda function we kind of work around
+      // the problem of generating a *huge* macro method body that finally exceeds the
+      // JVM's maximum allowed method size
+      val overridesLambda = q"(() => $overridesRoutes)()"
       val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
-      val rhs = q"scala.Seq[(Int, mill.util.Router.EntryPoint[_])](..$overridesRoutes)"
-      q"$lhs -> $rhs"
+      q"$lhs -> $overridesLambda"
     }
 
     c.Expr[Discover[T]](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")

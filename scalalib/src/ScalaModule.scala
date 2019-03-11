@@ -8,7 +8,7 @@ import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.isDotty
 import Lib._
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 import mill.api.DummyInputStream
 
 /**
@@ -79,36 +79,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def scalaDocOptions = T{ scalacOptions() }
 
-  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
-  def scalaCompilerBridgeSources = T {
-    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion() match {
-      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
-      case _ => (scalaVersion(), mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()))
-    }
-
-    val (bridgeDep, bridgeName, bridgeVersion) =
-      if (isDotty(scalaVersion0)) {
-        val org = scalaOrganization()
-        val name = "dotty-sbt-bridge"
-        val version = scalaVersion()
-        (ivy"$org:$name:$version", name, version)
-      } else {
-        val org = "org.scala-sbt"
-        val name = "compiler-bridge"
-        val version = Versions.zinc
-        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
-      }
-
-    resolveDependencies(
-      repositories,
-      Lib.depToDependency(_, scalaVersion0, platformSuffix()),
-      Seq(bridgeDep),
-      sources = true
-    ).map(deps =>
-      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
-    )
-  }
 
   /**
     * The local classpath of Scala compiler plugins on-disk; you can add
@@ -159,8 +130,8 @@ trait ScalaModule extends JavaModule { outer =>
       compileClasspath().map(_.path),
       javacOptions(),
       scalaVersion(),
+      scalaOrganization(),
       scalacOptions(),
-      scalaCompilerBridgeSources(),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
     )
@@ -187,7 +158,7 @@ trait ScalaModule extends JavaModule { outer =>
     else {
       zincWorker.worker().docJar(
         scalaVersion(),
-        scalaCompilerBridgeSources(),
+        scalaOrganization(),
         scalaCompilerClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
         files ++ options

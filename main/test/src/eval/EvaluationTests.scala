@@ -5,7 +5,7 @@ import mill.util.TestUtil.{Test, test}
 import mill.define.{Discover, Graph, Target, Task}
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 import utest._
 import utest.framework.TestPath
 

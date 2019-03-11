@@ -4,7 +4,7 @@ import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.eval.{PathRef, Result}
-import mill.util.Loose.Agg
+import mill.api.Loose.Agg
 import utest._
 
 object ResolveDepsTests extends TestSuite {

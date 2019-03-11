@@ -6,7 +6,7 @@ import mill.define.Segment.Label
 import mill.define._
 import mill.eval.{Evaluator, Result}
 
-import mill.util.Strict.Agg
+import mill.api.Strict.Agg
 
 import scala.collection.mutable
 object ReplApplyHandler{
