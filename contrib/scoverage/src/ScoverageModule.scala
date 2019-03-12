@@ -1,4 +1,4 @@
-package mill.lib.scoverage
+package mill.contrib.scoverage
 
 import mill._
 import mill.scalalib._
