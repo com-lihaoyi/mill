@@ -282,7 +282,7 @@ object contrib extends MillModule {
     }
 
   }
-  
+
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
@@ -387,9 +387,14 @@ def launcherScript(shellJvmArgs: Seq[String],
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
-        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      s"""case "$$1" in
+      s"""if [ -z "$$JAVA_HOME" ] ; then
+         |  JAVACMD="java"
+         |else
+         |  JAVACMD="$$JAVA_HOME/bin/java"
+         |fi
+         |case "$$1" in
          |  -i | --interactive )
          |    ${java("mill.MillMain")}
          |    ;;
@@ -401,9 +406,11 @@ def launcherScript(shellJvmArgs: Seq[String],
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
       def java(mainClass: String) =
-        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
 
-      s"""if "%1" == "-i" set _I_=true
+      s"""set "JAVACMD=java.exe"
+         |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+         |if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if defined _I_ (
          |  ${java("mill.MillMain")}
