@@ -156,35 +156,52 @@ object Jvm {
     method
   }
 
-
-  def inprocess[T](classPath: Agg[os.Path],
+  def inprocess[T](classPath: mill.Agg[os.Path],
                    classLoaderOverrideSbtTesting: Boolean,
                    isolated: Boolean,
                    closeContextClassLoaderWhenDone: Boolean,
                    body: ClassLoader => T)
                   (implicit ctx: Ctx.Home): T = {
-    val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl = if (classLoaderOverrideSbtTesting) {
-      val outerClassLoader = getClass.getClassLoader
-      mill.api.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
-        if (name.startsWith("sbt.testing."))
-          Some(outerClassLoader.loadClass(name))
-        else None
-      })
-    } else if (isolated) {
-      mill.api.ClassLoader.create(urls.toVector, null)
-    } else {
-      mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
+    inprocess(
+      Seq(classPath),
+      classLoaderOverrideSbtTesting,
+      isolated,
+      closeContextClassLoaderWhenDone,
+      body
+    )
+  }
+
+  def inprocess[T](classPath: Seq[Agg[os.Path]],
+                   classLoaderOverrideSbtTesting: Boolean,
+                   isolated: Boolean,
+                   closeContextClassLoaderWhenDone: Boolean,
+                   body: ClassLoader => T)
+                  (implicit ctx: Ctx.Home): T = {
+    val urls = classPath.map(_.map(_.toIO.toURI.toURL))
+    def cl(urls: Agg[java.net.URL], parent: Option[ClassLoader]) = {
+      if (classLoaderOverrideSbtTesting) {
+        val outerClassLoader = getClass.getClassLoader
+        mill.api.ClassLoader.create(urls.toVector, parent.orNull, customFindClass = { name =>
+          if (name.startsWith("sbt.testing."))
+            Some(outerClassLoader.loadClass(name))
+          else None
+        })
+      } else if (isolated) {
+        mill.api.ClassLoader.create(urls.toVector, parent.orNull)
+      } else {
+        mill.api.ClassLoader.create(urls.toVector, parent.getOrElse(getClass.getClassLoader))
+      }
     }
+    val cl0 = (cl(urls.head, None) /: urls.tail)((c, urls0) => cl(urls0, Some(c)))
 
     val oldCl = Thread.currentThread().getContextClassLoader
-    Thread.currentThread().setContextClassLoader(cl)
+    Thread.currentThread().setContextClassLoader(cl0)
     try {
-      body(cl)
+      body(cl0)
     } finally {
       if (closeContextClassLoaderWhenDone) {
         Thread.currentThread().setContextClassLoader(oldCl)
-        cl.close()
+        cl0.close()
       }
     }
   }

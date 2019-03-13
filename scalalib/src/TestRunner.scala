@@ -41,9 +41,12 @@ object TestRunner {
         )
         val home = os.Path(homeStr)
       }
+      val baseClasspathOpt = sys.props.get("test.base.classpath").map { s =>
+        Agg.from(s.split(java.io.File.pathSeparatorChar).map(os.Path(_)))
+      }
       val result = runTests(
         frameworkInstances = TestRunner.frameworks(frameworks),
-        entireClasspath = Agg.from(classpath.map(os.Path(_))),
+        entireClasspath = baseClasspathOpt.toSeq ++ Seq(Agg.from(classpath.map(os.Path(_)))),
         testClassfilePath = Agg(os.Path(testCp)),
         args = arguments
       )(ctx)
@@ -65,6 +68,19 @@ object TestRunner {
 
   def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
                entireClasspath: Agg[os.Path],
+               testClassfilePath: Agg[os.Path],
+               args: Seq[String])
+              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTests(
+      frameworkInstances,
+      Seq(entireClasspath),
+      testClassfilePath,
+      args
+    )
+  }
+
+  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
+               entireClasspath: Seq[Agg[os.Path]],
                testClassfilePath: Agg[os.Path],
                args: Seq[String])
               (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
@@ -133,7 +149,7 @@ object TestRunner {
     })
   }
 
-  def frameworks(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
+  def frameworks(frameworkNames: Seq[String]): ClassLoader => Seq[sbt.testing.Framework] = { cl =>
     frameworkNames.map { name =>
       cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
     }

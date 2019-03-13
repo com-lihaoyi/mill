@@ -221,7 +221,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   // generate a main class for the tests
   def makeTestMain = T{
-    val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
+    val frameworkInstances = TestRunner.frameworks(testFrameworks())
 
     val testClasses =
       Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
