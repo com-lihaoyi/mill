@@ -8,6 +8,7 @@ import _root_.scoverage.IOUtils.{ findMeasurementFiles, invoked }
 import _root_.scoverage.report.ScoverageHtmlWriter
 
 trait ScoverageModule { outer: ScalaModule =>
+  def scoverageVersion: T[String]
 
   trait ScoverageCompile extends ScalaModule {
     def dataDir: String
@@ -16,9 +17,9 @@ trait ScoverageModule { outer: ScalaModule =>
     def scalaVersion = outer.scalaVersion()
     def compileIvyDeps = outer.compileIvyDeps()
     def ivyDeps = outer.ivyDeps() ++
-      Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1")
+      Agg(ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}")
     def scalacPluginIvyDeps = outer.scalacPluginIvyDeps() ++
-      Agg(ivy"org.scoverage::scalac-scoverage-plugin:1.3.1")
+      Agg(ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}")
     def scalacOptions = outer.scalacOptions() ++
       Seq(s"-P:scoverage:dataDir:$dataDir")
 
