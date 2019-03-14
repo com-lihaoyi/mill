@@ -2,7 +2,7 @@ package mill.modules
 
 import java.io._
 import java.lang.reflect.Modifier
-import java.net.URI
+import java.net.{URI, URLClassLoader}
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
@@ -157,16 +157,15 @@ object Jvm {
   }
 
 
-  def inprocess[T](classPath: Agg[os.Path],
-                   classLoaderOverrideSbtTesting: Boolean,
-                   isolated: Boolean,
-                   closeContextClassLoaderWhenDone: Boolean,
-                   body: ClassLoader => T)
-                  (implicit ctx: Ctx.Home): T = {
+  private def loader[T](classPath: Agg[os.Path],
+                        classLoaderOverrideSbtTesting: Boolean,
+                        isolated: Boolean,
+                        parent: ClassLoader = null)
+                       (implicit ctx: Ctx.Home): URLClassLoader = {
     val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl = if (classLoaderOverrideSbtTesting) {
+    if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      mill.api.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
+      mill.api.ClassLoader.create(urls.toVector, parent, customFindClass = { name =>
         if (name.startsWith("sbt.testing."))
           Some(outerClassLoader.loadClass(name))
         else None
@@ -176,6 +175,15 @@ object Jvm {
     } else {
       mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
     }
+  }
+
+  def inprocess[T](classPath: Agg[os.Path],
+                   classLoaderOverrideSbtTesting: Boolean,
+                   isolated: Boolean,
+                   closeContextClassLoaderWhenDone: Boolean,
+                   body: ClassLoader => T)
+                  (implicit ctx: Ctx.Home): T = {
+    val cl = loader(classPath, classLoaderOverrideSbtTesting, isolated)
 
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -185,6 +193,29 @@ object Jvm {
       if (closeContextClassLoaderWhenDone) {
         Thread.currentThread().setContextClassLoader(oldCl)
         cl.close()
+      }
+    }
+  }
+
+  def inprocess[T](classPaths: Seq[Agg[os.Path]],
+                   closeContextClassLoaderWhenDone: Boolean,
+                   body: ClassLoader => T)
+                  (implicit ctx: Ctx.Home): T = {
+    val firstLoader =
+      loader(classPaths.head, classLoaderOverrideSbtTesting = true, isolated = false)
+    val loaders = classPaths.tail.scanLeft(firstLoader) { (c, urls0) =>
+      loader(urls0, classLoaderOverrideSbtTesting = true, isolated = false, c)
+    }
+
+    val cl0 = loaders.last
+    val oldCl = Thread.currentThread().getContextClassLoader
+    Thread.currentThread().setContextClassLoader(cl0)
+    try {
+      body(cl0)
+    } finally {
+      if (closeContextClassLoaderWhenDone) {
+        Thread.currentThread().setContextClassLoader(oldCl)
+        loaders.foreach(_.close())
       }
     }
   }

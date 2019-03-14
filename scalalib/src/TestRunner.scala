@@ -41,9 +41,12 @@ object TestRunner {
         )
         val home = os.Path(homeStr)
       }
-      val result = runTests(
+      val baseClasspathOpt = sys.props.get("test.base.classpath").map { s =>
+        Agg.from(s.split(java.io.File.pathSeparatorChar).map(os.Path(_)))
+      }
+      val result = runTests0(
         frameworkInstances = TestRunner.frameworks(frameworks),
-        entireClasspath = Agg.from(classpath.map(os.Path(_))),
+        entireClasspath = baseClasspathOpt.toSeq ++ Seq(Agg.from(classpath.map(os.Path(_)))),
         testClassfilePath = Agg(os.Path(testCp)),
         args = arguments
       )(ctx)
@@ -68,8 +71,21 @@ object TestRunner {
                testClassfilePath: Agg[os.Path],
                args: Seq[String])
               (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTests0(
+      frameworkInstances,
+      Seq(entireClasspath),
+      testClassfilePath,
+      args
+    )
+  }
+
+  private def runTests0(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
+                        entireClasspath: Seq[Agg[os.Path]],
+                        testClassfilePath: Agg[os.Path],
+                        args: Seq[String])
+                       (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = false, cl => {
+    Jvm.inprocess(entireClasspath, closeContextClassLoaderWhenDone = false, cl => {
       val frameworks = frameworkInstances(cl)
 
       val events = mutable.Buffer.empty[Event]
