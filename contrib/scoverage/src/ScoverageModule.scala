@@ -10,8 +10,10 @@ import _root_.scoverage.report.ScoverageHtmlWriter
 trait ScoverageModule { outer: ScalaModule =>
   def scoverageVersion: T[String]
 
-  trait ScoverageCompile extends ScalaModule {
-    def dataDir: String
+  object scoverage extends ScalaModule {
+    private def selfDir = T { T.ctx().dest / os.up / os.up }
+    private def dataDir = selfDir() / "data"
+
     def sources = outer.sources
     def resources = outer.resources
     def scalaVersion = outer.scalaVersion()
@@ -23,20 +25,16 @@ trait ScoverageModule { outer: ScalaModule =>
     def scalacOptions = outer.scalacOptions() ++
       Seq(s"-P:scoverage:dataDir:$dataDir")
 
-    def html() = T.command {
+    def htmlReport() = T.command {
       val coverageFileObj = coverageFile(dataDir)
-      if (coverageFileObj.exists) {
-        val coverage = deserialize(coverageFileObj)
-        coverage(invoked(findMeasurementFiles(dataDir)))
-        val Seq(PathRef(sourceFolderPath, _, _)) = sources()
-        val sourceFolders = Seq(sourceFolderPath.toIO)
-        val htmlFolder = new java.io.File(s"${dataDir}/html")
-        htmlFolder.mkdir()
-        new ScoverageHtmlWriter(sourceFolders, htmlFolder, None)
-          .write(coverage)
-      } else {
-        T.ctx().log.error(s"Cannot write scoverage report. Directory ${dataDir} does not exist!")
-      }
+      val coverage = deserialize(coverageFileObj)
+      coverage(invoked(findMeasurementFiles(dataDir)))
+      val Seq(PathRef(sourceFolderPath, _, _)) = sources()
+      val sourceFolders = Seq(sourceFolderPath.toIO)
+      val htmlFolder = new java.io.File(s"${selfDir}/htmlReport")
+      htmlFolder.mkdir()
+      new ScoverageHtmlWriter(sourceFolders, htmlFolder, None)
+        .write(coverage)
     }
   }
 
@@ -44,6 +42,5 @@ trait ScoverageModule { outer: ScalaModule =>
     override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
   }
 
-  def scoverage: ScoverageCompile
   def test: ScoverageTests
 }
