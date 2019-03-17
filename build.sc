@@ -291,7 +291,6 @@ object contrib extends MillModule {
 
   object scoverage extends MillModule {
     def moduleDeps = Seq(scalalib)
-    def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:1.3.1")
   }
 
   object buildinfo extends MillModule {
