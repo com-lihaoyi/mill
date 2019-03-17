@@ -290,7 +290,15 @@ object contrib extends MillModule {
   }
 
   object scoverage extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def moduleDeps = Seq(scalalib, scoverage.api)
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(scalalib)
+    }
+
+    object worker extends MillModule {
+      def moduleDeps = Seq(scalalib)
+    }
   }
 
   object buildinfo extends MillModule {
