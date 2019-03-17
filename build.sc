@@ -129,8 +129,8 @@ object main extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"guru.nidi:graphviz-java:0.2.3",
-      ivy"org.jgrapht:jgrapht-core:1.2.0"
+      ivy"guru.nidi:graphviz-java:0.8.3",
+      ivy"org.jgrapht:jgrapht-core:1.3.0"
     )
     def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
