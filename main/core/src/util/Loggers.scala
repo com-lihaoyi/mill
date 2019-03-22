@@ -42,19 +42,19 @@ class CallbackStream(
 
   override def write(b: Array[Byte]): Unit = {
     if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
-    addPrefix()
+//    addPrefix()
     wrapped.write(b)
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     if (len != 0) setPrintState(b(off + len - 1).toChar)
-    addPrefix()
+//    addPrefix()
     wrapped.write(b, off, len)
   }
 
   override def write(b: Int): Unit = {
     setPrintState(b.toChar)
-    addPrefix()
+//    addPrefix()
     wrapped.write(b)
   }
 }
