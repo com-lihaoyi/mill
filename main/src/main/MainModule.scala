@@ -198,6 +198,10 @@ trait MainModule extends mill.Module{
     * will clean everything.
     */
   def clean(evaluator: Evaluator, targets: String*) = mill.T.command {
+    if(evaluator.effectiveThreadCount > 1) {
+      evaluator.log.error("The clean target in parallel mode might result in unexpected effects")
+    }
+
     val rootDir = ammonite.ops.pwd / OutDir
 
     val KeepPattern = "(mill-.+)".r.anchored

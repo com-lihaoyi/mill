@@ -44,13 +44,15 @@ case class Evaluator(
   threadCount: Option[Int] = None
 ) {
 
+  val effectiveThreadCount: Int = this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
+
   import Evaluator.Evaluated
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results =
-    if(threadCount.getOrElse(1) > 1) {
-      evaluateParallel(goals, threadCount)
+    if(effectiveThreadCount > 1) {
+      evaluateParallel(goals, effectiveThreadCount)
     } else {
 
     os.makeDir.all(outPath)
@@ -277,6 +279,8 @@ case class Evaluator(
 
     val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
+    var logEnd: Option[() => Unit] = None
+
     val tickerPrefix = maybeTargetLabel.map { targetLabel =>
       val inputResults = for {
         target <- nonEvaluatedTargets
@@ -286,7 +290,10 @@ case class Evaluator(
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
       val prefix = s"[$counterMsg] $targetLabel "
-      if(logRun) log.ticker(prefix)
+      if(logRun) {
+        log.ticker(prefix)
+        if(effectiveThreadCount > 1) logEnd = Some(() => log.ticker(prefix + "FINISHED"))
+      }
       prefix + "| "
     }
 
@@ -364,6 +371,8 @@ case class Evaluator(
       }
     }
 
+    logEnd.foreach(_())
+
     multiLogger.close()
 
     (newResults, newEvaluated)
@@ -377,7 +386,7 @@ case class Evaluator(
   type Terminal = Either[Task[_], Labelled[Any]]
   type TerminalGroup = (Terminal, Agg[Task[_]])
 
-  def evaluateParallel(goals: Agg[Task[_]], threadCount: Option[Int] = None): Evaluator.Results = {
+  def evaluateParallel(goals: Agg[Task[_]], threadCount: Int): Evaluator.Results = {
     os.makeDir.all(outPath)
 
     val startTime = System.currentTimeMillis()
@@ -387,12 +396,6 @@ case class Evaluator(
       new FileLogger(false, outPath / "evaluator.log", true, append = true) {
         override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
       })
-
-    // As long as this feature is experimental, we default to 1,
-    // later we may want to default to nr of processors.
-    val threadCount = this.threadCount.
-      // getOrElse(Runtime.getRuntime().availableProcessors())
-      getOrElse(1)
 
     evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
 
