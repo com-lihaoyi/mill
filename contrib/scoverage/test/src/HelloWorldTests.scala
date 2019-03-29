@@ -65,7 +65,12 @@ object HelloWorldTests extends utest.TestSuite {
             )
           }
           "dataDir" - workspaceTest(HelloWorld) { eval =>
-            println(eval.apply(HelloWorld.core.scoverage.dataDir()))
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.dataDir)
+
+            assert(
+              result.toString.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/dataDir/core/scoverage/data"),
+              evalCount > 0
+            )
           }
           "htmlReport" - workspaceTest(HelloWorld) { eval =>
              eval.apply(HelloWorld.core.scoverage.htmlReport)
