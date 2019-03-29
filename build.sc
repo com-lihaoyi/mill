@@ -292,6 +292,10 @@ object contrib extends MillModule {
   object scoverage extends MillModule {
     def moduleDeps = Seq(scalalib, scoverage.api)
 
+    def testArgs = T{Seq(
+      "-DMILL_SCOVERAGEREPORT_WORKER=" + runClasspath().map(_.path).mkString(",")
+    )}
+
     object api extends MillApiModule {
       def moduleDeps = Seq(scalalib)
     }

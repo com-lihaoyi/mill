@@ -16,4 +16,5 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
       htmlFolder.mkdir()
       new ScoverageHtmlWriter(sourceFolders, htmlFolder, None)
         .write(coverage)
+    }
 }

@@ -14,8 +14,10 @@ class ScoverageReportWorker {
     scoverageInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
+        val toolsClassPath = classpath.map(_.toIO.toURI.toURL).toVector
+        ctx.log.debug("Loading classes from\n"+toolsClassPath.mkString("\n"))
         val cl = ClassLoader.create(
-          classpath.map(_.toIO.toURI.toURL).toVector,
+          toolsClassPath,
           getClass.getClassLoader
         )
         val bridge = cl
