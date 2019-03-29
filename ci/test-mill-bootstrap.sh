@@ -27,4 +27,4 @@ git clean -xdf
 rm -rf ~/.mill
 
 # Use second build to run tests using Mill
-~/mill-2 -i all {main,scalalib,scalajslib,contrib.twirllib,contrib.playlib,contrib.scalapblib}.test
+~/mill-2 -i all {main,scalalib,scalajslib,contrib.twirllib,contrib.playlib,contrib.scalapblib,contrib.scoverage}.test
