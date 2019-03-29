@@ -12,52 +12,44 @@ import mill.moduledefs.Cacher
 
 /** Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
  *
- * Consider this example Scala module.
- *  {{{
- *  import mill._, scalalib._
+ * This module allows you to generate code coverage reports for Scala projects with
+ * [[https://github.com/scoverage Scoverage]] via the
+ * [[https://github.com/scoverage/scalac-scoverage-plugin scoverage compiler plugin]].
  *
- *  object foo extends ScalaModule {
- *    def scalaVersion = "2.12.4"
+ * To declare a module for which you want to generate coverage reports you can
+ * Extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
+ * Module. Additionally, you must define a submodule that extends the
+ * `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
  *
- *    object test extends Tests {
- *      def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
- *      def testFrameworks = Seq("utest.runner.Framework")
- *    }
- *  }
- *  }}}
+ * {{{
+ * // You have to replace VERSION
+ * import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+ * import mill.contrib.scoverage.ScoverageModule
  *
- *  Converting it into ScoverageModule is simple:
- *  {{{
- *  import mill._, scalalib._, contrib.scoverage._
+ * Object foo extends ScoverageModule  {
+ *   def scalaVersion = "2.11.8"
+ *   def scoverageVersion = "1.3.1"
  *
- *  object baz extends ScoverageModule {
- *    def scalaVersion = "2.12.4"
- *    def scoverageVersion = "1.3.1"
+ *   object test extends ScoverageTests {
+ *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+ *     def testFrameworks = Seq("org.scalatest.tools.Framework")
+ *   }
+ * }
+ * }}}
  *
- *    object test extends ScoverageTests {
- *      def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
- *      def testFrameworks = Seq("utest.runner.Framework")
- *    }
- *  }
- *  }}}
+ * In addition to the normal tasks available to your Scala module, Scoverage
+ * Modules introduce a few new tasks and changes the behavior of an existing one.
  *
- *  You can compile the example like normally via
+ * <pre>
+ * Mill foo.scoverage.compile      # compiles your module with test instrumentation
+ *                                 # (you don't have to run this manually, running the test task will force its invocation)
  *
- *  {{{
- *  mill baz.compile
- *  }}}
+ * Mill foo.test                   # tests your project and collects metrics on code coverage
+ * Mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+ * </pre>
  *
- *  Running the tests is also familiar:
- *
- *  {{{
- *  mill baz.test
- *  }}}
- *
- *  However, after you've run the tests, you can also generate a coverage report:
- *
- *  {{{
- *  mill baz.scoverage.htmlReport
- *  }}}
+ * The measurement data is available at `out/foo/scoverage/data/`,
+ * And the html report is saved in `out/foo/scoverage/htmlReport/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageVersion: T[String]

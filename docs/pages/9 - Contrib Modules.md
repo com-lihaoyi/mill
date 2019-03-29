@@ -368,6 +368,48 @@ which will work with the following directory structure:
 └── build.sc
 ```
 
+### Scoverage
+
+This module allows you to generate code coverage reports for Scala projects with
+[Scoverage](https://github.com/scoverage) via the
+[scalac-scoverage-plugin](https://github.com/scoverage/scalac-scoverage-plugin).
+
+To declare a module for which you want to generate coverage reports you can
+extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
+module. Additionally, you must define a submodule that extends the
+`ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
+
+```scala
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+import mill.contrib.scoverage.ScoverageModule
+
+object foo extends ScoverageModule  {
+  def scalaVersion = "2.11.8"
+  def scoverageVersion = "1.3.1"
+
+  object test extends ScoverageTests {
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  }
+}
+```
+
+In addition to the normal tasks available to your Scala module, Scoverage
+modules introduce a few new tasks and changes the behavior of an existing one.
+
+```
+mill foo.scoverage.compile      # compiles your module with test instrumentation
+                                # (you don't have to run this manually, running the test task will force its invocation)
+
+mill foo.test                   # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+```
+
+The measurement data is available at `out/foo/scoverage/data/`,
+and the html report is saved in `out/foo/scoverage/htmlReport/`.
+
+
 ## Thirdparty Mill Plugins
 
 ### DGraph
