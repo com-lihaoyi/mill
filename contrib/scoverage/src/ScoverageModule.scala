@@ -69,7 +69,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   def scoverageReportWorkerClasspath = T {
-    val workerKey = "MILL_SCOVERAGEREPORT_WORKER"
+    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER_" + scoverageVersion().replace(".", "_")
     val workerPath = sys.props(workerKey)
     if (workerPath != null)
       Result.Success(Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*))
@@ -98,7 +98,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def htmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
-        .bridge(scoverageReportWorkerClasspath().map(_.path))
+        .bridge(sources(), scoverageReportWorkerClasspath().map(_.path))
         .htmlReport(dataDir().toString, selfDir().toString)
     }
   }
