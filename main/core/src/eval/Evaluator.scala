@@ -407,15 +407,7 @@ case class Evaluator(
     val timings = mutable.ArrayBuffer.empty[Timing]
 
     // Increment the counter message by 1 to go from 1/10 to 10/10
-    object NextCounterMsg {
-      val taskCount = sortedGroups.keyCount
-      var counter: Int = 0
-
-      def apply(): String = {
-        counter += 1
-        counter + "/" + taskCount
-      }
-    }
+    val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
 
     // TODO: check for interactivity
     // TODO: make sure, multiple goals run in order, e.g. clean compile
@@ -480,13 +472,12 @@ case class Evaluator(
                 evalLog.debug(s"Start evaluation: ${printTerm(terminal)}")
                 val startTime = System.currentTimeMillis()
 
-                val res @ Evaluated(newResults, newEvaluated, cached) =
-                  evaluateGroupCached(
-                    terminal,
-                    group,
-                    results,
-                    NextCounterMsg()
-                  )
+                val res = evaluateGroupCached(
+                  terminal,
+                  group,
+                  results,
+                  nextCounterMsg()
+                )
 
                 val endTime = System.currentTimeMillis()
                 evalLog.debug(s"Finished evaluation: ${printTerm(terminal)}")
@@ -504,6 +495,8 @@ case class Evaluator(
 
       scheduleWork("initial request")
 
+      // Work queue management
+      // wait for finished jobs and schedule more work, if possible
       while (futures.size > 0) {
         evalLog.debug(s"Waiting for next future completion of ${executorService}")
         val compFuture: Future[FutureResult] = completionService.take()
@@ -727,5 +720,15 @@ object Evaluator{
   }
 
   case class Evaluated(newResults: collection.Map[Task[_], Result[(Any, Int)]], newEvaluated: Seq[Task[_]], cached: Boolean)
+
+  // Increment the counter message by 1 to go from 1/10 to 10/10
+  class NextCounterMsg(taskCount: Int) {
+    var counter: Int = 0
+
+    def apply(): String = {
+      counter += 1
+      counter + "/" + taskCount
+    }
+  }
 
 }
