@@ -739,6 +739,9 @@ object foo extends ScalaModule with PublishModule {
 }
 ```
 
+You can change the name of the published artifact (artifactId in the Maven POM) 
+by overriding `artifactName` in the module you want to publish.
+
 You can download an example project with this layout here:
 
 - [Example 2](example-2.zip)
