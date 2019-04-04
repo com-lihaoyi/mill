@@ -524,10 +524,18 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     }
   }
 
-  // publish artifact with name "mill_2.12.4" instead of "mill_2.12"
-
+  /**
+    * Override this to change the published artifact id.
+    * For example, by default a scala module foo.baz might be published as foo-baz_2.12 and a java module would be foo-baz.
+    * Setting this to baz would result in a scala artifact baz_2.12 or a java artifact baz.
+    */
   def artifactName: T[String] = millModuleSegments.parts.mkString("-")
 
+  /**
+    * The exact id of the artifact to be published. You probably don't want to override this.
+    * If you want to customize the name of the artifact, override artifactName instead.
+    * If you want to customize the scala version in the artifact id, see ScalaModule.artifactScalaVersion
+    */
   def artifactId: T[String] = artifactName()
 
   def intellijModulePath: os.Path = millSourcePath
