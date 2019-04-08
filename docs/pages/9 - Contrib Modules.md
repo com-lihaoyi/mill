@@ -278,6 +278,7 @@ There's an [example project](https://github.com/lihaoyi/cask/tree/master/example
 ### Play Framework
 
 This module adds basic Play Framework support to mill: 
+
 * configures mill for Play default directory layout,
 * integrates the Play routes compiler,
 * provides helpers for commonly used framework libraries,
@@ -293,12 +294,14 @@ There are 2 base modules and 2 helper traits in this plugin, all of which can be
  in `mill.playlib`.
 
 The base modules:  
+
 * `PlayModule` applies the default Play configuration (layout, dependencies, routes compilation, 
 Twirl compilation and Akka HTTP server)
 * `PlayApiModule` applies the default Play configuration without `Twirl` templating. This is useful 
 if your Play app is a pure API server or if you want to use a different templating engine.
 
 The two helper traits: 
+
 * `SingleModule` can be useful to configure mill for a single module Play application such as the 
 [play-scala-seed project](https://github.com/playframework/play-scala-seed.g8). Mill is 
 multi-module by default and requires a bit more configuration to have source, resource, and test 
@@ -355,23 +358,23 @@ Using the above definition, your build will be configured to use the default Pla
 The following compile dependencies will automatically be added to your build:
 
 ```
-    ivy"com.typesafe.play::play:${playVersion()}",
-    ivy"com.typesafe.play::play-guice:${playVersion()}",
-    ivy"com.typesafe.play::play-server:${playVersion()}",
-    ivy"com.typesafe.play::play-logback:${playVersion()}"
+ivy"com.typesafe.play::play:${playVersion()}",
+ivy"com.typesafe.play::play-guice:${playVersion()}",
+ivy"com.typesafe.play::play-server:${playVersion()}",
+ivy"com.typesafe.play::play-logback:${playVersion()}"
 ```
 
 Scala test will be setup as the default test framework and the following test dependencies will be 
 added (the actual version depends on the version of Play you are pulling `2.6.x` or `2.7.x`):
 
 ```
-    ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
+ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
 ```
 
 In order to have a working `start` command the following runtime dependency is also added: 
 
 ```
-    ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
+ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ```
 
 #### Using `PlayApiModule`
@@ -403,6 +406,7 @@ module configuration options](#router-configuration-options) and the [Twirl modu
 #### Additional play libraries
 
 The following helpers are available to provide additional Play Framework dependencies: 
+
 * `core()` - added by default ,
 * `guice()` - added by default,
 * `server()` - added by default,
@@ -437,6 +441,7 @@ object core extends PlayApiModule {
 #### Commands equivalence
 
 Mill commands are targets on a named build. For example if your build is called `core`:
+
 * compile: `core.compile`
 * run: *NOT Implemented yet*. It can be approximated with `mill -w core.runBackground` but this 
 starts a server in *PROD* mode which: 
@@ -498,22 +503,22 @@ The directory layout was:
 
 by mixing in the `SingleModule` trait in your build:
 
- ```scala
- // build.sc
- import mill._
- // You have to replace VERSION
- import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
- 
- 
- object core extends PlayModule with SingleModule {
-     //config
-     override def scalaVersion= T{"2.12.8"}
-     override def playVersion= T{"2.7.0"}
-     override def twirlVersion= T{"1.4.0"}
-     
-     object test extends PlayTests
- }  
- ```
+```scala
+// build.sc
+import mill._
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-playlib:VERSION`,  mill.playlib._
+
+
+object core extends PlayModule with SingleModule {
+	//config
+	override def scalaVersion= T{"2.12.8"}
+	override def playVersion= T{"2.7.0"}
+	override def twirlVersion= T{"1.4.0"}
+	
+	object test extends PlayTests
+}  
+```
 
 the layout becomes: 
 
