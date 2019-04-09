@@ -37,6 +37,36 @@ object project extends BuildInfo {
 
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
+  
+  
+### Flyway
+
+Enables you to configure and run [Flyway](https://flywaydb.org/) commands from your mill build file.
+The flyway module currently supports the most common flyway use cases with file based migrations.
+
+Configure flyway by overriding settings in your module. For example
+
+```scala
+object foo extends JavaModule with FlywayModule {
+  def scalaVersion = "2.12.8"
+  
+  //region flyway
+  def flywayUrl = "jdbc:postgresql:myDb" // required
+  def flywayDriverDeps = Agg(ivy"org.postgresql:postgresql:42.2.5") // required
+  def flywayUser = "postgres" // optional
+  // def flywayPassword = "" // optional
+  //endregion
+}
+```
+
+Flyway will look for migration files in `db/migration` in all resources folders by default.
+
+You can then run common flyway commands like
+```
+mill foo.flywayClean
+mill foo.flywayInfo
+mill foo.flywayMigrate
+```
 
 ### Play Framework
 
