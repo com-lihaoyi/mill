@@ -301,6 +301,12 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
     def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
   }
+
+  object flyway extends MillModule {
+    def moduleDeps = Seq(scalalib)
+
+    def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
+  }
 }
 
 
