@@ -12,7 +12,6 @@ import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
 import org.flywaydb.core.internal.logging.console.ConsoleLog.Level
 import org.flywaydb.core.internal.logging.console.ConsoleLogCreator
-import upickle.default.writer
 
 import scala.collection.JavaConverters._
 
@@ -22,8 +21,6 @@ trait FlywayModule extends JavaModule {
   def flywayUrl: T[String]
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
-  //def flywayClassLocationDeps: T[Agg[Dep]] = Agg.empty[Dep]
-  //def flywayClassLocations: T[Seq[String]] = T(Nil)
   def flywayFileLocations: T[Seq[PathRef]] = T(resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick)))
   def flywayDriverDeps: T[Agg[Dep]]
   def jdbcClasspath = T ( resolveDependencies(
@@ -34,10 +31,7 @@ trait FlywayModule extends JavaModule {
 
   private def strToOptPair[A](key: String, v: String) =
     Option(v)
-      .filter {
-        case a: String => a.nonEmpty
-        case _ => true
-      }
+      .filter(_.nonEmpty)
       .map(key -> _)
 
   def flywayInstance = T.worker {

@@ -304,7 +304,6 @@ object contrib extends MillModule {
 
   object flyway extends MillModule {
     def moduleDeps = Seq(scalalib)
-
     def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
   }
 }
