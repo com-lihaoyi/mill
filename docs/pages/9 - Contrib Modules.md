@@ -63,11 +63,17 @@ Flyway will look for migration files in `db/migration` in all resources folders 
 This should work regardless of if you are using a mill or sbt project layout.
 
 You can then run common flyway commands like
+
 ```
 mill foo.flywayClean
 mill foo.flywayInfo
 mill foo.flywayMigrate
 ```
+
+> REMINDER: 
+> You should never check credentials into any code or source control.
+> You should write some code to populate the settings for flyway.  
+> For example `def flywayPassword = T.input(T.ctx().env("FLYWAY_PASSWORD"))`
 
 ### Play Framework
 
