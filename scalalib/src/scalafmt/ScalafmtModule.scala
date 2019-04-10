@@ -18,13 +18,23 @@ trait ScalafmtModule extends JavaModule {
 
   def scalafmtVersion: T[String] = "1.5.1"
 
+  def scalafmtGroupId: T[String] = T {
+    val v = scalafmtVersion()
+    if (v.startsWith("0.") || v.startsWith("1.") || v == "2.0.0-RC1")
+      "com.geirsson"
+    else
+      "org.scalameta"
+  }
+
+  def scalafmtScalaVersion: T[String] = "2.12.8"
+
   def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
 
   def scalafmtDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       zincWorker.repositories,
-      Lib.depToDependency(_, "2.12.4"),
-      Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
+      Lib.depToDependency(_, scalafmtScalaVersion()),
+      Seq(ivy"${scalafmtGroupId()}::scalafmt-cli:${scalafmtVersion()}")
     )
   }
 

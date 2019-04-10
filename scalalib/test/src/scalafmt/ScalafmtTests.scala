@@ -11,11 +11,19 @@ object ScalafmtTests extends TestSuite {
   trait TestBase extends TestUtil.BaseModule {
     def millSourcePath =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    def core: ScalaModule with ScalafmtModule
   }
 
-  object ScalafmtTestModule extends TestBase {
+  object DefaultScalafmtTestModule extends TestBase {
     object core extends ScalaModule with ScalafmtModule {
       def scalaVersion = "2.12.4"
+    }
+  }
+
+  object Scalafmt2TestModule extends TestBase {
+    object core extends ScalaModule with ScalafmtModule {
+      def scalaVersion = "2.12.4"
+      def scalafmtVersion = "2.0.0-RC5"
     }
   }
 
@@ -35,14 +43,14 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     'scalafmt - {
-      def checkReformat(reformatCommand: mill.define.Command[Unit]) =
-        workspaceTest(ScalafmtTestModule) { eval =>
-          val before = getProjectFiles(ScalafmtTestModule.core, eval)
+      def checkReformat(testModule: TestBase, reformatCommand: mill.define.Command[Unit]) =
+        workspaceTest(testModule) { eval =>
+          val before = getProjectFiles(testModule.core, eval)
 
           // first reformat
           val Right(_) = eval.apply(reformatCommand)
 
-          val firstReformat = getProjectFiles(ScalafmtTestModule.core, eval)
+          val firstReformat = getProjectFiles(testModule.core, eval)
 
           assert(
             firstReformat("Main.scala").modifyTime > before("Main.scala").modifyTime,
@@ -57,7 +65,7 @@ object ScalafmtTests extends TestSuite {
           // cached reformat
           val Right(_) = eval.apply(reformatCommand)
 
-          val cached = getProjectFiles(ScalafmtTestModule.core, eval)
+          val cached = getProjectFiles(testModule.core, eval)
 
           assert(
             cached("Main.scala").modifyTime == firstReformat("Main.scala").modifyTime,
@@ -72,7 +80,7 @@ object ScalafmtTests extends TestSuite {
 
           val Right(_) = eval.apply(reformatCommand)
 
-          val afterChange = getProjectFiles(ScalafmtTestModule.core, eval)
+          val afterChange = getProjectFiles(testModule.core, eval)
 
           assert(
             afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
@@ -82,9 +90,27 @@ object ScalafmtTests extends TestSuite {
           )
         }
 
-      'reformat - checkReformat(ScalafmtTestModule.core.reformat())
-      'reformatAll - checkReformat(
-        ScalafmtModule.reformatAll(Tasks(Seq(ScalafmtTestModule.core.sources))))
+      'defaultVersion - {
+        'reformat - checkReformat(
+          DefaultScalafmtTestModule,
+          DefaultScalafmtTestModule.core.reformat()
+        )
+        'reformatAll - checkReformat(
+          DefaultScalafmtTestModule,
+          ScalafmtModule.reformatAll(Tasks(Seq(DefaultScalafmtTestModule.core.sources)))
+        )
+      }
+
+      'version2 - {
+        'reformat - checkReformat(
+          Scalafmt2TestModule,
+          Scalafmt2TestModule.core.reformat()
+        )
+        'reformatAll - checkReformat(
+          Scalafmt2TestModule,
+          ScalafmtModule.reformatAll(Tasks(Seq(Scalafmt2TestModule.core.sources)))
+        )
+      }
     }
   }
 
