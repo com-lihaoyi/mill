@@ -28,11 +28,6 @@ matrix:
     env: CI_SCRIPT=ci/test-mill-0.sh
     jdk: oraclejdk8
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-0.5.sh
-    jdk: oraclejdk8
-    addons:
-      postgresql: "9.6"
-  - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
     jdk: oraclejdk8
   - stage: build
