@@ -60,6 +60,7 @@ object foo extends JavaModule with FlywayModule {
 ```
 
 Flyway will look for migration files in `db/migration` in all resources folders by default.
+This should work regardless of if you are using a mill or sbt project layout.
 
 You can then run common flyway commands like
 ```
