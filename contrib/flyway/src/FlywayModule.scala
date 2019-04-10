@@ -41,7 +41,7 @@ trait FlywayModule extends JavaModule {
       .map(key -> _)
 
   private implicit val flywayWriter = writer[String].comap[Flyway](_.toString)
-  def flywayInstance = T.command {
+  def flywayInstance = T.worker {
     val jdbcClassloader = new URLClassLoader(jdbcClasspath().map(_.path.toIO.toURI.toURL).toArray)
 
     val configProps = Map(flyway.URL -> flywayUrl()) ++

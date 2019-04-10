@@ -11,10 +11,9 @@ object BuildTest extends TestSuite {
 
       def resources = T.sources(os.pwd / 'contrib / 'flyway / 'test / 'resources)
 
-      def postgres = ivy"org.postgresql:postgresql:42.2.5"
+      def postgres = ivy"com.h2database:h2:1.4.199"
 
-      def flywayUrl = "jdbc:postgresql:test_db"
-      def flywayUser = "postgres"
+      def flywayUrl = "jdbc:h2:mem:test_db;DB_CLOSE_DELAY=-1"
       def flywayDriverDeps = Agg(postgres)
     }
   }
@@ -33,14 +32,10 @@ object BuildTest extends TestSuite {
         count > 0,
         res == 1
       )
-    }
-
-    'migrateAgain - {
-      val eval = new TestEvaluator(Build)
-      val Right((res, count)) = eval(Build.build.flywayMigrate())
+      val Right((resAgain, countAgain)) = eval(Build.build.flywayMigrate())
       assert(
-        count > 0,
-        res == 0
+        countAgain > 0,
+        resAgain == 0
       )
     }
 
