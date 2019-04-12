@@ -69,34 +69,43 @@ trait ZincWorkerModule extends mill.Module{
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
   }
 
-  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
+  def bridgeDep(org: String, name: String, artifactVersion: String) =
+    ivy"$org::$name:$artifactVersion"
+
+  private val Milestone213 = raw"2\.13\.\d+-M\d+".r
+  private val Candidate213 = raw"2\.13\.\d+-RC\d+".r
   def scalaCompilerBridgeSourceJar(scalaVersion: String,
                                    scalaOrganization: String) = {
-    val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
-      case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
-    }
-
-    val (bridgeDep, bridgeName, bridgeVersion) =
-      if (isDotty(scalaVersion0)) {
-        val org = scalaOrganization
-        val name = "dotty-sbt-bridge"
-        val version = scalaVersion
-        (ivy"$org:$name:$version", name, version)
-      } else {
+    val (org, name, binaryVersion, artifactVersion) = scalaVersion match {
+      case Milestone213() | Candidate213() =>
         val org = "org.scala-sbt"
         val name = "compiler-bridge"
-        val version = Versions.zinc
-        (ivy"$org::$name:$version", s"${name}_$scalaBinaryVersion0", version)
-      }
+        val binaryVersion = "2.13.0-M2"
+        val artifactVersion = "1.2.5"
+        (org, name, binaryVersion, artifactVersion)
+
+      case _ if isDotty(scalaVersion) =>
+        val org = scalaOrganization
+        val name = "dotty-sbt-bridge"
+        val binaryVersion = scalaVersion
+        val artifactVersion = scalaVersion
+        (org, name, binaryVersion, artifactVersion)
+
+      case _ =>
+        val org = "org.scala-sbt"
+        val name = "compiler-bridge"
+        val binaryVersion = mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion)
+        val artifactVersion = Versions.zinc
+        (org, name, binaryVersion, artifactVersion)
+    }
 
     resolveDependencies(
       repositories,
-      Lib.depToDependency(_, scalaVersion0, ""),
-      Seq(bridgeDep),
+      dep => dep.toDependency(binaryVersion, artifactVersion, ""),
+      Seq(ivy"$org::$name:$artifactVersion"),
       sources = true
     ).map(deps =>
-      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, sources = true)
+      mill.scalalib.api.Util.grepJar(deps.map(_.path), s"${name}_$binaryVersion", artifactVersion, sources = true)
     )
   }
 
