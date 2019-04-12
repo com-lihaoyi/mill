@@ -390,6 +390,7 @@ case class Evaluator(
       })
 
     evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
+    evalLog.debug(s"Start time: ${new java.util.Date()}")
 
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
@@ -431,6 +432,8 @@ case class Evaluator(
       var inProgress = List[TerminalGroup]()
       // The finished terminal groups
       var done = List[TerminalGroup]()
+      // The fact that at least one task failed
+      @volatile var someTaskFailed: Boolean = false
 
       if (work.size != work.distinct.size) {
         evalLog.error(s"Work list contains ${work.distinct.size - work.size} duplicates!")
@@ -469,20 +472,34 @@ case class Evaluator(
               }
 
               val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
-                evalLog.debug(s"Start evaluation: ${printTerm(terminal)}")
-                val startTime = System.currentTimeMillis()
+                if(failFast && someTaskFailed) {
+                  // we do not start this tasks but instead return with aborted result
+                  val newResults = group.map { task =>
+                    task -> Aborted
+                  }
 
-                val res = evaluateGroupCached(
-                  terminal,
-                  group,
-                  results,
-                  nextCounterMsg()
-                )
+                  log.debug(s"Skipped evaluation (because of earlier failures): ${printTerm(terminal)}")
+                  FutureResult(curWork, 0, Evaluated(newResults.toMap, Seq(), false))
 
-                val endTime = System.currentTimeMillis()
-                evalLog.debug(s"Finished evaluation: ${printTerm(terminal)}")
+                } else {
 
-                FutureResult(curWork, (endTime - startTime).toInt, res)
+                  val counterMsg = nextCounterMsg()
+
+                  evalLog.debug(s"Start evaluation [${counterMsg}]: ${printTerm(terminal)}")
+                  val startTime = System.currentTimeMillis()
+
+                  val res = evaluateGroupCached(
+                    terminal,
+                    group,
+                    results,
+                    counterMsg
+                  )
+
+                  val endTime = System.currentTimeMillis()
+                  evalLog.debug(s"Finished evaluation [${counterMsg}]: ${printTerm(terminal)}")
+
+                  FutureResult(curWork, (endTime - startTime).toInt, res)
+                }
               }
 
               evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${printTerm(terminal)}")
@@ -507,9 +524,13 @@ case class Evaluator(
         futures = futures.filterNot(_._1 == compFuture)
         try {
           val FutureResult(
-          finishedWork,
-          time,
-          Evaluated(newResults, newEvaluated, cached)) = compFuture.get()
+            finishedWork,
+            time,
+            Evaluated(newResults, newEvaluated, cached)
+          ) = compFuture.get()
+
+          // Check if we failed
+          someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
           // Update state
           evaluated.appendAll(newEvaluated)
@@ -519,8 +540,20 @@ case class Evaluator(
           inProgress = inProgress.filterNot(_ == finishedWork)
           done = done ++ Seq(finishedWork)
 
-          // Try to schedule more tasks
-          scheduleWork(compTaskName.toString())
+          if (failFast && someTaskFailed) {
+            // we exit early and set aborted state for all left tasks
+            //          group.foreach { task =>
+            //            results.put(task, aborted)
+            //          }
+            //            executorService.shutdownNow()
+            executorService.shutdownNow()
+
+
+          } else {
+            // Try to schedule more tasks
+            scheduleWork(compTaskName.toString())
+          }
+
         } catch {
           case e: ExecutionException =>
             evalLog.error(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
@@ -554,6 +587,9 @@ case class Evaluator(
       )
     }
     Evaluator.writeTimings(timings, outPath)
+
+    evalLog.debug(s"End time: ${new java.util.Date()}")
+
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
