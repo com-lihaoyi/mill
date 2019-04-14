@@ -297,6 +297,16 @@ object contrib extends MillModule {
     }
    }
 
+  object bloop extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(
+      ivy"ch.epfl.scala::bsp4s:2.0.0-M4",
+      ivy"ch.epfl.scala::bloop-config:1.2.5",
+      ivy"ch.epfl.scala::bloop-launcher:1.2.5",
+      ivy"com.lihaoyi::ujson-circe:0.7.4"
+    )
+  }
+
   object tut extends MillModule {
     def moduleDeps = Seq(scalalib)
     def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
