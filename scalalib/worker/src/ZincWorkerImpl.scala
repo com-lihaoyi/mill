@@ -336,8 +336,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       pr = {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-      },
-      Optional.empty[java.io.File]
+      }
     )
 
     try {
