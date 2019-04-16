@@ -16,10 +16,10 @@ trait BuildInfo extends ScalaModule {
   }
 
   def generatedBuildInfo: T[Seq[PathRef]] = T {
-    val logger: Logger = T.ctx.log
+    val logger: Logger = T.ctx().log
     val members: Map[String, String] = buildInfoMembers()
     if (members.nonEmpty) {
-      val outputFile = T.ctx.dest / "BuildInfo.scala"
+      val outputFile = T.ctx().dest / "BuildInfo.scala"
       val internalMembers =
         members
           .map {
