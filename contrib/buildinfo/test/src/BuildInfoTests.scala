@@ -108,11 +108,12 @@ object BuildInfoTests extends TestSuite {
       }
 
       "generatedSources must be a folder" - workspaceTest(BuildInfo) { eval =>
-        val generatedSourcesPath = eval.outPath / 'generatedBuildInfo / 'dest
+        val buildInfoGeneratedSourcesFolder = eval.outPath / 'generatedBuildInfo / 'dest
         val Right((result, evalCount)) = eval.apply(BuildInfo.generatedSources)
         assert(
           result.size == 1,
-          result.head.path == generatedSourcesPath
+          os.isDir(result.head.path),
+          result.head.path == buildInfoGeneratedSourcesFolder
         )
       }
     }
