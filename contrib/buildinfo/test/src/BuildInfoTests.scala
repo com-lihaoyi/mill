@@ -62,7 +62,7 @@ object BuildInfoTests extends TestSuite {
               |object BuildInfo {
               |  def scalaVersion = "2.12.4"
               |}""".stripMargin
-        val Right((result, evalCount)) = eval.apply(BuildInfo.generatedBuildInfo)
+        val Right(((result, _), evalCount)) = eval.apply(BuildInfo.generatedBuildInfo)
         assert(
           result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
@@ -71,7 +71,7 @@ object BuildInfoTests extends TestSuite {
       }
 
       'notCreateEmptySourcefile - workspaceTest(EmptyBuildInfo){ eval =>
-        val Right((result, evalCount)) = eval.apply(EmptyBuildInfo.generatedBuildInfo)
+        val Right(((result, _), evalCount)) = eval.apply(EmptyBuildInfo.generatedBuildInfo)
         assert(
           result.isEmpty &&
             !os.exists(eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala")
@@ -85,7 +85,7 @@ object BuildInfoTests extends TestSuite {
               |object bar {
               |  def scalaVersion = "2.12.4"
               |}""".stripMargin
-        val Right((result, evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
+        val Right(((result, _), evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
         assert(
           result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
