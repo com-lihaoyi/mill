@@ -47,7 +47,15 @@ The flyway module currently supports the most common flyway use cases with file 
 Configure flyway by overriding settings in your module. For example
 
 ```scala
-object foo extends JavaModule with FlywayModule {
+// build.sc
+
+// You have to replace VERSION
+import mill._, scalalib._
+
+import ivy`com.lihaoyi::mill-contrib-flyway:VERSION`
+import contrib.flyway.FlywayModule
+
+object foo extends ScalaModule with FlywayModule {
   def scalaVersion = "2.12.8"
   
   //region flyway
