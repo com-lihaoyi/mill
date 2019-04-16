@@ -1,5 +1,7 @@
 ## Contrib Modules
 
+The plugins in this section are developed/maintained in the mill git tree.
+
 ### BuildInfo
 
 Generate scala code from your buildfile.
@@ -616,6 +618,13 @@ object app extends ScalaModule with RouterModule {
 
 
 ## Thirdparty Mill Plugins
+
+The plugins in this section are developed/maintained outside the mill git tree.
+
+Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
+The usage examples given here are most probably outdated and incomplete.
+
+If you develop or maintain a mill plugin, please create a [pull request](https://github.com/lihaoyi/mill/pulls) to get your plugin listed here.
 
 ### DGraph
 
