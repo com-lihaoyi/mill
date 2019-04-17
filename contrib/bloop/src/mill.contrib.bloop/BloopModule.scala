@@ -3,29 +3,14 @@ package mill.contrib.bloop
 import ammonite.ops._
 import bloop.config.Config.{File => BloopFile}
 import bloop.config.ConfigEncoderDecoders._
-import io.circe.{Decoder, Encoder, Json}
 import mill._
 import mill.define._
 import mill.eval.Evaluator
-import mill.modules.Jvm
 import mill.scalalib._
-import mill.scalalib.api.CompilationResult
-import upickle.core.Visitor
-import upickle.default
 
-trait BloopModule extends Module { self: JavaModule =>
+trait BloopModule extends Module with CirceCompat { self: JavaModule =>
 
   object bloop extends Module {
-
-    def compile = T.input {
-      val prj = config().project
-      val cmd = Seq("bloop", "compile", prj.name)
-      val classes = Path(prj.classesDir)
-      val out = Path(prj.out)
-      val analysisFile = out / s"${prj.name}-analysis.bin"
-      Jvm.runSubprocess(cmd, T.ctx().env, pwd)
-      CompilationResult(analysisFile, PathRef(classes))
-    }
 
     def config = T {
       // Forcing the generation of the config for all modules here
@@ -33,27 +18,16 @@ trait BloopModule extends Module { self: JavaModule =>
       BloopModule.bloopConfig(pwd / ".bloop", self)()._1
     }
 
-    // Converts from a Circe encoder to a uPickle one
-    implicit def circeWriter[T: Encoder]: default.Writer[T] =
-      new default.Writer[T] {
-        override def write0[V](out: Visitor[_, V], v: T) =
-          ujson.circe.CirceJson.transform(Encoder[T].apply(v), out)
-      }
-
-    // Converts from a Circe decoder to a uPickle one
-    implicit def circeReader[T: Decoder]: default.Reader[T] =
-      new default.Reader.Delegate[Json, T](
-        ujson.circe.CirceJson.map(Decoder[T].decodeJson).map(_.right.get))
   }
 }
 
-object BloopModule extends ExternalModule {
+object BloopModule
+    extends BloopModuleImpl(Evaluator.currentEvaluator.get(), pwd)
 
-  private val ev = Evaluator.currentEvaluator.get()
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
 
   def install = T {
-    val bloopDir = pwd / ".bloop"
+    val bloopDir = wd / ".bloop"
     mkdir(bloopDir)
     Task.traverse(modules)(writeBloopConfig(bloopDir, _))
   }
