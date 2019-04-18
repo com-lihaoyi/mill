@@ -33,8 +33,11 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
   }
 
   def modules = {
-    if (ev != null) {
-      val rootModule = ev.rootModule
+    // This is necessary as ev will be null when running install
+    // from the global module otherwise
+    val eval = Option(ev).getOrElse(Evaluator.currentEvaluator.get())
+    if (eval != null) {
+      val rootModule = eval.rootModule
       rootModule.millInternal.segmentsToModules.values.collect {
         case m: scalalib.JavaModule => m
       }.toSeq
@@ -71,12 +74,17 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
             s"-Xplugin:${pathRef.path}"
           }
 
+          // Recommended for metals usage.
+          val semanticDbOptions = List(s"-P:semanticdb:sourceroot:$pwd")
+          val allScalacOptions =
+            (s.scalacOptions() ++ pluginOptions ++ semanticDbOptions).toList
+
           Some(
             Config.Scala(
               organization = "org.scala-lang",
               name = "scala-compiler",
               version = s.scalaVersion(),
-              options = (s.scalacOptions() ++ pluginOptions).toList,
+              options = allScalacOptions,
               jars = s.scalaCompilerClasspath().map(_.path.toNIO).toList,
               analysis = None,
               setup = None
