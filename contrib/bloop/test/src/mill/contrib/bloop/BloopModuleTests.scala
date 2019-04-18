@@ -20,6 +20,7 @@ object BloopModuleTests extends TestSuite {
 
     object scalaModule extends scalalib.ScalaModule {
       def scalaVersion = "2.12.8"
+      override def mainClass = Some("foo.bar.Main")
 
       override def ivyDeps = Agg(
         ivy"ch.epfl.scala::bloop-config:1.2.5"
@@ -38,38 +39,42 @@ object BloopModuleTests extends TestSuite {
   val testEvaluator = TestEvaluator.static(build)
   val bloopModule = new BloopModuleImpl(testEvaluator.evaluator, workdir)
 
+  def readBloopConf(jsonFile: String) =
+    read[BloopFile](os.read(workdir / ".bloop" / jsonFile)).project
+
   def tests: Tests = Tests {
     'genBloopTests - {
       testEvaluator(bloopModule.install)
-      'scalaModule - {
-        val bloopFile =
-          read[BloopFile](os.read(workdir / ".bloop" / "scalaModule.json"))
+      val scalaModule = readBloopConf("scalaModule.json")
+      val testModule = readBloopConf("scalaModule.test.json")
 
-        val name = bloopFile.project.name
-        val sources = bloopFile.project.sources.map(Path(_))
-        val options = bloopFile.project.scala.get.options
-        val version = bloopFile.project.scala.get.version
-        val classpath = bloopFile.project.classpath.map(_.toString)
+      'scalaModule - {
+        val name = scalaModule.name
+        val sources = scalaModule.sources.map(Path(_))
+        val options = scalaModule.scala.get.options
+        val version = scalaModule.scala.get.version
+        val classpath = scalaModule.classpath.map(_.toString)
+        val platform = scalaModule.platform.get.name
+        val mainCLass = scalaModule.platform.get.mainClass.get
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options == List("-language:higherKinds"))
         assert(version == "2.12.8")
         assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
+        assert(platform == "jvm")
+        assert(mainCLass == "foo.bar.Main")
       }
       'scalaModuleTest - {
-        val bloopFile =
-          read[BloopFile](os.read(workdir / ".bloop" / "scalaModule.test.json"))
 
-        val name = bloopFile.project.name
-        val sources = bloopFile.project.sources.map(Path(_))
-        val framework = bloopFile.project.test.get.frameworks.head.names.head
-        val dep = bloopFile.project.dependencies.head
-        val classpath = bloopFile.project.classpath.map(_.toString)
+        val name = testModule.name
+        val sources = testModule.sources.map(Path(_))
+        val framework = testModule.test.get.frameworks.head.names.head
+        val dep = testModule.dependencies.head
         assert(name == "scalaModule.test")
         assert(sources == List(workdir / "scalaModule" / "test" / "src"))
         assert(framework == "utest.runner.Framework")
         assert(dep == "scalaModule")
-        assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
+        assert(scalaModule.classpath.forall(testModule.classpath.contains))
       }
     }
   }
