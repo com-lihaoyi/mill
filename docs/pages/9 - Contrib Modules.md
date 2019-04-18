@@ -38,6 +38,50 @@ object project extends BuildInfo {
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
   
+### Docker
+
+Automatically build docker images from your mill project.
+
+Requires the docker CLI to be installed.
+
+In the simplest configuration just extend `DockerModule` and declare a `DockerConfig` object.
+
+```scala
+import mill._, scalalib._
+
+import ivy`com.lihaoyi::mill-contrib-docker:VERSION`
+import contrib.docker.DockerModule
+
+object foo extends JavaModule with DockerModule {
+  object docker extends DockerConfig
+}
+```
+
+Then
+
+```
+$ mill foo.docker.build
+$ docker run foo
+```
+
+#### Configuration
+
+Configure the image by overriding tasks in the `DockerConfig` object
+
+```scala
+object docker extends DockerConfig {
+  // Override tags to set the output image name
+  def tags = List("aws_account_id.dkr.ecr.region.amazonaws.com/hello-repository")
+  
+  def baseImage = "openjdk:11"
+  
+  // Configure whether the docker build should check the remote registry for a new version of the base image before building.
+  // By default this is true if the base image is using a latest tag
+  def pullBaseImage = true
+}
+```
+
+Run mill in interactive mode to see the docker client output, like `mill -i foo.docker.build`.
   
 ### Flyway
 
