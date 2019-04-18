@@ -18,12 +18,16 @@ def apply(uploadedFile: Path,
           tagName: String,
           uploadName: String,
           authKey: String): String = {
-  val body = Http("https://api.github.com/repos/lihaoyi/mill/releases/tags/" + tagName)
+
+  val response = Http(s"https://api.github.com/repos/lihaoyi/mill/releases/tags/${tagName}")
     .header("Authorization", "token " + authKey)
-    .asString.body
+    .header("Accept", "application/vnd.github.v3+json")
+    .asString
+  val body = response.body
 
   val parsed = ujson.read(body)
 
+  println("Response code: " + response.code)
   println(body)
 
   val snapshotReleaseId = parsed("id").num.toInt

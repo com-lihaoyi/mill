@@ -2,6 +2,9 @@ language: scala
 sudo: required
 dist: trusty
 
+git:
+  depth: false
+
 matrix:
   include:
   - stage: build

@@ -129,8 +129,8 @@ object main extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"guru.nidi:graphviz-java:0.2.3",
-      ivy"org.jgrapht:jgrapht-core:1.2.0"
+      ivy"guru.nidi:graphviz-java:0.8.3",
+      ivy"org.jgrapht:jgrapht-core:1.3.0"
     )
     def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
@@ -187,7 +187,7 @@ object scalalib extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.3.0-M1"
+      ivy"org.scala-sbt::zinc:1.2.5"
     )
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -302,6 +302,11 @@ object contrib extends MillModule {
     def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
   }
 
+  object flyway extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
+  }
+
   object bloop extends MillModule {
     def moduleDeps = Seq(scalalib)
     def ivyDeps = Agg(
@@ -309,6 +314,7 @@ object contrib extends MillModule {
       ivy"com.lihaoyi::ujson-circe:0.7.4"
     )
   }
+
 }
 
 

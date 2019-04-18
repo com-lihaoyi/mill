@@ -66,9 +66,12 @@ object GenIdeaImpl {
                     fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
-      .collect{ case x: scalalib.JavaModule => (x.millModuleSegments, x)}
+      .collect{ case x: scalalib.JavaModule => x }
+      .flatMap(_.transitiveModuleDeps)
+      .map(x => (x.millModuleSegments, x))
       .toSeq
-
+      .distinct
+    
     val buildLibraryPaths =
       if (!fetchMillModules) Nil
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
