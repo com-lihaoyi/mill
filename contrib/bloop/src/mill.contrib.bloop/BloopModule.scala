@@ -159,14 +159,10 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
       * Resolves artifacts using coursier and creates the corresponding
       * bloop config.
       */
-    def artifacts(deps: Seq[coursier.Dependency]): List[BloopConfig.Module] = {
+    def artifacts(repos: Seq[coursier.Repository],
+                  deps: Seq[coursier.Dependency]): List[BloopConfig.Module] = {
       import coursier._
       import coursier.util._
-
-      val repositories = Seq(
-        Cache.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      )
 
       def source(r: Resolution) = Resolution(
         r.dependencies.map(d =>
@@ -175,7 +171,7 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
 
       import scala.concurrent.ExecutionContext.Implicits.global
       val unresolved = Resolution(deps.toSet)
-      val fetch = Fetch.from(repositories, Cache.fetch[Task]())
+      val fetch = Fetch.from(repos, Cache.fetch[Task]())
       val gatherTask = for {
         resolved <- unresolved.process.run(fetch)
         resolvedSources <- source(resolved).process.run(fetch)
@@ -217,11 +213,12 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = T.task {
+      val repos = module.repositories
       val allIvyDeps = module
         .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.compileIvyDeps()
       val coursierDeps =
         allIvyDeps.map(module.resolveCoursierDependency()).toList
-      BloopConfig.Resolution(artifacts(coursierDeps))
+      BloopConfig.Resolution(artifacts(repos, coursierDeps))
     }
 
     ////////////////////////////////////////////////////////////////////////////

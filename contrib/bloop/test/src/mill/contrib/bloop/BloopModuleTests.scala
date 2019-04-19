@@ -20,10 +20,11 @@ object BloopModuleTests extends TestSuite {
 
     object scalaModule extends scalalib.ScalaModule {
       def scalaVersion = "2.12.8"
+      val bloopVersion = "1.2.5"
       override def mainClass = Some("foo.bar.Main")
 
       override def ivyDeps = Agg(
-        ivy"ch.epfl.scala::bloop-config:1.2.5"
+        ivy"ch.epfl.scala::bloop-config:$bloopVersion"
       )
       override def scalacOptions = Seq(
         "-language:higherKinds"
@@ -57,6 +58,7 @@ object BloopModuleTests extends TestSuite {
         val classpath = scalaModule.classpath.map(_.toString)
         val platform = scalaModule.platform.get.name
         val mainCLass = scalaModule.platform.get.mainClass.get
+        val resolution = scalaModule.resolution.get.modules
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options.contains("-language:higherKinds"))
@@ -64,6 +66,13 @@ object BloopModuleTests extends TestSuite {
         assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
         assert(platform == "jvm")
         assert(mainCLass == "foo.bar.Main")
+
+        val bloopConfigDep = resolution.find(_.name == "bloop-config_2.12").get
+        val artifacts = bloopConfigDep.artifacts
+        assert(bloopConfigDep.version == build.scalaModule.bloopVersion)
+        assert(bloopConfigDep.organization == "ch.epfl.scala")
+        assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
+        assert(artifacts.flatMap(_.classifier).contains("sources"))
       }
       'scalaModuleTest - {
 
