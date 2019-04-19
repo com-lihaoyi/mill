@@ -44,6 +44,7 @@ object BloopModuleTests extends TestSuite {
 
   def tests: Tests = Tests {
     'genBloopTests - {
+
       testEvaluator(bloopModule.install)
       val scalaModule = readBloopConf("scalaModule.json")
       val testModule = readBloopConf("scalaModule.test.json")
@@ -58,7 +59,7 @@ object BloopModuleTests extends TestSuite {
         val mainCLass = scalaModule.platform.get.mainClass.get
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
-        assert(options == List("-language:higherKinds"))
+        assert(options.contains("-language:higherKinds"))
         assert(version == "2.12.8")
         assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
         assert(platform == "jvm")

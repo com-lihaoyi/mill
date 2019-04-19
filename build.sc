@@ -308,8 +308,10 @@ object contrib extends MillModule {
   }
 
   object bloop extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def publishVersion = "dev"
+//    def moduleDeps = Seq(scalalib)
     def ivyDeps = Agg(
+      ivy"com.lihaoyi::mill-scalalib:${"0.3.6"}",
       ivy"ch.epfl.scala::bloop-config:1.2.5",
       ivy"com.lihaoyi::ujson-circe:0.7.4"
     )

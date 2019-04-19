@@ -1,9 +1,10 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.Config.{File => BloopFile}
 import bloop.config.ConfigEncoderDecoders._
+import bloop.config.{Config => BloopConfig}
 import mill._
+import mill.api.Loose
 import mill.define._
 import mill.eval.Evaluator
 import mill.scalalib._
@@ -44,8 +45,11 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     } else Seq()
   }
 
-  // Precomputing sources to avoid cache invalidation resulting
-  // from calling module#sources in bloopInstall
+  /**
+    * Computes sources files paths for the whole project. Cached in a way
+    * that doesnot get invalidated upon sourcefile change. Mainly called
+    * from module#sources in bloopInstall
+    */
   def moduleSourceMap: Target[Map[String, Seq[Path]]] = T {
     Task
       .traverse(modules)(_.allSources)
@@ -57,8 +61,11 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
           .mapValues(_.map(_.path)))
   }
 
+  /**
+    * Computes the bloop configuration for a mill module.
+    */
   def bloopConfig(bloopDir: Path,
-                  module: JavaModule): Task[(BloopFile, Path)] = {
+                  module: JavaModule): Task[(BloopConfig.File, Path)] = {
     import _root_.bloop.config.Config
     def name(m: JavaModule) = m.millModuleSegments.render
     def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
@@ -66,6 +73,10 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
 
     val javaConfig =
       module.javacOptions.map(opts => Some(Config.Java(options = opts.toList)))
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Scalac
+    ////////////////////////////////////////////////////////////////////////////
 
     val scalaConfig = module match {
       case s: ScalaModule =>
@@ -75,12 +86,16 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
           }
 
           // Recommended for metals usage.
-          val semanticDbOptions = List(s"-P:semanticdb:sourceroot:$pwd")
+          val semanticDbOptions = List(
+            s"-P:semanticdb:sourceroot:$pwd",
+            "-P:semanticdb:synthetics:on",
+            "-P:semanticdb:failures:warning"
+          )
           val allScalacOptions =
             (s.scalacOptions() ++ pluginOptions ++ semanticDbOptions).toList
 
           Some(
-            Config.Scala(
+            BloopConfig.Scala(
               organization = "org.scala-lang",
               name = "scala-compiler",
               version = s.scalaVersion(),
@@ -94,9 +109,13 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
       case _ => T.task(None)
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Platform (Jvm/Js/Native)
+    ////////////////////////////////////////////////////////////////////////////
+
     val platform = T.task {
-      Config.Platform.Jvm(
-        Config.JvmConfig(
+      BloopConfig.Platform.Jvm(
+        BloopConfig.JvmConfig(
           home = T.ctx().env.get("JAVA_HOME").map(s => Path(s).toNIO),
           options = module.forkArgs().toList
         ),
@@ -104,11 +123,15 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
       )
     }
 
+    ////////////////////////////////////////////////////////////////////////////
+    // Tests
+    ////////////////////////////////////////////////////////////////////////////
+
     val testConfig = module match {
       case m: TestModule =>
         T.task {
           Some(
-            Config.Test(
+            BloopConfig.Test(
               frameworks = m
                 .testFrameworks()
                 .map(f => Config.TestFramework(List(f)))
@@ -122,6 +145,88 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
         }
       case _ => T.task(None)
     }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Ivy dependencies + sources
+    ////////////////////////////////////////////////////////////////////////////
+
+    val scalaLibraryIvyDeps = module match {
+      case x: ScalaModule => x.scalaLibraryIvyDeps
+      case _              => T.task { Loose.Agg.empty[Dep] }
+    }
+
+    /**
+      * Resolves artifacts using coursier and creates the corresponding
+      * bloop config.
+      */
+    def artifacts(deps: Seq[coursier.Dependency]): List[BloopConfig.Module] = {
+      import coursier._
+      import coursier.util._
+
+      val repositories = Seq(
+        Cache.ivy2Local,
+        MavenRepository("https://repo1.maven.org/maven2")
+      )
+
+      def source(r: Resolution) = Resolution(
+        r.dependencies.map(d =>
+          d.copy(attributes = d.attributes.copy(classifier = "sources")))
+      )
+
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val unresolved = Resolution(deps.toSet)
+      val fetch = Fetch.from(repositories, Cache.fetch[Task]())
+      val gatherTask = for {
+        resolved <- unresolved.process.run(fetch)
+        resolvedSources <- source(resolved).process.run(fetch)
+        all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
+        gathered <- Gather[Task].gather(all.distinct.map {
+          case (dep, art) => Cache.file[Task](art).run.map(dep -> _)
+        })
+      } yield
+        gathered
+          .collect {
+            case (dep, Right(file)) if Path(file).ext == "jar" =>
+              (dep.module.organization,
+               dep.module.name,
+               dep.version,
+               Option(dep.attributes.classifier).filter(_.nonEmpty),
+               file)
+          }
+          .groupBy {
+            case (org, mod, version, _, _) => (org, mod, version)
+          }
+          .mapValues {
+            _.map {
+              case (_, mod, _, classifier, file) =>
+                BloopConfig.Artifact(mod, classifier, None, file.toPath)
+            }.toList
+          }
+          .map {
+            case ((org, mod, version), artifacts) =>
+              BloopConfig.Module(
+                organization = org,
+                name = mod,
+                version = version,
+                configurations = None,
+                artifacts = artifacts
+              )
+          }
+
+      gatherTask.unsafeRun().toList
+    }
+
+    val bloopResolution: Task[BloopConfig.Resolution] = T.task {
+      val allIvyDeps = module
+        .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.compileIvyDeps()
+      val coursierDeps =
+        allIvyDeps.map(module.resolveCoursierDependency()).toList
+      BloopConfig.Resolution(artifacts(coursierDeps))
+    }
+
+    ////////////////////////////////////////////////////////////////////////////
+    //  Classpath
+    ////////////////////////////////////////////////////////////////////////////
 
     val ivyDepsClasspath =
       module
@@ -147,7 +252,7 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
         .map(_.toNIO)
         .toList
 
-      Config.Project(
+      BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
         sources = mSources,
@@ -161,14 +266,14 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
         sbt = None,
         test = testConfig(),
         platform = Some(platform()),
-        resolution = None
+        resolution = Some(bloopResolution())
       )
     }
 
     T.task {
       val filePath = bloopDir / s"${name(module)}.json"
-      val file = Config.File(
-        version = Config.File.LatestVersion,
+      val file = BloopConfig.File(
+        version = BloopConfig.File.LatestVersion,
         project = project()
       )
       file -> filePath
