@@ -30,10 +30,10 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
   def install = T {
     val bloopDir = wd / ".bloop"
     mkdir(bloopDir)
-    Task.traverse(modules)(writeBloopConfig(bloopDir, _))
+    Task.traverse(computeModules)(writeBloopConfig(bloopDir, _))
   }
 
-  def modules = {
+  def computeModules = {
     // This is necessary as ev will be null when running install
     // from the global module otherwise
     val eval = Option(ev).getOrElse(Evaluator.currentEvaluator.get())
@@ -51,14 +51,12 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     * from module#sources in bloopInstall
     */
   def moduleSourceMap: Target[Map[String, Seq[Path]]] = T {
-    Task
-      .traverse(modules)(_.allSources)
-      .map(
-        modules
-          .map(j => j.millModuleSegments.toString)
-          .zip(_)
-          .toMap
-          .mapValues(_.map(_.path)))
+    val sources = Task.traverse(computeModules) { m =>
+      m.allSources.map { paths =>
+        m.millModuleSegments.render -> paths.map(_.path)
+      }
+    }()
+    sources.toMap
   }
 
   /**
@@ -243,7 +241,7 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
 
     val project = T.task {
       val mSources = moduleSourceMap()
-        .get(module.millModuleSegments.toString)
+        .get(name(module))
         .toSeq
         .flatten
         .map(_.toNIO)
