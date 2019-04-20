@@ -237,6 +237,12 @@ Now you can reformat code with `mill foo.reformat` command.
 You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
 It will reformat all sources that matches `__.sources` query.
 
+If you add a `.scalafmt.conf` file at the root of you project, it will be used
+to configure formatting. It can contain a `version` key to specify the scalafmt
+version used to format your code. See the
+[scalafmt configuration documentation](https://scalameta.org/scalafmt/docs/configuration.html)
+for details.
+
 ## Common Configuration
 
 ```scala
