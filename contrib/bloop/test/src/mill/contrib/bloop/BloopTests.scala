@@ -10,7 +10,7 @@ import os.Path
 import upickle.default._
 import utest._
 
-object BloopModuleTests extends TestSuite {
+object BloopTests extends TestSuite {
 
   val workdir = os.pwd / 'target / 'workspace / "bloop"
   val testEvaluator = TestEvaluator.static(build)
@@ -18,7 +18,7 @@ object BloopModuleTests extends TestSuite {
 
   object build extends TestUtil.BaseModule {
 
-    override def millSourcePath = BloopModuleTests.workdir
+    override def millSourcePath = BloopTests.workdir
 
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
@@ -59,9 +59,14 @@ object BloopModuleTests extends TestSuite {
         val platform = p.platform.get.name
         val mainCLass = p.platform.get.mainClass.get
         val resolution = p.resolution.get.modules
+        val sdb = testBloop.semanticDBVersion
+        val sdbOpts = testBloop.semanticDBOptions
+
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options.contains("-language:higherKinds"))
+        assert(options.exists(_.contains(s"semanticdb-scalac_2.12.8-$sdb.jar")))
+        assert(sdbOpts.forall(options.contains))
         assert(version == "2.12.8")
         assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
         assert(platform == "jvm")

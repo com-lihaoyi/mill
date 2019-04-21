@@ -76,11 +76,41 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
     sources.toMap
   }
 
-  protected[bloop] def name(m: JavaModule) = m.millModuleSegments.render
+  protected def name(m: JavaModule) = m.millModuleSegments.render
 
-  /**
-    * Computes the bloop configuration for a mill module.
-    */
+  //////////////////////////////////////////////////////////////////////////////
+  // SemanticDB related configuration
+  //////////////////////////////////////////////////////////////////////////////
+
+  // Version of the semanticDB plugin.
+  def semanticDBVersion: String = "4.1.0"
+
+  // Scala versions supported by semantic db. Needs to be updated when
+  // bumping semanticDBVersion.
+  // See [https://github.com/scalameta/metals/blob/333ab6fc00fb3542bcabd0dac51b91b72798768a/build.sbt#L121]
+  def semanticDBSupported = Set(
+    "2.12.8",
+    "2.12.7",
+    "2.12.6",
+    "2.12.5",
+    "2.12.4",
+    "2.11.12",
+    "2.11.11",
+    "2.11.10",
+    "2.11.9"
+  )
+
+  // Recommended for metals usage.
+  def semanticDBOptions = List(
+    s"-P:semanticdb:sourceroot:$pwd",
+    "-P:semanticdb:synthetics:on",
+    "-P:semanticdb:failures:warning"
+  )
+
+  //////////////////////////////////////////////////////////////////////////////
+  // Computation of the bloop configuration for a specific module
+  //////////////////////////////////////////////////////////////////////////////
+
   def bloopConfig(bloopDir: Path,
                   module: JavaModule): Task[(BloopConfig.File, Path)] = {
     import _root_.bloop.config.Config
@@ -96,20 +126,20 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
 
     val scalaConfig = module match {
       case s: ScalaModule =>
+        val semanticDb = s.resolveDeps(s.scalaVersion.map {
+          case scalaV if semanticDBSupported(scalaV) =>
+            Agg(ivy"org.scalameta:semanticdb-scalac_$scalaV:$semanticDBVersion")
+          case _ => Agg()
+        })
+
         T.task {
-          val pluginOptions = s.scalacPluginClasspath().map { pathRef =>
+          val pluginCp = semanticDb() ++ s.scalacPluginClasspath()
+          val pluginOptions = pluginCp.map { pathRef =>
             s"-Xplugin:${pathRef.path}"
           }
 
-          // Recommended for metals usage.
-          val semanticDbOptions = List(
-            s"-P:semanticdb:sourceroot:$pwd",
-            "-P:semanticdb:synthetics:on",
-            "-P:semanticdb:failures:warning"
-          )
           val allScalacOptions =
-            (s.scalacOptions() ++ pluginOptions ++ semanticDbOptions).toList
-
+            (s.scalacOptions() ++ pluginOptions ++ semanticDBOptions).toList
           Some(
             BloopConfig.Scala(
               organization = "org.scala-lang",
