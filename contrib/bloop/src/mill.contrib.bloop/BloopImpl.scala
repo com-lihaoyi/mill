@@ -5,38 +5,55 @@ import bloop.config.ConfigEncoderDecoders._
 import bloop.config.{Config => BloopConfig}
 import mill._
 import mill.api.Loose
-import mill.define._
+import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
 import mill.scalalib._
+import os.pwd
 
-trait BloopModule extends Module with CirceCompat { self: JavaModule =>
+/**
+  * Implementation of the Bloop related tasks. Inherited by the
+  * `mill.contrib.Bloop` object, and usable in tests by passing
+  * a custom evaluator.
+  */
+class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
 
-  object bloop extends Module {
-
-    def config = T {
-      // Forcing the generation of the config for all modules here
-      val _ = BloopModule.install() // NB: looks like it has to be assigned to be executed
-      BloopModule.bloopConfig(pwd / ".bloop", self)()._1
-    }
-
-  }
-}
-
-object BloopModule
-    extends BloopModuleImpl(Evaluator.currentEvaluator.get(), pwd)
-
-class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
-
+  /**
+    * Generates bloop configuration files reflecting the build,
+    * under pwd/.bloop.
+    */
   def install = T {
-    val bloopDir = wd / ".bloop"
-    mkdir(bloopDir)
-    Task.traverse(computeModules)(writeBloopConfig(bloopDir, _))
+    Task.traverse(computeModules)(writeBloopConfig)
   }
 
-  def computeModules = {
-    // This is necessary as ev will be null when running install
-    // from the global module otherwise
-    val eval = Option(ev).getOrElse(Evaluator.currentEvaluator.get())
+  /**
+    * Trait that can be mixed-in to quickly access the bloop config
+    * of the module.
+    *
+    * {{{
+    * object myModule extends ScalaModule with Bloop.Module {
+    *    ...
+    * }
+    * }}}
+    */
+  trait Module extends MillModule with CirceCompat { self: JavaModule =>
+
+    object bloop extends MillModule {
+
+      def config = T {
+        // Forcing the generation of the config for all modules here
+        val installed: Seq[(String, Path)] = install()
+        val map: Map[String, Path] = installed.toMap
+        val file = os.read(map(name(self)))
+        upickle.default.read[BloopConfig.File](file)
+      }
+
+    }
+  }
+
+  private val bloopDir = wd / ".bloop"
+
+  private def computeModules = {
+    val eval = ev()
     if (eval != null) {
       val rootModule = eval.rootModule
       rootModule.millInternal.segmentsToModules.values.collect {
@@ -59,13 +76,14 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     sources.toMap
   }
 
+  protected[bloop] def name(m: JavaModule) = m.millModuleSegments.render
+
   /**
     * Computes the bloop configuration for a mill module.
     */
   def bloopConfig(bloopDir: Path,
                   module: JavaModule): Task[(BloopConfig.File, Path)] = {
     import _root_.bloop.config.Config
-    def name(m: JavaModule) = m.millModuleSegments.render
     def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
     def classes(m: JavaModule) = out(m) / "classes"
 
@@ -239,6 +257,10 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     val classpath = T.task(transitiveClasspath(module)() ++ ivyDepsClasspath())
     val resources = T.task(module.resources().map(_.path.toNIO).toList)
 
+    ////////////////////////////////////////////////////////////////////////////
+    //  Tying up
+    ////////////////////////////////////////////////////////////////////////////
+
     val project = T.task {
       val mSources = moduleSourceMap()
         .get(name(module))
@@ -275,10 +297,12 @@ class BloopModuleImpl(ev: Evaluator, wd: Path) extends ExternalModule {
     }
   }
 
-  def writeBloopConfig(bloopDir: Path, module: JavaModule) = T.task {
+  def writeBloopConfig(module: JavaModule) = T.task {
+    mkdir(bloopDir)
     val (config, path) = bloopConfig(bloopDir, module)()
     bloop.config.write(config, path.toNIO)
-    path
+    T.ctx().log.info(s"Wrote $path")
+    name(module) -> path
   }
 
   lazy val millDiscover = Discover[this.type]

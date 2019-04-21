@@ -3,8 +3,8 @@ package mill.contrib.bloop
 import bloop.config.Config.{File => BloopFile}
 import bloop.config.ConfigEncoderDecoders._
 import mill._
-import mill.scalalib._
 import mill.contrib.bloop.CirceCompat._
+import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import os.Path
 import upickle.default._
@@ -13,12 +13,14 @@ import utest._
 object BloopModuleTests extends TestSuite {
 
   val workdir = os.pwd / 'target / 'workspace / "bloop"
+  val testEvaluator = TestEvaluator.static(build)
+  val testBloop = new BloopImpl(() => testEvaluator.evaluator, workdir)
 
   object build extends TestUtil.BaseModule {
 
     override def millSourcePath = BloopModuleTests.workdir
 
-    object scalaModule extends scalalib.ScalaModule {
+    object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
       val bloopVersion = "1.2.5"
       override def mainClass = Some("foo.bar.Main")
@@ -37,28 +39,26 @@ object BloopModuleTests extends TestSuite {
 
   }
 
-  val testEvaluator = TestEvaluator.static(build)
-  val bloopModule = new BloopModuleImpl(testEvaluator.evaluator, workdir)
-
   def readBloopConf(jsonFile: String) =
-    read[BloopFile](os.read(workdir / ".bloop" / jsonFile)).project
+    read[BloopFile](os.read(workdir / ".bloop" / jsonFile))
 
   def tests: Tests = Tests {
     'genBloopTests - {
 
-      testEvaluator(bloopModule.install)
-      val scalaModule = readBloopConf("scalaModule.json")
-      val testModule = readBloopConf("scalaModule.test.json")
+      testEvaluator(testBloop.install)
+      val scalaModuleConfig = readBloopConf("scalaModule.json")
+      val testModuleConfig = readBloopConf("scalaModule.test.json")
 
       'scalaModule - {
-        val name = scalaModule.name
-        val sources = scalaModule.sources.map(Path(_))
-        val options = scalaModule.scala.get.options
-        val version = scalaModule.scala.get.version
-        val classpath = scalaModule.classpath.map(_.toString)
-        val platform = scalaModule.platform.get.name
-        val mainCLass = scalaModule.platform.get.mainClass.get
-        val resolution = scalaModule.resolution.get.modules
+        val p = scalaModuleConfig.project
+        val name = p.name
+        val sources = p.sources.map(Path(_))
+        val options = p.scala.get.options
+        val version = p.scala.get.version
+        val classpath = p.classpath.map(_.toString)
+        val platform = p.platform.get.name
+        val mainCLass = p.platform.get.mainClass.get
+        val resolution = p.resolution.get.modules
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options.contains("-language:higherKinds"))
@@ -75,16 +75,22 @@ object BloopModuleTests extends TestSuite {
         assert(artifacts.flatMap(_.classifier).contains("sources"))
       }
       'scalaModuleTest - {
-
-        val name = testModule.name
-        val sources = testModule.sources.map(Path(_))
-        val framework = testModule.test.get.frameworks.head.names.head
-        val dep = testModule.dependencies.head
+        val p = testModuleConfig.project
+        val name = p.name
+        val sources = p.sources.map(Path(_))
+        val framework = p.test.get.frameworks.head.names.head
+        val dep = p.dependencies.head
+        val mainModuleClasspath = scalaModuleConfig.project.classpath
         assert(name == "scalaModule.test")
         assert(sources == List(workdir / "scalaModule" / "test" / "src"))
         assert(framework == "utest.runner.Framework")
         assert(dep == "scalaModule")
-        assert(scalaModule.classpath.forall(testModule.classpath.contains))
+        assert(mainModuleClasspath.forall(p.classpath.contains))
+      }
+      'configAccessTest - {
+        val (accessedConfig, _) =
+          testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.right.get
+        assert(accessedConfig == scalaModuleConfig)
       }
     }
   }
