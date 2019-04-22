@@ -41,9 +41,9 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
 
       def config = T {
         // Forcing the generation of the config for all modules here
-        val installed: Seq[(String, Path)] = install()
-        val map: Map[String, Path] = installed.toMap
-        val file = os.read(map(name(self)))
+        val installed: Seq[(String, PathRef)] = install()
+        val map: Map[String, PathRef] = installed.toMap
+        val file = os.read(map(name(self)).path)
         upickle.default.read[BloopConfig.File](file)
       }
 
@@ -332,7 +332,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
     val (config, path) = bloopConfig(bloopDir, module)()
     bloop.config.write(config, path.toNIO)
     T.ctx().log.info(s"Wrote $path")
-    name(module) -> path
+    name(module) -> PathRef(path)
   }
 
   lazy val millDiscover = Discover[this.type]
