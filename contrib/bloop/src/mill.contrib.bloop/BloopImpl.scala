@@ -83,7 +83,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
   //////////////////////////////////////////////////////////////////////////////
 
   // Version of the semanticDB plugin.
-  def semanticDBVersion: String = "4.1.0"
+  def semanticDBVersion: String = "4.1.4"
 
   // Scala versions supported by semantic db. Needs to be updated when
   // bumping semanticDBVersion.
