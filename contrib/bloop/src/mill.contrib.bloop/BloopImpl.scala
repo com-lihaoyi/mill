@@ -15,14 +15,14 @@ import os.pwd
   * `mill.contrib.Bloop` object, and usable in tests by passing
   * a custom evaluator.
   */
-class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
+class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   /**
     * Generates bloop configuration files reflecting the build,
     * under pwd/.bloop.
     */
   def install = T {
-    Task.traverse(computeModules)(writeBloopConfig)
+    Task.traverse(computeModules)(_.bloop.writeConfig)
   }
 
   /**
@@ -38,15 +38,40 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
   trait Module extends MillModule with CirceCompat { self: JavaModule =>
 
     object bloop extends MillModule {
-
       def config = T {
-        // Forcing the generation of the config for all modules here
-        val installed: Seq[(String, PathRef)] = install()
-        val map: Map[String, PathRef] = installed.toMap
-        val file = os.read(map(name(self)).path)
-        upickle.default.read[BloopConfig.File](file)
+        new BloopOps(self).bloop.config()
+      }
+    }
+  }
+
+  /**
+    * Extension class used to ensure that the config related tasks are
+    * cached alongside their respective modules, without requesting the user
+    * to extend a specific trait.
+    *
+    * This also ensures that we're not duplicating work between the global
+    * "install" task that traverse all modules in the build, and "local" tasks
+    * that traverse only their transitive dependencies.
+    */
+  private implicit class BloopOps(jm: JavaModule)
+      extends MillModule
+      with CirceCompat {
+    override def millOuterCtx = jm.millOuterCtx
+
+    object bloop extends MillModule {
+      def config = T { outer.bloopConfig(jm) }
+
+      def writeConfig: Target[(String, PathRef)] = T {
+        mkdir(bloopDir)
+        val path = bloopConfigPath(jm)
+        _root_.bloop.config.write(config(), path.toNIO)
+        T.ctx().log.info(s"Wrote $path")
+        name(jm) -> PathRef(path)
       }
 
+      def writeTransitiveConfig = T {
+        Task.traverse(jm.transitiveModuleDeps)(_.bloop.writeConfig)
+      }
     }
   }
 
@@ -77,6 +102,9 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
   }
 
   protected def name(m: JavaModule) = m.millModuleSegments.render
+
+  protected def bloopConfigPath(module: JavaModule): Path =
+    bloopDir / s"${name(module)}.json"
 
   //////////////////////////////////////////////////////////////////////////////
   // SemanticDB related configuration
@@ -111,8 +139,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
   // Computation of the bloop configuration for a specific module
   //////////////////////////////////////////////////////////////////////////////
 
-  def bloopConfig(bloopDir: Path,
-                  module: JavaModule): Task[(BloopConfig.File, Path)] = {
+  def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
     def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
     def classes(m: JavaModule) = out(m) / "classes"
@@ -318,21 +345,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule {
     }
 
     T.task {
-      val filePath = bloopDir / s"${name(module)}.json"
-      val file = BloopConfig.File(
+      BloopConfig.File(
         version = BloopConfig.File.LatestVersion,
         project = project()
       )
-      file -> filePath
     }
-  }
-
-  def writeBloopConfig(module: JavaModule) = T.task {
-    mkdir(bloopDir)
-    val (config, path) = bloopConfig(bloopDir, module)()
-    bloop.config.write(config, path.toNIO)
-    T.ctx().log.info(s"Wrote $path")
-    name(module) -> PathRef(path)
   }
 
   lazy val millDiscover = Discover[this.type]
