@@ -3,7 +3,7 @@ package contrib
 package scoverage
 
 import coursier.{Cache, MavenRepository}
-import mill.api.{Loose, Result}
+import mill.api.Result
 import mill.eval.PathRef
 import mill.util.Ctx
 import mill.scalalib.{DepSyntax, JavaModule, Lib, ScalaModule, TestModule, Dep}
@@ -94,11 +94,18 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   trait ScoverageTests extends outer.Tests {
-    // This ensures that the runtime is added to the ivy deps
-    // specified by the user. Unfortunately it also clutters
-    // any calls to agg inside of ScoverageTests with this dependency,
-    // seems like a reasonable trade-off since it is only for test sources.
-    def Agg(items: Dep*) = T { Loose.Agg(outer.scoverageRuntimeDep()) ++ Loose.Agg(items: _*) }
+    override def upstreamAssemblyClasspath = T {
+      super.upstreamAssemblyClasspath() ++
+      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+    }
+    override def compileClasspath = T {
+      super.compileClasspath() ++
+      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+    }
+    override def runClasspath = T {
+      super.runClasspath() ++
+      resolveDeps(T.task{Agg(outer.scoverageRuntimeDep())})()
+    }
 
     // Need the sources compiled with scoverage instrumentation to run.
     override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
