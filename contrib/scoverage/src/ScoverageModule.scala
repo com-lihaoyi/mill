@@ -40,13 +40,11 @@ import mill.moduledefs.Cacher
  * In addition to the normal tasks available to your Scala module, Scoverage
  * Modules introduce a few new tasks and changes the behavior of an existing one.
  *
- * <pre>
- * Mill foo.scoverage.compile      # compiles your module with test instrumentation
+ * - mill foo.scoverage.compile      # compiles your module with test instrumentation
  *                                 # (you don't have to run this manually, running the test task will force its invocation)
  *
- * Mill foo.test                   # tests your project and collects metrics on code coverage
- * Mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
- * </pre>
+ * - mill foo.test                   # tests your project and collects metrics on code coverage
+ * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
  *
  * The measurement data is available at `out/foo/scoverage/data/`,
  * And the html report is saved in `out/foo/scoverage/htmlReport/`.
