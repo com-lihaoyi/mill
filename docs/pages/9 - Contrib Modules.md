@@ -912,3 +912,62 @@ Publishing to custom local Maven repository
 [40/40] project.publishM2Local
 Publishing to /tmp/m2repo
 ```
+
+### Bloop
+
+This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration 
+from your build file, which lets you use the bloop CLI for compiling, and makes 
+your scala code editable in [Metals](https://scalameta.org/metals/)   
+
+
+#### Quickstart:
+```scala
+// build.sc (or any other .sc file it depends on, including predef) 
+// Don't forget to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-bloop:VERSION`
+```
+
+Then in your terminal : 
+
+```
+> mill mill.contrib.Bloop/install 
+```
+
+#### Mix-in
+
+You can mix-in the `Bloop.Module` trait with any JavaModule to quickly access 
+the deserialised configuration for that particular module: 
+
+```scala
+// build.sc 
+import mill._ 
+import mill.scalalib._
+import mill.contrib.Bloop
+
+object MyModule extends ScalaModule with Bloop.Module {
+  def myTask = T { bloop.config() }
+}
+``` 
+
+#### Note regarding metals: 
+
+Generating the bloop config should be enough for metals to pick it up and for 
+features to start working in vscode (or the bunch of other editors metals supports). 
+However, note that this applies only to your project sources. Your mill/ammonite related
+`.sc` files are not yet supported by metals. 
+
+The generated bloop config references the semanticDB compiler plugin required by
+metals to function. If need be, the version of semanticDB can be overriden by 
+extending `mill.contrib.bloop.BloopImpl` in your own space. 
+
+#### Note regarding current mill support in bloop 
+
+The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
+will be deprecated in favour of this implementation. 
+
+#### Caveats: 
+
+At this time, only Java/ScalaModule are processed correctly. ScalaJS/ScalaNative integration will 
+be added in a near future. 
+
+

@@ -306,6 +306,15 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
     def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
   }
+
+  object bloop extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(
+      ivy"ch.epfl.scala::bloop-config:1.2.5",
+      ivy"com.lihaoyi::ujson-circe:0.7.4"
+    )
+  }
+
 }
 
 
