@@ -77,7 +77,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   private val bloopDir = wd / ".bloop"
 
-  private def computeModules = {
+  private def computeModules: Seq[JavaModule] = {
     val eval = ev()
     if (eval != null) {
       val rootModule = eval.rootModule
@@ -89,7 +89,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   /**
     * Computes sources files paths for the whole project. Cached in a way
-    * that doesnot get invalidated upon sourcefile change. Mainly called
+    * that does not get invalidated upon sourcefile change. Mainly called
     * from module#sources in bloopInstall
     */
   def moduleSourceMap: Target[Map[String, Seq[Path]]] = T {
