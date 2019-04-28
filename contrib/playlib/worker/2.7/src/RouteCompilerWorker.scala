@@ -14,7 +14,7 @@ import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.routes.compiler.{InjectedRoutesGenerator, RoutesCompilationError, RoutesCompiler, RoutesGenerator}
 
 
-class RouteCompilerWorker extends RouteCompilerWorkerApi {
+private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
 
   override def compile(files: Seq[Path],
                        additionalImports: Seq[String],

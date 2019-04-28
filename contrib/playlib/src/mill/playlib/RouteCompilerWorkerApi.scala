@@ -1,13 +1,13 @@
-package mill.playlib
+package mill
+package playlib
 
 import ammonite.ops.Path
-import mill._
 import mill.api.{Ctx, Result}
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib.api.CompilationResult
 
-class RouteCompilerWorker {
+private[playlib] class RouteCompilerWorker {
   private var routeCompilerInstanceCache = Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
   private def bridge(toolsClasspath: Agg[os.Path])
@@ -61,7 +61,7 @@ class RouteCompilerWorker {
 
 }
 
-object RouteCompilerWorkerModule extends ExternalModule {
+private[playlib] object RouteCompilerWorkerModule extends ExternalModule {
   def routeCompilerWorker: Worker[RouteCompilerWorker] = T.worker {
     new RouteCompilerWorker()
   }
