@@ -47,8 +47,24 @@ object HelloWorldTests extends utest.TestSuite {
           )
         }
         "scoverage" - {
-          "ivyDeps" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.ivyDeps)
+          "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
+
+            assert(
+              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
+              evalCount > 0
+            )
+          }
+          "compileClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.compileClasspath)
+
+            assert(
+              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
+              evalCount > 0
+            )
+          }
+          "runClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             assert(
               result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
