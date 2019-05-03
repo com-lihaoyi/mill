@@ -163,7 +163,6 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     finalMainClassOpt().toOption match{
       case None => ""
       case Some(cls) =>
-        val isWin = scala.util.Properties.isWin
         mill.modules.Jvm.launcherUniversalScript(
           cls,
           Agg("$0"), Agg("%~dpnx0"),
