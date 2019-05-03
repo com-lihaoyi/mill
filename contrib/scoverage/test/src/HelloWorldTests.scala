@@ -47,24 +47,9 @@ object HelloWorldTests extends utest.TestSuite {
           )
         }
         "scoverage" - {
-          "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
-
-            assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
-              evalCount > 0
-            )
-          }
-          "compileClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.compileClasspath)
-
-            assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
-              evalCount > 0
-            )
-          }
-          "runClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
+          "ivyDeps" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) =
+              eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
             assert(
               result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
@@ -94,14 +79,27 @@ object HelloWorldTests extends utest.TestSuite {
           }
         }
         "test" - {
-          "ivyDeps" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.test.ivyDeps)
+          "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
             assert(
-              result == Agg(
-                ivy"org.scoverage::scalac-scoverage-runtime:1.3.1",
-                ivy"org.scalatest::scalatest:3.0.5"
-              ),
+              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
+              evalCount > 0
+            )
+          }
+          "compileClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.compileClasspath)
+
+            assert(
+              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
+              evalCount > 0
+            )
+          }
+          "runClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
+
+            assert(
+              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
               evalCount > 0
             )
           }
