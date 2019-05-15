@@ -110,6 +110,4 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     // Need the sources compiled with scoverage instrumentation to run.
     override def moduleDeps: Seq[JavaModule] = Seq(outer.scoverage)
   }
-
-  def test: ScoverageTests
 }
