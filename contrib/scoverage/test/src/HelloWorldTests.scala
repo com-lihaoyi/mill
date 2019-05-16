@@ -1,6 +1,7 @@
 package mill.contrib.scoverage
 
 import mill._
+import mill.api.Result
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -14,7 +15,7 @@ object HelloWorldTests extends utest.TestSuite {
 
   object HelloWorld extends HelloBase {
     object core extends ScoverageModule {
-      def scalaVersion = "2.11.8"
+      def scalaVersion = "2.12.4"
       def scoverageVersion = "1.3.1"
 
       object test extends ScoverageTests {
@@ -73,10 +74,6 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
-          "htmlReport" - workspaceTest(HelloWorld) { eval =>
-             eval.apply(HelloWorld.core.scoverage.htmlReport)
-             assert(true)
-          }
         }
         "test" - {
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
@@ -95,14 +92,14 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
-          "runClasspath" - workspaceTest(HelloWorld) { eval =>
+          "runClasspath" - TestUtil.disableInJava9OrAbove(workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 
             assert(
               result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
               evalCount > 0
             )
-          }
+          })
         }
       }
     }

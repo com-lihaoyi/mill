@@ -61,15 +61,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageReportWorkerClasspath = T {
     val workerKey = "MILL_SCOVERAGE_REPORT_WORKER_" + scoverageVersion().replace(".", "_")
     val workerPath = sys.props(workerKey)
-    if (workerPath != null)
-      Result.Success(Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*))
-    else
-      Lib.resolveDependencies(
-        Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-        Lib.depToDependency(_, outer.scalaVersion()),
-        Seq(scoveragePluginDep()),
-        ctx = Some(implicitly[mill.util.Ctx.Log])
-        )
+    Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*) ++
+    Lib.resolveDependencies(
+      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      Lib.depToDependency(_, outer.scalaVersion()),
+      Seq(scoveragePluginDep()),
+      ctx = Some(implicitly[mill.util.Ctx.Log])
+    ).asSuccess.get.value
   }
 
   object scoverage extends ScalaModule {
@@ -88,8 +86,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def htmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
-        .bridge(sources(), scoverageReportWorkerClasspath().map(_.path))
-        .htmlReport(dataDir().toString, selfDir().toString)
+        .bridge(scoverageReportWorkerClasspath().map(_.path))
+        .htmlReport(sources(), dataDir().toString, selfDir().toString)
     }
   }
 
