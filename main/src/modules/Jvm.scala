@@ -84,7 +84,7 @@ object Jvm {
 
     process.waitFor()
     if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed")
+    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }
 
   /**
