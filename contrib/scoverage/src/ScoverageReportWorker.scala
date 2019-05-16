@@ -1,9 +1,7 @@
 package mill.contrib.scoverage
 
-import java.net.URLClassLoader
-
 import mill.{Agg, T}
-import mill.api.{Ctx, Result}
+import mill.api.{ClassLoader, Ctx, Result}
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.eval.PathRef
 
@@ -19,7 +17,10 @@ class ScoverageReportWorker {
       case _ =>
         val toolsClassPath = classpath.map(_.toIO.toURI.toURL).toVector
         ctx.log.debug("Loading classes from\n"+toolsClassPath.mkString("\n"))
-        val cl = new URLClassLoader(toolsClassPath.toArray, null)
+        val cl = ClassLoader.create(
+          toolsClassPath,
+          getClass.getClassLoader
+        )
         val bridge = cl
           .loadClass("mill.contrib.scoverage.worker.ScoverageReportWorkerImpl")
           .getDeclaredConstructor()
