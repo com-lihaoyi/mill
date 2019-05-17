@@ -58,16 +58,27 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
-  def scoverageReportWorkerClasspath = T {
-    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER_" + scoverageVersion().replace(".", "_")
-    val workerPath = sys.props(workerKey)
-    Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*) ++
+  private def toolsClasspath = T {
+    scoverageReportWorkerClasspath() ++ scoverageClasspath()
+  }
+
+  def scoverageClasspath = T {
     Lib.resolveDependencies(
       Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, outer.scalaVersion()),
       Seq(scoveragePluginDep()),
       ctx = Some(implicitly[mill.util.Ctx.Log])
-    ).asSuccess.get.value
+    )
+  }
+
+  def scoverageReportWorkerClasspath = T {
+    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER_" + scoverageVersion().replace(".", "_")
+    mill.modules.Util.millProjectModule(
+      workerKey,
+      s"mill-contrib-scoverage-worker-${outer.scoverageVersion()}",
+      repositories,
+      resolveFilter = _.toString.contains("mill-contrib-scoverage-worker")
+    )
   }
 
   object scoverage extends ScalaModule {
@@ -86,7 +97,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def htmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
-        .bridge(scoverageReportWorkerClasspath().map(_.path))
+        .bridge(toolsClasspath().map(_.path))
         .htmlReport(sources(), dataDir().toString, selfDir().toString)
     }
   }
