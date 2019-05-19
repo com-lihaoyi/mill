@@ -155,7 +155,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### 0.3.8
+### 0.3.9
 
 - Publish `compileIvyDeps` as provided scope
   ([535](https://github.com/lihaoyi/mill/issues/535))
@@ -163,7 +163,8 @@ optimizer without classpath conflicts.
 - Added contrib modules to integrate
   [Bloop](http://www.lihaoyi.com/mill/page/contrib-modules.html#bloop),
   [Flyway](http://www.lihaoyi.com/mill/page/contrib-modules.html#flyway),
-  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework)
+  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework),
+  [Scoverage](http://www.lihaoyi.com/mill/page/contrib-modules.html#scoverage)
 
 - Allow configuration of GPG key names when publishing
   ([530](https://github.com/lihaoyi/mill/pull/530))
@@ -173,6 +174,8 @@ optimizer without classpath conflicts.
   in your `build.sc`
 
 - Support for Scala 2.13.0-RC2
+
+- ScalaFmt support now uses the version specified in `.scalafmt.conf`
 
 ### 0.3.6
 
