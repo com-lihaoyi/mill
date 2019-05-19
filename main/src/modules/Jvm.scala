@@ -409,6 +409,7 @@ object Jvm {
       repositories, deps, force, mapDependencies, ctx
     )
     val errs = resolution.metadataErrors
+
     if(errs.nonEmpty) {
       val header =
         s"""|
@@ -440,8 +441,13 @@ object Jvm {
       }
 
       val sourceOrJar =
-        if (sources) resolution.classifiersArtifacts(Seq("sources"))
-        else resolution.artifacts(true)
+        if (sources) {
+          resolution.artifacts(
+            types = Set(coursier.Type.source, coursier.Type.javaSource),
+            classifiers = Some(Seq(coursier.Classifier("sources")))
+          )
+        }
+        else resolution.artifacts()
       val (errors, successes) = load(sourceOrJar)
       if(errors.isEmpty){
         mill.Agg.from(
