@@ -155,9 +155,24 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### {master}
+### 0.3.7
 
-- Publish compileIvyDeps as provided scope
+- Publish `compileIvyDeps` as provided scope
+  ([535](https://github.com/lihaoyi/mill/issues/535))
+
+- Added contrib modules to integrate
+  [Bloop](http://www.lihaoyi.com/mill/page/contrib-modules.html#bloop),
+  [Flyway](http://www.lihaoyi.com/mill/page/contrib-modules.html#flyway),
+  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework)
+
+- Allow configuration of GPG key names when publishing
+  ([530](https://github.com/lihaoyi/mill/pull/530))
+
+- Bump Ammonite version to 1.6.7, making
+  [Requests-Scala](https://github.com/lihaoyi/requests-scala) available to use
+  in your `build.sc`
+
+- Support for Scala 2.13.0-RC2
 
 ### 0.3.6
 
