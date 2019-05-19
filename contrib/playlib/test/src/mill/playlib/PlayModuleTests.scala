@@ -69,7 +69,7 @@ object PlayModuleTests extends TestSuite {
           "play-logback",
           "play-ahc-ws"
         )
-        val outputModules = deps.map(_.dep.module.name)
+        val outputModules = deps.map(_.dep.module.name.value)
         assert(
           outputModules.forall(expectedModules.contains),
           evalCount > 0
