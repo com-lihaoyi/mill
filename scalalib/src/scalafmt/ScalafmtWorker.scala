@@ -1,9 +1,11 @@
 package mill.scalalib.scalafmt
 
+import java.nio.file.{Paths => JPaths}
+
 import mill._
 import mill.define.{Discover, ExternalModule, Worker}
-import mill.modules.Jvm
 import mill.api.Ctx
+import org.scalafmt.interfaces.Scalafmt
 
 import scala.collection.mutable
 
@@ -18,8 +20,7 @@ private[scalafmt] class ScalafmtWorker {
   private var configSig: Int = 0
 
   def reformat(input: Seq[PathRef],
-               scalafmtConfig: PathRef,
-               scalafmtClasspath: Agg[os.Path])(implicit ctx: Ctx): Unit = {
+               scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
     val toFormat =
       if (scalafmtConfig.sig != configSig) input
       else
@@ -28,8 +29,7 @@ private[scalafmt] class ScalafmtWorker {
     if (toFormat.nonEmpty) {
       ctx.log.info(s"Formatting ${toFormat.size} Scala sources")
       reformatAction(toFormat.map(_.path),
-                     scalafmtConfig.path,
-                     scalafmtClasspath)
+                     scalafmtConfig.path)
       reformatted ++= toFormat.map { ref =>
         val updRef = PathRef(ref.path)
         updRef.path -> updRef.sig
@@ -43,15 +43,22 @@ private[scalafmt] class ScalafmtWorker {
   private val cliFlags = Seq("--non-interactive", "--quiet")
 
   private def reformatAction(toFormat: Seq[os.Path],
-                             config: os.Path,
-                             classpath: Agg[os.Path])(implicit ctx: Ctx) = {
-    val configFlags =
-      if (os.exists(config)) Seq("--config", config.toString) else Seq.empty
-    Jvm.runSubprocess(
-      "org.scalafmt.cli.Cli",
-      classpath,
-      mainArgs = toFormat.map(_.toString) ++ configFlags ++ cliFlags
-    )
-  }
+                             config: os.Path)(implicit ctx: Ctx) = {
+    val scalafmt =
+      Scalafmt
+        .create(this.getClass.getClassLoader)
+        .withRespectVersion(false)
 
+    val configPath =
+      if (os.exists(config))
+        config.toNIO
+      else
+        JPaths.get(getClass.getResource("default.scalafmt.conf").toURI)
+
+    toFormat.foreach { pathToFormat =>
+      val code = os.read(pathToFormat)
+      val formatteCode = scalafmt.format(configPath, pathToFormat.toNIO, code)
+      os.write.over(pathToFormat, formatteCode)
+    }
+  }
 }
