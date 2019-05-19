@@ -11,22 +11,11 @@ trait ScalafmtModule extends JavaModule {
       .worker()
       .reformat(
         filesToFormat(sources()),
-        scalafmtConfig().head,
-        scalafmtDeps().map(_.path)
+        scalafmtConfig().head
       )
   }
 
-  def scalafmtVersion: T[String] = "1.5.1"
-
   def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
-
-  def scalafmtDeps: T[Agg[PathRef]] = T {
-    Lib.resolveDependencies(
-      zincWorker.repositories,
-      Lib.depToDependency(_, "2.12.4"),
-      Seq(ivy"com.geirsson::scalafmt-cli:${scalafmtVersion()}")
-    )
-  }
 
   protected def filesToFormat(sources: Seq[PathRef]) = {
     for {
@@ -46,8 +35,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
         .worker()
         .reformat(
           files,
-          scalafmtConfig().head,
-          scalafmtDeps().map(_.path)
+          scalafmtConfig().head
         )
     }
 

@@ -143,7 +143,8 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(main, scalalib.api)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0"
+    ivy"org.scala-sbt:test-interface:1.0",
+    ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
   )
 
   def genTask(m: ScalaModule) = T.task{
@@ -187,7 +188,7 @@ object scalalib extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.3.0-M1"
+      ivy"org.scala-sbt::zinc:1.2.5"
     )
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -287,6 +288,31 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
+  object scoverage extends MillModule {
+    def moduleDeps = Seq(scalalib, scoverage.api)
+
+    def testArgs = T {
+      val mapping = Map(
+        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path
+      )
+      scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        (for ((k, v) <- mapping) yield s"-D$k=$v")
+    }
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(scalalib)
+    }
+
+    object worker extends Cross[WorkerModule]("1.3.1")
+
+    class WorkerModule(scoverageVersion: String) extends MillApiModule {
+      def moduleDeps = Seq(scoverage.api)
+
+      def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
+    }
+  }
+
   object buildinfo extends MillModule {
     def moduleDeps = Seq(scalalib)
     // why do I need this?
@@ -307,8 +333,17 @@ object contrib extends MillModule {
     def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
   }
 
+
   object docker extends MillModule {
     def moduleDeps = Seq(scalalib)
+  }
+
+  object bloop extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(
+      ivy"ch.epfl.scala::bloop-config:1.2.5",
+      ivy"com.lihaoyi::ujson-circe:0.7.4"
+    )
   }
 }
 
@@ -431,7 +466,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage)
 
   def forkArgs =
     (

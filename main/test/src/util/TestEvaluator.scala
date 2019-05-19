@@ -12,12 +12,12 @@ object TestEvaluator{
   val externalOutPath = os.pwd / 'target / 'external
 
 
-  def static(module: TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {
+  def static(module: => TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
   }
 }
 
-class TestEvaluator(module: TestUtil.BaseModule, failFast: Boolean = false)
+class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
                                             (implicit fullName: sourcecode.FullName,
                                              tp: TestPath){
   val outPath =  TestUtil.getOutPath()

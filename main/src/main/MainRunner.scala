@@ -25,7 +25,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  env : Map[String, String],
                  setIdle: Boolean => Unit,
                  debugLog: Boolean,
-                 keepGoing: Boolean)
+                 keepGoing: Boolean,
+                 systemProperties: Map[String, String])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -85,7 +86,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
             debugEnabled = debugLog
           ),
           env,
-          keepGoing = keepGoing
+          keepGoing = keepGoing,
+          systemProperties
         )
 
         result match{

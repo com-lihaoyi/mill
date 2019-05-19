@@ -1,8 +1,69 @@
-## Contrib Modules
 
 The plugins in this section are developed/maintained in the mill git tree.
 
-### BuildInfo
+When using one of these, you should make sure to use the versions that matches your mill version.
+
+[comment]: # (Please keep list of plugins in alphabetical order)
+
+## Bloop
+
+This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration 
+from your build file, which lets you use the bloop CLI for compiling, and makes 
+your scala code editable in [Metals](https://scalameta.org/metals/)   
+
+
+### Quickstart
+```scala
+// build.sc (or any other .sc file it depends on, including predef) 
+// Don't forget to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-bloop:VERSION`
+```
+
+Then in your terminal : 
+
+```
+> mill mill.contrib.Bloop/install 
+```
+
+### Mix-in
+
+You can mix-in the `Bloop.Module` trait with any JavaModule to quickly access 
+the deserialised configuration for that particular module: 
+
+```scala
+// build.sc 
+import mill._ 
+import mill.scalalib._
+import mill.contrib.Bloop
+
+object MyModule extends ScalaModule with Bloop.Module {
+  def myTask = T { bloop.config() }
+}
+``` 
+
+### Note regarding metals 
+
+Generating the bloop config should be enough for metals to pick it up and for 
+features to start working in vscode (or the bunch of other editors metals supports). 
+However, note that this applies only to your project sources. Your mill/ammonite related
+`.sc` files are not yet supported by metals. 
+
+The generated bloop config references the semanticDB compiler plugin required by
+metals to function. If need be, the version of semanticDB can be overriden by 
+extending `mill.contrib.bloop.BloopImpl` in your own space. 
+
+### Note regarding current mill support in bloop 
+
+The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
+will be deprecated in favour of this implementation. 
+
+### Caveats
+
+At this time, only Java/ScalaModule are processed correctly. ScalaJS/ScalaNative integration will 
+be added in a near future. 
+
+
+## BuildInfo
 
 Generate scala code from your buildfile.
 This plugin generates a single object containing information from your build.
@@ -27,7 +88,7 @@ object project extends BuildInfo {
 }
 ```
 
-#### Configuration options
+### Configuration options
 
 * `def buildInfoMembers: T[Map[String, String]]`
   The map containing all member names and values for the generated info object.
@@ -83,7 +144,7 @@ object docker extends DockerConfig {
 
 Run mill in interactive mode to see the docker client output, like `mill -i foo.docker.build`.
   
-### Flyway
+## Flyway
 
 Enables you to configure and run [Flyway](https://flywaydb.org/) commands from your mill build file.
 The flyway module currently supports the most common flyway use cases with file based migrations.
@@ -127,7 +188,7 @@ mill foo.flywayMigrate
 > You should write some code to populate the settings for flyway instead.  
 > For example `def flywayPassword = T.input(T.ctx().env("FLYWAY_PASSWORD"))`
 
-### Play Framework
+## Play Framework
 
 This module adds basic Play Framework support to mill: 
 
@@ -140,7 +201,7 @@ This module adds basic Play Framework support to mill:
 There is no specific Play Java support, building a Play Java application will require a bit 
 of customization (mostly adding the proper dependencies).  
 
-#### Using the plugin
+### Using the plugin
 
 There are 2 base modules and 2 helper traits in this plugin, all of which can be found
  in `mill.playlib`.
@@ -162,7 +223,7 @@ directories at the top level alongside the `build.sc` file. This trait takes car
 * `RouterModule` allows you to use the Play router without the rest of the configuration (see 
 [Using the router module directly](#using-the-router-module-directly).)
 
-#### Using `PlayModule`
+### Using `PlayModule`
 
 In order to use the `PlayModule` for your application, you need to provide the scala, Play and 
 Twirl versions. You also need to define your own test object which extends the provided 
@@ -229,7 +290,7 @@ In order to have a working `start` command the following runtime dependency is a
 ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 ```
 
-#### Using `PlayApiModule`
+### Using `PlayApiModule`
 
 The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
 .html files and you don't need to define the `twirlVersion:
@@ -250,12 +311,12 @@ object core extends PlayApiModule {
 }  
 ```
 
-#### Play configuration options
+### Play configuration options
 
 The Play modules themselves don't have specific configuration options at this point but the [router 
 module configuration options](#router-configuration-options) and the [Twirl module configuration options](#twirl-configuration-options) are applicable. 
 
-#### Additional play libraries
+### Additional play libraries
 
 The following helpers are available to provide additional Play Framework dependencies: 
 
@@ -290,7 +351,7 @@ object core extends PlayApiModule {
 }  
 ``` 
 
-#### Commands equivalence
+### Commands equivalence
 
 Mill commands are targets on a named build. For example if your build is called `core`:
 
@@ -306,7 +367,7 @@ starts a server in *PROD* mode which:
 command to get a runnable fat jar of the project. The packaging is slightly different but should 
 be find for a production deployment.
 
-#### Using `SingleModule`
+### Using `SingleModule`
 
 The `SingleModule` trait allows you to have the build descriptor at the same level as the source
  code on the filesystem. You can move from there to a multi-module build either by refactoring 
@@ -394,7 +455,7 @@ the layout becomes:
         └── controllers
 ```
 
-##### Using the router module directly
+#### Using the router module directly
 
 If you want to use the router module in a project which doesn't use the default Play layout, you 
 can mix-in the `mill.playlib.routesModule` trait directly when defining your module. Your app must
@@ -413,7 +474,7 @@ object app extends ScalaModule with RouterModule {
 }  
 ``` 
 
-###### Router Configuration options
+##### Router Configuration options
 
 * `def playVersion: T[String]` (mandatory) - The version of Play to use to compile the routes file.
 * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
@@ -426,7 +487,7 @@ object app extends ScalaModule with RouterModule {
 * `def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator` - The routes 
   compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator
   
-###### Details
+##### Details
 
 The following filesystem layout is expected by default:
 
@@ -467,7 +528,7 @@ object app extends ScalaModule with RouterModule {
 ``` 
 
 
-### ScalaPB
+## ScalaPB
 
 This module allows [ScalaPB](https://scalapb.github.io) to be used in Mill builds. ScalaPB is a [Protocol Buffers](https://developers.google.com/protocol-buffers/) compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
 
@@ -498,7 +559,7 @@ example/
     resources/
 ```
 
-#### Configuration options
+### Configuration options
 
 * scalaPBVersion (mandatory) - The ScalaPB version `String` e.g. `"0.7.4"`
 
@@ -526,7 +587,50 @@ object example extends ScalaPBModule {
 }
 ```
 
-### TestNG
+
+## Scoverage
+
+This module allows you to generate code coverage reports for Scala projects with
+[Scoverage](https://github.com/scoverage) via the
+[scalac-scoverage-plugin](https://github.com/scoverage/scalac-scoverage-plugin).
+
+To declare a module for which you want to generate coverage reports you can
+extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
+module. Additionally, you must define a submodule that extends the
+`ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
+
+```scala
+// You have to replace VERSION
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+import mill.contrib.scoverage.ScoverageModule
+
+object foo extends ScoverageModule  {
+  def scalaVersion = "2.11.8"
+  def scoverageVersion = "1.3.1"
+
+  object test extends ScoverageTests {
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  }
+}
+```
+
+In addition to the normal tasks available to your Scala module, Scoverage
+modules introduce a few new tasks and changes the behavior of an existing one.
+
+```
+mill foo.scoverage.compile      # compiles your module with test instrumentation
+                                # (you don't have to run this manually, running the test task will force its invocation)
+
+mill foo.test                   # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+```
+
+The measurement data is available at `out/foo/scoverage/data/`,
+and the html report is saved in `out/foo/scoverage/htmlReport/`.
+
+
+## TestNG
 
 Provides support for [TestNG](https://testng.org/doc/index.html).
 
@@ -543,7 +647,7 @@ object project extends ScalaModule {
 }
 ```
 
-### Tut
+## Tut
 
 This module allows [Tut](https://tpolecat.github.io/tut) to be used in Mill builds. Tut is a documentation tool which compiles and evaluates Scala code in documentation files and provides various options for configuring how the results will be displayed in the compiled documentation.
 
@@ -582,7 +686,7 @@ In order to compile documentation we can execute the `tut` task in the module:
 sh> mill example.tut
 ```
 
-#### Configuration options
+### Configuration options
 
 * tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the `tut` folder at the root of the module.
 
@@ -602,7 +706,7 @@ sh> mill example.tut
 
 * tutPluginJars - A task which performs the dependency resolution for the scalac plugins to be used with Tut.
 
-### Twirl
+## Twirl
 
 Twirl templates support.
 
@@ -621,7 +725,7 @@ object app extends ScalaModule with TwirlModule {
 } 
 ``` 
 
-#### Twirl configuration options
+### Twirl configuration options
 
 * `def twirlVersion: T[String]` (mandatory) - the version of the twirl compiler to use, like "1.3.15"
 * `def twirlAdditionalImports: Seq[String] = Nil` - the additional imports that will be added by twirl compiler to the top of all templates
@@ -629,7 +733,7 @@ object app extends ScalaModule with TwirlModule {
 * `def twirlCodec = Codec(Properties.sourceEncoding)` - the codec used to generate the files (the default is the same sbt plugin uses) 
 * `def twirlInclusiveDot: Boolean = false`  
   
-#### Details
+### Details
 
 The following filesystem layout is expected:
 
@@ -703,256 +807,5 @@ Seq(
 
 These imports will always be added to every template.  You don't need to list them if you override `twirlAdditionalImports`.
 
-#### Example
+### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
-
-
-
-## Thirdparty Mill Plugins
-
-The plugins in this section are developed/maintained outside the mill git tree.
-
-Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
-The usage examples given here are most probably outdated and incomplete.
-
-If you develop or maintain a mill plugin, please create a [pull request](https://github.com/lihaoyi/mill/pulls) to get your plugin listed here.
-
-### DGraph
-
-Show transitive dependencies of your build in your browser.
-
-Project home: https://github.com/ajrnz/mill-dgraph
-
-#### Quickstart
-
-```scala
-import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
-```
-
-```sh
-sh> mill plugin.dgraph.browseDeps(proj)()
-```
-
-### Ensime
-
-Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
-
-Project home: https://github.com/yyadavalli/mill-ensime
-
-#### Quickstart
-
-```scala
-import $ivy.`fun.valycorp::mill-ensime:0.0.1`
-```
-
-```sh
-sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
-```
-
-### Integration Testing Mill Plugins
-
-Integration testing for mill plugins.
-
-#### Quickstart
-
-We assume, you have a mill plugin named `mill-demo`
-
-```scala
-// build.sc
-import mill._, mill.scalalib._
-object demo extends ScalaModule with PublishModule {
-  // ...
-}
-```
-
-Add an new test sub-project, e.g. `it`.
-
-```scala
-import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest:0.1.0`
-import de.tobiasroeser.mill.integrationtest._
-
-object it extends MillIntegrationTest {
-
-  def millTestVersion = "{exampleMillVersion}"
-
-  def pluginsUnderTest = Seq(demo)
-
-}
-```
-
-Your project should now look similar to this:
-
-```text
-.
-+-- demo/
-|   +-- src/
-|
-+-- it/
-    +-- src/
-        +-- 01-first-test/
-        |   +-- build.sc
-        |   +-- src/
-        |
-        +-- 02-second-test/
-            +-- build.sc
-```
-
-As the buildfiles `build.sc` in your test cases typically want to access the locally built plugin(s),
-the plugins publishes all plugins referenced under `pluginsUnderTest` to a temporary ivy repository, just before the test is executed.
-The mill version used in the integration test then used that temporary ivy repository.
-
-Instead of referring to your plugin with `import $ivy.'your::plugin:version'`,
-you can use the following line instead, which ensures you will use the correct locally build plugins.
-
-```scala
-// build.sc
-import $exec.plugins
-```
-
-Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
-
-#### Configuration and Targets
-
-The mill-integrationtest plugin provides the following targets.
-
-##### Mandatory configuration
-
-* `def millTestVersion: T[String]`
-  The mill version used for executing the test cases.
-  Used by `downloadMillTestVersion` to automatically download.
-
-* `def pluginsUnderTest: Seq[PublishModule]` -
-  The plugins used in the integration test.
-  You should at least add your plugin under test here.
-  You can also add additional libraries, e.g. those that assist you in the test result validation (e.g. a local test support project).
-  The defined modules will be published into a temporary ivy repository before the tests are executed.
-  In your test `build.sc` file, instead of the typical `import $ivy.` line,
-  you should use `import $exec.plugins` to include all plugins that are defined here.
-
-##### Optional configuration
-
-* `def sources: Sources` -
-  Locations where integration tests are located.
-  Each integration test is a sub-directory, containing a complete test mill project.
-
-* `def testCases: T[Seq[PathRef]]` -
-  The directories each representing a mill test case.
-  Derived from `sources`.
-
-* `def testTargets: T[Seq[String]]` -
-  The targets which are called to test the project.
-  Defaults to `verify`, which should implement test result validation.
-
-* `def downloadMillTestVersion: T[PathRef]` -
-  Download the mill version as defined by `millTestVersion`.
-  Override this, if you need to use a custom built mill version.
-  Returns the `PathRef` to the mill executable (must have the executable flag).
-
-##### Commands
-
-* `def test(): Command[Unit]` -
-  Run the integration tests.
-
-
-### JBake
-
-Create static sites/blogs with JBake.
-
-Plugin home: https://github.com/lefou/mill-jbake
-
-JBake home: https://jbake.org
-
-#### Quickstart
-
-```scala
-// build.sc
-import mill._
-import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
-import de.tobiasroeser.mill.jbake._
-
-object site extends JBakeModule {
-
-  def jbakeVersion = "2.6.4"
-
-}
-```
-
-Generate the site:
-
-```sh
-bash> mill site.jbake
-```
-
-Start a local Web-Server on Port 8820 with the generated site:
-
-```sh
-bash> mill site.jbakeServe
-```
-
-
-### OSGi
-
-Produce OSGi Bundles with mill.
-
-Project home: https://github.com/lefou/mill-osgi
-
-#### Quickstart
-
-```scala
-import mill._, mill.scalalib._
-import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
-import de.tobiasroeser.mill.osgi._
-
-object project extends ScalaModule with OsgiBundleModule {
-
-  def bundleSymbolicName = "com.example.project"
-
-  def osgiHeaders = T{ super.osgiHeaders().copy(
-    `Export-Package`   = Seq("com.example.api"),
-    `Bundle-Activator` = Some("com.example.internal.Activator")
-  )}
-
-  // other settings ...
-
-}
-```
-
-
-### PublishM2
-
-Mill plugin to publish artifacts into a local Maven repository.
-
-Project home: https://github.com/lefou/mill-publishM2
-
-#### Quickstart
-
-Just mix-in the `PublishM2Module` into your project.
-`PublishM2Module` already extends mill's built-in `PublishModule`.
-
-File: `build.sc`
-```scala
-import mill._, scalalib._, publish._
-
-import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
-import de.tobiasroeser.mill.publishM2._
-
-object project extends PublishModule with PublishM2Module {
-  // ...
-}
-```
-
-Publishing to default local Maven repository
-
-```bash
-> mill project.publishM2Local
-[40/40] project.publishM2Local
-Publishing to /home/user/.m2/repository
-```
-
-Publishing to custom local Maven repository
-
-```bash
-> mill project.publishM2Local /tmp/m2repo
-[40/40] project.publishM2Local
-Publishing to /tmp/m2repo
-```
