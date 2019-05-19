@@ -37,7 +37,10 @@ object UpdatesFinderTests extends TestSuite {
                       available: Seq[String],
                       allowPreRelease: Boolean) = {
     val dependency = coursier.Dependency(
-      coursier.Module("com.example.organization", "example-artifact"),
+      coursier.Module(
+        coursier.Organization("com.example.organization"),
+        coursier.ModuleName("example-artifact")
+      ),
       current)
     val currentVersion = Version(current)
     val allVersions = available.map(Version(_)).toSet

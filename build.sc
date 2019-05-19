@@ -1,7 +1,7 @@
 import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
-
+import $ivy.`org.scalaj::scalaj-http:2.4.1`
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
@@ -93,7 +93,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.6.0",
+      ivy"com.lihaoyi:::ammonite:1.6.7",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -213,6 +213,7 @@ object scalajslib extends MillModule {
 
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
   class WorkerModule(scalajsBinary: String) extends MillApiModule{
@@ -337,6 +338,7 @@ object scalanativelib extends MillModule {
   }
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.3")
   class WorkerModule(scalaNativeBinary: String) extends MillApiModule {

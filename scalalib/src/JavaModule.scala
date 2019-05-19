@@ -383,8 +383,14 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       Some(mapDependencies())
     )
 
-    println(coursier.util.Print.dependencyTree(flattened, resolution,
-      printExclusions = false, reverse = inverse))
+    println(
+      coursier.util.Print.dependencyTree(
+        roots = flattened,
+        resolution = resolution,
+        printExclusions = false,
+        reverse = inverse
+      )
+    )
 
     Result.Success()
   }

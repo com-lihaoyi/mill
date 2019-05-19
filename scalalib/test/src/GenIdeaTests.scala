@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import coursier.Cache
 import mill._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -57,6 +56,6 @@ object GenIdeaTests extends TestSuite {
 
 
   private def normaliseLibraryPaths(in: String): String = {
-    in.replaceAll(Cache.default.toPath.toAbsolutePath.toString, "COURSIER_HOME")
+    in.replaceAll(coursier.paths.CoursierPaths.cacheDirectory().toString, "COURSIER_HOME")
   }
 }
