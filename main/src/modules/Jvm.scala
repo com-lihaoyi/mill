@@ -289,9 +289,7 @@ object Jvm {
           writeEntry(path, concatenated, append = true)
         case (mapping, WriteOnceEntry(entry)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
-          if (Files.notExists(path)) {
-            writeEntry(path, entry.inputStream, append = false)
-          }
+          writeEntry(path, entry.inputStream, append = false)
       }
 
     zipFs.close()
