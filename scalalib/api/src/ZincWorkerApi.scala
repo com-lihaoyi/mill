@@ -60,7 +60,7 @@ object Util{
 
     classPath
       .find(p => p.toString.endsWith(mavenStylePath) || p.toString.endsWith(ivyStylePath))
-      .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath"))
+      .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath in ${classPath.mkString("[", ", ", "]")}"))
   }
 
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
