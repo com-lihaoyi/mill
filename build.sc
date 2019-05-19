@@ -287,6 +287,31 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
+  object scoverage extends MillModule {
+    def moduleDeps = Seq(scalalib, scoverage.api)
+
+    def testArgs = T {
+      val mapping = Map(
+        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path
+      )
+      scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs() ++
+        (for ((k, v) <- mapping) yield s"-D$k=$v")
+    }
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(scalalib)
+    }
+
+    object worker extends Cross[WorkerModule]("1.3.1")
+
+    class WorkerModule(scoverageVersion: String) extends MillApiModule {
+      def moduleDeps = Seq(scoverage.api)
+
+      def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
+    }
+  }
+
   object buildinfo extends MillModule {
     def moduleDeps = Seq(scalalib)
     // why do I need this?
@@ -436,7 +461,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage)
 
   def forkArgs =
     (
