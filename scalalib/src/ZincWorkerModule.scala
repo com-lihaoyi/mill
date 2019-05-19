@@ -69,11 +69,10 @@ trait ZincWorkerModule extends mill.Module{
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
   }
 
-  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
   def scalaCompilerBridgeSourceJar(scalaVersion: String,
                                    scalaOrganization: String) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
+      case s if s.startsWith("2.13.") => ("2.13.0-M2", "2.13.0-M2")
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
     }
 
