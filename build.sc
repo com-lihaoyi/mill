@@ -213,6 +213,7 @@ object scalajslib extends MillModule {
 
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
   class WorkerModule(scalajsBinary: String) extends MillApiModule{
@@ -337,6 +338,7 @@ object scalanativelib extends MillModule {
   }
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.3")
   class WorkerModule(scalaNativeBinary: String) extends MillApiModule {

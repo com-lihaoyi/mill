@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import coursier.Cache
+
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
@@ -17,7 +17,7 @@ object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule
 }
 trait ZincWorkerModule extends mill.Module{
   def repositories = Seq(
-    Cache.ivy2Local,
+    coursier.LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )

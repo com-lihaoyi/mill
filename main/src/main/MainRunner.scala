@@ -128,7 +128,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     )
   }
 
-  object CustomCodeWrapper extends Preprocessor.CodeWrapper {
+  object CustomCodeWrapper extends ammonite.interp.CodeWrapper {
     def apply(code: String,
               source: CodeSource,
               imports: ammonite.util.Imports,

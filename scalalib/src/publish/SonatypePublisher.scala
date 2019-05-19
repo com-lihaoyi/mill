@@ -5,7 +5,6 @@ import java.security.MessageDigest
 
 import mill.api.Logger
 import os.Shellable
-import scalaj.http.HttpResponse
 
 class SonatypePublisher(uri: String,
                         snapshotUri: String,
@@ -105,13 +104,13 @@ class SonatypePublisher(uri: String,
     }
   }
 
-  private def reportPublishResults(publishResults: Seq[HttpResponse[String]],
+  private def reportPublishResults(publishResults: Seq[requests.Response],
                                    artifacts: Seq[Artifact]) = {
     if (publishResults.forall(_.is2xx)) {
       log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Sonatype")
     } else {
       val errors = publishResults.filterNot(_.is2xx).map { response =>
-        s"Code: ${response.code}, message: ${response.body}"
+        s"Code: ${response.statusCode}, message: ${response.data.text}"
       }
       throw new RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Sonatype. Errors: \n${errors.mkString("\n")}"

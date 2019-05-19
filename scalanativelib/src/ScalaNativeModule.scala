@@ -3,7 +3,6 @@ package scalanativelib
 
 import java.net.URLClassLoader
 
-import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.define.{Target, Task}
 import mill.api.Result
@@ -50,7 +49,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       Result.Success(Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*))
     else
       Lib.resolveDependencies(
-        Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+        Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
         Lib.depToDependency(_, "2.12.4", ""),
         Seq(ivy"com.lihaoyi::mill-scalanativelib-worker-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"),
         ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -82,7 +81,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def bridgeFullClassPath = T {
     Lib.resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, scalaVersion(), platformSuffix()),
       toolsIvyDeps(),
       ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -202,7 +201,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     Lib.resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion(), ""),
-      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name)),
+      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name.value)),
       ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }

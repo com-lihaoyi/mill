@@ -238,19 +238,22 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       import coursier.util._
 
       def source(r: Resolution) = Resolution(
-        r.dependencies.map(d =>
-          d.copy(attributes = d.attributes.copy(classifier = "sources")))
+        r.dependencies
+          .map(d =>
+            d.copy(attributes = d.attributes.copy(classifier = coursier.Classifier("sources")))
+          )
+          .toSeq
       )
 
       import scala.concurrent.ExecutionContext.Implicits.global
-      val unresolved = Resolution(deps.toSet)
-      val fetch = Fetch.from(repos, Cache.fetch[Task]())
+      val unresolved = Resolution(deps)
+      val fetch = ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
       val gatherTask = for {
         resolved <- unresolved.process.run(fetch)
         resolvedSources <- source(resolved).process.run(fetch)
         all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
         gathered <- Gather[Task].gather(all.distinct.map {
-          case (dep, art) => Cache.file[Task](art).run.map(dep -> _)
+          case (dep, art) => coursier.cache.Cache.default.file(art).run.map(dep -> _)
         })
       } yield
         gathered
@@ -268,14 +271,14 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           .mapValues {
             _.map {
               case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod, classifier, None, file.toPath)
+                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
             }.toList
           }
           .map {
             case ((org, mod, version), artifacts) =>
               BloopConfig.Module(
-                organization = org,
-                name = mod,
+                organization = org.value,
+                name = mod.value,
                 version = version,
                 configurations = None,
                 artifacts = artifacts
