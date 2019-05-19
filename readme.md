@@ -155,7 +155,7 @@ optimizer without classpath conflicts.
 
 ## Changelog
 
-### 0.3.7
+### 0.3.8
 
 - Publish `compileIvyDeps` as provided scope
   ([535](https://github.com/lihaoyi/mill/issues/535))
