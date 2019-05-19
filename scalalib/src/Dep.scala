@@ -9,7 +9,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
-    dep.module.name + suffix
+    dep.module.name.value + suffix
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.copy(attributes = attributes))
   def forceVersion(): Dep = copy(force = true)
