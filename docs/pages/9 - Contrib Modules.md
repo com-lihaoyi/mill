@@ -99,7 +99,7 @@ object project extends BuildInfo {
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
   
-### Docker
+## Docker
 
 Automatically build docker images from your mill project.
 
@@ -125,7 +125,7 @@ $ mill foo.docker.build
 $ docker run foo
 ```
 
-#### Configuration
+### Configuration
 
 Configure the image by overriding tasks in the `DockerConfig` object
 
