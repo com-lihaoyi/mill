@@ -2,7 +2,7 @@ package mill
 package contrib
 package scoverage
 
-import coursier.{Cache, MavenRepository}
+import coursier.MavenRepository
 import mill.api.Result
 import mill.eval.PathRef
 import mill.util.Ctx
@@ -64,7 +64,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
 
   def scoverageClasspath = T {
     Lib.resolveDependencies(
-      Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
+      Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, outer.scalaVersion()),
       Seq(scoveragePluginDep()),
       ctx = Some(implicitly[mill.util.Ctx.Log])
