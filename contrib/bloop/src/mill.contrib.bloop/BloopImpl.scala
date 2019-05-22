@@ -17,12 +17,21 @@ import os.pwd
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
+  private val bloopDir = wd / ".bloop"
+
   /**
     * Generates bloop configuration files reflecting the build,
     * under pwd/.bloop.
     */
-  def install = T {
-    Task.traverse(computeModules)(_.bloop.writeConfig)
+  def install() = T.command {
+    val res = Task.traverse(computeModules)(_.bloop.writeConfig)()
+    val written = res.map(_._2).map(_.path)
+    // Cleaning up configs that weren't generated in this run.
+    os.list(bloopDir)
+      .filter(_.ext == "json")
+      .filterNot(written.contains)
+      .foreach(os.remove)
+    res
   }
 
   /**
@@ -75,8 +84,6 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
   }
 
-  private val bloopDir = wd / ".bloop"
-
   private def computeModules: Seq[JavaModule] = {
     val eval = ev()
     if (eval != null) {
@@ -92,13 +99,13 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * that does not get invalidated upon sourcefile change. Mainly called
     * from module#sources in bloopInstall
     */
-  def moduleSourceMap: Target[Map[String, Seq[Path]]] = T {
+  def moduleSourceMap = T.input {
     val sources = Task.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         m.millModuleSegments.render -> paths.map(_.path)
       }
     }()
-    sources.toMap
+    mill.eval.Result.Success(sources.toMap)
   }
 
   protected def name(m: JavaModule) = m.millModuleSegments.render
@@ -239,21 +246,24 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
       def source(r: Resolution) = Resolution(
         r.dependencies
-          .map(d =>
-            d.copy(attributes = d.attributes.copy(classifier = coursier.Classifier("sources")))
-          )
+          .map(
+            d =>
+              d.copy(attributes =
+                d.attributes.copy(classifier = coursier.Classifier("sources"))))
           .toSeq
       )
 
       import scala.concurrent.ExecutionContext.Implicits.global
       val unresolved = Resolution(deps)
-      val fetch = ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
+      val fetch =
+        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
       val gatherTask = for {
         resolved <- unresolved.process.run(fetch)
         resolvedSources <- source(resolved).process.run(fetch)
         all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
         gathered <- Gather[Task].gather(all.distinct.map {
-          case (dep, art) => coursier.cache.Cache.default.file(art).run.map(dep -> _)
+          case (dep, art) =>
+            coursier.cache.Cache.default.file(art).run.map(dep -> _)
         })
       } yield
         gathered
@@ -271,7 +281,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           .mapValues {
             _.map {
               case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
+                BloopConfig.Artifact(mod.value,
+                                     classifier.map(_.value),
+                                     None,
+                                     file.toPath)
             }.toList
           }
           .map {
@@ -301,10 +314,16 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     //  Classpath
     ////////////////////////////////////////////////////////////////////////////
 
+    val scalaLibIvyDeps = module match {
+      case s: ScalaModule => s.scalaLibraryIvyDeps
+      case _              => T.task(Loose.Agg.empty[Dep])
+    }
+
     val ivyDepsClasspath =
       module
         .resolveDeps(T.task {
-          module.compileIvyDeps() ++ module.transitiveIvyDeps()
+          module.compileIvyDeps() ++ module
+            .transitiveIvyDeps() ++ scalaLibIvyDeps()
         })
         .map(_.map(_.path).toSeq)
 
@@ -314,7 +333,9 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         Task.traverse(m.moduleDeps)(transitiveClasspath)().flatten
     }
 
-    val classpath = T.task(transitiveClasspath(module)() ++ ivyDepsClasspath())
+    val classpath = T
+      .task(transitiveClasspath(module)() ++ ivyDepsClasspath())
+      .map(_.distinct)
     val resources = T.task(module.resources().map(_.path.toNIO).toList)
 
     ////////////////////////////////////////////////////////////////////////////
