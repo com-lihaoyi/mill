@@ -17,13 +17,21 @@ import os.pwd
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
+  private val bloopDir = wd / ".bloop"
+
   /**
     * Generates bloop configuration files reflecting the build,
     * under pwd/.bloop.
     */
   def install() = T.command {
-    os.list(bloopDir).filter(_.ext == "json").foreach(os.remove)
-    Task.traverse(computeModules)(_.bloop.writeConfig)
+    val res = Task.traverse(computeModules)(_.bloop.writeConfig)()
+    val written = res.map(_._2).map(_.path)
+    // Cleaning up configs that weren't generated in this run.
+    os.list(bloopDir)
+      .filter(_.ext == "json")
+      .filterNot(written.contains)
+      .foreach(os.remove)
+    res
   }
 
   /**
@@ -75,8 +83,6 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       }
     }
   }
-
-  private val bloopDir = wd / ".bloop"
 
   private def computeModules: Seq[JavaModule] = {
     val eval = ev()
@@ -240,21 +246,24 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
       def source(r: Resolution) = Resolution(
         r.dependencies
-          .map(d =>
-            d.copy(attributes = d.attributes.copy(classifier = coursier.Classifier("sources")))
-          )
+          .map(
+            d =>
+              d.copy(attributes =
+                d.attributes.copy(classifier = coursier.Classifier("sources"))))
           .toSeq
       )
 
       import scala.concurrent.ExecutionContext.Implicits.global
       val unresolved = Resolution(deps)
-      val fetch = ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
+      val fetch =
+        ResolutionProcess.fetch(repos, coursier.cache.Cache.default.fetch)
       val gatherTask = for {
         resolved <- unresolved.process.run(fetch)
         resolvedSources <- source(resolved).process.run(fetch)
         all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
         gathered <- Gather[Task].gather(all.distinct.map {
-          case (dep, art) => coursier.cache.Cache.default.file(art).run.map(dep -> _)
+          case (dep, art) =>
+            coursier.cache.Cache.default.file(art).run.map(dep -> _)
         })
       } yield
         gathered
@@ -272,7 +281,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           .mapValues {
             _.map {
               case (_, mod, _, classifier, file) =>
-                BloopConfig.Artifact(mod.value, classifier.map(_.value), None, file.toPath)
+                BloopConfig.Artifact(mod.value,
+                                     classifier.map(_.value),
+                                     None,
+                                     file.toPath)
             }.toList
           }
           .map {
@@ -310,7 +322,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     val ivyDepsClasspath =
       module
         .resolveDeps(T.task {
-          module.compileIvyDeps() ++ module.transitiveIvyDeps() ++ scalaLibIvyDeps()
+          module.compileIvyDeps() ++ module
+            .transitiveIvyDeps() ++ scalaLibIvyDeps()
         })
         .map(_.map(_.path).toSeq)
 
