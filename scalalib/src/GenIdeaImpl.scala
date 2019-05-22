@@ -112,7 +112,7 @@ object GenIdeaImpl {
                              libraryClasspath: Loose.Agg[Path]
                              )
 
-    val resolved = for((path, mod) <- modules) yield {
+    val resolved = evalOrElse(evaluator, Task.sequence(for((path, mod) <- modules) yield {
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
         case _ => T.task{Loose.Agg.empty[Dep]}
@@ -146,23 +146,25 @@ object GenIdeaImpl {
         mod.resolveDeps(scalacPluginsIvyDeps)()
       }
 
-      val resolvedCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalDependencies, Loose.Agg.empty)
-      val resolvedSrcs: Loose.Agg[PathRef] = evalOrElse(evaluator, externalSources, Loose.Agg.empty)
-      val resolvedSp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalacPluginDependencies, Loose.Agg.empty)
-      val resolvedCompilerCp: Loose.Agg[PathRef] = evalOrElse(evaluator, scalaCompilerClasspath, Loose.Agg.empty)
-      val resolvedLibraryCp: Loose.Agg[PathRef] = evalOrElse(evaluator, externalLibraryDependencies, Loose.Agg.empty)
-      val scalacOpts: Seq[String] = evalOrElse(evaluator, scalacOptions, Seq())
+      T.task {
+        val resolvedCp: Loose.Agg[PathRef] = externalDependencies()
+        val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
+        val resolvedSp: Loose.Agg[PathRef] = scalacPluginDependencies()
+        val resolvedCompilerCp: Loose.Agg[PathRef] = scalaCompilerClasspath()
+        val resolvedLibraryCp: Loose.Agg[PathRef] = externalLibraryDependencies()
+        val scalacOpts: Seq[String] = scalacOptions()
 
-      ResolvedModule(
-        path,
-        resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-        mod,
-        resolvedSp.map(_.path).filter(_.ext == "jar"),
-        scalacOpts,
-        resolvedCompilerCp.map(_.path),
-        resolvedLibraryCp.map(_.path)
-      )
-    }
+        ResolvedModule(
+          path,
+          resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+          mod,
+          resolvedSp.map(_.path).filter(_.ext == "jar"),
+          scalacOpts,
+          resolvedCompilerCp.map(_.path),
+          resolvedLibraryCp.map(_.path)
+        )
+      }
+    }), Seq())
 
     val moduleLabels = modules.map(_.swap).toMap
 
