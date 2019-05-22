@@ -22,6 +22,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * under pwd/.bloop.
     */
   def install() = T.command {
+    os.list(bloopDir).filter(_.ext == "json").foreach(os.remove)
     Task.traverse(computeModules)(_.bloop.writeConfig)
   }
 
