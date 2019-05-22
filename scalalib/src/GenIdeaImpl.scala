@@ -1,12 +1,12 @@
 package mill.scalalib
 
 import ammonite.runtime.SpecialClassLoader
-import coursier.Repository
-import mill.define._
-import mill.eval.{Evaluator, PathRef, Result}
+import coursier.{LocalRepositories, Repositories}
 import mill.api.Ctx.{Home, Log}
 import mill.api.Strict.Agg
-import mill.api.{Loose, Strict}
+import mill.api.{Loose, Result, Strict}
+import mill.define._
+import mill.eval.{Evaluator, PathRef}
 import mill.{T, scalalib}
 import os.Path
 
@@ -77,7 +77,7 @@ object GenIdeaImpl {
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
         case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
         case None =>
-          val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories }
+          val repos = Seq(LocalRepositories.ivy2Local, Repositories.central)
           val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
