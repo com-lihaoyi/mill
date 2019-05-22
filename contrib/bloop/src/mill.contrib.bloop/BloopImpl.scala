@@ -21,7 +21,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * Generates bloop configuration files reflecting the build,
     * under pwd/.bloop.
     */
-  def install = T {
+  def install() = T.command {
     Task.traverse(computeModules)(_.bloop.writeConfig)
   }
 
