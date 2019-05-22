@@ -37,6 +37,10 @@ object BloopTests extends TestSuite {
       }
     }
 
+    object scalaModule2 extends scalalib.ScalaModule {
+      def scalaVersion = "2.12.8"
+    }
+
   }
 
   def readBloopConf(jsonFile: String) =
@@ -47,6 +51,7 @@ object BloopTests extends TestSuite {
 
       testEvaluator(testBloop.install)
       val scalaModuleConfig = readBloopConf("scalaModule.json")
+      val scalaModule2Config = readBloopConf("scalaModule2.json")
       val testModuleConfig = readBloopConf("scalaModule.test.json")
 
       'scalaModule - {
@@ -96,6 +101,10 @@ object BloopTests extends TestSuite {
         val (accessedConfig, _) =
           testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.right.get
         assert(accessedConfig == scalaModuleConfig)
+      }
+      'noDepTest - {
+        val cp = scalaModule2Config.project.classpath.map(_.toString)
+        assert(cp.exists(_.contains("scala-library-2.12.8")))
       }
     }
   }

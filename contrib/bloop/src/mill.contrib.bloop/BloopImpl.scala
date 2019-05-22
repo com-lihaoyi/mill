@@ -301,10 +301,15 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     //  Classpath
     ////////////////////////////////////////////////////////////////////////////
 
+    val scalaLibIvyDeps = module match {
+      case s: ScalaModule => s.scalaLibraryIvyDeps
+      case _              => T.task(Loose.Agg.empty[Dep])
+    }
+
     val ivyDepsClasspath =
       module
         .resolveDeps(T.task {
-          module.compileIvyDeps() ++ module.transitiveIvyDeps()
+          module.compileIvyDeps() ++ module.transitiveIvyDeps() ++ scalaLibIvyDeps()
         })
         .map(_.map(_.path).toSeq)
 
@@ -314,7 +319,9 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         Task.traverse(m.moduleDeps)(transitiveClasspath)().flatten
     }
 
-    val classpath = T.task(transitiveClasspath(module)() ++ ivyDepsClasspath())
+    val classpath = T
+      .task(transitiveClasspath(module)() ++ ivyDepsClasspath())
+      .map(_.distinct)
     val resources = T.task(module.resources().map(_.path.toNIO).toList)
 
     ////////////////////////////////////////////////////////////////////////////
