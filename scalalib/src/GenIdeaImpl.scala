@@ -238,13 +238,13 @@ object GenIdeaImpl {
       s"SBT: $groupId:$artifactWithScalaVersion:$version:jar"
     }
 
-    def libraryName(resolvedJar: ResolvedLibrary) : String = resolvedJar match {
+    def libraryNames(resolvedJar: ResolvedLibrary) : Seq[String] = resolvedJar match {
       case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) =>
-        sbtLibraryNameFromPom(pom)
+        Seq(sbtLibraryNameFromPom(pom), pathToLibName(path))
       case CoursierResolved(path, _, _) =>
-        pathToLibName(path)
+        Seq(pathToLibName(path))
       case OtherResolved(path) =>
-        pathToLibName(path)
+        Seq(pathToLibName(path))
     }
 
     def resolvedLibraries(resolved : Seq[os.Path]) : Seq[ResolvedLibrary] = resolved
@@ -274,9 +274,7 @@ object GenIdeaImpl {
       ),
       Tuple2(
         os.rel/".idea_modules"/"mill-build.iml",
-        rootXmlTemplate(
-          for(lib <- allBuildLibraries)
-          yield libraryName(lib)
+        rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib))
         )
       ),
       Tuple2(
@@ -285,14 +283,14 @@ object GenIdeaImpl {
       )
     )
 
-    val libraries = resolvedLibraries(allResolved).map{ resolved =>
+    val libraries = resolvedLibraries(allResolved).flatMap{ resolved =>
       import resolved.path
-      val name = libraryName(resolved)
+      val names = libraryNames(resolved)
       val sources = resolved match {
         case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
         case OtherResolved(_) => None
       }
-      Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
+      for(name <- names) yield Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
     }
 
     val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _) =>
