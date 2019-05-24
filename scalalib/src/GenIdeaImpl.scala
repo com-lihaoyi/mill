@@ -172,31 +172,15 @@ object GenIdeaImpl {
 
     val librariesProperties = resolved.flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath)).toMap
 
-    val commonPrefix =
-      if (allResolved.isEmpty) 0
-      else {
-        val minResolvedLength = allResolved.map(_.segmentCount).min
-        allResolved.map(_.segments.take(minResolvedLength).toList)
-          .transpose
-          .takeWhile(_.distinct.length == 1)
-          .length
-      }
-
-    // only resort to full long path names if the jar name is a duplicate
     val pathShortLibNameDuplicate = allResolved
       .distinct
-      .map{p => p.last -> p}
-      .groupBy(_._1)
+      .groupBy(_.last)
       .filter(_._2.size > 1)
-      .keySet
+      .mapValues(_.zipWithIndex)
+      .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
 
     val pathToLibName = allResolved
-      .map{p =>
-        if (pathShortLibNameDuplicate(p.last))
-          (p, p.segments.drop(commonPrefix).mkString("_"))
-        else
-          (p, p.last)
-      }
+      .map(p => p -> pathShortLibNameDuplicate.getOrElse(p, p.last))
       .toMap
 
     sealed trait ResolvedLibrary { def path : os.Path }
