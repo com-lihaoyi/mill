@@ -11,8 +11,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
     val coverageFileObj = coverageFile(dataDir)
     val coverage = deserialize(coverageFileObj)
     coverage(invoked(findMeasurementFiles(dataDir)))
-    val Seq(PathRef(sourceFolderPath, _, _)) = sources
-    val sourceFolders = Seq(sourceFolderPath.toIO)
+    val sourceFolders = sources.map(_.path.toIO)
     val htmlFolder = new java.io.File(s"${selfDir}/htmlReport")
     htmlFolder.mkdir()
     new ScoverageHtmlWriter(sourceFolders, htmlFolder, None)
