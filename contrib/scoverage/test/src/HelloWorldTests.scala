@@ -9,6 +9,7 @@ import utest.framework.TestPath
 
 object HelloWorldTests extends utest.TestSuite {
   val resourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world"
+  val sbtResourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world-sbt"
   trait HelloBase extends TestUtil.BaseModule {
     def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
@@ -21,6 +22,25 @@ object HelloWorldTests extends utest.TestSuite {
       object test extends ScoverageTests {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
         def testFrameworks = Seq("org.scalatest.tools.Framework")
+      }
+    }
+  }
+
+  object HelloWorldSbt extends HelloBase { outer =>
+    object core extends ScoverageModule {
+      def scalaVersion = "2.12.4"
+      def scoverageVersion = "1.3.1"
+      override def sources = T.sources(
+        millSourcePath / 'src / 'main / 'scala,
+        millSourcePath / 'src / 'main / 'java
+      )
+      override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
+
+      object test extends ScoverageTests {
+        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+        def testFrameworks = Seq("org.scalatest.tools.Framework")
+        override def millSourcePath = outer.millSourcePath
+        override def intellijModulePath = outer.millSourcePath / 'src / 'test
       }
     }
   }
@@ -74,6 +94,11 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
+          "htmlReport" - workspaceTest(HelloWorld) { eval =>
+            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.htmlReport)
+            assert(evalCount > 0)
+          }
         }
         "test" - {
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
@@ -100,6 +125,15 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           })
+        }
+      }
+    }
+    "HelloWorldSbt" - {
+      "scoverage" - {
+        "htmlReport" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
+          val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
+          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport)
+          assert(evalCount > 0)
         }
       }
     }
