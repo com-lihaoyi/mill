@@ -226,12 +226,16 @@ object GenIdeaImpl {
     def sbtLibraryNameFromPom(pom : os.Path) : String = {
       val xml = scala.xml.XML.loadFile(pom.toIO)
 
-      val groupId = (xml \ "groupId").text
+      val parent = xml \ "parent"
       val artifactId = (xml \ "artifactId").text
-      val version = (xml \ "version").text
+      val groupId = Some(xml \ "groupId").filter(_.nonEmpty).getOrElse(parent \ "groupId").text
+      val version = Some(xml \ "version").filter(_.nonEmpty).getOrElse(parent \ "version").text
 
-      // The scala version here is non incidental
-      s"SBT: $groupId:$artifactId:$version:jar"
+      val artifactWithScalaVersion = artifactId.substring(artifactId.length - 5) match {
+        case "_2.10" | "_2.11" | "_2.12" => artifactId
+        case _ => artifactId + "_2.12"
+      }
+      s"SBT: $groupId:$artifactWithScalaVersion:$version:jar"
     }
 
     def libraryName(resolvedJar: ResolvedLibrary) : String = resolvedJar match {
