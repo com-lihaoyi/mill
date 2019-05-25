@@ -1,6 +1,8 @@
 package mill.scalalib
 
 import ammonite.runtime.SpecialClassLoader
+import coursier.core.compatibility.xmlParseDom
+import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories}
 import mill.api.Ctx.{Home, Log}
 import mill.api.Strict.Agg
@@ -207,19 +209,15 @@ object GenIdeaImpl {
 
     // Hack so that Intellij does not complain about unresolved magic
     // imports in build.sc when in fact they are resolved
-    def sbtLibraryNameFromPom(pom : os.Path) : String = {
-      val xml = scala.xml.XML.loadFile(pom.toIO)
+    def sbtLibraryNameFromPom(pomPath : os.Path) : String = {
+      val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project).right.get
 
-      val parent = xml \ "parent"
-      val artifactId = (xml \ "artifactId").text
-      val groupId = Some(xml \ "groupId").filter(_.nonEmpty).getOrElse(parent \ "groupId").text
-      val version = Some(xml \ "version").filter(_.nonEmpty).getOrElse(parent \ "version").text
-
+      val artifactId = pom.module.name.value
       val artifactWithScalaVersion = artifactId.substring(artifactId.length - 5) match {
         case "_2.10" | "_2.11" | "_2.12" => artifactId
         case _ => artifactId + "_2.12"
       }
-      s"SBT: $groupId:$artifactWithScalaVersion:$version:jar"
+      s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }
 
     def libraryNames(resolvedJar: ResolvedLibrary) : Seq[String] = resolvedJar match {
