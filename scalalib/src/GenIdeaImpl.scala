@@ -19,6 +19,7 @@ object GenIdea extends ExternalModule {
 
   def idea(ev: Evaluator) = T.command{
     mill.scalalib.GenIdeaImpl(
+      ev,
       implicitly,
       ev.rootModule,
       ev.rootModule.millDiscover
@@ -31,7 +32,8 @@ object GenIdea extends ExternalModule {
 
 object GenIdeaImpl {
 
-  def apply(ctx: Log with Home,
+  def apply(evaluator: Evaluator,
+            ctx: Log with Home,
             rootModule: BaseModule,
             discover: Discover[_]): Unit = {
     val pp = new scala.xml.PrettyPrinter(999, 4)
@@ -41,9 +43,6 @@ object GenIdeaImpl {
     os.remove.all(os.pwd/".idea"/"libraries")
     os.remove.all(os.pwd/".idea"/"scala_compiler.xml")
     os.remove.all(os.pwd/".idea_modules")
-
-
-    val evaluator = new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))){
       os.write.over(os.pwd/relPath, pp.format(xml), createFolders = true)
