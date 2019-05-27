@@ -340,11 +340,12 @@ object contrib extends MillModule {
   }
 
   object bloop extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
       ivy"ch.epfl.scala::bloop-config:1.2.5",
       ivy"com.lihaoyi::ujson-circe:0.7.4"
     )
+    def testArgs = T(scalanativelib.testArgs())
   }
 }
 

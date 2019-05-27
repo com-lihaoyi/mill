@@ -25,6 +25,9 @@ Then in your terminal :
 > mill mill.contrib.Bloop/install 
 ```
 
+It generate correct bloop config for any `JavaModule`, `ScalaModule`, 
+`ScalaJsModule` or `ScalaNativeModule` under the `.bloop` folder
+
 ### Mix-in
 
 You can mix-in the `Bloop.Module` trait with any JavaModule to quickly access 
@@ -56,11 +59,6 @@ extending `mill.contrib.bloop.BloopImpl` in your own space.
 
 The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
 will be deprecated in favour of this implementation. 
-
-### Caveats
-
-At this time, only Java/ScalaModule are processed correctly. ScalaJS/ScalaNative integration will 
-be added in a near future. 
 
 
 ## BuildInfo
