@@ -7,9 +7,11 @@ import mill._
 import mill.api.Loose
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
+import mill.modules.Jvm
 import mill.scalajslib.ScalaJSModule
 import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
+import mill.scalalib.api.CompilationResult
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.ReleaseMode
 import os.pwd
@@ -39,8 +41,20 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
   }
 
   /**
+    * Same as Module, excepts that it overrides the default behaviour
+    * of tasks, so that calling `mill foo.compile` actually calls
+    * `bloop compile foo`
+    */
+  trait Proxy extends Module { self : JavaModule =>
+    override def compile = T ( bloop.compile() )
+    override def run(args: String*) = T.command( bloop.run(args:_*) )
+    trait Tests extends self.Tests with Proxy
+  }
+
+  /**
     * Trait that can be mixed-in to quickly access the bloop config
-    * of the module.
+    * of the module, and to call some bloop tasks without overriding
+    * the default behaviours.
     *
     * {{{
     * object myModule extends ScalaModule with Bloop.Module {
@@ -50,6 +64,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     */
   trait Module extends MillModule with CirceCompat { self: JavaModule =>
 
+    private val ops = new BloopOps(self)
+
     /**
       * Allows to tell Bloop whether it should use "fullOptJs" or
       * "fastOptJs" when compiling. Used exclusively with ScalaJsModules.
@@ -57,9 +73,49 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     def linkerMode: T[Option[BloopConfig.LinkerMode]] = None
 
     object bloop extends MillModule {
+
       def config = T {
-        new BloopOps(self).bloop.config()
+        ops.bloop.config()
       }
+
+      /**
+        * Same as "config" excepts that it ensures that the value
+        * gets written at the location bloop expects to find, as well
+        * as ensuring that the configurations of all module dependencies
+        * this module requires to compile can be found.
+        */
+      def writtenConfig = T.task {
+        val configMap = ops.bloop.writeTransitiveConfig().toMap
+        val configText = os.read(configMap(name(self)).path)
+        upickle.default.read[BloopConfig.File](configText)
+      }
+
+      /**
+        * Delegates the compilation to bloop. Input because we want
+        * it to be re-evaluated no matter what, as this compile task
+        * will not get invalidated upon sources changing.
+        */
+      def compile = T.input {
+        val prj = writtenConfig().project
+        val cmd = Seq("bloop", "compile", prj.name)
+        val classes = Path(prj.classesDir)
+        val out = Path(prj.out)
+        val analysisFile = out / s"${prj.name}-analysis.bin"
+        try {
+          Jvm.runSubprocess(cmd, T.ctx().env, pwd)
+          val res = CompilationResult(analysisFile, PathRef(classes))
+          mill.api.Result.Success(res)
+        } catch {
+          case e : Throwable => mill.api.Result.Failure("bloop compile failed")
+        }
+      }
+
+      def run(args: String*) = T.command {
+        val conf = writtenConfig().project
+        val cmd = Seq("bloop", "run", conf.name) ++ args
+        Jvm.runSubprocess(cmd, T.ctx().env, pwd)
+      }
+
     }
   }
 
@@ -238,7 +294,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
             BloopConfig.NativeConfig.empty.copy(
               version = m.scalaNativeVersion(),
               mode = m.releaseMode() match {
-                case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
+                case ReleaseMode.Debug   => BloopConfig.LinkerMode.Debug
                 case ReleaseMode.Release => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
