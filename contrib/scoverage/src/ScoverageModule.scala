@@ -45,9 +45,11 @@ import mill.moduledefs.Cacher
  *
  * - mill foo.test                   # tests your project and collects metrics on code coverage
  * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+ * - mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
  * The measurement data is available at `out/foo/scoverage/data/`,
- * And the html report is saved in `out/foo/scoverage/htmlReport/`.
+ * the html report is saved in `out/foo/scoverage/htmlReport/`,
+ * and the xml report is saved in `out/foo/scoverage/xmlReport/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageVersion: T[String]
@@ -99,6 +101,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
         .htmlReport(sources(), dataDir().toString, selfDir().toString)
+    }
+    def xmlReport() = T.command {
+      ScoverageReportWorkerApi
+        .scoverageReportWorker()
+        .bridge(toolsClasspath().map(_.path))
+        .xmlReport(sources(), dataDir().toString, selfDir().toString)
     }
   }
 

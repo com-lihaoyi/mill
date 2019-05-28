@@ -622,10 +622,12 @@ mill foo.scoverage.compile      # compiles your module with test instrumentation
 
 mill foo.test                   # tests your project and collects metrics on code coverage
 mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
 ```
 
 The measurement data is available at `out/foo/scoverage/data/`,
-and the html report is saved in `out/foo/scoverage/htmlReport/`.
+the html report is saved in `out/foo/scoverage/htmlReport/`,
+and the xml report is saved in `out/foo/scoverage/xmlReport/`.
 
 
 ## TestNG
