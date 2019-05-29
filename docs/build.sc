@@ -105,7 +105,7 @@ val posts = {
           " Haoyi is a software engineer, an early contributor to ",
           a(href:="http://www.scala-js.org/")("Scala.js"),
           ", and the author of many open-source Scala tools such as Mill, the ",
-          a(href:="lihaoyi.com/Ammonite", "Ammonite REPL"), " and ",
+          a(href:="http://lihaoyi.com/Ammonite", "Ammonite REPL"), " and ",
           a(href:="https://github.com/lihaoyi/fastparse", "FastParse"), ". "
         )
       ),
