@@ -1,4 +1,6 @@
-import mill.T
+package mill
+package contrib.docker
+
 import mill.scalalib.JavaModule
 import os.Shellable.IterableShellable
 
