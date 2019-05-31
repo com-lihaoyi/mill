@@ -3,4 +3,6 @@ object Greet {
     case Some(p) => s"Hello, ${p} ${name}!"
     case None => s"Hello, ${name}!"
   }
+
+  val foo = Foo // testing module deps
 }
