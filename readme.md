@@ -152,6 +152,18 @@ classloaders.
 This allows a single Mill build to use multiple versions of e.g. the Scala.js
 optimizer without classpath conflicts.
 
+### Contrib modules
+
+- `contrib/bloop/`, `contrib/flyway/`, `contrib/scoverage/`, etc.
+
+These are modules that help integrate Mill with the wide variety of different
+tools and utilities available in the JVM ecosystem.
+
+These modules are not as stringently reviewed as the main Mill core/worker codebase,
+and are primarily maintained by their individual contributors. These are maintained
+as part of the primary Mill Github repo for easy testing/updating as the core Mill
+APIs evolve, ensuring that they are always tested and passing against the 
+corresponding version of Mill.
 
 ## Changelog
 
