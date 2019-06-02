@@ -87,6 +87,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def selfDir = T { T.ctx().dest / os.up / os.up }
     def dataDir = T { selfDir() / "data" }
 
+    def moduleDeps = outer.moduleDeps
     def sources = outer.sources
     def resources = outer.resources
     def scalaVersion = outer.scalaVersion()

@@ -15,9 +15,15 @@ object HelloWorldTests extends utest.TestSuite {
   }
 
   object HelloWorld extends HelloBase {
+    object other extends ScalaModule {
+      def scalaVersion = "2.12.4"
+    }
+
     object core extends ScoverageModule {
       def scalaVersion = "2.12.4"
       def scoverageVersion = "1.3.1"
+
+      def moduleDeps = Seq(other)
 
       object test extends ScoverageTests {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
