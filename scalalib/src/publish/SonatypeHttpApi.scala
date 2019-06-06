@@ -60,11 +60,11 @@ class SonatypeHttpApi(
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
   def createStagingRepo(profileUri: String, groupId: String): String = {
-    val response = http.post(
+    val response = withRetry(http.post(
       s"${profileUri}/start",
       headers = commonHeaders,
       data = s"""{"data": {"description": "fresh staging profile for ${groupId}"}}"""
-    )
+    ))
 
     if (!response.is2xx) {
       throw new Exception(s"$uri/staging/profiles returned ${response.statusCode}")

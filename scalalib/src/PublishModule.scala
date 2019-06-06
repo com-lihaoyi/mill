@@ -83,7 +83,7 @@ trait PublishModule extends JavaModule { outer =>
               gpgPassphrase: String = null,
               gpgKeyName: String = null,
               signed: Boolean = true,
-              readTimeout: Int = 1000,
+              readTimeout: Int = 60000,
               connectTimeout: Int = 5000,
               release: Boolean): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
@@ -111,7 +111,7 @@ object PublishModule extends ExternalModule {
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String = null,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
-                 readTimeout: Int = 1000,
+                 readTimeout: Int = 60000,
                  connectTimeout: Int = 5000,
                  release: Boolean = false,
                  gpgKeyName: String = null,
