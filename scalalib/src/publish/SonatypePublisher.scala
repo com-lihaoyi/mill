@@ -12,9 +12,11 @@ class SonatypePublisher(uri: String,
                         gpgPassphrase: Option[String],
                         gpgKeyName: Option[String],
                         signed: Boolean,
+                        readTimeout: Int,
+                        connectTimeout: Int,
                         log: Logger) {
 
-  private val api = new SonatypeHttpApi(uri, credentials)
+  private val api = new SonatypeHttpApi(uri, credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
   def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, release: Boolean): Unit = {
     publishAll(release, fileMapping -> artifact)

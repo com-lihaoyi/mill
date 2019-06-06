@@ -7,8 +7,13 @@ import java.util.Base64
 import scala.concurrent.duration._
 
 
-class SonatypeHttpApi(uri: String, credentials: String) {
-  val http = requests.Session(connectTimeout = 5000, readTimeout = 1000, maxRedirects = 0)
+class SonatypeHttpApi(
+  uri: String,
+  credentials: String,
+  readTimeout: Int,
+  connectTimeout: Int
+) {
+  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0)
 
   private val base64Creds = base64(credentials)
 
@@ -48,7 +53,6 @@ class SonatypeHttpApi(uri: String, credentials: String) {
   def getStagingRepoState(stagingRepoId: String): String = {
     val response = http.get(
       s"${uri}/staging/repository/${stagingRepoId}",
-      readTimeout = 60000,
       headers = commonHeaders
     )
     ujson.read(response.data.text)("type").str.toString
