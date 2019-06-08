@@ -173,7 +173,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     // The test frameworks run under the JVM and communicate with the native binary over a socket
     // therefore the test framework is loaded from a JVM classloader
     val testClassloader =
-    new URLClassLoader(testClasspathJvm().map(_.path.toIO.toURI.toURL).toArray,
+    new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
       this.getClass.getClassLoader)
     val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
     val testBinary = testRunnerNative.nativeLink().toIO
@@ -186,31 +186,12 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
     val (doneMsg, results) = TestRunner.runTests(
       nativeFrameworks,
-      testClasspathJvm().map(_.path),
+      runClasspath().map(_.path),
       Agg(compile().classes.path),
       args
     )
 
     TestModule.handleResults(doneMsg, results)
-  }
-
-  private val supportedTestFrameworks = Set("utest", "scalatest")
-
-  // get the JVM classpath entries for supported test frameworks
-  def testFrameworksJvmClasspath = T{
-    Lib.resolveDependencies(
-      repositories,
-      Lib.depToDependency(_, scalaVersion(), ""),
-      transitiveIvyDeps().filter(d => d.cross.isBinary && supportedTestFrameworks(d.dep.module.name.value)),
-      ctx = Some(implicitly[mill.util.Ctx.Log])
-    )
-  }
-
-  def testClasspathJvm = T{
-    localClasspath() ++
-      transitiveLocalClasspath() ++
-      unmanagedClasspath() ++
-      testFrameworksJvmClasspath()
   }
 
   // creates a specific binary used for running tests - has a different (generated) main class
@@ -243,7 +224,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
     val testClasses =
-      Jvm.inprocess(testClasspathJvm().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
+      Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
         cl => {
           frameworkInstances(cl).flatMap { framework =>
             val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
