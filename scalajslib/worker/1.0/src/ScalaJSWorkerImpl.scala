@@ -3,7 +3,7 @@ package scalajslib
 package worker
 
 import java.io.File
-import mill.scalajslib.api.{ModuleKind, NodeJSConfig}
+import mill.scalajslib.api.{ModuleKind, JsEnvConfig}
 import mill.api.Result
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
@@ -49,16 +49,16 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     }
   }
 
-  def run(config: NodeJSConfig, linkedFile: File): Unit = {
-    nodeJSEnv(config)
+  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+    jsEnv(config)
       .jsRunner(Seq(FileVirtualJSFile(linkedFile)))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
-  def getFramework(config: NodeJSConfig,
+  def getFramework(config: JsEnvConfig,
                    frameworkName: String,
                    linkedFile: File): (() => Unit, sbt.testing.Framework) = {
-    val env = nodeJSEnv(config)
+    val env = jsEnv(config)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
     val adapter =
@@ -74,12 +74,30 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     )
   }
 
-  def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {
-    new NodeJSEnv(
-      NodeJSEnv.Config()
-        .withExecutable(config.executable)
-        .withArgs(config.args)
-        .withEnv(config.env)
-        .withSourceMap(config.sourceMap))
+  def jsEnv(config: JsEnvConfig): org.scalajs.jsenv.ComJSEnv = config match{
+    case config: JsEnvConfig.NodeJs =>
+      new org.scalajs.jsenv.nodejs.NodeJSEnv(
+        org.scalajs.jsenv.nodejs.NodeJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+          .withSourceMap(config.sourceMap)
+      )
+
+    case config: JsEnvConfig.JsDom =>
+      new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(
+        org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+      )
+    case config: JsEnvConfig.Phantom =>
+      new org.scalajs.jsenv.phantomjs.PhantomJSEnv(
+        org.scalajs.jsenv.phantomjs.PhantomJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+          .withAutoExit(config.autoExit)
+      )
   }
 }

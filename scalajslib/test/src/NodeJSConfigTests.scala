@@ -33,7 +33,7 @@ object NodeJSConfigTests extends TestSuite {
     class BuildModule(val crossScalaVersion: String, nodeArgs: List[String]) extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
-      override def nodeJSConfig = T { NodeJSConfig(args = nodeArgs) }
+      override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
     object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
@@ -45,7 +45,7 @@ object NodeJSConfigTests extends TestSuite {
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
-        override def nodeJSConfig = T { NodeJSConfig(args = nodeArgs) }
+        override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
       }
     }
 

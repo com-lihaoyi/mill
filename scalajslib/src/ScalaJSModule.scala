@@ -41,13 +41,18 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") => ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
-      case v if v.startsWith("1.0") => ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}"
+      case v if v.startsWith("0.6") => Seq(ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}")
+      case v if v.startsWith("1.0") =>
+        Seq(
+          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-phantomjs:${scalaJSVersion()}"
+        )
     }
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, "2.12.4", ""),
-      commonDeps :+ envDep,
+      commonDeps ++ envDep,
       ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }
@@ -84,7 +89,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Right(_) =>
         ScalaJSWorkerApi.scalaJSWorker().run(
           toolsClasspath().map(_.path),
-          nodeJSConfig(),
+          jsEnvConfig(),
           fastOpt().path.toIO
         )
         Result.Success(())
@@ -147,7 +152,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 
-  def nodeJSConfig = T { NodeJSConfig() }
+  def jsEnvConfig: T[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 }
@@ -178,7 +183,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def test(args: String*) = T.command {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
         toolsClasspath().map(_.path),
-        nodeJSConfig(),
+        jsEnvConfig(),
         testFrameworks().head,
         fastOptTest().path.toIO
       )
