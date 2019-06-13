@@ -38,7 +38,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
-      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}"
+      ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
+      ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
+      ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
+      ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
       case v if v.startsWith("0.6") => Seq(ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}")
