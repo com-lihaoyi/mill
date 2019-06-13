@@ -84,7 +84,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Right(_) =>
         ScalaJSWorkerApi.scalaJSWorker().run(
           toolsClasspath().map(_.path),
-          nodeJSConfig(),
+          jsEnvConfig(),
           fastOpt().path.toIO
         )
         Result.Success(())
@@ -147,7 +147,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   override def platformSuffix = s"_sjs${artifactScalaJSVersion()}"
 
-  def nodeJSConfig = T { NodeJSConfig() }
+  def jsEnvConfig = T { JsEnvConfig.NodeJs() }
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
 }
@@ -178,7 +178,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   override def test(args: String*) = T.command {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
         toolsClasspath().map(_.path),
-        nodeJSConfig(),
+        jsEnvConfig(),
         testFrameworks().head,
         fastOptTest().path.toIO
       )

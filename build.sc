@@ -230,7 +230,9 @@ object scalajslib extends MillModule {
         Agg(
           ivy"org.scala-js::scalajs-tools:1.0.0-M2",
           ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2",
-          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
+          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2",
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2"
         )
     }
   }

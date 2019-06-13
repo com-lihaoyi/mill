@@ -226,7 +226,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ModuleKind.CommonJSModule =>
                   Config.ModuleKindJS.CommonJSModule
               },
-              emitSourceMaps = m.nodeJSConfig().sourceMap,
+              emitSourceMaps = m.jsEnvConfig().sourceMap,
               jsdom = Some(false),
             ),
             mainClass = module.mainClass()
