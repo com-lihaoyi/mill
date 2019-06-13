@@ -8,7 +8,7 @@ import mill.api.Loose
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
-import mill.scalajslib.api.ModuleKind
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.ReleaseMode
@@ -226,7 +226,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ModuleKind.CommonJSModule =>
                   Config.ModuleKindJS.CommonJSModule
               },
-              emitSourceMaps = m.jsEnvConfig().sourceMap,
+              emitSourceMaps = m.jsEnvConfig() match{
+                case c: JsEnvConfig.NodeJs => c.sourceMap
+                case _ => false
+              },
               jsdom = Some(false),
             ),
             mainClass = module.mainClass()
