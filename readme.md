@@ -167,6 +167,15 @@ corresponding version of Mill.
 
 ## Changelog
 
+
+### 0.4.1
+
+- Fixes for scala native test suites without test frameworks [#627](https://github.com/lihaoyi/mill/issues/627)
+
+- Fix publication of artifacts by increasing sonatype timeouts
+
+- Bug fixes for Scoverage integration [#623](https://github.com/lihaoyi/mill/issues/623)
+
 ### 0.4.0
 
 - Publish `compileIvyDeps` as provided scope
