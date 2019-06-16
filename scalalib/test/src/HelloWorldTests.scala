@@ -33,7 +33,7 @@ object HelloWorldTests extends TestSuite {
   }
 
   trait HelloWorldModuleWithPackageVersionInfo extends HelloWorldModule {
-    def packageVersionInfo = PackageVersionInfo(
+    def packageVersionInfo = new PackageVersionInfo(
       specificationTitle = Some("Scala Utility Classes"),
       specificationVersion = Some("1.2"),
       specificationVendor = Some("Example Tech, Inc."),
