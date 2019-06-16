@@ -16,6 +16,7 @@ import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import mill.api.IO
 import mill.api.Loose.Agg
+import upickle.default.{ReadWriter => RW, macroRW}
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -190,13 +191,20 @@ object Jvm {
   }
 
 
-  private def createManifest(mainClass: Option[String]) = {
+  private def createManifest(mainClass: Option[String], packageVersionInfo: PackageVersionInfo = PackageVersionInfo.empty) = {
+    import java.util.jar.Attributes.Name._
+
     val m = new java.util.jar.Manifest()
-    m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
+
+    m.getMainAttributes.put(MANIFEST_VERSION, "1.0")
     m.getMainAttributes.putValue( "Created-By", "Scala mill" )
-    mainClass.foreach(
-      m.getMainAttributes.put(java.util.jar.Attributes.Name.MAIN_CLASS, _)
-    )
+    mainClass.foreach(m.getMainAttributes.put(MAIN_CLASS, _))
+    packageVersionInfo.specificationTitle.foreach(m.getMainAttributes.put(SPECIFICATION_TITLE, _))
+    packageVersionInfo.specificationVersion.foreach(m.getMainAttributes.put(SPECIFICATION_VERSION, _))
+    packageVersionInfo.specificationVendor.foreach(m.getMainAttributes.put(SPECIFICATION_VENDOR, _))
+    packageVersionInfo.implementationTitle.foreach(m.getMainAttributes.put(IMPLEMENTATION_TITLE, _))
+    packageVersionInfo.implementationVersion.foreach(m.getMainAttributes.put(IMPLEMENTATION_VERSION, _))
+    packageVersionInfo.implementationVendor.foreach(m.getMainAttributes.put(IMPLEMENTATION_VENDOR, _))
     m
   }
 
@@ -210,12 +218,14 @@ object Jvm {
     * @param fileFilter - optional file filter to select files to be included.
     *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
     *                   return true if the file is to be included in the jar.
+    * @param packageVersionInfo - the specification and implementation metadata for the jar.
     * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
     * @return - a `PathRef` for the created jar.
     */
   def createJar(inputPaths: Agg[os.Path],
                 mainClass: Option[String] = None,
-                fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
+                fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true,
+                packageVersionInfo: PackageVersionInfo = PackageVersionInfo.empty)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     os.remove.all(outputPath)
@@ -224,7 +234,7 @@ object Jvm {
     seen.add(os.rel / "META-INF" / "MANIFEST.MF")
     val jar = new JarOutputStream(
       new FileOutputStream(outputPath.toIO),
-      createManifest(mainClass)
+      createManifest(mainClass, packageVersionInfo = packageVersionInfo)
     )
 
     try{
@@ -254,7 +264,8 @@ object Jvm {
                      mainClass: Option[String] = None,
                      prependShellScript: String = "",
                      base: Option[os.Path] = None,
-                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
+                     packageVersionInfo: PackageVersionInfo = PackageVersionInfo.empty)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
 
     val tmp = ctx.dest / "out-tmp.jar"
@@ -269,7 +280,7 @@ object Jvm {
 
     val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm)
 
-    val manifest = createManifest(mainClass)
+    val manifest = createManifest(mainClass, packageVersionInfo = packageVersionInfo)
     val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
     Files.createDirectories(manifestPath.getParent)
     val manifestOut = Files.newOutputStream(
@@ -501,6 +512,29 @@ object Jvm {
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()
     (deps.toSeq, resolution)
+  }
+
+  /** The package version identifiers for the jar file.
+    *
+    * See this link for more information:
+    *
+    *   - https://docs.oracle.com/javase/tutorial/deployment/jar/packageman.html
+    */
+  case class PackageVersionInfo(specificationTitle: Option[String] = None,
+                                specificationVersion: Option[String] = None,
+                                specificationVendor: Option[String] = None,
+                                implementationTitle: Option[String] = None,
+                                implementationVersion: Option[String] = None,
+                                implementationVendor: Option[String] = None)
+
+  /** Companion object for [[PackageVersionInfo]]. */
+  object PackageVersionInfo {
+
+    /** Implicitly define how this case class should be serialized. */
+    implicit val rw: RW[PackageVersionInfo] = macroRW
+
+    /** Create an empty [[PackageVersionInfo]] class. */
+    def empty: PackageVersionInfo = new PackageVersionInfo()
   }
 
   /**

@@ -6,7 +6,7 @@ import mill.define.Task
 import mill.define.TaskModule
 import mill.eval.{PathRef, Result}
 import mill.modules.{Assembly, Jvm}
-import mill.modules.Jvm.{createAssembly, createJar}
+import mill.modules.Jvm.{PackageVersionInfo, createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
 import mill.api.Loose.Agg
@@ -38,6 +38,14 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * class to use if one exists
     */
   def mainClass: T[Option[String]] = None
+
+  /** The implementation and specification metadata for the jar.
+    *
+    * See the following for more information:
+    *
+    *   - https://docs.oracle.com/javase/tutorial/deployment/jar/packageman.html
+    */
+  def packageVersionInfo: T[PackageVersionInfo] = T{ PackageVersionInfo.empty }
 
   def finalMainClassOpt: T[Either[String, String]] = T{
     mainClass() match{
@@ -267,7 +275,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       mainClass(),
-      assemblyRules = assemblyRules
+      assemblyRules = assemblyRules,
+      packageVersionInfo = packageVersionInfo()
     )
   }
 
@@ -281,7 +290,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       finalMainClassOpt().toOption,
       prependShellScript(),
       Some(upstreamAssembly().path),
-      assemblyRules
+      assemblyRules,
+      packageVersionInfo = packageVersionInfo()
     )
   }
 
@@ -292,7 +302,8 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def jar = T{
     createJar(
       localClasspath().map(_.path).filter(os.exists),
-      mainClass()
+      mainClass(),
+      packageVersionInfo = packageVersionInfo()
     )
   }
 

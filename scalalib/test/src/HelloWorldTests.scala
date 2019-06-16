@@ -8,6 +8,7 @@ import mill.define.Target
 import mill.api.Result.Exception
 import mill.eval.{Evaluator, Result}
 import mill.modules.Assembly
+import mill.modules.Jvm.PackageVersionInfo
 import mill.scalalib.publish._
 import mill.util.{TestEvaluator, TestUtil}
 import mill.scalalib.publish.VersionControl
@@ -31,6 +32,17 @@ object HelloWorldTests extends TestSuite {
     def mainClass = Some("Main")
   }
 
+  trait HelloWorldModuleWithPackageVersionInfo extends HelloWorldModule {
+    def packageVersionInfo = PackageVersionInfo(
+      specificationTitle = Some("Scala Utility Classes"),
+      specificationVersion = Some("1.2"),
+      specificationVendor = Some("Example Tech, Inc."),
+      implementationTitle = Some("scala.util"),
+      implementationVersion = Some("build57"),
+      implementationVendor = Some("Example Tech, Inc.")
+    )
+  }
+
   object HelloWorld extends HelloBase {
     object core extends HelloWorldModule
   }
@@ -51,6 +63,10 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldWithMain extends HelloBase {
     object core extends HelloWorldModuleWithMain
+  }
+
+  object HelloWorldWithPackageVersionInfo extends HelloBase {
+    object core extends HelloWorldModuleWithPackageVersionInfo
   }
 
   val akkaHttpDeps = Agg(ivy"com.typesafe.akka::akka-http:10.0.13")
@@ -268,9 +284,12 @@ object HelloWorldTests extends TestSuite {
   val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
-    import java.util.jar.Attributes._
+    jarManifestHeader(jar, java.util.jar.Attributes.Name.MAIN_CLASS)
+  }
+
+  def jarManifestHeader(jar: JarFile, header: java.util.jar.Attributes.Name): Option[String] = {
     val attrs = jar.getManifest.getMainAttributes.asScala
-    attrs.get(Name.MAIN_CLASS).map(_.asInstanceOf[String])
+    attrs.get(header).map(_.asInstanceOf[String])
   }
 
   def jarEntries(jar: JarFile): Set[String] = {
@@ -635,7 +654,24 @@ object HelloWorldTests extends TestSuite {
         val mainClass = jarMainClass(jarFile)
         assert(mainClass.contains("Main"))
       }
+      'packageVersionInfoInManifest - workspaceTest(HelloWorldWithPackageVersionInfo){ eval =>
 
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPackageVersionInfo.core.jar)
+
+        assert(os.exists(result.path), evalCount > 0)
+
+        val jarFile = new JarFile(result.path.toIO)
+
+        assert(jarMainClass(jarFile).isEmpty)
+
+        import java.util.jar.Attributes.Name._
+        assert(jarManifestHeader(jarFile, SPECIFICATION_TITLE).contains("Scala Utility Classes"))
+        assert(jarManifestHeader(jarFile, SPECIFICATION_VERSION).contains("1.2"))
+        assert(jarManifestHeader(jarFile, SPECIFICATION_VENDOR).contains("Example Tech, Inc."))
+        assert(jarManifestHeader(jarFile, IMPLEMENTATION_TITLE).contains("scala.util"))
+        assert(jarManifestHeader(jarFile, IMPLEMENTATION_VERSION).contains("build57"))
+        assert(jarManifestHeader(jarFile, IMPLEMENTATION_VENDOR).contains("Example Tech, Inc."))
+      }
       'logOutputToFile - workspaceTest(HelloWorld){eval =>
         val outPath = eval.outPath
         eval.apply(HelloWorld.core.compile)
