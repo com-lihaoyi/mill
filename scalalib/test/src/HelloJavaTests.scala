@@ -53,7 +53,7 @@ object HelloJavaTests extends TestSuite {
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    'docJar  - {
+    test("docJar"){
       val eval = init()
 
       val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)

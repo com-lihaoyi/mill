@@ -513,7 +513,6 @@ object HelloWorldTests extends TestSuite {
           )
         }
         test("v210") - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.10.6", "2.10.6 rox")))
-        test("v211") - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
         test("v2123") - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
         test("v2124") - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
         test("v2130M3") - workspaceTest(CrossHelloWorld)(cross(_, "2.13.0-M3", "2.13.0-M3 idk"))

@@ -100,7 +100,6 @@ object HelloJSWorldTests extends TestSuite {
 
       test("fromScratch_2124_0622") - testCompileFromScratch("2.12.4", "0.6.22")
       test("fromScratch_2123_0622") - testCompileFromScratch("2.12.3", "0.6.22")
-      test("fromScratch_2118_0622") - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
       test("fromScratch_2124_100M2") - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
@@ -119,13 +118,11 @@ object HelloJSWorldTests extends TestSuite {
     test("fullOpt"){
       test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
       test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
-      test("run_2118_0622") - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
       test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
     }
     test("fastOpt"){
       test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
       test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
-      test("run_2118_0622") - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
       test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
     }
     test("jar"){
@@ -190,12 +187,9 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      test("utest_2118_0622") - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
       test("utest_2124_0622") - checkUtest("2.12.4", "0.6.22")
-      test("utest_2118_100M2") - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
       test("utest_2124_100M2") - checkUtest("2.12.4", "1.0.0-M2")
 
-      test("scalaTest_2118_0622") - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
       test("scalaTest_2124_0622") - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
 //      test("scalaTest_2118_100M2") - checkScalaTest("2.11.8", "1.0.0-M2")
@@ -220,9 +214,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     test("run"){
-      'run_2118_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "0.6.22"))
-      'run_2124_0622  - checkRun("2.12.4", "0.6.22")
-      test("run_2118_100M2") - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
+      test("run_2124_0622")  - checkRun("2.12.4", "0.6.22")
       test("run_2124_100M2") - checkRun("2.12.4", "1.0.0-M2")
     }
   }

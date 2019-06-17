@@ -192,8 +192,8 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     test("run"){
-      'run_21112_038_debug  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'run_21112_038_release  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Release))
+      test("run_21112_038_debug") - (checkRun("2.11.12", "0.3.8", ReleaseMode.Debug))
+      test("run_21112_038_release") - (checkRun("2.11.12", "0.3.8", ReleaseMode.Release))
     }
   }
 
