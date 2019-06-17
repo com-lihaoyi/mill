@@ -100,7 +100,7 @@ object HelloJSWorldTests extends TestSuite {
 
       test("fromScratch_2124_0622") - testCompileFromScratch("2.12.4", "0.6.22")
       test("fromScratch_2123_0622") - testCompileFromScratch("2.12.3", "0.6.22")
-      test("fromScratch_2124_100M2") - testCompileFromScratch("2.12.4", "1.0.0-M2")
+//      test("fromScratch_2124_100M2") - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
     def testRun(scalaVersion: String,
@@ -118,12 +118,12 @@ object HelloJSWorldTests extends TestSuite {
     test("fullOpt"){
       test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
       test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
-      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
+//      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
     }
     test("fastOpt"){
       test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
       test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
-      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
+//      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
     }
     test("jar"){
       test("containsSJSIRs"){
