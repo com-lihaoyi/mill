@@ -10,7 +10,7 @@ object VersionContolTests extends TestSuite {
   import VersionControlConnection._
 
   val tests = Tests {
-    'github - {
+    test("github"){
       assert(
         github("lihaoyi", "mill") ==
           VersionControl(
@@ -21,7 +21,7 @@ object VersionContolTests extends TestSuite {
           )        
       )
     }
-    'git - {
+    test("git"){
       assert(
         gitGit("example.org", "path.git", port = Some(9418)) ==
           "scm:git:git://example.org:9418/path.git"
@@ -48,7 +48,7 @@ object VersionContolTests extends TestSuite {
       )
 
     }
-    'svn - {
+    test("svn"){
       assert(
         svnSsh("example.org", "repo") ==
          "scm:svn:svn+ssh://example.org/repo"

@@ -29,8 +29,8 @@ object PlaySingleApiModuleTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'playVersion - {
-      'fromBuild - workspaceTest(playsingleapi) { eval =>
+    test("playVersion"){
+      test("fromBuild") - workspaceTest(playsingleapi) { eval =>
         val Right((result, evalCount)) = eval.apply(playsingleapi.playVersion)
         assert(
           result == "2.7.0",
@@ -38,8 +38,8 @@ object PlaySingleApiModuleTests extends TestSuite {
         )
       }
     }
-    'layout - {
-      'fromBuild - workspaceTest(playsingleapi) { eval =>
+    test("layout"){
+      test("fromBuild") - workspaceTest(playsingleapi) { eval =>
         val Right((conf, _)) = eval.apply(playsingleapi.conf)
         val Right((app, _)) = eval.apply(playsingleapi.app)
         val Right((sources, _)) = eval.apply(playsingleapi.sources)
@@ -56,7 +56,7 @@ object PlaySingleApiModuleTests extends TestSuite {
         )
       }
     }
-    'compile - workspaceTest(playsingleapi) { eval =>
+    test("compile") - workspaceTest(playsingleapi) { eval =>
       val eitherResult = eval.apply(playsingleapi.compile)
       val Right((result, evalCount)) = eitherResult
       val outputFiles = ls.rec(result.classes.path).filter(_.isFile)

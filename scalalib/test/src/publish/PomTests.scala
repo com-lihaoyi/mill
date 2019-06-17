@@ -39,10 +39,10 @@ object PomTests extends TestSuite {
       )
     )
 
-    'fullPom - {
+    test("fullPom"){
       val fullPom = pomXml(artifact, deps, artifactId, settings)
 
-      'topLevel - {
+      test("topLevel"){
         assert(
           singleText(fullPom \ "modelVersion") == "4.0.0",
           singleText(fullPom \ "name") == artifactId,
@@ -55,7 +55,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'licenses - {
+      test("licenses"){
         val licenses = fullPom \ "licenses" \ "license"
 
         assert(licenses.size == 1)
@@ -69,7 +69,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'scm - {
+      test("scm"){
         val scm = (fullPom \ "scm").head
         val pomScm = settings.versionControl
 
@@ -81,7 +81,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'developers - {
+      test("developers"){
         val developers = fullPom \ "developers" \ "developer"
 
         assert(developers.size == 2)
@@ -103,7 +103,7 @@ object PomTests extends TestSuite {
         )
       }
 
-      'dependencies - {
+      test("dependencies"){
         val dependencies = fullPom \ "dependencies" \ "dependency"
 
         assert(dependencies.size == 3)
@@ -126,7 +126,7 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomEmptyScm - {
+    test("pomEmptyScm"){
       val updatedSettings = settings.copy(
         versionControl = VersionControl(
           browsableRepository = Some("git://github.com/lihaoyi/mill.git"),
@@ -136,7 +136,7 @@ object PomTests extends TestSuite {
         ))
       val pomEmptyScm = pomXml(artifact, deps, artifactId, updatedSettings)
 
-      'scm - {
+      test("scm"){
         val scm = (pomEmptyScm \ "scm").head
         val pomScm = updatedSettings.versionControl
 
@@ -149,11 +149,11 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoLicenses - {
+    test("pomNoLicenses"){
       val updatedSettings = settings.copy(licenses = Seq.empty)
       val pomNoLicenses = pomXml(artifact, deps, artifactId, updatedSettings)
 
-      'licenses - {
+      test("licenses"){
         assert(
           (pomNoLicenses \ "licenses").nonEmpty,
           (pomNoLicenses \ "licenses" \ "licenses").isEmpty
@@ -161,13 +161,13 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoDeps - {
+    test("pomNoDeps"){
       val pomNoDeps = pomXml(artifact,
                              dependencies = Agg.empty,
                              artifactId = artifactId,
                              pomSettings = settings)
 
-      'dependencies - {
+      test("dependencies"){
         assert(
           (pomNoDeps \ "dependencies").nonEmpty,
           (pomNoDeps \ "dependencies" \ "dependency").isEmpty
@@ -175,11 +175,11 @@ object PomTests extends TestSuite {
       }
     }
 
-    'pomNoDevelopers - {
+    test("pomNoDevelopers"){
       val updatedSettings = settings.copy(developers = Seq.empty)
       val pomNoDevelopers = pomXml(artifact, deps, artifactId, updatedSettings)
 
-      'developers - {
+      test("developers"){
         assert(
           (pomNoDevelopers \ "developers").nonEmpty,
           (pomNoDevelopers \ "developers" \ "developer").isEmpty

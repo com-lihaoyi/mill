@@ -34,8 +34,8 @@ import fastparse.Parsed
 object VersionTests extends TestSuite {
 
   val tests = Tests {
-    'versionsClassification - {
-      'ReleaseVersion - {
+    test("versionsClassification"){
+      test("ReleaseVersion"){
         List("1.0.0", "1.0.0.Final", "1.0.0-FINAL", "1.0.0.RELEASE") foreach {
           rel =>
             assertMatch(Version(rel)) {
@@ -43,26 +43,26 @@ object VersionTests extends TestSuite {
             }
         }
       }
-      'PreReleaseVersion - {
+      test("PreReleaseVersion"){
         assertMatch(Version("1.0.0-alpha.1")) {
           case PreReleaseVersion(List(1, 0, 0), List("alpha", "1")) =>
         }
       }
-      'PreReleaseBuildVersion - {
+      test("PreReleaseBuildVersion"){
         assertMatch(Version("1.0.0-alpha.1+build.10")) {
           case PreReleaseBuildVersion(List(1, 0, 0),
                                       List("alpha", "1"),
                                       List("build", "10")) =>
         }
       }
-      'BuildVersion - {
+      test("BuildVersion"){
         assertMatch(Version("1.0.0+build.10")) {
           case BuildVersion(List(1, 0, 0), List("build", "10")) =>
         }
       }
     }
 
-    'semverVersionsOrdering - {
+    test("semverVersionsOrdering"){
       import scala.Ordered._
 
       val v = List(
@@ -95,7 +95,7 @@ object VersionTests extends TestSuite {
       }
     }
 
-    'parser - {
+    test("parser"){
 
       Symbol("parse 1.0.5") - {
         assertMatch(VersionParser.parse("1.0.5")) {

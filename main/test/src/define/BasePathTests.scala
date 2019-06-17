@@ -10,48 +10,48 @@ object BasePathTests extends TestSuite{
       val remaining = f(m).millSourcePath.relativeTo(m.millSourcePath).segments
       assert(remaining == segments)
     }
-    'singleton - {
+    test("singleton"){
       check(testGraphs.singleton)(identity)
     }
-    'backtickIdentifiers - {
+    test("backtickIdentifiers"){
       check(testGraphs.bactickIdentifiers)(
         _.`nested-module`,
         "nested-module"
       )
     }
-    'separateGroups - {
+    test("separateGroups"){
       check(TestGraphs.triangleTask)(identity)
     }
-    'TraitWithModuleObject - {
+    test("TraitWithModuleObject"){
       check(TestGraphs.TraitWithModuleObject)(
         _.TraitModule,
        "TraitModule"
       )
     }
-    'nestedModuleNested - {
+    test("nestedModuleNested"){
       check(TestGraphs.nestedModule)(_.nested, "nested")
     }
-    'nestedModuleInstance - {
+    test("nestedModuleInstance"){
       check(TestGraphs.nestedModule)(_.classInstance, "classInstance")
     }
-    'singleCross - {
+    test("singleCross"){
       check(TestGraphs.singleCross)(_.cross, "cross")
       check(TestGraphs.singleCross)(_.cross("210"), "cross", "210")
       check(TestGraphs.singleCross)(_.cross("211"), "cross", "211")
     }
-    'doubleCross - {
+    test("doubleCross"){
       check(TestGraphs.doubleCross)(_.cross, "cross")
       check(TestGraphs.doubleCross)(_.cross("210", "jvm"), "cross", "210", "jvm")
       check(TestGraphs.doubleCross)(_.cross("212", "js"), "cross", "212", "js")
     }
-    'nestedCrosses - {
+    test("nestedCrosses"){
       check(TestGraphs.nestedCrosses)(_.cross, "cross")
       check(TestGraphs.nestedCrosses)(
         _.cross("210").cross2("js"),
         "cross", "210", "cross2", "js"
       )
     }
-    'overriden - {
+    test("overriden"){
       object overridenBasePath extends TestUtil.BaseModule {
         override def millSourcePath = os.pwd / 'overridenBasePathRootValue
         object nested extends Module{

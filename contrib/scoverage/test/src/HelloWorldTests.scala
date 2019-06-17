@@ -63,8 +63,8 @@ object HelloWorldTests extends utest.TestSuite {
   }
 
   def tests: utest.Tests = utest.Tests {
-    "HelloWorld" - {
-      "core" - {
+    test("HelloWorld"){
+      test("core"){
         "scoverageVersion" - workspaceTest(HelloWorld) { eval =>
           val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverageVersion)
 
@@ -73,7 +73,7 @@ object HelloWorldTests extends utest.TestSuite {
             evalCount > 0
           )
         }
-        "scoverage" - {
+        test("scoverage"){
           "ivyDeps" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
@@ -111,7 +111,7 @@ object HelloWorldTests extends utest.TestSuite {
             assert(evalCount > 0)
           }
         }
-        "test" - {
+        test("test"){
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
@@ -139,8 +139,8 @@ object HelloWorldTests extends utest.TestSuite {
         }
       }
     }
-    "HelloWorldSbt" - {
-      "scoverage" - {
+    test("HelloWorldSbt"){
+      test("scoverage"){
         "htmlReport" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.htmlReport)

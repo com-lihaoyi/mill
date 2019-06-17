@@ -81,7 +81,7 @@ object HelloNativeWorldTests extends TestSuite {
 
   def tests: Tests = Tests {
     prepareWorkspace()
-    'compile - {
+    test("compile"){
       def testCompileFromScratch(scalaVersion: String,
                                  scalaNativeVersion: String,
                                  mode: ReleaseMode): Unit = {
@@ -102,11 +102,11 @@ object HelloNativeWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_21112_037 - testCompileFromScratch("2.11.12", "0.3.8", ReleaseMode.Debug)
+      test("fromScratch_21112_037") - testCompileFromScratch("2.11.12", "0.3.8", ReleaseMode.Debug)
     }
 
-    'jar - {
-      'containsNirs - {
+    test("jar"){
+      test("containsNirs"){
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld("2.11.12", "0.3.8", ReleaseMode.Debug).jar)
         val jar = result.path
@@ -114,7 +114,7 @@ object HelloNativeWorldTests extends TestSuite {
         assert(entries.contains("hello/Main$.nir"))
       }
     }
-    'publish - {
+    test("publish"){
       def testArtifactId(scalaVersion: String,
                          scalaNativeVersion: String,
                          mode: ReleaseMode,
@@ -123,9 +123,9 @@ object HelloNativeWorldTests extends TestSuite {
           HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode: ReleaseMode).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_038 - testArtifactId("2.11.12", "0.3.8", ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
+      test("artifactId_038") - testArtifactId("2.11.12", "0.3.8", ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
     }
-    'test - {
+    test("test"){
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
         val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
@@ -169,10 +169,10 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
 
-      'utest_21112_038_debug - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'utest_21112_038_release - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Release))
-      'scalaTest_21112_038_debug - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'scalaTest_21112_038_release - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Release))
+      test("utest_21112_038_debug") - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Debug))
+      test("utest_21112_038_release") - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Release))
+      test("scalaTest_21112_038_debug") - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Debug))
+      test("scalaTest_21112_038_release") - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Release))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
@@ -191,7 +191,7 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    'run - {
+    test("run"){
       'run_21112_038_debug  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Debug))
       'run_21112_038_release  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Release))
     }

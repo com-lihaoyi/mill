@@ -8,7 +8,7 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def scriptSourcePath: os.Path = os.pwd / 'integration / 'test / 'resources / workspaceSlug
   val tests = Tests{
     initWorkspace()
-    'test - {
+    test("test"){
       assert(eval("inspect", "core.test.ivyDeps"))
       val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
       assert(

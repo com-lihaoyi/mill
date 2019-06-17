@@ -75,9 +75,9 @@ object HelloWorldTests extends TestSuite {
   )
 
   def tests: Tests = Tests {
-    'twirlVersion - {
+    test("twirlVersion"){
 
-      'fromBuild - workspaceTest(HelloWorld, "hello-world") { eval =>
+      test("fromBuild") - workspaceTest(HelloWorld, "hello-world") { eval =>
         val Right((result, evalCount)) =
           eval.apply(HelloWorld.core.twirlVersion)
 
@@ -87,7 +87,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
-    'compileTwirl - workspaceTest(HelloWorld, "hello-world") { eval =>
+    test("compileTwirl") - workspaceTest(HelloWorld, "hello-world") { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
@@ -119,7 +119,7 @@ object HelloWorldTests extends TestSuite {
 
       assert(unchangedEvalCount == 0)
     }
-    'compileTwirlInclusiveDot - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
+    test("compileTwirlInclusiveDot") - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))

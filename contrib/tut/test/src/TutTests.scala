@@ -43,8 +43,8 @@ object TutTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'tut - {
-      'createOutputFile - workspaceTest(TutTest) { eval =>
+    test("tut"){
+      test("createOutputFile") - workspaceTest(TutTest) { eval =>
         val expectedPath =
           eval.outPath / 'tutTargetDirectory / 'dest / "TutExample.md"
 
@@ -65,7 +65,7 @@ object TutTests extends TestSuite {
         )
       }
 
-      'supportCustomSettings - workspaceTest(TutCustomTest) { eval =>
+      test("supportCustomSettings") - workspaceTest(TutCustomTest) { eval =>
         val defaultPath =
           eval.outPath / 'tutTargetDirectory / 'dest / "TutExample.md"
         val expectedPath =
@@ -89,7 +89,7 @@ object TutTests extends TestSuite {
         )
       }
 
-      'supportUsingLibraries - workspaceTest(TutLibrariesTest, resourcePath = resourcePathWithLibraries) { eval =>
+      test("supportUsingLibraries") - workspaceTest(TutLibrariesTest, resourcePath = resourcePathWithLibraries) { eval =>
         val expectedPath =
           eval.outPath / 'tutTargetDirectory / 'dest / "TutWithLibraries.md"
 

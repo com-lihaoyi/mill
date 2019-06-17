@@ -1,7 +1,7 @@
 package mill.eval
 
 
-import mill.util.TestUtil.{Test, test}
+import mill.util.TestUtil.Test
 import mill.define.{Discover, Graph, Target, Task}
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestGraphs, TestUtil}
@@ -55,9 +55,9 @@ object EvaluationTests extends TestSuite{
     object graphs extends TestGraphs()
     import graphs._
     import TestGraphs._
-    'evaluateSingle - {
+    test("evaluateSingle"){
 
-      'singleton - {
+      test("singleton"){
         import singleton._
         val check = new Checker(singleton)
         // First time the target is evaluated
@@ -67,7 +67,7 @@ object EvaluationTests extends TestSuite{
         // After incrementing the counter, it forces re-evaluation
         check(single, expValue = 1, expEvaled = Agg(single))
       }
-      'backtickIdentifiers - {
+      test("backtickIdentifiers"){
         import graphs.bactickIdentifiers._
         val check = new Checker(bactickIdentifiers)
 
@@ -79,7 +79,7 @@ object EvaluationTests extends TestSuite{
         `up-target`.counter += 1
         check(`a-down-target`, expValue = 2, expEvaled = Agg(`up-target`, `a-down-target`))
       }
-      'pair - {
+      test("pair"){
         import pair._
         val check = new Checker(pair)
         check(down, expValue = 0, expEvaled = Agg(up, down))
@@ -90,7 +90,7 @@ object EvaluationTests extends TestSuite{
         up.counter += 1
         check(down, expValue = 2, expEvaled = Agg(up, down))
       }
-      'anonTriple - {
+      test("anonTriple"){
         import anonTriple._
         val check = new Checker(anonTriple)
         val middle = down.inputs(0)
@@ -106,7 +106,7 @@ object EvaluationTests extends TestSuite{
 
         check(down, expValue = 3, expEvaled = Agg(middle, down))
       }
-      'diamond - {
+      test("diamond"){
         import diamond._
         val check = new Checker(diamond)
         check(down, expValue = 0, expEvaled = Agg(up, left, right, down))
@@ -124,7 +124,7 @@ object EvaluationTests extends TestSuite{
         right.counter += 1
         check(down, expValue = 5, expEvaled = Agg(right, down))
       }
-      'anonDiamond - {
+      test("anonDiamond"){
         import anonDiamond._
         val check = new Checker(anonDiamond)
         val left = down.inputs(0).asInstanceOf[TestUtil.Test]
@@ -145,7 +145,7 @@ object EvaluationTests extends TestSuite{
         check(down, expValue = 5, expEvaled = Agg(left, right, down))
       }
 
-      'bigSingleTerminal - {
+      test("bigSingleTerminal"){
         import bigSingleTerminal._
         val check = new Checker(bigSingleTerminal)
 
@@ -164,8 +164,8 @@ object EvaluationTests extends TestSuite{
       }
     }
 
-    'evaluateMixed - {
-      'separateGroups - {
+    test("evaluateMixed"){
+      test("separateGroups"){
         // Make sure that `left` and `right` are able to recompute separately,
         // even though one depends on the other
 
@@ -184,7 +184,7 @@ object EvaluationTests extends TestSuite{
 
 
       }
-      'triangleTask - {
+      test("triangleTask"){
 
         import triangleTask._
         val checker = new Checker(triangleTask)
@@ -192,7 +192,7 @@ object EvaluationTests extends TestSuite{
         checker(left, 1, Agg(), extraEvaled = -1)
 
       }
-      'multiTerminalGroup - {
+      test("multiTerminalGroup"){
         import multiTerminalGroup._
 
         val checker = new Checker(multiTerminalGroup)
@@ -200,7 +200,7 @@ object EvaluationTests extends TestSuite{
         checker(left, 1, Agg(left), extraEvaled = -1)
       }
 
-      'multiTerminalBoundary - {
+      test("multiTerminalBoundary"){
 
         import multiTerminalBoundary._
 
@@ -209,7 +209,7 @@ object EvaluationTests extends TestSuite{
         checker(task2, 4, Agg(), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      'overrideSuperTask - {
+      test("overrideSuperTask"){
         // Make sure you can override targets, call their supers, and have the
         // overriden target be allocated a spot within the overriden/ folder of
         // the main publically-available target
@@ -231,7 +231,7 @@ object EvaluationTests extends TestSuite{
           !overriden.contains("object")
         )
       }
-      'overrideSuperCommand - {
+      test("overrideSuperCommand"){
         // Make sure you can override commands, call their supers, and have the
         // overriden command be allocated a spot within the overriden/ folder of
         // the main publically-available command
@@ -259,7 +259,7 @@ object EvaluationTests extends TestSuite{
           !overriden.contains("object1")
         )
       }
-      'nullTasks - {
+      test("nullTasks"){
         import nullTasks._
         val checker = new Checker(nullTasks)
         checker(nullTarget1, null, Agg(nullTarget1), extraEvaled = -1)
@@ -286,7 +286,7 @@ object EvaluationTests extends TestSuite{
         checker(nc4, null, Agg(nc4), extraEvaled = -1, secondRunNoOp = false)
       }
 
-      'tasksAreUncached - {
+      test("tasksAreUncached"){
         // Make sure the tasks `left` and `middle` re-compute every time, while
         // the target `right` does not
         //
@@ -299,7 +299,7 @@ object EvaluationTests extends TestSuite{
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = T{ test.anon() }
+          def up = T{ TestUtil.test.anon() }
           def left = T.task{ leftCount += 1; up() + 1 }
           def middle = T.task{ middleCount += 1; 100 }
           def right = T{ rightCount += 1; 10000 }

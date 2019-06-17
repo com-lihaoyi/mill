@@ -48,9 +48,9 @@ object TutorialTests extends TestSuite {
   )
 
   def tests: Tests = Tests {
-    'scalapbVersion - {
+    test("scalapbVersion"){
 
-      'fromBuild - workspaceTest(Tutorial) { eval =>
+      test("fromBuild") - workspaceTest(Tutorial) { eval =>
         val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
@@ -60,8 +60,8 @@ object TutorialTests extends TestSuite {
       }
     }
 
-    'compileScalaPB - {
-      'calledDirectly - workspaceTest(Tutorial) { eval =>
+    test("compileScalaPB"){
+      test("calledDirectly") - workspaceTest(Tutorial) { eval =>
         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
         val outPath = protobufOutPath(eval)
@@ -86,7 +86,7 @@ object TutorialTests extends TestSuite {
 
       // This throws a NullPointerException in coursier somewhere
       //
-      // 'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
+      // test("triggeredByScalaCompile") - workspaceTest(Tutorial) { eval =>
       //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
 
       //   val outPath = protobufOutPath(eval)

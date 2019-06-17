@@ -80,7 +80,7 @@ object ClientServerTests extends TestSuite{
   }
 
   def tests = Tests{
-    'hello - {
+    test("hello"){
       if (!Util.isWindows){
         val (tmpDir, locks) = init()
         def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
@@ -135,7 +135,7 @@ object ClientServerTests extends TestSuite{
         )
       }
 
-      'envVars - {
+      test("envVars"){
         if (!Util.isWindows){
           val (tmpDir, locks) = init()
 

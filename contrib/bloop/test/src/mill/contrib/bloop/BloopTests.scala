@@ -64,7 +64,7 @@ object BloopTests extends TestSuite {
     read[BloopFile](os.read(workdir / ".bloop" / jsonFile))
 
   def tests: Tests = Tests {
-    'genBloopTests - {
+    test("genBloopTests"){
 
       testEvaluator(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
@@ -73,7 +73,7 @@ object BloopTests extends TestSuite {
       val scalajsModuleConfig = readBloopConf("scalajsModule.json")
       val scalanativeModuleConfig = readBloopConf("scalanativeModule.json")
 
-      'scalaModule - {
+      test("scalaModule"){
         val p = scalaModuleConfig.project
         val name = p.name
         val sources = p.sources.map(Path(_))
@@ -103,7 +103,7 @@ object BloopTests extends TestSuite {
         assert(artifacts.map(_.name).distinct == List("bloop-config_2.12"))
         assert(artifacts.flatMap(_.classifier).contains("sources"))
       }
-      'scalaModuleTest - {
+      test("scalaModuleTest"){
         val p = testModuleConfig.project
         val name = p.name
         val sources = p.sources.map(Path(_))
@@ -116,16 +116,16 @@ object BloopTests extends TestSuite {
         assert(dep == "scalaModule")
         assert(mainModuleClasspath.forall(p.classpath.contains))
       }
-      'configAccessTest - {
+      test("configAccessTest"){
         val (accessedConfig, _) =
           testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.right.get
         assert(accessedConfig == scalaModuleConfig)
       }
-      'noDepTest - {
+      test("noDepTest"){
         val cp = scalaModule2Config.project.classpath.map(_.toString)
         assert(cp.exists(_.contains("scala-library-2.12.8")))
       }
-      'scalajsModule - {
+      test("scalajsModule"){
         val p = scalajsModuleConfig.project
         val name = p.name
         val sources = p.sources.map(Path(_))
@@ -139,7 +139,7 @@ object BloopTests extends TestSuite {
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
       }
-      'scalanativeModule - {
+      test("scalanativeModule"){
         val p = scalanativeModuleConfig.project
         val name = p.name
         val sources = p.sources.map(Path(_))

@@ -32,35 +32,35 @@ object CacherTests extends TestSuite{
     }
     def check(x: Any, y: Any) = assert(x == y)
 
-    'simpleDefIsCached - {
+    test("simpleDefIsCached"){
       Predef.assert(Base.value eq Base.value)
       Predef.assert(eval(Base, Base.value) == 1)
     }
 
-    'resultDefIsCached - {
+    test("resultDefIsCached"){
       Predef.assert(Base.result eq Base.result)
       Predef.assert(eval(Base, Base.result) == 1)
     }
 
 
-    'overridingDefIsAlsoCached - {
+    test("overridingDefIsAlsoCached"){
       Predef.assert(eval(Middle, Middle.value) == 3)
       Predef.assert(Middle.value eq Middle.value)
     }
 
-    'overridenDefRemainsAvailable - {
+    test("overridenDefRemainsAvailable"){
       Predef.assert(eval(Middle, Middle.overriden) == 1)
     }
 
 
-    'multipleOverridesWork- {
+    test("multipleOverridesWork"){
       Predef.assert(eval(Terminal, Terminal.value) == 7)
       Predef.assert(eval(Terminal, Terminal.overriden) == 1)
     }
     //    Doesn't fail, presumably compileError doesn't go far enough in the
     //    compilation pipeline to hit the override checks
     //
-    //    'overrideOutsideModuleFails - {
+    //    test("overrideOutsideModuleFails"){
     //      compileError("""
     //        trait Foo{
     //          def x = 1

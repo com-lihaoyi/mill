@@ -32,8 +32,8 @@ object PlayModuleTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'playVersion - {
-      'fromBuild - workspaceTest(playmulti) { eval =>
+    test("playVersion"){
+      test("fromBuild") - workspaceTest(playmulti) { eval =>
         val Right((result, evalCount)) = eval.apply(playmulti.core.playVersion)
         assert(
           result == "2.7.0",
@@ -41,8 +41,8 @@ object PlayModuleTests extends TestSuite {
         )
       }
     }
-    'layout - {
-      'fromBuild - workspaceTest(playmulti) { eval =>
+    test("layout"){
+      test("fromBuild") - workspaceTest(playmulti) { eval =>
         val Right((conf, _)) = eval.apply(playmulti.core.conf)
         val Right((app, _)) = eval.apply(playmulti.core.app)
         val Right((sources, _)) = eval.apply(playmulti.core.sources)
@@ -59,8 +59,8 @@ object PlayModuleTests extends TestSuite {
         )
       }
     }
-    'dependencies - {
-      'fromBuild - workspaceTest(playmulti) { eval =>
+    test("dependencies"){
+      test("fromBuild") - workspaceTest(playmulti) { eval =>
         val Right((deps, evalCount)) = eval.apply(playmulti.core.ivyDeps)
         val expectedModules = Seq[String](
           "play",
@@ -76,7 +76,7 @@ object PlayModuleTests extends TestSuite {
         )
       }
     }
-    'compile - workspaceTest(playmulti) { eval =>
+    test("compile") - workspaceTest(playmulti) { eval =>
       val eitherResult = eval.apply(playmulti.core.compile)
       val Right((result, evalCount)) = eitherResult
       val outputFiles = ls.rec(result.classes.path).filter(_.isFile)

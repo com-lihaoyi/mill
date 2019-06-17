@@ -25,7 +25,7 @@ class JawnTests(fork: Boolean)
       assert(!brokenCompile)
     }
 
-    'scala21111 - check("2.11.11")
-    'scala2123 - check("2.12.3")
+    test("scala21111") - check("2.11.11")
+    test("scala2123") - check("2.12.3")
   }
 }

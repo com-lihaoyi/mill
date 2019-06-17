@@ -50,7 +50,7 @@ trait MillModule extends MillApiModule{ outer =>
     def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
     def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath =
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())

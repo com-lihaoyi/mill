@@ -46,9 +46,9 @@ object RouterModuleTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'playVersion - {
+    test("playVersion"){
 
-      'fromBuild - workspaceTest(HelloWorld) { eval =>
+      test("fromBuild") - workspaceTest(HelloWorld) { eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorld.core.playVersion)
 
         assert(
@@ -57,7 +57,7 @@ object RouterModuleTests extends TestSuite {
         )
       }
     }
-    'compileRouter - workspaceTest(HelloWorld) { eval =>
+    test("compileRouter") - workspaceTest(HelloWorld) { eval =>
       val eitherResult = eval.apply(HelloWorld.core.compileRouter)
       val Right((result, evalCount)) = eitherResult
       val outputFiles = ls.rec(result.classes.path).filter(_.isFile)

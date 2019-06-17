@@ -12,7 +12,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
   val tests = Tests{
     initWorkspace()
 
-    'jvm - {
+    test("jvm"){
       assert(eval("playJsonJvm[2.12.4].test"))
       val jvmMeta = meta("playJsonJvm[2.12.4].test.test")
 
@@ -26,7 +26,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
         jvmMeta.contains("JSON reads should::validate Dates")
       )
     }
-    'js - {
+    test("js"){
       assert(eval("playJsonJs[2.12.4].test"))
       val jsMeta = meta("playJsonJs[2.12.4].test.test")
 
@@ -40,7 +40,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
         jsMeta.contains("Complete JSON should create full object when lose precision when parsing BigDecimals")
       )
     }
-    'playJoda - {
+    test("playJoda"){
       assert(eval("playJoda[2.12.4].test"))
       val metaFile = meta("playJoda[2.12.4].test.test")
 
@@ -50,7 +50,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
       )
     }
 
-    'benchmarks - {
+    test("benchmarks"){
 //      "benchmarks[2.12.4].runJmh" -i 1 -wi 1 -f1 -t1
     }
   }

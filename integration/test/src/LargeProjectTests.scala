@@ -10,7 +10,7 @@ class LargeProjectTests(fork: Boolean)
 
   val tests = Tests{
     initWorkspace()
-    'test - {
+    test("test"){
 
       assert(eval("foo.common.one.compile"))
     }

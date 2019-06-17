@@ -21,7 +21,7 @@ object GenIdeaTests extends TestSuite {
   val helloWorldEvaluator = TestEvaluator.static(HelloWorld)
 
   def tests: Tests = Tests {
-    'genIdeaTests - {
+    test("genIdeaTests"){
       val pp = new scala.xml.PrettyPrinter(999, 4)
 
       val layout = GenIdeaImpl.xmlFileLayout(

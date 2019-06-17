@@ -78,7 +78,7 @@ object HelloJSWorldTests extends TestSuite {
 
   def tests: Tests = Tests {
     prepareWorkspace()
-    'compile - {
+    test("compile"){
       def testCompileFromScratch(scalaVersion: String,
                           scalaJSVersion: String): Unit = {
         val Right((result, evalCount)) =
@@ -98,10 +98,10 @@ object HelloJSWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_2124_0622 - testCompileFromScratch("2.12.4", "0.6.22")
-      'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
-      'fromScratch_2118_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
-      'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
+      test("fromScratch_2124_0622") - testCompileFromScratch("2.12.4", "0.6.22")
+      test("fromScratch_2123_0622") - testCompileFromScratch("2.12.3", "0.6.22")
+      test("fromScratch_2118_0622") - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
+      test("fromScratch_2124_100M2") - testCompileFromScratch("2.12.4", "1.0.0-M2")
     }
 
     def testRun(scalaVersion: String,
@@ -116,37 +116,37 @@ object HelloJSWorldTests extends TestSuite {
       assert(output == "Hello Scala.js")
     }
 
-    'fullOpt - {
-      'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
-      'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
+    test("fullOpt"){
+      test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
+      test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
+      test("run_2118_0622") - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
+      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
     }
-    'fastOpt - {
-      'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
-      'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
+    test("fastOpt"){
+      test("run_2124_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
+      test("run_2123_0622") - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
+      test("run_2118_0622") - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
+      test("run_2124_100M2") - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
     }
-    'jar - {
-      'containsSJSIRs - {
+    test("jar"){
+      test("containsSJSIRs"){
         val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld("2.12.4", "0.6.22").jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("Main$.sjsir"))
       }
     }
-    'publish - {
+    test("publish"){
       def testArtifactId(scalaVersion: String,
                          scalaJSVersion: String,
                          artifactId: String): Unit = {
         val Right((result, evalCount)) = helloWorldEvaluator(HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_0622 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
-      'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
+      test("artifactId_0622") - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
+      test("artifactId_100M2") - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
     }
-    'test - {
+    test("test"){
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
         val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
 
@@ -190,16 +190,16 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'utest_2118_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
-      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
-      'utest_2118_100M2 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
-      'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
+      test("utest_2118_0622") - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
+      test("utest_2124_0622") - checkUtest("2.12.4", "0.6.22")
+      test("utest_2118_100M2") - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
+      test("utest_2124_100M2") - checkUtest("2.12.4", "1.0.0-M2")
 
-      'scalaTest_2118_0622 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
-      'scalaTest_2124_0622 - checkScalaTest("2.12.4", "0.6.22")
+      test("scalaTest_2118_0622") - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
+      test("scalaTest_2124_0622") - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
-//      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
-//      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
+//      test("scalaTest_2118_100M2") - checkScalaTest("2.11.8", "1.0.0-M2")
+//      test("scalaTest_2124_100M2") - checkScalaTest("2.12.4", "1.0.0-M2")
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
@@ -219,11 +219,11 @@ object HelloJSWorldTests extends TestSuite {
       )
     }
 
-    'run - {
+    test("run"){
       'run_2118_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "0.6.22"))
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
-      'run_2118_100M2 - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
-      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2")
+      test("run_2118_100M2") - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
+      test("run_2124_100M2") - checkRun("2.12.4", "1.0.0-M2")
     }
   }
 

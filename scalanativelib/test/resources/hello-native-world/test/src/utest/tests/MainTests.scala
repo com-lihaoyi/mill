@@ -6,13 +6,13 @@ import utest._
 object MainTests extends TestSuite {
 
   def tests: Tests = Tests {
-    'vmName - {
-      'containNative - {
+    test("vmName"){
+      test("containNative"){
         assert(
           Main.vmName.contains("Native")
         )
       }
-      'containScala - {
+      test("containScala"){
         assert(
           Main.vmName.contains("Scala")
         )

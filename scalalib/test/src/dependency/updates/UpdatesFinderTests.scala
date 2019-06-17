@@ -67,108 +67,108 @@ object UpdatesFinderTests extends TestSuite {
 
   val tests = Tests {
 
-    'snapshotArtifacts - {
+    test("snapshotArtifacts"){
       val u = updates("1.0.0-SNAPSHOT", available, allowPreRelease = false)
       val pu = updates("1.0.0-SNAPSHOT", available, allowPreRelease = true)
 
-      'noOldStableVersions - {
+      test("noOldStableVersions"){
         assert(!u.contains("0.9.9"))
       }
-      'noOldMilestones - {
+      test("noOldMilestones"){
         assert(!u.contains("0.9.9-M3"))
       }
-      'noOldSnapshots - {
+      test("noOldSnapshots"){
         assert(!u.contains("0.9.9-SNAPSHOT"))
       }
-      'noCurrentMilestones - {
+      test("noCurrentMilestones"){
         assert(!u.contains("1.0.0-M3"))
       }
-      'noCurrentSnapshot - {
+      test("noCurrentSnapshot"){
         assert(!u.contains("1.0.0-SNAPSHOT"))
       }
-      'stableUpdates - {
+      test("stableUpdates"){
         assert(u.contains("1.0.0") && u.contains("1.0.1"))
       }
-      'milestoneUpdates - {
+      test("milestoneUpdates"){
         assert(u.contains("1.0.1-M3"))
       }
-      'snapshotUpdates - {
+      test("snapshotUpdates"){
         assert(u.contains("1.0.1-SNAPSHOT"))
       }
-      'noDifferencesRegardingOptionalPreReleases - {
+      test("noDifferencesRegardingOptionalPreReleases"){
         assert(u == pu)
       }
     }
 
-    'milestoneArtifacts - {
+    test("milestoneArtifacts"){
       val u = updates("1.0.0-M2", available, allowPreRelease = false)
       val pu = updates("1.0.0-M2", available, allowPreRelease = true)
 
-      'noOldStableVersions - {
+      test("noOldStableVersions"){
         assert(!u.contains("0.9.9"))
       }
-      'noOldSnapshots - {
+      test("noOldSnapshots"){
         assert(!u.contains("0.9.9-SNAPSHOT"))
       }
-      'noOldMilestones - {
+      test("noOldMilestones"){
         assert(!u.contains("0.9.9-M3"))
       }
-      'noCurrentSnapshot - {
+      test("noCurrentSnapshot"){
         assert(!u.contains("1.0.0-SNAPSHOT"))
       }
-      'currentMilestones - {
+      test("currentMilestones"){
         assert(u.contains("1.0.0-M3"))
       }
-      'stableUpdates - {
+      test("stableUpdates"){
         assert(u.contains("1.0.1"))
       }
-      'noSnapshotUpdates - {
+      test("noSnapshotUpdates"){
         assert(!u.contains("1.0.1-SNAPSHOT"))
       }
-      'milestoneUpdates - {
+      test("milestoneUpdates"){
         assert(u.contains("1.0.1-M3"))
       }
-      'noDifferencesRegardingOptionalPreReleases - {
+      test("noDifferencesRegardingOptionalPreReleases"){
         assert(u == pu)
       }
     }
 
-    'stableArtifacts - {
+    test("stableArtifacts"){
       val u = updates("1.0.0", available, allowPreRelease = false)
       val pu = updates("1.0.0", available, allowPreRelease = true)
 
-      'noOldStableVersions - {
+      test("noOldStableVersions"){
         assert(!u.contains("0.9.9"))
         assert(!pu.contains("0.9.9"))
       }
-      'noOldSnapshots - {
+      test("noOldSnapshots"){
         assert(!u.contains("0.9.9-SNAPSHOT"))
         assert(!pu.contains("0.9.9-SNAPSHOT"))
       }
-      'noOldMilestones - {
+      test("noOldMilestones"){
         assert(!u.contains("0.9.9-M3"))
         assert(!pu.contains("0.9.9-M3"))
       }
-      'noCurrentSnapshot - {
+      test("noCurrentSnapshot"){
         assert(!u.contains("1.0.0-SNAPSHOT"))
         assert(!pu.contains("1.0.0-SNAPSHOT"))
       }
-      'noCurrentMilestones - {
+      test("noCurrentMilestones"){
         assert(!u.contains("1.0.0-M3"))
         assert(!pu.contains("1.0.0-M3"))
       }
-      'stableUpdates - {
+      test("stableUpdates"){
         assert(u.contains("1.0.1"))
         assert(pu.contains("1.0.1"))
       }
-      'noSnapshotUpdates - {
+      test("noSnapshotUpdates"){
         assert(!u.contains("1.0.1-SNAPSHOT"))
         assert(!pu.contains("1.0.1-SNAPSHOT"))
       }
-      'noMilestoneUpdates - {
+      test("noMilestoneUpdates"){
         assert(!u.contains("1.0.1-M3"))
       }
-      'milestoneUpdatesWhenAllowingPreReleases - {
+      test("milestoneUpdatesWhenAllowingPreReleases"){
         assert(pu.contains("1.0.1-M3"))
       }
     }

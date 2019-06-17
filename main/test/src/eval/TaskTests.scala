@@ -53,7 +53,7 @@ object TaskTests extends TestSuite{
       }
     }
 
-    'inputs - {
+    test("inputs"){
       // Inputs always re-evaluate, including forcing downstream cached Targets
       // to re-evaluate, but normal Tasks behind a Target run once then are cached
       val check = new TestEvaluator(build)
@@ -67,7 +67,7 @@ object TaskTests extends TestSuite{
       val Right((4, 0)) = check.apply(build.taskNoInput)
     }
 
-    'persistent - {
+    test("persistent"){
       // Persistent tasks keep the working dir around between runs
       val check = new TestEvaluator(build)
       val Right((1, 1)) = check.apply(build.persistent)
@@ -79,7 +79,7 @@ object TaskTests extends TestSuite{
       val Right((1, 1)) = check.apply(build.nonPersistent)
     }
 
-    'worker - {
+    test("worker"){
       // Persistent task
       def check = new TestEvaluator(build)
 

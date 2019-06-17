@@ -20,7 +20,7 @@ object ModuleTests extends TestSuite{
   }
   val tests = Tests {
     os.remove.all(TestEvaluator.externalOutPath)
-    'externalModuleTargetsAreNamespacedByModulePackagePath - {
+    test("externalModuleTargetsAreNamespacedByModulePackagePath"){
       val check = new TestEvaluator(Build)
       val zresult = check.apply(Build.z)
       assert(
@@ -30,7 +30,7 @@ object ModuleTests extends TestSuite{
         os.read(TestEvaluator.externalOutPath / 'mill / 'eval / 'ModuleTests / 'ExternalModule / 'inner / 'y / "meta.json").contains("17")
       )
     }
-    'externalModuleMustBeGlobalStatic - {
+    test("externalModuleMustBeGlobalStatic"){
 
 
       object Build extends mill.define.ExternalModule {

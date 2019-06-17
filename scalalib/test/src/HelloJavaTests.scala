@@ -36,7 +36,7 @@ object HelloJavaTests extends TestSuite {
     eval
   }
   def tests: Tests = Tests {
-    'compile - {
+    test("compile"){
       val eval = init()
 
       val Right((res1, n1)) = eval.apply(HelloJava.core.compile)
@@ -64,7 +64,7 @@ object HelloJavaTests extends TestSuite {
         os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html")
       )
     }
-    'test - {
+    test("test"){
       val eval = init()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
@@ -85,7 +85,7 @@ object HelloJavaTests extends TestSuite {
         v2._2(1).status == "Success"
       )
     }
-    'failures - {
+    test("failures"){
       val eval = init()
 
       val mainJava = HelloJava.millSourcePath / 'app / 'src / "Main.java"

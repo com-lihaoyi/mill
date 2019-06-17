@@ -20,10 +20,10 @@ object IvyTests extends TestSuite {
         Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
     )
 
-    'fullIvy - {
+    test("fullIvy"){
       val fullIvy = XML.loadString(Ivy(artifact, deps))
 
-      'topLevel - {
+      test("topLevel"){
         val info = singleNode(fullIvy \ "info")
         assert(
           singleAttr(info, "organisation") == artifact.group,
@@ -32,7 +32,7 @@ object IvyTests extends TestSuite {
         )
       }
 
-      'dependencies - {
+      test("dependencies"){
         val dependencies = fullIvy \ "dependencies" \ "dependency"
         val ivyDeps = deps.indexed
 

@@ -24,8 +24,8 @@ class AcyclicTests(fork: Boolean)
       assert(!brokenCompile)
     }
 
-    'scala2118 - mill.util.TestUtil.disableInJava9OrAbove(check("2.11.8"))
-    'scala2124 - check("2.12.4")
+    test("scala2118") - mill.util.TestUtil.disableInJava9OrAbove(check("2.11.8"))
+    test("scala2124") - check("2.12.4")
 
   }
 }

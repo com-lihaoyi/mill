@@ -8,7 +8,7 @@ object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   def scriptSourcePath = os.pwd / 'main / 'test / 'resources / 'examples / 'javac
   val tests = Tests{
     initWorkspace()
-    'test - {
+    test("test"){
       if (!ammonite.util.Util.java9OrAbove) {
         // Basic target evaluation works
         assert(eval("classFiles"))

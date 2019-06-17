@@ -34,7 +34,7 @@ object ScalafmtTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'scalafmt - {
+    test("scalafmt"){
       def checkReformat(reformatCommand: mill.define.Command[Unit]) =
         workspaceTest(ScalafmtTestModule) { eval =>
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
@@ -82,8 +82,8 @@ object ScalafmtTests extends TestSuite {
           )
         }
 
-      'reformat - checkReformat(ScalafmtTestModule.core.reformat())
-      'reformatAll - checkReformat(
+      test("reformat") - checkReformat(ScalafmtTestModule.core.reformat())
+      test("reformatAll") - checkReformat(
         ScalafmtModule.reformatAll(Tasks(Seq(ScalafmtTestModule.core.sources))))
     }
   }

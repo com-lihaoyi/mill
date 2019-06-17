@@ -55,8 +55,8 @@ object BuildInfoTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    'buildinfo - {
-      'createSourcefile - workspaceTest(BuildInfo){ eval =>
+    test("buildinfo"){
+      test("createSourcefile") - workspaceTest(BuildInfo){ eval =>
         val expected =
           s"""|
               |object BuildInfo {
@@ -70,7 +70,7 @@ object BuildInfoTests extends TestSuite {
         )
       }
 
-      'notCreateEmptySourcefile - workspaceTest(EmptyBuildInfo){ eval =>
+      test("notCreateEmptySourcefile") - workspaceTest(EmptyBuildInfo){ eval =>
         val Right(((result, _), evalCount)) = eval.apply(EmptyBuildInfo.generatedBuildInfo)
         assert(
           result.isEmpty &&
@@ -78,7 +78,7 @@ object BuildInfoTests extends TestSuite {
         )
       }
 
-      'supportCustomSettings - workspaceTest(BuildInfoSettings){ eval =>
+      test("supportCustomSettings") - workspaceTest(BuildInfoSettings){ eval =>
         val expected =
           s"""|package foo
               |
@@ -93,12 +93,12 @@ object BuildInfoTests extends TestSuite {
         )
       }
 
-      'compile - workspaceTest(BuildInfo){ eval =>
+      test("compile") - workspaceTest(BuildInfo){ eval =>
         val Right((result, evalCount)) = eval.apply(BuildInfo.compile)
         assert(true)
       }
 
-      'run - workspaceTest(BuildInfo){ eval =>
+      test("run") - workspaceTest(BuildInfo){ eval =>
         val runResult = eval.outPath / "hello-mill"
         val Right((result, evalCount)) = eval.apply(BuildInfo.run(runResult.toString))
         assert(

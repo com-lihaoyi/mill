@@ -11,7 +11,7 @@ object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
 
   val tests = Tests {
     initWorkspace()
-    'test - {
+    test("test"){
       // See https://github.com/lihaoyi/mill/issues/302
       if (!ammonite.util.Util.java9OrAbove) {
         assert(
