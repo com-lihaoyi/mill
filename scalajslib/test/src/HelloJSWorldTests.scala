@@ -188,7 +188,7 @@ object HelloJSWorldTests extends TestSuite {
       }
 
       test("utest_2124_0622") - checkUtest("2.12.4", "0.6.22")
-      test("utest_2124_100M2") - checkUtest("2.12.4", "1.0.0-M2")
+//      test("utest_2124_100M2") - checkUtest("2.12.4", "1.0.0-M2")
 
       test("scalaTest_2124_0622") - checkScalaTest("2.12.4", "0.6.22")
 //      No scalatest artifact for scala.js 1.0.0-M2 published yet
