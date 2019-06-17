@@ -24,7 +24,7 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("2.11.8", "2.12.3", "2.12.4")
+      scala <- Seq("2.12.3", "2.12.4")
       scalaJS <- Seq("0.6.22", "1.0.0-M2")
     } yield (scala, scalaJS)
 
