@@ -38,7 +38,8 @@ object ReplApplyHandler{
         ),
         failFast = !keepGoing,
         threadCount = threadCount
-      )
+      ),
+      systemProperties = systemProperties
     )
   }
   def pprintCross(c: mill.define.Cross[_], evaluator: Evaluator) = {
