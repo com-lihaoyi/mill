@@ -1,10 +1,13 @@
 package mill.contrib.bloop
 
+import bloop.config.{Config => BloopConfig}
 import bloop.config.Config.{File => BloopFile}
 import bloop.config.ConfigEncoderDecoders._
 import mill._
 import mill.contrib.bloop.CirceCompat._
+import mill.scalajslib.api.ModuleKind
 import mill.scalalib._
+import mill.scalanativelib.api.ReleaseMode
 import mill.util.{TestEvaluator, TestUtil}
 import os.Path
 import upickle.default._
@@ -37,6 +40,24 @@ object BloopTests extends TestSuite {
       }
     }
 
+    object scalaModule2 extends scalalib.ScalaModule {
+      def scalaVersion = "2.12.8"
+    }
+
+    object scalajsModule extends scalajslib.ScalaJSModule with testBloop.Module {
+      override def scalaVersion = "2.12.8"
+      override def scalaJSVersion = "0.6.28"
+      override def linkerMode = T(Some(_root_.bloop.config.Config.LinkerMode.Release))
+      override def moduleKind = T(ModuleKind.CommonJSModule)
+    }
+
+    object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
+      override def scalaVersion = "2.11.12"
+      override def scalaNativeVersion = "0.3.8"
+      override def releaseMode = T(ReleaseMode.Release)
+    }
+
+
   }
 
   def readBloopConf(jsonFile: String) =
@@ -45,9 +66,12 @@ object BloopTests extends TestSuite {
   def tests: Tests = Tests {
     'genBloopTests - {
 
-      testEvaluator(testBloop.install)
+      testEvaluator(testBloop.install())
       val scalaModuleConfig = readBloopConf("scalaModule.json")
+      val scalaModule2Config = readBloopConf("scalaModule2.json")
       val testModuleConfig = readBloopConf("scalaModule.test.json")
+      val scalajsModuleConfig = readBloopConf("scalajsModule.json")
+      val scalanativeModuleConfig = readBloopConf("scalanativeModule.json")
 
       'scalaModule - {
         val p = scalaModuleConfig.project
@@ -96,6 +120,39 @@ object BloopTests extends TestSuite {
         val (accessedConfig, _) =
           testEvaluator(build.scalaModule.bloop.config).asSuccess.get.value.right.get
         assert(accessedConfig == scalaModuleConfig)
+      }
+      'noDepTest - {
+        val cp = scalaModule2Config.project.classpath.map(_.toString)
+        assert(cp.exists(_.contains("scala-library-2.12.8")))
+      }
+      'scalajsModule - {
+        val p = scalajsModuleConfig.project
+        val name = p.name
+        val sources = p.sources.map(Path(_))
+        val version = p.scala.get.version
+        val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Js]
+
+        assert(name == "scalajsModule")
+        assert(sources == List(workdir / "scalajsModule" / "src"))
+        assert(version == "2.12.8")
+        assert(platform.config.emitSourceMaps)
+        assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
+        assert(platform.config.mode == BloopConfig.LinkerMode.Release)
+      }
+      'scalanativeModule - {
+        val p = scalanativeModuleConfig.project
+        val name = p.name
+        val sources = p.sources.map(Path(_))
+        val version = p.scala.get.version
+        val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
+
+        val (clang, _) = testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.right.get
+
+        assert(name == "scalanativeModule")
+        assert(sources == List(workdir / "scalanativeModule" / "src"))
+        assert(version == "2.11.12")
+        assert(platform.config.mode == BloopConfig.LinkerMode.Release)
+        assert(platform.config.clang == clang.toNIO)
       }
     }
   }

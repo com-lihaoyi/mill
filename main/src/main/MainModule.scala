@@ -251,6 +251,14 @@ trait MainModule extends mill.Module{
     }
   }
 
+  /**
+    * Shuts down mill's background server
+    */
+  def shutdown() = mill.T.command {
+    T.ctx().log.info("Shutting down Mill server...")
+    System.exit(0)
+  }
+
   private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
     LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
 

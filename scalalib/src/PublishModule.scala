@@ -83,6 +83,8 @@ trait PublishModule extends JavaModule { outer =>
               gpgPassphrase: String = null,
               gpgKeyName: String = null,
               signed: Boolean = true,
+              readTimeout: Int = 60000,
+              connectTimeout: Int = 5000,
               release: Boolean): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
@@ -92,6 +94,8 @@ trait PublishModule extends JavaModule { outer =>
       Option(gpgPassphrase),
       Option(gpgKeyName),
       signed,
+      readTimeout,
+      connectTimeout,
       T.ctx().log
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
   }
@@ -107,6 +111,8 @@ object PublishModule extends ExternalModule {
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String = null,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+                 readTimeout: Int = 60000,
+                 connectTimeout: Int = 5000,
                  release: Boolean = false,
                  gpgKeyName: String = null,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
@@ -123,6 +129,8 @@ object PublishModule extends ExternalModule {
       Option(gpgPassphrase),
       Option(gpgKeyName),
       signed,
+      readTimeout,
+      connectTimeout,
       T.ctx().log
     ).publishAll(
       release,

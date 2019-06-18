@@ -152,10 +152,31 @@ classloaders.
 This allows a single Mill build to use multiple versions of e.g. the Scala.js
 optimizer without classpath conflicts.
 
+### Contrib modules
+
+- `contrib/bloop/`, `contrib/flyway/`, `contrib/scoverage/`, etc.
+
+These are modules that help integrate Mill with the wide variety of different
+tools and utilities available in the JVM ecosystem.
+
+These modules are not as stringently reviewed as the main Mill core/worker codebase,
+and are primarily maintained by their individual contributors. These are maintained
+as part of the primary Mill Github repo for easy testing/updating as the core Mill
+APIs evolve, ensuring that they are always tested and passing against the 
+corresponding version of Mill.
 
 ## Changelog
 
-### 0.3.8
+
+### 0.4.1
+
+- Fixes for scala native test suites without test frameworks [#627](https://github.com/lihaoyi/mill/issues/627)
+
+- Fix publication of artifacts by increasing sonatype timeouts
+
+- Bug fixes for Scoverage integration [#623](https://github.com/lihaoyi/mill/issues/623)
+
+### 0.4.0
 
 - Publish `compileIvyDeps` as provided scope
   ([535](https://github.com/lihaoyi/mill/issues/535))
@@ -163,7 +184,8 @@ optimizer without classpath conflicts.
 - Added contrib modules to integrate
   [Bloop](http://www.lihaoyi.com/mill/page/contrib-modules.html#bloop),
   [Flyway](http://www.lihaoyi.com/mill/page/contrib-modules.html#flyway),
-  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework)
+  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework),
+  [Scoverage](http://www.lihaoyi.com/mill/page/contrib-modules.html#scoverage)
 
 - Allow configuration of GPG key names when publishing
   ([530](https://github.com/lihaoyi/mill/pull/530))
@@ -173,6 +195,8 @@ optimizer without classpath conflicts.
   in your `build.sc`
 
 - Support for Scala 2.13.0-RC2
+
+- ScalaFmt support now uses the version specified in `.scalafmt.conf`
 
 ### 0.3.6
 

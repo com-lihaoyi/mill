@@ -766,7 +766,7 @@ object HelloWorldTests extends TestSuite {
           resourcePath = helloWorldMultiResourcePath
         )
 
-        'writeFirstWhenNoRule - {
+        'writeDownstreamWhenNoRule - {
           'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
@@ -802,11 +802,11 @@ object HelloWorldTests extends TestSuite {
             val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
             assert(
-              referenceContent.contains("Model Reference Config File"),
-              referenceContent.contains("foo.bar=2"),
+              !referenceContent.contains("Model Reference Config File"),
+              !referenceContent.contains("foo.bar=2"),
 
-              !referenceContent.contains("Core Reference Config File"),
-              !referenceContent.contains("bar.baz=hello")
+              referenceContent.contains("Core Reference Config File"),
+              referenceContent.contains("bar.baz=hello")
             )
           }
         }
