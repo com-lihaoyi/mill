@@ -55,6 +55,7 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Success(0))
       )
 
+      // inject some fake error
       pair.up.failure = Some("lols")
 
       check.fail(

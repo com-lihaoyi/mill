@@ -546,6 +546,14 @@ case class Evaluator(
             //            results.put(task, aborted)
             //          }
             //            executorService.shutdownNow()
+            // set result state for not run jobs
+            goals.foreach { goal =>
+              results.get(goal) match {
+                case None => results += goal -> Result.Aborted
+                case _ => // nothing to do
+              }
+            }
+
             executorService.shutdownNow()
 
 
