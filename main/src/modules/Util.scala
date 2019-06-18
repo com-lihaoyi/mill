@@ -65,7 +65,7 @@ object Util {
         repositories,
         Seq(
           coursier.Dependency(
-            coursier.Module("com.lihaoyi", artifact + artifactSuffix),
+            coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
             sys.props("MILL_VERSION")
           )
         ),

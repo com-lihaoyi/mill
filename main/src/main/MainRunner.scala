@@ -26,6 +26,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  setIdle: Boolean => Unit,
                  debugLog: Boolean,
                  keepGoing: Boolean,
+                 systemProperties: Map[String, String],
                  threadCount: Option[Int])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
@@ -87,6 +88,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           ),
           env,
           keepGoing = keepGoing,
+          systemProperties = systemProperties,
           threadCount = threadCount
         )
 
@@ -128,7 +130,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     )
   }
 
-  object CustomCodeWrapper extends Preprocessor.CodeWrapper {
+  object CustomCodeWrapper extends ammonite.interp.CodeWrapper {
     def apply(code: String,
               source: CodeSource,
               imports: ammonite.util.Imports,

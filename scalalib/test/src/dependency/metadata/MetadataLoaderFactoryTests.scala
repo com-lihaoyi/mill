@@ -28,8 +28,8 @@
  */
 package mill.scalalib.dependency.metadata
 
-import coursier.Fetch.Content
-import coursier.core.{Artifact, Module, Project, Repository}
+import coursier.Fetch
+import coursier.core.{Artifact, Classifier, Dependency, Module, Project, Repository}
 import coursier.ivy.IvyRepository
 import coursier.maven.MavenRepository
 import coursier.util.{EitherT, Monad}
@@ -57,8 +57,12 @@ object MetadataLoaderFactoryTests extends TestSuite {
   }
 
   case class CustomRepository() extends Repository {
-    override def find[F[_]](module: Module, version: String, fetch: Content[F])(
-        implicit F: Monad[F]): EitherT[F, String, (Artifact.Source, Project)] =
+    override def find[F[_]](module: Module, version: String, fetch: coursier.Repository.Fetch[F])
+                           (implicit F: Monad[F]): EitherT[F, String, (Artifact.Source, Project)] =
       ???
+
+    override def artifacts(dependency: Dependency,
+                           project: Project,
+                           overrideClassifiers: Option[Seq[Classifier]]) = ???
   }
 }

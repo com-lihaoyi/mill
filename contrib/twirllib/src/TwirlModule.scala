@@ -1,7 +1,7 @@
 package mill
 package twirllib
 
-import coursier.{Cache, MavenRepository}
+import coursier.MavenRepository
 import mill.define.Sources
 import mill.api.PathRef
 import mill.scalalib.Lib.resolveDependencies
@@ -22,7 +22,7 @@ trait TwirlModule extends mill.Module {
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {
     resolveDependencies(
       Seq(
-        Cache.ivy2Local,
+        coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
       Lib.depToDependency(_, "2.12.4"),

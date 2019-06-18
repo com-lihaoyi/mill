@@ -1,7 +1,7 @@
 package mill
 package playlib
 
-import coursier.{Cache, MavenRepository}
+import coursier.MavenRepository
 import mill.eval.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
@@ -49,7 +49,7 @@ trait RouterModule extends ScalaModule with Version {
   def routerClasspath: T[Agg[PathRef]] = T {
     resolveDependencies(
       Seq(
-        Cache.ivy2Local,
+        coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
       Lib.depToDependency(_, scalaVersion()),

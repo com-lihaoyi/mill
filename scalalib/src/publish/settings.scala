@@ -23,13 +23,13 @@ object Artifact {
     )
     Dependency(
       Artifact(
-        dep.dep.module.organization,
+        dep.dep.module.organization.value,
         name,
         dep.dep.version
       ),
       Scope.Compile,
-      if (dep.dep.configuration == "") None else Some(dep.dep.configuration),
-      dep.dep.exclusions.toList
+      if (dep.dep.configuration == "") None else Some(dep.dep.configuration.value),
+      dep.dep.exclusions.toList.map{case (a, b) => (a.value, b.value)}
     )
   }
 }

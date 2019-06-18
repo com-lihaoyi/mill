@@ -106,9 +106,9 @@ object PublishModule extends ExternalModule {
 
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String = null,
-                 gpgKeyName: String = null,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  release: Boolean = false,
+                 gpgKeyName: String = null,
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
                  signed: Boolean = true) = T.command {

@@ -31,8 +31,13 @@ object RunScript{
                 log: Logger,
                 env : Map[String, String],
                 keepGoing: Boolean,
+                systemProperties: Map[String, String],
                 threadCount: Option[Int])
   : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
+
+    systemProperties.foreach {case (k,v) =>
+      System.setProperty(k, v)
+    }
 
     val (evalState, interpWatched) = stateCache match{
       case Some(s) if watchedSigUnchanged(s.watched) => Res.Success(s) -> s.watched

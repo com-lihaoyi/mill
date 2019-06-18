@@ -44,7 +44,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.3.6/0.3.6, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.3.8/0.3.8, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -81,7 +81,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.3.6/0.3.6) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.3.8/0.3.8) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
 
 ### Development Releases
@@ -738,6 +738,9 @@ object foo extends ScalaModule with PublishModule {
   )
 }
 ```
+
+You can change the name of the published artifact (artifactId in the Maven POM) 
+by overriding `artifactName` in the module you want to publish.
 
 You can download an example project with this layout here:
 

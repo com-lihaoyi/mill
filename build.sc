@@ -1,7 +1,7 @@
 import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
-
+import $ivy.`org.scalaj::scalaj-http:2.4.1`
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
@@ -93,7 +93,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.6.0",
+      ivy"com.lihaoyi:::ammonite:1.6.7",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
@@ -129,8 +129,8 @@ object main extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"guru.nidi:graphviz-java:0.2.3",
-      ivy"org.jgrapht:jgrapht-core:1.2.0"
+      ivy"guru.nidi:graphviz-java:0.8.3",
+      ivy"org.jgrapht:jgrapht-core:1.3.0"
     )
     def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
@@ -187,7 +187,7 @@ object scalalib extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.3.0-M1"
+      ivy"org.scala-sbt::zinc:1.2.5"
     )
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -213,6 +213,7 @@ object scalajslib extends MillModule {
 
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
   class WorkerModule(scalajsBinary: String) extends MillApiModule{
@@ -282,7 +283,7 @@ object contrib extends MillModule {
     }
 
   }
-  
+
   object scalapblib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
@@ -301,6 +302,20 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
     def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
   }
+
+  object flyway extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
+  }
+
+  object bloop extends MillModule {
+    def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(
+      ivy"ch.epfl.scala::bloop-config:1.2.5",
+      ivy"com.lihaoyi::ujson-circe:0.7.4"
+    )
+  }
+
 }
 
 
@@ -323,6 +338,7 @@ object scalanativelib extends MillModule {
   }
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
+    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
   }
   object worker extends Cross[WorkerModule]("0.3")
   class WorkerModule(scalaNativeBinary: String) extends MillApiModule {
@@ -387,9 +403,14 @@ def launcherScript(shellJvmArgs: Seq[String],
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
-        s"""exec java $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      s"""case "$$1" in
+      s"""if [ -z "$$JAVA_HOME" ] ; then
+         |  JAVACMD="java"
+         |else
+         |  JAVACMD="$$JAVA_HOME/bin/java"
+         |fi
+         |case "$$1" in
          |  -i | --interactive )
          |    ${java("mill.MillMain")}
          |    ;;
@@ -401,9 +422,11 @@ def launcherScript(shellJvmArgs: Seq[String],
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
       def java(mainClass: String) =
-        s"""java $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
 
-      s"""if "%1" == "-i" set _I_=true
+      s"""set "JAVACMD=java.exe"
+         |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
+         |if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if defined _I_ (
          |  ${java("mill.MillMain")}

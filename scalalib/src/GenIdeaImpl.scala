@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import ammonite.runtime.SpecialClassLoader
-import coursier.{Cache, CoursierPaths, Repository}
+import coursier.Repository
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
 import mill.api.Ctx.{Home, Log}
@@ -66,9 +66,12 @@ object GenIdeaImpl {
                     fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
 
     val modules = rootModule.millInternal.segmentsToModules.values
-      .collect{ case x: scalalib.JavaModule => (x.millModuleSegments, x)}
+      .collect{ case x: scalalib.JavaModule => x }
+      .flatMap(_.transitiveModuleDeps)
+      .map(x => (x.millModuleSegments, x))
       .toSeq
-
+      .distinct
+    
     val buildLibraryPaths =
       if (!fetchMillModules) Nil
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
@@ -201,7 +204,7 @@ object GenIdeaImpl {
 
     // Tries to group jars with their poms and sources.
     def toResolvedJar(path : os.Path) : Option[ResolvedLibrary] = {
-      val inCoursierCache = path.startsWith(os.Path(CoursierPaths.cacheDirectory()))
+      val inCoursierCache = path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
       val isSource = path.last.endsWith("sources.jar")
       val isPom = path.ext == "pom"
       if (inCoursierCache && (isSource || isPom)) {

@@ -1,7 +1,6 @@
 package mill
 package scalajslib
 
-import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
 import mill.api.Result.Success

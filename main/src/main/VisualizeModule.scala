@@ -2,7 +2,7 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 
-import coursier.Cache
+import coursier.LocalRepositories
 import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.T
@@ -11,7 +11,7 @@ import mill.eval.{PathRef, Result}
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(
-    Cache.ivy2Local,
+    LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )

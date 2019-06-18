@@ -37,7 +37,7 @@ case class Evaluator(
   externalOutPath: os.Path,
   rootModule: mill.define.BaseModule,
   log: Logger,
-  classLoaderSig: Seq[(Either[String, os.Path], Long)] = Evaluator.classLoaderSig,
+  classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv,
   failFast: Boolean = true,
@@ -650,7 +650,7 @@ object Evaluator{
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
   case class State(rootModule: mill.define.BaseModule,
-                   classLoaderSig: Seq[(Either[String, os.Path], Long)],
+                   classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
                    watched: Seq[(os.Path, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of

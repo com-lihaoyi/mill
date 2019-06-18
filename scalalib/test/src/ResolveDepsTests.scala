@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import coursier.Cache
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
 import mill.eval.{PathRef, Result}
@@ -8,7 +7,7 @@ import mill.api.Loose.Agg
 import utest._
 
 object ResolveDepsTests extends TestSuite {
-  val repos = Seq(Cache.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
+  val repos = Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2"))
 
   def evalDeps(deps: Agg[Dep]): Result[Agg[PathRef]] = Lib.resolveDependencies(
     repos,
