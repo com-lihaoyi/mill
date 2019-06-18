@@ -1,5 +1,4 @@
 import mill.scalalib
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:0.4.0`
 
 trait HelloWorldModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.4"

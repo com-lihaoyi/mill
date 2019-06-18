@@ -23,29 +23,31 @@ object GenIdea extends ExternalModule {
       implicitly,
       ev.rootModule,
       ev.rootModule.millDiscover
-    )
+    ).run()
   }
 
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover = Discover[this.type]
 }
 
-object GenIdeaImpl {
+case class GenIdeaImpl(evaluator: Evaluator,
+                       ctx: Log with Home,
+                       rootModule: BaseModule,
+                       discover: Discover[_]) {
+  val cwd: Path = rootModule.millSourcePath
 
-  def apply(evaluator: Evaluator,
-            ctx: Log with Home,
-            rootModule: BaseModule,
-            discover: Discover[_]): Unit = {
+  def run(): Unit = {
+
+
     val pp = new scala.xml.PrettyPrinter(999, 4)
+    val jdkInfo = extractCurrentJdk(cwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
 
-    val jdkInfo = extractCurrentJdk(os.pwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
-
-    os.remove.all(os.pwd/".idea"/"libraries")
-    os.remove.all(os.pwd/".idea"/"scala_compiler.xml")
-    os.remove.all(os.pwd/".idea_modules")
+    os.remove.all(cwd/".idea"/"libraries")
+    os.remove.all(cwd/".idea"/"scala_compiler.xml")
+    os.remove.all(cwd/".idea_modules")
 
     for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))){
-      os.write.over(os.pwd/relPath, pp.format(xml), createFolders = true)
+      os.write.over(cwd/relPath, pp.format(xml), createFolders = true)
     }
   }
 
@@ -326,7 +328,7 @@ object GenIdeaImpl {
   }
 
   def relify(p: os.Path) = {
-    val r = p.relativeTo(os.pwd/".idea_modules")
+    val r = p.relativeTo(cwd/".idea_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 

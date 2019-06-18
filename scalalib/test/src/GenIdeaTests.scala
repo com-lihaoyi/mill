@@ -13,17 +13,17 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
       Seq(
         s"$workspaceSlug/idea_modules/helloworld.iml" ->
-          os.pwd / ".idea_modules" /"helloworld.iml",
+          workspacePath / ".idea_modules" /"helloworld.iml",
         s"$workspaceSlug/idea_modules/helloworld.test.iml" ->
-          os.pwd / ".idea_modules" /"helloworld.test.iml",
+          workspacePath / ".idea_modules" /"helloworld.test.iml",
 //        s"$workspaceSlug/idea_modules/mill-build.iml" ->
 //          os.pwd / ".idea_modules" /"mill-build.iml",
         s"$workspaceSlug/idea/libraries/scala-library-2.12.4.jar.xml" ->
-          os.pwd / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
+          workspacePath / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
         s"$workspaceSlug/idea/modules.xml" ->
-          os.pwd / ".idea" / "modules.xml",
+          workspacePath / ".idea" / "modules.xml",
         s"$workspaceSlug/idea/misc.xml" ->
-          os.pwd / ".idea" / "misc.xml"
+          workspacePath / ".idea" / "misc.xml"
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
           val generatedString = normaliseLibraryPaths(os.read(generated))
