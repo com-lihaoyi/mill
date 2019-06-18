@@ -115,7 +115,7 @@ object MillMain {
           disableTickerSignature,
           debugLogSignature,
           keepGoingSignature,
-          extraSystemPropertiesSignature
+          extraSystemPropertiesSignature,
           threadCountSignature
           )
 
