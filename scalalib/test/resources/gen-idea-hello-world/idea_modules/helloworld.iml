@@ -1,12 +1,12 @@
 <module type="JAVA_MODULE" version="4">
     <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/out/HelloWorld/compile/dest/classes"/>
+        <output url="file://$MODULE_DIR$/../out/HelloWorld/compile/dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/out/HelloWorld/generatedSources/dest"/>
-        <content url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/HelloWorld">
-            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/HelloWorld/src" isTestSource="false"/>
-            <sourceFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/HelloWorld/resources" type="java-resource"/>
-            <excludeFolder url="file://$MODULE_DIR$/../target/workspace/gen-idea-hello-world/HelloWorld/target"/>
+        <content url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest"/>
+        <content url="file://$MODULE_DIR$/../HelloWorld">
+            <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/src" isTestSource="false"/>
+            <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/resources" type="java-resource"/>
+            <excludeFolder url="file://$MODULE_DIR$/../HelloWorld/target"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
