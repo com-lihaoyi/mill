@@ -8,6 +8,8 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+import mill.modules.Assembly
+
 trait MillPublishModule extends PublishModule{
 
   def artifactName = "mill-" + super.artifactName()
@@ -605,12 +607,15 @@ def assembly = T{
   os.move(
     createAssembly(
       devRunClasspath,
+      None,
       prependShellScript = launcherScript(
         shellArgs,
         cmdArgs,
         Agg("$0"),
         Agg("%~dpnx0")
-      )
+      ),
+      None,
+      Assembly.defaultRules
     ).path,
     T.ctx().dest / filename
   )
