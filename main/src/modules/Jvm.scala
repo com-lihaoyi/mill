@@ -450,7 +450,8 @@ object Jvm {
             coursier.Type.jar,
             coursier.Type.testJar,
             coursier.Type.bundle,
-            coursier.Type("orbit")
+            coursier.Type("orbit"),
+            coursier.Type("eclipse-plugin")
           )
         )
       val (errors, successes) = load(sourceOrJar)
