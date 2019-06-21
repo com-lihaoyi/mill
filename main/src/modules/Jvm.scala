@@ -451,7 +451,8 @@ object Jvm {
             coursier.Type.testJar,
             coursier.Type.bundle,
             coursier.Type("orbit"),
-            coursier.Type("eclipse-plugin")
+            coursier.Type("eclipse-plugin"),
+            coursier.Type("maven-plugin")
           )
         )
       val (errors, successes) = load(sourceOrJar)
