@@ -1,0 +1,1 @@
+{"name":"mill-bsp","argv":["java","-DMILL_CLASSPATH=/usr/local/bin/mill","-DMILL_VERSION=0.4.0","-Djna.nosys=true","-cp","/usr/local/bin/mill","mill.MillMain mill.contrib.MainMillBuildServer/startServer"],"version":"1.0.0","bspVersion":"2.0.0-M4","languages":["scala","java"]}
