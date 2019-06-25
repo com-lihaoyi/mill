@@ -8,6 +8,13 @@ If you develop or maintain a mill plugin, please create a [pull request](https:/
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## Bash Completion
+
+Limited bash completion support.
+
+Project home: https://github.com/lefou/mill-bash-completion
+
+
 ## DGraph
 
 Show transitive dependencies of your build in your browser.
