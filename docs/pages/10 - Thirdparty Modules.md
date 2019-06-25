@@ -187,6 +187,58 @@ Start a local Web-Server on Port 8820 with the generated site:
 bash> mill site.jbakeServe
 ```
 
+## Mill Wrapper Scripts
+
+Small script to automatically fetch and execute mill build tool.
+
+Project home: https://github.com/lefou/millw
+
+### How it works
+
+`millw` is a small wrapper script around mill and works almost identical to mill. It automatically downloads a mill release into `$HOME/.mill/download`.
+
+The mill version to be used will be determined by the following steps. The search ends, after the first step that results in a version.
+
+* If the first parameter is `--mill-version`, the second parameter will be used as the mill version.
+  Example
+
+  ```
+  sh $ mill --mill-version 0.3.6 --disable-ticker version
+  0.3.6
+  ```
+
+* If there is a file `.mill-version` in the working directory, it’s content will be used as mill version. The file must have only a mill version as content, no additional content or comments are supported.
+  Example
+
+  ```
+  sh $ echo -n "0.3.6" > .mill-version
+  sh $ mill --disable-ticker version
+  0.3.6
+  ```
+
+  The values of the `DEFAULT_MILL_VERSION` variable inside the script will be used.
+
+
+
+### Use cases
+
+#### As mill executable
+
+Istead of installing mill, you can just place the script into you local `$HOME/bin` directory and rename it to `mill`.
+
+If you need a special mill version in a project directory, just place a `.mill-version` file with the best mill version.
+Example: setting mill 0.3.6 as best local mill version
+
+```
+sh $ echo -n "0.3.6" > .mill-version
+```
+
+#### As a wrapper script in your project
+
+To make the start for others easier or to always have the correct mill version in your CI environment, you can just place a copy of the script as `millw` in your project root directory.
+
+You should change the `DEFAULT_MILL_VERSION` variable in that script to the correct version you want to use and add the file under version control.
+
 
 ## OSGi
 
