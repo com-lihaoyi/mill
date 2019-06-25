@@ -5,7 +5,7 @@ import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j._
 import mill.api.{Loose, Strict}
 import mill.define.{Discover, Task}
-import mill.eval
+import mill.eval._
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.api.Util
@@ -25,15 +25,15 @@ object ModuleUtils {
     dummyModule, DummyLogger)
 
     def millModulesToBspTargets(modules: Seq[JavaModule],
+                                evaluator: Evaluator,
                                 supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
       val moduleIdMap = getModuleTargetIdMap(modules)
       var moduleToTarget = Predef.Map[JavaModule, BuildTarget]()
 
       for ( module <- modules ) {
-        val dataBuildTarget = computeScalaBuildTarget(module)
-
-        val capabilities = getModuleCapabilities(module)
+        val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
+        val capabilities = getModuleCapabilities(module, evaluator)
         val buildTargetTag: String = module match {
           case m: TestModule => BuildTargetTag.TEST
           case m: JavaModule => "-"
@@ -50,7 +50,7 @@ object ModuleUtils {
           capabilities)
         buildTarget.setData(dataBuildTarget)
         buildTarget.setDisplayName(module.millModuleSegments.last.value.toList.head.pathSegments.head)
-        buildTarget.setBaseDirectory(module.millOuterCtx.fileName)
+        buildTarget.setBaseDirectory(module.millSourcePath.toNIO.toAbsolutePath.toUri.toString)
         moduleToTarget ++= Map(module -> buildTarget)
 
       }
@@ -58,31 +58,31 @@ object ModuleUtils {
       moduleToTarget
     }
 
-  def getModuleCapabilities(module: JavaModule): BuildTargetCapabilities = {
-    val canRun = evaluateInformativeTask(module.finalMainClass, success = false) match {
-      case result: Left[String, eval.Result[String]] => true
-      case result: Right[String, eval.Result[String]] => false
+  def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
+    val canRun = evaluateInformativeTask(evaluator, module.finalMainClass, success = false).right.get match {
+      case result: Result.Success[String] => true
+      case default => false
     }
     val canTest = module match {
       case module: TestModule => true
-      case module: JavaModule => false
+      case default => false
     }
 
-    new BuildTargetCapabilities(true, canRun, canTest)
+    new BuildTargetCapabilities(true, canTest, canRun)
   }
 
   //TODO: I think here I need to look at scalaLibraryIvyDeps, ivyDeps that contain
   // "scala-compiler" and "scala-reflect" and at scalacPluginIvyDeps
-  def computeScalaBuildTarget(module: JavaModule): Any = {
+  def computeScalaBuildTarget(module: JavaModule, evaluator: Evaluator): Any = {
     module match {
       case m: ScalaModule =>
-        val scalaVersion = evaluateInformativeTask(m.scalaVersion).left.get
+        val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion).left.get
         new ScalaBuildTarget(
-          evaluateInformativeTask(m.scalaOrganization).left.get,
+          evaluateInformativeTask(evaluator, m.scalaOrganization).left.get,
           scalaVersion,
           Util.scalaBinaryVersion(scalaVersion),
           getScalaTargetPlatform(m),
-          computeScalaLangDependencies(m).
+          computeScalaLangDependencies(m, evaluator).
             map(pathRef => pathRef.path.toNIO.toAbsolutePath.toString).
             toList.asJava)
 
@@ -90,18 +90,18 @@ object ModuleUtils {
     }
   }
 
-  def evaluateInformativeTask[T](task: Task[T], success: Boolean = true): Either[T, eval.Result[Any]] = {
+  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], success: Boolean = true): Either[T, Result[Any]] = {
     if (success) {
-      Left(dummyEvalautor.evaluate(Strict.Agg(task)).results(task).asSuccess.get.value.asInstanceOf[T])
+      Left(evaluator.evaluate(Strict.Agg(task)).results(task).asSuccess.get.value.asInstanceOf[T])
     } else {
-      Right(dummyEvalautor.evaluate(Strict.Agg(task)).results(task))
+      Right(evaluator.evaluate(Strict.Agg(task)).results(task))
     }
 
   }
 
-  def computeScalaLangDependencies(module: ScalaModule): Loose.Agg[eval.PathRef] = {
-      evaluateInformativeTask(module.scalacPluginClasspath).left.get ++
-      evaluateInformativeTask(module.resolveDeps(module.ivyDeps)).left.get.
+  def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] = {
+      evaluateInformativeTask(evaluator, module.scalacPluginClasspath).left.get ++
+      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps)).left.get.
         filter(pathRef => pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-compiler") ||
           pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-reflect") ||
           pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-library"))

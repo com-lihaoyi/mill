@@ -1,8 +1,8 @@
 package mill.contrib.bsp
-
+import sbt.testing._
 import java.util.{Calendar, Collections}
 import java.util.concurrent.CompletableFuture
-
+import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.api.Strict
@@ -10,16 +10,23 @@ import mill.contrib.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
-
+import mill.scalalib.api.ZincWorkerApi
 import scala.collection.mutable.Map
+import mill.api.Loose
 import scala.collection.JavaConverters._
+import mill.modules.Jvm
+import mill.util.{PrintLogger, Ctx}
+import mill.define.{Discover, ExternalModule, Target, Task}
 
 
 class MillBuildServer(modules: Seq[JavaModule],
                       evaluator: Evaluator,
                       _bspVersion: String,
                       serverVersion:String,
-                      languages: List[String]) extends BuildServer with ScalaBuildServer {
+                      languages: List[String]) extends ExternalModule with BuildServer with ScalaBuildServer  {
+
+  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
+  lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
 
   val bspVersion: String = _bspVersion
   val supportedLanguages: List[String] = languages
@@ -31,10 +38,15 @@ class MillBuildServer(modules: Seq[JavaModule],
   var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(millModules)
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
-                                  ModuleUtils.millModulesToBspTargets(millModules, List("scala", "java"))
+                                  ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
 
   var millEvaluator: Evaluator = evaluator
   var clientInitialized = false
+
+  val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
+    val log = mill.util.DummyLogger
+    val home = os.pwd
+  }
 
   override def onConnectWithClient(server: BuildClient): Unit =
     client = server
@@ -101,8 +113,8 @@ class MillBuildServer(modules: Seq[JavaModule],
       for (targetId <- sourcesParams.getTargets.asScala) {
         var itemSources = List[SourceItem]()
 
-        val sources = evaluateInformativeTask(targetIdToModule(targetId).sources).left.get.map(pathRef => pathRef.path)
-        val generatedSources = evaluateInformativeTask(targetIdToModule(targetId).generatedSources).left.get
+        val sources = evaluateInformativeTask(evaluator, targetIdToModule(targetId).sources).left.get.map(pathRef => pathRef.path)
+        val generatedSources = evaluateInformativeTask(evaluator, targetIdToModule(targetId).generatedSources).left.get
           .map(pathRef => pathRef.path)
 
         for (file <- getSourceFiles(sources)) {
@@ -150,12 +162,12 @@ class MillBuildServer(modules: Seq[JavaModule],
 
       for (targetId <- dependencySourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
-        var sources = evaluateInformativeTask(millModule.resolveDeps(millModule.transitiveIvyDeps)).
+        var sources = evaluateInformativeTask(evaluator, millModule.resolveDeps(millModule.transitiveIvyDeps)).
                         left.get ++
-                      evaluateInformativeTask(millModule.resolveDeps(millModule.compileIvyDeps)).
+                      evaluateInformativeTask(evaluator, millModule.resolveDeps(millModule.compileIvyDeps)).
                         left.get
         millModule match {
-          case m: ScalaModule => sources ++= evaluateInformativeTask(
+          case m: ScalaModule => sources ++= evaluateInformativeTask(evaluator,
             millModule.resolveDeps(millModule.asInstanceOf[ScalaModule].scalaLibraryIvyDeps)).left.get
           case m: JavaModule => sources ++= List()
         }
@@ -179,7 +191,7 @@ class MillBuildServer(modules: Seq[JavaModule],
 
       for (targetId <- resourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
-        val resources = evaluateInformativeTask(millModule.resources).left.get.
+        val resources = evaluateInformativeTask(evaluator, millModule.resources).left.get.
                         flatMap(pathRef => os.walk(pathRef.path)).
                         map(path => path.toNIO.toAbsolutePath.toUri.toString).
                         toList.asJava
@@ -207,6 +219,7 @@ class MillBuildServer(modules: Seq[JavaModule],
       for (targetId <- compileParams.getTargets.asScala) {
         if (moduleToTarget(targetIdToModule(targetId)).getCapabilities.getCanCompile) {
           var millModule = targetIdToModule(targetId)
+          //millModule.javacOptions = compileParams.getArguments.asScala
           val compileTask = millModule.compile
           // send notification to client that compilation of this target started
           val taskStartParams = new TaskStartParams(new TaskId(compileTask.hashCode().toString))
@@ -254,7 +267,25 @@ class MillBuildServer(modules: Seq[JavaModule],
     future
   }
 
-  override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] = ???
+  override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] = {
+    def getRunResult: RunResult = {
+        val module = targetIdToModule(runParams.getTarget)
+        val args = runParams.getArguments
+//        val runResult = runParams.getData() match {
+//          case d: ScalaMainClass => millEvaluator.evaluate(Strict.Agg(module.runMain(d.getClass, d.getArguments.asScala)))
+//          case default => millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))))
+//        }
+        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))))
+        if (runResult.failing.keyCount > 0) {
+          new RunResult(StatusCode.ERROR)
+        } else {
+          new RunResult(StatusCode.OK)
+        }
+    }
+    val future = new CompletableFuture[RunResult]()
+    future.complete(getRunResult)
+    future
+  }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = ???
 
@@ -268,8 +299,8 @@ class MillBuildServer(modules: Seq[JavaModule],
         val module = targetIdToModule(targetId)
         module match {
           case m: ScalaModule =>
-            val options = evaluateInformativeTask(m.scalacOptions).left.get.toList
-            val classpath = evaluateInformativeTask(m.compileClasspath).left.get.
+            val options = evaluateInformativeTask(evaluator, m.scalacOptions).left.get.toList
+            val classpath = evaluateInformativeTask(evaluator, m.compileClasspath).left.get.
               map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).toList
             val index = m.millModuleSegments.parts.length
 
@@ -278,7 +309,6 @@ class MillBuildServer(modules: Seq[JavaModule],
             targetScalacOptions ++= List(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
           case m: JavaModule => targetScalacOptions ++= List()
         }
-
       }
       new ScalacOptionsResult(targetScalacOptions.asJava)
     }
@@ -288,12 +318,93 @@ class MillBuildServer(modules: Seq[JavaModule],
     future
   }
 
+//  private[this] def getSpecifiedMainClass(module: JavaModule): Either[Any, String] = {
+//    val mainClass = evaluateInformativeTask(module.finalMainClassOpt).left.get
+//    mainClass match {
+//      case main: Left[String, String] => Left(AnyRef)
+//      case main: Right[String, String] => Right(main.value)
+//    }
+//  }
+
   override def buildTargetScalaMainClasses(scalaMainClassesParams: ScalaMainClassesParams):
-                                                  CompletableFuture[ScalaMainClassesResult] = ???
+                                                  CompletableFuture[ScalaMainClassesResult] = {
+//    def getScalaMainClasses: ScalaMainClassesResult = {
+//      var items = List.empty[ScalaMainClassesItem]
+//      for (targetId <- scalaMainClassesParams.getTargets.asScala) {
+//        val module = targetIdToModule(targetId)
+//        var mainClasses = List.empty[ScalaMainClass]
+//
+//        val specifiedMainClass = getSpecifiedMainClass(module)
+//        specifiedMainClass match {
+//          case main: Left[Any, String] => {}
+//          case main: Right[Any, String] => mainClasses ++= List(new ScalaMainClass(specifiedMainClass.getOrElse(""),
+//                                            evaluateInformativeTask(module.forkArgs).left.get.toList.asJava,
+//                                            List.empty[String].asJava))
+//        }
+//
+//
+//        for (mainClass <-       evaluateInformativeTask(module.zincWorker.worker).left.get.
+//                                discoverMainClasses(evaluateInformativeTask(module.compile).left.get).
+//                                filter(main => !main.equals(specifiedMainClass))) {
+//          mainClasses ++= List(new ScalaMainClass(mainClass, List.empty[String].asJava, List.empty[String].asJava))
+//        }
+//        items ++= List(new ScalaMainClassesItem(targetId, mainClasses.asJava))
+//      }
+//      new ScalaMainClassesResult(items.asJava)
+//    }
+
+    def getScalaMainClasses: ScalaMainClassesResult = {
+      var items = List.empty[ScalaMainClassesItem]
+      for (targetId <- scalaMainClassesParams.getTargets.asScala) {
+        val module = targetIdToModule(targetId)
+        val specifiedMainClass = evaluateInformativeTask(evaluator, module.finalMainClassOpt).left.get
+        specifiedMainClass match {
+          case main: Left[String, String] => //TODO: Send a notification that main class could not be chosen
+          case main: Right[String, String] =>
+            val item = new ScalaMainClassesItem(targetId, List(new ScalaMainClass(specifiedMainClass.getOrElse(""),
+                                                    evaluateInformativeTask(evaluator, module.forkArgs).left.get.toList.asJava,
+                                                    List.empty[String].asJava)).asJava)
+            items ++= List(item)
+        }
+      }
+
+      new ScalaMainClassesResult(items.asJava)
+    }
+    val future = new CompletableFuture[ScalaMainClassesResult]()
+    future.complete(getScalaMainClasses)
+    future
+  }
+
+  private[this] def getTestFrameworks(module: TestModule) (implicit ctx: Ctx.Home): Seq[String] = {
+    //val frameworkMap = TestRunner.frameworks(evaluateInformativeTask(module.testFrameworks).left.get)
+    val classFingerprint = Jvm.inprocess(evaluateInformativeTask(evaluator, module.runClasspath).left.get.map(_.path),
+                    true,
+                    true,
+                    false, cl => {
+                    val fs = TestRunner.frameworks(evaluateInformativeTask(evaluator, module.testFrameworks).left.get)(cl)
+                    fs.flatMap(framework =>
+                      discoverTests(cl, framework, Agg(evaluateInformativeTask(evaluator, module.compile).left.get.classes.path)))
+                  })
+    classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+  }
 
   override def buildTargetScalaTestClasses(scalaTestClassesParams: ScalaTestClassesParams):
-                                                  CompletableFuture[ScalaTestClassesResult] = ???
-
+                                                  CompletableFuture[ScalaTestClassesResult] = {
+    def getScalaTestClasses (implicit ctx: Ctx.Home): ScalaTestClassesResult = {
+      var items = List.empty[ScalaTestClassesItem]
+      for (targetId <- scalaTestClassesParams.getTargets.asScala) {
+        targetIdToModule(targetId) match {
+          case module: TestModule =>
+                    items ++= List(new ScalaTestClassesItem(targetId, getTestFrameworks(module).toList.asJava))
+          case module: JavaModule => //TODO: maybe send a notification that this target has no test classes
+        }
+      }
+      new ScalaTestClassesResult(items.asJava)
+    }
+    val future = new CompletableFuture[ScalaTestClassesResult]()
+    future.complete(getScalaTestClasses(ctx))
+    future
+  }
 
   private[this] def targetToModule(moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier]):
                                                       Predef.Map[BuildTargetIdentifier, JavaModule] = {

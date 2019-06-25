@@ -147,13 +147,14 @@ object MainMillBuildServer extends ExternalModule {
     }
   }
 
-  def experiment: Unit =  {
-    val index = foo.bar.test.millModuleSegments.parts.length
-    println((os.pwd / "out" / foo.bar.test.millModuleSegments.parts
-      / "compile" / "dest").toNIO.toAbsolutePath.toUri.toString )
-    println(foo.bar.test.millModuleSegments.parts)
-    println(foo.bar.test.millSourcePath)
-    println(foo.bar.millOuterCtx.fileName)
+  def experiment(ev: Evaluator) = T.command {
+    val millServer = new mill.contrib.bsp.MillBuildServer(modules(ev)(), ev, bspVersion, version, languages)
+    val mods: Seq[JavaModule] = modules(ev)()
+    for (module <- mods) {
+      System.err.println("Module: " + module + "has capabilities: " + ModuleUtils.getModuleCapabilities(module, ev))
+      System.err.println("Base directory: " + module.millOuterCtx.millSourcePath)
+      System.err.println("MIll source path: " + module.millSourcePath)
+    }
   }
 
   /**
@@ -166,7 +167,7 @@ object MainMillBuildServer extends ExternalModule {
     */
   def main(args: Array[String]) {
     args(0) match {
-      case "exp" => experiment
+      //case "exp" => experiment
       case "install" => installMillBsp() //TODO: Do I want to make this a mill command instead?
       case e: String => println("Wrong command, you can only use:\n   " +
                                 "install - creates the bsp connection json file\n")
