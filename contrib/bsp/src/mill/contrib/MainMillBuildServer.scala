@@ -10,7 +10,7 @@ import upickle.default._
 import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient}
 import mill._
 import mill.contrib.bsp.ModuleUtils
-import mill.define.{Discover, ExternalModule, Target, Task}
+import mill.define.{Command, Discover, ExternalModule, Target, Task}
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.util.DummyLogger
@@ -74,17 +74,18 @@ object MainMillBuildServer extends ExternalModule {
     * printed to stdout.
     *
     */
-  def installMillBsp(): Unit = {
-    val bspDirecotry = os.pwd / ".bsp"
+  def install(ev: Evaluator): Command[Unit] = T.command{
+    val bspDirectory = os.pwd / ".bsp"
 
     try {
-      os.makeDir(bspDirecotry)
-      os.write(bspDirecotry / "mill-bsp.json", Json.stringify(createBspConnectionJson()))
+      os.makeDir(bspDirectory)
+      os.write(bspDirectory / "mill-bsp.json", Json.stringify(createBspConnectionJson()))
     } catch {
       case e: FileAlreadyExistsException => {
         println("The bsp connection json file probably exists already - will be overwritten")
-        os.remove.all(bspDirecotry)
-        installMillBsp()
+        os.remove.all(bspDirectory)
+        install(ev)
+        ()
       }
         //TODO: Do I want to catch this or throw the exception?
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
@@ -117,9 +118,9 @@ object MainMillBuildServer extends ExternalModule {
     * @return: mill.Command which executes the starting of the
     *         server
     */
-  def startServer(ev: Evaluator)  = T.command {
+  def startServer(ev: Evaluator): Command[Unit] = T.command {
 
-    val millServer = new mill.contrib.bsp.MillBuildServer(modules(ev)(), ev, bspVersion, version, languages)
+    val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
     val executor = Executors.newCachedThreadPool()
 
     val stdin = System.in
@@ -147,8 +148,8 @@ object MainMillBuildServer extends ExternalModule {
     }
   }
 
-  def experiment(ev: Evaluator) = T.command {
-    val millServer = new mill.contrib.bsp.MillBuildServer(modules(ev)(), ev, bspVersion, version, languages)
+  def experiment(ev: Evaluator): Command[Unit] = T.command {
+    val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
     val mods: Seq[JavaModule] = modules(ev)()
     for (module <- mods) {
       System.err.println("Module: " + module + "has capabilities: " + ModuleUtils.getModuleCapabilities(module, ev))
@@ -167,8 +168,6 @@ object MainMillBuildServer extends ExternalModule {
     */
   def main(args: Array[String]) {
     args(0) match {
-      //case "exp" => experiment
-      case "install" => installMillBsp() //TODO: Do I want to make this a mill command instead?
       case e: String => println("Wrong command, you can only use:\n   " +
                                 "install - creates the bsp connection json file\n")
     }

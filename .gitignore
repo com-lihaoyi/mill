@@ -10,3 +10,5 @@ out/
 contrib/bsp/mill-external-bs
 contrib/bsp/mill-out-bs
 mill.iml
+scratch
+./bsp

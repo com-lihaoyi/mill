@@ -19,8 +19,7 @@ import mill.util.{PrintLogger, Ctx}
 import mill.define.{Discover, ExternalModule, Target, Task}
 
 
-class MillBuildServer(modules: Seq[JavaModule],
-                      evaluator: Evaluator,
+class MillBuildServer(evaluator: Evaluator,
                       _bspVersion: String,
                       serverVersion:String,
                       languages: List[String]) extends ExternalModule with BuildServer with ScalaBuildServer  {
@@ -32,15 +31,15 @@ class MillBuildServer(modules: Seq[JavaModule],
   val supportedLanguages: List[String] = languages
   val millServerVersion: String = serverVersion
   var cancelator: () => Unit = () => ()
-
-  var millModules: Seq[JavaModule] = modules
+  var millEvaluator: Evaluator = evaluator
+  var millModules: Seq[JavaModule] = getMillModules(millEvaluator)
   var client: BuildClient = _
   var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(millModules)
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
 
-  var millEvaluator: Evaluator = evaluator
+
   var clientInitialized = false
 
   val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
@@ -85,6 +84,7 @@ class MillBuildServer(modules: Seq[JavaModule],
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] = {
+    recomputeTargets()
     val future = new CompletableFuture[WorkspaceBuildTargetsResult]()
     val result = new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava)
     future.complete(result)
@@ -247,7 +247,7 @@ class MillBuildServer(modules: Seq[JavaModule],
           taskFinishParams.setDataKind("compile-report")
           val compileReport = new CompileReport(targetId, numFailures, 0)
           compileReport.setOriginId(compileParams.getOriginId)
-          compileReport.setTime(compileTime)
+          compileReport.setTime(compileTime.toLong)
           taskFinishParams.setData(compileReport)
           client.onBuildTaskFinish(taskFinishParams)
         }
@@ -287,7 +287,101 @@ class MillBuildServer(modules: Seq[JavaModule],
     future
   }
 
-  override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = ???
+  private[this] def getTestReport(targetId: BuildTargetIdentifier, results: Seq[TestRunner.Result]): TestReport = {
+    val testReport = new TestReport(targetId, 0, 0, 0, 0, 0)
+    testReport.setTime(results.map(r => r.duration).sum)
+    for (result <- results) {
+      result.status match {
+        case "Passed" => testReport.setPassed(testReport.getPassed + 1)
+        case "Failed" => testReport.setFailed(testReport.getFailed + 1)
+        case "Ignored" => testReport.setIgnored(testReport.getIgnored + 1)
+        case "Cancelled" => testReport.setCancelled(testReport.getCancelled + 1)
+        case "Skipped" => testReport.setSkipped(testReport.getSkipped + 1)
+      }
+    }
+    testReport
+  }
+
+  private[this] def getStatusCode(results: Seq[TestRunner.Result]): StatusCode = {
+    if ( results.exists(res => res.status == "Failed") ) {
+      StatusCode.ERROR
+    } else if ( results.exists(res => res.status == "Cancelled") ) {
+      StatusCode.CANCELLED
+    }else {
+      StatusCode.OK
+    }
+  }
+
+  override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = {
+    def getTestResult (implicit ctx: Ctx.Log with Ctx.Home ): TestResult = {
+
+      val argsMap = testParams.getData match {
+        case scalaTestParams: ScalaTestParams =>
+                              (for (testItem <- scalaTestParams.getTestClasses.asScala)
+                               yield (testItem.getTarget, testItem.getClasses.asScala.toSeq)).toMap
+
+        case default => (for (targetId <- testParams.getTargets.asScala) yield (targetId, Seq.empty[String])).toMap
+      }
+      var overallStatusCode = StatusCode.OK
+      for (targetId <- testParams.getTargets.asScala) {
+        val module = targetIdToModule(targetId)
+        module match {
+          case m: TestModule => val testModule = m.asInstanceOf[TestModule]
+            val testTask = testModule.test(argsMap(targetId).mkString(" "))
+            val passed = 0;
+            val ignored = 0;
+            val skipped = 0;
+            val failed = 0;
+            val cancelled = 0
+            // send notification to client that testing of this target started
+            val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
+            taskStartParams.setEventTime(System.currentTimeMillis())
+            taskStartParams.setMessage("Testing target: " + targetId)
+            taskStartParams.setDataKind("test-task")
+            taskStartParams.setData(new TestTask(targetId))
+            client.onBuildTaskStart(taskStartParams)
+
+            val (msg, results) = TestRunner.runTests(
+              TestRunner.frameworks(evaluateInformativeTask(millEvaluator, testModule.testFrameworks).left.get),
+              evaluateInformativeTask(millEvaluator, testModule.runClasspath).left.get.map(_.path),
+              Agg(evaluateInformativeTask(millEvaluator, testModule.compile).left.get.classes.path),
+              argsMap(targetId)
+            )
+
+            val endTime = System.currentTimeMillis()
+            // send notification to client that testing of this target ended => test report
+            val statusCode = getStatusCode(results)
+            val taskFinishParams = new TaskFinishParams(
+              new TaskId(testTask.hashCode().toString),
+              getStatusCode(results)
+            )
+            taskFinishParams.setEventTime(endTime)
+            taskFinishParams.setMessage("Finished testing target: " +
+              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
+            taskFinishParams.setDataKind("test-report")
+            taskFinishParams.setData(getTestReport(targetId, results))
+            client.onBuildTaskFinish(taskFinishParams)
+
+            statusCode match {
+              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
+              case default =>
+            }
+          case default =>
+        }
+      }
+      val testResult = new TestResult(overallStatusCode)
+      testParams.getOriginId match {
+        case id: String =>
+           //TODO: Add the messages from mill to the data field?
+          testResult.setOriginId(id)
+          testResult
+        case default => testResult
+      }
+    }
+    val future = new CompletableFuture[TestResult]()
+    future.complete(getTestResult(ctx))
+    future
+  }
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] = ???
 
@@ -318,40 +412,8 @@ class MillBuildServer(modules: Seq[JavaModule],
     future
   }
 
-//  private[this] def getSpecifiedMainClass(module: JavaModule): Either[Any, String] = {
-//    val mainClass = evaluateInformativeTask(module.finalMainClassOpt).left.get
-//    mainClass match {
-//      case main: Left[String, String] => Left(AnyRef)
-//      case main: Right[String, String] => Right(main.value)
-//    }
-//  }
-
   override def buildTargetScalaMainClasses(scalaMainClassesParams: ScalaMainClassesParams):
                                                   CompletableFuture[ScalaMainClassesResult] = {
-//    def getScalaMainClasses: ScalaMainClassesResult = {
-//      var items = List.empty[ScalaMainClassesItem]
-//      for (targetId <- scalaMainClassesParams.getTargets.asScala) {
-//        val module = targetIdToModule(targetId)
-//        var mainClasses = List.empty[ScalaMainClass]
-//
-//        val specifiedMainClass = getSpecifiedMainClass(module)
-//        specifiedMainClass match {
-//          case main: Left[Any, String] => {}
-//          case main: Right[Any, String] => mainClasses ++= List(new ScalaMainClass(specifiedMainClass.getOrElse(""),
-//                                            evaluateInformativeTask(module.forkArgs).left.get.toList.asJava,
-//                                            List.empty[String].asJava))
-//        }
-//
-//
-//        for (mainClass <-       evaluateInformativeTask(module.zincWorker.worker).left.get.
-//                                discoverMainClasses(evaluateInformativeTask(module.compile).left.get).
-//                                filter(main => !main.equals(specifiedMainClass))) {
-//          mainClasses ++= List(new ScalaMainClass(mainClass, List.empty[String].asJava, List.empty[String].asJava))
-//        }
-//        items ++= List(new ScalaMainClassesItem(targetId, mainClasses.asJava))
-//      }
-//      new ScalaMainClassesResult(items.asJava)
-//    }
 
     def getScalaMainClasses: ScalaMainClassesResult = {
       var items = List.empty[ScalaMainClassesItem]
@@ -410,5 +472,19 @@ class MillBuildServer(modules: Seq[JavaModule],
                                                       Predef.Map[BuildTargetIdentifier, JavaModule] = {
       moduleToTargetId.keys.map(mod => (moduleToTargetId(mod), mod)).toMap
 
+  }
+
+  private[this] def getMillModules(ev: Evaluator): Seq[JavaModule] = {
+    ev.rootModule.millInternal.segmentsToModules.values.
+      collect {
+        case m: scalalib.JavaModule => m
+      }.toSeq
+  }
+
+  private[this] def recomputeTargets(): Unit = {
+    millModules = getMillModules(millEvaluator)
+    moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules)
+    targetIdToModule = targetToModule(moduleToTargetId)
+    moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
   }
 }
