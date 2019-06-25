@@ -75,7 +75,7 @@ object MainMillBuildServer extends ExternalModule {
     *
     */
   def installMillBsp(): Unit = {
-    val bspDirecotry = os.pwd / "contrib" / "bsp" / ".bsp"
+    val bspDirecotry = os.pwd / ".bsp"
 
     try {
       os.makeDir(bspDirecotry)
