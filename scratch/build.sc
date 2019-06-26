@@ -1,35 +1,30 @@
-import mill.Agg
-import mill.scalalib._
-import ammonite.ops._
+import mill._, scalalib._
+import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-7-be21ae-DIRTY1fe41d7a`
 
-object core extends ScalaModule{
+object mill_exercise extends ScalaModule {
   def scalaVersion = "2.12.8"
+
   def ivyDeps = Agg(
-    ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
-    ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
+    ivy"org.scalameta::metals:0.5.2",
+    ivy"org.scalameta::scalameta:4.1.9",
+    ivy"com.geirsson::coursier-small:1.3.3",
+    ivy"org.scala-lang:scala-reflect:2.12.8",
+    ivy"org.scala-lang:scala-compiler:2.12.8",
+    ivy"org.eclipse.lsp4j:org.eclipse.lsp4j:0.7.1",
+    ivy"ch.epfl.scala:bsp4j:2.0.0-M3",
+    ivy"com.google.code.gson:gson:2.3.1",
+    ivy"com.lihaoyi::ammonite-ops:1.6.7"
   )
-}
 
-object foo extends ScalaModule {
-  def scalaVersion = "2.12.8"
-  // def scalacPluginIvyDeps = Agg(ivy"org.scala-lang:scala-compiler:${scalaVersion()}")
-  def ivyDeps = Agg(ivy"org.scala-lang:scala-reflect:${scalaVersion()}",
-    ivy"org.scala-lang:scala-compiler:${scalaVersion()}")
-  object foo_test extends Tests {
-    def moduleDeps = Seq(foo)
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("utest.runner.Framework")
-    def generatedSources = T {
-      Seq(PathRef(os.pwd / "foo/test/src/Generated.scala"))
-    }
+  object test extends Tests {
+    def ivyDeps = Agg(//ivy"org.scalameta::metals:0.5.2",
+                      ivy"org.scalatest::scalatest:3.0.4",
+                      ivy"org.scalactic::scalactic:3.0.5",
+                      ivy"org.scalameta::testkit:4.1.9",
+                      ivy"org.eclipse.lsp4j:org.eclipse.lsp4j:0.5.0",
+                      ivy"ch.epfl.scala::bloop-config:1.2.5",
+                      ivy"org.scala-lang.modules::scala-java8-compat:0.9.0")
+
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
-}
-
-object bar extends ScalaModule {
-  def scalaVersion = "2.12.8"
-  def moduleDeps = Seq(foo)
-  def mainClass = Some("BarMain")
-  def compileIvyDeps = Agg(ivy"org.scala-lang:scala-reflect:${scalaVersion()}")
-  def scalacOptions = Seq("-no-specialization")
-  def ivyDeps = Agg(ivy"ch.epfl.scala::bloop-config:1.2.5")
 }

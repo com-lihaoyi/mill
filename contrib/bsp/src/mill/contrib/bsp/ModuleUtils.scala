@@ -1,8 +1,10 @@
 package mill.contrib.bsp
 
 import java.util.Collections
+
 import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j._
+import mill.api.Result.Success
 import mill.api.{Loose, Strict}
 import mill.define.{Discover, Task}
 import mill.eval._
@@ -12,6 +14,7 @@ import mill.scalalib.api.Util
 import mill.scalanativelib._
 import mill.scalalib.{JavaModule, ScalaModule, TestModule}
 import mill.util.DummyLogger
+
 
 object ModuleUtils {
 
@@ -59,8 +62,11 @@ object ModuleUtils {
     }
 
   def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
-    val canRun = evaluateInformativeTask(evaluator, module.finalMainClass, success = false).right.get match {
-      case result: Result.Success[String] => true
+    val canRun = getTaskResult(evaluator, module.finalMainClassOpt) match {
+      case result: Result.Success[Any] => result.asSuccess.get.value match {
+        case _: Right[String, String] => true
+        case _: Left[String, String] => false
+      }
       case default => false
     }
     val canTest = module match {
@@ -76,35 +82,38 @@ object ModuleUtils {
   def computeScalaBuildTarget(module: JavaModule, evaluator: Evaluator): Any = {
     module match {
       case m: ScalaModule =>
-        val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion).left.get
+        val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion, "")
         new ScalaBuildTarget(
-          evaluateInformativeTask(evaluator, m.scalaOrganization).left.get,
+          evaluateInformativeTask(evaluator, m.scalaOrganization, ""),
           scalaVersion,
           Util.scalaBinaryVersion(scalaVersion),
           getScalaTargetPlatform(m),
           computeScalaLangDependencies(m, evaluator).
-            map(pathRef => pathRef.path.toNIO.toAbsolutePath.toString).
+            map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).
             toList.asJava)
 
       case m: JavaModule => "This is just a test or java target"
     }
   }
 
-  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], success: Boolean = true): Either[T, Result[Any]] = {
-    if (success) {
-      Left(evaluator.evaluate(Strict.Agg(task)).results(task).asSuccess.get.value.asInstanceOf[T])
-    } else {
-      Right(evaluator.evaluate(Strict.Agg(task)).results(task))
-    }
+  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] = {
+    evaluator.evaluate(Strict.Agg(task)).results(task)
+  }
 
+  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
+      val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
+      evaluated match {
+        case Success(value) => evaluated.asSuccess.get.value.asInstanceOf[T]
+        case default => defaultValue
+      }
   }
 
   def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] = {
-      evaluateInformativeTask(evaluator, module.scalacPluginClasspath).left.get ++
-      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps)).left.get.
-        filter(pathRef => pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-compiler") ||
-          pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-reflect") ||
-          pathRef.path.toNIO.toAbsolutePath.toString.contains("scala-library"))
+      evaluateInformativeTask(evaluator, module.scalacPluginClasspath, Loose.Agg.empty[PathRef]) ++
+      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Loose.Agg.empty[PathRef]).
+        filter(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-compiler") ||
+          pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-reflect") ||
+          pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-library"))
   }
 
   def getScalaTargetPlatform(module: ScalaModule): ScalaPlatform = {

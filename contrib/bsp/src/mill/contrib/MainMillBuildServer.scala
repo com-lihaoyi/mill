@@ -1,15 +1,16 @@
 package mill.contrib
 
-import java.io.{BufferedReader, File, InputStreamReader}
+import java.io.{BufferedReader, File, InputStream, InputStreamReader, OutputStream}
 
 import play.api.libs.json._
 import java.nio.file.FileAlreadyExistsException
-import java.util.concurrent.{CompletableFuture, Executors, Future}
+import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, ScalaTestClassesParams}
 import mill._
-import mill.contrib.bsp.ModuleUtils
+import mill.api.Strict
+import mill.contrib.bsp.{MillBuildServer, ModuleUtils}
 import mill.define.{Command, Discover, ExternalModule, Target, Task}
 import mill.eval.Evaluator
 import mill.scalalib._
@@ -81,13 +82,12 @@ object MainMillBuildServer extends ExternalModule {
       os.makeDir(bspDirectory)
       os.write(bspDirectory / "mill-bsp.json", Json.stringify(createBspConnectionJson()))
     } catch {
-      case e: FileAlreadyExistsException => {
+      case e: FileAlreadyExistsException =>
         println("The bsp connection json file probably exists already - will be overwritten")
         os.remove.all(bspDirectory)
         install(ev)
         ()
-      }
-        //TODO: Do I want to catch this or throw the exception?
+      //TODO: Do I want to catch this or throw the exception?
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
                                   " " + e.getStackTrace.toString)
     }
@@ -140,7 +140,9 @@ object MainMillBuildServer extends ExternalModule {
     } catch {
       case e: Exception =>
         System.err.println("An exception occured while connecting to the client.")
-        System.err.println(e.getMessage)
+        System.err.println("Cause: " + e.getCause)
+        System.err.println("Message: " + e.getMessage)
+        System.err.println("Exception class: " + e.getClass)
         e.printStackTrace()
     } finally {
       System.err.println("Shutting down executor")
@@ -152,6 +154,16 @@ object MainMillBuildServer extends ExternalModule {
     val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
     val mods: Seq[JavaModule] = modules(ev)()
     for (module <- mods) {
+      val mainTask = ev.evaluate(Strict.Agg(module.finalMainClass)).results(module.finalMainClass)
+      println(ev.evaluate(Strict.Agg(module.runClasspath)).results(module.runClasspath))
+      val id = millServer.moduleToTargetId(module)
+      module match {
+        case m: TestModule =>
+          println("Test: " + millServer.buildTargetScalaTestClasses(
+            new ScalaTestClassesParams(List(id).asJava)
+          ))
+        case default =>
+      }
       System.err.println("Module: " + module + "has capabilities: " + ModuleUtils.getModuleCapabilities(module, ev))
       System.err.println("Base directory: " + module.millOuterCtx.millSourcePath)
       System.err.println("MIll source path: " + module.millSourcePath)

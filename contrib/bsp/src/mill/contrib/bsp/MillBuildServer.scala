@@ -2,20 +2,23 @@ package mill.contrib.bsp
 import sbt.testing._
 import java.util.{Calendar, Collections}
 import java.util.concurrent.CompletableFuture
+
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
-import mill._
-import mill.api.Strict
+import mill.{scalalib, _}
+import mill.api.{Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
-import mill.eval.Evaluator
+import mill.eval.{Evaluator}
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.api.ZincWorkerApi
+
 import scala.collection.mutable.Map
-import mill.api.Loose
+import mill.api.Result.{Failing, Success}
+
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
-import mill.util.{PrintLogger, Ctx}
+import mill.util.{Ctx, PrintLogger}
 import mill.define.{Discover, ExternalModule, Target, Task}
 
 
@@ -113,9 +116,12 @@ class MillBuildServer(evaluator: Evaluator,
       for (targetId <- sourcesParams.getTargets.asScala) {
         var itemSources = List[SourceItem]()
 
-        val sources = evaluateInformativeTask(evaluator, targetIdToModule(targetId).sources).left.get.map(pathRef => pathRef.path)
-        val generatedSources = evaluateInformativeTask(evaluator, targetIdToModule(targetId).generatedSources).left.get
-          .map(pathRef => pathRef.path)
+        val sources = evaluateInformativeTask(evaluator, targetIdToModule(targetId).sources, Agg.empty[PathRef]).
+                      map(pathRef => pathRef.path).toSeq
+        val generatedSources = evaluateInformativeTask(evaluator,
+                                                        targetIdToModule(targetId).generatedSources,
+                                                        Agg.empty[PathRef]).
+                                                        map(pathRef => pathRef.path).toSeq
 
         for (file <- getSourceFiles(sources)) {
           itemSources ++= List(new SourceItem(file.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.FILE, false))
@@ -162,13 +168,16 @@ class MillBuildServer(evaluator: Evaluator,
 
       for (targetId <- dependencySourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
-        var sources = evaluateInformativeTask(evaluator, millModule.resolveDeps(millModule.transitiveIvyDeps)).
-                        left.get ++
-                      evaluateInformativeTask(evaluator, millModule.resolveDeps(millModule.compileIvyDeps)).
-                        left.get
+        var sources = evaluateInformativeTask(evaluator,
+                                              millModule.resolveDeps(millModule.transitiveIvyDeps),
+                                              Agg.empty[PathRef]) ++
+                      evaluateInformativeTask(evaluator,
+                                              millModule.resolveDeps(millModule.compileIvyDeps),
+                                              Agg.empty[PathRef])
         millModule match {
           case m: ScalaModule => sources ++= evaluateInformativeTask(evaluator,
-            millModule.resolveDeps(millModule.asInstanceOf[ScalaModule].scalaLibraryIvyDeps)).left.get
+                                    millModule.resolveDeps(millModule.asInstanceOf[ScalaModule].scalaLibraryIvyDeps),
+                                    Agg.empty[PathRef])
           case m: JavaModule => sources ++= List()
         }
         items ++= List(new DependencySourcesItem(targetId, sources.
@@ -191,7 +200,7 @@ class MillBuildServer(evaluator: Evaluator,
 
       for (targetId <- resourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
-        val resources = evaluateInformativeTask(evaluator, millModule.resources).left.get.
+        val resources = evaluateInformativeTask(evaluator, millModule.resources, Agg.empty[PathRef]).
                         flatMap(pathRef => os.walk(pathRef.path)).
                         map(path => path.toNIO.toAbsolutePath.toUri.toString).
                         toList.asJava
@@ -234,6 +243,12 @@ class MillBuildServer(evaluator: Evaluator,
           compileTime += result.timings.map(timingTuple => timingTuple._2).sum
           var statusCode = StatusCode.OK
 
+//          result.results(compileTask) match {
+//            case r: Failing[CompilationResult] =>
+//              statusCode = StatusCode.ERROR
+//              numFailures += result.failing.keyCount
+//            case default =>
+//          }
           if (result.failing.keyCount > 0) {
             statusCode = StatusCode.ERROR
             numFailures += result.failing.keyCount
@@ -328,11 +343,7 @@ class MillBuildServer(evaluator: Evaluator,
         module match {
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
             val testTask = testModule.test(argsMap(targetId).mkString(" "))
-            val passed = 0;
-            val ignored = 0;
-            val skipped = 0;
-            val failed = 0;
-            val cancelled = 0
+
             // send notification to client that testing of this target started
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
             taskStartParams.setEventTime(System.currentTimeMillis())
@@ -341,31 +352,55 @@ class MillBuildServer(evaluator: Evaluator,
             taskStartParams.setData(new TestTask(targetId))
             client.onBuildTaskStart(taskStartParams)
 
-            val (msg, results) = TestRunner.runTests(
-              TestRunner.frameworks(evaluateInformativeTask(millEvaluator, testModule.testFrameworks).left.get),
-              evaluateInformativeTask(millEvaluator, testModule.runClasspath).left.get.map(_.path),
-              Agg(evaluateInformativeTask(millEvaluator, testModule.compile).left.get.classes.path),
-              argsMap(targetId)
-            )
+            val runClasspath = getTaskResult(millEvaluator, testModule.runClasspath)
+            val frameworks = getTaskResult(millEvaluator, testModule.testFrameworks)
+            val compilationResult = getTaskResult(millEvaluator, testModule.compile)
 
-            val endTime = System.currentTimeMillis()
-            // send notification to client that testing of this target ended => test report
-            val statusCode = getStatusCode(results)
-            val taskFinishParams = new TaskFinishParams(
-              new TaskId(testTask.hashCode().toString),
-              getStatusCode(results)
-            )
-            taskFinishParams.setEventTime(endTime)
-            taskFinishParams.setMessage("Finished testing target: " +
-              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
-            taskFinishParams.setDataKind("test-report")
-            taskFinishParams.setData(getTestReport(targetId, results))
-            client.onBuildTaskFinish(taskFinishParams)
-
-            statusCode match {
-              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
-              case default =>
+            (runClasspath, frameworks, compilationResult) match {
+              case (Success(classpath), Success(testFrameworks), Success(compResult)) =>
+                            val (msg, results) = TestRunner.runTests(
+                              TestRunner.frameworks(testFrameworks.asInstanceOf[Seq[String]]),
+                              classpath.asInstanceOf[Agg[PathRef]].map(_.path),
+                              Agg(compResult.asInstanceOf[scalalib.api.CompilationResult].classes.path),
+                              argsMap(targetId)
+                            )
+                            val endTime = System.currentTimeMillis()
+                            // send notification to client that testing of this target ended => test report
+                            val statusCode = getStatusCode(results)
+                            val taskFinishParams = new TaskFinishParams(
+                              new TaskId(testTask.hashCode().toString),
+                              getStatusCode(results)
+                            )
+                            taskFinishParams.setEventTime(endTime)
+                            taskFinishParams.setMessage("Finished testing target: " +
+                              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
+                            taskFinishParams.setDataKind("test-report")
+                            taskFinishParams.setData(getTestReport(targetId, results))
+                            client.onBuildTaskFinish(taskFinishParams)
+                            statusCode match {
+                              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
+                              case default =>
+                            }
+              case default =>   val endTime = System.currentTimeMillis()
+                                val taskFinishParams = new TaskFinishParams(
+                                    new TaskId(testTask.hashCode().toString),
+                                    StatusCode.ERROR
+                                  )
+                                taskFinishParams.setEventTime(endTime)
+                                taskFinishParams.setMessage("Testing target: " +
+                                  moduleToTarget(targetIdToModule(targetId)).getDisplayName +
+                                  "failed because one of the tasks it depended on failed. There might" +
+                                  "be compilation errors.")
+                                taskFinishParams.setDataKind("test-report")
+                                taskFinishParams.setData(
+                                  new TestReport(targetId, 0, 0, 0, 0, 0)
+                                )
+                                overallStatusCode = StatusCode.ERROR
+                                client.onBuildTaskFinish(taskFinishParams)
+                                buildTargetCompile(new CompileParams(List(targetId).asJava))
             }
+
+
           case default =>
         }
       }
@@ -393,12 +428,12 @@ class MillBuildServer(evaluator: Evaluator,
         val module = targetIdToModule(targetId)
         module match {
           case m: ScalaModule =>
-            val options = evaluateInformativeTask(evaluator, m.scalacOptions).left.get.toList
-            val classpath = evaluateInformativeTask(evaluator, m.compileClasspath).left.get.
+            val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
+            val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef]).
               map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).toList
             val index = m.millModuleSegments.parts.length
 
-            val classDirectory = m.millOuterCtx.fileName//.toNIO.toAbsolutePath.toUri.toString
+            val classDirectory = m.millSourcePath.toNIO.toAbsolutePath.toUri.toString
 
             targetScalacOptions ++= List(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
           case m: JavaModule => targetScalacOptions ++= List()
@@ -419,17 +454,21 @@ class MillBuildServer(evaluator: Evaluator,
       var items = List.empty[ScalaMainClassesItem]
       for (targetId <- scalaMainClassesParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val specifiedMainClass = evaluateInformativeTask(evaluator, module.finalMainClassOpt).left.get
-        specifiedMainClass match {
-          case main: Left[String, String] => //TODO: Send a notification that main class could not be chosen
-          case main: Right[String, String] =>
-            val item = new ScalaMainClassesItem(targetId, List(new ScalaMainClass(specifiedMainClass.getOrElse(""),
-                                                    evaluateInformativeTask(evaluator, module.forkArgs).left.get.toList.asJava,
-                                                    List.empty[String].asJava)).asJava)
-            items ++= List(item)
+        val scalaMainClasses = getTaskResult(millEvaluator, module.finalMainClassOpt) match {
+          case result: Result.Success[Any] => result.asSuccess.get.value match {
+            case mainClass: Right[String, String] =>
+              List(new ScalaMainClass(
+                                mainClass.value,
+                                evaluateInformativeTask(evaluator, module.forkArgs, Seq.empty[String]).
+                                  toList.asJava,
+                                List.empty[String].asJava))
+            case msg: Left[String, String] => List.empty[ScalaMainClass]
+          }
+          case default => List.empty[ScalaMainClass]
         }
-      }
-
+        val item = new ScalaMainClassesItem (targetId , scalaMainClasses.asJava)
+        items ++= List(item)
+        }
       new ScalaMainClassesResult(items.asJava)
     }
     val future = new CompletableFuture[ScalaMainClassesResult]()
@@ -438,16 +477,24 @@ class MillBuildServer(evaluator: Evaluator,
   }
 
   private[this] def getTestFrameworks(module: TestModule) (implicit ctx: Ctx.Home): Seq[String] = {
-    //val frameworkMap = TestRunner.frameworks(evaluateInformativeTask(module.testFrameworks).left.get)
-    val classFingerprint = Jvm.inprocess(evaluateInformativeTask(evaluator, module.runClasspath).left.get.map(_.path),
-                    true,
-                    true,
-                    false, cl => {
-                    val fs = TestRunner.frameworks(evaluateInformativeTask(evaluator, module.testFrameworks).left.get)(cl)
-                    fs.flatMap(framework =>
-                      discoverTests(cl, framework, Agg(evaluateInformativeTask(evaluator, module.compile).left.get.classes.path)))
-                  })
-    classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+    val runClasspath = getTaskResult(millEvaluator, module.runClasspath)
+    val frameworks = getTaskResult(millEvaluator, module.testFrameworks)
+    val compilationResult = getTaskResult(millEvaluator, module.compile)
+
+    (runClasspath, frameworks, compilationResult) match {
+      case (Result.Success(classpath), Result.Success(testFrameworks), Result.Success(compResult)) =>
+        val classFingerprint = Jvm.inprocess(classpath.asInstanceOf[Seq[PathRef]].map(_.path),
+          true,
+          true,
+          false, cl => {
+            val fs = TestRunner.frameworks(testFrameworks.asInstanceOf[Seq[String]])(cl)
+            fs.flatMap(framework =>
+              discoverTests(cl, framework, Agg(compResult.asInstanceOf[CompilationResult].
+                classes.path)))
+          })
+        classFingerprint.map(classF => classF._1.getName.stripSuffix("$"))
+      case default => Seq.empty[String] //TODO: or send notification that something went wrong
+    }
   }
 
   override def buildTargetScalaTestClasses(scalaTestClassesParams: ScalaTestClassesParams):
