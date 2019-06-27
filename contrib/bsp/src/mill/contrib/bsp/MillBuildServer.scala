@@ -8,7 +8,7 @@ import ch.epfl.scala.bsp4j._
 import mill.{scalalib, _}
 import mill.api.{Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
-import mill.eval.{Evaluator}
+import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 import mill.scalalib.api.ZincWorkerApi
@@ -20,6 +20,8 @@ import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.{Ctx, PrintLogger}
 import mill.define.{Discover, ExternalModule, Target, Task}
+
+import scala.io.Source
 
 
 class MillBuildServer(evaluator: Evaluator,
@@ -418,7 +420,31 @@ class MillBuildServer(evaluator: Evaluator,
     future
   }
 
-  override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] = ???
+  override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] = {
+    def getCleanCacheResult: CleanCacheResult = {
+      var msg = ""
+      var cleaned = true
+      for (targetId <- cleanCacheParams.getTargets.asScala) {
+        val module = targetIdToModule(targetId)
+        val process = Runtime.getRuntime.exec(s"mill clean ${module.millModuleSegments.parts.mkString(".")}.compile")
+
+        val processIn = process.getInputStream
+        val processErr = process.getErrorStream
+
+        val errMessage = Source.fromInputStream(processErr).getLines().mkString("\n")
+        val message = Source.fromInputStream(processIn).getLines().mkString("\n")
+        msg += s"Cleaning cache for target ${targetId} produced the following message: ${message}, ${errMessage}"
+        if (msg.contains("failed")) {
+          cleaned = false
+        }
+        process.waitFor()
+      }
+      new CleanCacheResult(msg, cleaned)
+    }
+    val future = new CompletableFuture[CleanCacheResult]()
+    future.complete(getCleanCacheResult)
+    future
+  }
 
   override def buildTargetScalacOptions(scalacOptionsParams: ScalacOptionsParams):
                                                   CompletableFuture[ScalacOptionsResult] = {

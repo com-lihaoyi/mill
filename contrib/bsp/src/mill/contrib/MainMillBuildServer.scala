@@ -154,20 +154,9 @@ object MainMillBuildServer extends ExternalModule {
     val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
     val mods: Seq[JavaModule] = modules(ev)()
     for (module <- mods) {
-      val mainTask = ev.evaluate(Strict.Agg(module.finalMainClass)).results(module.finalMainClass)
-      println(ev.evaluate(Strict.Agg(module.runClasspath)).results(module.runClasspath))
-      val id = millServer.moduleToTargetId(module)
-      module match {
-        case m: TestModule =>
-          println("Test: " + millServer.buildTargetScalaTestClasses(
-            new ScalaTestClassesParams(List(id).asJava)
-          ))
-        case default =>
+      println(module.millModuleSegments.parts.mkString("."))
       }
-      System.err.println("Module: " + module + "has capabilities: " + ModuleUtils.getModuleCapabilities(module, ev))
-      System.err.println("Base directory: " + module.millOuterCtx.millSourcePath)
-      System.err.println("MIll source path: " + module.millSourcePath)
-    }
+
   }
 
   /**
