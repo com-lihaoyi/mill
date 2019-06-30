@@ -1,0 +1,32 @@
+#!/usr/bin/env sh
+
+# This is a wrapper script, that automatically download mill from GitHub release pages
+# You can give the required mill version with MILL_VERSION env variable
+# If no version is given, it falls back to the value of DEFAULT_MILL_VERSION
+DEFAULT_MILL_VERSION=0.4.2
+
+set -e
+
+if [ -z "$MILL_VERSION" ] ; then
+  MILL_VERSION=$DEFAULT_MILL_VERSION
+fi
+
+MILL_DOWNLOAD_PATH="$HOME/.mill/download"
+MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/$MILL_VERSION"
+
+if [ ! -x "$MILL_EXEC_PATH" ] ; then
+  mkdir -p $MILL_DOWNLOAD_PATH
+  DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
+  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION%%-*}/$MILL_VERSION"
+  curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
+  chmod +x "$DOWNLOAD_FILE"
+  mkdir -p "$MILL_DOWNLOAD_PATH"
+  mv "$DOWNLOAD_FILE" "$MILL_EXEC_PATH"
+  unset DOWNLOAD_FILE
+  unset MILL_DOWNLOAD_URL
+fi
+
+unset MILL_DOWNLOAD_PATH
+unset MILL_VERSION
+
+exec $MILL_EXEC_PATH "$@"
