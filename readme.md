@@ -167,6 +167,11 @@ corresponding version of Mill.
 
 ## Changelog
 
+### 0.4.2
+
+- Improvements to IntelliJ project generation [#616](https://github.com/lihaoyi/mill/pull/616)
+
+- Allow configuration of Scala.js' JsEnv [#628](https://github.com/lihaoyi/mill/pull/628)
 
 ### 0.4.1
 
