@@ -444,7 +444,16 @@ def launcherScript(shellJvmArgs: Seq[String],
       def java(mainClass: String) =
         s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      s"""if [ -z "$$JAVA_HOME" ] ; then
+      // Delegate to the `./mill` wrapper script if one exists, and we are being
+      // called manually (i.e. the MILL_EXEC_PATH that the wrapper script normally
+      // sets is not present in the environment)
+      s"""if [ -f "$$(dirname "$$BASH_SOURCE")/mill" ] ; then
+         |  if [ ! -z "$$MILL_EXEC_PATH" ] ; then
+         |    exec "$$(dirname "$$BASH_SOURCE")/mill"
+         |  fi
+         |fi
+         |
+         |if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
          |else
          |  JAVACMD="$$JAVA_HOME/bin/java"
