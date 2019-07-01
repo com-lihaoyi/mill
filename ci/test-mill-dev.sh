@@ -6,7 +6,7 @@ set -eux
 git clean -xdf
 
 # Build Mill
-mill -i dev.assembly
+./mill -i dev.assembly
 
 rm -rf ~/.mill
 

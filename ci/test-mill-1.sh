@@ -6,4 +6,4 @@ set -eux
 git clean -xdf
 
 # Run tests
-mill integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
+./mill integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
