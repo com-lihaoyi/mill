@@ -61,7 +61,7 @@ trait MillModule extends MillApiModule{ outer =>
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
 
-  def millBootstrap = T.sources(os.pwd / "mill-template")
+  def millBootstrap = T.sources(millSourcePath / "mill-template")
 
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
