@@ -61,6 +61,7 @@ trait MillModule extends MillApiModule{ outer =>
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
 
+  def millBootstrap = T.sources(os.pwd / "mill-template")
 
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
@@ -437,19 +438,19 @@ object integration extends MillModule{
 def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
-                   cmdClassPath: Agg[String]) = {
+                   cmdClassPath: Agg[String],
+                   millBootstrapStringValue: String) = {
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
         s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      // Delegate to the `./mill` wrapper script if one exists, and we are being
-      // called manually (i.e. the MILL_EXEC_PATH that the wrapper script normally
-      // sets is not present in the environment)
-      s"""if [ -f "$$(dirname "$$BASH_SOURCE")/mill" ] ; then
-         |  if [ ! -z "$$MILL_EXEC_PATH" ] ; then
-         |    exec "$$(dirname "$$BASH_SOURCE")/mill"
+      val cutCount = millBootstrapGrepPrefix.length + 1
+      s"""if [ -f "$$PWD/mill" ] ; then
+         |  if [ -z "$$MILL_EXEC_PATH" ] ; then
+         |    MILL_VERSION=$$(grep -F "$millBootstrapGrepPrefix" "$$PWD/mill" | cut -c $cutCount-)
+         |    ${millBootstrapStringValue.replace("\n", "\n      ")}
          |  fi
          |fi
          |
@@ -485,8 +486,16 @@ def launcherScript(shellJvmArgs: Seq[String],
   )
 }
 
+val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
+
+def millBootstrapString = T{
+  os.read(main.millBootstrap().head.path)
+    .replace(millBootstrapGrepPrefix, millBootstrapGrepPrefix + publishVersion())
+}
+
 object dev extends MillModule{
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage)
+
 
   def forkArgs =
     (
@@ -553,7 +562,13 @@ object dev extends MillModule{
         Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
         Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
       )
-    launcherScript(shellArgs, cmdArgs, classpath, classpath)
+    launcherScript(
+      shellArgs,
+      cmdArgs,
+      classpath,
+      classpath,
+      millBootstrapString()
+    )
   }
 
   def run(args: String*) = T.command{
@@ -591,7 +606,8 @@ def release = T{
         shellArgs,
         cmdArgs,
         Agg("$0"),
-        Agg("%~dpnx0")
+        Agg("%~dpnx0"),
+        millBootstrapString()
       )
     ).path,
     dest / filename
@@ -652,4 +668,10 @@ def uploadToGithub(authKey: String) = T.command{
   }
 
   upload.apply(release().path, releaseTag, label, authKey)
+
+  val bootstrapScript = T.ctx().dest / "mill-bootstrap"
+
+  os.write(bootstrapScript, millBootstrapString)
+
+  upload.apply(bootstrapScript, releaseTag, label + "-bootstrap", authKey)
 }
