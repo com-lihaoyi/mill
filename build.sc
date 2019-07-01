@@ -2,8 +2,7 @@ import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
 import $ivy.`org.scalaj::scalaj-http:2.4.1`
-import $ivy.`com.lihaoyi::os-lib:0.3.0`
-import ammonite.ops._
+
 import coursier.maven.MavenRepository
 import mill._
 import mill.scalalib._
@@ -62,7 +61,7 @@ trait MillModule extends MillApiModule{ outer =>
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
 
-  def millBootstrap = T.sources(os.pwd / "mill-template")
+  def millBootstrap = T.sources(millSourcePath / "mill-template")
 
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
@@ -447,13 +446,20 @@ def launcherScript(shellJvmArgs: Seq[String],
       def java(mainClass: String) =
         s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      val cutCount = millBootstrapGrepPrefix.length + 1
-      s"""if [ -f "$$PWD/mill" ] ; then
-         |  if [ -z "$$MILL_EXEC_PATH" ] ; then
-         |    MILL_VERSION=$$(grep -F "$millBootstrapGrepPrefix" "$$PWD/mill" | cut -c $cutCount-)
-         |    ${millBootstrapStringValue.replace("\n", "\n      ")}
-         |  fi
-         |fi
+      val bootstrapPrefix =
+        if (millBootstrapString == "") ""
+        else {
+          val cutCount = millBootstrapGrepPrefix.length + 1
+          s"""if [ -f "$$PWD/mill" ] ; then
+             |  if [ -z "$$MILL_EXEC_PATH" ] ; then
+             |    MILL_VERSION=$$(grep -F "$millBootstrapGrepPrefix" "$$PWD/mill" | cut -c $cutCount-)
+             |    ${millBootstrapStringValue.replace("\n", "\n      ")}
+             |  fi
+             |fi
+             |
+             |""".stripMargin
+        }
+      s"""$bootstrapPrefix
          |
          |if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
@@ -516,20 +522,21 @@ object dev extends MillModule{
 
 
   // Pass dev.assembly VM options via file in Windows due to small max args limit
-  def windowsVmOptions(taskName: String, batch: Path, args: Seq[String])(implicit ctx: mill.util.Ctx) = {
+  def windowsVmOptions(taskName: String, batch: os.Path, args: Seq[String])
+                      (implicit ctx: mill.util.Ctx) = {
     if (System.getProperty("java.specification.version").startsWith("1.")) {
       throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
     }
     val vmOptionsFile = T.ctx().dest / "mill.vmoptions"
     T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
-    write(vmOptionsFile, args.mkString("\r\n"))
+    os.write(vmOptionsFile, args.mkString("\r\n"))
   }
 
   def launcher = T{
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
 
-    write(outputPath, prependShellScript())
+    os.write(outputPath, prependShellScript())
 
     if (isWin) {
       windowsVmOptions("dev.launcher", outputPath, forkArgs())
@@ -546,7 +553,7 @@ object dev extends MillModule{
   def assembly = T{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx().dest / (if (isWin) "mill.bat" else "mill")
-    mv(super.assembly().path, millPath)
+    os.move(super.assembly().path, millPath)
     if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
     PathRef(millPath)
   }
@@ -576,8 +583,8 @@ object dev extends MillModule{
     args match{
       case Nil => mill.eval.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>
-        val wd = Path(wd0, pwd)
-        mkdir(wd)
+        val wd = os.Path(wd0, os.pwd)
+        os.makeDir(wd)
         mill.modules.Jvm.baseInteractiveSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
@@ -589,31 +596,49 @@ object dev extends MillModule{
   }
 }
 
-def release = T{
-  val dest = T.ctx().dest
+def releaseBase(version: String,
+                devRunClasspath: Seq[os.Path],
+                bootstrapString: String)
+               (implicit ctx: mill.api.Ctx) = {
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
-    "-DMILL_VERSION=" + publishVersion()._2,
+    "-DMILL_VERSION=" + version,
     // Workaround for Zinc/JNA bug
     // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
     "-Djna.nosys=true"
   )
   val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
   val cmdArgs = Seq("-DMILL_CLASSPATH=%0") ++ commonArgs
-  mv(
+  os.move(
     createAssembly(
-      dev.runClasspath().map(_.path),
+      devRunClasspath,
       prependShellScript = launcherScript(
         shellArgs,
         cmdArgs,
         Agg("$0"),
         Agg("%~dpnx0"),
-        millBootstrapString()
+        bootstrapString
       )
     ).path,
-    dest / filename
+    ctx.dest / filename
   )
-  PathRef(dest / filename)
+  PathRef(ctx.dest / filename)
+}
+
+def executable = T{
+  releaseBase(
+    publishVersion()._2,
+    dev.runClasspath().map(_.path),
+    ""
+  )
+}
+
+def release = T{
+  releaseBase(
+    publishVersion()._2,
+    dev.runClasspath().map(_.path),
+    millBootstrapString()
+  )
 }
 
 val isMasterCommit = {
@@ -623,18 +648,18 @@ val isMasterCommit = {
 
 def gitHead = T.input{
   sys.env.get("TRAVIS_COMMIT").getOrElse(
-    %%('git, "rev-parse", "HEAD")(pwd).out.string.trim()
+    os.proc('git, "rev-parse", "HEAD").call().out.trim
   )
 }
 
 def publishVersion = T.input{
   val tag =
     try Option(
-      %%('git, 'describe, "--exact-match", "--tags", "--always", gitHead())(pwd).out.string.trim()
+      os.proc('git, 'describe, "--exact-match", "--tags", "--always", gitHead()).call().out.trim
     )
     catch{case e => None}
 
-  val dirtySuffix = %%('git, 'diff)(pwd).out.string.trim() match{
+  val dirtySuffix = os.proc('git, 'diff).call().out.trim match{
     case "" => ""
     case s => "-DIRTY" + Integer.toHexString(s.hashCode)
   }
@@ -642,10 +667,10 @@ def publishVersion = T.input{
   tag match{
     case Some(t) => (t, t)
     case None =>
-      val latestTaggedVersion = %%('git, 'describe, "--abbrev=0", "--always", "--tags")(pwd).out.trim
+      val latestTaggedVersion = os.proc('git, 'describe, "--abbrev=0", "--always", "--tags").call().out.trim
 
       val commitsSinceLastTag =
-        %%('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count")(pwd).out.trim.toInt
+        os.proc('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count").call().out.trim.toInt
 
       (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
   }
@@ -668,11 +693,13 @@ def uploadToGithub(authKey: String) = T.command{
       .asString
   }
 
+  upload.apply(executable().path, releaseTag, label + "-direct", authKey)
+
   upload.apply(release().path, releaseTag, label, authKey)
 
   val bootstrapScript = T.ctx().dest / "mill-bootstrap"
 
-  os.write(bootstrapScript, millBootstrapString)
+  os.write(bootstrapScript, millBootstrapString())
 
   upload.apply(bootstrapScript, releaseTag, label + "-bootstrap", authKey)
 }
