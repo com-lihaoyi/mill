@@ -2,6 +2,7 @@ import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
 import $ivy.`org.scalaj::scalaj-http:2.4.1`
+import $ivy.`com.lihaoyi::os-lib:0.3.0`
 import ammonite.ops._
 import coursier.maven.MavenRepository
 import mill._
