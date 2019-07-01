@@ -161,11 +161,13 @@ trait MainModule extends mill.Module{
 
   /**
     * Runs multiple tasks in a single call.
-    *
-    *
+    * For compatibility reasons, the tasks are executed single-threaded.
     */
   def all(evaluator: Evaluator, targets: String*) = mill.T.command{
-    MainModule.evaluateTasks(evaluator, targets, multiSelect = true) {res =>
+    MainModule.evaluateTasks(
+      evaluator = if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1)) else evaluator,
+      targets = targets,
+      multiSelect = true) {res =>
       res.flatMap(_._2)
     }
   }
