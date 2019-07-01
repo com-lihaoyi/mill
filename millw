@@ -28,14 +28,14 @@ fi
 MILL_DOWNLOAD_PATH="${HOME}/.mill/download"
 
 if [ "x${MILL_VERSION}" = "x" ] ; then
-  // TODO: try to load latest version from release page
+  # TODO: try to load latest version from release page
   echo -n "Retrieving latest mill version..."
   if [ -e "${MILL_DOWNLOAD_PATH}/.latest" ] ; then
 
     MILL_VERSION="$(head -n 1 \"${MILL_DOWNLOAD_PATH}/.latest\" 2> /dev/null)"
   fi
 
-  // Last resort
+  # Last resort
   if [ "x${MILL_VERSION}" = "x" ] ; then
     MILL_VERSION="${DEFAULT_MILL_VERSION}"
   fi
