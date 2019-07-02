@@ -91,6 +91,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def sources = outer.sources
     def resources = outer.resources
     def scalaVersion = outer.scalaVersion()
+    def repositories = outer.repositories
     def compileIvyDeps = outer.compileIvyDeps()
     def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
     def scalacPluginIvyDeps = outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep())
