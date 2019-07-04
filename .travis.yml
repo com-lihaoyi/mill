@@ -34,7 +34,7 @@ matrix:
     script: ci/test-mill-0.sh
     jdk: oraclejdk8
   - stage: build
-    nano: Run mill integration tests (part 1)
+    name: Run mill integration tests (part 1)
     script: ci/test-mill-1.sh
     jdk: oraclejdk8
   - stage: build
