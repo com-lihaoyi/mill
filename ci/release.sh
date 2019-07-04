@@ -12,7 +12,7 @@ rm gpg_key
     --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
     --gpgPassphrase $GPG_PASSWORD \
     --publishArtifacts __.publishArtifacts \
-    --readTimeout 120000 \
+    --readTimeout 600000 \
     --release true \
     --signed true
 
