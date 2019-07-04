@@ -2,6 +2,7 @@ package mill.contrib.scoverage
 
 import mill._
 import mill.api.Result
+import mill.contrib.BuildInfo
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -19,11 +20,15 @@ object HelloWorldTests extends utest.TestSuite {
       def scalaVersion = "2.12.4"
     }
 
-    object core extends ScoverageModule {
+    object core extends ScoverageModule with BuildInfo {
       def scalaVersion = "2.12.4"
       def scoverageVersion = "1.3.1"
 
       def moduleDeps = Seq(other)
+
+      def buildInfoMembers = T {
+        Map("scoverageVersion" -> scoverageVersion())
+      }
 
       object test extends ScoverageTests {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")

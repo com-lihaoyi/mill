@@ -310,6 +310,12 @@ object contrib extends MillModule {
         (for ((k, v) <- mapping) yield s"-D$k=$v")
     }
 
+    // So we can test with buildinfo in the classpath
+    val test = new Tests(implicitly)
+    class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
+      override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
+    }
+
     object api extends MillApiModule {
       def moduleDeps = Seq(scalalib)
     }
