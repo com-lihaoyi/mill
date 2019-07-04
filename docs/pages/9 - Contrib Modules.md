@@ -599,7 +599,7 @@ module. Additionally, you must define a submodule that extends the
 
 ```scala
 // You have to replace VERSION
-import $ivy.`com.lihaoyi::mill-contrib-buildinfo:VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-scoverage:VERSION`
 import mill.contrib.scoverage.ScoverageModule
 
 object foo extends ScoverageModule  {
