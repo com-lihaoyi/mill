@@ -2,6 +2,7 @@ import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
 import $ivy.`org.scalaj::scalaj-http:2.4.1`
+import $ivy.`com.lihaoyi::mill-contrib-bloop:0.4.2`
 
 import coursier.maven.MavenRepository
 import mill._
@@ -94,14 +95,30 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.6.7",
+      ivy"com.lihaoyi:::ammonite:1.6.9",
       // Necessary so we can share the JNA classes throughout the build process
       ivy"net.java.dev.jna:jna:4.5.0",
       ivy"net.java.dev.jna:jna-platform:4.5.0"
     )
 
     def generatedSources = T {
-      Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
+      val dest = T.ctx().dest
+      val version = publishVersion()
+      writeBuildInfo(dest, version)
+      shared.generateCoreSources(dest)
+      Seq(PathRef(dest))
+    }
+
+    def writeBuildInfo(dir : os.Path, version : String) = {
+      val code = s"""
+        |package mill
+        |
+        |object BuildInfo {
+        |  val millVersion = "$version"
+        |}
+      """.stripMargin.trim
+
+      os.write(dir / "BuildInfo.scala", code)
     }
   }
 

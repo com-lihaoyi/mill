@@ -9,6 +9,7 @@ import mill.eval.{Evaluator, PathRef}
 import mill.util.PrintLogger
 
 import scala.annotation.tailrec
+import ammonite.runtime.ImportHook
 
 
 /**
@@ -120,11 +121,13 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   }
 
   override def initMain(isRepl: Boolean) = {
+    val hooks = ImportHook.defaults + (Seq("ivy") -> MillIvyHook)
     super.initMain(isRepl).copy(
       scriptCodeWrapper = CustomCodeWrapper,
       // Ammonite does not properly forward the wd from CliConfig to Main, so
       // force forward it outselves
-      wd = config.wd
+      wd = config.wd,
+      importHooks = hooks
     )
   }
 
