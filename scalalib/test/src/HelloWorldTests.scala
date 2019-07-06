@@ -241,7 +241,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldFlags extends HelloBase{
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
-      
+
       def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
       )
@@ -847,7 +847,7 @@ object HelloWorldTests extends TestSuite {
     'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
-        HelloWorldTypeLevel.foo.ammoniteReplClasspath,
+        // HelloWorldTypeLevel.foo.ammoniteReplClasspath,
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for(cp <- classPathsToCheck){
