@@ -847,7 +847,6 @@ object HelloWorldTests extends TestSuite {
     'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
-        // HelloWorldTypeLevel.foo.ammoniteReplClasspath,
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for(cp <- classPathsToCheck){
