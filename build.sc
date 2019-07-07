@@ -612,7 +612,7 @@ def launcher = T{
   val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
   os.write(
     T.ctx().dest / "mill",
-    os.read(main.millBootstrap().head.path)
+    os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
         millBootstrapGrepPrefix + publishVersion()._2
