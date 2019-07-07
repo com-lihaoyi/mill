@@ -601,9 +601,9 @@ def assembly = T{
         Agg("%~dpnx0")
       )
     ).path,
-    ctx.dest / filename
+    T.ctx().dest / filename
   )
-  PathRef(ctx.dest / filename)
+  PathRef(T.ctx().dest / filename)
 }
 
 def millBootstrap = T.sources(os.pwd / "mill")
