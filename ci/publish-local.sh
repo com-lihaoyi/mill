@@ -2,6 +2,6 @@
 
 set -eux
 
-./mill -i all __.publishLocal executable
+./mill -i all __.publishLocal assembly
 
-cp out/executable/dest/mill ~/mill-release
+cp out/assembly/dest/mill ~/mill-release
