@@ -555,8 +555,7 @@ object dev extends MillModule{
       shellArgs,
       cmdArgs,
       classpath,
-      classpath,
-      ""
+      classpath
     )
   }
 
