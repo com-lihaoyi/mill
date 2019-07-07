@@ -456,7 +456,7 @@ def launcherScript(shellJvmArgs: Seq[String],
         if (millBootstrapString == "") ""
         else {
           val cutCount = millBootstrapGrepPrefix.length + 1
-          s"""if [ -f "$$PWD/mill" ] ; then
+          s"""if [ -f "mill" ] ; then
              |  if [ -z "$$MILL_EXEC_PATH" ] ; then
              |    MILL_VERSION=$$(grep -F "$millBootstrapGrepPrefix" "$$PWD/mill" | cut -c $cutCount-)
              |    ${millBootstrapStringValue.replace("\n", "\n      ")}

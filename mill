@@ -8,7 +8,11 @@ DEFAULT_MILL_VERSION=0.4.2
 set -e
 
 if [ -z "$MILL_VERSION" ] ; then
-  MILL_VERSION=$DEFAULT_MILL_VERSION
+  if [ -f ".mill-version" ] ; then
+    MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+  else
+    MILL_VERSION=$DEFAULT_MILL_VERSION
+  fi
 fi
 
 MILL_DOWNLOAD_PATH="$HOME/.mill/download"
