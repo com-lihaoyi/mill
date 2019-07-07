@@ -618,7 +618,7 @@ def launcher = T{
         millBootstrapGrepPrefix + publishVersion()._2
       )
   )
-  T.ctx().dest / "mill"
+  PathRef(T.ctx().dest / "mill")
 }
 
 val isMasterCommit = {
@@ -676,10 +676,4 @@ def uploadToGithub(authKey: String) = T.command{
   upload.apply(assembly().path, releaseTag, label + "-assembly", authKey)
 
   upload.apply(launcher().path, releaseTag, label, authKey)
-
-  val bootstrapScript = T.ctx().dest / "mill-bootstrap"
-
-  os.write(bootstrapScript, millBootstrapString())
-
-  upload.apply(bootstrapScript, releaseTag, label + "-bootstrap", authKey)
 }
