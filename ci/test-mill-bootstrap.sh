@@ -6,8 +6,8 @@ set -eux
 git clean -xdf
 
 # First build
-./mill -i all __.publishLocal release
-cp out/release/dest/mill ~/mill-1
+./mill -i all __.publishLocal launcher
+cp out/launcher/dest/mill ~/mill-1
 
 # Clean up
 git clean -xdf
@@ -18,8 +18,8 @@ rm -rf ~/.mill
 echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 
 # Second build
-~/mill-1 -i all __.publishLocal release
-cp out/release/dest/mill ~/mill-2
+~/mill-1 -i all __.publishLocal launcher
+cp out/launcher/dest/mill ~/mill-2
 
 # Clean up
 git clean -xdf
