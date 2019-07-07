@@ -7,6 +7,10 @@ DEFAULT_MILL_VERSION=0.4.2
 
 set -e
 
+if [ -f ".mill-version" ] ; then
+  MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
+fi
+
 if [ -z "$MILL_VERSION" ] ; then
   MILL_VERSION=$DEFAULT_MILL_VERSION
 fi
