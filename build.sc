@@ -61,8 +61,6 @@ trait MillModule extends MillApiModule{ outer =>
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
 
-  def millBootstrap = T.sources(millSourcePath / "mill-template")
-
   def compileIvyDeps = Agg(
     ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
   )
@@ -444,30 +442,14 @@ object integration extends MillModule{
 def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
-                   cmdClassPath: Agg[String],
-                   millBootstrapStringValue: String) = {
+                   cmdClassPath: Agg[String]) = {
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String) =
         s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
 
-      val bootstrapPrefix =
-        if (millBootstrapString == "") ""
-        else {
-          val cutCount = millBootstrapGrepPrefix.length + 1
-          s"""if [ -f "mill" ] ; then
-             |  if [ -z "$$MILL_EXEC_PATH" ] ; then
-             |    MILL_VERSION=$$(grep -F "$millBootstrapGrepPrefix" "$$PWD/mill" | cut -c $cutCount-)
-             |    ${millBootstrapStringValue.replace("\n", "\n      ")}
-             |  fi
-             |fi
-             |
-             |""".stripMargin
-        }
-      s"""$bootstrapPrefix
-         |
-         |if [ -z "$$JAVA_HOME" ] ; then
+      s"""if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
          |else
          |  JAVACMD="$$JAVA_HOME/bin/java"
@@ -497,13 +479,6 @@ def launcherScript(shellJvmArgs: Seq[String],
          |)""".stripMargin
     }
   )
-}
-
-val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
-
-def millBootstrapString = T{
-  os.read(main.millBootstrap().head.path)
-    .replace(millBootstrapGrepPrefix, millBootstrapGrepPrefix + publishVersion())
 }
 
 object dev extends MillModule{
@@ -581,7 +556,7 @@ object dev extends MillModule{
       cmdArgs,
       classpath,
       classpath,
-      millBootstrapString()
+      ""
     )
   }
 
@@ -602,10 +577,11 @@ object dev extends MillModule{
   }
 }
 
-def releaseBase(version: String,
-                devRunClasspath: Seq[os.Path],
-                bootstrapString: String)
-               (implicit ctx: mill.api.Ctx) = {
+
+def assembly = T{
+
+  val version = publishVersion()._2
+  val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
     "-DMILL_VERSION=" + version,
@@ -622,8 +598,7 @@ def releaseBase(version: String,
         shellArgs,
         cmdArgs,
         Agg("$0"),
-        Agg("%~dpnx0"),
-        bootstrapString
+        Agg("%~dpnx0")
       )
     ).path,
     ctx.dest / filename
@@ -631,20 +606,19 @@ def releaseBase(version: String,
   PathRef(ctx.dest / filename)
 }
 
-def executable = T{
-  releaseBase(
-    publishVersion()._2,
-    dev.runClasspath().map(_.path),
-    ""
-  )
-}
+def millBootstrap = T.sources(os.pwd / "mill")
 
-def release = T{
-  releaseBase(
-    publishVersion()._2,
-    dev.runClasspath().map(_.path),
-    millBootstrapString()
+def launcher = T{
+  val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
+  os.write(
+    T.ctx().dest / "mill",
+    os.read(main.millBootstrap().head.path)
+      .replaceAll(
+        millBootstrapGrepPrefix + "[^\\n]+",
+        millBootstrapGrepPrefix + publishVersion()._2
+      )
   )
+  T.ctx().dest / "mill"
 }
 
 val isMasterCommit = {
@@ -699,9 +673,9 @@ def uploadToGithub(authKey: String) = T.command{
       .asString
   }
 
-  upload.apply(executable().path, releaseTag, label + "-direct", authKey)
+  upload.apply(assembly().path, releaseTag, label + "-assembly", authKey)
 
-  upload.apply(release().path, releaseTag, label, authKey)
+  upload.apply(launcher().path, releaseTag, label, authKey)
 
   val bootstrapScript = T.ctx().dest / "mill-bootstrap"
 
