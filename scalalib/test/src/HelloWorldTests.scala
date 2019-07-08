@@ -212,6 +212,7 @@ object HelloWorldTests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"
+      override def ammoniteVersion = "1.6.7"
 
       def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -847,6 +848,7 @@ object HelloWorldTests extends TestSuite {
     'typeLevel - workspaceTest(HelloWorldTypeLevel){ eval =>
       val classPathsToCheck = Seq(
         HelloWorldTypeLevel.foo.runClasspath,
+        HelloWorldTypeLevel.foo.ammoniteReplClasspath,
         HelloWorldTypeLevel.foo.compileClasspath
       )
       for(cp <- classPathsToCheck){
