@@ -18,8 +18,12 @@ matrix:
     env: CI_SCRIPT=ci/test-mill-dev.sh
     jdk: oraclejdk10
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-bootstrap-0.sh
+    env: CI_SCRIPT=ci/test-mill-dev.sh
     jdk: oraclejdk11
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap-0.sh
+    jdk: oraclejdk8
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-bootstrap-1.sh
@@ -27,21 +31,21 @@ matrix:
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
-    jdk: oraclejdk9
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-1.sh
     jdk: oraclejdk10
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-2.sh
+    env: CI_SCRIPT=ci/test-mill-1.sh
     jdk: oraclejdk11
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-2.sh
+    jdk: oraclejdk8
 
 
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
-    jdk: oraclejdk8
+    jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
-    jdk: oraclejdk8
+    jdk: oraclejdk10
 
 script:
   - "$CI_SCRIPT"
