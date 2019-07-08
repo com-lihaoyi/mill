@@ -16,7 +16,7 @@ matrix:
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk10
+    jdk: openjdk10
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
     jdk: oraclejdk11
@@ -31,7 +31,7 @@ matrix:
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
-    jdk: oraclejdk10
+    jdk: openjdk10
   - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
     jdk: oraclejdk11
@@ -45,7 +45,7 @@ matrix:
     jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
-    jdk: oraclejdk10
+    jdk: openjdk10
 
 script:
   - "$CI_SCRIPT"
