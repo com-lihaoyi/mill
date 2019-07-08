@@ -167,6 +167,20 @@ corresponding version of Mill.
 
 ## Changelog
 
+### 0.5.0
+
+- Mill now supports a `./mill`
+  [bootstrap script](http://www.lihaoyi.com/mill/#bootstrap-scripts-linuxos-x-only),
+  allowing a project to pin the version of Mill it requires, as well as letting
+  contributors use `./mill ...` to begin development without needing to install
+  Mill beforehand.
+
+- Support for a `.mill-version` file or `MILL_VERSION` environment variable for
+  [Overriding Mill Versions](http://www.lihaoyi.com/mill/#overriding-mill-versions)
+
+- Fix scoverage: inherit repositories from outer project
+  [#645](https://github.com/lihaoyi/mill/pull/645)
+
 ### 0.4.2
 
 - Improvements to IntelliJ project generation [#616](https://github.com/lihaoyi/mill/pull/616)

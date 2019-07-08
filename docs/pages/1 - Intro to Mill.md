@@ -81,7 +81,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.4.2/0.4.2) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
 ### Bootstrap Scripts (Linux/OS-X Only)
@@ -102,21 +102,9 @@ script directly:
 ```
 
 The `mill` command will automatically use the version specified by the bootstrap
-script, even if you installed it via other means.
-
-The `./mill` script has a version number embedded within it, which you can
-update simply by editing the script.
-
-Lastly, you can also create a `.mill-version` file to specify the version of
-Mill you wish to use:
-
-```bash
-echo "0.5.0" > .mill-version
-```
-
-`.mill-version` takes precedence over the version of Mill specified in the
-`./mill` script.
-
+script, even if you installed it via other means. The `./mill` file has a
+version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.
 
 ### Development Releases
 
@@ -842,3 +830,33 @@ build is not behaving as you would expect, feel free to poke around the various
 see what is being returned by a particular task. You can also simply delete
 folders within `out/` if you want to force portions of your project to be
 re-built, e.g. deleting the `out/main/` or `out/main/test/compile/` folders.
+
+## Overriding Mill Versions
+
+Apart from downloading and installing new versions of Mill globally, there are a
+few ways of selecting/updating your Mill version:
+
+- Create a `.mill-version` file to specify the version of Mill you wish to use:
+
+```bash
+echo "0.5.0" > .mill-version
+```
+
+`.mill-version` takes precedence over the version of Mill specified in the
+`./mill` script.
+
+- ass in a `MILL_VERSION` environment variable, e.g.
+
+```bash
+MILL_VERSION=0.5.0-3-4faefb mill __.compile
+ ```
+
+or
+```bash
+MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
+```
+
+to override the Mill version manually. This takes precedence over the version
+specified in `./mill` or `.mill-version`
+
+Note that both of these overrides only work for versions 0.5.0 and above.
