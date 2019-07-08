@@ -11,7 +11,7 @@ if [ -z "$MILL_VERSION" ] ; then
   if [ -f ".mill-version" ] ; then
     MILL_VERSION="$(head -n 1 .mill-version 2> /dev/null)"
   elif [ -f "mill" ] && [ "$BASH_SOURCE" != "mill" ] ; then
-    MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | cut -d= -f2)
+    MILL_VERSION=$(grep -F "DEFAULT_MILL_VERSION=" "mill" | head -n 1 | cut -d= -f2)
   else
     MILL_VERSION=$DEFAULT_MILL_VERSION
   fi
