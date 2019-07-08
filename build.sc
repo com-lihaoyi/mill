@@ -522,11 +522,7 @@ object dev extends MillModule{
     if (isWin) {
       windowsVmOptions("dev.launcher", outputPath, forkArgs())
     } else {
-      val perms = java.nio.file.Files.getPosixFilePermissions(outputPath.toNIO)
-      perms.add(PosixFilePermission.GROUP_EXECUTE)
-      perms.add(PosixFilePermission.OWNER_EXECUTE)
-      perms.add(PosixFilePermission.OTHERS_EXECUTE)
-      java.nio.file.Files.setPosixFilePermissions(outputPath.toNIO, perms)
+      os.perms.set(outputPath, "rwxrwxrwx")
     }
     PathRef(outputPath)
   }
@@ -608,16 +604,18 @@ def assembly = T{
 def millBootstrap = T.sources(os.pwd / "mill")
 
 def launcher = T{
-  val millBootstrapGrepPrefix = "DEFAULT_MILL_VERSION="
+  val outputPath = T.ctx().dest / "mill"
+  val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
-    T.ctx().dest / "mill",
+    outputPath,
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
         millBootstrapGrepPrefix + publishVersion()._2
       )
   )
-  PathRef(T.ctx().dest / "mill")
+  os.perms.set(outputPath, "rwxrwxrwx")
+  PathRef(outputPath)
 }
 
 val isMasterCommit = {
