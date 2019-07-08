@@ -14,7 +14,8 @@ class SonatypePublisher(uri: String,
                         signed: Boolean,
                         readTimeout: Int,
                         connectTimeout: Int,
-                        log: Logger) {
+                        log: Logger,
+                        awaitTimeout: Int) {
 
   private val api = new SonatypeHttpApi(uri, credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
@@ -54,7 +55,13 @@ class SonatypePublisher(uri: String,
     }
     val releaseGroups = releases.groupBy(_._1.group)
     for ((group, groupReleases) <- releaseGroups) {
-      publishRelease(release, groupReleases.flatMap(_._2), group, releases.map(_._1))
+      publishRelease(
+        release,
+        groupReleases.flatMap(_._2),
+        group,
+        releases.map(_._1),
+        awaitTimeout
+      )
     }
   }
 
@@ -73,7 +80,8 @@ class SonatypePublisher(uri: String,
   private def publishRelease(release: Boolean,
                              payloads: Seq[(String, Array[Byte])],
                              stagingProfile: String,
-                             artifacts: Seq[Artifact]): Unit = {
+                             artifacts: Seq[Artifact],
+                             awaitTimeout: Int): Unit = {
     val profileUri = api.getStagingProfileUri(stagingProfile)
     val stagingRepoId =
       api.createStagingRepo(profileUri, stagingProfile)
@@ -91,13 +99,13 @@ class SonatypePublisher(uri: String,
       api.closeStagingRepo(profileUri, stagingRepoId)
 
       log.info("Waiting for staging repository to close")
-      awaitRepoStatus("closed", stagingRepoId)
+      awaitRepoStatus("closed", stagingRepoId, awaitTimeout)
 
       log.info("Promoting staging repository")
       api.promoteStagingRepo(profileUri, stagingRepoId)
 
       log.info("Waiting for staging repository to release")
-      awaitRepoStatus("released", stagingRepoId)
+      awaitRepoStatus("released", stagingRepoId, awaitTimeout)
 
       log.info("Dropping staging repository")
       api.dropStagingRepo(profileUri, stagingRepoId)
@@ -122,11 +130,11 @@ class SonatypePublisher(uri: String,
 
   private def awaitRepoStatus(status: String,
                               stagingRepoId: String,
-                              attempts: Int = 20): Unit = {
+                              awaitTimeout: Int): Unit = {
     def isRightStatus =
       api.getStagingRepoState(stagingRepoId).equalsIgnoreCase(status)
 
-    var attemptsLeft = attempts
+    var attemptsLeft = awaitTimeout / 3000
 
     while (attemptsLeft > 0 && !isRightStatus) {
       Thread.sleep(3000)
