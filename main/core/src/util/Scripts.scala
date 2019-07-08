@@ -3,7 +3,7 @@ package mill.util
 import java.nio.file.NoSuchFileException
 
 
-import ammonite.runtime.Evaluator.AmmoniteExit
+import ammonite.interp.api.AmmoniteExit
 import ammonite.util.Name.backtickWrap
 import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
