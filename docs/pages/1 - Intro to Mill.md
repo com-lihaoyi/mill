@@ -44,7 +44,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.4.2/0.4.2, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -83,6 +83,40 @@ To get started, download Mill and install it into your system via the following
 ```bash
 sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.4.2/0.4.2) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
 ```
+
+### Bootstrap Scripts (Linux/OS-X Only)
+
+If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+`./mill` script in the project folder:
+
+```bash
+curl -L https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0 > mill && chmod +x mill
+```
+
+Now, anyone who wants to work with the project can simply use the `./mill`
+script directly:
+
+```bash
+./mill version
+./mill __.compile
+```
+
+The `mill` command will automatically use the version specified by the bootstrap
+script, even if you installed it via other means.
+
+The `./mill` script has a version number embedded within it, which you can
+update simply by editing the script.
+
+Lastly, you can also create a `.mill-version` file to specify the version of
+Mill you wish to use:
+
+```bash
+echo "0.5.0" > .mill-version
+```
+
+`.mill-version` takes precedence over the version of Mill specified in the
+`./mill` script.
+
 
 ### Development Releases
 
