@@ -12,7 +12,7 @@ matrix:
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: oraclejdk9
+    jdk: opendk9
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
@@ -23,7 +23,7 @@ matrix:
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-bootstrap-0.sh
-    jdk: oraclejdk8
+    jdk: openjdk8
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-bootstrap-1.sh
@@ -34,7 +34,7 @@ matrix:
     jdk: openjdk10
   - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
-    jdk: oraclejdk11
+    jdk: openjdk11
   - stage: build
     env: CI_SCRIPT=ci/test-mill-2.sh
     jdk: oraclejdk8
