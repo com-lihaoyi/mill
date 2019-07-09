@@ -266,9 +266,10 @@ class ZincWorkerImpl(compilerBridge: Either[
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
         ctx.log.outputStream
       ))
-      val l = LogExchange.logger("Hello")
-      LogExchange.unbindLoggerAppenders("Hello")
-      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
+      val id = Thread.currentThread().getId().toString
+      val l = LogExchange.logger(id)
+      LogExchange.unbindLoggerAppenders(id)
+      LogExchange.bindLoggerAppenders(id, (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
 
