@@ -44,7 +44,7 @@ If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the
 IntelliJ project files via:
 
 ```bash
-mill mill.scalalib.GenIdea/idea
+./mill mill.scalalib.GenIdea/idea
 ```
 
 ### Automated Tests
@@ -52,10 +52,10 @@ mill mill.scalalib.GenIdea/idea
 To run test suites:
 
 ```bash
-mill main.test
-mill scalalib.test
-mill scalajslib.test
-mill integration.test
+./mill main.test
+./mill scalalib.test
+./mill scalajslib.test
+./mill integration.test
 ```
 
 ### Manual Testing
@@ -63,7 +63,7 @@ mill integration.test
 To manually test Mill on a small build, you can use the `scratch` folder:
 
 ```bash
-mill -i dev.run scratch -w show thingy
+./mill -i dev.run scratch -w show thingy
 ```
 
 This runs your current checkout of Mill on the trivial build defined in
@@ -73,7 +73,7 @@ files, etc. and see how it behaves.
 More generally, you can use:
 
 ```bash
-mill -i dev.run [target-dir] [...args]
+./mill -i dev.run [target-dir] [...args]
 ```
 
 To create run your current checkout of Mill in the given `target-dir` with the
@@ -84,7 +84,7 @@ You can also create a launcher-script to let you run the current checkout of
 Mill without the bootstrap Mill process present:
 
 ```bash
-mill -i dev.launcher
+./mill dev.launcher
 ```
 
 This creates the `out/dev/launcher/dest/run` launcher script, which you can then
@@ -98,7 +98,7 @@ You can also run your current checkout of Mill on the build in your `scratch/`
 folder without the bootstrap Mill process being present via:
 
 ```bash
-mill -i dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
+./mill dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
 ```
 
 ### Bootstrapping: Building Mill with your current checkout of Mill

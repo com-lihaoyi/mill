@@ -576,7 +576,7 @@ object dev extends MillModule{
       case Nil => mill.eval.Result.Failure("Need to pass in cwd as first argument to dev.run")
       case wd0 +: rest =>
         val wd = os.Path(wd0, os.pwd)
-        os.makeDir(wd)
+        os.makeDir.all(wd)
         mill.modules.Jvm.baseInteractiveSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
