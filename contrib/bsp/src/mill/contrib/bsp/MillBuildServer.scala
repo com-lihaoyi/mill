@@ -315,7 +315,11 @@ class MillBuildServer(evaluator: Evaluator,
 //          case d: ScalaMainClass => millEvaluator.evaluate(Strict.Agg(module.runMain(d.getClass, d.getArguments.asScala)))
 //          case default => millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))))
 //        }
-        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))))
+        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))),
+                                            Option(new BspLoggedReporter(client,
+                                              runParams.getTarget,
+                                              Option.empty[String],
+                                              10, getCompilationLogger)))
         if (runResult.failing.keyCount > 0) {
           new RunResult(StatusCode.ERROR)
         } else {
