@@ -20,7 +20,6 @@ case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
   def format = task match{
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
-    case t: PersistentArgs[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
   def writer = task match{
@@ -330,7 +329,6 @@ case class Evaluator(home: os.Path,
             env,
             reporter //new ManagedLoggedReporter(10, logger)
           )
-          println("Reporter: " + reporter)
           val out = System.out
           val in = System.in
           val err = System.err

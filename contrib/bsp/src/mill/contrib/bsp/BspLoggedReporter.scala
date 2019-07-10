@@ -20,9 +20,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
 
   override def logError(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
-    println("Sent diagnostics to the client")
     super.logError(problem)
-    println("Logged the error")
   }
 
   override def logInfo(problem: Problem): Unit = {
@@ -37,7 +35,6 @@ class BspLoggedReporter(client: bsp.BuildClient,
 
   def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
                                                                                 bsp.PublishDiagnosticsParams = {
-      println("Problem: " + problem)
       val sourceFile = problem.position().sourceFile().asScala
       val start = new bsp.Position(
         problem.position.startLine.asScala.getOrElse(0),
@@ -60,7 +57,6 @@ class BspLoggedReporter(client: bsp.BuildClient,
                                           targetId, List(diagnostic).asJava, true)
 
       if (originId.nonEmpty) { params.setOriginId(originId.get) }
-      println("Diagnostics: " + params)
       params
     }
 

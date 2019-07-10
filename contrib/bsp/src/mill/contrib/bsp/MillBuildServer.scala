@@ -223,119 +223,12 @@ class MillBuildServer(evaluator: Evaluator,
     future.complete(getResources)
     future
   }
-
-  private[this] def getErrorCode(file: File, start: bsp.Position, end: bsp.Position): String = {
-
-    val source = Source.fromFile(file)
-    source.close()
-    val lines = source.getLines.toSeq
-    val code = lines(start.getLine).substring(start.getCharacter) +
-                lines.take(start.getLine - 1).takeRight(lines.length - end.getLine - 1).mkString("\n") +
-                lines(end.getLine).substring(0, end.getCharacter + 1)
-    code
-  }
-
-  def getDiagnosticsFromFile(analysisFile: os.Path, targetId: BuildTargetIdentifier, originId: Option[String]):
-                                                                              Seq[PublishDiagnosticsParams] = {
-    val analysisStore: AnalysisStore = FileAnalysisStore.getDefault(analysisFile.toIO)
-    analysisStore.get.asScala match {
-      case contents: AnalysisContents =>
-          val sourceInfoMap: Map[File, SourceInfo] = contents.getAnalysis.readSourceInfos.getAllSourceInfos.asScala
-          var diagnosticsParams = Seq.empty[PublishDiagnosticsParams]
-          for ( (file, sourceInfo) <- sourceInfoMap) {
-            var diagnostics = List.empty[Diagnostic]
-            for (problem <- sourceInfo.getReportedProblems) {
-              val start = new bsp.Position(
-                      problem.position.startLine.asScala.getOrElse(0),
-                      problem.position.startOffset.asScala.getOrElse(0))
-              val end = new bsp.Position(
-                      problem.position.endLine.asScala.getOrElse(0),
-                      problem.position.endOffset.asScala.getOrElse(0))
-              val diagnostic = new Diagnostic(new Range(start, end), problem.message)
-              diagnostic.setCode(getErrorCode(file, start, end))
-              diagnostic.setSource("compiler from mill")
-
-              diagnostic.setSeverity( problem.severity match  {
-                case Severity.Info => DiagnosticSeverity.INFORMATION
-                case Severity.Error => DiagnosticSeverity.ERROR
-                case Severity.Warn => DiagnosticSeverity.WARNING
-              }
-              )
-              diagnostics ++= List(diagnostic)
-            }
-            val params = new PublishDiagnosticsParams(new TextDocumentIdentifier(file.toURI.toString),
-                                                      targetId, diagnostics.asJava, true)
-            if (originId.nonEmpty) { params.setOriginId(originId.get) }
-            diagnosticsParams ++= Seq(params)
-          }
-        diagnosticsParams
-      case None => Seq.empty[PublishDiagnosticsParams]
-    }
-  }
-
-  def getSourceFileCompileErrors(problems: Seq[Problem]): Map[File, Array[Problem]] = {
-    val problemsMap = Map.empty[File, Array[Problem]]
-
-    for (problem <- problems) {
-      try {
-        val sourceFile = problem.position.sourceFile.get
-        if (problemsMap.contains(sourceFile)) {
-          problemsMap(sourceFile) = problemsMap(sourceFile) ++ Array(problem)
-        } else {
-          problemsMap(sourceFile) = Array(problem)
-        }
-
-      } catch {
-        case e: Exception =>
-      }
-    }
-    problemsMap
-  }
-
-  def getDiagnostics(problems: Array[Problem], targetId: BuildTargetIdentifier, originId: Option[String]):
-                                                                          Seq[PublishDiagnosticsParams] = {
-    var diagnosticsParams = Seq.empty[PublishDiagnosticsParams]
-    for (( sourceFile, problems ) <- getSourceFileCompileErrors(problems)) {
-      var diagnostics = Seq.empty[Diagnostic]
-      for (problem <- problems) {
-        val start = new bsp.Position(
-          problem.position.startLine.asScala.getOrElse(0),
-          problem.position.startOffset.asScala.getOrElse(0))
-        val end = new bsp.Position(
-          problem.position.endLine.asScala.getOrElse(0),
-          problem.position.endOffset.asScala.getOrElse(0))
-        val diagnostic = new Diagnostic(new Range(start, end), problem.message)
-        diagnostic.setCode(getErrorCode(sourceFile, start, end))
-        diagnostic.setSource("compiler from mill")
-        diagnostic.setSeverity( problem.severity match  {
-          case Severity.Info => DiagnosticSeverity.INFORMATION
-          case Severity.Error => DiagnosticSeverity.ERROR
-          case Severity.Warn => DiagnosticSeverity.WARNING
-        }
-        )
-        diagnostics ++= List(diagnostic)
-    }
-      val params = new PublishDiagnosticsParams(new TextDocumentIdentifier(sourceFile.toPath.toAbsolutePath.toUri.toString),
-         targetId, diagnostics.asJava, true)
-
-      if (originId.nonEmpty) { params.setOriginId(originId.get) }
-      diagnosticsParams ++= Seq(params)
-  }
-      diagnosticsParams
-  }
-
+  
   def getOriginId(params: CompileParams): Option[String] = {
     try {
       Option(params.getOriginId)
     } catch {
       case e: Exception => Option.empty[String]
-    }
-  }
-
-  def sendCompilationDiagnostics(problems: Array[Problem], targetId: BuildTargetIdentifier, compileParams: CompileParams) = {
-    for (publishDiagnosticsParams <-
-           getDiagnostics(problems, targetId, getOriginId(compileParams))) {
-      client.onBuildPublishDiagnostics(publishDiagnosticsParams)
     }
   }
 
