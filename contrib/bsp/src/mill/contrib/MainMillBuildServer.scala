@@ -7,10 +7,10 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, ScalaTestClassesParams}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, WorkspaceBuildTargetsResult}
 import mill._
 import mill.api.Strict
-import mill.contrib.bsp.{MillBuildServer, ModuleUtils}
+import mill.contrib.bsp.{BspLoggedReporter, MillBuildServer, ModuleUtils}
 import mill.define.{Command, Discover, ExternalModule, Target, Task}
 import mill.eval.Evaluator
 import mill.scalalib._
@@ -20,6 +20,7 @@ import requests.Compress.None
 import upickle.default
 
 import scala.collection.JavaConverters._
+import scala.io.Source
 
 
 object MainMillBuildServer extends ExternalModule {
@@ -152,11 +153,28 @@ object MainMillBuildServer extends ExternalModule {
 
   def experiment(ev: Evaluator): Command[Unit] = T.command {
     val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
-    val mods: Seq[JavaModule] = modules(ev)()
-    for (module <- mods) {
-      println(module.millModuleSegments.parts.mkString("."))
+    val client = new BuildClient {
+      var diagnostics = List.empty[PublishDiagnosticsParams]
+      override def onBuildShowMessage(params: ShowMessageParams): Unit = ???
+      override def onBuildLogMessage(params: LogMessageParams): Unit = ???
+      override def onBuildTaskStart(params: TaskStartParams): Unit = ???
+      override def onBuildTaskProgress(params: TaskProgressParams): Unit = ???
+      override def onBuildTaskFinish(params: TaskFinishParams): Unit = ???
+      override def onBuildPublishDiagnostics(
+                                              params: PublishDiagnosticsParams
+                                            ): Unit = {
+        diagnostics ++= List(params)
       }
-
+      override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit =
+        ???
+    }
+    for (module <- millServer.millModules) {
+      ev.evaluate(Strict.Agg(module.compile), Option(new BspLoggedReporter(client,
+        millServer.moduleToTargetId(module),
+        Option.empty[String],
+        10, millServer.getCompilationLogger)))
+      //println("Diagnostics: " + client.diagnostics)
+    }
   }
 
   /**

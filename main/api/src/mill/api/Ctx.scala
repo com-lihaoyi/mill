@@ -2,8 +2,8 @@ package mill.api
 
 import scala.annotation.{StaticAnnotation, compileTimeOnly}
 import scala.language.implicitConversions
-
 import os.Path
+import sbt.internal.inc.ManagedLoggedReporter
 
 /**
  * Provides access to various resources in the context of a currently execution Target.
@@ -60,7 +60,8 @@ class Ctx(
   dest0: () => os.Path,
   val log: Logger,
   val home: os.Path,
-  val env: Map[String, String]
+  val env: Map[String, String],
+  val reporter: Option[ManagedLoggedReporter]
 )
   extends Ctx.Dest
   with Ctx.Log

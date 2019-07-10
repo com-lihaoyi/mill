@@ -1,9 +1,9 @@
 import mill._, scalalib._
-import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-7-be21ae-DIRTY1fe41d7a`
+//import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-7-be21ae-DIRTY1fe41d7a`
 
 object mill_exercise extends ScalaModule {
   def scalaVersion = "2.12.8"
-
+  def mainClass = Some("mill_exercise.Compiler")
   def ivyDeps = Agg(
     ivy"org.scalameta::metals:0.5.2",
     ivy"org.scalameta::scalameta:4.1.9",

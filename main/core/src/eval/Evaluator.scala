@@ -5,7 +5,6 @@ import java.net.URLClassLoader
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
-
 import ammonite.runtime.SpecialClassLoader
 import mill.util.Router.EntryPoint
 import mill.define.{Ctx => _, _}
@@ -13,11 +12,15 @@ import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.util
 import mill.util._
 import mill.api.Strict.Agg
+import sbt.internal.inc.ManagedLoggedReporter
+import sbt.internal.util.{ConsoleOut, MainAppender}
+import sbt.util.LogExchange
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
   def format = task match{
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+    case t: PersistentArgs[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
   def writer = task match{
@@ -40,7 +43,7 @@ case class Evaluator(home: os.Path,
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
-  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
+  def evaluate(goals: Agg[Task[_]], reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter]): Evaluator.Results = {
     os.makeDir.all(outPath)
 
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -66,7 +69,8 @@ case class Evaluator(home: os.Path,
         terminal,
         group,
         results,
-        counterMsg
+        counterMsg,
+        reporter
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -111,7 +115,8 @@ case class Evaluator(home: os.Path,
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String
+                          counterMsg: String,
+                          reporter: Option[ManagedLoggedReporter]
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
@@ -133,7 +138,8 @@ case class Evaluator(home: os.Path,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
-          counterMsg = counterMsg
+          counterMsg = counterMsg,
+          reporter
         )
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
@@ -185,7 +191,8 @@ case class Evaluator(home: os.Path,
               inputsHash,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
-              counterMsg = counterMsg
+              counterMsg = counterMsg,
+              reporter
             )
 
             newResults(labelledNamedTask.task) match{
@@ -259,7 +266,8 @@ case class Evaluator(home: os.Path,
                     inputsHash: Int,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
-                    counterMsg: String): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+                    counterMsg: String,
+                    reporter: Option[ManagedLoggedReporter]): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -319,9 +327,10 @@ case class Evaluator(home: os.Path,
             },
             multiLogger,
             home,
-            env
+            env,
+            reporter //new ManagedLoggedReporter(10, logger)
           )
-
+          println("Reporter: " + reporter)
           val out = System.out
           val in = System.in
           val err = System.err

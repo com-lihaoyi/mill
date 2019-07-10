@@ -51,6 +51,9 @@ object ModuleUtils {
           supportedLanguages.asJava,
           dependencies,
           capabilities)
+        if (module.isInstanceOf[ScalaModule]) {
+          buildTarget.setDataKind("scala")
+        }
         buildTarget.setData(dataBuildTarget)
         buildTarget.setDisplayName(module.millModuleSegments.last.value.toList.head.pathSegments.head)
         buildTarget.setBaseDirectory(module.millSourcePath.toNIO.toAbsolutePath.toUri.toString)

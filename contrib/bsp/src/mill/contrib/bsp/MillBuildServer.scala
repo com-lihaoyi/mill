@@ -1,25 +1,34 @@
 package mill.contrib.bsp
+import java.io.File
+
 import sbt.testing._
 import java.util.{Calendar, Collections}
 import java.util.concurrent.CompletableFuture
 
+import scala.compat.java8.OptionConverters._
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
+import ch.epfl.scala.{bsp4j => bsp}
 import mill.{scalalib, _}
 import mill.api.{Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.scalalib._
-import mill.scalalib.api.CompilationResult
-import mill.scalalib.api.ZincWorkerApi
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import sbt.internal.inc._
+import xsbti.{Position, Problem, Severity}
+import xsbti.compile.{AnalysisContents, AnalysisStore, FileAnalysisStore}
+import xsbti.compile.analysis.SourceInfo
 
 import scala.collection.mutable.Map
-import mill.api.Result.{Failing, Success}
+import mill.api.Result.{Failing, Failure, Success}
 
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.{Ctx, PrintLogger}
 import mill.define.{Discover, ExternalModule, Target, Task}
+import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
+import sbt.util.LogExchange
 
 import scala.io.Source
 
@@ -31,7 +40,6 @@ class MillBuildServer(evaluator: Evaluator,
 
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
-
   val bspVersion: String = _bspVersion
   val supportedLanguages: List[String] = languages
   val millServerVersion: String = serverVersion
@@ -43,7 +51,6 @@ class MillBuildServer(evaluator: Evaluator,
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
-
 
   var clientInitialized = false
 
@@ -217,6 +224,131 @@ class MillBuildServer(evaluator: Evaluator,
     future
   }
 
+  private[this] def getErrorCode(file: File, start: bsp.Position, end: bsp.Position): String = {
+
+    val source = Source.fromFile(file)
+    source.close()
+    val lines = source.getLines.toSeq
+    val code = lines(start.getLine).substring(start.getCharacter) +
+                lines.take(start.getLine - 1).takeRight(lines.length - end.getLine - 1).mkString("\n") +
+                lines(end.getLine).substring(0, end.getCharacter + 1)
+    code
+  }
+
+  def getDiagnosticsFromFile(analysisFile: os.Path, targetId: BuildTargetIdentifier, originId: Option[String]):
+                                                                              Seq[PublishDiagnosticsParams] = {
+    val analysisStore: AnalysisStore = FileAnalysisStore.getDefault(analysisFile.toIO)
+    analysisStore.get.asScala match {
+      case contents: AnalysisContents =>
+          val sourceInfoMap: Map[File, SourceInfo] = contents.getAnalysis.readSourceInfos.getAllSourceInfos.asScala
+          var diagnosticsParams = Seq.empty[PublishDiagnosticsParams]
+          for ( (file, sourceInfo) <- sourceInfoMap) {
+            var diagnostics = List.empty[Diagnostic]
+            for (problem <- sourceInfo.getReportedProblems) {
+              val start = new bsp.Position(
+                      problem.position.startLine.asScala.getOrElse(0),
+                      problem.position.startOffset.asScala.getOrElse(0))
+              val end = new bsp.Position(
+                      problem.position.endLine.asScala.getOrElse(0),
+                      problem.position.endOffset.asScala.getOrElse(0))
+              val diagnostic = new Diagnostic(new Range(start, end), problem.message)
+              diagnostic.setCode(getErrorCode(file, start, end))
+              diagnostic.setSource("compiler from mill")
+
+              diagnostic.setSeverity( problem.severity match  {
+                case Severity.Info => DiagnosticSeverity.INFORMATION
+                case Severity.Error => DiagnosticSeverity.ERROR
+                case Severity.Warn => DiagnosticSeverity.WARNING
+              }
+              )
+              diagnostics ++= List(diagnostic)
+            }
+            val params = new PublishDiagnosticsParams(new TextDocumentIdentifier(file.toURI.toString),
+                                                      targetId, diagnostics.asJava, true)
+            if (originId.nonEmpty) { params.setOriginId(originId.get) }
+            diagnosticsParams ++= Seq(params)
+          }
+        diagnosticsParams
+      case None => Seq.empty[PublishDiagnosticsParams]
+    }
+  }
+
+  def getSourceFileCompileErrors(problems: Seq[Problem]): Map[File, Array[Problem]] = {
+    val problemsMap = Map.empty[File, Array[Problem]]
+
+    for (problem <- problems) {
+      try {
+        val sourceFile = problem.position.sourceFile.get
+        if (problemsMap.contains(sourceFile)) {
+          problemsMap(sourceFile) = problemsMap(sourceFile) ++ Array(problem)
+        } else {
+          problemsMap(sourceFile) = Array(problem)
+        }
+
+      } catch {
+        case e: Exception =>
+      }
+    }
+    problemsMap
+  }
+
+  def getDiagnostics(problems: Array[Problem], targetId: BuildTargetIdentifier, originId: Option[String]):
+                                                                          Seq[PublishDiagnosticsParams] = {
+    var diagnosticsParams = Seq.empty[PublishDiagnosticsParams]
+    for (( sourceFile, problems ) <- getSourceFileCompileErrors(problems)) {
+      var diagnostics = Seq.empty[Diagnostic]
+      for (problem <- problems) {
+        val start = new bsp.Position(
+          problem.position.startLine.asScala.getOrElse(0),
+          problem.position.startOffset.asScala.getOrElse(0))
+        val end = new bsp.Position(
+          problem.position.endLine.asScala.getOrElse(0),
+          problem.position.endOffset.asScala.getOrElse(0))
+        val diagnostic = new Diagnostic(new Range(start, end), problem.message)
+        diagnostic.setCode(getErrorCode(sourceFile, start, end))
+        diagnostic.setSource("compiler from mill")
+        diagnostic.setSeverity( problem.severity match  {
+          case Severity.Info => DiagnosticSeverity.INFORMATION
+          case Severity.Error => DiagnosticSeverity.ERROR
+          case Severity.Warn => DiagnosticSeverity.WARNING
+        }
+        )
+        diagnostics ++= List(diagnostic)
+    }
+      val params = new PublishDiagnosticsParams(new TextDocumentIdentifier(sourceFile.toPath.toAbsolutePath.toUri.toString),
+         targetId, diagnostics.asJava, true)
+
+      if (originId.nonEmpty) { params.setOriginId(originId.get) }
+      diagnosticsParams ++= Seq(params)
+  }
+      diagnosticsParams
+  }
+
+  def getOriginId(params: CompileParams): Option[String] = {
+    try {
+      Option(params.getOriginId)
+    } catch {
+      case e: Exception => Option.empty[String]
+    }
+  }
+
+  def sendCompilationDiagnostics(problems: Array[Problem], targetId: BuildTargetIdentifier, compileParams: CompileParams) = {
+    for (publishDiagnosticsParams <-
+           getDiagnostics(problems, targetId, getOriginId(compileParams))) {
+      client.onBuildPublishDiagnostics(publishDiagnosticsParams)
+    }
+  }
+
+  def getCompilationLogger: ManagedLogger = {
+      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
+        mill.util.DummyLogger.outputStream
+      ))
+      val l = LogExchange.logger("Hello")
+      LogExchange.unbindLoggerAppenders("Hello")
+      LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
+      l
+  }
+
   //TODO: send task notifications - start, progress and finish
   //TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
@@ -229,9 +361,10 @@ class MillBuildServer(evaluator: Evaluator,
       var compileTime = 0
       for (targetId <- compileParams.getTargets.asScala) {
         if (moduleToTarget(targetIdToModule(targetId)).getCapabilities.getCanCompile) {
-          var millModule = targetIdToModule(targetId)
+          val millModule = targetIdToModule(targetId)
           //millModule.javacOptions = compileParams.getArguments.asScala
           val compileTask = millModule.compile
+
           // send notification to client that compilation of this target started
           val taskStartParams = new TaskStartParams(new TaskId(compileTask.hashCode().toString))
           taskStartParams.setEventTime(System.currentTimeMillis())
@@ -240,8 +373,13 @@ class MillBuildServer(evaluator: Evaluator,
           taskStartParams.setData(new CompileTask(targetId))
           client.onBuildTaskStart(taskStartParams)
 
-          val result = millEvaluator.evaluate(Strict.Agg(compileTask))
+          val result = millEvaluator.evaluate(Strict.Agg(compileTask),
+            Option(new BspLoggedReporter(client,
+                                          targetId,
+                                          getOriginId(compileParams),
+                                10, getCompilationLogger)))
           val endTime = System.currentTimeMillis()
+
           compileTime += result.timings.map(timingTuple => timingTuple._2).sum
           var statusCode = StatusCode.OK
 
