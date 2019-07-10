@@ -63,10 +63,10 @@ To run test suites:
 To manually test Mill on a small build, you can use the `scratch` folder:
 
 ```bash
-./mill -i dev.run scratch -w show thingy
+./mill -i dev.run scratch -w resolve _
 ```
 
-This runs your current checkout of Mill on the trivial build defined in
+This runs the task `resolve _` with your current checkout of Mill on the trivial build defined in
 `scratch/build.sc`. You can modify that build file to add additional modules,
 files, etc. and see how it behaves.
 
