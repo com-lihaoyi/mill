@@ -106,16 +106,9 @@ script, even if you installed it via other means. The `./mill` file has a
 version number embedded within it, which you can update simply by editing the
 script. Note this only works for versions 0.5.0 and above.
 
-### Development Releases
-
-In case you want to try out the latest features and improvements that are 
-currently in master, unstable versions of Mill are
-[available](https://github.com/lihaoyi/mill/releases) as binaries named 
-`#.#.#-n-hash` linked to the latest tag.
-Installing the latest unstable release is recommended for bootstrapping mill.
-
-Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
-questions or say hi!
+Bootstrap scripts are also useful for running Mill in CI, ensuring that your
+Jenkins/Travis/etc. box has the correct version of Mill present to
+build/compile/test your code.
 
 ## Getting Started
 
@@ -860,3 +853,20 @@ to override the Mill version manually. This takes precedence over the version
 specified in `./mill` or `.mill-version`
 
 Note that both of these overrides only work for versions 0.5.0 and above.
+
+
+### Development Releases
+
+In case you want to try out the latest features and improvements that are
+currently in master, unstable versions of Mill are
+[available](https://github.com/lihaoyi/mill/releases) as binaries named
+`#.#.#-n-hash` linked to the latest tag.
+Installing the latest unstable release is recommended for bootstrapping mill.
+
+The easiest way to use a development release is by updating the [Bootstrap
+Script](#bootstrap-scripts-linuxos-x-only), or
+[Overriding Mill Versions](#overriding-mill-versions) via an environment
+variable or `.mill-version` file.
+
+Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
+questions or say hi!
