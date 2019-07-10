@@ -223,7 +223,7 @@ class MillBuildServer(evaluator: Evaluator,
     future.complete(getResources)
     future
   }
-  
+
   def getOriginId(params: CompileParams): Option[String] = {
     try {
       Option(params.getOriginId)
@@ -242,10 +242,8 @@ class MillBuildServer(evaluator: Evaluator,
       l
   }
 
-  //TODO: send task notifications - start, progress and finish
   //TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
-  //TODO: Send notification if compilation fails
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] = {
 
     def getCompileResult: CompileResult = {
@@ -276,12 +274,6 @@ class MillBuildServer(evaluator: Evaluator,
           compileTime += result.timings.map(timingTuple => timingTuple._2).sum
           var statusCode = StatusCode.OK
 
-//          result.results(compileTask) match {
-//            case r: Failing[CompilationResult] =>
-//              statusCode = StatusCode.ERROR
-//              numFailures += result.failing.keyCount
-//            case default =>
-//          }
           if (result.failing.keyCount > 0) {
             statusCode = StatusCode.ERROR
             numFailures += result.failing.keyCount

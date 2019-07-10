@@ -35,13 +35,17 @@ class BspLoggedReporter(client: bsp.BuildClient,
 
   def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
                                                                                 bsp.PublishDiagnosticsParams = {
+      println("Line: " + problem.position.line)
+      println("Offset: " + problem.position.offset)
+    println("pointer: " + problem.position.pointer)
+    println("pointer space: " + problem.position.pointerSpace)
       val sourceFile = problem.position().sourceFile().asScala
       val start = new bsp.Position(
-        problem.position.startLine.asScala.getOrElse(0),
-        problem.position.startOffset.asScala.getOrElse(0))
+        problem.position.startLine.asScala.getOrElse(problem.position.line.asScala.getOrElse(0)),
+        problem.position.startOffset.asScala.getOrElse(problem.position.offset.asScala.getOrElse(0)))
       val end = new bsp.Position(
-        problem.position.endLine.asScala.getOrElse(0),
-        problem.position.endOffset.asScala.getOrElse(0))
+        problem.position.endLine.asScala.getOrElse(problem.position.line.asScala.getOrElse(0)),
+        problem.position.endOffset.asScala.getOrElse(problem.position.offset.asScala.getOrElse(0)))
       val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
       diagnostic.setCode(problem.position.lineContent)
       diagnostic.setSource("compiler from mill")
