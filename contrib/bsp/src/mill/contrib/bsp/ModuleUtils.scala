@@ -65,11 +65,8 @@ object ModuleUtils {
     }
 
   def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
-    val canRun = getTaskResult(evaluator, module.finalMainClassOpt) match {
-      case result: Result.Success[Any] => result.asSuccess.get.value match {
-        case _: Right[String, String] => true
-        case _: Left[String, String] => false
-      }
+    val canRun = getTaskResult(evaluator, module.finalMainClass) match {
+      case result: Result.Success[String] => true
       case default => false
     }
     val canTest = module match {

@@ -182,6 +182,9 @@ class MillBuildServer(evaluator: Evaluator,
                                               Agg.empty[PathRef]) ++
                       evaluateInformativeTask(evaluator,
                                               millModule.resolveDeps(millModule.compileIvyDeps),
+                                              Agg.empty[PathRef]) ++
+                      evaluateInformativeTask(evaluator,
+                                              millModule.unmanagedClasspath,
                                               Agg.empty[PathRef])
         millModule match {
           case m: ScalaModule => sources ++= evaluateInformativeTask(evaluator,
