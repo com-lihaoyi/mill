@@ -5,7 +5,7 @@ import java.util.Optional
 
 import scala.ref.WeakReference
 import mill.api.Loose.Agg
-import mill.api.{CompilationAnalysis, KeyedLockedCache, PathRef}
+import mill.api.{KeyedLockedCache, PathRef}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
 import sbt.internal.inc._
