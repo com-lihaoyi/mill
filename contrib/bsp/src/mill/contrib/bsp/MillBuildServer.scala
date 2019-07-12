@@ -10,7 +10,7 @@ import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.{scalalib, _}
-import mill.api.{Loose, Result, Strict}
+import mill.api.{BspContext, Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.scalalib._
@@ -276,10 +276,16 @@ class MillBuildServer(evaluator: Evaluator,
 
           val result = millEvaluator.evaluate(Strict.Agg(compileTask),
             Option(new BspLoggedReporter(client,
-                                          targetId,
-                                          getOriginId(compileParams),
-                                10, getCompilationLogger)),
-                                          params.getArguments.getOrElse(Seq.empty[String]))
+                                    targetId,
+                                    getOriginId(compileParams),
+                          10, getCompilationLogger)),
+                                    new BspContext {
+                                      override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
+                                      override def logStart(event: Event): Unit = {}
+
+                                      override def logFinish(event: Event): Unit = {}
+                                    }
+                                          )
           val endTime = System.currentTimeMillis()
 
           compileTime += result.timings.map(timingTuple => timingTuple._2).sum
@@ -354,19 +360,21 @@ class MillBuildServer(evaluator: Evaluator,
     testReport
   }
 
-  private[this] def getStatusCode(results: Seq[TestRunner.Result]): StatusCode = {
-    if ( results.exists(res => res.status == "Failed") ) {
+  private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
+    if (results.rawValues.exists(r => r.isInstanceOf[Result.Failure[Any]])) {
       StatusCode.ERROR
-    } else if ( results.exists(res => res.status == "Cancelled") ) {
-      StatusCode.CANCELLED
-    }else {
-      StatusCode.OK
     }
+
+    if (results.rawValues.contains(Result.Skipped) || results.rawValues.contains(Result.Aborted)) {
+      StatusCode.CANCELLED
+    }
+
+    StatusCode.OK
   }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = {
     def getTestResult (implicit ctx: Ctx.Log with Ctx.Home ): TestResult = {
-
+      val params = TaskParameters.fromTestParams(testParams)
       val argsMap = testParams.getData match {
         case scalaTestParams: ScalaTestParams =>
                               (for (testItem <- scalaTestParams.getTestClasses.asScala)
@@ -381,7 +389,7 @@ class MillBuildServer(evaluator: Evaluator,
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
             val testTask = testModule.test(argsMap(targetId).mkString(" "))
 
-            // send notification to client that testing of this target started
+            // notifying the client that the testing of this build target started
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
             taskStartParams.setEventTime(System.currentTimeMillis())
             taskStartParams.setMessage("Testing target: " + targetId)
@@ -389,65 +397,46 @@ class MillBuildServer(evaluator: Evaluator,
             taskStartParams.setData(new TestTask(targetId))
             client.onBuildTaskStart(taskStartParams)
 
-            val runClasspath = getTaskResult(millEvaluator, testModule.runClasspath)
-            val frameworks = getTaskResult(millEvaluator, testModule.testFrameworks)
-            val compilationResult = getTaskResult(millEvaluator, testModule.compile)
+            val bspContext = new BspTestReporter(
+              client, targetId,
+              new TaskId(testTask.hashCode().toString),
+              Seq.empty[String])
 
-            (runClasspath, frameworks, compilationResult) match {
-              case (Success(classpath), Success(testFrameworks), Success(compResult)) =>
-                            val (msg, results) = TestRunner.runTests(
-                              TestRunner.frameworks(testFrameworks.asInstanceOf[Seq[String]]),
-                              classpath.asInstanceOf[Agg[PathRef]].map(_.path),
-                              Agg(compResult.asInstanceOf[scalalib.api.CompilationResult].classes.path),
-                              argsMap(targetId)
-                            )
-                            val endTime = System.currentTimeMillis()
-                            // send notification to client that testing of this target ended => test report
-                            val statusCode = getStatusCode(results)
-                            val taskFinishParams = new TaskFinishParams(
-                              new TaskId(testTask.hashCode().toString),
-                              getStatusCode(results)
-                            )
-                            taskFinishParams.setEventTime(endTime)
-                            taskFinishParams.setMessage("Finished testing target: " +
-                              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
-                            taskFinishParams.setDataKind("test-report")
-                            taskFinishParams.setData(getTestReport(targetId, results))
-                            client.onBuildTaskFinish(taskFinishParams)
-                            statusCode match {
-                              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
-                              case default =>
-                            }
-              case default =>   val endTime = System.currentTimeMillis()
-                                val taskFinishParams = new TaskFinishParams(
-                                    new TaskId(testTask.hashCode().toString),
-                                    StatusCode.ERROR
-                                  )
-                                taskFinishParams.setEventTime(endTime)
-                                taskFinishParams.setMessage("Testing target: " +
-                                  moduleToTarget(targetIdToModule(targetId)).getDisplayName +
-                                  "failed because one of the tasks it depended on failed. There might" +
-                                  "be compilation errors.")
-                                taskFinishParams.setDataKind("test-report")
-                                taskFinishParams.setData(
-                                  new TestReport(targetId, 0, 0, 0, 0, 0)
-                                )
-                                overallStatusCode = StatusCode.ERROR
-                                client.onBuildTaskFinish(taskFinishParams)
-                                buildTargetCompile(new CompileParams(List(targetId).asJava))
+            val results = millEvaluator.evaluate(
+              Strict.Agg(testTask),
+              Option(new BspLoggedReporter(client,
+                targetId,
+                params.getOriginId,
+                10, getCompilationLogger)),
+              bspContext)
+            val endTime = System.currentTimeMillis()
+            val statusCode = getStatusCode(results)
+            statusCode match {
+              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
+              case default =>
             }
-
+            // notifying the client that the testing of this build target ended
+            val taskFinishParams = new TaskFinishParams(
+              new TaskId(testTask.hashCode().toString),
+              statusCode
+            )
+            taskFinishParams.setEventTime(endTime)
+            taskFinishParams.setMessage("Finished testing target: " +
+              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
+            taskFinishParams.setDataKind("test-report")
+            taskFinishParams.setData(bspContext.getTestReport)
+            client.onBuildTaskFinish(taskFinishParams)
 
           case default =>
         }
       }
       val testResult = new TestResult(overallStatusCode)
-      testParams.getOriginId match {
-        case id: String =>
+      params.getOriginId match {
+        case None => testResult
+        case Some(id) =>
            //TODO: Add the messages from mill to the data field?
           testResult.setOriginId(id)
           testResult
-        case default => testResult
       }
     }
     val future = new CompletableFuture[TestResult]()

@@ -7,7 +7,7 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
 import mill._
 import mill.api.Strict
 import mill.contrib.bsp.{BspLoggedReporter, MillBuildServer, ModuleUtils}
@@ -183,8 +183,10 @@ object MainMillBuildServer extends ExternalModule {
     }
     millServer.client = client
     for (module <- millServer.millModules) {
-      if (millServer.moduleToTarget(module).getDisplayName == "random") {
-        println(millServer.buildTargetCompile(new CompileParams(List(millServer.moduleToTargetId(module)).asJava)).get)
+      if (millServer.moduleToTarget(module).getDisplayName == "test") {
+        println(eval.evaluate(Strict.Agg(module.asInstanceOf[TestModule].test()
+        )).rawValues)
+        println(millServer.buildTargetTest(new TestParams(List(millServer.moduleToTargetId(module)).asJava)).get)
       }
     }
   }
@@ -203,45 +205,5 @@ object MainMillBuildServer extends ExternalModule {
                                 "install - creates the bsp connection json file\n")
     }
 
-  }
-}
-
-object foo extends mill.define.ExternalModule {
-
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
-  lazy val millDiscover: Discover[foo.this.type] = Discover[this.type]
-
-  object bar extends ScalaModule {
-    def scalaVersion = "2.12.4"
-    override def ivyDeps = Agg(ivy"org.scalameta::metals:0.5.2")
-    override def moduleDeps = Seq(baz)
-    object test extends TestModule {
-      override def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-      def testFrameworks: Target[Seq[String]] = Seq("utest.runner.Framework")
-    }
-  }
-
-  object baz extends scalajslib.ScalaJSModule {
-    def scalaJSVersion = "1.0.0-M8"
-    def scalaVersion = "2.12.8"
-
-  }
-
-  object mill_exercise extends ScalaModule {
-    def scalaVersion = "2.12.8"
-
-    override def scalacPluginIvyDeps = Agg(ivy"org.scala-lang:scala-compiler:2.12.8")
-    override def ivyDeps = Agg(
-      ivy"org.scala-lang:scala-reflect:2.12.8",
-      ivy"org.scalameta::metals:0.5.2"
-    )
-
-    object test extends Tests {
-      override def ivyDeps = Agg(//ivy"org.scalameta::metals:0.5.2",
-        ivy"com.lihaoyi::utest:0.6.0",
-        ivy"org.scalactic::scalactic:3.0.5")
-
-      def testFrameworks: Target[Seq[String]] = Seq("utest.runner.Framework")
-    }
   }
 }

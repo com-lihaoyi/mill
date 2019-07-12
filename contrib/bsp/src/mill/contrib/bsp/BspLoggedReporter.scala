@@ -3,6 +3,7 @@ package mill.contrib.bsp
 import java.io.File
 
 import ch.epfl.scala.{bsp4j => bsp}
+import mill.api.BspContext
 import sbt.internal.inc.ManagedLoggedReporter
 import sbt.internal.inc.schema.Position
 import sbt.internal.util.ManagedLogger

@@ -221,7 +221,7 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
-      javacOptions() ++ T.ctx.compileArguments,
+      javacOptions() ++ T.ctx.bsp.args,
       T.ctx().reporter
     )
   }
@@ -612,7 +612,8 @@ trait TestModule extends JavaModule with TaskModule {
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
-      args
+      args,
+      T.ctx.bsp
     )
 
     TestModule.handleResults(doneMsg, results)

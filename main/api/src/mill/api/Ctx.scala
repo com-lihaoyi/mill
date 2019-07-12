@@ -62,7 +62,7 @@ class Ctx(
   val home: os.Path,
   val env: Map[String, String],
   val reporter: Option[ManagedLoggedReporter],
-  val compileArguments: Seq[String] = Seq.empty[String]
+  val bsp: BspContext
 )
   extends Ctx.Dest
   with Ctx.Log

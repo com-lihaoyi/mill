@@ -195,7 +195,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         _ => Seq(framework),
         runClasspath().map(_.path),
         Agg(compile().classes.path),
-        args
+        args,
+        T.ctx.bsp
       )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
