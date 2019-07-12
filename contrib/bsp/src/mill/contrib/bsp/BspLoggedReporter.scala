@@ -24,6 +24,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
   }
 
   override def logInfo(problem: Problem): Unit = {
+    logger.info("Problem: " + problem.toString)
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     super.logInfo(problem)
   }
@@ -33,12 +34,10 @@ class BspLoggedReporter(client: bsp.BuildClient,
     super.logWarning(problem)
   }
 
+  //TODO: document that if the problem is a general information without a text document
+  // associated to it, then the document field of the diagnostic is set to the uri of the target
   def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
                                                                                 bsp.PublishDiagnosticsParams = {
-      println("Line: " + problem.position.line)
-      println("Offset: " + problem.position.offset)
-    println("pointer: " + problem.position.pointer)
-    println("pointer space: " + problem.position.pointerSpace)
       val sourceFile = problem.position().sourceFile().asScala
       val start = new bsp.Position(
         problem.position.startLine.asScala.getOrElse(problem.position.line.asScala.getOrElse(0)),
@@ -55,9 +54,12 @@ class BspLoggedReporter(client: bsp.BuildClient,
         case Severity.Warn => bsp.DiagnosticSeverity.WARNING
       }
       )
-
+      val textDocument = sourceFile.getOrElse(None) match {
+        case None => targetId.getUri
+        case f: File => f.toPath.toUri.toString
+      }
       val params = new bsp.PublishDiagnosticsParams(
-          new bsp.TextDocumentIdentifier(sourceFile.getOrElse(new File(targetId.getUri)).toPath.toAbsolutePath.toUri.toString),
+          new bsp.TextDocumentIdentifier(textDocument),
                                           targetId, List(diagnostic).asJava, true)
 
       if (originId.nonEmpty) { params.setOriginId(originId.get) }

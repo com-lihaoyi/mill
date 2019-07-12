@@ -1,5 +1,5 @@
 import mill._, scalalib._
-//import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-7-be21ae-DIRTY1fe41d7a`
+//import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-16-c95bc4-DIRTYd5dc7fa5`
 
 object mill_exercise extends ScalaModule {
   def scalaVersion = "2.12.8"
@@ -27,4 +27,16 @@ object mill_exercise extends ScalaModule {
 
     def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
+}
+
+object random extends SbtModule {
+
+  def scalacOptions = Seq(
+    //"-Ywarn-unused",
+    "-Ylog-classpath"
+  )
+
+  def scalaVersion = "2.12.8"
+
+  def ivyDeps = Agg(ivy"ch.epfl.scala:bsp4j:2.0.0-M3")
 }

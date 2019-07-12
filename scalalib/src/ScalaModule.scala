@@ -140,7 +140,7 @@ trait ScalaModule extends JavaModule { outer =>
       javacOptions(),
       scalaVersion(),
       scalaOrganization(),
-      scalacOptions(),
+      scalacOptions() ++ T.ctx.compileArguments,
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
       T.ctx().reporter

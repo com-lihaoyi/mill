@@ -12,7 +12,7 @@ import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.util
 import mill.util._
 import mill.api.Strict.Agg
-import sbt.internal.inc.ManagedLoggedReporter
+import sbt.internal.inc.{CompilerArguments, ManagedLoggedReporter}
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
 
@@ -42,9 +42,11 @@ case class Evaluator(home: os.Path,
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
-  def evaluate(goals: Agg[Task[_]], reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter]): Evaluator.Results = {
+  def evaluate(goals: Agg[Task[_]],
+               reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter],
+               compileArguments: Seq[String] = Seq.empty[String]): Evaluator.Results = {
     os.makeDir.all(outPath)
-
+    println("Reporter: " + reporter)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -69,7 +71,8 @@ case class Evaluator(home: os.Path,
         group,
         results,
         counterMsg,
-        reporter
+        reporter,
+        compileArguments
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -115,7 +118,8 @@ case class Evaluator(home: os.Path,
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String,
-                          reporter: Option[ManagedLoggedReporter]
+                          reporter: Option[ManagedLoggedReporter],
+                          compilerArguments: Seq[String]
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
@@ -138,7 +142,8 @@ case class Evaluator(home: os.Path,
           paths = None,
           maybeTargetLabel = None,
           counterMsg = counterMsg,
-          reporter
+          reporter,
+          compilerArguments
         )
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
@@ -191,7 +196,8 @@ case class Evaluator(home: os.Path,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
               counterMsg = counterMsg,
-              reporter
+              reporter,
+              compilerArguments
             )
 
             newResults(labelledNamedTask.task) match{
@@ -266,7 +272,8 @@ case class Evaluator(home: os.Path,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
                     counterMsg: String,
-                    reporter: Option[ManagedLoggedReporter]): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+                    reporter: Option[ManagedLoggedReporter],
+                    compileArguments: Seq[String]): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -327,7 +334,8 @@ case class Evaluator(home: os.Path,
             multiLogger,
             home,
             env,
-            reporter //new ManagedLoggedReporter(10, logger)
+            reporter,
+            compileArguments//new ManagedLoggedReporter(10, logger)
           )
           val out = System.out
           val in = System.in

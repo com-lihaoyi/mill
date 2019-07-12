@@ -235,9 +235,17 @@ class MillBuildServer(evaluator: Evaluator,
     }
   }
 
+  def getArguments(params: CompileParams) : Option[Seq[String]] = {
+    try {
+      Option(params.getArguments.asScala)
+    } catch {
+      case e: Exception => Option.empty[Seq[String]]
+    }
+  }
+
   def getCompilationLogger: ManagedLogger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-        mill.util.DummyLogger.outputStream
+        System.out
       ))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
@@ -250,13 +258,12 @@ class MillBuildServer(evaluator: Evaluator,
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] = {
 
     def getCompileResult: CompileResult = {
-
+      val params = TaskParameters.fromCompileParams(compileParams)
       var numFailures = 0
       var compileTime = 0
-      for (targetId <- compileParams.getTargets.asScala) {
+      for (targetId <- params.getTargets) {
         if (moduleToTarget(targetIdToModule(targetId)).getCapabilities.getCanCompile) {
           val millModule = targetIdToModule(targetId)
-          //millModule.javacOptions = compileParams.getArguments.asScala
           val compileTask = millModule.compile
 
           // send notification to client that compilation of this target started
@@ -271,7 +278,8 @@ class MillBuildServer(evaluator: Evaluator,
             Option(new BspLoggedReporter(client,
                                           targetId,
                                           getOriginId(compileParams),
-                                10, getCompilationLogger)))
+                                10, getCompilationLogger)),
+                                          params.getArguments.getOrElse(Seq.empty[String]))
           val endTime = System.currentTimeMillis()
 
           compileTime += result.timings.map(timingTuple => timingTuple._2).sum
@@ -312,16 +320,13 @@ class MillBuildServer(evaluator: Evaluator,
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] = {
     def getRunResult: RunResult = {
-        val module = targetIdToModule(runParams.getTarget)
-        val args = runParams.getArguments
-//        val runResult = runParams.getData() match {
-//          case d: ScalaMainClass => millEvaluator.evaluate(Strict.Agg(module.runMain(d.getClass, d.getArguments.asScala)))
-//          case default => millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))))
-//        }
-        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.asScala.mkString(" "))),
+      val params = TaskParameters.fromRunParams(runParams)
+        val module = targetIdToModule(params.getTargets.head)
+        val args = params.getArguments.getOrElse(Seq.empty[String])
+        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.mkString(" "))),
                                             Option(new BspLoggedReporter(client,
-                                              runParams.getTarget,
-                                              Option.empty[String],
+                                              params.getTargets.head,
+                                              params.getOriginId,
                                               10, getCompilationLogger)))
         if (runResult.failing.keyCount > 0) {
           new RunResult(StatusCode.ERROR)

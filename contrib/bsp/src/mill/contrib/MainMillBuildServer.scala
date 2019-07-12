@@ -7,7 +7,7 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, WorkspaceBuildTargetsResult}
 import mill._
 import mill.api.Strict
 import mill.contrib.bsp.{BspLoggedReporter, MillBuildServer, ModuleUtils}
@@ -120,8 +120,9 @@ object MainMillBuildServer extends ExternalModule {
     *         server
     */
   def startServer(ev: Evaluator): Command[Unit] = T.command {
-
-    val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
+    val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
+                    ev.workerCache, ev.env, false)
+    val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
     val executor = Executors.newCachedThreadPool()
 
     val stdin = System.in
@@ -152,14 +153,26 @@ object MainMillBuildServer extends ExternalModule {
   }
 
   def experiment(ev: Evaluator): Command[Unit] = T.command {
-    val millServer = new mill.contrib.bsp.MillBuildServer(ev, bspVersion, version, languages)
+    val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
+      ev.workerCache, ev.env, false)
+    val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
     val client = new BuildClient {
       var diagnostics = List.empty[PublishDiagnosticsParams]
-      override def onBuildShowMessage(params: ShowMessageParams): Unit = ???
-      override def onBuildLogMessage(params: LogMessageParams): Unit = ???
-      override def onBuildTaskStart(params: TaskStartParams): Unit = ???
-      override def onBuildTaskProgress(params: TaskProgressParams): Unit = ???
-      override def onBuildTaskFinish(params: TaskFinishParams): Unit = ???
+      override def onBuildShowMessage(params: ShowMessageParams): Unit = {
+
+      }
+      override def onBuildLogMessage(params: LogMessageParams): Unit = {
+
+      }
+      override def onBuildTaskStart(params: TaskStartParams): Unit = {
+
+      }
+      override def onBuildTaskProgress(params: TaskProgressParams): Unit = {
+
+      }
+      override def onBuildTaskFinish(params: TaskFinishParams): Unit = {
+
+      }
       override def onBuildPublishDiagnostics(
                                               params: PublishDiagnosticsParams
                                             ): Unit = {
@@ -168,12 +181,11 @@ object MainMillBuildServer extends ExternalModule {
       override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit =
         ???
     }
+    millServer.client = client
     for (module <- millServer.millModules) {
-      ev.evaluate(Strict.Agg(module.compile), Option(new BspLoggedReporter(client,
-        millServer.moduleToTargetId(module),
-        Option.empty[String],
-        10, millServer.getCompilationLogger)))
-      //println("Diagnostics: " + client.diagnostics)
+      if (millServer.moduleToTarget(module).getDisplayName == "random") {
+        println(millServer.buildTargetCompile(new CompileParams(List(millServer.moduleToTargetId(module)).asJava)).get)
+      }
     }
   }
 
