@@ -264,6 +264,10 @@ object HelloWorldTests extends TestSuite {
       def scalaVersion = "0.9.0-RC1"
       def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.2.0".withDottyCompat(scalaVersion()))
      }
+    object boo extends ScalaModule {
+      def scalaVersion = "0.16.0-RC3"
+      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.6.1".withDottyCompat(scalaVersion()))
+    }
   }
 
   val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
