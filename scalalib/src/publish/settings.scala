@@ -28,7 +28,8 @@ object Artifact {
         dep.dep.version
       ),
       Scope.Compile,
-      if (dep.dep.configuration == "") None else Some(dep.dep.configuration.value),
+      dep.dep.optional,
+      if (dep.dep.configuration.isEmpty) None else Some(dep.dep.configuration.value),
       dep.dep.exclusions.toList.map{case (a, b) => (a.value, b.value)}
     )
   }
@@ -45,6 +46,7 @@ object Scope {
 case class Dependency(
     artifact: Artifact,
     scope: Scope,
+    optional: Boolean = false,
     configuration: Option[String] = None,
     exclusions: Seq[(String, String)] = Nil
 )
