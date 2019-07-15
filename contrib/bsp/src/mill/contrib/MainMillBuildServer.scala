@@ -17,6 +17,7 @@ import mill.scalalib._
 import mill.util.DummyLogger
 import org.eclipse.lsp4j.jsonrpc.{CompletableFutures, Launcher}
 import requests.Compress.None
+import sbt.testing.Event
 import upickle.default
 
 import scala.collection.JavaConverters._
@@ -186,6 +187,7 @@ object MainMillBuildServer extends ExternalModule {
       if (millServer.moduleToTarget(module).getDisplayName == "test") {
 //        println(eval.evaluate(Strict.Agg(module.asInstanceOf[TestModule].testLocal()
 //        )).rawValues)
+        millServer.initialized = true
         println(millServer.buildTargetTest(new TestParams(List(millServer.moduleToTargetId(module)).asJava)).get)
       }
     }

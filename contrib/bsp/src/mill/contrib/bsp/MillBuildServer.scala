@@ -351,7 +351,8 @@ class MillBuildServer(evaluator: Evaluator,
         val module = targetIdToModule(targetId)
         module match {
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
-            val testTask = testModule.testLocal(argsMap(targetId).mkString(" "))
+            println("Arguments: " + argsMap(targetId))
+            val testTask = testModule.testLocal(argsMap(targetId):_*)
 
             // notifying the client that the testing of this build target started
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
@@ -366,6 +367,8 @@ class MillBuildServer(evaluator: Evaluator,
               new TaskId(testTask.hashCode().toString),
               Seq.empty[String])
 
+            println("BspContext: " + bspContext)
+
             val results = millEvaluator.evaluate(
               Strict.Agg(testTask),
               Option(new BspLoggedReporter(client,
@@ -379,6 +382,7 @@ class MillBuildServer(evaluator: Evaluator,
               case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
               case StatusCode.CANCELLED => overallStatusCode =
                 if (overallStatusCode == StatusCode.ERROR) StatusCode.ERROR else StatusCode.CANCELLED
+              case StatusCode.OK =>
             }
             // notifying the client that the testing of this build target ended
             val taskFinishParams = new TaskFinishParams(
@@ -467,9 +471,9 @@ class MillBuildServer(evaluator: Evaluator,
             case mainClass: Right[String, String] =>
               List(new ScalaMainClass(
                                 mainClass.value,
+                                List.empty[String].asJava,
                                 evaluateInformativeTask(evaluator, module.forkArgs, Seq.empty[String]).
-                                  toList.asJava,
-                                List.empty[String].asJava))
+                                  toList.asJava))
             case msg: Left[String, String] =>
               val messageParams = new ShowMessageParams(MessageType.WARNING, msg.value)
               messageParams.setOriginId(scalaMainClassesParams.getOriginId)

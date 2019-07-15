@@ -48,7 +48,6 @@ case class Evaluator(home: os.Path,
                reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter],
                bspContext: BspContext = DummyBspContext): Evaluator.Results = {
     os.makeDir.all(outPath)
-    println("Reporter: " + reporter)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -307,6 +306,7 @@ case class Evaluator(home: os.Path,
       val targetInputValues = task.inputs
         .map{x => newResults.getOrElse(x, results(x))}
         .collect{ case Result.Success((v, hashCode)) => v }
+
 
       val res =
         if (targetInputValues.length != task.inputs.length) Result.Skipped

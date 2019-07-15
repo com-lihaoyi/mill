@@ -27,6 +27,7 @@ class BspTestReporter(
     taskStartParams.setData(new TestStart(getDisplayName(event)))
     taskStartParams.setMessage("Starting running: " + getDisplayName(event))
     client.onBuildTaskStart(taskStartParams)
+    println("Logged start")
   }
 
   override def logFinish(event: Event): Unit = {
@@ -75,6 +76,7 @@ class BspTestReporter(
           exception.getClass.toString))
     }
     client.onBuildTaskFinish(taskFinishParams)
+    println("Logged finish")
   }
 
   def getDisplayName(e: Event): String = {
