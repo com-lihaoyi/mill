@@ -470,7 +470,11 @@ class MillBuildServer(evaluator: Evaluator,
                                 evaluateInformativeTask(evaluator, module.forkArgs, Seq.empty[String]).
                                   toList.asJava,
                                 List.empty[String].asJava))
-            case msg: Left[String, String] => List.empty[ScalaMainClass]
+            case msg: Left[String, String] =>
+              val messageParams = new ShowMessageParams(MessageType.WARNING, msg.value)
+              messageParams.setOriginId(scalaMainClassesParams.getOriginId)
+              client.onBuildShowMessage(messageParams) // tell the client that no main class was found or specified
+              List.empty[ScalaMainClass]
           }
           case default => List.empty[ScalaMainClass]
         }
