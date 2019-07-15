@@ -96,10 +96,6 @@ class MillBuildServer(evaluator: Evaluator,
       recomputeTargets()
       handleExceptions[String, WorkspaceBuildTargetsResult](
         (in) => new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava), "")
-//    val future = new CompletableFuture[WorkspaceBuildTargetsResult]()
-//    val result = new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava)
-//    future.complete(result)
-//    future
   }
 
   private[this] def getSourceFiles(sources: Seq[os.Path]): Iterable[os.Path] = {
@@ -144,10 +140,6 @@ class MillBuildServer(evaluator: Evaluator,
 
       new SourcesResult(items.asJava)
     }
-
-//    val future = new CompletableFuture[SourcesResult]()
-//    future.complete(computeSourcesResult)
-//    future
     handleExceptions[String, SourcesResult]((in) => computeSourcesResult, "")
   }
 
@@ -164,10 +156,6 @@ class MillBuildServer(evaluator: Evaluator,
         yield targetId).toList.asJava
       new InverseSourcesResult(targets)
     }
-
-//    val future = new CompletableFuture[InverseSourcesResult]()
-//    future.complete(getInverseSourcesResult)
-//    future
     handleExceptions[String, InverseSourcesResult]((in) => getInverseSourcesResult, "")
   }
 
@@ -200,10 +188,6 @@ class MillBuildServer(evaluator: Evaluator,
 
       new DependencySourcesResult(items.asJava)
     }
-
-//    val future = new CompletableFuture[DependencySourcesResult]()
-//    future.complete(getDependencySources)
-//    future
     handleExceptions[String, DependencySourcesResult]((in) => getDependencySources, "")
   }
 
@@ -223,10 +207,6 @@ class MillBuildServer(evaluator: Evaluator,
 
       new ResourcesResult(items.asJava)
     }
-
-//    val future = new CompletableFuture[ResourcesResult]()
-//    future.complete(getResources)
-//    future
     handleExceptions[String, ResourcesResult]((in) => getResources, "")
   }
 
@@ -321,10 +301,6 @@ class MillBuildServer(evaluator: Evaluator,
       compileResult.setOriginId(compileParams.getOriginId)
       compileResult //TODO: See what form IntelliJ expects data about products of compilation in order to set data field
       }
-
-//    val future = new CompletableFuture[CompileResult]()
-//    future.complete(getCompileResult)
-//    future
     handleExceptions[String, CompileResult]((in) => getCompileResult, "")
   }
 
@@ -344,9 +320,6 @@ class MillBuildServer(evaluator: Evaluator,
           new RunResult(StatusCode.OK)
         }
     }
-//    val future = new CompletableFuture[RunResult]()
-//    future.complete(getRunResult)
-//    future
     handleExceptions[String, RunResult]((in) => getRunResult, "")
   }
 
@@ -431,9 +404,6 @@ class MillBuildServer(evaluator: Evaluator,
           testResult
       }
     }
-//    val future = new CompletableFuture[TestResult]()
-//    future.complete(getTestResult(ctx))
-//    future
     handleExceptions[String, TestResult]((in) => getTestResult, "")
   }
 
@@ -458,9 +428,6 @@ class MillBuildServer(evaluator: Evaluator,
       }
       new CleanCacheResult(msg, cleaned)
     }
-//    val future = new CompletableFuture[CleanCacheResult]()
-//    future.complete(getCleanCacheResult)
-//    future
     handleExceptions[String, CleanCacheResult]((in) => getCleanCacheResult, "")
   }
 
@@ -485,10 +452,6 @@ class MillBuildServer(evaluator: Evaluator,
       }
       new ScalacOptionsResult(targetScalacOptions.asJava)
     }
-
-//    val future = new CompletableFuture[ScalacOptionsResult]()
-//    future.complete(getScalacOptionsResult)
-//    future
     handleExceptions[String, ScalacOptionsResult]((in) => getScalacOptionsResult, "")
   }
 
@@ -516,9 +479,6 @@ class MillBuildServer(evaluator: Evaluator,
         }
       new ScalaMainClassesResult(items.asJava)
     }
-//    val future = new CompletableFuture[ScalaMainClassesResult]()
-//    future.complete(getScalaMainClasses)
-//    future
     handleExceptions[String, ScalaMainClassesResult]((in) => getScalaMainClasses, "")
   }
 
@@ -556,9 +516,6 @@ class MillBuildServer(evaluator: Evaluator,
       }
       new ScalaTestClassesResult(items.asJava)
     }
-//    val future = new CompletableFuture[ScalaTestClassesResult]()
-//    future.complete(getScalaTestClasses(ctx))
-//    future
     handleExceptions[Ctx.Home, ScalaTestClassesResult]((c) => getScalaTestClasses(c), ctx)
   }
 

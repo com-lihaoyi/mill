@@ -56,9 +56,8 @@ object ModuleUtils {
         }
         buildTarget.setData(dataBuildTarget)
         buildTarget.setDisplayName(module.millModuleSegments.last.value.toList.head.pathSegments.head)
-        buildTarget.setBaseDirectory(module.millSourcePath.toNIO.toAbsolutePath.toUri.toString)
+        buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
         moduleToTarget ++= Map(module -> buildTarget)
-
       }
 
       moduleToTarget
@@ -125,7 +124,7 @@ object ModuleUtils {
 
     for ( module <- modules ) {
       moduleToTarget ++= Map(module -> new BuildTargetIdentifier(
-        module.millSourcePath.toNIO.toAbsolutePath.toUri.toString
+        module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString
       ))
     }
 
