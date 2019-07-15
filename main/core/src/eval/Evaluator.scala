@@ -337,7 +337,7 @@ case class Evaluator(home: os.Path,
             home,
             env,
             reporter,
-            bspContext//new ManagedLoggedReporter(10, logger)
+            bspContext //new ManagedLoggedReporter(10, logger)
           )
           val out = System.out
           val in = System.in

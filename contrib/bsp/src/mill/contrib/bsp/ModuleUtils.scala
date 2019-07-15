@@ -65,16 +65,12 @@ object ModuleUtils {
     }
 
   def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
-    val canRun = getTaskResult(evaluator, module.finalMainClass) match {
-      case result: Result.Success[String] => true
-      case default => false
-    }
     val canTest = module match {
       case module: TestModule => true
       case default => false
     }
 
-    new BuildTargetCapabilities(true, canTest, canRun)
+    new BuildTargetCapabilities(true, canTest, true)
   }
 
   //TODO: I think here I need to look at scalaLibraryIvyDeps, ivyDeps that contain

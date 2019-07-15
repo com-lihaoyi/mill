@@ -95,6 +95,7 @@ object TestRunner {
               def handle(event: Event) = {
                 testReporter.logStart(event)
                 events.append(event)
+                testReporter.logFinish(event)
               }
             },
             Array(
@@ -120,19 +121,19 @@ object TestRunner {
       val results = for(e <- events) yield {
         val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
         mill.scalalib.TestRunner.Result(
-          e.fullyQualifiedName(),
-          e.selector() match{
+            e.fullyQualifiedName(),
+            e.selector() match{
             case s: NestedSuiteSelector => s.suiteId()
             case s: NestedTestSelector => s.suiteId() + "." + s.testName()
             case s: SuiteSelector => s.toString
             case s: TestSelector => s.testName()
             case s: TestWildcardSelector => s.testWildcard()
           },
-          e.duration(),
-          e.status().toString,
-          ex.map(_.getClass.getName),
-          ex.map(_.getMessage),
-          ex.map(_.getStackTrace)
+            e.duration(),
+            e.status().toString,
+            ex.map(_.getClass.getName),
+            ex.map(_.getMessage),
+            ex.map(_.getStackTrace)
         )
       }
 

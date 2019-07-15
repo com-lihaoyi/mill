@@ -184,8 +184,8 @@ object MainMillBuildServer extends ExternalModule {
     millServer.client = client
     for (module <- millServer.millModules) {
       if (millServer.moduleToTarget(module).getDisplayName == "test") {
-        println(eval.evaluate(Strict.Agg(module.asInstanceOf[TestModule].test()
-        )).rawValues)
+//        println(eval.evaluate(Strict.Agg(module.asInstanceOf[TestModule].testLocal()
+//        )).rawValues)
         println(millServer.buildTargetTest(new TestParams(List(millServer.moduleToTargetId(module)).asJava)).get)
       }
     }

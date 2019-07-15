@@ -8,7 +8,6 @@ import java.util.concurrent.CompletableFuture
 import scala.compat.java8.OptionConverters._
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
-import ch.epfl.scala.{bsp4j => bsp}
 import mill.{scalalib, _}
 import mill.api.{BspContext, Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
@@ -27,6 +26,8 @@ import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.{Ctx, PrintLogger}
 import mill.define.{Discover, ExternalModule, Target, Task}
+import org.eclipse.lsp4j.InitializeError
+import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
 
@@ -52,6 +53,7 @@ class MillBuildServer(evaluator: Evaluator,
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
 
+  var initialized = false
   var clientInitialized = false
 
   val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
@@ -74,6 +76,7 @@ class MillBuildServer(evaluator: Evaluator,
     capabilities.setBuildTargetChangedProvider(false) //TODO: for now it's false, but will try to support this later
     val future = new CompletableFuture[InitializeBuildResult]()
     future.complete(new InitializeBuildResult("mill-bsp", millServerVersion, bspVersion, capabilities))
+    initialized = true
     future
   }
 
@@ -82,13 +85,7 @@ class MillBuildServer(evaluator: Evaluator,
   }
 
   override def buildShutdown(): CompletableFuture[Object] = {
-    clientInitialized match {
-      case true => val future = new CompletableFuture[AnyRef]()
-        future.complete("shut down this server")
-        future
-      case false => throw new Error("Can not send any other request before the initialize request")
-    }
-
+    handleExceptions[String, Object]((in) => "shut down this server".asInstanceOf[Object], "")
   }
 
   override def onBuildExit(): Unit = {
@@ -96,11 +93,13 @@ class MillBuildServer(evaluator: Evaluator,
   }
 
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] = {
-    recomputeTargets()
-    val future = new CompletableFuture[WorkspaceBuildTargetsResult]()
-    val result = new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava)
-    future.complete(result)
-    future
+      recomputeTargets()
+      handleExceptions[String, WorkspaceBuildTargetsResult](
+        (in) => new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava), "")
+//    val future = new CompletableFuture[WorkspaceBuildTargetsResult]()
+//    val result = new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava)
+//    future.complete(result)
+//    future
   }
 
   private[this] def getSourceFiles(sources: Seq[os.Path]): Iterable[os.Path] = {
@@ -146,9 +145,10 @@ class MillBuildServer(evaluator: Evaluator,
       new SourcesResult(items.asJava)
     }
 
-    val future = new CompletableFuture[SourcesResult]()
-    future.complete(computeSourcesResult)
-    future
+//    val future = new CompletableFuture[SourcesResult]()
+//    future.complete(computeSourcesResult)
+//    future
+    handleExceptions[String, SourcesResult]((in) => computeSourcesResult, "")
   }
 
   override def buildTargetInverseSources(inverseSourcesParams: InverseSourcesParams):
@@ -165,9 +165,10 @@ class MillBuildServer(evaluator: Evaluator,
       new InverseSourcesResult(targets)
     }
 
-    val future = new CompletableFuture[InverseSourcesResult]()
-    future.complete(getInverseSourcesResult)
-    future
+//    val future = new CompletableFuture[InverseSourcesResult]()
+//    future.complete(getInverseSourcesResult)
+//    future
+    handleExceptions[String, InverseSourcesResult]((in) => getInverseSourcesResult, "")
   }
 
   override def buildTargetDependencySources(dependencySourcesParams: DependencySourcesParams):
@@ -200,9 +201,10 @@ class MillBuildServer(evaluator: Evaluator,
       new DependencySourcesResult(items.asJava)
     }
 
-    val future = new CompletableFuture[DependencySourcesResult]()
-    future.complete(getDependencySources)
-    future
+//    val future = new CompletableFuture[DependencySourcesResult]()
+//    future.complete(getDependencySources)
+//    future
+    handleExceptions[String, DependencySourcesResult]((in) => getDependencySources, "")
   }
 
   override def buildTargetResources(resourcesParams: ResourcesParams): CompletableFuture[ResourcesResult] = {
@@ -222,9 +224,10 @@ class MillBuildServer(evaluator: Evaluator,
       new ResourcesResult(items.asJava)
     }
 
-    val future = new CompletableFuture[ResourcesResult]()
-    future.complete(getResources)
-    future
+//    val future = new CompletableFuture[ResourcesResult]()
+//    future.complete(getResources)
+//    future
+    handleExceptions[String, ResourcesResult]((in) => getResources, "")
   }
 
   def getOriginId(params: CompileParams): Option[String] = {
@@ -319,9 +322,10 @@ class MillBuildServer(evaluator: Evaluator,
       compileResult //TODO: See what form IntelliJ expects data about products of compilation in order to set data field
       }
 
-    val future = new CompletableFuture[CompileResult]()
-    future.complete(getCompileResult)
-    future
+//    val future = new CompletableFuture[CompileResult]()
+//    future.complete(getCompileResult)
+//    future
+    handleExceptions[String, CompileResult]((in) => getCompileResult, "")
   }
 
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] = {
@@ -340,40 +344,27 @@ class MillBuildServer(evaluator: Evaluator,
           new RunResult(StatusCode.OK)
         }
     }
-    val future = new CompletableFuture[RunResult]()
-    future.complete(getRunResult)
-    future
-  }
-
-  private[this] def getTestReport(targetId: BuildTargetIdentifier, results: Seq[TestRunner.Result]): TestReport = {
-    val testReport = new TestReport(targetId, 0, 0, 0, 0, 0)
-    testReport.setTime(results.map(r => r.duration).sum)
-    for (result <- results) {
-      result.status match {
-        case "Passed" => testReport.setPassed(testReport.getPassed + 1)
-        case "Failed" => testReport.setFailed(testReport.getFailed + 1)
-        case "Ignored" => testReport.setIgnored(testReport.getIgnored + 1)
-        case "Cancelled" => testReport.setCancelled(testReport.getCancelled + 1)
-        case "Skipped" => testReport.setSkipped(testReport.getSkipped + 1)
-      }
-    }
-    testReport
+//    val future = new CompletableFuture[RunResult]()
+//    future.complete(getRunResult)
+//    future
+    handleExceptions[String, RunResult]((in) => getRunResult, "")
   }
 
   private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
+    System.err.println("Results: " + results.rawValues)
     if (results.rawValues.exists(r => r.isInstanceOf[Result.Failure[Any]])) {
       StatusCode.ERROR
     }
 
-    if (results.rawValues.contains(Result.Skipped) || results.rawValues.contains(Result.Aborted)) {
+    else if (results.rawValues.contains(Result.Skipped) || results.rawValues.contains(Result.Aborted)) {
       StatusCode.CANCELLED
     }
 
-    StatusCode.OK
+    else {StatusCode.OK}
   }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = {
-    def getTestResult (implicit ctx: Ctx.Log with Ctx.Home ): TestResult = {
+    def getTestResult: TestResult = {
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap = testParams.getData match {
         case scalaTestParams: ScalaTestParams =>
@@ -387,7 +378,7 @@ class MillBuildServer(evaluator: Evaluator,
         val module = targetIdToModule(targetId)
         module match {
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
-            val testTask = testModule.test(argsMap(targetId).mkString(" "))
+            val testTask = testModule.testLocal(argsMap(targetId).mkString(" "))
 
             // notifying the client that the testing of this build target started
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
@@ -413,7 +404,8 @@ class MillBuildServer(evaluator: Evaluator,
             val statusCode = getStatusCode(results)
             statusCode match {
               case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
-              case default =>
+              case StatusCode.CANCELLED => overallStatusCode =
+                if (overallStatusCode == StatusCode.ERROR) StatusCode.ERROR else StatusCode.CANCELLED
             }
             // notifying the client that the testing of this build target ended
             val taskFinishParams = new TaskFinishParams(
@@ -439,9 +431,10 @@ class MillBuildServer(evaluator: Evaluator,
           testResult
       }
     }
-    val future = new CompletableFuture[TestResult]()
-    future.complete(getTestResult(ctx))
-    future
+//    val future = new CompletableFuture[TestResult]()
+//    future.complete(getTestResult(ctx))
+//    future
+    handleExceptions[String, TestResult]((in) => getTestResult, "")
   }
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] = {
@@ -465,9 +458,10 @@ class MillBuildServer(evaluator: Evaluator,
       }
       new CleanCacheResult(msg, cleaned)
     }
-    val future = new CompletableFuture[CleanCacheResult]()
-    future.complete(getCleanCacheResult)
-    future
+//    val future = new CompletableFuture[CleanCacheResult]()
+//    future.complete(getCleanCacheResult)
+//    future
+    handleExceptions[String, CleanCacheResult]((in) => getCleanCacheResult, "")
   }
 
   override def buildTargetScalacOptions(scalacOptionsParams: ScalacOptionsParams):
@@ -492,9 +486,10 @@ class MillBuildServer(evaluator: Evaluator,
       new ScalacOptionsResult(targetScalacOptions.asJava)
     }
 
-    val future = new CompletableFuture[ScalacOptionsResult]()
-    future.complete(getScalacOptionsResult)
-    future
+//    val future = new CompletableFuture[ScalacOptionsResult]()
+//    future.complete(getScalacOptionsResult)
+//    future
+    handleExceptions[String, ScalacOptionsResult]((in) => getScalacOptionsResult, "")
   }
 
   override def buildTargetScalaMainClasses(scalaMainClassesParams: ScalaMainClassesParams):
@@ -521,9 +516,10 @@ class MillBuildServer(evaluator: Evaluator,
         }
       new ScalaMainClassesResult(items.asJava)
     }
-    val future = new CompletableFuture[ScalaMainClassesResult]()
-    future.complete(getScalaMainClasses)
-    future
+//    val future = new CompletableFuture[ScalaMainClassesResult]()
+//    future.complete(getScalaMainClasses)
+//    future
+    handleExceptions[String, ScalaMainClassesResult]((in) => getScalaMainClasses, "")
   }
 
   private[this] def getTestFrameworks(module: TestModule) (implicit ctx: Ctx.Home): Seq[String] = {
@@ -560,9 +556,10 @@ class MillBuildServer(evaluator: Evaluator,
       }
       new ScalaTestClassesResult(items.asJava)
     }
-    val future = new CompletableFuture[ScalaTestClassesResult]()
-    future.complete(getScalaTestClasses(ctx))
-    future
+//    val future = new CompletableFuture[ScalaTestClassesResult]()
+//    future.complete(getScalaTestClasses(ctx))
+//    future
+    handleExceptions[Ctx.Home, ScalaTestClassesResult]((c) => getScalaTestClasses(c), ctx)
   }
 
   private[this] def targetToModule(moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier]):
@@ -583,5 +580,22 @@ class MillBuildServer(evaluator: Evaluator,
     moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules)
     targetIdToModule = targetToModule(moduleToTargetId)
     moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
+  }
+
+  private[this] def handleExceptions[T, V](serverMethod: T => V, input: T): CompletableFuture[V] = {
+    val future = new CompletableFuture[V]()
+    initialized match {
+      case true =>
+        try {
+          future.complete(serverMethod(input))
+        } catch {
+          case e: Exception => future.completeExceptionally(e)
+        }
+      case false =>
+        future.completeExceptionally(
+          new Exception("Can not respond to any request before receiving the `initialize` request.")
+        )
+    }
+    future
   }
 }
