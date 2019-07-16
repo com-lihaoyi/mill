@@ -11,7 +11,6 @@ import mill.util.PrintLogger
 import scala.annotation.tailrec
 import ammonite.runtime.ImportHook
 
-
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
   * `build.sc` scripts with mill-specific tweaks such as a custom
@@ -62,7 +61,6 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       watchLoop2(isRepl, printing, run)
     }
   }
-
 
   override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
     watchLoop2(
@@ -169,7 +167,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         |
         |sealed trait $wrapName extends mill.main.MainModule{
         |""".stripMargin
-      val bottom = "}"
+      val bottom = "\n}"
 
       (top, bottom, 1)
     }
