@@ -1,0 +1,24 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<module type="JAVA_MODULE" version="4">
+  <component name="NewModuleRootManager" inherit-compiler-output="true">
+    <exclude-output />
+    <content url="file://$MODULE_DIR$">
+      <sourceFolder url="file://$MODULE_DIR$/src" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/benchmarks/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/bsp/resources" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/benchmarks/test/scala" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/bsp/test/src" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/core/test/scala" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/bsp/test/scala" isTestSource="true" />
+      <sourceFolder url="file://$MODULE_DIR$/bsp/test/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/core/test/resources" type="java-resource" />
+      <sourceFolder url="file://$MODULE_DIR$/bsp/src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/core/src/main/scala" isTestSource="false" />
+      <sourceFolder url="file://$MODULE_DIR$/benchmarks/test/resources" type="java-resource" />
+    </content>
+    <orderEntry type="inheritedJdk" />
+    <orderEntry type="sourceFolder" forTests="false" />
+    <orderEntry type="library" name="scala-sdk-2.12.8 (2)" level="application" />
+  </component>
+</module>
