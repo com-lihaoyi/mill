@@ -212,6 +212,7 @@ object HelloWorldTests extends TestSuite {
     object foo extends ScalaModule {
       def scalaVersion = "2.11.8"
       override def scalaOrganization = "org.typelevel"
+      override def ammoniteVersion = "1.6.7"
 
       def ivyDeps = Agg(
         ivy"com.github.julien-truffaut::monocle-macro::1.4.0"
@@ -241,7 +242,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldFlags extends HelloBase{
     object core extends ScalaModule {
       def scalaVersion = "2.12.4"
-      
+
       def scalacOptions = super.scalacOptions() ++ Seq(
         "-Ypartial-unification"
       )
@@ -766,7 +767,7 @@ object HelloWorldTests extends TestSuite {
           resourcePath = helloWorldMultiResourcePath
         )
 
-        'writeFirstWhenNoRule - {
+        'writeDownstreamWhenNoRule - {
           'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
@@ -802,11 +803,11 @@ object HelloWorldTests extends TestSuite {
             val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
             assert(
-              referenceContent.contains("Model Reference Config File"),
-              referenceContent.contains("foo.bar=2"),
+              !referenceContent.contains("Model Reference Config File"),
+              !referenceContent.contains("foo.bar=2"),
 
-              !referenceContent.contains("Core Reference Config File"),
-              !referenceContent.contains("bar.baz=hello")
+              referenceContent.contains("Core Reference Config File"),
+              referenceContent.contains("bar.baz=hello")
             )
           }
         }

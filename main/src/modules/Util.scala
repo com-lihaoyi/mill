@@ -14,6 +14,8 @@ object Util {
         .stripPrefix("/**")
         .stripPrefix("*/")
         .stripPrefix("*")
+        .stripSuffix("**/")
+        .stripSuffix("*/")
         .dropWhile(_.isWhitespace)
     ).toArray
       .dropWhile(_.isEmpty)
@@ -63,7 +65,7 @@ object Util {
         repositories,
         Seq(
           coursier.Dependency(
-            coursier.Module("com.lihaoyi", artifact + artifactSuffix),
+            coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
             sys.props("MILL_VERSION")
           )
         ),

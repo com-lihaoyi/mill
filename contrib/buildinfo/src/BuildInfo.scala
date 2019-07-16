@@ -1,10 +1,9 @@
-package mill.contrib
+package mill.contrib.buildinfo
 
 import mill.T
-import mill.define.Target
+import mill.api.Logger
 import mill.api.PathRef
 import mill.scalalib.ScalaModule
-import mill.api.Ctx
 
 trait BuildInfo extends ScalaModule {
 
@@ -16,29 +15,35 @@ trait BuildInfo extends ScalaModule {
     Map.empty[String, String]
   }
 
-  private def generateBuildInfo(members: Map[String, Any])(implicit dest: Ctx.Dest): Seq[PathRef] =
-  if(!members.isEmpty){
-    val outputFile = dest.dest / "BuildInfo.scala"
-    val internalMembers =
-      members
-        .map {
-          case (name, value) => s"""  def ${name} = "${value}""""
-        }
-        .mkString("\n")
-    os.write(outputFile,
-      s"""|${buildInfoPackageName.map(p => s"package ${p}").getOrElse("")}
-          |object ${buildInfoObjectName} {
-          |$internalMembers
-          |}""".stripMargin)
-    Seq(PathRef(outputFile))
-  } else {
-    Seq.empty[PathRef]
+  def generatedBuildInfo: T[(Seq[PathRef], PathRef)] = T {
+    val logger: Logger = T.ctx().log
+    val members: Map[String, String] = buildInfoMembers()
+    if (members.nonEmpty) {
+      val outputFile = T.ctx().dest / "BuildInfo.scala"
+      val internalMembers =
+        members
+          .map {
+            case (name, value) => s"""  def ${name} = "${value}""""
+          }
+          .mkString("\n")
+      logger.debug(s"Generating object [${buildInfoPackageName.map(_ + ".").getOrElse("")}${buildInfoObjectName}] with [${members.size}] members to [${outputFile}]")
+      os.write(
+        outputFile,
+        s"""|${buildInfoPackageName.map(packageName => s"package ${packageName}\n").getOrElse("")}
+            |object ${buildInfoObjectName} {
+            |$internalMembers
+            |}""".stripMargin
+      )
+      (Seq(PathRef(outputFile)), PathRef(T.ctx().dest))
+    } else {
+      logger.debug("No build info member defined, skipping code generation")
+      (Seq.empty[PathRef], PathRef(T.ctx().dest))
+    }
   }
 
-  def buildInfo = T {
-    generateBuildInfo(buildInfoMembers())
+  override def generatedSources = T {
+    val (_, destPathRef) = generatedBuildInfo()
+    super.generatedSources() :+ destPathRef
   }
-
-  override def generatedSources: Target[Seq[PathRef]] = super.generatedSources() ++ buildInfo()
 
 }

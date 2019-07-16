@@ -33,10 +33,18 @@ Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill
 pacaur -S mill
 ```
 
+### FreeBSD
+
+Installation via [pkg(8)](http://man.freebsd.org/pkg/8):
+
+```sh
+pkg install mill
+```
+
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.3.6/0.3.6, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -73,19 +81,34 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo sh -c '(echo "#!/usr/bin/env sh" && curl -L https://github.com/lihaoyi/mill/releases/download/0.3.6/0.3.6) > /usr/local/bin/mill && chmod +x /usr/local/bin/mill'
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
-### Development Releases
+### Bootstrap Scripts (Linux/OS-X Only)
 
-In case you want to try out the latest features and improvements that are 
-currently in master, unstable versions of Mill are
-[available](https://github.com/lihaoyi/mill/releases) as binaries named 
-`#.#.#-n-hash` linked to the latest tag.
-Installing the latest unstable release is recommended for bootstrapping mill.
+If you are using Mill in a codebase, you can commit the bootstrap launcher as a
+`./mill` script in the project folder:
 
-Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
-questions or say hi!
+```bash
+curl -L https://github.com/lihaoyi/mill/releases/download/0.5.0/0.5.0 > mill && chmod +x mill
+```
+
+Now, anyone who wants to work with the project can simply use the `./mill`
+script directly:
+
+```bash
+./mill version
+./mill __.compile
+```
+
+The `mill` command will automatically use the version specified by the bootstrap
+script, even if you installed it via other means. The `./mill` file has a
+version number embedded within it, which you can update simply by editing the
+script. Note this only works for versions 0.5.0 and above.
+
+Bootstrap scripts are also useful for running Mill in CI, ensuring that your
+Jenkins/Travis/etc. box has the correct version of Mill present to
+build/compile/test your code.
 
 ## Getting Started
 
@@ -731,6 +754,9 @@ object foo extends ScalaModule with PublishModule {
 }
 ```
 
+You can change the name of the published artifact (artifactId in the Maven POM) 
+by overriding `artifactName` in the module you want to publish.
+
 You can download an example project with this layout here:
 
 - [Example 2](example-2.zip)
@@ -740,13 +766,15 @@ your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
 
 ```bash
 $ mill foo.publish
-Missing arguments: (--sonatypeCreds: String, --gpgPassphrase: String, --release: Boolean)
+Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 
 Arguments provided did not match expected signature:
 
 publish
   --sonatypeCreds  String (format: "username:password")
-  --gpgPassphrase  String
+  --gpgPassphrase  String (default null)
+  --gpgKeyName     String (default null)
+  --signed         Boolean (default true)
   --release        Boolean
 ```
 
@@ -795,3 +823,50 @@ build is not behaving as you would expect, feel free to poke around the various
 see what is being returned by a particular task. You can also simply delete
 folders within `out/` if you want to force portions of your project to be
 re-built, e.g. deleting the `out/main/` or `out/main/test/compile/` folders.
+
+## Overriding Mill Versions
+
+Apart from downloading and installing new versions of Mill globally, there are a
+few ways of selecting/updating your Mill version:
+
+- Create a `.mill-version` file to specify the version of Mill you wish to use:
+
+```bash
+echo "0.5.0" > .mill-version
+```
+
+`.mill-version` takes precedence over the version of Mill specified in the
+`./mill` script.
+
+- ass in a `MILL_VERSION` environment variable, e.g.
+
+```bash
+MILL_VERSION=0.5.0-3-4faefb mill __.compile
+ ```
+
+or
+```bash
+MILL_VERSION=0.5.0-3-4faefb ./mill __.compile
+```
+
+to override the Mill version manually. This takes precedence over the version
+specified in `./mill` or `.mill-version`
+
+Note that both of these overrides only work for versions 0.5.0 and above.
+
+
+### Development Releases
+
+In case you want to try out the latest features and improvements that are
+currently in master, unstable versions of Mill are
+[available](https://github.com/lihaoyi/mill/releases) as binaries named
+`#.#.#-n-hash` linked to the latest tag.
+Installing the latest unstable release is recommended for bootstrapping mill.
+
+The easiest way to use a development release is by updating the [Bootstrap
+Script](#bootstrap-scripts-linuxos-x-only), or
+[Overriding Mill Versions](#overriding-mill-versions) via an environment
+variable or `.mill-version` file.
+
+Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
+questions or say hi!

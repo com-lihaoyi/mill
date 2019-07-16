@@ -1,51 +1,27 @@
 package mill.scalalib
 
-import coursier.Cache
-import mill._
-import mill.util.{TestEvaluator, TestUtil}
+import mill.util.ScriptTestSuite
+import os.Path
 import utest._
 
-object GenIdeaTests extends TestSuite {
-
-  val millSourcePath = os.pwd / 'target / 'workspace / "gen-idea"
-
-  trait HelloWorldModule extends scalalib.ScalaModule {
-    def scalaVersion = "2.12.4"
-    def millSourcePath = GenIdeaTests.millSourcePath
-    object test extends super.Tests {
-      def testFrameworks = Seq("utest.runner.Framework")
-    }
-  }
-
-  object HelloWorld extends TestUtil.BaseModule with HelloWorldModule
-
-  val helloWorldEvaluator = TestEvaluator.static(HelloWorld)
+object GenIdeaTests extends ScriptTestSuite(false) {
 
   def tests: Tests = Tests {
     'genIdeaTests - {
-      val pp = new scala.xml.PrettyPrinter(999, 4)
-
-      val layout = GenIdeaImpl.xmlFileLayout(
-        helloWorldEvaluator.evaluator,
-        HelloWorld,
-        ("JDK_1_8", "1.8 (1)"), None, fetchMillModules = false)
-      for((relPath, xml) <- layout){
-        os.write.over(millSourcePath/ "generated"/ relPath, pp.format(xml), createFolders = true)
-      }
+      initWorkspace()
+      eval("mill.scalalib.GenIdea/idea")
 
       Seq(
-        "gen-idea/idea_modules/iml" ->
-          millSourcePath / "generated" / ".idea_modules" /".iml",
-        "gen-idea/idea_modules/test.iml" ->
-          millSourcePath / "generated" / ".idea_modules" /"test.iml",
-        "gen-idea/idea_modules/mill-build.iml" ->
-          millSourcePath / "generated" / ".idea_modules" /"mill-build.iml",
-        "gen-idea/idea/libraries/scala-library-2.12.4.jar.xml" ->
-          millSourcePath / "generated" / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
-        "gen-idea/idea/modules.xml" ->
-          millSourcePath / "generated" / ".idea" / "modules.xml",
-        "gen-idea/idea/misc.xml" ->
-          millSourcePath / "generated" / ".idea" / "misc.xml"
+        s"$workspaceSlug/idea_modules/helloworld.iml" ->
+          workspacePath / ".idea_modules" /"helloworld.iml",
+        s"$workspaceSlug/idea_modules/helloworld.test.iml" ->
+          workspacePath / ".idea_modules" /"helloworld.test.iml",
+        s"$workspaceSlug/idea/libraries/scala-library-2.12.4.jar.xml" ->
+          workspacePath / ".idea" / "libraries" / "scala-library-2.12.4.jar.xml",
+        s"$workspaceSlug/idea/modules.xml" ->
+          workspacePath / ".idea" / "modules.xml",
+        s"$workspaceSlug/idea/misc.xml" ->
+          workspacePath / ".idea" / "misc.xml"
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
           val generatedString = normaliseLibraryPaths(os.read(generated))
@@ -55,8 +31,11 @@ object GenIdeaTests extends TestSuite {
     }
   }
 
-
   private def normaliseLibraryPaths(in: String): String = {
-    in.replaceAll(Cache.default.toPath.toAbsolutePath.toString, "COURSIER_HOME")
+    in.replaceAll(coursier.paths.CoursierPaths.cacheDirectory().toString, "COURSIER_HOME")
   }
+
+  override def workspaceSlug: String = "gen-idea-hello-world"
+
+  override def scriptSourcePath: Path = os.pwd / 'scalalib / 'test / 'resources / workspaceSlug
 }

@@ -8,7 +8,7 @@ import java.util.zip.ZipInputStream
 import javax.tools.ToolProvider
 
 import ammonite.util.Util
-import coursier.{Cache, Dependency, Fetch, Repository, Resolution}
+import coursier.{Dependency, Fetch, Repository, Resolution}
 import mill.scalalib.api.Util.isDotty
 import mill.Agg
 import mill.eval.{PathRef, Result}
@@ -126,10 +126,11 @@ object Lib{
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
         f.isModule == isModule &&
-        (
-          cls.isAnnotationPresent(annotationCls) ||
-          cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls))
-        )
+          (
+            cls.isAnnotationPresent(annotationCls) ||
+            cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
+            cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
+          )
 
     }.map { f => (cls, f) }
   }

@@ -5,3 +5,5 @@ output/
 .idea_modules
 .idea
 out/
+/.bloop/
+/.metals/

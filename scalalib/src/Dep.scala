@@ -9,16 +9,28 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
-    dep.module.name + suffix
+    dep.module.name.value + suffix
   }
   def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.copy(attributes = attributes))
   def forceVersion(): Dep = copy(force = true)
-  def exclude(exclusions: (String, String)*) = copy(dep = dep.copy(exclusions = dep.exclusions ++ exclusions))
+  def exclude(exclusions: (String, String)*) = copy(
+    dep = dep.copy(
+      exclusions =
+        dep.exclusions ++
+        exclusions.map{case (k, v) => (coursier.Organization(k), coursier.ModuleName(v))}
+    )
+  )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
-    dep.copy(module = dep.module.copy(name = artifactName(binaryVersion, fullVersion, platformSuffix)))
-  def withConfiguration(configuration: String): Dep = copy(dep = dep.copy(configuration = configuration))
+    dep.copy(
+      module = dep.module.copy(
+        name = coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
+      )
+    )
+  def withConfiguration(configuration: String): Dep = copy(
+    dep = dep.copy(configuration = coursier.core.Configuration(configuration))
+  )
 
   /**
     * If scalaVersion is a Dotty version, replace the cross-version suffix
@@ -49,14 +61,14 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
 
 object Dep {
 
-  val DefaultConfiguration = "default(compile)"
+  val DefaultConfiguration = coursier.core.Configuration("default(compile)")
 
   implicit def parse(signature: String): Dep = {
     val parts = signature.split(';')
     val module = parts.head
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
-        case Array("classifier", v) => as.copy(classifier = v)
+        case Array("classifier", v) => as.copy(classifier = coursier.Classifier(v))
         case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
         case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
@@ -72,7 +84,15 @@ object Dep {
     }).configure(attributes = attributes)
   }
   def apply(org: String, name: String, version: String, cross: CrossVersion, force: Boolean = false): Dep = {
-    apply(coursier.Dependency(coursier.Module(org, name), version, DefaultConfiguration), cross, force)
+    apply(
+      coursier.Dependency(
+        coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
+        version,
+        DefaultConfiguration
+      ),
+      cross,
+      force
+    )
   }
   implicit def rw: RW[Dep] = macroRW
 }

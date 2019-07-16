@@ -9,9 +9,9 @@ trait ScalaJSWorkerApi {
            fullOpt: Boolean,
            moduleKind: ModuleKind): Result[File]
 
-  def run(config: NodeJSConfig, linkedFile: File): Unit
+  def run(config: JsEnvConfig, linkedFile: File): Unit
 
-  def getFramework(config: NodeJSConfig,
+  def getFramework(config: JsEnvConfig,
                    frameworkName: String,
                    linkedFile: File): (() => Unit, sbt.testing.Framework)
 
@@ -30,12 +30,27 @@ object ModuleKind{
 }
 
 
-object NodeJSConfig {
-  import upickle.default.{ReadWriter => RW, macroRW}
-  implicit def rw: RW[NodeJSConfig] = macroRW
-}
+sealed trait JsEnvConfig
+object JsEnvConfig{
 
-final case class NodeJSConfig(executable: String = "node",
-                              args: List[String] = Nil,
-                              env: Map[String, String] = Map.empty,
-                              sourceMap: Boolean = true)
+
+  import upickle.default.{ReadWriter => RW, macroRW}
+  implicit def rwNodeJs: RW[NodeJs] = macroRW
+  implicit def rwJsDom: RW[JsDom] = macroRW
+  implicit def rwPhantom: RW[Phantom] = macroRW
+  implicit def rw: RW[JsEnvConfig] = macroRW
+
+  final case class NodeJs(executable: String = "node",
+                          args: List[String] = Nil,
+                          env: Map[String, String] = Map.empty,
+                          sourceMap: Boolean = true) extends JsEnvConfig
+
+  final case class JsDom(executable: String = "node",
+                         args: List[String] = Nil,
+                         env: Map[String, String] = Map.empty) extends JsEnvConfig
+
+  final case class Phantom(executable: String,
+                           args: List[String],
+                           env: Map[String, String],
+                           autoExit: Boolean) extends JsEnvConfig
+}

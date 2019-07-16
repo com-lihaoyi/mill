@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import coursier.Cache
+
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
@@ -17,7 +17,7 @@ object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule
 }
 trait ZincWorkerModule extends mill.Module{
   def repositories = Seq(
-    Cache.ivy2Local,
+    coursier.LocalRepositories.ivy2Local,
     MavenRepository("https://repo1.maven.org/maven2"),
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
@@ -69,11 +69,10 @@ trait ZincWorkerModule extends mill.Module{
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
   }
 
-  private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
   def scalaCompilerBridgeSourceJar(scalaVersion: String,
                                    scalaOrganization: String) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
-      case Milestone213(_, _) => ("2.13.0-M2", "2.13.0-M2")
+      case s if s.startsWith("2.13.") => ("2.13.0-M2", "2.13.0-M2")
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
     }
 

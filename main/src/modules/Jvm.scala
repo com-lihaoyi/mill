@@ -8,7 +8,7 @@ import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
 import java.util.jar.{JarEntry, JarFile, JarOutputStream}
 
-import coursier.{Cache, Dependency, Fetch, Repository, Resolution, CachePolicy}
+import coursier.{Dependency, Fetch, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import geny.Generator
 import mill.main.client.InputPumper
@@ -37,7 +37,7 @@ object Jvm {
     val commandArgs =
       Vector("java") ++
       jvmArgs ++
-      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
+      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
       mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
@@ -60,7 +60,7 @@ object Jvm {
     val args =
       Vector("java") ++
       jvmArgs ++
-      Vector("-cp", classPath.mkString(File.pathSeparator), mainClass) ++
+      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
       mainArgs
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
@@ -84,7 +84,7 @@ object Jvm {
 
     process.waitFor()
     if (process.exitCode() == 0) ()
-    else throw new Exception("Interactive Subprocess Failed")
+    else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }
 
   /**
@@ -289,9 +289,7 @@ object Jvm {
           writeEntry(path, concatenated, append = true)
         case (mapping, WriteOnceEntry(entry)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
-          if (Files.notExists(path)) {
-            writeEntry(path, entry.inputStream, append = false)
-          }
+          writeEntry(path, entry.inputStream, append = false)
       }
 
     zipFs.close()
@@ -409,6 +407,7 @@ object Jvm {
       repositories, deps, force, mapDependencies, ctx
     )
     val errs = resolution.metadataErrors
+
     if(errs.nonEmpty) {
       val header =
         s"""|
@@ -424,13 +423,11 @@ object Jvm {
     } else {
 
       def load(artifacts: Seq[coursier.Artifact]) = {
-        val logger = None
 
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
           for (a <- artifacts)
-            yield coursier.Cache.file[Task](a, logger = logger).run
-              .map(a.isOptional -> _)
+            yield coursier.cache.Cache.default.file(a).run.map(a.optional -> _)
         ).unsafeRun
 
         val errors = loadedArtifacts.collect {
@@ -442,8 +439,22 @@ object Jvm {
       }
 
       val sourceOrJar =
-        if (sources) resolution.classifiersArtifacts(Seq("sources"))
-        else resolution.artifacts(true)
+        if (sources) {
+          resolution.artifacts(
+            types = Set(coursier.Type.source, coursier.Type.javaSource),
+            classifiers = Some(Seq(coursier.Classifier("sources")))
+          )
+        }
+        else resolution.artifacts(
+          types = Set(
+            coursier.Type.jar,
+            coursier.Type.testJar,
+            coursier.Type.bundle,
+            coursier.Type("orbit"),
+            coursier.Type("eclipse-plugin"),
+            coursier.Type("maven-plugin")
+          )
+        )
       val (errors, successes) = load(sourceOrJar)
       if(errors.isEmpty){
         mill.Agg.from(
@@ -463,7 +474,7 @@ object Jvm {
                                   mapDependencies: Option[Dependency => Dependency] = None,
                                   ctx: Option[mill.util.Ctx.Log] = None) = {
 
-    val cachePolicies = CachePolicy.default
+    val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
 
     val forceVersions = force
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
@@ -471,20 +482,23 @@ object Jvm {
       .toMap
 
     val start = Resolution(
-      deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSet,
+      deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq,
       forceVersions = forceVersions,
       mapDependencies = mapDependencies
     )
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
-    val fetches = cachePolicies.map { p =>
-      Cache.fetch[Task](
-        logger = resolutionLogger,
-        cachePolicy = p
-      )
+    val cache = resolutionLogger match {
+      case None => coursier.cache.FileCache[Task].withCachePolicies(cachePolicies)
+      case Some(l) =>
+        coursier.cache.FileCache[Task]
+          .withCachePolicies(cachePolicies)
+          .withLogger(l)
     }
 
-    val fetch = Fetch.from(repositories, fetches.head, fetches.tail: _*)
+    val fetches = cache.fetchs
+
+    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail: _*)
 
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()
@@ -498,7 +512,7 @@ object Jvm {
     * In practice, this ticker output gets prefixed with the current target for which
     * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
     */
-  class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends Cache.Logger {
+  class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends coursier.cache.CacheLogger {
     case class DownloadState(var current: Long, var total: Long)
     var downloads = new mutable.TreeMap[String,DownloadState]()
     var totalDownloadCount = 0
@@ -518,7 +532,7 @@ object Jvm {
       ctx.log.ticker(s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)")
     }
 
-    override def downloadingArtifact(url: String, file: File): Unit = synchronized {
+    override def downloadingArtifact(url: String): Unit = synchronized {
       totalDownloadCount += 1
       downloads += url -> DownloadState(0,0)
       updateTicker()

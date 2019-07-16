@@ -1,31 +1,12 @@
 import mill.Agg
 import mill.scalalib._
 
-trait JUnitTests extends TestModule{
-  def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-
-  /**
-    * Overriden ivyDeps Docs!!!
-    */
-  def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-  def task = T{
-    "???"
-  }
+object core extends ScalaModule{
+  def scalaVersion = "2.12.8"
+  def ivyDeps = Agg(
+    ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
+    ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
+  )
 }
 
-/**
-  * The Core Module Docz!
-  */
-object core extends JavaModule{
-  object test extends Tests with JUnitTests
-
-  /**
-    * Core Task Docz!
-    */
-  def task = T{
-    import collection.JavaConverters._
-    println(this.getClass.getClassLoader.getResources("scalac-plugin.xml").asScala.toList)
-    "Hello!"
-  }
-}
-
+def thingy = T{ Seq("hello", "world") }

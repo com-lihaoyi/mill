@@ -2,6 +2,9 @@ language: scala
 sudo: required
 dist: trusty
 
+git:
+  depth: false
+
 matrix:
   include:
   - stage: build
@@ -9,39 +12,42 @@ matrix:
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: oraclejdk9
+    jdk: openjdk9
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk8
+    jdk: openjdk10
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk9
+    jdk: oraclejdk11
+
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
+    env: CI_SCRIPT=ci/test-mill-bootstrap-0.sh
+    jdk: oraclejdk8
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap-1.sh
     jdk: oraclejdk9
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-0.sh
-    jdk: oraclejdk8
+    jdk: openjdk10
   - stage: build
     env: CI_SCRIPT=ci/test-mill-1.sh
-    jdk: oraclejdk8
+    jdk: openjdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-2.sh
-    jdk: oraclejdk9
+    jdk: oraclejdk8
 
 
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release.sh"
-    jdk: oraclejdk8
+    jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
-    jdk: oraclejdk8
+    jdk: openjdk10
 
 script:
-  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.7/0.2.7-10-db8525 && chmod +x ~/bin/mill
-  - export PATH=~/bin/mill:$PATH
   - "$CI_SCRIPT"
 
 cache:

@@ -60,6 +60,9 @@ dependencies; for Java dependencies you would use a single `:` e.g.
 against the full Scala version (eg. `2.12.4` instead of just `2.12`),
 you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
+To select the test-jars from a dependency use the following syntax:
+`ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
+
 By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
 
@@ -233,6 +236,12 @@ Now you can reformat code with `mill foo.reformat` command.
 
 You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
 It will reformat all sources that matches `__.sources` query.
+
+If you add a `.scalafmt.conf` file at the root of you project, it will be used
+to configure formatting. It can contain a `version` key to specify the scalafmt
+version used to format your code. See the
+[scalafmt configuration documentation](https://scalameta.org/scalafmt/docs/configuration.html)
+for details.
 
 ## Common Configuration
 

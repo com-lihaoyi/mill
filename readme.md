@@ -17,6 +17,10 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
+If you use Mill and like it, please support it by donating to our Patreon:
+
+- [https://www.patreon.com/lihaoyi](https://www.patreon.com/lihaoyi)
+
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
 through the user-facing documentation linked above. It's also worth spending a
@@ -40,7 +44,7 @@ If you are using IntelliJ IDEA to edit Mill's Scala code, you can create the
 IntelliJ project files via:
 
 ```bash
-mill mill.scalalib.GenIdea/idea
+./mill mill.scalalib.GenIdea/idea
 ```
 
 ### Automated Tests
@@ -48,10 +52,10 @@ mill mill.scalalib.GenIdea/idea
 To run test suites:
 
 ```bash
-mill main.test
-mill scalalib.test
-mill scalajslib.test
-mill integration.test
+./mill main.test
+./mill scalalib.test
+./mill scalajslib.test
+./mill integration.test
 ```
 
 ### Manual Testing
@@ -59,7 +63,7 @@ mill integration.test
 To manually test Mill on a small build, you can use the `scratch` folder:
 
 ```bash
-mill -i dev.run scratch -w show thingy
+./mill -i dev.run scratch -w show thingy
 ```
 
 This runs your current checkout of Mill on the trivial build defined in
@@ -69,7 +73,7 @@ files, etc. and see how it behaves.
 More generally, you can use:
 
 ```bash
-mill -i dev.run [target-dir] [...args]
+./mill -i dev.run [target-dir] [...args]
 ```
 
 To create run your current checkout of Mill in the given `target-dir` with the
@@ -80,7 +84,7 @@ You can also create a launcher-script to let you run the current checkout of
 Mill without the bootstrap Mill process present:
 
 ```bash
-mill -i dev.launcher
+./mill dev.launcher
 ```
 
 This creates the `out/dev/launcher/dest/run` launcher script, which you can then
@@ -94,7 +98,7 @@ You can also run your current checkout of Mill on the build in your `scratch/`
 folder without the bootstrap Mill process being present via:
 
 ```bash
-mill -i dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
+./mill dev.launcher && (cd scratch && ../out/dev/launcher/dest/run -w show thingy)
 ```
 
 ### Bootstrapping: Building Mill with your current checkout of Mill
@@ -148,8 +152,70 @@ classloaders.
 This allows a single Mill build to use multiple versions of e.g. the Scala.js
 optimizer without classpath conflicts.
 
+### Contrib modules
+
+- `contrib/bloop/`, `contrib/flyway/`, `contrib/scoverage/`, etc.
+
+These are modules that help integrate Mill with the wide variety of different
+tools and utilities available in the JVM ecosystem.
+
+These modules are not as stringently reviewed as the main Mill core/worker codebase,
+and are primarily maintained by their individual contributors. These are maintained
+as part of the primary Mill Github repo for easy testing/updating as the core Mill
+APIs evolve, ensuring that they are always tested and passing against the 
+corresponding version of Mill.
 
 ## Changelog
+
+### 0.5.0
+
+- Mill now supports a `./mill`
+  [bootstrap script](http://www.lihaoyi.com/mill/#bootstrap-scripts-linuxos-x-only),
+  allowing a project to pin the version of Mill it requires, as well as letting
+  contributors use `./mill ...` to begin development without needing to install
+  Mill beforehand.
+
+- Support for a `.mill-version` file or `MILL_VERSION` environment variable for
+  [Overriding Mill Versions](http://www.lihaoyi.com/mill/#overriding-mill-versions)
+
+- Fix scoverage: inherit repositories from outer project
+  [#645](https://github.com/lihaoyi/mill/pull/645)
+
+### 0.4.2
+
+- Improvements to IntelliJ project generation [#616](https://github.com/lihaoyi/mill/pull/616)
+
+- Allow configuration of Scala.js' JsEnv [#628](https://github.com/lihaoyi/mill/pull/628)
+
+### 0.4.1
+
+- Fixes for scala native test suites without test frameworks [#627](https://github.com/lihaoyi/mill/issues/627)
+
+- Fix publication of artifacts by increasing sonatype timeouts
+
+- Bug fixes for Scoverage integration [#623](https://github.com/lihaoyi/mill/issues/623)
+
+### 0.4.0
+
+- Publish `compileIvyDeps` as provided scope
+  ([535](https://github.com/lihaoyi/mill/issues/535))
+
+- Added contrib modules to integrate
+  [Bloop](http://www.lihaoyi.com/mill/page/contrib-modules.html#bloop),
+  [Flyway](http://www.lihaoyi.com/mill/page/contrib-modules.html#flyway),
+  [Play Framework](http://www.lihaoyi.com/mill/page/contrib-modules.html#play-framework),
+  [Scoverage](http://www.lihaoyi.com/mill/page/contrib-modules.html#scoverage)
+
+- Allow configuration of GPG key names when publishing
+  ([530](https://github.com/lihaoyi/mill/pull/530))
+
+- Bump Ammonite version to 1.6.7, making
+  [Requests-Scala](https://github.com/lihaoyi/requests-scala) available to use
+  in your `build.sc`
+
+- Support for Scala 2.13.0-RC2
+
+- ScalaFmt support now uses the version specified in `.scalafmt.conf`
 
 ### 0.3.6
 
@@ -169,9 +235,9 @@ optimizer without classpath conflicts.
 
 - Version bumps: ammonite 1.6.0, scala 2.12.8, zinc 1.2.5
 
-- Mill now by default fails fast, so in case a build tasks fails, it exists immediately
+- Mill now by default fails fast, so in case a build tasks fails, it exits immediately
 
-- Added new `-k`/--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
+- Added new `-k`/`--keep-going` commandline option to disable fail fast behaviour and continue build as long as possible in case of a failure
 
 ### 0.3.5
 

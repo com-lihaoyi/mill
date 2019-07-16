@@ -7,15 +7,24 @@ import java.net.Socket;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.nio.channels.FileChannel;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.util.*;
+import java.lang.Math;
 
 public class MillClientMain {
+
+    // use methods instead of constants to avoid inlining by compiler
+    public static final int ExitClientCodeCannotReadFromExitCodeFile() { return 1; }
+	public static final int ExitServerCodeWhenIdle() { return 0; }
+	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
+
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
         String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
 
         List<String> l = new ArrayList<>();
         List<String> vmOptions = new ArrayList<>();
-        l.add("java");
+        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
         final Properties props = System.getProperties();
         for(final String k: props.stringPropertyNames()){
             if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
@@ -46,6 +55,16 @@ public class MillClientMain {
                 .redirectError(new java.io.File(lockBase + "/logs"))
                 .start();
     }
+
+    private static String sha1HashPath(String path) throws NoSuchAlgorithmException, UnsupportedEncodingException {
+        MessageDigest md = MessageDigest.getInstance("SHA1");
+        md.reset();
+        byte[] pathBytes = path.getBytes("UTF-8");
+        md.update(pathBytes);
+        byte[] digest = md.digest();
+        return Base64.getEncoder().encodeToString(digest);
+    }
+
     public static void main(String[] args) throws Exception{
         System.exit(main0(args));
     }
@@ -56,9 +75,22 @@ public class MillClientMain {
             System.setProperty("jna.nosys", "true");
         }
         int index = 0;
-        while (index < 5) {
+        String jvmHomeEncoding = sha1HashPath(System.getProperty("java.home"));
+        File outFolder = new File("out");
+        String[] totalProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-"));
+        String[] thisJdkProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
+
+        int processLimit = 5;
+        if(totalProcesses != null) {
+            if(thisJdkProcesses != null) {
+                processLimit -= Math.min(totalProcesses.length - thisJdkProcesses.length, 5);
+            } else {
+                processLimit -= Math.min(totalProcesses.length, 5);
+            }
+        }
+        while (index < processLimit) {
             index += 1;
-            String lockBase = "out/mill-worker-" + index;
+            String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
             try(RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
@@ -91,7 +123,7 @@ public class MillClientMain {
 
             }
         }
-        throw new Exception("Reached max process limit: " + 5);
+        throw new Exception("Reached max process limit: " + processLimit);
     }
 
     public static int run(String lockBase,
@@ -151,10 +183,10 @@ public class MillClientMain {
 
         locks.serverLock.await();
 
-        try(FileInputStream fos = new FileInputStream(lockBase + "/exitCode")){
-            return Integer.parseInt(new BufferedReader(new InputStreamReader(fos)).readLine());
+        try(FileInputStream fis = new FileInputStream(lockBase + "/exitCode")){
+            return Integer.parseInt(new BufferedReader(new InputStreamReader(fis)).readLine());
         } catch(Throwable e){
-            return 1;
+            return ExitClientCodeCannotReadFromExitCodeFile();
         } finally{
             ioSocket.close();
         }
