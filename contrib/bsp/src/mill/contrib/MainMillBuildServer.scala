@@ -172,7 +172,7 @@ object MainMillBuildServer extends ExternalModule {
 
       }
       override def onBuildTaskFinish(params: TaskFinishParams): Unit = {
-
+        println("Task Finish: " + params)
       }
       override def onBuildPublishDiagnostics(
                                               params: PublishDiagnosticsParams

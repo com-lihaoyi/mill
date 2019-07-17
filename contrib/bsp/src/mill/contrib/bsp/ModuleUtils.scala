@@ -37,9 +37,9 @@ object ModuleUtils {
       for ( module <- modules ) {
         val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
         val capabilities = getModuleCapabilities(module, evaluator)
-        val buildTargetTag: String = module match {
-          case m: TestModule => BuildTargetTag.TEST
-          case m: JavaModule => "-"
+        val buildTargetTag: List[String] = module match {
+          case m: TestModule => List(BuildTargetTag.TEST)
+          case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
         }
 
         val dependencies = module match {
@@ -47,7 +47,7 @@ object ModuleUtils {
         }
 
         val buildTarget = new BuildTarget(moduleIdMap(module),
-          Collections.singletonList(buildTargetTag),
+          buildTargetTag.asJava,
           supportedLanguages.asJava,
           dependencies,
           capabilities)

@@ -2,7 +2,7 @@ package mill.contrib.bsp
 
 import java.io.File
 
-import ch.epfl.scala.bsp4j.{BuildServer, BuildTargetIdentifier, InverseSourcesParams, ScalaBuildServer, TextDocumentIdentifier}
+import ch.epfl.scala.bsp4j.{BuildServer, BuildTargetIdentifier, CompileReport, InverseSourcesParams, ScalaBuildServer, StatusCode, TaskFinishParams, TaskId, TextDocumentIdentifier}
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.BspContext
 import sbt.internal.inc.ManagedLoggedReporter
@@ -16,6 +16,7 @@ import scala.io.Source
 
 class BspLoggedReporter(client: bsp.BuildClient,
                         targetId: BuildTargetIdentifier,
+                        taskId: TaskId,
                         compilationOriginId: Option[String],
                         maxErrors: Int,
                         logger: ManagedLogger) extends ManagedLoggedReporter(maxErrors, logger) {
@@ -40,6 +41,20 @@ class BspLoggedReporter(client: bsp.BuildClient,
    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     warnings += 1
     super.logWarning(problem)
+  }
+
+  override def printSummary(): Unit = {
+    val taskFinishParams = new TaskFinishParams(taskId, getStatusCode)
+    taskFinishParams.setEventTime(System.currentTimeMillis())
+    taskFinishParams.setMessage("Finished compiling target: " + targetId.getUri)
+    taskFinishParams.setDataKind("compile-report")
+    val compileReport = new CompileReport(targetId, errors, warnings)
+    compilationOriginId match {
+      case Some(id) => compileReport.setOriginId(id)
+      case None =>
+    }
+    taskFinishParams.setData(compileReport)
+    client.onBuildTaskFinish(taskFinishParams)
   }
 
   //TODO: document that if the problem is a general information without a text document
@@ -74,15 +89,8 @@ class BspLoggedReporter(client: bsp.BuildClient,
       params
     }
 
-  private[this] def getTragetId(problem: Problem, server: BuildServer with ScalaBuildServer):
-                                                                      Option[BuildTargetIdentifier] = {
-    problem.position().sourceFile().asScala match {
-      case Some(file) => Option(
-                                server.buildTargetInverseSources(
-                                new InverseSourcesParams(new TextDocumentIdentifier(file.toURI.toString))
-                                ).get.getTargets.asScala.head)
-      case None => Option.empty[BuildTargetIdentifier]
-    }
+  private[this] def getStatusCode: StatusCode = {
+    if (errors > 0) StatusCode.ERROR else StatusCode.OK
   }
 
   private[this] def getErrorCode(file: Option[File], start: bsp.Position, end: bsp.Position, position: xsbti.Position): String = {

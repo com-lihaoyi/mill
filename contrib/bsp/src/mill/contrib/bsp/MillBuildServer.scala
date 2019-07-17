@@ -238,12 +238,23 @@ class MillBuildServer(evaluator: Evaluator,
       l
   }
 
-  private[this] def getBspLoggedReporterPool(params: Parameters): Int => Option[ManagedLoggedReporter] = {
+  private[this] def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
+                                             taskStartDataKind: String, taskStartData: BuildTargetIdentifier => Object):
+                                                                Int => Option[ManagedLoggedReporter] = {
     (int: Int) =>
+      val targetId = moduleCodeToTargetId(int)
+      val taskId = new TaskId(targetIdToModule(targetId).compile.hashCode.toString)
       if (moduleCodeToTargetId.contains(int)) {
         println("Module: " + int)
+        val taskStartParams = new TaskStartParams(taskId)
+        taskStartParams.setEventTime(System.currentTimeMillis())
+        taskStartParams.setData(taskStartData(targetId))
+        taskStartParams.setDataKind(taskStartDataKind)
+        taskStartParams.setMessage(taskStartMessage(moduleToTarget(targetIdToModule(targetId)).getDisplayName))
+        client.onBuildTaskStart(taskStartParams)
         Option(new BspLoggedReporter(client,
-          moduleCodeToTargetId(int),
+          targetId,
+          taskId,
           params.getOriginId,
           10, getCompilationLogger))}
       else Option.empty[ManagedLoggedReporter]
@@ -257,9 +268,9 @@ class MillBuildServer(evaluator: Evaluator,
       val params = TaskParameters.fromCompileParams(compileParams)
       val taskId = params.hashCode()
       val compileTasks = Strict.Agg(params.getTargets.map(targetId => targetIdToModule(targetId).compile):_*)
-
       val result = millEvaluator.evaluate(compileTasks,
-                    getBspLoggedReporterPool(params),
+                    getBspLoggedReporterPool(params, (t) => s"Started compiling target: $t",
+                    "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
                     new BspContext {
                       override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
                       override def logStart(event: Event): Unit = {}
@@ -282,7 +293,8 @@ class MillBuildServer(evaluator: Evaluator,
         val args = params.getArguments.getOrElse(Seq.empty[String])
         val runTask = module.run(args.mkString(" "))
         val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
-                        getBspLoggedReporterPool(params),
+                            getBspLoggedReporterPool(params, (t) => s"Started compiling target: $t",
+                    "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
                         logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
         if (runResult.failing.keyCount > 0) {
           new RunResult(StatusCode.ERROR)
@@ -341,7 +353,8 @@ class MillBuildServer(evaluator: Evaluator,
 
             val results = millEvaluator.evaluate(
               Strict.Agg(testTask),
-              getBspLoggedReporterPool(params),
+              getBspLoggedReporterPool(params, (t) => s"Started compiling target: $t",
+                "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
               bspContext,
               new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
             val endTime = System.currentTimeMillis()
