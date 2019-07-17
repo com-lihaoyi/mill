@@ -310,11 +310,13 @@ class MillBuildServer(evaluator: Evaluator,
       val params = TaskParameters.fromRunParams(runParams)
         val module = targetIdToModule(params.getTargets.head)
         val args = params.getArguments.getOrElse(Seq.empty[String])
-        val runResult = millEvaluator.evaluate(Strict.Agg(module.run(args.mkString(" "))),
+        val runTask = module.run(args.mkString(" "))
+        val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
                                             Option(new BspLoggedReporter(client,
                                               params.getTargets.head,
                                               params.getOriginId,
-                                              10, getCompilationLogger)))
+                                              10, getCompilationLogger)),
+                        logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
         if (runResult.failing.keyCount > 0) {
           new RunResult(StatusCode.ERROR)
         } else {
@@ -376,7 +378,8 @@ class MillBuildServer(evaluator: Evaluator,
                 targetId,
                 params.getOriginId,
                 10, getCompilationLogger)),
-              bspContext)
+              bspContext,
+              new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
             val endTime = System.currentTimeMillis()
             val statusCode = getStatusCode(results)
             statusCode match {
