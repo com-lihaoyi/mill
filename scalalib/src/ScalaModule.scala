@@ -159,7 +159,7 @@ trait ScalaModule extends JavaModule { outer =>
       pluginOptions ++
       scalaDocOptions()
 
-    if (files.isEmpty) Result.Success(createJar(Agg(javadocDir), manifest())(outDir))
+    if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
     else {
       zincWorker.worker().docJar(
         scalaVersion(),
@@ -168,7 +168,7 @@ trait ScalaModule extends JavaModule { outer =>
         scalacPluginClasspath().map(_.path),
         files ++ options
       ) match{
-        case true => Result.Success(createJar(Agg(javadocDir), manifest())(outDir))
+        case true => Result.Success(createJar(Agg(javadocDir))(outDir))
         case false => Result.Failure("docJar generation failed")
       }
     }

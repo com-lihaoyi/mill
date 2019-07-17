@@ -349,7 +349,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
       workingDir = T.ctx().dest
     )
 
-    createJar(Agg(javadocDir), manifest())(outDir)
+    createJar(Agg(javadocDir))(outDir)
   }
 
   /**
@@ -637,4 +637,3 @@ object TestModule{
     }
   }
 }
-
