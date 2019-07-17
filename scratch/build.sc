@@ -1,5 +1,5 @@
 import mill.scalalib.{SbtModule, Dep, DepSyntax}
-//import $ivy.`com.lihaoyi::mill-contrib-bsp:0.4.1-21-fd34d3-DIRTY61e11e70`
+//import $ivy.`com.lihaoyi::mill-contrib-bsp:0.5.0-28-53df48-DIRTYf21142f7`
 
 trait BetterFilesModule extends SbtModule{
   def scalaVersion = "2.12.4"

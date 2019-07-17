@@ -267,7 +267,8 @@ class MillBuildServer(evaluator: Evaluator,
                                       override def logStart(event: Event): Unit = {}
 
                                       override def logFinish(event: Event): Unit = {}
-                                    }
+                                    },
+                                    new MillBspLogger(client, compileTask.hashCode(), millEvaluator.log)
                                           )
           val endTime = System.currentTimeMillis()
 

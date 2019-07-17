@@ -4,8 +4,9 @@ import java.io.{InputStream, PrintStream}
 
 import ch.epfl.scala.bsp4j.{BuildClient, TaskId, TaskProgressParams}
 import mill.api.{BspContext, Logger}
+import mill.util.ProxyLogger
 
-class MillBspLogger(client: BuildClient, taskId: Int) extends Logger {
+class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger) extends ProxyLogger(logger) {
 
   override def ticker(s: String): Unit = {
     val progressString = s.split(" ")(0)
@@ -19,15 +20,4 @@ class MillBspLogger(client: BuildClient, taskId: Int) extends Logger {
     client.onBuildTaskProgress(params)
   }
 
-  override def colored: Boolean = false
-
-  override val errorStream: PrintStream
-  override val outputStream: PrintStream
-  override val inStream: InputStream
-
-  override def info(s: String): Unit = {}
-
-  override def error(s: String): Unit = {}
-
-  override def debug(s: String): Unit = {}
 }

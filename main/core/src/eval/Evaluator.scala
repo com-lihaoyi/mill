@@ -46,7 +46,8 @@ case class Evaluator(home: os.Path,
 
   def evaluate(goals: Agg[Task[_]],
                reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter],
-               bspContext: BspContext = DummyBspContext): Evaluator.Results = {
+               bspContext: BspContext = DummyBspContext,
+               logger: Logger = log): Evaluator.Results = {
     os.makeDir.all(outPath)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
@@ -73,7 +74,8 @@ case class Evaluator(home: os.Path,
         results,
         counterMsg,
         reporter,
-        bspContext
+        bspContext,
+        logger
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -120,7 +122,8 @@ case class Evaluator(home: os.Path,
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String,
                           reporter: Option[ManagedLoggedReporter],
-                          bspContext: BspContext
+                          bspContext: BspContext,
+                          logger: Logger
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
@@ -144,7 +147,8 @@ case class Evaluator(home: os.Path,
           maybeTargetLabel = None,
           counterMsg = counterMsg,
           reporter,
-          bspContext
+          bspContext,
+          logger
         )
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
@@ -198,7 +202,8 @@ case class Evaluator(home: os.Path,
               maybeTargetLabel = Some(msgParts.mkString),
               counterMsg = counterMsg,
               reporter,
-              bspContext
+              bspContext,
+              logger
             )
 
             newResults(labelledNamedTask.task) match{
@@ -274,7 +279,8 @@ case class Evaluator(home: os.Path,
                     maybeTargetLabel: Option[String],
                     counterMsg: String,
                     reporter: Option[ManagedLoggedReporter],
-                    bspContext: BspContext): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+                    bspContext: BspContext,
+                    logger: Logger): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -291,11 +297,11 @@ case class Evaluator(home: os.Path,
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
       val prefix = s"[$counterMsg] $targetLabel "
-      if(logRun) log.ticker(prefix)
+      if(logRun) logger.ticker(prefix)
       prefix + "| "
     }
 
-    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log))) {
+    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
         super.ticker(tickerPrefix.getOrElse("")+s)
       }
@@ -376,9 +382,9 @@ case class Evaluator(home: os.Path,
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[os.Path]): Logger = logPath match{
-    case None => log
-    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path, debugEnabled = true))
+  def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match{
+    case None => logger
+    case Some(path) => MultiLogger(logger.colored, log, FileLogger(logger.colored, path, debugEnabled = true))
   }
 }
 
