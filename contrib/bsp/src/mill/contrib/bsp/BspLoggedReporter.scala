@@ -2,6 +2,7 @@ package mill.contrib.bsp
 
 import java.io.File
 
+import ch.epfl.scala.bsp4j.{BuildServer, BuildTargetIdentifier, InverseSourcesParams, ScalaBuildServer, TextDocumentIdentifier}
 import ch.epfl.scala.{bsp4j => bsp}
 import mill.api.BspContext
 import sbt.internal.inc.ManagedLoggedReporter
@@ -14,24 +15,30 @@ import scala.compat.java8.OptionConverters._
 import scala.io.Source
 
 class BspLoggedReporter(client: bsp.BuildClient,
-                        targetId: bsp.BuildTargetIdentifier,
+                        targetId: BuildTargetIdentifier,
                         compilationOriginId: Option[String],
                         maxErrors: Int,
                         logger: ManagedLogger) extends ManagedLoggedReporter(maxErrors, logger) {
 
+  var errors = 0
+  var warnings = 0
+  var infos = 0
+
   override def logError(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    errors += 1
     super.logError(problem)
   }
 
   override def logInfo(problem: Problem): Unit = {
-    logger.info("Problem: " + problem.toString)
-    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+   client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    infos += 1
     super.logInfo(problem)
   }
 
   override def logWarning(problem: Problem): Unit = {
-    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+   client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    warnings += 1
     super.logWarning(problem)
   }
 
@@ -66,6 +73,17 @@ class BspLoggedReporter(client: bsp.BuildClient,
       if (originId.nonEmpty) { params.setOriginId(originId.get) }
       params
     }
+
+  private[this] def getTragetId(problem: Problem, server: BuildServer with ScalaBuildServer):
+                                                                      Option[BuildTargetIdentifier] = {
+    problem.position().sourceFile().asScala match {
+      case Some(file) => Option(
+                                server.buildTargetInverseSources(
+                                new InverseSourcesParams(new TextDocumentIdentifier(file.toURI.toString))
+                                ).get.getTargets.asScala.head)
+      case None => Option.empty[BuildTargetIdentifier]
+    }
+  }
 
   private[this] def getErrorCode(file: Option[File], start: bsp.Position, end: bsp.Position, position: xsbti.Position): String = {
     file match {

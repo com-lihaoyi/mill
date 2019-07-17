@@ -52,6 +52,8 @@ class MillBuildServer(evaluator: Evaluator,
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
+  var moduleCodeToTargetId: Predef.Map[Int, BuildTargetIdentifier] =
+    for ( (targetId, module) <- targetIdToModule ) yield (targetId, module.hashCode()).swap
 
   var initialized = false
   var clientInitialized = false
@@ -236,72 +238,40 @@ class MillBuildServer(evaluator: Evaluator,
       l
   }
 
+  private[this] def getBspLoggedReporterPool(params: Parameters): Int => Option[ManagedLoggedReporter] = {
+    (int: Int) =>
+      if (moduleCodeToTargetId.contains(int)) {
+        println("Module: " + int)
+        Option(new BspLoggedReporter(client,
+          moduleCodeToTargetId(int),
+          params.getOriginId,
+          10, getCompilationLogger))}
+      else Option.empty[ManagedLoggedReporter]
+  }
+
   //TODO: if the client wants to give compilation arguments and the module
   // already has some from the build file, what to do?
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] = {
 
     def getCompileResult: CompileResult = {
       val params = TaskParameters.fromCompileParams(compileParams)
-      var numFailures = 0
-      var compileTime = 0
-      for (targetId <- params.getTargets) {
-        if (moduleToTarget(targetIdToModule(targetId)).getCapabilities.getCanCompile) {
-          val millModule = targetIdToModule(targetId)
-          val compileTask = millModule.compile
+      val taskId = params.hashCode()
+      val compileTasks = Strict.Agg(params.getTargets.map(targetId => targetIdToModule(targetId).compile):_*)
 
-          // send notification to client that compilation of this target started
-          val taskStartParams = new TaskStartParams(new TaskId(compileTask.hashCode().toString))
-          taskStartParams.setEventTime(System.currentTimeMillis())
-          taskStartParams.setMessage("Compiling target: " + targetId)
-          taskStartParams.setDataKind("compile-task")
-          taskStartParams.setData(new CompileTask(targetId))
-          client.onBuildTaskStart(taskStartParams)
+      val result = millEvaluator.evaluate(compileTasks,
+                    getBspLoggedReporterPool(params),
+                    new BspContext {
+                      override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
+                      override def logStart(event: Event): Unit = {}
 
-          val result = millEvaluator.evaluate(Strict.Agg(compileTask),
-            Option(new BspLoggedReporter(client,
-                                    targetId,
-                                    getOriginId(compileParams),
-                          10, getCompilationLogger)),
-                                    new BspContext {
-                                      override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
-                                      override def logStart(event: Event): Unit = {}
-
-                                      override def logFinish(event: Event): Unit = {}
-                                    },
-                                    new MillBspLogger(client, compileTask.hashCode(), millEvaluator.log)
-                                          )
-          val endTime = System.currentTimeMillis()
-
-          compileTime += result.timings.map(timingTuple => timingTuple._2).sum
-          var statusCode = StatusCode.OK
-
-          if (result.failing.keyCount > 0) {
-            statusCode = StatusCode.ERROR
-            numFailures += result.failing.keyCount
-          }
-
-          // send notification to client that compilation of this target ended => compilation report
-          val taskFinishParams = new TaskFinishParams(new TaskId(compileTask.hashCode().toString), statusCode)
-          taskFinishParams.setEventTime(endTime)
-          taskFinishParams.setMessage("Finished compiling target: " +
-                                              moduleToTarget(targetIdToModule(targetId)).getDisplayName)
-          taskFinishParams.setDataKind("compile-report")
-          val compileReport = new CompileReport(targetId, numFailures, 0)
-          compileReport.setOriginId(compileParams.getOriginId)
-          compileReport.setTime(compileTime.toLong)
-          taskFinishParams.setData(compileReport)
-          client.onBuildTaskFinish(taskFinishParams)
-        }
-      }
-
-      var overallStatusCode = StatusCode.OK
-      if (numFailures > 0) {
-        overallStatusCode = StatusCode.ERROR
-      }
-      val compileResult = new CompileResult(overallStatusCode)
+                      override def logFinish(event: Event): Unit = {}
+                    },
+                    new MillBspLogger(client, taskId, millEvaluator.log)
+      )
+      val compileResult = new CompileResult(getStatusCode(result))
       compileResult.setOriginId(compileParams.getOriginId)
       compileResult //TODO: See what form IntelliJ expects data about products of compilation in order to set data field
-      }
+    }
     handleExceptions[String, CompileResult]((in) => getCompileResult, "")
   }
 
@@ -312,10 +282,7 @@ class MillBuildServer(evaluator: Evaluator,
         val args = params.getArguments.getOrElse(Seq.empty[String])
         val runTask = module.run(args.mkString(" "))
         val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
-                                            Option(new BspLoggedReporter(client,
-                                              params.getTargets.head,
-                                              params.getOriginId,
-                                              10, getCompilationLogger)),
+                        getBspLoggedReporterPool(params),
                         logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
         if (runResult.failing.keyCount > 0) {
           new RunResult(StatusCode.ERROR)
@@ -328,7 +295,7 @@ class MillBuildServer(evaluator: Evaluator,
 
   private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
     System.err.println("Results: " + results.rawValues)
-    if (results.rawValues.exists(r => r.isInstanceOf[Result.Failure[Any]])) {
+    if (results.failing.keyCount > 0) {
       StatusCode.ERROR
     }
 
@@ -374,10 +341,7 @@ class MillBuildServer(evaluator: Evaluator,
 
             val results = millEvaluator.evaluate(
               Strict.Agg(testTask),
-              Option(new BspLoggedReporter(client,
-                targetId,
-                params.getOriginId,
-                10, getCompilationLogger)),
+              getBspLoggedReporterPool(params),
               bspContext,
               new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
             val endTime = System.currentTimeMillis()

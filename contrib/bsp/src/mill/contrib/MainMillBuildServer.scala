@@ -7,7 +7,7 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CleanCacheParams, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
 import mill._
 import mill.api.Strict
 import mill.contrib.bsp.{BspLoggedReporter, MillBuildServer, ModuleUtils}
@@ -183,14 +183,12 @@ object MainMillBuildServer extends ExternalModule {
         ???
     }
     millServer.client = client
-    for (module <- millServer.millModules) {
-      if (millServer.moduleToTarget(module).getDisplayName == "test") {
-//        println(eval.evaluate(Strict.Agg(module.asInstanceOf[TestModule].testLocal()
-//        )).rawValues)
-        millServer.initialized = true
-        println(millServer.buildTargetTest(new TestParams(List(millServer.moduleToTargetId(module)).asJava)).get)
-      }
-    }
+    millServer.initialized = true
+    println(millServer.buildTargetCleanCache(
+      new CleanCacheParams(millServer.millModules.map(m => millServer.moduleToTargetId(m)).asJava)).get)
+    println(millServer.buildTargetCompile(
+      new CompileParams(millServer.millModules.map(m => millServer.moduleToTargetId(m)).asJava)).get)
+    println("Diagnostics: " + client.diagnostics)
   }
 
   /**

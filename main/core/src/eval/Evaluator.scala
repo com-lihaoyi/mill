@@ -29,6 +29,8 @@ case class Labelled[T](task: NamedTask[T],
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
+
+//  override def hashCode(): Int = task.hashCode()
 }
 
 case class Evaluator(home: os.Path,
@@ -45,7 +47,7 @@ case class Evaluator(home: os.Path,
   val classLoaderSignHash = classLoaderSig.hashCode()
 
   def evaluate(goals: Agg[Task[_]],
-               reporter: Option[ManagedLoggedReporter] = Option.empty[ManagedLoggedReporter],
+               reporter: Int => Option[ManagedLoggedReporter] = (int: Int) => Option.empty[ManagedLoggedReporter],
                bspContext: BspContext = DummyBspContext,
                logger: Logger = log): Evaluator.Results = {
     os.makeDir.all(outPath)
@@ -121,7 +123,7 @@ case class Evaluator(home: os.Path,
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String,
-                          reporter: Option[ManagedLoggedReporter],
+                          reporter: Int => Option[ManagedLoggedReporter],
                           bspContext: BspContext,
                           logger: Logger
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
@@ -278,7 +280,7 @@ case class Evaluator(home: os.Path,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
                     counterMsg: String,
-                    reporter: Option[ManagedLoggedReporter],
+                    reporter: Int => Option[ManagedLoggedReporter],
                     bspContext: BspContext,
                     logger: Logger): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
@@ -313,7 +315,6 @@ case class Evaluator(home: os.Path,
         .map{x => newResults.getOrElse(x, results(x))}
         .collect{ case Result.Success((v, hashCode)) => v }
 
-
       val res =
         if (targetInputValues.length != task.inputs.length) Result.Skipped
         else {
@@ -345,6 +346,7 @@ case class Evaluator(home: os.Path,
             reporter,
             bspContext //new ManagedLoggedReporter(10, logger)
           )
+
           val out = System.out
           val in = System.in
           val err = System.err

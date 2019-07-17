@@ -222,7 +222,7 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
       javacOptions() ++ T.ctx.bsp.args,
-      T.ctx().reporter
+      T.ctx().reporter(hashCode)
     )
   }
 

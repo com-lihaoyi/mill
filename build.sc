@@ -125,6 +125,7 @@ object main extends MillModule {
     }
   }
   object api extends MillApiModule{
+    //def moduleDeps = Seq(core)
     def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle

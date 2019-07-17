@@ -143,7 +143,7 @@ trait ScalaModule extends JavaModule { outer =>
       scalacOptions() ++ T.ctx.bsp.args,
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
-      T.ctx().reporter
+      T.ctx().reporter(hashCode)
     )
   }
 
