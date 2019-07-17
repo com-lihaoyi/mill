@@ -6,13 +6,13 @@ import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j._
 import mill.api.Result.Success
 import mill.api.{Loose, Strict}
-import mill.define.{Discover, Task}
+import mill.define.{Discover, Segment, Segments, Task}
 import mill.eval._
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.api.Util
 import mill.scalanativelib._
-import mill.scalalib.{JavaModule, ScalaModule, TestModule}
+import mill.scalalib.{GenIdea, GenIdeaImpl, JavaModule, ScalaModule, TestModule}
 import mill.util.DummyLogger
 
 
@@ -55,7 +55,7 @@ object ModuleUtils {
           buildTarget.setDataKind("scala")
         }
         buildTarget.setData(dataBuildTarget)
-        buildTarget.setDisplayName(module.millModuleSegments.last.value.toList.head.pathSegments.head)
+        buildTarget.setDisplayName(moduleName(module.millModuleSegments))
         buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
         moduleToTarget ++= Map(module -> buildTarget)
       }
@@ -131,4 +131,12 @@ object ModuleUtils {
 
     moduleToTarget
   }
+
+  // this is taken from mill.scalalib GenIdeaImpl
+  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
+    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+    case (sb, Segment.Label(s)) => sb.append(".").append(s)
+    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+  }.mkString.toLowerCase()
 }
