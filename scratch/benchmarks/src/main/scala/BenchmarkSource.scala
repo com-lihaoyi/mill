@@ -1,8 +1,8 @@
 package main.scala
 
 import org.apache.commons.io.FileUtils
+
 import java.io.File
-//import com.williamfiset.fastjavaio.InputReader
 
 object BenchmarkSource {
   //val reader = new InputReader()

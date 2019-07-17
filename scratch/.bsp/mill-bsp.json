@@ -1,1 +1,1 @@
-{"name":"mill-bsp","argv":["mill", "-i", "dev.run", "scratch", "-i", "mill.contrib.MainMillBuildServer/startServer"],"version":"1.0.0","bspVersion":"2.0.0-M4","languages":["scala","java"]}
+{"name":"mill-bsp","argv":["../out/dev/launcher/dest/run", "-i", "mill.contrib.MainMillBuildServer/startServer"],"version":"1.0.0","bspVersion":"2.0.0-M4","languages":["scala","java"]}

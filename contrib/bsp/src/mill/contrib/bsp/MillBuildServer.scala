@@ -429,7 +429,7 @@ class MillBuildServer(evaluator: Evaluator,
               map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).toList
             val index = m.millModuleSegments.parts.length
 
-            val classDirectory = m.millSourcePath.toNIO.toAbsolutePath.toUri.toString
+            val classDirectory = Evaluator.resolveDestPaths(os.pwd / "out", m.millModuleSegments).out.toIO.toURI.toString//m.millSourcePath.toNIO.toAbsolutePath.toUri.toString
 
             targetScalacOptions ++= List(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
           case m: JavaModule => targetScalacOptions ++= List()
