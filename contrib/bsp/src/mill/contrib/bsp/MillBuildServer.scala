@@ -427,9 +427,8 @@ class MillBuildServer(evaluator: Evaluator,
             val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
             val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef]).
               map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).toList
-            val index = m.millModuleSegments.parts.length
-
-            val classDirectory = Evaluator.resolveDestPaths(os.pwd / "out", m.millModuleSegments).out.toIO.toURI.toString//m.millSourcePath.toNIO.toAbsolutePath.toUri.toString
+            val classDirectory = (Evaluator.resolveDestPaths(os.pwd / "out" , m.millModuleSegments).
+                                    dest / "classes").toIO.toURI.toString
 
             targetScalacOptions ++= List(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
           case m: JavaModule => targetScalacOptions ++= List()
