@@ -72,9 +72,8 @@ object ModuleUtils {
     new BuildTargetCapabilities(true, canTest, true)
   }
 
-  //TODO: I think here I need to look at scalaLibraryIvyDeps, ivyDeps that contain
-  // "scala-compiler" and "scala-reflect" and at scalacPluginIvyDeps
-  def computeScalaBuildTarget(module: JavaModule, evaluator: Evaluator): Any = {
+  //TODO: Fix the data field for JavaModule when the bsp specification is updated
+  def computeScalaBuildTarget(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget = {
     module match {
       case m: ScalaModule =>
         val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion, "")
@@ -87,7 +86,14 @@ object ModuleUtils {
             map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).
             toList.asJava)
 
-      case m: JavaModule => "This is just a test or java target"
+      case m: JavaModule =>
+        val scalaVersion = "2.12.8"
+        new ScalaBuildTarget(
+          "or.scala-lang",
+          "2.12.8",
+          "2.12",
+          ScalaPlatform.JVM,
+          List.empty[String].asJava)
     }
   }
 
