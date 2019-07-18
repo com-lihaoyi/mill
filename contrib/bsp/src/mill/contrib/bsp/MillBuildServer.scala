@@ -114,6 +114,7 @@ class MillBuildServer(evaluator: Evaluator,
     files
   }
 
+  //TODO: use mill's sources, same for resources
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] = {
 
     def computeSourcesResult: SourcesResult = {
@@ -129,12 +130,14 @@ class MillBuildServer(evaluator: Evaluator,
                                                         Agg.empty[PathRef]).
                                                         map(pathRef => pathRef.path).toSeq
 
-        for (file <- getSourceFiles(sources)) {
-          itemSources ++= List(new SourceItem(file.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.FILE, false))
+        for (source <- sources) {
+          itemSources ++= List(
+            new SourceItem(source.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.DIRECTORY, false))
         }
 
-        for (file <- getSourceFiles(generatedSources)) {
-          itemSources ++= List(new SourceItem(file.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.FILE, true))
+        for (genSource <- generatedSources) {
+          itemSources ++= List(
+            new SourceItem(genSource.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.DIRECTORY, true))
         }
 
         items ++= List(new SourcesItem(targetId, itemSources.asJava))
@@ -154,7 +157,9 @@ class MillBuildServer(evaluator: Evaluator,
       val targets = (for (targetId <- targetIdToModule.keys
                           if buildTargetSources(new SourcesParams(Collections.singletonList(targetId))).
                             get.getItems.asScala.head.getSources.asScala.
-                            exists(item => item.getUri.equals(textDocument.getUri)))
+                            exists(
+                              item => os.list(os.Path(item.getUri)).
+                                map(dir => dir.toIO.toURI.toString).contains(textDocument.getUri)))
         yield targetId).toList.asJava
       new InverseSourcesResult(targets)
     }
