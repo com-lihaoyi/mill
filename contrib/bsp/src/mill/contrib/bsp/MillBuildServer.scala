@@ -48,7 +48,10 @@ class MillBuildServer(evaluator: Evaluator,
   var millEvaluator: Evaluator = evaluator
   var millModules: Seq[JavaModule] = getMillModules(millEvaluator)
   var client: BuildClient = _
-  var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(millModules)
+  var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(
+                                                                  millModules,
+                                                                  evaluator
+  )
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
@@ -97,7 +100,8 @@ class MillBuildServer(evaluator: Evaluator,
   override def workspaceBuildTargets(): CompletableFuture[WorkspaceBuildTargetsResult] = {
       recomputeTargets()
       handleExceptions[String, WorkspaceBuildTargetsResult](
-        (in) => new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava), "")
+        (in) => new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava),
+        "")
   }
 
   private[this] def getSourceFiles(sources: Seq[os.Path]): Iterable[os.Path] = {
@@ -114,7 +118,7 @@ class MillBuildServer(evaluator: Evaluator,
     files
   }
 
-  //TODO: use mill's sources, same for resources
+
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] = {
 
     def computeSourcesResult: SourcesResult = {
@@ -403,7 +407,7 @@ class MillBuildServer(evaluator: Evaluator,
       var cleaned = true
       for (targetId <- cleanCacheParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val process = Runtime.getRuntime.exec(s"mill clean ${module.millModuleSegments.parts.mkString(".")}.compile")
+        val process = Runtime.getRuntime.exec(s"mill clean ${ModuleUtils.moduleName(module.millModuleSegments)}.compile")
 
         val processIn = process.getInputStream
         val processErr = process.getErrorStream
@@ -527,7 +531,7 @@ class MillBuildServer(evaluator: Evaluator,
 
   private[this] def recomputeTargets(): Unit = {
     millModules = getMillModules(millEvaluator)
-    moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules)
+    moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules, millEvaluator)
     targetIdToModule = targetToModule(moduleToTargetId)
     moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
   }

@@ -1,12 +1,14 @@
 package mill.contrib.bsp
 
+import java.net.URI
 import java.util.Collections
 
 import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j._
+import mill.T
 import mill.api.Result.Success
 import mill.api.{Loose, Strict}
-import mill.define.{Discover, Segment, Segments, Task}
+import mill.define.{BaseModule, Ctx, Discover, Module, Segment, Segments, Sources, Target, Task}
 import mill.eval._
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
@@ -14,6 +16,7 @@ import mill.scalalib.api.Util
 import mill.scalanativelib._
 import mill.scalalib.{GenIdea, GenIdeaImpl, JavaModule, ScalaModule, TestModule}
 import mill.util.DummyLogger
+import os.Path
 
 
 object ModuleUtils {
@@ -31,8 +34,11 @@ object ModuleUtils {
                                 evaluator: Evaluator,
                                 supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
-      val moduleIdMap = getModuleTargetIdMap(modules)
-      var moduleToTarget = Predef.Map[JavaModule, BuildTarget]()
+      val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
+      val rootModule = getRootJavaModule(evaluator.rootModule)
+      var moduleToTarget = Predef.Map[JavaModule, BuildTarget](
+         rootModule -> getRootTarget(rootModule, evaluator)
+      )
 
       for ( module <- modules ) {
         val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
@@ -57,11 +63,46 @@ object ModuleUtils {
         buildTarget.setData(dataBuildTarget)
         buildTarget.setDisplayName(moduleName(module.millModuleSegments))
         buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
-        moduleToTarget ++= Map(module -> buildTarget)
+
+        if (!moduleToTarget.contains(module)) moduleToTarget ++= Map(module -> buildTarget)
       }
 
       moduleToTarget
     }
+
+  def getRootJavaModule(rootBaseModule: BaseModule): JavaModule = {
+    implicit val ctx: Ctx = rootBaseModule.millOuterCtx
+    new JavaModule {
+
+      override def millSourcePath: Path = rootBaseModule.millSourcePath
+      override def sources = T.sources{millSourcePath / "src"}
+
+      def out = T.sources{millSourcePath / "out"}
+      def target = T.sources{millSourcePath / "target"}
+      //override def sources: Sources = T.sources{millSourcePath}
+      override def generatedSources: Target[Seq[PathRef]] = T.sources{
+         out() ++ target()}
+    }
+  }
+
+  def getRootTarget(rootModule: JavaModule, evaluator: Evaluator): BuildTarget = {
+
+    val rootTarget = new BuildTarget(
+      new BuildTargetIdentifier(rootModule.millSourcePath.toNIO.toAbsolutePath.toUri.toString),
+      List.empty[String].asJava,
+      List.empty[String].asJava,
+      List.empty[BuildTargetIdentifier].asJava,
+      new BuildTargetCapabilities(false, false, false))
+    rootTarget.setBaseDirectory(rootModule.millSourcePath.toNIO.toAbsolutePath.toUri.toString)
+    rootTarget.setDataKind("scala")
+    rootTarget.setTags(List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
+    rootTarget.setData(computeScalaBuildTarget(rootModule, evaluator))
+    val basePath = rootModule.millSourcePath.toIO.toPath
+    if (basePath.getNameCount >= 1)
+      rootTarget.setDisplayName(basePath.getName(basePath.getNameCount - 1) + "-root")
+    else rootTarget.setDisplayName("root")
+    rootTarget
+  }
 
   def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
     val canTest = module match {
@@ -126,8 +167,11 @@ object ModuleUtils {
     }
   }
 
-  def getModuleTargetIdMap(modules: Seq[JavaModule]): Predef.Map[JavaModule, BuildTargetIdentifier] = {
-    var moduleToTarget = Map[JavaModule, BuildTargetIdentifier]()
+  def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator:Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
+    var moduleToTarget = Map[JavaModule, BuildTargetIdentifier](
+      getRootJavaModule(evaluator.rootModule) -> new BuildTargetIdentifier(evaluator.rootModule.millSourcePath.
+                                                    toNIO.toAbsolutePath.toUri.toString)
+    )
 
     for ( module <- modules ) {
       moduleToTarget ++= Map(module -> new BuildTargetIdentifier(
