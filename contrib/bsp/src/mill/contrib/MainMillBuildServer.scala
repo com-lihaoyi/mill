@@ -25,11 +25,11 @@ import scala.collection.JavaConverters._
 import scala.io.Source
 
 
-object MainMillBuildServer extends ExternalModule {
+object BSP extends ExternalModule {
 
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
-  lazy val millDiscover: Discover[MainMillBuildServer.this.type] = Discover[this.type]
+  lazy val millDiscover: Discover[BSP.this.type] = Discover[this.type]
   val version = "1.0.0"
   val bspVersion = "2.0.0-M4"
   val languages = List("scala", "java")
@@ -57,7 +57,7 @@ object MainMillBuildServer extends ExternalModule {
                                           List("java","-DMILL_CLASSPATH=" + millPath,
                                             "-DMILL_VERSION=0.4.0", "-Djna.nosys=true", "-cp",
                                             millPath,
-                                            "mill.MillMain mill.contrib.MainMillBuildServer/startServer").asJava,
+                                            "mill.MillMain mill.contrib.BSP/start").asJava,
                                           version,
                                           bspVersion,
                                           languages.asJava))
@@ -98,21 +98,6 @@ object MainMillBuildServer extends ExternalModule {
   }
 
   /**
-    * Computes a mill task for resolving all JavaModules
-    * defined in the build.sc file of the project to build.
-    * This file should be in the working directory of the client.
-    * @param ev: Environment, used by mill to evaluate tasks
-    * @return: mill.Task which evaluates to a sequence of all
-    *         the JavaModules defined for a project
-    */
-  def modules(ev: Evaluator): Task[Seq[JavaModule]] = T.task{
-    ev.rootModule.millInternal.segmentsToModules.values.
-      collect {
-        case m: scalalib.JavaModule => m
-      }.toSeq
-  }
-
-  /**
     * Computes a mill command which starts the mill-bsp
     * server and establishes connection to client. Waits
     * until a client connects and ends the connection
@@ -121,7 +106,7 @@ object MainMillBuildServer extends ExternalModule {
     * @return: mill.Command which executes the starting of the
     *         server
     */
-  def startServer(ev: Evaluator): Command[Unit] = T.command {
+  def start(ev: Evaluator): Command[Unit] = T.command {
     val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
                     ev.workerCache, ev.env, false)
     val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
@@ -184,13 +169,7 @@ object MainMillBuildServer extends ExternalModule {
         ???
     }
     millServer.client = client
-    millServer.initialized = true
-    val compileParams = new CompileParams(millServer.moduleCodeToTargetId.values.
-      filter(t => millServer.targetIdToModule(t) != millServer.rootModule).toList.asJava)
-    val pool = millServer.getBspLoggedReporterPool(TaskParameters.fromCompileParams(compileParams), (t) => s"Started compiling target: $t",
-      "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId))
-    println(millServer.buildTargetCleanCache(new CleanCacheParams(millServer.moduleCodeToTargetId.values.toList.asJava)).get)
-    println(millServer.buildTargetCompile(compileParams).get)
+    }
   }
 
   /**
