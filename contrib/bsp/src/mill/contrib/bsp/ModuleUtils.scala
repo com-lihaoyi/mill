@@ -14,7 +14,7 @@ import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.api.Util
 import mill.scalanativelib._
-import mill.scalalib.{GenIdea, GenIdeaImpl, JavaModule, ScalaModule, TestModule}
+import mill.scalalib.{CrossModuleBase, GenIdea, GenIdeaImpl, JavaModule, ScalaModule, TestModule}
 import mill.util.DummyLogger
 import os.Path
 
@@ -36,11 +36,11 @@ object ModuleUtils {
                                 supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
       val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
-      var moduleToTarget = Predef.Map[JavaModule, BuildTarget]()
+      var moduleToTarget = Map.empty[JavaModule, BuildTarget]
 
       for ( module <- modules ) {
         if (module == rootModule) {
-          moduleToTarget ++= Map(module ->  getRootTarget(module, evaluator))
+          moduleToTarget ++= Map(module ->  getRootTarget(module, evaluator, moduleIdMap(module)))
         } else {
           val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
           val capabilities = getModuleCapabilities(module, evaluator)
@@ -87,10 +87,10 @@ object ModuleUtils {
     }
   }
 
-  def getRootTarget(rootModule: JavaModule, evaluator: Evaluator): BuildTarget = {
+  def getRootTarget(rootModule: JavaModule, evaluator: Evaluator, targetId: BuildTargetIdentifier): BuildTarget = {
 
     val rootTarget = new BuildTarget(
-      new BuildTargetIdentifier(rootModule.millSourcePath.toNIO.toAbsolutePath.toUri.toString),
+      targetId,
       List.empty[String].asJava,
       List.empty[String].asJava,
       List.empty[BuildTargetIdentifier].asJava,
@@ -173,8 +173,10 @@ object ModuleUtils {
     var moduleToTarget = Map[JavaModule, BuildTargetIdentifier]()
 
     for ( module <- modules ) {
+
       moduleToTarget ++= Map(module -> new BuildTargetIdentifier(
-        module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString
+        (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
+          toNIO.toAbsolutePath.toUri.toString
       ))
     }
 

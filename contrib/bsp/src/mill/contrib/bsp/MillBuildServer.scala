@@ -405,7 +405,7 @@ class MillBuildServer(evaluator: Evaluator,
       var cleaned = true
       for (targetId <- cleanCacheParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val process = Runtime.getRuntime.exec(s"mill clean ${ModuleUtils.moduleName(module.millModuleSegments)}.compile")
+        val process = Runtime.getRuntime.exec(s"mill clean ${module.millModuleSegments.render}.compile")
 
         val processIn = process.getInputStream
         val processErr = process.getErrorStream
