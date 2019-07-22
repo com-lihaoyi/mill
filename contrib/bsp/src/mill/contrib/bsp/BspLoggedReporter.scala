@@ -1,6 +1,7 @@
 package mill.contrib.bsp
 
 import java.io.File
+import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 
 import ch.epfl.scala.bsp4j.{BuildServer, BuildTargetIdentifier, CompileReport, Diagnostic, InverseSourcesParams, ScalaBuildServer, StatusCode, TaskFinishParams, TaskId, TextDocumentIdentifier}
@@ -24,27 +25,27 @@ class BspLoggedReporter(client: bsp.BuildClient,
                         maxErrors: Int,
                         logger: ManagedLogger) extends ManagedLoggedReporter(maxErrors, logger) {
 
-  var errors = 0
-  var warnings = 0
-  var infos = 0
+  var errors = new AtomicInteger(0)
+  var warnings = new AtomicInteger(0)
+  var infos = new AtomicInteger(0)
   var diagnosticMap: concurrent.Map[TextDocumentIdentifier, bsp.PublishDiagnosticsParams] =
     new ConcurrentHashMap[TextDocumentIdentifier, bsp.PublishDiagnosticsParams]().asScala
 
   override def logError(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
-    errors += 1
+    errors.incrementAndGet()
     super.logError(problem)
   }
 
   override def logInfo(problem: Problem): Unit = {
    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
-    infos += 1
+    infos.incrementAndGet()
     super.logInfo(problem)
   }
 
   override def logWarning(problem: Problem): Unit = {
    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
-    warnings += 1
+    warnings.incrementAndGet()
     super.logWarning(problem)
   }
 
@@ -53,7 +54,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
     taskFinishParams.setEventTime(System.currentTimeMillis())
     taskFinishParams.setMessage("Finished compiling target: " + targetId.getUri)
     taskFinishParams.setDataKind("compile-report")
-    val compileReport = new CompileReport(targetId, errors, warnings)
+    val compileReport = new CompileReport(targetId, errors.get, warnings.get)
     compilationOriginId match {
       case Some(id) => compileReport.setOriginId(id)
       case None =>
@@ -84,16 +85,16 @@ class BspLoggedReporter(client: bsp.BuildClient,
     }
 
   private[this] def getStatusCode: StatusCode = {
-    if (errors > 0) StatusCode.ERROR else StatusCode.OK
+    if (errors.get > 0) StatusCode.ERROR else StatusCode.OK
   }
 
   private[this] def appendDiagnostics(textDocument: TextDocumentIdentifier,
                                       currentDiagnostic: Diagnostic): List[Diagnostic] = {
-    diagnosticMap.getOrElse(textDocument, new bsp.PublishDiagnosticsParams(
+    diagnosticMap.putIfAbsent(textDocument, new bsp.PublishDiagnosticsParams(
           textDocument,
           targetId,
-          List.empty[Diagnostic].asJava, true)).getDiagnostics.asScala.toList ++
-      List(currentDiagnostic)
+          List.empty[Diagnostic].asJava, true))
+    diagnosticMap(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
   }
 
   private[this] def getSingleDiagnostic(problem: Problem): Diagnostic ={
