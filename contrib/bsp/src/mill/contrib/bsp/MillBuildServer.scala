@@ -18,8 +18,6 @@ import sbt.internal.inc._
 import xsbti.{Position, Problem, Severity}
 import xsbti.compile.{AnalysisContents, AnalysisStore, FileAnalysisStore}
 import xsbti.compile.analysis.SourceInfo
-
-import scala.collection.mutable.Map
 import mill.api.Result.{Failing, Failure, Success}
 
 import scala.collection.JavaConverters._
@@ -46,6 +44,7 @@ class MillBuildServer(evaluator: Evaluator,
   val millServerVersion: String = serverVersion
   var cancelator: () => Unit = () => ()
   var millEvaluator: Evaluator = evaluator
+  var rootModule: JavaModule = ModuleUtils.getRootJavaModule(evaluator.rootModule)
   var millModules: Seq[JavaModule] = getMillModules(millEvaluator)
   var client: BuildClient = _
   var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(
@@ -54,7 +53,7 @@ class MillBuildServer(evaluator: Evaluator,
   )
   var targetIdToModule: Predef.Map[BuildTargetIdentifier, JavaModule] = targetToModule(moduleToTargetId)
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
-                                  ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
+                                  ModuleUtils.millModulesToBspTargets(millModules, rootModule, evaluator, List("scala", "java"))
   var moduleCodeToTargetId: Predef.Map[Int, BuildTargetIdentifier] =
     for ( (targetId, module) <- targetIdToModule ) yield (targetId, module.hashCode()).swap
 
@@ -247,14 +246,13 @@ class MillBuildServer(evaluator: Evaluator,
       l
   }
 
-  private[this] def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
+  def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
                                              taskStartDataKind: String, taskStartData: BuildTargetIdentifier => Object):
                                                                 Int => Option[ManagedLoggedReporter] = {
     (int: Int) =>
-      val targetId = moduleCodeToTargetId(int)
-      val taskId = new TaskId(targetIdToModule(targetId).compile.hashCode.toString)
       if (moduleCodeToTargetId.contains(int)) {
-        println("Module: " + int)
+        val targetId = moduleCodeToTargetId(int)
+        val taskId = new TaskId(targetIdToModule(targetId).compile.hashCode.toString)
         val taskStartParams = new TaskStartParams(taskId)
         taskStartParams.setEventTime(System.currentTimeMillis())
         taskStartParams.setData(taskStartData(targetId))
@@ -526,14 +524,15 @@ class MillBuildServer(evaluator: Evaluator,
     ev.rootModule.millInternal.segmentsToModules.values.
       collect {
         case m: scalalib.JavaModule => m
-      }.toSeq
+      }.toSeq ++ Seq(rootModule)
   }
 
   private[this] def recomputeTargets(): Unit = {
+    rootModule = ModuleUtils.getRootJavaModule(millEvaluator.rootModule)
     millModules = getMillModules(millEvaluator)
     moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules, millEvaluator)
     targetIdToModule = targetToModule(moduleToTargetId)
-    moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, evaluator, List("scala", "java"))
+    moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, rootModule, evaluator, List("scala", "java"))
   }
 
   private[this] def handleExceptions[T, V](serverMethod: T => V, input: T): CompletableFuture[V] = {

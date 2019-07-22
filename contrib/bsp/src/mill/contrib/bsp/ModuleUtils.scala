@@ -31,40 +31,42 @@ object ModuleUtils {
     dummyModule, DummyLogger)
 
     def millModulesToBspTargets(modules: Seq[JavaModule],
+                                rootModule: JavaModule,
                                 evaluator: Evaluator,
                                 supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
       val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
-      val rootModule = getRootJavaModule(evaluator.rootModule)
-      var moduleToTarget = Predef.Map[JavaModule, BuildTarget](
-         rootModule -> getRootTarget(rootModule, evaluator)
-      )
+      var moduleToTarget = Predef.Map[JavaModule, BuildTarget]()
 
       for ( module <- modules ) {
-        val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
-        val capabilities = getModuleCapabilities(module, evaluator)
-        val buildTargetTag: List[String] = module match {
-          case m: TestModule => List(BuildTargetTag.TEST)
-          case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
-        }
+        if (module == rootModule) {
+          moduleToTarget ++= Map(module ->  getRootTarget(module, evaluator))
+        } else {
+          val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
+          val capabilities = getModuleCapabilities(module, evaluator)
+          val buildTargetTag: List[String] = module match {
+            case m: TestModule => List(BuildTargetTag.TEST)
+            case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
+          }
 
-        val dependencies = module match {
-          case m: JavaModule => m.moduleDeps.map(dep => moduleIdMap(dep)).toList.asJava
-        }
+          val dependencies = module match {
+            case m: JavaModule => m.moduleDeps.map(dep => moduleIdMap(dep)).toList.asJava
+          }
 
-        val buildTarget = new BuildTarget(moduleIdMap(module),
-          buildTargetTag.asJava,
-          supportedLanguages.asJava,
-          dependencies,
-          capabilities)
-        if (module.isInstanceOf[ScalaModule]) {
-          buildTarget.setDataKind("scala")
-        }
-        buildTarget.setData(dataBuildTarget)
-        buildTarget.setDisplayName(moduleName(module.millModuleSegments))
-        buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
+          val buildTarget = new BuildTarget(moduleIdMap(module),
+            buildTargetTag.asJava,
+            supportedLanguages.asJava,
+            dependencies,
+            capabilities)
+          if (module.isInstanceOf[ScalaModule]) {
+            buildTarget.setDataKind("scala")
+          }
+          buildTarget.setData(dataBuildTarget)
+          buildTarget.setDisplayName(moduleName(module.millModuleSegments))
+          buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
 
-        if (!moduleToTarget.contains(module)) moduleToTarget ++= Map(module -> buildTarget)
+          if (!moduleToTarget.contains(module)) moduleToTarget ++= Map(module -> buildTarget)
+        }
       }
 
       moduleToTarget
@@ -168,10 +170,7 @@ object ModuleUtils {
   }
 
   def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator:Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
-    var moduleToTarget = Map[JavaModule, BuildTargetIdentifier](
-      getRootJavaModule(evaluator.rootModule) -> new BuildTargetIdentifier(evaluator.rootModule.millSourcePath.
-                                                    toNIO.toAbsolutePath.toUri.toString)
-    )
+    var moduleToTarget = Map[JavaModule, BuildTargetIdentifier]()
 
     for ( module <- modules ) {
       moduleToTarget ++= Map(module -> new BuildTargetIdentifier(

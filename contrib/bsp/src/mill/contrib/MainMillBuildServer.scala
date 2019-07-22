@@ -7,10 +7,11 @@ import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, CleanCacheParams, CompileParams, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ShowMessageParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, BuildTargetIdentifier, CleanCacheParams, CompileParams, CompileTask, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ScalacOptionsParams, ShowMessageParams, SourcesParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
 import mill._
-import mill.api.Strict
-import mill.contrib.bsp.{BspLoggedReporter, MillBuildServer, ModuleUtils}
+import mill.api.Result.{Aborted, Skipped}
+import mill.api.{BspContext, Result, Strict}
+import mill.contrib.bsp.{BspLoggedReporter, MillBspLogger, MillBuildServer, ModuleUtils, TaskParameters}
 import mill.define.{Command, Discover, ExternalModule, Target, Task}
 import mill.eval.Evaluator
 import mill.scalalib._
@@ -172,23 +173,24 @@ object MainMillBuildServer extends ExternalModule {
 
       }
       override def onBuildTaskFinish(params: TaskFinishParams): Unit = {
-        println("Task Finish: " + params)
+        //println("Task Finish: " + params)
       }
       override def onBuildPublishDiagnostics(
                                               params: PublishDiagnosticsParams
                                             ): Unit = {
-        diagnostics ++= List(params)
+        println("Diagnostics: " + params)
       }
       override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit =
         ???
     }
     millServer.client = client
     millServer.initialized = true
-    println(millServer.buildTargetCleanCache(
-      new CleanCacheParams(millServer.millModules.map(m => millServer.moduleToTargetId(m)).asJava)).get)
-    println(millServer.buildTargetCompile(
-      new CompileParams(millServer.millModules.map(m => millServer.moduleToTargetId(m)).asJava)).get)
-    println("Diagnostics: " + client.diagnostics)
+    val compileParams = new CompileParams(millServer.moduleCodeToTargetId.values.
+      filter(t => millServer.targetIdToModule(t) != millServer.rootModule).toList.asJava)
+    val pool = millServer.getBspLoggedReporterPool(TaskParameters.fromCompileParams(compileParams), (t) => s"Started compiling target: $t",
+      "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId))
+    println(millServer.buildTargetCleanCache(new CleanCacheParams(millServer.moduleCodeToTargetId.values.toList.asJava)).get)
+    println(millServer.buildTargetCompile(compileParams).get)
   }
 
   /**
