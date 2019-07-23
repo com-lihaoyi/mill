@@ -7,10 +7,8 @@ import java.util.concurrent.Executors
 import upickle.default._
 import ch.epfl.scala.bsp4j._
 import mill._
-import mill.contrib.bsp.ModuleUtils
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.scalalib.JavaModule
 import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import scala.collection.JavaConverters._
@@ -78,7 +76,6 @@ object BSP extends ExternalModule {
         println("The bsp connection json file probably exists already - will be overwritten")
         os.remove(bspDirectory / "mill.json")
         os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
-      //TODO: Do I want to catch this or throw the exception?
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
                                   " " + e.getStackTrace.toString)
     }
@@ -126,13 +123,4 @@ object BSP extends ExternalModule {
       executor.shutdown()
     }
   }
-
-  def experiment(ev: Evaluator): Command[Unit] = T.command {
-    val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
-      ev.workerCache, ev.env, false)
-    val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
-
-    millServer.initialized = true
-    println(millServer.workspaceBuildTargets().get)
-    }
 }
