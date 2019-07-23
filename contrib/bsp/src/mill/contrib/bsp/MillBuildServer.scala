@@ -405,7 +405,14 @@ class MillBuildServer(evaluator: Evaluator,
       var cleaned = true
       for (targetId <- cleanCacheParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val process = Runtime.getRuntime.exec(s"mill clean ${module.millModuleSegments.render}.compile")
+        val cleanCommand = List("java",
+                                s"-DMILL_CLASSPATH=${System.getProperty("MILL_CLASSPATH")}",
+                                s"-DMILL_VERSION=${System.getProperty("MILL_VERSION")}",
+                                "-Djna.nosys=true", "-cp",
+                                System.getProperty("MILL_CLASSPATH"),
+                                "mill.MillMain", "clean",
+                                s"${module.millModuleSegments.render}.compile")
+        val process = Runtime.getRuntime.exec(cleanCommand.mkString(" "))
 
         val processIn = process.getInputStream
         val processErr = process.getErrorStream
