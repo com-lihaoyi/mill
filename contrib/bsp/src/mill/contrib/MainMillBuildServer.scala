@@ -1,28 +1,19 @@
 package mill.contrib
 
-import java.io.{BufferedReader, File, InputStream, InputStreamReader, OutputStream}
-
 import play.api.libs.json._
 import java.nio.file.FileAlreadyExistsException
-import java.util.concurrent.{CancellationException, CompletableFuture, ExecutorService, Executors, Future}
+import java.util.concurrent.Executors
 
 import upickle.default._
-import ch.epfl.scala.bsp4j.{BspConnectionDetails, BuildClient, BuildTargetIdentifier, CleanCacheParams, CompileParams, CompileTask, DidChangeBuildTarget, LogMessageParams, PublishDiagnosticsParams, ScalaTestClassesParams, ScalacOptionsParams, ShowMessageParams, SourcesParams, TaskFinishParams, TaskProgressParams, TaskStartParams, TestParams, WorkspaceBuildTargetsResult}
+import ch.epfl.scala.bsp4j._
 import mill._
-import mill.api.Result.{Aborted, Skipped}
-import mill.api.{BspContext, Result, Strict}
-import mill.contrib.bsp.{BspLoggedReporter, MillBspLogger, MillBuildServer, ModuleUtils, TaskParameters}
-import mill.define.{Command, Discover, ExternalModule, Target, Task}
+import mill.contrib.bsp.ModuleUtils
+import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
-import mill.scalalib._
-import mill.util.DummyLogger
-import org.eclipse.lsp4j.jsonrpc.{CompletableFutures, Launcher}
-import requests.Compress.None
-import sbt.testing.Event
-import upickle.default
+import mill.scalalib.JavaModule
+import org.eclipse.lsp4j.jsonrpc.Launcher
 
 import scala.collection.JavaConverters._
-import scala.io.Source
 
 
 object BSP extends ExternalModule {
@@ -31,13 +22,11 @@ object BSP extends ExternalModule {
 
   lazy val millDiscover: Discover[BSP.this.type] = Discover[this.type]
   val version = "1.0.0"
-  val bspVersion = "2.0.0-M4"
+  val bspVersion = "2.0.0"
   val languages = List("scala", "java")
 
-  // returns the mill installation path in the user's system
-  def whichMill(): String = {
-    import sys.process._
-    "which mill"!!
+  def whichJava: String = {
+    if (scala.sys.props.contains("JAVA_HOME")) scala.sys.props("JAVA_HOME") else "java"
   }
 
   // creates a Json with the BSP connection details
@@ -52,12 +41,13 @@ object BSP extends ExternalModule {
         "languages" -> new JsArray(connection.getLanguages.asScala.map(string => JsString(string)).toIndexedSeq)
       )
     }
-    val millPath = whichMill().replaceAll("\n", "")
+    val millPath = scala.sys.props("MILL_CLASSPATH")
     Json.toJson(new BspConnectionDetails("mill-bsp",
-                                          List("java","-DMILL_CLASSPATH=" + millPath,
-                                            "-DMILL_VERSION=0.4.0", "-Djna.nosys=true", "-cp",
+                                          List(whichJava,"-DMILL_CLASSPATH=" + millPath,
+                                            s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
+                                            "-Djna.nosys=true", "-cp",
                                             millPath,
-                                            "mill.MillMain mill.contrib.BSP/start").asJava,
+                                            "mill.MillMain", "mill.contrib.BSP/start").asJava,
                                           version,
                                           bspVersion,
                                           languages.asJava))
@@ -80,16 +70,14 @@ object BSP extends ExternalModule {
     */
   def install(ev: Evaluator): Command[Unit] = T.command{
     val bspDirectory = os.pwd / ".bsp"
-
+    if (! os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
     try {
-      os.makeDir(bspDirectory)
-      os.write(bspDirectory / "mill-bsp.json", Json.stringify(createBspConnectionJson()))
+      os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
     } catch {
       case e: FileAlreadyExistsException =>
         println("The bsp connection json file probably exists already - will be overwritten")
-        os.remove.all(bspDirectory)
-        install(ev)
-        ()
+        os.remove(bspDirectory / "mill.json")
+        os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
       //TODO: Do I want to catch this or throw the exception?
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
                                   " " + e.getStackTrace.toString)
@@ -132,7 +120,7 @@ object BSP extends ExternalModule {
         System.err.println("Cause: " + e.getCause)
         System.err.println("Message: " + e.getMessage)
         System.err.println("Exception class: " + e.getClass)
-        e.printStackTrace()
+        System.err.println("Stack Trace: " + e.getStackTrace)
     } finally {
       System.err.println("Shutting down executor")
       executor.shutdown()
@@ -143,48 +131,8 @@ object BSP extends ExternalModule {
     val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
       ev.workerCache, ev.env, false)
     val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
-    val client = new BuildClient {
-      var diagnostics = List.empty[PublishDiagnosticsParams]
-      override def onBuildShowMessage(params: ShowMessageParams): Unit = {
 
-      }
-      override def onBuildLogMessage(params: LogMessageParams): Unit = {
-
-      }
-      override def onBuildTaskStart(params: TaskStartParams): Unit = {
-
-      }
-      override def onBuildTaskProgress(params: TaskProgressParams): Unit = {
-
-      }
-      override def onBuildTaskFinish(params: TaskFinishParams): Unit = {
-        //println("Task Finish: " + params)
-      }
-      override def onBuildPublishDiagnostics(
-                                              params: PublishDiagnosticsParams
-                                            ): Unit = {
-        println("Diagnostics: " + params)
-      }
-      override def onBuildTargetDidChange(params: DidChangeBuildTarget): Unit =
-        ???
+    millServer.initialized = true
+    println(millServer.workspaceBuildTargets().get)
     }
-    millServer.client = client
-    }
-  }
-
-  /**
-    * Allows minimal testing and installing the build server
-    * from the command line.
-    * @param args: can be  - exp: executes code in the experiment
-    *                             method, helps with testing the server
-    *                      - install: installs the mill-bsp server in the
-    *                      working directory.
-    */
-  def main(args: Array[String]) {
-    args(0) match {
-      case e: String => println("Wrong command, you can only use:\n   " +
-                                "install - creates the bsp connection json file\n")
-    }
-
-  }
 }

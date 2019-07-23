@@ -29,8 +29,6 @@ case class Labelled[T](task: NamedTask[T],
     case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
     case _ => None
   }
-
-//  override def hashCode(): Int = task.hashCode()
 }
 
 case class Evaluator(home: os.Path,
@@ -344,7 +342,7 @@ case class Evaluator(home: os.Path,
             home,
             env,
             reporter,
-            bspContext //new ManagedLoggedReporter(10, logger)
+            bspContext
           )
 
           val out = System.out

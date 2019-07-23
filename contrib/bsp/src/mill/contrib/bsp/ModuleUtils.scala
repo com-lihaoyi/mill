@@ -21,55 +21,16 @@ import os.Path
 
 object ModuleUtils {
 
-  object dummyModule extends mill.define.ExternalModule {
-    lazy val millDiscover: Discover[dummyModule.this.type] = Discover[this.type]
-  }
-
-  val dummyEvalautor: Evaluator = new Evaluator(os.pwd / "contrib" / "bsp" / "mill-bs",
-    os.pwd / "contrib" / "bsp" / "mill-out-bs",
-    os.pwd / "contrib" / "bsp" / "mill-external-bs",
-    dummyModule, DummyLogger)
-
     def millModulesToBspTargets(modules: Seq[JavaModule],
                                 rootModule: JavaModule,
                                 evaluator: Evaluator,
                                 supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
       val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
-      var moduleToTarget = Map.empty[JavaModule, BuildTarget]
 
-      for ( module <- modules ) {
-        if (module == rootModule) {
-          moduleToTarget ++= Map(module ->  getRootTarget(module, evaluator, moduleIdMap(module)))
-        } else {
-          val dataBuildTarget = computeScalaBuildTarget(module, evaluator)
-          val capabilities = getModuleCapabilities(module, evaluator)
-          val buildTargetTag: List[String] = module match {
-            case m: TestModule => List(BuildTargetTag.TEST)
-            case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
-          }
+      (for ( module <- modules )
+        yield (module, getTarget(rootModule, module, evaluator, moduleIdMap))).toMap
 
-          val dependencies = module match {
-            case m: JavaModule => m.moduleDeps.map(dep => moduleIdMap(dep)).toList.asJava
-          }
-
-          val buildTarget = new BuildTarget(moduleIdMap(module),
-            buildTargetTag.asJava,
-            supportedLanguages.asJava,
-            dependencies,
-            capabilities)
-          if (module.isInstanceOf[ScalaModule]) {
-            buildTarget.setDataKind("scala")
-          }
-          buildTarget.setData(dataBuildTarget)
-          buildTarget.setDisplayName(moduleName(module.millModuleSegments))
-          buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
-
-          if (!moduleToTarget.contains(module)) moduleToTarget ++= Map(module -> buildTarget)
-        }
-      }
-
-      moduleToTarget
     }
 
   def getRootJavaModule(rootBaseModule: BaseModule): JavaModule = {
@@ -87,10 +48,13 @@ object ModuleUtils {
     }
   }
 
-  def getRootTarget(rootModule: JavaModule, evaluator: Evaluator, targetId: BuildTargetIdentifier): BuildTarget = {
+  def getRootTarget(
+                     rootModule: JavaModule,
+                     evaluator: Evaluator,
+                     moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
 
     val rootTarget = new BuildTarget(
-      targetId,
+      moduleIdMap(rootModule),
       List.empty[String].asJava,
       List.empty[String].asJava,
       List.empty[BuildTargetIdentifier].asJava,
@@ -98,12 +62,52 @@ object ModuleUtils {
     rootTarget.setBaseDirectory(rootModule.millSourcePath.toNIO.toAbsolutePath.toUri.toString)
     rootTarget.setDataKind("scala")
     rootTarget.setTags(List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
-    rootTarget.setData(computeScalaBuildTarget(rootModule, evaluator))
+    rootTarget.setData(computeBuildTargetData(rootModule, evaluator))
     val basePath = rootModule.millSourcePath.toIO.toPath
     if (basePath.getNameCount >= 1)
       rootTarget.setDisplayName(basePath.getName(basePath.getNameCount - 1) + "-root")
     else rootTarget.setDisplayName("root")
     rootTarget
+  }
+
+  def getRegularTarget(
+                 module: JavaModule,
+                 evaluator: Evaluator,
+                 moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
+    val dataBuildTarget = computeBuildTargetData(module, evaluator)
+    val capabilities = getModuleCapabilities(module, evaluator)
+    val buildTargetTag: List[String] = module match {
+      case m: TestModule => List(BuildTargetTag.TEST)
+      case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
+    }
+
+    val dependencies = module match {
+      case m: JavaModule => m.moduleDeps.map(dep => moduleIdMap(dep)).toList.asJava
+    }
+
+    val buildTarget = new BuildTarget(moduleIdMap(module),
+      buildTargetTag.asJava,
+      List("scala", "java").asJava,
+      dependencies,
+      capabilities)
+    if (module.isInstanceOf[ScalaModule]) {
+      buildTarget.setDataKind("scala")
+    }
+    buildTarget.setData(dataBuildTarget)
+    buildTarget.setDisplayName(moduleName(module.millModuleSegments))
+    buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
+    buildTarget
+  }
+
+  def getTarget( rootModule: JavaModule,
+                 module: JavaModule,
+                 evaluator: Evaluator,
+                 moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
+               ): BuildTarget = {
+    if (module == rootModule)
+      getRootTarget(module, evaluator, moduleIdMap)
+    else
+      getRegularTarget(module, evaluator, moduleIdMap)
   }
 
   def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
@@ -116,7 +120,7 @@ object ModuleUtils {
   }
 
   //TODO: Fix the data field for JavaModule when the bsp specification is updated
-  def computeScalaBuildTarget(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget = {
+  def computeBuildTargetData(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget = {
     module match {
       case m: ScalaModule =>
         val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion, "")
@@ -170,17 +174,11 @@ object ModuleUtils {
   }
 
   def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator:Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
-    var moduleToTarget = Map[JavaModule, BuildTargetIdentifier]()
 
-    for ( module <- modules ) {
-
-      moduleToTarget ++= Map(module -> new BuildTargetIdentifier(
+    (for ( module <- modules )
+      yield (module, new BuildTargetIdentifier(
         (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
-          toNIO.toAbsolutePath.toUri.toString
-      ))
-    }
-
-    moduleToTarget
+          toNIO.toAbsolutePath.toUri.toString))).toMap
   }
 
   // this is taken from mill.scalalib GenIdeaImpl

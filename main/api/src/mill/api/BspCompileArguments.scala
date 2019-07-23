@@ -6,8 +6,4 @@ class BspCompileArguments {
   def args: Seq[String] = {
     arguments
   }
-
-  def setArgs(args: Seq[String]): Unit = {
-    arguments = args
-  }
 }

@@ -27,7 +27,6 @@ class BspTestReporter(
     taskStartParams.setData(new TestStart(getDisplayName(event)))
     taskStartParams.setMessage("Starting running: " + getDisplayName(event))
     client.onBuildTaskStart(taskStartParams)
-    println("Logged start")
   }
 
   override def logFinish(event: Event): Unit = {
@@ -39,31 +38,30 @@ class BspTestReporter(
         case default => StatusCode.OK
       })
     taskFinishParams.setDataKind("test-finished")
-    val testFinish = new TestFinish(
-      getDisplayName(event),
-      event.status match {
-        case sbt.testing.Status.Success =>
-          passed += 1
-          TestStatus.PASSED
-        case sbt.testing.Status.Canceled =>
-          cancelled += 1
-          TestStatus.CANCELLED
-        case sbt.testing.Status.Error =>
-          failed += 1
-          TestStatus.FAILED
-        case sbt.testing.Status.Failure =>
-          failed += 1
-          TestStatus.FAILED
-        case sbt.testing.Status.Ignored =>
-          ignored += 1
-          TestStatus.IGNORED
-        case sbt.testing.Status.Skipped =>
-          skipped += 1
-          TestStatus.SKIPPED
-        case sbt.testing.Status.Pending =>
-          skipped += 1
-          TestStatus.SKIPPED //TODO: what to do here
-      })
+    val status = event.status match {
+      case sbt.testing.Status.Success =>
+        passed += 1
+        TestStatus.PASSED
+      case sbt.testing.Status.Canceled =>
+        cancelled += 1
+        TestStatus.CANCELLED
+      case sbt.testing.Status.Error =>
+        failed += 1
+        TestStatus.FAILED
+      case sbt.testing.Status.Failure =>
+        failed += 1
+        TestStatus.FAILED
+      case sbt.testing.Status.Ignored =>
+        ignored += 1
+        TestStatus.IGNORED
+      case sbt.testing.Status.Skipped =>
+        skipped += 1
+        TestStatus.SKIPPED
+      case sbt.testing.Status.Pending =>
+        skipped += 1
+        TestStatus.SKIPPED //TODO: what to do here
+    }
+    val testFinish = new TestFinish(getDisplayName(event), status)
     taskFinishParams.setData(testFinish)
     taskFinishParams.setEventTime(System.currentTimeMillis())
     taskFinishParams.setMessage("Finished running: " + getDisplayName(event))
@@ -76,7 +74,6 @@ class BspTestReporter(
           exception.getClass.toString))
     }
     client.onBuildTaskFinish(taskFinishParams)
-    println("Logged finish")
   }
 
   def getDisplayName(e: Event): String = {

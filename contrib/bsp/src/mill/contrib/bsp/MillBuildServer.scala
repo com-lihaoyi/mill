@@ -1,11 +1,11 @@
 package mill.contrib.bsp
+
 import java.io.File
 
 import sbt.testing._
-import java.util.{Calendar, Collections}
+import java.util.Collections
 import java.util.concurrent.CompletableFuture
 
-import scala.compat.java8.OptionConverters._
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import mill.{scalalib, _}
@@ -13,19 +13,13 @@ import mill.api.{BspContext, Loose, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.scalalib._
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import mill.scalalib.api.CompilationResult
 import sbt.internal.inc._
-import xsbti.{Position, Problem, Severity}
-import xsbti.compile.{AnalysisContents, AnalysisStore, FileAnalysisStore}
-import xsbti.compile.analysis.SourceInfo
-import mill.api.Result.{Failing, Failure, Success}
 
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
-import mill.util.{Ctx, PrintLogger}
-import mill.define.{Discover, ExternalModule, Target, Task}
-import org.eclipse.lsp4j.InitializeError
-import org.eclipse.lsp4j.jsonrpc.messages.{ResponseError, ResponseErrorCode}
+import mill.util.Ctx
+import mill.define.{Discover, ExternalModule}
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
 
@@ -43,7 +37,7 @@ class MillBuildServer(evaluator: Evaluator,
   val supportedLanguages: List[String] = languages
   val millServerVersion: String = serverVersion
   var cancelator: () => Unit = () => ()
-  var millEvaluator: Evaluator = evaluator
+  val millEvaluator: Evaluator = evaluator
   var rootModule: JavaModule = ModuleUtils.getRootJavaModule(evaluator.rootModule)
   var millModules: Seq[JavaModule] = getMillModules(millEvaluator)
   var client: BuildClient = _
@@ -55,7 +49,7 @@ class MillBuildServer(evaluator: Evaluator,
   var moduleToTarget: Predef.Map[JavaModule, BuildTarget] =
                                   ModuleUtils.millModulesToBspTargets(millModules, rootModule, evaluator, List("scala", "java"))
   var moduleCodeToTargetId: Predef.Map[Int, BuildTargetIdentifier] =
-    for ( (targetId, module) <- targetIdToModule ) yield (targetId, module.hashCode()).swap
+    for ( (targetId, module) <- targetIdToModule ) yield (module.hashCode(), targetId)
 
   var initialized = false
   var clientInitialized = false
@@ -156,15 +150,12 @@ class MillBuildServer(evaluator: Evaluator,
 
     def getInverseSourcesResult: InverseSourcesResult = {
       val textDocument = inverseSourcesParams.getTextDocument
-
-      val targets = (for (targetId <- targetIdToModule.keys
-                          if buildTargetSources(new SourcesParams(Collections.singletonList(targetId))).
-                            get.getItems.asScala.head.getSources.asScala.
-                            exists(
-                              item => os.list(os.Path(item.getUri)).
-                                map(dir => dir.toIO.toURI.toString).contains(textDocument.getUri)))
-        yield targetId).toList.asJava
-      new InverseSourcesResult(targets)
+      val targets = millModules.filter(m => ModuleUtils.evaluateInformativeTask(
+                    millEvaluator, m.allSourceFiles, Seq.empty[PathRef]).
+                    map(pathRef => pathRef.path.toIO.toURI.toString).
+                    contains(textDocument.getUri)).
+                    map(m => moduleToTargetId(m))
+      new InverseSourcesResult(targets.asJava)
     }
     handleExceptions[String, InverseSourcesResult]((in) => getInverseSourcesResult, "")
   }
@@ -313,7 +304,7 @@ class MillBuildServer(evaluator: Evaluator,
   }
 
   private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
-    System.err.println("Results: " + results.rawValues)
+
     if (results.failing.keyCount > 0) {
       StatusCode.ERROR
     }
@@ -340,7 +331,6 @@ class MillBuildServer(evaluator: Evaluator,
         val module = targetIdToModule(targetId)
         module match {
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
-            println("Arguments: " + argsMap(targetId))
             val testTask = testModule.testLocal(argsMap(targetId):_*)
 
             // notifying the client that the testing of this build target started
@@ -355,8 +345,6 @@ class MillBuildServer(evaluator: Evaluator,
               client, targetId,
               new TaskId(testTask.hashCode().toString),
               Seq.empty[String])
-
-            println("BspContext: " + bspContext)
 
             val results = millEvaluator.evaluate(
               Strict.Agg(testTask),

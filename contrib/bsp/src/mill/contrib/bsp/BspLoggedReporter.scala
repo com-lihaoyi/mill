@@ -4,12 +4,9 @@ import java.io.File
 import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentMap}
 
-import ch.epfl.scala.bsp4j.{BuildServer, BuildTargetIdentifier, CompileReport, Diagnostic, InverseSourcesParams, ScalaBuildServer, StatusCode, TaskFinishParams, TaskId, TextDocumentIdentifier}
+import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
-import mill.api.BspContext
-import org.eclipse.lsp4j.PublishDiagnosticsParams
 import sbt.internal.inc.ManagedLoggedReporter
-import sbt.internal.inc.schema.Position
 import sbt.internal.util.ManagedLogger
 import xsbti.{Problem, Severity}
 
@@ -38,13 +35,13 @@ class BspLoggedReporter(client: bsp.BuildClient,
   }
 
   override def logInfo(problem: Problem): Unit = {
-   client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     infos.incrementAndGet()
     super.logInfo(problem)
   }
 
   override def logWarning(problem: Problem): Unit = {
-   client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     warnings.incrementAndGet()
     super.logWarning(problem)
   }
@@ -76,8 +73,8 @@ class BspLoggedReporter(client: bsp.BuildClient,
       })
       val params = new bsp.PublishDiagnosticsParams(textDocument,
                                                     targetId,
-                                                    appendDiagnostics(textDocument, diagnostic).asJava
-                                          , true)
+                                                    appendDiagnostics(textDocument, diagnostic).asJava,
+                                          true)
 
       if (originId.nonEmpty) { params.setOriginId(originId.get) }
       diagnosticMap.put(textDocument, params)
@@ -116,20 +113,4 @@ class BspLoggedReporter(client: bsp.BuildClient,
     )
     diagnostic
   }
-
-  private[this] def getErrorCode(file: Option[File], start: bsp.Position, end: bsp.Position, position: xsbti.Position): String = {
-    file match {
-      case None => position.lineContent
-      case f: Option[File] =>
-        val source = Source.fromFile(f.get)
-        source.close()
-        val lines = source.getLines.toSeq
-        val code = lines(start.getLine).substring(start.getCharacter) +
-          lines.take(start.getLine - 1).takeRight(lines.length - end.getLine - 1).mkString("\n") +
-          lines(end.getLine).substring(0, end.getCharacter + 1)
-        code
-    }
-
-  }
-
 }
