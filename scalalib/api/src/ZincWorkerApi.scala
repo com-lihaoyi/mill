@@ -45,7 +45,7 @@ object CompilationResult {
 // analysisFile is represented by os.Path, so we won't break caches after file changes
 case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 
-object Util{
+object Util {
   def isDotty(scalaVersion: String) =
     scalaVersion.startsWith("0.")
 
@@ -66,16 +66,22 @@ object Util{
   private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
   private val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
+  private val DottyNightlyVersion = raw"""0\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
   private val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
 
-  def scalaBinaryVersion(scalaVersion: String) = {
-    scalaVersion match {
+  def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
       case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
       case DottyVersion(minor, _) => s"0.$minor"
       case TypelevelVersion(major, minor, _) => s"$major.$minor"
       case _ => scalaVersion
-    }
+  }
+
+  /** @return true if the compiler bridge can be downloaded as an already compiled jar */
+  def isBinaryBridgeAvailable(scalaVersion: String) = scalaVersion match {
+      case DottyNightlyVersion(minor, _, _) => minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
+      case DottyVersion(minor, _) => minor.toInt >= 13 // 0.13.0-RC1 or more
+      case _ => false
   }
 }
