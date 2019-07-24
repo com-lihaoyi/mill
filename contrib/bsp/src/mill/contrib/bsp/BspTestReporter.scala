@@ -1,10 +1,23 @@
 package mill.contrib.bsp
 
 import ch.epfl.scala.bsp4j._
-import mill.api.{BspContext, TestReporter}
+import mill.api.BspContext
 import sbt.testing._
 
 
+/**
+  * Context class for BSP, specialized for sending `task-start` and
+  * `task-finish` notifications for every test being ran.
+  * @param client The client to send notifications to
+  * @param targetId The targetId of the BSP target for which
+  *                 the test request is being processed
+  * @param taskId   The unique taskId associated with the
+  *                 test task that will trigger this reporter
+  *                 to log testing events.
+  * @param arguments compilation arguments as part of the BSP context,
+  *                  in case special arguments need to be passed to
+  *                  the compiler before running the test task.
+  */
 class BspTestReporter(
                        client: BuildClient,
                        targetId: BuildTargetIdentifier,
@@ -76,7 +89,9 @@ class BspTestReporter(
     client.onBuildTaskFinish(taskFinishParams)
   }
 
-  def getDisplayName(e: Event): String = {
+  // Compute the display name of the test / test suite
+  // to which the given event relates
+  private[this] def getDisplayName(e: Event): String = {
     e.selector() match{
       case s: NestedSuiteSelector => s.suiteId()
       case s: NestedTestSelector => s.suiteId() + "." + s.testName()
@@ -86,6 +101,8 @@ class BspTestReporter(
     }
   }
 
+  // Compute the test report data structure that will go into
+  // the task finish notification after all tests are ran.
   def getTestReport: TestReport = {
     val report = new TestReport(targetId, passed, failed, ignored, cancelled, skipped)
     report.setTime(totalTime)

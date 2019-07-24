@@ -3,14 +3,12 @@ package mill.contrib
 import play.api.libs.json._
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
-
 import upickle.default._
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
-
 import scala.collection.JavaConverters._
 
 
@@ -23,6 +21,7 @@ object BSP extends ExternalModule {
   val bspVersion = "2.0.0"
   val languages = List("scala", "java")
 
+  // computes the path to the java executable
   def whichJava: String = {
     if (scala.sys.props.contains("JAVA_HOME")) scala.sys.props("JAVA_HOME") else "java"
   }

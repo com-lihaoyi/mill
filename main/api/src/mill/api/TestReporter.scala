@@ -2,6 +2,12 @@ package mill.api
 
 import sbt.testing._
 
+/**
+  * Test reporter class that can be
+  * injected into the test task and
+  * report information upon the start
+  * and the finish of testing events
+  */
 trait TestReporter {
   def logStart(event: Event): Unit
 
@@ -10,6 +16,10 @@ trait TestReporter {
 
 }
 
+/**
+  * Dummy Test Reporter that doesn't report
+  * anything for any testing event.
+  */
 object  DummyReporter extends TestReporter {
   override def logStart(event:  Event): Unit = {
 

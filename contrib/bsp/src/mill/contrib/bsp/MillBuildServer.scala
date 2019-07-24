@@ -1,21 +1,16 @@
 package mill.contrib.bsp
 
-import java.io.File
-
 import sbt.testing._
-import java.util.Collections
 import java.util.concurrent.CompletableFuture
-
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import mill.{scalalib, _}
-import mill.api.{BspContext, Loose, Result, Strict}
+import mill.api.{BspContext, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 import sbt.internal.inc._
-
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.Ctx
@@ -23,8 +18,6 @@ import mill.define.{Discover, ExternalModule}
 import mill.main.MainModule
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
-
-import scala.io.Source
 
 
 class MillBuildServer(evaluator: Evaluator,
@@ -97,21 +90,6 @@ class MillBuildServer(evaluator: Evaluator,
         (in) => new WorkspaceBuildTargetsResult(moduleToTarget.values.toList.asJava),
         "")
   }
-
-  private[this] def getSourceFiles(sources: Seq[os.Path]): Iterable[os.Path] = {
-    var files = Seq.empty[os.Path]
-
-    for (source <- sources) {
-      if (os.exists(source)) (if (os.isDir(source)) os.walk(source) else Seq(source))
-        .foreach(path => if (os.isFile(path) && List("scala", "java").contains(path.ext) &&
-          !path.last.startsWith(".")) {
-          files ++= Seq(path)
-        })
-    }
-
-    files
-  }
-
 
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] = {
 
@@ -212,25 +190,10 @@ class MillBuildServer(evaluator: Evaluator,
     handleExceptions[String, ResourcesResult]((in) => getResources, "")
   }
 
-  def getOriginId(params: CompileParams): Option[String] = {
-    try {
-      Option(params.getOriginId)
-    } catch {
-      case e: Exception => Option.empty[String]
-    }
-  }
-
-  def getArguments(params: CompileParams) : Option[Seq[String]] = {
-    try {
-      Option(params.getArguments.asScala)
-    } catch {
-      case e: Exception => Option.empty[Seq[String]]
-    }
-  }
-
-  def getCompilationLogger: ManagedLogger = {
+  // construct the ManagedLogger that will go into the compilation problems reporter
+  private[this] def getCompilationLogger: ManagedLogger = {
       val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-        System.out
+        millEvaluator.log.outputStream
       ))
       val l = LogExchange.logger("Hello")
       LogExchange.unbindLoggerAppenders("Hello")
@@ -238,7 +201,9 @@ class MillBuildServer(evaluator: Evaluator,
       l
   }
 
-  def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
+  // define the function that spawns compilation reporter for each module based on the
+  // module's hash code TODO: find something more reliable than the hash code
+  private[this] def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
                                              taskStartDataKind: String, taskStartData: BuildTargetIdentifier => Object):
                                                                 Int => Option[ManagedLoggedReporter] = {
     (int: Int) =>
@@ -280,7 +245,7 @@ class MillBuildServer(evaluator: Evaluator,
       )
       val compileResult = new CompileResult(getStatusCode(result))
       compileResult.setOriginId(compileParams.getOriginId)
-      compileResult //TODO: See what form IntelliJ expects data about products of compilation in order to set data field
+      compileResult //TODO: See in what form IntelliJ expects data about products of compilation in order to set data field
     }
     handleExceptions[String, CompileResult]((in) => getCompileResult, "")
   }
@@ -304,6 +269,7 @@ class MillBuildServer(evaluator: Evaluator,
     handleExceptions[String, RunResult]((in) => getRunResult, "")
   }
 
+  // Get the execution status code given the results from Evaluator.evaluate
   private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
 
     if (results.failing.keyCount > 0) {
@@ -468,7 +434,8 @@ class MillBuildServer(evaluator: Evaluator,
     handleExceptions[String, ScalaMainClassesResult]((in) => getScalaMainClasses, "")
   }
 
-  private[this] def getTestFrameworks(module: TestModule) (implicit ctx: Ctx.Home): Seq[String] = {
+  // Detect and return the test classes contained in the given TestModule
+  private[this] def getTestClasses(module: TestModule) (implicit ctx: Ctx.Home): Seq[String] = {
     val runClasspath = getTaskResult(millEvaluator, module.runClasspath)
     val frameworks = getTaskResult(millEvaluator, module.testFrameworks)
     val compilationResult = getTaskResult(millEvaluator, module.compile)
@@ -496,7 +463,7 @@ class MillBuildServer(evaluator: Evaluator,
       for (targetId <- scalaTestClassesParams.getTargets.asScala) {
         targetIdToModule(targetId) match {
           case module: TestModule =>
-                    items ++= List(new ScalaTestClassesItem(targetId, getTestFrameworks(module).toList.asJava))
+                    items ++= List(new ScalaTestClassesItem(targetId, getTestClasses(module).toList.asJava))
           case module: JavaModule => //TODO: maybe send a notification that this target has no test classes
         }
       }
@@ -505,12 +472,14 @@ class MillBuildServer(evaluator: Evaluator,
     handleExceptions[Ctx.Home, ScalaTestClassesResult]((c) => getScalaTestClasses(c), ctx)
   }
 
+  // Given the mapping from modules to targetIds, construct the mapping from targetIds to modules
   private[this] def targetToModule(moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier]):
                                                       Predef.Map[BuildTargetIdentifier, JavaModule] = {
       moduleToTargetId.keys.map(mod => (moduleToTargetId(mod), mod)).toMap
 
   }
 
+  // Resolve all the mill modules contained in the project
   private[this] def getMillModules(ev: Evaluator): Seq[JavaModule] = {
     ev.rootModule.millInternal.segmentsToModules.values.
       collect {
@@ -518,6 +487,8 @@ class MillBuildServer(evaluator: Evaluator,
       }.toSeq ++ Seq(rootModule)
   }
 
+  // Recompute the modules in the project in case any changes to the build took place
+  // and update all the mappings that depend on this info
   private[this] def recomputeTargets(): Unit = {
     rootModule = ModuleUtils.getRootJavaModule(millEvaluator.rootModule)
     millModules = getMillModules(millEvaluator)
@@ -526,6 +497,11 @@ class MillBuildServer(evaluator: Evaluator,
     moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, rootModule, evaluator, List("scala", "java"))
   }
 
+  // Given a function that take input of type T and return output of type V,
+  // apply the function on the given inputs and return a completable future of
+  // the result. If the execution of the function raises an Exception, complete
+  // the future exceptionally. Also complete exceptionally if the server was not
+  // yet initialized.
   private[this] def handleExceptions[T, V](serverMethod: T => V, input: T): CompletableFuture[V] = {
     val future = new CompletableFuture[V]()
     initialized match {
