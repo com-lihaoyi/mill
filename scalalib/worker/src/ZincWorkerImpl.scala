@@ -362,7 +362,7 @@ class ZincWorkerImpl(compilerBridge: Either[
         zincIOFile,
         new FreshCompilerCache,
         IncOptions.of(),
-        newReporter,//new ManagedLoggedReporter(10, logger),
+        newReporter,
         None,
         Array()
       ),

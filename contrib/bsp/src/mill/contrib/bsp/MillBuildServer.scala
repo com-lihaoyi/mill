@@ -20,6 +20,7 @@ import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.Ctx
 import mill.define.{Discover, ExternalModule}
+import mill.main.MainModule
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
 
@@ -393,30 +394,25 @@ class MillBuildServer(evaluator: Evaluator,
       var cleaned = true
       for (targetId <- cleanCacheParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val cleanCommand = List("java",
-                                s"-DMILL_CLASSPATH=${System.getProperty("MILL_CLASSPATH")}",
-                                s"-DMILL_VERSION=${System.getProperty("MILL_VERSION")}",
-                                "-Djna.nosys=true", "-cp",
-                                System.getProperty("MILL_CLASSPATH"),
-                                "mill.MillMain", "clean",
-                                s"${module.millModuleSegments.render}.compile")
-        val process = Runtime.getRuntime.exec(cleanCommand.mkString(" "))
-
-        val processIn = process.getInputStream
-        val processErr = process.getErrorStream
-
-        val errMessage = Source.fromInputStream(processErr).getLines().mkString("\n")
-        val message = Source.fromInputStream(processIn).getLines().mkString("\n")
-        msg += s"Cleaning cache for target ${targetId} produced the following message: ${message}, ${errMessage}"
-        if (msg.contains("failed")) {
-          cleaned = false
+        val mainModule = new MainModule {
+          override implicit def millDiscover: Discover[_] = {
+            Discover[this.type]
+          }
         }
-        process.waitFor()
+        val cleanCommand = mainModule.clean(millEvaluator, List(s"${module.millModuleSegments.render}.compile"):_*)
+        val cleanResult = millEvaluator.evaluate(
+          Strict.Agg(cleanCommand),
+          logger = new MillBspLogger(client, cleanCommand.hashCode, millEvaluator.log)
+        )
+        if (cleanResult.failing.keyCount > 0) {
+          cleaned = false
+          msg += s" Target ${module.millModuleSegments.render} could not be cleaned."
+        }
       }
-      new CleanCacheResult(msg, cleaned)
+        new CleanCacheResult(msg, cleaned)
+      }
+      handleExceptions[String, CleanCacheResult]((in) => getCleanCacheResult, "")
     }
-    handleExceptions[String, CleanCacheResult]((in) => getCleanCacheResult, "")
-  }
 
   override def buildTargetScalacOptions(scalacOptionsParams: ScalacOptionsParams):
                                                   CompletableFuture[ScalacOptionsResult] = {
