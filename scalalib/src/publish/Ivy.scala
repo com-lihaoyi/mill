@@ -42,18 +42,21 @@ object Ivy {
 
   private def renderDependency(dep: Dependency) = {
     if (dep.exclusions.isEmpty)
-      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"} />
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"} />
     else
-      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${scopeToConf(dep.scope)}->${dep.configuration.getOrElse("default(compile)")}"}>
+      <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"}>
         {dep.exclusions.map(ex => <exclude org={ex._1} name={ex._2} matcher="exact"/>)}
       </dependency>
   }
 
-  private def scopeToConf(s: Scope): String = s match {
-    case Scope.Compile  => "compile"
-    case Scope.Provided => "provided"
-    case Scope.Test     => "test"
-    case Scope.Runtime  => "runtime"
+  private def depIvyConf(d: Dependency): String = {
+    if (d.optional) "optional"
+    else d.scope match {
+      case Scope.Compile  => "compile"
+      case Scope.Provided => "provided"
+      case Scope.Test     => "test"
+      case Scope.Runtime  => "runtime"
+    }
   }
 
 }

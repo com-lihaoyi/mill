@@ -31,6 +31,9 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   def withConfiguration(configuration: String): Dep = copy(
     dep = dep.copy(configuration = coursier.core.Configuration(configuration))
   )
+  def optional(optional: Boolean = true): Dep = copy(
+    dep = dep.copy(optional = optional)
+  )
 
   /**
     * If scalaVersion is a Dotty version, replace the cross-version suffix
