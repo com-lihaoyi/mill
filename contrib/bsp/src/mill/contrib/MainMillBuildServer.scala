@@ -1,15 +1,20 @@
 package mill.contrib
 
+import java.io.{File, PrintWriter}
+
 import play.api.libs.json._
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
+
 import upickle.default._
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
+
 import scala.collection.JavaConverters._
+import scala.concurrent.CancellationException
 
 
 object BSP extends ExternalModule {
@@ -103,7 +108,8 @@ object BSP extends ExternalModule {
         .setOutput(stdout)
         .setInput(stdin)
         .setLocalService(millServer)
-        .setRemoteInterface(classOf[BuildClient])
+        .setRemoteInterface(classOf[BuildClient]).
+        traceMessages(new PrintWriter((os.pwd/ "bsp.log" ).toIO))
         .setExecutorService(executor)
         .create()
       millServer.onConnectWithClient(launcher.getRemoteProxy)
@@ -111,6 +117,7 @@ object BSP extends ExternalModule {
       millServer.cancelator = () => listening.cancel(true)
       val voidFuture = listening.get()
     } catch {
+      case _: CancellationException => System.err.println("The mill server was shut down.")
       case e: Exception =>
         System.err.println("An exception occured while connecting to the client.")
         System.err.println("Cause: " + e.getCause)

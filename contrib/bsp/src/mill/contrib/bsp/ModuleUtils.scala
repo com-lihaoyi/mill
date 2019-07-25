@@ -120,7 +120,7 @@ object ModuleUtils {
       List.empty[String].asJava,
       List.empty[BuildTargetIdentifier].asJava,
       new BuildTargetCapabilities(false, false, false))
-    rootTarget.setBaseDirectory(rootModule.millSourcePath.toNIO.toAbsolutePath.toUri.toString)
+    rootTarget.setBaseDirectory(rootModule.millSourcePath.toIO.toURI.toString)
     rootTarget.setDataKind("scala")
     rootTarget.setTags(List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
     rootTarget.setData(computeBuildTargetData(rootModule, evaluator))
@@ -169,7 +169,7 @@ object ModuleUtils {
     }
     buildTarget.setData(dataBuildTarget)
     buildTarget.setDisplayName(moduleName(module.millModuleSegments))
-    buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toAbsolutePath.toUri.toString)
+    buildTarget.setBaseDirectory(module.intellijModulePath.toIO.toURI.toString)
     buildTarget
   }
 
@@ -195,7 +195,7 @@ object ModuleUtils {
           Util.scalaBinaryVersion(scalaVersion),
           getScalaTargetPlatform(m),
           computeScalaLangDependencies(m, evaluator).
-            map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).
+            map(pathRef => pathRef.path.toIO.toURI.toString).
             toList.asJava)
 
       case m: JavaModule =>
@@ -242,9 +242,9 @@ object ModuleUtils {
     evaluateInformativeTask(evaluator, module.resolveDeps(module.scalaLibraryIvyDeps), Loose.Agg.empty[PathRef]) ++
       evaluateInformativeTask(evaluator, module.scalacPluginClasspath, Loose.Agg.empty[PathRef]) ++
       evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Loose.Agg.empty[PathRef]).
-        filter(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-compiler") ||
-          pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-reflect") ||
-          pathRef.path.toNIO.toAbsolutePath.toUri.toString.contains("scala-library"))
+        filter(pathRef => pathRef.path.toIO.toURI.toString.contains("scala-compiler") ||
+          pathRef.path.toIO.toURI.toString.contains("scala-reflect") ||
+          pathRef.path.toIO.toURI.toString.contains("scala-library"))
   }
 
   // Obtain the scala platform for `module`
@@ -268,7 +268,7 @@ object ModuleUtils {
     (for ( module <- modules )
       yield (module, new BuildTargetIdentifier(
         (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
-          toNIO.toAbsolutePath.toUri.toString))).toMap
+          toIO.toURI.toString))).toMap
   }
 
   // this is taken from mill.scalalib GenIdeaImpl

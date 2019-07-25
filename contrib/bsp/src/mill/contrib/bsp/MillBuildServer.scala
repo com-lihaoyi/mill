@@ -2,6 +2,7 @@ package mill.contrib.bsp
 
 import sbt.testing._
 import java.util.concurrent.CompletableFuture
+
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import mill.{scalalib, _}
@@ -11,6 +12,7 @@ import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 import sbt.internal.inc._
+
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.Ctx
@@ -18,6 +20,8 @@ import mill.define.{Discover, ExternalModule}
 import mill.main.MainModule
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
+
+import scala.io.Source
 
 
 class MillBuildServer(evaluator: Evaluator,
@@ -108,12 +112,12 @@ class MillBuildServer(evaluator: Evaluator,
 
         for (source <- sources) {
           itemSources ++= List(
-            new SourceItem(source.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.DIRECTORY, false))
+            new SourceItem(source.toIO.toURI.toString, SourceItemKind.DIRECTORY, false))
         }
 
         for (genSource <- generatedSources) {
           itemSources ++= List(
-            new SourceItem(genSource.toNIO.toAbsolutePath.toUri.toString, SourceItemKind.DIRECTORY, true))
+            new SourceItem(genSource.toIO.toURI.toString, SourceItemKind.DIRECTORY, true))
         }
 
         items ++= List(new SourcesItem(targetId, itemSources.asJava))
@@ -162,7 +166,7 @@ class MillBuildServer(evaluator: Evaluator,
           case m: JavaModule => sources ++= List()
         }
         items ++= List(new DependencySourcesItem(targetId, sources.
-                                                    map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).
+                                                    map(pathRef => pathRef.path.toIO.toURI.toString).
                                                     toList.asJava))
       }
 
@@ -180,7 +184,7 @@ class MillBuildServer(evaluator: Evaluator,
         val millModule = targetIdToModule(targetId)
         val resources = evaluateInformativeTask(evaluator, millModule.resources, Agg.empty[PathRef]).
                         flatMap(pathRef => os.walk(pathRef.path)).
-                        map(path => path.toNIO.toAbsolutePath.toUri.toString).
+                        map(path => path.toIO.toURI.toString).
                         toList.asJava
         items ++= List(new ResourcesItem(targetId, resources))
       }
@@ -355,26 +359,32 @@ class MillBuildServer(evaluator: Evaluator,
   }
 
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] = {
-    def getCleanCacheResult: CleanCacheResult = {
-      var msg = ""
-      var cleaned = true
-      for (targetId <- cleanCacheParams.getTargets.asScala) {
-        val module = targetIdToModule(targetId)
-        val mainModule = new MainModule {
-          override implicit def millDiscover: Discover[_] = {
-            Discover[this.type]
+
+      def getCleanCacheResult: CleanCacheResult = {
+        var msg = ""
+        var cleaned = true
+        for (targetId <- cleanCacheParams.getTargets.asScala) {
+          val module = targetIdToModule(targetId)
+          val cleanCommand = Array("java",
+            s"-DMILL_CLASSPATH=${System.getProperty("MILL_CLASSPATH")}",
+            s"-DMILL_VERSION=${System.getProperty("MILL_VERSION")}",
+            "-Djna.nosys=true", "-cp",
+            System.getProperty("MILL_CLASSPATH"),
+            "mill.MillMain", "clean",
+            s"${module.millModuleSegments.render}.compile")
+          val process = Runtime.getRuntime.exec(cleanCommand, null, os.pwd.toIO)
+
+          val processIn = process.getInputStream
+          val processErr = process.getErrorStream
+
+          val errMessage = Source.fromInputStream(processErr).getLines().mkString("\n")
+          val message = Source.fromInputStream(processIn).getLines().mkString("\n")
+          msg += s"Cleaning cache for target ${targetId} produced the following message: ${message}, ${errMessage}"
+          if (msg.contains("failed") || msg.contains("Error")) {
+            cleaned = false
           }
+          process.waitFor()
         }
-        val cleanCommand = mainModule.clean(millEvaluator, List(s"${module.millModuleSegments.render}.compile"):_*)
-        val cleanResult = millEvaluator.evaluate(
-          Strict.Agg(cleanCommand),
-          logger = new MillBspLogger(client, cleanCommand.hashCode, millEvaluator.log)
-        )
-        if (cleanResult.failing.keyCount > 0) {
-          cleaned = false
-          msg += s" Target ${module.millModuleSegments.render} could not be cleaned."
-        }
-      }
         new CleanCacheResult(msg, cleaned)
       }
       handleExceptions[String, CleanCacheResult]((in) => getCleanCacheResult, "")
@@ -390,7 +400,7 @@ class MillBuildServer(evaluator: Evaluator,
           case m: ScalaModule =>
             val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
             val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef]).
-              map(pathRef => pathRef.path.toNIO.toAbsolutePath.toUri.toString).toList
+              map(pathRef => pathRef.path.toIO.toURI.toString).toList
             val classDirectory = (Evaluator.resolveDestPaths(os.pwd / "out" , m.millModuleSegments).
                                     dest / "classes").toIO.toURI.toString
 
@@ -403,6 +413,9 @@ class MillBuildServer(evaluator: Evaluator,
     handleExceptions[String, ScalacOptionsResult]((in) => getScalacOptionsResult, "")
   }
 
+  //TODO: In the case when mill fails to provide a main classes because multiple were
+  // defined for the same module, do something so that those can still be detected
+  // such that IntelliJ can run any of them
   override def buildTargetScalaMainClasses(scalaMainClassesParams: ScalaMainClassesParams):
                                                   CompletableFuture[ScalaMainClassesResult] = {
 

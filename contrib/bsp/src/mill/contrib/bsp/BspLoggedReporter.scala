@@ -89,7 +89,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
       val textDocument = new TextDocumentIdentifier(
         sourceFile.getOrElse(None) match {
         case None => targetId.getUri
-        case f: File => f.toPath.toUri.toString
+        case f: File => f.toURI.toString
       })
       val params = new bsp.PublishDiagnosticsParams(textDocument,
                                                     targetId,
