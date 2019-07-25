@@ -6,8 +6,7 @@ import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
-import java.util.jar.Attributes
-import java.util.jar.{JarEntry, JarFile, JarOutputStream}
+import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
 
 import coursier.{Dependency, Fetch, Repository, Resolution}
 import coursier.util.{Gather, Task}
@@ -17,7 +16,6 @@ import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import mill.api.IO
 import mill.api.Loose.Agg
-import java.util.jar.Manifest
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
@@ -192,7 +190,7 @@ object Jvm {
     }
   }
 
-  def createManifest(mainClass: Option[String]) = {
+  def createManifest(mainClass: Option[String]): JarManifest = {
     val main =
       Map[String,String](
         java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
@@ -218,7 +216,7 @@ object Jvm {
     * @return - a `PathRef` for the created jar.
     */
   def createJar(inputPaths: Agg[os.Path],
-                manifest: JarManifest,
+                manifest: JarManifest = JarManifest.Default,
                 fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
@@ -228,7 +226,7 @@ object Jvm {
     seen.add(os.rel / "META-INF" / "MANIFEST.MF")
     val jar = new JarOutputStream(
       new FileOutputStream(outputPath.toIO),
-      manifest.manifestObject
+      manifest.build
     )
 
     try{
@@ -254,18 +252,8 @@ object Jvm {
     PathRef(outputPath)
   }
 
-  // TODO Remove this one it has been bootstrapped past
   def createAssembly(inputPaths: Agg[os.Path],
-                     mainClass: Option[String],
-                     prependShellScript: String,
-                     base: Option[os.Path],
-                     assemblyRules: Seq[Assembly.Rule])
-                    (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-    createAssembly(inputPaths, createManifest(mainClass), prependShellScript, base, assemblyRules)
-  }
-
-  def createAssembly(inputPaths: Agg[os.Path],
-                     manifest: JarManifest,
+                     manifest: JarManifest = JarManifest.Default,
                      prependShellScript: String = "",
                      base: Option[os.Path] = None,
                      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
@@ -290,7 +278,7 @@ object Jvm {
       StandardOpenOption.TRUNCATE_EXISTING,
       StandardOpenOption.CREATE
     )
-    manifest.manifestObject.write(manifestOut)
+    manifest.build.write(manifestOut)
     manifestOut.close()
 
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
@@ -345,6 +333,7 @@ object Jvm {
     outputStream.close()
     is.close()
   }
+  
   def universalScript(shellCommands: String,
                       cmdCommands: String,
                       shebang: Boolean = false): String = {
@@ -576,14 +565,20 @@ object Jvm {
 
   object JarManifest {
     implicit val jarManifestRW: RW[JarManifest] = upickle.default.macroRW
+    final val Default = createManifest(None)
   }
 
-  case class JarManifest(main: Map[String,String] = Map.empty, groups: Map[String, Map[String,String]] = Map.empty) {
+  /** Represents a JAR manifest.
+    * @param main the main manifest attributes
+    * @param groups additional attributes for named entries
+    */
+  final case class JarManifest(main: Map[String,String] = Map.empty, groups: Map[String, Map[String,String]] = Map.empty) {
     def add(entries: (String,String)*): JarManifest = copy(main = main ++ entries)
     def addGroup(group: String, entries: (String,String)*): JarManifest =
       copy(groups = groups + (group -> (groups.getOrElse(group, Map.empty) ++ entries)))
 
-    def manifestObject: Manifest = {
+    /** Constructs a [[java.util.jar.Manifest]] from this JarManifest. */
+    def build: Manifest = {
       val manifest = new Manifest
       val mainAttributes = manifest.getMainAttributes
       main.foreach{case(key,value) => mainAttributes.putValue(key, value)}
