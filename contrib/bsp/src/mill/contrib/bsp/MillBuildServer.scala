@@ -5,6 +5,8 @@ import java.util.concurrent.CompletableFuture
 
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
+import com.google.gson.JsonObject
+import mill.api.Result.{Skipped, Success}
 import mill.{scalalib, _}
 import mill.api.{BspContext, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
@@ -17,7 +19,6 @@ import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.Ctx
 import mill.define.{Discover, ExternalModule}
-import mill.main.MainModule
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
 
@@ -257,52 +258,71 @@ class MillBuildServer(evaluator: Evaluator,
   override def buildTargetRun(runParams: RunParams): CompletableFuture[RunResult] = {
     def getRunResult: RunResult = {
       val params = TaskParameters.fromRunParams(runParams)
-        val module = targetIdToModule(params.getTargets.head)
-        val args = params.getArguments.getOrElse(Seq.empty[String])
-        val runTask = module.run(args.mkString(" "))
-        val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
-                            getBspLoggedReporterPool(params, (t) => s"Started compiling target: $t",
-                    "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
-                        logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
-        if (runResult.failing.keyCount > 0) {
-          new RunResult(StatusCode.ERROR)
-        } else {
-          new RunResult(StatusCode.OK)
-        }
+      val module = targetIdToModule(params.getTargets.head)
+      val args = params.getArguments.getOrElse(Seq.empty[String])
+      val runTask = module.run(args:_*)
+      val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
+        getBspLoggedReporterPool(
+          params,
+          (t) => s"Started compiling target: $t",
+          "compile-task",
+          (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
+        logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
+      val response = runResult.results(runTask) match {
+        case _: Result.Success[Any] => new RunResult(StatusCode.OK)
+        case _ => new RunResult(StatusCode.ERROR)
+      }
+      params.getOriginId match {
+        case Some(id) => response.setOriginId(id)
+        case None =>
+      }
+      response
     }
     handleExceptions[String, RunResult]((in) => getRunResult, "")
+  }
+
+  private[this] def getStatusCodePerTask(results: Evaluator.Results, task: mill.define.Task[_]): StatusCode = {
+    results.results(task) match {
+      case _: Success[_] => StatusCode.OK
+      case Skipped => StatusCode.CANCELLED
+      case _ => StatusCode.ERROR
+    }
   }
 
   // Get the execution status code given the results from Evaluator.evaluate
   private[this] def getStatusCode(results: Evaluator.Results): StatusCode = {
 
-    if (results.failing.keyCount > 0) {
+    val statusCodes = results.results.keys.map(task => getStatusCodePerTask(results, task)).toSeq
+    if (statusCodes.contains(StatusCode.ERROR))
       StatusCode.ERROR
-    }
-
-    else if (results.rawValues.contains(Result.Skipped) || results.rawValues.contains(Result.Aborted)) {
+    else if (statusCodes.contains(StatusCode.CANCELLED))
       StatusCode.CANCELLED
-    }
-
-    else {StatusCode.OK}
+    else
+      StatusCode.OK
   }
 
   override def buildTargetTest(testParams: TestParams): CompletableFuture[TestResult] = {
     def getTestResult: TestResult = {
       val params = TaskParameters.fromTestParams(testParams)
-      val argsMap = testParams.getData match {
-        case scalaTestParams: ScalaTestParams =>
-                              (for (testItem <- scalaTestParams.getTestClasses.asScala)
-                               yield (testItem.getTarget, testItem.getClasses.asScala.toSeq)).toMap
+      val argsMap = try {
+                      val scalaTestParams = testParams.getData.asInstanceOf[JsonObject]
+                      (for (testItem <- scalaTestParams.get("testClasses").getAsJsonArray.asScala)
+                        yield (
+                          testItem.getAsJsonObject.get("target").getAsJsonObject.get("uri").getAsString,
+                          testItem.getAsJsonObject.get("classes").getAsJsonArray
+                            .asScala.map(elem => elem.getAsString).toSeq)).toMap
+                    } catch {
+                      case e: Exception => (for (targetId <- testParams.getTargets.asScala) yield
+                        (targetId.getUri, Seq.empty[String])).toMap
 
-        case default => (for (targetId <- testParams.getTargets.asScala) yield (targetId, Seq.empty[String])).toMap
-      }
+                    }
+
       var overallStatusCode = StatusCode.OK
       for (targetId <- testParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
         module match {
           case m: TestModule => val testModule = m.asInstanceOf[TestModule]
-            val testTask = testModule.testLocal(argsMap(targetId):_*)
+            val testTask = testModule.testLocal(argsMap(targetId.getUri):_*)
 
             // notifying the client that the testing of this build target started
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))

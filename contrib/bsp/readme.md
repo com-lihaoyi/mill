@@ -9,10 +9,15 @@ tasks to be executed from the IDE.
 # Importing an existing mill project in IntelliJ via BSP
 
 1) Following the mill installation instructions
-2) Add the following import statement in the build.sc 
-of your project:
+2) After this contrib module would be published, you should just have to add the 
+following import statement in the build.sc of your project:
 
-        `import $ivy.com.lihaoyi::mill-contrib-bsp:$MILL_VERSION`
+        `import $ivy.com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+
+However, for now, you need to clone the mill repo, publish it locally by running
+`ci/publish-local` and importing your local version in build.sc:
+
+        `import $ivy.com.lihaoyi::mill-contrib-bsp:$LOCAL_MILL_VERSION`
 
 3) Run the following command in the working directory of your project:
 
