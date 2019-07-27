@@ -6,7 +6,7 @@ When using one of these, it is important that the versions you load match your m
 For instance :
 
 ```scala
-import $ivy`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 ```
 
 [comment]: # (Please keep list of plugins in alphabetical order)
