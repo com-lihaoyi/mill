@@ -8,6 +8,7 @@ import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+
 trait MillPublishModule extends PublishModule{
 
   def artifactName = "mill-" + super.artifactName()

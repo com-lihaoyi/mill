@@ -6,7 +6,7 @@ import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
-import java.util.jar.{JarEntry, JarFile, JarOutputStream}
+import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
 
 import coursier.{Dependency, Fetch, Repository, Resolution}
 import coursier.util.{Gather, Task}
@@ -19,6 +19,7 @@ import mill.api.Loose.Agg
 
 import scala.collection.mutable
 import scala.collection.JavaConverters._
+import upickle.default.{macroRW, ReadWriter => RW}
 
 object Jvm {
   /**
@@ -189,15 +190,16 @@ object Jvm {
     }
   }
 
-
-  private def createManifest(mainClass: Option[String]) = {
-    val m = new java.util.jar.Manifest()
-    m.getMainAttributes.put(java.util.jar.Attributes.Name.MANIFEST_VERSION, "1.0")
-    m.getMainAttributes.putValue( "Created-By", "Scala mill" )
-    mainClass.foreach(
-      m.getMainAttributes.put(java.util.jar.Attributes.Name.MAIN_CLASS, _)
-    )
-    m
+  def createManifest(mainClass: Option[String]): JarManifest = {
+    val main =
+      Map[String,String](
+        java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
+        "Created-By" -> "Scala mill"
+      ) ++
+      mainClass.map(mc =>
+        Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)
+      ).getOrElse(Map.empty)
+    JarManifest(main)
   }
 
   /**
@@ -214,7 +216,7 @@ object Jvm {
     * @return - a `PathRef` for the created jar.
     */
   def createJar(inputPaths: Agg[os.Path],
-                mainClass: Option[String] = None,
+                manifest: JarManifest = JarManifest.Default,
                 fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
@@ -224,7 +226,7 @@ object Jvm {
     seen.add(os.rel / "META-INF" / "MANIFEST.MF")
     val jar = new JarOutputStream(
       new FileOutputStream(outputPath.toIO),
-      createManifest(mainClass)
+      manifest.build
     )
 
     try{
@@ -251,7 +253,7 @@ object Jvm {
   }
 
   def createAssembly(inputPaths: Agg[os.Path],
-                     mainClass: Option[String] = None,
+                     manifest: JarManifest = JarManifest.Default,
                      prependShellScript: String = "",
                      base: Option[os.Path] = None,
                      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
@@ -269,7 +271,6 @@ object Jvm {
 
     val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm)
 
-    val manifest = createManifest(mainClass)
     val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
     Files.createDirectories(manifestPath.getParent)
     val manifestOut = Files.newOutputStream(
@@ -277,7 +278,7 @@ object Jvm {
       StandardOpenOption.TRUNCATE_EXISTING,
       StandardOpenOption.CREATE
     )
-    manifest.write(manifestOut)
+    manifest.build.write(manifestOut)
     manifestOut.close()
 
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
@@ -332,6 +333,7 @@ object Jvm {
     outputStream.close()
     is.close()
   }
+  
   def universalScript(shellCommands: String,
                       cmdCommands: String,
                       shebang: Boolean = false): String = {
@@ -561,4 +563,32 @@ object Jvm {
     }
   }
 
+  object JarManifest {
+    implicit val jarManifestRW: RW[JarManifest] = upickle.default.macroRW
+    final val Default = createManifest(None)
+  }
+
+  /** Represents a JAR manifest.
+    * @param main the main manifest attributes
+    * @param groups additional attributes for named entries
+    */
+  final case class JarManifest(main: Map[String,String] = Map.empty, groups: Map[String, Map[String,String]] = Map.empty) {
+    def add(entries: (String,String)*): JarManifest = copy(main = main ++ entries)
+    def addGroup(group: String, entries: (String,String)*): JarManifest =
+      copy(groups = groups + (group -> (groups.getOrElse(group, Map.empty) ++ entries)))
+
+    /** Constructs a [[java.util.jar.Manifest]] from this JarManifest. */
+    def build: Manifest = {
+      val manifest = new Manifest
+      val mainAttributes = manifest.getMainAttributes
+      main.foreach{case(key,value) => mainAttributes.putValue(key, value)}
+      val entries = manifest.getEntries
+      for((group, attribs) <- groups) {
+        val attrib = new Attributes
+        attribs.foreach{case(key,value) => attrib.putValue(key, value)}
+        entries.put(group, attrib)
+      }
+      manifest
+    }
+  }
 }
