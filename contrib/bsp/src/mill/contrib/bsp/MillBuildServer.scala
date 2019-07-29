@@ -425,7 +425,7 @@ class MillBuildServer(evaluator: Evaluator,
         module match {
           case m: ScalaModule =>
             val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
-            val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef]).
+            val classpath = evaluateInformativeTask(evaluator, m.runClasspath, Agg.empty[PathRef]).
               map(pathRef => pathRef.path.toIO.toURI.toString).toList
             val classDirectory = (Evaluator.resolveDestPaths(os.pwd / "out" , m.millModuleSegments).
                                     dest / "classes").toIO.toURI.toString
