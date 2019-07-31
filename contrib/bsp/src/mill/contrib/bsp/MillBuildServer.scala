@@ -9,6 +9,7 @@ import mill.api.Result.{Skipped, Success}
 import mill.{scalalib, _}
 import mill.api.{BspContext, Result, Strict}
 import mill.contrib.bsp.ModuleUtils._
+import mill.define.Segment.Label
 import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
@@ -185,12 +186,12 @@ class MillBuildServer(evaluator: Evaluator,
       for (targetId <- resourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
         val resources = evaluateInformativeTask(evaluator, millModule.resources, Agg.empty[PathRef]).
+                        filter(pathRef => os.exists(pathRef.path)).
                         flatMap(pathRef => os.walk(pathRef.path)).
                         map(path => path.toIO.toURI.toString).
                         toList.asJava
         items ++= List(new ResourcesItem(targetId, resources))
       }
-
       new ResourcesResult(items.asJava)
     }
     handleExceptions[String, ResourcesResult](_ => getResources, "")
@@ -427,8 +428,10 @@ class MillBuildServer(evaluator: Evaluator,
             val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
             val classpath = evaluateInformativeTask(evaluator, m.runClasspath, Agg.empty[PathRef]).
               map(pathRef => pathRef.path.toIO.toURI.toString).toList
-            val classDirectory = (Evaluator.resolveDestPaths(os.pwd / "out" , m.millModuleSegments).
-                                    dest / "classes").toIO.toURI.toString
+            val classDirectory = (Evaluator.resolveDestPaths(
+                  os.pwd / "out" ,
+                  m.millModuleSegments ++ Seq(Label("compile"))).dest / "classes"
+              ).toIO.toURI.toString
 
             targetScalacOptions ++= List(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
           case _: JavaModule => targetScalacOptions ++= List()

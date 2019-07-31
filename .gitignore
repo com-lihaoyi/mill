@@ -12,3 +12,4 @@ contrib/bsp/mill-out-bs
 mill.iml
 .bsp/
 bsp.log
+contrib/bsp/test/
