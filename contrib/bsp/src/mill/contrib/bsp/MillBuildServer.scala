@@ -2,6 +2,7 @@ package mill.contrib.bsp
 
 import sbt.testing._
 import java.util.concurrent.CompletableFuture
+
 import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
@@ -14,14 +15,16 @@ import mill.eval.Evaluator
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
 import sbt.internal.inc._
+
 import scala.collection.JavaConverters._
 import mill.modules.Jvm
 import mill.util.{Ctx, DummyLogger}
 import mill.define.{Discover, ExternalModule}
-import mill.main.EvaluatorScopt
+import mill.main.{EvaluatorScopt, MainModule}
 import os.Path
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
+
 import scala.io.Source
 
 
@@ -391,25 +394,32 @@ class MillBuildServer(evaluator: Evaluator,
         var cleaned = true
         for (targetId <- cleanCacheParams.getTargets.asScala) {
           val module = targetIdToModule(targetId)
-          val cleanCommand = Array("java",
-            s"-DMILL_CLASSPATH=${System.getProperty("MILL_CLASSPATH")}",
-            s"-DMILL_VERSION=${System.getProperty("MILL_VERSION")}",
-            "-Djna.nosys=true", "-cp",
-            System.getProperty("MILL_CLASSPATH"),
-            "mill.MillMain", "clean",
-            s"${module.millModuleSegments.render}.compile")
-          val process = Runtime.getRuntime.exec(cleanCommand, null, os.pwd.toIO)
-
-          val processIn = process.getInputStream
-          val processErr = process.getErrorStream
-
-          val errMessage = Source.fromInputStream(processErr).getLines().mkString("\n")
-          val message = Source.fromInputStream(processIn).getLines().mkString("\n")
-          msg += s"Cleaning cache for target $targetId produced the following message: $message, $errMessage"
-          if (msg.contains("failed") || msg.contains("Error")) {
-            cleaned = false
+          val mainModule = new MainModule {
+            override implicit def millDiscover: Discover[_] = {
+              Discover[this.type]
+            }
           }
-          process.waitFor()
+          val cleanTask = mainModule.clean(millEvaluator, List(s"${module.millModuleSegments.render}.compile"):_*)
+          val cleanResult = millEvaluator.evaluate(
+            Strict.Agg(cleanTask),
+            logger = new MillBspLogger(client, cleanTask.hashCode, millEvaluator.log)
+          )
+          if (cleanResult.failing.keyCount > 0) {
+            cleaned = false
+            msg += s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n"
+            cleanResult.results(cleanTask) match {
+              case fail: Result.Failure[Any] => msg += fail.msg + "\n"
+              case _ => msg += "could not retrieve message"
+            }
+          } else {
+            msg += s"${module.millModuleSegments.render} cleaned \n"
+
+            val outDir = Evaluator.resolveDestPaths(os.pwd / "out", module.millModuleSegments ++
+                                                                    Seq(Label("compile"))).out
+            while (os.exists(outDir)) {
+              Thread.sleep(10)
+            }
+          }
         }
         new CleanCacheResult(msg, cleaned)
       }
