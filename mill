@@ -22,8 +22,11 @@ MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/$MILL_VERSION"
 
 if [ ! -x "$MILL_EXEC_PATH" ] ; then
   mkdir -p $MILL_DOWNLOAD_PATH
+  if [ "$MILL_VERSION" > "0.4.2" ] ; then
+    ASSEMBLY="-assembly"
+  fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
-  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION%%-*}/$MILL_VERSION-assembly"
+  MILL_DOWNLOAD_URL="https://github.com/lihaoyi/mill/releases/download/${MILL_VERSION%%-*}/$MILL_VERSION${ASSEMBLY}"
   curl --fail -L -o "$DOWNLOAD_FILE" "$MILL_DOWNLOAD_URL"
   chmod +x "$DOWNLOAD_FILE"
   mv "$DOWNLOAD_FILE" "$MILL_EXEC_PATH"
