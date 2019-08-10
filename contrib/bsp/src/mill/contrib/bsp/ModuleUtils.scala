@@ -121,7 +121,7 @@ object ModuleUtils {
       List.empty[BuildTargetIdentifier].asJava,
       new BuildTargetCapabilities(false, false, false))
     rootTarget.setBaseDirectory(rootModule.millSourcePath.toIO.toURI.toString)
-    rootTarget.setDataKind("scala")
+    rootTarget.setDataKind(BuildTargetDataKind.SCALA)
     rootTarget.setTags(List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
     rootTarget.setData(computeBuildTargetData(rootModule, evaluator))
     val basePath = rootModule.millSourcePath.toIO.toPath
@@ -165,7 +165,7 @@ object ModuleUtils {
       dependencies,
       capabilities)
     if (module.isInstanceOf[ScalaModule]) {
-      buildTarget.setDataKind("scala")
+      buildTarget.setDataKind(BuildTargetDataKind.SCALA)
     }
     buildTarget.setData(dataBuildTarget)
     buildTarget.setDisplayName(moduleName(module.millModuleSegments))

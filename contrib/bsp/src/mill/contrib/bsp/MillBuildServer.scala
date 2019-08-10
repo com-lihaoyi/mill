@@ -246,7 +246,7 @@ class MillBuildServer(evaluator: Evaluator,
                           map(targetId => targetIdToModule(targetId).compile):_*)
       val result = millEvaluator.evaluate(compileTasks,
                     getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
-                    "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
+                      TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
                     new BspContext {
                       override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
                       override def logStart(event: Event): Unit = {}
@@ -273,7 +273,7 @@ class MillBuildServer(evaluator: Evaluator,
         getBspLoggedReporterPool(
           params,
           t => s"Started compiling target: $t",
-          "compile-task",
+          TaskDataKind.COMPILE_TASK,
           (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
         logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
       val response = runResult.results(runTask) match {
@@ -337,7 +337,7 @@ class MillBuildServer(evaluator: Evaluator,
             val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
             taskStartParams.setEventTime(System.currentTimeMillis())
             taskStartParams.setMessage("Testing target: " + targetId)
-            taskStartParams.setDataKind("test-task")
+            taskStartParams.setDataKind(TaskDataKind.TEST_TASK)
             taskStartParams.setData(new TestTask(targetId))
             client.onBuildTaskStart(taskStartParams)
 
@@ -349,7 +349,7 @@ class MillBuildServer(evaluator: Evaluator,
             val results = millEvaluator.evaluate(
               Strict.Agg(testTask),
               getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
-                "compile-task", (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
+                TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
               bspContext,
               new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
             val endTime = System.currentTimeMillis()
@@ -368,7 +368,7 @@ class MillBuildServer(evaluator: Evaluator,
             taskFinishParams.setEventTime(endTime)
             taskFinishParams.setMessage("Finished testing target: " +
               moduleToTarget(targetIdToModule(targetId)).getDisplayName)
-            taskFinishParams.setDataKind("test-report")
+            taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
             taskFinishParams.setData(bspContext.getTestReport)
             client.onBuildTaskFinish(taskFinishParams)
 

@@ -36,7 +36,7 @@ class BspTestReporter(
   override def logStart(event: Event): Unit = {
     val taskStartParams = new TaskStartParams(taskId)
     taskStartParams.setEventTime(System.currentTimeMillis())
-    taskStartParams.setDataKind("test-started")
+    taskStartParams.setDataKind(TaskDataKind.TEST_START)
     taskStartParams.setData(new TestStart(getDisplayName(event)))
     taskStartParams.setMessage("Starting running: " + getDisplayName(event))
     client.onBuildTaskStart(taskStartParams)
@@ -50,7 +50,7 @@ class BspTestReporter(
         case sbt.testing.Status.Error => StatusCode.ERROR
         case default => StatusCode.OK
       })
-    taskFinishParams.setDataKind("test-finished")
+    taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)
     val status = event.status match {
       case sbt.testing.Status.Success =>
         passed += 1
