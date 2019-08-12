@@ -1,5 +1,7 @@
 package mill.contrib.bsp
 
+import java.io.{PrintWriter, StringWriter}
+
 import ch.epfl.scala.bsp4j._
 import mill.api.BspContext
 import sbt.testing._
@@ -50,7 +52,6 @@ class BspTestReporter(
         case sbt.testing.Status.Error => StatusCode.ERROR
         case default => StatusCode.OK
       })
-    taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)
     val status = event.status match {
       case sbt.testing.Status.Success =>
         passed += 1
@@ -74,19 +75,23 @@ class BspTestReporter(
         skipped += 1
         TestStatus.SKIPPED //TODO: what to do here
     }
-    val testFinish = new TestFinish(getDisplayName(event), status)
-    taskFinishParams.setData(testFinish)
-    taskFinishParams.setEventTime(System.currentTimeMillis())
-    taskFinishParams.setMessage("Finished running: " + getDisplayName(event))
 
-    if (event.throwable.isDefined) {
-      val exception = event.throwable.get
-      taskFinishParams.setData( // send data about any potential exceptions thrown during testing
-        TestException(exception.getStackTrace.toString,
-          exception.getMessage,
-          exception.getClass.toString))
-    }
+    taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)
+    taskFinishParams.setData({
+      val testFinish = new TestFinish(getDisplayName(event), status)
+      if (event.throwable.isDefined)
+        testFinish.setMessage(throwableToString(event.throwable().get()))
+      testFinish
+    })
+    taskFinishParams.setEventTime(System.currentTimeMillis())
     client.onBuildTaskFinish(taskFinishParams)
+  }
+
+  private def throwableToString(t: Throwable): String = {
+    val sw = new StringWriter
+    val pw = new PrintWriter(sw)
+    t.printStackTrace(pw)
+    sw.toString
   }
 
   // Compute the display name of the test / test suite
