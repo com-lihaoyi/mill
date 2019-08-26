@@ -215,7 +215,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
-      val artifactWithScalaVersion = artifactId.substring(artifactId.length - 5) match {
+      val artifactWithScalaVersion = artifactId.substring(artifactId.length - math.min(5, artifactId.length)) match {
         case scalaArtifactRegex(_*) => artifactId
         case _ => artifactId + "_2.12"
       }
