@@ -9,6 +9,52 @@ import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
 
+object Deps {
+
+  object Scalajs_0_6 {
+    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.22"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.22"
+  }
+
+  object Scalajs_1_0 {
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:1.0.0-M2"
+  }
+
+  val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
+  val ammonite = ivy"com.lihaoyi:::ammonite:1.6.9"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
+  val flywayCore = ivy"org.flywaydb:flyway-core:5.2.4"
+  val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  val ipcsocketExcludingJna = ipcsocket.exclude(
+  "net.java.dev.jna" -> "jna",
+  "net.java.dev.jna" -> "jna-platform"
+  )
+  val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
+  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
+  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
+  val jna = ivy"net.java.dev.jna:jna:4.5.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
+  val junitInterface = ivy"com.novocode:junit-interface:0.11"
+  val osLib = ivy"com.lihaoyi::os-lib:0.2.6"
+  val testng = ivy"org.testng:testng:6.11"
+  val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
+  def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
+  def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
+  val upickle = ivy"com.lihaoyi::upickle:0.7.1"
+  val utest = ivy"com.lihaoyi::utest:0.6.4"
+  val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+}
+
 trait MillPublishModule extends PublishModule{
 
   def artifactName = "mill-" + super.artifactName()
@@ -29,9 +75,9 @@ trait MillPublishModule extends PublishModule{
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.12.8" }
-  def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
+  def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
+  def scalacPluginIvyDeps = Agg(Deps.acyclic)
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
@@ -51,7 +97,7 @@ trait MillModule extends MillApiModule{ outer =>
     def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.4")
+    def ivyDeps = Agg(Deps.utest)
     def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath =
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -63,7 +109,7 @@ object main extends MillModule {
   def moduleDeps = Seq(core, client)
 
   def compileIvyDeps = Agg(
-    ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+    Deps.scalaReflect(scalaVersion())
   )
 
   def generatedSources = T {
@@ -80,23 +126,23 @@ object main extends MillModule {
   }
   object api extends MillApiModule{
     def ivyDeps = Agg(
-      ivy"com.lihaoyi::os-lib:0.2.6",
-      ivy"com.lihaoyi::upickle:0.7.1",
+      Deps.osLib,
+      Deps.upickle
     )
   }
   object core extends MillModule {
     def moduleDeps = Seq(moduledefs, api)
 
     def compileIvyDeps = Agg(
-      ivy"org.scala-lang:scala-reflect:${scalaVersion()}"
+      Deps.scalaReflect(scalaVersion())
     )
 
     def ivyDeps = Agg(
       // Keep synchronized with ammonite in Versions.scala
-      ivy"com.lihaoyi:::ammonite:1.6.9",
+      Deps.ammonite,
       // Necessary so we can share the JNA classes throughout the build process
-      ivy"net.java.dev.jna:jna:4.5.0",
-      ivy"net.java.dev.jna:jna-platform:4.5.0"
+      Deps.jna,
+      Deps.jnaPlatform
     )
 
     def generatedSources = T {
@@ -123,21 +169,18 @@ object main extends MillModule {
   object moduledefs extends MillPublishModule with ScalaModule{
     def scalaVersion = T{ "2.12.8" }
     def ivyDeps = Agg(
-      ivy"org.scala-lang:scala-compiler:${scalaVersion()}",
-      ivy"com.lihaoyi::sourcecode:0.1.4",
+      Deps.scalaCompiler(scalaVersion()),
+      Deps.sourcecode,
     )
   }
 
   object client extends MillPublishModule{
     def ivyDeps = Agg(
-      ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0".exclude(
-        "net.java.dev.jna" -> "jna",
-        "net.java.dev.jna" -> "jna-platform"
-      )
+      Deps.ipcsocketExcludingJna
     )
     object test extends Tests{
       def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-      def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
+      def ivyDeps = Agg(Deps.junitInterface)
     }
   }
 
@@ -145,8 +188,8 @@ object main extends MillModule {
     def moduleDeps = Seq(main, scalalib)
 
     def ivyDeps = Agg(
-      ivy"guru.nidi:graphviz-java:0.8.3",
-      ivy"org.jgrapht:jgrapht-core:1.3.0"
+      Deps.graphvizJava,
+      Deps.jgraphtCore
     )
     def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
@@ -159,8 +202,8 @@ object scalalib extends MillModule {
   def moduleDeps = Seq(main, scalalib.api)
 
   def ivyDeps = Agg(
-    ivy"org.scala-sbt:test-interface:1.0",
-    ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
+    Deps.sbtTestInterface,
+    Deps.scalafmtDynamic
   )
 
   def genTask(m: ScalaModule) = T.task{
@@ -187,7 +230,7 @@ object scalalib extends MillModule {
   }
   object backgroundwrapper extends MillPublishModule{
     def ivyDeps = Agg(
-      ivy"org.scala-sbt:test-interface:1.0"
+      Deps.sbtTestInterface
     )
     def testArgs = T{
       Seq(
@@ -204,7 +247,7 @@ object scalalib extends MillModule {
 
     def ivyDeps = Agg(
       // Keep synchronized with zinc in Versions.scala
-      ivy"org.scala-sbt::zinc:1.2.5"
+      Deps.zinc
     )
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
@@ -230,7 +273,7 @@ object scalajslib extends MillModule {
 
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
-    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
+    def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
   class WorkerModule(scalajsBinary: String) extends MillApiModule{
@@ -238,23 +281,23 @@ object scalajslib extends MillModule {
     def ivyDeps = scalajsBinary match {
       case "0.6" =>
         Agg(
-          ivy"org.scala-js::scalajs-tools:0.6.22",
-          ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22",
-          ivy"org.scala-js::scalajs-js-envs:0.6.22",
-          ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
-          ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
-          ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
+          Deps.Scalajs_0_6.scalajsTools,
+          Deps.Scalajs_0_6.scalajsSbtTestAdapter,
+          Deps.Scalajs_0_6.scalajsJsEnvs,
+          Deps.jettyWebsocket,
+          Deps.jettyServer,
+          Deps.javaxServlet
         )
       case "1.0" =>
         Agg(
-          ivy"org.scala-js::scalajs-tools:1.0.0-M2",
-          ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2",
-          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2",
-          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2",
-          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2",
-          ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
-          ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
-          ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
+          Deps.Scalajs_1_0.scalajsTools,
+          Deps.Scalajs_1_0.scalajsSbtTestAdapter,
+          Deps.Scalajs_1_0.scalajsEnvNodejs,
+          Deps.Scalajs_1_0.scalajsEnvJsdomNodejs,
+          Deps.Scalajs_1_0.scalajsEnvPhantomjs,
+          Deps.jettyWebsocket,
+          Deps.jettyServer,
+          Deps.javaxServlet
         )
     }
   }
@@ -264,8 +307,8 @@ object scalajslib extends MillModule {
 object contrib extends MillModule {
   object testng extends MillPublishModule{
     def ivyDeps = Agg(
-      ivy"org.scala-sbt:test-interface:1.0",
-      ivy"org.testng:testng:6.11"
+      Deps.sbtTestInterface,
+      Deps.testng
     )
   }
 
@@ -361,7 +404,7 @@ object contrib extends MillModule {
 
   object flyway extends MillModule {
     def moduleDeps = Seq(scalalib)
-    def ivyDeps = Agg(ivy"org.flywaydb:flyway-core:5.2.4")
+    def ivyDeps = Agg(Deps.flywayCore)
   }
 
 
@@ -372,8 +415,8 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
-      ivy"ch.epfl.scala::bloop-config:1.2.5",
-      ivy"com.lihaoyi::ujson-circe:0.7.4"
+      Deps.bloopConfig,
+      Deps.ujsonCirce
     )
     def testArgs = T(scalanativelib.testArgs())
   }
@@ -399,7 +442,7 @@ object scalanativelib extends MillModule {
   }
   object api extends MillApiModule{
     def moduleDeps = Seq(main.core)
-    def ivyDeps = Agg(ivy"org.scala-sbt:test-interface:1.0")
+    def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.3")
   class WorkerModule(scalaNativeBinary: String) extends MillApiModule {
