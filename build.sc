@@ -677,7 +677,7 @@ def uploadToGithub(authKey: String) = T.command{
     scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
       .postData(
         ujson.write(
-          ujson.Js.Obj(
+          ujson.Obj(
             "tag_name" -> releaseTag,
             "name" -> releaseTag
           )
