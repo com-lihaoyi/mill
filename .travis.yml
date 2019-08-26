@@ -53,3 +53,4 @@ script:
 cache:
   directories:
   - $HOME/.coursier
+  - $HOME/.mill/download
