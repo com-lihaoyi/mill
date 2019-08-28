@@ -77,7 +77,7 @@ object ModuleUtils {
     * Given the BaseModule corresponding to the root
     * of the working directory, compute a JavaModule that
     * has the same millSourcePath. Set generated sources
-    * accoridng to the location of the compilation
+    * according to the location of the compilation
     * products
     * @param rootBaseModule module for the root
     * @return root JavaModule
