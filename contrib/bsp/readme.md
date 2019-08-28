@@ -41,6 +41,3 @@ After the bsp support module would be published, it should be enough to:
 - Sometimes build from IntelliJ might fail due to a NoClassDefFoundException
 being thrown during the evaluation of tasks, a bug not easy to reproduce.
 In this case it is recommended to refresh the bsp project.
-
-- Currently it's not possible ro run scala classes from intelliJ, but this 
-issue is being investigated
