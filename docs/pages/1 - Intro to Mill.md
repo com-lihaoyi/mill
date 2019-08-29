@@ -15,7 +15,7 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
-## Installation
+## Installation 
 
 ### OS X
 
@@ -109,6 +109,14 @@ script. Note this only works for versions 0.5.0 and above.
 Bootstrap scripts are also useful for running Mill in CI, ensuring that your
 Jenkins/Travis/etc. box has the correct version of Mill present to
 build/compile/test your code.
+
+
+## Updating Mill
+
+Once installed mill is able to use newer or different versions for each project automatically. 
+You don't need to install multiple versions of mill yourself.
+
+See section [Overriding Mill Versions](#overriding-mill-versions) how to do it.  
 
 ## Getting Started
 
@@ -842,11 +850,11 @@ echo "0.5.0" > .mill-version
 `.mill-version` takes precedence over the version of Mill specified in the
 `./mill` script.
 
-- ass in a `MILL_VERSION` environment variable, e.g.
+- Pass in a `MILL_VERSION` environment variable, e.g.
 
 ```bash
 MILL_VERSION=0.5.0-3-4faefb mill __.compile
- ```
+```
 
 or
 ```bash
