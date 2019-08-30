@@ -17,7 +17,7 @@ import mill.api.Loose.Agg
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait JavaModule extends mill.Module with TaskModule { outer =>
+trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer =>
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule{
@@ -557,11 +557,6 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def intellijModulePath: os.Path = millSourcePath
 
   def forkWorkingDir = T{ ammonite.ops.pwd }
-
-  /**
-   * Skip Idea project file generation.
-   */
-  def skipIdea: Boolean = false
 }
 
 trait TestModule extends JavaModule with TaskModule {
