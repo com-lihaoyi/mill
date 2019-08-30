@@ -8,6 +8,51 @@ If you develop or maintain a mill plugin, please create a [pull request](https:/
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## AspectJ
+
+[AspectJ compiler](https://projects.eclipse.org/projects/tools.aspectj) support for mill.
+
+Project home: https://github.com/lefou/mill-aspectj
+
+### Quickstart
+
+```scala
+import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj:0.1.0`, de.tobiasroeser.mill.aspectj._
+
+object main extends AspectjModule {
+
+  // Select the AspectJ version
+  def aspectjVersion = T{ "{aspectjVersion}" }
+
+  // Set AspectJ options, e.g. the language level and annotation processor
+  // Run `mill main.ajcHelp` to get a list of supported options
+  def ajcOptions = Seq("-8", "-proc:none")
+
+}
+```
+
+### Configuration
+
+Your module needs to extend `de.tobiasroeser.mill.aspectj.AspectjModule` which itself extends `mill.scalalib.JavaModule`.
+
+The module trait `de.tobiasroeser.mill.aspectj.AspectjModule` has various configuration options (over those from `mill.scalalib.JavaModule`).
+
+The most essential target are:
+
+* `def aspectjVersion: T[String]` - The AspectJ version. _Required_.
+For a list of available releases refer to the https://www.eclipse.org/aspectj/downloads.php[AspectJ Download Page].
+
+* `def ajcOptions: T[Seq[String]]` - Additional options to be used by `ajc` in the `compile` target.
+
+* `def compile: T[CompilationResult]` - Compiles the source code with the ajc compiler.
+
+For a complete list of configuration options and more documentation, please refer to the [project home page](https://github.com/lefou/mill-aspectj).
+
 ## Bash Completion
 
 Limited bash completion support.
