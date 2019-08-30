@@ -45,7 +45,7 @@ The module trait `de.tobiasroeser.mill.aspectj.AspectjModule` has various config
 The most essential targets are:
 
 * `def aspectjVersion: T[String]` - The AspectJ version. _Required_.
-For a list of available releases refer to the https://www.eclipse.org/aspectj/downloads.php[AspectJ Download Page].
+For a list of available releases refer to the [AspectJ Download Page](https://www.eclipse.org/aspectj/downloads.php).
 
 * `def ajcOptions: T[Seq[String]]` - Additional options to be used by `ajc` in the `compile` target.
 
