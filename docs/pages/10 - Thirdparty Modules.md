@@ -42,7 +42,7 @@ Your module needs to extend `de.tobiasroeser.mill.aspectj.AspectjModule` which i
 
 The module trait `de.tobiasroeser.mill.aspectj.AspectjModule` has various configuration options (over those from `mill.scalalib.JavaModule`).
 
-The most essential target are:
+The most essential targets are:
 
 * `def aspectjVersion: T[String]` - The AspectJ version. _Required_.
 For a list of available releases refer to the https://www.eclipse.org/aspectj/downloads.php[AspectJ Download Page].
