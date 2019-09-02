@@ -12,9 +12,9 @@ import mill.eval.{Evaluator, PathRef}
 import mill.{T, scalalib}
 import os.{Path, RelPath}
 import scala.util.Try
-import scala.xml.{Elem, NodeSeq}
+import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
 
-import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet, SimpleIdeaConfigFile}
+import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 
 
 object GenIdea extends ExternalModule {
@@ -197,23 +197,22 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val configFileContributions = resolved.flatMap(_.configFileContributions)
 
     type FileComponent = (String, String)
-    def collisionFree(confs: Seq[IdeaConfigFile]): Map[String, Map[String, Map[String, String]]] = {
-      var seen: Map[FileComponent,IdeaConfigFile] = Map()
-      var result: Map[String, Map[String, Map[String, String]]] = Map()
+    def collisionFree(confs: Seq[IdeaConfigFile]): Map[String, Seq[IdeaConfigFile]] = {
+      var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
+      var result: Map[String, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
         val key = conf.name -> conf.component
         seen.get(key) match {
           case None =>
-            seen += key -> conf
-            result += conf.name -> (result.get(conf.name).getOrElse(Map[String, Map[String, String]]()) ++ Map(conf.component -> conf.asInstanceOf[SimpleIdeaConfigFile].options))
-          case Some(existing: SimpleIdeaConfigFile) if conf.isInstanceOf[SimpleIdeaConfigFile] && conf.asInstanceOf[SimpleIdeaConfigFile].options != existing =>
-            // identical, ignore
+            seen += key -> conf.config
+            result += conf.name -> (result.get(conf.name).getOrElse(Seq()) ++ Seq(conf))
+          case Some(existing) if conf.config == existing =>
+          // identical, ignore
           case Some(existing) =>
-            def details(conf: IdeaConfigFile) = conf match {
-              case SimpleIdeaConfigFile (name, component, options) => s"Options(${options.mkString(", ")}})"
-              case _ => "<missing details>"
+            def details(elements: Seq[GenIdeaModule.Element]) = {
+              elements.map(ideaConfigElementTemplate(_).toString().replaceAll("\\n", ""))
             }
-            val msg = s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(conf)} vs. ${details(existing)}"
+            val msg = s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(conf.config)} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
         }
       }
@@ -221,8 +220,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
     }
 
     //TODO: also check against fixed files
-    val fileContributions: Seq[(RelPath, Elem)] = collisionFree(configFileContributions).toSeq.map{ case (k, v) =>
-      (os.rel/".idea"/k) -> simpleIdeaConfigFileTemplate(v)
+    val fileContributions: Seq[(RelPath, Elem)] = collisionFree(configFileContributions).toSeq.map {
+      case (file, configs) =>
+        val map: Map[String, Seq[GenIdeaModule.Element]] = configs.groupBy(_.component).mapValues(_.flatMap(_.config))
+        (os.rel / ".idea" / file) -> ideaConfigFileTemplate(map)
     }
 
     val pathShortLibNameDuplicate = allResolved
@@ -377,17 +378,32 @@ case class GenIdeaImpl(evaluator: Evaluator,
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def simpleIdeaConfigFileTemplate(componentOptions: Map[String, Map[String, String]]): Elem = {
-    <project version={"" + ideaConfigVersion}>
+  def ideaConfigElementTemplate(element: GenIdeaModule.Element): Elem = {
+
+    val example = <config/>
+
+    val attribute1: MetaData =
+      if (element.attributes.isEmpty) Null
+      else element.attributes.toSeq.reverse.foldLeft(Null.asInstanceOf[MetaData]) {
+        case (prevAttr, (k, v)) =>
+          new UnprefixedAttribute(k, v, prevAttr)
+      }
+
+    new Elem(
+      prefix = null,
+      label = element.name,
+      attributes1 = attribute1,
+      example.scope,
+      minimizeEmpty = true,
+      child = element.childs.map(ideaConfigElementTemplate): _*
+    )
+  }
+
+  def ideaConfigFileTemplate(components: Map[String, Seq[GenIdeaModule.Element]]): Elem = {
+    <project version={ "" + ideaConfigVersion }>
       {
-        componentOptions.toSeq.map { case (name, options) =>
-            <component name={name}>
-              {
-                options.toSeq.map { case (name, value) =>
-                  <option name={name} value={value} />
-                }
-              }
-            </component>
+        components.toSeq.map { case (name, config) =>
+          <component name={ name }>{config.map(ideaConfigElementTemplate)}</component>
         }
       }
     </project>
@@ -533,24 +549,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
         yield <orderEntry type="module" module-name={depName} exported="" />
         }
       </component>
-      {
-        if (facets.isEmpty) NodeSeq.Empty
-        else {
-          <component name="FacetManager">
-            {
-              for(facet <- facets)
-              yield {
-                <facet type={facet.`type`} name={facet.name}>
-                  {
-                    import scala.xml.XML
-                    XML.loadString(facet.body)
-                  }
-                </facet>
-              }
-            }
-          </component>
-        }
-      }
+      { if (facets.isEmpty) NodeSeq.Empty else { <component name="FacetManager">
+            { for (facet <- facets) yield { <facet type={ facet.`type` } name={ facet.name }>
+                  { ideaConfigElementTemplate(facet.config) }
+                </facet> } }
+          </component> } }
     </module>
   }
   def scalaCompilerTemplate(settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]) = {

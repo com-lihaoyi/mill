@@ -31,30 +31,19 @@ trait GenIdeaModule extends Module {
 object GenIdeaModule {
   import upickle.default._
 
-  final case class JavaFacet(`type`: String, name: String, body: String)
-  object JavaFacet {
-    implicit def rw: ReadWriter[JavaFacet] = macroRW
-  }
-
   case class Element(name: String, attributes: Map[String, String] = Map(), childs: Seq[Element] = Seq())
   object Element {
     implicit def rw: ReadWriter[Element] = macroRW
   }
 
-
-  sealed trait IdeaConfigFile {
-    def name: String
-    def component: String
+  final case class JavaFacet(`type`: String, name: String, config: Element)
+  object JavaFacet {
+    implicit def rw: ReadWriter[JavaFacet] = macroRW
   }
 
+  final case class IdeaConfigFile(name: String, component: String, config: Seq[Element])
   object IdeaConfigFile {
     implicit def rw: ReadWriter[IdeaConfigFile] = macroRW
-  }
-
-  final case class SimpleIdeaConfigFile(name: String, component: String, options: Map[String, String]) extends IdeaConfigFile
-
-  object SimpleIdeaConfigFile {
-    implicit def rw: ReadWriter[SimpleIdeaConfigFile] = macroRW
   }
 
 }
