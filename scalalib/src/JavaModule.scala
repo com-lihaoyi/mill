@@ -554,8 +554,6 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
     */
   def artifactId: T[String] = artifactName()
 
-  def intellijModulePath: os.Path = millSourcePath
-
   def forkWorkingDir = T{ ammonite.ops.pwd }
 }
 

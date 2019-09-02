@@ -9,6 +9,8 @@ import mill.{Module, T}
 trait GenIdeaModule extends Module {
   import GenIdeaModule._
 
+  def intellijModulePath: os.Path = millSourcePath
+
   /**
     * Skip Idea project file generation.
     */
