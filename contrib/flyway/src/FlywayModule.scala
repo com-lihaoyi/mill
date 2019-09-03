@@ -3,6 +3,7 @@ package contrib.flyway
 
 import java.net.URLClassLoader
 
+import mill.contrib.flyway.ConsoleLog.Level
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import org.flywaydb.core.Flyway
@@ -10,8 +11,6 @@ import org.flywaydb.core.api.MigrationVersion
 import org.flywaydb.core.api.logging.LogFactory
 import org.flywaydb.core.internal.configuration.{ConfigUtils => flyway}
 import org.flywaydb.core.internal.info.MigrationInfoDumper
-import org.flywaydb.core.internal.logging.console.ConsoleLog.Level
-import org.flywaydb.core.internal.logging.console.ConsoleLogCreator
 
 import scala.collection.JavaConverters._
 
