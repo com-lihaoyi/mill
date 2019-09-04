@@ -20,9 +20,13 @@ fi
 MILL_DOWNLOAD_PATH="$HOME/.mill/download"
 MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/$MILL_VERSION"
 
+version_remainder="$MILL_VERSION"
+MILL_MAJOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
+MILL_MINOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
+
 if [ ! -x "$MILL_EXEC_PATH" ] ; then
   mkdir -p $MILL_DOWNLOAD_PATH
-  if [ "$MILL_VERSION" > "0.4.2" ] ; then
+  if [ $MILL_MAJOR_VERSION -gt 0 ] || [ $MILL_MINOR_VERSION -ge 5 ] ; then
     ASSEMBLY="-assembly"
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
