@@ -361,7 +361,8 @@ object contrib extends MillModule {
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path,
+        "MILL_SCOVERAGE_REPORT_WORKER_1_4_0" -> worker("1.4.0").compile().classes.path
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -378,7 +379,7 @@ object contrib extends MillModule {
       def moduleDeps = Seq(scalalib)
     }
 
-    object worker extends Cross[WorkerModule]("1.3.1")
+    object worker extends Cross[WorkerModule]("1.3.1", "1.4.0")
 
     class WorkerModule(scoverageVersion: String) extends MillApiModule {
       def moduleDeps = Seq(scoverage.api)

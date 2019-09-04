@@ -17,12 +17,12 @@ object HelloWorldTests extends utest.TestSuite {
 
   object HelloWorld extends HelloBase {
     object other extends ScalaModule {
-      def scalaVersion = "2.12.4"
+      def scalaVersion = "2.12.9"
     }
 
     object core extends ScoverageModule with BuildInfo {
-      def scalaVersion = "2.12.4"
-      def scoverageVersion = "1.3.1"
+      def scalaVersion = "2.12.9"
+      def scoverageVersion = "1.4.0"
 
       def moduleDeps = Seq(other)
 
@@ -31,7 +31,7 @@ object HelloWorldTests extends utest.TestSuite {
       }
 
       object test extends ScoverageTests {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
         def testFrameworks = Seq("org.scalatest.tools.Framework")
       }
     }
@@ -39,8 +39,8 @@ object HelloWorldTests extends utest.TestSuite {
 
   object HelloWorldSbt extends HelloBase { outer =>
     object core extends ScoverageModule {
-      def scalaVersion = "2.12.4"
-      def scoverageVersion = "1.3.1"
+      def scalaVersion = "2.12.9"
+      def scoverageVersion = "1.4.0"
       override def sources = T.sources(
         millSourcePath / 'src / 'main / 'scala,
         millSourcePath / 'src / 'main / 'java
@@ -48,7 +48,7 @@ object HelloWorldTests extends utest.TestSuite {
       override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
 
       object test extends ScoverageTests {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")
+        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def millSourcePath = outer.millSourcePath
         override def intellijModulePath = outer.millSourcePath / 'src / 'test
@@ -74,7 +74,7 @@ object HelloWorldTests extends utest.TestSuite {
           val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverageVersion)
 
           assert(
-            result == "1.3.1",
+            result == "1.4.0",
             evalCount > 0
           )
         }
@@ -84,7 +84,7 @@ object HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
             assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.3.1"),
+              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.4.0"),
               evalCount > 0
             )
           }
@@ -93,7 +93,7 @@ object HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
             assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-plugin:1.3.1"),
+              result == Agg(ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"),
               evalCount > 0
             )
           }
