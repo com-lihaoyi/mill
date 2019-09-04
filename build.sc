@@ -28,7 +28,7 @@ object Deps {
   val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
   val ammonite = ivy"com.lihaoyi:::ammonite:1.6.9"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
-  val flywayCore = ivy"org.flywaydb:flyway-core:5.2.4"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   val ipcsocketExcludingJna = ipcsocket.exclude(
