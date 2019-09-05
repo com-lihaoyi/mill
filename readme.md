@@ -167,7 +167,7 @@ corresponding version of Mill.
 
 ## Changelog
 
-### {master}
+### 0.5.1
 
 - GenIdea: Bug fixes
 - GenIdea: Support for module specific extensions (Facets) and additional config files
@@ -183,8 +183,8 @@ corresponding version of Mill.
 - Improved robustness in release/deployment process 
 
 *For details refer to 
-[milestone after 0.5.0](https://github.com/lihaoyi/mill/milestone/29?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.0...master).*
+[milestone 0.5.1](https://github.com/lihaoyi/mill/milestone/29?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.0...0.5.1).*
 
 
 ### 0.5.0
