@@ -167,6 +167,14 @@ corresponding version of Mill.
 
 ## Changelog
 
+### master
+
+
+*For details refer to
+[milestone 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.0...master).*
+
+
 ### 0.5.1 - 2019-09-05
 
 - GenIdea: Bug fixes
