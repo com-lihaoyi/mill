@@ -167,7 +167,7 @@ corresponding version of Mill.
 
 ## Changelog
 
-### 0.5.1
+### 0.5.1 - 2019-09-05
 
 - GenIdea: Bug fixes
 - GenIdea: Support for module specific extensions (Facets) and additional config files
