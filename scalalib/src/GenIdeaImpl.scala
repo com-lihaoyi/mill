@@ -10,9 +10,11 @@ import mill.api.{Loose, Result, Strict}
 import mill.define._
 import mill.eval.{Evaluator, PathRef}
 import mill.{T, scalalib}
-import os.Path
-
+import os.{Path, RelPath}
 import scala.util.Try
+import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
+
+import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 
 
 object GenIdea extends ExternalModule {
@@ -34,10 +36,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
                        ctx: Log with Home,
                        rootModule: BaseModule,
                        discover: Discover[_]) {
+  import GenIdeaImpl._
+
   val cwd: Path = rootModule.millSourcePath
 
-  def run(): Unit = {
+  val ideaConfigVersion = 4
 
+  def run(): Unit = {
 
     val pp = new scala.xml.PrettyPrinter(999, 4)
     val jdkInfo = extractCurrentJdk(cwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
@@ -68,7 +73,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
                     ctx: Option[Log],
                     fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
 
-    val modules = rootModule.millInternal.segmentsToModules.values
+    val modules: Seq[(Segments, JavaModule)] = rootModule.millInternal.segmentsToModules.values
       .collect{ case x: scalalib.JavaModule => x }
       .flatMap(_.transitiveModuleDeps)
       .map(x => (x.millModuleSegments, x))
@@ -112,7 +117,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
                              pluginClasspath: Loose.Agg[Path],
                              scalaOptions: Seq[String],
                              compilerClasspath: Loose.Agg[Path],
-                             libraryClasspath: Loose.Agg[Path]
+                             libraryClasspath: Loose.Agg[Path],
+                             facets: Seq[JavaFacet],
+                             configFileContributions: Seq[IdeaConfigFile]
                              )
 
     val resolved = evalOrElse(evaluator, Task.sequence(for((path, mod) <- modules) yield {
@@ -149,6 +156,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
         mod.resolveDeps(scalacPluginsIvyDeps)()
       }
 
+      val facets = T.task{
+        mod.ideaJavaModuleFacets(ideaConfigVersion)()
+      }
+
+      val configFileContributions = T.task{
+        mod.ideaConfigFiles(ideaConfigVersion)()
+      }
+
       T.task {
         val resolvedCp: Loose.Agg[PathRef] = externalDependencies()
         val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
@@ -156,6 +171,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val resolvedCompilerCp: Loose.Agg[PathRef] = scalaCompilerClasspath()
         val resolvedLibraryCp: Loose.Agg[PathRef] = externalLibraryDependencies()
         val scalacOpts: Seq[String] = scalacOptions()
+        val resolvedFacets: Seq[JavaFacet] = facets()
+        val resolvedConfigFileContributions: Seq[IdeaConfigFile] = configFileContributions()
 
         ResolvedModule(
           path,
@@ -164,7 +181,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
           resolvedSp.map(_.path).filter(_.ext == "jar"),
           scalacOpts,
           resolvedCompilerCp.map(_.path),
-          resolvedLibraryCp.map(_.path)
+          resolvedLibraryCp.map(_.path),
+          resolvedFacets,
+          resolvedConfigFileContributions
         )
       }
     }), Seq())
@@ -174,6 +193,38 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val allResolved = resolved.flatMap(_.classpath) ++ buildLibraryPaths ++ buildDepsPaths
 
     val librariesProperties = resolved.flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath)).toMap
+
+    val configFileContributions = resolved.flatMap(_.configFileContributions)
+
+    type FileComponent = (String, String)
+    def collisionFree(confs: Seq[IdeaConfigFile]): Map[String, Seq[IdeaConfigFile]] = {
+      var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
+      var result: Map[String, Seq[IdeaConfigFile]] = Map()
+      confs.foreach { conf =>
+        val key = conf.name -> conf.component
+        seen.get(key) match {
+          case None =>
+            seen += key -> conf.config
+            result += conf.name -> (result.get(conf.name).getOrElse(Seq()) ++ Seq(conf))
+          case Some(existing) if conf.config == existing =>
+          // identical, ignore
+          case Some(existing) =>
+            def details(elements: Seq[GenIdeaModule.Element]) = {
+              elements.map(ideaConfigElementTemplate(_).toString().replaceAll("\\n", ""))
+            }
+            val msg = s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(conf.config)} vs. ${details(existing)}"
+            ctx.map(_.log.error(msg))
+        }
+      }
+      result
+    }
+
+    //TODO: also check against fixed files
+    val fileContributions: Seq[(RelPath, Elem)] = collisionFree(configFileContributions).toSeq.map {
+      case (file, configs) =>
+        val map: Map[String, Seq[GenIdeaModule.Element]] = configs.groupBy(_.component).mapValues(_.flatMap(_.config))
+        (os.rel / ".idea" / file) -> ideaConfigFileTemplate(map)
+    }
 
     val pathShortLibNameDuplicate = allResolved
       .distinct
@@ -245,7 +296,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val allBuildLibraries : Set[ResolvedLibrary] =
       resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
 
-    val fixedFiles = Seq(
+    val fixedFiles: Seq[(RelPath, Elem)] = Seq(
       Tuple2(os.rel/".idea"/"misc.xml", miscXmlTemplate(jdkInfo)),
       Tuple2(os.rel/".idea"/"scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
@@ -277,7 +328,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       for(name <- names) yield Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
     }
 
-    val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _) =>
+    val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _, facets, _) =>
       val Seq(
         resourcesPathRefs: Seq[PathRef],
         sourcesPathRef: Seq[PathRef],
@@ -313,19 +364,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
         generatedSourceOutPath.dest,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
-        isTest
+        isTest,
+        facets
       )
       Tuple2(os.rel/".idea_modules"/s"${moduleName(path)}.iml", elem)
     }
 
-    fixedFiles ++ libraries ++ moduleFiles
-  }
-
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
-    evaluator.evaluate(Agg(e)).values match {
-      case Seq() => default
-      case Seq(e: T) => e
-    }
+    fixedFiles ++ fileContributions ++ libraries ++ moduleFiles
   }
 
   def relify(p: os.Path) = {
@@ -333,23 +378,47 @@ case class GenIdeaImpl(evaluator: Evaluator,
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
-  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
-    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-    case (sb, Segment.Label(s)) => sb.append(".").append(s)
-    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-  }.mkString.toLowerCase()
+  def ideaConfigElementTemplate(element: GenIdeaModule.Element): Elem = {
+
+    val example = <config/>
+
+    val attribute1: MetaData =
+      if (element.attributes.isEmpty) Null
+      else element.attributes.toSeq.reverse.foldLeft(Null.asInstanceOf[MetaData]) {
+        case (prevAttr, (k, v)) =>
+          new UnprefixedAttribute(k, v, prevAttr)
+      }
+
+    new Elem(
+      prefix = null,
+      label = element.name,
+      attributes1 = attribute1,
+      example.scope,
+      minimizeEmpty = true,
+      child = element.childs.map(ideaConfigElementTemplate): _*
+    )
+  }
+
+  def ideaConfigFileTemplate(components: Map[String, Seq[GenIdeaModule.Element]]): Elem = {
+    <project version={ "" + ideaConfigVersion }>
+      {
+        components.toSeq.map { case (name, config) =>
+          <component name={ name }>{config.map(ideaConfigElementTemplate)}</component>
+        }
+      }
+    </project>
+  }
 
   def scalaSettingsTemplate() = {
-
-    <project version="4">
+//    simpleIdeaConfigFileTemplate(Map("ScalaProjectSettings" -> Map("scFileMode" -> "Ammonite")))
+    <project version={"" + ideaConfigVersion}>
       <component name="ScalaProjectSettings">
         <option name="scFileMode" value="Ammonite" />
       </component>
     </project>
   }
   def miscXmlTemplate(jdkInfo: (String,String)) = {
-    <project version="4">
+    <project version={"" + ideaConfigVersion}>
       <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={jdkInfo._2} project-jdk-type="JavaSDK">
         <output url="file://$PROJECT_DIR$/target/idea_output"/>
       </component>
@@ -357,7 +426,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
   }
 
   def allModulesXmlTemplate(selectors: Seq[String]) = {
-    <project version="4">
+    <project version={"" + ideaConfigVersion}>
       <component name="ProjectModuleManager">
         <modules>
           <module
@@ -377,7 +446,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     </project>
   }
   def rootXmlTemplate(libNames: Strict.Agg[String]) = {
-    <module type="JAVA_MODULE" version="4">
+    <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out"/>
         <content url="file://$MODULE_DIR$/..">
@@ -430,9 +499,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
                         generatedSourceOutputPath: os.Path,
                         libNames: Strict.Agg[String],
                         depNames: Strict.Agg[String],
-                        isTest: Boolean
-                       ) = {
-    <module type="JAVA_MODULE" version="4">
+                        isTest: Boolean,
+                        facets: Seq[GenIdeaModule.JavaFacet]
+                       ): Elem = {
+    <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
           val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"
@@ -479,11 +549,16 @@ case class GenIdeaImpl(evaluator: Evaluator,
         yield <orderEntry type="module" module-name={depName} exported="" />
         }
       </component>
+      { if (facets.isEmpty) NodeSeq.Empty else { <component name="FacetManager">
+            { for (facet <- facets) yield { <facet type={ facet.`type` } name={ facet.name }>
+                  { ideaConfigElementTemplate(facet.config) }
+                </facet> } }
+          </component> } }
     </module>
   }
   def scalaCompilerTemplate(settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]) = {
 
-    <project version="4">
+    <project version={"" + ideaConfigVersion}>
       <component name="ScalaCompilerConfiguration">
         {
         for((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
@@ -506,4 +581,29 @@ case class GenIdeaImpl(evaluator: Evaluator,
       </component>
     </project>
   }
+}
+
+object GenIdeaImpl {
+
+  /**
+    * Create the module name (to be used by Idea) for the module based on it segments.
+    * @see [[Module.millModuleSegments]]
+    */
+  def moduleName(p: Segments): String = p.value.foldLeft(StringBuilder.newBuilder) {
+    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+    case (sb, Segment.Label(s)) => sb.append(".").append(s)
+    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+  }.mkString.toLowerCase()
+
+  /**
+    * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
+    */
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
+    evaluator.evaluate(Agg(e)).values match {
+      case Seq() => default
+      case Seq(e: T) => e
+    }
+  }
+
 }
