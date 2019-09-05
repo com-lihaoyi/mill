@@ -171,7 +171,7 @@ corresponding version of Mill.
 
 
 *For details refer to
-[milestone 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
+[milestone after 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.0...master).*
 
 
