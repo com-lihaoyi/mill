@@ -167,6 +167,26 @@ corresponding version of Mill.
 
 ## Changelog
 
+### {master}
+
+- GenIdea: Bug fixes
+- GenIdea: Support for module specific extensions (Facets) and additional config files
+- Add ability to define JAR manifests
+- Dotty support: Updates and support for binary compiler bridges
+- Ivy: improved API to create optional dependendies
+- Interpolate `$MILL_VERSION` in ivy imports
+- Zinc: Fixed logger output
+- Scoverage: Upgrade to Scoverage 1.4.0
+- Flyway: Upgrade to Flyway 6.0.1
+- Bloop: Updated semanticDB version to 4.2.2
+- Documentation updates
+- Improved robustness in release/deployment process 
+
+*For details refer to 
+[milestone after 0.5.0](https://github.com/lihaoyi/mill/milestone/29?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.0...master).*
+
+
 ### 0.5.0
 
 - Mill now supports a `./mill`
