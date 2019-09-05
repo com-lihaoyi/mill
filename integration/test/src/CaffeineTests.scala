@@ -8,9 +8,10 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
     'test - {
       // Caffeine only can build using Java 9 or up. Java 8 results in weird
       // type inference issues during the compile
-      if (mill.main.client.Util.isJava9OrAbove){
+      if (!mill.main.client.Util.isJava9OrAbove) {
+        println("Skipping caffeine tests for Java version < 9")
+      } else {
         assert(eval("caffeine.test.compile"))
-
         val suites = Seq(
           "com.github.benmanes.caffeine.SingleConsumerQueueTest",
           "com.github.benmanes.caffeine.cache.AsyncTest",
