@@ -1,7 +1,7 @@
 package mill.scalalib
 import ammonite.util.Colors
 import mill.Agg
-import mill.api.{DummyReporter, TestReporter}
+import mill.api.{DummyTestReporter, TestReporter}
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
@@ -48,7 +48,7 @@ object TestRunner {
         entireClasspath = Agg.from(classpath.map(os.Path(_))),
         testClassfilePath = Agg(os.Path(testCp)),
         args = arguments,
-        DummyReporter
+        DummyTestReporter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite

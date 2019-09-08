@@ -189,7 +189,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
-      T.ctx.bsp
+      T.ctx.testReporter
     )
 
     TestModule.handleResults(doneMsg, results)

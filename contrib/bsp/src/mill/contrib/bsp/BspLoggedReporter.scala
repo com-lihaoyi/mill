@@ -1,17 +1,16 @@
 package mill.contrib.bsp
 
 import java.io.File
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.atomic.AtomicInteger
+
 import ch.epfl.scala.bsp4j._
 import ch.epfl.scala.{bsp4j => bsp}
-import sbt.internal.inc.ManagedLoggedReporter
-import sbt.internal.util.ManagedLogger
-import xsbti.{Problem, Severity}
+import mill.api.{Info, Problem, Warn, BuildProblemReporter}
+
 import scala.collection.JavaConverters._
 import scala.collection.concurrent
-import scala.compat.java8.OptionConverters._
-
+import scala.language.implicitConversions
 
 /**
   * Specialized reporter that sends compilation diagnostics
@@ -27,16 +26,11 @@ import scala.compat.java8.OptionConverters._
   *                            the compilation request. Needs to be sent
   *                            back as part of the published diagnostics
   *                            as well as compile report
-  * @param maxErrors The maximum number of errors to be logged during the
-  *                  compilation of targetId
-  * @param logger    The logger that will log the messages for each Problem.
   */
 class BspLoggedReporter(client: bsp.BuildClient,
                         targetId: BuildTargetIdentifier,
                         taskId: TaskId,
-                        compilationOriginId: Option[String],
-                        maxErrors: Int,
-                        logger: ManagedLogger) extends ManagedLoggedReporter(maxErrors, logger) {
+                        compilationOriginId: Option[String]) extends BuildProblemReporter {
 
   var errors = new AtomicInteger(0)
   var warnings = new AtomicInteger(0)
@@ -47,19 +41,16 @@ class BspLoggedReporter(client: bsp.BuildClient,
   override def logError(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     errors.incrementAndGet()
-    super.logError(problem)
   }
 
   override def logInfo(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     infos.incrementAndGet()
-    super.logInfo(problem)
   }
 
   override def logWarning(problem: Problem): Unit = {
     client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
     warnings.incrementAndGet()
-    super.logWarning(problem)
   }
 
   override def printSummary(): Unit = {
@@ -85,7 +76,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
   private[this] def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
                                                                                     bsp.PublishDiagnosticsParams = {
       val diagnostic = getSingleDiagnostic(problem)
-      val sourceFile = problem.position().sourceFile().asScala
+      val sourceFile = problem.position.sourceFile
       val textDocument = new TextDocumentIdentifier(
         sourceFile.getOrElse(None) match {
         case None => targetId.getUri
@@ -120,20 +111,22 @@ class BspLoggedReporter(client: bsp.BuildClient,
 
   // Computes the diagnostic related to the given Problem
   private[this] def getSingleDiagnostic(problem: Problem): Diagnostic ={
-
+    val pos = problem.position
+    val i: Integer = pos.startLine.orElse(pos.line).getOrElse[Int](0)
+    println(i)
     val start = new bsp.Position(
-      problem.position.startLine.asScala.getOrElse(problem.position.line.asScala.getOrElse(0)),
-      problem.position.startOffset.asScala.getOrElse(problem.position.offset.asScala.getOrElse(0)))
+      pos.startLine.orElse(pos.line).getOrElse[Int](0),
+      pos.startOffset.orElse(pos.offset).getOrElse[Int](0))
     val end = new bsp.Position(
-      problem.position.endLine.asScala.getOrElse(problem.position.line.asScala.getOrElse(start.getLine)),
-      problem.position.endOffset.asScala.getOrElse(problem.position.offset.asScala.getOrElse(start.getCharacter)))
+      pos.endLine.orElse(pos.line).getOrElse[Int](start.getLine.intValue()),
+      pos.endOffset.orElse(pos.offset).getOrElse[Int](start.getCharacter.intValue()))
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
-    diagnostic.setCode(problem.position.lineContent)
+    diagnostic.setCode(pos.lineContent)
     diagnostic.setSource("compiler from mill")
     diagnostic.setSeverity( problem.severity match  {
-      case Severity.Info => bsp.DiagnosticSeverity.INFORMATION
-      case Severity.Error => bsp.DiagnosticSeverity.ERROR
-      case Severity.Warn => bsp.DiagnosticSeverity.WARNING
+      case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
+      case mill.api.Error => bsp.DiagnosticSeverity.ERROR
+      case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
     }
     )
     diagnostic

@@ -1,9 +1,10 @@
 package mill.scalalib.api
 
 import mill.api.Loose.Agg
-import mill.api.PathRef
+import mill.api.{PathRef, BuildProblemReporter}
 import mill.api.JsonFormatters._
-import sbt.internal.inc._
+
+
 
 object ZincWorkerApi{
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
@@ -14,7 +15,7 @@ trait ZincWorkerApi {
                   sources: Agg[os.Path],
                   compileClasspath: Agg[os.Path],
                   javacOptions: Seq[String],
-                  reporter: Option[ManagedLoggedReporter])
+                  reporter: Option[BuildProblemReporter])
                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
@@ -27,7 +28,7 @@ trait ZincWorkerApi {
                    scalacOptions: Seq[String],
                    compilerClasspath: Agg[os.Path],
                    scalacPluginClasspath: Agg[os.Path],
-                   reporter: Option[ManagedLoggedReporter])
+                   reporter: Option[BuildProblemReporter])
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   def discoverMainClasses(compilationResult: CompilationResult)

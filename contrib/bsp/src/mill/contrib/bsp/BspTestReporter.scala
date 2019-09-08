@@ -3,7 +3,7 @@ package mill.contrib.bsp
 import java.io.{PrintWriter, StringWriter}
 
 import ch.epfl.scala.bsp4j._
-import mill.api.BspContext
+import mill.api.TestReporter
 import sbt.testing._
 
 
@@ -24,7 +24,7 @@ class BspTestReporter(
                        client: BuildClient,
                        targetId: BuildTargetIdentifier,
                        taskId: TaskId,
-                       arguments: Seq[String]) extends BspContext {
+                       arguments: Seq[String]) extends TestReporter {
 
   var passed = 0
   var failed = 0
@@ -32,8 +32,6 @@ class BspTestReporter(
   var ignored = 0
   var skipped = 0
   var totalTime: Long = 0
-
-  override def args: Seq[String] = arguments
 
   override def logStart(event: Event): Unit = {
     val taskStartParams = new TaskStartParams(taskId)

@@ -13,9 +13,6 @@ import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
 import mill.api.Loose.Agg
-import sbt.internal.inc.ManagedLoggedReporter
-import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.util.LogExchange
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -221,7 +218,7 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
-      javacOptions() ++ T.ctx().bsp.args,
+      javacOptions(),
       T.ctx().reporter(hashCode)
     )
   }
@@ -613,7 +610,7 @@ trait TestModule extends JavaModule with TaskModule {
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
-      T.ctx().bsp
+      T.ctx().testReporter
     )
 
     TestModule.handleResults(doneMsg, results)

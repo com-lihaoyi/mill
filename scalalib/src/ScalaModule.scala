@@ -10,9 +10,6 @@ import mill.scalalib.api.Util.isDotty
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
-import sbt.internal.inc.ManagedLoggedReporter
-import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.util.LogExchange
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -140,7 +137,7 @@ trait ScalaModule extends JavaModule { outer =>
       javacOptions(),
       scalaVersion(),
       scalaOrganization(),
-      scalacOptions() ++ T.ctx.bsp.args,
+      scalacOptions(),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
       T.ctx().reporter(hashCode)

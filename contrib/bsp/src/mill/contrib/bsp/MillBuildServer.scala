@@ -1,31 +1,27 @@
 package mill.contrib.bsp
 
-import sbt.testing._
 import java.util.concurrent.CompletableFuture
 
-import mill.scalalib.Lib.discoverTests
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import mill.api.Result.{Skipped, Success}
-import mill.{scalalib, _}
-import mill.api.{BspContext, Result, Strict}
+import mill.api.{DummyTestReporter, Result, Strict, BuildProblemReporter}
 import mill.contrib.bsp.ModuleUtils._
 import mill.define.Segment.Label
+import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
+import mill.main.{EvaluatorScopt, MainModule}
+import mill.modules.Jvm
+import mill.scalalib.Lib.discoverTests
 import mill.scalalib._
 import mill.scalalib.api.CompilationResult
-import sbt.internal.inc._
-
-import scala.collection.JavaConverters._
-import mill.modules.Jvm
 import mill.util.{Ctx, DummyLogger}
-import mill.define.{Discover, ExternalModule}
-import mill.main.{EvaluatorScopt, MainModule}
+import mill.{scalalib, _}
 import os.Path
 import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
 import sbt.util.LogExchange
 
-import scala.io.Source
+import scala.collection.JavaConverters._
 
 
 class MillBuildServer(evaluator: Evaluator,
@@ -215,7 +211,7 @@ class MillBuildServer(evaluator: Evaluator,
   // module's hash code TODO: find something more reliable than the hash code
   private[this] def getBspLoggedReporterPool(params: Parameters, taskStartMessage: String => String,
                                              taskStartDataKind: String, taskStartData: BuildTargetIdentifier => Object):
-                                                                Int => Option[ManagedLoggedReporter] = {
+                                                                Int => Option[BuildProblemReporter] = {
     int: Int =>
       if (moduleCodeToTargetId.contains(int)) {
         val targetId = moduleCodeToTargetId(int)
@@ -229,9 +225,8 @@ class MillBuildServer(evaluator: Evaluator,
         Option(new BspLoggedReporter(client,
           targetId,
           taskId,
-          params.getOriginId,
-          10, getCompilationLogger))}
-      else Option.empty[ManagedLoggedReporter]
+          params.getOriginId))}
+      else None
   }
 
   //TODO: if the client wants to give compilation arguments and the module
@@ -247,12 +242,7 @@ class MillBuildServer(evaluator: Evaluator,
       val result = millEvaluator.evaluate(compileTasks,
                     getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                       TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
-                    new BspContext {
-                      override def args: Seq[String] = params.getArguments.getOrElse(Seq.empty[String])
-                      override def logStart(event: Event): Unit = {}
-
-                      override def logFinish(event: Event): Unit = {}
-                    },
+                    DummyTestReporter,
                     new MillBspLogger(client, taskId, millEvaluator.log)
       )
       val compileResult = new CompileResult(getStatusCode(result))
@@ -341,7 +331,7 @@ class MillBuildServer(evaluator: Evaluator,
             taskStartParams.setData(new TestTask(targetId))
             client.onBuildTaskStart(taskStartParams)
 
-            val bspContext = new BspTestReporter(
+            val testReporter = new BspTestReporter(
               client, targetId,
               new TaskId(testTask.hashCode().toString),
               Seq.empty[String])
@@ -350,7 +340,7 @@ class MillBuildServer(evaluator: Evaluator,
               Strict.Agg(testTask),
               getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                 TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
-              bspContext,
+              testReporter,
               new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
             val endTime = System.currentTimeMillis()
             val statusCode = getStatusCode(results)
@@ -369,7 +359,7 @@ class MillBuildServer(evaluator: Evaluator,
             taskFinishParams.setMessage("Finished testing target: " +
               moduleToTarget(targetIdToModule(targetId)).getDisplayName)
             taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
-            taskFinishParams.setData(bspContext.getTestReport)
+            taskFinishParams.setData(testReporter.getTestReport)
             client.onBuildTaskFinish(taskFinishParams)
 
           case _ =>

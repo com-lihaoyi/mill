@@ -2,21 +2,18 @@ package mill.eval
 
 import java.net.URLClassLoader
 
+import ammonite.runtime.SpecialClassLoader
+import mill.api.Result.{Aborted, OuterStack, Success}
+import mill.api.Strict.Agg
+import mill.api.{DummyTestReporter, TestReporter, BuildProblemReporter}
+import mill.define.{Ctx => _, _}
+import mill.util
+import mill.util.Router.EntryPoint
+import mill.util._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
-import ammonite.runtime.SpecialClassLoader
-import mill.api.{BspContext, DummyBspContext}
-import mill.util.Router.EntryPoint
-import mill.define.{Ctx => _, _}
-import mill.api.Result.{Aborted, OuterStack, Success}
-import mill.util
-import mill.util._
-import mill.api.Strict.Agg
-import sbt.internal.inc.{CompilerArguments, ManagedLoggedReporter}
-import sbt.internal.util.{ConsoleOut, MainAppender}
-import sbt.testing.Event
-import sbt.util.LogExchange
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -45,8 +42,8 @@ case class Evaluator(home: os.Path,
   val classLoaderSignHash = classLoaderSig.hashCode()
 
   def evaluate(goals: Agg[Task[_]],
-               reporter: Int => Option[ManagedLoggedReporter] = (int: Int) => Option.empty[ManagedLoggedReporter],
-               bspContext: BspContext = DummyBspContext,
+               reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+               testReporter: TestReporter = DummyTestReporter,
                logger: Logger = log): Evaluator.Results = {
     os.makeDir.all(outPath)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -74,7 +71,7 @@ case class Evaluator(home: os.Path,
         results,
         counterMsg,
         reporter,
-        bspContext,
+        testReporter,
         logger
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -121,8 +118,8 @@ case class Evaluator(home: os.Path,
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String,
-                          reporter: Int => Option[ManagedLoggedReporter],
-                          bspContext: BspContext,
+                          zincProblemReporter: Int => Option[BuildProblemReporter],
+                          testReporter: TestReporter,
                           logger: Logger
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
@@ -146,8 +143,8 @@ case class Evaluator(home: os.Path,
           paths = None,
           maybeTargetLabel = None,
           counterMsg = counterMsg,
-          reporter,
-          bspContext,
+          zincProblemReporter,
+          testReporter,
           logger
         )
         (newResults, newEvaluated, false)
@@ -201,8 +198,8 @@ case class Evaluator(home: os.Path,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
               counterMsg = counterMsg,
-              reporter,
-              bspContext,
+              zincProblemReporter,
+              testReporter,
               logger
             )
 
@@ -278,8 +275,8 @@ case class Evaluator(home: os.Path,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
                     counterMsg: String,
-                    reporter: Int => Option[ManagedLoggedReporter],
-                    bspContext: BspContext,
+                    reporter: Int => Option[BuildProblemReporter],
+                    testReporter: TestReporter,
                     logger: Logger): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
@@ -342,7 +339,7 @@ case class Evaluator(home: os.Path,
             home,
             env,
             reporter,
-            bspContext
+            testReporter
           )
 
           val out = System.out
