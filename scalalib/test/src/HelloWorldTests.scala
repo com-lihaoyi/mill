@@ -270,6 +270,13 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object Dotty213 extends HelloBase {
+    object foo extends ScalaModule {
+      def scalaVersion = "0.18.1-RC1"
+      def ivyDeps = Agg(ivy"org.scala-lang.modules::scala-xml:1.2.0".withDottyCompat(scalaVersion()))
+    }
+  }
+
   val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
 
   def jarMainClass(jar: JarFile): Option[String] = {
@@ -934,6 +941,14 @@ object HelloWorldTests extends TestSuite {
         val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
         assert(evalCount > 0)
       }
+    }
+
+    'dotty213 - workspaceTest(
+      Dotty213,
+      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
+    ){ eval =>
+      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
+      assert(evalCount > 0)
     }
   }
 }
