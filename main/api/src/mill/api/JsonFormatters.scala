@@ -33,7 +33,7 @@ trait JsonFormatters {
     ste => ujson.Obj(
       "declaringClass" -> ujson.Str(ste.getClassName),
       "methodName" -> ujson.Str(ste.getMethodName),
-      "fileName" -> ujson.Str(ste.getFileName),
+      "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq :_*),
       "lineNumber" -> ujson.Num(ste.getLineNumber)
     ),
     {
@@ -41,7 +41,7 @@ trait JsonFormatters {
         new StackTraceElement(
           json("declaringClass").str.toString,
           json("methodName").str.toString,
-          json("fileName").str.toString,
+          json("fileName").arr.headOption.map(_.str.toString).orNull,
           json("lineNumber").num.toInt
         )
     }
