@@ -508,7 +508,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
-          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"
+          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath)
           if (isTest)
             <output-test url={outputUrl} />
           else
