@@ -451,10 +451,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
   def rootXmlTemplate(libNames: Strict.Agg[String]) = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../out"/>
+        <output url="file://$MODULE_DIR$/../out/ideaOutputDir-mill-build"/>
         <content url="file://$MODULE_DIR$/..">
           <excludeFolder url="file://$MODULE_DIR$/../project" />
           <excludeFolder url="file://$MODULE_DIR$/../target" />
+          <excludeFolder url="file://$MODULE_DIR$/../out" />
         </content>
         <exclude-output/>
         <orderEntry type="inheritedJdk" />
