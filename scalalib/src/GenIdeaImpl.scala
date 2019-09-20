@@ -455,6 +455,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         <content url="file://$MODULE_DIR$/..">
           <excludeFolder url="file://$MODULE_DIR$/../project" />
           <excludeFolder url="file://$MODULE_DIR$/../target" />
+          <excludeFolder url="file://$MODULE_DIR$/../out" />
         </content>
         <exclude-output/>
         <orderEntry type="inheritedJdk" />
