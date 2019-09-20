@@ -119,7 +119,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
                              compilerClasspath: Loose.Agg[Path],
                              libraryClasspath: Loose.Agg[Path],
                              facets: Seq[JavaFacet],
-                             configFileContributions: Seq[IdeaConfigFile]
+                             configFileContributions: Seq[IdeaConfigFile],
+                             compilerOutput: Path
                              )
 
     val resolved = evalOrElse(evaluator, Task.sequence(for((path, mod) <- modules) yield {
@@ -164,6 +165,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
         mod.ideaConfigFiles(ideaConfigVersion)()
       }
 
+      val compilerOutput = T.task{
+        mod.ideaCompileOutput()
+      }
+
       T.task {
         val resolvedCp: Loose.Agg[PathRef] = externalDependencies()
         val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
@@ -173,6 +178,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val scalacOpts: Seq[String] = scalacOptions()
         val resolvedFacets: Seq[JavaFacet] = facets()
         val resolvedConfigFileContributions: Seq[IdeaConfigFile] = configFileContributions()
+        val resolvedCompilerOutput = compilerOutput()
 
         ResolvedModule(
           path,
@@ -183,7 +189,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
           resolvedCompilerCp.map(_.path),
           resolvedLibraryCp.map(_.path),
           resolvedFacets,
-          resolvedConfigFileContributions
+          resolvedConfigFileContributions,
+          resolvedCompilerOutput.path
         )
       }
     }), Seq())
@@ -328,7 +335,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       for(name <- names) yield Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
     }
 
-    val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _, facets, _) =>
+    val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _, facets, _, compilerOutput) =>
       val Seq(
         resourcesPathRefs: Seq[PathRef],
         sourcesPathRef: Seq[PathRef],
@@ -339,10 +346,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
       val normalSourcePaths = (allSourcesPathRefs.map(_.path).toSet -- generatedSourcePaths.toSet).toSeq
 
-      val paths = Evaluator.resolveDestPaths(
-        evaluator.outPath,
-        mod.compile.ctx.segments
-      )
       val scalaVersionOpt = mod match {
         case x: ScalaModule => Some(evaluator.evaluate(Agg(x.scalaVersion)).values.head.asInstanceOf[String])
         case _ => None
@@ -360,7 +363,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Strict.Agg.from(resourcesPathRefs.map(_.path)),
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
-        paths.out,
+        compilerOutput,
         generatedSourceOutPath.dest,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
@@ -505,7 +508,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
-          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath) + "/dest/classes"
+          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath)
           if (isTest)
             <output-test url={outputUrl} />
           else

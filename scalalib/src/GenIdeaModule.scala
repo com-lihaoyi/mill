@@ -1,7 +1,7 @@
 package mill.scalalib
 
 import mill.define.Command
-import mill.{Module, T}
+import mill.{Module, PathRef, T}
 
 /**
  * Module specific configuration of the Idea project file generator.
@@ -28,7 +28,9 @@ trait GenIdeaModule extends Module {
     */
   def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command { Seq[IdeaConfigFile]() }
 
-  }
+  def ideaCompileOutput: T[PathRef] = T.persistent { PathRef(T.ctx().dest / "classes") }
+
+}
 
 object GenIdeaModule {
   import upickle.default._
