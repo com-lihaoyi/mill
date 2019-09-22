@@ -359,13 +359,15 @@ This is a [mill](https://www.lihaoyi.com/mill/) module similar to
 but for Java. 
 It will generate a Java class containing information from your build.
 
+Project home: https://github.com/carueda/mill-jbuildinfo
+
 To declare a module that uses this plugin, extend the
 `com.github.carueda.mill.JBuildInfo` trait and provide
 the desired information via the `buildInfoMembers` method:
 
 ```scala
 // build.sc
-import $ivy.`com.github.carueda::jbuildinfo:0.1.1`
+import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
 import com.github.carueda.mill.JBuildInfo
 import mill.T
 
@@ -384,8 +386,8 @@ This will generate:
 ```java
 // BuildInfo.java
 public class BuildInfo {
-  public static final String name = "some name";
-  public static final String version = "x.y.z";
+  public static final String getName() { return "some name"; }
+  public static final String getVersion() { return "x.y.z"; }
 }
 ```
 
