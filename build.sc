@@ -26,8 +26,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
-  val ammonite = ivy"com.lihaoyi:::ammonite:1.7.1-1-5a4b391
-"
+  val ammonite = ivy"com.lihaoyi:::ammonite:1.7.1-1-5a4b391"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
