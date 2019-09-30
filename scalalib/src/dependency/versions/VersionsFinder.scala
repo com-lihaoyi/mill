@@ -9,10 +9,10 @@ import mill.api.{Loose, Strict}
 
 private[dependency] object VersionsFinder {
 
-  def findVersions(ctx: Log with Home,
-                   rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
-    val evaluator =
-      new Evaluator(ctx.home, os.pwd / 'out, os.pwd / 'out, rootModule, ctx.log)
+  def findVersions(
+    evaluator: Evaluator,
+    ctx: Log with Home,
+    rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.millInternal.modules.collect {
       case javaModule: JavaModule => javaModule
