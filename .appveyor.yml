@@ -28,9 +28,9 @@ build_script:
       SET "PATH=%JAVA_HOME%\bin;%PATH%" &&
       MD C:\bin &&
       curl -Lo C:\bin\mill.bat %MILL_URL% &&
-      cmd /C C:\bin\mill.bat -i all __.publishLocal release &&
+      cmd /C C:\bin\mill.bat -i all __.publishLocal assembly &&
       RD /S /Q %USERPROFILE%\.mill &&
-      cmd /C C:\mill\out\release\dest\mill.bat -i all main.test scalajslib.test)
+      cmd /C C:\mill\out\assembly\dest\mill -i all main.test scalajslib.test)
   - if [%COMPILER%]==[msys2] (
       SET "PATH=%JAVA_HOME%\bin;C:\%MSYS2_DIR%\%MSYSTEM%\bin;C:\%MSYS2_DIR%\usr\bin;%PATH%" &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'mkdir -p /usr/local/bin' &&
@@ -38,7 +38,7 @@ build_script:
       C:\%MSYS2_DIR%\usr\bin\bash -lc 'chmod +x /usr/local/bin/mill' &&
       C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && mill -i dev.assembly" &&
       RD /S /Q %USERPROFILE%\.mill &&
-      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/dev/assembly/dest/mill.bat -i all main.test scalajslib.test")
+      C:\%MSYS2_DIR%\usr\bin\bash -lc "cd /c/mill && out/dev/assembly/dest/mill -i all main.test scalajslib.test")
   - if [%COMPILER%]==[cygwin] (
       SET "PATH=%JAVA_HOME%\bin;C:\%CYGWIN_DIR%\bin;C:\%CYGWIN_DIR%\usr\bin;%PATH%" &&
       C:\%CYGWIN_DIR%\bin\bash -lc 'mkdir -p /usr/local/bin' &&
