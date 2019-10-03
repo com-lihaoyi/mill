@@ -3,9 +3,9 @@ package scalajslib
 package worker
 
 import java.io.File
-import java.net.URLClassLoader
 
 import mill.api.Result
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
@@ -13,19 +13,23 @@ import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLink
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.testadapter.TestAdapter
-import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
+    
+  var scalaJSModuleKind: ScalaJSModuleKind = null;
+              
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,
            main: String,
            fullOpt: Boolean,
            moduleKind: ModuleKind) = {
+
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
     }
-    val scalaJSModuleKind = moduleKind match {
+    scalaJSModuleKind = moduleKind match {
       case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
     }
@@ -62,7 +66,10 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
 
-    val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+    val moduleIdentifier = Option[String](linkedFile.getAbsolutePath)
+    val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(scalaJSModuleKind, moduleIdentifier)
+    //val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+
     val adapter =
       new TestAdapter(env, tconfig)
 
