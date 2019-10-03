@@ -17,7 +17,7 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
     val coverage = deserialize(coverageFileObj)
     coverage(invoked(findMeasurementFiles(dataDir)))
     val sourceFolders = sources.map(_.path.toIO)
-    val folder = new java.io.File(s"${selfDir}/${reportType.folderName}")
+    val folder = new java.io.File(s"${selfDir}/${reportType.folderName}/dest")
     folder.mkdir()
     reportType match {
       case Html =>
