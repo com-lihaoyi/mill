@@ -129,33 +129,6 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     bloopDir / s"${name(module)}.json"
 
   //////////////////////////////////////////////////////////////////////////////
-  // SemanticDB related configuration
-  //////////////////////////////////////////////////////////////////////////////
-
-  // Version of the semanticDB plugin.
-  def semanticDBVersion: String = "4.2.3"
-
-  // Scala versions supported by semantic db. Needs to be updated when
-  // bumping semanticDBVersion.
-  // See [https://github.com/scalameta/metals/blob/82acc8bff0884800d601170b2a1aefa4e38b5a9a/build.sbt#L151]
-  def semanticDBSupported = Set(
-    "2.13.1",
-    "2.13.0",
-    "2.12.10",
-    "2.12.9",
-    "2.12.8",
-    "2.12.7",
-    "2.11.12"
-  )
-
-  // Recommended for metals usage.
-  def semanticDBOptions = List(
-    s"-P:semanticdb:sourceroot:$pwd",
-    "-P:semanticdb:synthetics:on",
-    "-P:semanticdb:failures:warning"
-  )
-
-  //////////////////////////////////////////////////////////////////////////////
   // Computation of the bloop configuration for a specific module
   //////////////////////////////////////////////////////////////////////////////
 
@@ -173,20 +146,14 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
     val scalaConfig = module match {
       case s: ScalaModule =>
-        val semanticDb = s.resolveDeps(s.scalaVersion.map {
-          case scalaV if semanticDBSupported(scalaV) =>
-            Agg(ivy"org.scalameta:semanticdb-scalac_$scalaV:$semanticDBVersion")
-          case _ => Agg()
-        })
-
         T.task {
-          val pluginCp = semanticDb() ++ s.scalacPluginClasspath()
+          val pluginCp = s.scalacPluginClasspath()
           val pluginOptions = pluginCp.map { pathRef =>
             s"-Xplugin:${pathRef.path}"
           }
 
           val allScalacOptions =
-            (s.scalacOptions() ++ pluginOptions ++ semanticDBOptions).toList
+            (s.scalacOptions() ++ pluginOptions).toList
           Some(
             BloopConfig.Scala(
               organization = "org.scala-lang",
