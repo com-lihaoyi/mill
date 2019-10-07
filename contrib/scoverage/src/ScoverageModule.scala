@@ -4,9 +4,10 @@ package scoverage
 
 import coursier.MavenRepository
 import mill.api.Result
+import mill.define.Persistent
 import mill.eval.PathRef
 import mill.util.Ctx
-import mill.scalalib.{DepSyntax, JavaModule, Lib, ScalaModule, TestModule, Dep}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule, TestModule}
 import mill.moduledefs.Cacher
 
 
@@ -84,8 +85,10 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   object scoverage extends ScalaModule {
-    def selfDir = T { T.ctx().dest / os.up / os.up }
-    def dataDir = T { selfDir() / "data" }
+    def dataDir: Persistent[PathRef] = T.persistent {
+      // via the persistent target, we ensure, the dest dir doesn't get cleared
+      PathRef(T.ctx().dest)
+    }
 
     def generatedSources = outer.generatedSources()
     def allSources = outer.allSources()
@@ -98,19 +101,19 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
     def scalacPluginIvyDeps = outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep())
     def scalacOptions = outer.scalacOptions() ++
-      Seq(s"-P:scoverage:dataDir:${dataDir()}")
+      Seq(s"-P:scoverage:dataDir:${dataDir().path.toIO.getPath()}")
 
     def htmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .htmlReport(allSources(), dataDir().toString, selfDir().toString)
+        .htmlReport(allSources(), dataDir().path.toIO.getPath())
     }
     def xmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .xmlReport(allSources(), dataDir().toString, selfDir().toString)
+        .xmlReport(allSources(), dataDir().path.toIO.getPath())
     }
   }
 
