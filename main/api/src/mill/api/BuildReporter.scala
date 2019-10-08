@@ -31,6 +31,10 @@ object  DummyTestReporter extends TestReporter {
   }
 }
 
+/**
+  * A listener trait for getting notified about
+  * build output like compiler warnings and errors
+  */
 trait BuildProblemReporter {
   def logError(problem: Problem): Unit
 
@@ -41,6 +45,22 @@ trait BuildProblemReporter {
   def printSummary(): Unit
 }
 
+/**
+  * Contains general information about the build problem
+  */
+trait Problem {
+  def category: String
+
+  def severity: Severity
+
+  def message: String
+
+  def position: ProblemPosition
+}
+
+/**
+  * Indicates the exact location (source file, line, column) of the build problem
+  */
 trait ProblemPosition {
   def line: Option[Int]
 
@@ -73,15 +93,5 @@ sealed trait Severity
 case object Info extends Severity
 case object Error extends Severity
 case object Warn extends Severity
-
-trait Problem {
-  def category: String
-
-  def severity: Severity
-
-  def message: String
-
-  def position: ProblemPosition
-}
 
 
