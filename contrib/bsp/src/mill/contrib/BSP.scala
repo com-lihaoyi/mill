@@ -1,17 +1,16 @@
 package mill.contrib
 
-import java.io.{File, PrintWriter}
-
-import play.api.libs.json._
+import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 
-import upickle.default._
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
+import play.api.libs.json._
+import upickle.default._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.CancellationException
@@ -25,35 +24,6 @@ object BSP extends ExternalModule {
   val version = "1.0.0"
   val bspVersion = "2.0.0"
   val languages = List("scala", "java")
-
-  // computes the path to the java executable
-  def whichJava: String = {
-    if (scala.sys.props.contains("JAVA_HOME")) scala.sys.props("JAVA_HOME") else "java"
-  }
-
-  // creates a Json with the BSP connection details
-  def createBspConnectionJson(): JsValue = {
-
-    implicit val connectionWrites = new Writes[BspConnectionDetails] {
-      def writes(connection: BspConnectionDetails) = Json.obj(
-        "name" -> connection.getName,
-        "argv" -> new JsArray(connection.getArgv.asScala.map(string => JsString(string)).toIndexedSeq),
-        "version" -> connection.getVersion,
-        "bspVersion" -> connection.getBspVersion,
-        "languages" -> new JsArray(connection.getLanguages.asScala.map(string => JsString(string)).toIndexedSeq)
-      )
-    }
-    val millPath = scala.sys.props("MILL_CLASSPATH")
-    Json.toJson(new BspConnectionDetails("mill-bsp",
-                                          List(whichJava,"-DMILL_CLASSPATH=" + millPath,
-                                            s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
-                                            "-Djna.nosys=true", "-cp",
-                                            millPath,
-                                            "mill.MillMain", "mill.contrib.BSP/start").asJava,
-                                          version,
-                                          bspVersion,
-                                          languages.asJava))
-  }
 
   /**
     * Installs the mill-bsp server. It creates a json file
@@ -70,9 +40,9 @@ object BSP extends ExternalModule {
     * printed to stdout.
     *
     */
-  def install(ev: Evaluator): Command[Unit] = T.command{
+  def install(ev: Evaluator): Command[Unit] = T.command {
     val bspDirectory = os.pwd / ".bsp"
-    if (! os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
+    if (!os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
     try {
       os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
     } catch {
@@ -81,9 +51,38 @@ object BSP extends ExternalModule {
         os.remove(bspDirectory / "mill.json")
         os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
-                                  " " + e.getStackTrace.toString)
+                                     " " + e.getStackTrace.toString)
     }
 
+  }
+
+  // creates a Json with the BSP connection details
+  def createBspConnectionJson(): JsValue = {
+
+    implicit val connectionWrites = new Writes[BspConnectionDetails] {
+      def writes(connection: BspConnectionDetails) = Json.obj(
+        "name" -> connection.getName,
+        "argv" -> new JsArray(connection.getArgv.asScala.map(string => JsString(string)).toIndexedSeq),
+        "version" -> connection.getVersion,
+        "bspVersion" -> connection.getBspVersion,
+        "languages" -> new JsArray(connection.getLanguages.asScala.map(string => JsString(string)).toIndexedSeq)
+        )
+    }
+    val millPath = scala.sys.props("MILL_CLASSPATH")
+    Json.toJson(new BspConnectionDetails("mill-bsp",
+                                         List(whichJava, "-DMILL_CLASSPATH=" + millPath,
+                                              s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
+                                              "-Djna.nosys=true", "-cp",
+                                              millPath,
+                                              "mill.MillMain", "mill.contrib.BSP/start").asJava,
+                                         version,
+                                         bspVersion,
+                                         languages.asJava))
+  }
+
+  // computes the path to the java executable
+  def whichJava: String = {
+    if (scala.sys.props.contains("JAVA_HOME")) scala.sys.props("JAVA_HOME") else "java"
   }
 
   /**
@@ -91,13 +90,14 @@ object BSP extends ExternalModule {
     * server and establishes connection to client. Waits
     * until a client connects and ends the connection
     * after the client sent an "exit" notification
+    *
     * @param ev Environment, used by mill to evaluate commands
     * @return: mill.Command which executes the starting of the
-    *         server
+    *          server
     */
   def start(ev: Evaluator): Command[Unit] = T.command {
     val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
-                    ev.workerCache, ev.env, false)
+                             ev.workerCache, ev.env, false)
     val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
     val executor = Executors.newCachedThreadPool()
 
@@ -109,7 +109,7 @@ object BSP extends ExternalModule {
         .setInput(stdin)
         .setLocalService(millServer)
         .setRemoteInterface(classOf[BuildClient]).
-        traceMessages(new PrintWriter((os.pwd/ "bsp.log" ).toIO))
+        traceMessages(new PrintWriter((os.pwd / "bsp.log").toIO))
         .setExecutorService(executor)
         .create()
       millServer.onConnectWithClient(launcher.getRemoteProxy)

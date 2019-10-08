@@ -1,7 +1,8 @@
 package mill.contrib.bsp
 
-import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, CompileParams, RunParams, TestParams}
+
+import scala.collection.JavaConverters._
 
 
 /**
@@ -27,7 +28,7 @@ case class CParams(compileParams: CompileParams) extends Parameters {
   override def getArguments: Option[Seq[String]] = {
     try {
       Option(compileParams.getArguments.asScala)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[Seq[String]]
     }
   }
@@ -35,12 +36,13 @@ case class CParams(compileParams: CompileParams) extends Parameters {
   override def getOriginId: Option[String] = {
     try {
       Option(compileParams.getOriginId)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[String]
     }
   }
 
 }
+
 case class RParams(runParams: RunParams) extends Parameters {
 
   override def getTargets: List[BuildTargetIdentifier] = {
@@ -50,7 +52,7 @@ case class RParams(runParams: RunParams) extends Parameters {
   override def getArguments: Option[Seq[String]] = {
     try {
       Option(runParams.getArguments.asScala)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[Seq[String]]
     }
   }
@@ -58,12 +60,13 @@ case class RParams(runParams: RunParams) extends Parameters {
   override def getOriginId: Option[String] = {
     try {
       Option(runParams.getOriginId)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[String]
     }
   }
 
 }
+
 case class TParams(testParams: TestParams) extends Parameters {
 
   override def getTargets: List[BuildTargetIdentifier] = {
@@ -73,7 +76,7 @@ case class TParams(testParams: TestParams) extends Parameters {
   override def getArguments: Option[Seq[String]] = {
     try {
       Option(testParams.getArguments.asScala)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[Seq[String]]
     }
   }
@@ -81,7 +84,7 @@ case class TParams(testParams: TestParams) extends Parameters {
   override def getOriginId: Option[String] = {
     try {
       Option(testParams.getOriginId)
-    }catch {
+    } catch {
       case e: Exception => Option.empty[String]
     }
   }
@@ -92,6 +95,7 @@ object TaskParameters {
   /**
     * Convert parameters specific to the compile request
     * to the common trait Parameters.
+    *
     * @param compileParams compile request parameters
     * @return general task parameters containing compilation info
     */
@@ -102,6 +106,7 @@ object TaskParameters {
   /**
     * Convert parameters specific to the run request
     * to the common trait Parameters.
+    *
     * @param runParams run request parameters
     * @return general task parameters containing running info
     */
@@ -112,6 +117,7 @@ object TaskParameters {
   /**
     * Convert parameters specific to the test request
     * to the common trait Parameters.
+    *
     * @param testParams compile request parameters
     * @return general task parameters containing testing info
     */

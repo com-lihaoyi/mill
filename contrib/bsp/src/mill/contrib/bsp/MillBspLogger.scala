@@ -10,6 +10,7 @@ import mill.util.ProxyLogger
   * notifications ( upon the invocation of the `ticker` method ) and
   * `show-message` notifications ( for each error or information
   * being logged ).
+  *
   * @param client the client to send notifications to, also the
   *               client that initiated a request which triggered
   *               a mill task evaluation

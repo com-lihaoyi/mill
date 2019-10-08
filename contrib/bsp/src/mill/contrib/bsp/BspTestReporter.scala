@@ -10,12 +10,13 @@ import sbt.testing._
 /**
   * Context class for BSP, specialized for sending `task-start` and
   * `task-finish` notifications for every test being ran.
-  * @param client The client to send notifications to
-  * @param targetId The targetId of the BSP target for which
-  *                 the test request is being processed
-  * @param taskId   The unique taskId associated with the
-  *                 test task that will trigger this reporter
-  *                 to log testing events.
+  *
+  * @param client    The client to send notifications to
+  * @param targetId  The targetId of the BSP target for which
+  *                  the test request is being processed
+  * @param taskId    The unique taskId associated with the
+  *                  test task that will trigger this reporter
+  *                  to log testing events.
   * @param arguments compilation arguments as part of the BSP context,
   *                  in case special arguments need to be passed to
   *                  the compiler before running the test task.
@@ -42,14 +43,26 @@ class BspTestReporter(
     client.onBuildTaskStart(taskStartParams)
   }
 
+  // Compute the display name of the test / test suite
+  // to which the given event relates
+  private[this] def getDisplayName(e: Event): String = {
+    e.selector() match {
+      case s: NestedSuiteSelector => s.suiteId()
+      case s: NestedTestSelector => s.suiteId() + "." + s.testName()
+      case s: SuiteSelector => s.toString
+      case s: TestSelector => s.testName()
+      case s: TestWildcardSelector => s.testWildcard()
+    }
+  }
+
   override def logFinish(event: Event): Unit = {
     totalTime += event.duration()
     val taskFinishParams = new TaskFinishParams(taskId,
-      event.status()  match {
-        case sbt.testing.Status.Canceled => StatusCode.CANCELLED
-        case sbt.testing.Status.Error => StatusCode.ERROR
-        case default => StatusCode.OK
-      })
+                                                event.status() match {
+                                                  case sbt.testing.Status.Canceled => StatusCode.CANCELLED
+                                                  case sbt.testing.Status.Error => StatusCode.ERROR
+                                                  case default => StatusCode.OK
+                                                })
     val status = event.status match {
       case sbt.testing.Status.Success =>
         passed += 1
@@ -90,18 +103,6 @@ class BspTestReporter(
     val pw = new PrintWriter(sw)
     t.printStackTrace(pw)
     sw.toString
-  }
-
-  // Compute the display name of the test / test suite
-  // to which the given event relates
-  private[this] def getDisplayName(e: Event): String = {
-    e.selector() match{
-      case s: NestedSuiteSelector => s.suiteId()
-      case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-      case s: SuiteSelector => s.toString
-      case s: TestSelector => s.testName()
-      case s: TestWildcardSelector => s.testWildcard()
-    }
   }
 
   // Compute the test report data structure that will go into

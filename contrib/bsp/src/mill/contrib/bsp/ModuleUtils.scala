@@ -1,18 +1,18 @@
 package mill.contrib.bsp
 
-import scala.collection.JavaConverters._
 import ch.epfl.scala.bsp4j._
 import mill.T
 import mill.api.Result.Success
 import mill.api.{Loose, Strict}
-import mill.define.{BaseModule, Ctx, Segment, Segments, Target, Task}
-import mill.eval._
-import mill.eval.Evaluator
+import mill.define._
+import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib.api.Util
-import mill.scalanativelib._
 import mill.scalalib.{JavaModule, ScalaModule, TestModule}
+import mill.scalanativelib._
 import os.Path
+
+import scala.collection.JavaConverters._
 
 /**
   * Utilities for translating the mill build into
@@ -25,24 +25,25 @@ object ModuleUtils {
     * working directory ( has to be a mill-based project ) and
     * BSP BuildTargets ( mill modules correspond one-to-one to
     * bsp build targets ).
-    * @param modules All JavaModules contained in the working
-    *                directory of the mill project
-    * @param rootModule The root module ( corresponding to the root
-    *                   of the mill project )
-    * @param evaluator The mill evaluator that can resolve information
-    *                  about the mill project
+    *
+    * @param modules            All JavaModules contained in the working
+    *                           directory of the mill project
+    * @param rootModule         The root module ( corresponding to the root
+    *                           of the mill project )
+    * @param evaluator          The mill evaluator that can resolve information
+    *                           about the mill project
     * @param supportedLanguages the languages supported by the modules
     *                           of the mill project
     * @return JavaModule -> BuildTarget mapping
     */
   def millModulesToBspTargets(modules: Seq[JavaModule],
-                                rootModule: JavaModule,
-                                evaluator: Evaluator,
-                                supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
+                              rootModule: JavaModule,
+                              evaluator: Evaluator,
+                              supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
 
     val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
 
-    (for ( module <- modules )
+    (for (module <- modules)
       yield (module, getTarget(rootModule, module, evaluator, moduleIdMap))).toMap
 
   }
@@ -62,10 +63,10 @@ object ModuleUtils {
     *                    with it.
     * @return build target for `module`
     */
-  def getTarget( rootModule: JavaModule,
-                 module: JavaModule,
-                 evaluator: Evaluator,
-                 moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
+  def getTarget(rootModule: JavaModule,
+                module: JavaModule,
+                evaluator: Evaluator,
+                moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
                ): BuildTarget = {
     if (module == rootModule)
       getRootTarget(module, evaluator, moduleIdMap)
@@ -79,6 +80,7 @@ object ModuleUtils {
     * has the same millSourcePath. Set generated sources
     * according to the location of the compilation
     * products
+    *
     * @param rootBaseModule module for the root
     * @return root JavaModule
     */
@@ -87,22 +89,33 @@ object ModuleUtils {
     new JavaModule {
 
       override def millSourcePath: Path = rootBaseModule.millSourcePath
-      override def sources = T.sources{millSourcePath / "src"}
 
-      def out = T.sources{millSourcePath / "out"}
-      def target = T.sources{millSourcePath / "target"}
-      override def generatedSources: Target[Seq[PathRef]] = T.sources{
-         out() ++ target()}
+      override def sources = T.sources {
+        millSourcePath / "src"
+      }
+
+      def out = T.sources {
+        millSourcePath / "out"
+      }
+
+      def target = T.sources {
+        millSourcePath / "target"
+      }
+
+      override def generatedSources: Target[Seq[PathRef]] = T.sources {
+        out() ++ target()
+      }
     }
   }
 
   /**
     * Compute the BuildTarget associated with the root
     * directory of the mill project being built
-    * @param rootModule the root JavaModule extracted from
-    *                   the build file by a mill evalautor
-    * @param evaluator  mill evaluator that can resolve
-    *                   build information
+    *
+    * @param rootModule  the root JavaModule extracted from
+    *                    the build file by a mill evalautor
+    * @param evaluator   mill evaluator that can resolve
+    *                    build information
     * @param moduleIdMap mapping from each mill JavaModule
     *                    contained in the working directory and
     *                    a BuildTargetIdentifier associated
@@ -145,9 +158,9 @@ object ModuleUtils {
     * @return inner BuildTarget
     */
   def getRegularTarget(
-                 module: JavaModule,
-                 evaluator: Evaluator,
-                 moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
+                        module: JavaModule,
+                        evaluator: Evaluator,
+                        moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
     val dataBuildTarget = computeBuildTargetData(module, evaluator)
     val capabilities = getModuleCapabilities(module, evaluator)
     val buildTargetTag: List[String] = module match {
@@ -160,10 +173,10 @@ object ModuleUtils {
     }
 
     val buildTarget = new BuildTarget(moduleIdMap(module),
-      buildTargetTag.asJava,
-      List("scala", "java").asJava,
-      dependencies,
-      capabilities)
+                                      buildTargetTag.asJava,
+                                      List("scala", "java").asJava,
+                                      dependencies,
+                                      capabilities)
     if (module.isInstanceOf[ScalaModule]) {
       buildTarget.setDataKind(BuildTargetDataKind.SCALA)
     }
@@ -172,6 +185,59 @@ object ModuleUtils {
     buildTarget.setBaseDirectory(module.intellijModulePath.toIO.toURI.toString)
     buildTarget
   }
+
+  /**
+    * Evaluate the given task using the given mill evaluator and return
+    * its result of type Result
+    *
+    * @param evaluator mill evalautor
+    * @param task      task to evaluate
+    * @tparam T
+    */
+  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] = {
+    evaluator.evaluate(Strict.Agg(task)).results(task)
+  }
+
+  /**
+    * Evaluate the given task using the given mill evaluator and return
+    * its result of type T, or the default value of the evaluation failed.
+    *
+    * @param evaluator    mill evalautor
+    * @param task         task to evaluate
+    * @param defaultValue default value to return in case of failure
+    * @tparam T
+    */
+  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
+    val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
+    evaluated match {
+      case Success(value) => evaluated.asSuccess.get.value.asInstanceOf[T]
+      case default => defaultValue
+    }
+  }
+
+  /**
+    * Compute mapping between a mill JavaModule and the BuildTargetIdentifier
+    * associated with its corresponding bsp BuildTarget.
+    *
+    * @param modules   mill modules inside the project ( including root )
+    * @param evaluator mill evalautor to resolve build information
+    * @return JavaModule -> BuildTargetIdentifier mapping
+    */
+  def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator: Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
+
+    (for (module <- modules)
+      yield (module, new BuildTargetIdentifier(
+        (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
+          toIO.toURI.toString))).toMap
+  }
+
+  // this is taken from mill.scalalib GenIdeaImpl
+  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
+    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+    case (sb, Segment.Label(s)) => sb.append(".").append(s)
+    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
+  }.mkString.toLowerCase()
 
   // obtain the capabilities of the given module ( ex: canCompile, canRun, canTest )
   private[this] def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
@@ -209,33 +275,6 @@ object ModuleUtils {
     }
   }
 
-  /**
-    * Evaluate the given task using the given mill evaluator and return
-    * its result of type Result
-    * @param evaluator mill evalautor
-    * @param task task to evaluate
-    * @tparam T
-    */
-  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] = {
-    evaluator.evaluate(Strict.Agg(task)).results(task)
-  }
-
-  /**
-    * Evaluate the given task using the given mill evaluator and return
-    * its result of type T, or the default value of the evaluation failed.
-    * @param evaluator mill evalautor
-    * @param task task to evaluate
-    * @param defaultValue default value to return in case of failure
-    * @tparam T
-    */
-  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
-      val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
-      evaluated match {
-        case Success(value) => evaluated.asSuccess.get.value.asInstanceOf[T]
-        case default => defaultValue
-      }
-  }
-
   // Compute all relevant scala dependencies of `module`, like scala-library, scala-compiler,
   // and scala-reflect
   private[this] def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] = {
@@ -255,27 +294,4 @@ object ModuleUtils {
       case m: ScalaModule => ScalaPlatform.JVM
     }
   }
-
-  /**
-    * Compute mapping between a mill JavaModule and the BuildTargetIdentifier
-    * associated with its corresponding bsp BuildTarget.
-    * @param modules mill modules inside the project ( including root )
-    * @param evaluator mill evalautor to resolve build information
-    * @return JavaModule -> BuildTargetIdentifier mapping
-    */
-  def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator:Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
-
-    (for ( module <- modules )
-      yield (module, new BuildTargetIdentifier(
-        (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
-          toIO.toURI.toString))).toMap
-  }
-
-  // this is taken from mill.scalalib GenIdeaImpl
-  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
-    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-    case (sb, Segment.Label(s)) => sb.append(".").append(s)
-    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-  }.mkString.toLowerCase()
 }
