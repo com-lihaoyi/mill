@@ -18,8 +18,6 @@ import mill.scalalib.api.CompilationResult
 import mill.util.{Ctx, DummyLogger}
 import mill.{scalalib, _}
 import os.Path
-import sbt.internal.util.{ConsoleOut, MainAppender, ManagedLogger}
-import sbt.util.LogExchange
 
 import scala.collection.JavaConverters._
 
@@ -573,14 +571,4 @@ class MillBuildServer(evaluator: Evaluator,
     }
   }
 
-  // construct the ManagedLogger that will go into the compilation problems reporter
-  private[this] def getCompilationLogger: ManagedLogger = {
-    val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-      millEvaluator.log.outputStream
-      ))
-    val l = LogExchange.logger("Hello")
-    LogExchange.unbindLoggerAppenders("Hello")
-    LogExchange.bindLoggerAppenders("Hello", (consoleAppender -> sbt.util.Level.Info) :: Nil)
-    l
-  }
 }

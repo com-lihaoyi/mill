@@ -9,12 +9,22 @@ import mill._
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import org.eclipse.lsp4j.jsonrpc.Launcher
-import play.api.libs.json._
 import upickle.default._
 
 import scala.collection.JavaConverters._
 import scala.concurrent.CancellationException
 
+case class BspConfigJson(name: String,
+                         argv: Seq[String],
+                         version: String,
+                         bspVersion: String,
+                         languages: Seq[String])
+  extends BspConnectionDetails(name, argv.asJava, version, bspVersion, languages.asJava) {
+}
+
+object BspConfigJson {
+  implicit val rw: ReadWriter[BspConfigJson] = macroRW
+}
 
 object BSP extends ExternalModule {
 
@@ -44,12 +54,12 @@ object BSP extends ExternalModule {
     val bspDirectory = os.pwd / ".bsp"
     if (!os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
     try {
-      os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
+      os.write(bspDirectory / "mill.json", createBspConnectionJson())
     } catch {
       case e: FileAlreadyExistsException =>
         println("The bsp connection json file probably exists already - will be overwritten")
         os.remove(bspDirectory / "mill.json")
-        os.write(bspDirectory / "mill.json", Json.stringify(createBspConnectionJson()))
+        os.write(bspDirectory / "mill.json", createBspConnectionJson())
       case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
                                      " " + e.getStackTrace.toString)
     }
@@ -57,27 +67,17 @@ object BSP extends ExternalModule {
   }
 
   // creates a Json with the BSP connection details
-  def createBspConnectionJson(): JsValue = {
-
-    implicit val connectionWrites = new Writes[BspConnectionDetails] {
-      def writes(connection: BspConnectionDetails) = Json.obj(
-        "name" -> connection.getName,
-        "argv" -> new JsArray(connection.getArgv.asScala.map(string => JsString(string)).toIndexedSeq),
-        "version" -> connection.getVersion,
-        "bspVersion" -> connection.getBspVersion,
-        "languages" -> new JsArray(connection.getLanguages.asScala.map(string => JsString(string)).toIndexedSeq)
-        )
-    }
+  def createBspConnectionJson(): String = {
     val millPath = scala.sys.props("MILL_CLASSPATH")
-    Json.toJson(new BspConnectionDetails("mill-bsp",
-                                         List(whichJava, "-DMILL_CLASSPATH=" + millPath,
-                                              s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
-                                              "-Djna.nosys=true", "-cp",
-                                              millPath,
-                                              "mill.MillMain", "mill.contrib.BSP/start").asJava,
-                                         version,
-                                         bspVersion,
-                                         languages.asJava))
+    write(BspConfigJson("mill-bsp",
+                        List(whichJava, "-DMILL_CLASSPATH=" + millPath,
+                             s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
+                             "-Djna.nosys=true", "-cp",
+                             millPath,
+                             "mill.MillMain", "mill.contrib.BSP/start"),
+                        version,
+                        bspVersion,
+                        languages))
   }
 
   // computes the path to the java executable
