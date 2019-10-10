@@ -69,9 +69,10 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val moduleIdentifier = Option[String](linkedFile.getAbsolutePath)
     
     val tconfig = if (scalaJSModuleKind == ScalaJSModuleKind.CommonJSModule)
-                          TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(scalaJSModuleKind, moduleIdentifier)
-                      else
-                          TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+                      TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(scalaJSModuleKind, moduleIdentifier)
+                  else
+                      TestAdapter.Config().withLogger(new ScalaConsoleLogger)
+
     val adapter =
       new TestAdapter(env, tconfig)
 
