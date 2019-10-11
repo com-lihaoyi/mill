@@ -9,13 +9,18 @@ import mill.api.Strict.Agg
 import utest._
 import utest.framework.TestPath
 
+object EvaluationTestsThreads1 extends EvaluationTests(threadCount = Some(1))
+object EvaluationTestsThreads4 extends EvaluationTests(threadCount = Some(3))
+object EvaluationTestsThreadsNative extends EvaluationTests(threadCount = None)
 
+class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
 
-object EvaluationTests extends TestSuite{
   class Checker[T <: TestUtil.BaseModule](module: T)(implicit tp: TestPath) {
     // Make sure data is persisted even if we re-create the evaluator each time
 
-    def evaluator = new TestEvaluator(module).evaluator
+    def evaluator = new TestEvaluator(module, threads = threadCount)(
+      implicitly[sourcecode.FullName], TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}")))
+      .evaluator
 
     def apply(target: Task[_], expValue: Any,
               expEvaled: Agg[Task[_]],
@@ -173,7 +178,7 @@ object EvaluationTests extends TestSuite{
         val checker = new Checker(separateGroups)
         val evaled1 = checker.evaluator.evaluate(Agg(right, left))
         val filtered1 = evaled1.evaluated.filter(_.isInstanceOf[Target[_]])
-        assert(filtered1 == Agg(change, left, right))
+        assert(filtered1.toSeq.sortBy(_.toString) == Seq(change, left, right).sortBy(_.toString))
         val evaled2 = checker.evaluator.evaluate(Agg(right, left))
         val filtered2 = evaled2.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered2 == Agg())
