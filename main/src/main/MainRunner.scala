@@ -36,7 +36,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   var stateCache  = stateCache0
 
   override def watchAndWait(watched: Seq[(os.Path, Long)]) = {
-    printInfo(s"Watching for changes to ${watched.length} files... (Ctrl-C to exit)")
+    val dirCount = watched.count(f => os.isDir(f._1))
+    printInfo(s"Watching for changes to ${dirCount} dirs and ${watched.length - dirCount} files... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       Interpreter.pathSignature(file) == lastMTime
     }

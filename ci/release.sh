@@ -13,8 +13,7 @@ rm gpg_key
 
 rm -rf ~/.mill
 
-# Second build & run tests
-
+# We first deploy to Maven to ensure, all modules (worker, contrib) are available
 out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
     --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
     --gpgPassphrase $GPG_PASSWORD \
@@ -23,4 +22,5 @@ out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
     --release true \
     --signed true
 
+# We upload the assembly to GitHub only after we deployed to Maven
 out/dev/assembly/dest/mill uploadToGithub $GITHUB_ACCESS_TOKEN

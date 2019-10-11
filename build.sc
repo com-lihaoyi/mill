@@ -82,7 +82,7 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 }
-trait MillModule extends MillApiModule{ outer =>
+trait MillModule extends MillApiModule { outer =>
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
@@ -138,7 +138,6 @@ object main extends MillModule {
     )
 
     def ivyDeps = Agg(
-      // Keep synchronized with ammonite in Versions.scala
       Deps.ammonite,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
@@ -211,6 +210,26 @@ object scalalib extends MillModule {
     m.runClasspath()
   }
 
+  override def generatedSources = T{
+    val dest = T.ctx().dest
+    os.write(dest / "Versions.scala",
+      s"""package mill.scalalib
+        |
+        |/**
+        | * Dependency versions.
+        | * Generated from mill in build.sc.
+        | */
+        |object Versions {
+        |  /** Version of Ammonite. */
+        |  val ammonite = "${Deps.ammonite.dep.version}"
+        |  /** Version of Zinc. */
+        |  val zinc = "${Deps.zinc.dep.version}"
+        |}
+        |
+        |""".stripMargin)
+    super.generatedSources() ++ Seq(PathRef(dest))
+  }
+
   def testArgs = T{
     val genIdeaArgs =
       genTask(main.moduledefs)() ++
@@ -238,7 +257,7 @@ object scalalib extends MillModule {
       )
     }
   }
-  object api extends MillApiModule{
+  object api extends MillApiModule {
     def moduleDeps = Seq(main.api)
   }
   object worker extends MillApiModule{
@@ -246,7 +265,6 @@ object scalalib extends MillModule {
     def moduleDeps = Seq(scalalib.api)
 
     def ivyDeps = Agg(
-      // Keep synchronized with zinc in Versions.scala
       Deps.zinc
     )
     def testArgs = T{Seq(
@@ -481,7 +499,7 @@ def testRepos = T{
   )
 }
 
-object integration extends MillModule{
+object integration extends MillModule {
   def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
   def testArgs = T{
     scalajslib.testArgs() ++

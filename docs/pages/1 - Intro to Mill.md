@@ -44,7 +44,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.5.1/0.5.1, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.5.1/0.5.1-assembly, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via

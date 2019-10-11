@@ -83,14 +83,10 @@ object BloopTests extends TestSuite {
         val platform = p.platform.get.name
         val mainCLass = p.platform.get.mainClass.get
         val resolution = p.resolution.get.modules
-        val sdb = testBloop.semanticDBVersion
-        val sdbOpts = testBloop.semanticDBOptions
 
         assert(name == "scalaModule")
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options.contains("-language:higherKinds"))
-        assert(options.exists(_.contains(s"semanticdb-scalac_2.12.8-$sdb.jar")))
-        assert(sdbOpts.forall(options.contains))
         assert(version == "2.12.8")
         assert(classpath.exists(_.contains("bloop-config_2.12-1.2.5.jar")))
         assert(platform == "jvm")

@@ -64,11 +64,12 @@ object Util {
       .getOrElse(throw new Exception(s"Cannot find $mavenStylePath or $ivyStylePath in ${classPath.mkString("[", ", ", "]")}"))
   }
 
-  private val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
-  private val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-  private val DottyVersion = raw"""(0|3)\.(\d+)\.(\d+).*""".r
-  private val DottyNightlyVersion = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
-  private val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
+  val PartialVersion = raw"""(\d+)\.(\d+)\.*""".r
+  val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
+  val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
+  val DottyVersion = raw"""(0|3)\.(\d+)\.(\d+).*""".r
+  val DottyNightlyVersion = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
+  val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
 
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
