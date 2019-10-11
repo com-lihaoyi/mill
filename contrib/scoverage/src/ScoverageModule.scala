@@ -87,10 +87,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def selfDir = T { T.ctx().dest / os.up / os.up }
     def dataDir = T { selfDir() / "data" }
 
+    def generatedSources = outer.generatedSources()
+    def allSources = outer.allSources()
     def moduleDeps = outer.moduleDeps
     def sources = outer.sources
     def resources = outer.resources
     def scalaVersion = outer.scalaVersion()
+    def repositories = outer.repositories
     def compileIvyDeps = outer.compileIvyDeps()
     def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
     def scalacPluginIvyDeps = outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep())
@@ -101,13 +104,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorkerApi
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .htmlReport(sources(), dataDir().toString, selfDir().toString)
+        .htmlReport(allSources(), dataDir().toString, selfDir().toString)
     }
     def xmlReport() = T.command {
       ScoverageReportWorkerApi
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .xmlReport(sources(), dataDir().toString, selfDir().toString)
+        .xmlReport(allSources(), dataDir().toString, selfDir().toString)
     }
   }
 

@@ -8,44 +8,49 @@ git:
 matrix:
   include:
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
+    name: Test Mill Release with some integration tests on Java 8
+    script: ci/test-mill-release.sh
     jdk: oraclejdk8
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
+    name: Test Mill Release with some integration tests on Java 9
+    script: ci/test-mill-release.sh
     jdk: oraclejdk9
 
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-dev.sh
+    name: Run dev.assembly and the use it to build main tests on Java 8
+    script: ci/test-mill-dev.sh
     jdk: oraclejdk8
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: oraclejdk9
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-bootstrap.sh
+    name: Run dev.assembly and the use it to build main tests on Java 9
+    script: ci/test-mill-dev.sh
     jdk: oraclejdk9
 
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-0.sh
+    script: ci/test-mill-bootstrap.sh
+    jdk: oraclejdk9
+
+  - stage: build
+    name: Run mill tests
+    script: ci/test-mill-0.sh
     jdk: oraclejdk8
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-1.sh
+    name: Run mill integration tests (part 1)
+    script: ci/test-mill-1.sh
     jdk: oraclejdk8
   - stage: build
-    env: CI_SCRIPT=ci/test-mill-2.sh
+    name: Run mill integration tests (part 2)
+    script: ci/test-mill-2.sh
     jdk: oraclejdk9
 
 
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    name: Publish mill to Maven Central and Github Releases
+    script: "ci/on-master.py ci/release.sh"
     jdk: oraclejdk8
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
+    name: Publish mill documentation site
+    script: "ci/on-master.py ci/publish-docs.sh"
     jdk: oraclejdk8
-
-script:
-  - curl -L -o ~/bin/mill https://github.com/lihaoyi/mill/releases/download/0.2.7/0.2.7-10-db8525 && chmod +x ~/bin/mill
-  - export PATH=~/bin/mill:$PATH
-  - "$CI_SCRIPT"
 
 cache:
   directories:

@@ -8,12 +8,12 @@ gpg --import gpg_key
 
 rm gpg_key
 
-mill mill.scalalib.PublishModule/publishAll \
-    lihaoyi:$SONATYPE_PASSWORD \
-    $GPG_PASSWORD \
-    __.publishArtifacts \
-    --release \
-    true
+./mill mill.scalalib.PublishModule/publishAll \
+    --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
+    --gpgPassphrase $GPG_PASSWORD \
+    --publishArtifacts __.publishArtifacts \
+    --readTimeout 600000 \
+    --release true \
+    --signed true
 
-
-mill uploadToGithub $GITHUB_ACCESS_TOKEN
+./mill uploadToGithub $GITHUB_ACCESS_TOKEN
