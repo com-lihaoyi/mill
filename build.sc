@@ -224,13 +224,21 @@ object scalajslib extends MillModule {
         Agg(
           ivy"org.scala-js::scalajs-tools:0.6.22",
           ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22",
-          ivy"org.scala-js::scalajs-js-envs:0.6.22"
+          ivy"org.scala-js::scalajs-js-envs:0.6.22",
+          ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
+          ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
+          ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
         )
       case "1.0" =>
         Agg(
           ivy"org.scala-js::scalajs-tools:1.0.0-M2",
           ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2",
-          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
+          ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2",
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2",
+          ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
+          ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
+          ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
         )
     }
   }

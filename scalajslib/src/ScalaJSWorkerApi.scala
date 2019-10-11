@@ -50,13 +50,13 @@ class ScalaJSWorker {
     ).map(os.Path(_))
   }
 
-  def run(toolsClasspath: Agg[os.Path], config: NodeJSConfig, linkedFile: File)
+  def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)
          (implicit ctx: Ctx.Home): Unit = {
     bridge(toolsClasspath).run(config, linkedFile)
   }
 
   def getFramework(toolsClasspath: Agg[os.Path],
-                   config: NodeJSConfig,
+                   config: JsEnvConfig,
                    frameworkName: String,
                    linkedFile: File)
                   (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {

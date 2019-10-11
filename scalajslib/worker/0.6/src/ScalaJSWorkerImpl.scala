@@ -3,17 +3,17 @@ package scalajslib
 package worker
 
 import java.io.File
+import java.net.URLClassLoader
 
 import mill.api.Result
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
-import org.scalajs.core.tools.linker.{ModuleInitializer, StandardLinker, Semantics, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
-import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
-import mill.scalajslib.api.{ModuleKind, NodeJSConfig}
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
@@ -49,16 +49,16 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     }
   }
 
-  def run(config: NodeJSConfig, linkedFile: File): Unit = {
-    nodeJSEnv(config)
+  def run(config: JsEnvConfig, linkedFile: File): Unit = {
+    jsEnv(config)
       .jsRunner(FileVirtualJSFile(linkedFile))
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
-  def getFramework(config: NodeJSConfig,
+  def getFramework(config: JsEnvConfig,
                    frameworkName: String,
                    linkedFile: File): (() => Unit, sbt.testing.Framework) = {
-    val env = nodeJSEnv(config).loadLibs(
+    val env = jsEnv(config).loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
 
@@ -76,12 +76,30 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     )
   }
 
-  def nodeJSEnv(config: NodeJSConfig): NodeJSEnv = {
-    new NodeJSEnv(
-      NodeJSEnv.Config()
-        .withExecutable(config.executable)
-        .withArgs(config.args)
-        .withEnv(config.env)
-        .withSourceMap(config.sourceMap))
+  def jsEnv(config: JsEnvConfig): ComJSEnv = config match{
+    case config: JsEnvConfig.NodeJs =>
+      new org.scalajs.jsenv.nodejs.NodeJSEnv(
+        org.scalajs.jsenv.nodejs.NodeJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+          .withSourceMap(config.sourceMap)
+      )
+
+    case config: JsEnvConfig.JsDom =>
+      new org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv(
+        org.scalajs.jsenv.jsdomnodejs.JSDOMNodeJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+      )
+    case config: JsEnvConfig.Phantom =>
+      new org.scalajs.jsenv.phantomjs.PhantomJSEnv(
+        org.scalajs.jsenv.phantomjs.PhantomJSEnv.Config()
+          .withExecutable(config.executable)
+          .withArgs(config.args)
+          .withEnv(config.env)
+          .withAutoExit(config.autoExit)
+      )
   }
 }

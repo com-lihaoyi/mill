@@ -8,7 +8,7 @@ import mill.api.Loose
 import mill.define.{Module => MillModule, _}
 import mill.eval.Evaluator
 import mill.scalajslib.ScalaJSModule
-import mill.scalajslib.api.ModuleKind
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import mill.scalalib._
 import mill.scalanativelib.ScalaNativeModule
 import mill.scalanativelib.api.ReleaseMode
@@ -133,21 +133,16 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
   //////////////////////////////////////////////////////////////////////////////
 
   // Version of the semanticDB plugin.
-  def semanticDBVersion: String = "4.1.4"
+  def semanticDBVersion: String = "4.1.12"
 
   // Scala versions supported by semantic db. Needs to be updated when
   // bumping semanticDBVersion.
   // See [https://github.com/scalameta/metals/blob/333ab6fc00fb3542bcabd0dac51b91b72798768a/build.sbt#L121]
   def semanticDBSupported = Set(
+    "2.13.0",
     "2.12.8",
     "2.12.7",
-    "2.12.6",
-    "2.12.5",
-    "2.12.4",
-    "2.11.12",
-    "2.11.11",
-    "2.11.10",
-    "2.11.9"
+    "2.11.12"
   )
 
   // Recommended for metals usage.
@@ -226,7 +221,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ModuleKind.CommonJSModule =>
                   Config.ModuleKindJS.CommonJSModule
               },
-              emitSourceMaps = m.nodeJSConfig().sourceMap,
+              emitSourceMaps = m.jsEnvConfig() match{
+                case c: JsEnvConfig.NodeJs => c.sourceMap
+                case _ => false
+              },
               jsdom = Some(false),
             ),
             mainClass = module.mainClass()

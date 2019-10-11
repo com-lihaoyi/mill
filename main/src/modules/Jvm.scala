@@ -445,7 +445,16 @@ object Jvm {
             classifiers = Some(Seq(coursier.Classifier("sources")))
           )
         }
-        else resolution.artifacts()
+        else resolution.artifacts(
+          types = Set(
+            coursier.Type.jar,
+            coursier.Type.testJar,
+            coursier.Type.bundle,
+            coursier.Type("orbit"),
+            coursier.Type("eclipse-plugin"),
+            coursier.Type("maven-plugin")
+          )
+        )
       val (errors, successes) = load(sourceOrJar)
       if(errors.isEmpty){
         mill.Agg.from(
