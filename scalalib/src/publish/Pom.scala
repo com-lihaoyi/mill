@@ -90,12 +90,16 @@ object Pom {
       case Scope.Test     => <scope>test</scope>
       case Scope.Runtime  => <scope>runtime</scope>
     }
+
+    val optional = if (d.optional) <optional>true</optional> else NodeSeq.Empty
+
     if (d.exclusions.isEmpty)
       <dependency>
         <groupId>{d.artifact.group}</groupId>
         <artifactId>{d.artifact.id}</artifactId>
         <version>{d.artifact.version}</version>
         {scope}
+        {optional}
       </dependency>
     else
       <dependency>
@@ -111,6 +115,7 @@ object Pom {
           )}
         </exclusions>
         {scope}
+        {optional}
       </dependency>
   }
 

@@ -197,6 +197,12 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   /**
+   * Ammonite's version used in the `repl` command is by default
+   * set to the one Mill is built against.
+   */
+  def ammoniteVersion = T(Versions.ammonite)
+
+  /**
     * Dependencies that are necessary to run the Ammonite Scala REPL
     */
   def ammoniteReplClasspath = T{
@@ -205,7 +211,7 @@ trait ScalaModule extends JavaModule { outer =>
     unmanagedClasspath() ++
     resolveDeps(T.task{
       runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:${Versions.ammonite}")
+      Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
     })()
   }
 

@@ -1,6 +1,9 @@
 package mill
 package scalalib
 
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+
 import coursier.Repository
 import mill.define.Task
 import mill.define.TaskModule
@@ -14,7 +17,7 @@ import mill.api.Loose.Agg
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait JavaModule extends mill.Module with TaskModule { outer =>
+trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer =>
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule{
@@ -257,6 +260,14 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   }
 
   /**
+    * Creates a manifest representation which can be modifed or replaced
+    * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
+    */
+  def manifest = T{
+    Jvm.createManifest(finalMainClassOpt().toOption)
+  }
+
+  /**
     * Build the assembly for upstream dependencies separate from the current
     * classpath
     *
@@ -266,7 +277,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def upstreamAssembly = T{
     createAssembly(
       upstreamAssemblyClasspath().map(_.path),
-      mainClass(),
+      manifest(),
       assemblyRules = assemblyRules
     )
   }
@@ -278,7 +289,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def assembly = T{
     createAssembly(
       Agg.from(localClasspath().map(_.path)),
-      finalMainClassOpt().toOption,
+      manifest(),
       prependShellScript(),
       Some(upstreamAssembly().path),
       assemblyRules
@@ -292,7 +303,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
   def jar = T{
     createJar(
       localClasspath().map(_.path).filter(os.exists),
-      mainClass()
+      manifest()
     )
   }
 
@@ -345,7 +356,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     * The source jar, containing only source code for publishing to Maven Central
     */
   def sourceJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(os.exists))
+    createJar((allSources() ++ resources()).map(_.path).filter(os.exists), manifest())
   }
 
   /**
@@ -543,14 +554,7 @@ trait JavaModule extends mill.Module with TaskModule { outer =>
     */
   def artifactId: T[String] = artifactName()
 
-  def intellijModulePath: os.Path = millSourcePath
-
   def forkWorkingDir = T{ ammonite.ops.pwd }
-
-  /**
-   * Skip Idea project file generation.
-   */
-  def skipIdea: Boolean = false
 }
 
 trait TestModule extends JavaModule with TaskModule {
@@ -626,4 +630,3 @@ object TestModule{
     }
   }
 }
-

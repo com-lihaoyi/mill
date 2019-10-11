@@ -2,6 +2,7 @@ package mill.eval
 
 import mill.define.{Discover, Input, Target, Task}
 import mill.modules.Jvm
+import mill.modules.Jvm.JarManifest
 import mill.api.Ctx.Dest
 import mill.{Module, T}
 import mill.util.{DummyLogger, TestEvaluator, TestUtil}
@@ -9,6 +10,7 @@ import mill.api.Strict.Agg
 import mill.api.Loose
 import utest._
 import mill._
+
 object JavaCompileJarTests extends TestSuite{
   def compileAll(sources: mill.api.Loose.Agg[PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
@@ -39,7 +41,7 @@ object JavaCompileJarTests extends TestSuite{
         def classFiles = T{ compileAll(allSources()) }
         def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), None, fileFilter) }
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
 
         def run(mainClsName: String) = T.command{
           os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName).call()

@@ -9,3 +9,4 @@ object core extends ScalaModule{
   )
 }
 
+def thingy = T{ Seq("hello", "world") }

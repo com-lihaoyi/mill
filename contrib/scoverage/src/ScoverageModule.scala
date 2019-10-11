@@ -27,8 +27,8 @@ import mill.moduledefs.Cacher
  * import mill.contrib.scoverage.ScoverageModule
  *
  * Object foo extends ScoverageModule  {
- *   def scalaVersion = "2.11.8"
- *   def scoverageVersion = "1.3.1"
+ *   def scalaVersion = "2.12.9"
+ *   def scoverageVersion = "1.4.0"
  *
  *   object test extends ScoverageTests {
  *     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.5")

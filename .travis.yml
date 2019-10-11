@@ -8,50 +8,49 @@ git:
 matrix:
   include:
   - stage: build
-    name: Test Mill Release with some integration tests on Java 8
-    script: ci/test-mill-release.sh
+    env: CI_SCRIPT=ci/test-mill-release.sh
     jdk: oraclejdk8
   - stage: build
-    name: Test Mill Release with some integration tests on Java 9
-    script: ci/test-mill-release.sh
+    env: CI_SCRIPT=ci/test-mill-release.sh
+    jdk: openjdk9
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: openjdk10
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-dev.sh
+    jdk: oraclejdk11
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap-0.sh
+    jdk: oraclejdk8
+
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-bootstrap-1.sh
     jdk: oraclejdk9
 
   - stage: build
-    name: Run dev.assembly and the use it to build main tests on Java 8
-    script: ci/test-mill-dev.sh
+    env: CI_SCRIPT=ci/test-mill-0.sh
+    jdk: openjdk10
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-1.sh
+    jdk: openjdk8
+  - stage: build
+    env: CI_SCRIPT=ci/test-mill-2.sh
     jdk: oraclejdk8
-  - stage: build
-    name: Run dev.assembly and the use it to build main tests on Java 9
-    script: ci/test-mill-dev.sh
-    jdk: oraclejdk9
-
-  - stage: build
-    script: ci/test-mill-bootstrap.sh
-    jdk: oraclejdk9
-
-  - stage: build
-    name: Run mill tests
-    script: ci/test-mill-0.sh
-    jdk: oraclejdk8
-  - stage: build
-    name: Run mill integration tests (part 1)
-    script: ci/test-mill-1.sh
-    jdk: oraclejdk8
-  - stage: build
-    name: Run mill integration tests (part 2)
-    script: ci/test-mill-2.sh
-    jdk: oraclejdk9
 
 
   - stage: release
-    name: Publish mill to Maven Central and Github Releases
-    script: "ci/on-master.py ci/release.sh"
-    jdk: oraclejdk8
+    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    jdk: oraclejdk9
   - stage: release
-    name: Publish mill documentation site
-    script: "ci/on-master.py ci/publish-docs.sh"
-    jdk: oraclejdk8
+    env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
+    jdk: openjdk10
+
+script:
+  - "$CI_SCRIPT"
 
 cache:
   directories:
   - $HOME/.coursier
+  - $HOME/.mill/download
