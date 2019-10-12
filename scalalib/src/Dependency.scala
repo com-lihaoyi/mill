@@ -10,10 +10,12 @@ object Dependency extends ExternalModule {
 
   def updates(ev: Evaluator, allowPreRelease: Boolean = false) =
     T.command {
-      DependencyUpdatesImpl(implicitly,
-                            ev.rootModule,
-                            ev.rootModule.millDiscover,
-                            allowPreRelease)
+      DependencyUpdatesImpl(
+        ev,
+        implicitly,
+        ev.rootModule,
+        ev.rootModule.millDiscover,
+        allowPreRelease)
     }
 
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] =

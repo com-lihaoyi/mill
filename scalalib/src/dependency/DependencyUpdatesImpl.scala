@@ -1,23 +1,22 @@
 package mill.scalalib.dependency
 
 import mill.define._
-import mill.scalalib.dependency.updates.{
-  DependencyUpdates,
-  ModuleDependenciesUpdates,
-  UpdatesFinder
-}
-import mill.scalalib.dependency.versions.VersionsFinder
+import mill.eval.Evaluator
+import mill.scalalib.dependency.updates.{DependencyUpdates, ModuleDependenciesUpdates, UpdatesFinder}
+import mill.scalalib.dependency.versions.{ModuleDependenciesVersions, VersionsFinder}
 import mill.api.Ctx.{Home, Log}
 
 object DependencyUpdatesImpl {
 
-  def apply(ctx: Log with Home,
+  def apply(evaluator: Evaluator,
+            ctx: Log with Home,
             rootModule: BaseModule,
             discover: Discover[_],
             allowPreRelease: Boolean): Unit = {
 
     // 1. Find all available versions for each dependency
-    val allDependencyVersions = VersionsFinder.findVersions(ctx, rootModule)
+    val allDependencyVersions: Seq[ModuleDependenciesVersions] =
+      VersionsFinder.findVersions(evaluator, ctx, rootModule)
 
     // 2. Extract updated versions from all available versions
     val allUpdates = allDependencyVersions.map { dependencyVersions =>
