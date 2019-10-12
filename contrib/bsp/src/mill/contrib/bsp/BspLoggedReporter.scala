@@ -65,7 +65,8 @@ class BspLoggedReporter(client: bsp.BuildClient,
       })
     val params = new bsp.PublishDiagnosticsParams(textDocument,
                                                   targetId,
-                                                  appendDiagnostics(textDocument, diagnostic).asJava,
+                                                  appendDiagnostics(textDocument,
+                                                                    diagnostic).asJava,
                                                   true)
 
     if (originId.nonEmpty) {
@@ -94,7 +95,8 @@ class BspLoggedReporter(client: bsp.BuildClient,
     println(i)
     val start = new bsp.Position(
       pos.startLine.orElse(pos.line).getOrElse[Int](0),
-      pos.startOffset.orElse(pos.offset).getOrElse[Int](0))
+      pos.startOffset.orElse(pos.offset).getOrElse[Int](0)
+    )
     val end = new bsp.Position(
       pos.endLine.orElse(pos.line).getOrElse[Int](start.getLine.intValue()),
       pos.endOffset.orElse(pos.offset).getOrElse[Int](start.getCharacter.intValue()))

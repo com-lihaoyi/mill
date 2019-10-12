@@ -60,8 +60,9 @@ object BSP extends ExternalModule {
         println("The bsp connection json file probably exists already - will be overwritten")
         os.remove(bspDirectory / "mill.json")
         os.write(bspDirectory / "mill.json", createBspConnectionJson())
-      case e: Exception => println("An exception occurred while installing mill-bsp: " + e.getMessage +
-                                     " " + e.getStackTrace.toString)
+      case e: Exception =>
+        println("An exception occurred while installing mill-bsp")
+        e.printStackTrace()
     }
 
   }
@@ -70,11 +71,14 @@ object BSP extends ExternalModule {
   def createBspConnectionJson(): String = {
     val millPath = scala.sys.props("MILL_CLASSPATH")
     write(BspConfigJson("mill-bsp",
-                        List(whichJava, "-DMILL_CLASSPATH=" + millPath,
+                        List(whichJava,
+                             "-DMILL_CLASSPATH=" + millPath,
                              s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
-                             "-Djna.nosys=true", "-cp",
+                             "-Djna.nosys=true",
+                             "-cp",
                              millPath,
-                             "mill.MillMain", "mill.contrib.BSP/start"),
+                             "mill.MillMain",
+                             "mill.contrib.BSP/start"),
                         version,
                         bspVersion,
                         languages))

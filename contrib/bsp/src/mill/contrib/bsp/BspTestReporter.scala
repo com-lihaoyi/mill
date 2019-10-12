@@ -21,11 +21,10 @@ import sbt.testing._
   *                  in case special arguments need to be passed to
   *                  the compiler before running the test task.
   */
-class BspTestReporter(
-                       client: BuildClient,
-                       targetId: BuildTargetIdentifier,
-                       taskId: TaskId,
-                       arguments: Seq[String]) extends TestReporter {
+class BspTestReporter(client: BuildClient,
+                      targetId: BuildTargetIdentifier,
+                      taskId: TaskId,
+                      arguments: Seq[String]) extends TestReporter {
 
   var passed = 0
   var failed = 0
