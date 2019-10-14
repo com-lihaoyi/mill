@@ -69,11 +69,12 @@ object BSP extends ExternalModule {
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(): String = {
-    val millPath = scala.sys.props.get("MILL_CLASSPATH").getOrElse(scala.sys.process.Process("which mill").lineStream_!.mkString)
+    val millPath = scala.sys.props.get("MILL_CLASSPATH").getOrElse(System.getProperty("MILL_CLASSPATH"))
+    val millVersion = scala.sys.props.get("MILL_VERSION").getOrElse(System.getProperty("MILL_VERSION"))
     write(BspConfigJson("mill-bsp",
                         List(whichJava,
-                             "-DMILL_CLASSPATH=" + millPath,
-                             s"-DMILL_VERSION=${scala.sys.props("MILL_VERSION")}",
+                             s"-DMILL_CLASSPATH=$millPath",
+                             s"-DMILL_VERSION=$millVersion",
                              "-Djna.nosys=true",
                              "-cp",
                              millPath,
