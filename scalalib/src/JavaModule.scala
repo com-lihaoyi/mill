@@ -5,8 +5,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 import coursier.Repository
-import mill.define.Task
-import mill.define.TaskModule
+import mill.define.{Command, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
@@ -565,9 +564,29 @@ trait TestModule extends JavaModule with TaskModule {
   def testFrameworks: T[Seq[String]]
   /**
     * Discovers and runs the module's tests in a subprocess, reporting the
-    * results to the console
+    * results to the console.
+    * @see [[testCached]]
     */
-  def test(args: String*) = T.command{
+  def test(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
+    testTask(args)()
+  }
+
+  /**
+    * Args to be used by [[testCached]].
+    */
+  def testCachedArgs: T[Seq[String]] = T{ Seq[String]() }
+
+  /**
+    * Discovers and runs the module's tests in a subprocess, reporting the
+    * results to the console.
+    * If no input has changed since the last run, no test were executed.
+    * @see [[test()]]
+    */
+  def testCached: T[(String, Seq[TestRunner.Result])] = T {
+    testTask(testCachedArgs())()
+  }
+
+  protected def testTask(args: Seq[String]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.runSubprocess(
@@ -593,14 +612,13 @@ trait TestModule extends JavaModule with TaskModule {
     }catch{case e: Throwable =>
       Result.Failure("Test reporting failed: " + e)
     }
-
   }
 
   /**
     * Discovers and runs the module's tests in-process in an isolated classloader,
     * reporting the results to the console
     */
-  def testLocal(args: String*) = T.command{
+  def testLocal(args: String*) = T.command {
     val outputPath = T.ctx().dest/"out.json"
 
     val (doneMsg, results) = TestRunner.runTests(
