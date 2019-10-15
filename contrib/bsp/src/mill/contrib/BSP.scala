@@ -32,7 +32,7 @@ object BSP extends ExternalModule {
 
   lazy val millDiscover: Discover[BSP.this.type] = Discover[this.type]
   val version = "1.0.0"
-  val bspVersion = "2.0.0"
+  val bspProtocolVersion = "2.0.0"
   val languages = List("scala", "java")
 
   /**
@@ -81,7 +81,7 @@ object BSP extends ExternalModule {
                              "mill.MillMain",
                              "mill.contrib.BSP/start"),
                         version,
-                        bspVersion,
+                        bspProtocolVersion,
                         languages))
   }
 
@@ -103,7 +103,7 @@ object BSP extends ExternalModule {
   def start(ev: Evaluator): Command[Unit] = T.command {
     val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
                              ev.workerCache, ev.env, false)
-    val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspVersion, version, languages)
+    val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspProtocolVersion, version, languages)
     val executor = Executors.newCachedThreadPool()
 
     val stdin = System.in

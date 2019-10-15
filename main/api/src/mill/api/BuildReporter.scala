@@ -2,7 +2,7 @@ package mill.api
 
 import java.io.File
 
-import sbt.testing._
+import sbt.testing.Event
 
 /**
   * Test reporter class that can be

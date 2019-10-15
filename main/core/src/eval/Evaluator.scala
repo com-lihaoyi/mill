@@ -41,6 +41,11 @@ case class Evaluator(home: os.Path,
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
+  /**
+    * @param goals The tasks that need to be evaluated
+    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
+    * @param testReporter Listener for test events like start, finish with success/error
+    */
   def evaluate(goals: Agg[Task[_]],
                reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                testReporter: TestReporter = DummyTestReporter,
