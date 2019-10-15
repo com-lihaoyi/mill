@@ -7,11 +7,11 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  
+
   def scalacOptions = Seq("-Ydelambdafy:inline")
-  
+
   def forkArgs = Seq("-Xmx4g")
-  
+
   def forkEnv = Map("HELLO_MY_ENV_VAR" -> "WORLD")
 }
 ```
@@ -74,8 +74,8 @@ def repositories = super.repositories ++ Seq(
 )
 ```
 
-To add custom resolvers to the initial bootstrap of the build, you can create a 
-custom `ZincWorkerModule`, and override the `zincWorker` method in your 
+To add custom resolvers to the initial bootstrap of the build, you can create a
+custom `ZincWorkerModule`, and override the `zincWorker` method in your
 `ScalaModule` by pointing it to that custom object:
 
 ```scala
@@ -84,7 +84,7 @@ import coursier.maven.MavenRepository
 object CustomZincWorkerModule extends ZincWorkerModule {
   def repositories() = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )  
+  )
 }
 
 object YourBuild extends ScalaModule {
@@ -101,7 +101,7 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests { 
+  object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
@@ -163,11 +163,11 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests { 
+  object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
-  object integration extends Tests { 
+  object integration extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
     def testFrameworks = Seq("utest.runner.Framework")
   }
@@ -182,21 +182,46 @@ configuration options apply.
 
 ## Custom Test Frameworks
 
+Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it
+to `ivyDeps` and specifying the `testFrameworks` you want to use.
+
+Scalatest example:
+
+
 ```scala
 // build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-  def testFrameworks = Seq("org.scalatest.tools.Framework")
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
+    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  }
 }
 ```
 
-Integrating with test frameworks like Scalatest is simply a matter of adding it
-to `ivyDeps` and specifying the `testFrameworks` you want to use. After that you
-can [add a test suite](#adding-a-test-suite) and `mill foo.test` as usual,
-passing args to the test suite via `mill foo.test arg1 arg2 arg3`
+Specs2 example:
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.12.4"
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
+    def testFrameworks = Seq("org.specs2.runner.Specs2Framework")
+    def scalacOptions = foo.scalacOptions() ++ Seq(
+      "-Yrangepos"    // Required by specs2
+    )
+  }
+}
+```
+
+After that, you can follow the instructions in [add a test suite](#adding-a-test-suite), and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
 
 ## Scala Compiler Plugins
 
@@ -206,7 +231,7 @@ import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
-  
+
   def compileIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
@@ -252,7 +277,7 @@ import mill._, scalalib._
 trait CommonModule extends ScalaModule {
   def scalaVersion = "2.12.4"
 }
- 
+
 object foo extends CommonModule
 object bar extends CommonModule {
   def moduleDeps = Seq(foo)
@@ -267,11 +292,11 @@ the same testing framework, etc. and all that can be extracted out into the
 
 ## Global configuration
 
-Mill builds on ammonite which allows you to 
-[define global configuration](http://ammonite.io/#ScriptPredef). Depending on 
-how you start mill 2 different files will be loaded. For interactive mode it's 
-`~/.mill/ammonite/predef.sc` and from the command line it's 
-`~/.mill/ammonite/predefScript.sc`. You might want to create a symlink from one 
+Mill builds on ammonite which allows you to
+[define global configuration](http://ammonite.io/#ScriptPredef). Depending on
+how you start mill 2 different files will be loaded. For interactive mode it's
+`~/.mill/ammonite/predef.sc` and from the command line it's
+`~/.mill/ammonite/predefScript.sc`. You might want to create a symlink from one
 to the other to avoid duplication.
 
 Example `~/.mill/ammonite/predef.sc`
@@ -300,7 +325,7 @@ object foo extends ScalaModule {
 }
 
 def lineCount = T {
-  
+
   foo.sources().flatMap(ref => os.walk(ref.path)).filter(_.isFile).flatMap(read.lines).size
 }
 
