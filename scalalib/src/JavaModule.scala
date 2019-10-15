@@ -568,7 +568,7 @@ trait TestModule extends JavaModule with TaskModule {
     * @see [[testCached]]
     */
   def test(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
-    testTask(args)()
+    testTask(T.task{args})()
   }
 
   /**
@@ -583,10 +583,10 @@ trait TestModule extends JavaModule with TaskModule {
     * @see [[test()]]
     */
   def testCached: T[(String, Seq[TestRunner.Result])] = T {
-    testTask(testCachedArgs())()
+    testTask(testCachedArgs)()
   }
 
-  protected def testTask(args: Seq[String]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val outputPath = T.ctx().dest/"out.json"
 
     Jvm.runSubprocess(
@@ -599,8 +599,8 @@ trait TestModule extends JavaModule with TaskModule {
         testFrameworks() ++
         Seq(runClasspath().length.toString) ++
         runClasspath().map(_.path.toString) ++
-        Seq(args.length.toString) ++
-        args ++
+        Seq(args().length.toString) ++
+        args() ++
         Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
       workingDir = forkWorkingDir()
     )
