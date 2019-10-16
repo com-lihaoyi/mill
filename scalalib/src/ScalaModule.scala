@@ -128,7 +128,8 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent{
+  override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
+
     zincWorker.worker().compileMixed(
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),
@@ -139,6 +140,7 @@ trait ScalaModule extends JavaModule { outer =>
       scalacOptions(),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
+      T.ctx().reporter(hashCode)
     )
   }
 

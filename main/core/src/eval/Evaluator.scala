@@ -2,17 +2,18 @@ package mill.eval
 
 import java.net.URLClassLoader
 
+import ammonite.runtime.SpecialClassLoader
+import mill.api.Result.{Aborted, OuterStack, Success}
+import mill.api.Strict.Agg
+import mill.api.{DummyTestReporter, TestReporter, BuildProblemReporter}
+import mill.define.{Ctx => _, _}
+import mill.util
+import mill.util.Router.EntryPoint
+import mill.util._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
-
-import ammonite.runtime.SpecialClassLoader
-import mill.util.Router.EntryPoint
-import mill.define.{Ctx => _, _}
-import mill.api.Result.{Aborted, OuterStack, Success}
-import mill.util
-import mill.util._
-import mill.api.Strict.Agg
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -40,9 +41,16 @@ case class Evaluator(home: os.Path,
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
-  def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
+  /**
+    * @param goals The tasks that need to be evaluated
+    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
+    * @param testReporter Listener for test events like start, finish with success/error
+    */
+  def evaluate(goals: Agg[Task[_]],
+               reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+               testReporter: TestReporter = DummyTestReporter,
+               logger: Logger = log): Evaluator.Results = {
     os.makeDir.all(outPath)
-
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -66,7 +74,10 @@ case class Evaluator(home: os.Path,
         terminal,
         group,
         results,
-        counterMsg
+        counterMsg,
+        reporter,
+        testReporter,
+        logger
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -111,7 +122,10 @@ case class Evaluator(home: os.Path,
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String
+                          counterMsg: String,
+                          zincProblemReporter: Int => Option[BuildProblemReporter],
+                          testReporter: TestReporter,
+                          logger: Logger
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
@@ -133,7 +147,10 @@ case class Evaluator(home: os.Path,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
-          counterMsg = counterMsg
+          counterMsg = counterMsg,
+          zincProblemReporter,
+          testReporter,
+          logger
         )
         (newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
@@ -185,7 +202,10 @@ case class Evaluator(home: os.Path,
               inputsHash,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
-              counterMsg = counterMsg
+              counterMsg = counterMsg,
+              zincProblemReporter,
+              testReporter,
+              logger
             )
 
             newResults(labelledNamedTask.task) match{
@@ -259,7 +279,10 @@ case class Evaluator(home: os.Path,
                     inputsHash: Int,
                     paths: Option[Evaluator.Paths],
                     maybeTargetLabel: Option[String],
-                    counterMsg: String): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+                    counterMsg: String,
+                    reporter: Int => Option[BuildProblemReporter],
+                    testReporter: TestReporter,
+                    logger: Logger): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -276,11 +299,11 @@ case class Evaluator(home: os.Path,
       val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
 
       val prefix = s"[$counterMsg] $targetLabel "
-      if(logRun) log.ticker(prefix)
+      if(logRun) logger.ticker(prefix)
       prefix + "| "
     }
 
-    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log))) {
+    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
         super.ticker(tickerPrefix.getOrElse("")+s)
       }
@@ -319,7 +342,9 @@ case class Evaluator(home: os.Path,
             },
             multiLogger,
             home,
-            env
+            env,
+            reporter,
+            testReporter
           )
 
           val out = System.out
@@ -359,9 +384,9 @@ case class Evaluator(home: os.Path,
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[os.Path]): Logger = logPath match{
-    case None => log
-    case Some(path) => MultiLogger(log.colored, log, FileLogger(log.colored, path, debugEnabled = true))
+  def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match{
+    case None => logger
+    case Some(path) => MultiLogger(logger.colored, log, FileLogger(logger.colored, path, debugEnabled = true))
   }
 }
 
