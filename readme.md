@@ -167,6 +167,13 @@ corresponding version of Mill.
 
 ## Changelog
 
+### master
+
+*For details refer to
+[milestone after 0.5.2](https://github.com/lihaoyi/mill/milestone/31?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.2...master).*
+
+
 ### 0.5.2 - 2019-10-17
 
 - `TestModule`: new `testCached`target, which only re-runs tests after relevant changes
