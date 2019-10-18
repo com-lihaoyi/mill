@@ -51,7 +51,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
     os.remove.all(cwd/".idea"/"scala_compiler.xml")
     os.remove.all(cwd/".idea_modules")
 
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))){
+    ctx.log.info("Analyzing modules ...")
+    val layout = xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
+    ctx.log.info("Writing IDEA project files ...")
+    for((relPath, xml) <- layout) {
       os.write.over(cwd/relPath, pp.format(xml), createFolders = true)
     }
   }
