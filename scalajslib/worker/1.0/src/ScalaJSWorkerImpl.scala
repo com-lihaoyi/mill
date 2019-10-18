@@ -3,13 +3,13 @@ package scalajslib
 package worker
 
 import java.io.File
-import mill.scalajslib.api.{ModuleKind, JsEnvConfig}
+
 import mill.api.Result
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.ConsoleJSConsole
-import org.scalajs.jsenv.nodejs._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
@@ -57,7 +57,8 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
 
   def getFramework(config: JsEnvConfig,
                    frameworkName: String,
-                   linkedFile: File): (() => Unit, sbt.testing.Framework) = {
+                   linkedFile: File,
+                   moduleKind: ModuleKind) : (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 

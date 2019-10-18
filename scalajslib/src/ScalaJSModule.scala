@@ -188,7 +188,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         toolsClasspath().map(_.path),
         jsEnvConfig(),
         testFrameworks().head,
-        fastOptTest().path.toIO
+        fastOptTest().path.toIO,
+        moduleKind()
       )
 
     val (doneMsg, results) = TestRunner.runTests(
