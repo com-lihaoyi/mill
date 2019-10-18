@@ -3,16 +3,17 @@ package mill.scalalib.worker
 import java.io.File
 import java.util.Optional
 
-import scala.ref.WeakReference
-
 import mill.api.Loose.Agg
-import mill.api.{KeyedLockedCache, PathRef}
-import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+import mill.api.{Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn, BuildProblemReporter}
 import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
+import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleOut, MainAppender}
 import sbt.util.LogExchange
-import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
+import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
+
+import scala.ref.WeakReference
+
 case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
   override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
     am(classpathEntry)
@@ -20,6 +21,45 @@ case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClassp
   override def definesClass(classpathEntry: File): DefinesClass =
     Locate.definesClass(classpathEntry)
 }
+
+class ZincProblem(base: xsbti.Problem) extends Problem {
+  override def category: String = base.category()
+
+  override def severity: Severity = base.severity() match {
+    case xsbti.Severity.Info => mill.api.Info
+    case xsbti.Severity.Warn => mill.api.Warn
+    case xsbti.Severity.Error => mill.api.Error
+  }
+
+  override def message: String = base.message()
+
+  override def position: ProblemPosition = new ZincProblemPosition(base.position())
+}
+
+class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
+
+  object JavaOptionConverter {
+    implicit def convertInt(x: Optional[Integer]): Option[Int] = if (x.isEmpty) None else Some(x.get().intValue())
+    implicit def convert[T](x: Optional[T]): Option[T] = if (x.isEmpty) None else Some(x.get())
+  }
+
+  import JavaOptionConverter._
+
+  override def line: Option[Int] = base.line()
+
+  override def lineContent: String = base.lineContent()
+
+  override def offset: Option[Int] = base.offset()
+
+  override def pointer: Option[Int] = base.pointer()
+
+  override def pointerSpace: Option[String] = base.pointerSpace()
+
+  override def sourcePath: Option[String] = base.sourcePath()
+
+  override def sourceFile: Option[File] = base.sourceFile()
+}
+
 
 class ZincWorkerImpl(compilerBridge: Either[
                        (ZincWorkerApi.Ctx, (String, String) => (Option[Array[os.Path]], os.Path)),
@@ -61,7 +101,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
-      scalacPluginClasspath,
+      scalacPluginClasspath
     ) { compilers: Compilers =>
       val scaladocClass = compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
       val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
@@ -155,20 +195,23 @@ class ZincWorkerImpl(compilerBridge: Either[
   def compileJava(upstreamCompileOutput: Seq[CompilationResult],
                   sources: Agg[os.Path],
                   compileClasspath: Agg[os.Path],
-                  javacOptions: Seq[String])
+                  javacOptions: Seq[String],
+                  reporter: Option[BuildProblemReporter])
                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for(res <- compileJava0(
       upstreamCompileOutput.map(c => (c.analysisFile, c.classes.path)),
       sources,
       compileClasspath,
-      javacOptions
+      javacOptions,
+      reporter
     )) yield CompilationResult(res._1, PathRef(res._2))
   }
   def compileJava0(upstreamCompileOutput: Seq[(os.Path, os.Path)],
                    sources: Agg[os.Path],
                    compileClasspath: Agg[os.Path],
-                   javacOptions: Seq[String])
+                   javacOptions: Seq[String],
+                   reporter: Option[BuildProblemReporter])
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     compileInternal(
       upstreamCompileOutput,
@@ -176,7 +219,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       compileClasspath,
       javacOptions,
       scalacOptions = Nil,
-      javaOnlyCompilers
+      javaOnlyCompilers,
+      reporter
     )
   }
 
@@ -188,7 +232,8 @@ class ZincWorkerImpl(compilerBridge: Either[
                    scalaOrganization: String,
                    scalacOptions: Seq[String],
                    compilerClasspath: Agg[os.Path],
-                   scalacPluginClasspath: Agg[os.Path])
+                   scalacPluginClasspath: Agg[os.Path],
+                   reporter: Option[BuildProblemReporter])
                   (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult] = {
 
     for (res <- compileMixed0(
@@ -200,7 +245,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       scalaOrganization,
       scalacOptions,
       compilerClasspath,
-      scalacPluginClasspath
+      scalacPluginClasspath,
+      reporter
     )) yield CompilationResult(res._1, PathRef(res._2))
   }
 
@@ -212,13 +258,14 @@ class ZincWorkerImpl(compilerBridge: Either[
                     scalaOrganization: String,
                     scalacOptions: Seq[String],
                     compilerClasspath: Agg[os.Path],
-                    scalacPluginClasspath: Agg[os.Path])
+                    scalacPluginClasspath: Agg[os.Path],
+                    reporter: Option[BuildProblemReporter])
                    (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     withCompilers(
       scalaVersion,
       scalaOrganization,
       compilerClasspath,
-      scalacPluginClasspath,
+      scalacPluginClasspath
     ) {compilers: Compilers =>
       compileInternal(
         upstreamCompileOutput,
@@ -226,7 +273,8 @@ class ZincWorkerImpl(compilerBridge: Either[
         compileClasspath,
         javacOptions,
         scalacOptions = scalacPluginClasspath.map(jar => s"-Xplugin:$jar").toSeq ++ scalacOptions,
-        compilers
+        compilers,
+        reporter
       )
     }
   }
@@ -298,7 +346,8 @@ class ZincWorkerImpl(compilerBridge: Either[
                               compileClasspath: Agg[os.Path],
                               javacOptions: Seq[String],
                               scalacOptions: Seq[String],
-                              compilers: Compilers)
+                              compilers: Compilers,
+                              reporter: Option[BuildProblemReporter])
                              (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
@@ -312,7 +361,25 @@ class ZincWorkerImpl(compilerBridge: Either[
       LogExchange.bindLoggerAppenders(id, (consoleAppender -> sbt.util.Level.Info) :: Nil)
       l
     }
+    val newReporter = reporter match {
+      case None => new ManagedLoggedReporter(10, logger)
+      case Some(r) => new ManagedLoggedReporter(10, logger) {
+        override def logError(problem: xsbti.Problem): Unit = {
+          r.logError(new ZincProblem(problem))
+          super.logError(problem)
+        }
 
+        override def logWarning(problem: xsbti.Problem): Unit = {
+          r.logWarning(new ZincProblem(problem))
+          super.logWarning(problem)
+        }
+
+        override def logInfo(problem: xsbti.Problem): Unit = {
+          r.logInfo(new ZincProblem(problem))
+          super.logInfo(problem)
+        }
+      }
+    }
     val analysisMap0 = upstreamCompileOutput.map(_.swap).toMap
 
     def analysisMap(f: File): Optional[CompileAnalysis] = {
@@ -350,7 +417,7 @@ class ZincWorkerImpl(compilerBridge: Either[
         zincIOFile,
         new FreshCompilerCache,
         IncOptions.of(),
-        new ManagedLoggedReporter(10, logger),
+        newReporter,
         None,
         Array()
       ),
@@ -372,7 +439,6 @@ class ZincWorkerImpl(compilerBridge: Either[
           newResult.setup()
         )
       )
-
       mill.api.Result.Success((zincFile, classesDir))
     }catch{case e: CompileFailed => mill.api.Result.Failure(e.toString)}
   }
