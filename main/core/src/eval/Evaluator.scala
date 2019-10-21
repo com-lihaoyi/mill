@@ -5,14 +5,16 @@ import java.net.URLClassLoader
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
-
 import ammonite.runtime.SpecialClassLoader
+import eval.RemoteCacher
 import mill.util.Router.EntryPoint
 import mill.define.{Ctx => _, _}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.util
 import mill.util._
 import mill.api.Strict.Agg
+
+import scala.concurrent.Future
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -27,6 +29,8 @@ case class Labelled[T](task: NamedTask[T],
   }
 }
 
+//hashcode and segment in remote cache
+case class RemoteCache(cachesAvailable: Set[(Int, Segments)])
 case class Evaluator(home: os.Path,
                      outPath: os.Path,
                      externalOutPath: os.Path,
@@ -41,6 +45,7 @@ case class Evaluator(home: os.Path,
   val classLoaderSignHash = classLoaderSig.hashCode()
 
   def evaluate(goals: Agg[Task[_]]): Evaluator.Results = {
+    log.info(s"\nevaluate goals: $goals\n")
     os.makeDir.all(outPath)
 
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -61,6 +66,7 @@ case class Evaluator(home: os.Path,
 
       val startTime = System.currentTimeMillis()
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
       val (newResults, newEvaluated, cached) = evaluateGroupCached(
         terminal,
@@ -68,6 +74,8 @@ case class Evaluator(home: os.Path,
         results,
         counterMsg
       )
+
+      RemoteCacher.uploadTasks(newEvaluated, log)
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
       for(ev <- newEvaluated){
@@ -111,19 +119,24 @@ case class Evaluator(home: os.Path,
   def evaluateGroupCached(terminal: Either[Task[_], Labelled[_]],
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
-                          counterMsg: String
+                          counterMsg: String,
+                          remoteCache: Option[RemoteCache] = Option.empty
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
+//    log.info(s"terminal $terminal")
+//    log.info(s"evaluateGroupCached group ${group.toList}")
+
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
-      group.items.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(results(_).asSuccess.map(_.value._2))
+      group.items.flatMap(_.inputs).filter(!group.contains(_)) //get input from group where the inputs themselves are not in the group
+        .flatMap(results(_).asSuccess.map(_.value._2)) //Get the result of the input for hashing
     )
 
     val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
       group.toIterator.map(_.sideHash)
     )
 
-    val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
+    val inputsHash = externalInputsHash + sideHashes //TODO this is messing with me add back in later+ classLoaderSignHash
+//    log.info(s"CACHES $externalInputsHash $sideHashes $classLoaderSignHash")
 
     terminal match{
       case Left(task) =>
@@ -147,24 +160,17 @@ case class Evaluator(home: os.Path,
         )
 
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
-        val cached = for{
-          cached <-
-            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch {case e: Throwable => None}
-
-          if cached.inputsHash == inputsHash
-          reader <- labelledNamedTask.format
-          parsed <-
-            try Some(upickle.default.read(cached.value)(reader))
-            catch {case e: Throwable => None}
-        } yield (parsed, cached.valueHash)
+        val cached = getLocalCache(inputsHash, labelledNamedTask, paths) orElse getRemoteCache()
+        cached foreach(c => log.info(s"Cached! $c"))
 
         val workerCached = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
           .collect{case (`inputsHash`, v) => v}
 
+//       log.info(s"$workerCached, $cached")
         workerCached.map((_, inputsHash)) orElse cached match{
           case Some((v, hashCode)) =>
+//            log.info(s"   cached $v , hashcode $hashCode ")
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
 
@@ -188,6 +194,8 @@ case class Evaluator(home: os.Path,
               counterMsg = counterMsg
             )
 
+//            log.info(s"Not cached. New results ${newResults.values.toList} and new evaluated $newEvaluated")
+
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
@@ -207,6 +215,27 @@ case class Evaluator(home: os.Path,
         }
     }
   }
+
+  private def getLocalCache(inputsHash: Int, labelledNamedTask: Labelled[_], paths: Evaluator.Paths): Option[(Any, Int)] = {
+    for {
+      cached <-
+        try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+        catch {
+          case e: Throwable => None
+        }
+
+      if cached.inputsHash == inputsHash
+      reader <- labelledNamedTask.format
+      parsed <-
+        try Some(upickle.default.read(cached.value)(reader))
+        catch {
+          case e: Throwable => None
+        }
+    } yield (parsed, cached.valueHash)
+  }
+
+  //Download and return value //TODO future
+  private def getRemoteCache(): Option[(Any, Int)] = None
 
   def destSegments(labelledTask : Labelled[_]) : Segments = {
     import labelledTask.task.ctx
@@ -228,6 +257,7 @@ case class Evaluator(home: os.Path,
   }
 
 
+  //TODO would handle remote cache as well here
   def handleTaskResult(v: Any,
                        hashCode: Int,
                        metaPath: os.Path,
@@ -242,6 +272,7 @@ case class Evaluator(home: os.Path,
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
         for((json, v) <- terminalResult){
+//          log.info(s"writing over $metaPath ${Evaluator.Cached(json, hashCode, inputsHash)}")
           os.write.over(
             metaPath,
             upickle.default.write(

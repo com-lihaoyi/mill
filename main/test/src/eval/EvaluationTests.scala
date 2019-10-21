@@ -321,11 +321,13 @@ object EvaluationTests extends TestSuite{
         // cached target
         val check = new Checker(build)
         assert(leftCount == 0, rightCount == 0)
+        println("first eval")
         check(down, expValue = 10101, expEvaled = Agg(up, right, down), extraEvaled = 8)
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
         // If the upstream `up` doesn't change, the entire block of tasks
         // doesn't need to recompute
+        println("second eval. No changes should be cached")
         check(down, expValue = 10101, expEvaled = Agg())
         assert(leftCount == 1, middleCount == 1, rightCount == 1)
 
@@ -334,6 +336,7 @@ object EvaluationTests extends TestSuite{
         // because tasks have no cached value that can be used. `right`, which
         // is a cached Target, does not recompute
         up.inputs(0).asInstanceOf[Test].counter += 1
+        println("third eval. Up has changed. Right should stay cached I believe. But also middle because it has no cached value.")
         check(down, expValue = 10102, expEvaled = Agg(up, down), extraEvaled = 6)
         assert(leftCount == 2, middleCount == 2, rightCount == 1)
 

@@ -53,6 +53,13 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:0.7.1"
   val utest = ivy"com.lihaoyi::utest:0.6.4"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+
+  //Just here temporarily for prototyping
+  val http4sVersion = "0.21.0-M5"
+  val http4sBlazeClient = ivy"org.http4s::http4s-blaze-client:$http4sVersion"
+  val http4sBlazeServer = ivy"org.http4s::http4s-blaze-server:$http4sVersion"
+  val http4sDSL = ivy"org.http4s::http4s-dsl:$http4sVersion"
+
 }
 
 trait MillPublishModule extends PublishModule{
@@ -141,7 +148,10 @@ object main extends MillModule {
       Deps.ammonite,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
-      Deps.jnaPlatform
+      Deps.jnaPlatform,
+      Deps.http4sBlazeClient,
+      Deps.http4sBlazeServer,
+      Deps.http4sDSL
     )
 
     def generatedSources = T {

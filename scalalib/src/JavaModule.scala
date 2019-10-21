@@ -48,6 +48,8 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
       case None =>
         zincWorker.worker().discoverMainClasses(compile())match {
           case Seq() => Left("No main class specified or found")
+          //Unrelated: Could make a better warning message here. I had class S extends IOApp (which has main) but is not static.
+          //Had to make it object S extends IOApp and it made a static main that was discovered.
           case Seq(main) => Right(main)
           case mains =>
             Left(
