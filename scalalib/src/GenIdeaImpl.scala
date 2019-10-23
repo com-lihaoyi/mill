@@ -47,12 +47,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val pp = new scala.xml.PrettyPrinter(999, 4)
     val jdkInfo = extractCurrentJdk(cwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
 
+    ctx.log.info("Analyzing modules ...")
+    val layout = xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
+
+    ctx.log.debug("Cleaning obsolete IDEA project files ...")
     os.remove.all(cwd/".idea"/"libraries")
     os.remove.all(cwd/".idea"/"scala_compiler.xml")
     os.remove.all(cwd/".idea_modules")
 
-    ctx.log.info("Analyzing modules ...")
-    val layout = xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
     ctx.log.info("Writing IDEA project files ...")
     for((relPath, xml) <- layout) {
       os.write.over(cwd/relPath, pp.format(xml), createFolders = true)
