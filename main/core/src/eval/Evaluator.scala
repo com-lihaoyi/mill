@@ -29,8 +29,6 @@ case class Labelled[T](task: NamedTask[T],
   }
 }
 
-//hashcode and segment in remote cache
-case class RemoteCache(cachesAvailable: Set[(Int, Segments)])
 case class Evaluator(home: os.Path,
                      outPath: os.Path,
                      externalOutPath: os.Path,
@@ -39,7 +37,8 @@ case class Evaluator(home: os.Path,
                      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
                      workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
                      env : Map[String, String] = Evaluator.defaultEnv,
-                     failFast: Boolean = true
+                     failFast: Boolean = true,
+                     remoteCaching: Boolean = true
                     ){
 
   val classLoaderSignHash = classLoaderSig.hashCode()
@@ -68,14 +67,15 @@ case class Evaluator(home: os.Path,
       // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
 
       val counterMsg = (i+1) + "/" + sortedGroups.keyCount
+
       val (newResults, newEvaluated, cached) = evaluateGroupCached(
         terminal,
         group,
         results,
-        counterMsg
+        counterMsg,
+        if (remoteCaching) Some(RemoteCacher.getCached) else None
       )
 
-      RemoteCacher.uploadTasks(newEvaluated, log)
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
       for(ev <- newEvaluated){
@@ -105,6 +105,9 @@ case class Evaluator(home: os.Path,
         indent = 4
       )
     )
+
+    RemoteCacher.uploadTasks(evaluated.toList, log)
+
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
@@ -120,7 +123,7 @@ case class Evaluator(home: os.Path,
                           group: Agg[Task[_]],
                           results: collection.Map[Task[_], Result[(Any, Int)]],
                           counterMsg: String,
-                          remoteCache: Option[RemoteCache] = Option.empty
+                          remoteCache: Option[RemoteCacher.Cached] = Option.empty
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
 //    log.info(s"terminal $terminal")
@@ -160,7 +163,7 @@ case class Evaluator(home: os.Path,
         )
 
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
-        val cached = getLocalCache(inputsHash, labelledNamedTask, paths) orElse getRemoteCache()
+        val cached = getLocalCache(inputsHash, labelledNamedTask, paths) orElse getRemoteCache(remoteCache)(inputsHash, labelledNamedTask, paths)
         cached foreach(c => log.info(s"Cached! $c"))
 
         val workerCached = labelledNamedTask.task.asWorker
@@ -216,7 +219,8 @@ case class Evaluator(home: os.Path,
     }
   }
 
-  private def getLocalCache(inputsHash: Int, labelledNamedTask: Labelled[_], paths: Evaluator.Paths): Option[(Any, Int)] = {
+  type GetCached = (Int, Labelled[_], Evaluator.Paths) => Option[(Any, Int)]
+  private val getLocalCache: GetCached = (inputsHash, labelledNamedTask, paths) => {
     for {
       cached <-
         try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
@@ -234,8 +238,15 @@ case class Evaluator(home: os.Path,
     } yield (parsed, cached.valueHash)
   }
 
-  //Download and return value //TODO future
-  private def getRemoteCache(): Option[(Any, Int)] = None
+  /**
+    * Download and overwrite local cache
+    */
+  private def getRemoteCache(remoteCache: Option[RemoteCacher.Cached]): GetCached = (inputsHash, labelledNamedTask, paths) => {
+    remoteCache.fold(Option.empty[(Any, Int)])(rc => {
+      val fetched = RemoteCacher.fetchAndOverwriteTask(rc, inputsHash, paths.dest)
+      if (fetched) getLocalCache(inputsHash, labelledNamedTask, paths) else None
+    })
+  }
 
   def destSegments(labelledTask : Labelled[_]) : Segments = {
     import labelledTask.task.ctx

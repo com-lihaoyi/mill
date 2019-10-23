@@ -59,6 +59,7 @@ object Deps {
   val http4sBlazeClient = ivy"org.http4s::http4s-blaze-client:$http4sVersion"
   val http4sBlazeServer = ivy"org.http4s::http4s-blaze-server:$http4sVersion"
   val http4sDSL = ivy"org.http4s::http4s-dsl:$http4sVersion"
+  val http4sArgonaut = ivy"org.http4s::http4s-argonaut:$http4sVersion"
 
 }
 
@@ -151,7 +152,8 @@ object main extends MillModule {
       Deps.jnaPlatform,
       Deps.http4sBlazeClient,
       Deps.http4sBlazeServer,
-      Deps.http4sDSL
+      Deps.http4sDSL,
+      Deps.http4sArgonaut
     )
 
     def generatedSources = T {
