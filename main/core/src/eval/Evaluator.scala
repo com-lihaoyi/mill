@@ -113,7 +113,7 @@ case class Evaluator(home: os.Path,
       evaluated,
       transitive,
       failing,
-      timings,
+      timings.toIndexedSeq,
       results.map{case (k, v) => (k, v.map(_._1))}
     )
   }
@@ -152,7 +152,7 @@ case class Evaluator(home: os.Path,
           testReporter,
           logger
         )
-        (newResults, newEvaluated, false)
+        (newResults, newEvaluated.toSeq, false)
       case Right(labelledNamedTask) =>
 
         val out = if (!labelledNamedTask.task.ctx.external) outPath
@@ -223,7 +223,7 @@ case class Evaluator(home: os.Path,
                 os.remove.all(paths.meta)
             }
 
-            (newResults, newEvaluated, false)
+            (newResults, newEvaluated.toSeq, false)
         }
     }
   }

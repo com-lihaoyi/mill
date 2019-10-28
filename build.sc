@@ -39,7 +39,7 @@ object Deps {
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
-  val jna = ivy"net.java.dev.jna:jna:4.5.0"
+  val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val osLib = ivy"com.lihaoyi::os-lib:0.4.2"
@@ -48,11 +48,11 @@ object Deps {
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
-  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.7"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.8.0"
   val upickle = ivy"com.lihaoyi::upickle:0.8.0"
   val utest = ivy"com.lihaoyi::utest:0.7.1"
-  val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+  val zinc = ivy"org.scala-sbt::zinc:1.3.1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
 
@@ -128,7 +128,8 @@ object main extends MillModule {
   object api extends MillApiModule{
     def ivyDeps = Agg(
       Deps.osLib,
-      Deps.upickle
+      Deps.upickle,
+      Deps.sbtTestInterface
     )
   }
   object core extends MillModule {
@@ -167,7 +168,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.10" }
+    def scalaVersion = T{ "2.13.1" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode,
@@ -262,7 +263,7 @@ object scalalib extends MillModule {
     def moduleDeps = Seq(main.api)
   }
   object worker extends MillApiModule{
-
+    def scalaVersion = T{ "2.12.10" }
     def moduleDeps = Seq(scalalib.api)
 
     def ivyDeps = Agg(
@@ -296,6 +297,7 @@ object scalajslib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
   class WorkerModule(scalajsBinary: String) extends MillApiModule{
+    def scalaVersion = T{ "2.12.10" }
     def moduleDeps = Seq(scalajslib.api)
     def ivyDeps = scalajsBinary match {
       case "0.6" =>
@@ -336,6 +338,7 @@ object contrib extends MillModule {
   }
 
   object playlib extends MillModule {
+    def scalaVersion = T { "2.12.10" }
     def moduleDeps = Seq(scalalib, twirllib, playlib.api)
 
     def testArgs = T {
@@ -355,6 +358,7 @@ object contrib extends MillModule {
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
     class WorkerModule(scalajsBinary: String) extends MillApiModule {
+      def scalaVersion = T { "2.12.10" }
       def moduleDeps = Seq(playlib.api)
 
       def ivyDeps = scalajsBinary match {
@@ -401,6 +405,7 @@ object contrib extends MillModule {
     object worker extends Cross[WorkerModule]("1.3.1", "1.4.0")
 
     class WorkerModule(scoverageVersion: String) extends MillApiModule {
+      def scalaVersion = T { "2.12.10" }
       def moduleDeps = Seq(scoverage.api)
 
       def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
@@ -433,6 +438,7 @@ object contrib extends MillModule {
   }
 
   object bloop extends MillModule {
+    def scalaVersion = T{ "2.12.10" }
     def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
       Deps.bloopConfig,
@@ -477,6 +483,7 @@ object scalanativelib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.3")
   class WorkerModule(scalaNativeBinary: String) extends MillApiModule {
+    def scalaVersion = T{ "2.12.10" }
     def scalaNativeVersion = T{ "0.3.8" }
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = scalaNativeBinary match {
