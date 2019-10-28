@@ -1,6 +1,6 @@
 package eval
 
-import java.io.FileOutputStream
+import java.io.{File, FileOutputStream}
 import java.lang
 import java.net.URLEncoder
 
@@ -15,7 +15,7 @@ import ujson.{Arr, Obj, Str, Value}
 
 import scala.util.Try
 import scala.util.matching.Regex
-import mill.define.Task
+import mill.define.{Target, Task}
 import cats.instances.list._
 import cats.syntax.parallel._
 import mill.eval.Logger
@@ -24,12 +24,13 @@ import org.http4s.argonaut._
 import argonaut._
 
 import scala.concurrent.ExecutionContext
+import scala.io.Source
 
 /**
   * If we have mill use relative paths then a lot of the stuff here isn't needed
   */
 object RemoteCacher {
-  var log: Logger = _ //sneakily injecting a log
+  var log: Logger = _ //sneakily injecting a log because this won't work
   //  var log = PrintLogger(
   //    true,
   //    true,
@@ -54,16 +55,19 @@ object RemoteCacher {
   val newOutDir: Path = pwd / 'tmpOut
 
 
-  def getCached: Cached = {
+  def getCached(evilLog: Logger): Cached = {
+    log = evilLog
+
     clientResource.use[Cached](client => {
+      log.info("HIIIIII")
       val request = Request[IO](
         method = Method.GET,
         uri = Uri.unsafeFromString(s"http://localhost:7000/cached"),
         headers = Headers.of(
-          Header("Accept-Encoding", "gzip"),
+          Header("Accept-Encoding", "gzip")
         )
       )
-      log.info(request.toString())
+      log.info(Option(request).toString)
       client.expect[Cached](
         request
       )(cachedEntityDecoder)
@@ -73,22 +77,29 @@ object RemoteCacher {
 
 
   def fetchAndOverwriteTask(cached: Cached, hashCode: Int, path: Path) = {
-    val key = path.relativeTo(newOutDir).toString()
-    log.info(s"attempting fetch for $hashCode $path")
+    val key = path.relativeTo(outDir).toString()
+    log.info(s"attempting fetch for $hashCode $key")
     if (cached.hashesAvailable.get(key).exists(_.contains(hashCode))) {
       val bytes = getTaskBytes(key, hashCode).unsafeRunSync()
-      val tmpFile = pwd / "tmp.tar.gz"
 
-      log.info(s"Got ${bytes.length} bytes for $key download to $tmpFile")
-      val tmpFOS = new FileOutputStream(tmpFile toIO)
+      Try {
+        rm(path)
+        mkdir(path)
 
-      tmpFOS.write(bytes)
-      tmpFOS.close()
+        val tmpFile = new File(s"$outDir/$key.tar.gz")
 
-      rm(path)
-      ammonite.ops.%%('tar, "-xvzf", path)(pwd)
-      log.info(s"overwrote $path")
-      rm(tmpFile)
+        log.info(s"Got ${bytes.length} bytes for $key download to ${tmpFile.getPath}")
+        val tmpFOS = new FileOutputStream(tmpFile)
+
+        tmpFOS.write(bytes)
+        tmpFOS.close()
+
+
+        log.info(s"overwriting $path")
+        log.info(s"kill me ${ls!(parentDir(path))}")
+        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
+      } fold(x => {x.printStackTrace(log.outputStream); throw x;}, _ => ())
+
 
       true
     } else {
@@ -112,18 +123,22 @@ object RemoteCacher {
     }
     )
   }
+
   /**
     * Uploads tasks to specified remote caching server
     */
-  def uploadTasks(tasks: Seq[Task[_]], evilLog: Logger): Unit = {
+  def uploadTasks(tasks: Seq[Target[_]], evilLog: Logger): Unit = {
     log = evilLog
-    log.info("Uploading attempt")
+    log.info(s"Uploading attempt given ${tasks.flatMap(_.asTarget)}")
     rm(newOutDir)
     mkdir(newOutDir)
-    //TODO use Tasks. Hardcoding for now
-    uploadTask("foo")
-    //    uploadTask("bar") TODO
-    //    rm(newOutDir) TODO
+
+    Try {
+      tasks.map(uploadTask).toList.parSequence.unsafeRunSync()
+    }.fold(f => f.printStackTrace(log.outputStream), us => {
+      log.info(s"Rewrote meta! $us")
+    })
+    //    rm(newOutDir) TODO just keeping alive so I can inspect
   }
 
   private def uploadIO(compressedPath: Path, pathFrom: String, hash: Int): IO[Unit] = {
@@ -132,7 +147,7 @@ object RemoteCacher {
     clientResource.use[Unit](client => {
       val request = Request[IO](
         method = Method.PUT,
-        uri = Uri.unsafeFromString(s"http://localhost:7000/cached?path=${URLEncoder.encode(pathFrom, "UTF-8")}&hash=$hash"),
+        uri = Uri.unsafeFromString(s"http://localhost:7000/cached?path=$pathFrom&hash=$hash"),
         body = fs2.io.file.readAll[IO](compressedPath.toNIO, Blocker.liftExecutionContext(ExecutionContext.global), 1000),
         headers = Headers.of(
           Header("Content-Encoding", "gzip"),
@@ -166,19 +181,14 @@ object RemoteCacher {
     * Some tasks like T {10} just have one directory to upload.
     * But a Task using ScalaModule would have allSources, compile, etc. Each of those directories would be uploaded with it's hash.
     *
-    * @param taskName
     */
-  private def uploadTask(taskName: String): Unit = {
+  private def uploadTask(task: Target[_]): IO[Unit] = {
 
-    val taskDir: Path = outDir / taskName
-    val newTaskDir: Path = newOutDir / taskName
-    cp(taskDir, newTaskDir)
-
-    val directoriesWithHash = if (ammonite.ops.exists(newTaskDir / "meta.json")) {
-      List(newTaskDir)
-    } else {
-      ls ! newTaskDir toList
-    }
+    val partialTaskPath = task.ctx.segments.parts.mkString("/")
+    val taskDir: Path = Path(s"$outDir/$partialTaskPath")
+    val newTaskDir: Path = Path(s"$newOutDir/$partialTaskPath")
+    mkdir(newTaskDir)
+    cp.over(taskDir, newTaskDir)
 
     /**
       * Rewrite metaJson so if there are any absolute paths then convert them to relative paths.
@@ -215,18 +225,20 @@ object RemoteCacher {
       ammonite.ops.write.over(baseDir / "meta.json", ujson.write(metaJson, 4))
     }
 
-    val uploadIOPar = directoriesWithHash.map(p => {
-      val metaJson = ujson.read(p / "meta.json" toIO)
-      rewriteMeta(p, metaJson)
-      val compressedPath = Path(s"$p.tar.gz")
-      ammonite.ops.%%('tar, "-zcvf", compressedPath, p)(p)
-      uploadIO(compressedPath, p.relativeTo(newOutDir).toString, 3) //TODO rewrite some of this to get hash above
-    }).parSequence
-    Try {
-      uploadIOPar.unsafeRunSync()
-    }.fold(f => f.printStackTrace(log.outputStream), us => {
-      log.info(s"Rewrote meta! $us")
-    })
+    val metaJson = ujson.read(newTaskDir / "meta.json" toIO)
+    val hashCode = metaJson.obj("inputsHash").num.toInt
+    rewriteMeta(newTaskDir, metaJson) //Not needed if
+    val compressedPath = Path(s"$newTaskDir.tar.gz")
+    ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..")
+    uploadIO(compressedPath, taskDir.relativeTo(outDir).toString, hashCode) //TODO rewrite some of this to get hash above
 
   }
+
+  private def parentDir(newTaskDir: Path): Path = {
+    Path(newTaskDir.segments.toList.init.mkString("/", "/", "/"))
+  }
+}
+
+object RelativePatherizer {
+
 }

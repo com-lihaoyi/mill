@@ -3,7 +3,7 @@ package mill.eval
 import java.net.URLClassLoader
 
 import scala.collection.JavaConverters._
-import scala.collection.mutable
+import scala.collection.{immutable, mutable}
 import scala.util.control.NonFatal
 import ammonite.runtime.SpecialClassLoader
 import eval.RemoteCacher
@@ -52,6 +52,7 @@ case class Evaluator(home: os.Path,
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
+    val remoteCache = if (remoteCaching) Some(RemoteCacher.getCached(log)) else None
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex)
@@ -73,7 +74,7 @@ case class Evaluator(home: os.Path,
         group,
         results,
         counterMsg,
-        if (remoteCaching) Some(RemoteCacher.getCached) else None
+        remoteCache
       )
 
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
@@ -106,7 +107,10 @@ case class Evaluator(home: os.Path,
       )
     )
 
-    RemoteCacher.uploadTasks(evaluated.toList, log)
+    if (remoteCaching){
+      val tasksToUpload: Seq[Target[_]] = evaluated.toList.flatMap(_.asTarget).filterNot(_.toString.contains("mill.")) //TODO do the filter differently
+      RemoteCacher.uploadTasks(tasksToUpload, log)
+    }
 
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
@@ -243,7 +247,7 @@ case class Evaluator(home: os.Path,
     */
   private def getRemoteCache(remoteCache: Option[RemoteCacher.Cached]): GetCached = (inputsHash, labelledNamedTask, paths) => {
     remoteCache.fold(Option.empty[(Any, Int)])(rc => {
-      val fetched = RemoteCacher.fetchAndOverwriteTask(rc, inputsHash, paths.dest)
+      val fetched = RemoteCacher.fetchAndOverwriteTask(rc, inputsHash, paths.out)
       if (fetched) getLocalCache(inputsHash, labelledNamedTask, paths) else None
     })
   }
