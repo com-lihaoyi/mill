@@ -25,9 +25,9 @@ object Deps {
     val scalajsTools = ivy"org.scala-js::scalajs-tools:1.0.0-M2"
   }
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
-  val ammonite = ivy"com.lihaoyi:::ammonite:1.6.9"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
+  val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:1.8.0"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.3.5"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
@@ -42,16 +42,16 @@ object Deps {
   val jna = ivy"net.java.dev.jna:jna:4.5.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
-  val osLib = ivy"com.lihaoyi::os-lib:0.2.6"
+  val osLib = ivy"com.lihaoyi::os-lib:0.4.2"
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
-  val upickle = ivy"com.lihaoyi::upickle:0.7.1"
-  val utest = ivy"com.lihaoyi::utest:0.6.4"
+  val upickle = ivy"com.lihaoyi::upickle:0.8.0"
+  val utest = ivy"com.lihaoyi::utest:0.7.1"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
@@ -75,7 +75,7 @@ trait MillPublishModule extends PublishModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.8" }
+  def scalaVersion = T{ "2.13.1" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -167,7 +167,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.8" }
+    def scalaVersion = T{ "2.12.10" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode,
