@@ -80,23 +80,19 @@ object RemoteCacher {
     val key = path.relativeTo(outDir).toString()
     log.info(s"attempting fetch for $hashCode $key")
     if (cached.hashesAvailable.get(key).exists(_.contains(hashCode))) {
-      val bytes = getTaskBytes(key, hashCode).unsafeRunSync()
+      val compressedBytes = getTaskBytes(key, hashCode).unsafeRunSync()
 
       Try {
-        rm(path)
-        mkdir(path)
 
-        val tmpFile = new File(s"$outDir/$key.tar.gz")
-
-        log.info(s"Got ${bytes.length} bytes for $key download to ${tmpFile.getPath}")
-        val tmpFOS = new FileOutputStream(tmpFile)
-
-        tmpFOS.write(bytes)
-        tmpFOS.close()
+        log.info(s"Got ${compressedBytes.length} bytes for $key download to ${tmpFile.getPath}")
 
 
         log.info(s"overwriting $path")
-        log.info(s"kill me ${ls!(parentDir(path))}")
+        rm(path)
+        mkdir(path)
+        tmpFOS.write(compressedBytes)
+        tmpFOS.close()
+
         ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
       } fold(x => {x.printStackTrace(log.outputStream); throw x;}, _ => ())
 
