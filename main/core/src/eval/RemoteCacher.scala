@@ -1,13 +1,14 @@
 package eval
 
-import java.io.{File, FileOutputStream}
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream}
 import java.lang
 import java.net.URLEncoder
+import java.util.zip.GZIPInputStream
 
 import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm}
 import ammonite.util.Colors
 import argonaut.CodecJson
-import cats.effect.{Blocker, IO}
+import cats.effect.{Blocker, IO, Resource}
 import cats.effect.IO.contextShift
 import org.http4s.client.blaze.BlazeClientBuilder
 import org.http4s.{EntityDecoder, Header, Headers, Method, Request, Uri}
@@ -25,6 +26,11 @@ import argonaut._
 
 import scala.concurrent.ExecutionContext
 import scala.io.Source
+import org.apache.commons.compress.archivers.tar.TarArchiveEntry
+import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
+import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.utils.IOUtils
+
 
 /**
   * If we have mill use relative paths then a lot of the stuff here isn't needed
@@ -83,18 +89,33 @@ object RemoteCacher {
       val compressedBytes = getTaskBytes(key, hashCode).unsafeRunSync()
 
       Try {
-
-        log.info(s"Got ${compressedBytes.length} bytes for $key download to ${tmpFile.getPath}")
-
+        log.info(s"Got ${compressedBytes.length} bytes for $key download")
 
         log.info(s"overwriting $path")
+
         rm(path)
         mkdir(path)
-        tmpFOS.write(compressedBytes)
-        tmpFOS.close()
+        val tarResource: Resource[IO, TarArchiveInputStream] = Resource.fromAutoCloseable[IO, TarArchiveInputStream](IO {
+          new TarArchiveInputStream(new GZIPInputStream(new ByteArrayInputStream(compressedBytes)))
+        })
+        tarResource.use(tis => {
+          IO {
+            //Could be Stream[IO]
+            fs2.Stream.unfold(tis)(t => {
+              Option(t.getNextTarEntry).map((_, t))
+            }).toList.foreach(tar => {
+              //write files
+              
+            })
+          }
+        }).unsafeRunSync
 
-        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
-      } fold(x => {x.printStackTrace(log.outputStream); throw x;}, _ => ())
+
+        //        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
+      } fold(x => {
+        x.printStackTrace(log.outputStream);
+        throw x;
+      }, _ => ())
 
 
       true

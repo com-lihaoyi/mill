@@ -60,6 +60,7 @@ object Deps {
   val http4sBlazeServer = ivy"org.http4s::http4s-blaze-server:$http4sVersion"
   val http4sDSL = ivy"org.http4s::http4s-dsl:$http4sVersion"
   val http4sArgonaut = ivy"org.http4s::http4s-argonaut:$http4sVersion"
+  val apacheCommonsCompress = ivy"org.apache.commons:commons-compress:1.19"
 
 }
 
@@ -153,7 +154,8 @@ object main extends MillModule {
       Deps.http4sBlazeClient,
       Deps.http4sBlazeServer,
       Deps.http4sDSL,
-      Deps.http4sArgonaut
+      Deps.http4sArgonaut,
+      Deps.apacheCommonsCompress
     )
 
     def generatedSources = T {
