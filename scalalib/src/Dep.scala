@@ -11,28 +11,27 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
     dep.module.name.value + suffix
   }
-  def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.copy(attributes = attributes))
+  def configure(attributes: coursier.Attributes): Dep = copy(dep = dep.withAttributes(attributes))
   def forceVersion(): Dep = copy(force = true)
   def exclude(exclusions: (String, String)*) = copy(
-    dep = dep.copy(
-      exclusions =
-        dep.exclusions ++
-        exclusions.map{case (k, v) => (coursier.Organization(k), coursier.ModuleName(v))}
+    dep = dep.withExclusions(
+      dep.exclusions ++
+      exclusions.map{case (k, v) => (coursier.Organization(k), coursier.ModuleName(v))}
     )
   )
   def excludeOrg(organizations: String*): Dep = exclude(organizations.map(_ -> "*"): _*)
   def excludeName(names: String*): Dep = exclude(names.map("*" -> _): _*)
   def toDependency(binaryVersion: String, fullVersion: String, platformSuffix: String) =
-    dep.copy(
-      module = dep.module.copy(
-        name = coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
+    dep.withModule(
+      dep.module.withName(
+        coursier.ModuleName(artifactName(binaryVersion, fullVersion, platformSuffix))
       )
     )
   def withConfiguration(configuration: String): Dep = copy(
-    dep = dep.copy(configuration = coursier.core.Configuration(configuration))
+    dep = dep.withConfiguration(coursier.core.Configuration(configuration))
   )
   def optional(optional: Boolean = true): Dep = copy(
-    dep = dep.copy(optional = optional)
+    dep = dep.withOptional(optional)
   )
 
   /**
@@ -86,7 +85,7 @@ object Dep {
     val module = parts.head
     val attributes = parts.tail.foldLeft(coursier.Attributes()) { (as, s) =>
       s.split('=') match {
-        case Array("classifier", v) => as.copy(classifier = coursier.Classifier(v))
+        case Array("classifier", v) => as.withClassifier(coursier.Classifier(v))
         case Array(k, v) => throw new Exception(s"Unrecognized attribute: [$s]")
         case _ => throw new Exception(s"Unable to parse attribute specifier: [$s]")
       }
@@ -105,9 +104,8 @@ object Dep {
     apply(
       coursier.Dependency(
         coursier.Module(coursier.Organization(org), coursier.ModuleName(name)),
-        version,
-        DefaultConfiguration
-      ),
+        version
+      ).withConfiguration(DefaultConfiguration),
       cross,
       force
     )
