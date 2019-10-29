@@ -424,7 +424,7 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
-      def load(artifacts: Seq[coursier.Artifact]) = {
+      def load(artifacts: Seq[coursier.core.Artifact]) = {
 
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
@@ -500,7 +500,11 @@ object Jvm {
 
     val fetches = cache.fetchs
 
-    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail: _*)
+    val fetch = coursier.core.ResolutionProcess.fetch(
+      repositories,
+      fetches.head,
+      fetches.tail
+    )
 
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()
