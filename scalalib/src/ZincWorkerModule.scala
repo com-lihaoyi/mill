@@ -27,7 +27,12 @@ trait ZincWorkerModule extends mill.Module {
   }
 
   def scalalibClasspath = T{
-    mill.modules.Util.millProjectModule("MILL_SCALA_LIB", "mill-scalalib", repositories, "_2.13")
+    mill.modules.Util.millProjectModule(
+      "MILL_SCALA_LIB",
+      "mill-scalalib",
+      repositories,
+      artifactSuffix = "_2.13"
+    )
   }
 
   def backgroundWrapperClasspath = T{
