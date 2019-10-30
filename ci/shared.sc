@@ -4,7 +4,7 @@
   * via import $file
   */
 
-import $ivy.`org.scalaj::scalaj-http:2.4.1`
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import ammonite.ops.{write, Path, mkdir, RelPath, up}
 
 def argNames(n: Int) = {
