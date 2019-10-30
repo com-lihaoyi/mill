@@ -424,7 +424,7 @@ object Jvm {
       Result.Failure(msg)
     } else {
 
-      def load(artifacts: Seq[coursier.core.Artifact]) = {
+      def load(artifacts: Seq[coursier.util.Artifact]) = {
 
         import scala.concurrent.ExecutionContext.Implicits.global
         val loadedArtifacts = Gather[Task].gather(
@@ -483,11 +483,10 @@ object Jvm {
       .map{d => d.module -> d.version}
       .toMap
 
-    val start = Resolution(
-      deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq,
-      forceVersions = forceVersions,
-      mapDependencies = mapDependencies
-    )
+    val start = Resolution()
+      .withRootDependencies(deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq)
+      .withForceVersions(forceVersions)
+      .withMapDependencies(mapDependencies)
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val cache = resolutionLogger match {
