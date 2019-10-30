@@ -71,7 +71,7 @@ trait ZincWorkerModule extends mill.Module {
 
   def scalaCompilerBridgeJar(scalaVersion: String,
                              scalaOrganization: String,
-                             compileClassPath: Agg[mill.eval.PathRef]) = {
+                             compileClassPath: Agg[mill.api.PathRef]) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case s if s.startsWith("2.13.") => ("2.13.0-M2", "2.13.0-M2")
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))

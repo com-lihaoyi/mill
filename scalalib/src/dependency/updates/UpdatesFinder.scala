@@ -48,7 +48,7 @@ private[dependency] object UpdatesFinder {
   def findUpdates(dependencyVersion: DependencyVersions,
                   allowPreRelease: Boolean): DependencyUpdates = {
     val current = dependencyVersion.currentVersion
-    val versions = dependencyVersion.allversions.to[SortedSet]
+    val versions = dependencyVersion.allversions.to(SortedSet)
 
     val updates = versions
       .filter(isUpdate(current))

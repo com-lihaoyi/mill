@@ -3,7 +3,7 @@ package mill.contrib.scoverage
 import mill.{Agg, T}
 import mill.api.{ClassLoader, Ctx, Result}
 import mill.define.{Discover, ExternalModule, Worker}
-import mill.eval.PathRef
+import mill.api.PathRef
 
 class ScoverageReportWorker {
   private var scoverageInstanceCache = Option.empty[(Long, api.ScoverageReportWorkerApi)]

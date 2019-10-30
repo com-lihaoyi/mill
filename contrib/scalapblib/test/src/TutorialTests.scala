@@ -42,9 +42,9 @@ object TutorialTests extends TestSuite {
   }
 
   def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
-    "AddressBook.scala",
-    "Person.scala",
-    "TutorialProto.scala"
+    os.rel / "AddressBook.scala",
+    os.rel / "Person.scala",
+    os.rel / "TutorialProto.scala"
   )
 
   def tests: Tests = Tests {

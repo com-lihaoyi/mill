@@ -279,10 +279,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
       def source(r: Resolution) = Resolution(
         r.dependencies
-          .map(
-            d =>
-              d.copy(attributes =
-                d.attributes.copy(classifier = coursier.Classifier("sources"))))
+          .map(d => d.withAttributes(d.attributes.withClassifier(coursier.Classifier("sources"))))
           .toSeq
       )
 
@@ -295,7 +292,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         resolvedSources <- source(resolved).process.run(fetch)
         all = resolved.dependencyArtifacts ++ resolvedSources.dependencyArtifacts
         gathered <- Gather[Task].gather(all.distinct.map {
-          case (dep, art) =>
+          case (dep, pub, art) =>
             coursier.cache.Cache.default.file(art).run.map(dep -> _)
         })
       } yield
@@ -397,7 +394,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         sbt = None,
         test = testConfig(),
         platform = Some(platform()),
-        resolution = Some(bloopResolution())
+        resolution = Some(bloopResolution()),
+        workspaceDir = None
       )
     }
 

@@ -4,9 +4,8 @@ package worker
 
 import java.io.File
 
-import ammonite.ops.Path
 import mill.api.{Ctx, Result}
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
 import play.routes.compiler
@@ -16,13 +15,13 @@ import play.routes.compiler._
 
 private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
 
-  override def compile(files: Seq[Path],
+  override def compile(files: Seq[os.Path],
                        additionalImports: Seq[String],
                        forwardsRouter: Boolean,
                        reverseRouter: Boolean,
                        namespaceReverseRouter: Boolean,
                        generatorType: RouteCompilerType,
-                       dest: Path)
+                       dest: os.Path)
                       (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
@@ -38,12 +37,12 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
     }
   }
 
-  private def compileWithPlay(files: Seq[Path],
+  private def compileWithPlay(files: Seq[os.Path],
                               additionalImports: Seq[String],
                               forwardsRouter: Boolean,
                               reverseRouter: Boolean,
                               namespaceReverseRouter: Boolean,
-                              dest: Path,
+                              dest: os.Path,
                               ctx: Ctx,
                               routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
     val seed: Either[Seq[compiler.RoutesCompilationError], List[File]] = Right(List.empty[File])
@@ -55,12 +54,12 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
     }
   }
 
-  private def compileWithPlay(file: Path,
+  private def compileWithPlay(file: os.Path,
                               additionalImports: Seq[String],
                               forwardsRouter: Boolean,
                               reverseRouter: Boolean,
                               namespaceReverseRouter: Boolean,
-                              dest: Path,
+                              dest: os.Path,
                               ctx: Ctx,
                               routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
     ctx.log.debug(s"compiling $file with play generator $routesGenerator")

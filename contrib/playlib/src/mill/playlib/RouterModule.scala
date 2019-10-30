@@ -2,7 +2,7 @@ package mill
 package playlib
 
 import coursier.MavenRepository
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._

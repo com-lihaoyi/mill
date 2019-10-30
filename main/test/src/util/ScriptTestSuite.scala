@@ -7,7 +7,7 @@ import utest._
 abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   def workspaceSlug: String
   def scriptSourcePath: os.Path
-  def buildPath: os.RelPath = "build.sc"
+  def buildPath: os.SubPath  = os.sub / "build.sc"
 
   val workspacePath = os.pwd / 'target / 'workspace / workspaceSlug
   val wd = workspacePath / buildPath / os.up

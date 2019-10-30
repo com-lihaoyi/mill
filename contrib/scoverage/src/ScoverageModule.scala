@@ -4,7 +4,7 @@ package scoverage
 
 import coursier.MavenRepository
 import mill.api.Result
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.util.Ctx
 import mill.scalalib.{DepSyntax, JavaModule, Lib, ScalaModule, TestModule, Dep}
 import mill.moduledefs.Cacher

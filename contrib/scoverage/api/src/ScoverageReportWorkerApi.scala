@@ -1,6 +1,6 @@
 package mill.contrib.scoverage.api
 
-import mill.eval.PathRef
+import mill.api.PathRef
 
 trait ScoverageReportWorkerApi {
   def htmlReport(sources: Seq[PathRef], dataDir: String, selfDir: String): Unit
