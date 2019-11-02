@@ -1,6 +1,6 @@
 package eval
 
-import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream}
+import java.io.{ByteArrayInputStream, File, FileInputStream, FileOutputStream, InputStream}
 import java.lang
 import java.net.URLEncoder
 import java.util.zip.GZIPInputStream
@@ -29,14 +29,16 @@ import scala.io.Source
 import org.apache.commons.compress.archivers.tar.TarArchiveEntry
 import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
 import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.compress.utils.IOUtils
+import sun.security.util
 
 
 /**
-  * If we have mill use relative paths then a lot of the stuff here isn't needed
-  */
+ * If we have mill use relative paths then a lot of the stuff here isn't needed
+ */
 object RemoteCacher {
-  var log: Logger = _ //sneakily injecting a log because this won't work
+  var log: Logger = _ //sneakily injecting a log because this won't work TODO do it?
   //  var log = PrintLogger(
   //    true,
   //    true,
@@ -92,34 +94,24 @@ object RemoteCacher {
         log.info(s"Got ${compressedBytes.length} bytes for $key download")
 
         log.info(s"overwriting $path")
-
         rm(path)
         mkdir(path)
-        val tarResource: Resource[IO, TarArchiveInputStream] = Resource.fromAutoCloseable[IO, TarArchiveInputStream](IO {
-          new TarArchiveInputStream(new GZIPInputStream(new ByteArrayInputStream(compressedBytes)))
-        })
-        tarResource.use(tis => {
-          IO {
-            //Could be Stream[IO]
-            fs2.Stream.unfold(tis)(t => {
-              Option(t.getNextTarEntry).map((_, t))
-            }).toList.foreach(tar => {
-              //write files
-              
-            })
-          }
-        }).unsafeRunSync
 
+        val tmpFile = File.createTempFile(key, ".tar.gz")
+        val tmpFOS = new FileOutputStream(tmpFile)
+        tmpFOS.write(compressedBytes)
+        tmpFOS.close()
 
+        ammonite.ops.%%('tar, "xvzf", tmpFile.getPath.toString)(path)
         //        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
+
       } fold(x => {
         x.printStackTrace(log.outputStream);
         throw x;
       }, _ => ())
-
-
       true
-    } else {
+    }
+    else {
       false
     }
   }
@@ -128,7 +120,9 @@ object RemoteCacher {
     clientResource.use(client => {
       val request = Request[IO](
         method = Method.GET,
-        uri = Uri.unsafeFromString(s"http://localhost:7000/cached?path=${URLEncoder.encode(pathFrom, "UTF-8")}&hash=$hash"),
+        uri = Uri.unsafeFromString(s"http://localhost:7000/cached?path=${
+          URLEncoder.encode(pathFrom, "UTF-8")
+        }&hash=$hash"),
         headers = Headers.of(
           Header("Accept-Encoding", "gzip"),
         )
@@ -142,11 +136,13 @@ object RemoteCacher {
   }
 
   /**
-    * Uploads tasks to specified remote caching server
-    */
+   * Uploads tasks to specified remote caching server
+   */
   def uploadTasks(tasks: Seq[Target[_]], evilLog: Logger): Unit = {
     log = evilLog
-    log.info(s"Uploading attempt given ${tasks.flatMap(_.asTarget)}")
+    log.info(s"Uploading attempt given ${
+      tasks.flatMap(_.asTarget)
+    }")
     rm(newOutDir)
     mkdir(newOutDir)
 
@@ -194,11 +190,11 @@ object RemoteCacher {
 
 
   /**
-    * Uploads the task. Anything associated with an input hash will be uploaded.
-    * Some tasks like T {10} just have one directory to upload.
-    * But a Task using ScalaModule would have allSources, compile, etc. Each of those directories would be uploaded with it's hash.
-    *
-    */
+   * Uploads the task. Anything associated with an input hash will be uploaded.
+   * Some tasks like T {10} just have one directory to upload.
+   * But a Task using ScalaModule would have allSources, compile, etc. Each of those directories would be uploaded with it's hash.
+   *
+   */
   private def uploadTask(task: Target[_]): IO[Unit] = {
 
     val partialTaskPath = task.ctx.segments.parts.mkString("/")
@@ -208,10 +204,10 @@ object RemoteCacher {
     cp.over(taskDir, newTaskDir)
 
     /**
-      * Rewrite metaJson so if there are any absolute paths then convert them to relative paths.
-      *
-      * @param baseDir
-      */
+     * Rewrite metaJson so if there are any absolute paths then convert them to relative paths.
+     *
+     * @param baseDir
+     */
     def rewriteMeta(baseDir: Path, metaJson: Value): Unit = {
       metaJson.obj.get("value").foreach {
         case Obj(obj) =>
@@ -246,7 +242,19 @@ object RemoteCacher {
     val hashCode = metaJson.obj("inputsHash").num.toInt
     rewriteMeta(newTaskDir, metaJson) //Not needed if
     val compressedPath = Path(s"$newTaskDir.tar.gz")
-    ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..")
+    //ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..")
+
+    val tos: TarArchiveOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(new FileOutputStream(compressedPath.toString())))
+    os.walk(newTaskDir).foreach(p => {
+      val file = p.toIO
+      if (file.isFile) {
+        val fis = new FileInputStream(file);
+        tos.putArchiveEntry(new TarArchiveEntry(file, p.relativeTo(newTaskDir).toString()))
+        IOUtils.copy(fis, tos)
+        tos.closeArchiveEntry()
+      }
+    })
+    tos.close()
     uploadIO(compressedPath, taskDir.relativeTo(outDir).toString, hashCode) //TODO rewrite some of this to get hash above
 
   }
