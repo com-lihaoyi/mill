@@ -14,7 +14,6 @@ import mill.util
 import mill.util._
 import mill.api.Strict.Agg
 
-import scala.concurrent.Future
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -139,7 +138,7 @@ case class Evaluator(home: os.Path,
       group.toIterator.map(_.sideHash)
     )
 
-    val inputsHash = externalInputsHash + sideHashes //TODO this is messing with me add back in later+ classLoaderSignHash
+    val inputsHash = externalInputsHash + sideHashes //+ classLoaderSignHash TODO add this back in. It changes when I change anything in the directory making it hard to test
 
     terminal match{
       case Left(task) =>
@@ -262,8 +261,6 @@ case class Evaluator(home: os.Path,
     } else labelledTask.segments
   }
 
-
-  //TODO would handle remote cache as well here
   def handleTaskResult(v: Any,
                        hashCode: Int,
                        metaPath: os.Path,

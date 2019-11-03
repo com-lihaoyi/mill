@@ -91,7 +91,6 @@ object RemoteCacher {
       tmpFOS.close()
 
       ammonite.ops.%%('tar, "xvzf", tmpFile.getPath.toString)(path)
-      //        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
 
       true
     } else {
@@ -191,7 +190,7 @@ object RemoteCacher {
       }
     })
     tos.close()
-    uploadIO(compressedPath, taskDir.relativeTo(outDir).toString, hashCode) //TODO rewrite some of this to get hash above
+    uploadIO(compressedPath, taskDir.relativeTo(outDir).toString, hashCode)
 
   }
 
