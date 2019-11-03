@@ -24,9 +24,6 @@ import scala.util.Try
 import scala.util.matching.Regex
 
 
-/**
- * If we have mill use relative paths then a lot of the stuff here isn't needed
- */
 object RemoteCacher {
   var log: Logger = _ //sneakily injecting a log because this won't work TODO do it?
   //  var log = PrintLogger(
@@ -52,7 +49,11 @@ object RemoteCacher {
   val outDir: Path = pwd / 'out
   val newOutDir: Path = pwd / 'tmpOut
 
-
+  /**
+   * Fetch map of all cached task and hash pairs.
+   *
+   * @return
+   */
   def getCached(evilLog: Logger): Cached = {
     log = evilLog
 
@@ -72,8 +73,7 @@ object RemoteCacher {
     ).unsafeRunSync()
   }
 
-
-  def fetchAndOverwriteTask(cached: Cached, hashCode: Int, path: Path) = {
+  def fetchAndOverwriteTask(cached: Cached, hashCode: Int, path: Path): Boolean = {
     val key = path.relativeTo(outDir).toString()
     log.info(s"attempting fetch for $hashCode $key")
     if (cached.hashesAvailable.get(key).exists(_.contains(hashCode))) {
@@ -134,7 +134,7 @@ object RemoteCacher {
       log.info(s"Rewrote ${us.size} caches")
     })
 
-    rm(newOutDir) TODO just keeping alive so I can inspect
+    rm(newOutDir)
   }
 
   private def uploadIO(compressedPath: Path, pathFrom: String, hash: Int): IO[Unit] = {
@@ -158,12 +158,12 @@ object RemoteCacher {
     )
   }
 
-
   /**
    * Uploads the task. Anything associated with an input hash will be uploaded.
    * Some tasks like T {10} just have one directory to upload.
    * But a Task using ScalaModule would have allSources, compile, etc. Each of those directories would be uploaded with it's hash.
    *
+   * Any paths in meta.json are made into relative paths.
    */
   private def uploadTask(task: Target[_]): IO[Unit] = {
 
@@ -175,15 +175,16 @@ object RemoteCacher {
 
     val metaJson = ujson.read(newTaskDir / "meta.json" toIO)
     val hashCode = metaJson.obj("inputsHash").num.toInt
-    RelativePatherizer.rewriteMeta(newTaskDir, metaJson) //Not needed if
+    RelativePatherizer.rewriteMeta(newTaskDir, metaJson)
+
     val compressedPath = Path(s"$newTaskDir.tar.gz")
-    //ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..")
+    //ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..") TODO could do this instead
 
     val tos: TarArchiveOutputStream = new TarArchiveOutputStream(new GzipCompressorOutputStream(new FileOutputStream(compressedPath.toString())))
     os.walk(newTaskDir).foreach(p => {
       val file = p.toIO
       if (file.isFile) {
-        val fis = new FileInputStream(file);
+        val fis = new FileInputStream(file)
         tos.putArchiveEntry(new TarArchiveEntry(file, p.relativeTo(newTaskDir).toString()))
         IOUtils.copy(fis, tos)
         tos.closeArchiveEntry()
@@ -191,20 +192,20 @@ object RemoteCacher {
     })
     tos.close()
     uploadIO(compressedPath, taskDir.relativeTo(outDir).toString, hashCode)
-
   }
 
 }
 
 /**
- * As an alternative to making mill works with alternative paths another method could be to convert the contents
- * to meta.json to relative paths.
+ * As an alternative to making mill works with relative paths another method could be to convert absolute paths
+ * in meta.json to relative paths.
  *
  * TODO this is pretty hacky clean it up if we do want to go with this approach
  */
 object RelativePatherizer {
   val metaPathWithRef: Regex = "(q?ref:[0-9a-fA-F]+:)(.*)".r
   val maybePathRegex: Regex = "(/.*)".r //TODO better regex?
+
   private def convertIfPath(relativeTo: Path): Value => Option[String] = {
     case Str(metaPathWithRef(ref, path)) => Some(s"$ref${
       Path(path).relativeTo(relativeTo)
@@ -246,7 +247,6 @@ object RelativePatherizer {
         )
       case _ => ()
     }
-
     ammonite.ops.write.over(baseDir / "meta.json", ujson.write(metaJson, 4))
   }
 

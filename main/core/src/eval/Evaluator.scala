@@ -14,7 +14,6 @@ import mill.util
 import mill.util._
 import mill.api.Strict.Agg
 
-
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
   def format = task match{
@@ -51,7 +50,7 @@ case class Evaluator(home: os.Path,
     val evaluated = new Agg.Mutable[Task[_]]
     val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
-    val remoteCache = if (remoteCaching) Some(RemoteCacher.getCached(log)) else None
+    val remotelyCached: Option[RemoteCacher.Cached] = if (remoteCaching) Some(RemoteCacher.getCached(log)) else None
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex)
@@ -73,7 +72,7 @@ case class Evaluator(home: os.Path,
         group,
         results,
         counterMsg,
-        remoteCache
+        remotelyCached
       )
 
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
