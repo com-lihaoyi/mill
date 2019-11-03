@@ -130,9 +130,6 @@ case class Evaluator(home: os.Path,
                           remoteCache: Option[RemoteCacher.Cached] = Option.empty
                          ): (collection.Map[Task[_], Result[(Any, Int)]], Seq[Task[_]], Boolean) = {
 
-//    log.info(s"terminal $terminal")
-//    log.info(s"evaluateGroupCached group ${group.toList}")
-
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_)) //get input from group where the inputs themselves are not in the group
         .flatMap(results(_).asSuccess.map(_.value._2)) //Get the result of the input for hashing
@@ -143,7 +140,6 @@ case class Evaluator(home: os.Path,
     )
 
     val inputsHash = externalInputsHash + sideHashes //TODO this is messing with me add back in later+ classLoaderSignHash
-//    log.info(s"CACHES $externalInputsHash $sideHashes $classLoaderSignHash")
 
     terminal match{
       case Left(task) =>
@@ -168,16 +164,13 @@ case class Evaluator(home: os.Path,
 
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
         val cached = getLocalCache(inputsHash, labelledNamedTask, paths) orElse getRemoteCache(remoteCache)(inputsHash, labelledNamedTask, paths)
-        cached foreach(c => log.info(s"Cached! $c"))
 
         val workerCached = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
           .collect{case (`inputsHash`, v) => v}
 
-//       log.info(s"$workerCached, $cached")
         workerCached.map((_, inputsHash)) orElse cached match{
           case Some((v, hashCode)) =>
-//            log.info(s"   cached $v , hashcode $hashCode ")
             val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
             newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
 
@@ -200,8 +193,6 @@ case class Evaluator(home: os.Path,
               maybeTargetLabel = Some(msgParts.mkString),
               counterMsg = counterMsg
             )
-
-//            log.info(s"Not cached. New results ${newResults.values.toList} and new evaluated $newEvaluated")
 
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>

@@ -1,37 +1,27 @@
 package eval
 
-import java.io.{ByteArrayInputStream, File, FileInputStream, FileOutputStream, InputStream}
-import java.lang
+import java.io.{File, FileInputStream, FileOutputStream}
 import java.net.URLEncoder
-import java.util.zip.GZIPInputStream
 
-import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm}
-import ammonite.util.Colors
+import ammonite.ops.{Path, cp, mkdir, pwd, rm}
 import argonaut.CodecJson
-import cats.effect.{Blocker, IO, Resource}
 import cats.effect.IO.contextShift
-import org.http4s.client.blaze.BlazeClientBuilder
-import org.http4s.{EntityDecoder, Header, Headers, Method, Request, Uri}
-import ujson.{Arr, Obj, Str, Value}
-
-import scala.util.Try
-import scala.util.matching.Regex
-import mill.define.{Target, Task}
+import cats.effect.{Blocker, IO}
 import cats.instances.list._
 import cats.syntax.parallel._
+import mill.define.Target
 import mill.eval.Logger
-import mill.util.PrintLogger
-import org.http4s.argonaut._
-import argonaut._
-
-import scala.concurrent.ExecutionContext
-import scala.io.Source
-import org.apache.commons.compress.archivers.tar.TarArchiveEntry
-import org.apache.commons.compress.archivers.tar.TarArchiveOutputStream
-import org.apache.commons.compress.archivers.tar.TarArchiveInputStream
+import org.apache.commons.compress.archivers.tar.{TarArchiveEntry, TarArchiveOutputStream}
 import org.apache.commons.compress.compressors.gzip.GzipCompressorOutputStream
 import org.apache.commons.compress.utils.IOUtils
-import sun.security.util
+import org.http4s.argonaut._
+import org.http4s.client.blaze.BlazeClientBuilder
+import org.http4s._
+import ujson.{Arr, Obj, Str, Value}
+
+import scala.concurrent.ExecutionContext
+import scala.util.Try
+import scala.util.matching.Regex
 
 
 /**
@@ -67,7 +57,6 @@ object RemoteCacher {
     log = evilLog
 
     clientResource.use[Cached](client => {
-      log.info("HIIIIII")
       val request = Request[IO](
         method = Method.GET,
         uri = Uri.unsafeFromString(s"http://localhost:7000/cached"),
@@ -90,28 +79,22 @@ object RemoteCacher {
     if (cached.hashesAvailable.get(key).exists(_.contains(hashCode))) {
       val compressedBytes = getTaskBytes(key, hashCode).unsafeRunSync()
 
-      Try {
-        log.info(s"Got ${compressedBytes.length} bytes for $key download")
+      log.info(s"Got ${compressedBytes.length} bytes for $key download")
 
-        log.info(s"overwriting $path")
-        rm(path)
-        mkdir(path)
+      log.info(s"overwriting $path")
+      rm(path)
+      mkdir(path)
 
-        val tmpFile = File.createTempFile(key, ".tar.gz")
-        val tmpFOS = new FileOutputStream(tmpFile)
-        tmpFOS.write(compressedBytes)
-        tmpFOS.close()
+      val tmpFile = File.createTempFile(key, ".tar.gz")
+      val tmpFOS = new FileOutputStream(tmpFile)
+      tmpFOS.write(compressedBytes)
+      tmpFOS.close()
 
-        ammonite.ops.%%('tar, "xvzf", tmpFile.getPath.toString)(path)
-        //        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
+      ammonite.ops.%%('tar, "xvzf", tmpFile.getPath.toString)(path)
+      //        ammonite.ops.%%(s"tar -xvzf ${tmpFile.getPath}")(parentDir(path))
 
-      } fold(x => {
-        x.printStackTrace(log.outputStream);
-        throw x;
-      }, _ => ())
       true
-    }
-    else {
+    } else {
       false
     }
   }
@@ -149,9 +132,10 @@ object RemoteCacher {
     Try {
       tasks.map(uploadTask).toList.parSequence.unsafeRunSync()
     }.fold(f => f.printStackTrace(log.outputStream), us => {
-      log.info(s"Rewrote meta! $us")
+      log.info(s"Rewrote ${us.size} caches")
     })
-    //    rm(newOutDir) TODO just keeping alive so I can inspect
+
+    rm(newOutDir) TODO just keeping alive so I can inspect
   }
 
   private def uploadIO(compressedPath: Path, pathFrom: String, hash: Int): IO[Unit] = {
@@ -175,19 +159,6 @@ object RemoteCacher {
     )
   }
 
-  val metaPathWithRef: Regex = "(q?ref:[0-9a-fA-F]+:)(.*)".r
-  val maybePathRegex: Regex = "(/.*)".r //TODO better regex?
-  private def convertIfPath(relativeTo: Path): Value => Option[String] = {
-    case Str(metaPathWithRef(ref, path)) => Some(s"$ref${
-      Path(path).relativeTo(relativeTo)
-    } ")
-    case Str(maybePathRegex(maybePath)) =>
-      Try {
-        Path(maybePath).relativeTo(relativeTo).toString()
-      } toOption
-    case _ => None
-  }
-
 
   /**
    * Uploads the task. Anything associated with an input hash will be uploaded.
@@ -203,44 +174,9 @@ object RemoteCacher {
     mkdir(newTaskDir)
     cp.over(taskDir, newTaskDir)
 
-    /**
-     * Rewrite metaJson so if there are any absolute paths then convert them to relative paths.
-     *
-     * @param baseDir
-     */
-    def rewriteMeta(baseDir: Path, metaJson: Value): Unit = {
-      metaJson.obj.get("value").foreach {
-        case Obj(obj) =>
-          obj.foreach({
-            case (k, v) =>
-              convertIfPath(baseDir)(v).foreach(s => {
-                println(s);
-                obj.update(k, s)
-              })
-          })
-        case Arr(arr) =>
-          metaJson.obj.put("value",
-            Arr(
-              arr.map(v =>
-                convertIfPath(baseDir)(v).map({
-                  s => Str(s)
-                }).getOrElse(v)
-              )
-            )
-          )
-        case Str(str) =>
-          convertIfPath(baseDir)(str).foreach(s =>
-            metaJson.obj.put("value", Str(s))
-          )
-        case _ => ()
-      }
-
-      ammonite.ops.write.over(baseDir / "meta.json", ujson.write(metaJson, 4))
-    }
-
     val metaJson = ujson.read(newTaskDir / "meta.json" toIO)
     val hashCode = metaJson.obj("inputsHash").num.toInt
-    rewriteMeta(newTaskDir, metaJson) //Not needed if
+    RelativePatherizer.rewriteMeta(newTaskDir, metaJson) //Not needed if
     val compressedPath = Path(s"$newTaskDir.tar.gz")
     //ammonite.ops.%%('tar, "-zcvf", compressedPath, taskDir.segments.toList.last)(newTaskDir / "..")
 
@@ -259,11 +195,60 @@ object RemoteCacher {
 
   }
 
-  private def parentDir(newTaskDir: Path): Path = {
-    Path(newTaskDir.segments.toList.init.mkString("/", "/", "/"))
-  }
 }
 
+/**
+ * As an alternative to making mill works with alternative paths another method could be to convert the contents
+ * to meta.json to relative paths.
+ *
+ * TODO this is pretty hacky clean it up if we do want to go with this approach
+ */
 object RelativePatherizer {
+  val metaPathWithRef: Regex = "(q?ref:[0-9a-fA-F]+:)(.*)".r
+  val maybePathRegex: Regex = "(/.*)".r //TODO better regex?
+  private def convertIfPath(relativeTo: Path): Value => Option[String] = {
+    case Str(metaPathWithRef(ref, path)) => Some(s"$ref${
+      Path(path).relativeTo(relativeTo)
+    } ")
+    case Str(maybePathRegex(maybePath)) =>
+      Try {
+        Path(maybePath).relativeTo(relativeTo).toString()
+      } toOption
+    case _ => None
+  }
+
+  /**
+   * Rewrite metaJson so if there are any absolute paths then convert them to relative paths.
+   *
+   * @param baseDir
+   */
+  def rewriteMeta(baseDir: Path, metaJson: Value): Unit = {
+    metaJson.obj.get("value").foreach {
+      case Obj(obj) =>
+        obj.foreach({
+          case (k, v) =>
+            convertIfPath(baseDir)(v).foreach(s => {
+              obj.update(k, s)
+            })
+        })
+      case Arr(arr) =>
+        metaJson.obj.put("value",
+          Arr(
+            arr.map(v =>
+              convertIfPath(baseDir)(v).map({
+                s => Str(s)
+              }).getOrElse(v)
+            )
+          )
+        )
+      case Str(str) =>
+        convertIfPath(baseDir)(str).foreach(s =>
+          metaJson.obj.put("value", Str(s))
+        )
+      case _ => ()
+    }
+
+    ammonite.ops.write.over(baseDir / "meta.json", ujson.write(metaJson, 4))
+  }
 
 }

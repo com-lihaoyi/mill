@@ -1,3 +1,5 @@
-class Library() {
-  val fancyLibrary = 2
+package foo
+
+object Library {
+  val fancyLibrary = 42
 }

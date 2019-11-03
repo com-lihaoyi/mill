@@ -23,7 +23,6 @@ object PathRef {
    * @return
    */
   def apply(path: os.Path, quick: Boolean = false): PathRef = {
-    println(s"Given path $path")
     val sig = {
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
@@ -62,7 +61,6 @@ object PathRef {
         p.path.toString()
     },
     s => {
-      print(s)
       val Array(prefix, hex, path) = s.split(":", 3)
       PathRef(
         os.Path(path),
