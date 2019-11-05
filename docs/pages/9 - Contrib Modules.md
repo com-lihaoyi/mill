@@ -112,7 +112,7 @@ In the simplest configuration just extend `DockerModule` and declare a `DockerCo
 ```scala
 import mill._, scalalib._
 
-import ivy`com.lihaoyi::mill-contrib-docker:VERSION`
+import ivy`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
 import contrib.docker.DockerModule
 
 object foo extends JavaModule with DockerModule {
