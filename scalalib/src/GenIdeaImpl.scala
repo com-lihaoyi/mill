@@ -551,7 +551,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           path <- Seq(relify(generatedSourcePath))
         } yield
             <content url={"file://$MODULE_DIR$/" + path}>
-              <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true"/>
+              <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true" />
             </content>
         }
         <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
