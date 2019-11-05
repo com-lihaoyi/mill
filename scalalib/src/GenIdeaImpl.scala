@@ -546,11 +546,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
         <exclude-output />
         {
-        //<content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
-        }
-        {
         for {
-          generatedSourcePath <- (generatedSourcePaths ++ Agg(generatedSourceOutputPath)).toSeq.sorted
+          generatedSourcePath <- (generatedSourcePaths.toSeq ++ Seq(generatedSourceOutputPath)).distinct.sorted
           path <- Seq(relify(generatedSourcePath))
         } yield
             <content url={"file://$MODULE_DIR$/" + path}>
