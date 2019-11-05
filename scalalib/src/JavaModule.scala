@@ -264,7 +264,7 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
     * Creates a manifest representation which can be modifed or replaced
     * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
     */
-  def manifest = T{
+  def manifest: T[Jvm.JarManifest] = T{
     Jvm.createManifest(finalMainClassOpt().toOption)
   }
 
