@@ -545,17 +545,24 @@ case class GenIdeaImpl(evaluator: Evaluator,
             <output url={outputUrl} />
         }
         <exclude-output />
-        <content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
+        {
+        //<content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
+        }
+        {
+        for {
+          generatedSourcePath <- (generatedSourcePaths ++ Agg(generatedSourceOutputPath)).toSeq.sorted
+          path <- Seq(relify(generatedSourcePath))
+        } yield
+            <content url={"file://$MODULE_DIR$/" + path}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true"/>
+            </content>
+        }
         <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
           {
+          // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
           for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
             yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} />
-          }
-          {
-          for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
-            yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" />
           }
           {
           val resourceType = if (isTest) "java-test-resource" else "java-resource"
