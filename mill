@@ -26,7 +26,7 @@ MILL_MINOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_rema
 
 if [ ! -x "$MILL_EXEC_PATH" ] ; then
   mkdir -p $MILL_DOWNLOAD_PATH
-  if [ $MILL_MAJOR_VERSION -gt 0 ] || [ $MILL_MINOR_VERSION -ge 5 ] ; then
+  if [ "$MILL_MAJOR_VERSION" -gt 0 ] || [ "$MILL_MINOR_VERSION" -ge 5 ] ; then
     ASSEMBLY="-assembly"
   fi
   DOWNLOAD_FILE=$MILL_EXEC_PATH-tmp-download
