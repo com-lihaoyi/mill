@@ -2,7 +2,7 @@
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(

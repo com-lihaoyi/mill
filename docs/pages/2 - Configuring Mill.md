@@ -99,14 +99,16 @@ object YourBuild extends ScalaModule {
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 
   object test extends Tests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
     def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
+
+- [Example 3](example-3.zip)
 
 You can define a test suite by creating a nested module extending `Tests`, and
 specifying the ivy coordinates and name of your test framework. This expects the
@@ -116,12 +118,12 @@ tests to be laid out as follows:
 build.sc
 foo/
     src/
-        Main.scala
+        Example.scala
     resources/
         ...
     test/
         src/
-            MainTest.scala
+            ExampleTest.scala
         resources/
             ...
 out/
