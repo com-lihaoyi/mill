@@ -564,6 +564,8 @@ example/
 
 * scalaPBSingleLineToProtoString - A `Boolean` option which determines whether the generated `.toString` methods should use a single line format.
 
+* scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
+
 If you'd like to configure the options that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
 ```scala
