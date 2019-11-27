@@ -4,6 +4,8 @@ package scoverage
 
 import coursier.MavenRepository
 import mill.api.Result
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.Persistent
 import mill.eval.PathRef
 import mill.util.Ctx
@@ -53,7 +55,11 @@ import mill.moduledefs.Cacher
  * and the xml report is saved in `out/foo/scoverage/xmlReport/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
+  /**
+    * The Scoverage version to use.
+    */
   def scoverageVersion: T[String]
+
   private def scoverageRuntimeDep = T {
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
@@ -75,45 +81,50 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   def scoverageReportWorkerClasspath = T {
-    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER_" + scoverageVersion().replace(".", "_")
+    val workerKey = "MILL_SCOVERAGE_REPORT_WORKER"
     mill.modules.Util.millProjectModule(
       workerKey,
-      s"mill-contrib-scoverage-worker-${outer.scoverageVersion()}",
+      s"mill-contrib-scoverage-worker",
       repositories,
       resolveFilter = _.toString.contains("mill-contrib-scoverage-worker")
     )
   }
 
   object scoverage extends ScalaModule {
+    /**
+      * The persistent data dir used to store scoverage coverage data.
+      * Use to store coverage data at compile-time and by the various report targets.
+      */
     def dataDir: Persistent[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
       PathRef(T.ctx().dest)
     }
 
-    def generatedSources = outer.generatedSources()
-    def allSources = outer.allSources()
-    def moduleDeps = outer.moduleDeps
-    def sources = outer.sources
-    def resources = outer.resources
-    def scalaVersion = outer.scalaVersion()
-    def repositories = outer.repositories
-    def compileIvyDeps = outer.compileIvyDeps()
-    def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
-    def scalacPluginIvyDeps = outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep())
-    def scalacOptions = outer.scalacOptions() ++
-      Seq(s"-P:scoverage:dataDir:${dataDir().path.toIO.getPath()}")
+    override def generatedSources = outer.generatedSources()
+    override def allSources = outer.allSources()
+    override def moduleDeps = outer.moduleDeps
+    override def sources = outer.sources
+    override def resources = outer.resources
+    override def scalaVersion = outer.scalaVersion()
+    override def repositories = outer.repositories
+    override def compileIvyDeps = outer.compileIvyDeps()
+    override def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
+    /** Add the scoverage scalac plugin. */
+    override def scalacPluginIvyDeps = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+    /** Add the scoverage specific plugin settings (`dataDir`). */
+    override def scalacOptions = T{ outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${dataDir().path.toIO.getPath()}") }
 
     def htmlReport() = T.command {
-      ScoverageReportWorkerApi
+      ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .htmlReport(allSources(), dataDir().path.toIO.getPath())
+        .report(ReportType.Html, allSources().map(_.path), dataDir().path.toIO.getPath())
     }
     def xmlReport() = T.command {
-      ScoverageReportWorkerApi
+      ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .xmlReport(allSources(), dataDir().path.toIO.getPath())
+        .report(ReportType.Xml, allSources().map(_.path), dataDir().path.toIO.getPath())
     }
   }
 

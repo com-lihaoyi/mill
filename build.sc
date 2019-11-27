@@ -48,6 +48,7 @@ object Deps {
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
+  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
   val upickle = ivy"com.lihaoyi::upickle:0.7.1"
@@ -376,12 +377,16 @@ object contrib extends MillModule {
   }
 
   object scoverage extends MillModule {
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(main.api)
+    }
+
     def moduleDeps = Seq(scalalib, scoverage.api)
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path,
-        "MILL_SCOVERAGE_REPORT_WORKER_1_4_0" -> worker("1.4.0").compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -394,16 +399,12 @@ object contrib extends MillModule {
       override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
     }
 
-    object api extends MillApiModule {
-      def moduleDeps = Seq(scalalib)
-    }
-
-    object worker extends Cross[WorkerModule]("1.3.1", "1.4.0")
-
-    class WorkerModule(scoverageVersion: String) extends MillApiModule {
+    object worker extends MillApiModule {
       def moduleDeps = Seq(scoverage.api)
-
-      def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
+      def compileIvyDeps = T{
+        // compile-time only, need to provide the correct scoverage version runtime
+        Agg(Deps.scalacScoveragePlugin)
+      }
     }
   }
 
