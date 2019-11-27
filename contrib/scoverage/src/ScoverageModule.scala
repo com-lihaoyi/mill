@@ -3,14 +3,10 @@ package contrib
 package scoverage
 
 import coursier.MavenRepository
-import mill.api.Result
-import mill.contrib.scoverage.api.ScoverageReportWorkerApi
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.Persistent
 import mill.eval.PathRef
-import mill.util.Ctx
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule, TestModule}
-import mill.moduledefs.Cacher
+import mill.scalalib.{DepSyntax, JavaModule, Lib, ScalaModule}
 
 
 /** Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -50,9 +46,9 @@ import mill.moduledefs.Cacher
  * - mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
  * - mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
  *
- * The measurement data is available at `out/foo/scoverage/data/`,
- * the html report is saved in `out/foo/scoverage/htmlReport/`,
- * and the xml report is saved in `out/foo/scoverage/xmlReport/`.
+ * The measurement data by default is available at `out/foo/scoverage/dataDir/dest/`,
+ * the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
+ * and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
  */
 trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   /**
@@ -118,13 +114,13 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .report(ReportType.Html, allSources().map(_.path), dataDir().path.toIO.getPath())
+        .report(ReportType.Html, allSources().map(_.path), dataDir().path)
     }
     def xmlReport() = T.command {
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .report(ReportType.Xml, allSources().map(_.path), dataDir().path.toIO.getPath())
+        .report(ReportType.Xml, allSources().map(_.path), dataDir().path)
     }
   }
 

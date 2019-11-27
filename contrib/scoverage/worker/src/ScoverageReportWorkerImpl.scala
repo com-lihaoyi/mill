@@ -10,10 +10,10 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
 
-  override def report(reportType: ReportType, sources: Seq[os.Path], dataDir: String)(implicit  ctx: Ctx.Dest): Unit = {
-    val coverageFileObj = coverageFile(dataDir)
+  override def report(reportType: ReportType, sources: Seq[os.Path], dataDir: os.Path)(implicit  ctx: Ctx.Dest): Unit = {
+    val coverageFileObj = coverageFile(dataDir.toIO)
     val coverage = deserialize(coverageFileObj)
-    coverage(invoked(findMeasurementFiles(dataDir)))
+    coverage(invoked(findMeasurementFiles(dataDir.toIO)))
     val sourceFolders = sources.map(_.toIO)
     val folder = ctx.dest
     os.makeDir.all(folder)
