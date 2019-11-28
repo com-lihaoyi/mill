@@ -1,6 +1,10 @@
 package mill
 package contrib.scalapblib
 
+import java.net.URI
+import java.nio.file.attribute.BasicFileAttributes
+import java.nio.file.{FileSystems, Files, Path, SimpleFileVisitor, StandardCopyOption}
+
 import coursier.MavenRepository
 import coursier.core.Version
 import mill.define.Sources
@@ -61,6 +65,47 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
+  def scalaPBIncludePath: T[Seq[PathRef]] = T { Seq.empty[PathRef] }
+
+  def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
+    resolveDeps(T.task { compileIvyDeps() ++ transitiveIvyDeps() })()
+  }
+
+  def scalaPBUnpackProto: T[PathRef] = T {
+    val cp   = scalaPBProtoClasspath()
+    val dest = T.ctx().dest
+    cp.foreach { ref =>
+      val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
+      val jarFs =
+        FileSystems.newFileSystem(URI.create(baseUri), new java.util.HashMap[String, String]())
+      try {
+        import scala.collection.JavaConverters._
+        jarFs.getRootDirectories.asScala.foreach { r =>
+          Files.walkFileTree(
+            r,
+            new SimpleFileVisitor[Path] {
+              override def visitFile(f: Path, a: BasicFileAttributes) = {
+                if (f.getFileName.toString.endsWith(".proto")) {
+                  val protoDest = dest.toNIO.resolve(r.relativize(f).toString)
+                  Files.createDirectories(protoDest.getParent)
+                  Files.copy(
+                    f,
+                    protoDest,
+                    StandardCopyOption.COPY_ATTRIBUTES,
+                    StandardCopyOption.REPLACE_EXISTING
+                  )
+                }
+                super.visitFile(f, a)
+              }
+            }
+          )
+        }
+      } finally jarFs.close()
+    }
+
+    PathRef(dest)
+  }
+
   def compileScalaPB: T[PathRef] = T.persistent {
     ScalaPBWorkerApi.scalaPBWorker
       .compile(
@@ -68,6 +113,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBProtocPath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
-        T.ctx().dest)
+        T.ctx().dest,
+        scalaPBIncludePath().map(_.path))
   }
 }
