@@ -620,9 +620,9 @@ mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test 
 mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
 ```
 
-The measurement data is available at `out/foo/scoverage/data/`,
-the html report is saved in `out/foo/scoverage/htmlReport/`,
-and the xml report is saved in `out/foo/scoverage/xmlReport/`.
+The measurement data is by default available at `out/foo/scoverage/dataDir/dest`,
+the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
+and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
 
 ## TestNG
