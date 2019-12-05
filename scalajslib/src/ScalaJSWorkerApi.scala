@@ -35,6 +35,7 @@ class ScalaJSWorker {
            libraries: Agg[os.Path],
            dest: File,
            main: Option[String],
+           testBridgeInit: Boolean,
            fullOpt: Boolean,
            moduleKind: ModuleKind)
           (implicit ctx: Ctx.Home): Result[os.Path] = {
@@ -43,6 +44,7 @@ class ScalaJSWorker {
       libraries.items.map(_.toIO).toArray,
       dest,
       main.orNull,
+      testBridgeInit,
       fullOpt,
       moduleKind
     ).map(os.Path(_))

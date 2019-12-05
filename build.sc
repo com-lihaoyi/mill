@@ -18,11 +18,11 @@ object Deps {
   }
 
   object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
-    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:1.0.0-M2"
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-RC1"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-RC1"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-RC1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-RC1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
@@ -310,7 +310,7 @@ object scalajslib extends MillModule {
         )
       case "1.0" =>
         Agg(
-          Deps.Scalajs_1_0.scalajsTools,
+          Deps.Scalajs_1_0.scalajsLinker,
           Deps.Scalajs_1_0.scalajsSbtTestAdapter,
           Deps.Scalajs_1_0.scalajsEnvNodejs,
           Deps.Scalajs_1_0.scalajsEnvJsdomNodejs,

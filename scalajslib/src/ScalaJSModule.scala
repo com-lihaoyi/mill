@@ -21,7 +21,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
   def scalaJSWorkerVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
 
@@ -37,16 +37,20 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
       ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
       ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
       ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") => Seq(ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}")
+      case v if v.startsWith("0.6") =>
+        Seq(
+          ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+        )
       case v if v.startsWith("1.0") =>
         Seq(
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-jsdom-nodejs:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-phantomjs:${scalaJSVersion()}"
@@ -68,6 +72,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
+      testBridgeInit = false,
       FastOpt,
       moduleKind()
     )
@@ -79,6 +84,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
+      testBridgeInit = false,
       FullOpt,
       moduleKind()
     )
@@ -112,6 +118,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            toolsClasspath: Agg[PathRef],
            runClasspath: Agg[PathRef],
            mainClass: Option[String],
+           testBridgeInit: Boolean,
            mode: OptimizeMode,
            moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
@@ -131,6 +138,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       libraries,
       outputPath.toIO,
       mainClass,
+      testBridgeInit,
       mode == FullOpt,
       moduleKind
     ).map(PathRef(_))
@@ -163,9 +171,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
+      val bridgeOrInterface =
+        if (mill.scalalib.api.Util.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
+        else "interface"
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-        ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
+        ivy"org.scala-js::scalajs-test-$bridgeOrInterface:${scalaJSVersion()}"
       )
     })
   }
@@ -176,6 +187,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       toolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
+      testBridgeInit = true,
       FastOpt,
       moduleKind()
     )

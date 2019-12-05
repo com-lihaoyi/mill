@@ -24,8 +24,8 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("2.11.8", "2.12.3", "2.12.4")
-      scalaJS <- Seq("0.6.22", "1.0.0-M2")
+      scala <- Seq("2.11.12", "2.12.3", "2.12.4")
+      scalaJS <- Seq("0.6.22", "0.6.31", "1.0.0-RC1")
     } yield (scala, scalaJS)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -62,7 +62,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.0.4"
+          ivy"org.scalatest::scalatest::3.1.0"
         )
       }
     }
@@ -100,8 +100,8 @@ object HelloJSWorldTests extends TestSuite {
 
       'fromScratch_2124_0622 - testCompileFromScratch("2.12.4", "0.6.22")
       'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
-      'fromScratch_2118_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
-      'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
+      'fromScratch_21112_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.22"))
+      'fromScratch_2124_100RC1 - testCompileFromScratch("2.12.4", "1.0.0-RC1")
     }
 
     def testRun(scalaVersion: String,
@@ -119,14 +119,14 @@ object HelloJSWorldTests extends TestSuite {
     'fullOpt - {
       'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
+      'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FullOpt))
+      'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FullOpt))
     }
     'fastOpt - {
       'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
+      'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FastOpt))
+      'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FastOpt))
     }
     'jar - {
       'containsSJSIRs - {
@@ -144,7 +144,7 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       'artifactId_0622 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
-      'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
+      'artifactId_100RC1 - testArtifactId("2.12.4", "1.0.0-RC1", "hello-js-world_sjs1.0-RC1_2.12")
     }
     'test - {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -190,16 +190,19 @@ object HelloJSWorldTests extends TestSuite {
         )
       }
 
-      'utest_2118_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
+      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22"))
       'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
-      'utest_2118_100M2 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
-      'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
+      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31"))
+      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31")
+//      No utest artifact for Scala.js 1.0.0-RC1 published yet
+//      'utest_21112_100RC1 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0-RC1"))
+//      'utest_2124_100RC1 - checkUtest("2.12.4", "1.0.0-RC1")
 
-      'scalaTest_2118_0622 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
-      'scalaTest_2124_0622 - checkScalaTest("2.12.4", "0.6.22")
-//      No scalatest artifact for scala.js 1.0.0-M2 published yet
-//      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
-//      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
+      // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
+      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31"))
+      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31")
+      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1")
+      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1")
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
@@ -215,15 +218,16 @@ object HelloJSWorldTests extends TestSuite {
       assert(
         evalCount > 0,
         log.contains("node"),
-        log.contains("Scala.js")
+        // In Scala.js 1.x, println's are sent to the stdout, not to the logger
+        !scalaJSVersion.startsWith("0.6.") || log.contains("Scala.js")
       )
     }
 
     'run - {
-      'run_2118_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "0.6.22"))
+      'run_21112_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.6.22"))
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
-      'run_2118_100M2 - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
-      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2")
+      'run_21112_100RC1 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0-RC1"))
+      'run_2124_100RC1 - checkRun("2.12.4", "1.0.0-RC1")
     }
   }
 
