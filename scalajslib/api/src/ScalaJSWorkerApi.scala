@@ -13,7 +13,8 @@ trait ScalaJSWorkerApi {
 
   def getFramework(config: JsEnvConfig,
                    frameworkName: String,
-                   linkedFile: File): (() => Unit, sbt.testing.Framework)
+                   linkedFile: File,
+                   moduleKind: ModuleKind): (() => Unit, sbt.testing.Framework)
 
 }
 

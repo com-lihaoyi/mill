@@ -1,13 +1,11 @@
 package mill.scalajslib
 
 import java.io.File
-import java.net.URLClassLoader
 
+import mill.api.{Ctx, Result}
 import mill.define.Discover
-import mill.api.Result
-import mill.api.Ctx
-import mill.{Agg, T}
 import mill.scalajslib.api._
+import mill.{Agg, T}
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
@@ -58,9 +56,10 @@ class ScalaJSWorker {
   def getFramework(toolsClasspath: Agg[os.Path],
                    config: JsEnvConfig,
                    frameworkName: String,
-                   linkedFile: File)
+                   linkedFile: File,
+                   moduleKind: ModuleKind)
                   (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
-    bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile)
+    bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile, moduleKind)
   }
 
 }
