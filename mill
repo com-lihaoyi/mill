@@ -17,8 +17,12 @@ if [ -z "$MILL_VERSION" ] ; then
   fi
 fi
 
-MILL_DOWNLOAD_PATH="$HOME/.mill/download"
-MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/$MILL_VERSION"
+if [ "x${XDG_CACHE_HOME}" != "x" ] ; then
+  MILL_DOWNLOAD_PATH="${XDG_CACHE_HOME}/mill/download"
+else
+  MILL_DOWNLOAD_PATH="${HOME}/.cache/mill/download"
+fi
+MILL_EXEC_PATH="${MILL_DOWNLOAD_PATH}/${MILL_VERSION}"
 
 version_remainder="$MILL_VERSION"
 MILL_MAJOR_VERSION="${version_remainder%%.*}"; version_remainder="${version_remainder#*.}"
