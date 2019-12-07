@@ -154,17 +154,17 @@ class MillBuildServer(evaluator: Evaluator,
       for (targetId <- dependencySourcesParams.getTargets.asScala) {
         val millModule = targetIdToModule(targetId)
         var sources = evaluateInformativeTask(evaluator,
-                                              millModule.resolveDeps(millModule.transitiveIvyDeps),
+                                              millModule.resolveDeps(millModule.transitiveIvyDeps, true),
                                               Agg.empty[PathRef]) ++
           evaluateInformativeTask(evaluator,
-                                  millModule.resolveDeps(millModule.compileIvyDeps),
+                                  millModule.resolveDeps(millModule.compileIvyDeps, true),
                                   Agg.empty[PathRef]) ++
           evaluateInformativeTask(evaluator,
                                   millModule.unmanagedClasspath,
                                   Agg.empty[PathRef])
         millModule match {
           case _: ScalaModule => sources ++= evaluateInformativeTask(evaluator,
-                                                                     millModule.resolveDeps(millModule.asInstanceOf[ScalaModule].scalaLibraryIvyDeps),
+                                                                     millModule.resolveDeps(millModule.asInstanceOf[ScalaModule].scalaLibraryIvyDeps, true),
                                                                      Agg.empty[PathRef])
           case _: JavaModule => sources ++= List()
         }
