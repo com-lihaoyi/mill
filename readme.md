@@ -170,8 +170,21 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.5.2](https://github.com/lihaoyi/mill/milestone/31?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.2...master).*
+[milestone after 0.5.3](https://github.com/lihaoyi/mill/milestone/32?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.3...master).*
+
+### 0.5.3 - 2019-12-07
+
+- `GenIdea/idea`: improved support for generated sources and use/download sources in more cases 
+- ScalaJS: improvements and support for ScalaJS 0.6.29+ and 1.0.1.RC1
+- Introduced new `CoursierModule` to use dependency management independent from a compiler
+- `ScoverageModule`: better handling of report directories
+- `ScalaPBModule`: more configuration options
+- various other fixes and improvements
+ 
+*For details refer to
+[milestone 0.5.3](https://github.com/lihaoyi/mill/milestone/31?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.2...0.5.3).*
 
 
 ### 0.5.2 - 2019-10-17
@@ -187,7 +200,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.2...master
 - Documentation updates
  
 *For details refer to
-[milestone 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
+[milestone 0.5.2](https://github.com/lihaoyi/mill/milestone/30?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.1...0.5.2).*
 
 
