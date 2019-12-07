@@ -16,7 +16,11 @@ import mill.api.Loose.Agg
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer =>
+trait JavaModule extends mill.Module
+  with TaskModule
+  with GenIdeaModule
+  with CoursierModule { outer =>
+
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule{
@@ -29,9 +33,6 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
 
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
     Artifact.fromDepJava(_: Dep)
-  }
-  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
-    Lib.depToDependencyJava(_: Dep)
   }
 
   /**
@@ -132,27 +133,13 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
     )().flatten
   }
 
-  def mapDependencies = T.task{ d: coursier.Dependency => d }
-
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false) = T.task{
-    resolveDependencies(
-      repositories,
-      resolveCoursierDependency().apply(_),
-      deps(),
-      sources,
-      mapDependencies = Some(mapDependencies()),
-      Some(implicitly[mill.util.Ctx.Log])
-    )
-  }
-
-
   def repositories: Seq[Repository] = zincWorker.repositories
 
   /**
     * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
     * projects
     */
-  def platformSuffix = T{ "" }
+  def platformSuffix: T[String] = T{ "" }
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
