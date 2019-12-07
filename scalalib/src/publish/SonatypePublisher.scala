@@ -15,7 +15,8 @@ class SonatypePublisher(uri: String,
                         readTimeout: Int,
                         connectTimeout: Int,
                         log: Logger,
-                        awaitTimeout: Int) {
+                        awaitTimeout: Int,
+                        stagingRelease: Boolean = true) {
 
   private val api = new SonatypeHttpApi(uri, credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
@@ -55,26 +56,37 @@ class SonatypePublisher(uri: String,
     }
     val releaseGroups = releases.groupBy(_._1.group)
     for ((group, groupReleases) <- releaseGroups) {
-      publishRelease(
-        release,
-        groupReleases.flatMap(_._2),
-        group,
-        releases.map(_._1),
-        awaitTimeout
-      )
+      if(stagingRelease) {
+        publishRelease(
+          release,
+          groupReleases.flatMap(_._2),
+          group,
+          releases.map(_._1),
+          awaitTimeout
+        )
+      } else publishReleaseNonstaging(groupReleases.flatMap(_._2), releases.map(_._1))
     }
   }
 
   private def publishSnapshot(payloads: Seq[(String, Array[Byte])],
                               artifacts: Seq[Artifact]): Unit = {
+    publishToUri(payloads, artifacts, snapshotUri)
+  }
 
+  private def publishToUri(payloads: Seq[(String, Array[Byte])],
+                           artifacts: Seq[Artifact],
+                           uri: String): Unit = {
     val publishResults = payloads.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
-        val resp = api.upload(s"$snapshotUri/$fileName", data)
-        resp
+        api.upload(s"$uri/$fileName", data)
     }
     reportPublishResults(publishResults, artifacts)
+  }
+
+  private def publishReleaseNonstaging(payloads: Seq[(String, Array[Byte])],
+                                       artifacts: Seq[Artifact]): Unit = {
+    publishToUri(payloads, artifacts, uri)
   }
 
   private def publishRelease(release: Boolean,
@@ -87,12 +99,7 @@ class SonatypePublisher(uri: String,
       api.createStagingRepo(profileUri, stagingProfile)
     val baseUri = s"$uri/staging/deployByRepositoryId/$stagingRepoId/"
 
-    val publishResults = payloads.map {
-      case (fileName, data) =>
-        log.info(s"Uploading ${fileName}")
-        api.upload(s"$baseUri/$fileName", data)
-    }
-    reportPublishResults(publishResults, artifacts)
+    publishToUri(payloads, artifacts, baseUri)
 
     if (release) {
       log.info("Closing staging repository")

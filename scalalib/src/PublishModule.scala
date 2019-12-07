@@ -86,7 +86,8 @@ trait PublishModule extends JavaModule { outer =>
               readTimeout: Int = 60000,
               connectTimeout: Int = 5000,
               release: Boolean,
-              awaitTimeout: Int = 120 * 1000): define.Command[Unit] = T.command {
+              awaitTimeout: Int = 120 * 1000,
+              stagingRelease: Boolean = true): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
       sonatypeUri,
@@ -98,7 +99,8 @@ trait PublishModule extends JavaModule { outer =>
       readTimeout,
       connectTimeout,
       T.ctx().log,
-      awaitTimeout
+      awaitTimeout,
+      stagingRelease
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
   }
 }
@@ -120,7 +122,8 @@ object PublishModule extends ExternalModule {
                  sonatypeUri: String = "https://oss.sonatype.org/service/local",
                  sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
                  signed: Boolean = true,
-                 awaitTimeout: Int = 120 * 1000) = T.command {
+                 awaitTimeout: Int = 120 * 1000,
+                 stagingRelease: Boolean = true) = T.command {
 
     val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
       case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
@@ -135,7 +138,8 @@ object PublishModule extends ExternalModule {
       readTimeout,
       connectTimeout,
       T.ctx().log,
-      awaitTimeout
+      awaitTimeout,
+      stagingRelease
     ).publishAll(
       release,
       x:_*
