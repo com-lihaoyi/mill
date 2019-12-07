@@ -20,6 +20,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
            libraries: Array[File],
            dest: File,
            main: String,
+           testBridgeInit: Boolean, // ignored in 0.6
            fullOpt: Boolean,
            moduleKind: ModuleKind) = {
 
