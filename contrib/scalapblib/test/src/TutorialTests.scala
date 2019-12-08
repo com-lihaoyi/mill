@@ -1,6 +1,5 @@
 package mill.contrib.scalapblib
 
-import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
@@ -15,6 +14,7 @@ object TutorialTests extends TestSuite {
     def scalaVersion = "2.12.4"
     def scalaPBVersion = "0.7.4"
     def scalaPBFlatPackage = true
+    def scalaPBIncludePath = Seq(scalaPBUnpackProto())
   }
 
   object Tutorial extends TutorialBase {
@@ -50,7 +50,9 @@ object TutorialTests extends TestSuite {
   def compiledSourcefiles: Seq[os.RelPath] = Seq[os.RelPath](
     "AddressBook.scala",
     "Person.scala",
-    "TutorialProto.scala"
+    "TutorialProto.scala",
+    "Include.scala",
+    "IncludeProto.scala"
   )
 
   def tests: Tests = Tests {
@@ -80,7 +82,7 @@ object TutorialTests extends TestSuite {
           result.path == eval.outPath / 'core / 'compileScalaPB / 'dest,
           outputFiles.nonEmpty,
           outputFiles.forall(expectedSourcefiles.contains),
-          outputFiles.size == 3,
+          outputFiles.size == 5,
           evalCount > 0
         )
 
