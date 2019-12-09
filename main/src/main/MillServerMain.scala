@@ -126,8 +126,7 @@ class Server[T](lockBase: String,
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = sys.props("MILL_VERSION")
     if (clientMillVersion != serverMillVersion) {
-      // FIXME: exiting with 0 isn't correct, see https://github.com/lihaoyi/mill/issues/557
-      stdout.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
+      stderr.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
       java.nio.file.Files.write(
         java.nio.file.Paths.get(lockBase + "/exitCode"),
         s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
