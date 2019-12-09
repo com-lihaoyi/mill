@@ -54,7 +54,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
             stderr: PrintStream,
             env : Map[String, String],
             setIdle: Boolean => Unit,
-            systemProperties: Map[String, String]) = {
+            systemProperties: Map[String, String]): (Boolean, Option[Evaluator.State]) = {
     MillMain.main0(
       args,
       stateCache,
