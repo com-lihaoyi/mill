@@ -50,8 +50,8 @@ public class MillClientMain {
 
         new ProcessBuilder()
                 .command(l)
-                .redirectOutput(new java.io.File(lockBase + "/logs"))
-                .redirectError(new java.io.File(lockBase + "/logs"))
+                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
+                .redirectError(ProcessBuilder.Redirect.INHERIT)
                 .start();
     }
 
