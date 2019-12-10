@@ -771,11 +771,15 @@ Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 Arguments provided did not match expected signature:
 
 publish
-  --sonatypeCreds  String (format: "username:password")
-  --gpgPassphrase  String (default null)
-  --gpgKeyName     String (default null)
-  --signed         Boolean (default true)
-  --release        Boolean
+  --sonatypeCreds   String (format: "username:password")
+  --gpgPassphrase   String (default null)
+  --gpgKeyName      String (default null)
+  --signed          Boolean (default true)
+  --readTimeout     Int (default 60000)
+  --connectTimeout  Int (default 5000) 
+  --release         Boolean
+  --awaitTimeout    Int (default 120000)
+  --stagingRelease  Boolean (default true)
 ```
 
 You also need to specify `release` as `true` or `false`, depending on whether
