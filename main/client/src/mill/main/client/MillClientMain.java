@@ -48,10 +48,13 @@ public class MillClientMain {
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
+        File stdout = new java.io.File(lockBase + "/stdout");
+        File stderr = new java.io.File(lockBase + "/stderr");
+
         new ProcessBuilder()
                 .command(l)
-                .redirectOutput(ProcessBuilder.Redirect.INHERIT)
-                .redirectError(ProcessBuilder.Redirect.INHERIT)
+                .redirectOutput(stdout)
+                .redirectError(stderr)
                 .start();
     }
 
@@ -96,13 +99,22 @@ public class MillClientMain {
             String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
+            File stdout = new java.io.File(lockBase + "/stdout");
+            File stderr = new java.io.File(lockBase + "/stderr");
+            int refeshIntervalMsec = 20;
+
             try(
-                RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
-                FileChannel channel = lockFile.getChannel();
-                java.nio.channels.FileLock tryLock = channel.tryLock();
-                Locks locks = Locks.files(lockBase)
+                    RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
+                    FileChannel channel = lockFile.getChannel();
+                    java.nio.channels.FileLock tryLock = channel.tryLock();
+                    Locks locks = Locks.files(lockBase);
+                    FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMsec);
+                    FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMsec);
             ){
                 if (tryLock != null) {
+                    stdoutTailer.start();
+                    stderrTailer.start();
+
                     int exitCode = MillClientMain.run(
                             lockBase,
                             new Runnable() {
@@ -122,10 +134,15 @@ public class MillClientMain {
                             args,
                             env
                     );
+
+                    // Should we give the server process some extra time to flush the output files?
+                    // currently, we don't
+
+                    // Here, we ensure we process the tails of the outut files before interupting the threads
+                    stdoutTailer.flush();
+                    stderrTailer.flush();
                     return exitCode;
                 }
-            } finally{
-
             }
         }
         throw new Exception("Reached max process limit: " + processLimit);
