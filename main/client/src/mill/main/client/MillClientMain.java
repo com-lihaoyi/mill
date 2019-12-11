@@ -101,7 +101,7 @@ public class MillClientMain {
 
             File stdout = new java.io.File(lockBase + "/stdout");
             File stderr = new java.io.File(lockBase + "/stderr");
-            int refeshIntervalMsec = 20;
+            int refeshIntervalMsec = 2;
 
             try(
                     RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
@@ -138,7 +138,7 @@ public class MillClientMain {
                     // Should we give the server process some extra time to flush the output files?
                     // currently, we don't
 
-                    // Here, we ensure we process the tails of the outut files before interupting the threads
+                    // Here, we ensure we process the tails of the output files before interrupting the threads
                     stdoutTailer.flush();
                     stderrTailer.flush();
                     return exitCode;
