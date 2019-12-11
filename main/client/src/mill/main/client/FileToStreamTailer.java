@@ -56,10 +56,6 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
                         }
                         // we ignored once
                         this.ignoreHead = false;
-                    } catch (FileNotFoundException e) {
-                        // File vanished
-                        this.reader = Optional.empty();
-                        this.ignoreHead = false;
                     } catch (IOException e) {
                         // could not read line or file vanished
                     }
