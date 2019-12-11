@@ -135,9 +135,6 @@ public class MillClientMain {
                             env
                     );
 
-                    // Should we give the server process some extra time to flush the output files?
-                    // currently, we don't
-
                     // Here, we ensure we process the tails of the output files before interrupting the threads
                     stdoutTailer.flush();
                     stderrTailer.flush();
