@@ -37,11 +37,12 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
         while (keepReading || flush) {
             flush = false;
             try {
+                // Init reader, if not already done
                 if (!reader.isPresent()) {
                     try {
                         this.reader = Optional.of(new BufferedReader(new FileReader(file)));
                     } catch (FileNotFoundException e) {
-                        // nothing to ignore if file is inially missing
+                        // nothing to ignore if file is initially missing
                         ignoreHead = false;
                     }
                 }
