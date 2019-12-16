@@ -229,22 +229,13 @@ case class Evaluator(home: os.Path,
   }
 
   def destSegments(labelledTask : Labelled[_]) : Segments = {
-    import labelledTask.task.ctx
-    if (ctx.foreign) {
-      val prefix = "foreign-modules"
-      // Computing a path in "out" that uniquely reflects the location
-      // of the foreign module relatively to the current build.
-      val relative = labelledTask.task
-        .ctx.millSourcePath
-        .relativeTo(rootModule.millSourcePath)
-      // Encoding the number of `/..`
-      val ups = if (relative.ups > 0) Segments.labels(s"up-${relative.ups}")
-                else Segments()
-      Segments.labels(prefix)
-        .++(ups)
-        .++(Segments.labels(relative.segments: _*))
-        .++(labelledTask.segments.last)
-    } else labelledTask.segments
+    labelledTask.task.ctx.foreign match {
+      case Some(foreignSegments) =>
+        foreignSegments ++ labelledTask.segments
+
+      case None =>
+        labelledTask.segments
+    }
   }
 
 

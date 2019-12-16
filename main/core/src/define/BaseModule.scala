@@ -7,7 +7,7 @@ object BaseModule{
 
 abstract class BaseModule(millSourcePath0: os.Path,
                           external0: Boolean = false,
-                          foreign0 : Boolean = false)
+                          foreign0 : Option[Segments] = None)
                          (implicit millModuleEnclosing0: sourcecode.Enclosing,
                           millModuleLine0: sourcecode.Line,
                           millName0: sourcecode.Name,
@@ -41,7 +41,7 @@ abstract class BaseModule(millSourcePath0: os.Path,
 abstract class ExternalModule(implicit millModuleEnclosing0: sourcecode.Enclosing,
                               millModuleLine0: sourcecode.Line,
                               millName0: sourcecode.Name)
-  extends BaseModule(ammonite.ops.pwd, external0 = true, foreign0 = false)(
+  extends BaseModule(ammonite.ops.pwd, external0 = true, foreign0 = None)(
     implicitly, implicitly, implicitly, implicitly, Caller(())
   ){
 
