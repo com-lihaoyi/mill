@@ -41,7 +41,10 @@ matrix:
 
 
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    env: CI_SCRIPT="ci/on-master.py ci/release-github.sh"
+    jdk: oraclejdk9
+  - stage: release
+    env: CI_SCRIPT="ci/on-master.py ci/release-maven.sh"
     jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
