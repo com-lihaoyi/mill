@@ -44,7 +44,8 @@ object JavaCompileJarTests extends TestSuite{
         def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
 
         def run(mainClsName: String) = T.command{
-          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName).call()
+          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
+            .call(stderr = os.Pipe)
         }
       }
 
