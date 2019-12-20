@@ -79,7 +79,7 @@ object benchmarks extends BetterFilesModule{
   def unmanagedClasspath = Agg(
     mill.modules.Util.download(
       "https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar",
-      "fastjavaio.jar"
+      os.rel / "fastjavaio.jar"
     )
   )
 }
