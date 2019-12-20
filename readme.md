@@ -173,6 +173,11 @@ corresponding version of Mill.
 [milestone after 0.5.3](https://github.com/lihaoyi/mill/milestone/32?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.3...master).*
 
+### 0.5.4 - 2019-12-20
+
+- Bump library versions: Ammonite 1.9.2, uPickle 0.9.0, Scalatags 0.8.2, OS-Lib
+  0.5.0, Requests 0.3.0, Geny 0.2.0, uTest 0.7.1
+
 ### 0.5.3 - 2019-12-07
 
 - `GenIdea/idea`: improved support for generated sources and use/download sources in more cases 
