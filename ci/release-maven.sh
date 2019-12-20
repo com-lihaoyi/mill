@@ -13,8 +13,6 @@ rm gpg_key
 
 rm -rf ~/.mill
 
-out/dev/assembly/dest/mill uploadToGithub $GITHUB_ACCESS_TOKEN
-
 out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
     --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
     --gpgPassphrase $GPG_PASSWORD \
