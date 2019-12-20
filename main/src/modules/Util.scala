@@ -23,7 +23,7 @@ object Util {
       .dropWhile(_.isEmpty)
       .reverse
   }
-  def download(url: String, dest: os.RelPath = "download")(implicit ctx: Ctx.Dest) = {
+  def download(url: String, dest: os.RelPath = os.rel / "download")(implicit ctx: Ctx.Dest) = {
     val out = ctx.dest / dest
 
     val website = new java.net.URI(url).toURL
@@ -41,11 +41,11 @@ object Util {
     }
   }
 
-  def downloadUnpackZip(url: String, dest: os.RelPath = "unpacked")
+  def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")
                        (implicit ctx: Ctx.Dest) = {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
-    val downloaded = download(url, tmpName)
+    val downloaded = download(url, os.rel / tmpName)
     IO.unpackZip(downloaded.path, dest)
   }
 

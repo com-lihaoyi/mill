@@ -7,7 +7,7 @@ object ForeignBuildsTest extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "foreign-builds"
   def scriptSourcePath =
     os.pwd / 'main / 'test / 'resources / 'examples / 'foreign
-  override def buildPath = os.rel / 'project / "build.sc"
+  override def buildPath = os.sub / 'project / "build.sc"
 
   val tests = Tests {
     initWorkspace()

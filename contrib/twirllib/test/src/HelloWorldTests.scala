@@ -51,8 +51,8 @@ object HelloWorldTests extends TestSuite {
   }
 
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
-    "hello.template.scala",
-    "wrapper.template.scala"
+    os.rel / "hello.template.scala",
+    os.rel / "wrapper.template.scala"
   )
 
   def expectedDefaultImports: Seq[String] = Seq(

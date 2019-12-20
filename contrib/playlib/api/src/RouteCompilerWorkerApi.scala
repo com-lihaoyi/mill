@@ -2,19 +2,18 @@ package mill
 package playlib
 package api
 
-import ammonite.ops.Path
 import mill.api.Result
 import mill.scalalib.api.CompilationResult
 
 
 private[playlib] trait RouteCompilerWorkerApi {
-  def compile(files: Seq[Path],
+  def compile(files: Seq[os.Path],
               additionalImports: Seq[String],
               forwardsRouter: Boolean,
               reverseRouter: Boolean,
               namespaceReverseRouter: Boolean,
               generatorType:RouteCompilerType,
-              dest: Path)(implicit ctx: mill.api.Ctx):Result[CompilationResult]
+              dest: os.Path)(implicit ctx: mill.api.Ctx):Result[CompilationResult]
 
 
 }

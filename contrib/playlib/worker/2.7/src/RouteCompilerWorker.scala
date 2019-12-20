@@ -4,7 +4,6 @@ package worker
 
 import java.io.File
 
-import ammonite.ops.Path
 import mill.api.{Ctx, Result}
 import mill.eval.PathRef
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
@@ -16,13 +15,13 @@ import play.routes.compiler.{InjectedRoutesGenerator, RoutesCompilationError, Ro
 
 private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
 
-  override def compile(files: Seq[Path],
+  override def compile(files: Seq[os.Path],
                        additionalImports: Seq[String],
                        forwardsRouter: Boolean,
                        reverseRouter: Boolean,
                        namespaceReverseRouter: Boolean,
                        generatorType: RouteCompilerType,
-                       dest: Path)
+                       dest: os.Path)
                       (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
@@ -37,12 +36,12 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
   // the following code is duplicated between play worker versions because it depends on play types
   // which are not guaranteed to stay the same between versions even though they are currently
   // identical
-  private def compileWithPlay(files: Seq[Path],
+  private def compileWithPlay(files: Seq[os.Path],
                               additionalImports: Seq[String],
                               forwardsRouter: Boolean,
                               reverseRouter: Boolean,
                               namespaceReverseRouter: Boolean,
-                              dest: Path,
+                              dest: os.Path,
                               ctx: Ctx,
                               routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
     val seed: Either[Seq[compiler.RoutesCompilationError], List[File]] = Right(List.empty[File])
@@ -54,7 +53,7 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
     }
   }
 
-  private def compileWithPlay(file: Path, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean, dest: Path, ctx: Ctx, routesGenerator: RoutesGenerator) = {
+  private def compileWithPlay(file: os.Path, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean, dest: os.Path, ctx: Ctx, routesGenerator: RoutesGenerator) = {
     ctx.log.debug(s"compiling file $file with play generator $routesGenerator")
     val result =
       RoutesCompiler.compile(

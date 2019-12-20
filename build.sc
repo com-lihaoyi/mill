@@ -25,9 +25,10 @@ object Deps {
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
   }
 
-  val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
-  val ammonite = ivy"com.lihaoyi:::ammonite:1.6.9"
+  val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:1.9.2"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
+  val coursier = ivy"io.get-coursier::coursier:2.0.0-RC5-3"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
@@ -43,17 +44,17 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.2.6"
+  val osLib = ivy"com.lihaoyi::os-lib:0.5.0"
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
-  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
-  val upickle = ivy"com.lihaoyi::upickle:0.7.1"
-  val utest = ivy"com.lihaoyi::utest:0.6.4"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.7"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.0"
+  val upickle = ivy"com.lihaoyi::upickle:0.9.0"
+  val utest = ivy"com.lihaoyi::utest:0.7.1"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
@@ -130,7 +131,8 @@ object main extends MillModule {
   object api extends MillApiModule{
     def ivyDeps = Agg(
       Deps.osLib,
-      Deps.upickle
+      Deps.upickle,
+      Deps.sbtTestInterface
     )
   }
   object core extends MillModule {
@@ -144,7 +146,8 @@ object main extends MillModule {
       Deps.ammonite,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
-      Deps.jnaPlatform
+      Deps.jnaPlatform,
+      Deps.coursier
     )
 
     def generatedSources = T {

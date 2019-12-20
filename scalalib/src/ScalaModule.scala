@@ -49,12 +49,11 @@ trait ScalaModule extends JavaModule { outer =>
       else
         Set("scala-library", "scala-compiler", "scala-reflect")
     if (!artifacts(d.module.name.value)) d
-    else d.copy(
-      module = d.module.copy(
-        organization = coursier.Organization(scalaOrganization())
-      ),
-      version = scalaVersion()
-    )
+    else d.withModule(
+      d.module.withOrganization(
+        coursier.Organization(scalaOrganization())
+      )
+    ).withVersion(scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
