@@ -80,16 +80,30 @@ sh> mill plugin.dgraph.browseDeps(proj)()
 
 Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
 
-Project home: https://github.com/yyadavalli/mill-ensime
+Project home: https://github.com/davoclavo/mill-ensime
 
 ### Quickstart
 
 ```scala
-import $ivy.`fun.valycorp::mill-ensime:0.0.1`
+import mill._
+interp.repositories() =
+  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
+
+@
+
+import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`
 ```
 
+You can then run the following to generate the .ensime file
+
 ```sh
-sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
+mill fun.valycorp.mill.GenEnsime/ensimeConfig
+```
+
+Optionally, you can specify the ensime server version using the --server flag like
+
+```sh
+mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ```
 
 ## Integration Testing Mill Plugins
