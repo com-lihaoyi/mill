@@ -158,7 +158,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Source] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Source](c)(
-      reify(new Source(task(value.splice.map(PathRef(_))), ctx.splice))
+      reify(new Source(makeT(Nil, _ => value.splice.map(PathRef(_))), ctx.splice))
     )
   }
 
@@ -170,7 +170,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Source] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Source](c)(
-      reify(new Source(task(value.splice), ctx.splice))
+      reify(new Source(makeT(Nil, _ => value.splice), ctx.splice))
     )
   }
   def input[T](value: Result[T])
