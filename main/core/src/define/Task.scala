@@ -150,6 +150,29 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
       )
     )
   }
+  def source(value: Result[os.Path])
+            (implicit ctx: mill.define.Ctx): Source = macro sourceImpl1
+
+  def sourceImpl1(c: Context)
+                  (value: c.Expr[Result[os.Path]])
+                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Source] = {
+    import c.universe._
+    mill.moduledefs.Cacher.impl0[Source](c)(
+      reify(new Source(makeT(Nil, _ => value.splice.map(PathRef(_))), ctx.splice))
+    )
+  }
+
+  def source(value: Result[PathRef])
+            (implicit ctx: mill.define.Ctx): Source = macro sourceImpl2
+
+  def sourceImpl2(c: Context)
+                  (value: c.Expr[Result[PathRef]])
+                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Source] = {
+    import c.universe._
+    mill.moduledefs.Cacher.impl0[Source](c)(
+      reify(new Source(makeT(Nil, _ => value.splice), ctx.splice))
+    )
+  }
   def input[T](value: Result[T])
               (implicit rw: RW[T],
                 ctx: mill.define.Ctx): Input[T] = macro inputImpl[T]
@@ -297,6 +320,11 @@ class Sources(t: Task[Seq[PathRef]],
     upickle.default.SeqLikeReader[Seq, PathRef],
     upickle.default.SeqLikeWriter[Seq, PathRef]
   )
+)
+class Source(t: Task[PathRef], ctx0: mill.define.Ctx) extends Input[PathRef](
+  t,
+  ctx0,
+  PathRef.jsonFormatter
 )
 object Task {
 
