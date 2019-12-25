@@ -13,7 +13,7 @@ class SonatypeHttpApi(
   readTimeout: Int,
   connectTimeout: Int
 ) {
-  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0)
+  val http = requests.Session(readTimeout = readTimeout, connectTimeout = connectTimeout, maxRedirects = 0, check = false)
 
   private val base64Creds = base64(credentials)
 
