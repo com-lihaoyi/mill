@@ -38,7 +38,7 @@ class SonatypeHttpApi(
 
     val resourceUri =
       ujson
-        .read(response.data.text)("data")
+        .read(response.text())("data")
         .arr
         .find(profile =>
           groupId.split('.').startsWith(profile("name").str.split('.')))
@@ -55,7 +55,7 @@ class SonatypeHttpApi(
       s"${uri}/staging/repository/${stagingRepoId}",
       headers = commonHeaders
     )
-    ujson.read(response.data.text)("type").str.toString
+    ujson.read(response.text())("type").str.toString
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_start.html
@@ -70,7 +70,7 @@ class SonatypeHttpApi(
       throw new Exception(s"$uri/staging/profiles returned ${response.statusCode}\n${response.text()}")
     }
 
-    ujson.read(response.data.text)("data")("stagedRepositoryId").str.toString
+    ujson.read(response.text())("data")("stagedRepositoryId").str.toString
   }
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles_-profileIdKey-_finish.html

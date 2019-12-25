@@ -127,7 +127,7 @@ class SonatypePublisher(uri: String,
       log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Sonatype")
     } else {
       val errors = publishResults.filterNot(_.is2xx).map { response =>
-        s"Code: ${response.statusCode}, message: ${response.data.text}"
+        s"Code: ${response.statusCode}, message: ${response.text()}"
       }
       throw new RuntimeException(
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Sonatype. Errors: \n${errors.mkString("\n")}"
