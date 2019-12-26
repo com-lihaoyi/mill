@@ -26,7 +26,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:1.9.6"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.0.0"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.2.5"
   val coursier = ivy"io.get-coursier::coursier:2.0.0-RC5-3"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
@@ -53,7 +53,7 @@ object Deps {
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.9"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.3"
-  val upickle = ivy"com.lihaoyi::upickle:0.9.3"
+  val upickle = ivy"com.lihaoyi::upickle:0.9.6"
   val utest = ivy"com.lihaoyi::utest:0.7.1"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
