@@ -52,7 +52,7 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.9"
-  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.3"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.6"
   val upickle = ivy"com.lihaoyi::upickle:0.9.6"
   val utest = ivy"com.lihaoyi::utest:0.7.1"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
