@@ -21,10 +21,10 @@ trait JsonFormatters {
       _.r
     )
 
-  implicit val bytesReadWrite: RW[os.Bytes] = upickle.default.readwriter[String]
+  implicit val bytesReadWrite: RW[geny.Bytes] = upickle.default.readwriter[String]
     .bimap(
       o => java.util.Base64.getEncoder.encodeToString(o.array),
-      str => new os.Bytes(java.util.Base64.getDecoder.decode(str))
+      str => new geny.Bytes(java.util.Base64.getDecoder.decode(str))
     )
 
   implicit lazy val crFormat: RW[os.CommandResult] = upickle.default.macroRW

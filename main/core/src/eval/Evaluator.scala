@@ -101,7 +101,7 @@ case class Evaluator(home: os.Path,
     }
     os.write.over(
       outPath / "mill-profile.json",
-      upickle.default.write(
+      upickle.default.stream(
         timings .map{case (k, v, b) =>
           Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
         },
@@ -255,7 +255,7 @@ case class Evaluator(home: os.Path,
         for((json, v) <- terminalResult){
           os.write.over(
             metaPath,
-            upickle.default.write(
+            upickle.default.stream(
               Evaluator.Cached(json, hashCode, inputsHash),
               indent = 4
             ),
