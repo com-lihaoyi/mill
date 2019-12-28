@@ -173,12 +173,12 @@ corresponding version of Mill.
 [milestone after 0.5.5](https://github.com/lihaoyi/mill/milestone/33?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.5...master).*
 
-### 0.5.6 - 2019-12-20
+### 0.5.7 - 2019-12-28
 
 *(we skipped version 0.5.4 as we had some publishing issues)*  
 
-- Bump library versions: Ammonite 1.9.2, uPickle 0.9.0, Scalatags 0.8.2, OS-Lib
-  0.5.0, Requests 0.3.0, Geny 0.2.0, uTest 0.7.1
+- Bump library versions: Ammonite 2.0.1, uPickle 0.9.5, Scalatags 0.8.3, OS-Lib
+  0.6.2, Requests 0.4.7, Geny 0.4.2, uTest 0.7.1
 - Fixed a long standing issue that output of sub-processes are only shown when `-i` option was used.
   Now, you will always seen output of sub-process.
 - Mill now properly restarts it's server after it's version has changed
