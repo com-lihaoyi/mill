@@ -1,8 +1,8 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.ConfigEncoderDecoders._
 import bloop.config.{Config => BloopConfig}
+import java.nio.charset.StandardCharsets
 import mill._
 import mill.api.Loose
 import mill.define.{Module => MillModule, _}
@@ -48,7 +48,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * }
     * }}}
     */
-  trait Module extends MillModule with CirceCompat { self: JavaModule =>
+  trait Module extends MillModule { self: JavaModule =>
 
     /**
       * Allows to tell Bloop whether it should use "fullOptJs" or
@@ -72,13 +72,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * "install" task that traverse all modules in the build, and "local" tasks
     * that traverse only their transitive dependencies.
     */
-  private implicit class BloopOps(jm: JavaModule)
-      extends MillModule
-      with CirceCompat {
+  private implicit class BloopOps(jm: JavaModule) extends MillModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = T { outer.bloopConfig(jm) }
+      def config = T { outer.bloopConfigString(jm) }
 
       def writeConfig: Target[(String, PathRef)] = T {
         mkdir(bloopDir)
@@ -132,7 +130,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
   // Computation of the bloop configuration for a specific module
   //////////////////////////////////////////////////////////////////////////////
 
-  def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
+  def bloopConfigString(module: JavaModule): Task[String] = {
     import _root_.bloop.config.Config
     def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
     def classes(m: JavaModule) = out(m) / "classes"
@@ -386,6 +384,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
+        workspaceDir = Some(wd.toNIO),
         sources = mSources,
         dependencies = module.moduleDeps.map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
@@ -401,11 +400,15 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       )
     }
 
-    T.task {
+    val file = T.task {
       BloopConfig.File(
         version = BloopConfig.File.LatestVersion,
         project = project()
       )
+    }
+
+    T.task {
+      _root_.bloop.config.write(file())
     }
   }
 
