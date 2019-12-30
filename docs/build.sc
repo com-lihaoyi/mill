@@ -157,12 +157,12 @@ def main(publish: Boolean = false) = {
   os.copy(os.pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
   os.copy(os.pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
 
-  os.proc('zip, "-r", targetFolder/"example-1.zip", "example-1").call()
-  os.proc('zip, "-r", targetFolder/"example-2.zip", "example-2").call()
-  os.proc('zip, "-r", targetFolder/"example-3.zip", "example-3").call()
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-1" / "mill")
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-2" / "mill")
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-3" / "mill")
+  os.proc('zip, "-r", targetFolder/"example-1.zip", "example-1").call()
+  os.proc('zip, "-r", targetFolder/"example-2.zip", "example-2").call()
+  os.proc('zip, "-r", targetFolder/"example-3.zip", "example-3").call()
 
   for(i <- posts.indices){
     val post = posts(i)
