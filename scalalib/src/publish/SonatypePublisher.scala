@@ -159,7 +159,7 @@ class SonatypePublisher(uri: String,
     val optionFlag = (flag: String, ov: Option[String]) => ov.map(flag :: _ :: Nil).getOrElse(Nil)
     val command = "gpg" ::
       optionFlag("--passphrase", maybePassphrase) ++ optionFlag("-u", maybeKeyName) ++
-        Seq("--batch", "--yes", "-a", "-b", fileName)
+        Seq("--batch", "--yes", "--pinentry-mode", "loopback", "-a", "-b", fileName)
 
     os.proc(command.map(v => v: Shellable))
       .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
