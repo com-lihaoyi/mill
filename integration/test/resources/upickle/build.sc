@@ -41,7 +41,7 @@ trait UpickleModule extends CrossSbtModule with PublishModule{
   )
 
   def generatedSources = T{
-    val dir = T.ctx().dest
+    val dir = T.ctx.dest
     val file = dir / "upickle" / "Generated.scala"
     os.makeDir.all(dir / "upickle")
     val tuplesAndCases = (1 to 22).map{ i =>

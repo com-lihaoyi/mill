@@ -187,7 +187,7 @@ mill foo.flywayMigrate
 > REMINDER:
 > You should never hard-code credentials or check them into a version control system.
 > You should write some code to populate the settings for flyway instead.
-> For example `def flywayPassword = T.input(T.ctx().env("FLYWAY_PASSWORD"))`
+> For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`
 
 ## Play Framework
 

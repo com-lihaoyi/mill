@@ -93,7 +93,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
       */
     def dataDir: Persistent[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
-      PathRef(T.ctx().dest)
+      PathRef(T.dest)
     }
 
     override def generatedSources = outer.generatedSources()

@@ -139,12 +139,12 @@ trait ScalaModule extends JavaModule { outer =>
       scalacOptions(),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
-      T.ctx().reporter(hashCode)
+      T.reporter.apply(hashCode)
     )
   }
 
   override def docJar = T {
-    val outDir = T.ctx().dest
+    val outDir = T.dest
 
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
@@ -180,7 +180,7 @@ trait ScalaModule extends JavaModule { outer =>
     * for you to test and operate your code interactively
     */
   def console() = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+    if (T.log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.runSubprocess(
@@ -221,7 +221,7 @@ trait ScalaModule extends JavaModule { outer =>
     * for you to test and operate your code interactively
     */
   def repl(replOptions: String*) = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+    if (T.log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.runSubprocess(

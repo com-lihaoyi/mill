@@ -205,7 +205,7 @@ trait JavaModule extends mill.Module
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
       javacOptions(),
-      T.ctx().reporter(hashCode)
+      T.reporter.apply(hashCode)
     )
   }
 
@@ -307,7 +307,7 @@ trait JavaModule extends mill.Module
    * publishing to Maven Central
    */
   def docJar = T[PathRef] {
-    val outDir = T.ctx().dest
+    val outDir = T.dest
 
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
@@ -334,7 +334,7 @@ trait JavaModule extends mill.Module
         ) ++
           files.map(_.toString),
       envArgs = Map(),
-      workingDir = T.ctx().dest
+      workingDir = T.dest
     )
 
     createJar(Agg(javadocDir))(outDir)
@@ -469,7 +469,7 @@ trait JavaModule extends mill.Module
     * that would otherwise run forever
     */
   def runBackground(args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    val (procId, procTombstone, token) = backgroundSetup(T.dest)
     try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
@@ -487,7 +487,7 @@ trait JavaModule extends mill.Module
     * Same as `runBackground`, but lets you specify a main class to run
     */
   def runMainBackground(mainClass: String, args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    val (procId, procTombstone, token) = backgroundSetup(T.dest)
     try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
@@ -576,7 +576,7 @@ trait TestModule extends JavaModule with TaskModule {
   }
 
   protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.dest/"out.json"
 
     Jvm.runSubprocess(
       mainClass = "mill.scalalib.TestRunner",
@@ -590,7 +590,7 @@ trait TestModule extends JavaModule with TaskModule {
         runClasspath().map(_.path.toString) ++
         Seq(args().length.toString) ++
         args() ++
-        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+        Seq(outputPath.toString, T.log.colored.toString, compile().classes.path.toString, T.home.toString),
       workingDir = forkWorkingDir()
     )
 
@@ -608,14 +608,14 @@ trait TestModule extends JavaModule with TaskModule {
     * reporting the results to the console
     */
   def testLocal(args: String*) = T.command {
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.dest/"out.json"
 
     val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
-      T.ctx().testReporter
+      T.testReporter
     )
 
     TestModule.handleResults(doneMsg, results)

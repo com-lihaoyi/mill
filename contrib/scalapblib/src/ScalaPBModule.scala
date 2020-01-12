@@ -73,7 +73,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBUnpackProto: T[PathRef] = T {
     val cp   = scalaPBProtoClasspath()
-    val dest = T.ctx().dest
+    val dest = T.dest
     cp.foreach { ref =>
       val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
       val jarFs =
@@ -113,7 +113,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBProtocPath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
-        T.ctx().dest,
+        T.dest,
         scalaPBIncludePath().map(_.path))
   }
 }

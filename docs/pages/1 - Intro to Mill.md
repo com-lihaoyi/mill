@@ -816,7 +816,7 @@ Each folder currently contains the following files:
 
 - `dest/`: a path for the `Task` to use either as a scratch space, or to place
   generated files that are returned using `PathRef`s. `Task`s should only output
-  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  files within their given `dest/` folder (available as `T.ctx.dest`) to avoid
   conflicting with other `Task`s, but files within `dest/` can be named
   arbitrarily.
 

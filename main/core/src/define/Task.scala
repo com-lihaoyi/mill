@@ -54,6 +54,13 @@ trait Target[+T] extends NamedTask[T]{
 }
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+  def dest(implicit ctx: mill.api.Ctx.Dest) = ctx.dest
+  def log(implicit ctx: mill.api.Ctx.Log) = ctx.log
+  def home(implicit ctx: mill.api.Ctx.Home) = ctx.home
+  def env(implicit ctx: mill.api.Ctx.Env) = ctx.env
+  def args(implicit ctx: mill.api.Ctx.Args) = ctx.args
+  def testReporter(implicit ctx: mill.api.Ctx) = ctx.testReporter
+  def reporter(implicit ctx: mill.api.Ctx) = ctx.reporter
 
   implicit def apply[T](t: T)
                        (implicit rw: RW[T],
@@ -125,7 +132,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Sources](c)(
       reify(
         new Sources(
-          Task.sequence(c.Expr[List[Task[PathRef]]](q"scala.List(..$wrapped)").splice),
+          Target.sequence(c.Expr[List[Task[PathRef]]](q"scala.List(..$wrapped)").splice),
           ctx.splice
         )
       )
@@ -275,6 +282,11 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def zip() =  new Task.Task0(())
   def zip[A](a: Task[A]) = a.map(Tuple1(_))
   def zip[A, B](a: Task[A], b: Task[B]) = a.zip(b)
+
+  def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
+    new Task.Sequence[V](source.map(f))
+  }
+  def sequence[T](source: Seq[Task[T]]) = new Task.Sequence[T](source)
 }
 
 abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends NamedTask[T]{
@@ -344,9 +356,11 @@ object Task {
 
   }
 
+  @deprecated("Use `Target.traverse` or `T.traverse`")
   def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
     new Sequence[V](source.map(f))
   }
+  @deprecated("Use `Target.sequence` or `T.sequence`")
   def sequence[T](source: Seq[Task[T]]) = new Sequence[T](source)
 
   class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{

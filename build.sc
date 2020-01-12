@@ -117,7 +117,7 @@ object main extends MillModule {
   )
 
   def generatedSources = T {
-    Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
+    Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
   def testArgs = Seq(
     "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -125,7 +125,7 @@ object main extends MillModule {
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
-      Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
+      Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
     }
   }
   object api extends MillApiModule{
@@ -151,7 +151,7 @@ object main extends MillModule {
     )
 
     def generatedSources = T {
-      val dest = T.ctx().dest
+      val dest = T.ctx.dest
       val version = publishVersion()
       writeBuildInfo(dest, version)
       shared.generateCoreSources(dest)
@@ -220,7 +220,7 @@ object scalalib extends MillModule {
   }
 
   override def generatedSources = T{
-    val dest = T.ctx().dest
+    val dest = T.ctx.dest
     os.write(dest / "Versions.scala",
       s"""package mill.scalalib
         |
@@ -503,19 +503,19 @@ object scalanativelib extends MillModule {
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
-      shared.downloadTestRepo("lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", T.ctx().dest/"acyclic"),
+      shared.downloadTestRepo("lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", T.ctx.dest/"acyclic"),
     "MILL_JAWN_REPO" ->
-      shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx().dest/"jawn"),
+      shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx.dest/"jawn"),
     "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx().dest/"better-files"),
+      shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx.dest/"better-files"),
     "MILL_AMMONITE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/ammonite", "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e", T.ctx().dest/"ammonite"),
+      shared.downloadTestRepo("lihaoyi/ammonite", "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e", T.ctx.dest/"ammonite"),
     "MILL_UPICKLE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle"),
+      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx.dest/"upickle"),
     "MILL_PLAY_JSON_REPO" ->
-      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx().dest/"play-json"),
+      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx.dest/"play-json"),
     "MILL_CAFFEINE_REPO" ->
-      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx().dest/"caffeine")
+      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx.dest/"caffeine")
   )
 }
 
@@ -607,14 +607,14 @@ object dev extends MillModule{
     if (System.getProperty("java.specification.version").startsWith("1.")) {
       throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
     }
-    val vmOptionsFile = T.ctx().dest / "mill.vmoptions"
-    T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
+    val vmOptionsFile = T.ctx.dest / "mill.vmoptions"
+    T.ctx.log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
     os.write(vmOptionsFile, args.mkString("\r\n"))
   }
 
   def launcher = T{
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
+    val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
 
@@ -628,7 +628,7 @@ object dev extends MillModule{
 
   def assembly = T{
     val isWin = scala.util.Properties.isWin
-    val millPath = T.ctx().dest / (if (isWin) "mill.bat" else "mill")
+    val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
     os.move(super.assembly().path, millPath)
     if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
     PathRef(millPath)
@@ -695,15 +695,15 @@ def assembly = T{
         Agg("%~dpnx0")
       )
     ).path,
-    T.ctx().dest / filename
+    T.ctx.dest / filename
   )
-  PathRef(T.ctx().dest / filename)
+  PathRef(T.ctx.dest / filename)
 }
 
 def millBootstrap = T.sources(os.pwd / "mill")
 
 def launcher = T{
-  val outputPath = T.ctx().dest / "mill"
+  val outputPath = T.ctx.dest / "mill"
   val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
     outputPath,

@@ -16,10 +16,10 @@ trait BuildInfo extends ScalaModule {
   }
 
   def generatedBuildInfo: T[(Seq[PathRef], PathRef)] = T {
-    val logger: Logger = T.ctx().log
+    val logger: Logger = T.log
     val members: Map[String, String] = buildInfoMembers()
     if (members.nonEmpty) {
-      val outputFile = T.ctx().dest / "BuildInfo.scala"
+      val outputFile = T.dest / "BuildInfo.scala"
       val internalMembers =
         members
           .map {
@@ -34,10 +34,10 @@ trait BuildInfo extends ScalaModule {
             |$internalMembers
             |}""".stripMargin
       )
-      (Seq(PathRef(outputFile)), PathRef(T.ctx().dest))
+      (Seq(PathRef(outputFile)), PathRef(T.dest))
     } else {
       logger.debug("No build info member defined, skipping code generation")
-      (Seq.empty[PathRef], PathRef(T.ctx().dest))
+      (Seq.empty[PathRef], PathRef(T.dest))
     }
   }
 

@@ -30,7 +30,7 @@ trait Static extends ScalaModule {
   Collected static assets for the project
    */
   def staticAssets = T {
-    val toPath = os.Path(assetsPath(), T.ctx().dest)
+    val toPath = os.Path(assetsPath(), T.dest)
     assetSources().foreach{ pathRef =>
       val fromPath = pathRef.path
       if (os.isDir(fromPath)) {
@@ -39,7 +39,7 @@ trait Static extends ScalaModule {
         }
       }
     }
-    PathRef(T.ctx().dest)
+    PathRef(T.dest)
   }
 
   /**
@@ -60,8 +60,8 @@ trait Static extends ScalaModule {
     * webjar resources extracted from their source jars with version from path removed
     */
   def webJarResources = T {
-    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.ctx().dest) / 'lib)
-    PathRef(T.ctx().dest)
+    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / 'lib)
+    PathRef(T.dest)
   }
 
   private def extractWebJars(jars: Seq[PathRef], webJarBase: os.Path): Unit = {

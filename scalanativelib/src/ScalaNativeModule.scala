@@ -95,7 +95,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def releaseMode: Target[ReleaseMode] = T { ReleaseMode.Debug }
 
-  def nativeWorkdir = T{ T.ctx().dest }
+  def nativeWorkdir = T{ T.dest }
 
   // Location of the clang compiler
   def nativeClang = T{ scalaNativeWorker().discoverClang }
@@ -148,7 +148,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Generates native binary
-  def nativeLink = T{ scalaNativeWorker().nativeLink(nativeConfig(), (T.ctx().dest / 'out)) }
+  def nativeLink = T{ scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / 'out)) }
 
   // Runs the native binary
   override def run(args: String*) = T.command{
@@ -168,7 +168,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override def test(args: String*) = T.command{
-    val outputPath = T.ctx().dest / "out.json"
+    val outputPath = T.dest / "out.json"
 
     // The test frameworks run under the JVM and communicate with the native binary over a socket
     // therefore the test framework is loaded from a JVM classloader
@@ -189,7 +189,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
-      T.ctx.testReporter
+      T.testReporter
     )
 
     TestModule.handleResults(doneMsg, results)
@@ -214,7 +214,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def mainClass = Some("scala.scalanative.testinterface.TestMain")
 
     override def generatedSources = T {
-      val outDir = T.ctx().dest
+      val outDir = T.dest
       ammonite.ops.write.over(outDir / "TestMain.scala", makeTestMain())
       Seq(PathRef(outDir))
     }

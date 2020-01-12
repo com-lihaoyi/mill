@@ -144,7 +144,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
                              compilerOutput: Path
                              )
 
-    val resolved = evalOrElse(evaluator, Task.sequence(for((path, mod) <- modules) yield {
+    val resolved = evalOrElse(evaluator, T.sequence(for((path, mod) <- modules) yield {
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
         case _ => T.task{Loose.Agg.empty[Dep]}

@@ -84,7 +84,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         mkdir(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
-        T.ctx().log.info(s"Wrote $path")
+        T.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
       }
 
@@ -227,7 +227,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.task {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
-              home = T.ctx().env.get("JAVA_HOME").map(s => Path(s).toNIO),
+              home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
               options = module.forkArgs().toList
             ),
             mainClass = module.mainClass()

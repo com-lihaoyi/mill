@@ -53,7 +53,7 @@ trait FlywayModule extends JavaModule {
   def flywayClean() = T.command(flywayInstance().clean())
   def flywayBaseline() = T.command(flywayInstance().baseline())
   def flywayInfo() = T.command {
-    val log = T.ctx().log
+    val log = T.log
     val info = flywayInstance().info
     val current = info.current
     val currentSchemaVersion = if (current == null) MigrationVersion.EMPTY

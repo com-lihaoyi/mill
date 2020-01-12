@@ -360,7 +360,7 @@ to return nothing.
 Your custom targets can depend on each other using the `def bar = T {... foo()
 ...}` syntax, and you can create arbitrarily long chains of dependent targets.
 Mill will handle the re-evaluation and caching of the targets' output for you,
-and will provide you a `T.ctx().dest` folder for you to use as scratch space or
+and will provide you a `T.ctx.dest` folder for you to use as scratch space or
 to store files you want to return.
 
 Custom targets and commands can contain arbitrary code. Whether you want to

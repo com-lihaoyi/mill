@@ -92,7 +92,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   def generatedSources = T {
 
 
-    val dir = T.ctx().dest
+    val dir = T.ctx.dest
     os.makeDir.all(dir / "play-json")
     val file = dir / "play-json" / "Generated.scala"
 
