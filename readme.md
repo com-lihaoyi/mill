@@ -173,6 +173,15 @@ corresponding version of Mill.
 [milestone after 0.5.7](https://github.com/lihaoyi/mill/milestone/34?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...master).*
 
+### 0.5.8 - 2020-1-13
+
+- Bump library versions again
+
+- Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
+
+- Bump Mill's client-connect-to-server timeout, to reduce flakiness when the
+  server is taking a moment to start up
+
 ### 0.5.7 - 2019-12-28
 
 - Bump library versions: Ammonite 2.0.1, uPickle 0.9.6, Scalatags 0.8.3, OS-Lib
