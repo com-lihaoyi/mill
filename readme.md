@@ -173,7 +173,7 @@ corresponding version of Mill.
 [milestone after 0.5.7](https://github.com/lihaoyi/mill/milestone/34?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...master).*
 
-### 0.5.8 - 2020-1-13
+### 0.5.9 - 2020-1-14
 
 - Bump library versions again
 
