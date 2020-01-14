@@ -2,7 +2,6 @@ package mill.contrib.bloop
 
 import ammonite.ops._
 import bloop.config.{Config => BloopConfig}
-import java.nio.charset.StandardCharsets
 import mill._
 import mill.api.Loose
 import mill.define.{Module => MillModule, _}
@@ -20,6 +19,7 @@ import os.pwd
   * a custom evaluator.
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
+  import BloopFormats._
 
   private val bloopDir = wd / ".bloop"
 
@@ -76,7 +76,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
-      def config = T { outer.bloopConfigString(jm) }
+      def config = T { outer.bloopConfig(jm) }
 
       def writeConfig: Target[(String, PathRef)] = T {
         mkdir(bloopDir)
@@ -130,7 +130,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
   // Computation of the bloop configuration for a specific module
   //////////////////////////////////////////////////////////////////////////////
 
-  def bloopConfigString(module: JavaModule): Task[String] = {
+  def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
     def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
     def classes(m: JavaModule) = out(m) / "classes"
@@ -400,15 +400,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       )
     }
 
-    val file = T.task {
+    T.task {
       BloopConfig.File(
         version = BloopConfig.File.LatestVersion,
         project = project()
       )
-    }
-
-    T.task {
-      _root_.bloop.config.write(file())
     }
   }
 

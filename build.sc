@@ -443,8 +443,7 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
-      Deps.bloopConfig,
-      Deps.ujsonCirce
+      Deps.bloopConfig
     )
     def testArgs = T(scalanativelib.testArgs())
   }
