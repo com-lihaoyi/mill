@@ -170,17 +170,20 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.5.7](https://github.com/lihaoyi/mill/milestone/34?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...master).*
+[milestone after 0.5.9](https://github.com/lihaoyi/mill/milestone/34?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.9...master).*
 
 ### 0.5.9 - 2020-1-14
 
 - Bump library versions again
-
 - Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
-
 - Bump Mill's client-connect-to-server timeout, to reduce flakiness when the
   server is taking a moment to start up
+
+*For details refer to
+the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...0.5.9).*
+
+**Verison 0.5.8 has some binary compatibility issues in requests-scala/geny and should not be used.**
 
 ### 0.5.7 - 2019-12-28
 
