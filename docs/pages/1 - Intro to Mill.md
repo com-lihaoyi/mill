@@ -27,10 +27,10 @@ brew install mill
 
 ### Arch Linux
 
-Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
+Arch Linux has a [Community package for mill](https://www.archlinux.org/packages/community/any/mill/):
 
 ```bash
-pacaur -S mill
+pacman -S mill
 ```
 
 ### FreeBSD
