@@ -1,7 +1,6 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.ConfigEncoderDecoders._
 import bloop.config.{Config => BloopConfig}
 import mill._
 import mill.api.Loose
@@ -20,6 +19,7 @@ import os.pwd
   * a custom evaluator.
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
+  import BloopFormats._
 
   private val bloopDir = wd / ".bloop"
 
@@ -48,7 +48,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * }
     * }}}
     */
-  trait Module extends MillModule with CirceCompat { self: JavaModule =>
+  trait Module extends MillModule { self: JavaModule =>
 
     /**
       * Allows to tell Bloop whether it should use "fullOptJs" or
@@ -72,9 +72,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * "install" task that traverse all modules in the build, and "local" tasks
     * that traverse only their transitive dependencies.
     */
-  private implicit class BloopOps(jm: JavaModule)
-      extends MillModule
-      with CirceCompat {
+  private implicit class BloopOps(jm: JavaModule) extends MillModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
@@ -386,6 +384,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
+        workspaceDir = Some(wd.toNIO),
         sources = mSources,
         dependencies = module.moduleDeps.map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
