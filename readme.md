@@ -170,8 +170,12 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.5.9](https://github.com/lihaoyi/mill/milestone/34?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.9...master).*
+[milestone after 0.6.0](https://github.com/lihaoyi/mill/milestone/34?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...master).*
+
+### 0.6.0 - 2020-1-20
+
+- Support for METALS 0.8.0 in VSCode
 
 ### 0.5.9 - 2020-1-14
 
