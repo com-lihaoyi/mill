@@ -2,17 +2,13 @@
 
 set -eux
 
-if [ -x "./leaky-mill" ] ; then
-  ./leaky-mill -i "{__.publishLocal,assembly}"
-else
-  ./mill -i all __.publishLocal assembly
-fi
+./mill -i all __.publishLocal assembly
 
 cp out/assembly/dest/mill leaky-mill
 
 rm -rf out/mill-worker*
 
-./leaky-mill --version
+# ./leaky-mill --version
 
 for i in {1..20} ; do 
   echo "iteration $i/20"
