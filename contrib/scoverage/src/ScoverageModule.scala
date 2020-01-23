@@ -105,6 +105,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositories = outer.repositories
     override def compileIvyDeps = outer.compileIvyDeps()
     override def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
+    override def unmanagedClasspath = outer.unmanagedClasspath()
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
     /** Add the scoverage specific plugin settings (`dataDir`). */
