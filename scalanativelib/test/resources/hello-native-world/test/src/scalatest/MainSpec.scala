@@ -1,9 +1,10 @@
 package hellotest
 
 import hello._
-import org.scalatest._
+import org.scalatest.matchers.should.Matchers
+import org.scalatest.flatspec.AnyFlatSpec
 
-class MainSpec extends FlatSpec with Matchers {
+class MainSpec extends AnyFlatSpec with Matchers {
 
   behavior of "Main"
 

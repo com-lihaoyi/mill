@@ -85,23 +85,34 @@ object Util {
       case _ => scalaVersion
   }
 
-  private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+  private val ScalaJSNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
-  def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
-      case _ if scalaJSVersion.startsWith("0.6.") =>
-        "0.6"
-      case ScalaJSFullVersion(major, minor, patch, suffix) =>
-        if (suffix != null && minor == "0" && patch == "0")
-          s"$major.$minor$suffix"
+  private def scalaJSNativeBinaryVersion(version: String, stableBinaryVersion: String) = version match {
+      case _ if version.startsWith(s"${stableBinaryVersion}.") =>
+        stableBinaryVersion
+      case ScalaJSNativeFullVersion(major, minor, patch, suffix) =>
+        if (suffix != null && patch == "0")
+          version
         else
-          major
+          s"$major.$minor"
   }
+
+  def scalaJSNativeWorkerVersion(version: String) = version match {
+      case ScalaJSNativeFullVersion(major, minor, _, _) =>
+        s"$major.$minor"
+  }
+
+  def scalaNativeBinaryVersion(scalaNativeVersion: String) =
+    scalaJSNativeBinaryVersion(scalaNativeVersion, "0.3")
+
+  def scalaJSBinaryVersion(scalaJSVersion: String) =
+    scalaJSNativeBinaryVersion(scalaJSVersion, "0.6")
 
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
-      case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
+      case ScalaJSNativeFullVersion("0", "6", patch, _) => patch.toInt >= 29
       case _ => true
   }
 

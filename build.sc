@@ -303,9 +303,9 @@ object scalajslib extends MillModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
-  class WorkerModule(scalajsBinary: String) extends MillApiModule{
+  class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule{
     def moduleDeps = Seq(scalajslib.api)
-    def ivyDeps = scalajsBinary match {
+    def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
         Agg(
           Deps.Scalajs_0_6.scalajsTools,
@@ -472,6 +472,11 @@ object scalanativelib extends MillModule {
         worker("0.3").runClasspath()
           .map(_.path)
           .filter(_.toIO.exists)
+          .mkString(","),
+      "MILL_SCALANATIVE_WORKER_0_4" ->
+        worker("0.4").runClasspath()
+          .map(_.path)
+          .filter(_.toIO.exists)
           .mkString(",")
     )
     scalalib.worker.testArgs() ++
@@ -482,20 +487,16 @@ object scalanativelib extends MillModule {
     def moduleDeps = Seq(main.core)
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule]("0.3")
-  class WorkerModule(scalaNativeBinary: String) extends MillApiModule {
-    def scalaNativeVersion = T{ "0.3.8" }
+  object worker extends Cross[WorkerModule]("0.3", "0.4")
+  class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    def scalaNativeVersion = T { if(scalaNativeWorkerVersion == "0.3") "0.3.9" else "0.4.0-M2" }
     def moduleDeps = Seq(scalanativelib.api)
-    def ivyDeps = scalaNativeBinary match {
-      case "0.3" =>
-        Agg(
-          ivy"org.scala-native::tools:${scalaNativeVersion()}",
-          ivy"org.scala-native::util:${scalaNativeVersion()}",
-          ivy"org.scala-native::nir:${scalaNativeVersion()}",
-          ivy"org.scala-native::nir:${scalaNativeVersion()}",
-          ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
-        )
-    }
+    def ivyDeps = Agg(
+      ivy"org.scala-native::tools:${scalaNativeVersion()}",
+      ivy"org.scala-native::util:${scalaNativeVersion()}",
+      ivy"org.scala-native::nir:${scalaNativeVersion()}",
+      ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
+    )
   }
 }
 
