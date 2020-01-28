@@ -30,7 +30,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaNativeBinaryVersion = T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
+  def scalaNativeBinaryVersion = T { mill.scalalib.api.Util.scalaJSNativeBinaryVersion(scalaNativeVersion()) }
 
   def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaNativeVersion()) }
 

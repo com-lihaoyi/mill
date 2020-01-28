@@ -87,12 +87,12 @@ object Util {
 
   private val ScalaJSNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
-  private def scalaJSNativeBinaryVersion(version: String, stableBinaryVersion: String) = version match {
-      case _ if version.startsWith(s"${stableBinaryVersion}.") =>
-        stableBinaryVersion
+  def scalaJSNativeBinaryVersion(version: String) = version match {
       case ScalaJSNativeFullVersion(major, minor, patch, suffix) =>
-        if (suffix != null && patch == "0")
+        if (suffix != null && suffix.startsWith("-M") && patch == "0")
           version
+        else if (suffix != null && suffix.startsWith("-RC") && patch == "0")
+          s"$major.$minor$suffix"
         else
           s"$major.$minor"
   }
@@ -101,12 +101,6 @@ object Util {
       case ScalaJSNativeFullVersion(major, minor, _, _) =>
         s"$major.$minor"
   }
-
-  def scalaNativeBinaryVersion(scalaNativeVersion: String) =
-    scalaJSNativeBinaryVersion(scalaNativeVersion, "0.3")
-
-  def scalaJSBinaryVersion(scalaJSVersion: String) =
-    scalaJSNativeBinaryVersion(scalaJSVersion, "0.6")
 
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
    * scalajs-test-bridge instead of scalajs-test-interface.
