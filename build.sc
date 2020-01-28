@@ -489,6 +489,7 @@ object scalanativelib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
   class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    override def millSourcePath(): os.Path = super.millSourcePath / os.up
     def scalaNativeVersion = T { if(scalaNativeWorkerVersion == "0.3") "0.3.9" else "0.4.0-M2" }
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = Agg(
