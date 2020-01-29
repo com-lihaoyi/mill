@@ -85,20 +85,30 @@ object Util {
       case _ => scalaVersion
   }
 
-  private val ScalaJSNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+  private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
-  def scalaJSNativeBinaryVersion(version: String) = version match {
-      case ScalaJSNativeFullVersion(major, minor, patch, suffix) =>
-        if (suffix != null && suffix.startsWith("-M") && patch == "0")
-          version
-        else if (suffix != null && suffix.startsWith("-RC") && patch == "0")
+  def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
+      case _ if scalaJSVersion.startsWith("0.6.") =>
+        "0.6"
+      case ScalaJSFullVersion(major, minor, patch, suffix) =>
+        if (suffix != null && minor == "0" && patch == "0")
           s"$major.$minor$suffix"
         else
-          s"$major.$minor"
+          major
+  }
+
+  private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+
+  def scalaNativeBinaryVersion(version: String) = version match {
+    case ScalaNativeFullVersion(major, minor, patch, suffix) =>
+      if (suffix != null && patch == "0")
+        version
+      else
+        s"$major.$minor"
   }
 
   def scalaJSNativeWorkerVersion(version: String) = version match {
-      case ScalaJSNativeFullVersion(major, minor, _, _) =>
+      case ScalaNativeFullVersion(major, minor, _, _) =>
         s"$major.$minor"
   }
 
@@ -106,7 +116,7 @@ object Util {
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
-      case ScalaJSNativeFullVersion("0", "6", patch, _) => patch.toInt >= 29
+      case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
       case _ => true
   }
 

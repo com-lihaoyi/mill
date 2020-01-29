@@ -21,7 +21,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSNativeBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
   def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaJSVersion()) }
 
