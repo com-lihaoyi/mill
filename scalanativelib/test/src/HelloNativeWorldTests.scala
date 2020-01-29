@@ -81,7 +81,6 @@ object HelloNativeWorldTests extends TestSuite {
 
   val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
 
-
   val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
 
   def tests: Tests = Tests {
@@ -184,7 +183,8 @@ object HelloNativeWorldTests extends TestSuite {
 
 //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug))
-      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
+//      Disabled since it consumes too much memory      
+//      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
