@@ -1,11 +1,11 @@
 language: scala
-sudo: required
+os: linux
 dist: trusty
 
 git:
   depth: false
 
-matrix:
+jobs:
   include:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
