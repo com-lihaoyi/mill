@@ -3,13 +3,15 @@
 set -eux
 
 # Starting from scratch...
-git clean -xdf
+git stash -u
+git stash -a
 
 # Build Mill
 ci/publish-local.sh
 
 # Clean up
-git clean -xdf
+git stash -u
+git stash -a
 
 rm -rf ~/.mill
 

@@ -3,14 +3,16 @@
 set -eux
 
 # Starting from scratch...
-git clean -xdf
+git stash -u
+git stash -a
 
 # First build
 ./mill -i all __.publishLocal launcher
 cp out/launcher/dest/mill ~/mill-1
 
 # Clean up
-git clean -xdf
+git stash -u
+git stash -a
 
 rm -rf ~/.mill
 
@@ -22,7 +24,8 @@ echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 cp out/launcher/dest/mill ~/mill-2
 
 # Clean up
-git clean -xdf
+git stash -u
+git stash -a
 
 rm -rf ~/.mill
 
