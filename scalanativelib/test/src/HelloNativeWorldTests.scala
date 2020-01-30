@@ -188,19 +188,15 @@ object HelloNativeWorldTests extends TestSuite {
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
-      val task = HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).run()
-
+      val task = HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).nativeLink
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
       val paths = Evaluator.resolveDestPaths(
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val log = os.read(paths.log)
-      assert(
-        evalCount > 0,
-        log.contains("Scala Native")
-      )
+      val stdout = ammonite.ops.%%("./out")(paths.out / 'dest).out.lines
+      assert(stdout.contains("Hello Scala Native"))
     }
 
     'run - {
