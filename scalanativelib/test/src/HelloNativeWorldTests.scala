@@ -195,8 +195,11 @@ object HelloNativeWorldTests extends TestSuite {
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val stdout = ammonite.ops.%%("./out")(paths.out / 'dest).out.lines
-      assert(stdout.contains("Hello Scala Native"))
+      val stdout = os.proc(paths.out / 'dest / 'out).call().out.lines
+      assert(
+        stdout.contains("Hello Scala Native"),
+        evalCount > 0
+      )
     }
 
     'run - {
