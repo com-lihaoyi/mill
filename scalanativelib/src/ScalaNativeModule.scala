@@ -30,30 +30,20 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaNativeBinaryVersion = T{ scalaNativeVersion().split('.').take(2).mkString(".") }
+  def scalaNativeBinaryVersion = T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
-  // This allows compilation and testing versus SNAPSHOT versions of scala-native
-  def scalaNativeToolsVersion = T{
-    if (scalaNativeVersion().endsWith("-SNAPSHOT"))
-      scalaNativeVersion()
-    else
-      scalaNativeBinaryVersion()
-  }
+  def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorker = T.task{ ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath()) }
 
   def scalaNativeWorkerClasspath = T {
-    val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeBinaryVersion().replace('.', '_').replace('-', '_')
-    val workerPath = sys.props(workerKey)
-    if (workerPath != null)
-      Result.Success(Agg(workerPath.split(',').map(p => PathRef(os.Path(p), quick = true)): _*))
-    else
-      Lib.resolveDependencies(
-        Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-        Lib.depToDependency(_, "2.12.4", ""),
-        Seq(ivy"com.lihaoyi::mill-scalanativelib-worker-${scalaNativeBinaryVersion()}:${sys.props("MILL_VERSION")}"),
-        ctx = Some(implicitly[mill.util.Ctx.Log])
-      )
+    val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeWorkerVersion().replace('.', '_')
+    mill.modules.Util.millProjectModule(
+      workerKey,
+      s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
+      repositories,
+      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
+    )
   }
 
   def toolsIvyDeps = T{
@@ -68,14 +58,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib${platformSuffix()}:${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib${platformSuffix()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib${platformSuffix()}:${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib${platformSuffix()}:${scalaNativeVersion()}"
     )
   }
 
@@ -208,7 +198,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def nativeLinkStubs = true
 
     override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-      ivy"org.scala-native::test-interface_native${scalaNativeToolsVersion()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::test-interface${platformSuffix()}:${scalaNativeVersion()}"
     )
 
     override def mainClass = Some("scala.scalanative.testinterface.TestMain")
