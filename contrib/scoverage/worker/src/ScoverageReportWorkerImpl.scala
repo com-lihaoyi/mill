@@ -10,7 +10,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
 
-  override def report(reportType: ReportType, sources: Seq[os.Path], dataDir: os.Path)(implicit  ctx: Ctx.Dest): Unit = {
+  override def report(reportType: ReportType, sources: Seq[os.Path], dataDir: os.Path)(implicit  ctx: Ctx): Unit = {
     val coverageFileObj = coverageFile(dataDir.toIO)
     val coverage = deserialize(coverageFileObj)
     coverage(invoked(findMeasurementFiles(dataDir.toIO)))
@@ -24,6 +24,9 @@ class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
       case ReportType.Xml =>
         new ScoverageXmlWriter(sourceFolders, folder.toIO, false)
             .write(coverage)
+      case ReportType.Console =>
+        ctx.log.info(s"Statement coverage.: ${coverage.statementCoverageFormatted}%")
+        ctx.log.info(s"Branch coverage....: ${coverage.branchCoverageFormatted}%")
     }
   }
 }
