@@ -18,22 +18,6 @@ import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
 
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 
-
-object GenIdea extends ExternalModule {
-
-  def idea(ev: Evaluator) = T.command{
-    mill.scalalib.GenIdeaImpl(
-      ev,
-      implicitly,
-      ev.rootModule,
-      ev.rootModule.millDiscover
-    ).run()
-  }
-
-  implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
-  lazy val millDiscover = Discover[this.type]
-}
-
 case class GenIdeaImpl(evaluator: Evaluator,
                        ctx: Log with Home,
                        rootModule: BaseModule,
@@ -145,6 +129,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
                              )
 
     val resolved = evalOrElse(evaluator, T.sequence(for((path, mod) <- modules) yield {
+
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
         case _ => T.task{Loose.Agg.empty[Dep]}
@@ -265,11 +250,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .map(p => p -> pathShortLibNameDuplicate.getOrElse(p, p.last))
       .toMap
 
-    sealed trait ResolvedLibrary { def path : os.Path }
-    case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path]) extends ResolvedLibrary
-    case class OtherResolved(path : os.Path) extends ResolvedLibrary
-    case class WithSourcesResolved(path : os.Path, sources: Option[os.Path]) extends ResolvedLibrary
-
     // Tries to group jars with their poms and sources.
     def toResolvedJar(path : os.Path) : Option[ResolvedLibrary] = {
       val inCoursierCache = path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
@@ -339,7 +319,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         allModulesXmlTemplate(
           modules
             .filter(!_._2.skipIdea)
-            .map { case (path, mod) => moduleName(path) }
+            .map { case (segments, mod) => moduleName(segments) }
         )
       ),
       Tuple2(
@@ -477,7 +457,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       </component>
     </project>
   }
-  def rootXmlTemplate(libNames: Strict.Agg[String]) = {
+  def rootXmlTemplate(libNames: Strict.Agg[String]): scala.xml.Elem = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out/ideaOutputDir-mill-build"/>
@@ -642,5 +622,11 @@ object GenIdeaImpl {
       case Seq(e: T) => e
     }
   }
+
+  sealed trait ResolvedLibrary { def path : os.Path }
+  case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path]) extends ResolvedLibrary
+  case class OtherResolved(path : os.Path) extends ResolvedLibrary
+  case class WithSourcesResolved(path : os.Path, sources: Option[os.Path]) extends ResolvedLibrary
+
 
 }
