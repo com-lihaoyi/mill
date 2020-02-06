@@ -1,6 +1,8 @@
 package mill.scalalib
 
-import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
+import mill.T
+import mill.define.{Discover, ExternalModule}
+import mill.eval.Evaluator
 
 object GenIdea extends ExternalModule {
 
