@@ -25,7 +25,7 @@ object HelloJSWorldTests extends TestSuite {
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq("2.11.12", "2.12.3", "2.12.4")
-      scalaJS <- Seq("0.6.22", "0.6.31", "1.0.0-RC1")
+      scalaJS <- Seq("0.6.22", "0.6.31", "1.0.0-RC1", "1.0.0")
     } yield (scala, scalaJS)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -86,7 +86,7 @@ object HelloJSWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath)
-        val expectedClassfiles = compileClassfiles(outPath)
+        val expectedClassfiles = compileClassfiles(outPath, scalaJSVersion)
         assert(
           outputFiles.toSet == expectedClassfiles,
           evalCount > 0
@@ -102,6 +102,7 @@ object HelloJSWorldTests extends TestSuite {
       'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
       'fromScratch_21112_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.22"))
       'fromScratch_2124_100RC1 - testCompileFromScratch("2.12.4", "1.0.0-RC1")
+      'fromScratch_2124_100 - testCompileFromScratch("2.12.4", "1.0.0")
     }
 
     def testRun(scalaVersion: String,
@@ -121,12 +122,14 @@ object HelloJSWorldTests extends TestSuite {
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
       'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FullOpt))
       'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FullOpt))
+      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FullOpt))
     }
     'fastOpt - {
       'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
       'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FastOpt))
       'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FastOpt))
+      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FastOpt))
     }
     'jar - {
       'containsSJSIRs - {
@@ -145,6 +148,7 @@ object HelloJSWorldTests extends TestSuite {
       }
       'artifactId_0622 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
       'artifactId_100RC1 - testArtifactId("2.12.4", "1.0.0-RC1", "hello-js-world_sjs1.0-RC1_2.12")
+      'artifactId_100 - testArtifactId("2.12.4", "1.0.0", "hello-js-world_sjs1_2.12")
     }
     'test - {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -194,15 +198,18 @@ object HelloJSWorldTests extends TestSuite {
       'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
       'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31"))
       'utest_2124_0631 - checkUtest("2.12.4", "0.6.31")
-//      No utest artifact for Scala.js 1.0.0-RC1 published yet
-//      'utest_21112_100RC1 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0-RC1"))
-//      'utest_2124_100RC1 - checkUtest("2.12.4", "1.0.0-RC1")
+//      No utest artifact for Scala.js 1.0.0 published yet
+//      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
+//      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
 
       // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
       'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31"))
       'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31")
       'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1")
       'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1")
+//      No ScalaTest artifact for Scala.js 1.0.0 published yet
+//      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
+//      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
@@ -228,19 +235,32 @@ object HelloJSWorldTests extends TestSuite {
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
       'run_21112_100RC1 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0-RC1"))
       'run_2124_100RC1 - checkRun("2.12.4", "1.0.0-RC1")
+      'run_21112_100 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0"))
+      'run_2124_100 - checkRun("2.12.4", "1.0.0")
     }
   }
 
-  def compileClassfiles(parentDir: os.Path) = Set(
-    parentDir / "ArgsParser$.class",
-    parentDir / "ArgsParser$.sjsir",
-    parentDir / "ArgsParser.class",
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Main$.sjsir",
-    parentDir / "Main$delayedInit$body.sjsir"
-  )
+  def compileClassfiles(parentDir: os.Path, scalaJSVersion: String) = {
+    val inAllVersions = Set(
+      parentDir / "ArgsParser$.class",
+      parentDir / "ArgsParser$.sjsir",
+      parentDir / "ArgsParser.class",
+      parentDir / "Main.class",
+      parentDir / "Main$.class",
+      parentDir / "Main$delayedInit$body.class",
+      parentDir / "Main$.sjsir",
+      parentDir / "Main$delayedInit$body.sjsir"
+    )
+
+    if (scalaJSVersion.startsWith("1.") && scalaJSVersion != "1.0.0-RC1") {
+      inAllVersions ++ Set(
+        parentDir / "ArgsParser.sjsir",
+        parentDir / "Main.sjsir"
+      )
+    } else {
+      inAllVersions
+    }
+  }
 
   def prepareWorkspace(): Unit = {
     os.remove.all(workspacePath)
