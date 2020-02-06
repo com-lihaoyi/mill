@@ -281,12 +281,16 @@ object Jvm {
     manifest.build.write(manifestOut)
     manifestOut.close()
 
+    def separator = new ByteArrayInputStream("\n".getBytes)
+
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .foreach {
         case (mapping, AppendEntry(entries)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
+          val separated = entries
+            .flatMap(e => List(e, JarFileEntry(e.mapping, () => separator)))
           val concatenated = new SequenceInputStream(
-            Collections.enumeration(entries.map(_.inputStream).asJava))
+            Collections.enumeration(separated.map(_.inputStream).asJava))
           writeEntry(path, concatenated, append = true)
         case (mapping, WriteOnceEntry(entry)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
