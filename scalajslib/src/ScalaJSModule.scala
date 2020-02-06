@@ -43,10 +43,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") =>
+      case "0.6" =>
         Seq(
           ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+        )
+      case "1" =>
+        Seq(
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0",
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
         )
       case v if v.startsWith("1.0") =>
         Seq(
