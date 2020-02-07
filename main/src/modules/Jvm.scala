@@ -256,7 +256,8 @@ object Jvm {
                      manifest: JarManifest = JarManifest.Default,
                      prependShellScript: String = "",
                      base: Option[os.Path] = None,
-                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
+                     assemblySeparator: String = Assembly.defaultSeparator)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
 
     val tmp = ctx.dest / "out-tmp.jar"
@@ -281,7 +282,7 @@ object Jvm {
     manifest.build.write(manifestOut)
     manifestOut.close()
 
-    def separator = new ByteArrayInputStream("\n".getBytes)
+    def separator = new ByteArrayInputStream(assemblySeparator.getBytes)
 
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .foreach {

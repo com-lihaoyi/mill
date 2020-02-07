@@ -19,6 +19,8 @@ object Assembly {
     Rule.ExcludePattern(".*\\.[rR][sS][aA]")
   )
 
+  val defaultSeparator = ""
+
   sealed trait Rule extends Product with Serializable
   object Rule {
     case class Append(path: String) extends Rule
