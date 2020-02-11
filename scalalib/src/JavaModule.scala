@@ -114,21 +114,21 @@ trait JavaModule extends mill.Module
     * The transitive ivy dependencies of this module and all it's upstream modules
     */
   def transitiveIvyDeps: T[Agg[Dep]] = T{
-    ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
     * The upstream compilation output of all this module's upstream modules
     */
   def upstreamCompileOutput = T{
-    Task.traverse(recursiveModuleDeps)(_.compile)
+    T.traverse(recursiveModuleDeps)(_.compile)
   }
 
   /**
     * The transitive version of `localClasspath`
     */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    Task.traverse(moduleDeps)(m =>
+    T.traverse(moduleDeps)(m =>
       T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
     )().flatten
   }
@@ -374,11 +374,16 @@ trait JavaModule extends mill.Module
     )
   }
 
-  def ivyDepsTree(inverse: Boolean = false) = T.command {
+  /**
+   * Task that print the transitive dependency tree to STDOUT.
+   * @param inverse Invert the tree representation, so that the root is on the bottom.
+   * @param additionalDeps Additional dependency to be included into the tree.
+   */
+  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]) = T.task {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
       repositories,
       resolveCoursierDependency().apply(_),
-      transitiveIvyDeps(),
+      additionalDeps() ++ transitiveIvyDeps(),
       Some(mapDependencies())
     )
 
@@ -393,6 +398,29 @@ trait JavaModule extends mill.Module
 
     Result.Success()
   }
+
+  /**
+   * Command to print the transitive dependency tree to STDOUT.
+   *
+   * @param inverse Invert the tree representation, so that the root is on the bottom.
+   * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
+   * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
+   */
+  def ivyDepsTree(inverse: Boolean = false, withCompile: Boolean = false, withRuntime: Boolean = false): Command[Unit] =
+    (withCompile, withRuntime) match {
+      case (true, true) => T.command {
+          printDepsTree(inverse, T.task{ compileIvyDeps() ++ runIvyDeps() })
+        }
+      case (true, false) => T.command {
+          printDepsTree(inverse, compileIvyDeps)
+        }
+      case (false, true) => T.command {
+          printDepsTree(inverse, runIvyDeps)
+        }
+      case _ => T.command {
+          printDepsTree(inverse, T.task { Agg.empty[Dep] })
+        }
+    }
 
   /**
     * Runs this module's code in-process within an isolated classloader. This is
