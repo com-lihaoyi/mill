@@ -409,7 +409,7 @@ object Jvm {
     val (_, resolution) = resolveDependenciesMetadata(
       repositories, deps, force, mapDependencies, ctx
     )
-    val errs = resolution.metadataErrors
+    val errs = resolution.errors
 
     if(errs.nonEmpty) {
       val header =
