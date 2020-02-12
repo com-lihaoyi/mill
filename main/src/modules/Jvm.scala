@@ -256,8 +256,7 @@ object Jvm {
                      manifest: JarManifest = JarManifest.Default,
                      prependShellScript: String = "",
                      base: Option[os.Path] = None,
-                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules,
-                     assemblySeparator: String = Assembly.defaultSeparator)
+                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
 
     val tmp = ctx.dest / "out-tmp.jar"
@@ -282,14 +281,13 @@ object Jvm {
     manifest.build.write(manifestOut)
     manifestOut.close()
 
-    def separator = new ByteArrayInputStream(assemblySeparator.getBytes)
-
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .foreach {
-        case (mapping, AppendEntry(entries)) =>
+        case (mapping, AppendEntry(entries, separator)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
-          val separated = entries
-            .flatMap(e => List(e, JarFileEntry(e.mapping, () => separator)))
+          val separated = entries.flatMap { e =>
+            List(e, JarFileEntry(e.mapping, () => new ByteArrayInputStream(separator.getBytes)))
+          }
           val concatenated = new SequenceInputStream(
             Collections.enumeration(separated.map(_.inputStream).asJava))
           writeEntry(path, concatenated, append = true)
@@ -333,7 +331,7 @@ object Jvm {
     outputStream.close()
     is.close()
   }
-  
+
   def universalScript(shellCommands: String,
                       cmdCommands: String,
                       shebang: Boolean = false): String = {

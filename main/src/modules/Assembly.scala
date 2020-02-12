@@ -12,7 +12,7 @@ import scala.collection.JavaConverters._
 object Assembly {
 
   val defaultRules: Seq[Rule] = Seq(
-    Rule.Append("reference.conf"),
+    Rule.Append("reference.conf", separator = "\n"),
     Rule.Exclude(JarFile.MANIFEST_NAME),
     Rule.ExcludePattern(".*\\.[sS][fF]"),
     Rule.ExcludePattern(".*\\.[dD][sS][aA]"),
@@ -23,7 +23,7 @@ object Assembly {
 
   sealed trait Rule extends Product with Serializable
   object Rule {
-    case class Append(path: String) extends Rule
+    case class Append(path: String, separator: String = defaultSeparator) extends Rule
 
     object AppendPattern {
       def apply(pattern: String): AppendPattern = AppendPattern(Pattern.compile(pattern))
@@ -40,7 +40,7 @@ object Assembly {
 
   def groupAssemblyEntries(inputPaths: Agg[os.Path], assemblyRules: Seq[Assembly.Rule]): Map[String, GroupedEntry] = {
     val rulesMap = assemblyRules.collect {
-      case r@Rule.Append(path) => path -> r
+      case r@Rule.Append(path, _) => path -> r
       case r@Rule.Exclude(path) => path -> r
     }.toMap
 
@@ -59,8 +59,8 @@ object Assembly {
         rulesMap.get(mapping) match {
           case Some(_: Assembly.Rule.Exclude) =>
             entries
-          case Some(_: Assembly.Rule.Append) =>
-            val newEntry = entries.getOrElse(mapping, AppendEntry.empty).append(entry)
+          case Some(a: Assembly.Rule.Append) =>
+            val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
 
           case _ if excludePatterns.exists(_(mapping)) =>
@@ -103,10 +103,10 @@ private[modules] sealed trait GroupedEntry {
 }
 
 private[modules] object AppendEntry {
-  val empty: AppendEntry = AppendEntry(Nil)
+  val empty: AppendEntry = AppendEntry(Nil, Assembly.defaultSeparator)
 }
 
-private[modules] case class AppendEntry(entries: List[AssemblyEntry]) extends GroupedEntry {
+private[modules] case class AppendEntry(entries: List[AssemblyEntry], separator: String) extends GroupedEntry {
   def append(entry: AssemblyEntry): GroupedEntry = copy(entries = entry :: this.entries)
 }
 

@@ -162,8 +162,6 @@ trait JavaModule extends mill.Module
 
   def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
-  def assemblySeparator: String = Assembly.defaultSeparator
-
   /**
     * The folders where the source files for this module live
     */
@@ -268,8 +266,7 @@ trait JavaModule extends mill.Module
     createAssembly(
       upstreamAssemblyClasspath().map(_.path),
       manifest(),
-      assemblyRules = assemblyRules,
-      assemblySeparator = assemblySeparator
+      assemblyRules = assemblyRules
     )
   }
 
@@ -283,8 +280,7 @@ trait JavaModule extends mill.Module
       manifest(),
       prependShellScript(),
       Some(upstreamAssembly().path),
-      assemblyRules,
-      assemblySeparator
+      assemblyRules
     )
   }
 
