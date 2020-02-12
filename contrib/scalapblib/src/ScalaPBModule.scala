@@ -33,6 +33,7 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBSingleLineToProtoString: T[Boolean] = T { false }
 
+  // ScalaPB enables lenses by default, this option allows you to disable it
   def scalaPBLenses: T[Boolean] = T { true }
 
   def scalaPBProtocPath: T[Option[String]] = T { None }
