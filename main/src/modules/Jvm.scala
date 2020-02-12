@@ -570,6 +570,7 @@ object Jvm {
       .withRootDependencies(deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq)
       .withForceVersions(forceVersions)
       .withMapDependencies(mapDependencies)
+      .withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val cache = resolutionLogger match {
