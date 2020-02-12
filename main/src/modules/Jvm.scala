@@ -285,9 +285,12 @@ object Jvm {
       .foreach {
         case (mapping, AppendEntry(entries, separator)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
-          val separated = entries.flatMap { e =>
-            List(e, JarFileEntry(e.mapping, () => new ByteArrayInputStream(separator.getBytes)))
-          }
+          val separated =
+            if (entries.isEmpty) Nil
+            else
+              entries.head +: entries.tail.flatMap { e =>
+                List(JarFileEntry(e.mapping, () => new ByteArrayInputStream(separator.getBytes)), e)
+              }
           val concatenated = new SequenceInputStream(
             Collections.enumeration(separated.map(_.inputStream).asJava))
           writeEntry(path, concatenated, append = true)
