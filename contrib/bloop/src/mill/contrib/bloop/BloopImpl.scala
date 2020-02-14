@@ -226,7 +226,12 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
               home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
-              options = module.forkArgs().toList
+              options = {
+                // See https://github.com/scalacenter/bloop/issues/1167
+                val forkArgs = module.forkArgs().toList
+                if (forkArgs.exists(_.startsWith("-Duser.dir="))) forkArgs
+                else s"-Duser.dir=$wd" :: forkArgs
+              }
             ),
             mainClass = module.mainClass()
           )
