@@ -468,16 +468,8 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_3" ->
-        worker("0.3").runClasspath()
-          .map(_.path)
-          .filter(_.toIO.exists)
-          .mkString(","),
-      "MILL_SCALANATIVE_WORKER_0_4" ->
-        worker("0.4").runClasspath()
-          .map(_.path)
-          .filter(_.toIO.exists)
-          .mkString(",")
+      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
@@ -488,15 +480,15 @@ object scalanativelib extends MillModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
-  class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
     override def millSourcePath(): os.Path = super.millSourcePath / os.up
-    def scalaNativeVersion = T { if(scalaNativeWorkerVersion == "0.3") "0.3.9" else "0.4.0-M2" }
+    val scalaNativeVersion = if(scalaNativeWorkerVersion == "0.3") "0.3.9" else "0.4.0-M2"
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = Agg(
-      ivy"org.scala-native::tools:${scalaNativeVersion()}",
-      ivy"org.scala-native::util:${scalaNativeVersion()}",
-      ivy"org.scala-native::nir:${scalaNativeVersion()}",
-      ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
+      ivy"org.scala-native::tools:$scalaNativeVersion",
+      ivy"org.scala-native::util:$scalaNativeVersion",
+      ivy"org.scala-native::nir:$scalaNativeVersion",
+      ivy"org.scala-native::test-runner:$scalaNativeVersion",
     )
   }
 }
