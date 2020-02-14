@@ -25,6 +25,20 @@ object Deps {
     val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
   }
 
+  object Scalanative_0_3 {
+    val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
+    val scalanativeUtil = ivy"org.scala-native::util:0.3.9"
+    val scalanativeNir = ivy"org.scala-native::nir:0.3.9"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.3.9"
+  }
+
+  object Scalanative_0_4 {
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.0-M2"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.0-M2"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.0-M2"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0-M2"
+  }
+
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
   val ammonite = ivy"com.lihaoyi:::ammonite:2.0.4"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
@@ -468,16 +482,8 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_3" ->
-        worker("0.3").runClasspath()
-          .map(_.path)
-          .filter(_.toIO.exists)
-          .mkString(","),
-      "MILL_SCALANATIVE_WORKER_0_4" ->
-        worker("0.4").runClasspath()
-          .map(_.path)
-          .filter(_.toIO.exists)
-          .mkString(",")
+      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
@@ -488,16 +494,25 @@ object scalanativelib extends MillModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
-  class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
     override def millSourcePath(): os.Path = super.millSourcePath / os.up
-    def scalaNativeVersion = T { if(scalaNativeWorkerVersion == "0.3") "0.3.9" else "0.4.0-M2" }
     def moduleDeps = Seq(scalanativelib.api)
-    def ivyDeps = Agg(
-      ivy"org.scala-native::tools:${scalaNativeVersion()}",
-      ivy"org.scala-native::util:${scalaNativeVersion()}",
-      ivy"org.scala-native::nir:${scalaNativeVersion()}",
-      ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
-    )
+    def ivyDeps = scalaNativeWorkerVersion match {
+      case "0.3" =>
+        Agg(
+          Deps.Scalanative_0_3.scalanativeTools,
+          Deps.Scalanative_0_3.scalanativeUtil,
+          Deps.Scalanative_0_3.scalanativeNir,
+          Deps.Scalanative_0_3.scalanativeTestRunner
+        )
+      case "0.4" =>
+        Agg(
+          Deps.Scalanative_0_4.scalanativeTools,
+          Deps.Scalanative_0_4.scalanativeUtil,
+          Deps.Scalanative_0_4.scalanativeNir,
+          Deps.Scalanative_0_4.scalanativeTestRunner
+        )
+    }
   }
 }
 
