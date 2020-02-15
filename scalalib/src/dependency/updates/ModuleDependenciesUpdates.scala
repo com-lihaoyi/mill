@@ -6,7 +6,7 @@ import mill.scalalib.dependency.versions.Version
 import scala.collection.SortedSet
 
 private[dependency] final case class ModuleDependenciesUpdates(
-    module: JavaModule,
+    modulePath: String,
     dependencies: Seq[DependencyUpdates])
 
 private[dependency] final case class DependencyUpdates(
