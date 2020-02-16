@@ -18,11 +18,11 @@ object Deps {
   }
 
   object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
-    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:1.0.0-M2"
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-RC1"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-RC1"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-RC1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-RC1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.1.7"
@@ -48,6 +48,7 @@ object Deps {
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
+  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.4"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.7.4"
   val upickle = ivy"com.lihaoyi::upickle:0.7.1"
@@ -309,7 +310,7 @@ object scalajslib extends MillModule {
         )
       case "1.0" =>
         Agg(
-          Deps.Scalajs_1_0.scalajsTools,
+          Deps.Scalajs_1_0.scalajsLinker,
           Deps.Scalajs_1_0.scalajsSbtTestAdapter,
           Deps.Scalajs_1_0.scalajsEnvNodejs,
           Deps.Scalajs_1_0.scalajsEnvJsdomNodejs,
@@ -376,12 +377,16 @@ object contrib extends MillModule {
   }
 
   object scoverage extends MillModule {
+
+    object api extends MillApiModule {
+      def moduleDeps = Seq(main.api)
+    }
+
     def moduleDeps = Seq(scalalib, scoverage.api)
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path,
-        "MILL_SCOVERAGE_REPORT_WORKER_1_4_0" -> worker("1.4.0").compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -394,16 +399,12 @@ object contrib extends MillModule {
       override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
     }
 
-    object api extends MillApiModule {
-      def moduleDeps = Seq(scalalib)
-    }
-
-    object worker extends Cross[WorkerModule]("1.3.1", "1.4.0")
-
-    class WorkerModule(scoverageVersion: String) extends MillApiModule {
+    object worker extends MillApiModule {
       def moduleDeps = Seq(scoverage.api)
-
-      def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
+      def compileIvyDeps = T{
+        // compile-time only, need to provide the correct scoverage version runtime
+        Agg(Deps.scalacScoveragePlugin)
+      }
     }
   }
 
@@ -573,7 +574,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage, contrib.bsp)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
 
 
   def forkArgs =

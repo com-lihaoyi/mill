@@ -112,7 +112,7 @@ In the simplest configuration just extend `DockerModule` and declare a `DockerCo
 ```scala
 import mill._, scalalib._
 
-import ivy`com.lihaoyi::mill-contrib-docker:VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
 import contrib.docker.DockerModule
 
 object foo extends JavaModule with DockerModule {
@@ -158,7 +158,7 @@ Configure flyway by overriding settings in your module. For example
 
 import mill._, scalalib._
 
-import ivy`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
 import contrib.flyway.FlywayModule
 
 object foo extends ScalaModule with FlywayModule {
@@ -564,6 +564,8 @@ example/
 
 * scalaPBSingleLineToProtoString - A `Boolean` option which determines whether the generated `.toString` methods should use a single line format.
 
+* scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
+
 If you'd like to configure the options that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
 ```scala
@@ -618,9 +620,9 @@ mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test 
 mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
 ```
 
-The measurement data is available at `out/foo/scoverage/data/`,
-the html report is saved in `out/foo/scoverage/htmlReport/`,
-and the xml report is saved in `out/foo/scoverage/xmlReport/`.
+The measurement data is by default available at `out/foo/scoverage/dataDir/dest`,
+the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
+and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
 
 ## TestNG

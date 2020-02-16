@@ -101,7 +101,7 @@ object HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.dataDir)
 
             assert(
-              result.toString.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/dataDir/core/scoverage/data"),
+              result.path.toIO.getPath.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/dataDir/core/scoverage/dataDir/dest"),
               evalCount > 0
             )
           }
@@ -133,6 +133,7 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
+          // TODO: document why we disable for Java9+
           "runClasspath" - TestUtil.disableInJava9OrAbove(workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.runClasspath)
 

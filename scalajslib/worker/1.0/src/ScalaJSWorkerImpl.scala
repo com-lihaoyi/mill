@@ -2,23 +2,30 @@ package mill
 package scalajslib
 package worker
 
+import scala.concurrent.{Await, Future}
+import scala.concurrent.duration.Duration
 import java.io.File
-import mill.scalajslib.api.{ModuleKind, JsEnvConfig}
+
 import mill.api.Result
-import org.scalajs.core.tools.io._
-import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
-import org.scalajs.core.tools.logging.ScalaConsoleLogger
-import org.scalajs.jsenv.ConsoleJSConsole
+import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
+import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, StandardImpl}
+import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
+import org.scalajs.logging.ScalaConsoleLogger
+import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
 import org.scalajs.jsenv.nodejs._
-import org.scalajs.testadapter.TestAdapter
+import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
+import org.scalajs.testing.adapter.TestAdapter
+import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,
            main: String,
+           testBridgeInit: Boolean,
            fullOpt: Boolean,
            moduleKind: ModuleKind) = {
+    import scala.concurrent.ExecutionContext.Implicits.global
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
         case false => Semantics.Defaults
@@ -27,42 +34,61 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
     }
-    val config = StandardLinker.Config()
+    /* TODO We currently force ECMAScript 5.1, because the *tests* of
+     * scalajslib use Nashorn (see ScalaJsUtils.scala) which does not support
+     * ES 2015. This should at least be turned into a configuration option, but
+     * also we should change ScalaJsUtils to support ES 2015, for example by
+     * using Scala.js' own NodeJSEnv to perform the tests.
+     */
+    val config = StandardConfig()
       .withOptimizer(fullOpt)
       .withClosureCompilerIfAvailable(fullOpt)
       .withSemantics(semantics)
       .withModuleKind(scalaJSModuleKind)
-    val linker = StandardLinker(config)
-    val cache = new IRFileCache().newCache
-    val sourceIRs = sources.map(FileVirtualScalaJSIRFile)
-    val irContainers = FileScalaJSIRContainer.fromClasspath(libraries)
-    val libraryIRs = cache.cached(irContainers)
-    val destFile = AtomicWritableFileVirtualJSFile(dest)
+      .withESFeatures(_.withUseECMAScript2015(false))
+    val linker = StandardImpl.linker(config)
+    val cache = StandardImpl.irFileCache().newCache
+    val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
+    val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
+    val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
+    val linkerOutput = LinkerOutput(PathOutputFile(dest.toPath()))
     val logger = new ScalaConsoleLogger
-    val initializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val mainInitializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val testInitializer =
+      if (testBridgeInit) Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+      else None
+    val moduleInitializers = mainInitializer.toList ::: testInitializer.toList
 
-    try {
-      linker.link(sourceIRs ++ libraryIRs, initializer.toSeq, destFile, logger)
+    val resultFuture = (for {
+      sourceIRs <- sourceIRsFuture
+      libraryIRs <- libraryIRsFuture
+      _ <- linker.link(sourceIRs ++ libraryIRs, moduleInitializers, linkerOutput, logger)
+    } yield {
       Result.Success(dest)
-    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
-      Result.Failure(e.getMessage)
+    }).recover {
+      case e: org.scalajs.linker.interface.LinkingException =>
+        Result.Failure(e.getMessage)
     }
+
+    Await.result(resultFuture, Duration.Inf)
   }
 
   def run(config: JsEnvConfig, linkedFile: File): Unit = {
-    jsEnv(config)
-      .jsRunner(Seq(FileVirtualJSFile(linkedFile)))
-      .run(new ScalaConsoleLogger, ConsoleJSConsole)
+    val env = jsEnv(config)
+    val input = jsEnvInput(linkedFile)
+    val runConfig = RunConfig().withLogger(new ScalaConsoleLogger)
+    Run.runInterruptible(env, input, runConfig)
   }
 
   def getFramework(config: JsEnvConfig,
                    frameworkName: String,
-                   linkedFile: File): (() => Unit, sbt.testing.Framework) = {
+                   linkedFile: File,
+                   moduleKind: ModuleKind) : (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
+    val input = jsEnvInput(linkedFile)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
 
-    val adapter =
-      new TestAdapter(env, Seq(FileVirtualJSFile(linkedFile)), tconfig)
+    val adapter = new TestAdapter(env, input, tconfig)
 
     (
       () => adapter.close(),
@@ -74,14 +100,21 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     )
   }
 
-  def jsEnv(config: JsEnvConfig): org.scalajs.jsenv.ComJSEnv = config match{
+  def jsEnv(config: JsEnvConfig): JSEnv = config match{
     case config: JsEnvConfig.NodeJs =>
+      /* In Mill, `config.sourceMap = true` means that `source-map-support`
+       * should be used *if available*, as it is what was used to mean in
+       * Scala.js 0.6.x. Scala.js 1.x has 3 states: enable, enable-if-available
+       * and disable. The former (enable) *fails* if it cannot load the
+       * `source-map-support` module. We must therefore adapt the boolean to
+       * one of the two last states.
+       */
       new org.scalajs.jsenv.nodejs.NodeJSEnv(
         org.scalajs.jsenv.nodejs.NodeJSEnv.Config()
           .withExecutable(config.executable)
           .withArgs(config.args)
           .withEnv(config.env)
-          .withSourceMap(config.sourceMap)
+          .withSourceMap(if (config.sourceMap) SourceMap.EnableIfAvailable else SourceMap.Disable)
       )
 
     case config: JsEnvConfig.JsDom =>
@@ -97,7 +130,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
           .withExecutable(config.executable)
           .withArgs(config.args)
           .withEnv(config.env)
-          .withAutoExit(config.autoExit)
       )
   }
+
+  def jsEnvInput(linkedFile: File): Seq[Input] =
+    Seq(Input.Script(linkedFile.toPath()))
 }

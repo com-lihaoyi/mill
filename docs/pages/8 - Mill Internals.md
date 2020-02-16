@@ -323,7 +323,7 @@ where `"blah"` is a global identifier that is often constructed programmatically
 via string concatenation and passed around. This is quite challenging.
 
 Having the two layers be “just python” is great since people know python, but I
-think unnecessary two have two layers ("evaluating macros" and "evaluating rule
+think it's unnecessary to have two layers ("evaluating macros" and "evaluating rule
 impls") that are almost exactly the same, and I think making them interact via
 return values rather than via a global namespace of programmatically-constructed
 strings would make it easier to follow.

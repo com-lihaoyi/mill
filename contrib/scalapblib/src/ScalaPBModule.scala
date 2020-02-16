@@ -29,6 +29,8 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBSingleLineToProtoString: T[Boolean] = T { false }
 
+  def scalaPBProtocPath: T[Option[String]] = T { None }
+
   def scalaPBSources: Sources = T.sources {
     millSourcePath / 'protobuf
   }
@@ -63,6 +65,7 @@ trait ScalaPBModule extends ScalaModule {
     ScalaPBWorkerApi.scalaPBWorker
       .compile(
         scalaPBClasspath().map(_.path),
+        scalaPBProtocPath(),
         scalaPBSources().map(_.path),
         scalaPBOptions(),
         T.ctx().dest)

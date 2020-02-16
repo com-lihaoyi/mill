@@ -1,6 +1,8 @@
 package mill.util
 
 import java.io._
+import java.nio.file.Files
+
 import mill.api.Logger
 
 object DummyLogger extends Logger {
@@ -153,7 +155,7 @@ class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boo
     if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
     file.toIO.getAbsoluteFile().getParentFile().mkdirs()
-    new PrintStream(new FileOutputStream(file.toIO.getAbsolutePath, append))
+    new PrintStream(Files.newOutputStream(file.toNIO))
   }
 
   lazy val errorStream = outputStream

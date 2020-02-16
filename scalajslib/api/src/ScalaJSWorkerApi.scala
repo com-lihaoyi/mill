@@ -6,6 +6,7 @@ trait ScalaJSWorkerApi {
            libraries: Array[File],
            dest: File,
            main: String,
+           testBridgeInit: Boolean,
            fullOpt: Boolean,
            moduleKind: ModuleKind): Result[File]
 
@@ -13,7 +14,8 @@ trait ScalaJSWorkerApi {
 
   def getFramework(config: JsEnvConfig,
                    frameworkName: String,
-                   linkedFile: File): (() => Unit, sbt.testing.Framework)
+                   linkedFile: File,
+                   moduleKind: ModuleKind): (() => Unit, sbt.testing.Framework)
 
 }
 

@@ -11,7 +11,7 @@ class ScalaPBWorker {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Agg[os.Path]) = {
+  private def scalaPB(scalaPBClasspath: Agg[os.Path], protocPath: Option[String]) = {
     val classloaderSig = scalaPBClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -23,15 +23,13 @@ class ScalaPBWorker {
         val instance = new ScalaPBWorkerApi {
           override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File) {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-            mainMethod.invoke(
-              null,
-              Array(
+            val args = protocPath.map(path => s"--protoc=$path").toList ++ List(
                 "--throw",
                 s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
                 s"--proto_path=${source.getParentFile.getCanonicalPath}",
                 source.getCanonicalPath
               )
-            )
+            mainMethod.invoke(null, args.toArray)
           }
         }
         scalaPBInstanceCache = Some((classloaderSig, instance))
@@ -39,9 +37,9 @@ class ScalaPBWorker {
     }
   }
 
-  def compile(scalaPBClasspath: Agg[os.Path], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path)
+  def compile(scalaPBClasspath: Agg[os.Path], protocPath: Option[String], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path)
              (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
-    val compiler = scalaPB(scalaPBClasspath)
+    val compiler = scalaPB(scalaPBClasspath, protocPath)
 
     def compileScalaPBDir(inputDir: os.Path) {
       // ls throws if the path doesn't exist

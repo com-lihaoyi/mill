@@ -15,6 +15,15 @@ trait ScalafmtModule extends JavaModule {
       )
   }
 
+  def checkFormat(): Command[Unit] = T.command {
+    ScalafmtWorkerModule
+      .worker()
+      .checkFormat(
+        filesToFormat(sources()),
+        scalafmtConfig().head
+      )
+  }
+
   def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
 
   protected def filesToFormat(sources: Seq[PathRef]) = {
@@ -34,6 +43,17 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
       ScalafmtWorkerModule
         .worker()
         .reformat(
+          files,
+          scalafmtConfig().head
+        )
+    }
+
+  def checkFormatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
+    T.command {
+      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
+      ScalafmtWorkerModule
+        .worker()
+        .checkFormat(
           files,
           scalafmtConfig().head
         )

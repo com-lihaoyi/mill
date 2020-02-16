@@ -1,5 +1,7 @@
 package mill.scalalib
 
+import scala.collection.immutable
+
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
@@ -47,11 +49,16 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val pp = new scala.xml.PrettyPrinter(999, 4)
     val jdkInfo = extractCurrentJdk(cwd / ".idea" / "misc.xml").getOrElse(("JDK_1_8", "1.8 (1)"))
 
+    ctx.log.info("Analyzing modules ...")
+    val layout = xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
+
+    ctx.log.debug("Cleaning obsolete IDEA project files ...")
     os.remove.all(cwd/".idea"/"libraries")
     os.remove.all(cwd/".idea"/"scala_compiler.xml")
     os.remove.all(cwd/".idea_modules")
 
-    for((relPath, xml) <- xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))){
+    ctx.log.info("Writing IDEA project files ...")
+    for((relPath, xml) <- layout) {
       os.write.over(cwd/relPath, pp.format(xml), createFolders = true)
     }
   }
@@ -79,8 +86,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .map(x => (x.millModuleSegments, x))
       .toSeq
       .distinct
-    
-    val buildLibraryPaths =
+
+    val buildLibraryPaths: immutable.Seq[Path] =
       if (!fetchMillModules) Nil
       else sys.props.get("MILL_BUILD_LIBRARIES") match {
         case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
@@ -96,6 +103,20 @@ case class GenIdeaImpl(evaluator: Evaluator,
             None,
             ctx
           )
+
+          // Also trigger resolve sources, but don't use them (will happen implicitly by Idea)
+          {
+            scalalib.Lib.resolveDependencies(
+              repos.toList,
+              Lib.depToDependency(_, "2.12.8", ""),
+              for(name <- artifactNames)
+              yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
+              true,
+              None,
+              ctx
+            )
+          }
+
           res.items.toList.map(_.path)
       }
 
@@ -245,13 +266,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .toMap
 
     sealed trait ResolvedLibrary { def path : os.Path }
-    case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path])
-      extends ResolvedLibrary
+    case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path]) extends ResolvedLibrary
     case class OtherResolved(path : os.Path) extends ResolvedLibrary
+    case class WithSourcesResolved(path : os.Path, sources: Option[os.Path]) extends ResolvedLibrary
 
     // Tries to group jars with their poms and sources.
     def toResolvedJar(path : os.Path) : Option[ResolvedLibrary] = {
       val inCoursierCache = path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
+      val inIvyLikeLocal = (path / os.up).last == "jars"
       val isSource = path.last.endsWith("sources.jar")
       val isPom = path.ext == "pom"
       if (inCoursierCache && (isSource || isPom)) {
@@ -263,6 +285,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val sources = Some(path / os.up / s"$withoutExt-sources.jar")
           .filter(_.toIO.exists())
         Some(CoursierResolved(path, pom, sources))
+      } else if (inIvyLikeLocal && path.ext == "jar") {
+        val sources = Some(path / os.up / os.up / "srcs" / s"${path.baseName}-sources.jar")
+          .filter(_.toIO.exists())
+        Some(WithSourcesResolved(path, sources))
       } else Some(OtherResolved(path))
     }
 
@@ -284,6 +310,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
       case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) =>
         Seq(sbtLibraryNameFromPom(pom), pathToLibName(path))
       case CoursierResolved(path, _, _) =>
+        Seq(pathToLibName(path))
+      case WithSourcesResolved(path, _) =>
         Seq(pathToLibName(path))
       case OtherResolved(path) =>
         Seq(pathToLibName(path))
@@ -330,6 +358,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val names = libraryNames(resolved)
       val sources = resolved match {
         case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
+        case WithSourcesResolved(_, s) => s.map(p => "jar://" + p + "!/")
         case OtherResolved(_) => None
       }
       for(name <- names) yield Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
@@ -516,17 +545,21 @@ case class GenIdeaImpl(evaluator: Evaluator,
             <output url={outputUrl} />
         }
         <exclude-output />
-        <content url={"file://$MODULE_DIR$/" + relify(generatedSourceOutputPath)} />
+        {
+        for {
+          generatedSourcePath <- (generatedSourcePaths.toSeq ++ Seq(generatedSourceOutputPath)).distinct.sorted
+          path <- Seq(relify(generatedSourcePath))
+        } yield
+            <content url={"file://$MODULE_DIR$/" + path}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true" />
+            </content>
+        }
         <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
           {
+          // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
           for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
             yield
               <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} />
-          }
-          {
-          for (generatedSourcePath <- generatedSourcePaths.toSeq.sorted)
-            yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(generatedSourcePath)} isTestSource={isTest.toString} generated="true" />
           }
           {
           val resourceType = if (isTest) "java-test-resource" else "java-resource"

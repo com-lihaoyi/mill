@@ -24,6 +24,12 @@ object TutorialTests extends TestSuite {
     }
   }
 
+  object TutorialWithProtoc extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBProtocPath = Some("/dev/null")
+    }
+  }
+
   val resourcePath: os.Path = os.pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
@@ -107,6 +113,16 @@ object TutorialTests extends TestSuite {
 
       //   assert(unchangedEvalCount == 0)
       // }
+    }
+
+    'useExternalProtocCompiler - {
+      /* This ensure that the `scalaPBProtocPath` is properly used.
+       * As the given path is incorrect, the compilation should fail.
+       */
+      'calledWithWrongProtocFile - workspaceTest(TutorialWithProtoc) { eval =>
+        val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
+        assert(result.isLeft)
+      }
     }
   }
 }
