@@ -53,6 +53,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:0.7.1"
   val utest = ivy"com.lihaoyi::utest:0.6.4"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
 
 trait MillPublishModule extends PublishModule{
@@ -439,6 +440,17 @@ object contrib extends MillModule {
     )
     def testArgs = T(scalanativelib.testArgs())
   }
+
+  object bsp extends MillModule {
+
+    def moduleDeps = Seq(scalalib, scalajslib, main, scalanativelib)
+    def ivyDeps = Agg(
+      Deps.bsp,
+      Deps.ujsonCirce,
+      Deps.sbtTestInterface
+    )
+  }
+
 }
 
 
@@ -561,7 +573,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage, contrib.bsp)
 
 
   def forkArgs =

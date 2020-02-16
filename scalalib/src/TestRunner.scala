@@ -1,11 +1,13 @@
 package mill.scalalib
 import ammonite.util.Colors
 import mill.Agg
+import mill.api.{DummyTestReporter, TestReporter}
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
 import mill.util.JsonFormatters._
 import sbt.testing._
+import mill.scalalib.api._
 
 import scala.collection.mutable
 object TestRunner {
@@ -45,7 +47,8 @@ object TestRunner {
         frameworkInstances = TestRunner.frameworks(frameworks),
         entireClasspath = Agg.from(classpath.map(os.Path(_))),
         testClassfilePath = Agg(os.Path(testCp)),
-        args = arguments
+        args = arguments,
+        DummyTestReporter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
@@ -66,7 +69,8 @@ object TestRunner {
   def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
                entireClasspath: Agg[os.Path],
                testClassfilePath: Agg[os.Path],
-               args: Seq[String])
+               args: Seq[String],
+               testReporter: TestReporter)
               (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = false, cl => {
@@ -88,7 +92,11 @@ object TestRunner {
         while (taskQueue.nonEmpty){
           val next = taskQueue.dequeue().execute(
             new EventHandler {
-              def handle(event: Event) = events.append(event)
+              def handle(event: Event) = {
+                testReporter.logStart(event)
+                events.append(event)
+                testReporter.logFinish(event)
+              }
             },
             Array(
               new Logger {
@@ -113,19 +121,19 @@ object TestRunner {
       val results = for(e <- events) yield {
         val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
         mill.scalalib.TestRunner.Result(
-          e.fullyQualifiedName(),
-          e.selector() match{
+            e.fullyQualifiedName(),
+            e.selector() match{
             case s: NestedSuiteSelector => s.suiteId()
             case s: NestedTestSelector => s.suiteId() + "." + s.testName()
             case s: SuiteSelector => s.toString
             case s: TestSelector => s.testName()
             case s: TestWildcardSelector => s.testWildcard()
           },
-          e.duration(),
-          e.status().toString,
-          ex.map(_.getClass.getName),
-          ex.map(_.getMessage),
-          ex.map(_.getStackTrace)
+            e.duration(),
+            e.status().toString,
+            ex.map(_.getClass.getName),
+            ex.map(_.getMessage),
+            ex.map(_.getStackTrace)
         )
       }
 

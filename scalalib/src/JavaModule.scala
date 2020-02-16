@@ -208,15 +208,17 @@ trait JavaModule extends mill.Module with TaskModule with GenIdeaModule { outer 
     } yield PathRef(path)
   }
 
+
   /**
     * Compiles the current module to generate compiled classfiles/bytecode
     */
-  def compile: T[mill.scalalib.api.CompilationResult] = T.persistent{
+  def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
     zincWorker.worker().compileJava(
       upstreamCompileOutput(),
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
-      javacOptions()
+      javacOptions(),
+      T.ctx().reporter(hashCode)
     )
   }
 
@@ -625,7 +627,8 @@ trait TestModule extends JavaModule with TaskModule {
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
-      args
+      args,
+      T.ctx().testReporter
     )
 
     TestModule.handleResults(doneMsg, results)

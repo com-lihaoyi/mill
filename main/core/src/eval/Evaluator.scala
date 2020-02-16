@@ -4,18 +4,19 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
 import java.util.concurrent.{ExecutorCompletionService, Executors, Future}
 
+import ammonite.runtime.SpecialClassLoader
+import mill.api.Result.{Aborted, OuterStack, Success}
+import mill.api.Strict.Agg
+import mill.api.{DummyTestReporter, TestReporter, BuildProblemReporter}
+import mill.define.{Ctx => _, _}
+import mill.util
+import mill.util.Router.EntryPoint
+import mill.util._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.concurrent.ExecutionException
 import scala.util.control.NonFatal
-
-import ammonite.runtime.SpecialClassLoader
-import mill.define.{Ctx => _, _}
-import mill.api.Result.{Aborted, OuterStack, Success}
-import mill.util
-import mill.util.Router.EntryPoint
-import mill.util._
-import mill.api.Strict.Agg
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
@@ -49,13 +50,19 @@ case class Evaluator(
 
   val classLoaderSignHash = classLoaderSig.hashCode()
 
-  def evaluate(goals: Agg[Task[_]]): Evaluator.Results =
+  /**
+    * @param goals The tasks that need to be evaluated
+    * @param reporter A function that will accept a module id and provide a listener for build problems in that module
+    * @param testReporter Listener for test events like start, finish with success/error
+    */
+  def evaluate(goals: Agg[Task[_]],
+               reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+               testReporter: TestReporter = DummyTestReporter,
+               logger: Logger = log): Evaluator.Results = {
     if(effectiveThreadCount > 1) {
-      evaluateParallel(goals, effectiveThreadCount)
+      evaluateParallel(goals, effectiveThreadCount, reporter, testReporter, logger)
     } else {
-
     os.makeDir.all(outPath)
-
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -79,7 +86,10 @@ case class Evaluator(
         terminal,
         group,
         results,
-        counterMsg
+        counterMsg,
+        reporter,
+        testReporter,
+        logger
       )
       someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -111,13 +121,18 @@ case class Evaluator(
       results.map{case (k, v) => (k, v.map(_._1))}
     )
    }
+  }
 
+  // those result which are inputs but not contained in this terminal group
   protected def evaluateGroupCached(terminal: Terminal,
     group: Agg[Task[_]],
     results: collection.Map[Task[_], Result[(Any, Int)]],
-    counterMsg: String): Evaluated = {
+    counterMsg: String,
+    zincProblemReporter: Int => Option[BuildProblemReporter],
+    testReporter: TestReporter,
+    logger: Logger
+  ): Evaluated = {
 
-    // those result which are inputs but not contained in this terminal group
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
         .flatMap(results(_).asSuccess.map(_.value._2))
@@ -137,7 +152,10 @@ case class Evaluator(
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
-          counterMsg = counterMsg
+          counterMsg = counterMsg,
+          zincProblemReporter,
+          testReporter,
+          logger
         )
         Evaluated(newResults, newEvaluated, false)
       case Right(labelledNamedTask) =>
@@ -189,7 +207,10 @@ case class Evaluator(
               inputsHash,
               paths = Some(paths),
               maybeTargetLabel = Some(msgParts.mkString),
-              counterMsg = counterMsg
+              counterMsg = counterMsg,
+              zincProblemReporter,
+              testReporter,
+              logger
             )
 
             newResults(labelledNamedTask.task) match{
@@ -263,7 +284,11 @@ case class Evaluator(
     inputsHash: Int,
     paths: Option[Evaluator.Paths],
     maybeTargetLabel: Option[String],
-    counterMsg: String) = PrintLogger.withContext(maybeTargetLabel.map(_ + ": ")) {
+    counterMsg: String,
+    reporter: Int => Option[BuildProblemReporter],
+    testReporter: TestReporter,
+    logger: Logger
+   ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = PrintLogger.withContext(maybeTargetLabel.map(_ + ": ")) {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
@@ -288,7 +313,7 @@ case class Evaluator(
       prefix + "| "
     }
 
-    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log))) {
+    val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
         super.ticker(tickerPrefix.getOrElse("")+s)
       }
@@ -327,7 +352,9 @@ case class Evaluator(
             },
             multiLogger,
             home,
-            env
+            env,
+            reporter,
+            testReporter
           )
 
           val out = System.out
@@ -369,15 +396,21 @@ case class Evaluator(
     (newResults, newEvaluated)
   }
 
-  def resolveLogger(logPath: Option[os.Path]): Logger = logPath match{
-    case None => log
-    case Some(path) => MultiLogger(log.colored, log, new FileLogger(log.colored, path, debugEnabled = true))
+  def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match{
+    case None => logger
+    case Some(path) => MultiLogger(logger.colored, log, new FileLogger(logger.colored, path, debugEnabled = true))
   }
 
   type Terminal = Either[Task[_], Labelled[Any]]
   type TerminalGroup = (Terminal, Agg[Task[_]])
 
-  def evaluateParallel(goals: Agg[Task[_]], threadCount: Int): Evaluator.Results = {
+  def evaluateParallel(
+    goals: Agg[Task[_]],
+    threadCount: Int,
+    reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+    testReporter: TestReporter = DummyTestReporter,
+    logger: Logger = log
+  ): Evaluator.Results = {
     os.makeDir.all(outPath)
 
     val startTime = System.currentTimeMillis()
@@ -495,7 +528,10 @@ case class Evaluator(
                     terminal,
                     group,
                     results,
-                    counterMsg
+                    counterMsg,
+                    reporter,
+                    testReporter,
+                    logger
                   )
 
                   val endTime = System.currentTimeMillis()

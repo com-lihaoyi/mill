@@ -167,12 +167,21 @@ corresponding version of Mill.
 
 ## Changelog
 
-### master
+### 0.5.2 - 2019-10-17
 
-
+- `TestModule`: new `testCached`target, which only re-runs tests after relevant changes
+- `TestModule.test`: fixed issue when stacktraces have no filename info
+- `Dependency/updates`: fixed issue with reading stale dependencies
+- `GenIdea/idea`: no longer shared output directories between mill and IntelliJ IDEA
+- support for Dotty >= 0.18.1
+- Fixed backwards compatibility of mill wrapper script
+- Mill now support the Build Server Protocol 2.0 (BSP) and can act as a build server
+- bloop: removed semanticDB dependency
+- Documentation updates
+ 
 *For details refer to
-[milestone after 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.1...master).*
+[milestone 0.5.1](https://github.com/lihaoyi/mill/milestone/30?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.1...0.5.2).*
 
 
 ### 0.5.1 - 2019-09-05
