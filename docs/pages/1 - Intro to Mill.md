@@ -15,7 +15,7 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
-## Installation
+## Installation 
 
 ### OS X
 
@@ -44,7 +44,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.5.2/0.5.2-assembly, and save it as
+https://github.com/lihaoyi/mill/releases/download/0.5.3/0.5.3-assembly, and save it as
 `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -109,6 +109,14 @@ script. Note this only works for versions 0.5.0 and above.
 Bootstrap scripts are also useful for running Mill in CI, ensuring that your
 Jenkins/Travis/etc. box has the correct version of Mill present to
 build/compile/test your code.
+
+
+## Updating Mill
+
+Once installed mill is able to use newer or different versions for each project automatically. 
+You don't need to install multiple versions of mill yourself.
+
+See section [Overriding Mill Versions](#overriding-mill-versions) how to do it.  
 
 ## Getting Started
 
@@ -771,11 +779,15 @@ Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 Arguments provided did not match expected signature:
 
 publish
-  --sonatypeCreds  String (format: "username:password")
-  --gpgPassphrase  String (default null)
-  --gpgKeyName     String (default null)
-  --signed         Boolean (default true)
-  --release        Boolean
+  --sonatypeCreds   String (format: "username:password")
+  --gpgPassphrase   String (default null)
+  --gpgKeyName      String (default null)
+  --signed          Boolean (default true)
+  --readTimeout     Int (default 60000)
+  --connectTimeout  Int (default 5000) 
+  --release         Boolean
+  --awaitTimeout    Int (default 120000)
+  --stagingRelease  Boolean (default true)
 ```
 
 You also need to specify `release` as `true` or `false`, depending on whether
@@ -838,11 +850,11 @@ echo "0.5.0" > .mill-version
 `.mill-version` takes precedence over the version of Mill specified in the
 `./mill` script.
 
-- ass in a `MILL_VERSION` environment variable, e.g.
+- Pass in a `MILL_VERSION` environment variable, e.g.
 
 ```bash
 MILL_VERSION=0.5.0-3-4faefb mill __.compile
- ```
+```
 
 or
 ```bash

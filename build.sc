@@ -42,6 +42,7 @@ object Deps {
   val jna = ivy"net.java.dev.jna:jna:4.5.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.2.6"
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
@@ -179,9 +180,12 @@ object main extends MillModule {
     def ivyDeps = Agg(
       Deps.ipcsocketExcludingJna
     )
-    object test extends Tests{
+    object test extends Tests {
       def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-      def ivyDeps = Agg(Deps.junitInterface)
+      def ivyDeps = T{ Agg(
+        Deps.junitInterface,
+        Deps.lambdaTest
+      )}
     }
   }
 

@@ -11,6 +11,7 @@ import mill.api.DummyInputStream
 object MillMain {
 
   def main(args: Array[String]): Unit = {
+    // Remove the trailing interactive parameter, we already handled it on call site
     val as = args match {
       case Array(s, _*) if s == "-i" || s == "--interactive" => args.tail
       case _ => args
@@ -125,6 +126,8 @@ object MillMain {
       Cli.Config(home = millHome, remoteLogging = false)
     ) match {
         case _ if interactive =>
+          // because this parameter was handled earlier (when in first position),
+          // here it is too late and we can't handle it properly.
           stderr.println("-i/--interactive must be passed in as the first argument")
           (false, None)
         case Left(msg) =>

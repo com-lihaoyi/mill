@@ -54,7 +54,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
             stderr: PrintStream,
             env : Map[String, String],
             setIdle: Boolean => Unit,
-            systemProperties: Map[String, String]) = {
+            systemProperties: Map[String, String]): (Boolean, Option[Evaluator.State]) = {
     MillMain.main0(
       args,
       stateCache,
@@ -126,8 +126,7 @@ class Server[T](lockBase: String,
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = sys.props("MILL_VERSION")
     if (clientMillVersion != serverMillVersion) {
-      // FIXME: exiting with 0 isn't correct, see https://github.com/lihaoyi/mill/issues/557
-      stdout.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
+      stderr.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
       java.nio.file.Files.write(
         java.nio.file.Paths.get(lockBase + "/exitCode"),
         s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
@@ -177,6 +176,10 @@ class Server[T](lockBase: String,
 
     t.interrupt()
     t.stop()
+
+    // flush before closing the socket
+    System.out.flush()
+    System.err.flush()
 
     if (Util.isWindows) {
       // Closing Win32NamedPipeSocket can often take ~5s

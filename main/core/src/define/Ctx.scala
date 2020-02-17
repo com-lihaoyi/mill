@@ -66,14 +66,14 @@ case class Ctx(enclosing: String,
                segments: Segments,
                overrides: Int,
                external: Boolean,
-               foreign: Boolean,
+               foreign: Option[Segments],
                fileName: String,
                enclosingCls: Class[_]){
 }
 
 object Ctx{
   case class External(value: Boolean)
-  case class Foreign(value : Boolean)
+  case class Foreign(value : Option[Segments])
   implicit def make(implicit millModuleEnclosing0: sourcecode.Enclosing,
                     millModuleLine0: sourcecode.Line,
                     millName0: sourcecode.Name,

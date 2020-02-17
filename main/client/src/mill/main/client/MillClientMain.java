@@ -5,7 +5,6 @@ import org.scalasbt.ipcsocket.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -49,10 +48,13 @@ public class MillClientMain {
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
+        File stdout = new java.io.File(lockBase + "/stdout");
+        File stderr = new java.io.File(lockBase + "/stderr");
+
         new ProcessBuilder()
                 .command(l)
-                .redirectOutput(new java.io.File(lockBase + "/logs"))
-                .redirectError(new java.io.File(lockBase + "/logs"))
+                .redirectOutput(stdout)
+                .redirectError(stderr)
                 .start();
     }
 
@@ -66,7 +68,11 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception{
-        System.exit(main0(args));
+        int exitCode = main0(args);
+        if(exitCode == ExitServerCodeWhenVersionMismatch()) {
+            exitCode = main0(args);
+        }
+        System.exit(exitCode);
     }
     public static int main0(String[] args) throws Exception{
         boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
@@ -93,11 +99,22 @@ public class MillClientMain {
             String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
-            try(RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
-                FileChannel channel = lockFile.getChannel();
-                java.nio.channels.FileLock tryLock = channel.tryLock();
-                Locks locks = Locks.files(lockBase)){
+            File stdout = new java.io.File(lockBase + "/stdout");
+            File stderr = new java.io.File(lockBase + "/stderr");
+            int refeshIntervalMsec = 2;
+
+            try(
+                    RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
+                    FileChannel channel = lockFile.getChannel();
+                    java.nio.channels.FileLock tryLock = channel.tryLock();
+                    Locks locks = Locks.files(lockBase);
+                    FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMsec);
+                    FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMsec);
+            ){
                 if (tryLock != null) {
+                    stdoutTailer.start();
+                    stderrTailer.start();
+
                     int exitCode = MillClientMain.run(
                             lockBase,
                             new Runnable() {
@@ -117,10 +134,12 @@ public class MillClientMain {
                             args,
                             env
                     );
+
+                    // Here, we ensure we process the tails of the output files before interrupting the threads
+                    stdoutTailer.flush();
+                    stderrTailer.flush();
                     return exitCode;
                 }
-            } finally{
-
             }
         }
         throw new Exception("Reached max process limit: " + processLimit);
