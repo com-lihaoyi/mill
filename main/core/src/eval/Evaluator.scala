@@ -99,15 +99,7 @@ case class Evaluator(home: os.Path,
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
-    os.write.over(
-      outPath / "mill-profile.json",
-      upickle.default.stream(
-        timings .map{case (k, v, b) =>
-          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
-        },
-        indent = 4
-      )
-    )
+    Evaluator.writeTimings(timings, outPath)
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
@@ -428,6 +420,19 @@ object Evaluator{
   object Timing{
     implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
   }
+
+  def writeTimings(timings: Seq[(Either[Task[_], Labelled[_]], Int, Boolean)], outPath: os.Path): Unit = {
+    os.write.over(
+      outPath / "mill-profile.json",
+      upickle.default.stream(
+        timings .map{ case (k, v, b) =>
+          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
+        },
+        indent = 4
+      )
+    )
+  }
+
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: Agg[Task[_]],
                      transitive: Agg[Task[_]],
