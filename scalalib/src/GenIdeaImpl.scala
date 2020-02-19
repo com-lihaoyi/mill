@@ -359,10 +359,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
         case x: ScalaModule => Some(evaluator.evaluate(Agg(x.scalaVersion)).values.head.asInstanceOf[String])
         case _ => None
       }
-      val generatedSourceOutPath = Evaluator.resolveDestPaths(
-        evaluator.outPath,
-        mod.generatedSources.ctx.segments
-      )
 
       val isTest = mod.isInstanceOf[TestModule]
 
@@ -373,7 +369,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
         compilerOutput,
-        generatedSourceOutPath.dest,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
         Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
         isTest,
@@ -509,7 +504,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
                         normalSourcePaths: Strict.Agg[os.Path],
                         generatedSourcePaths: Strict.Agg[os.Path],
                         compileOutputPath: os.Path,
-                        generatedSourceOutputPath: os.Path,
                         libNames: Strict.Agg[String],
                         depNames: Strict.Agg[String],
                         isTest: Boolean,
@@ -527,7 +521,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         <exclude-output />
         {
         for {
-          generatedSourcePath <- (generatedSourcePaths.toSeq ++ Seq(generatedSourceOutputPath)).distinct.sorted
+          generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted
           path <- Seq(relify(generatedSourcePath))
         } yield
             <content url={"file://$MODULE_DIR$/" + path}>
