@@ -303,7 +303,7 @@ public class BuildInfo {
 
 ## Kotlin
 
-Kotlin compiler support for mill.
+[Kotlin](https://kotlinlang.org/) compiler support for mill.
 
 Project home: https://github.com/lefou/mill-kotlin
 
