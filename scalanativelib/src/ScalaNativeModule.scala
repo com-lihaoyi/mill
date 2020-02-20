@@ -166,7 +166,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val testClassloader =
     new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
       this.getClass.getClassLoader)
-    val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
+    val 
+     = TestRunner.frameworks(testFrameworks())(testClassloader)
     val testBinary = testRunnerNative.nativeLink().toIO
     val envVars = forkEnv()
 
@@ -227,43 +228,34 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
     val frameworks = testClasses.map(_.framework).distinct
 
-    val frameworksList =
-      if (frameworks.nonEmpty) frameworks.mkString("List(new _root_.", ", new _root_.", ")")
-      else {
-        throw new Exception(
-          "Cannot find any tests; make sure you defined the test framework correctly, " +
-          "and extend whatever trait or annotation necessary to mark your test suites"
-        )
+    def fullClassName(name: String): String = {
+      val isInAPackage = name.contains(".")
+      if (isInAPackage) s"_root_.$name" else name
+    }
+
+    val frameworksList = frameworks
+      .map(f => s"new ${fullClassName(f)}")
+      .mkString("List(", ", ", ")")
+
+    val testsMap = testClasses
+      .map { t =>
+        val isModule = t.fingerprint match {
+          case af: AnnotatedFingerprint => af.isModule
+          case sf: SubclassFingerprint  => sf.isModule
+        }
+        val fullName = fullClassName(t.name)
+        val inst     = if (isModule) fullName else s"new $fullName"
+        s""""${t.name}" -> $inst"""
       }
+      .mkString(", ")
 
-
-    val testsMap = makeTestsMap(testClasses)
-
-    s"""package scala.scalanative.testinterface
-       |object TestMain extends TestMainBase {
+    s"""object ScalaNativeTestMain extends scala.scalanative.testinterface.TestMainBase {
        |  override val frameworks = $frameworksList
        |  override val tests = Map[String, AnyRef]($testsMap)
        |  def main(args: Array[String]): Unit =
        |    testMain(args)
        |}""".stripMargin
   }
-
-  private def makeTestsMap(tests: Seq[TestDefinition]): String = {
-    tests
-      .map { t =>
-        val isModule = t.fingerprint match {
-          case af: AnnotatedFingerprint => af.isModule
-          case sf: SubclassFingerprint  => sf.isModule
-        }
-
-        val inst =
-          if (isModule) s"_root_.${t.name}" else s"new _root_.${t.name}"
-        s""""${t.name}" -> $inst"""
-      }
-      .mkString(", ")
-  }
 }
 
-
 trait SbtNativeModule extends ScalaNativeModule with SbtModule
-
