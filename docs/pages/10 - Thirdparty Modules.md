@@ -301,6 +301,41 @@ public class BuildInfo {
     The package name for the generated class.
 
 
+## Kotlin
+
+Kotlin compiler support for mill.
+
+Project home: https://github.com/lefou/mill-kotlin
+
+### Quickstart
+
+```scala
+import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin:0.0.1`, de.tobiasroeser.mill.kotlin._
+
+object main extends KotlinModule {
+
+  // Select the Kotlin version
+  def kotlinVersion = T{ "{kotlinVersion}" }
+
+  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
+  // Run `mill main.kotlincHelp` to get a list of supported options
+  def kotlincOptions = Seq("-verbose")
+
+}
+```
+
+### Documentation 
+
+For documentation please visit the [mill-kotlin project page](https://github.com/lefou/mill-kotlin).
+
+You will find there also a version compatibility matrix.
+
+
 ## Mill Wrapper Scripts
 
 Small script to automatically fetch and execute mill build tool.
