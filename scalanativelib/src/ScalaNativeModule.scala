@@ -160,28 +160,30 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   override def test(args: String*) = T.command{
     val outputPath = T.dest / "out.json"
+    val (frameworks, testClasses) = frameworksAndTestClasses()
+    val (doneMsg, results) = if(frameworks.nonEmpty && testClasses.nonEmpty) {
+      // The test frameworks run under the JVM and communicate with the native binary over a socket
+      // therefore the test framework is loaded from a JVM classloader
+      val testClassloader =
+      new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
+        this.getClass.getClassLoader)
+      val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
+      val testBinary = testRunnerNative.nativeLink().toIO
+      val envVars = forkEnv()
 
-    // The test frameworks run under the JVM and communicate with the native binary over a socket
-    // therefore the test framework is loaded from a JVM classloader
-    val testClassloader =
-    new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
-      this.getClass.getClassLoader)
-    val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
-    val testBinary = testRunnerNative.nativeLink().toIO
-    val envVars = forkEnv()
+      val nativeFrameworks = (cl: ClassLoader) =>
+        frameworkInstances.zipWithIndex.map { case (f, id) =>
+          scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
+        }
 
-    val nativeFrameworks = (cl: ClassLoader) =>
-      frameworkInstances.zipWithIndex.map { case (f, id) =>
-        scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
-      }
-
-    val (doneMsg, results) = TestRunner.runTests(
-      nativeFrameworks,
-      runClasspath().map(_.path),
-      Agg(compile().classes.path),
-      args,
-      T.testReporter
-    )
+      TestRunner.runTests(
+        nativeFrameworks,
+        runClasspath().map(_.path),
+        Agg(compile().classes.path),
+        args,
+        T.testReporter
+      )
+    } else ("No tests were executed", Seq.empty)
 
     TestModule.handleResults(doneMsg, results)
   }
@@ -213,30 +215,24 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     }
   }
 
-  // generate a main class for the tests
-  def makeTestMain = T{
+  private def fullClassName(name: String): String = {
+    val isInAPackage = name.contains(".")
+    if (isInAPackage) s"_root_.$name" else name
+  }
+
+  private def frameworksAndTestClasses = T{
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
-    val testClasses =
-      Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
-        cl => {
-          frameworkInstances(cl).flatMap { framework =>
-            val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
-            df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
-          }
+    val testClasses = Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
+      cl => {
+        frameworkInstances(cl).flatMap { framework =>
+          val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
+          df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
         }
-      )
+      }
+    )
 
     val frameworks = testClasses.map(_.framework).distinct
-
-    def fullClassName(name: String): String = {
-      val isInAPackage = name.contains(".")
-      if (isInAPackage) s"_root_.$name" else name
-    }
-
-    val frameworksList = frameworks
-      .map(f => s"new ${fullClassName(f)}")
-      .mkString("List(", ", ", ")")
 
     val testsMap = testClasses
       .map { t =>
@@ -249,6 +245,17 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
         s""""${t.name}" -> $inst"""
       }
       .mkString(", ")
+    
+      (frameworks, testsMap)
+  }
+
+  // generate a main class for the tests
+  def makeTestMain = T{
+    val (frameworks, testsMap) = frameworksAndTestClasses()
+
+    val frameworksList = frameworks
+      .map(f => s"new ${fullClassName(f)}")
+      .mkString("List(", ", ", ")")
 
     s"""object $testMainClassName extends scala.scalanative.testinterface.TestMainBase {
        |  override val frameworks = $frameworksList
