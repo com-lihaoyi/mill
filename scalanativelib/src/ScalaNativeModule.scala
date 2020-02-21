@@ -166,8 +166,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     val testClassloader =
     new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
       this.getClass.getClassLoader)
-    val 
-     = TestRunner.frameworks(testFrameworks())(testClassloader)
+    val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
     val testBinary = testRunnerNative.nativeLink().toIO
     val envVars = forkEnv()
 
