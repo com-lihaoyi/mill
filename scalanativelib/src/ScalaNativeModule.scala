@@ -186,6 +186,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     TestModule.handleResults(doneMsg, results)
   }
 
+  private val testMainClassName = "ScalaNativeTestMain"
+
   // creates a specific binary used for running tests - has a different (generated) main class
   // which knows the names of all the tests and references to invoke them
   object testRunnerNative extends ScalaNativeModule {
@@ -202,11 +204,11 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       ivy"org.scala-native::test-interface${platformSuffix()}:${scalaNativeVersion()}"
     )
 
-    override def mainClass = Some("scala.scalanative.testinterface.TestMain")
+    override def mainClass = Some(testMainClassName)
 
     override def generatedSources = T {
       val outDir = T.dest
-      ammonite.ops.write.over(outDir / "TestMain.scala", makeTestMain())
+      ammonite.ops.write.over(outDir / s"$testMainClassName.scala", makeTestMain())
       Seq(PathRef(outDir))
     }
   }
@@ -248,7 +250,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       }
       .mkString(", ")
 
-    s"""object ScalaNativeTestMain extends scala.scalanative.testinterface.TestMainBase {
+    s"""object $testMainClassName extends scala.scalanative.testinterface.TestMainBase {
        |  override val frameworks = $frameworksList
        |  override val tests = Map[String, AnyRef]($testsMap)
        |  def main(args: Array[String]): Unit =
