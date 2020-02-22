@@ -227,7 +227,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       cl => {
         frameworkInstances(cl).flatMap { framework =>
           val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
-          df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
+          df.map{ case (clazz, fingerprint) => TestDefinition(framework.getClass.getName, clazz, fingerprint) }
         }
       }
     )
