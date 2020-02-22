@@ -160,8 +160,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   override def test(args: String*) = T.command{
     val outputPath = T.dest / "out.json"
-    val (frameworks, testClasses) = frameworksAndTestClasses()
-    val (doneMsg, results) = if(frameworks.nonEmpty && testClasses.nonEmpty) {
+    val (frameworks, testsMap) = frameworksAndTestsMap()
+    val (doneMsg, results) = if(frameworks.nonEmpty && testsMap.nonEmpty) {
       // The test frameworks run under the JVM and communicate with the native binary over a socket
       // therefore the test framework is loaded from a JVM classloader
       val testClassloader =
@@ -220,7 +220,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     if (isInAPackage) s"_root_.$name" else name
   }
 
-  private def frameworksAndTestClasses = T{
+  private def frameworksAndTestsMap = T{
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
     val testClasses = Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
@@ -251,7 +251,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   // generate a main class for the tests
   def makeTestMain = T{
-    val (frameworks, testsMap) = frameworksAndTestClasses()
+    val (frameworks, testsMap) = frameworksAndTestsMap()
 
     val frameworksList = frameworks
       .map(f => s"new ${fullClassName(f)}")
