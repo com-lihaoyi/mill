@@ -10,6 +10,7 @@ import mill.util.{TestEvaluator, TestUtil}
 import os.Path
 import upickle.default._
 import utest._
+import bloop.config.Config.Platform.Jvm
 
 object BloopTests extends TestSuite {
   import BloopFormats._
@@ -83,6 +84,7 @@ object BloopTests extends TestSuite {
         val version = p.scala.get.version
         val classpath = p.classpath.map(_.toString)
         val platform = p.platform.get.name
+        val jvmOptions = p.platform.get.asInstanceOf[Jvm].config.options
         val mainCLass = p.platform.get.mainClass.get
         val resolution = p.resolution.get.modules
 
@@ -94,6 +96,7 @@ object BloopTests extends TestSuite {
         assert(classpath.exists(_.contains(s"bloop-config_2.12-${build.scalaModule.bloopVersion}.jar")))
         assert(platform == "jvm")
         assert(mainCLass == "foo.bar.Main")
+        assert(jvmOptions.contains(s"-Duser.dir=$workdir"))
 
         val bloopConfigDep = resolution.find(_.name == "bloop-config_2.12").get
         val artifacts = bloopConfigDep.artifacts
