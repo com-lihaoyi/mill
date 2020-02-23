@@ -57,7 +57,7 @@ object HelloNativeWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.6.4"
+          ivy"com.lihaoyi::utest::0.7.4"
         )
       }
     }
@@ -72,6 +72,15 @@ object HelloNativeWorldTests extends TestSuite {
           ivy"org.scalatest::scalatest-flatspec::3.2.0-M2",
           ivy"org.scalatest::scalatest-shouldmatchers::3.2.0-M2"
         )
+      }
+    }
+    object buildNoTests extends Cross[BuildModuleNoTests](matrix:_*)
+    class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
+      extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
+      object test extends super.Tests {
+        override def sources = T.sources{ millSourcePath / 'src / "no-tests" }
+        def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.4")
+        def testFrameworks = Seq("utest.runner.Framework")
       }
     }
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -141,6 +150,15 @@ object HelloNativeWorldTests extends TestSuite {
           .mapValues(_.map(e => e.selector -> e).toMap)
       }
 
+      def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
+        val Right(((message, results), _)) = helloWorldEvaluator(HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test())
+
+        assert(
+          results.size == 0,
+          message == "No tests were executed"
+        )
+      }
+
       def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
         val resultMap = runTests(HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test())
 
@@ -175,11 +193,15 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
 
+      'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+
       'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug))
       'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release))
-//      No utest artifact for Scala Native 0.4.0-M2 published yet
-//      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug))
-//      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release))
+      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug))
+      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release))
 
 //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug))

@@ -160,31 +160,35 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   override def test(args: String*) = T.command{
     val outputPath = T.dest / "out.json"
+    val (frameworks, testsMap) = frameworksAndTestsMap()
+    val (doneMsg, results) = if(frameworks.nonEmpty && testsMap.nonEmpty) {
+      // The test frameworks run under the JVM and communicate with the native binary over a socket
+      // therefore the test framework is loaded from a JVM classloader
+      val testClassloader =
+      new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
+        this.getClass.getClassLoader)
+      val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
+      val testBinary = testRunnerNative.nativeLink().toIO
+      val envVars = forkEnv()
 
-    // The test frameworks run under the JVM and communicate with the native binary over a socket
-    // therefore the test framework is loaded from a JVM classloader
-    val testClassloader =
-    new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
-      this.getClass.getClassLoader)
-    val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
-    val testBinary = testRunnerNative.nativeLink().toIO
-    val envVars = forkEnv()
+      val nativeFrameworks = (cl: ClassLoader) =>
+        frameworkInstances.zipWithIndex.map { case (f, id) =>
+          scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
+        }
 
-    val nativeFrameworks = (cl: ClassLoader) =>
-      frameworkInstances.zipWithIndex.map { case (f, id) =>
-        scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
-      }
-
-    val (doneMsg, results) = TestRunner.runTests(
-      nativeFrameworks,
-      runClasspath().map(_.path),
-      Agg(compile().classes.path),
-      args,
-      T.testReporter
-    )
+      TestRunner.runTests(
+        nativeFrameworks,
+        runClasspath().map(_.path),
+        Agg(compile().classes.path),
+        args,
+        T.testReporter
+      )
+    } else ("No tests were executed", Seq.empty)
 
     TestModule.handleResults(doneMsg, results)
   }
+
+  private val testMainClassName = "ScalaNativeTestMain"
 
   // creates a specific binary used for running tests - has a different (generated) main class
   // which knows the names of all the tests and references to invoke them
@@ -202,68 +206,64 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       ivy"org.scala-native::test-interface${platformSuffix()}:${scalaNativeVersion()}"
     )
 
-    override def mainClass = Some("scala.scalanative.testinterface.TestMain")
+    override def mainClass = Some(testMainClassName)
 
     override def generatedSources = T {
       val outDir = T.dest
-      ammonite.ops.write.over(outDir / "TestMain.scala", makeTestMain())
+      ammonite.ops.write.over(outDir / s"$testMainClassName.scala", makeTestMain())
       Seq(PathRef(outDir))
     }
   }
 
-  // generate a main class for the tests
-  def makeTestMain = T{
+  private def fullClassName(name: String): String = {
+    val isInAPackage = name.contains(".")
+    if (isInAPackage) s"_root_.$name" else name
+  }
+
+  private def frameworksAndTestsMap = T{
     val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
 
-    val testClasses =
-      Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
-        cl => {
-          frameworkInstances(cl).flatMap { framework =>
-            val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
-            df.map(d => TestDefinition(framework.getClass.getName, d._1, d._2))
-          }
+    val testClasses = Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
+      cl => {
+        frameworkInstances(cl).flatMap { framework =>
+          val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
+          df.map{ case (clazz, fingerprint) => TestDefinition(framework.getClass.getName, clazz, fingerprint) }
         }
-      )
+      }
+    )
 
     val frameworks = testClasses.map(_.framework).distinct
 
-    val frameworksList =
-      if (frameworks.nonEmpty) frameworks.mkString("List(new _root_.", ", new _root_.", ")")
-      else {
-        throw new Exception(
-          "Cannot find any tests; make sure you defined the test framework correctly, " +
-          "and extend whatever trait or annotation necessary to mark your test suites"
-        )
+    val testsMap = testClasses
+      .map { t =>
+        val isModule = t.fingerprint match {
+          case af: AnnotatedFingerprint => af.isModule
+          case sf: SubclassFingerprint  => sf.isModule
+        }
+        val fullName = fullClassName(t.name)
+        val inst     = if (isModule) fullName else s"new $fullName"
+        s""""${t.name}" -> $inst"""
       }
+      .mkString(", ")
+    
+      (frameworks, testsMap)
+  }
 
+  // generate a main class for the tests
+  def makeTestMain = T{
+    val (frameworks, testsMap) = frameworksAndTestsMap()
 
-    val testsMap = makeTestsMap(testClasses)
+    val frameworksList = frameworks
+      .map(f => s"new ${fullClassName(f)}")
+      .mkString("List(", ", ", ")")
 
-    s"""package scala.scalanative.testinterface
-       |object TestMain extends TestMainBase {
+    s"""object $testMainClassName extends scala.scalanative.testinterface.TestMainBase {
        |  override val frameworks = $frameworksList
        |  override val tests = Map[String, AnyRef]($testsMap)
        |  def main(args: Array[String]): Unit =
        |    testMain(args)
        |}""".stripMargin
   }
-
-  private def makeTestsMap(tests: Seq[TestDefinition]): String = {
-    tests
-      .map { t =>
-        val isModule = t.fingerprint match {
-          case af: AnnotatedFingerprint => af.isModule
-          case sf: SubclassFingerprint  => sf.isModule
-        }
-
-        val inst =
-          if (isModule) s"_root_.${t.name}" else s"new _root_.${t.name}"
-        s""""${t.name}" -> $inst"""
-      }
-      .mkString(", ")
-  }
 }
 
-
 trait SbtNativeModule extends ScalaNativeModule with SbtModule
-
