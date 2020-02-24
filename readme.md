@@ -173,7 +173,7 @@ corresponding version of Mill.
 [milestone after 0.6.1](https://github.com/lihaoyi/mill/milestone/36?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master).*
 
-###
+### 0.6.1 - 2020-02-24
 
 - Bugfix: Mill now no longer leaks open files (version bump to uPickle 1.0.0)
 - New `--version` option
@@ -190,7 +190,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master
 [milestone 0.6.1](https://github.com/lihaoyi/mill/milestone/35?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...0.6.1).*
 
-### 0.6.0 - 2020-1-20
+### 0.6.0 - 2020-01-20
 
 - Support for METALS 0.8.0 in VSCode
 
@@ -198,7 +198,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...0.6.1)
 [milestone 0.6.0](https://github.com/lihaoyi/mill/milestone/34?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.9...0.6.0).*
 
-### 0.5.9 - 2020-1-14
+### 0.5.9 - 2020-01-14
 
 - Bump library versions again
 - Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
