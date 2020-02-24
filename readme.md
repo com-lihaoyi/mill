@@ -170,8 +170,25 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.6.0](https://github.com/lihaoyi/mill/milestone/35?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...master).*
+[milestone after 0.6.1](https://github.com/lihaoyi/mill/milestone/36?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master).*
+
+###
+
+- Bugfix: Mill now no longer leaks open files (version bump to uPickle 1.0.0)
+- New `--version` option
+- Added Support for Scala.js 1.0.0+
+- Added Support for Scala Native 0.4.0-M2
+- `JavaModule`: Enhanced `ivyDepsTree` to optionally include compile-time and runtime-time dependencies
+- `JavaModule`: `allSourceFiles` no longer include Scala sources
+- `JavaModule`: assembly supports configurable separator when merging resources
+- `ScoverageModule`: respect `unmanagedClasspath`, added console reporter
+- `ScalaPBModule`: added more configuration options 
+- Bloop: Fixed inconsistent working directory when executing tests via bloop (forces `-Duser.dir` when generating bloop config)
+
+*For details refer to
+[milestone 0.6.1](https://github.com/lihaoyi/mill/milestone/35?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...0.6.1).*
 
 ### 0.6.0 - 2020-1-20
 
