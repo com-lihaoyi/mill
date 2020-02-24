@@ -29,22 +29,29 @@ object JavaCompileJarTests extends TestSuite{
 
       object Build extends TestUtil.BaseModule{
         def sourceRootPath = javacDestPath / 'src
+        def readmePath = javacDestPath / "readme.md"
         def resourceRootPath = javacDestPath / 'resources
 
         // sourceRoot -> allSources -> classFiles
         //                                |
         //                                v
         //           resourceRoot ---->  jar
+        //                                ^
+        //           readmePath---------- |
+        def readme = T.source{ readmePath }
         def sourceRoot = T.sources{ sourceRootPath }
         def resourceRoot = T.sources{ resourceRootPath }
         def allSources = T{ sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
         def classFiles = T{ compileAll(allSources()) }
-        def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
+        def jar = T{
+          Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
+        }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
 
         def run(mainClsName: String) = T.command{
-          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName).call()
+          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
+            .call(stderr = os.Pipe)
         }
       }
 
@@ -89,6 +96,10 @@ object JavaCompileJarTests extends TestSuite{
       append(resourceRootPath / "hello.txt", " ")
       check(targets = Agg(jar), expected = Agg(jar))
 
+      // Touching the readme.md, defined as `T.source`, forces a jar rebuid
+      append(readmePath, " ")
+      check(targets = Agg(jar), expected = Agg(jar))
+
       // You can swap evaluators halfway without any ill effects
       evaluator = new TestEvaluator(Build)
 
@@ -114,6 +125,7 @@ object JavaCompileJarTests extends TestSuite{
           |test/BarTwo.class
           |test/Foo.class
           |test/FooTwo.class
+          |readme.md
           |hello.txt
           |""".stripMargin
       assert(jarContents.linesIterator.toSeq == expectedJarContents.linesIterator.toSeq)

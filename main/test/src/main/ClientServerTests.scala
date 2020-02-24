@@ -135,7 +135,7 @@ object ClientServerTests extends TestSuite{
         )
       }
 
-      'envVars - {
+      'envVars - retry(3) {
         if (!Util.isWindows){
           val (tmpDir, locks) = init()
 

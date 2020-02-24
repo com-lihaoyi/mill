@@ -45,14 +45,14 @@ trait DockerModule { outer: JavaModule =>
     }
 
     final def build = T {
-      val dest = T.ctx().dest
+      val dest = T.dest
 
       val asmPath = outer.assembly().path
       os.copy(asmPath, dest / asmPath.last)
 
       os.write(dest / "Dockerfile", dockerfile())
 
-      val log = T.ctx().log
+      val log = T.log
 
       val tagArgs = tags().flatMap(t => List("-t", t))
 

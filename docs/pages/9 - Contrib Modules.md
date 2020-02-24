@@ -17,7 +17,6 @@ This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuratio
 from your build file, which lets you use the bloop CLI for compiling, and makes
 your scala code editable in [Metals](https://scalameta.org/metals/)
 
-
 ### Quickstart
 ```scala
 // build.sc (or any other .sc file it depends on, including predef)
@@ -51,14 +50,10 @@ object MyModule extends ScalaModule with Bloop.Module {
 
 ### Note regarding metals
 
-Generating the bloop config should be enough for metals to pick it up and for
-features to start working in vscode (or the bunch of other editors metals supports).
-However, note that this applies only to your project sources. Your mill/ammonite related
-`.sc` files are not yet supported by metals.
-
-The generated bloop config references the semanticDB compiler plugin required by
-metals to function. If need be, the version of semanticDB can be overriden by
-extending `mill.contrib.bloop.BloopImpl` in your own space.
+Metals will automatically detect your mill workspace and generate the necessary files that bloop needs.
+You don't need to manually include the bloop plugin in order for this to work.
+Also note that your mill/ammonite related `.sc` files are only partially supported by metals when
+located inside a project workspace.
 
 ### Note regarding current mill support in bloop
 
@@ -187,7 +182,7 @@ mill foo.flywayMigrate
 > REMINDER:
 > You should never hard-code credentials or check them into a version control system.
 > You should write some code to populate the settings for flyway instead.
-> For example `def flywayPassword = T.input(T.ctx().env("FLYWAY_PASSWORD"))`
+> For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`
 
 ## Play Framework
 

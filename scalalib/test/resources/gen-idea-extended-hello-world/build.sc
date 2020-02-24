@@ -1,3 +1,4 @@
+import mill.api.PathRef
 import mill.scalalib
 import mill.define.Command
 import mill.scalalib.GenIdeaModule._
@@ -6,6 +7,10 @@ trait HelloWorldModule extends scalalib.ScalaModule {
   def scalaVersion = "2.12.4"
   object test extends super.Tests {
     def testFrameworks = Seq("utest.runner.Framework")
+  }
+
+  def generatedSources = T {
+    Seq(PathRef(T.ctx().dest / "classes"))
   }
 
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] = T.command {

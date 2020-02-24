@@ -176,7 +176,7 @@ public class MillClientMain {
 
         long retryStart = System.currentTimeMillis();
 
-        while(ioSocket == null && System.currentTimeMillis() - retryStart < 1000){
+        while(ioSocket == null && System.currentTimeMillis() - retryStart < 5000){
             try{
                 ioSocket = Util.isWindows?
                         new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())

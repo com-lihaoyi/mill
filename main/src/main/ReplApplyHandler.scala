@@ -19,6 +19,19 @@ object ReplApplyHandler{
                keepGoing: Boolean,
                systemProperties: Map[String, String],
                threadCount: Option[Int]): ReplApplyHandler = {
+
+    val logger = new mill.util.PrintLogger(
+      colors != ammonite.util.Colors.BlackWhite,
+      disableTicker,
+      colors,
+      System.out,
+      System.err,
+      System.err,
+      System.in,
+      debugEnabled = debugLog
+    )
+    logger.debug(s"Using explicit system properties: ${systemProperties}")
+
     new ReplApplyHandler(
       pprinter0,
       new Evaluator(
@@ -26,16 +39,7 @@ object ReplApplyHandler{
         ammonite.ops.pwd / 'out,
         ammonite.ops.pwd / 'out,
         rootModule,
-        new mill.util.PrintLogger(
-          colors != ammonite.util.Colors.BlackWhite,
-          disableTicker,
-          colors,
-          System.out,
-          System.err,
-          System.err,
-          System.in,
-          debugEnabled = debugLog
-        ),
+        logger,
         failFast = !keepGoing,
         threadCount = threadCount
       ),

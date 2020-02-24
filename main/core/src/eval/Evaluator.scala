@@ -260,7 +260,7 @@ case class Evaluator(
         for((json, v) <- terminalResult){
           os.write.over(
             metaPath,
-            upickle.default.write(
+            upickle.default.stream(
               Evaluator.Cached(json, hashCode, inputsHash),
               indent = 4
             ),
@@ -731,9 +731,9 @@ object Evaluator{
   def writeTimings(timings: Seq[(Either[Task[_], Labelled[_]], Int, Boolean)], outPath: os.Path): Unit = {
     os.write.over(
       outPath / "mill-profile.json",
-      upickle.default.write(
-        timings.map {
-          case (k, v, b) => Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
+      upickle.default.stream(
+        timings.map { case (k, v, b) =>
+          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
         },
         indent = 4
       )

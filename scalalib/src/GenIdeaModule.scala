@@ -28,7 +28,7 @@ trait GenIdeaModule extends Module {
     */
   def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command { Seq[IdeaConfigFile]() }
 
-  def ideaCompileOutput: T[PathRef] = T.persistent { PathRef(T.ctx().dest / "classes") }
+  def ideaCompileOutput: T[PathRef] = T.persistent { PathRef(T.dest / "classes") }
 
 }
 

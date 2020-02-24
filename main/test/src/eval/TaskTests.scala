@@ -34,15 +34,15 @@ object TaskTests extends TestSuite{
 
       def persistent = T.persistent{
         input() // force re-computation
-        os.makeDir.all(T.ctx().dest)
-        os.write.append(T.ctx().dest/'count, "hello\n")
-        os.read.lines(T.ctx().dest/'count).length
+        os.makeDir.all(T.dest)
+        os.write.append(T.dest/'count, "hello\n")
+        os.read.lines(T.dest/'count).length
       }
       def nonPersistent = T{
         input() // force re-computation
-        os.makeDir.all(T.ctx().dest)
-        os.write.append(T.ctx().dest/'count, "hello\n")
-        os.read.lines(T.ctx().dest/'count).length
+        os.makeDir.all(T.dest)
+        os.write.append(T.dest/'count, "hello\n")
+        os.read.lines(T.dest/'count).length
       }
 
       def staticWorkerDownstream = T{

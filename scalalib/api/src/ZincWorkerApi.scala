@@ -97,6 +97,21 @@ object Util {
           major
   }
 
+  private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+
+  def scalaNativeBinaryVersion(version: String) = version match {
+    case ScalaNativeFullVersion(major, minor, patch, suffix) =>
+      if (suffix != null && patch == "0")
+        version
+      else
+        s"$major.$minor"
+  }
+
+  def scalaJSNativeWorkerVersion(version: String) = version match {
+      case ScalaNativeFullVersion(major, minor, _, _) =>
+        s"$major.$minor"
+  }
+
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
    * scalajs-test-bridge instead of scalajs-test-interface.
    */

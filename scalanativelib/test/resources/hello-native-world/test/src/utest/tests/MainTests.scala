@@ -5,7 +5,7 @@ import utest._
 
 object MainTests extends TestSuite {
 
-  def tests: Tests = Tests {
+  val tests: Tests = Tests {
     'vmName - {
       'containNative - {
         assert(

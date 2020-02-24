@@ -55,7 +55,7 @@ object TestRunner {
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      ammonite.ops.write(os.Path(outputPath), upickle.default.write(result))
+      os.write(os.Path(outputPath), upickle.default.stream(result))
     }catch{case e: Throwable =>
       println(e)
       e.printStackTrace()

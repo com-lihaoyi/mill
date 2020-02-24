@@ -28,21 +28,21 @@ trait PublishModule extends JavaModule { outer =>
       .filter(!ivyPomDeps.contains(_))
       .map(_.copy(scope = Scope.Provided))
 
-    val modulePomDeps = Task.sequence(moduleDeps.map(_.publishSelfDependency))()
+    val modulePomDeps = T.sequence(moduleDeps.map(_.publishSelfDependency))()
 
     ivyPomDeps ++ compileIvyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
 
   def pom = T {
     val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
-    val pomPath = T.ctx().dest / s"${artifactId()}-${publishVersion()}.pom"
+    val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
   def ivy = T {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps())
-    val ivyPath = T.ctx().dest / "ivy.xml"
+    val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
@@ -98,7 +98,7 @@ trait PublishModule extends JavaModule { outer =>
       signed,
       readTimeout,
       connectTimeout,
-      T.ctx().log,
+      T.log,
       awaitTimeout,
       stagingRelease
     ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
@@ -125,7 +125,7 @@ object PublishModule extends ExternalModule {
                  awaitTimeout: Int = 120 * 1000,
                  stagingRelease: Boolean = true) = T.command {
 
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = Task.sequence(publishArtifacts.value)().map{
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map{
       case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
     }
     new SonatypePublisher(
@@ -137,7 +137,7 @@ object PublishModule extends ExternalModule {
       signed,
       readTimeout,
       connectTimeout,
-      T.ctx().log,
+      T.log,
       awaitTimeout,
       stagingRelease
     ).publishAll(

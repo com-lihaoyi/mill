@@ -14,7 +14,6 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
     private final PrintStream stream;
     private final int intervalMsec;
 
-    private Optional<BufferedReader> reader = Optional.empty();
     // if true, we won't read the whole file, but only new lines
     private boolean ignoreHead = true;
 
@@ -34,43 +33,54 @@ public class FileToStreamTailer extends Thread implements AutoCloseable {
         if (isInterrupted()) {
             keepReading = false;
         }
-        while (keepReading || flush) {
-            flush = false;
-            try {
-                // Init reader, if not already done
-                if (!reader.isPresent()) {
-                    try {
-                        this.reader = Optional.of(new BufferedReader(new FileReader(file)));
-                    } catch (FileNotFoundException e) {
-                        // nothing to ignore if file is initially missing
-                        ignoreHead = false;
-                    }
-                }
-                reader.ifPresent(r -> {
-                    // read lines
-                    try {
-                        String line;
-                        while ((line = r.readLine()) != null) {
-                            if (!ignoreHead) {
-                                stream.println(line);
-                            }
+        Optional<BufferedReader> reader = Optional.empty();
+        try {
+            while (keepReading || flush) {
+                flush = false;
+                try {
+                    // Init reader, if not already done
+                    if (!reader.isPresent()) {
+                        try {
+                            reader = Optional.of(new BufferedReader(new FileReader(file)));
+                        } catch (FileNotFoundException e) {
+                            // nothing to ignore if file is initially missing
+                            ignoreHead = false;
                         }
-                        // we ignored once
-                        this.ignoreHead = false;
-                    } catch (IOException e) {
-                        // could not read line or file vanished
                     }
-                });
-            } finally {
-                if (keepReading) {
-                    // wait
-                    try {
-                        Thread.sleep(intervalMsec);
-                    } catch (InterruptedException e) {
-                        // can't handle anyway
+                    reader.ifPresent(r -> {
+                        // read lines
+                        try {
+                            String line;
+                            while ((line = r.readLine()) != null) {
+                                if (!ignoreHead) {
+                                    stream.println(line);
+                                }
+                            }
+                            // we ignored once
+                            this.ignoreHead = false;
+                        } catch (IOException e) {
+                            // could not read line or file vanished
+                        }
+                    });
+                } finally {
+                    if (keepReading) {
+                        // wait
+                        try {
+                            Thread.sleep(intervalMsec);
+                        } catch (InterruptedException e) {
+                            // can't handle anyway
+                        }
                     }
                 }
             }
+        } finally {
+            reader.ifPresent(r -> {
+                try {
+                    r.close();
+                } catch (IOException e) {
+                    // could not close but also can't do anything about it
+                }
+            });
         }
     }
 

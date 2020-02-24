@@ -297,13 +297,13 @@ object HelloWorldTests extends TestSuite {
   }
 
   def compileClassfiles = Seq[os.RelPath](
-    "Main.class",
-    "Main$.class",
-    "Main0.class",
-    "Main0$.class",
-    "Main$delayedInit$body.class",
-    "Person.class",
-    "Person$.class"
+    os.rel / "Main.class",
+    os.rel / "Main$.class",
+    os.rel / "Main0.class",
+    os.rel / "Main0$.class",
+    os.rel / "Main$delayedInit$body.class",
+    os.rel / "Person.class",
+    os.rel / "Person$.class"
   )
 
   def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
@@ -635,7 +635,7 @@ object HelloWorldTests extends TestSuite {
 
         val otherFiles = Seq[os.RelPath](
           os.rel / "META-INF" / "MANIFEST.MF",
-          "reference.conf"
+          os.rel / "reference.conf"
         )
         val expectedFiles = compileClassfiles ++ otherFiles
 

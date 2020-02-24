@@ -1,7 +1,6 @@
 package mill
 package playlib
 
-import ammonite.ops.Path
 import mill.api.{Ctx, Result}
 import mill.define.{Discover, ExternalModule, Worker}
 import mill.playlib.api.RouteCompilerType
@@ -34,14 +33,14 @@ private[playlib] class RouteCompilerWorker {
   }
 
 
-  def compile(routerClasspath: Agg[Path],
-              files: Seq[Path],
+  def compile(routerClasspath: Agg[os.Path],
+              files: Seq[os.Path],
               additionalImports: Seq[String],
               forwardsRouter: Boolean,
               reverseRouter: Boolean,
               namespaceReverseRouter: Boolean,
               generatorType: RouteCompilerType,
-              dest: Path)(implicit ctx: Ctx)
+              dest: os.Path)(implicit ctx: Ctx)
   : Result[CompilationResult] = {
     //the routes file must come last as it can include the routers generated
     //by the others

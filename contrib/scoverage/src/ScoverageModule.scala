@@ -87,13 +87,20 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   }
 
   object scoverage extends ScalaModule {
+    private def doReport(reportType: ReportType) = T.task {
+      ScoverageReportWorker
+        .scoverageReportWorker()
+        .bridge(toolsClasspath().map(_.path))
+        .report(reportType, allSources().map(_.path), dataDir().path)
+    }
+
     /**
       * The persistent data dir used to store scoverage coverage data.
       * Use to store coverage data at compile-time and by the various report targets.
       */
     def dataDir: Persistent[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
-      PathRef(T.ctx().dest)
+      PathRef(T.dest)
     }
 
     override def generatedSources = outer.generatedSources()
@@ -105,23 +112,15 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def repositories = outer.repositories
     override def compileIvyDeps = outer.compileIvyDeps()
     override def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
+    override def unmanagedClasspath = outer.unmanagedClasspath()
     /** Add the scoverage scalac plugin. */
     override def scalacPluginIvyDeps = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
     /** Add the scoverage specific plugin settings (`dataDir`). */
     override def scalacOptions = T{ outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${dataDir().path.toIO.getPath()}") }
 
-    def htmlReport() = T.command {
-      ScoverageReportWorker
-        .scoverageReportWorker()
-        .bridge(toolsClasspath().map(_.path))
-        .report(ReportType.Html, allSources().map(_.path), dataDir().path)
-    }
-    def xmlReport() = T.command {
-      ScoverageReportWorker
-        .scoverageReportWorker()
-        .bridge(toolsClasspath().map(_.path))
-        .report(ReportType.Xml, allSources().map(_.path), dataDir().path)
-    }
+    def htmlReport() = T.command { doReport(ReportType.Html) }
+    def xmlReport() = T.command { doReport(ReportType.Xml) }
+    def consoleReport() = T.command { doReport(ReportType.Console) }
   }
 
   trait ScoverageTests extends outer.Tests {

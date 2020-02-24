@@ -70,6 +70,18 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       isRepl = false,
       printing = true,
       mainCfg => {
+        val logger = new PrintLogger(
+          colors != ammonite.util.Colors.BlackWhite,
+          disableTicker,
+          colors,
+          outprintStream,
+          errPrintStream,
+          errPrintStream,
+          stdIn,
+          debugEnabled = debugLog
+        )
+        logger.debug(s"Using explicit system properties: ${systemProperties}")
+
         val (result, interpWatched) = RunScript.runScript(
           config.home,
           mainCfg.wd,
@@ -77,16 +89,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           mainCfg.instantiateInterpreter(),
           scriptArgs,
           stateCache,
-          new PrintLogger(
-            colors != ammonite.util.Colors.BlackWhite,
-            disableTicker,
-            colors,
-            outprintStream,
-            errPrintStream,
-            errPrintStream,
-            stdIn,
-            debugEnabled = debugLog
-          ),
+          logger,
           env,
           keepGoing = keepGoing,
           systemProperties = systemProperties,

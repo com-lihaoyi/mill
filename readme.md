@@ -170,8 +170,71 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.5.3](https://github.com/lihaoyi/mill/milestone/32?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.3...master).*
+[milestone after 0.6.1](https://github.com/lihaoyi/mill/milestone/36?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master).*
+
+###
+
+- Bugfix: Mill now no longer leaks open files (version bump to uPickle 1.0.0)
+- New `--version` option
+- Added Support for Scala.js 1.0.0+
+- Added Support for Scala Native 0.4.0-M2
+- `JavaModule`: Enhanced `ivyDepsTree` to optionally include compile-time and runtime-time dependencies
+- `JavaModule`: `allSourceFiles` no longer include Scala sources
+- `JavaModule`: assembly supports configurable separator when merging resources
+- `ScoverageModule`: respect `unmanagedClasspath`, added console reporter
+- `ScalaPBModule`: added more configuration options 
+- Bloop: Fixed inconsistent working directory when executing tests via bloop (forces `-Duser.dir` when generating bloop config)
+
+*For details refer to
+[milestone 0.6.1](https://github.com/lihaoyi/mill/milestone/35?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.0...0.6.1).*
+
+### 0.6.0 - 2020-1-20
+
+- Support for METALS 0.8.0 in VSCode
+
+*For details refer to
+[milestone 0.6.0](https://github.com/lihaoyi/mill/milestone/34?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.9...0.6.0).*
+
+### 0.5.9 - 2020-1-14
+
+- Bump library versions again
+- Alias `T.ctx.*` functions to `T.*`: `T.dest`, `T.log`, etc.
+- Bump Mill's client-connect-to-server timeout, to reduce flakiness when the
+  server is taking a moment to start up
+
+*For details refer to
+the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...0.5.9).*
+
+**Verison 0.5.8 has some binary compatibility issues in requests-scala/geny and should not be used.**
+
+### 0.5.7 - 2019-12-28
+
+- Bump library versions: Ammonite 2.0.1, uPickle 0.9.6, Scalatags 0.8.3, OS-Lib
+  0.6.2, Requests 0.4.7, Geny 0.4.2
+  
+*For details refer to
+[milestone 0.5.7](https://github.com/lihaoyi/mill/milestone/33?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.5...0.5.7).*
+
+### 0.5.5 / 0.5.6 - 2019-12-20
+
+*(we skipped version 0.5.4 as we had some publishing issues)*
+  
+- Bump library versions: Ammonite 1.9.2, uPickle 0.9.0, Scalatags 0.8.2, OS-Lib
+   0.5.0, Requests 0.3.0, Geny 0.2.0, uTest 0.7.1
+- Fixed a long standing issue that output of sub-processes are only shown when `-i` option was used.
+  Now, you will always seen output of sub-process.
+- Mill now properly restarts it's server after it's version has changed
+- `PublishModule`: added ability to publish into non-staging repositories
+- `ScalaPBModule`: added extra include path option
+
+*For details refer to
+[milestone 0.5.5](https://github.com/lihaoyi/mill/milestone/32?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.3...0.5.5).*
+
 
 ### 0.5.3 - 2019-12-07
 

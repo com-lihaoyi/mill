@@ -11,6 +11,7 @@ import utest.framework.TestPath
 object HelloWorldTests extends utest.TestSuite {
   val resourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world"
   val sbtResourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world-sbt"
+  val unmanagedFile = resourcePath / "unmanaged.xml"
   trait HelloBase extends TestUtil.BaseModule {
     def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
@@ -23,6 +24,7 @@ object HelloWorldTests extends utest.TestSuite {
     object core extends ScoverageModule with BuildInfo {
       def scalaVersion = "2.12.9"
       def scoverageVersion = "1.4.0"
+      def unmanagedClasspath = Agg(PathRef(unmanagedFile))
 
       def moduleDeps = Seq(other)
 
@@ -79,6 +81,14 @@ object HelloWorldTests extends utest.TestSuite {
           )
         }
         "scoverage" - {
+          "unmanagedClasspath" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
+
+            assert(
+              result.map(_.toString).exists(_.contains("unmanaged.xml")),
+              evalCount > 0
+            )
+          }
           "ivyDeps" - workspaceTest(HelloWorld) { eval =>
             val Right((result, evalCount)) =
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
@@ -113,6 +123,11 @@ object HelloWorldTests extends utest.TestSuite {
           "xmlReport" - workspaceTest(HelloWorld) { eval =>
             val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.xmlReport)
+            assert(evalCount > 0)
+          }
+          "console" - workspaceTest(HelloWorld) { eval =>
+            val Right((_, _)) = eval.apply(HelloWorld.core.test.compile)
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.consoleReport)
             assert(evalCount > 0)
           }
         }
@@ -155,6 +170,11 @@ object HelloWorldTests extends utest.TestSuite {
         "xmlReport" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
           val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
           val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.xmlReport)
+          assert(evalCount > 0)
+        }
+        "console" - workspaceTest(HelloWorldSbt, sbtResourcePath) { eval =>
+          val Right((_, _)) = eval.apply(HelloWorldSbt.core.test.compile)
+          val Right((result, evalCount)) = eval.apply(HelloWorldSbt.core.scoverage.consoleReport)
           assert(evalCount > 0)
         }
       }

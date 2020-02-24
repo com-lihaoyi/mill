@@ -23,7 +23,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
+  def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
@@ -43,10 +43,17 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") =>
+      case "0.6" =>
         Seq(
           ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+        )
+      case "1" =>
+        Seq(
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0",
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
         )
       case v if v.startsWith("1.0") =>
         Seq(
@@ -209,7 +216,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
         runClasspath().map(_.path),
         Agg(compile().classes.path),
         args,
-        T.ctx.testReporter
+        T.testReporter
       )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout

@@ -60,7 +60,7 @@ trait RouterModule extends ScalaModule with Version {
   }
 
   final def compileRouter: T[CompilationResult] = T.persistent {
-    T.ctx().log.debug(s"compiling play routes with ${playVersion()} worker")
+    T.log.debug(s"compiling play routes with ${playVersion()} worker")
     RouteCompilerWorkerModule.routeCompilerWorker().compile(
       toolsClasspath().map(_.path),
       routeFiles().map(_.path),
@@ -69,7 +69,7 @@ trait RouterModule extends ScalaModule with Version {
       generateReverseRouter,
       namespaceReverseRouter,
       generatorType,
-      T.ctx().dest)
+      T.dest)
   }
 
   private def playRouteCompilerWorkerClasspath = T {

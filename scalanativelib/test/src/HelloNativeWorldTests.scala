@@ -23,10 +23,14 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
+  val scala211 = "2.11.12"
+  val scalaNative03 = "0.3.9"
+  val scalaNative04 = "0.4.0-M2"
+
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("2.11.12")
-      scalaNative <- Seq("0.3.8")
+      scala <- Seq(scala211)
+      scalaNative <- Seq(scalaNative03, scalaNative04)
       mode <- List(ReleaseMode.Debug, ReleaseMode.Release)
     } yield (scala, scalaNative, mode)
 
@@ -34,7 +38,7 @@ object HelloNativeWorldTests extends TestSuite {
     class BuildModule(val crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode) extends HelloNativeWorldModule {
       override def artifactName = "hello-native-world"
       def scalaNativeVersion = sNativeVersion
-      def releaseMode = T{ mode }
+      def releaseMode = T { mode }
       def pomSettings = PomSettings(
         organization = "com.lihaoyi",
         description = "hello native world ready for real world publishing",
@@ -53,7 +57,7 @@ object HelloNativeWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.6.4"
+          ivy"com.lihaoyi::utest::0.7.4"
         )
       }
     }
@@ -65,17 +69,26 @@ object HelloNativeWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.2.0-SNAP10"
+          ivy"org.scalatest::scalatest-flatspec::3.2.0-M2",
+          ivy"org.scalatest::scalatest-shouldmatchers::3.2.0-M2"
         )
       }
     }
-    override lazy val millDiscover = Discover[this.type]
+    object buildNoTests extends Cross[BuildModuleNoTests](matrix:_*)
+    class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
+      extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
+      object test extends super.Tests {
+        override def sources = T.sources{ millSourcePath / 'src / "no-tests" }
+        def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.4")
+        def testFrameworks = Seq("utest.runner.Framework")
+      }
+    }
+    override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
   }
 
   val millSourcePath = os.pwd / 'scalanativelib / 'test / 'resources / "hello-native-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
-
 
   val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
 
@@ -102,13 +115,14 @@ object HelloNativeWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      'fromScratch_21112_037 - testCompileFromScratch("2.11.12", "0.3.8", ReleaseMode.Debug)
+      'fromScratch_21112_039 - testCompileFromScratch(scala211, scalaNative03, ReleaseMode.Debug)
+      'fromScratch_21112_040M2 - testCompileFromScratch(scala211, scalaNative04, ReleaseMode.Debug)
     }
 
     'jar - {
       'containsNirs - {
         val Right((result, evalCount)) =
-          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld("2.11.12", "0.3.8", ReleaseMode.Debug).jar)
+          helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(scala211, scalaNative04, ReleaseMode.Debug).jar)
         val jar = result.path
         val entries = new JarFile(jar.toIO).entries().asScala.map(_.getName)
         assert(entries.contains("hello/Main$.nir"))
@@ -123,7 +137,8 @@ object HelloNativeWorldTests extends TestSuite {
           HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode: ReleaseMode).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_038 - testArtifactId("2.11.12", "0.3.8", ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
+      'artifactId_039 - testArtifactId(scala211, scalaNative03, ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
+      'artifactId_040M2 - testArtifactId(scala211, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4.0-M2_2.11")
     }
     'test - {
       def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -133,6 +148,15 @@ object HelloNativeWorldTests extends TestSuite {
         testResults
           .groupBy(_.fullyQualifiedName)
           .mapValues(_.map(e => e.selector -> e).toMap)
+      }
+
+      def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
+        val Right(((message, results), _)) = helloWorldEvaluator(HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test())
+
+        assert(
+          results.size == 0,
+          message == "No tests were executed"
+        )
       }
 
       def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
@@ -169,31 +193,42 @@ object HelloNativeWorldTests extends TestSuite {
         )
       }
 
-      'utest_21112_038_debug - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'utest_21112_038_release - (checkUtest("2.11.12", "0.3.8", ReleaseMode.Release))
-      'scalaTest_21112_038_debug - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'scalaTest_21112_038_release - (checkScalaTest("2.11.12", "0.3.8", ReleaseMode.Release))
+      'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
+
+      'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug))
+      'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release))
+      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug))
+      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release))
+
+//      Scalatest dropped Scala Native 0.3 support
+      'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug))
+//      Disabled since it consumes too much memory      
+//      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
-      val task = HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).run()
-
+      val task = HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode).nativeLink
       val Right((_, evalCount)) = helloWorldEvaluator(task)
 
       val paths = Evaluator.resolveDestPaths(
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val log = os.read(paths.log)
+      val stdout = os.proc(paths.out / 'dest / 'out).call().out.lines
       assert(
-        evalCount > 0,
-        log.contains("Scala Native")
+        stdout.contains("Hello Scala Native"),
+        evalCount > 0
       )
     }
 
     'run - {
-      'run_21112_038_debug  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Debug))
-      'run_21112_038_release  - (checkRun("2.11.12", "0.3.8", ReleaseMode.Release))
+      'run_21112_039_debug  - (checkRun(scala211, scalaNative03, ReleaseMode.Debug))
+      'run_21112_039_release  - (checkRun(scala211, scalaNative03, ReleaseMode.Release))
+      'run_21112_040M2_debug  - (checkRun(scala211, scalaNative04, ReleaseMode.Debug))
+      'run_21112_040M2_release  - (checkRun(scala211, scalaNative04, ReleaseMode.Release))
     }
   }
 

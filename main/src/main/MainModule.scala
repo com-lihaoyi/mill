@@ -125,7 +125,7 @@ trait MainModule extends mill.Module{
             val labels = list
               .collect{case n: NamedTask[_] => n.ctx.segments.render}
 
-            labels.foreach(mill.T.ctx().log.outputStream.println(_))
+            labels.foreach(mill.T.log.outputStream.println(_))
 
             Result.Success(labels)
         }
@@ -269,7 +269,7 @@ trait MainModule extends mill.Module{
     * Shuts down mill's background server
     */
   def shutdown() = mill.T.command {
-    T.ctx().log.info("Shutting down Mill server...")
+    T.log.info("Shutting down Mill server...")
     System.exit(0)
   }
 

@@ -50,7 +50,7 @@ trait TutModule extends ScalaModule {
     * A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for this task,
     * but this can be reconfigured so that documentation goes to the root of the module (e.g. `millSourcePath`) or to a dedicated folder (e.g. `millSourcePath / 'docs`)
     */
-  def tutTargetDirectory: T[os.Path] = T { T.ctx().dest }
+  def tutTargetDirectory: T[os.Path] = T { T.dest }
 
   /**
     * A task which determines what classpath is used when compiling documentation. By default this is configured to use the same inputs as the [[mill.contrib.tut.TutModule#runClasspath]],

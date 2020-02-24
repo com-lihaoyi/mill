@@ -27,10 +27,10 @@ brew install mill
 
 ### Arch Linux
 
-Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
+Arch Linux has a [Community package for mill](https://www.archlinux.org/packages/community/any/mill/):
 
 ```bash
-pacaur -S mill
+pacman -S mill
 ```
 
 ### FreeBSD
@@ -44,8 +44,8 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.5.3/0.5.3-assembly, and save it as
-`mill.bat`.
+https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1-assembly, and save
+it as `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
 
@@ -81,7 +81,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.5.3/0.5.3 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
 ### Bootstrap Scripts (Linux/OS-X Only)
@@ -90,7 +90,7 @@ If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 `./mill` script in the project folder:
 
 ```bash
-curl -L https://github.com/lihaoyi/mill/releases/download/0.5.3/0.5.3 > mill && chmod +x mill
+curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > mill && chmod +x mill
 ```
 
 Now, anyone who wants to work with the project can simply use the `./mill`
@@ -816,7 +816,7 @@ Each folder currently contains the following files:
 
 - `dest/`: a path for the `Task` to use either as a scratch space, or to place
   generated files that are returned using `PathRef`s. `Task`s should only output
-  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  files within their given `dest/` folder (available as `T.ctx.dest`) to avoid
   conflicting with other `Task`s, but files within `dest/` can be named
   arbitrarily.
 

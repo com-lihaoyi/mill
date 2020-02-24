@@ -114,21 +114,21 @@ trait JavaModule extends mill.Module
     * The transitive ivy dependencies of this module and all it's upstream modules
     */
   def transitiveIvyDeps: T[Agg[Dep]] = T{
-    ivyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
     * The upstream compilation output of all this module's upstream modules
     */
   def upstreamCompileOutput = T{
-    Task.traverse(recursiveModuleDeps)(_.compile)
+    T.traverse(recursiveModuleDeps)(_.compile)
   }
 
   /**
     * The transitive version of `localClasspath`
     */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    Task.traverse(moduleDeps)(m =>
+    T.traverse(moduleDeps)(m =>
       T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
     )().flatten
   }
@@ -183,7 +183,7 @@ trait JavaModule extends mill.Module
   def allSources = T{ sources() ++ generatedSources() }
 
   /**
-    * All individual source files fed into the compiler
+    * All individual source files fed into the Java compiler
     */
   def allSourceFiles = T{
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
@@ -191,7 +191,7 @@ trait JavaModule extends mill.Module
       root <- allSources()
       if os.exists(root.path)
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
+      if os.isFile(path) && ((path.ext == "java") && !isHiddenFile(path))
     } yield PathRef(path)
   }
 
@@ -205,7 +205,7 @@ trait JavaModule extends mill.Module
       allSourceFiles().map(_.path),
       compileClasspath().map(_.path),
       javacOptions(),
-      T.ctx().reporter(hashCode)
+      T.reporter.apply(hashCode)
     )
   }
 
@@ -307,7 +307,7 @@ trait JavaModule extends mill.Module
    * publishing to Maven Central
    */
   def docJar = T[PathRef] {
-    val outDir = T.ctx().dest
+    val outDir = T.dest
 
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
@@ -334,7 +334,7 @@ trait JavaModule extends mill.Module
         ) ++
           files.map(_.toString),
       envArgs = Map(),
-      workingDir = T.ctx().dest
+      workingDir = T.dest
     )
 
     createJar(Agg(javadocDir))(outDir)
@@ -374,11 +374,16 @@ trait JavaModule extends mill.Module
     )
   }
 
-  def ivyDepsTree(inverse: Boolean = false) = T.command {
+  /**
+   * Task that print the transitive dependency tree to STDOUT.
+   * @param inverse Invert the tree representation, so that the root is on the bottom.
+   * @param additionalDeps Additional dependency to be included into the tree.
+   */
+  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]) = T.task {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
       repositories,
       resolveCoursierDependency().apply(_),
-      transitiveIvyDeps(),
+      additionalDeps() ++ transitiveIvyDeps(),
       Some(mapDependencies())
     )
 
@@ -393,6 +398,29 @@ trait JavaModule extends mill.Module
 
     Result.Success()
   }
+
+  /**
+   * Command to print the transitive dependency tree to STDOUT.
+   *
+   * @param inverse Invert the tree representation, so that the root is on the bottom.
+   * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
+   * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
+   */
+  def ivyDepsTree(inverse: Boolean = false, withCompile: Boolean = false, withRuntime: Boolean = false): Command[Unit] =
+    (withCompile, withRuntime) match {
+      case (true, true) => T.command {
+          printDepsTree(inverse, T.task{ compileIvyDeps() ++ runIvyDeps() })
+        }
+      case (true, false) => T.command {
+          printDepsTree(inverse, compileIvyDeps)
+        }
+      case (false, true) => T.command {
+          printDepsTree(inverse, runIvyDeps)
+        }
+      case _ => T.command {
+          printDepsTree(inverse, T.task { Agg.empty[Dep] })
+        }
+    }
 
   /**
     * Runs this module's code in-process within an isolated classloader. This is
@@ -469,7 +497,7 @@ trait JavaModule extends mill.Module
     * that would otherwise run forever
     */
   def runBackground(args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    val (procId, procTombstone, token) = backgroundSetup(T.dest)
     try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
@@ -487,7 +515,7 @@ trait JavaModule extends mill.Module
     * Same as `runBackground`, but lets you specify a main class to run
     */
   def runMainBackground(mainClass: String, args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.ctx().dest)
+    val (procId, procTombstone, token) = backgroundSetup(T.dest)
     try Result.Success(Jvm.runSubprocess(
       "mill.scalalib.backgroundwrapper.BackgroundWrapper",
       (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
@@ -576,7 +604,7 @@ trait TestModule extends JavaModule with TaskModule {
   }
 
   protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.dest/"out.json"
 
     Jvm.runSubprocess(
       mainClass = "mill.scalalib.TestRunner",
@@ -590,7 +618,7 @@ trait TestModule extends JavaModule with TaskModule {
         runClasspath().map(_.path.toString) ++
         Seq(args().length.toString) ++
         args() ++
-        Seq(outputPath.toString, T.ctx().log.colored.toString, compile().classes.path.toString, T.ctx().home.toString),
+        Seq(outputPath.toString, T.log.colored.toString, compile().classes.path.toString, T.home.toString),
       workingDir = forkWorkingDir()
     )
 
@@ -608,14 +636,14 @@ trait TestModule extends JavaModule with TaskModule {
     * reporting the results to the console
     */
   def testLocal(args: String*) = T.command {
-    val outputPath = T.ctx().dest/"out.json"
+    val outputPath = T.dest/"out.json"
 
     val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
-      T.ctx().testReporter
+      T.testReporter
     )
 
     TestModule.handleResults(doneMsg, results)

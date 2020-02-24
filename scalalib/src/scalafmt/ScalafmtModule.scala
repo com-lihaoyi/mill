@@ -39,7 +39,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
 
   def reformatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
     T.command {
-      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
+      val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .reformat(
@@ -50,7 +50,7 @@ object ScalafmtModule extends ExternalModule with ScalafmtModule {
 
   def checkFormatAll(sources: mill.main.Tasks[Seq[PathRef]]): Command[Unit] =
     T.command {
-      val files = Task.sequence(sources.value)().flatMap(filesToFormat)
+      val files = T.sequence(sources.value)().flatMap(filesToFormat)
       ScalafmtWorkerModule
         .worker()
         .checkFormat(

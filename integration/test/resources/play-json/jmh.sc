@@ -31,7 +31,7 @@ trait Jmh extends ScalaModule {
 
   // returns sources and resources directories
   def generateBenchmarkSources = T {
-    val dest = T.ctx().dest
+    val dest = T.ctx.dest
 
     val sourcesDir = dest / 'jmh_sources
     val resourcesDir = dest / 'jmh_resources
