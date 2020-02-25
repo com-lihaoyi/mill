@@ -1,7 +1,7 @@
 package mill.util
 
 import java.io._
-import java.nio.file.Files
+import java.nio.file.{Files, StandardOpenOption}
 
 import mill.api.Logger
 
@@ -152,10 +152,15 @@ class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boo
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
-    if (!append && !outputStreamUsed) os.remove.all(file)
+    val options = Seq(
+      Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
+      Seq(StandardOpenOption.APPEND).filter(_ => append),
+      Seq(StandardOpenOption.TRUNCATE_EXISTING).filter(_ => !append && !outputStreamUsed)
+    ).flatten
+//    if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
-    file.toIO.getAbsoluteFile().getParentFile().mkdirs()
-    new PrintStream(Files.newOutputStream(file.toNIO))
+    os.makeDir.all(file / os.up)
+    new PrintStream(Files.newOutputStream(file.toNIO, options: _*))
   }
 
   lazy val errorStream = outputStream
