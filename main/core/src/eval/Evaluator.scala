@@ -346,7 +346,9 @@ case class Evaluator(
             env,
             reporter,
             testReporter
-          )
+          ) with Ctx.Jobs {
+            override def jobs: Int = effectiveThreadCount
+          }
 
           val out = System.out
           val in = System.in

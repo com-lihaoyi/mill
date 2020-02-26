@@ -4,12 +4,11 @@ package mill.scalalib
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
-import mill.api.KeyedLockedCache
+import mill.api.{Ctx, KeyedLockedCache, Loose}
 import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.api.Util.{isDotty, isBinaryBridgeAvailable}
+import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty}
 import mill.scalalib.api.ZincWorkerApi
-import mill.api.Loose
 import mill.util.JsonFormatters._
 
 object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule {
@@ -38,6 +37,12 @@ trait ZincWorkerModule extends mill.Module {
   }
 
   def worker: Worker[mill.scalalib.api.ZincWorkerApi] = T.worker {
+    val ctx = T.ctx()
+    val jobs = T.ctx() match {
+      case j: Ctx.Jobs => j.jobs
+      case _ => 1
+    }
+    ctx.log.debug(s"ZinkWorker: using cache size ${jobs}")
     val cp = compilerInterfaceClasspath()
     val cl = mill.api.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
@@ -63,7 +68,7 @@ trait ZincWorkerModule extends mill.Module {
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
-        new KeyedLockedCache.RandomBoundedCache(1, 1),
+        new KeyedLockedCache.RandomBoundedCache(jobs, jobs),
         false.asInstanceOf[AnyRef]
       )
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
