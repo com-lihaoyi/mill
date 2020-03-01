@@ -1,8 +1,7 @@
 package mill.contrib
 
-import artifactory.{ArtifactoryHttpApi, ArtifactoryPublisher}
-import define.ExternalModule
-import publish.{Artifact, ArtifactoryPublisher}
+import artifactory.ArtifactoryPublisher
+import mill._, scalalib._, define.ExternalModule, publish.Artifact
 
 trait ArtifactoryPublishModule extends PublishModule {
   def artifactoryUri: String
