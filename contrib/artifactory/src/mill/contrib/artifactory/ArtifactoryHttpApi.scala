@@ -1,4 +1,4 @@
-package mill.scalalib.publish
+package mill.contrib.artifactory
 
 import java.util.Base64
 

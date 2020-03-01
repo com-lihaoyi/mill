@@ -1,6 +1,6 @@
-package mill
-package scalalib
+package mill.contrib
 
+import artifactory.{ArtifactoryHttpApi, ArtifactoryPublisher}
 import define.ExternalModule
 import publish.{Artifact, ArtifactoryPublisher}
 
