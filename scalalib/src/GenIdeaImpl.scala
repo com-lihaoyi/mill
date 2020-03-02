@@ -128,7 +128,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
                              compilerOutput: Path
                              )
 
-    val resolved = evalOrElse(evaluator, T.sequence(for((path, mod) <- modules) yield {
+    def resolveTasks: Seq[Task[ResolvedModule]] = for((path, mod) <- modules) yield {
 
       val scalaLibraryIvyDeps = mod match{
         case x: ScalaModule => x.scalaLibraryIvyDeps
@@ -148,7 +148,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
       val externalDependencies = T.task{
         mod.resolveDeps(allIvyDeps)() ++
-        Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
+          Task.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
       }
 
       val externalSources = T.task{
@@ -177,6 +177,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
       T.task {
         val resolvedCp: Loose.Agg[PathRef] = externalDependencies()
+        // unused, but we want to trigger sources, to have them available (automatically)
+        // TODO: make this a separate eval to handle resolve errors
         val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
         val resolvedSp: Loose.Agg[PathRef] = scalacPluginDependencies()
         val resolvedCompilerCp: Loose.Agg[PathRef] = scalaCompilerClasspath()
@@ -187,19 +189,23 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val resolvedCompilerOutput = compilerOutput()
 
         ResolvedModule(
-          path,
-          resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-          mod,
-          resolvedSp.map(_.path).filter(_.ext == "jar"),
-          scalacOpts,
-          resolvedCompilerCp.map(_.path),
-          resolvedLibraryCp.map(_.path),
-          resolvedFacets,
-          resolvedConfigFileContributions,
-          resolvedCompilerOutput.path
+          path = path,
+          // FIXME: why do we need to sources in the classpath?
+          // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
+          classpath = resolvedCp.map(_.path).filter(_.ext == "jar"),
+          module = mod,
+          pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
+          scalaOptions = scalacOpts,
+          compilerClasspath = resolvedCompilerCp.map(_.path),
+          libraryClasspath = resolvedLibraryCp.map(_.path),
+          facets = resolvedFacets,
+          configFileContributions = resolvedConfigFileContributions,
+          compilerOutput = resolvedCompilerOutput.path
         )
       }
-    }), Seq())
+    }
+
+    val resolved = evalOrElse(evaluator, T.sequence(resolveTasks), Seq())
 
     val moduleLabels = modules.map(_.swap).toMap
 
