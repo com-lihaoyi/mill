@@ -339,15 +339,21 @@ case class GenIdeaImpl(evaluator: Evaluator,
       )
     )
 
+    def ideaifyLibraryName(name: String): String = {
+      name.replaceAll("""[-.]""", "_")
+    }
+
     val libraries = resolvedLibraries(allResolved).flatMap{ resolved =>
       import resolved.path
       val names = libraryNames(resolved)
       val sources = resolved match {
-        case CoursierResolved(_, _, s) => s.map(p => "jar://" + p + "!/")
-        case WithSourcesResolved(_, s) => s.map(p => "jar://" + p + "!/")
+        case CoursierResolved(_, _, s) => s
+        case WithSourcesResolved(_, s) => s
         case OtherResolved(_) => None
       }
-      for(name <- names) yield Tuple2(os.rel/".idea"/'libraries/s"$name.xml", libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
+      for(name <- names) yield Tuple2(
+        os.rel/".idea"/'libraries/s"${ideaifyLibraryName(name)}.xml",
+        libraryXmlTemplate(name, path, sources, librariesProperties.getOrElse(path, Loose.Agg.empty)))
     }
 
     val moduleFiles = resolved.map{ case ResolvedModule(path, resolvedDeps, mod, _, _, _, _, facets, _, compilerOutput) =>
@@ -477,27 +483,27 @@ case class GenIdeaImpl(evaluator: Evaluator,
       </component>
     </module>
   }
-  def libraryXmlTemplate(name: String, path: os.Path, sources: Option[String], compilerClassPath: Loose.Agg[Path]) = {
-    val url = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
-    val isScalaLibrary = compilerClassPath.nonEmpty
+  def libraryXmlTemplate(name: String, path: os.Path, sources: Option[os.Path], scalaCompilerClassPath: Loose.Agg[Path]): Elem = {
+    def url(path: os.Path): String = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
+    val isScalaLibrary = scalaCompilerClassPath.nonEmpty
     <component name="libraryTable">
       <library name={name} type={if(isScalaLibrary) "Scala" else null}>
         { if(isScalaLibrary) {
         <properties>
           <compiler-classpath>
             {
-            compilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://" + p}/>)
+            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://" + p}/>)
             }
           </compiler-classpath>
         </properties>
           }
         }
         <CLASSES>
-          <root url={url}/>
+          <root url={url(path)}/>
         </CLASSES>
         { if (sources.isDefined) {
           <SOURCES>
-            <root url={sources.get}/>
+            <root url={url(sources.get)}/>
           </SOURCES>
           }
         }
