@@ -260,6 +260,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
     def toResolvedJar(path : os.Path) : Option[ResolvedLibrary] = {
       val inCoursierCache = path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
       val inIvyLikeLocal = (path / os.up).last == "jars"
+      def inMavenLikeLocal = Try {
+        val version = path / os.up
+        val artifact = version / os.up
+        path.last.startsWith(s"${artifact.last}-${version.last}")
+      }.getOrElse(false)
       val isSource = path.last.endsWith("sources.jar")
       val isPom = path.ext == "pom"
       if (inCoursierCache && (isSource || isPom)) {
@@ -272,7 +277,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
           .filter(_.toIO.exists())
         Some(CoursierResolved(path, pom, sources))
       } else if (inIvyLikeLocal && path.ext == "jar") {
+        // assume some jvy-like dir structure
         val sources = Some(path / os.up / os.up / "srcs" / s"${path.baseName}-sources.jar")
+          .filter(_.toIO.exists())
+        Some(WithSourcesResolved(path, sources))
+      } else if (inMavenLikeLocal){
+        // assume some maven-like dir structure
+        val sources = Some(path / os.up / s"${path.baseName}-sources.jar")
           .filter(_.toIO.exists())
         Some(WithSourcesResolved(path, sources))
       } else Some(OtherResolved(path))
