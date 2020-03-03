@@ -24,7 +24,7 @@ trait ArtifactoryPublishModule extends PublishModule {
 }
 
 object ArtifactoryPublishModule extends ExternalModule {
-  def publishAll(artifactoryCreds: String,
+  def publishAll(credentials: String,
                  artifactoryUri: String,
                  artifactorySnapshotUri: String,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
@@ -37,7 +37,7 @@ object ArtifactoryPublishModule extends ExternalModule {
     new ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
-      artifactoryCreds,
+      credentials,
       readTimeout,
       connectTimeout,
       T.log
