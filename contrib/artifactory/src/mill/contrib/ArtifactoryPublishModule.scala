@@ -8,14 +8,14 @@ trait ArtifactoryPublishModule extends PublishModule {
 
   def artifactorySnapshotUri: String
 
-  def publishArtifactory(artifactoryCreds: String,
+  def publishArtifactory(credentials: String,
                          readTimeout: Int = 60000,
                          connectTimeout: Int = 5000): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new ArtifactoryPublisher(
       artifactoryUri,
       artifactorySnapshotUri,
-      artifactoryCreds,
+      credentials,
       readTimeout,
       connectTimeout,
       T.log
