@@ -1,6 +1,5 @@
 package mill.contrib.artifactory
 
-import artifactory.ArtifactoryPublisher
 import mill._, scalalib._, define.ExternalModule, publish.Artifact
 
 trait ArtifactoryPublishModule extends PublishModule {
