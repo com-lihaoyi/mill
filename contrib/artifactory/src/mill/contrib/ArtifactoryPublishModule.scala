@@ -1,4 +1,4 @@
-package mill.contrib
+package mill.contrib.artifactory
 
 import artifactory.ArtifactoryPublisher
 import mill._, scalalib._, define.ExternalModule, publish.Artifact
