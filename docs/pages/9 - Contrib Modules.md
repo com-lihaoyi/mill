@@ -11,6 +11,28 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## Artifactory
+
+This plugin allows publishing to Artifactory.
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION`
+import mill.contrib.artifactory.ArtifactoryPublishModule
+
+object mymodule extends ArtifactoryPublishModule {
+  def artifactoryUri: String = "https://example.com/artifactory/my-repo"
+  def artifactorySnapshotUri: String = "https://example.com/artifactory/my-snapshot-repo"
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishArtifactory --credentials myArtifactoryUser:myArtifactoryPassword
+```
+
 ## Bloop
 
 This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration
