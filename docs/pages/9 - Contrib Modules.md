@@ -30,7 +30,7 @@ object mymodule extends ArtifactoryPublishModule {
 
 Then in your terminal:
 ```
-$ mill mymodule.publishArtifactory --credentials myArtifactoryUser:myArtifactoryPassword
+$ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
 ```
 
 ## Bloop
