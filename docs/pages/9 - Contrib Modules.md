@@ -82,7 +82,6 @@ located inside a project workspace.
 The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
 will be deprecated in favour of this implementation.
 
-
 ## BuildInfo
 
 Generate scala code from your buildfile.
@@ -117,6 +116,35 @@ object project extends BuildInfo {
 
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
+
+## BSP - Build Server Protocol
+
+The contrib.bsp module was created in order to integrate the Mill build tool
+with IntelliJ IDEA via the Build Server Protocol (BSP). It implements most of
+the server side functionality described in BSP, and can therefore connect to a 
+BSP client, including the one behind IntelliJ IDEA. This allows a lot of mill
+tasks to be executed from the IDE.
+
+### Importing an existing mill project in IntelliJ via BSP
+
+1) Add the following import statement in the `build.sc` of your project:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+```
+
+2) Run the following command in the working directory of your project:
+
+```
+mill -i mill.contrib.BSP/install
+```
+
+### Known Issues:
+
+- Sometimes build from IntelliJ might fail due to a NoClassDefFoundException
+being thrown during the evaluation of tasks, a bug not easy to reproduce.
+In this case it is recommended to refresh the bsp project.
+
 
 ## Docker
 
