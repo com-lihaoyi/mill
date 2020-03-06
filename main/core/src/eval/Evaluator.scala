@@ -409,10 +409,14 @@ case class Evaluator(
     val startTime = System.currentTimeMillis()
 
     // we need to collect all relevant logging info while developing
-    val evalLog = MultiLogger(true, this.log,
-      new FileLogger(false, outPath / "evaluator.log", true, append = true) {
-        override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-      })
+    val evalLog = new FileLogger(false, outPath / "evaluator.log", true, append = true) {
+      override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+    }
+
+    // we also want some timings, to better understand what runs in parallel
+    val timeLog = new FileLogger(false, outPath / "tasks-par.log", true, append = true) {
+      override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+    }
 
     evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
     evalLog.debug(s"Start time: ${new java.util.Date()}")
@@ -445,11 +449,10 @@ case class Evaluator(
     // The scheduled and not yet finished futures (Java!)
     var futures = List[(java.util.concurrent.Future[FutureResult], TerminalGroup)]()
 
+    val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = findInterGroupDeps(sortedGroups)
+    evalLog.debug(s"${interGroupDeps} (took ${System.currentTimeMillis() - startTime} msec)")
+
     try {
-
-      val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = findInterGroupDeps(sortedGroups)
-      evalLog.debug(s"${interGroupDeps} (took ${System.currentTimeMillis() - startTime} msec)")
-
       // State holders, only written to from same thread
       // The unprocessed terminal groups
       var work = sortedGroups.items().toList
@@ -514,7 +517,7 @@ case class Evaluator(
 
                   val counterMsg = nextCounterMsg()
 
-                  evalLog.debug(s"Start evaluation [${counterMsg}]: ${printTerm(terminal)}")
+                  timeLog.debug(s"START ${printTerm(terminal)}")
                   val startTime = System.currentTimeMillis()
 
                   val res = evaluateGroupCached(
@@ -528,7 +531,7 @@ case class Evaluator(
                   )
 
                   val endTime = System.currentTimeMillis()
-                  evalLog.debug(s"Finished evaluation [${counterMsg}]: ${printTerm(terminal)}")
+                  timeLog.debug(s"END   ${printTerm(terminal)}  (${(endTime - startTime).toInt})")
 
                   FutureResult(curWork, (endTime - startTime).toInt, res)
                 }
@@ -604,7 +607,7 @@ case class Evaluator(
 
     } catch {
       case NonFatal(e) =>
-        evalLog.error(s"Execption caught: ${printException(e)}")
+        evalLog.error(s"Exception caught: ${printException(e)}")
         evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
         // stop pending jobs
         futures.foreach(_._1.cancel(false))
