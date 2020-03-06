@@ -163,7 +163,7 @@ trait ScalaModule extends JavaModule { outer =>
     os.makeDir.all(javadocDir)
 
     if (isDotty(scalaVersion())) {
-      os.copy(millSourcePath / dottydocSiteRoot(), javadocDir, replaceExisting = true)
+      os.copy(dottydocSiteRoot(), javadocDir, replaceExisting = true)
     }
 
     val files = allSourceFiles().map(_.path.toString)
@@ -208,7 +208,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def dottydocProjectName = T { artifactName() }
 
-  def dottydocSiteRoot = T { "docs" }
+  def dottydocSiteRoot = T { millSourcePath / 'docs }
 
   /**
     * Opens up a Scala console with your module and all dependencies present,
