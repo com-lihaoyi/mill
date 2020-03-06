@@ -159,14 +159,28 @@ trait ScalaModule extends JavaModule { outer =>
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
 
+    if (isDotty(scalaVersion())) {
+      os.copy(millSourcePath / dottydocSiteRoot(), javadocDir, replaceExisting = true)
+    }
+
     val files = allSourceFiles().map(_.path.toString)
 
+    val docToolOptions =
+      if (isDotty(scalaVersion()))
+        Seq(
+          "-project", dottydocProjectName(),
+          "-siteroot", javadocDir.toNIO.toString
+        )
+      else
+        Seq(
+          "-d", javadocDir.toNIO.toString
+        )
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
-      "-d", javadocDir.toNIO.toString,
       "-classpath", compileCp.mkString(java.io.File.pathSeparator)
     ) ++
+      docToolOptions ++
       pluginOptions ++
       scalaDocOptions()
 
@@ -179,11 +193,19 @@ trait ScalaModule extends JavaModule { outer =>
         scalacPluginClasspath().map(_.path),
         files ++ options
       ) match{
-        case true => Result.Success(createJar(Agg(javadocDir))(outDir))
+        case true =>
+          val inputPath =
+            if (isDotty(scalaVersion())) javadocDir / '_site
+            else javadocDir
+          Result.Success(createJar(Agg(inputPath))(outDir))
         case false => Result.Failure("docJar generation failed")
       }
     }
   }
+
+  def dottydocProjectName = T { artifactName() }
+
+  def dottydocSiteRoot = T { "docs" }
 
   /**
     * Opens up a Scala console with your module and all dependencies present,
