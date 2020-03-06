@@ -71,7 +71,10 @@ object Lib{
   }
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
-      Agg(ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion())
+      Agg(
+        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion(),
+        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+      )
     else
       Agg(
         ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
