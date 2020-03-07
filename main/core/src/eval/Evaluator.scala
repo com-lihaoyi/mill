@@ -2,6 +2,7 @@ package mill.eval
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
+import java.util.concurrent.atomic.AtomicBoolean
 import java.util.concurrent.{ExecutorCompletionService, Executors, Future}
 
 import ammonite.runtime.SpecialClassLoader
@@ -461,7 +462,7 @@ case class Evaluator(
       // The finished terminal groups
       var doneMap = Map[TerminalGroup, Boolean]().withDefaultValue(false)
       // The fact that at least one task failed
-      @volatile var someTaskFailed: Boolean = false
+      val someTaskFailed = new AtomicBoolean(false)
 
       if (work.size != work.distinct.size) {
         evalLog.error(s"Work list contains ${work.distinct.size - work.size} duplicates!")
@@ -504,7 +505,7 @@ case class Evaluator(
               //              }
 
               val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
-                if(failFast && someTaskFailed) {
+                if(failFast && someTaskFailed.get()) {
                   // we do not start this tasks but instead return with aborted result
                   val newResults = group.map { task =>
                     task -> Aborted
@@ -565,7 +566,9 @@ case class Evaluator(
           ) = compFuture.get()
 
           // Check if we failed
-          someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+          if(!someTaskFailed.get() && newResults.exists(task => !task._2.isInstanceOf[Success[_]])) {
+            someTaskFailed.set(true)
+          }
 
           // Update state
           evaluated.appendAll(newEvaluated)
@@ -574,7 +577,7 @@ case class Evaluator(
           inProgress = inProgress.filterNot(_ == finishedWork)
           doneMap += finishedWork -> true
 
-          if (failFast && someTaskFailed) {
+          if (failFast && someTaskFailed.get()) {
             // we exit early and set aborted state for all left tasks
             //          group.foreach { task =>
             //            results.put(task, aborted)
