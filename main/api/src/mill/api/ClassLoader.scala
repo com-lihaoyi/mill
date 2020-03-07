@@ -55,7 +55,11 @@ object ClassLoader {
 
   private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
     if (java9OrAbove) {
-      urls :+ Export.rtAt(ctx.home.toIO).toURI.toURL
+      val java90rtJar = ctx.home / Export.rtJarName
+      if(!os.exists(java90rtJar)) {
+        Export.rtTo(java90rtJar.toIO, false)
+      }
+      urls :+ java90rtJar.toIO.toURI().toURL()
     } else {
       urls
     }
