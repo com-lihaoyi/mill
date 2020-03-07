@@ -425,7 +425,7 @@ case class Evaluator(
       // The unprocessed terminal groups
       private[ParallelEvaluator] var pending: List[TerminalGroup] = sortedGroups.items().toList
       // The currently scheduled (maybe not started yet) terminal groups
-      private[ParallelEvaluator] var inProgress = List[TerminalGroup]()
+      private[ParallelEvaluator] var inProgress = Set[TerminalGroup]()
       // The finished terminal groups
       private[ParallelEvaluator] var doneMap = Set[TerminalGroup]()
 
@@ -538,7 +538,7 @@ case class Evaluator(
             state.evaluated.appendAll(newEvaluated)
             state.results.putAll(newResults.asJava)
             state.timings.append((finishedWork._1, time, cached))
-            state.inProgress = state.inProgress.filterNot(_ == finishedWork)
+            state.inProgress -= finishedWork
             state.doneMap += finishedWork
 
           } catch {
@@ -599,7 +599,7 @@ case class Evaluator(
 
       // update state
       state.pending = newWork
-      state.inProgress = state.inProgress ++ newInProgress
+      state.inProgress ++= newInProgress
 
       evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks took ${System.currentTimeMillis() - scheduleStart} msec")
 
