@@ -448,7 +448,7 @@ case class Evaluator(
       private[ParallelEvaluator] val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = {
         val startTime = System.currentTimeMillis()
         val res = findInterGroupDeps(sortedGroups)
-        evalLog.debug(s"${res} (took ${System.currentTimeMillis() - startTime} msec)")
+        evalLog.debug(s"finding ${res.size} inter-group dependencies took ${System.currentTimeMillis() - startTime} msec")
         res
       }
       // Increment the counter message by 1 to go from 1/10 to 10/10
