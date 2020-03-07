@@ -430,7 +430,7 @@ case class Evaluator(
       private[ParallelEvaluator] var doneMap = Set[TerminalGroup]()
 
       // The scheduled and not yet finished futures (Java!)
-      private[ParallelEvaluator] var scheduledFutures = List[(java.util.concurrent.Future[FutureResult], TerminalGroup)]()
+      private[ParallelEvaluator] var scheduledFutures = Map[java.util.concurrent.Future[FutureResult], TerminalGroup]()
 
       ///////////////
       // MUTABLE
@@ -518,10 +518,10 @@ case class Evaluator(
           evalLog.debug(s"Waiting for next future completion of ${executorService}")
           val compFuture: Future[FutureResult] = completionService.take()
 
-          val compTask: TerminalGroup = state.scheduledFutures.find(_._1 == compFuture).map(_._2).get
+          val compTask: TerminalGroup = state.scheduledFutures(compFuture)
           val compTaskName = printTerm(compTask._1)
           evalLog.debug(s"Completed future: ${compFuture} for task ${compTaskName}")
-          state.scheduledFutures = state.scheduledFutures.filterNot(_._1 == compFuture)
+          state.scheduledFutures -= compFuture
           try {
             val FutureResult(
             finishedWork,
@@ -564,7 +564,7 @@ case class Evaluator(
       } catch {
         case NonFatal(e) =>
           evalLog.debug(s"Exception caught: ${printException(e)}")
-          evalLog.debug(s"left futures:\n  ${state.scheduledFutures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
+          evalLog.debug(s"left futures:\n  ${state.scheduledFutures.mapValues(v => printTerm(v._1)).mkString(",\n  ")}")
       } finally {
         // done, cleanup
         evalLog.debug(s"Shutting down executor service: ${executorService}")
@@ -650,7 +650,7 @@ case class Evaluator(
             }
 
             evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${printTerm(terminal)}")
-            state.scheduledFutures = state.scheduledFutures ++ List(workerFut -> curWork)
+            state.scheduledFutures += workerFut -> curWork
         }
       }
     }
