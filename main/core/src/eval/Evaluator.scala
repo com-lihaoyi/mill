@@ -418,6 +418,7 @@ case class Evaluator(
     val timeLog = new FileLogger(false, outPath / "tasks-par.log", true, append = true) {
       override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
     }
+    timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
 
     evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
     evalLog.debug(s"Start time: ${new java.util.Date()}")
@@ -499,11 +500,6 @@ case class Evaluator(
           newInProgress.zipWithIndex.foreach {
             case (curWork @ (terminal, group), index) =>
 
-              //              val missingDependencies = group.indexed.flatMap(_.inputs).filter(t => !results.contains(t) && !group.contains(t))
-              //              if (!missingDependencies.isEmpty) {
-              //                evalLog.error(s"Missing resolved dependencies for terminal group: ${printTerm(terminal)}\n  ${missingDependencies.mkString(",\n  ")}")
-              //              }
-
               val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
                 if(failFast && someTaskFailed.get()) {
                   // we do not start this tasks but instead return with aborted result
@@ -532,7 +528,13 @@ case class Evaluator(
                   )
 
                   val endTime = System.currentTimeMillis()
-                  timeLog.debug(s"END   ${printTerm(terminal)}  (${(endTime - startTime).toInt})")
+                  timeLog.debug(s"END   ${printTerm(terminal)} (${
+                    if(res.newResults.exists(task => !task._2.isInstanceOf[Success[_]])) "failed, " else ""
+                  }${
+                    if(res.cached) "cached, " else ""
+                  }${
+                    (endTime - startTime).toInt
+                  })")
 
                   FutureResult(curWork, (endTime - startTime).toInt, res)
                 }
