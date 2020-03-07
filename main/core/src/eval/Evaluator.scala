@@ -8,15 +8,13 @@ import java.util.concurrent.{ConcurrentHashMap, ExecutorCompletionService, Execu
 import ammonite.runtime.SpecialClassLoader
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
-import mill.api.{DummyTestReporter, TestReporter, BuildProblemReporter}
+import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util._
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
-import scala.concurrent.ExecutionException
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T],
@@ -61,7 +59,7 @@ case class Evaluator(
                testReporter: TestReporter = DummyTestReporter,
                logger: Logger = log): Evaluator.Results = {
     if(effectiveThreadCount > 1) {
-      evaluateParallel(goals, effectiveThreadCount, reporter, testReporter, logger)
+      new ParallelEvaluator(goals, effectiveThreadCount, reporter, testReporter, logger).evaluate()
     } else {
     os.makeDir.all(outPath)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -398,279 +396,302 @@ case class Evaluator(
   type Terminal = Either[Task[_], Labelled[Any]]
   type TerminalGroup = (Terminal, Agg[Task[_]])
 
-  def evaluateParallel(
+  /**
+    * This class encapsulates the whole execution logic of the multi-threaded task evaluator.
+    *
+    * @param goals The requested tasks to execute
+    * @param threadCount The number of threads to use in parallel
+    * @param reporter An optional reporter for build problems
+    * @param testReporter An optional reporter for test events
+    * @param logger The mill logger to report progress and errors
+    */
+  class ParallelEvaluator(
     goals: Agg[Task[_]],
     threadCount: Int,
     reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
     testReporter: TestReporter = DummyTestReporter,
     logger: Logger = log
-  ): Evaluator.Results = {
-    os.makeDir.all(outPath)
-
-    val startTime = System.currentTimeMillis()
-
-    // we need to collect all relevant logging info while developing
-    val evalLog = new FileLogger(false, outPath / "evaluator.log", true, append = true) {
-      override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-    }
-
-    // we also want some timings, to better understand what runs in parallel
-    val timeLog = new FileLogger(false, outPath / "tasks-par.log", true, append = true) {
-      override def debug(s: String) = super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-    }
-    timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
-
-    evalLog.info(s"Using experimental parallel evaluator with ${threadCount} threads")
-    evalLog.debug(s"Start time: ${new java.util.Date()}")
-
-    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
-
-    // Mutable collector for all evaluated tasks
-    val evaluated = new Agg.Mutable[Task[_]]
-
-    // Mutable collector for all task results
-    val results = new ConcurrentHashMap[Task[_], Result[(Any, Int)]]()
-
-    type Timing = (Either[Task[_], Labelled[_]], Int, Boolean)
+  ) {
+    logger.info(s"Using experimental parallel evaluator with ${threadCount} threads")
 
     case class FutureResult(task: TerminalGroup, time: Int, result: Evaluated)
 
-    // Mutable collector for timings
-    val timings = new mutable.ArrayBuffer[Timing](sortedGroups.keyCount)
+    type Timing = (Either[Task[_], Labelled[_]], Int, Boolean)
 
-    // Increment the counter message by 1 to go from 1/10 to 10/10
-    val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
+    class State(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]])(implicit evalLog: EvalLog) {
+      ///////////////
+      // VARIABLES
 
-    // TODO: check for interactivity
-    // TODO: make sure, multiple goals run in order, e.g. clean compile
-
-    val executorService = Executors.newFixedThreadPool(threadCount)
-    evalLog.debug(s"Created executor: ${executorService}")
-    val completionService = new ExecutorCompletionService[FutureResult](executorService)
-
-    // The scheduled and not yet finished futures (Java!)
-    var futures = List[(java.util.concurrent.Future[FutureResult], TerminalGroup)]()
-
-    val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = findInterGroupDeps(sortedGroups)
-    evalLog.debug(s"${interGroupDeps} (took ${System.currentTimeMillis() - startTime} msec)")
-
-    try {
-      // State holders, only written to from same thread
       // The unprocessed terminal groups
-      var work = sortedGroups.items().toList
+      private[ParallelEvaluator] var pending: List[TerminalGroup] = sortedGroups.items().toList
       // The currently scheduled (maybe not started yet) terminal groups
-      var inProgress = List[TerminalGroup]()
+      private[ParallelEvaluator] var inProgress = List[TerminalGroup]()
       // The finished terminal groups
-      var doneMap = Map[TerminalGroup, Boolean]().withDefaultValue(false)
+      private[ParallelEvaluator] var doneMap = Map[TerminalGroup, Boolean]().withDefaultValue(false)
+
+      // The scheduled and not yet finished futures (Java!)
+      private[ParallelEvaluator] var scheduledFutures = List[(java.util.concurrent.Future[FutureResult], TerminalGroup)]()
+
+      ///////////////
+      // MUTABLE
       // The fact that at least one task failed
-      val someTaskFailed = new AtomicBoolean(false)
+      private[ParallelEvaluator] val someTaskFailed = new AtomicBoolean(false)
+      // Mutable collector for timings
+      private[ParallelEvaluator] val timings = new mutable.ArrayBuffer[Timing](pending.size)
+      // Mutable collector for all task results
+      private[ParallelEvaluator] val results = new ConcurrentHashMap[Task[_], Result[(Any, Int)]]()
+      // Mutable collector for all evaluated tasks
+      private[ParallelEvaluator] val evaluated = new Agg.Mutable[Task[_]]
 
-      if (work.size != work.distinct.size) {
-        evalLog.error(s"Work list contains ${work.distinct.size - work.size} duplicates!")
+      ///////////////
+
+      private[ParallelEvaluator] val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = {
+        val startTime = System.currentTimeMillis()
+        val res = findInterGroupDeps(sortedGroups)
+        evalLog.debug(s"${res} (took ${System.currentTimeMillis() - startTime} msec)")
+        res
       }
+      // Increment the counter message by 1 to go from 1/10 to 10/10
+      private[ParallelEvaluator] val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
+    }
 
-//      evalLog.debug(s"Work: ${work.size} -- ${work.map(t => printTerm(t._1)).mkString(", ")}")
+    class EvalLog(startTime: Long) extends FileLogger(false, outPath / "evaluator.log", true, true) {
+      override def debug(s: String) =
+        super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+    }
 
-      /**
-        * Checks for terminal groups, that have no unresolved dependencies and schedule them to run via the executor service.
-        */
-      def scheduleWork(issuer: String): Unit = {
-        // early exit
-        if (work.isEmpty || inProgress.size > effectiveThreadCount) return
+    class TimeLog(startTime: Long) extends FileLogger(false, outPath / "tasks-par.log", true, true) {
+      override def debug(s: String) =
+        super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+    }
 
-        val scheduleStart = System.currentTimeMillis()
+    def evaluate(): Evaluator.Results = {
+      os.makeDir.all(outPath)
+      val startTime = System.currentTimeMillis()
 
-        // newInProgress: the terminal groups without unresolved dependencies
-        // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
-        val (newInProgress, newWork) = work.partition { termGroup =>
-          val deps = interGroupDeps(termGroup)
-          deps.isEmpty || deps.forall(d => doneMap(d))
-        }
+      implicit val evalLog: EvalLog = new EvalLog(startTime)
+      evalLog.debug(s"Start time: ${new java.util.Date()}")
 
-        // update state
-        work = newWork
-        inProgress = inProgress ++ newInProgress
+      implicit val timeLog: TimeLog = new TimeLog(startTime)
+      timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
 
-        evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks took ${System.currentTimeMillis() - scheduleStart} msec")
+      val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
-        if (!newInProgress.isEmpty) {
-          evalLog.debug(s"Scheduling ${newInProgress.size} new tasks (issuer: ${issuer}): ${newInProgress.map(t => printTerm(t._1)).mkString(", ")}")
+      // TODO: check for interactivity
+      // TODO: make sure, multiple goals run in order, e.g. clean compile
 
-          // schedule for parallel execution
-          newInProgress.zipWithIndex.foreach {
-            case (curWork @ (terminal, group), index) =>
+      val state = runTasks(sortedGroups)
 
-              val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
-                if(failFast && someTaskFailed.get()) {
-                  // we do not start this tasks but instead return with aborted result
-                  val newResults = group.map { task =>
-                    task -> Aborted
-                  }
-
-                  evalLog.debug(s"Skipped evaluation (because of earlier failures): ${printTerm(terminal)}")
-                  FutureResult(curWork, 0, Evaluated(newResults.toMap, Seq(), false))
-
-                } else {
-
-                  val counterMsg = nextCounterMsg()
-
-                  timeLog.debug(s"START ${printTerm(terminal)}")
-                  val startTime = System.currentTimeMillis()
-
-                  val res = evaluateGroupCached(
-                    terminal,
-                    group,
-                    results.asScala,
-                    counterMsg,
-                    reporter,
-                    testReporter,
-                    logger
-                  )
-
-                  val endTime = System.currentTimeMillis()
-                  timeLog.debug(s"END   ${printTerm(terminal)} (${
-                    if(res.newResults.exists(task => !task._2.isInstanceOf[Success[_]])) "failed, " else ""
-                  }${
-                    if(res.cached) "cached, " else ""
-                  }${
-                    (endTime - startTime).toInt
-                  })")
-
-                  FutureResult(curWork, (endTime - startTime).toInt, res)
-                }
-              }
-
-              evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${printTerm(terminal)}")
-              futures = futures ++ List(workerFut -> curWork)
-          }
-        } else {
-          evalLog.debug(s"No new tasks to schedule (issuer: ${issuer})")
-        }
+      val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
+      for ((k, vs) <- sortedGroups.items()) {
+        failing.addAll(
+          k,
+          vs.items.flatMap(i => Option(state.results.get(i))).collect { case f: Result.Failing[_] => f.map(_._1) }
+        )
       }
+      Evaluator.writeTimings(state.timings, outPath)
 
-      scheduleWork("initial request")
+      evalLog.debug(s"End time: ${new java.util.Date()}")
 
-      // Work queue management
-      // wait for finished jobs and schedule more work, if possible
-      while (!(failFast && someTaskFailed.get()) && futures.size > 0) {
-        evalLog.debug(s"Waiting for next future completion of ${executorService}")
-        val compFuture: Future[FutureResult] = completionService.take()
+      Evaluator.Results(
+        goals.indexed.map(state.results.get(_).map(_._1)),
+        state.evaluated,
+        transitive,
+        failing,
+        state.timings,
+        state.results.asScala.map { case (k, v) => (k, v.map(_._1)) }
+      )
+    }
 
-        val compTask: TerminalGroup = futures.find(_._1 == compFuture).map(_._2).get
-        val compTaskName = printTerm(compTask._1)
-        evalLog.debug(s"Completed future: ${compFuture} for task ${compTaskName}")
-        futures = futures.filterNot(_._1 == compFuture)
-        try {
-          val FutureResult(
+    def runTasks(tasks: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]])(implicit evalLog: EvalLog, timeLog: TimeLog): State = {
+      // Services
+      val executorService = Executors.newFixedThreadPool(threadCount)
+      val completionService = new ExecutorCompletionService[FutureResult](executorService)
+
+      implicit val state: State = new State(tasks)
+
+      scheduleWork(completionService, "initial request")
+      try {
+        // Work queue management
+        // wait for finished jobs and schedule more work, if possible
+        while (!(failFast && state.someTaskFailed.get()) && state.scheduledFutures.size > 0) {
+          evalLog.debug(s"Waiting for next future completion of ${executorService}")
+          val compFuture: Future[FutureResult] = completionService.take()
+
+          val compTask: TerminalGroup = state.scheduledFutures.find(_._1 == compFuture).map(_._2).get
+          val compTaskName = printTerm(compTask._1)
+          evalLog.debug(s"Completed future: ${compFuture} for task ${compTaskName}")
+          state.scheduledFutures = state.scheduledFutures.filterNot(_._1 == compFuture)
+          try {
+            val FutureResult(
             finishedWork,
             time,
             Evaluated(newResults, newEvaluated, cached)
-          ) = compFuture.get()
+            ) = compFuture.get()
 
-          // Check if we failed
-          if(!someTaskFailed.get() && newResults.exists(task => !task._2.isInstanceOf[Success[_]])) {
-            someTaskFailed.set(true)
-          }
-
-          // Update state
-          evaluated.appendAll(newEvaluated)
-          results.putAll(newResults.asJava)
-          timings.append((finishedWork._1, time, cached))
-          inProgress = inProgress.filterNot(_ == finishedWork)
-          doneMap += finishedWork -> true
-
-        } catch {
-          case NonFatal(e) =>
-            evalLog.debug(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
-            evalLog.debug(s"Current failed terminal group: ${compTask}")
-            evalLog.debug(s"Direct dependencies of current failed terminal group: ${interGroupDeps(compTask).map(l => printTerm(l._1))}")
-            someTaskFailed.set(true)
-        }
-
-        // cancel jobs and cleanup
-        if (failFast && someTaskFailed.get()) {
-          goals.foreach { goal =>
-            if (!results.containsKey(goal)) {
-              results.put(goal, Result.Aborted)
+            // Check if we failed
+            if (!state.someTaskFailed.get() && newResults.exists(task => !task._2.isInstanceOf[Success[_]])) {
+              state.someTaskFailed.set(true)
             }
+
+            // Update state
+            state.evaluated.appendAll(newEvaluated)
+            state.results.putAll(newResults.asJava)
+            state.timings.append((finishedWork._1, time, cached))
+            state.inProgress = state.inProgress.filterNot(_ == finishedWork)
+            state.doneMap += finishedWork -> true
+
+          } catch {
+            case NonFatal(e) =>
+              evalLog.debug(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
+              evalLog.debug(s"Current failed terminal group: ${compTask}")
+              evalLog.debug(s"Direct dependencies of current failed terminal group: ${state.interGroupDeps(compTask).map(l => printTerm(l._1))}")
+              state.someTaskFailed.set(true)
           }
-          // cancel all scheduled tasks
-        } else {
-          scheduleWork(compTaskName.toString())
-        }
-      } // end of while loop
 
-    } catch {
-      case NonFatal(e) =>
-        evalLog.debug(s"Exception caught: ${printException(e)}")
-        evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
-        // cancel all scheduled tasks
-    } finally {
-      // done, cleanup
-      evalLog.debug(s"Shutting down executor service: ${executorService}")
-      executorService.shutdownNow()
-    }
+          if (failFast && state.someTaskFailed.get()) {
+            // mark remaining goals as aborted
+            goals.foreach { goal =>
+              if (!state.results.containsKey(goal)) {
+                state.results.put(goal, Result.Aborted)
+              }
+            }
+          } else {
+            scheduleWork(completionService, compTaskName.toString())
+          }
+        } // end of while loop
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
-    for((k, vs) <- sortedGroups.items()){
-      failing.addAll(
-        k,
-        vs.items.flatMap(i => Option(results.get(i))).collect{case f: Result.Failing[_] => f.map(_._1)}
-      )
-    }
-    Evaluator.writeTimings(timings, outPath)
-
-    evalLog.debug(s"End time: ${new java.util.Date()}")
-
-    Evaluator.Results(
-      goals.indexed.map(results.get(_).map(_._1)),
-      evaluated,
-      transitive,
-      failing,
-      timings,
-      results.asScala.map{case (k, v) => (k, v.map(_._1))}
-    )
-  }
-
-
-  def printTerm(term: Terminal): String = term match {
-    case Left(t) => t.toString()
-    case Right(l) => l.task.toString()
-  }
-
-  def printException(e: Throwable): String = {
-    val baos = new ByteArrayOutputStream()
-    val os = new PrintStream(baos)
-    try {
-      e.printStackTrace(os)
-      baos.toString()
-    } finally {
-      os.close()
-      baos.close()
-    }
-  }
-
-  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
-    val groupDeps: Map[(Either[Task[_], Labelled[Any]], Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
-      case g @ (terminal, group) => {
-        val externalDeps = group.toSeq.flatMap(_.inputs).filterNot(d => group.contains(d)).distinct
-        g -> externalDeps
+      } catch {
+        case NonFatal(e) =>
+          evalLog.debug(s"Exception caught: ${printException(e)}")
+          evalLog.debug(s"left futures:\n  ${state.scheduledFutures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
+      } finally {
+        // done, cleanup
+        evalLog.debug(s"Shutting down executor service: ${executorService}")
+        executorService.shutdownNow()
       }
-    }.toMap
 
-    val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = groupDeps.map {
-      case (group, deps) =>
-        val depGroups = sortedGroups.items.toList.filter {
-          case (otherTerminal, otherGroup) =>
-            otherGroup.toList.exists(d => deps.contains(d))
-        }
-        group -> depGroups
+      return state
     }
 
-    interGroupDeps
+    /**
+      * Searches for new tasks that have no unresolved dependencies and schedule them to run via the executor service.
+      */
+    def scheduleWork(
+      completionService: ExecutorCompletionService[FutureResult],
+      issuer: String
+    )(implicit
+      state: State,
+      evalLog: EvalLog,
+      timeLog: TimeLog
+    ): Unit = {
+      // early exit
+      if (state.pending.isEmpty || state.inProgress.size > effectiveThreadCount) return
+
+      val scheduleStart = System.currentTimeMillis()
+
+      // newInProgress: the terminal groups without unresolved dependencies
+      // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
+      val (newInProgress, newWork) = state.pending.partition { termGroup =>
+        val deps = state.interGroupDeps(termGroup)
+        deps.isEmpty || deps.forall(d => state.doneMap(d))
+      }
+
+      // update state
+      state.pending = newWork
+      state.inProgress = state.inProgress ++ newInProgress
+
+      evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks took ${System.currentTimeMillis() - scheduleStart} msec")
+
+      if (newInProgress.isEmpty) {
+        evalLog.debug(s"No new tasks to schedule (issuer: ${issuer})")
+      } else {
+        evalLog.debug(s"Scheduling ${newInProgress.size} new tasks (issuer: ${issuer}): ${newInProgress.map(t => printTerm(t._1)).mkString(", ")}")
+
+        // schedule for parallel execution
+        newInProgress.zipWithIndex.foreach {
+          case (curWork@(terminal, group), index) =>
+            val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
+              if (failFast && state.someTaskFailed.get()) {
+                // we do not start this tasks but instead return with aborted result
+                val newResults = group.map(_ -> Aborted)
+
+                evalLog.debug(s"Skipped evaluation (because of earlier failures): ${printTerm(terminal)}")
+                FutureResult(curWork, 0, Evaluated(newResults.toMap, Seq(), false))
+
+              } else {
+
+                val counterMsg = state.nextCounterMsg()
+
+                timeLog.debug(s"START ${printTerm(terminal)}")
+                val startTime = System.currentTimeMillis()
+
+                val res = evaluateGroupCached(
+                  terminal,
+                  group,
+                  state.results.asScala,
+                  counterMsg,
+                  reporter,
+                  testReporter,
+                  logger
+                )
+
+                val endTime = System.currentTimeMillis()
+                timeLog.debug(s"END   ${printTerm(terminal)} (${
+                  if (res.newResults.exists(task => !task._2.isInstanceOf[Success[_]])) "failed, " else ""
+                }${
+                  if (res.cached) "cached, " else ""
+                }${
+                  (endTime - startTime).toInt
+                })")
+
+                FutureResult(curWork, (endTime - startTime).toInt, res)
+              }
+            }
+
+            evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${printTerm(terminal)}")
+            state.scheduledFutures = state.scheduledFutures ++ List(workerFut -> curWork)
+        }
+      }
+    }
+
+    def printTerm(term: Terminal): String = term match {
+      case Left(t) => t.toString()
+      case Right(l) => l.task.toString()
+    }
+
+    def printException(e: Throwable): String = {
+      val baos = new ByteArrayOutputStream()
+      val os = new PrintStream(baos)
+      try {
+        e.printStackTrace(os)
+        baos.toString()
+      } finally {
+        os.close()
+        baos.close()
+      }
+    }
+
+    private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
+      val groupDeps: Map[(Either[Task[_], Labelled[Any]], Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
+        case g @ (terminal, group) => {
+          val externalDeps = group.toSeq.flatMap(_.inputs).filterNot(d => group.contains(d)).distinct
+          g -> externalDeps
+        }
+      }.toMap
+
+      val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = groupDeps.map {
+        case (group, deps) =>
+          val depGroups = sortedGroups.items.toList.filter {
+            case (otherTerminal, otherGroup) =>
+              otherGroup.toList.exists(d => deps.contains(d))
+          }
+          group -> depGroups
+      }
+
+      interGroupDeps
+    }
   }
-
-
 }
 
 
