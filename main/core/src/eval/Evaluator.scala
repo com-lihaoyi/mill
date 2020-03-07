@@ -582,8 +582,7 @@ case class Evaluator(
             evalLog.debug(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
             evalLog.debug(s"Current failed terminal group: ${compTask}")
             evalLog.debug(s"Direct dependencies of current failed terminal group: ${interGroupDeps(compTask).map(l => printTerm(l._1))}")
-          //            throw e
-          //            FutureResult(compTask, 0, Evaluated(compTask._2.map(t => t -> Result.Aborted).toMap, compTask._2.toSeq, false))
+            someTaskFailed.set(true)
         }
 
         // cancel jobs and cleanup
@@ -593,25 +592,20 @@ case class Evaluator(
               results.put(goal, Result.Aborted)
             }
           }
-          futures.filterNot(_._1.cancel(false))
+          // cancel all scheduled tasks
+          futures = futures.filterNot(_._1.cancel(false))
         } else {
           scheduleWork(compTaskName.toString())
         }
-      }
+      } // end of while loop
 
     } catch {
       case NonFatal(e) =>
         evalLog.debug(s"Exception caught: ${printException(e)}")
         evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
-        // stop pending jobs
+        // cancel all scheduled tasks
         futures = futures.filterNot(_._1.cancel(false))
-      // currently running futures will not be stopped
-
-      // break while-loop
-      //        throw e
-
     } finally {
-
       // done, cleanup
       evalLog.debug(s"Shutting down executor service: ${executorService}")
       executorService.shutdownNow()
