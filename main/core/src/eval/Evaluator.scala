@@ -554,7 +554,7 @@ case class Evaluator(
         evalLog.debug(s"Waiting for next future completion of ${executorService}")
         val compFuture: Future[FutureResult] = completionService.take()
 
-        val compTask = futures.find(_._1 == compFuture).map(_._2).get
+        val compTask: TerminalGroup = futures.find(_._1 == compFuture).map(_._2).get
         val compTaskName = printTerm(compTask._1)
         evalLog.debug(s"Completed future: ${compFuture} for task ${compTaskName}")
         futures = futures.filterNot(_._1 == compFuture)
@@ -577,44 +577,38 @@ case class Evaluator(
           inProgress = inProgress.filterNot(_ == finishedWork)
           doneMap += finishedWork -> true
 
-          if (failFast && someTaskFailed.get()) {
-            // we exit early and set aborted state for all left tasks
-            //          group.foreach { task =>
-            //            results.put(task, aborted)
-            //          }
-            //            executorService.shutdownNow()
-            // set result state for not run jobs
-            goals.foreach { goal =>
-              if(!results.containsKey(goal)) {
-                results.put(goal, Result.Aborted)
-              }
-            }
-
-            executorService.shutdownNow()
-
-
-          } else {
-            // Try to schedule more tasks
-            scheduleWork(compTaskName.toString())
-          }
-
         } catch {
           case e: ExecutionException =>
-            evalLog.error(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
+            evalLog.debug(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
             evalLog.debug(s"Current failed terminal group: ${compTask}")
             evalLog.debug(s"Direct dependencies of current failed terminal group: ${interGroupDeps(compTask).map(l => printTerm(l._1))}")
-            throw e
+          //            throw e
+          //            FutureResult(compTask, 0, Evaluated(compTask._2.map(t => t -> Result.Aborted).toMap, compTask._2.toSeq, false))
+        }
+
+        // cancel jobs and cleanup
+        if (failFast && someTaskFailed.get()) {
+          goals.foreach { goal =>
+            if (!results.containsKey(goal)) {
+              results.put(goal, Result.Aborted)
+            }
+          }
+          futures.filterNot(_._1.cancel(false))
+        } else {
+          scheduleWork(compTaskName.toString())
         }
       }
 
     } catch {
       case NonFatal(e) =>
-        evalLog.error(s"Exception caught: ${printException(e)}")
+        evalLog.debug(s"Exception caught: ${printException(e)}")
         evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
         // stop pending jobs
-        futures.foreach(_._1.cancel(false))
-        // break while-loop
-        throw e
+        futures = futures.filterNot(_._1.cancel(false))
+      // currently running futures will not be stopped
+
+      // break while-loop
+      //        throw e
 
     } finally {
 
