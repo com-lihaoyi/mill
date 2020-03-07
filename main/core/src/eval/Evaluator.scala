@@ -427,7 +427,7 @@ case class Evaluator(
       // The currently scheduled (maybe not started yet) terminal groups
       private[ParallelEvaluator] var inProgress = List[TerminalGroup]()
       // The finished terminal groups
-      private[ParallelEvaluator] var doneMap = Map[TerminalGroup, Boolean]().withDefaultValue(false)
+      private[ParallelEvaluator] var doneMap = Set[TerminalGroup]()
 
       // The scheduled and not yet finished futures (Java!)
       private[ParallelEvaluator] var scheduledFutures = List[(java.util.concurrent.Future[FutureResult], TerminalGroup)]()
@@ -539,7 +539,7 @@ case class Evaluator(
             state.results.putAll(newResults.asJava)
             state.timings.append((finishedWork._1, time, cached))
             state.inProgress = state.inProgress.filterNot(_ == finishedWork)
-            state.doneMap += finishedWork -> true
+            state.doneMap += finishedWork
 
           } catch {
             case NonFatal(e) =>
@@ -594,7 +594,7 @@ case class Evaluator(
       // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
       val (newInProgress, newWork) = state.pending.partition { termGroup =>
         val deps = state.interGroupDeps(termGroup)
-        deps.isEmpty || deps.forall(d => state.doneMap(d))
+        deps.isEmpty || deps.forall(d => state.doneMap.contains(d))
       }
 
       // update state
