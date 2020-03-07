@@ -1,10 +1,9 @@
 package mill.api
 
 import java.net.{URL, URLClassLoader}
-
+import java.nio.file.FileAlreadyExistsException
 
 import io.github.retronym.java9rtexport.Export
-
 import scala.util.Try
 
 object ClassLoader {
@@ -57,7 +56,18 @@ object ClassLoader {
     if (java9OrAbove) {
       val java90rtJar = ctx.home / Export.rtJarName
       if(!os.exists(java90rtJar)) {
-        Export.rtTo(java90rtJar.toIO, false)
+        Try {
+          os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
+        } recoverWith { case e: FileAlreadyExistsException =>
+          // some race?
+          if(os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
+            // all good
+            ()
+          } else Try {
+            // retry
+            os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
+          }
+        } get
       }
       urls :+ java90rtJar.toIO.toURI().toURL()
     } else {
