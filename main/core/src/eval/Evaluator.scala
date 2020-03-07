@@ -552,7 +552,7 @@ case class Evaluator(
 
       // Work queue management
       // wait for finished jobs and schedule more work, if possible
-      while (futures.size > 0) {
+      while (!(failFast && someTaskFailed.get()) && futures.size > 0) {
         evalLog.debug(s"Waiting for next future completion of ${executorService}")
         val compFuture: Future[FutureResult] = completionService.take()
 
@@ -580,7 +580,7 @@ case class Evaluator(
           doneMap += finishedWork -> true
 
         } catch {
-          case e: ExecutionException =>
+          case NonFatal(e) =>
             evalLog.debug(s"future [${compFuture}] of task [${compTaskName}] failed: ${printException(e)}")
             evalLog.debug(s"Current failed terminal group: ${compTask}")
             evalLog.debug(s"Direct dependencies of current failed terminal group: ${interGroupDeps(compTask).map(l => printTerm(l._1))}")
@@ -595,7 +595,6 @@ case class Evaluator(
             }
           }
           // cancel all scheduled tasks
-          futures = futures.filterNot(_._1.cancel(false))
         } else {
           scheduleWork(compTaskName.toString())
         }
@@ -606,7 +605,6 @@ case class Evaluator(
         evalLog.debug(s"Exception caught: ${printException(e)}")
         evalLog.debug(s"left futures:\n  ${futures.map(f => f._1 -> printTerm(f._2._1)).mkString(",\n  ")}")
         // cancel all scheduled tasks
-        futures = futures.filterNot(_._1.cancel(false))
     } finally {
       // done, cleanup
       evalLog.debug(s"Shutting down executor service: ${executorService}")
