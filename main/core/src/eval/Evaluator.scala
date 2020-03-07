@@ -3,7 +3,7 @@ package mill.eval
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ExecutorCompletionService, Executors, Future}
+import java.util.concurrent.{ConcurrentHashMap, ExecutorCompletionService, Executors, Future}
 
 import ammonite.runtime.SpecialClassLoader
 import mill.api.Result.{Aborted, OuterStack, Success}
@@ -428,7 +428,7 @@ case class Evaluator(
     val evaluated = new Agg.Mutable[Task[_]]
 
     // Mutable collector for all task results
-    @volatile var results = Map.empty[Task[_], Result[(Any, Int)]]
+    val results = new ConcurrentHashMap[Task[_], Result[(Any, Int)]]()
 
     type Timing = (Either[Task[_], Labelled[_]], Int, Boolean)
 
@@ -524,7 +524,7 @@ case class Evaluator(
                   val res = evaluateGroupCached(
                     terminal,
                     group,
-                    results,
+                    results.asScala,
                     counterMsg,
                     reporter,
                     testReporter,
@@ -572,7 +572,7 @@ case class Evaluator(
 
           // Update state
           evaluated.appendAll(newEvaluated)
-          results ++= newResults
+          results.putAll(newResults.asJava)
           timings.append((finishedWork._1, time, cached))
           inProgress = inProgress.filterNot(_ == finishedWork)
           doneMap += finishedWork -> true
@@ -585,9 +585,8 @@ case class Evaluator(
             //            executorService.shutdownNow()
             // set result state for not run jobs
             goals.foreach { goal =>
-              results.get(goal) match {
-                case None => results += goal -> Result.Aborted
-                case _ => // nothing to do
+              if(!results.containsKey(goal)) {
+                results.put(goal, Result.Aborted)
               }
             }
 
@@ -628,7 +627,7 @@ case class Evaluator(
     for((k, vs) <- sortedGroups.items()){
       failing.addAll(
         k,
-        vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
+        vs.items.flatMap(i => Option(results.get(i))).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
     Evaluator.writeTimings(timings, outPath)
@@ -636,12 +635,12 @@ case class Evaluator(
     evalLog.debug(s"End time: ${new java.util.Date()}")
 
     Evaluator.Results(
-      goals.indexed.map(results(_).map(_._1)),
+      goals.indexed.map(results.get(_).map(_._1)),
       evaluated,
       transitive,
       failing,
       timings,
-      results.map{case (k, v) => (k, v.map(_._1))}
+      results.asScala.map{case (k, v) => (k, v.map(_._1))}
     )
   }
 
