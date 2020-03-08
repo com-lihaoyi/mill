@@ -285,23 +285,24 @@ case class Evaluator(
 
     val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
-    var logEnd: Option[() => Unit] = None
-
-    val tickerPrefix = maybeTargetLabel.map { targetLabel =>
+    // should we log progress?
+    val logRun = maybeTargetLabel.isDefined && {
       val inputResults = for {
         target <- nonEvaluatedTargets
         item <- target.inputs.filterNot(group.contains)
       } yield results(item).map(_._1)
+      inputResults.forall(_.isInstanceOf[Result.Success[_]])
+    }
 
-      val logRun = inputResults.forall(_.isInstanceOf[Result.Success[_]])
-
+    val tickerPrefix = maybeTargetLabel.map { targetLabel =>
       val prefix = s"[$counterMsg] $targetLabel "
-      if(logRun) {
-        log.ticker(prefix)
-        if(effectiveThreadCount > 1) logEnd = Some(() => log.ticker(prefix + "FINISHED"))
-      }
+      if(logRun) log.ticker(prefix)
       prefix + "| "
     }
+
+    var logEnd: Option[() => Unit] = maybeTargetLabel
+      .filter(_ => logRun && effectiveThreadCount > 1)
+      .map(l => () => log.ticker(s"[${counterMsg}] ${l} FINISHED"))
 
     val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
