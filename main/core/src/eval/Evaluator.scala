@@ -657,8 +657,14 @@ case class Evaluator(
     }
 
     def printTerm(term: Terminal): String = term match {
-      case Left(t) => t.toString()
-      case Right(l) => l.task.toString()
+      case Left(task) => task.toString()
+      case Right(labelledNamedTask) =>
+        val Seq(first, rest @_*) = labelledNamedTask.segments.value
+        val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
+          case Segment.Label(s) => "." + s
+          case Segment.Cross(s) => "[" + s.mkString(",") + "]"
+        }
+        msgParts.mkString
     }
 
     def printException(e: Throwable): String = {
