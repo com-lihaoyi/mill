@@ -456,24 +456,41 @@ case class Evaluator(
       private[ParallelEvaluator] val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
     }
 
-    class EvalLog(startTime: Long) extends FileLogger(false, outPath / "evaluator.log", true, true) {
-      override def debug(s: String) =
-        super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-    }
+    /**
+     * Log used for internal state logging of parallel evaluation processor.
+     * Used mostly when developing and testing parallel mode.
+     */
+    trait EvalLog extends Logger
 
-    class TimeLog(startTime: Long) extends FileLogger(false, outPath / "tasks-par.log", true, true) {
-      override def debug(s: String) =
-        super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-    }
+    /**
+     * Log used to print start and end timestamps for each executed task
+     */
+    trait TimeLog extends Logger
 
-    def evaluate(): Evaluator.Results = {
+    def evaluate(clearLogs: Boolean = false): Evaluator.Results = {
       os.makeDir.all(outPath)
       val startTime = System.currentTimeMillis()
 
-      implicit val evalLog: EvalLog = new EvalLog(startTime)
+      // Log to separate file, but pass errors to main logger
+      implicit val evalLog: EvalLog = new FileLogger(false, outPath / "evaluator.log", true, !clearLogs)
+        with EvalLog {
+          override def error(s: String): Unit = {
+            logger.error(s)
+            super.error(s)
+          }
+          override def debug(s: String) =
+            super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+        }
       evalLog.debug(s"Start time: ${new java.util.Date()}")
 
-      implicit val timeLog: TimeLog = new TimeLog(startTime)
+      // Log timing infos to separate file and to main logger
+      implicit val timeLog: TimeLog = new MultiLogger(false,
+        new FileLogger(false, outPath / "tasks-par.log", true, !clearLogs) {
+          override def debug(s: String) =
+            super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
+        },
+        logger
+      ) with TimeLog
       timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
 
       val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
