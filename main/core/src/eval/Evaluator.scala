@@ -633,7 +633,6 @@ case class Evaluator(
       val newSeen: mutable.Set[Segments] = mutable.Set()
 
       // newInProgress: the terminal groups without unresolved dependencies
-      // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
       val newInProgress = state.pending.toStream.filter { termGroup =>
         val deps = state.interGroupDeps(termGroup)
         val segments: Option[Segments] = state.taskSegments.get(termGroup)
@@ -641,7 +640,7 @@ case class Evaluator(
           (deps.isEmpty || deps.forall(d => state.doneMap.contains(d)))
         newSeen ++= segments
         candidate
-      }.take(effectiveThreadCount)
+      }.take(effectiveThreadCount * 2)
       evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks (with ${newSeen.size} duplicate drops) took ${System.currentTimeMillis() - scheduleStart} msec")
 
       // update state
@@ -657,6 +656,9 @@ case class Evaluator(
         newInProgress.zipWithIndex.foreach {
           case (curWork@(terminal, group), index) =>
             val term = printTerm(terminal)
+            //
+            // Multithreading: Creating the Future
+            //
             val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
               if (failFast && state.someTaskFailed.get()) {
                 // we do not start this tasks but instead return with aborted result
