@@ -3,7 +3,7 @@ package mill.eval
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
 import java.util.concurrent.atomic.AtomicBoolean
-import java.util.concurrent.{ConcurrentHashMap, ExecutorCompletionService, Executors, Future}
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue, ExecutorCompletionService, Executors, Future}
 
 import ammonite.runtime.SpecialClassLoader
 import mill.api.Result.{Aborted, OuterStack, Success}
@@ -58,10 +58,11 @@ case class Evaluator(
                reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                testReporter: TestReporter = DummyTestReporter,
                logger: Logger = log): Evaluator.Results = {
+    os.makeDir.all(outPath)
+
     if(effectiveThreadCount > 1) {
       new ParallelEvaluator(goals, effectiveThreadCount, reporter, testReporter, logger).evaluate()
     } else {
-    os.makeDir.all(outPath)
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -420,11 +421,32 @@ case class Evaluator(
     type Timing = (Either[Task[_], Labelled[_]], Int, Boolean)
 
     class State(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]])(implicit evalLog: EvalLog) {
-      ///////////////
-      // VARIABLES
 
-      // The unprocessed terminal groups
-      private[ParallelEvaluator] var pending: List[TerminalGroup] = sortedGroups.items().toList
+      // The requested build targets together with a seq of dependencies, that must be build before
+      private[ParallelEvaluator] val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = {
+        val startTime = System.currentTimeMillis()
+        val res = findInterGroupDeps(sortedGroups)
+        evalLog.debug(s"finding ${res.size} inter-group dependencies took ${System.currentTimeMillis() - startTime} msec")
+        res
+      }
+
+      // Increment the counter message by 1 to go from 1/10 to 10/10
+      private[ParallelEvaluator] val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
+
+      // The unprocessed terminal groups, MUTABLE
+      private[ParallelEvaluator] val pending: mutable.LinkedHashSet[TerminalGroup] = sortedGroups.items.to[mutable.LinkedHashSet]
+
+      // The persistent segments for each terminal group excluding workers, if any
+      // Used to determine potential collisions
+      // two tasks with the same segments should not run concurrently
+      // Duplicates can also be the result of somethink like this: mill __.test
+      // Duplicates are an issue in parallel mode, as they would run most likely concurrently.
+      // If you see strange NoSuchFileException or FileAlreadyExistsException for files under out/<task>/
+      // This was probably the effect of running the same target twice in parallel
+      private[ParallelEvaluator] val taskSegments: Map[TerminalGroup, Segments] = pending.collect{
+        case tg @ (Right(l @ Labelled(_, _)), _) if l.task.asWorker.isEmpty => tg -> destSegments(l)
+      }.toMap
+
       // The currently scheduled (maybe not started yet) terminal groups
       private[ParallelEvaluator] var inProgress = Set[TerminalGroup]()
       // The finished terminal groups
@@ -439,21 +461,12 @@ case class Evaluator(
       private[ParallelEvaluator] val someTaskFailed = new AtomicBoolean(false)
       // Mutable collector for timings
       private[ParallelEvaluator] val timings = new mutable.ArrayBuffer[Timing](pending.size)
+      private[ParallelEvaluator] val tracing = new ConcurrentLinkedQueue[Evaluator.TraceEvent]()
       // Mutable collector for all task results
       private[ParallelEvaluator] val results = new ConcurrentHashMap[Task[_], Result[(Any, Int)]]()
       // Mutable collector for all evaluated tasks
       private[ParallelEvaluator] val evaluated = new Agg.Mutable[Task[_]]
 
-      ///////////////
-
-      private[ParallelEvaluator] val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = {
-        val startTime = System.currentTimeMillis()
-        val res = findInterGroupDeps(sortedGroups)
-        evalLog.debug(s"finding ${res.size} inter-group dependencies took ${System.currentTimeMillis() - startTime} msec")
-        res
-      }
-      // Increment the counter message by 1 to go from 1/10 to 10/10
-      private[ParallelEvaluator] val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
     }
 
     /**
@@ -491,7 +504,9 @@ case class Evaluator(
         },
         logger
       ) with TimeLog
+
       timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
+      evalLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
 
       val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
@@ -509,10 +524,16 @@ case class Evaluator(
       }
       Evaluator.writeTimings(state.timings, outPath)
 
+      val tracingEvent: Iterable[Evaluator.TraceEvent] = state.tracing.asScala
+      val threadTids: Map[String, Int] = tracingEvent.map(_.thread).toSet.toList.sorted.zipWithIndex.toMap
+
+      val tracings = tracingEvent.map(t => t.copy(tid = threadTids(t.thread))).toList
+      Evaluator.writeTracings(tracings, outPath)
+
       evalLog.debug(s"End time: ${new java.util.Date()}")
 
       Evaluator.Results(
-        goals.indexed.map(state.results.get(_).map(_._1)),
+        goals.indexed.map(k => Option(state.results.get(k)).getOrElse(throw new NoSuchElementException(k.toString())).map(_._1)),
         state.evaluated,
         transitive,
         failing,
@@ -608,18 +629,24 @@ case class Evaluator(
 
       val scheduleStart = System.currentTimeMillis()
 
+      val oldSeen: Set[Segments] = state.inProgress.flatMap(state.taskSegments.get).to[Set]
+      val newSeen: mutable.Set[Segments] = mutable.Set()
+
       // newInProgress: the terminal groups without unresolved dependencies
       // newWork: the terminal groups, with unresolved dependencies (need to wait longer)
-      val (newInProgress, newWork) = state.pending.partition { termGroup =>
+      val newInProgress = state.pending.toStream.filter { termGroup =>
         val deps = state.interGroupDeps(termGroup)
-        deps.isEmpty || deps.forall(d => state.doneMap.contains(d))
-      }
+        val segments: Option[Segments] = state.taskSegments.get(termGroup)
+        val candidate = segments.forall(s => !oldSeen.contains(s) && !newSeen.contains(s)) &&
+          (deps.isEmpty || deps.forall(d => state.doneMap.contains(d)))
+        newSeen ++= segments
+        candidate
+      }.take(effectiveThreadCount)
+      evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks (with ${newSeen.size} duplicate drops) took ${System.currentTimeMillis() - scheduleStart} msec")
 
       // update state
-      state.pending = newWork
+      state.pending --= newInProgress
       state.inProgress ++= newInProgress
-
-      evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks took ${System.currentTimeMillis() - scheduleStart} msec")
 
       if (newInProgress.isEmpty) {
         evalLog.debug(s"No new tasks to schedule (issuer: ${issuer})")
@@ -629,19 +656,20 @@ case class Evaluator(
         // schedule for parallel execution
         newInProgress.zipWithIndex.foreach {
           case (curWork@(terminal, group), index) =>
+            val term = printTerm(terminal)
             val workerFut: java.util.concurrent.Future[FutureResult] = completionService.submit { () =>
               if (failFast && state.someTaskFailed.get()) {
                 // we do not start this tasks but instead return with aborted result
                 val newResults = group.map(_ -> Aborted)
 
-                evalLog.debug(s"Skipped evaluation (because of earlier failures): ${printTerm(terminal)}")
+                evalLog.debug(s"Skipped evaluation (because of earlier failures): ${term}")
                 FutureResult(curWork, 0, Evaluated(newResults.toMap, Seq(), false))
 
               } else {
 
                 val counterMsg = state.nextCounterMsg()
 
-                timeLog.debug(s"START ${printTerm(terminal)}")
+                timeLog.debug(s"START [${counterMsg}] ${term}")
                 val startTime = System.currentTimeMillis()
 
                 val res = evaluateGroupCached(
@@ -655,7 +683,19 @@ case class Evaluator(
                 )
 
                 val endTime = System.currentTimeMillis()
-                timeLog.debug(s"END   ${printTerm(terminal)} (${
+
+                state.tracing.offer(Evaluator.TraceEvent(
+                  name = term,
+                  cat = "job",
+                  ph = "X",
+                  ts = startTime,
+                  dur = endTime - startTime,
+                  pid = 1,
+                  tid = 1,
+                  args = if(res.cached) Seq("cached") else Seq(),
+                  thread = Thread.currentThread().getName()
+                ))
+                timeLog.debug(s"END   [${counterMsg}] ${term} (${
                   if (res.newResults.exists(task => !task._2.isInstanceOf[Success[_]])) "failed, " else ""
                 }${
                   if (res.cached) "cached, " else ""
@@ -667,9 +707,20 @@ case class Evaluator(
               }
             }
 
-            evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${printTerm(terminal)}")
+            evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${term}")
             state.scheduledFutures += workerFut -> curWork
         }
+        state.tracing.offer(Evaluator.TraceEvent(
+          name = s"Schedule",
+          cat = "schedule",
+          ph = "X",
+          ts = scheduleStart,
+          dur = System.currentTimeMillis() - scheduleStart,
+          pid = 1,
+          tid = 1,
+          args = Seq(issuer),
+          thread = Thread.currentThread().getName()
+        ))
       }
     }
 
@@ -696,6 +747,8 @@ case class Evaluator(
       }
     }
 
+    // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
+    // TODO: we could also track the number of other tasks that depends on a task to prioritize
     private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
       val groupDeps: Map[(Either[Task[_], Labelled[Any]], Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
         case g @ (terminal, group) => {
@@ -842,6 +895,32 @@ object Evaluator{
       counter += 1
       counter + "/" + taskCount
     }
+  }
+
+  /**
+    * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
+    * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
+    */
+  case class TraceEvent(
+    name: String,
+    cat: String,
+    ph: String,
+    ts: Long,
+    dur: Long,
+    pid: Int,
+    tid: Int,
+    args: Seq[String],
+    thread: String
+  )
+  object TraceEvent {
+    implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
+  }
+
+  def writeTracings(tracings: Seq[TraceEvent], outPath: os.Path): Unit = {
+    os.write.over(
+      outPath / "mill-par-profile.json",
+      upickle.default.stream(tracings, indent = 2)
+    )
   }
 
 }
