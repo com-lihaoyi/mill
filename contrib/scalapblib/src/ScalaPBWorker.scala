@@ -21,10 +21,11 @@ class ScalaPBWorker {
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 
         val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path]) {
+          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path], useZIO:Boolean) {
             val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = protocPath.map(path => s"--protoc=$path").toSeq ++ Seq(
               "--throw",
+              (if (useZIO) s"--zio_out=${generatedDirectory.getCanonicalPath}" else ""),
               s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
               s"--proto_path=${source.getParentFile.getCanonicalPath}"
             ) ++
@@ -38,7 +39,7 @@ class ScalaPBWorker {
     }
   }
 
-  def compile(scalaPBClasspath: Agg[os.Path], protocPath: Option[String], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path, scalaPBIncludePath: Seq[os.Path])
+  def compile(scalaPBClasspath: Agg[os.Path], protocPath: Option[String], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path, scalaPBIncludePath: Seq[os.Path], useZIO:Boolean)
              (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath, protocPath)
 
@@ -47,7 +48,7 @@ class ScalaPBWorker {
       if (inputDir.toIO.exists) {
         os.walk(inputDir).filter(_.last.matches(".*.proto"))
           .foreach { proto =>
-            compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO, scalaPBIncludePath)
+            compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO, scalaPBIncludePath, useZIO)
           }
       }
     }
@@ -59,7 +60,7 @@ class ScalaPBWorker {
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path])
+  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path], useZIO:Boolean)
 }
 
 object ScalaPBWorkerApi {

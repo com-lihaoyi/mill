@@ -3,7 +3,13 @@ package contrib.scalapblib
 
 import java.net.URI
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileSystems, Files, Path, SimpleFileVisitor, StandardCopyOption}
+import java.nio.file.{
+  FileSystems,
+  Files,
+  Path,
+  SimpleFileVisitor,
+  StandardCopyOption
+}
 
 import coursier.MavenRepository
 import coursier.core.Version
@@ -15,12 +21,18 @@ import mill.api.Loose
 
 trait ScalaPBModule extends ScalaModule {
 
-  override def generatedSources = T { super.generatedSources() :+ compileScalaPB() }
+  override def generatedSources = T {
+    super.generatedSources() :+ compileScalaPB()
+  }
 
   override def ivyDeps = T {
     super.ivyDeps() ++
       Agg(ivy"com.thesamet.scalapb::scalapb-runtime:${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg() else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      (if (!scalaPBGrpc()) Agg()
+       else
+         Agg(
+           ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"
+         ))
   }
 
   def scalaPBVersion: T[String]
@@ -30,6 +42,8 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBJavaConversions: T[Boolean] = T { false }
 
   def scalaPBGrpc: T[Boolean] = T { true }
+
+  def scalaPBZio: T[Boolean] = T { false }
 
   def scalaPBSingleLineToProtoString: T[Boolean] = T { false }
 
@@ -45,10 +59,11 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBOptions: T[String] = T {
     (
       (if (scalaPBFlatPackage()) Seq("flat_package") else Seq.empty) ++
-      (if (scalaPBJavaConversions()) Seq("java_conversions") else Seq.empty) ++
-      (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
-      (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
-        if (!scalaPBSingleLineToProtoString()) Seq.empty else {
+        (if (scalaPBJavaConversions()) Seq("java_conversions") else Seq.empty) ++
+        (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
+        (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
+        if (!scalaPBSingleLineToProtoString()) Seq.empty
+        else {
           if (Version(scalaPBVersion()) >= Version("0.7.0"))
             Seq("single_line_to_proto_string")
           else
@@ -76,12 +91,15 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBUnpackProto: T[PathRef] = T {
-    val cp   = scalaPBProtoClasspath()
+    val cp = scalaPBProtoClasspath()
     val dest = T.dest
     cp.foreach { ref =>
       val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
       val jarFs =
-        FileSystems.newFileSystem(URI.create(baseUri), new java.util.HashMap[String, String]())
+        FileSystems.newFileSystem(
+          URI.create(baseUri),
+          new java.util.HashMap[String, String]()
+        )
       try {
         import scala.collection.JavaConverters._
         jarFs.getRootDirectories.asScala.foreach { r =>
@@ -118,6 +136,8 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBSources().map(_.path),
         scalaPBOptions(),
         T.dest,
-        scalaPBIncludePath().map(_.path))
+        scalaPBIncludePath().map(_.path),
+        scalaPBZio()
+      )
   }
 }
