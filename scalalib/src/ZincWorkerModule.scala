@@ -4,7 +4,7 @@ package mill.scalalib
 import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
-import mill.api.{Ctx, KeyedLockedCache, Loose}
+import mill.api.{Ctx, KeyedLockedCache, Loose, FixSizedCache}
 import mill.define.{Discover, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty}
@@ -68,7 +68,7 @@ trait ZincWorkerModule extends mill.Module {
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
-        new KeyedLockedCache.RandomBoundedCache(jobs, jobs),
+        new FixSizedCache(jobs),
         false.asInstanceOf[AnyRef]
       )
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
