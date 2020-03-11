@@ -1,24 +1,14 @@
 package mill.api
 
-import java.io._
-import java.net.InetAddress
-import java.net.{ServerSocket, Socket}
-import java.text.SimpleDateFormat
 import java.util.concurrent.{ConcurrentHashMap, Semaphore}
-import java.util.zip.{ZipEntry, ZipOutputStream}
 
-import scala.util.{Try, Success, Failure}
-import scala.util.control.NonFatal
-
-import mill.api.{KeyedLockedCache, Result}
-import os.Path
 /**
-  * Simple fixed size cache with the following properties
+  * Simple fixed size cache mainly intended for use in [[ZincWorkerImpl]] with the following properties
   * - Elements are lazily initialized upon first access
-  * - Cached element ordering is preserved. The earliest available compiler will always be returned
-  *   first, and it will always be put back in the cache in the same position. This is important
-  *   because each compiler instance is JITed independently. So with a stable ordering so we can bias
-  *   towards reusing an already warm compiler.
+  * - Cached element ordering is preserved. The earliest available cache entry which is probably a compiler instance
+  *   will always be returned first, and it will always be put back in the cache in the same position.
+  *   This is important because each compiler instance is JITed independently. So with a stable ordering
+  *   so we can bias towards reusing an already warm compiler.
   *
   * @param perKeySize Cache Size per unique key
   */
