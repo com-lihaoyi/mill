@@ -2,7 +2,8 @@ package mill.eval
 
 import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
-import java.util.concurrent.atomic.AtomicBoolean
+import java.nio.file.{Files, StandardOpenOption}
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue, ExecutorCompletionService, Executors, Future}
 
 import ammonite.runtime.SpecialClassLoader
@@ -181,7 +182,7 @@ case class Evaluator(
             catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
 
-        val workerCached = labelledNamedTask.task.asWorker
+        val workerCached: Option[Any] = labelledNamedTask.task.asWorker
           .flatMap{w => workerCache.get(w.ctx.segments)}
           .collect{case (`inputsHash`, v) => v}
 
@@ -301,9 +302,6 @@ case class Evaluator(
       prefix + "| "
     }
 
-    var logEnd: Option[() => Unit] = maybeTargetLabel
-      .filter(_ => logRun && effectiveThreadCount > 1)
-      .map(l => () => log.ticker(s"[${counterMsg}] ${l} FINISHED"))
 
     val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
@@ -383,7 +381,6 @@ case class Evaluator(
       }
     }
 
-    logEnd.foreach(_())
 
     multiLogger.close()
 
@@ -461,7 +458,6 @@ case class Evaluator(
       private[ParallelEvaluator] val someTaskFailed = new AtomicBoolean(false)
       // Mutable collector for timings
       private[ParallelEvaluator] val timings = new mutable.ArrayBuffer[Timing](pending.size)
-      private[ParallelEvaluator] val tracing = new ConcurrentLinkedQueue[Evaluator.TraceEvent]()
       // Mutable collector for all task results
       private[ParallelEvaluator] val results = new ConcurrentHashMap[Task[_], Result[(Any, Int)]]()
       // Mutable collector for all evaluated tasks
@@ -478,7 +474,16 @@ case class Evaluator(
     /**
      * Log used to print start and end timestamps for each executed task
      */
-    trait TimeLog extends Logger
+    trait TimeLog extends Logger {
+      def timeTrace(
+        task: String,
+        cat: String,
+        startTime: Long,
+        endTime: Long,
+        thread: String,
+        cached: Boolean
+      )
+    }
 
     def evaluate(clearLogs: Boolean = false): Evaluator.Results = {
       os.makeDir.all(outPath)
@@ -503,7 +508,59 @@ case class Evaluator(
             super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
         },
         logger
-      ) with TimeLog
+      ) with TimeLog {
+        val used = new AtomicBoolean(false)
+        lazy val traceStream = {
+          val options = Seq(
+            Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
+            Seq(StandardOpenOption.TRUNCATE_EXISTING)
+          ).flatten
+          os.makeDir.all(outPath)
+          new PrintStream(Files.newOutputStream((outPath / "mill-par-profile.json").toNIO, options: _*))
+        }
+        object threadTids {
+          val tids = new ConcurrentHashMap[String, Int]()
+          val nextTid = new AtomicInteger(0)
+          def apply(thread: String) = {
+            tids.computeIfAbsent(thread, _ => nextTid.getAndAdd(1))
+          }
+        }
+        override def timeTrace(
+          task: String,
+          cat: String,
+          startTime: Long,
+          endTime: Long,
+          thread: String,
+          cached: Boolean
+        ): Unit = {
+          traceStream.synchronized {
+            if(used.getAndSet(true)) {
+              traceStream.println(",")
+            } else {
+              traceStream.println("[")
+            }
+            traceStream.print(
+              upickle.default.write(
+                Evaluator.TraceEvent(
+                  name = task,
+                  cat = cat,
+                  ph = "X",
+                  ts = startTime,
+                  dur = endTime - startTime,
+                  pid = 1,
+                  tid = threadTids(thread),
+                  args = if (cached) Seq("cached") else Seq()
+                )
+              )
+            )
+          }
+        }
+        override def close(): Unit = {
+          super.close()
+          traceStream.println("]")
+          traceStream.close()
+        }
+      }
 
       timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
       evalLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
@@ -524,13 +581,10 @@ case class Evaluator(
       }
       Evaluator.writeTimings(state.timings, outPath)
 
-      val tracingEvent: Iterable[Evaluator.TraceEvent] = state.tracing.asScala
-      val threadTids: Map[String, Int] = tracingEvent.map(_.thread).toSet.toList.sorted.zipWithIndex.toMap
-
-      val tracings = tracingEvent.map(t => t.copy(tid = threadTids(t.thread))).toList
-      Evaluator.writeTracings(tracings, outPath)
-
       evalLog.debug(s"End time: ${new java.util.Date()}")
+
+      evalLog.close()
+      timeLog.close()
 
       Evaluator.Results(
         goals.indexed.map(k => Option(state.results.get(k)).getOrElse(throw new NoSuchElementException(k.toString())).map(_._1)),
@@ -686,17 +740,14 @@ case class Evaluator(
 
                 val endTime = System.currentTimeMillis()
 
-                state.tracing.offer(Evaluator.TraceEvent(
-                  name = term,
+                timeLog.timeTrace(
+                  task = term,
                   cat = "job",
-                  ph = "X",
-                  ts = startTime,
-                  dur = endTime - startTime,
-                  pid = 1,
-                  tid = 1,
-                  args = if(res.cached) Seq("cached") else Seq(),
-                  thread = Thread.currentThread().getName()
-                ))
+                  startTime = startTime,
+                  endTime = endTime,
+                  thread = Thread.currentThread().getName(),
+                  cached = res.cached
+                )
                 timeLog.debug(s"END   [${counterMsg}] ${term} (${
                   if (res.newResults.exists(task => !task._2.isInstanceOf[Success[_]])) "failed, " else ""
                 }${
@@ -712,17 +763,7 @@ case class Evaluator(
             evalLog.debug(s"New future: ${workerFut} [${index + 1}/${newInProgress.size}] for task: ${term}")
             state.scheduledFutures += workerFut -> curWork
         }
-        state.tracing.offer(Evaluator.TraceEvent(
-          name = s"Schedule",
-          cat = "schedule",
-          ph = "X",
-          ts = scheduleStart,
-          dur = System.currentTimeMillis() - scheduleStart,
-          pid = 1,
-          tid = 1,
-          args = Seq(issuer),
-          thread = Thread.currentThread().getName()
-        ))
+        timeLog.timeTrace("Schedule", "schedule", scheduleStart, System.currentTimeMillis(), Thread.currentThread().getName(), false)
       }
     }
 
@@ -911,8 +952,7 @@ object Evaluator{
     dur: Long,
     pid: Int,
     tid: Int,
-    args: Seq[String],
-    thread: String
+    args: Seq[String]
   )
   object TraceEvent {
     implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
