@@ -390,7 +390,17 @@ case class Evaluator(
     case Some(path) => MultiLogger(logger.colored, log, new FileLogger(logger.colored, path, debugEnabled = true))
   }
 
+  /**
+    * A terminal or terminal target is some important work unit, that in most cases has a name (Right[Labelled])
+    * or was directly called by the user (Left[Task]).
+    * It's a T, T.worker, T.input, T.source, T.sources, T.persistent
+    */
   type Terminal = Either[Task[_], Labelled[Any]]
+  /**
+    * A terminal target with all it's inner tasks.
+    * To implement a terminal target, one can delegate to other/inner tasks (T.task), those are contained in
+    * the 2nd parameter of the tuple.
+    */
   type TerminalGroup = (Terminal, Agg[Task[_]])
 
   /**
