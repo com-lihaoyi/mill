@@ -302,7 +302,6 @@ case class Evaluator(
       prefix + "| "
     }
 
-
     val multiLogger = new ProxyLogger(resolveLogger(paths.map(_.log), logger)) {
       override def ticker(s: String): Unit = {
         super.ticker(tickerPrefix.getOrElse("")+s)
@@ -381,7 +380,6 @@ case class Evaluator(
       }
     }
 
-
     multiLogger.close()
 
     (newResults, newEvaluated)
@@ -433,15 +431,16 @@ case class Evaluator(
       // The unprocessed terminal groups, MUTABLE
       private[ParallelEvaluator] val pending: mutable.LinkedHashSet[TerminalGroup] = sortedGroups.items.to[mutable.LinkedHashSet]
 
-      // The persistent segments for each terminal group excluding workers, if any
+      // The persistent segments for each terminal group, if any
       // Used to determine potential collisions
       // two tasks with the same segments should not run concurrently
-      // Duplicates can also be the result of somethink like this: mill __.test
+      // Duplicates can also be the result of something like this: mill __.test
       // Duplicates are an issue in parallel mode, as they would run most likely concurrently.
       // If you see strange NoSuchFileException or FileAlreadyExistsException for files under out/<task>/
       // This was probably the effect of running the same target twice in parallel
-      private[ParallelEvaluator] val taskSegments: Map[TerminalGroup, Segments] = pending.collect{
-        case tg @ (Right(l @ Labelled(_, _)), _) if l.task.asWorker.isEmpty => tg -> destSegments(l)
+      // Also a classloading issue for xsbt classes is the result of concurrently initializing the zinc worker
+      private[ParallelEvaluator] val taskSegments: Map[TerminalGroup, Segments] = sortedGroups.items.collect{
+        case tg @ (Right(l @ Labelled(_, _)), _) => tg -> destSegments(l)
       }.toMap
 
       // The currently scheduled (maybe not started yet) terminal groups
@@ -686,15 +685,23 @@ case class Evaluator(
       val oldSeen: Set[Segments] = state.inProgress.flatMap(state.taskSegments.get).to[Set]
       val newSeen: mutable.Set[Segments] = mutable.Set()
 
+      var taken: Int = 0
+      var collisionsFree: Boolean = true
+
       // newInProgress: the terminal groups without unresolved dependencies
       val newInProgress = state.pending.toStream.filter { termGroup =>
         val deps = state.interGroupDeps(termGroup)
         val segments: Option[Segments] = state.taskSegments.get(termGroup)
-        val candidate = segments.forall(s => !oldSeen.contains(s) && !newSeen.contains(s)) &&
-          (deps.isEmpty || deps.forall(d => state.doneMap.contains(d)))
+        val collFree0 = segments.forall(s => !oldSeen.contains(s) && !newSeen.contains(s))
+        collisionsFree &= collFree0
+        val candidate =  collFree0 && (deps.isEmpty || deps.forall(d => state.doneMap.contains(d)))
         newSeen ++= segments
+        taken += 1
         candidate
-      }.take(effectiveThreadCount * 2)
+      }.takeWhile { _ =>
+        // in case we have a collision, we try to unblock as fast as possible
+        taken < 1 || collisionsFree && taken < (effectiveThreadCount * 2)
+      }
       evalLog.debug(s"Search for ${newInProgress.size} new dep-free tasks (with ${newSeen.size} duplicate drops) took ${System.currentTimeMillis() - scheduleStart} msec")
 
       // update state
