@@ -810,23 +810,16 @@ case class Evaluator(
     // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
     // TODO: we could also track the number of other tasks that depends on a task to prioritize
     private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
-      val groupDeps: Map[(Either[Task[_], Labelled[Any]], Agg[Task[_]]), Seq[Task[_]]] = sortedGroups.items().map {
-        case g @ (terminal, group) => {
-          val externalDeps = group.toSeq.flatMap(_.inputs).filterNot(d => group.contains(d)).distinct
-          g -> externalDeps
-        }
+      def termGroup(t: Terminal): TerminalGroup = t -> sortedGroups.lookupKey(t)
+      sortedGroups.items().map {
+        case g @ (terminal, group) =>
+          g -> group.toSeq
+            .flatMap(_.inputs)
+            .filterNot(d => group.contains(d))
+            .distinct
+            .map(dep => termGroup(sortedGroups.lookupValue(dep)))
+            .distinct
       }.toMap
-
-      val interGroupDeps: Map[TerminalGroup, Seq[TerminalGroup]] = groupDeps.map {
-        case (group, deps) =>
-          val depGroups = sortedGroups.items.toList.filter {
-            case (otherTerminal, otherGroup) =>
-              otherGroup.toList.exists(d => deps.contains(d))
-          }
-          group -> depGroups
-      }
-
-      interGroupDeps
     }
   }
 }
