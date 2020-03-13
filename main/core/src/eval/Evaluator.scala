@@ -159,7 +159,7 @@ case class Evaluator(
           logger
         )
         Evaluated(newResults, newEvaluated, false)
-      case Right(labelledNamedTask) =>
+      case lntRight @ Right(labelledNamedTask) =>
 
         val out = if (!labelledNamedTask.task.ctx.external) outPath
           else externalOutPath
@@ -194,12 +194,7 @@ case class Evaluator(
             Evaluated(newResults, Nil, true)
 
           case _ =>
-            val Seq(first, rest @_*) = labelledNamedTask.segments.value
-            val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
-              case Segment.Label(s) => "." + s
-              case Segment.Cross(s) => "[" + s.mkString(",") + "]"
-            }
-
+            // uncached
             if (labelledNamedTask.task.flushDest) os.remove.all(paths.dest)
 
             val (newResults, newEvaluated) = evaluateGroup(
@@ -207,7 +202,7 @@ case class Evaluator(
               results,
               inputsHash,
               paths = Some(paths),
-              maybeTargetLabel = Some(msgParts.mkString),
+              maybeTargetLabel = Some(printTerm(lntRight)),
               counterMsg = counterMsg,
               zincProblemReporter,
               testReporter,
@@ -784,17 +779,6 @@ case class Evaluator(
       }
     }
 
-    def printTerm(term: Terminal): String = term match {
-      case Left(task) => task.toString()
-      case Right(labelledNamedTask) =>
-        val Seq(first, rest @_*) = labelledNamedTask.segments.value
-        val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
-          case Segment.Label(s) => "." + s
-          case Segment.Cross(s) => "[" + s.mkString(",") + "]"
-        }
-        msgParts.mkString
-    }
-
     def printException(e: Throwable): String = {
       val baos = new ByteArrayOutputStream()
       val os = new PrintStream(baos)
@@ -822,6 +806,18 @@ case class Evaluator(
       }.toMap
     }
   }
+
+  def printTerm(term: Terminal): String = term match {
+    case Left(task) => task.toString()
+    case Right(labelledNamedTask) =>
+      val Seq(first, rest @_*) = labelledNamedTask.segments.value
+      val msgParts = Seq(first.asInstanceOf[Segment.Label].value) ++ rest.map{
+        case Segment.Label(s) => "." + s
+        case Segment.Cross(s) => "[" + s.mkString(",") + "]"
+      }
+      msgParts.mkString
+  }
+
 }
 
 
