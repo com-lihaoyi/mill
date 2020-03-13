@@ -68,7 +68,8 @@ case class PrintLogger(
   infoStream: PrintStream,
   errStream: PrintStream,
   inStream: InputStream,
-  debugEnabled: Boolean
+  debugEnabled: Boolean,
+  useContext: Boolean
 ) extends Logger {
 
   var printState: PrintState = PrintState.Newline
@@ -86,7 +87,7 @@ case class PrintLogger(
     )
   )
 
-  private[this] def context = PrintLogger.getContext.getOrElse("")
+  private[this] def context = if (useContext) PrintLogger.getContext.getOrElse("") else ""
 
   def info(s: String) = {
     printState = PrintState.Newline

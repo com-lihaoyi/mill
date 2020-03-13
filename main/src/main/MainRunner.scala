@@ -78,7 +78,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           errPrintStream,
           errPrintStream,
           stdIn,
-          debugEnabled = debugLog
+          debugEnabled = debugLog,
+          useContext = true
         )
         logger.debug(s"Using explicit system properties: ${systemProperties}")
 
