@@ -3,6 +3,8 @@ package mill.util
 import java.io._
 import java.nio.file.{Files, StandardOpenOption}
 
+import scala.util.DynamicVariable
+
 import mill.api.Logger
 
 object DummyLogger extends Logger {
@@ -128,23 +130,9 @@ case class PrintLogger(
 }
 
 object PrintLogger {
-
-  private[this] val _context: InheritableThreadLocal[Option[String]] = new InheritableThreadLocal[Option[String]]() {
-    override def initialValue(): Option[String] = None
-  }
-
-  def withContext[T](context: Option[String])(f: => T): T = {
-    val oldContext = _context.get()
-    _context.set(context)
-    try {
-      f
-    } finally {
-      _context.set(oldContext)
-    }
-  }
-
-  def getContext: Option[String] = _context.get()
-
+  private[this] val _context = new DynamicVariable[Option[String]](None)
+  def withContext[T](context: Option[String])(f: => T): T = _context.withValue(context)(f)
+  def getContext: Option[String] = _context.value
 }
 
 class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
