@@ -34,29 +34,18 @@ class CallbackStream(
     setPrintState0(printState)
   }
 
-  private[this] def addPrefix(): Unit = {
-    PrintLogger.getContext.map { p =>
-      if (printState == PrintState.Newline || printState == null) {
-        wrapped.write(p.getBytes())
-      }
-    }
-  }
-
   override def write(b: Array[Byte]): Unit = {
     if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
-//    addPrefix()
     wrapped.write(b)
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
     if (len != 0) setPrintState(b(off + len - 1).toChar)
-//    addPrefix()
     wrapped.write(b, off, len)
   }
 
   override def write(b: Int): Unit = {
     setPrintState(b.toChar)
-//    addPrefix()
     wrapped.write(b)
   }
 }
@@ -82,8 +71,18 @@ case class PrintLogger(
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream = new PrintStream(new CallbackStream(errStream, printState = _))
-  override val outputStream = new PrintStream(new CallbackStream(outStream, printState = _))
+  override val errorStream = new PrintStream(
+    new CallbackStream(
+      new LinePrefixOutputStream(() => context, errStream),
+      printState = _
+    )
+  )
+  override val outputStream = new PrintStream(
+    new CallbackStream(
+      new LinePrefixOutputStream(() => context, outStream),
+      printState = _
+    )
+  )
 
   private[this] def context = PrintLogger.getContext.getOrElse("")
 
