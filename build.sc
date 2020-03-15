@@ -643,9 +643,9 @@ object dev extends MillModule{
     val (millArgs, otherArgs) = forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
     // Pass dev.assembly VM options via file in Windows due to small max args limit
     val vmOptionsFile = T.ctx.dest / "mill.properties"
-    val millOptionsPath = // drop -D prefix, replace \ with /
-      os.write(vmOptionsFile, millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n"))
-    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$millOptionsPath")
+    val millOptionsContent = millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n") // drop -D prefix, replace \ with /
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = Agg(pathingJar().path.toString)
     launcherScript(
       jvmArgs,
