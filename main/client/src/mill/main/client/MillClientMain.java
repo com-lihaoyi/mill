@@ -19,32 +19,43 @@ public class MillClientMain {
 	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
 
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
-
-        List<String> l = new ArrayList<>();
+        
+        String selfJars = "";
         List<String> vmOptions = new ArrayList<>();
-        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-        final Properties props = System.getProperties();
-        for(final String k: props.stringPropertyNames()){
-            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
-                vmOptions.add("-D" + k + "=" + props.getProperty(k));
+        String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
+        if(millOptionsPath != null) {
+            // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
+            Properties millProps = new Properties();
+            millProps.load(new FileInputStream(millOptionsPath));
+            for(final String k: millProps.stringPropertyNames()){
+                String propValue = millProps.getProperty(k);
+                if("MILL_CLASSPATH".equals(k)){
+                    selfJars = propValue;
+                }
             }
+        } else {
+            // read MILL_CLASSPATH from file sys props
+            selfJars = System.getProperty("MILL_CLASSPATH");
+        }
+
+        final Properties sysProps = System.getProperties();
+        for(final String k: sysProps.stringPropertyNames()){
+            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
+                vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
+            }
+        }
+        if(selfJars == null || selfJars.trim().isEmpty()) {
+            throw new RuntimeException("MILL_CLASSPATH is empty!");
         }
         if (setJnaNoSys) {
             vmOptions.add("-Djna.nosys=true");
         }
-        if(!Util.isWindows){
-            l.addAll(vmOptions);
-        } else {
-            final File vmOptionsFile = new File(lockBase, "vmoptions");
-            try (PrintWriter out = new PrintWriter(vmOptionsFile)) {
-                for(String opt: vmOptions)
-                out.println(opt);
-            }
-            l.add("-XX:VMOptionsFile=" + vmOptionsFile.getCanonicalPath());
-        }
+
+        List<String> l = new ArrayList<>();
+        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
+        l.addAll(vmOptions);
         l.add("-cp");
-        l.add(String.join(File.pathSeparator, selfJars));
+        l.add(String.join(File.pathSeparator, selfJars.split(",")));
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
