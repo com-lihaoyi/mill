@@ -661,7 +661,7 @@ object dev extends MillModule{
     val isWin = scala.util.Properties.isWin
     val classpath = runClasspath().map{ pathRef =>
       val path = if (isWin) "/" + pathRef.path.toString.replace("\\", "/") 
-                  else pathRef.path.toString
+                 else pathRef.path.toString
       if (path.endsWith(".jar")) path
       else path + "/"
     }.mkString(" ")
