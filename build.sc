@@ -641,7 +641,7 @@ object dev extends MillModule{
 
   def prependShellScript = T{
     val (millArgs, otherArgs) = forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
-    // Pass dev.assembly VM options via file in Windows due to small max args limit
+    // Pass Mill options via file, due to small max args limit in Windows
     val vmOptionsFile = T.ctx.dest / "mill.properties"
     val millOptionsContent = millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n") // drop -D prefix, replace \ with /
     os.write(vmOptionsFile, millOptionsContent)
