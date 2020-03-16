@@ -168,7 +168,7 @@ trait ScalaModule extends JavaModule { outer =>
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
       "-d", javadocDir.toNIO.toString,
-      "-classpath", compileCp.mkString(":")
+      "-classpath", compileCp.mkString(java.io.File.pathSeparator)
     ) ++
       pluginOptions ++
       scalaDocOptions()
