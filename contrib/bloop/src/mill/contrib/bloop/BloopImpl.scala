@@ -154,7 +154,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
             (s.scalacOptions() ++ pluginOptions).toList
           Some(
             BloopConfig.Scala(
-              organization = "org.scala-lang",
+              organization = s.scalaOrganization(),
               name = "scala-compiler",
               version = s.scalaVersion(),
               options = allScalacOptions,
