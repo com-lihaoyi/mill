@@ -203,7 +203,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
       toolsClasspath().map(_.path),
       jsEnvConfig(),
