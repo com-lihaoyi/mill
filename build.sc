@@ -71,7 +71,6 @@ object Deps {
   val utest = ivy"com.lihaoyi::utest:0.7.3"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
-  val betterMonadicFor = ivy"com.olegpy::better-monadic-for:0.3.1"
 }
 
 trait MillPublishModule extends PublishModule{
@@ -96,7 +95,7 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.12.8" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(Deps.acyclic, Deps.betterMonadicFor)
+  def scalacPluginIvyDeps = Agg(Deps.acyclic)
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
