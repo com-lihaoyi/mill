@@ -57,9 +57,20 @@ class BintrayHttpApi(
     )
   }
 
+  def publish(pkg: String, version: String): requests.Response = {
+    log.info(s"Publishing version $version")
+    http.post(
+      Paths.publish(pkg, version),
+      headers = Seq(
+        "Authorization" -> Auth.basic
+      )
+    )
+  }
+
   object Paths {
     val root = "https://api.bintray.com"
     def upload(pkg: String, version: String) = s"$root/content/$owner/$repo/$pkg/$version"
+    def publish(pkg: String, version: String) = s"$root/content/$owner/$repo/$pkg/$version/publish"
     def version(pkg: String) = s"$root/packages/$owner/$repo/$pkg/versions"
   }
 

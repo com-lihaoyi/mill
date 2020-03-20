@@ -6,6 +6,7 @@ import mill.scalalib.publish.Artifact
 class BintrayPublisher(owner: String,
                        repo: String,
                        credentials: String,
+                       release: Boolean = true,
                        readTimeout: Int,
                        connectTimeout: Int,
                        log: Logger) {
@@ -49,27 +50,40 @@ class BintrayPublisher(owner: String,
   
   private def publishToRepo(releases: Seq[(Artifact, Seq[(String, Array[Byte])])]): Unit = {
 
-    val publishResults =
+    val uploadResults =
       for {
         (artifact, payloads) <- releases
         createVersion = api.createVersion(artifact.id, artifact.version)
         (fileName, data) <- payloads
         if createVersion.is2xx || createVersion.is3xx
-      } yield api.upload(artifact.id, artifact.version, fileName, "", data)
+      } yield artifact -> api.upload(artifact.id, artifact.version, fileName, "", data)
 
-    reportPublishResults(publishResults, releases.map(_._1))
+    if (release) {
+      val publishResults =
+        for {
+          (artifact, responses) <- uploadResults.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+          if responses.forall(_.is2xx)
+        } yield artifact -> (responses :+ api.publish(artifact.id, artifact.version))
+
+      reportPublishResults(publishResults)
+    } else {
+      reportPublishResults(uploadResults.toMap.mapValues(Seq(_)).toSeq)
+    }
   }
 
-  private def reportPublishResults(publishResults: Seq[requests.Response],
-                                   artifacts: Seq[Artifact]) = {
-    if (publishResults.forall(_.is2xx)) {
-      log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Bintray")
-    } else {
-      val errors = publishResults.filterNot(_.is2xx).map { response =>
-        s"Code: ${response.statusCode}, message: ${response.text()}"
-      }
+  private def reportPublishResults(publishResults: Seq[(Artifact, Seq[requests.Response])]) = {
+    val errors =
+      for {
+        (artifact, responses) <- publishResults
+        response <- responses
+        if !response.is2xx
+      } yield artifact -> s"Code: ${response.statusCode}, message: ${response.text()}"
+
+    val errorsByArtifact = errors.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+
+    if (errorsByArtifact.nonEmpty) {
       throw new RuntimeException(
-        s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Bintray. Errors: \n${errors.mkString("\n")}"
+        s"Failed to publish ${errorsByArtifact.map(_._1).mkString(", ")} to Bintray. Errors: \n${errorsByArtifact.flatMap(_._2).mkString("\n")}"
       )
     }
   }

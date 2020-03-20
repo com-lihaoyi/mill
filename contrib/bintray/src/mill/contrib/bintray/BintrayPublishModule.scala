@@ -10,6 +10,7 @@ trait BintrayPublishModule extends PublishModule {
   def publishBintray(credentials: String,
                      bintrayOwner: String = bintrayOwner,
                      bintrayRepo: String = bintrayRepo,
+                     release: Boolean = true,
                      readTimeout: Int = 60000,
                      connectTimeout: Int = 5000): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
@@ -17,6 +18,7 @@ trait BintrayPublishModule extends PublishModule {
       bintrayOwner,
       bintrayRepo,
       credentials,
+      release,
       readTimeout,
       connectTimeout,
       T.log
@@ -28,6 +30,7 @@ object BintrayPublishModule extends ExternalModule {
   def publishAll(credentials: String,
                  bintrayOwner: String,
                  bintrayRepo: String,
+                 release: Boolean = true,
                  publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
                  readTimeout: Int = 60000,
                  connectTimeout: Int = 5000) = T.command {
@@ -39,6 +42,7 @@ object BintrayPublishModule extends ExternalModule {
       bintrayOwner,
       bintrayRepo,
       credentials,
+      release,
       readTimeout,
       connectTimeout,
       T.log
