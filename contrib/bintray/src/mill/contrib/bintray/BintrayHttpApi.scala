@@ -59,7 +59,7 @@ class BintrayHttpApi(
 
   object Paths {
     val root = "https://api.bintray.com"
-    def upload(pkg: String, version: String) = s"$root/content/$owner/$repo"
+    def upload(pkg: String, version: String) = s"$root/content/$owner/$repo/$pkg/$version"
     def version(pkg: String) = s"$root/packages/$owner/$repo/$pkg/versions"
   }
 
