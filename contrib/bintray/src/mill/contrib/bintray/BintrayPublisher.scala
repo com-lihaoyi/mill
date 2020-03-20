@@ -53,21 +53,26 @@ class BintrayPublisher(owner: String,
     val uploadResults =
       for {
         (artifact, payloads) <- releases
-        createVersion = api.createVersion(artifact.id, artifact.version)
+        response = api.createVersion(artifact.id, artifact.version)
         (fileName, data) <- payloads
-        if createVersion.is2xx || createVersion.is3xx
-      } yield artifact -> api.upload(artifact.id, artifact.version, fileName, "", data)
+        if response.is2xx || response.is3xx
+      } yield (artifact, response) -> api.upload(artifact.id, artifact.version, fileName, "", data)
+
+    val groupedUploadResults =
+      for {
+        ((artifact, createVersionResponse), responses) <- uploadResults.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+      } yield artifact -> (responses :+ createVersionResponse)
 
     if (release) {
       val publishResults =
         for {
-          (artifact, responses) <- uploadResults.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+          (artifact, responses) <- groupedUploadResults
           if responses.forall(_.is2xx)
         } yield artifact -> (responses :+ api.publish(artifact.id, artifact.version))
 
       reportPublishResults(publishResults)
     } else {
-      reportPublishResults(uploadResults.toMap.mapValues(Seq(_)).toSeq)
+      reportPublishResults(groupedUploadResults)
     }
   }
 
