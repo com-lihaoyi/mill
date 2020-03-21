@@ -26,7 +26,17 @@ class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
   val logger = new PrintLogger(
     colored = true, disableTicker=false,
     ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false
- )
+ ) {
+    val prefix = {
+      val idx = fullName.value.lastIndexOf(".")
+      if(idx > 0) fullName.value.substring(0, idx)
+      else fullName.value
+    }
+    override def error(s: String): Unit = super.error(s"${prefix}: ${s}")
+    override def info(s: String): Unit = super.info(s"${prefix}: ${s}")
+    override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
+    override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
+  }
   val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger, failFast = failFast)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
