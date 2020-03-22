@@ -6,12 +6,13 @@ trait VersionFileModule extends Module {
 
   implicit val wd = os.pwd
 
-  def versionFileName = "version"
-  def versionFileDirectory = wd
-  def versionFilePath = versionFileDirectory / versionFileName
-
-  def currentVersion = T.input { Version.of(os.read(versionFilePath)) }
+  /** The file containing the current version. */
+  def versionFile: define.Source = T.source(millSourcePath / "version")
+  /** The current version. */
+  def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path)) }
+  /** The release version. */
   def releaseVersion = T { currentVersion().asRelease }
+  /** The next snapshot version. */
   def nextVersion(bump: String) = T.command { releaseVersion().bump(bump) }
 
   def setReleaseVersion = T {
@@ -20,7 +21,7 @@ trait VersionFileModule extends Module {
     T.ctx.log.info(commitMessage)
 
     os.write.over(
-      versionFilePath,
+      versionFile().path,
       releaseVersion().toString
     )
 
@@ -34,7 +35,7 @@ trait VersionFileModule extends Module {
     T.ctx.log.info(commitMessage)
 
     os.write.over(
-      versionFilePath,
+      versionFile().path,
       nextVersion(bump).toString
     )
 

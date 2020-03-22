@@ -888,12 +888,7 @@ object mymodule extends PublishModule {
 ```
 
 ### Configure the version file
-This module reads and updates a version file. The default is the file `version` at the project root.
-
-If you prefer something else than the default, you can override:
-* `VersionFileModule.versionFileName` which defaults to `version`
-* `VersionFileModule.versionFileDirectory` which defaults to `os.pwd`
-* `VersionFileModule.versionFilePath` which defaults to `versionFileDirectory / versionFileName`
+This module reads and updates a version file. The default is the file `version` at the module source root. If you prefer something other than the default, you can override `VersionFileModule.versionFile`.
 
 ### Set release version
 The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version.
