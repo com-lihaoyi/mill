@@ -140,73 +140,100 @@ object HelloNativeWorldTests extends TestSuite {
       'artifactId_039 - testArtifactId(scala211, scalaNative03, ReleaseMode.Debug, "hello-native-world_native0.3_2.11")
       'artifactId_040M2 - testArtifactId(scala211, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4.0-M2_2.11")
     }
+
+    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
+      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+
+      val (doneMsg, testResults) = res
+      testResults
+        .groupBy(_.fullyQualifiedName)
+        .mapValues(_.map(e => e.selector -> e).toMap)
+    }
+
+    def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
+      val Right(((message, results), _)) = helloWorldEvaluator(
+        if (!cached) HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.testCached
+      )
+
+      assert(
+        results.size == 0,
+        message == "No tests were executed"
+      )
+    }
+
+    def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
+      val resultMap = runTests(
+        if (!cached) HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.testCached
+      )
+
+      val mainTests = resultMap("hellotest.MainTests")
+      val argParserTests = resultMap("hellotest.ArgsParserTests")
+
+      assert(
+        mainTests.size == 2,
+        mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
+        mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
+
+        argParserTests.size == 2,
+        argParserTests("hellotest.ArgsParserTests.one").status == "Success",
+        argParserTests("hellotest.ArgsParserTests.two").status == "Failure"
+      )
+    }
+
+    def checkScalaTest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
+      val resultMap = runTests(
+        if (!cached) HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.testCached
+      )
+
+      val mainSpec = resultMap("hellotest.MainSpec")
+      val argParserSpec = resultMap("hellotest.ArgsParserSpec")
+
+      assert(
+        mainSpec.size == 2,
+        mainSpec("vmName should contain Native").status == "Success",
+        mainSpec("vmName should contain Scala").status == "Success",
+
+        argParserSpec.size == 2,
+        argParserSpec("parse should one").status == "Success",
+        argParserSpec("parse should two").status == "Failure"
+      )
+    }
     'test - {
-      def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
-        val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+      val cached = false
+      'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
 
-        val (doneMsg, testResults) = res
-        testResults
-          .groupBy(_.fullyQualifiedName)
-          .mapValues(_.map(e => e.selector -> e).toMap)
-      }
-
-      def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
-        val Right(((message, results), _)) = helloWorldEvaluator(HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test())
-
-        assert(
-          results.size == 0,
-          message == "No tests were executed"
-        )
-      }
-
-      def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
-        val resultMap = runTests(HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test())
-
-        val mainTests = resultMap("hellotest.MainTests")
-        val argParserTests = resultMap("hellotest.ArgsParserTests")
-
-        assert(
-          mainTests.size == 2,
-          mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
-          mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
-
-          argParserTests.size == 2,
-          argParserTests("hellotest.ArgsParserTests.one").status == "Success",
-          argParserTests("hellotest.ArgsParserTests.two").status == "Failure"
-        )
-      }
-
-      def checkScalaTest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode) = {
-        val resultMap = runTests(HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.test())
-
-        val mainSpec = resultMap("hellotest.MainSpec")
-        val argParserSpec = resultMap("hellotest.ArgsParserSpec")
-
-        assert(
-          mainSpec.size == 2,
-          mainSpec("vmName should contain Native").status == "Success",
-          mainSpec("vmName should contain Scala").status == "Success",
-
-          argParserSpec.size == 2,
-          argParserSpec("parse should one").status == "Success",
-          argParserSpec("parse should two").status == "Failure"
-        )
-      }
-
-      'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
-      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
-      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
-      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug))
-
-      'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug))
-      'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release))
-      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug))
-      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release))
+      'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
+      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
+      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
 
 //      Scalatest dropped Scala Native 0.3 support
-      'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug))
+      'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
 //      Disabled since it consumes too much memory      
 //      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
+    }
+    'testCached - {
+      val cached = true
+      'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+
+      'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
+      'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
+      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
+
+      //      Scalatest dropped Scala Native 0.3 support
+      'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
+      //      Disabled since it consumes too much memory
+      //      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
