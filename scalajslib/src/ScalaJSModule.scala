@@ -8,6 +8,7 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.Ctx
 import mill.api.Loose
+import mill.define.Task
 import mill.scalajslib.api._
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -202,22 +203,22 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override def test(args: String*) = T.command {
+  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
-        toolsClasspath().map(_.path),
-        jsEnvConfig(),
-        testFrameworks().head,
-        fastOptTest().path.toIO,
-        moduleKind()
-      )
+      toolsClasspath().map(_.path),
+      jsEnvConfig(),
+      testFrameworks().head,
+      fastOptTest().path.toIO,
+      moduleKind()
+    )
 
     val (doneMsg, results) = TestRunner.runTests(
-        _ => Seq(framework),
-        runClasspath().map(_.path),
-        Agg(compile().classes.path),
-        args,
-        T.testReporter
-      )
+      _ => Seq(framework),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args(),
+      T.testReporter
+    )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`
