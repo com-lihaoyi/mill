@@ -11,7 +11,7 @@ trait ReleaseModule extends Module {
   def versionFile: String = "version"
   val versionFilePath: Path = wd / versionFile
 
-  def currentVersion = T { Version.of(os.read(versionFilePath)) }
+  def currentVersion = T.input { Version.of(os.read(versionFilePath)) }
   def releaseVersion = T { currentVersion().asRelease }
   def nextVersion(bump: String) = T.command { releaseVersion().bump(bump) }
 
