@@ -2,14 +2,13 @@ package mill.contrib.release
 
 import mill._, scalalib._
 
-import os.Path
-
 trait ReleaseModule extends Module {
 
   implicit val wd = os.pwd
 
-  def versionFile: String = "version"
-  val versionFilePath: Path = wd / versionFile
+  def versionFile = "version"
+  def versionFileLocation = wd
+  def versionFilePath = versionFileLocation / versionFile
 
   def currentVersion = T.input { Version.of(os.read(versionFilePath)) }
   def releaseVersion = T { currentVersion().asRelease }
