@@ -474,7 +474,11 @@ object contrib extends MillModule {
 
   object artifactory extends MillModule {
     def moduleDeps = Seq(scalalib)
-}
+  }
+
+  object release extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
 
 }
 
