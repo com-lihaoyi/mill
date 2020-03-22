@@ -18,7 +18,6 @@ trait BintrayPublishModule extends PublishModule {
   def publishBintray(credentials: String,
                      bintrayOwner: String = bintrayOwner,
                      bintrayRepo: String = bintrayRepo,
-                     bintrayPackage: T[String] = bintrayPackage,
                      release: Boolean = true,
                      readTimeout: Int = 60000,
                      connectTimeout: Int = 5000): define.Command[Unit] = T.command {
