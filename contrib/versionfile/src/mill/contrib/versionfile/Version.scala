@@ -1,4 +1,4 @@
-package mill.contrib.release
+package mill.contrib.versionfile
 
 sealed trait Version {
 
