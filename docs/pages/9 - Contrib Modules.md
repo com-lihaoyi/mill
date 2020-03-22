@@ -566,6 +566,104 @@ object app extends ScalaModule with RouterModule {
 }
 ```
 
+## Release
+
+This plugin helps set release versions.
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-release:$MILL_VERSION`
+import mill.contrib.release.ReleaseModule
+
+object release extends ReleaseModule
+
+object mymodule extends PublishModule {
+  def publishVersion = release.currentVersion().toString
+  ...
+}
+```
+
+Then to release a new version and update version to next:
+```
+$ mill release.setReleaseVersion
+$ mill mymodule.publish
+$ mill release.setNextVersion --bump minor
+```
+
+### Configure the version file
+This module stores the version in a version file in the repository root.
+The filename being used is set by `ReleaseModule.versionFile` and defaults to `version`, but this can
+be overridden if you prefer something else than the default:
+
+```scala
+object release extends ReleaseModule {
+  def versionFile = ".version"
+}
+```
+
+### Set release version
+The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version.
+Then it commits and adds a tag.
+
+#### Example
+Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
+```bash
+$ mill release.setReleaseVersion
+```
+
+First it will update the version file to contain `0.1.0`.
+Then it will execute:
+```bash
+git commit -am "Setting release version to 0.1.0"
+git tag 0.1.0
+```
+
+### Set next version
+The `setNextVersion` target bumps the version and sets this as the new snapshot version.
+Then it commits **and pushes to origin/master with tags**.
+
+#### Parameters
+
+##### --bump (major | minor | patch)
+Sets what segment of the version to bump.
+
+For a version number `1.2.3` in the version file:
+
+`--bump major` will set it to `2.0.0`
+
+`--bump minor` will set it to `1.3.0`
+
+`--bump patch` will set it to `1.2.4`
+
+#### Example
+Your version file contains `0.1.0`. In your terminal you do the following:
+```bash
+$ mill release.setNextVersion --bump minor
+```
+
+First it will update the version file to contain `0.2.0-SNAPSHOT`.
+Then it will execute:
+```bash
+git commit -am "Setting next version to 0.2.0-SNAPSHOT"
+git push origin master --tags
+```
+
+### Output version numbers
+If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
+```bash
+# Show the current version from the version file.
+$ mill show release.currentVersion
+```
+
+```bash
+# Show the version that would be used as release version.
+$ mill show release.releaseVersion
+```
+
+```bash
+# Show the version that would be used as next version with the given --bump argument.
+$ mill show release.nextVersion --bump minor
+```
 
 ## ScalaPB
 
