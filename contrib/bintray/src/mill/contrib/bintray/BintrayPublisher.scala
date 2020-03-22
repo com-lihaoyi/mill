@@ -19,13 +19,13 @@ class BintrayPublisher(owner: String,
     log
   )
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit = {
-    publishAll(fileMapping -> artifact)
+  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact, pkg: String): Unit = {
+    publishAll(fileMapping -> artifact -> pkg)
   }
 
-  def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
+  def publishAll(artifacts: ((Seq[(os.Path, String)], Artifact), String)*): Unit = {
     log.info("arts: " + artifacts)
-    val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
+    val mappings = for (((fileMapping0, artifact), pkg) <- artifacts) yield {
       val publishPath = Seq(
         artifact.group.replace(".", "/"),
         artifact.id,
@@ -33,12 +33,14 @@ class BintrayPublisher(owner: String,
       ).mkString("/")
       val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
 
-      artifact -> fileMapping.map {
+      pkg -> artifact -> fileMapping.map {
         case (file, name) => name -> os.read.bytes(file)
       }
     }
 
-    val (snapshots, releases) = mappings.partition(_._1.isSnapshot)
+    val (snapshots, releases) = mappings.partition {
+      case ((_, artifact), _) => artifact.isSnapshot
+    }
 
     if (snapshots.nonEmpty)
       throw new RuntimeException(
@@ -48,27 +50,27 @@ class BintrayPublisher(owner: String,
     publishToRepo(releases)
   }
   
-  private def publishToRepo(releases: Seq[(Artifact, Seq[(String, Array[Byte])])]): Unit = {
+  private def publishToRepo(releases: Seq[((String, Artifact), Seq[(String, Array[Byte])])]): Unit = {
 
     val uploadResults =
       for {
-        (artifact, payloads) <- releases
-        response = api.createVersion(artifact.id, artifact.version)
+        ((pkg, artifact), payloads) <- releases
+        response = api.createVersion(pkg, artifact.version)
         (fileName, data) <- payloads
         if response.is2xx || response.is3xx
-      } yield (artifact, response) -> api.upload(artifact.id, artifact.version, fileName, "", data)
+      } yield ((pkg, artifact), response) -> api.upload(pkg, artifact.version, fileName, "", data)
 
     val groupedUploadResults =
       for {
-        ((artifact, createVersionResponse), responses) <- uploadResults.groupBy(_._1).mapValues(_.map(_._2)).toSeq
-      } yield artifact -> (responses :+ createVersionResponse)
+        (((pkg, artifact), createVersionResponse), responses) <- uploadResults.groupBy(_._1).mapValues(_.map(_._2)).toSeq
+      } yield pkg -> artifact -> (responses :+ createVersionResponse)
 
     if (release) {
       val publishResults =
         for {
-          (artifact, responses) <- groupedUploadResults
+          ((pkg, artifact), responses) <- groupedUploadResults
           if responses.forall(_.is2xx)
-        } yield artifact -> (responses :+ api.publish(artifact.id, artifact.version))
+        } yield pkg -> artifact -> (responses :+ api.publish(pkg, artifact.version))
 
       reportPublishResults(publishResults)
     } else {
@@ -76,7 +78,7 @@ class BintrayPublisher(owner: String,
     }
   }
 
-  private def reportPublishResults(publishResults: Seq[(Artifact, Seq[requests.Response])]) = {
+  private def reportPublishResults(publishResults: Seq[((String, Artifact), Seq[requests.Response])]) = {
     val errors =
       for {
         (artifact, responses) <- publishResults
