@@ -476,7 +476,7 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
-  object release extends MillModule {
+  object versionfile extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
