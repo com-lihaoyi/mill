@@ -86,9 +86,6 @@ Override the Bintray owner.
 #### --bintrayRepo \<repo\> (optional)
 Override the Bintray repository.
 
-#### --bintrayPackage \<pkg\> (optional)
-Override the Bintray package.
-
 #### --release \<true | false\> (default: true)
 Should the files should be published after upload?
 
