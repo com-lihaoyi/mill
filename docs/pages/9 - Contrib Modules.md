@@ -33,6 +33,62 @@ Then in your terminal:
 $ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
 ```
 
+## Bintray
+
+This plugin allows publishing to Bintray.
+
+### Quickstart
+Make sure your module extends from `BintrayPublishModule`:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+
+  ...
+}
+```
+
+Then ensure you have created a package in the Bintray repository.
+
+The default package used is the artifact ID (e.g. mymodule_2.12). If you want to override
+the package used, you can do that like this:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+  def bintrayPackage = T {...}
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
+```
+
+### Options
+
+#### --credentials \<auth\>
+Set the username and API key to use for authentication. Expected format is `username:api_key`.
+
+#### --bintrayOwner \<owner\> (optional)
+Override the Bintray owner.
+
+#### --bintrayRepo \<repo\> (optional)
+Override the Bintray repository.
+
+#### --release \<true | false\> (default: true)
+Should the files should be published after upload?
+
 ## Bloop
 
 This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration

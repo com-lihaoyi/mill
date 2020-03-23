@@ -480,6 +480,10 @@ object contrib extends MillModule {
     def moduleDeps = Seq(scalalib)
   }
 
+  object bintray extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
 }
 
 
