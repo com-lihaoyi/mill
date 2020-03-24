@@ -604,7 +604,7 @@ trait TestModule extends JavaModule with TaskModule {
   }
 
   protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.dest/"out.json"
+    val outputPath = T.dest / "out.json"
 
     Jvm.runSubprocess(
       mainClass = "mill.scalalib.TestRunner",
@@ -622,12 +622,17 @@ trait TestModule extends JavaModule with TaskModule {
       workingDir = forkWorkingDir()
     )
 
-    try {
-      val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-      TestModule.handleResults(doneMsg, results)
-    }catch{case e: Throwable =>
-      Result.Failure("Test reporting failed: " + e)
+    if(os.exists(outputPath)) {
+      try {
+        val jsonOutput = ujson.read(outputPath.toIO)
+        val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+        TestModule.handleResults(doneMsg, results)
+      } catch {
+        case e: Throwable =>
+          Result.Failure("Test reporting failed: " + e)
+      }
+    } else {
+      Result.Failure("Test execution failed.")
     }
   }
 
@@ -636,7 +641,7 @@ trait TestModule extends JavaModule with TaskModule {
     * reporting the results to the console
     */
   def testLocal(args: String*) = T.command {
-    val outputPath = T.dest/"out.json"
+    val outputPath = T.dest / "out.json"
 
     val (doneMsg, results) = TestRunner.runTests(
       TestRunner.frameworks(testFrameworks()),
