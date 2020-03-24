@@ -622,17 +622,14 @@ trait TestModule extends JavaModule with TaskModule {
       workingDir = forkWorkingDir()
     )
 
-    if(os.exists(outputPath)) {
-      try {
-        val jsonOutput = ujson.read(outputPath.toIO)
-        val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-        TestModule.handleResults(doneMsg, results)
-      } catch {
-        case e: Throwable =>
-          Result.Failure("Test reporting failed: " + e)
-      }
-    } else {
-      Result.Failure("Test execution failed.")
+    if(!os.exists(outputPath)) Result.Failure("Test execution failed.")
+    else  try {
+      val jsonOutput = ujson.read(outputPath.toIO)
+      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+      TestModule.handleResults(doneMsg, results)
+    } catch {
+      case e: Throwable =>
+        Result.Failure("Test reporting failed: " + e)
     }
   }
 
