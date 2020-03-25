@@ -30,13 +30,13 @@ trait VersionFileModule extends Module {
   }
 
   def setNextVersion(bump: String) = T.command {
-    val commitMessage = s"Setting next version to ${nextVersion(bump)}"
+    val commitMessage = s"Setting next version to ${nextVersion(bump)()}"
 
     T.ctx.log.info(commitMessage)
 
     os.write.over(
       versionFile().path,
-      nextVersion(bump).toString
+      nextVersion(bump)().toString
     )
 
     os.proc("git", "commit", "-am", commitMessage).call()
