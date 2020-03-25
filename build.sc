@@ -646,12 +646,12 @@ object dev extends MillModule{
     val millOptionsContent = millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n") // drop -D prefix, replace \ with /
     os.write(vmOptionsFile, millOptionsContent)
     val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
-    val classpath = Agg(pathingJar().path.toString)
+    val classpath = runClasspath().map(_.path.toString)
     launcherScript(
       jvmArgs,
       jvmArgs,
       classpath,
-      classpath
+      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
     )
   }
 
