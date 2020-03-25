@@ -791,3 +791,4 @@ def uploadToGithub(authKey: String) = T.command{
 
   upload.apply(launcher().path, releaseTag, label, authKey)
 }
+
