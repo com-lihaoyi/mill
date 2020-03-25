@@ -13,7 +13,7 @@ trait VersionFileModule extends Module {
   /** The release version. */
   def releaseVersion = T { currentVersion().asRelease }
   /** The next snapshot version. */
-  def nextVersion(bump: String) = T.command { releaseVersion().bump(bump) }
+  def nextVersion(bump: String) = T.command { currentVersion().asSnapshot.bump(bump) }
 
   def setReleaseVersion = T {
     val commitMessage = s"Setting release version to ${releaseVersion()}"
