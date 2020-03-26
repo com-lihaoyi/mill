@@ -67,4 +67,7 @@ object Version {
 
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)
+
+  implicit val read: scopt.Read[Version] =
+    scopt.Read.reads(Version.of)
 }
