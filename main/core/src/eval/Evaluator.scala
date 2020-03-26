@@ -528,6 +528,7 @@ case class Evaluator(
           def apply(thread: String) = {
             tids.computeIfAbsent(thread, _ => nextTid.getAndAdd(1))
           }
+          apply("main")
         }
         override def timeTrace(
           task: String,
