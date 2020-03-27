@@ -11,6 +11,84 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## Artifactory
+
+This plugin allows publishing to Artifactory.
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION`
+import mill.contrib.artifactory.ArtifactoryPublishModule
+
+object mymodule extends ArtifactoryPublishModule {
+  def artifactoryUri: String = "https://example.com/artifactory/my-repo"
+  def artifactorySnapshotUri: String = "https://example.com/artifactory/my-snapshot-repo"
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
+```
+
+## Bintray
+
+This plugin allows publishing to Bintray.
+
+### Quickstart
+Make sure your module extends from `BintrayPublishModule`:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+
+  ...
+}
+```
+
+Then ensure you have created a package in the Bintray repository.
+
+The default package used is the artifact ID (e.g. mymodule_2.12). If you want to override
+the package used, you can do that like this:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+  def bintrayPackage = T {...}
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
+```
+
+### Options
+
+#### --credentials \<auth\>
+Set the username and API key to use for authentication. Expected format is `username:api_key`.
+
+#### --bintrayOwner \<owner\> (optional)
+Override the Bintray owner.
+
+#### --bintrayRepo \<repo\> (optional)
+Override the Bintray repository.
+
+#### --release \<true | false\> (default: true)
+Should the files should be published after upload?
+
 ## Bloop
 
 This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration
@@ -60,7 +138,6 @@ located inside a project workspace.
 The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
 will be deprecated in favour of this implementation.
 
-
 ## BuildInfo
 
 Generate scala code from your buildfile.
@@ -95,6 +172,35 @@ object project extends BuildInfo {
 
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
+
+## BSP - Build Server Protocol
+
+The contrib.bsp module was created in order to integrate the Mill build tool
+with IntelliJ IDEA via the Build Server Protocol (BSP). It implements most of
+the server side functionality described in BSP, and can therefore connect to a 
+BSP client, including the one behind IntelliJ IDEA. This allows a lot of mill
+tasks to be executed from the IDE.
+
+### Importing an existing mill project in IntelliJ via BSP
+
+1) Add the following import statement in the `build.sc` of your project:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+```
+
+2) Run the following command in the working directory of your project:
+
+```
+mill -i mill.contrib.BSP/install
+```
+
+### Known Issues:
+
+- Sometimes build from IntelliJ might fail due to a NoClassDefFoundException
+being thrown during the evaluation of tasks, a bug not easy to reproduce.
+In this case it is recommended to refresh the bsp project.
+
 
 ## Docker
 
@@ -516,7 +622,6 @@ object app extends ScalaModule with RouterModule {
 }
 ```
 
-
 ## ScalaPB
 
 This module allows [ScalaPB](https://scalapb.github.io) to be used in Mill builds. ScalaPB is a [Protocol Buffers](https://developers.google.com/protocol-buffers/) compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
@@ -795,3 +900,113 @@ These imports will always be added to every template.  You don't need to list th
 
 ### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
+
+## Version file
+
+This plugin provides helpers for updating a version file and committing the changes to git.
+
+**Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.**
+**Each target operates on the version file as is at the time of execution.**
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-release:$MILL_VERSION`
+import mill.contrib.release.ReleaseModule
+
+object release extends ReleaseModule
+```
+
+Then to commit a release version and then commit next snapshot version:
+```bash
+$ mill release.setReleaseVersion
+$ mill release.setNextVersion --bump minor
+```
+
+You can also make manual changes in-between:
+```bash
+$ mill release.setReleaseVersion
+$ echo 0.1.0 > version
+# Will now set the version to 0.2.0-SNAPSHOT
+$ mill release.setNextVersion --bump minor
+```
+
+If you want to use the version file for publishing, you can do it like this:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object release extends VersionFileModule
+
+object mymodule extends PublishModule {
+  def publishVersion = release.currentVersion().toString
+  ...
+}
+```
+
+### Configure the version file
+This module reads and updates a version file. The default is the file `version` at the module source root. If you prefer something other than the default, you can override `VersionFileModule.versionFile`.
+
+### Set release version
+The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version.
+Then it overwrites the previous content in the version file, commits the changes and adds a tag.
+
+#### Example
+Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
+```bash
+$ mill release.setReleaseVersion
+```
+
+First it will update the version file to contain `0.1.0`.
+Then it will execute:
+```bash
+git commit -am "Setting release version to 0.1.0"
+git tag 0.1.0
+```
+
+### Set next version
+The `setNextVersion` target bumps the version and sets this as the new snapshot version.
+Then it overwrites the previous content in the version file, commits the changes
+**and pushes to origin/master with tags**.
+
+#### Parameters
+
+##### --bump (major | minor | patch)
+Sets what segment of the version to bump.
+
+For a version number `1.2.3` in the version file:
+
+`--bump major` will set it to `2.0.0`
+
+`--bump minor` will set it to `1.3.0`
+
+`--bump patch` will set it to `1.2.4`
+
+#### Example
+Your version file contains `0.1.0`. In your terminal you do the following:
+```bash
+$ mill release.setNextVersion --bump minor
+```
+
+First it will update the version file to contain `0.2.0-SNAPSHOT`.
+Then it will execute:
+```bash
+git commit -am "Setting next version to 0.2.0-SNAPSHOT"
+git push origin master --tags
+```
+
+### Output version numbers
+If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
+```bash
+# Show the current version from the version file.
+$ mill show release.currentVersion
+```
+
+```bash
+# Show the version that would be used as release version.
+$ mill show release.releaseVersion
+```
+
+```bash
+# Show the version that would be used as next version with the given --bump argument.
+$ mill show release.nextVersion --bump minor
+```

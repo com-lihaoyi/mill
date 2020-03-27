@@ -158,7 +158,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override def test(args: String*) = T.command{
+  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val outputPath = T.dest / "out.json"
     val (frameworks, testsMap) = frameworksAndTestsMap()
     val (doneMsg, results) = if(frameworks.nonEmpty && testsMap.nonEmpty) {
@@ -180,7 +180,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
         nativeFrameworks,
         runClasspath().map(_.path),
         Agg(compile().classes.path),
-        args,
+        args(),
         T.testReporter
       )
     } else ("No tests were executed", Seq.empty)

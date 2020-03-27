@@ -107,7 +107,7 @@ val posts = {
           "Mill is an Open Source Project created by ",
           a(href:="http://www.lihaoyi.com")("Li Haoyi"), ". ",
           "It is actively maintained and the git repository has ",
-          a(href:="https://github.com/lihaoyi/mill/graphs/contributors")("more that 90 individual contributors"),
+          a(href:="https://github.com/lihaoyi/mill/graphs/contributors")("more that 100 individual contributors"),
           " around the world. "
         )
       ),

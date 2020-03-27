@@ -150,67 +150,96 @@ object HelloJSWorldTests extends TestSuite {
       'artifactId_100RC1 - testArtifactId("2.12.4", "1.0.0-RC1", "hello-js-world_sjs1.0-RC1_2.12")
       'artifactId_100 - testArtifactId("2.12.4", "1.0.0", "hello-js-world_sjs1_2.12")
     }
+
+    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
+      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+
+      val (doneMsg, testResults) = res
+      testResults
+        .groupBy(_.fullyQualifiedName)
+        .mapValues(_.map(e => e.selector -> e).toMap)
+    }
+
+    def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+      val resultMap = runTests(
+        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
+      )
+
+      val mainTests = resultMap("MainTests")
+      val argParserTests = resultMap("ArgsParserTests")
+
+      assert(
+        mainTests.size == 2,
+        mainTests("MainTests.vmName.containJs").status == "Success",
+        mainTests("MainTests.vmName.containScala").status == "Success",
+
+        argParserTests.size == 2,
+        argParserTests("ArgsParserTests.one").status == "Success",
+        argParserTests("ArgsParserTests.two").status == "Failure"
+      )
+    }
+
+    def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+      val resultMap = runTests(
+        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
+      )
+
+      val mainSpec = resultMap("MainSpec")
+      val argParserSpec = resultMap("ArgsParserSpec")
+
+      assert(
+        mainSpec.size == 2,
+        mainSpec("vmName should contain js").status == "Success",
+        mainSpec("vmName should contain Scala").status == "Success",
+
+        argParserSpec.size == 2,
+        argParserSpec("parse should one").status == "Success",
+        argParserSpec("parse should two").status == "Failure"
+      )
+    }
+
     'test - {
-      def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
-        val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
-
-        val (doneMsg, testResults) = res
-        testResults
-          .groupBy(_.fullyQualifiedName)
-          .mapValues(_.map(e => e.selector -> e).toMap)
-      }
-
-      def checkUtest(scalaVersion: String, scalaJSVersion: String) = {
-        val resultMap = runTests(HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test())
-
-        val mainTests = resultMap("MainTests")
-        val argParserTests = resultMap("ArgsParserTests")
-
-        assert(
-          mainTests.size == 2,
-          mainTests("MainTests.vmName.containJs").status == "Success",
-          mainTests("MainTests.vmName.containScala").status == "Success",
-
-          argParserTests.size == 2,
-          argParserTests("ArgsParserTests.one").status == "Success",
-          argParserTests("ArgsParserTests.two").status == "Failure"
-        )
-      }
-
-      def checkScalaTest(scalaVersion: String, scalaJSVersion: String) = {
-        val resultMap = runTests(HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test())
-
-        val mainSpec = resultMap("MainSpec")
-        val argParserSpec = resultMap("ArgsParserSpec")
-
-        assert(
-          mainSpec.size == 2,
-          mainSpec("vmName should contain js").status == "Success",
-          mainSpec("vmName should contain Scala").status == "Success",
-
-          argParserSpec.size == 2,
-          argParserSpec("parse should one").status == "Success",
-          argParserSpec("parse should two").status == "Failure"
-        )
-      }
-
-      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22"))
-      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
-      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31"))
-      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31")
+      val cached = false
+      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22", cached))
+      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22", cached)
+      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31", cached))
+      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31", cached)
 //      No utest artifact for Scala.js 1.0.0 published yet
 //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
 //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
 
       // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
-      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31"))
-      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31")
-      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1")
-      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1")
+      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31", cached))
+      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31", cached)
+      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1", cached)
+      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1", cached)
 //      No ScalaTest artifact for Scala.js 1.0.0 published yet
 //      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
 //      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
     }
+
+    'testCached - {
+      val cached = true
+      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22", cached))
+      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22", cached)
+      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31", cached))
+      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31", cached)
+      //      No utest artifact for Scala.js 1.0.0 published yet
+      //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
+      //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
+
+      // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
+      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31", cached))
+      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31", cached)
+      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1", cached)
+      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1", cached)
+      //      No ScalaTest artifact for Scala.js 1.0.0 published yet
+      //      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
+      //      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
+    }
+
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
       val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()

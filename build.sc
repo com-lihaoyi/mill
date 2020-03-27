@@ -472,6 +472,18 @@ object contrib extends MillModule {
     )
   }
 
+  object artifactory extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
+  object versionfile extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
+  object bintray extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
 }
 
 
