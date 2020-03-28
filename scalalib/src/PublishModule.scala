@@ -121,7 +121,7 @@ object PublishModule extends ExternalModule {
   /** An extra resource artifact to publish.
     * @param file The artifact file
     * @param ivyCategory The ivy catogory (e.g. "jars", "zips")
-    * @params The file suffix including the file extension (e.g. "-with-deps.jar", "-dist.zip").
+    * @param The file suffix including the file extension (e.g. "-with-deps.jar", "-dist.zip").
     *        It will be appended to the artifact id to construct the full file name.
     */
   case class ExtraPublish(file: PathRef, ivyCategory: String, suffix: String)
