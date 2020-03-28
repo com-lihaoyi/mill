@@ -51,6 +51,9 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
+  /**
+    * Extra artifacts to publish.
+    */
   def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq.empty[PublishModule.ExtraPublish] }
 
   def publishLocal(): define.Command[Unit] = T.command {
@@ -115,7 +118,12 @@ object PublishModule extends ExternalModule {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
 
-  /** Extra resource to publish. */
+  /** An extra resource artifact to publish.
+    * @param file The artifact file
+    * @param ivyCategory The ivy catogory (e.g. "jars", "zips")
+    * @params The file suffix including the file extension (e.g. "-with-deps.jar", "-dist.zip").
+    *        It will be appended to the artifact id to construct the full file name.
+    */
   case class ExtraPublish(file: PathRef, ivyCategory: String, suffix: String)
   object ExtraPublish {
     implicit def jsonify: upickle.default.ReadWriter[ExtraPublish] = upickle.default.macroRW
