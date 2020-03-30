@@ -51,6 +51,11 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
+  /**
+    * Extra artifacts to publish.
+    */
+  def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq.empty[PublishModule.ExtraPublish] }
+
   def publishLocal(): define.Command[Unit] = T.command {
     LocalPublisher.publish(
       jar = jar().path,
@@ -58,7 +63,8 @@ trait PublishModule extends JavaModule { outer =>
       docJar = docJar().path,
       pom = pom().path,
       ivy = ivy().path,
-      artifact = artifactMetadata()
+      artifact = artifactMetadata(),
+      extras = extraPublish().map(ep => (ep.file.path, ep.ivyCategory, ep.suffix))
     )
   }
 
@@ -75,7 +81,7 @@ trait PublishModule extends JavaModule { outer =>
         sourceJar() -> s"$baseName-sources.jar",
         docJar() -> s"$baseName-javadoc.jar",
         pom() -> s"$baseName.pom"
-      )
+      ) ++ extraPublish().map(p => (p.file, baseName + p.suffix))
     )
   }
 
@@ -106,11 +112,23 @@ trait PublishModule extends JavaModule { outer =>
 }
 
 object PublishModule extends ExternalModule {
-  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
 
+  case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
   object PublishData{
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
+
+  /** An extra resource artifact to publish.
+    * @param file The artifact file
+    * @param ivyCategory The ivy catogory (e.g. "jars", "zips")
+    * @param The file suffix including the file extension (e.g. "-with-deps.jar", "-dist.zip").
+    *        It will be appended to the artifact id to construct the full file name.
+    */
+  case class ExtraPublish(file: PathRef, ivyCategory: String, suffix: String)
+  object ExtraPublish {
+    implicit def jsonify: upickle.default.ReadWriter[ExtraPublish] = upickle.default.macroRW
+  }
+
 
   def publishAll(sonatypeCreds: String,
                  gpgPassphrase: String = null,
