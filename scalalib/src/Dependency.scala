@@ -18,6 +18,10 @@ object Dependency extends ExternalModule {
         allowPreRelease)
     }
 
+  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) = T.command{
+    DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
+  }
+
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] =
     new mill.main.EvaluatorScopt[T]()
   lazy val millDiscover: Discover[Dependency.this.type] = Discover[this.type]
