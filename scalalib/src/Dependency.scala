@@ -8,6 +8,7 @@ import mill.scalalib.dependency.DependencyUpdatesImpl
 
 object Dependency extends ExternalModule {
 
+  /** Calculate possible dependency updates. */
   def updates(ev: Evaluator, allowPreRelease: Boolean = false) =
     T.command {
       DependencyUpdatesImpl(
@@ -18,6 +19,7 @@ object Dependency extends ExternalModule {
         allowPreRelease)
     }
 
+  /** Show possible dependency updates. */
   def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) = T.command{
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
   }
