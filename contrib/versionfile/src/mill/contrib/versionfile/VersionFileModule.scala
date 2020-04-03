@@ -41,7 +41,10 @@ trait VersionFileModule extends Module {
 
   /** Executes the given processes. */
   def execute(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
-    for (p <- T.sequence(procs.value)().flatten) p.call()
+    for {
+      procs <- T.sequence(procs.value)()
+      proc  <- procs
+    } yield proc.call()
   }
 
   /** Procs for tagging current version and committing changes. */
