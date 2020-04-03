@@ -39,14 +39,6 @@ trait VersionFileModule extends Module {
       version.toString
     )
 
-  /** Executes the given processes. */
-  def execute(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
-    for {
-      procs <- T.sequence(procs.value)()
-      proc  <- procs
-    } yield proc.call()
-  }
-
   /** Procs for tagging current version and committing changes. */
   def tag = T {
     Seq (
@@ -83,4 +75,19 @@ trait VersionFileModule extends Module {
       _.command,
       os.proc(_)
     )
+}
+
+object VersionFileModule extends define.ExternalModule {
+
+  /** Executes the given processes. */
+  def exec(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
+    for {
+      procs <- T.sequence(procs.value)()
+      proc  <- procs
+    } yield proc.call()
+  }
+  
+  implicit val millScoptTargetReads = new mill.main.Tasks.Scopt[Seq[os.proc]]()
+
+  lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

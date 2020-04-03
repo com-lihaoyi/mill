@@ -9,7 +9,7 @@ import os.write
 
 object VersionFileModuleTests extends TestSuite {
 
-  object TestModule extends TestUtil.BaseModule{
+  object TestModule extends TestUtil.BaseModule {
     case object versionFile extends VersionFileModule
   }
 
