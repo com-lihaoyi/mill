@@ -42,8 +42,8 @@ trait VersionFileModule extends Module {
   /** Procs for tagging current version and committing changes. */
   def tag = T {
     Seq (
-      os.proc("git", "tag", currentVersion().toString),
-      os.proc("git", "commit", "-am", generateCommitMessage(currentVersion()))
+      os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
+      os.proc("git", "tag", currentVersion().toString)
     )
   }
 

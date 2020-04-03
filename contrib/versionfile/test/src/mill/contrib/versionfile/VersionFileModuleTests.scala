@@ -106,8 +106,8 @@ object VersionFileModuleTests extends TestSuite {
         assert(
           procs.value == Right(
             Seq (
-              os.proc("git", "tag", version.toString),
-              os.proc("git", "commit", "-am", commitMessage)
+              os.proc("git", "commit", "-am", commitMessage),
+              os.proc("git", "tag", version.toString)
             )
           )
         )
