@@ -909,25 +909,34 @@ This plugin provides helpers for updating a version file and committing the chan
 **Each target operates on the version file as is at the time of execution.**
 
 ### Quickstart
-```scala
-import $ivy.`com.lihaoyi::mill-contrib-release:$MILL_VERSION`
-import mill.contrib.release.ReleaseModule
 
-object release extends ReleaseModule
+Add a `VersionFileModule` to the `build.sc` file:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
 ```
 
-Then to commit a release version and then commit next snapshot version:
+The module will read and write to the file `version` located at the module's `millSourcePath`.
+In the example above, that would be `/versionFile/version` relative to the `build.sc` file.
+
+Create the version file with the intial version number:
 ```bash
-$ mill release.setReleaseVersion
-$ mill release.setNextVersion --bump minor
+$ 0.1.0-SNAPSHOT > versionFile/version
+```
+
+Then to write a release version or snapshot version to file:
+```bash
+$ mill versionFile.setReleaseVersion           # Sets release
+$ mill versionFile.setNextVersion --bump minor # Sets snapshot
 ```
 
 You can also make manual changes in-between:
 ```bash
-$ mill release.setReleaseVersion
-$ echo 0.1.0 > version
-# Will now set the version to 0.2.0-SNAPSHOT
-$ mill release.setNextVersion --bump minor
+$ mill versionFile.setReleaseVersion
+$ echo 0.1.0 > versionFile/version
+$ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2.0-SNAPSHOT
 ```
 
 If you want to use the version file for publishing, you can do it like this:
@@ -935,38 +944,45 @@ If you want to use the version file for publishing, you can do it like this:
 import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
 import mill.contrib.versionfile.VersionFileModule
 
-object release extends VersionFileModule
+object versionFile extends VersionFileModule
 
 object mymodule extends PublishModule {
-  def publishVersion = release.currentVersion().toString
+  def publishVersion = versionFile.currentVersion().toString
   ...
 }
 ```
 
 ### Configure the version file
-This module reads and updates a version file. The default is the file `version` at the module source root. If you prefer something other than the default, you can override `VersionFileModule.versionFile`.
+If you want the version file to have another name, you will need to override the `versionFile` task.
+
+If you have a project wide version file like in the example above, and you want the version file to reside
+at the root of the project, you can override `millSourcePath`:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule {
+  def millSourcePath = millOuterCtx.millSourcePath
+}
+```
+
+In this example, it would look for the file `version` in the same directory as the `build.sc`.
 
 ### Set release version
-The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version.
-Then it overwrites the previous content in the version file, commits the changes and adds a tag.
+The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version,
+then overwrites the previous content in the version file with this new version.
 
 #### Example
 Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
 ```bash
-$ mill release.setReleaseVersion
+$ mill versionFile.setReleaseVersion
 ```
 
-First it will update the version file to contain `0.1.0`.
-Then it will execute:
-```bash
-git commit -am "Setting release version to 0.1.0"
-git tag 0.1.0
-```
+This will update the version file to contain `0.1.0`.
 
 ### Set next version
-The `setNextVersion` target bumps the version and sets this as the new snapshot version.
-Then it overwrites the previous content in the version file, commits the changes
-**and pushes to origin/master with tags**.
+The `setNextVersion` target bumps the version and changes it to a snapshot version,
+then overwrites the previous content in the version file with this new version.
 
 #### Parameters
 
@@ -984,29 +1000,60 @@ For a version number `1.2.3` in the version file:
 #### Example
 Your version file contains `0.1.0`. In your terminal you do the following:
 ```bash
-$ mill release.setNextVersion --bump minor
+$ mill versionFile.setNextVersion --bump minor
 ```
 
-First it will update the version file to contain `0.2.0-SNAPSHOT`.
-Then it will execute:
+This will update the version file to contain `0.2.0-SNAPSHOT`.
+
+### Set version
+The `setVersion` overwrites the previous content of the version file with an arbitrary version.
+
+#### Parameters
+
+##### --version x.y.z[-SNAPSHOT]
+The version to write to the version file.
+
+#### Example
+Your version file contains `0.1.0`. In your terminal you do the following:
 ```bash
-git commit -am "Setting next version to 0.2.0-SNAPSHOT"
-git push origin master --tags
+$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT
 ```
+
+This will update the version file to contain `0.5.2-SNAPSHOT`.
 
 ### Output version numbers
 If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
 ```bash
 # Show the current version from the version file.
-$ mill show release.currentVersion
+$ mill show versionFile.currentVersion
 ```
 
 ```bash
 # Show the version that would be used as release version.
-$ mill show release.releaseVersion
+$ mill show versionFile.releaseVersion
 ```
 
 ```bash
 # Show the version that would be used as next version with the given --bump argument.
-$ mill show release.nextVersion --bump minor
+$ mill show versionFile.nextVersion --bump minor
 ```
+
+### VCS operations
+The module has an `exec` task that allows you to execute tasks of type `T[Seq[os.proc]]`:
+```bash
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+```
+
+#### Built-in git operations
+The `VersionFileModule` comes with two tasks of this type:
+
+##### Tag
+Commits the changes, then creates a tag with the current version for that commit.
+
+##### Push
+Commits the changes, then pushes the changes to origin/master with tags.
+
+#### Custom operations
+It's possible to override the tasks above, or add your own tasks, to adapt the module
+to work with other version control systems than git.
