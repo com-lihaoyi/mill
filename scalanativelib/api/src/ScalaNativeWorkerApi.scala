@@ -50,10 +50,14 @@ object NativeLogLevel {
 sealed abstract class ReleaseMode(val name: String)
 
 object ReleaseMode {
-  case object Debug extends ReleaseMode("debug")                // fast compile, little optimization
-  case object Release extends ReleaseMode("release")            // same as ReleaseFull for versions 0.3.x
-  case object ReleaseFast extends ReleaseMode("release-fast")   // runtime optimize, faster compile, smaller binary
-  case object ReleaseFull extends ReleaseMode("release-full")   // runtime optimize, prefer speed over compile time and size
+  /** Fast compile, little optimization. */
+  case object Debug extends ReleaseMode("debug")
+  /** Same as [[ReleaseFull]] for versions 0.3.x. Deprecated since ScalaNative 0.4. */
+  case object Release extends ReleaseMode("release")
+  /** Runtime optimize, faster compile, smaller binary. */
+  case object ReleaseFast extends ReleaseMode("release-fast")
+  /** Runtime optimize, prefer speed over compile time and size. */
+  case object ReleaseFull extends ReleaseMode("release-full")
 
   implicit def rw: RW[ReleaseMode] = macroRW
 }
