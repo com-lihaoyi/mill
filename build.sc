@@ -702,7 +702,7 @@ def assembly = T{
     "-Djna.nosys=true"
   )
   val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
-  val cmdArgs = Seq("-DMILL_CLASSPATH=%~dpnx0") ++ commonArgs
+  val cmdArgs = Seq("-DMILL_CLASSPATH=%0") ++ commonArgs
   os.move(
     createAssembly(
       devRunClasspath,
