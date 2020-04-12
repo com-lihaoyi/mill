@@ -59,14 +59,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib${platformSuffix()}:${scalaNativeVersion()}" }
+  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T{
     Seq(nativeLibIvy()) ++
     Seq(
-      ivy"org.scala-native::javalib${platformSuffix()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib${platformSuffix()}:${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib${platformSuffix()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
+      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
+      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
     )
   }
 
@@ -201,9 +201,11 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     override def releaseMode = testOuter.releaseMode()
     override def logLevel = testOuter.logLevel()
     override def nativeLinkStubs = true
+    override def nativeLinkingOptions = testOuter.nativeLinkingOptions()
+    override def nativeCompileOptions = testOuter.nativeCompileOptions()
 
     override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-      ivy"org.scala-native::test-interface${platformSuffix()}:${scalaNativeVersion()}"
+      ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
     )
 
     override def mainClass = Some(testMainClassName)
