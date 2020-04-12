@@ -31,6 +31,21 @@ case class Labelled[T](task: NamedTask[T],
   }
 }
 
+/**
+  * Evaluate tasks.
+  * @param home
+  * @param outPath The output base path.
+  * @param externalOutPath The output base path to use for external modules.
+  * @param rootModule The projects root module.
+  * @param log
+  * @param classLoaderSig
+  * @param workerCache Mutable worker cache.
+  * @param env
+  * @param failFast If `true` the first failing task will fail the evaluation.
+  *                 If `false`, it tries to evaluate all tasks, running longer and reporting possibly more than one failure.
+  * @param threadCount If a [[Some]] the explicit number of threads to use for parallel task evaluation,
+  *                    or [[None]] to use n threads where n is the number of available logical processors.
+  */
 case class Evaluator(
   home: os.Path,
   outPath: os.Path,
@@ -41,7 +56,7 @@ case class Evaluator(
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv,
   failFast: Boolean = true,
-  threadCount: Option[Int] = None
+  threadCount: Option[Int] = Some(1)
 ) {
 
   val effectiveThreadCount: Int = this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())

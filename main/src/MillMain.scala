@@ -111,10 +111,10 @@ object MillMain {
     }
     )
 
-    var threadCount: Option[Int] = None
+    var threadCount: Option[Int] = Some(1)
     val threadCountSignature = Arg[Config, Int](
       name = "jobs", Some('j'),
-      doc = "Allow processing N targets in parallel. Use 1 to disable parallel and 0 to let mill decide (most probably <number-of-cpu-cores> threads).",
+      doc = "Allow processing N targets in parallel. Use 1 to disable parallel and 0 to use as much threads as available processors.",
       (c, v) => {
         threadCount = if(v == 0) None else Some(v)
         c
