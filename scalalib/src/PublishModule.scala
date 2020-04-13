@@ -1,8 +1,9 @@
 package mill
 package scalalib
 
-import mill.define.{Command, ExternalModule, Task}
+import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.PathRef
+import mill.main.Tasks
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
 /**
@@ -11,12 +12,12 @@ import mill.scalalib.publish.{Artifact, SonatypePublisher}
 trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
-  override def moduleDeps = Seq.empty[PublishModule]
+  override def moduleDeps: Seq[PublishModule] = Seq.empty[PublishModule]
 
   def pomSettings: T[PomSettings]
   def publishVersion: T[String]
 
-  def publishSelfDependency = T {
+  def publishSelfDependency: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
@@ -33,28 +34,28 @@ trait PublishModule extends JavaModule { outer =>
     ivyPomDeps ++ compileIvyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
   }
 
-  def pom = T {
+  def pom: Target[PathRef] = T {
     val pom = Pom(artifactMetadata(), publishXmlDeps(), artifactId(), pomSettings())
     val pomPath = T.dest / s"${artifactId()}-${publishVersion()}.pom"
     os.write.over(pomPath, pom)
     PathRef(pomPath)
   }
 
-  def ivy = T {
+  def ivy: Target[PathRef] = T {
     val ivy = Ivy(artifactMetadata(), publishXmlDeps())
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
   }
 
-  def artifactMetadata: T[Artifact] = T {
+  def artifactMetadata: Target[Artifact] = T {
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
   /**
     * Extra artifacts to publish.
     */
-  def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq.empty[PublishModule.ExtraPublish] }
+  def extraPublish: Target[Seq[PublishModule.ExtraPublish]] = T{ Seq.empty[PublishModule.ExtraPublish] }
 
   /**
     * Publish artifacts to a local ivy repository.
@@ -80,7 +81,7 @@ trait PublishModule extends JavaModule { outer =>
 
   /**
     * Publish artifacts to a local Maven repository.
-    * @param m2RepoPath The path to the local repository (default: `os.home / ".m2" / "repository"`).
+    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
     * @return [[PathRef]]s to published files.
     */
   def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString()): Command[Seq[PathRef]] = T.command {
@@ -192,7 +193,7 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  implicit def millScoptTargetReads[T] = new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptTargetReads[T]: scopt.Read[Tasks[T]] = new mill.main.Tasks.Scopt[T]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }
