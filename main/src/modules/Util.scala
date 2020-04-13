@@ -8,6 +8,15 @@ import mill.api.Loose
 
 
 object Util {
+
+  private val LongMillProps = new java.util.Properties()
+
+  {
+    val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
+    if(millOptionsPath != null) 
+      LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
+  }
+
   def cleanupScaladoc(v: String) = {
     v.linesIterator.map(
       _.dropWhile(_.isWhitespace)
@@ -55,7 +64,7 @@ object Util {
                         repositories: Seq[Repository],
                         resolveFilter: os.Path => Boolean = _ => true,
                         artifactSuffix: String = "_2.12") = {
-    val localPath = sys.props(key)
+    val localPath = millProperty(key)
     if (localPath != null) {
       mill.api.Result.Success(
         mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
@@ -66,11 +75,17 @@ object Util {
         Seq(
           coursier.Dependency(
             coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
-            sys.props("MILL_VERSION")
+            millProperty("MILL_VERSION")
           )
         ),
         Nil
       ).map(_.filter(x => resolveFilter(x.path)))
     }
+  }
+
+  def millProperty(key: String): String = {
+    val sysPropValue = sys.props(key)
+    if(sysPropValue != null) sysPropValue // system property has priority
+    else LongMillProps.getProperty(key)
   }
 }
