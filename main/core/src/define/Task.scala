@@ -54,6 +54,7 @@ trait Target[+T] extends NamedTask[T]{
 }
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
+  // convenience
   def dest(implicit ctx: mill.api.Ctx.Dest) = ctx.dest
   def log(implicit ctx: mill.api.Ctx.Log) = ctx.log
   def home(implicit ctx: mill.api.Ctx.Home) = ctx.home

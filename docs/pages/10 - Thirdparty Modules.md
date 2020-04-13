@@ -419,6 +419,8 @@ object project extends ScalaModule with OsgiBundleModule {
 
 ## PublishM2
 
+_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
+
 Mill plugin to publish artifacts into a local Maven repository.
 
 Project home: https://github.com/lefou/mill-publishM2
