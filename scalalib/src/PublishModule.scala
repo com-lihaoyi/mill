@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import mill.define.{ExternalModule, Task}
+import mill.define.{Command, ExternalModule, Task}
 import mill.api.PathRef
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
@@ -76,6 +76,23 @@ trait PublishModule extends JavaModule { outer =>
       artifact = artifactMetadata(),
       extras = extraPublish().map(ep => (ep.file.path, ep.ivyCategory, ep.suffix))
     )
+  }
+
+  /**
+    * Publish artifacts to a local Maven repository.
+    * @param m2RepoPath The path to the local repository (default: `os.home / ".m2" / "repository"`).
+    * @return [[PathRef]]s to published files.
+    */
+  def publishM2Local(m2RepoPath: os.Path = os.home / ".m2" / "repository"): Command[Seq[PathRef]] = T.command {
+    new LocalM2Publisher(m2RepoPath)
+      .publish(
+        jar = jar().path,
+        sourcesJar = sourceJar().path,
+        docJar = docJar().path,
+        pom = pom().path,
+        artifact = artifactMetadata(),
+        extras = extraPublish().map(ep => (ep.file.path, ep.suffix))
+      ).map(PathRef(_))
   }
 
   def sonatypeUri: String = "https://oss.sonatype.org/service/local"
