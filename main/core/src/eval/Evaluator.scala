@@ -290,7 +290,8 @@ case class Evaluator(
     reporter: Int => Option[BuildProblemReporter],
     testReporter: TestReporter,
     logger: Logger
-   ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = PrintLogger.withContext(maybeTargetLabel.map(_ + ": ")) {
+   ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) =
+    PrintLogger.withContext(maybeTargetLabel.filterNot(_ => effectiveThreadCount == 1).map(_ + ": ")) {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
