@@ -83,8 +83,9 @@ trait PublishModule extends JavaModule { outer =>
     * @param m2RepoPath The path to the local repository (default: `os.home / ".m2" / "repository"`).
     * @return [[PathRef]]s to published files.
     */
-  def publishM2Local(m2RepoPath: os.Path = os.home / ".m2" / "repository"): Command[Seq[PathRef]] = T.command {
-    new LocalM2Publisher(m2RepoPath)
+  def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString()): Command[Seq[PathRef]] = T.command {
+    val path = os.Path(m2RepoPath, os.pwd)
+    new LocalM2Publisher(path)
       .publish(
         jar = jar().path,
         sourcesJar = sourceJar().path,
