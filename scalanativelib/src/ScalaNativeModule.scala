@@ -44,7 +44,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
       repositories,
-      resolveFilter = _.toString.contains("mill-scalanativelib-worker")
+      resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
+      artifactSuffix = "_2.12"
     )
   }
 

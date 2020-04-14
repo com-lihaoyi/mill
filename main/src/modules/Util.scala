@@ -63,7 +63,7 @@ object Util {
                         artifact: String,
                         repositories: Seq[Repository],
                         resolveFilter: os.Path => Boolean = _ => true,
-                        artifactSuffix: String = "_2.12") = {
+                        artifactSuffix: String = "_2.13") = {
     val localPath = millProperty(key)
     if (localPath != null) {
       mill.api.Result.Success(

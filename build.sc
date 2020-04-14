@@ -63,7 +63,7 @@ object Deps {
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
+  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.0"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.8"
   val upickle = ivy"com.lihaoyi::upickle:1.0.0"
