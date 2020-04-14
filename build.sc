@@ -363,8 +363,8 @@ object contrib extends MillModule {
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").compile().classes.path,
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").compile().classes.path
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path
       )
 
       scalalib.worker.testArgs() ++
@@ -496,8 +496,8 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").compile().classes.path,
-      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
+      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").assembly().path,
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").assembly().path
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++

@@ -41,7 +41,6 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
              logLevel: NativeLogLevel): NativeConfig =
     {
       val entry = mainClass + "$"
-
       val config =
         Config.empty
           .withNativelib(nativeLibJar.toPath)
