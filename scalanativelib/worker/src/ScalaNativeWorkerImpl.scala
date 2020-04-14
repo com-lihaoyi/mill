@@ -54,7 +54,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
           .withLinkingOptions(nativeLinkingOptions)
           .withGC(GC(nativeGC))
           .withLinkStubs(nativeLinkStubs)
-          .withMode(Mode(releaseMode.name))
+          .withMode(Mode(releaseMode.value))
           .withLogger(logger(logLevel))
       new NativeConfig(config)
     }
