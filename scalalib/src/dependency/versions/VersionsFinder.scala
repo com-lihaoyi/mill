@@ -52,7 +52,7 @@ private[dependency] object VersionsFinder {
           DependencyVersions(dependency, currentVersion, allVersions)
         }
 
-        ModuleDependenciesVersions(javaModule, versions)
+        ModuleDependenciesVersions(javaModule.toString, versions)
     }
 
   private def eval[T](evaluator: Evaluator, e: Task[T]): T =

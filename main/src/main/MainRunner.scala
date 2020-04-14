@@ -10,6 +10,7 @@ import mill.util.PrintLogger
 
 import scala.annotation.tailrec
 import ammonite.runtime.ImportHook
+import mill.define.Segments
 
 /**
   * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
@@ -68,6 +69,18 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       isRepl = false,
       printing = true,
       mainCfg => {
+        val logger = new PrintLogger(
+          colors != ammonite.util.Colors.BlackWhite,
+          disableTicker,
+          colors,
+          outprintStream,
+          errPrintStream,
+          errPrintStream,
+          stdIn,
+          debugEnabled = debugLog
+        )
+        logger.debug(s"Using explicit system properties: ${systemProperties}")
+
         val (result, interpWatched) = RunScript.runScript(
           config.home,
           mainCfg.wd,
@@ -75,16 +88,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           mainCfg.instantiateInterpreter(),
           scriptArgs,
           stateCache,
-          new PrintLogger(
-            colors != ammonite.util.Colors.BlackWhite,
-            disableTicker,
-            colors,
-            outprintStream,
-            errPrintStream,
-            errPrintStream,
-            stdIn,
-            debugEnabled = debugLog
-          ),
+          logger,
           env,
           keepGoing = keepGoing,
           systemProperties
@@ -139,19 +143,29 @@ class MainRunner(val config: ammonite.main.Cli.Config,
               extraCode: String): (String, String, Int) = {
       import source.pkgName
       val wrapName = indexedWrapperName.backticked
-      val path = source
-        .path
-        .map(path => path.toNIO.getParent)
-        .getOrElse(config.wd.toNIO)
+      val path = source.path
+        .map(_ / os.up)
+        .getOrElse(config.wd)
       val literalPath = pprint.Util.literalize(path.toString)
-      val external = !(path.compareTo(config.wd.toNIO) == 0)
+      val foreign = if (path != config.wd) {
+        // Computing a path in "out" that uniquely reflects the location
+        // of the foreign module relatively to the current build.
+        val relative = path.relativeTo(config.wd)
+        // Encoding the number of `/..`
+        val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
+        val segs = Seq("foreign-modules") ++ ups ++ relative.segments
+        val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+        s"Some(mill.define.Segments.labels($segsList))"
+      }
+      else "None"
+
       val top = s"""
         |package ${pkgName.head.encoded}
         |package ${Util.encodeScalaSourcePath(pkgName.tail)}
         |$imports
         |import mill._
         |object $wrapName
-        |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $external)(
+        |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
         |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
         |)
         |with $wrapName{

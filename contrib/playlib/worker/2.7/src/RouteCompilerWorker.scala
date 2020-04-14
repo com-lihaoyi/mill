@@ -4,7 +4,8 @@ package worker
 
 import java.io.File
 
-import mill.api.{Ctx, Result, PathRef}
+import mill.api.{Ctx, Result}
+import mill.eval.PathRef
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
 import play.routes.compiler

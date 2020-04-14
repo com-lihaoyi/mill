@@ -12,7 +12,7 @@ object DependencyUpdatesImpl {
             ctx: Log with Home,
             rootModule: BaseModule,
             discover: Discover[_],
-            allowPreRelease: Boolean): Unit = {
+            allowPreRelease: Boolean): Seq[ModuleDependenciesUpdates] = {
 
     // 1. Find all available versions for each dependency
     val allDependencyVersions: Seq[ModuleDependenciesVersions] =
@@ -23,13 +23,13 @@ object DependencyUpdatesImpl {
       UpdatesFinder.findUpdates(dependencyVersions, allowPreRelease)
     }
 
-    // 3. Print the results
-    showAllUpdates(allUpdates)
+    // 3. Return the results
+    allUpdates
   }
 
-  private def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
+  def showAllUpdates(updates: Seq[ModuleDependenciesUpdates]): Unit =
     updates.foreach { dependencyUpdates =>
-      val module = dependencyUpdates.module.toString
+      val module = dependencyUpdates.modulePath
       val actualUpdates =
         dependencyUpdates.dependencies.filter(_.updates.nonEmpty)
       if (actualUpdates.isEmpty) {

@@ -39,7 +39,7 @@ object caffeine extends CaffeineModule {
   )
 
   def generatedSources = T{
-    val out = T.ctx().dest
+    val out = T.ctx.dest
     val mains = Seq(
       "com.github.benmanes.caffeine.cache.NodeFactoryGenerator",
       "com.github.benmanes.caffeine.cache.LocalCacheFactoryGenerator",

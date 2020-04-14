@@ -18,17 +18,30 @@ object Deps {
   }
 
   object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-M2"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-M2"
-    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-M2"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-M2"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:1.0.0-M2"
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-RC1"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-RC1"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-RC1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-RC1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
+  }
+  object Scalanative_0_3 {
+    val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
+    val scalanativeUtil = ivy"org.scala-native::util:0.3.9"
+    val scalanativeNir = ivy"org.scala-native::nir:0.3.9"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.3.9"
+  }
+
+  object Scalanative_0_4 {
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.0-M2"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.0-M2"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.0-M2"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0-M2"
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:1.8.0"
-  val coursier = ivy"io.get-coursier::coursier:2.0.0-RC4-1"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.3.5"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.0.4"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
+  val coursier = ivy"io.get-coursier::coursier:2.0.0-RC5-3"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
@@ -43,16 +56,18 @@ object Deps {
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
-  val osLib = ivy"com.lihaoyi::os-lib:0.4.2"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
+  val osLib = ivy"com.lihaoyi::os-lib:0.6.3"
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.1.7"
-  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.8.0"
-  val upickle = ivy"com.lihaoyi::upickle:0.8.0"
-  val utest = ivy"com.lihaoyi::utest:0.7.1"
+  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.0"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.8"
+  val upickle = ivy"com.lihaoyi::upickle:1.0.0"
+  val utest = ivy"com.lihaoyi::utest:0.7.3"
   val zinc = ivy"org.scala-sbt::zinc:1.2.5"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
@@ -75,8 +90,8 @@ trait MillPublishModule extends PublishModule{
 
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
-
-trait MillScalaModule extends MillPublishModule with ScalaModule{
+trait MillApiModule extends MillPublishModule with ScalaModule{
+  def scalaVersion = T{ "2.13.1" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -84,8 +99,7 @@ trait MillScalaModule extends MillPublishModule with ScalaModule{
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
 }
-trait MillApiModule extends MillScalaModule with CrossScalaModule {}
-trait MillModule extends MillScalaModule with ScalaModule { outer =>
+trait MillModule extends MillApiModule { outer =>
   def scalaVersion = T{ "2.13.1" }
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -117,7 +131,7 @@ object main extends MillModule {
   )
 
   def generatedSources = T {
-    Seq(PathRef(shared.generateCoreSources(T.ctx().dest)))
+    Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
   def testArgs = Seq(
     "-DMILL_VERSION=" + build.publishVersion()._2,
@@ -125,11 +139,10 @@ object main extends MillModule {
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
     def generatedSources = T {
-      Seq(PathRef(shared.generateCoreTestSources(T.ctx().dest)))
+      Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
     }
   }
-  object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-  class ApiModule(val crossScalaVersion: String) extends MillApiModule {
+  object api extends MillApiModule {
     def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -137,7 +150,7 @@ object main extends MillModule {
     )
   }
   object core extends MillModule {
-    def moduleDeps = Seq(moduledefs, api("2.13.1"))
+    def moduleDeps = Seq(moduledefs, api)
 
     def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
@@ -148,11 +161,12 @@ object main extends MillModule {
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
-      Deps.jnaPlatform
+      Deps.jnaPlatform,
+      Deps.coursier
     )
 
     def generatedSources = T {
-      val dest = T.ctx().dest
+      val dest = T.ctx.dest
       val version = publishVersion()
       writeBuildInfo(dest, version)
       shared.generateCoreSources(dest)
@@ -184,9 +198,12 @@ object main extends MillModule {
     def ivyDeps = Agg(
       Deps.ipcsocketExcludingJna
     )
-    object test extends Tests{
+    object test extends Tests {
       def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-      def ivyDeps = Agg(Deps.junitInterface)
+      def ivyDeps = T{ Agg(
+        Deps.junitInterface,
+        Deps.lambdaTest
+      )}
     }
   }
 
@@ -205,7 +222,7 @@ object main extends MillModule {
 
 
 object scalalib extends MillModule {
-  def moduleDeps = Seq(main, scalalib.api("2.13.1"))
+  def moduleDeps = Seq(main, scalalib.api)
 
   def ivyDeps = Agg(
     Deps.sbtTestInterface,
@@ -218,7 +235,7 @@ object scalalib extends MillModule {
   }
 
   override def generatedSources = T{
-    val dest = T.ctx().dest
+    val dest = T.ctx.dest
     os.write(dest / "Versions.scala",
       s"""package mill.scalalib
         |
@@ -264,13 +281,12 @@ object scalalib extends MillModule {
       )
     }
   }
-  object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-  class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-    def moduleDeps = Seq(main.api())
+  object api extends MillApiModule {
+    def moduleDeps = Seq(main.api)
   }
-  object worker extends MillScalaModule {
-    def scalaVersion = T{ "2.12.10" }
-    def moduleDeps = Seq(scalalib.api("2.12.10"))
+  object worker extends MillApiModule {
+
+    def moduleDeps = Seq(scalalib.api)
 
     def ivyDeps = Agg(
       Deps.zinc
@@ -284,7 +300,7 @@ object scalalib extends MillModule {
 
 object scalajslib extends MillModule {
 
-  def moduleDeps = Seq(scalalib, scalajslib.api("2.13.1"))
+  def moduleDeps = Seq(scalalib, scalajslib.api)
 
   def testArgs = T{
     val mapping = Map(
@@ -297,16 +313,14 @@ object scalajslib extends MillModule {
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
-  object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-  class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-    def moduleDeps = Seq(main.api())
+  object api extends MillApiModule {
+    def moduleDeps = Seq(main.api)
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
-  class WorkerModule(scalajsBinary: String) extends MillScalaModule {
-    def scalaVersion = T{ "2.12.10" }
-    def moduleDeps = Seq(scalajslib.api("2.12.10"))
-    def ivyDeps = scalajsBinary match {
+  class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule{
+    def moduleDeps = Seq(scalajslib.api)
+    def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
         Agg(
           Deps.Scalajs_0_6.scalajsTools,
@@ -318,7 +332,7 @@ object scalajslib extends MillModule {
         )
       case "1.0" =>
         Agg(
-          Deps.Scalajs_1_0.scalajsTools,
+          Deps.Scalajs_1_0.scalajsLinker,
           Deps.Scalajs_1_0.scalajsSbtTestAdapter,
           Deps.Scalajs_1_0.scalajsEnvNodejs,
           Deps.Scalajs_1_0.scalajsEnvJsdomNodejs,
@@ -360,11 +374,11 @@ object contrib extends MillModule {
 
     object api extends Cross[ApiModule]("2.12.10", "2.13.1")
     class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-      def moduleDeps = Seq(scalalib.api())
+      def moduleDeps = Seq(scalalib.api)
     }
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
-    class WorkerModule(scalajsBinary: String) extends MillScalaModule  {
+    class WorkerModule(scalajsBinary: String) extends MillApiModule  {
       def scalaVersion = T { "2.12.10" }
       def moduleDeps = Seq(playlib.api("2.12.10"))
 
@@ -387,12 +401,15 @@ object contrib extends MillModule {
   }
 
   object scoverage extends MillModule {
-    def moduleDeps = Seq(scalalib, scoverage.api("2.13.1"))
+    object api extends MillApiModule {
+      def moduleDeps = Seq(main.api)
+    }
+
+    def moduleDeps = Seq(scalalib, scoverage.api)
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_SCOVERAGE_REPORT_WORKER_1_3_1" -> worker("1.3.1").compile().classes.path,
-        "MILL_SCOVERAGE_REPORT_WORKER_1_4_0" -> worker("1.4.0").compile().classes.path
+        "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
       )
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
@@ -405,18 +422,12 @@ object contrib extends MillModule {
       override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
     }
 
-    object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-    class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-      def moduleDeps = Seq(scalalib.api())
-    }
-
-    object worker extends Cross[WorkerModule]("1.3.1", "1.4.0")
-
-    class WorkerModule(scoverageVersion: String) extends MillScalaModule  {
-      def scalaVersion = T { "2.12.10" }
-      def moduleDeps = Seq(scoverage.api("2.12.10"))
-
-      def ivyDeps = Agg(ivy"org.scoverage::scalac-scoverage-plugin:${scoverageVersion}")
+    object worker extends MillApiModule {
+      def moduleDeps = Seq(scoverage.api)
+      def compileIvyDeps = T{
+        // compile-time only, need to provide the correct scoverage version runtime
+        Agg(Deps.scalacScoveragePlugin)
+      }
     }
   }
 
@@ -448,8 +459,7 @@ object contrib extends MillModule {
   object bloop extends MillModule {
     def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
-      Deps.bloopConfig,
-      Deps.ujsonCirce
+      Deps.bloopConfig
     )
     def testArgs = T(scalanativelib.testArgs())
   }
@@ -464,44 +474,56 @@ object contrib extends MillModule {
     )
   }
 
+  object artifactory extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
+  object versionfile extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
+  object bintray extends MillModule {
+    def moduleDeps = Seq(scalalib)
+  }
+
 }
 
 
 object scalanativelib extends MillModule {
-  def moduleDeps = Seq(scalalib, scalanativelib.api("2.13.1"))
+  def moduleDeps = Seq(scalalib, scalanativelib.api)
 
   def scalacOptions = Seq[String]() // disable -P:acyclic:force
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_3" ->
-        worker("0.3").runClasspath()
-          .map(_.path)
-          .filter(_.toIO.exists)
-          .mkString(",")
+      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").compile().classes.path,
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
-  object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-  class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-    def moduleDeps = Seq(main.core)
+  object api extends MillPublishModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule]("0.3")
-  class WorkerModule(scalaNativeBinary: String) extends MillScalaModule {
-    def scalaVersion = T{ "2.12.10" }
-    def scalaNativeVersion = T{ "0.3.8" }
-    def moduleDeps = Seq(scalanativelib.api("2.12.10"))
-    def ivyDeps = scalaNativeBinary match {
+  object worker extends Cross[WorkerModule]("0.3", "0.4")
+    class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    override def millSourcePath(): os.Path = super.millSourcePath / os.up
+    def moduleDeps = Seq(scalanativelib.api)
+    def ivyDeps = scalaNativeWorkerVersion match {
       case "0.3" =>
         Agg(
-          ivy"org.scala-native::tools:${scalaNativeVersion()}",
-          ivy"org.scala-native::util:${scalaNativeVersion()}",
-          ivy"org.scala-native::nir:${scalaNativeVersion()}",
-          ivy"org.scala-native::nir:${scalaNativeVersion()}",
-          ivy"org.scala-native::test-runner:${scalaNativeVersion()}",
+          Deps.Scalanative_0_3.scalanativeTools,
+          Deps.Scalanative_0_3.scalanativeUtil,
+          Deps.Scalanative_0_3.scalanativeNir,
+          Deps.Scalanative_0_3.scalanativeTestRunner
+        )
+      case "0.4" =>
+        Agg(
+          Deps.Scalanative_0_4.scalanativeTools,
+          Deps.Scalanative_0_4.scalanativeUtil,
+          Deps.Scalanative_0_4.scalanativeNir,
+          Deps.Scalanative_0_4.scalanativeTestRunner
         )
     }
   }
@@ -510,19 +532,19 @@ object scalanativelib extends MillModule {
 def testRepos = T{
   Seq(
     "MILL_ACYCLIC_REPO" ->
-      shared.downloadTestRepo("lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", T.ctx().dest/"acyclic"),
+      shared.downloadTestRepo("lihaoyi/acyclic", "bc41cd09a287e2c270271e27ccdb3066173a8598", T.ctx.dest/"acyclic"),
     "MILL_JAWN_REPO" ->
-      shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx().dest/"jawn"),
+      shared.downloadTestRepo("non/jawn", "fd8dc2b41ce70269889320aeabf8614fe1e8fbcb", T.ctx.dest/"jawn"),
     "MILL_BETTERFILES_REPO" ->
-      shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx().dest/"better-files"),
+      shared.downloadTestRepo("pathikrit/better-files", "ba74ae9ef784dcf37f1b22c3990037a4fcc6b5f8", T.ctx.dest/"better-files"),
     "MILL_AMMONITE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/ammonite", "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e", T.ctx().dest/"ammonite"),
+      shared.downloadTestRepo("lihaoyi/ammonite", "26b7ebcace16b4b5b4b68f9344ea6f6f48d9b53e", T.ctx.dest/"ammonite"),
     "MILL_UPICKLE_REPO" ->
-      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx().dest/"upickle"),
+      shared.downloadTestRepo("lihaoyi/upickle", "7f33085c890db7550a226c349832eabc3cd18769", T.ctx.dest/"upickle"),
     "MILL_PLAY_JSON_REPO" ->
-      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx().dest/"play-json"),
+      shared.downloadTestRepo("playframework/play-json", "0a5ba16a03f3b343ac335117eb314e7713366fd4", T.ctx.dest/"play-json"),
     "MILL_CAFFEINE_REPO" ->
-      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx().dest/"caffeine")
+      shared.downloadTestRepo("ben-manes/caffeine", "c02c623aedded8174030596989769c2fecb82fe4", T.ctx.dest/"caffeine")
   )
 }
 
@@ -588,7 +610,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule{
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, contrib.scalapblib, contrib.tut, contrib.scoverage, contrib.bsp)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
 
 
   def forkArgs =
@@ -607,27 +629,13 @@ object dev extends MillModule{
       )
     ).distinct
 
-
-  // Pass dev.assembly VM options via file in Windows due to small max args limit
-  def windowsVmOptions(taskName: String, batch: os.Path, args: Seq[String])
-                      (implicit ctx: mill.util.Ctx) = {
-    if (System.getProperty("java.specification.version").startsWith("1.")) {
-      throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
-    }
-    val vmOptionsFile = T.ctx().dest / "mill.vmoptions"
-    T.ctx().log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
-    os.write(vmOptionsFile, args.mkString("\r\n"))
-  }
-
   def launcher = T{
     val isWin = scala.util.Properties.isWin
-    val outputPath = T.ctx().dest / (if (isWin) "run.bat" else "run")
+    val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
 
-    if (isWin) {
-      windowsVmOptions("dev.launcher", outputPath, forkArgs())
-    } else {
+    if (!isWin) {
       os.perms.set(outputPath, "rwxrwxrwx")
     }
     PathRef(outputPath)
@@ -635,30 +643,43 @@ object dev extends MillModule{
 
   def assembly = T{
     val isWin = scala.util.Properties.isWin
-    val millPath = T.ctx().dest / (if (isWin) "mill.bat" else "mill")
+    val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
     os.move(super.assembly().path, millPath)
-    if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
     PathRef(millPath)
   }
 
   def prependShellScript = T{
+    val (millArgs, otherArgs) = forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = T.ctx.dest / "mill.properties"
+    val millOptionsContent = millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n") // drop -D prefix, replace \ with /
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs()
-    val (shellArgs, cmdArgs) =
-      if (!scala.util.Properties.isWin) (
-        args,
-        args
-      )
-      else (
-        Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
-        Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
-      )
     launcherScript(
-      shellArgs,
-      cmdArgs,
+      jvmArgs,
+      jvmArgs,
       classpath,
-      classpath
+      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
     )
+  }
+
+  def pathingJar = T{
+    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
+    // for more detailed explanation
+    val isWin = scala.util.Properties.isWin
+    val classpath = runClasspath().map{ pathRef =>
+      val path = if (isWin) "/" + pathRef.path.toString.replace("\\", "/") 
+                 else pathRef.path.toString
+      if (path.endsWith(".jar")) path
+      else path + "/"
+    }.mkString(" ")
+    val manifestEntries = Map[String,String](
+        java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
+        "Created-By" -> "Scala mill",
+        "Class-Path" -> classpath
+      )
+    mill.modules.Jvm.createJar(Agg(), mill.modules.Jvm.JarManifest(manifestEntries))
   }
 
   def run(args: String*) = T.command{
@@ -677,7 +698,6 @@ object dev extends MillModule{
 
   }
 }
-
 
 def assembly = T{
 
@@ -702,15 +722,15 @@ def assembly = T{
         Agg("%~dpnx0")
       )
     ).path,
-    T.ctx().dest / filename
+    T.ctx.dest / filename
   )
-  PathRef(T.ctx().dest / filename)
+  PathRef(T.ctx.dest / filename)
 }
 
 def millBootstrap = T.sources(os.pwd / "mill")
 
 def launcher = T{
-  val outputPath = T.ctx().dest / "mill"
+  val outputPath = T.ctx.dest / "mill"
   val millBootstrapGrepPrefix = "\nDEFAULT_MILL_VERSION="
   os.write(
     outputPath,

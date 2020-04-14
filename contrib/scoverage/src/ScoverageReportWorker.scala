@@ -1,15 +1,15 @@
 package mill.contrib.scoverage
 
 import mill.{Agg, T}
-import mill.api.{ClassLoader, Ctx, Result}
-import mill.define.{Discover, ExternalModule, Worker}
-import mill.api.PathRef
+import mill.api.{ClassLoader, Ctx}
+import mill.contrib.scoverage.api.ScoverageReportWorkerApi
+import mill.define.{Discover, ExternalModule}
 
 class ScoverageReportWorker {
   private var scoverageInstanceCache = Option.empty[(Long, api.ScoverageReportWorkerApi)]
 
   def bridge(classpath: Agg[os.Path])
-                    (implicit ctx: Ctx) = {
+                    (implicit ctx: Ctx): ScoverageReportWorkerApi = {
     val classloaderSig =
       classpath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scoverageInstanceCache match {
@@ -32,7 +32,7 @@ class ScoverageReportWorker {
   }
 }
 
-object ScoverageReportWorkerApi extends ExternalModule {
+object ScoverageReportWorker extends ExternalModule {
 
   def scoverageReportWorker = T.worker { new ScoverageReportWorker() }
   lazy val millDiscover = Discover[this.type]

@@ -1,7 +1,6 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.ConfigEncoderDecoders._
 import bloop.config.{Config => BloopConfig}
 import mill._
 import mill.api.Loose
@@ -20,6 +19,7 @@ import os.pwd
   * a custom evaluator.
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
+  import BloopFormats._
 
   private val bloopDir = wd / ".bloop"
 
@@ -48,7 +48,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * }
     * }}}
     */
-  trait Module extends MillModule with CirceCompat { self: JavaModule =>
+  trait Module extends MillModule { self: JavaModule =>
 
     /**
       * Allows to tell Bloop whether it should use "fullOptJs" or
@@ -72,9 +72,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * "install" task that traverse all modules in the build, and "local" tasks
     * that traverse only their transitive dependencies.
     */
-  private implicit class BloopOps(jm: JavaModule)
-      extends MillModule
-      with CirceCompat {
+  private implicit class BloopOps(jm: JavaModule) extends MillModule {
     override def millOuterCtx = jm.millOuterCtx
 
     object bloop extends MillModule {
@@ -84,7 +82,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         mkdir(bloopDir)
         val path = bloopConfigPath(jm)
         _root_.bloop.config.write(config(), path.toNIO)
-        T.ctx().log.info(s"Wrote $path")
+        T.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
       }
 
@@ -227,8 +225,13 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.task {
           BloopConfig.Platform.Jvm(
             BloopConfig.JvmConfig(
-              home = T.ctx().env.get("JAVA_HOME").map(s => Path(s).toNIO),
-              options = module.forkArgs().toList
+              home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
+              options = {
+                // See https://github.com/scalacenter/bloop/issues/1167
+                val forkArgs = module.forkArgs().toList
+                if (forkArgs.exists(_.startsWith("-Duser.dir="))) forkArgs
+                else s"-Duser.dir=$wd" :: forkArgs
+              }
             ),
             mainClass = module.mainClass()
           )
@@ -279,7 +282,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
       def source(r: Resolution) = Resolution(
         r.dependencies
-          .map(d => d.withAttributes(d.attributes.withClassifier(coursier.Classifier("sources"))))
+          .map(
+            d =>
+              d.withAttributes(
+                d.attributes.withClassifier(coursier.Classifier("sources"))))
           .toSeq
       )
 
@@ -383,6 +389,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
+        workspaceDir = Some(wd.toNIO),
         sources = mSources,
         dependencies = module.moduleDeps.map(name).toList,
         classpath = classpath().map(_.toNIO).toList,

@@ -316,6 +316,28 @@ mill mill.scalalib.PublishModule/publishAll \
         --release true
 ```
 
+To publish to repository other than `oss.sonaytype.org` such as internal hosted
+nexus at `example.company.com`, you can pass in the `--sonatypeUri` and
+`--sonatypeSnapshotUri` parameters to uploads to different site:
+```bash
+mill mill.scalalib.PublishModule/publishAll \
+        lihaoyi:$SONATYPE_PASSWORD \
+        foo.publishArtifacts \
+        --sonatypeUri http://example.company.com/release \
+        --sonatypeSnaphostUri http://example.company.com/snapshot
+```
+
+If the site does not support staging release as `oss.sonatype.org` does (for
+example, a self-hosted OSS nexus site), you can pass in the
+`--stagingRelease false` to simply upload release artifacts to corresponding
+maven path under `sonatypeUri` instead of staging path.
+```bash
+mill mill.scalalib.PublishModule/publishAll \
+        lihaoyi:$SONATYPE_PASSWORD \
+        foo.publishArtifacts \
+        --sonatypeUri http://example.company.com/release \
+        --stagingRelease false
+``` 
 
 ## Example Builds
 

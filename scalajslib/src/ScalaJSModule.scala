@@ -8,6 +8,7 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.Ctx
 import mill.api.Loose
+import mill.define.Task
 import mill.scalajslib.api._
 trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
@@ -21,9 +22,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaBinaryVersion(scalaJSVersion()) }
+  def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = T{ scalaJSVersion().split('.').dropRight(1).mkString(".") }
+  def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
@@ -37,16 +38,27 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
     val commonDeps = Seq(
-      ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
       ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
       ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903",
       ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
-      case v if v.startsWith("0.6") => Seq(ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}")
+      case "0.6" =>
+        Seq(
+          ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-js-envs:${scalaJSVersion()}"
+        )
+      case "1" =>
+        Seq(
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0",
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+        )
       case v if v.startsWith("1.0") =>
         Seq(
+          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-jsdom-nodejs:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-phantomjs:${scalaJSVersion()}"
@@ -68,6 +80,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
+      testBridgeInit = false,
       FastOpt,
       moduleKind()
     )
@@ -79,6 +92,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       toolsClasspath(),
       runClasspath(),
       finalMainClassOpt().toOption,
+      testBridgeInit = false,
       FullOpt,
       moduleKind()
     )
@@ -112,6 +126,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            toolsClasspath: Agg[PathRef],
            runClasspath: Agg[PathRef],
            mainClass: Option[String],
+           testBridgeInit: Boolean,
            mode: OptimizeMode,
            moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
@@ -131,6 +146,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       libraries,
       outputPath.toIO,
       mainClass,
+      testBridgeInit,
       mode == FullOpt,
       moduleKind
     ).map(PathRef(_))
@@ -163,9 +179,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def scalaJSTestDeps = T {
     resolveDeps(T.task {
+      val bridgeOrInterface =
+        if (mill.scalalib.api.Util.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
+        else "interface"
       Loose.Agg(
         ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-        ivy"org.scala-js::scalajs-test-interface:${scalaJSVersion()}"
+        ivy"org.scala-js::scalajs-test-$bridgeOrInterface:${scalaJSVersion()}"
       )
     })
   }
@@ -176,6 +195,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       toolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
+      testBridgeInit = true,
       FastOpt,
       moduleKind()
     )
@@ -183,21 +203,22 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override def test(args: String*) = T.command {
+  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
-        toolsClasspath().map(_.path),
-        jsEnvConfig(),
-        testFrameworks().head,
-        fastOptTest().path.toIO
-      )
+      toolsClasspath().map(_.path),
+      jsEnvConfig(),
+      testFrameworks().head,
+      fastOptTest().path.toIO,
+      moduleKind()
+    )
 
     val (doneMsg, results) = TestRunner.runTests(
-        _ => Seq(framework),
-        runClasspath().map(_.path),
-        Agg(compile().classes.path),
-        args,
-        T.ctx.testReporter
-      )
+      _ => Seq(framework),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args(),
+      T.testReporter
+    )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout
     // to the JVM. Without this, the stdout can still be streaming when `close()`

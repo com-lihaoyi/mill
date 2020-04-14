@@ -1,8 +1,10 @@
 package mill
 
 import java.io.{InputStream, PrintStream}
+import java.util.Locale
 
 import scala.collection.JavaConverters._
+
 import ammonite.main.Cli._
 import io.github.retronym.java9rtexport.Export
 import mill.eval.Evaluator
@@ -11,6 +13,7 @@ import mill.api.DummyInputStream
 object MillMain {
 
   def main(args: Array[String]): Unit = {
+    // Remove the trailing interactive parameter, we already handled it on call site
     val as = args match {
       case Array(s, _*) if s == "-i" || s == "--interactive" => args.tail
       case _ => args
@@ -52,6 +55,16 @@ object MillMain {
       "Run Mill in interactive mode, suitable for opening REPLs and taking user input. In this mode, no mill server will be used.",
       (c, v) => {
         interactive = true
+        c
+      }
+    )
+
+    var showVersion = false
+    val showVersionSignature = Arg[Config, Unit](
+      name = "version", Some('v'),
+      doc = "Show mill version and exit.",
+      (c, v) => {
+        showVersion = true
         c
       }
     )
@@ -102,6 +115,7 @@ object MillMain {
       Cli.genericSignature.filter(a => !removed(a.name)) ++
         Seq(
           interactiveSignature,
+          showVersionSignature,
           disableTickerSignature,
           debugLogSignature,
           keepGoingSignature,
@@ -113,21 +127,33 @@ object MillMain {
       millArgSignature,
       Cli.Config(home = millHome, remoteLogging = false)
     ) match {
-        case _ if interactive =>
-          stderr.println("-i/--interactive must be passed in as the first argument")
-          (false, None)
-        case Left(msg) =>
-          stderr.println(msg)
-          (false, None)
-        case Right((cliConfig, _)) if cliConfig.help =>
-          val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
-          stdout.println(
-            s"""Mill Build Tool
+      case _ if interactive =>
+        // because this parameter was handled earlier (when in first position),
+        // here it is too late and we can't handle it properly.
+        stderr.println("-i/--interactive must be passed in as the first argument")
+        (false, None)
+      case Left(msg) =>
+        stderr.println(msg)
+        (false, None)
+      case Right((cliConfig, _)) if cliConfig.help =>
+        val leftMargin = millArgSignature.map(ammonite.main.Cli.showArg(_).length).max + 2
+        stdout.println(
+          s"""Mill Build Tool
              |usage: mill [mill-options] [target [target-options]]
              |
-           |${formatBlock(millArgSignature, leftMargin).mkString(ammonite.util.Util.newLine)}""".stripMargin
+             |${formatBlock(millArgSignature, leftMargin).mkString(ammonite.util.Util.newLine)}""".stripMargin
         )
         (true, None)
+      case Right(_) if showVersion =>
+        def p(k: String, d: String = "<unknown>") = System.getProperty(k, d)
+        stdout.println(
+          s"""Mill Build Tool version ${p("MILL_VERSION", "<unknown mill version>")}
+             |Java version: ${p("java.version", "<unknown Java version")}, vendor: ${p("java.vendor", "<unknown Java vendor")}, runtime: ${p("java.home", "<unknown runtime")}
+             |Default locale: ${Locale.getDefault()}, platform encoding: ${p("file.encoding", "<unknown encoding>")}
+             |OS name: "${p("os.name")}", version: ${p("os.version")}, arch: ${p("os.arch")}""".stripMargin
+        )
+        (true, None)
+
       case Right((cliConfig, leftoverArgs)) =>
 
         val repl = leftoverArgs.isEmpty

@@ -99,15 +99,7 @@ case class Evaluator(home: os.Path,
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
-    os.write.over(
-      outPath / "mill-profile.json",
-      upickle.default.write(
-        timings .map{case (k, v, b) =>
-          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
-        },
-        indent = 4
-      )
-    )
+    Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
@@ -229,22 +221,13 @@ case class Evaluator(home: os.Path,
   }
 
   def destSegments(labelledTask : Labelled[_]) : Segments = {
-    import labelledTask.task.ctx
-    if (ctx.foreign) {
-      val prefix = "foreign-modules"
-      // Computing a path in "out" that uniquely reflects the location
-      // of the foreign module relatively to the current build.
-      val relative = labelledTask.task
-        .ctx.millSourcePath
-        .relativeTo(rootModule.millSourcePath)
-      // Encoding the number of `/..`
-      val ups = if (relative.ups > 0) Segments.labels(s"up-${relative.ups}")
-                else Segments()
-      Segments.labels(prefix)
-        .++(ups)
-        .++(Segments.labels(relative.segments: _*))
-        .++(labelledTask.segments.last)
-    } else labelledTask.segments
+    labelledTask.task.ctx.foreign match {
+      case Some(foreignSegments) =>
+        foreignSegments ++ labelledTask.segments
+
+      case None =>
+        labelledTask.segments
+    }
   }
 
 
@@ -264,7 +247,7 @@ case class Evaluator(home: os.Path,
         for((json, v) <- terminalResult){
           os.write.over(
             metaPath,
-            upickle.default.write(
+            upickle.default.stream(
               Evaluator.Cached(json, hashCode, inputsHash),
               indent = 4
             ),
@@ -379,6 +362,14 @@ case class Evaluator(home: os.Path,
       }
     }
 
+    if(!failFast) maybeTargetLabel.foreach { targetLabel =>
+      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+      if(taskFailed) {
+        log.error(s"[${counterMsg}] ${targetLabel} failed")
+      }
+    }
+
+
     multiLogger.close()
 
     (newResults, newEvaluated)
@@ -437,6 +428,19 @@ object Evaluator{
   object Timing{
     implicit val readWrite: upickle.default.ReadWriter[Timing] = upickle.default.macroRW
   }
+
+  def writeTimings(timings: Seq[(Either[Task[_], Labelled[_]], Int, Boolean)], outPath: os.Path): Unit = {
+    os.write.over(
+      outPath / "mill-profile.json",
+      upickle.default.stream(
+        timings .map{ case (k, v, b) =>
+          Evaluator.Timing(k.fold(_ => null, s => s.segments.render), v, b)
+        },
+        indent = 4
+      )
+    )
+  }
+
   case class Results(rawValues: Seq[Result[Any]],
                      evaluated: Agg[Task[_]],
                      transitive: Agg[Task[_]],

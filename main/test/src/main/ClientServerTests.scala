@@ -74,7 +74,7 @@ object ClientServerTests extends TestSuite{
         args,
         env.asJava
       )
-      Thread.sleep(100)
+      Thread.sleep(200)
       (new String(out.toByteArray), new String(err.toByteArray))
     }
   }
@@ -135,7 +135,7 @@ object ClientServerTests extends TestSuite{
         )
       }
 
-      'envVars - {
+      'envVars - retry(3) {
         if (!Util.isWindows){
           val (tmpDir, locks) = init()
 

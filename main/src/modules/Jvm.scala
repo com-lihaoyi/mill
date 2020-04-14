@@ -283,10 +283,16 @@ object Jvm {
 
     Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
       .foreach {
-        case (mapping, AppendEntry(entries)) =>
+        case (mapping, AppendEntry(entries, separator)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
+          val separated =
+            if (entries.isEmpty) Nil
+            else
+              entries.head +: entries.tail.flatMap { e =>
+                List(JarFileEntry(e.mapping, () => new ByteArrayInputStream(separator.getBytes)), e)
+              }
           val concatenated = new SequenceInputStream(
-            Collections.enumeration(entries.map(_.inputStream).asJava))
+            Collections.enumeration(separated.map(_.inputStream).asJava))
           writeEntry(path, concatenated, append = true)
         case (mapping, WriteOnceEntry(entry)) =>
           val path = zipFs.getPath(mapping).toAbsolutePath
@@ -300,13 +306,8 @@ object Jvm {
     if (prependShellScript.isEmpty) os.move(tmp, output)
     else{
       val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
-      os.write(
-        output,
-        Seq[os.Source](
-          prependShellScript + lineSep,
-          os.read.inputStream(tmp)
-        )
-      )
+      os.write(output, prependShellScript + lineSep)
+      os.write.append(output, os.read.inputStream(tmp))
 
       if (!scala.util.Properties.isWin) {
         os.perms.set(
@@ -333,7 +334,7 @@ object Jvm {
     outputStream.close()
     is.close()
   }
-  
+
   def universalScript(shellCommands: String,
                       cmdCommands: String,
                       shebang: Boolean = false): String = {
@@ -346,8 +347,10 @@ object Jvm {
       Seq(
         "",
         ":BOF",
+        "setlocal",
         "@echo off",
         cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+        "endlocal",
         "exit /B %errorlevel%",
         ""
       ).mkString("\r\n")
@@ -408,7 +411,7 @@ object Jvm {
     val (_, resolution) = resolveDependenciesMetadata(
       repositories, deps, force, mapDependencies, ctx
     )
-    val errs = resolution.metadataErrors
+    val errs = resolution.errors
 
     if(errs.nonEmpty) {
       val header =
@@ -499,11 +502,7 @@ object Jvm {
 
     val fetches = cache.fetchs
 
-    val fetch = coursier.core.ResolutionProcess.fetch(
-      repositories,
-      fetches.head,
-      fetches.tail
-    )
+    val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
 
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()

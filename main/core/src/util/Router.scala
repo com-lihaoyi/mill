@@ -52,7 +52,7 @@ object Router{
                           default: Option[T => V])
                          (implicit val reads: scopt.Read[V])
 
-  def stripDashes(s: String) = {
+  def stripDashes(s: String): String = {
     if (s.startsWith("--")) s.drop(2)
     else if (s.startsWith("-")) s.drop(1)
     else s
@@ -162,7 +162,7 @@ object Router{
   }
   def readVarargs(arg: ArgSig[_, _],
                   values: Seq[String],
-                  thunk: String => Any) = {
+                  thunk: String => Any): Either[Seq[Result.ParamError], Seq[Any]] = {
     val attempts =
       for(item <- values)
         yield tryEither(thunk(item), Result.ParamError.Invalid(arg, item, _))
@@ -262,10 +262,10 @@ object Router{
 
   def makeReadCall(dict: Map[String, String],
                    default: => Option[Any],
-                   arg: ArgSig[_, _]) = {
+                   arg: ArgSig[_, _]): FailMaybe = {
     read(dict, default, arg, arg.reads.reads(_))
   }
-  def makeReadVarargsCall(arg: ArgSig[_, _], values: Seq[String]) = {
+  def makeReadVarargsCall(arg: ArgSig[_, _], values: Seq[String]): Either[Seq[Result.ParamError], Seq[Any]] = {
     readVarargs(arg, values, arg.reads.reads(_))
   }
 }
@@ -301,31 +301,31 @@ class Router [C <: Context](val c: C) {
 
   def extractMethod(meth: MethodSymbol, curCls: c.universe.Type): c.universe.Tree = {
     val baseArgSym = TermName(c.freshName())
-    val flattenedArgLists = meth.paramss.flatten
+    val flattenedArgLists = meth.paramLists.flatten
     def hasDefault(i: Int) = {
       val defaultName = s"${meth.name}$$default$$${i + 1}"
       if (curCls.members.exists(_.name.toString == defaultName)) Some(defaultName)
       else None
     }
-    val argListSymbol = q"${c.fresh[TermName]("argsList")}"
-    val extrasSymbol = q"${c.fresh[TermName]("extras")}"
+    val argListSymbol = q"${c.freshName[TermName]("argsList")}"
+    val extrasSymbol = q"${c.freshName[TermName]("extras")}"
     val defaults = for ((arg, i) <- flattenedArgLists.zipWithIndex) yield {
       val arg = TermName(c.freshName())
-      hasDefault(i).map(defaultName => q"($arg: $curCls) => $arg.${newTermName(defaultName)}")
+      hasDefault(i).map(defaultName => q"($arg: $curCls) => $arg.${TermName(defaultName)}")
     }
 
-    def getDocAnnotation(annotations: List[Annotation]) = {
+    def getDocAnnotation(annotations: List[Annotation]): (List[c.universe.Annotation], Option[String]) = {
       val (docTrees, remaining) = annotations.partition(_.tpe =:= typeOf[Router.doc])
       val docValues = for {
         doc <- docTrees
-        if doc.scalaArgs.head.isInstanceOf[Literal]
-        l =  doc.scalaArgs.head.asInstanceOf[Literal]
+        if doc.tree.children.tail.head.isInstanceOf[Literal]
+        l =  doc.tree.children.tail.head.asInstanceOf[Literal]
         if l.value.value.isInstanceOf[String]
       } yield l.value.value.asInstanceOf[String]
       (remaining, docValues.headOption)
     }
 
-    def unwrapVarargType(arg: Symbol) = {
+    def unwrapVarargType(arg: Symbol): (Boolean, c.universe.Type) = {
       val vararg = arg.typeSignature.typeSymbol == definitions.RepeatedParamClass
       val unwrappedType =
         if (!vararg) arg.typeSignature
@@ -334,7 +334,7 @@ class Router [C <: Context](val c: C) {
       (vararg, unwrappedType)
     }
 
-    val argSigSymbol = q"${c.fresh[TermName]("argSigs")}"
+    val argSigSymbol = q"${c.freshName[TermName]("argSigs")}"
 
     val (_, methodDoc) = getDocAnnotation(meth.annotations)
     val readArgSigs = for(
@@ -434,8 +434,8 @@ class Router [C <: Context](val c: C) {
     res
   }
 
-  def hasMainAnnotation(t: MethodSymbol) = {
-    t.annotations.exists(_.tpe =:= typeOf[Router.main])
+  def hasMainAnnotation(t: MethodSymbol): Boolean = {
+    t.annotations.exists(_.tree.tpe =:= typeOf[Router.main])
   }
   def getAllRoutesForClass(curCls: Type,
                            pred: MethodSymbol => Boolean = hasMainAnnotation)

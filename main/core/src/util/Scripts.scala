@@ -34,7 +34,7 @@ object Scripts {
   def runScript(wd: os.Path,
                 path: os.Path,
                 interp: ammonite.interp.Interpreter,
-                scriptArgs: Seq[(String, Option[String])] = Nil) = {
+                scriptArgs: Seq[(String, Option[String])] = Nil): Res[Any] = {
     interp.watch(path)
     val (pkg, wrapper) = Util.pathToPackageWrapper(Seq(), path relativeTo wd)
 
@@ -133,7 +133,7 @@ object Scripts {
       }
     } yield res
   }
-  def formatMainMethods[T](base: T, mainMethods: Seq[Router.EntryPoint[T]]) = {
+  def formatMainMethods[T](base: T, mainMethods: Seq[Router.EntryPoint[T]]): String = {
     if (mainMethods.isEmpty) ""
     else{
       val leftColWidth = getLeftColWidth(mainMethods.flatMap(_.argSignatures))
@@ -151,7 +151,7 @@ object Scripts {
       )
     }
   }
-  def getLeftColWidth[T](items: Seq[ArgSig[T, _]]) = {
+  def getLeftColWidth[T](items: Seq[ArgSig[T, _]]): Int = {
     items.map(_.name.length + 2) match{
       case Nil => 0
       case x => x.max
@@ -160,7 +160,7 @@ object Scripts {
   def formatMainMethodSignature[T](base: T,
                                    main: Router.EntryPoint[T],
                                    leftIndent: Int,
-                                   leftColWidth: Int) = {
+                                   leftColWidth: Int): String = {
     // +2 for space on right of left col
     val args = main.argSignatures.map(renderArg(base, _, leftColWidth + leftIndent + 2 + 2, 80))
 
@@ -272,7 +272,7 @@ object Scripts {
     }
   }
 
-  def softWrap(s: String, leftOffset: Int, maxWidth: Int) = {
+  def softWrap(s: String, leftOffset: Int, maxWidth: Int): String = {
     val oneLine = s.linesIterator.mkString(" ").split(' ')
 
     lazy val indent = " " * leftOffset
@@ -293,7 +293,7 @@ object Scripts {
     }
     output.mkString
   }
-  def renderArgShort[T](arg: ArgSig[T, _]) = "--" + backtickWrap(arg.name)
+  def renderArgShort[T](arg: ArgSig[T, _]): String = "--" + backtickWrap(arg.name)
   def renderArg[T](base: T,
                    arg: ArgSig[T, _],
                    leftOffset: Int,
@@ -315,7 +315,7 @@ object Scripts {
   }
 
 
-  def mainMethodDetails[T](ep: EntryPoint[T]) = {
+  def mainMethodDetails[T](ep: EntryPoint[T]): String = {
     ep.argSignatures.collect{
       case ArgSig(name, tpe, Some(doc), default) =>
         Util.newLine + name + " // " + doc

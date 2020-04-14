@@ -2,7 +2,9 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out/HelloWorld/ideaCompileOutput/dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest"/>
+        <content url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest/classes">
+            <sourceFolder url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest/classes" isTestSource="false" generated="true"/>
+        </content>
         <content url="file://$MODULE_DIR$/../HelloWorld">
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/src" isTestSource="false"/>
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/resources" type="java-resource"/>
@@ -11,7 +13,6 @@
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>
         <orderEntry type="library" name="scala-sdk-2.12.4" level="application"/>
-        <orderEntry type="library" name="scala-library-2.12.4-sources.jar" level="project"/>
         <orderEntry type="library" name="scala-library-2.12.4.jar" level="project"/>
     </component>
     <component name="FacetManager">

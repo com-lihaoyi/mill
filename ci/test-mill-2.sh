@@ -3,7 +3,8 @@
 set -eux
 
 # Starting from scratch...
-git clean -xdf
+git stash -u
+git stash -a
 
 ./mill contrib.testng.publishLocal # Needed for CaffeineTests
 # Run tests

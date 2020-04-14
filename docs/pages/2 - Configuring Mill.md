@@ -99,14 +99,16 @@ object YourBuild extends ScalaModule {
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 
   object test extends Tests {
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
     def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ```
+
+- [Example 3](../example-3.zip)
 
 You can define a test suite by creating a nested module extending `Tests`, and
 specifying the ivy coordinates and name of your test framework. This expects the
@@ -116,12 +118,12 @@ tests to be laid out as follows:
 build.sc
 foo/
     src/
-        Main.scala
+        Example.scala
     resources/
         ...
     test/
         src/
-            MainTest.scala
+            ExampleTest.scala
         resources/
             ...
 out/
@@ -257,9 +259,10 @@ object foo extends ScalaModule with ScalafmtModule {
 }
 ```
 
-Now you can reformat code with `mill foo.reformat` command.
+Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill checkFormat`.
 
-You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command.
+You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command,
+or only check the code's format with `mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources`.
 It will reformat all sources that matches `__.sources` query.
 
 If you add a `.scalafmt.conf` file at the root of you project, it will be used
@@ -357,7 +360,7 @@ to return nothing.
 Your custom targets can depend on each other using the `def bar = T {... foo()
 ...}` syntax, and you can create arbitrarily long chains of dependent targets.
 Mill will handle the re-evaluation and caching of the targets' output for you,
-and will provide you a `T.ctx().dest` folder for you to use as scratch space or
+and will provide you a `T.ctx.dest` folder for you to use as scratch space or
 to store files you want to return.
 
 Custom targets and commands can contain arbitrary code. Whether you want to

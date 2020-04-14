@@ -5,7 +5,6 @@ import org.scalasbt.ipcsocket.*;
 import java.io.*;
 import java.net.Socket;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.nio.channels.FileChannel;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
@@ -20,39 +19,53 @@ public class MillClientMain {
 	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
 
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        String[] selfJars = System.getProperty("MILL_CLASSPATH").split(",");
-
-        List<String> l = new ArrayList<>();
+        
+        String selfJars = "";
         List<String> vmOptions = new ArrayList<>();
-        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
-        final Properties props = System.getProperties();
-        for(final String k: props.stringPropertyNames()){
-            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
-                vmOptions.add("-D" + k + "=" + props.getProperty(k));
+        String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
+        if(millOptionsPath != null) {
+            // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
+            Properties millProps = new Properties();
+            millProps.load(new FileInputStream(millOptionsPath));
+            for(final String k: millProps.stringPropertyNames()){
+                String propValue = millProps.getProperty(k);
+                if("MILL_CLASSPATH".equals(k)){
+                    selfJars = propValue;
+                }
             }
+        } else {
+            // read MILL_CLASSPATH from file sys props
+            selfJars = System.getProperty("MILL_CLASSPATH");
+        }
+
+        final Properties sysProps = System.getProperties();
+        for(final String k: sysProps.stringPropertyNames()){
+            if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
+                vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
+            }
+        }
+        if(selfJars == null || selfJars.trim().isEmpty()) {
+            throw new RuntimeException("MILL_CLASSPATH is empty!");
         }
         if (setJnaNoSys) {
             vmOptions.add("-Djna.nosys=true");
         }
-        if(!Util.isWindows){
-            l.addAll(vmOptions);
-        } else {
-            final File vmOptionsFile = new File(lockBase, "vmoptions");
-            try (PrintWriter out = new PrintWriter(vmOptionsFile)) {
-                for(String opt: vmOptions)
-                out.println(opt);
-            }
-            l.add("-XX:VMOptionsFile=" + vmOptionsFile.getCanonicalPath());
-        }
+
+        List<String> l = new ArrayList<>();
+        l.add(System.getProperty("java.home") + File.separator + "bin" + File.separator + "java");
+        l.addAll(vmOptions);
         l.add("-cp");
-        l.add(String.join(File.pathSeparator, selfJars));
+        l.add(String.join(File.pathSeparator, selfJars.split(",")));
         l.add("mill.main.MillServerMain");
         l.add(lockBase);
 
+        File stdout = new java.io.File(lockBase + "/stdout");
+        File stderr = new java.io.File(lockBase + "/stderr");
+
         new ProcessBuilder()
                 .command(l)
-                .redirectOutput(new java.io.File(lockBase + "/logs"))
-                .redirectError(new java.io.File(lockBase + "/logs"))
+                .redirectOutput(stdout)
+                .redirectError(stderr)
                 .start();
     }
 
@@ -66,7 +79,11 @@ public class MillClientMain {
     }
 
     public static void main(String[] args) throws Exception{
-        System.exit(main0(args));
+        int exitCode = main0(args);
+        if(exitCode == ExitServerCodeWhenVersionMismatch()) {
+            exitCode = main0(args);
+        }
+        System.exit(exitCode);
     }
     public static int main0(String[] args) throws Exception{
         boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
@@ -93,11 +110,22 @@ public class MillClientMain {
             String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
-            try(RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
-                FileChannel channel = lockFile.getChannel();
-                java.nio.channels.FileLock tryLock = channel.tryLock();
-                Locks locks = Locks.files(lockBase)){
+            File stdout = new java.io.File(lockBase + "/stdout");
+            File stderr = new java.io.File(lockBase + "/stderr");
+            int refeshIntervalMsec = 2;
+
+            try(
+                    RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
+                    FileChannel channel = lockFile.getChannel();
+                    java.nio.channels.FileLock tryLock = channel.tryLock();
+                    Locks locks = Locks.files(lockBase);
+                    FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMsec);
+                    FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMsec);
+            ){
                 if (tryLock != null) {
+                    stdoutTailer.start();
+                    stderrTailer.start();
+
                     int exitCode = MillClientMain.run(
                             lockBase,
                             new Runnable() {
@@ -117,10 +145,12 @@ public class MillClientMain {
                             args,
                             env
                     );
+
+                    // Here, we ensure we process the tails of the output files before interrupting the threads
+                    stdoutTailer.flush();
+                    stderrTailer.flush();
                     return exitCode;
                 }
-            } finally{
-
             }
         }
         throw new Exception("Reached max process limit: " + processLimit);
@@ -157,7 +187,7 @@ public class MillClientMain {
 
         long retryStart = System.currentTimeMillis();
 
-        while(ioSocket == null && System.currentTimeMillis() - retryStart < 1000){
+        while(ioSocket == null && System.currentTimeMillis() - retryStart < 5000){
             try{
                 ioSocket = Util.isWindows?
                         new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())

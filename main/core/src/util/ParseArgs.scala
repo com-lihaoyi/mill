@@ -69,7 +69,7 @@ object ParseArgs {
   }
 
   private object BraceExpansionParser {
-    def plainChars[_: P] =
+    def plainChars[_: P]: P[Fragment.Keep] =
       P(CharsWhile(c => c != ',' && c != '{' && c != '}')).!.map(Fragment.Keep)
 
     def toExpand[_: P]: P[Fragment] =
@@ -77,9 +77,9 @@ object ParseArgs {
         x => Fragment.Expand(x.toList.map(_.toList))
       )
 
-    def braceParser[_: P] = P(toExpand | plainChars)
+    def braceParser[_: P]: P[Fragment] = P(toExpand | plainChars)
 
-    def parser[_: P] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
+    def parser[_: P]: P[Seq[String]] = P(braceParser.rep(1).rep(sep = ",") ~ End).map { vss =>
       def unfold(vss: List[Seq[String]]): Seq[String] = {
         vss match {
           case Nil => Seq("")
@@ -100,7 +100,7 @@ object ParseArgs {
     }
   }
 
-  private def parseBraceExpansion(input: String) = {
+  private def parseBraceExpansion(input: String): Parsed[Seq[String]] = {
 
 
       parse(
@@ -115,13 +115,13 @@ object ParseArgs {
       case Parsed.Success(selector, _) => Right(selector)
     }
 
-  private def ident[_: P] = P( CharsWhileIn("a-zA-Z0-9_\\-") ).!
+  private def ident[_: P]: P[String] = P( CharsWhileIn("a-zA-Z0-9_\\-") ).!
 
-  def standaloneIdent[_: P] = P(Start ~ ident ~ End )
+  def standaloneIdent[_: P]: P[String] = P(Start ~ ident ~ End )
   def isLegalIdentifier(identifier: String): Boolean =
     parse(identifier, standaloneIdent(_)).isInstanceOf[Parsed.Success[_]]
 
-  private def parseSelector(input: String) = {
+  private def parseSelector(input: String): Parsed[(Option[Segments], Segments)] = {
     def ident2[_: P] = P( CharsWhileIn("a-zA-Z0-9_\\-.") ).!
     def segment[_: P] = P( ident ).map( Segment.Label)
     def crossSegment[_: P] = P("[" ~ ident2.rep(1, sep = ",") ~ "]").map(Segment.Cross)

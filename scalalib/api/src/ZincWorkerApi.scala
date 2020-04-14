@@ -85,6 +85,41 @@ object Util {
       case _ => scalaVersion
   }
 
+  private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+
+  def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
+      case _ if scalaJSVersion.startsWith("0.6.") =>
+        "0.6"
+      case ScalaJSFullVersion(major, minor, patch, suffix) =>
+        if (suffix != null && minor == "0" && patch == "0")
+          s"$major.$minor$suffix"
+        else
+          major
+  }
+
+  private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
+
+  def scalaNativeBinaryVersion(version: String) = version match {
+    case ScalaNativeFullVersion(major, minor, patch, suffix) =>
+      if (suffix != null && patch == "0")
+        version
+      else
+        s"$major.$minor"
+  }
+
+  def scalaJSNativeWorkerVersion(version: String) = version match {
+      case ScalaNativeFullVersion(major, minor, _, _) =>
+        s"$major.$minor"
+  }
+
+  /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on
+   * scalajs-test-bridge instead of scalajs-test-interface.
+   */
+  def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
+      case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
+      case _ => true
+  }
+
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) = scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) => major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)

@@ -31,7 +31,7 @@ package mill.scalalib.dependency.versions
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Groups
 
-private[dependency] sealed trait Version {
+sealed trait Version {
   def major: Long
 
   def minor: Long
@@ -39,7 +39,7 @@ private[dependency] sealed trait Version {
   def patch: Long
 }
 
-private[dependency] case class ValidVersion(text: String,
+case class ValidVersion(text: String,
                                             releasePart: List[Long],
                                             preReleasePart: List[String],
                                             buildPart: List[String])
@@ -52,13 +52,21 @@ private[dependency] case class ValidVersion(text: String,
 
   override def toString: String = text
 }
+object ValidVersion {
+  implicit val rw: upickle.default.ReadWriter[ValidVersion] =
+    upickle.default.macroRW
+}
 
-private[dependency] case class InvalidVersion(text: String) extends Version {
+case class InvalidVersion(text: String) extends Version {
   def major: Long = -1
 
   def minor: Long = -1
 
   def patch: Long = -1
+}
+object InvalidVersion {
+  implicit val rw: upickle.default.ReadWriter[InvalidVersion] =
+    upickle.default.macroRW
 }
 
 private[dependency] object ReleaseVersion {
@@ -120,6 +128,8 @@ private[dependency] object Version {
   }
 
   implicit def versionOrdering: Ordering[Version] = VersionOrdering
+  implicit val rw: upickle.default.ReadWriter[Version] =
+    upickle.default.macroRW
 }
 
 private[dependency] object VersionOrdering extends Ordering[Version] {

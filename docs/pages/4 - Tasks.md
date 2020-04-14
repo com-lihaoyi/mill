@@ -19,10 +19,10 @@ def resourceRoot = T.sources { os.pwd / 'resources }
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 
 def classFiles = T { 
-  os.makeDir.all(T.ctx().dest)
+  os.makeDir.all(T.ctx.dest)
   
-  %("javac", allSources().map(_.path.toString()), "-d", T.ctx().dest)(wd = T.ctx().dest)
-  PathRef(T.ctx().dest) 
+  %("javac", allSources().map(_.path.toString()), "-d", T.ctx.dest)(wd = T.ctx.dest)
+  PathRef(T.ctx.dest) 
 }
 
 def jar = T { Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
@@ -103,7 +103,7 @@ object MyCaseClass {
 ```
 
 If you want to return a file or a set of files as the result of a `Target`,
-write them to disk within your `T.ctx().dest` available through the
+write them to disk within your `T.ctx.dest` available through the
 [Task Context API](#task-context-api) and return a `PathRef` to the files you
 wrote.
 
@@ -178,7 +178,7 @@ Command:
 
 ### mill.api.Ctx.Dest
 
-- `T.ctx().dest`
+- `T.ctx.dest`
 - `implicitly[mill.api.Ctx.Dest]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
@@ -190,7 +190,7 @@ to those same paths.
 
 ### mill.api.Ctx.Log
 
-- `T.ctx().log`
+- `T.ctx.log`
 - `implicitly[mill.api.Ctx.Log]`
 
 This is the default logger provided for every task. While your task is running,
@@ -204,7 +204,7 @@ You can use the `--debug` option when running mill to show them on the console t
 
 ### mill.api.Ctx.Env
 
-- `T.ctx().env`
+- `T.ctx.env`
 - `implicitly[mill.api.Ctx.Env]`
 
 Mill keeps a long-lived JVM server to avoid paying the cost of recurrent 
@@ -218,7 +218,7 @@ If the intent is to always pull the latest environment values, the call should
 be wrapped in an `Input` as such : 
 
 ```scala
-def envVar = T.input { T.ctx().env.get("ENV_VAR") }
+def envVar = T.input { T.ctx.env.get("ENV_VAR") }
 ```
 
 ## Other Tasks

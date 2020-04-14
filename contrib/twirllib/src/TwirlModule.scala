@@ -46,7 +46,7 @@ trait TwirlModule extends mill.Module {
       .compile(
         twirlClasspath().map(_.path),
         twirlSources().map(_.path),
-        T.ctx().dest,
+        T.dest,
         twirlAdditionalImports,
         twirlConstructorAnnotations,
         twirlCodec,

@@ -80,16 +80,30 @@ sh> mill plugin.dgraph.browseDeps(proj)()
 
 Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
 
-Project home: https://github.com/yyadavalli/mill-ensime
+Project home: https://github.com/davoclavo/mill-ensime
 
 ### Quickstart
 
 ```scala
-import $ivy.`fun.valycorp::mill-ensime:0.0.1`
+import mill._
+interp.repositories() =
+  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
+
+@
+
+import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`
 ```
 
+You can then run the following to generate the .ensime file
+
 ```sh
-sh> mill fun.valycorp.mill.GenEnsime/ensimeConfig
+mill fun.valycorp.mill.GenEnsime/ensimeConfig
+```
+
+Optionally, you can specify the ensime server version using the --server flag like
+
+```sh
+mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ```
 
 ## Integration Testing Mill Plugins
@@ -287,6 +301,41 @@ public class BuildInfo {
     The package name for the generated class.
 
 
+## Kotlin
+
+[Kotlin](https://kotlinlang.org/) compiler support for mill.
+
+Project home: https://github.com/lefou/mill-kotlin
+
+### Quickstart
+
+```scala
+import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin:0.0.1`, de.tobiasroeser.mill.kotlin._
+
+object main extends KotlinModule {
+
+  // Select the Kotlin version
+  def kotlinVersion = T{ "{kotlinVersion}" }
+
+  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
+  // Run `mill main.kotlincHelp` to get a list of supported options
+  def kotlincOptions = Seq("-verbose")
+
+}
+```
+
+### Documentation 
+
+For documentation please visit the [mill-kotlin project page](https://github.com/lefou/mill-kotlin).
+
+You will find there also a version compatibility matrix.
+
+
 ## Mill Wrapper Scripts
 
 Small script to automatically fetch and execute mill build tool.
@@ -369,6 +418,8 @@ object project extends ScalaModule with OsgiBundleModule {
 
 
 ## PublishM2
+
+_Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
 
 Mill plugin to publish artifacts into a local Maven repository.
 

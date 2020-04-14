@@ -98,22 +98,32 @@ val posts = {
 
     val postlude = Seq[Frag](
       hr,
-
       p(
-        b("About the Author:"),
+        i("This documentation was build from mill master branch. ")
+      ),
+      p(
+        b("About Mill: "),
         i(
-          " Haoyi is a software engineer, an early contributor to ",
-          a(href:="http://www.scala-js.org/")("Scala.js"),
-          ", and the author of many open-source Scala tools such as Mill, the ",
-          a(href:="http://lihaoyi.com/Ammonite", "Ammonite REPL"), " and ",
-          a(href:="https://github.com/lihaoyi/fastparse", "FastParse"), ". "
+          "Mill is an Open Source Project created by ",
+          a(href:="http://www.lihaoyi.com")("Li Haoyi"), ". ",
+          "It is actively maintained and the git repository has ",
+          a(href:="https://github.com/lihaoyi/mill/graphs/contributors")("more that 100 individual contributors"),
+          " around the world. "
         )
       ),
       p(
+        b("About Mills Creator:"),
         i(
-          "If you've enjoy using Mill, or enjoyed using Haoyi's other open ",
+          " Li Haoyi is a software engineer, an early contributor to ",
+          a(href:="http://www.scala-js.org/")("Scala.js"),
+          ", and the author of many open-source Scala tools such as Mill, the ",
+          a(href:="http://lihaoyi.com/Ammonite", "Ammonite REPL"), " and ",
+          a(href:="https://github.com/lihaoyi/fastparse", "FastParse"), ". ",
+
+          "If you've enjoyed using Mill, or enjoyed using Haoyi's other open ",
           "source libraries, please chip in (or get your Company to chip in!) via ",
-          a(href:="https://www.patreon.com/lihaoyi", "Patreon"), " so he can ", "continue his open-source work"
+          a(href:="https://www.patreon.com/lihaoyi", "Patreon"), " so he can ",
+          "continue his open-source work."
         )
       ),
       hr
@@ -147,8 +157,13 @@ def main(publish: Boolean = false) = {
   os.copy(os.pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
   os.copy(os.pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
 
+  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-1" / "mill")
+  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-2" / "mill")
+  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-3" / "mill")
   os.proc('zip, "-r", targetFolder/"example-1.zip", "example-1").call()
   os.proc('zip, "-r", targetFolder/"example-2.zip", "example-2").call()
+  os.proc('zip, "-r", targetFolder/"example-3.zip", "example-3").call()
+
   for(i <- posts.indices){
     val post = posts(i)
 

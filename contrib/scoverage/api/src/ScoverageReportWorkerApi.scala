@@ -1,8 +1,20 @@
 package mill.contrib.scoverage.api
 
-import mill.api.PathRef
+import mill.api.Ctx
 
 trait ScoverageReportWorkerApi {
-  def htmlReport(sources: Seq[PathRef], dataDir: String, selfDir: String): Unit
-  def xmlReport(sources: Seq[PathRef], dataDir: String, selfDir: String): Unit
+  import ScoverageReportWorkerApi._
+
+  def report(reportType: ReportType, sources: Seq[os.Path], dataDir: os.Path)(implicit ctx: Ctx): Unit
 }
+
+object ScoverageReportWorkerApi {
+  sealed trait ReportType
+  sealed trait FileReportType extends ReportType { def folderName: String }
+  object ReportType {
+    final case object Html extends FileReportType { val folderName: String = "htmlReport" }
+    final case object Xml extends FileReportType { val folderName: String = "xmlReport" }
+    final case object Console extends ReportType
+  }
+}
+

@@ -24,8 +24,8 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq("2.11.8", "2.12.3", "2.12.4")
-      scalaJS <- Seq("0.6.22", "1.0.0-M2")
+      scala <- Seq("2.11.12", "2.12.3", "2.12.4")
+      scalaJS <- Seq("0.6.22", "0.6.31", "1.0.0-RC1", "1.0.0")
     } yield (scala, scalaJS)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -62,7 +62,7 @@ object HelloJSWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def ivyDeps = Agg(
-          ivy"org.scalatest::scalatest::3.0.4"
+          ivy"org.scalatest::scalatest::3.1.0"
         )
       }
     }
@@ -86,7 +86,7 @@ object HelloJSWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath)
-        val expectedClassfiles = compileClassfiles(outPath)
+        val expectedClassfiles = compileClassfiles(outPath, scalaJSVersion)
         assert(
           outputFiles.toSet == expectedClassfiles,
           evalCount > 0
@@ -100,8 +100,9 @@ object HelloJSWorldTests extends TestSuite {
 
       'fromScratch_2124_0622 - testCompileFromScratch("2.12.4", "0.6.22")
       'fromScratch_2123_0622 - testCompileFromScratch("2.12.3", "0.6.22")
-      'fromScratch_2118_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.8", "0.6.22"))
-      'fromScratch_2124_100M2 - testCompileFromScratch("2.12.4", "1.0.0-M2")
+      'fromScratch_21112_0622 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.22"))
+      'fromScratch_2124_100RC1 - testCompileFromScratch("2.12.4", "1.0.0-RC1")
+      'fromScratch_2124_100 - testCompileFromScratch("2.12.4", "1.0.0")
     }
 
     def testRun(scalaVersion: String,
@@ -119,14 +120,16 @@ object HelloJSWorldTests extends TestSuite {
     'fullOpt - {
       'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FullOpt))
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FullOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FullOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FullOpt))
+      'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FullOpt))
+      'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FullOpt))
+      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FullOpt))
     }
     'fastOpt - {
       'run_2124_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.22", FastOpt))
       'run_2123_0622 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.22", FastOpt))
-      'run_2118_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.8", "0.6.22", FastOpt))
-      'run_2124_100M2 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-M2", FastOpt))
+      'run_21112_0622 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.22", FastOpt))
+      'run_2124_100RC1 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0-RC1", FastOpt))
+      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FastOpt))
     }
     'jar - {
       'containsSJSIRs - {
@@ -144,64 +147,100 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       'artifactId_0622 - testArtifactId("2.12.4", "0.6.22", "hello-js-world_sjs0.6_2.12")
-      'artifactId_100M2 - testArtifactId("2.12.4", "1.0.0-M2", "hello-js-world_sjs1.0.0-M2_2.12")
+      'artifactId_100RC1 - testArtifactId("2.12.4", "1.0.0-RC1", "hello-js-world_sjs1.0-RC1_2.12")
+      'artifactId_100 - testArtifactId("2.12.4", "1.0.0", "hello-js-world_sjs1_2.12")
     }
+
+    def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
+      val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+
+      val (doneMsg, testResults) = res
+      testResults
+        .groupBy(_.fullyQualifiedName)
+        .mapValues(_.map(e => e.selector -> e).toMap)
+        .toMap
+    }
+
+    def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+      val resultMap = runTests(
+        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
+      )
+
+      val mainTests = resultMap("MainTests")
+      val argParserTests = resultMap("ArgsParserTests")
+
+      assert(
+        mainTests.size == 2,
+        mainTests("MainTests.vmName.containJs").status == "Success",
+        mainTests("MainTests.vmName.containScala").status == "Success",
+
+        argParserTests.size == 2,
+        argParserTests("ArgsParserTests.one").status == "Success",
+        argParserTests("ArgsParserTests.two").status == "Failure"
+      )
+    }
+
+    def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
+      val resultMap = runTests(
+        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
+        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
+      )
+
+      val mainSpec = resultMap("MainSpec")
+      val argParserSpec = resultMap("ArgsParserSpec")
+
+      assert(
+        mainSpec.size == 2,
+        mainSpec("vmName should contain js").status == "Success",
+        mainSpec("vmName should contain Scala").status == "Success",
+
+        argParserSpec.size == 2,
+        argParserSpec("parse should one").status == "Success",
+        argParserSpec("parse should two").status == "Failure"
+      )
+    }
+
     'test - {
-      def runTests(testTask: define.Command[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
-        val Left(Result.Failure(_, Some(res))) = helloWorldEvaluator(testTask)
+      val cached = false
+      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22", cached))
+      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22", cached)
+      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31", cached))
+      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31", cached)
+//      No utest artifact for Scala.js 1.0.0 published yet
+//      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
+//      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
 
-        val (doneMsg, testResults) = res
-        testResults
-          .groupBy(_.fullyQualifiedName)
-          .mapValues(_.map(e => e.selector -> e).toMap)
-          .toMap
-      }
-
-      def checkUtest(scalaVersion: String, scalaJSVersion: String) = {
-        val resultMap = runTests(HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test())
-
-        val mainTests = resultMap("MainTests")
-        val argParserTests = resultMap("ArgsParserTests")
-
-        assert(
-          mainTests.size == 2,
-          mainTests("MainTests.vmName.containJs").status == "Success",
-          mainTests("MainTests.vmName.containScala").status == "Success",
-
-          argParserTests.size == 2,
-          argParserTests("ArgsParserTests.one").status == "Success",
-          argParserTests("ArgsParserTests.two").status == "Failure"
-        )
-      }
-
-      def checkScalaTest(scalaVersion: String, scalaJSVersion: String) = {
-        val resultMap = runTests(HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test())
-
-        val mainSpec = resultMap("MainSpec")
-        val argParserSpec = resultMap("ArgsParserSpec")
-
-        assert(
-          mainSpec.size == 2,
-          mainSpec("vmName should contain js").status == "Success",
-          mainSpec("vmName should contain Scala").status == "Success",
-
-          argParserSpec.size == 2,
-          argParserSpec("parse should one").status == "Success",
-          argParserSpec("parse should two").status == "Failure"
-        )
-      }
-
-      'utest_2118_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "0.6.22"))
-      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22")
-      'utest_2118_100M2 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.8", "1.0.0-M2"))
-      'utest_2124_100M2 - checkUtest("2.12.4", "1.0.0-M2")
-
-      'scalaTest_2118_0622 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.8", "0.6.22"))
-      'scalaTest_2124_0622 - checkScalaTest("2.12.4", "0.6.22")
-//      No scalatest artifact for scala.js 1.0.0-M2 published yet
-//      'scalaTest_2118_100M2 - checkScalaTest("2.11.8", "1.0.0-M2")
-//      'scalaTest_2124_100M2 - checkScalaTest("2.12.4", "1.0.0-M2")
+      // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
+      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31", cached))
+      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31", cached)
+      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1", cached)
+      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1", cached)
+//      No ScalaTest artifact for Scala.js 1.0.0 published yet
+//      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
+//      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
     }
+
+    'testCached - {
+      val cached = true
+      'utest_21112_0622 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.22", cached))
+      'utest_2124_0622 - checkUtest("2.12.4", "0.6.22", cached)
+      'utest_21112_0631 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.31", cached))
+      'utest_2124_0631 - checkUtest("2.12.4", "0.6.31", cached)
+      //      No utest artifact for Scala.js 1.0.0 published yet
+      //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
+      //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
+
+      // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
+      'scalaTest_21112_0631 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.31", cached))
+      'scalaTest_2124_0631 - checkScalaTest("2.12.4", "0.6.31", cached)
+      'scalaTest_21112_100RC1 - checkScalaTest("2.11.12", "1.0.0-RC1", cached)
+      'scalaTest_2124_100RC1 - checkScalaTest("2.12.4", "1.0.0-RC1", cached)
+      //      No ScalaTest artifact for Scala.js 1.0.0 published yet
+      //      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
+      //      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
+    }
+
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
       val task = HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).run()
@@ -216,28 +255,42 @@ object HelloJSWorldTests extends TestSuite {
       assert(
         evalCount > 0,
         log.contains("node"),
-        log.contains("Scala.js")
+        // In Scala.js 1.x, println's are sent to the stdout, not to the logger
+        !scalaJSVersion.startsWith("0.6.") || log.contains("Scala.js")
       )
     }
 
     'run - {
-      'run_2118_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "0.6.22"))
+      'run_21112_0622  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.6.22"))
       'run_2124_0622  - checkRun("2.12.4", "0.6.22")
-      'run_2118_100M2 - TestUtil.disableInJava9OrAbove(checkRun("2.11.8", "1.0.0-M2"))
-      'run_2124_100M2 - checkRun("2.12.4", "1.0.0-M2")
+      'run_21112_100RC1 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0-RC1"))
+      'run_2124_100RC1 - checkRun("2.12.4", "1.0.0-RC1")
+      'run_21112_100 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0"))
+      'run_2124_100 - checkRun("2.12.4", "1.0.0")
     }
   }
 
-  def compileClassfiles(parentDir: os.Path) = Set(
-    parentDir / "ArgsParser$.class",
-    parentDir / "ArgsParser$.sjsir",
-    parentDir / "ArgsParser.class",
-    parentDir / "Main.class",
-    parentDir / "Main$.class",
-    parentDir / "Main$delayedInit$body.class",
-    parentDir / "Main$.sjsir",
-    parentDir / "Main$delayedInit$body.sjsir"
-  )
+  def compileClassfiles(parentDir: os.Path, scalaJSVersion: String) = {
+    val inAllVersions = Set(
+      parentDir / "ArgsParser$.class",
+      parentDir / "ArgsParser$.sjsir",
+      parentDir / "ArgsParser.class",
+      parentDir / "Main.class",
+      parentDir / "Main$.class",
+      parentDir / "Main$delayedInit$body.class",
+      parentDir / "Main$.sjsir",
+      parentDir / "Main$delayedInit$body.sjsir"
+    )
+
+    if (scalaJSVersion.startsWith("1.") && scalaJSVersion != "1.0.0-RC1") {
+      inAllVersions ++ Set(
+        parentDir / "ArgsParser.sjsir",
+        parentDir / "Main.sjsir"
+      )
+    } else {
+      inAllVersions
+    }
+  }
 
   def prepareWorkspace(): Unit = {
     os.remove.all(workspacePath)

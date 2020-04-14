@@ -3,8 +3,9 @@
 set -eux
 
 # Starting from scratch...
-git clean -xdf
+git stash -u
+git stash -a
 
 # Run tests
 
-./mill -i all {main,scalalib,scalajslib,contrib.twirllib,contrib.playlib,main.client,contrib.scalapblib,contrib.flyway,contrib.scoverage}.test
+./mill -i all {main,scalalib,scalajslib,scalanativelib,contrib.twirllib,contrib.playlib,main.client,contrib.scalapblib,contrib.flyway,contrib.scoverage}.test

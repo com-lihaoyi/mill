@@ -15,7 +15,7 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
-## Installation
+## Installation 
 
 ### OS X
 
@@ -27,10 +27,10 @@ brew install mill
 
 ### Arch Linux
 
-Arch Linux has an [AUR package for mill](https://aur.archlinux.org/packages/mill/):
+Arch Linux has a [Community package for mill](https://www.archlinux.org/packages/community/any/mill/):
 
 ```bash
-pacaur -S mill
+pacman -S mill
 ```
 
 ### FreeBSD
@@ -44,8 +44,8 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.5.2/0.5.2-assembly, and save it as
-`mill.bat`.
+https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1-assembly, and save
+it as `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
 
@@ -81,7 +81,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.5.2/0.5.2 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
 ### Bootstrap Scripts (Linux/OS-X Only)
@@ -90,7 +90,7 @@ If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 `./mill` script in the project folder:
 
 ```bash
-curl -L https://github.com/lihaoyi/mill/releases/download/0.5.2/0.5.2 > mill && chmod +x mill
+curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > mill && chmod +x mill
 ```
 
 Now, anyone who wants to work with the project can simply use the `./mill`
@@ -109,6 +109,14 @@ script. Note this only works for versions 0.5.0 and above.
 Bootstrap scripts are also useful for running Mill in CI, ensuring that your
 Jenkins/Travis/etc. box has the correct version of Mill present to
 build/compile/test your code.
+
+
+## Updating Mill
+
+Once installed mill is able to use newer or different versions for each project automatically. 
+You don't need to install multiple versions of mill yourself.
+
+See section [Overriding Mill Versions](#overriding-mill-versions) how to do it.  
 
 ## Getting Started
 
@@ -771,11 +779,15 @@ Missing arguments: (--sonatypeCreds: String, --release: Boolean)
 Arguments provided did not match expected signature:
 
 publish
-  --sonatypeCreds  String (format: "username:password")
-  --gpgPassphrase  String (default null)
-  --gpgKeyName     String (default null)
-  --signed         Boolean (default true)
-  --release        Boolean
+  --sonatypeCreds   String (format: "username:password")
+  --gpgPassphrase   String (default null)
+  --gpgKeyName      String (default null)
+  --signed          Boolean (default true)
+  --readTimeout     Int (default 60000)
+  --connectTimeout  Int (default 5000) 
+  --release         Boolean
+  --awaitTimeout    Int (default 120000)
+  --stagingRelease  Boolean (default true)
 ```
 
 You also need to specify `release` as `true` or `false`, depending on whether
@@ -804,7 +816,7 @@ Each folder currently contains the following files:
 
 - `dest/`: a path for the `Task` to use either as a scratch space, or to place
   generated files that are returned using `PathRef`s. `Task`s should only output
-  files within their given `dest/` folder (available as `T.ctx().dest`) to avoid
+  files within their given `dest/` folder (available as `T.ctx.dest`) to avoid
   conflicting with other `Task`s, but files within `dest/` can be named
   arbitrarily.
 
@@ -838,11 +850,11 @@ echo "0.5.0" > .mill-version
 `.mill-version` takes precedence over the version of Mill specified in the
 `./mill` script.
 
-- ass in a `MILL_VERSION` environment variable, e.g.
+- Pass in a `MILL_VERSION` environment variable, e.g.
 
 ```bash
 MILL_VERSION=0.5.0-3-4faefb mill __.compile
- ```
+```
 
 or
 ```bash

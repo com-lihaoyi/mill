@@ -38,6 +38,19 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   /**
+   * All individual source files fed into the Zinc compiler.
+   */
+  override def allSourceFiles = T{
+    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
+    for {
+      root <- allSources()
+      if os.exists(root.path)
+      path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
+      if os.isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
+    } yield PathRef(path)
+  }
+
+  /**
     * What version of Scala to use
     */
   def scalaVersion: T[String]
@@ -49,13 +62,11 @@ trait ScalaModule extends JavaModule { outer =>
       else
         Set("scala-library", "scala-compiler", "scala-reflect")
     if (!artifacts(d.module.name.value)) d
-    else
-      d.withModule(
-        d.module.withOrganization(
-          coursier.Organization(scalaOrganization())
-        )
+    else d.withModule(
+      d.module.withOrganization(
+        coursier.Organization(scalaOrganization())
       )
-      .withVersion(scalaVersion())
+    ).withVersion(scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task{
@@ -141,12 +152,12 @@ trait ScalaModule extends JavaModule { outer =>
       scalacOptions(),
       scalaCompilerClasspath().map(_.path),
       scalacPluginClasspath().map(_.path),
-      T.ctx().reporter(hashCode)
+      T.reporter.apply(hashCode)
     )
   }
 
   override def docJar = T {
-    val outDir = T.ctx().dest
+    val outDir = T.dest
 
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
@@ -157,7 +168,7 @@ trait ScalaModule extends JavaModule { outer =>
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
       "-d", javadocDir.toNIO.toString,
-      "-classpath", compileCp.mkString(":")
+      "-classpath", compileCp.mkString(java.io.File.pathSeparator)
     ) ++
       pluginOptions ++
       scalaDocOptions()
@@ -182,7 +193,7 @@ trait ScalaModule extends JavaModule { outer =>
     * for you to test and operate your code interactively
     */
   def console() = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+    if (T.log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.runSubprocess(
@@ -223,7 +234,7 @@ trait ScalaModule extends JavaModule { outer =>
     * for you to test and operate your code interactively
     */
   def repl(replOptions: String*) = T.command{
-    if (T.ctx().log.inStream == DummyInputStream){
+    if (T.log.inStream == DummyInputStream){
       Result.Failure("repl needs to be run with the -i/--interactive flag")
     }else{
       Jvm.runSubprocess(

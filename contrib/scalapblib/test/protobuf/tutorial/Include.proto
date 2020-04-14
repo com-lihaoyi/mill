@@ -1,0 +1,11 @@
+syntax = "proto3";
+
+package tutorial;
+
+import "google/protobuf/wrappers.proto";
+
+option java_package = "com.example.tutorial";
+
+message Include {
+    google.protobuf.Int32Value my_int32 = 5;
+}

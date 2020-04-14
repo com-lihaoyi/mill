@@ -1,11 +1,13 @@
 language: scala
-sudo: required
+os: linux
 dist: trusty
+before_install:
+- curl https://raw.githubusercontent.com/scala-native/scala-native/master/scripts/travis_setup.sh | bash -
 
 git:
   depth: false
 
-matrix:
+jobs:
   include:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
@@ -41,7 +43,10 @@ matrix:
 
 
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release.sh"
+    env: CI_SCRIPT="ci/on-master.py ci/release-github.sh"
+    jdk: oraclejdk9
+  - stage: release
+    env: CI_SCRIPT="ci/on-master.py ci/release-maven.sh"
     jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"

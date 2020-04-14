@@ -11,12 +11,89 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## Artifactory
+
+This plugin allows publishing to Artifactory.
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION`
+import mill.contrib.artifactory.ArtifactoryPublishModule
+
+object mymodule extends ArtifactoryPublishModule {
+  def artifactoryUri: String = "https://example.com/artifactory/my-repo"
+  def artifactorySnapshotUri: String = "https://example.com/artifactory/my-snapshot-repo"
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
+```
+
+## Bintray
+
+This plugin allows publishing to Bintray.
+
+### Quickstart
+Make sure your module extends from `BintrayPublishModule`:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+
+  ...
+}
+```
+
+Then ensure you have created a package in the Bintray repository.
+
+The default package used is the artifact ID (e.g. mymodule_2.12). If you want to override
+the package used, you can do that like this:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = "owner"
+  def bintrayRepo = "repo"
+  def bintrayPackage = T {...}
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+$ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
+```
+
+### Options
+
+#### --credentials \<auth\>
+Set the username and API key to use for authentication. Expected format is `username:api_key`.
+
+#### --bintrayOwner \<owner\> (optional)
+Override the Bintray owner.
+
+#### --bintrayRepo \<repo\> (optional)
+Override the Bintray repository.
+
+#### --release \<true | false\> (default: true)
+Should the files should be published after upload?
+
 ## Bloop
 
 This plugin generates [bloop](https://scalacenter.github.io/bloop/) configuration
 from your build file, which lets you use the bloop CLI for compiling, and makes
 your scala code editable in [Metals](https://scalameta.org/metals/)
-
 
 ### Quickstart
 ```scala
@@ -51,20 +128,15 @@ object MyModule extends ScalaModule with Bloop.Module {
 
 ### Note regarding metals
 
-Generating the bloop config should be enough for metals to pick it up and for
-features to start working in vscode (or the bunch of other editors metals supports).
-However, note that this applies only to your project sources. Your mill/ammonite related
-`.sc` files are not yet supported by metals.
-
-The generated bloop config references the semanticDB compiler plugin required by
-metals to function. If need be, the version of semanticDB can be overriden by
-extending `mill.contrib.bloop.BloopImpl` in your own space.
+Metals will automatically detect your mill workspace and generate the necessary files that bloop needs.
+You don't need to manually include the bloop plugin in order for this to work.
+Also note that your mill/ammonite related `.sc` files are only partially supported by metals when
+located inside a project workspace.
 
 ### Note regarding current mill support in bloop
 
 The mill-bloop integration currently present in the [bloop codebase](https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10)
 will be deprecated in favour of this implementation.
-
 
 ## BuildInfo
 
@@ -101,6 +173,35 @@ object project extends BuildInfo {
 * `def buildInfoPackageName: Option[String]`, default: `None`
   The package name of the object.
 
+## BSP - Build Server Protocol
+
+The contrib.bsp module was created in order to integrate the Mill build tool
+with IntelliJ IDEA via the Build Server Protocol (BSP). It implements most of
+the server side functionality described in BSP, and can therefore connect to a 
+BSP client, including the one behind IntelliJ IDEA. This allows a lot of mill
+tasks to be executed from the IDE.
+
+### Importing an existing mill project in IntelliJ via BSP
+
+1) Add the following import statement in the `build.sc` of your project:
+
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+```
+
+2) Run the following command in the working directory of your project:
+
+```
+mill -i mill.contrib.BSP/install
+```
+
+### Known Issues:
+
+- Sometimes build from IntelliJ might fail due to a NoClassDefFoundException
+being thrown during the evaluation of tasks, a bug not easy to reproduce.
+In this case it is recommended to refresh the bsp project.
+
+
 ## Docker
 
 Automatically build docker images from your mill project.
@@ -112,7 +213,7 @@ In the simplest configuration just extend `DockerModule` and declare a `DockerCo
 ```scala
 import mill._, scalalib._
 
-import ivy`com.lihaoyi::mill-contrib-docker:VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
 import contrib.docker.DockerModule
 
 object foo extends JavaModule with DockerModule {
@@ -158,7 +259,7 @@ Configure flyway by overriding settings in your module. For example
 
 import mill._, scalalib._
 
-import ivy`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
 import contrib.flyway.FlywayModule
 
 object foo extends ScalaModule with FlywayModule {
@@ -187,7 +288,7 @@ mill foo.flywayMigrate
 > REMINDER:
 > You should never hard-code credentials or check them into a version control system.
 > You should write some code to populate the settings for flyway instead.
-> For example `def flywayPassword = T.input(T.ctx().env("FLYWAY_PASSWORD"))`
+> For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`
 
 ## Play Framework
 
@@ -521,7 +622,6 @@ object app extends ScalaModule with RouterModule {
 }
 ```
 
-
 ## ScalaPB
 
 This module allows [ScalaPB](https://scalapb.github.io) to be used in Mill builds. ScalaPB is a [Protocol Buffers](https://developers.google.com/protocol-buffers/) compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
@@ -563,6 +663,8 @@ example/
 * scalaPBGrpc - A `Boolean` option which determines whether [grpc](https://grpc.io) stubs should be generated.
 
 * scalaPBSingleLineToProtoString - A `Boolean` option which determines whether the generated `.toString` methods should use a single line format.
+
+* scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
 
 If you'd like to configure the options that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
@@ -618,9 +720,9 @@ mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test 
 mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
 ```
 
-The measurement data is available at `out/foo/scoverage/data/`,
-the html report is saved in `out/foo/scoverage/htmlReport/`,
-and the xml report is saved in `out/foo/scoverage/xmlReport/`.
+The measurement data is by default available at `out/foo/scoverage/dataDir/dest`,
+the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
+and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
 
 ## TestNG
@@ -798,3 +900,160 @@ These imports will always be added to every template.  You don't need to list th
 
 ### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
+
+## Version file
+
+This plugin provides helpers for updating a version file and committing the changes to git.
+
+**Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.**
+**Each target operates on the version file as is at the time of execution.**
+
+### Quickstart
+
+Add a `VersionFileModule` to the `build.sc` file:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+```
+
+The module will read and write to the file `version` located at the module's `millSourcePath`.
+In the example above, that would be `/versionFile/version` relative to the `build.sc` file.
+
+Create the version file with the intial version number:
+```bash
+$ 0.1.0-SNAPSHOT > versionFile/version
+```
+
+Then to write a release version or snapshot version to file:
+```bash
+$ mill versionFile.setReleaseVersion           # Sets release
+$ mill versionFile.setNextVersion --bump minor # Sets snapshot
+```
+
+You can also make manual changes in-between:
+```bash
+$ mill versionFile.setReleaseVersion
+$ echo 0.1.0 > versionFile/version
+$ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2.0-SNAPSHOT
+```
+
+If you want to use the version file for publishing, you can do it like this:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+
+object mymodule extends PublishModule {
+  def publishVersion = versionFile.currentVersion().toString
+  ...
+}
+```
+
+### Configure the version file
+If you want the version file to have another name, you will need to override the `versionFile` task.
+
+If you have a project wide version file like in the example above, and you want the version file to reside
+at the root of the project, you can override `millSourcePath`:
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule {
+  def millSourcePath = millOuterCtx.millSourcePath
+}
+```
+
+In this example, it would look for the file `version` in the same directory as the `build.sc`.
+
+### Set release version
+The `setReleaseVersion` target removes the `-SNAPSHOT` identifier from the version,
+then overwrites the previous content in the version file with this new version.
+
+#### Example
+Your version file contains `0.1.0-SNAPSHOT`. In your terminal you do the following:
+```bash
+$ mill versionFile.setReleaseVersion
+```
+
+This will update the version file to contain `0.1.0`.
+
+### Set next version
+The `setNextVersion` target bumps the version and changes it to a snapshot version,
+then overwrites the previous content in the version file with this new version.
+
+#### Parameters
+
+##### --bump (major | minor | patch)
+Sets what segment of the version to bump.
+
+For a version number `1.2.3` in the version file:
+
+`--bump major` will set it to `2.0.0`
+
+`--bump minor` will set it to `1.3.0`
+
+`--bump patch` will set it to `1.2.4`
+
+#### Example
+Your version file contains `0.1.0`. In your terminal you do the following:
+```bash
+$ mill versionFile.setNextVersion --bump minor
+```
+
+This will update the version file to contain `0.2.0-SNAPSHOT`.
+
+### Set version
+The `setVersion` overwrites the previous content of the version file with an arbitrary version.
+
+#### Parameters
+
+##### --version x.y.z[-SNAPSHOT]
+The version to write to the version file.
+
+#### Example
+Your version file contains `0.1.0`. In your terminal you do the following:
+```bash
+$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT
+```
+
+This will update the version file to contain `0.5.2-SNAPSHOT`.
+
+### Output version numbers
+If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:
+```bash
+# Show the current version from the version file.
+$ mill show versionFile.currentVersion
+```
+
+```bash
+# Show the version that would be used as release version.
+$ mill show versionFile.releaseVersion
+```
+
+```bash
+# Show the version that would be used as next version with the given --bump argument.
+$ mill show versionFile.nextVersion --bump minor
+```
+
+### VCS operations
+The module has an `exec` task that allows you to execute tasks of type `T[Seq[os.proc]]`:
+```bash
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+```
+
+#### Built-in git operations
+The `VersionFileModule` comes with two tasks of this type:
+
+##### Tag
+Commits the changes, then creates a tag with the current version for that commit.
+
+##### Push
+Commits the changes, then pushes the changes to origin/master with tags.
+
+#### Custom operations
+It's possible to override the tasks above, or add your own tasks, to adapt the module
+to work with other version control systems than git.
