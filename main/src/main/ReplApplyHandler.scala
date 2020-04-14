@@ -17,7 +17,8 @@ object ReplApplyHandler{
                discover: Discover[_],
                debugLog: Boolean,
                keepGoing: Boolean,
-               systemProperties: Map[String, String]): ReplApplyHandler = {
+               systemProperties: Map[String, String],
+               threadCount: Option[Int]): ReplApplyHandler = {
 
     val logger = new mill.util.PrintLogger(
       colors != ammonite.util.Colors.BlackWhite,
@@ -27,7 +28,8 @@ object ReplApplyHandler{
       System.err,
       System.err,
       System.in,
-      debugEnabled = debugLog
+      debugEnabled = debugLog,
+      useContext = true
     )
     logger.debug(s"Using explicit system properties: ${systemProperties}")
 
@@ -39,9 +41,10 @@ object ReplApplyHandler{
         ammonite.ops.pwd / 'out,
         rootModule,
         logger,
-        failFast = !keepGoing
+        failFast = !keepGoing,
+        threadCount = threadCount
       ),
-      systemProperties
+      systemProperties = systemProperties
     )
   }
   def pprintCross(c: mill.define.Cross[_], evaluator: Evaluator) = {

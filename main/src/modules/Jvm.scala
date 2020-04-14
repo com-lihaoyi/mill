@@ -82,8 +82,24 @@ object Jvm {
                     envArgs: Map[String, String],
                     workingDir: os.Path) = {
     val process = spawnSubprocess(commandArgs, envArgs, workingDir)
-
-    process.waitFor()
+    val shutdownHook = new Thread("subprocess-shutdown") {
+      override def run(): Unit = {
+        System.err.println("Host JVM shutdown. Forcefully destroying subprocess ...")
+        process.destroy()
+      }
+    }
+    Runtime.getRuntime().addShutdownHook(shutdownHook)
+    try {
+      process.waitFor()
+    } catch {
+      case e: InterruptedException =>
+        System.err.println("Interrupted. Forcefully destroying subprocess ...")
+        process.destroy()
+        // rethrow
+        throw e
+    } finally {
+      Runtime.getRuntime().removeShutdownHook(shutdownHook)
+    }
     if (process.exitCode() == 0) ()
     else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
   }

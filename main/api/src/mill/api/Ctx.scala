@@ -45,6 +45,13 @@ object Ctx {
     def args: IndexedSeq[_]
   }
 
+  /**
+    * Access to the selected parallel job count (`mill --jobs`).
+    */
+  trait Jobs {
+    def jobs: Int
+  }
+
   def defaultHome = os.home / ".mill" / "ammonite"
 
   /**
