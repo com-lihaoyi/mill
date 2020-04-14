@@ -46,18 +46,18 @@ private[playlib] class RouteCompilerWorker {
     //by the others
     bridge(routerClasspath)
       .compile(
-        files,
-        additionalImports,
+        files.toArray.map(_.toIO),
+        additionalImports.toArray,
         forwardsRouter,
         reverseRouter,
         namespaceReverseRouter,
         generatorType,
-        dest
-      )(ctx)
+        dest.toIO
+      ) match{
+      case null => Result.Success(CompilationResult(T.dest / 'zinc, PathRef(T.dest)))
+      case err => Result.Failure(err)
+    }
   }
-
-
-
 }
 
 private[playlib] object RouteCompilerWorkerModule extends ExternalModule {

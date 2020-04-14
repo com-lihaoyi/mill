@@ -34,7 +34,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorker = T.task{ ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath()) }
+  def scalaNativeWorker = T.task{
+    mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
+  }
 
   def scalaNativeWorkerClasspath = T {
     val workerKey = "MILL_SCALANATIVE_WORKER_" + scalaNativeWorkerVersion().replace('.', '_')
@@ -89,10 +91,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeWorkdir = T{ T.dest }
 
   // Location of the clang compiler
-  def nativeClang = T{ scalaNativeWorker().discoverClang }
+  def nativeClang = T{ os.Path(scalaNativeWorker().discoverClang) }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T{ scalaNativeWorker().discoverClangPP }
+  def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm" or "immix"
   def nativeGC = T{
@@ -100,7 +102,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       .getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
-  def nativeTarget = T{ scalaNativeWorker().discoverTarget(nativeClang(), nativeWorkdir()) }
+  def nativeTarget = T{
+    scalaNativeWorker().discoverTarget(nativeClang().toIO, nativeWorkdir().toIO)
+  }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = T{ scalaNativeWorker().discoverCompileOptions }
@@ -123,12 +127,12 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
     scalaNativeWorker().config(
-      nativeLibJar().path,
+      nativeLibJar().path.toIO,
       finalMainClass(),
-      classpath,
-      nativeWorkdir(),
-      nativeClang(),
-      nativeClangPP(),
+      classpath.toArray.map(_.toIO),
+      nativeWorkdir().toIO,
+      nativeClang().toIO,
+      nativeClangPP().toIO,
       nativeTarget(),
       nativeCompileOptions(),
       nativeLinkingOptions(),
@@ -139,7 +143,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   // Generates native binary
-  def nativeLink = T{ scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / 'out)) }
+  def nativeLink = T{
+    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / 'out).toIO))
+  }
 
   // Runs the native binary
   override def run(args: String*) = T.command{
@@ -173,7 +179,10 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
 
       val nativeFrameworks = (cl: ClassLoader) =>
         frameworkInstances.zipWithIndex.map { case (f, id) =>
-          scalaNativeWorker().newScalaNativeFrameWork(f, id, testBinary, logLevel(), envVars)
+          import collection.JavaConverters._
+          scalaNativeWorker().newScalaNativeFrameWork(
+            f, id, testBinary, logLevel(), envVars.asJava
+          )
         }
 
       TestRunner.runTests(

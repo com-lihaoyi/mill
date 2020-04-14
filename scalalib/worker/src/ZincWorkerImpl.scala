@@ -424,7 +424,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       pr = {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-      }
+      },
+      temporaryClassesDirectory = java.util.Optional.empty()
     )
 
     try {

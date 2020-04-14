@@ -12,17 +12,17 @@ import mill.modules.Jvm.createAssembly
 object Deps {
 
   object Scalajs_0_6 {
-    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.22"
-    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.22"
+    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.32"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.32"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.32"
   }
 
   object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-RC1"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-RC1"
-    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-RC1"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-RC1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0"
   }
   object Scalanative_0_3 {
     val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
@@ -46,8 +46,8 @@ object Deps {
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   val ipcsocketExcludingJna = ipcsocket.exclude(
-  "net.java.dev.jna" -> "jna",
-  "net.java.dev.jna" -> "jna-platform"
+    "net.java.dev.jna" -> "jna",
+    "net.java.dev.jna" -> "jna-platform"
   )
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
@@ -68,7 +68,7 @@ object Deps {
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.8"
   val upickle = ivy"com.lihaoyi::upickle:1.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+  val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
 
@@ -359,7 +359,7 @@ object contrib extends MillModule {
   }
 
   object playlib extends MillModule {
-    def moduleDeps = Seq(scalalib, twirllib, playlib.api("2.13.1"))
+    def moduleDeps = Seq(scalalib, twirllib, playlib.api)
 
     def testArgs = T {
       val mapping = Map(
@@ -372,23 +372,23 @@ object contrib extends MillModule {
         (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
     }
 
-    object api extends Cross[ApiModule]("2.12.10", "2.13.1")
-    class ApiModule(val crossScalaVersion: String) extends MillApiModule {
-      def moduleDeps = Seq(scalalib.api)
+    object api extends MillPublishModule {
+
     }
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
     class WorkerModule(scalajsBinary: String) extends MillApiModule  {
       def scalaVersion = T { "2.12.10" }
-      def moduleDeps = Seq(playlib.api("2.12.10"))
-
+      def moduleDeps = Seq(playlib.api)
       def ivyDeps = scalajsBinary match {
         case  "2.6"=>
           Agg(
+            Deps.osLib,
             ivy"com.typesafe.play::routes-compiler::2.6.0"
           )
         case "2.7" =>
           Agg(
+            Deps.osLib,
             ivy"com.typesafe.play::routes-compiler::2.7.0"
           )
       }
@@ -508,11 +508,13 @@ object scalanativelib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
     class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    def scalaVersion = T{ "2.12.10" }
     override def millSourcePath(): os.Path = super.millSourcePath / os.up
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = scalaNativeWorkerVersion match {
       case "0.3" =>
         Agg(
+          Deps.osLib,
           Deps.Scalanative_0_3.scalanativeTools,
           Deps.Scalanative_0_3.scalanativeUtil,
           Deps.Scalanative_0_3.scalanativeNir,
@@ -520,6 +522,7 @@ object scalanativelib extends MillModule {
         )
       case "0.4" =>
         Agg(
+          Deps.osLib,
           Deps.Scalanative_0_4.scalanativeTools,
           Deps.Scalanative_0_4.scalanativeUtil,
           Deps.Scalanative_0_4.scalanativeNir,
