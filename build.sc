@@ -92,7 +92,7 @@ trait MillPublishModule extends PublishModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.8" }
+  def scalaVersion = T{ "2.12.10" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -186,7 +186,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.8" }
+    def scalaVersion = T{ "2.12.10" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode,
@@ -628,27 +628,13 @@ object dev extends MillModule{
       )
     ).distinct
 
-
-  // Pass dev.assembly VM options via file in Windows due to small max args limit
-  def windowsVmOptions(taskName: String, batch: os.Path, args: Seq[String])
-                      (implicit ctx: mill.util.Ctx) = {
-    if (System.getProperty("java.specification.version").startsWith("1.")) {
-      throw new Error(s"$taskName in Windows is only supported using Java 9 or above")
-    }
-    val vmOptionsFile = T.ctx.dest / "mill.vmoptions"
-    T.ctx.log.info(s"Generated $vmOptionsFile; it should be kept in the same directory as $taskName's ${batch.last}")
-    os.write(vmOptionsFile, args.mkString("\r\n"))
-  }
-
   def launcher = T{
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
 
     os.write(outputPath, prependShellScript())
 
-    if (isWin) {
-      windowsVmOptions("dev.launcher", outputPath, forkArgs())
-    } else {
+    if (!isWin) {
       os.perms.set(outputPath, "rwxrwxrwx")
     }
     PathRef(outputPath)
@@ -658,28 +644,41 @@ object dev extends MillModule{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
     os.move(super.assembly().path, millPath)
-    if (isWin) windowsVmOptions("dev.launcher", millPath, forkArgs())
     PathRef(millPath)
   }
 
   def prependShellScript = T{
+    val (millArgs, otherArgs) = forkArgs().partition(arg => arg.startsWith("-DMILL") && !arg.startsWith("-DMILL_VERSION"))
+    // Pass Mill options via file, due to small max args limit in Windows
+    val vmOptionsFile = T.ctx.dest / "mill.properties"
+    val millOptionsContent = millArgs.map(_.drop(2).replace("\\", "/")).mkString("\r\n") // drop -D prefix, replace \ with /
+    os.write(vmOptionsFile, millOptionsContent)
+    val jvmArgs = otherArgs ++ List(s"-DMILL_OPTIONS_PATH=$vmOptionsFile")
     val classpath = runClasspath().map(_.path.toString)
-    val args = forkArgs()
-    val (shellArgs, cmdArgs) =
-      if (!scala.util.Properties.isWin) (
-        args,
-        args
-      )
-      else (
-        Seq("""-XX:VMOptionsFile="$( dirname "$0" )"/mill.vmoptions"""),
-        Seq("""-XX:VMOptionsFile=%~dp0\mill.vmoptions""")
-      )
     launcherScript(
-      shellArgs,
-      cmdArgs,
+      jvmArgs,
+      jvmArgs,
       classpath,
-      classpath
+      Agg(pathingJar().path.toString) // TODO not working yet on Windows! see #791
     )
+  }
+
+  def pathingJar = T{
+    // see http://todayguesswhat.blogspot.com/2011/03/jar-manifestmf-class-path-referencing.html
+    // for more detailed explanation
+    val isWin = scala.util.Properties.isWin
+    val classpath = runClasspath().map{ pathRef =>
+      val path = if (isWin) "/" + pathRef.path.toString.replace("\\", "/") 
+                 else pathRef.path.toString
+      if (path.endsWith(".jar")) path
+      else path + "/"
+    }.mkString(" ")
+    val manifestEntries = Map[String,String](
+        java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
+        "Created-By" -> "Scala mill",
+        "Class-Path" -> classpath
+      )
+    mill.modules.Jvm.createJar(Agg(), mill.modules.Jvm.JarManifest(manifestEntries))
   }
 
   def run(args: String*) = T.command{
@@ -698,7 +697,6 @@ object dev extends MillModule{
 
   }
 }
-
 
 def assembly = T{
 

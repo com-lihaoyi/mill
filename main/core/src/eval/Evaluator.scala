@@ -391,6 +391,14 @@ case class Evaluator(
       }
     }
 
+    if(!failFast) maybeTargetLabel.foreach { targetLabel =>
+      val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+      if(taskFailed) {
+        log.error(s"[${counterMsg}] ${targetLabel} failed")
+      }
+    }
+
+
     multiLogger.close()
 
     (newResults, newEvaluated)

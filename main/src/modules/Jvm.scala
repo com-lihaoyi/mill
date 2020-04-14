@@ -363,8 +363,10 @@ object Jvm {
       Seq(
         "",
         ":BOF",
+        "setlocal",
         "@echo off",
         cmdCommands.replaceAll("\r\n|\n", "\r\n"),
+        "endlocal",
         "exit /B %errorlevel%",
         ""
       ).mkString("\r\n")

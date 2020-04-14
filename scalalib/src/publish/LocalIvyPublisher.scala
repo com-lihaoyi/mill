@@ -1,8 +1,8 @@
 package mill.scalalib.publish
 
-object LocalPublisher {
+import mill.api.Ctx
 
-  private val root: os.Path = os.home / ".ivy2" / "local"
+class LocalIvyPublisher(localIvyRepo: os.Path) {
 
   def publish(
       jar: os.Path,
@@ -12,8 +12,10 @@ object LocalPublisher {
       ivy: os.Path,
       artifact: Artifact,
       extras: Seq[(os.Path, String, String)]
-  ): Unit = {
-    val releaseDir = root / artifact.group / artifact.id / artifact.version
+  )(implicit ctx: Ctx.Log): Unit = {
+
+    ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
+    val releaseDir = localIvyRepo / artifact.group / artifact.id / artifact.version
     writeFiles(
       jar -> releaseDir / "jars" / s"${artifact.id}.jar",
       sourcesJar -> releaseDir / "srcs" / s"${artifact.id}-sources.jar",
@@ -22,16 +24,18 @@ object LocalPublisher {
       ivy -> releaseDir / "ivys" / "ivy.xml"
     )
     writeFiles(extras.map {
-      case (file, ivyCat, suffix ) => (file, releaseDir / ivyCat / s"${artifact.id}${suffix}")
+      case (file, ivyCat, suffix) =>
+        (file, releaseDir / ivyCat / s"${artifact.id}${suffix}")
     }: _*)
   }
 
   private def writeFiles(fromTo: (os.Path, os.Path)*): Unit = {
     fromTo.foreach {
       case (from, to) =>
-        os.makeDir.all(to / os.up)
-        os.copy.over(from, to)
+        os.copy.over(from, to, createFolders = true)
     }
   }
 
 }
+
+object LocalIvyPublisher extends LocalIvyPublisher(os.home / ".ivy2" / "local")

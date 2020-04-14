@@ -46,12 +46,12 @@ object MultiBiMap{
     }
     def addAll(k: K, vs: TraversableOnce[V]): Unit = vs.foreach(this.add(k, _))
 
-    def keys() = keyToValues.keysIterator
+    def keys(): Iterator[K] = keyToValues.keysIterator
 
     def values() = keyToValues.valuesIterator
 
     def items() = keyToValues.iterator
 
-    def keyCount = keyToValues.size
+    def keyCount: Int = keyToValues.size
   }
 }
