@@ -165,7 +165,6 @@ class ZincWorkerImpl(compilerBridge: Either[
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / scalaVersion
         val compiledDest = workingDir / 'compiled
-
         if (os.exists(compiledDest)) {
           compiledDest
         } else {

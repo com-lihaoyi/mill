@@ -194,7 +194,7 @@ object playJsonJs extends Cross[PlayJsonJs](ScalaVersions:_*)
 class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with ScalaJSModule {
   def moduleDeps = Seq(playFunctionalJs(crossScalaVersion))
 
-  def scalaJSVersion = "0.6.22"
+  def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
   object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with Headers {
@@ -226,7 +226,7 @@ class PlayFunctionalJvm(val crossScalaVersion: String) extends PlayFunctional
 
 object playFunctionalJs extends Cross[PlayFunctionalJs](ScalaVersions:_*)
 class PlayFunctionalJs(val crossScalaVersion: String) extends PlayFunctional with ScalaJSModule {
-  def scalaJSVersion = "0.6.22"
+  def scalaJSVersion = "0.6.32"
 }
 
 object playJoda extends Cross[PlayJoda](ScalaVersions:_*)
