@@ -111,6 +111,16 @@ object MillMain {
     }
     )
 
+    var threadCount: Option[Int] = Some(1)
+    val threadCountSignature = Arg[Config, Int](
+      name = "jobs", Some('j'),
+      doc = "Allow processing N targets in parallel. Use 1 to disable parallel and 0 to use as much threads as available processors.",
+      (c, v) => {
+        threadCount = if(v == 0) None else Some(v)
+        c
+      }
+    )
+
     val millArgSignature =
       Cli.genericSignature.filter(a => !removed(a.name)) ++
         Seq(
@@ -119,8 +129,9 @@ object MillMain {
           disableTickerSignature,
           debugLogSignature,
           keepGoingSignature,
-          extraSystemPropertiesSignature
-        )
+          extraSystemPropertiesSignature,
+          threadCountSignature
+          )
 
     Cli.groupArgs(
       args.toList,
@@ -177,7 +188,8 @@ object MillMain {
                   |  build.millDiscover,
                   |  debugLog = $debugLog,
                   |  keepGoing = $keepGoing,
-                  |  systemProperties = ${systemProps}
+                  |  systemProperties = ${systemProps},
+                  |  threadCount = $threadCount
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
                   |import replApplyHandler.generatedEval._
@@ -195,7 +207,8 @@ object MillMain {
               setIdle,
               debugLog = debugLog,
               keepGoing = keepGoing,
-              systemProperties = systemProps
+              systemProperties = systemProps,
+              threadCount = threadCount
             )
 
             if (mill.main.client.Util.isJava9OrAbove) {

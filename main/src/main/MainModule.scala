@@ -161,12 +161,26 @@ trait MainModule extends mill.Module{
 
   /**
     * Runs multiple tasks in a single call.
-    *
-    *
+    * For compatibility reasons, the tasks are executed single-threaded.
     */
-  def all(evaluator: Evaluator, targets: String*) = mill.T.command{
-    MainModule.evaluateTasks(evaluator, targets, multiSelect = true) {res =>
-      res.flatMap(_._2)
+  def all(evaluator: Evaluator, targets: String*) = mill.T.command {
+    MainModule.evaluateTasks(
+      evaluator = if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1)) else evaluator,
+      targets = targets,
+      multiSelect = true) { res =>
+        res.flatMap(_._2)
+    }
+  }
+
+  /**
+    * Runs multiple tasks in a single call in parallel.
+    */
+  def par(evaluator: Evaluator, targets: String*) = mill.T.command {
+    MainModule.evaluateTasks(
+      evaluator = evaluator,
+      targets = targets,
+      multiSelect = true) { res =>
+        res.flatMap(_._2)
     }
   }
 
@@ -180,7 +194,7 @@ trait MainModule extends mill.Module{
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
         log = evaluator.log match{
-          case PrintLogger(c1, d, c2, o, i, e, in, de) => PrintLogger(c1, d, c2, e, i, e, in, de)
+          case PrintLogger(c1, d, c2, o, i, e, in, de, uc) => PrintLogger(c1, d, c2, e, i, e, in, de, uc)
           case l => l
         }
       ),
@@ -198,6 +212,10 @@ trait MainModule extends mill.Module{
     * will clean everything.
     */
   def clean(evaluator: Evaluator, targets: String*) = mill.T.command {
+    if(evaluator.effectiveThreadCount > 1) {
+      evaluator.log.error("The clean target in parallel mode might result in unexpected effects")
+    }
+
     val rootDir = ammonite.ops.pwd / OutDir
 
     val KeepPattern = "(mill-.+)".r.anchored

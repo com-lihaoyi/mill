@@ -73,7 +73,13 @@ class ZincWorkerImpl(compilerBridge: Either[
   private val ic = new sbt.internal.inc.IncrementalCompilerImpl()
   lazy val javaOnlyCompilers = {
     // Keep the classpath as written by the user
-    val classpathOptions = ClasspathOptions.of(false, false, false, false, false)
+    val classpathOptions = ClasspathOptions.of(
+      /*bootLibrary*/ false,
+      /*compiler*/false,
+      /*extra*/false,
+      /*autoBoot*/false,
+      /*filterLibrary*/false
+    )
 
     val dummyFile = new java.io.File("")
     // Zinc does not have an entry point for Java-only compilation, so we need
@@ -153,7 +159,7 @@ class ZincWorkerImpl(compilerBridge: Either[
   /** If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
     * @return a path to the directory containing the compiled classes, or to the downloaded jar file
     */
-  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = {
+  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = synchronized {
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>

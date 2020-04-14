@@ -1,7 +1,9 @@
 package mill.util
 
 import java.io._
-import java.nio.file.Files
+import java.nio.file.{Files, StandardOpenOption}
+
+import scala.util.DynamicVariable
 
 import mill.api.Logger
 
@@ -18,64 +20,85 @@ object DummyLogger extends Logger {
   def debug(s: String) = ()
 }
 
-class CallbackStream(wrapped: OutputStream,
-                     setPrintState0: PrintState => Unit) extends OutputStream{
-  def setPrintState(c: Char) = {
-    setPrintState0(
-      c match{
-        case '\n' => PrintState.Newline
-        case '\r' => PrintState.Newline
-        case _ => PrintState.Middle
-      }
-    )
+class CallbackStream(
+  wrapped: OutputStream,
+  setPrintState0: PrintState => Unit
+) extends OutputStream {
+
+  private[this] var printState: PrintState = _
+
+  private[this] def setPrintState(c: Char) = {
+    printState = c match {
+      case '\n' => PrintState.Newline
+      case '\r' => PrintState.Newline
+      case _ => PrintState.Middle
+    }
+    setPrintState0(printState)
   }
+
   override def write(b: Array[Byte]): Unit = {
-    if (b.nonEmpty) setPrintState(b(b.length-1).toChar)
+    if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
     wrapped.write(b)
   }
 
   override def write(b: Array[Byte], off: Int, len: Int): Unit = {
-    if (len != 0) setPrintState(b(off+len-1).toChar)
+    if (len != 0) setPrintState(b(off + len - 1).toChar)
     wrapped.write(b, off, len)
   }
 
-  def write(b: Int) = {
+  override def write(b: Int): Unit = {
     setPrintState(b.toChar)
     wrapped.write(b)
   }
 }
+
 sealed trait PrintState
-object PrintState{
+
+object PrintState {
   case object Ticker extends PrintState
   case object Newline extends PrintState
   case object Middle extends PrintState
 }
 
 case class PrintLogger(
-                        colored: Boolean,
-                        disableTicker: Boolean,
-                        colors: ammonite.util.Colors,
-                        outStream: PrintStream,
-                        infoStream: PrintStream,
-                        errStream: PrintStream,
-                        inStream: InputStream,
-                        debugEnabled: Boolean
-                      ) extends Logger {
+  colored: Boolean,
+  disableTicker: Boolean,
+  colors: ammonite.util.Colors,
+  outStream: PrintStream,
+  infoStream: PrintStream,
+  errStream: PrintStream,
+  inStream: InputStream,
+  debugEnabled: Boolean,
+  useContext: Boolean
+) extends Logger {
 
   var printState: PrintState = PrintState.Newline
 
-  override val errorStream = new PrintStream(new CallbackStream(errStream, printState = _))
-  override val outputStream = new PrintStream(new CallbackStream(outStream, printState = _))
+  override val errorStream = new PrintStream(
+    new CallbackStream(
+      new LinePrefixOutputStream(() => context, errStream),
+      printState = _
+    )
+  )
+  override val outputStream = new PrintStream(
+    new CallbackStream(
+      new LinePrefixOutputStream(() => context, outStream),
+      printState = _
+    )
+  )
 
+  private[this] def context = if (useContext) PrintLogger.getContext.getOrElse("") else ""
 
   def info(s: String) = {
     printState = PrintState.Newline
-    infoStream.println(colors.info()(s))
+    infoStream.println(context + colors.info()(s))
   }
+
   def error(s: String) = {
     printState = PrintState.Newline
-    errStream.println(colors.error()(s))
+    errStream.println(context + colors.error()(s))
   }
+
   def ticker(s: String) = {
     if(!disableTicker) {
       printState match{
@@ -86,13 +109,16 @@ case class PrintLogger(
           infoStream.println(colors.info()(s))
         case PrintState.Ticker =>
           val p = new PrintWriter(infoStream)
-          val nav = new ammonite.terminal.AnsiNav(p)
-          nav.up(1)
-          nav.clearLine(2)
-          nav.left(9999)
-          p.flush()
+          // Need to make this more "atomic"
+          synchronized {
+            val nav = new ammonite.terminal.AnsiNav(p)
+            nav.up(1)
+            nav.clearLine(2)
+            nav.left(9999)
+            p.flush()
 
-          infoStream.println(colors.info()(s))
+            infoStream.println(colors.info()(s))
+          }
       }
       printState = PrintState.Ticker
     }
@@ -100,17 +126,29 @@ case class PrintLogger(
 
   def debug(s: String) = if (debugEnabled) {
     printState = PrintState.Newline
-    errStream.println(s)
+    errStream.println(context + s)
   }
 }
 
-case class FileLogger(colored: Boolean, file: os.Path, debugEnabled: Boolean) extends Logger {
+object PrintLogger {
+  private[this] val _context = new DynamicVariable[Option[String]](None)
+  def withContext[T](context: Option[String])(f: => T): T = _context.withValue(context)(f)
+  def getContext: Option[String] = _context.value
+}
+
+class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
-    if (!outputStreamUsed) os.remove.all(file)
+    val options = Seq(
+      Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
+      Seq(StandardOpenOption.APPEND).filter(_ => append),
+      Seq(StandardOpenOption.TRUNCATE_EXISTING).filter(_ => !append && !outputStreamUsed)
+    ).flatten
+//    if (!append && !outputStreamUsed) os.remove.all(file)
     outputStreamUsed = true
-    new PrintStream(Files.newOutputStream(file.toNIO))
+    os.makeDir.all(file / os.up)
+    new PrintStream(Files.newOutputStream(file.toNIO, options: _*))
   }
 
   lazy val errorStream = outputStream

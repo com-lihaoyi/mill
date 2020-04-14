@@ -17,15 +17,25 @@ object TestEvaluator{
   }
 }
 
-class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
-                                            (implicit fullName: sourcecode.FullName,
-                                             tp: TestPath){
+/**
+ * @param module The module under test
+ * @param failFast failFast mode enabled
+ * @param threads explicitly used nr. of parallel threads
+ */
+class TestEvaluator(
+  module: TestUtil.BaseModule,
+  failFast: Boolean = false,
+  threads: Option[Int] = None
+)(implicit fullName: sourcecode.FullName,
+  tp: TestPath
+){
   val outPath =  TestUtil.getOutPath()
 
 //  val logger = DummyLogger
   val logger = new PrintLogger(
     colored = true, disableTicker=false,
-    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false
+    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false,
+    useContext = false
  ) {
     val prefix = {
       val idx = fullName.value.lastIndexOf(".")
@@ -37,7 +47,7 @@ class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger, failFast = failFast)
+  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger, failFast = failFast, threadCount = threads)
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
@@ -62,7 +72,7 @@ class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
     }
   }
 
-  def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]) = {
+  def fail(target: Target[_], expectedFailCount: Int, expectedRawValues: Seq[Result[_]]): Unit = {
 
     val res = evaluator.evaluate(Agg(target))
 
@@ -78,7 +88,7 @@ class TestEvaluator(module: => TestUtil.BaseModule, failFast: Boolean = false)
 
   }
 
-  def check(targets: Agg[Task[_]], expected: Agg[Task[_]]) = {
+  def check(targets: Agg[Task[_]], expected: Agg[Task[_]]): Unit = {
     val evaluated = evaluator.evaluate(targets)
       .evaluated
       .flatMap(_.asTarget)

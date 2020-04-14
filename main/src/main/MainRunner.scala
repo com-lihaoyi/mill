@@ -27,7 +27,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  setIdle: Boolean => Unit,
                  debugLog: Boolean,
                  keepGoing: Boolean,
-                 systemProperties: Map[String, String])
+                 systemProperties: Map[String, String],
+                 threadCount: Option[Int])
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -77,7 +78,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           errPrintStream,
           errPrintStream,
           stdIn,
-          debugEnabled = debugLog
+          debugEnabled = debugLog,
+          useContext = true
         )
         logger.debug(s"Using explicit system properties: ${systemProperties}")
 
@@ -91,7 +93,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           logger,
           env,
           keepGoing = keepGoing,
-          systemProperties
+          systemProperties = systemProperties,
+          threadCount = threadCount
         )
 
         result match{
