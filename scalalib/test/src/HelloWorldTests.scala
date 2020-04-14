@@ -942,12 +942,12 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
-    'dotty213 - workspaceTest(
-      Dotty213,
-      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
-    ){ eval =>
-      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
-      assert(evalCount > 0)
-    }
+//    'dotty213 - workspaceTest(
+//      Dotty213,
+//      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
+//    ){ eval =>
+//      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
+//      assert(evalCount > 0)
+//    }
   }
 }
