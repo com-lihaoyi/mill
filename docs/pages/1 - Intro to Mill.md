@@ -364,6 +364,27 @@ $ mill -w foo.compile
 $ mill -w foo.runBackground 
 ```
 
+## Parallel Task Execution (Experimental)
+
+By default, mill will evaluate all tasks in sequence. 
+But mill also has support to process tasks in parallel.
+This feature is currently experimental and we encourage you to report any issues you find on our bug tracker.
+
+To enable parallel task execution, use the `--jobs` (`-j`) option followed by a number of maximal parallel threads.
+
+Example: Use up to 4 parallel thread to compile all modules: 
+
+```bash
+mill -j 4 __.compile
+```
+
+To use as much threads as your machine has (logical) processor cores use `--jobs 0`.
+To disable parallel execution use `--jobs 1`. This is currently the default.
+
+Please note the the maximal possible parallelism depends on your project.
+Tasks that depend on each other can't be processes in parallel.
+
+
 ## Command-line Tools
 
 Mill comes built in with a small number of useful command-line utilities:
