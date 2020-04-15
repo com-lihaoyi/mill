@@ -308,9 +308,9 @@ val allModules = testModules ++ sourceModules
 //  }
 //}
 
-def validateCode() = T.command {
-  Task.traverse(allModules)(_.checkCodeFormat()).zip(Task.traverse(allModules)(_.headerCheck()))
-}
+//def validateCode() = T.command {
+//  Task.traverse(allModules)(_.checkCodeFormat()).zip(Task.traverse(allModules)(_.headerCheck()))
+//}
 
 /**
   * Release steps are:
