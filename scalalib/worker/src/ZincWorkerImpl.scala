@@ -337,7 +337,10 @@ class ZincWorkerImpl(compilerBridge: Either[
       val scalaInstance = new ScalaInstance(
         version = scalaVersion,
         loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
-        libraryJar = libraryJarNameGrep(compilerClasspath, "2.13.0").toIO,
+        libraryJar = libraryJarNameGrep(
+          compilerClasspath,
+          if (isDotty(scalaVersion)) "2.13.0" else scalaVersion
+        ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
         explicitActual = None
