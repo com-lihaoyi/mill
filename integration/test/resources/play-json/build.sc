@@ -7,7 +7,7 @@ import reformat.Scalariform
 import $file.headers
 import $file.jmh
 import jmh.Jmh
-import headers.Headers
+//import headers.Headers
 //import com.typesafe.tools.mima.core._
 
 
@@ -15,7 +15,7 @@ import mill.define.Task
 
 val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M3")
 
-trait BaseModule extends CrossSbtModule with Scalariform with Headers
+trait BaseModule extends CrossSbtModule with Scalariform /*with Headers*/
 
 trait PlayJsonModule extends BaseModule with PublishModule /*with MiMa */{
 
@@ -34,7 +34,7 @@ trait PlayJsonModule extends BaseModule with PublishModule /*with MiMa */{
     )
   )
 
-  trait Tests extends super.Tests with Scalariform with Headers {
+  trait Tests extends super.Tests with Scalariform /*with Headers */{
     val specs2Core = T {
       val v = mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion()) match {
         case "2.10" => "3.9.1"
@@ -197,7 +197,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with Headers {
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform/* with Headers*/ {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
