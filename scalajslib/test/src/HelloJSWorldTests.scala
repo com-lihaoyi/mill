@@ -200,9 +200,10 @@ object HelloJSWorldTests extends TestSuite {
 
     'test - {
       val cached = false
-      'utest_21112_0632 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.32", cached))
       'utest_2124_0632 - checkUtest("2.12.4", "0.6.32", cached)
       'utest_2131_0632 - checkUtest("2.13.1", "0.6.32", cached)
+      'utest_2124_100 - checkUtest("2.12.4", "1.0.0", cached)
+      'utest_2131_100 - checkUtest("2.13.1", "1.0.0", cached)
 //      No utest artifact for Scala.js 1.0.0 published yet
 //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
 //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
@@ -219,9 +220,10 @@ object HelloJSWorldTests extends TestSuite {
 
     'testCached - {
       val cached = true
-      'utest_21112_0632 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "0.6.32", cached))
       'utest_2124_0632 - checkUtest("2.12.4", "0.6.32", cached)
       'utest_2131_0632 - checkUtest("2.13.1", "0.6.32", cached)
+      'utest_2124_100 - checkUtest("2.12.4", "1.0.0", cached)
+      'utest_2131_100 - checkUtest("2.13.1", "1.0.0", cached)
       //      No utest artifact for Scala.js 1.0.0 published yet
       //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
       //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
