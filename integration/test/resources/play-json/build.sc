@@ -2,13 +2,13 @@ import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
 import $file.playJsonVersion
 import $file.reformat
 import reformat.Scalariform
-import $file.mima
-import mima.MiMa
+//import $file.mima
+//import mima.MiMa
 import $file.headers
 import $file.jmh
 import jmh.Jmh
 import headers.Headers
-import com.typesafe.tools.mima.core._
+//import com.typesafe.tools.mima.core._
 
 
 import mill.define.Task
@@ -17,7 +17,7 @@ val ScalaVersions = Seq("2.10.7", "2.11.12", "2.12.4", "2.13.0-M3")
 
 trait BaseModule extends CrossSbtModule with Scalariform with Headers
 
-trait PlayJsonModule extends BaseModule with PublishModule with MiMa {
+trait PlayJsonModule extends BaseModule with PublishModule /*with MiMa */{
 
   def pomSettings = PomSettings(
     description = artifactName(),
@@ -74,20 +74,20 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 
   def scalacPluginIvyDeps = Agg(macroParadise)
 
-  def mimaBinaryIssueFilters = Seq(
-    // AbstractFunction1 is in scala.runtime and isn't meant to be used by end users
-    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsArray$"),
-    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsObject$"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
-    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.JsonConfiguration.optionHandlers")
-  )
+//  def mimaBinaryIssueFilters = Seq(
+//    // AbstractFunction1 is in scala.runtime and isn't meant to be used by end users
+//    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsArray$"),
+//    ProblemFilters.exclude[MissingTypesProblem]("play.api.libs.json.JsObject$"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntWrites"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultWrites.BigIntegerWrites"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntReads"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.DefaultReads.BigIntegerReads"),
+//    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.JsonConfiguration.optionHandlers")
+//  )
 
   def generatedSources = T {
 
@@ -272,41 +272,41 @@ val sourceModules = Seq(
 
 val allModules = testModules ++ sourceModules
 
-def reportBinaryIssues() = T.command {
-  Task.traverse(sourceModules) { module =>
-    module.mimaReportBinaryIssues.map(issues => module.millModuleSegments.render -> issues)
-  }.map { issues =>
-    val issuesByModules = issues.flatMap { case (moduleName, issues) =>
-      val messageForModule = issues.foldLeft(Seq.empty[String]) { case (acc, (artifact, problems)) =>
-        val elem = if(problems.nonEmpty) {
-          Some(
-            s"""Compared to artifact: ${artifact}
-               |found ${problems.size} binary incompatibilities:
-               |${problems.mkString("\n")}
-               """.stripMargin
-          )
-        } else {
-          None
-        }
-        acc ++ elem
-      }
-      if(messageForModule.nonEmpty) {
-        Some(
-          s"""
-            |For module: ${moduleName}:
-            |${messageForModule.mkString("\n")}
-          """.stripMargin
-          )
-      } else {
-        None
-      }
-    }
-
-    if(issuesByModules.nonEmpty) {
-      sys.error(issuesByModules.mkString("\n"))
-    }
-  }
-}
+//def reportBinaryIssues() = T.command {
+//  Task.traverse(sourceModules) { module =>
+//    module.mimaReportBinaryIssues.map(issues => module.millModuleSegments.render -> issues)
+//  }.map { issues =>
+//    val issuesByModules = issues.flatMap { case (moduleName, issues) =>
+//      val messageForModule = issues.foldLeft(Seq.empty[String]) { case (acc, (artifact, problems)) =>
+//        val elem = if(problems.nonEmpty) {
+//          Some(
+//            s"""Compared to artifact: ${artifact}
+//               |found ${problems.size} binary incompatibilities:
+//               |${problems.mkString("\n")}
+//               """.stripMargin
+//          )
+//        } else {
+//          None
+//        }
+//        acc ++ elem
+//      }
+//      if(messageForModule.nonEmpty) {
+//        Some(
+//          s"""
+//            |For module: ${moduleName}:
+//            |${messageForModule.mkString("\n")}
+//          """.stripMargin
+//          )
+//      } else {
+//        None
+//      }
+//    }
+//
+//    if(issuesByModules.nonEmpty) {
+//      sys.error(issuesByModules.mkString("\n"))
+//    }
+//  }
+//}
 
 def validateCode() = T.command {
   Task.traverse(allModules)(_.checkCodeFormat()).zip(Task.traverse(allModules)(_.headerCheck()))
