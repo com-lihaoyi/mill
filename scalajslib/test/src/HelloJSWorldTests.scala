@@ -100,7 +100,7 @@ object HelloJSWorldTests extends TestSuite {
 
       'fromScratch_2124_0632 - testCompileFromScratch("2.12.4", "0.6.32")
       'fromScratch_2123_0632 - testCompileFromScratch("2.12.3", "0.6.32")
-      'fromScratch_21112_0632 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.22"))
+      'fromScratch_21112_0632 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.32"))
       'fromScratch_2124_100 - testCompileFromScratch("2.12.4", "1.0.0")
       'fromScratch_2131_100 - testCompileFromScratch("2.13.1", "1.0.0")
     }
