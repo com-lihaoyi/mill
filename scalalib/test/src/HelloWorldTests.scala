@@ -259,17 +259,6 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
-  object HelloDotty extends HelloBase{
-    object foo extends ScalaModule {
-      def scalaVersion = "0.9.0-RC1"
-      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.2.0".withDottyCompat(scalaVersion()))
-     }
-    object boo extends ScalaModule {
-      def scalaVersion = "0.16.0-RC3"
-      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.6.1".withDottyCompat(scalaVersion()))
-    }
-  }
-
   object Dotty213 extends HelloBase {
     object foo extends ScalaModule {
       def scalaVersion = "0.18.1-RC1"
@@ -930,25 +919,12 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-//    'dotty - workspaceTest(
-//      HelloDotty,
-//      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-dotty"
-//    ){ eval =>
-//      if (isJavaAtLeast("9")) {
-//        // Skip the test because Dotty does not support Java >= 9 yet
-//        // (see https://github.com/lampepfl/dotty/pull/3138)
-//      } else {
-//        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
-//        assert(evalCount > 0)
-//      }
-//    }
-
-//    'dotty213 - workspaceTest(
-//      Dotty213,
-//      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
-//    ){ eval =>
-//      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
-//      assert(evalCount > 0)
-//    }
+    'dotty213 - workspaceTest(
+      Dotty213,
+      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "dotty213"
+    ){ eval =>
+      val Right((_, evalCount)) = eval.apply(Dotty213.foo.run())
+      assert(evalCount > 0)
+    }
   }
 }
