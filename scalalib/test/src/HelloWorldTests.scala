@@ -930,18 +930,18 @@ object HelloWorldTests extends TestSuite {
       )
     }
 
-    'dotty - workspaceTest(
-      HelloDotty,
-      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-dotty"
-    ){ eval =>
-      if (isJavaAtLeast("9")) {
-        // Skip the test because Dotty does not support Java >= 9 yet
-        // (see https://github.com/lampepfl/dotty/pull/3138)
-      } else {
-        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
-        assert(evalCount > 0)
-      }
-    }
+//    'dotty - workspaceTest(
+//      HelloDotty,
+//      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-dotty"
+//    ){ eval =>
+//      if (isJavaAtLeast("9")) {
+//        // Skip the test because Dotty does not support Java >= 9 yet
+//        // (see https://github.com/lampepfl/dotty/pull/3138)
+//      } else {
+//        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
+//        assert(evalCount > 0)
+//      }
+//    }
 
 //    'dotty213 - workspaceTest(
 //      Dotty213,
