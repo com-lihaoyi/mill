@@ -27,7 +27,7 @@ case class CParams(compileParams: CompileParams) extends Parameters {
 
   override def getArguments: Option[Seq[String]] = {
     try {
-      Option(compileParams.getArguments.asScala)
+      Option(compileParams.getArguments.asScala.toSeq)
     } catch {
       case e: Exception => Option.empty[Seq[String]]
     }
@@ -51,7 +51,7 @@ case class RParams(runParams: RunParams) extends Parameters {
 
   override def getArguments: Option[Seq[String]] = {
     try {
-      Option(runParams.getArguments.asScala)
+      Option(runParams.getArguments.asScala.toSeq)
     } catch {
       case e: Exception => Option.empty[Seq[String]]
     }
@@ -75,7 +75,7 @@ case class TParams(testParams: TestParams) extends Parameters {
 
   override def getArguments: Option[Seq[String]] = {
     try {
-      Option(testParams.getArguments.asScala)
+      Option(testParams.getArguments.asScala.toSeq)
     } catch {
       case e: Exception => Option.empty[Seq[String]]
     }

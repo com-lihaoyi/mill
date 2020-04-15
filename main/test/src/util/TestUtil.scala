@@ -48,7 +48,7 @@ object TestUtil {
     var counter = 0
     var failure = Option.empty[String]
     var exception = Option.empty[Throwable]
-    override def evaluate(args: Ctx) = {
+    override def evaluate(args: mill.api.Ctx) = {
       failure.map(Result.Failure(_)) orElse
       exception.map(Result.Exception(_, new OuterStack(Nil))) getOrElse
       Result.Success(counter + args.args.map(_.asInstanceOf[Int]).sum)

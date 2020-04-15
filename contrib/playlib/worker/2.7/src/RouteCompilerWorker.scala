@@ -4,10 +4,7 @@ package worker
 
 import java.io.File
 
-import mill.api.{Ctx, Result}
-import mill.eval.PathRef
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
-import mill.scalalib.api.CompilationResult
 import play.routes.compiler
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
 import play.routes.compiler.{InjectedRoutesGenerator, RoutesCompilationError, RoutesCompiler, RoutesGenerator}
@@ -15,21 +12,20 @@ import play.routes.compiler.{InjectedRoutesGenerator, RoutesCompilationError, Ro
 
 private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
 
-  override def compile(files: Seq[os.Path],
-                       additionalImports: Seq[String],
+  override def compile(files: Array[java.io.File],
+                       additionalImports: Array[String],
                        forwardsRouter: Boolean,
                        reverseRouter: Boolean,
                        namespaceReverseRouter: Boolean,
                        generatorType: RouteCompilerType,
-                       dest: os.Path)
-                      (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
+                       dest: java.io.File): String = {
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
-        val result = compileWithPlay(files, additionalImports, forwardsRouter, reverseRouter,
-          namespaceReverseRouter, dest, ctx, InjectedRoutesGenerator)
-        asMillResult(ctx, result)
+        val result = compileWithPlay(files.map(os.Path(_)), additionalImports, forwardsRouter, reverseRouter,
+          namespaceReverseRouter, os.Path(dest), InjectedRoutesGenerator)
+        asMillResult(result)
       case RouteCompilerType.StaticGenerator =>
-        Result.Failure("Static generator was deprecated in 2.6.0 then removed in 2.7.x, see https://www.playframework.com/documentation/2.7.x/Migration27#StaticRoutesGenerator-removed")
+        "Static generator was deprecated in 2.6.0 then removed in 2.7.x, see https://www.playframework.com/documentation/2.7.x/Migration27#StaticRoutesGenerator-removed"
     }
   }
 
@@ -42,19 +38,23 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
                               reverseRouter: Boolean,
                               namespaceReverseRouter: Boolean,
                               dest: os.Path,
-                              ctx: Ctx,
                               routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
     val seed: Either[Seq[compiler.RoutesCompilationError], List[File]] = Right(List.empty[File])
-    files.map(file => compileWithPlay(file, additionalImports, forwardsRouter, reverseRouter,
-      namespaceReverseRouter, dest, ctx, routesGenerator)).foldLeft(seed) {
+    files.map(file => compileWithPlay(file, additionalImports.toSeq, forwardsRouter, reverseRouter,
+      namespaceReverseRouter, dest, routesGenerator)).foldLeft(seed) {
       case (Right(accFiles), Right(files)) => Right(accFiles ++ files)
       case (Right(accFiles), Left(errors)) => Left(errors)
       case (left@Left(errors), _) => left
     }
   }
 
-  private def compileWithPlay(file: os.Path, additionalImports: Seq[String], forwardsRouter: Boolean, reverseRouter: Boolean, namespaceReverseRouter: Boolean, dest: os.Path, ctx: Ctx, routesGenerator: RoutesGenerator) = {
-    ctx.log.debug(s"compiling file $file with play generator $routesGenerator")
+  private def compileWithPlay(file: os.Path,
+                              additionalImports: Seq[String],
+                              forwardsRouter: Boolean,
+                              reverseRouter: Boolean,
+                              namespaceReverseRouter: Boolean,
+                              dest: os.Path,
+                              routesGenerator: RoutesGenerator) = {
     val result =
       RoutesCompiler.compile(
         RoutesCompilerTask(file.toIO, additionalImports, forwardsRouter, reverseRouter,
@@ -62,21 +62,18 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
         generator = routesGenerator,
         generatedDir = dest.toIO
       )
-    ctx.log.debug(s"compilation result: $result")
     result
   }
 
-  private def asMillResult(ctx: Ctx, result: Either[Seq[RoutesCompilationError], Seq[File]]): Result[CompilationResult] = {
+  private def asMillResult(result: Either[Seq[RoutesCompilationError], Seq[File]]): String = {
     result match {
-      case Right(_) =>
-        val zincFile = ctx.dest / 'zinc
-        Result.Success(CompilationResult(zincFile, PathRef(ctx.dest)))
+      case Right(_) => null
       case Left(errors) =>
         val errorMsg = errors.map(error =>
           s"compilation error in ${error.source.getPath} at line ${error.line.getOrElse("?")}, " +
             s"column ${error.column.getOrElse("?")}: ${error.message}")
           .mkString("\n")
-        Result.Failure("Unable to compile play routes, " + errorMsg)
+        "Unable to compile play routes, " + errorMsg
     }
   }
 }

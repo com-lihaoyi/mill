@@ -70,7 +70,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageClasspath = T {
     Lib.resolveDependencies(
       Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      Lib.depToDependency(_, outer.scalaVersion()),
+      Lib.depToDependency(_, "2.13.1"),
       Seq(scoveragePluginDep()),
       ctx = Some(implicitly[mill.util.Ctx.Log])
     )

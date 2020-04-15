@@ -1,10 +1,14 @@
 package mill.scalalib.worker
 
-import java.io.File
-import java.util.Optional
+import java.io.{ByteArrayInputStream, File, InputStream, SequenceInputStream}
+import java.net.URI
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.util.{Collections, Optional}
+import java.util.jar.JarFile
 
 import mill.api.Loose.Agg
-import mill.api.{Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn, BuildProblemReporter}
+import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn}
 import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
@@ -165,7 +169,6 @@ class ZincWorkerImpl(compilerBridge: Either[
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / scalaVersion
         val compiledDest = workingDir / 'compiled
-
         if (os.exists(compiledDest)) {
           compiledDest
         } else {
@@ -330,10 +333,14 @@ class ZincWorkerImpl(compilerBridge: Either[
           grepJar(compilerClasspath, s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
         else
           compilerJarNameGrep(compilerClasspath, scalaVersion)
+
       val scalaInstance = new ScalaInstance(
         version = scalaVersion,
         loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
-        libraryJar = libraryJarNameGrep(compilerClasspath, scalaVersion).toIO,
+        libraryJar = libraryJarNameGrep(
+          compilerClasspath,
+          if (isDotty(scalaVersion)) "2.13.0" else scalaVersion
+        ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
         explicitActual = None
@@ -430,7 +437,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       pr = {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-      }
+      },
+      temporaryClassesDirectory = java.util.Optional.empty()
     )
 
     try {

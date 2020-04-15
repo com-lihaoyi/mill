@@ -35,7 +35,7 @@ object HelloWorldTests extends TestSuite {
     object core extends HelloWorldModule
   }
   object CrossHelloWorld extends HelloBase {
-    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.0-M3")
+    object core extends Cross[HelloWorldCross]("2.10.6", "2.11.11", "2.12.3", "2.12.4", "2.13.1")
     class HelloWorldCross(val crossScalaVersion: String) extends CrossScalaModule
   }
 
@@ -193,7 +193,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorldScalaOverride extends HelloBase{
     object core extends HelloWorldModule {
 
-      override def scalaVersion: Target[String] = "2.11.11"
+      override def scalaVersion: Target[String] = "2.13.1"
     }
   }
 
@@ -256,17 +256,6 @@ object HelloWorldTests extends TestSuite {
         def ivyDeps     = Agg(ivy"org.scalacheck::scalacheck:1.13.5")
         def testFrameworks = Seq("org.scalacheck.ScalaCheckFramework")
       }
-    }
-  }
-
-  object HelloDotty extends HelloBase{
-    object foo extends ScalaModule {
-      def scalaVersion = "0.9.0-RC1"
-      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.2.0".withDottyCompat(scalaVersion()))
-     }
-    object boo extends ScalaModule {
-      def scalaVersion = "0.16.0-RC3"
-      def ivyDeps = Agg(ivy"org.typelevel::cats-core:1.6.1".withDottyCompat(scalaVersion()))
     }
   }
 
@@ -335,7 +324,7 @@ object HelloWorldTests extends TestSuite {
         val Right((result, evalCount)) = eval.apply(HelloWorldScalaOverride.core.scalaVersion)
 
         assert(
-          result == "2.11.11",
+          result == "2.13.1",
           evalCount > 0
         )
       }
@@ -528,7 +517,7 @@ object HelloWorldTests extends TestSuite {
         'v211 - TestUtil.disableInJava9OrAbove(workspaceTest(CrossHelloWorld)(cross(_, "2.11.11", "2.11.11 pwns")))
         'v2123 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.3", "2.12.3 leet"))
         'v2124 - workspaceTest(CrossHelloWorld)(cross(_, "2.12.4", "2.12.4 leet"))
-        'v2130M3 - workspaceTest(CrossHelloWorld)(cross(_, "2.13.0-M3", "2.13.0-M3 idk"))
+        'v2131 - workspaceTest(CrossHelloWorld)(cross(_, "2.13.1", "2.13.1 idk"))
       }
 
 
@@ -928,19 +917,6 @@ object HelloWorldTests extends TestSuite {
           "String.substring"
         )
       )
-    }
-
-    'dotty - workspaceTest(
-      HelloDotty,
-      resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-dotty"
-    ){ eval =>
-      if (isJavaAtLeast("9")) {
-        // Skip the test because Dotty does not support Java >= 9 yet
-        // (see https://github.com/lampepfl/dotty/pull/3138)
-      } else {
-        val Right((_, evalCount)) = eval.apply(HelloDotty.foo.run())
-        assert(evalCount > 0)
-      }
     }
 
     'dotty213 - workspaceTest(

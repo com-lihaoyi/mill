@@ -2,7 +2,7 @@ package mill
 package playlib
 
 import coursier.MavenRepository
-import mill.eval.PathRef
+import mill.api.PathRef
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
@@ -82,7 +82,8 @@ trait RouterModule extends ScalaModule with Version {
       workerKey,
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositories,
-      resolveFilter = _.toString.contains("mill-contrib-playlib-worker")
+      resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
+      artifactSuffix = "_2.12"
     )
   }
 

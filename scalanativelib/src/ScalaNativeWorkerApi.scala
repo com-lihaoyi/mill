@@ -11,14 +11,16 @@ import mill.scalanativelib.api._
 class ScalaNativeWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def impl(toolsClasspath: Agg[os.Path]): ScalaNativeWorkerApi = {
+  def impl(toolsClasspath: Agg[os.Path])
+          (implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
-        val cl = new URLClassLoader(
-          toolsClasspath.map(_.toIO.toURI.toURL).toArray,
-          getClass.getClassLoader
+        val cl = mill.api.ClassLoader.create(
+          toolsClasspath.map(_.toIO.toURI.toURL).toSeq,
+          null,
+          sharedPrefixes = Seq("mill.scalanativelib.api.", "sbt.testing.")
         )
         try {
           val bridge = cl

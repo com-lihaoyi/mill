@@ -1,7 +1,7 @@
 import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
-import $ivy.`org.scalaj::scalaj-http:2.4.1`
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
 
 import coursier.maven.MavenRepository
 import mill._
@@ -12,19 +12,18 @@ import mill.modules.Jvm.createAssembly
 object Deps {
 
   object Scalajs_0_6 {
-    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.22"
-    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.22"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.22"
+    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.32"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.32"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.32"
   }
 
   object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0-RC1"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0-RC1"
-    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0-RC1"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0-RC1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0-RC1"
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0"
+    val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0"
   }
-
   object Scalanative_0_3 {
     val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
     val scalanativeUtil = ivy"org.scala-native::util:0.3.9"
@@ -47,14 +46,14 @@ object Deps {
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
   val ipcsocketExcludingJna = ipcsocket.exclude(
-  "net.java.dev.jna" -> "jna",
-  "net.java.dev.jna" -> "jna-platform"
+    "net.java.dev.jna" -> "jna",
+    "net.java.dev.jna" -> "jna-platform"
   )
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
-  val jna = ivy"net.java.dev.jna:jna:4.5.0"
+  val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
@@ -62,14 +61,14 @@ object Deps {
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.0.0-RC6"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
-  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"
+  def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.0"
   val ujsonCirce = ivy"com.lihaoyi::ujson-circe:0.9.8"
   val upickle = ivy"com.lihaoyi::upickle:1.0.0"
   val utest = ivy"com.lihaoyi::utest:0.7.3"
-  val zinc = ivy"org.scala-sbt::zinc:1.2.5"
+  val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
 }
 
@@ -92,7 +91,7 @@ trait MillPublishModule extends PublishModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.12.10" }
+  def scalaVersion = T{ "2.13.1" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -101,6 +100,7 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
   )
 }
 trait MillModule extends MillApiModule { outer =>
+  def scalaVersion = T{ "2.13.1" }
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
@@ -142,7 +142,7 @@ object main extends MillModule {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
     }
   }
-  object api extends MillApiModule{
+  object api extends MillApiModule {
     def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
@@ -158,6 +158,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       Deps.ammonite,
+      Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
@@ -186,7 +187,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.12.10" }
+    def scalaVersion = T{ "2.13.1" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode,
@@ -283,7 +284,7 @@ object scalalib extends MillModule {
   object api extends MillApiModule {
     def moduleDeps = Seq(main.api)
   }
-  object worker extends MillApiModule{
+  object worker extends MillApiModule {
 
     def moduleDeps = Seq(scalalib.api)
 
@@ -312,8 +313,8 @@ object scalajslib extends MillModule {
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
 
-  object api extends MillApiModule{
-    def moduleDeps = Seq(main.core)
+  object api extends MillApiModule {
+    def moduleDeps = Seq(main.api)
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1.0")
@@ -362,8 +363,8 @@ object contrib extends MillModule {
 
     def testArgs = T {
       val mapping = Map(
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").compile().classes.path,
-        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").compile().classes.path
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
+        "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path
       )
 
       scalalib.worker.testArgs() ++
@@ -371,21 +372,23 @@ object contrib extends MillModule {
         (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
     }
 
-    object api extends MillApiModule {
-      def moduleDeps = Seq(scalalib)
+    object api extends MillPublishModule {
+
     }
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
-    class WorkerModule(scalajsBinary: String) extends MillApiModule {
+    class WorkerModule(scalajsBinary: String) extends MillApiModule  {
+      def scalaVersion = T { "2.12.10" }
       def moduleDeps = Seq(playlib.api)
-
       def ivyDeps = scalajsBinary match {
         case  "2.6"=>
           Agg(
+            Deps.osLib,
             ivy"com.typesafe.play::routes-compiler::2.6.0"
           )
         case "2.7" =>
           Agg(
+            Deps.osLib,
             ivy"com.typesafe.play::routes-compiler::2.7.0"
           )
       }
@@ -398,7 +401,6 @@ object contrib extends MillModule {
   }
 
   object scoverage extends MillModule {
-
     object api extends MillApiModule {
       def moduleDeps = Seq(main.api)
     }
@@ -441,7 +443,10 @@ object contrib extends MillModule {
 
   object tut extends MillModule {
     def moduleDeps = Seq(scalalib)
-    def testArgs = Seq("-DMILL_VERSION=" + build.publishVersion()._2)
+    def testArgs = T{
+      scalalib.worker.testArgs() ++
+      scalalib.backgroundwrapper.testArgs()
+    }
   }
 
   object flyway extends MillModule {
@@ -494,24 +499,25 @@ object scalanativelib extends MillModule {
 
   def testArgs = T{
     val mapping = Map(
-      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").compile().classes.path,
-      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").compile().classes.path
+      "MILL_SCALANATIVE_WORKER_0_3" -> worker("0.3").assembly().path,
+      "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").assembly().path
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
     (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
   }
-  object api extends MillApiModule{
-    def moduleDeps = Seq(main.core)
+  object api extends MillPublishModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
     class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
+    def scalaVersion = T{ "2.12.10" }
     override def millSourcePath(): os.Path = super.millSourcePath / os.up
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = scalaNativeWorkerVersion match {
       case "0.3" =>
         Agg(
+          Deps.osLib,
           Deps.Scalanative_0_3.scalanativeTools,
           Deps.Scalanative_0_3.scalanativeUtil,
           Deps.Scalanative_0_3.scalanativeNir,
@@ -519,6 +525,7 @@ object scalanativelib extends MillModule {
         )
       case "0.4" =>
         Agg(
+          Deps.osLib,
           Deps.Scalanative_0_4.scalanativeTools,
           Deps.Scalanative_0_4.scalanativeUtil,
           Deps.Scalanative_0_4.scalanativeNir,

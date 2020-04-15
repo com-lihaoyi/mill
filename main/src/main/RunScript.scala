@@ -52,7 +52,7 @@ object RunScript{
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
                 mutable.Map.empty[Segments, (Int, Any)],
-                interp.watchedFiles
+                interp.watchedFiles.toSeq
               )
             (eval, interp.watchedFiles)
         }
@@ -69,7 +69,7 @@ object RunScript{
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
-    (evaluated, interpWatched)
+    (evaluated, interpWatched.toSeq)
   }
 
   def watchedSigUnchanged(sig: Seq[(os.Path, Long)]) = {

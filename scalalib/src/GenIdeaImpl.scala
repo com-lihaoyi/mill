@@ -241,7 +241,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
     //TODO: also check against fixed files
     val fileContributions: Seq[(RelPath, Elem)] = collisionFree(configFileContributions).toSeq.map {
       case (file, configs) =>
-        val map: Map[String, Seq[GenIdeaModule.Element]] = configs.groupBy(_.component).mapValues(_.flatMap(_.config))
+        val map: Map[String, Seq[GenIdeaModule.Element]] =
+          configs
+            .groupBy(_.component)
+            .mapValues(_.flatMap(_.config))
+            .toMap
         (os.rel / ".idea" / file) -> ideaConfigFileTemplate(map)
     }
 
@@ -251,6 +255,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .filter(_._2.size > 1)
       .mapValues(_.zipWithIndex)
       .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
+      .toMap
 
     val pathToLibName = allResolved
       .map(p => p -> pathShortLibNameDuplicate.getOrElse(p, p.last))

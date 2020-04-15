@@ -401,7 +401,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         sbt = None,
         test = testConfig(),
         platform = Some(platform()),
-        resolution = Some(bloopResolution())
+        resolution = Some(bloopResolution()),
       )
     }
 

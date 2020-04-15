@@ -183,11 +183,7 @@ object Jvm {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl = if (classLoaderOverrideSbtTesting) {
       val outerClassLoader = getClass.getClassLoader
-      mill.api.ClassLoader.create(urls.toVector, null, customFindClass = { name =>
-        if (name.startsWith("sbt.testing."))
-          Some(outerClassLoader.loadClass(name))
-        else None
-      })
+      mill.api.ClassLoader.create(urls.toVector, null, Seq("sbt.testing."))
     } else if (isolated) {
       mill.api.ClassLoader.create(urls.toVector, null)
     } else {

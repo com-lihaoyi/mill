@@ -14,7 +14,7 @@ object MultiModuleTests extends TestSuite {
   object MultiModule extends TestUtil.BaseModule {
     trait BaseModule extends ScalaJSModule {
       def scalaVersion = "2.12.4"
-      def scalaJSVersion = "0.6.22"
+      def scalaJSVersion = "0.6.32"
     }
 
     object client extends BaseModule {

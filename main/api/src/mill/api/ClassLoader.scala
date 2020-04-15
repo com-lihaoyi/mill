@@ -1,6 +1,7 @@
 package mill.api
 
 import java.net.{URL, URLClassLoader}
+
 import java.nio.file.FileAlreadyExistsException
 
 import io.github.retronym.java9rtexport.Export
@@ -9,21 +10,17 @@ import scala.util.Try
 object ClassLoader {
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
   def create(urls: Seq[URL],
-             parent: java.lang.ClassLoader)
-            (implicit ctx: Ctx.Home): URLClassLoader = {
-    create(urls, parent, _ => None)
-  }
-  def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
-             customFindClass: String => Option[Class[_]])
+             sharedPrefixes: Seq[String] = Seq())
             (implicit ctx: Ctx.Home): URLClassLoader = {
     new URLClassLoader(
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
     ) {
+      val allSharedPrefixes = sharedPrefixes :+ "com.sun.jna"
       override def findClass(name: String): Class[_] = {
-        if (name.startsWith("com.sun.jna")) getClass.getClassLoader.loadClass(name)
-        else customFindClass(name).getOrElse(super.findClass(name))
+        if (allSharedPrefixes.exists(name.startsWith)) getClass.getClassLoader.loadClass(name)
+        else super.findClass(name)
       }
     }
   }
@@ -58,7 +55,7 @@ object ClassLoader {
       if(!os.exists(java90rtJar)) {
         Try {
           os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-        } recoverWith { case e: FileAlreadyExistsException =>
+        }.recoverWith { case e: FileAlreadyExistsException =>
           // some race?
           if(os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
             // all good
@@ -67,7 +64,7 @@ object ClassLoader {
             // retry
             os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
           }
-        } get
+        }.get
       }
       urls :+ java90rtJar.toIO.toURI().toURL()
     } else {

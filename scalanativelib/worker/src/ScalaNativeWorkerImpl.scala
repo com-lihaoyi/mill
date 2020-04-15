@@ -13,61 +13,62 @@ import scala.scalanative.testinterface.ScalaNativeFramework
 class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi {
   def logger(level: NativeLogLevel) =
     Logger(
-      debugFn = msg => if (level >= NativeLogLevel.Debug) out.println(msg),
-      infoFn  = msg => if (level >= NativeLogLevel.Info)  out.println(msg),
-      warnFn  = msg => if (level >= NativeLogLevel.Warn)  out.println(msg),
-      errorFn = msg => if (level >= NativeLogLevel.Error) err.println(msg))
+      debugFn = msg => if (level.value >= NativeLogLevel.Debug.value) out.println(msg),
+      infoFn  = msg => if (level.value >= NativeLogLevel.Info.value)  out.println(msg),
+      warnFn  = msg => if (level.value >= NativeLogLevel.Warn.value)  out.println(msg),
+      errorFn = msg => if (level.value >= NativeLogLevel.Error.value) err.println(msg))
 
-  def discoverClang: os.Path = os.Path(Discover.clang())
-  def discoverClangPP: os.Path = os.Path(Discover.clangpp())
-  def discoverTarget(clang: os.Path, workdir: os.Path): String = Discover.targetTriple(clang.toNIO, workdir.toNIO)
-  def discoverCompileOptions: Seq[String] = Discover.compileOptions()
-  def discoverLinkingOptions: Seq[String] = Discover.linkingOptions()
+  def discoverClang: java.io.File = Discover.clang().toFile
+  def discoverClangPP: java.io.File = Discover.clangpp().toFile
+  def discoverTarget(clang: java.io.File,
+                     workdir: java.io.File): String = Discover.targetTriple(clang.toPath, workdir.toPath)
+  def discoverCompileOptions: Array[String] = Discover.compileOptions().toArray
+  def discoverLinkingOptions: Array[String] = Discover.linkingOptions().toArray
   def defaultGarbageCollector: String = GC.default.name
 
-  def config(nativeLibJar: os.Path,
+  def config(nativeLibJar: java.io.File,
              mainClass: String,
-             classpath: Seq[os.Path],
-             nativeWorkdir: os.Path,
-             nativeClang: os.Path,
-             nativeClangPP: os.Path,
+             classpath: Array[java.io.File],
+             nativeWorkdir: java.io.File,
+             nativeClang: java.io.File,
+             nativeClangPP: java.io.File,
              nativeTarget: String,
-             nativeCompileOptions: Seq[String],
-             nativeLinkingOptions: Seq[String],
+             nativeCompileOptions: Array[String],
+             nativeLinkingOptions: Array[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
              releaseMode: ReleaseMode,
              logLevel: NativeLogLevel): NativeConfig =
     {
       val entry = mainClass + "$"
-
       val config =
         Config.empty
-          .withNativelib(nativeLibJar.toNIO)
+          .withNativelib(nativeLibJar.toPath)
           .withMainClass(entry)
-          .withClassPath(classpath.map(_.toNIO))
-          .withWorkdir(nativeWorkdir.toNIO)
-          .withClang(nativeClang.toNIO)
-          .withClangPP(nativeClangPP.toNIO)
+          .withClassPath(classpath.map(_.toPath))
+          .withWorkdir(nativeWorkdir.toPath)
+          .withClang(nativeClang.toPath)
+          .withClangPP(nativeClangPP.toPath)
           .withTargetTriple(nativeTarget)
           .withCompileOptions(nativeCompileOptions)
           .withLinkingOptions(nativeLinkingOptions)
           .withGC(GC(nativeGC))
           .withLinkStubs(nativeLinkStubs)
-          .withMode(Mode(releaseMode.name))
+          .withMode(Mode(releaseMode.value))
           .withLogger(logger(logLevel))
-      NativeConfig(config)
+      new NativeConfig(config)
     }
 
-  def nativeLink(nativeConfig: NativeConfig, outPath: os.Path): os.Path = {
+  def nativeLink(nativeConfig: NativeConfig, outPath: java.io.File): java.io.File = {
     val config = nativeConfig.config.asInstanceOf[Config]
-    Build.build(config, outPath.toNIO)
+    Build.build(config, outPath.toPath)
     outPath
   }
 
   override def newScalaNativeFrameWork(framework: Framework, id: Int, testBinary: File,
-                                       logLevel: NativeLogLevel, envVars: Map[String, String]): Framework =
+                                       logLevel: NativeLogLevel, envVars: java.util.Map[String, String]): Framework =
   {
-    new ScalaNativeFramework(framework, id, logger(logLevel), testBinary, envVars)
+    import collection.JavaConverters._
+    new ScalaNativeFramework(framework, id, logger(logLevel), testBinary, envVars.asScala.toMap)
   }
 }

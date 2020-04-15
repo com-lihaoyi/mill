@@ -3,7 +3,7 @@ package playlib
 
 import mill.scalalib._
 
-import api.Versions
+import mill.playlib.api.Versions
 
 trait PlayApiModule extends Dependencies with Router with Server{
   trait PlayTests extends super.Tests{

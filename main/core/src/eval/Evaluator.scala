@@ -127,13 +127,13 @@ case class Evaluator(
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
-    Evaluator.writeTimings(timings, outPath)
+    Evaluator.writeTimings(timings.toSeq, outPath)
     Evaluator.Results(
       goals.indexed.map(results(_).map(_._1)),
       evaluated,
       transitive,
       failing,
-      timings,
+      timings.toIndexedSeq,
       results.map{case (k, v) => (k, v.map(_._1))}
     )
    }
@@ -173,7 +173,7 @@ case class Evaluator(
           testReporter,
           logger
         )
-        Evaluated(newResults, newEvaluated, false)
+        Evaluated(newResults, newEvaluated.toSeq, false)
       case lntRight @ Right(labelledNamedTask) =>
 
         val out = if (!labelledNamedTask.task.ctx.external) outPath
@@ -239,7 +239,7 @@ case class Evaluator(
                 os.remove.all(paths.meta)
             }
 
-            Evaluated(newResults, newEvaluated, false)
+            Evaluated(newResults, newEvaluated.toSeq, false)
         }
     }
   }
@@ -458,7 +458,7 @@ case class Evaluator(
       private[ParallelEvaluator] val nextCounterMsg = new Evaluator.NextCounterMsg(sortedGroups.keyCount)
 
       // The unprocessed terminal groups, MUTABLE
-      private[ParallelEvaluator] val pending: mutable.LinkedHashSet[TerminalGroup] = sortedGroups.items.to[mutable.LinkedHashSet]
+      private[ParallelEvaluator] val pending: mutable.LinkedHashSet[TerminalGroup] = sortedGroups.items.to(mutable.LinkedHashSet)
 
       // The persistent segments for each terminal group, if any
       // Used to determine potential collisions
@@ -608,7 +608,7 @@ case class Evaluator(
           vs.items.flatMap(i => Option(state.results.get(i))).collect { case f: Result.Failing[_] => f.map(_._1) }
         )
       }
-      Evaluator.writeTimings(state.timings, outPath)
+      Evaluator.writeTimings(state.timings.toSeq, outPath)
 
       evalLog.debug(s"End time: ${new java.util.Date()}")
 
@@ -620,7 +620,7 @@ case class Evaluator(
         state.evaluated,
         transitive,
         failing,
-        state.timings,
+        state.timings.toIndexedSeq,
         state.results.asScala.map { case (k, v) => (k, v.map(_._1)) }
       )
     }
@@ -712,7 +712,7 @@ case class Evaluator(
 
       val scheduleStart = System.currentTimeMillis()
 
-      val oldSeen: Set[Segments] = state.inProgress.flatMap(state.taskSegments.get).to[Set]
+      val oldSeen: Set[Segments] = state.inProgress.flatMap(state.taskSegments.get).to(Set)
       val newSeen: mutable.Set[Segments] = mutable.Set()
 
       var taken: Int = 0
