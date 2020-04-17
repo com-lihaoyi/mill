@@ -310,7 +310,7 @@ object scalajslib extends MillModule {
     Seq("-Djna.nosys=true") ++
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
-    (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
 
   object api extends MillApiModule {
@@ -369,7 +369,7 @@ object contrib extends MillModule {
 
       scalalib.worker.testArgs() ++
         scalalib.backgroundwrapper.testArgs() ++
-        (for ((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+        (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
     }
 
     object api extends MillPublishModule {
@@ -504,7 +504,7 @@ object scalanativelib extends MillModule {
     )
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
-    (for((k, v) <- mapping.toSeq) yield s"-D$k=$v")
+    (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
   object api extends MillPublishModule {
     def ivyDeps = Agg(Deps.sbtTestInterface)
