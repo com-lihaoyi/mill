@@ -856,7 +856,7 @@ object Evaluator{
   case class State(rootModule: mill.define.BaseModule,
                    classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
                    workerCache: mutable.Map[Segments, (Int, Any)],
-                   watched: Seq[(os.Path, Long)])
+                   watched: Seq[(() => Long, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule
