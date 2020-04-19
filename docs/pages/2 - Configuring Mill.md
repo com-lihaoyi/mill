@@ -329,7 +329,7 @@ object foo extends ScalaModule {
 
 def lineCount = T {
 
-  foo.sources().flatMap(ref => os.walk(ref.path)).filter(_.isFile).flatMap(read.lines).size
+  foo.sources().flatMap(ref => os.walk(ref.path)).filter(os.isFile(_)).flatMap(os.read.lines(_)).size
 }
 
 def printLineCount() = T.command {
