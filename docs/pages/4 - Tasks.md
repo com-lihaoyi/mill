@@ -5,7 +5,7 @@ for building Scala.
 The following is a simple self-contained example using Mill to compile Java:
 
 ```scala
-, mill._
+import mill._, mill.modules.Jvm
 
 // sourceRoot -> allSources -> classFiles
 //                                |
@@ -18,17 +18,18 @@ def resourceRoot = T.sources { os.pwd / 'resources }
 
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 
-def classFiles = T { 
+def classFiles = T {
   os.makeDir.all(T.ctx.dest)
-  
-  %("javac", allSources().map(_.path.toString()), "-d", T.ctx.dest)(wd = T.ctx.dest)
-  PathRef(T.ctx.dest) 
+
+  os.proc("javac", allSources().map(_.path.toString()), "-d", T.ctx.dest)
+    .call(cwd = T.ctx.dest)
+  PathRef(T.ctx.dest)
 }
 
-def jar = T { Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
+def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
 def run(mainClsName: String) = T.command {
-  os.proc('java, "-cp", classFiles().path, mainClsName).call()
+  os.proc("java", "-cp", classFiles().path, mainClsName).call() 
 }
 ```
 
