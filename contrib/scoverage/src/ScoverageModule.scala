@@ -91,8 +91,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   class ScoverageData(ctx0: mill.define.Ctx) extends Module()(ctx0) with ScalaModule {
 
     def doReport(reportType: ReportType): Task[Unit] = T.task {
-      // we ensure, that the dataDir at least contains a `scoverage.coverage` file
-      compile()
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
