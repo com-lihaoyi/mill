@@ -10,6 +10,7 @@ import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 class ScoverageReportWorkerImpl extends ScoverageReportWorkerApi {
 
   override def report(reportType: ReportType, sources: Seq[os.Path], dataDirs: Seq[os.Path])(implicit  ctx: Ctx): Unit = {
+    ctx.log.info(s"Processing coverage data for ${dataDirs.size} data locations")
     CoverageAggregator.aggregate(dataDirs.map(_.toIO)) match {
       case Some(coverage) =>
         val sourceFolders = sources.map(_.toIO)
