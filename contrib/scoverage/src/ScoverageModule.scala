@@ -93,12 +93,6 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       // we ensure, that the dataDir at least contains a `scoverage.coverage` file
       compile()
-      val scoverageDataFile = data().path / "scoverage.coverage"
-      if (!os.exists(scoverageDataFile)) {
-        // If there are no source files, there will be no coverge file,
-        // and this means we get an exception later when creating reports
-        os.write(scoverageDataFile, s"# Dummy scoverage file created by ${outer}", createFolders = true)
-      }
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
