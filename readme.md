@@ -170,8 +170,28 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.6.1](https://github.com/lihaoyi/mill/milestone/36?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master).*
+[milestone after 0.6.2](https://github.com/lihaoyi/mill/milestone/37?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.2...master).*
+
+### 0.6.2 - 2020-04-22
+
+- Mill can now execute targets in parallel. 
+  This is experimental and need to be enabled with `--jobs <n>` option.
+- `PublishModule`: new `publishM2Local` to publish into local Maven repositories
+- `PublishModule`: enhanced `publishLocal` to specify to ivy repository location
+- Windows: Fixed windows launcher and more robust classpath handling
+- `ScalaNativeModule`: improved compiling and linking support
+- new contrib module `VersionFile`
+- `Dependency`: improved dependency update checker and expose results for programmatic use
+- ǹew contrib module `Bintray`
+- ǹew contrib module `Artifactory`
+- fixed testCached support in various modules
+- `GenIdea`: improvements, esp. related to source jars
+
+*For details refer to
+[milestone 0.6.2](https://github.com/lihaoyi/mill/milestone/36?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...0.6.2).*
+
 
 ### 0.6.1 - 2020-02-24
 
