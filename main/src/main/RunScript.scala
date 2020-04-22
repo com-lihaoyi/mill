@@ -25,7 +25,7 @@ object RunScript{
   def runScript(home: os.Path,
                 wd: os.Path,
                 path: os.Path,
-                instantiateInterpreter: => Either[(Res.Failing, Seq[(() => Long, Long)]), ammonite.interp.Interpreter],
+                instantiateInterpreter: => Either[(Res.Failing, Seq[(ammonite.interp.Watchable, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
                 log: Logger,
@@ -33,7 +33,7 @@ object RunScript{
                 keepGoing: Boolean,
                 systemProperties: Map[String, String],
                 threadCount: Option[Int])
-  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(() => Long, Long)]) = {
+  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(ammonite.interp.Watchable, Long)]) = {
 
     systemProperties.foreach {case (k,v) =>
       System.setProperty(k, v)
@@ -72,8 +72,8 @@ object RunScript{
     (evaluated, interpWatched.toSeq)
   }
 
-  def watchedSigUnchanged(sig: Seq[(() => Long, Long)]) = {
-    sig.forall{case (p, l) => p() == l}
+  def watchedSigUnchanged(sig: Seq[(ammonite.interp.Watchable, Long)]) = {
+    sig.forall{case (p, l) => p.poll() == l}
   }
 
   def evaluateRootModule(wd: os.Path,
