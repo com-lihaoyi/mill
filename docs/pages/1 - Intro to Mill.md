@@ -243,7 +243,7 @@ object foo extends ScalaModule {
 }
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 }
 ```
 
@@ -631,6 +631,25 @@ and dependencies are shown with a dotted border.
 The above command generates the following diagram:
 
 ![VisualizePlan.svg](VisualizePlan.svg)
+
+Another use case is to view the relationships between modules. For the following two modules:
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.1"
+}
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+  def scalaVersion = "2.13.1"
+}
+```
+
+`mill show visualizePlan _.compile` diagrams the relationships between the compile tasks of each module, which illustrates which module depends on which other module's compilation output:
+
+![VisualizeCompile.svg](VisualizeCompile.svg)
 
 ### clean
 
