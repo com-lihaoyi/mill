@@ -649,6 +649,10 @@ object dev extends MillModule{
     PathRef(outputPath)
   }
 
+  override def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq(
+    PublishModule.ExtraPublish(assembly(), "jars", "-assembly.jar")
+  )}
+
   def assembly = T{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
