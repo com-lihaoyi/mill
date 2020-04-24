@@ -711,6 +711,33 @@ object dev extends MillModule{
   }
 }
 
+object docs extends Module {
+  /** Download ammonite. */
+  def ammoniteVersion: String = "1.4.0"
+  def ammonite: T[PathRef] = T.persistent {
+    val dest = T.dest / s"ammonite-${ammoniteVersion}"
+    if(!os.isFile(dest)) {
+      val download = mill.modules.Util.download(
+        s"https://github.com/lihaoyi/Ammonite/releases/download/${ammoniteVersion}/2.12-${ammoniteVersion}",
+        os.rel / s"ammonite-${ammoniteVersion}.part"
+      )
+      os.move(download.path, dest)
+    }
+    os.perms.set(dest, os.perms(dest) + PosixFilePermission.OWNER_EXECUTE)
+    PathRef(dest)
+  }
+  /** Generate the documentation site. */
+  def generate = T{
+    val dest = T.dest / "site"
+    mill.modules.Jvm.runSubprocess(
+      commandArgs = Seq(ammonite().path.toString(), "build.sc", "--targetDir", dest.toString()),
+      envArgs = Map(),
+      workingDir = millSourcePath
+    )
+    PathRef(dest)
+  }
+}
+
 def assembly = T{
 
   val version = publishVersion()._2
