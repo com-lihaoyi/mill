@@ -726,8 +726,10 @@ object docs extends Module {
     os.perms.set(dest, os.perms(dest) + PosixFilePermission.OWNER_EXECUTE)
     PathRef(dest)
   }
+  def sources = T.sources(millSourcePath)
   /** Generate the documentation site. */
   def generate = T{
+    sources()
     val dest = T.dest / "site"
     mill.modules.Jvm.runSubprocess(
       commandArgs = Seq(ammonite().path.toString(), "build.sc", "--targetDir", dest.toString()),

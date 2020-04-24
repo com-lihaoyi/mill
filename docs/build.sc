@@ -154,7 +154,7 @@ def main(publish: Boolean = false, targetDir: os.Path = targetFolder) = {
   os.copy(os.pwd/"favicon.png", targetDir/"favicon.ico")
   os.copy(os.pwd/"logo-white.svg", targetDir/"logo-white.svg")
   os.copy(os.pwd/"VisualizeCompile.svg", targetDir/"VisualizeCompile.svg")
-  os.copy(os.pwd/"VisualizeCore.svg", targetDir/"VisualizeCore.svg")
+  os.copy(os.pwd/"VisualizeFoo.svg", targetDir/"VisualizeFoo.svg")
   os.copy(os.pwd/"VisualizePlan.svg", targetDir/"VisualizePlan.svg")
 
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-1" / "mill")
@@ -187,8 +187,8 @@ def main(publish: Boolean = false, targetDir: os.Path = targetFolder) = {
 
 
     os.write(
-      if (i == 0) targetFolder / "index.html"
-      else targetFolder/'page/s"${sanitize(post.name)}.html",
+      if (i == 0) targetDir / "index.html"
+      else targetDir/'page/s"${sanitize(post.name)}.html",
       postContent(
         i == 0,
         post,
