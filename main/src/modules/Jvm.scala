@@ -373,7 +373,7 @@ object Jvm {
                               shellClassPath: Agg[String],
                               cmdClassPath: Agg[String],
                               jvmArgs: Seq[String],
-                              shebang: Boolean = false) = {
+                              shebang: Boolean = true) = {
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
