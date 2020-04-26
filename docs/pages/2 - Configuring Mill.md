@@ -485,8 +485,8 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   def unmanagedClasspath = T {
-    if (!ammonite.ops.exists(millSourcePath / "lib")) Agg()
-    else Agg.from(ammonite.ops.ls(millSourcePath / "lib").map(PathRef(_)))
+    if (!os.exists(millSourcePath / "lib")) Agg()
+    else Agg.from(os.ls(millSourcePath / "lib").map(PathRef(_)))
   }
 }
 ```
