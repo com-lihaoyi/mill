@@ -10,6 +10,8 @@ import java.io.File
  * Can be used to ensure loaded contrib modules keep up to date.
  */
 object MillIvyHook extends BaseIvy(plugin = false){
-  override def resolve(interp: ImportHook.InterpreterInterface, signatures: Seq[String]): Either[String,Set[File]] =
+  override def resolve(interp: ImportHook.InterpreterInterface,
+                       signatures: Seq[String])
+      : Either[String,(Seq[coursierapi.Dependency], Seq[File])] =
     super.resolve(interp, signatures.map(_.replace("$MILL_VERSION", mill.BuildInfo.millVersion)))
 }

@@ -25,7 +25,7 @@ object RunScript{
   def runScript(home: os.Path,
                 wd: os.Path,
                 path: os.Path,
-                instantiateInterpreter: => Either[(Res.Failing, Seq[(os.Path, Long)]), ammonite.interp.Interpreter],
+                instantiateInterpreter: => Either[(Res.Failing, Seq[(ammonite.interp.Watchable, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
                 log: Logger,
@@ -33,7 +33,7 @@ object RunScript{
                 keepGoing: Boolean,
                 systemProperties: Map[String, String],
                 threadCount: Option[Int])
-  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
+  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(ammonite.interp.Watchable, Long)]) = {
 
     systemProperties.foreach {case (k,v) =>
       System.setProperty(k, v)
@@ -52,9 +52,9 @@ object RunScript{
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
                 mutable.Map.empty[Segments, (Int, Any)],
-                interp.watchedFiles.toSeq
+                interp.watchedValues.toSeq
               )
-            (eval, interp.watchedFiles)
+            (eval, interp.watchedValues)
         }
     }
 
@@ -72,8 +72,8 @@ object RunScript{
     (evaluated, interpWatched.toSeq)
   }
 
-  def watchedSigUnchanged(sig: Seq[(os.Path, Long)]) = {
-    sig.forall{case (p, l) => Interpreter.pathSignature(p) == l}
+  def watchedSigUnchanged(sig: Seq[(ammonite.interp.Watchable, Long)]) = {
+    sig.forall{case (p, l) => p.poll() == l}
   }
 
   def evaluateRootModule(wd: os.Path,
