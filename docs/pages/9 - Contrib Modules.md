@@ -186,7 +186,7 @@ tasks to be executed from the IDE.
 1) Add the following import statement in the `build.sc` of your project:
 
 ```scala
-import $ivy.`com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+import $ivy.`com.lihaoyi::mill-contrib-bsp:$MILL_VERSION`
 ```
 
 2) Run the following command in the working directory of your project:

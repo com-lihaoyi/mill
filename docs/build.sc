@@ -142,27 +142,27 @@ def formatRssDate(date: java.time.LocalDate) = {
 }
 
 @main
-def main(publish: Boolean = false) = {
+def main(publish: Boolean = false, targetDir: os.Path = targetFolder) = {
 
-  os.remove.all(targetFolder)
+  os.remove.all(targetDir)
 
-  os.makeDir.all(targetFolder/'page)
+  os.makeDir.all(targetDir/'page)
   for(otherFile <- otherFiles){
-    os.copy(otherFile, targetFolder/'page/(otherFile relativeTo postsFolder))
+    os.copy(otherFile, targetDir/'page/(otherFile relativeTo postsFolder))
   }
 
-  os.copy(os.pwd/"favicon.png", targetFolder/"favicon.ico")
-  os.copy(os.pwd/"logo-white.svg", targetFolder/"logo-white.svg")
-  os.copy(os.pwd/"VisualizeCompile.svg", targetFolder/"VisualizeCompile.svg")
-  os.copy(os.pwd/"VisualizeCore.svg", targetFolder/"VisualizeCore.svg")
-  os.copy(os.pwd/"VisualizePlan.svg", targetFolder/"VisualizePlan.svg")
+  os.copy(os.pwd/"favicon.png", targetDir/"favicon.ico")
+  os.copy(os.pwd/"logo-white.svg", targetDir/"logo-white.svg")
+  os.copy(os.pwd/"VisualizeCompile.svg", targetDir/"VisualizeCompile.svg")
+  os.copy(os.pwd/"VisualizeFoo.svg", targetDir/"VisualizeFoo.svg")
+  os.copy(os.pwd/"VisualizePlan.svg", targetDir/"VisualizePlan.svg")
 
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-1" / "mill")
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-2" / "mill")
   os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-3" / "mill")
-  os.proc('zip, "-r", targetFolder/"example-1.zip", "example-1").call()
-  os.proc('zip, "-r", targetFolder/"example-2.zip", "example-2").call()
-  os.proc('zip, "-r", targetFolder/"example-3.zip", "example-3").call()
+  os.proc('zip, "-r", targetDir/"example-1.zip", "example-1").call()
+  os.proc('zip, "-r", targetDir/"example-2.zip", "example-2").call()
+  os.proc('zip, "-r", targetDir/"example-3.zip", "example-3").call()
 
   for(i <- posts.indices){
     val post = posts(i)
@@ -187,8 +187,8 @@ def main(publish: Boolean = false) = {
 
 
     os.write(
-      if (i == 0) targetFolder / "index.html"
-      else targetFolder/'page/s"${sanitize(post.name)}.html",
+      if (i == 0) targetDir / "index.html"
+      else targetDir/'page/s"${sanitize(post.name)}.html",
       postContent(
         i == 0,
         post,

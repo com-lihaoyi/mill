@@ -41,6 +41,9 @@ jobs:
     env: CI_SCRIPT=ci/test-mill-2.sh
     jdk: oraclejdk8
 
+  - stage: build
+    env: CI_SCRIPT="./mill -i docs.generate"
+    jdk: openjdk8
 
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/release-github.sh"

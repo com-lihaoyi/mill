@@ -53,8 +53,10 @@ object Deps {
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
+  
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:4.5.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
+  
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.6.3"
@@ -647,6 +649,10 @@ object dev extends MillModule{
     PathRef(outputPath)
   }
 
+  override def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq(
+    PublishModule.ExtraPublish(assembly(), "jars", "-assembly.jar")
+  )}
+
   def assembly = T{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
@@ -702,6 +708,35 @@ object dev extends MillModule{
         mill.eval.Result.Success(())
     }
 
+  }
+}
+
+object docs extends Module {
+  /** Download ammonite. */
+  def ammoniteVersion: String = "1.4.0"
+  def ammonite: T[PathRef] = T.persistent {
+    val dest = T.dest / s"ammonite-${ammoniteVersion}"
+    if(!os.isFile(dest)) {
+      val download = mill.modules.Util.download(
+        s"https://github.com/lihaoyi/Ammonite/releases/download/${ammoniteVersion}/2.12-${ammoniteVersion}",
+        os.rel / s"ammonite-${ammoniteVersion}.part"
+      )
+      os.move(download.path, dest)
+    }
+    os.perms.set(dest, os.perms(dest) + PosixFilePermission.OWNER_EXECUTE)
+    PathRef(dest)
+  }
+  def sources = T.sources(millSourcePath)
+  /** Generate the documentation site. */
+  def generate = T{
+    sources()
+    val dest = T.dest / "site"
+    mill.modules.Jvm.runSubprocess(
+      commandArgs = Seq(ammonite().path.toString(), "build.sc", "--targetDir", dest.toString()),
+      envArgs = Map(),
+      workingDir = millSourcePath
+    )
+    PathRef(dest)
   }
 }
 
