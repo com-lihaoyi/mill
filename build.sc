@@ -39,7 +39,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.1.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.1.1"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.0-RC5-3"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
