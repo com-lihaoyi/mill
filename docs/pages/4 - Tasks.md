@@ -19,11 +19,11 @@ def resourceRoot = T.sources { os.pwd / 'resources }
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 
 def classFiles = T {
-  os.makeDir.all(T.ctx.dest)
+  os.makeDir.all(T.dest)
 
-  os.proc("javac", allSources().map(_.path.toString()), "-d", T.ctx.dest)
-    .call(cwd = T.ctx.dest)
-  PathRef(T.ctx.dest)
+  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest)
+    .call(cwd = T.dest)
+  PathRef(T.dest)
 }
 
 def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
@@ -100,8 +100,8 @@ object MyCaseClass {
 ```
 
 If you want to return a file or a set of files as the result of a `Target`,
-write them to disk within your `T.ctx.dest` available through the
-[Task Context API](#task-context-api) and return a `PathRef(T.ctx.dest)`that hashes the files you
+write them to disk within your `T.dest` available through the
+[Task Context API](#task-context-api) and return a `PathRef(T.dest)`that hashes the files you
 wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
@@ -177,7 +177,7 @@ Command:
 
 ### mill.api.Ctx.Dest
 
-- `T.ctx.dest`
+- `T.dest`
 - `implicitly[mill.api.Ctx.Dest]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
