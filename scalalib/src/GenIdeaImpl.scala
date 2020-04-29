@@ -80,7 +80,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
-            Lib.depToDependency(_, "2.12.8", ""),
+            Lib.depToDependency(_, "2.13.2", ""),
             for(name <- artifactNames)
             yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
             false,
@@ -92,7 +92,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           {
             scalalib.Lib.resolveDependencies(
               repos.toList,
-              Lib.depToDependency(_, "2.12.8", ""),
+              Lib.depToDependency(_, "2.13.2", ""),
               for(name <- artifactNames)
               yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
               true,
@@ -303,7 +303,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
       val artifactWithScalaVersion = artifactId.substring(artifactId.length - math.min(5, artifactId.length)) match {
         case scalaArtifactRegex(_*) => artifactId
-        case _ => artifactId + "_2.12"
+        case _ => artifactId + "_2.13"
       }
       s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }
