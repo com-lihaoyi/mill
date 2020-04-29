@@ -207,11 +207,14 @@ object RunScript{
   def evaluate(evaluator: Evaluator,
                targets: Agg[Task[Any]]): (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]]) = {
     val evaluated = evaluator.evaluate(targets)
-    val watched = evaluated.results
+    val watched: Seq[PathRef] = evaluated.results
       .iterator
       .collect {
-        case (t: define.Sources, Result.Success(ps: Seq[PathRef])) => ps
-        case (t: define.Source, Result.Success(p: PathRef)) => Seq(p)
+        // first two cases also match Source and Sources
+        case (i: define.Input[Seq[PathRef]], Result.Success(ps: Seq[PathRef])) => ps
+        case (i: define.Input[PathRef], Result.Success(p: PathRef)) => Seq(p)
+        case (i: define.Input[Seq[os.Path]], Result.Success(ps: Seq[os.Path])) => ps.map(PathRef(_))
+        case (i: define.Input[os.Path], Result.Success(p: os.Path)) => Seq(PathRef(p))
       }
       .flatten
       .toSeq
