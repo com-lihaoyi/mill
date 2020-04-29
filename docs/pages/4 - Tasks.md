@@ -101,8 +101,8 @@ object MyCaseClass {
 
 If you want to return a file or a set of files as the result of a `Target`,
 write them to disk within your `T.dest` available through the
-[Task Context API](#task-context-api) and return a `PathRef(T.dest)`that hashes the files you
-wrote.
+[Task Context API](#task-context-api) and return a `PathRef(T.dest)`
+that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn't affect the classfiles, then
@@ -231,7 +231,7 @@ def envVar = T.input { T.ctx.env.get("ENV_VAR") }
 ### Anonymous Tasks
 
 ```scala
-def foo() = T.task { ... bar() ... }
+def foo(x: Int) = T.task { ... x ... bar() ... }
 ```
 
 You can define anonymous tasks using the `T.task { ... }` syntax. These are not
@@ -239,16 +239,9 @@ runnable from the command-line, but can be used to share common code you find
 yourself repeating in `Target`s and `Command`s.
 
 ```scala
-def downstreamTarget = T { ... foo() ... } 
-def downstreamCommand = T.command { ... foo() ... } 
+def downstreamTarget = T { ... foo(42)() ... } 
+def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
 ```
-
-Anonymous tasks can be parametrized. However, it is not very useful because
-a parameter means two-way dependency: a caller depends on the anonymous
-task's result and the anonymous task depends on the caller to give the input
-value. The compiler raises an error if the caller passes its variable as
-the argument of the anonymous task. Use a regular Scala parameterized method
-to define shared code based on input values.
 
 Anonymous task's output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments. Unlike
@@ -257,8 +250,8 @@ anywhere and passed around any way you want, until you finally make use of them
 within a downstream target or command.
 
 While an anonymous task `foo`'s own output is not cached, if it is used in a
-downstream target `bar` and the upstream targets `baz` `qux` haven't changed,
-`bar`'s cached output will be used and `foo`'s evaluation will be skipped
+downstream target `baz` and the upstream target `bar` hasn't changed,
+`baz`'s cached output will be used and `foo`'s evaluation will be skipped
 altogether.
 
 ### Persistent Targets
