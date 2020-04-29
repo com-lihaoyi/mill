@@ -583,7 +583,7 @@ case class Evaluator(
               //              println("DEPS " + deps)
               val startTime = System.currentTimeMillis()
 
-              val res = blocking(evaluateGroupCached(k, sortedGroups.lookupKey(k), results, "lol", _ => None, testReporter, logger))
+              val res = evaluateGroupCached(k, sortedGroups.lookupKey(k), results, "lol", _ => None, testReporter, logger)
               val endTime = System.currentTimeMillis()
               Evaluator.this.synchronized {
 
