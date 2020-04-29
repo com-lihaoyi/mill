@@ -552,12 +552,7 @@ case class Evaluator(
       val threadPool = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
       try {
         implicit val ec = new ExecutionContext {
-
-
-          def execute(runnable: Runnable) {
-            threadPool.submit(runnable)
-          }
-
+          def execute(runnable: Runnable) = threadPool.submit(runnable)
           def reportFailure(t: Throwable) {}
         }
 
@@ -567,21 +562,21 @@ case class Evaluator(
         }
 
         val groupGraph = interGroupDeps.items.map { case (k, vs) => (label(k._1), vs.map(t => label(t._1))) }.toMap
-        pprint.log(groupGraph)
+        pprint.log(groupGraph, height=99999)
         val terminals = sortedGroups.keys.toVector
         //      println("INITIALIZING promises " + terminals.map(label).mkString(", "))
         val promises = terminals
           .map(k => (k, scala.concurrent.Promise[Any]))
           .toMap
 
-        val taskFutures = promises.map { case (k, p) => (k, p.future) }
+        val taskFutures: Map[Terminal, Future[Any]] = promises.map { case (k, p) => (k, p.future) }
 
         val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
         //      println("INITIALIZING futures")
         val futures = terminals.map { k =>
           val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
           //          println("REGISTERING " + label(k) + " <- " + deps)
-          Future.sequence(deps.map(taskFutures))
+          Future.sequence(deps.map(taskFutures(_)))
             .map { upstreamValues =>
               //              println("START " + label(k) + " " + deps.size)
               //              println("THREAD " + Thread.currentThread().getName())
@@ -593,7 +588,7 @@ case class Evaluator(
               Evaluator.this.synchronized {
 
                 timeLog.timeTrace(
-                  task = label(k),
+                  task = label(k) + " " + System.identityHashCode(k),
                   cat = "job",
                   startTime = startTime,
                   endTime = endTime,

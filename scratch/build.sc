@@ -1,17 +1,17 @@
 import mill.Agg
 import mill.scalalib._
 
-def source = T.source{
-  PathRef(os.pwd / "file.txt")
-}
+//def source = T.source{
+//  PathRef(os.pwd / "file.txt")
+//}
+//
+//def source2 = T.source{
+//  PathRef(os.pwd / "file2.txt")
+//}
 
-def source2 = T.source{
-  PathRef(os.pwd / "file2.txt")
-}
-
-def concated = T{
+def concated = T.worker{
   Thread.sleep(1000)
-  os.read(source().path) + os.read(source2().path)
+  "abc" + "123"
 }
 def split1 = T{
   Thread.sleep(1000)
