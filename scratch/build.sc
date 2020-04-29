@@ -1,12 +1,14 @@
 import mill.Agg
 import mill.scalalib._
 
-object core extends ScalaModule{
-  def scalaVersion = "2.12.8"
-  def ivyDeps = Agg(
-    ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903",
-    ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
-  )
+def source = T.source{
+  PathRef(os.pwd / "file.txt")
 }
 
-def thingy = T{ Seq("hello", "world") }
+def command() = T.command{
+  if (os.exists(source().path)) {
+    println(os.read(source().path))
+  }else{
+    println("<no file found>")
+  }
+}
