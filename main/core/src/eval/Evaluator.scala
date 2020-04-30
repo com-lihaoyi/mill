@@ -201,7 +201,7 @@ case class Evaluator(home: os.Path,
               val endTime = System.currentTimeMillis()
 
               timeLog.timeTrace(
-                task = label(k) + " " + System.identityHashCode(k),
+                task = label(k),
                 cat = "job",
                 startTime = startTime,
                 endTime = endTime,
