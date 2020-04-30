@@ -162,25 +162,22 @@ case class Evaluator(home: os.Path,
 
       val terminals = sortedGroups.keys().toVector
 
-      val promises = terminals
-        .map(k => (k, scala.concurrent.Promise[Any]))
-        .toMap
-
-      val taskFutures: Map[Terminal, Future[Any]] = promises.map { case (k, p) => (k, p.future) }
-
       val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
       val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
       val count = new AtomicInteger(0)
+      val futures = mutable.Map.empty[Terminal, Future[Option[Evaluated]]]
 
-      val futures = terminals.map { k =>
+      // We walk the task graph in topological order and schedule the futures
+      // to run asynchronously. During this walk, we store the scheduled futures
+      // in a dictionary. When scheduling each future, we are guaranteed that the
+      // necessary upstream futures will have already been scheduled and stored,
+      // due to the topological order of traversal.
+      for (k <- terminals){
         val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
-
-        Future.sequence(deps.map(taskFutures(_))).map { upstreamValues =>
-          if (failed.get()) {
-            promises(k).success(123)
-            None
-          } else {
+        futures(k) = Future.sequence(deps.map(futures)).map { upstreamValues =>
+          if (failed.get()) None
+          else {
             val startTime = System.currentTimeMillis()
             val res = evaluateGroupCached(
               k,
@@ -206,13 +203,12 @@ case class Evaluator(home: os.Path,
             synchronized {
               for ((k, v) <- res.newResults) results(k) = v
             }
-            promises(k).success(123)
             Some(res)
           }
         }
       }
 
-      val finished = futures.flatMap(Await.result(_, duration.Duration.Inf))
+      val finished = terminals.map(futures).flatMap(Await.result(_, duration.Duration.Inf))
 
       timeLog.close()
       for(group <- sortedGroups.values(); task <- group){
