@@ -1,9 +1,8 @@
-package eval
+package mill.eval
 
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
 
-import mill.eval.Evaluator
 
 class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
   private var used = false
@@ -29,7 +28,7 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
       used = true
       traceStream.print(
         upickle.default.write(
-          Evaluator.TraceEvent(
+          TraceEvent(
             name = task,
             cat = cat,
             ph = "X",
@@ -47,4 +46,20 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
     traceStream.println("]")
     traceStream.close()
   }
+}
+
+/**
+  * Trace Event Format, that can be loaded with Google Chrome via chrome://tracing
+  * See https://docs.google.com/document/d/1CvAClvFfyA5R-PhYUmn5OOQtYMH4h6I0nSsKchNAySU/
+  */
+case class TraceEvent(name: String,
+                      cat: String,
+                      ph: String,
+                      ts: Long,
+                      dur: Long,
+                      pid: Int,
+                      tid: Int,
+                      args: Seq[String])
+object TraceEvent {
+  implicit val readWrite: upickle.default.ReadWriter[TraceEvent] = upickle.default.macroRW
 }
