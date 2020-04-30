@@ -1,7 +1,6 @@
 package mill.main
 
 import java.nio.file.NoSuchFileException
-import java.util.concurrent.ConcurrentHashMap
 
 import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
@@ -52,7 +51,7 @@ object RunScript{
               yield Evaluator.State(
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
-                new ConcurrentHashMap(),
+                mutable.Map.empty[Segments, (Int, Any)],
                 interp.watchedValues.toSeq
               )
             (eval, interp.watchedValues)

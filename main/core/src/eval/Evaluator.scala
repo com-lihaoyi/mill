@@ -51,7 +51,7 @@ case class Evaluator(home: os.Path,
                      rootModule: mill.define.BaseModule,
                      log: Logger,
                      classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-                     workerCache: ConcurrentHashMap[Segments, (Int, Any)] = new ConcurrentHashMap,
+                     workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
                      env: Map[String, String] = Evaluator.defaultEnv,
                      failFast: Boolean = true,
                      threadCount: Option[Int] = Some(1)) {
@@ -291,8 +291,7 @@ case class Evaluator(home: os.Path,
         } yield (parsed, cached.valueHash)
 
         val workerCached: Option[Any] = labelledNamedTask.task.asWorker
-          .filter(w => workerCache.contains(w.ctx.segments))
-          .map(w => workerCache.get(w.ctx.segments))
+          .flatMap{w => synchronized{ workerCache.get(w.ctx.segments) }}
           .collect{case (`inputsHash`, v) => v}
 
         workerCached.map((_, inputsHash)) orElse cached match{
@@ -355,7 +354,7 @@ case class Evaluator(home: os.Path,
                        inputsHash: Int,
                        labelledNamedTask: Labelled[_]) = {
     labelledNamedTask.task.asWorker match{
-      case Some(w) => workerCache.put(w.ctx.segments, (inputsHash, v))
+      case Some(w) => synchronized{ workerCache(w.ctx.segments) = (inputsHash, v) }
       case None =>
         val terminalResult = labelledNamedTask
           .writer
@@ -553,7 +552,7 @@ object Evaluator{
   }
   case class State(rootModule: mill.define.BaseModule,
                    classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-                   workerCache: ConcurrentHashMap[Segments, (Int, Any)],
+                   workerCache: collection.mutable.Map[Segments, (Int, Any)],
                    watched: Seq[(ammonite.interp.Watchable, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
