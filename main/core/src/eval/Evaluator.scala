@@ -174,7 +174,7 @@ case class Evaluator(home: os.Path,
       // necessary upstream futures will have already been scheduled and stored,
       // due to the topological order of traversal.
       for (k <- terminals){
-        val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
+        val deps = interGroupDeps(k)
         futures(k) = Future.sequence(deps.map(futures)).map { upstreamValues =>
           if (failed.get()) None
           else {
@@ -188,9 +188,9 @@ case class Evaluator(home: os.Path,
               testReporter,
               logger
             )
-            if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) {
-              failed.set(true)
-            }
+
+            if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) failed.set(true)
+
             val endTime = System.currentTimeMillis()
             timeLog.timeTrace(
               task = printTerm(k),
@@ -510,17 +510,18 @@ case class Evaluator(home: os.Path,
 
   // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
   // TODO: we could also track the number of other tasks that depends on a task to prioritize
-  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
-    def termGroup(t: Terminal): TerminalGroup = t -> sortedGroups.lookupKey(t)
-    sortedGroups.items().map {
-      case (terminal, group) =>
-        (terminal, group) -> group.toSeq
+  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[Terminal, Seq[Terminal]] = {
+    sortedGroups
+      .items()
+      .map { case (terminal, group) =>
+        terminal -> group.toSeq
           .flatMap(_.inputs)
-          .filterNot(d => group.contains(d))
+          .filterNot(group.contains)
           .distinct
-          .map(dep => termGroup(sortedGroups.lookupValue(dep)))
+          .map(sortedGroups.lookupValue)
           .distinct
-    }.toMap
+      }
+      .toMap
   }
 
   def printTerm(term: Terminal): String = term match {
