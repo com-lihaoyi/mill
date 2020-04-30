@@ -172,18 +172,16 @@ case class Evaluator(home: os.Path,
       val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
       val count = new AtomicInteger(0)
-      println("Scheduling Futures")
+
       val futures = terminals.map { k =>
         val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
 
         Future.sequence(deps.map(taskFutures(_))).map { upstreamValues =>
           if (failed.get()) {
-            println(printTerm(k) + " X")
+            promises(k).success(123)
             None
           } else {
-            println(printTerm(k) + " A")
             val startTime = System.currentTimeMillis()
-            println(printTerm(k) + " B")
             val res = evaluateGroupCached(
               k,
               sortedGroups.lookupKey(k),
@@ -193,13 +191,10 @@ case class Evaluator(home: os.Path,
               testReporter,
               logger
             )
-            println(printTerm(k) + " C")
             if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) {
               failed.set(true)
             }
-            println(printTerm(k) + " D")
             val endTime = System.currentTimeMillis()
-            println(printTerm(k) + " E")
             timeLog.timeTrace(
               task = printTerm(k),
               cat = "job",
@@ -208,22 +203,17 @@ case class Evaluator(home: os.Path,
               thread = Thread.currentThread().getName(),
               cached = res.cached
             )
-            println(printTerm(k) + " F")
             synchronized {
               for ((k, v) <- res.newResults) results(k) = v
             }
-            println(printTerm(k) + " G")
             promises(k).success(123)
-            println(printTerm(k) + " H")
             Some(res)
           }
         }
       }
 
-      println("Awaiting Futures")
-      terminals.map(printTerm).foreach(println)
       val finished = futures.flatMap(Await.result(_, duration.Duration.Inf))
-      println("Finished Awaiting Futures")
+
       timeLog.close()
       for(group <- sortedGroups.values(); task <- group){
         if (!results.contains(task)) results(task) = Aborted
@@ -235,11 +225,6 @@ case class Evaluator(home: os.Path,
         getFailing(sortedGroups, results),
         results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
       )
-    }
-    catch{case e: Throwable =>
-
-      e.printStackTrace()
-      throw e
     }
     finally threadPool.shutdown()
   }
