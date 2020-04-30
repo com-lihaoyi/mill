@@ -252,7 +252,7 @@ case class Evaluator(
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(x => results(x).asSuccess.map(_.value._2))
+        .flatMap(results(_).asSuccess.map(_.value._2))
     )
 
     val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
