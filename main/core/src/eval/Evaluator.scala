@@ -160,11 +160,6 @@ case class Evaluator(home: os.Path,
         def reportFailure(t: Throwable) {}
       }
 
-      def label(x: Terminal) = x match {
-        case Left(x) => x.toString
-        case Right(Labelled(x, y)) => x.toString
-      }
-
       val terminals = sortedGroups.keys().toVector
 
       val promises = terminals
@@ -201,7 +196,7 @@ case class Evaluator(home: os.Path,
               val endTime = System.currentTimeMillis()
 
               timeLog.timeTrace(
-                task = label(k),
+                task = printTerm(k),
                 cat = "job",
                 startTime = startTime,
                 endTime = endTime,
@@ -527,6 +522,7 @@ case class Evaluator(home: os.Path,
           .filterNot(d => group.contains(d))
           .distinct
           .map(dep => termGroup(sortedGroups.lookupValue(dep)))
+          .distinct
     }.toMap
   }
 
