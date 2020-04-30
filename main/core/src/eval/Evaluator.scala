@@ -4,9 +4,10 @@ import java.io.{ByteArrayOutputStream, PrintStream}
 import java.net.URLClassLoader
 import java.nio.file.{Files, StandardOpenOption}
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue/*, ExecutorCompletionService, Executors, Future*/}
+import java.util.concurrent.{ConcurrentHashMap, ConcurrentLinkedQueue}
 
 import ammonite.runtime.SpecialClassLoader
+import eval.ParallelProfileLogger
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
@@ -14,6 +15,7 @@ import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util._
+
 import scala.collection.JavaConverters._
 import scala.collection.mutable
 import scala.util.control.NonFatal
@@ -76,9 +78,14 @@ case class Evaluator(
                logger: Logger = log): Evaluator.Results = {
     os.makeDir.all(outPath)
 
-    if(effectiveThreadCount > 1) {
-      new ParallelEvaluator(goals, effectiveThreadCount, reporter, testReporter, logger).evaluate()
-    } else {
+    if(effectiveThreadCount > 1) parallelEvaluate(goals, effectiveThreadCount, reporter, testReporter, logger)
+    else sequentialEvaluate(goals, reporter, testReporter, logger)
+  }
+
+  def sequentialEvaluate(goals: Agg[Task[_]],
+                         reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+                         testReporter: TestReporter = DummyTestReporter,
+                         logger: Logger) = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -86,39 +93,48 @@ case class Evaluator(
     var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
-    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex)
+    for (((terminal, group), i) <- sortedGroups.items().zipWithIndex) {
       if(failFast && someTaskFailed) {
         // we exit early and set aborted state for all left tasks
-        group.foreach { task =>
-          results.put(task, Aborted)
-        }
+        group.foreach { task => results.put(task, Aborted)}
 
       } else {
 
-      val startTime = System.currentTimeMillis()
-      // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
-      val counterMsg = (i+1) + "/" + sortedGroups.keyCount
-      val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
-        terminal,
-        group,
-        results,
-        counterMsg,
-        reporter,
-        testReporter,
-        logger
-      )
-      someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
+        val startTime = System.currentTimeMillis()
+        // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+        val counterMsg = (i+1) + "/" + sortedGroups.keyCount
+        val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
+          terminal,
+          group,
+          results,
+          counterMsg,
+          reporter,
+          testReporter,
+          logger
+        )
+        someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
-      for(ev <- newEvaluated){
-        evaluated.append(ev)
-      }
-      for((k, v) <- newResults) {
-        results.put(k, v)
-      }
-      val endTime = System.currentTimeMillis()
+        for(ev <- newEvaluated) evaluated.append(ev)
+        for((k, v) <- newResults) results.put(k, v)
+        val endTime = System.currentTimeMillis()
 
-      timings.append((terminal, (endTime - startTime).toInt, cached))
+        timings.append((terminal, (endTime - startTime).toInt, cached))
+      }
     }
+
+    Evaluator.writeTimings(timings.toSeq, outPath)
+    Evaluator.Results(
+      goals.indexed.map(results(_).map(_._1)),
+      evaluated,
+      transitive,
+      getFailing(sortedGroups, results),
+      timings.toIndexedSeq,
+      results.map{case (k, v) => (k, v.map(_._1))}
+    )
+  }
+
+  def getFailing(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
+                 results: collection.mutable.LinkedHashMap[Task[_], Result[(Any, Int)]]) = {
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
     for((k, vs) <- sortedGroups.items()){
@@ -127,16 +143,82 @@ case class Evaluator(
         vs.items.flatMap(results.get).collect{case f: Result.Failing[_] => f.map(_._1)}
       )
     }
-    Evaluator.writeTimings(timings.toSeq, outPath)
-    Evaluator.Results(
-      goals.indexed.map(results(_).map(_._1)),
-      evaluated,
-      transitive,
-      failing,
-      timings.toIndexedSeq,
-      results.map{case (k, v) => (k, v.map(_._1))}
-    )
-   }
+    failing
+  }
+
+  def parallelEvaluate(goals: Agg[Task[_]],
+                       threadCount: Int,
+                       reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+                       testReporter: TestReporter = DummyTestReporter,
+                       logger: Logger): Evaluator.Results = {
+    logger.info(s"Using experimental parallel evaluator with ${threadCount} threads")
+    os.makeDir.all(outPath)
+    val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
+
+    val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
+
+    val interGroupDeps = findInterGroupDeps(sortedGroups)
+    import scala.concurrent._
+    val threadPool = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
+    try {
+      implicit val ec = new ExecutionContext {
+        def execute(runnable: Runnable) = threadPool.submit(runnable)
+        def reportFailure(t: Throwable) {}
+      }
+
+      def label(x: Terminal) = x match {
+        case Left(x) => x.toString
+        case Right(Labelled(x, y)) => x.toString
+      }
+
+      val terminals = sortedGroups.keys.toVector
+
+      val promises = terminals
+        .map(k => (k, scala.concurrent.Promise[Any]))
+        .toMap
+
+      val taskFutures: Map[Terminal, Future[Any]] = promises.map { case (k, p) => (k, p.future) }
+
+      val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+
+      val futures = terminals.map { k =>
+        val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
+
+        Future.sequence(deps.map(taskFutures(_)))
+          .map { upstreamValues =>
+            val startTime = System.currentTimeMillis()
+
+            val res = evaluateGroupCached(k, sortedGroups.lookupKey(k), results, "lol", reporter, testReporter, logger)
+            val endTime = System.currentTimeMillis()
+            Evaluator.this.synchronized {
+
+              timeLog.timeTrace(
+                task = label(k) + " " + System.identityHashCode(k),
+                cat = "job",
+                startTime = startTime,
+                endTime = endTime,
+                thread = Thread.currentThread().getName(),
+                cached = res.cached
+              )
+              for ((k, v) <- res.newResults) results(k) = v
+            }
+            promises(k).success(123)
+            res
+          }
+      }
+
+      val finished = futures.map(Await.result(_, duration.Duration.Inf))
+
+      timeLog.close()
+      Evaluator.Results(
+        goals.indexed.map(results(_).map(_._1)),
+        finished.flatMap(_.newEvaluated),
+        transitive,
+        getFailing(sortedGroups, results),
+        Vector(),
+        results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
+      )
+    }finally threadPool.shutdown()
   }
 
   // those result which are inputs but not contained in this terminal group
@@ -424,229 +506,19 @@ case class Evaluator(
     */
   type TerminalGroup = (Terminal, Agg[Task[_]])
 
-  /**
-    * This class encapsulates the whole execution logic of the multi-threaded task evaluator.
-    *
-    * @param goals The requested tasks to execute
-    * @param threadCount The number of threads to use in parallel
-    * @param reporter An optional reporter for build problems
-    * @param testReporter An optional reporter for test events
-    * @param logger The mill logger to report progress and errors
-    */
-  class ParallelEvaluator(
-    goals: Agg[Task[_]],
-    threadCount: Int,
-    reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
-    testReporter: TestReporter = DummyTestReporter,
-    logger: Logger = log
-  ) {
-    logger.info(s"Using experimental parallel evaluator with ${threadCount} threads")
-
-    /**
-     * Log used for internal state logging of parallel evaluation processor.
-     * Used mostly when developing and testing parallel mode.
-     */
-    trait EvalLog extends Logger
-
-    /**
-     * Log used to print start and end timestamps for each executed task
-     */
-    trait TimeLog extends Logger {
-      def timeTrace(
-        task: String,
-        cat: String,
-        startTime: Long,
-        endTime: Long,
-        thread: String,
-        cached: Boolean
-      )
-    }
-
-    def evaluate(clearLogs: Boolean = false): Evaluator.Results = {
-      os.makeDir.all(outPath)
-      val startTime = System.currentTimeMillis()
-
-      // Log to separate file, but pass errors to main logger
-      implicit val evalLog: EvalLog = new FileLogger(false, outPath / "evaluator.log", true, !clearLogs)
-        with EvalLog {
-          override def error(s: String): Unit = {
-            logger.error(s)
-            super.error(s)
-          }
-          override def debug(s: String) =
-            super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-        }
-      evalLog.debug(s"Start time: ${new java.util.Date()}")
-
-      // Log timing infos to separate file and to main logger
-      implicit val timeLog: TimeLog = new MultiLogger(false,
-        new FileLogger(false, outPath / "tasks-par.log", true, !clearLogs) {
-          override def debug(s: String) =
-            super.debug(s"${System.currentTimeMillis() - startTime} [${Thread.currentThread().getName()}] ${s}")
-        },
-        logger
-      ) with TimeLog {
-        val used = new AtomicBoolean(false)
-        lazy val traceStream = {
-          val options = Seq(
-            Seq(StandardOpenOption.CREATE, StandardOpenOption.WRITE),
-            Seq(StandardOpenOption.TRUNCATE_EXISTING)
-          ).flatten
-          os.makeDir.all(outPath)
-          new PrintStream(Files.newOutputStream((outPath / "mill-par-profile.json").toNIO, options: _*))
-        }
-        object threadTids {
-          val tids = new ConcurrentHashMap[String, Int]()
-          val nextTid = new AtomicInteger(0)
-          def apply(thread: String) = {
-            tids.computeIfAbsent(thread, _ => nextTid.getAndAdd(1))
-          }
-          apply("main")
-        }
-        override def timeTrace(
-          task: String,
-          cat: String,
-          startTime: Long,
-          endTime: Long,
-          thread: String,
-          cached: Boolean
-        ): Unit = {
-          traceStream.synchronized {
-            if(used.getAndSet(true)) {
-              traceStream.println(",")
-            } else {
-              traceStream.println("[")
-            }
-            traceStream.print(
-              upickle.default.write(
-                Evaluator.TraceEvent(
-                  name = task,
-                  cat = cat,
-                  ph = "X",
-                  ts = startTime * 1000,
-                  dur = (endTime - startTime) * 1000 /*chrome treats the duration as microseconds*/,
-                  pid = 1,
-                  tid = threadTids(thread),
-                  args = if (cached) Seq("cached") else Seq()
-                )
-              )
-            )
-          }
-        }
-        override def close(): Unit = {
-          super.close()
-          traceStream.println("]")
-          traceStream.close()
-        }
-      }
-
-      timeLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
-      evalLog.debug(s"Evaluate with ${threadCount} threads: ${goals.mkString(" ")}")
-
-      val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
-
-      // TODO: check for interactivity
-      // TODO: make sure, multiple goals run in order, e.g. clean compile
-      val interGroupDeps = findInterGroupDeps(sortedGroups)
-      import scala.concurrent._
-      val threadPool = java.util.concurrent.Executors.newFixedThreadPool(threadCount)
-      try {
-        implicit val ec = new ExecutionContext {
-          def execute(runnable: Runnable) = threadPool.submit(runnable)
-          def reportFailure(t: Throwable) {}
-        }
-
-        def label(x: Terminal) = x match {
-          case Left(x) => x.toString
-          case Right(Labelled(x, y)) => x.toString
-        }
-
-        val groupGraph = interGroupDeps.items.map { case (k, vs) => (label(k._1), vs.map(t => label(t._1))) }.toMap
-        pprint.log(groupGraph, height=99999)
-        val terminals = sortedGroups.keys.toVector
-        //      println("INITIALIZING promises " + terminals.map(label).mkString(", "))
-        val promises = terminals
-          .map(k => (k, scala.concurrent.Promise[Any]))
-          .toMap
-
-        val taskFutures: Map[Terminal, Future[Any]] = promises.map { case (k, p) => (k, p.future) }
-
-        val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
-        //      println("INITIALIZING futures")
-        val futures = terminals.map { k =>
-          val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
-          //          println("REGISTERING " + label(k) + " <- " + deps)
-          Future.sequence(deps.map(taskFutures(_)))
-            .map { upstreamValues =>
-              //              println("START " + label(k) + " " + deps.size)
-              //              println("THREAD " + Thread.currentThread().getName())
-              //              println("DEPS " + deps)
-              val startTime = System.currentTimeMillis()
-
-              val res = evaluateGroupCached(k, sortedGroups.lookupKey(k), results, "lol", _ => None, testReporter, logger)
-              val endTime = System.currentTimeMillis()
-              Evaluator.this.synchronized {
-
-                timeLog.timeTrace(
-                  task = label(k) + " " + System.identityHashCode(k),
-                  cat = "job",
-                  startTime = startTime,
-                  endTime = endTime,
-                  thread = Thread.currentThread().getName(),
-                  cached = res.cached
-                )
-                for ((k, v) <- res.newResults) results(k) = v
-              }
-              //              println("DONE " + label(k) + " " + deps.size)
-              //              println("RES " + Evaluator.this.synchronized((results.keys)))
-              promises(k).success(123)
-              res
-            }
-
-        }
-
-        //      println("AWAITING futures")
-        val finished = futures.map(Await.result(_, duration.Duration.Inf))
-
-        val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
-        for ((k, vs) <- sortedGroups.items()) {
-          failing.addAll(
-            k,
-            vs.items.flatMap(results.get).collect { case f: Result.Failing[_] => f.map(_._1) }
-          )
-        }
-
-        evalLog.debug(s"End time: ${new java.util.Date()}")
-
-        evalLog.close()
-        timeLog.close()
-        Evaluator.Results(
-          goals.indexed.map(results(_).map(_._1)),
-          finished.flatMap(_.newEvaluated),
-          transitive,
-          failing,
-          Vector(),
-          results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
-        )
-      }finally{
-        threadPool.shutdown()
-      }
-    }
-
-    // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
-    // TODO: we could also track the number of other tasks that depends on a task to prioritize
-    private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
-      def termGroup(t: Terminal): TerminalGroup = t -> sortedGroups.lookupKey(t)
-      sortedGroups.items().map {
-        case g @ (terminal, group) =>
-          g -> group.toSeq
-            .flatMap(_.inputs)
-            .filterNot(d => group.contains(d))
-            .distinct
-            .map(dep => termGroup(sortedGroups.lookupValue(dep)))
-            .distinct
-      }.toMap
-    }
+  // TODO: we could track the deps of the dependency chain, to prioritize tasks with longer chain
+  // TODO: we could also track the number of other tasks that depends on a task to prioritize
+  private def findInterGroupDeps(sortedGroups: MultiBiMap[Terminal, Task[_]]): Map[TerminalGroup, Seq[TerminalGroup]] = {
+    def termGroup(t: Terminal): TerminalGroup = t -> sortedGroups.lookupKey(t)
+    sortedGroups.items().map {
+      case g @ (terminal, group) =>
+        g -> group.toSeq
+          .flatMap(_.inputs)
+          .filterNot(d => group.contains(d))
+          .distinct
+          .map(dep => termGroup(sortedGroups.lookupValue(dep)))
+          .distinct
+    }.toMap
   }
 
   def printTerm(term: Terminal): String = term match {
