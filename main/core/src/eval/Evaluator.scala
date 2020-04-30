@@ -484,7 +484,7 @@ case class Evaluator(
           }
         }
 
-      newResults(task) = for (v <- res) yield {
+      newResults(task) = for(v <- res) yield {
         (v,
           if (task.isInstanceOf[Worker[_]]) inputsHash
           else v.##
