@@ -176,41 +176,46 @@ case class Evaluator(home: os.Path,
       val futures = terminals.map { k =>
         val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
 
-        Future.sequence(deps.map(taskFutures(_)))
-          .map { upstreamValues =>
-            if (failed.get()) None
-            else {
-              val startTime = System.currentTimeMillis()
-
-              val res = evaluateGroupCached(
-                k,
-                sortedGroups.lookupKey(k),
-                x => synchronized(results.lift(x)),
-                s"${count.getAndIncrement()}/$totalCount",
-                reporter,
-                testReporter,
-                logger)
-
-              if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) {
-                failed.set(true)
-              }
-              val endTime = System.currentTimeMillis()
-
-              timeLog.timeTrace(
-                task = printTerm(k),
-                cat = "job",
-                startTime = startTime,
-                endTime = endTime,
-                thread = Thread.currentThread().getName(),
-                cached = res.cached
-              )
-              synchronized {
-                for ((k, v) <- res.newResults) results(k) = v
-              }
-              promises(k).success(123)
-              Some(res)
+        Future.sequence(deps.map(taskFutures(_))).map { upstreamValues =>
+          if (failed.get()) None
+          else {
+            println(printTerm(k) + " A")
+            val startTime = System.currentTimeMillis()
+            println(printTerm(k) + " B")
+            val res = evaluateGroupCached(
+              k,
+              sortedGroups.lookupKey(k),
+              x => synchronized(results.get(x)),
+              s"${count.getAndIncrement()}/$totalCount",
+              reporter,
+              testReporter,
+              logger
+            )
+            println(printTerm(k) + " C")
+            if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) {
+              failed.set(true)
             }
+            println(printTerm(k) + " D")
+            val endTime = System.currentTimeMillis()
+            println(printTerm(k) + " E")
+            timeLog.timeTrace(
+              task = printTerm(k),
+              cat = "job",
+              startTime = startTime,
+              endTime = endTime,
+              thread = Thread.currentThread().getName(),
+              cached = res.cached
+            )
+            println(printTerm(k) + " F")
+            synchronized {
+              for ((k, v) <- res.newResults) results(k) = v
+            }
+            println(printTerm(k) + " G")
+            promises(k).success(123)
+            println(printTerm(k) + " H")
+            Some(res)
           }
+        }
       }
 
       println("Awaiting Futures")
