@@ -1,35 +1,14 @@
 import mill.Agg
 import mill.scalalib._
 
-//def source = T.source{
-//  PathRef(os.pwd / "file.txt")
-//}
-//
-//def source2 = T.source{
-//  PathRef(os.pwd / "file2.txt")
-//}
+def source = T.source{
+  PathRef(os.pwd / "file.txt")
+}
 
-def concated = T.worker{
-  Thread.sleep(1000)
-  "abc" + "123"
-}
-def split1 = T{
-  Thread.sleep(1000)
-  concated().take(concated().length / 2)
-}
-def split2 = T{
-  Thread.sleep(1000)
-  concated().drop(concated().length / 2)
-}
-def split3 = T{
-  Thread.sleep(1000)
-  concated().take(concated().length / 2)
-}
-def split4 = T{
-  Thread.sleep(1000)
-  concated().drop(concated().length / 2)
-}
-def join = T{
-  Thread.sleep(1000)
-  split2() + split1() + split4() + split3()
+def command() = T.command{
+  if (os.exists(source().path)) {
+    println(os.read(source().path))
+  }else{
+    println("<no file found>")
+  }
 }
