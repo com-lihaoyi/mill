@@ -227,7 +227,13 @@ case class Evaluator(home: os.Path,
         getFailing(sortedGroups, results),
         results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
       )
-    }finally threadPool.shutdown()
+    }
+    catch{case e: Throwable =>
+
+      e.printStackTrace()
+      throw e
+    }
+    finally threadPool.shutdown()
   }
 
   // those result which are inputs but not contained in this terminal group
