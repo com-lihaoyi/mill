@@ -101,7 +101,7 @@ case class Evaluator(home: os.Path,
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal,
           group,
-          results.lift,
+          results,
           counterMsg,
           reporter,
           testReporter,
@@ -186,7 +186,7 @@ case class Evaluator(home: os.Path,
             val res = evaluateGroupCached(
               k,
               sortedGroups.lookupKey(k),
-              upstreamResults.get,
+              upstreamResults,
               s"${count.getAndIncrement()}/$totalCount",
               reporter,
               testReporter,
@@ -241,7 +241,7 @@ case class Evaluator(home: os.Path,
   // those result which are inputs but not contained in this terminal group
   protected def evaluateGroupCached(terminal: Terminal,
                                     group: Agg[Task[_]],
-                                    getResults: Task[_] => Option[Result[(Any, Int)]],
+                                    results: collection.Map[Task[_], Result[(Any, Int)]],
                                     counterMsg: String,
                                     zincProblemReporter: Int => Option[BuildProblemReporter],
                                     testReporter: TestReporter,
@@ -249,7 +249,7 @@ case class Evaluator(home: os.Path,
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
-        .flatMap(x => getResults(x).get.asSuccess.map(_.value._2))
+        .flatMap(x => results(x).asSuccess.map(_.value._2))
     )
 
     val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
@@ -262,7 +262,7 @@ case class Evaluator(home: os.Path,
       case Left(task) =>
         val (newResults, newEvaluated) = evaluateGroup(
           group,
-          getResults,
+          results,
           inputsHash,
           paths = None,
           maybeTargetLabel = None,
@@ -312,7 +312,7 @@ case class Evaluator(home: os.Path,
 
             val (newResults, newEvaluated) = evaluateGroup(
               group,
-              getResults,
+              results,
               inputsHash,
               paths = Some(paths),
               maybeTargetLabel = Some(printTerm(lntRight)),
@@ -380,7 +380,7 @@ case class Evaluator(home: os.Path,
   }
 
   protected def evaluateGroup(group: Agg[Task[_]],
-                              getResults: Task[_] => Option[Result[(Any, Int)]],
+                              results: collection.Map[Task[_], Result[(Any, Int)]],
                               inputsHash: Int,
                               paths: Option[Evaluator.Paths],
                               maybeTargetLabel: Option[String],
@@ -394,14 +394,14 @@ case class Evaluator(home: os.Path,
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
 
-    val nonEvaluatedTargets = group.indexed.filter(getResults(_).isEmpty)
+    val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
     // should we log progress?
     val logRun = maybeTargetLabel.isDefined && {
       val inputResults = for {
         target <- nonEvaluatedTargets
         item <- target.inputs.filterNot(group.contains)
-      } yield getResults(item).get.map(_._1)
+      } yield results(item).map(_._1)
       inputResults.forall(_.isInstanceOf[Result.Success[_]])
     }
 
@@ -420,7 +420,7 @@ case class Evaluator(home: os.Path,
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
       val targetInputValues = task.inputs
-        .map{x => newResults.getOrElse(x, getResults(x).get)}
+        .map{x => newResults.getOrElse(x, results(x))}
         .collect{ case Result.Success((v, hashCode)) => v }
 
       val res =
