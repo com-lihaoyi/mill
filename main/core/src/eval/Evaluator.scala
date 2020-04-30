@@ -195,7 +195,7 @@ case class Evaluator(home: os.Path,
                 testReporter,
                 logger)
 
-              if (res.newResults.values.exists(_.asSuccess.isEmpty)) {
+              if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) {
                 failed.set(true)
               }
               val endTime = System.currentTimeMillis()
