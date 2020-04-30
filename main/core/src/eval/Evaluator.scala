@@ -45,16 +45,18 @@ case class Labelled[T](task: NamedTask[T],
   * @param threadCount If a [[Some]] the explicit number of threads to use for parallel task evaluation,
   *                    or [[None]] to use n threads where n is the number of available logical processors.
   */
-case class Evaluator(home: os.Path,
-                     outPath: os.Path,
-                     externalOutPath: os.Path,
-                     rootModule: mill.define.BaseModule,
-                     log: Logger,
-                     classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-                     workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-                     env: Map[String, String] = Evaluator.defaultEnv,
-                     failFast: Boolean = true,
-                     threadCount: Option[Int] = Some(1)) {
+case class Evaluator(
+    home: os.Path,
+    outPath: os.Path,
+    externalOutPath: os.Path,
+    rootModule: mill.define.BaseModule,
+    log: Logger,
+    classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+    workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+    env: Map[String, String] = Evaluator.defaultEnv,
+    failFast: Boolean = true,
+    threadCount: Option[Int] = Some(1)
+  ) {
 
   val effectiveThreadCount: Int = this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
@@ -240,12 +242,13 @@ case class Evaluator(home: os.Path,
 
   // those result which are inputs but not contained in this terminal group
   protected def evaluateGroupCached(terminal: Terminal,
-                                    group: Agg[Task[_]],
-                                    results: collection.Map[Task[_], Result[(Any, Int)]],
-                                    counterMsg: String,
-                                    zincProblemReporter: Int => Option[BuildProblemReporter],
-                                    testReporter: TestReporter,
-                                    logger: Logger): Evaluated = {
+    group: Agg[Task[_]],
+    results: collection.Map[Task[_], Result[(Any, Int)]],
+    counterMsg: String,
+    zincProblemReporter: Int => Option[BuildProblemReporter],
+    testReporter: TestReporter,
+    logger: Logger
+  ): Evaluated = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
@@ -380,15 +383,15 @@ case class Evaluator(home: os.Path,
   }
 
   protected def evaluateGroup(group: Agg[Task[_]],
-                              results: collection.Map[Task[_], Result[(Any, Int)]],
-                              inputsHash: Int,
-                              paths: Option[Evaluator.Paths],
-                              maybeTargetLabel: Option[String],
-                              counterMsg: String,
-                              reporter: Int => Option[BuildProblemReporter],
-                              testReporter: TestReporter,
-                              logger: Logger
-                             ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) =
+    results: collection.Map[Task[_], Result[(Any, Int)]],
+    inputsHash: Int,
+    paths: Option[Evaluator.Paths],
+    maybeTargetLabel: Option[String],
+    counterMsg: String,
+    reporter: Int => Option[BuildProblemReporter],
+    testReporter: TestReporter,
+    logger: Logger
+  ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) =
     PrintLogger.withContext(maybeTargetLabel.filterNot(_ => effectiveThreadCount == 1).map(_ + ": ")) {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
@@ -547,6 +550,7 @@ case class Evaluator(home: os.Path,
       }
       msgParts.mkString
   }
+
 }
 
 
@@ -559,7 +563,7 @@ object Evaluator{
   }
   case class State(rootModule: mill.define.BaseModule,
                    classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-                   workerCache: collection.mutable.Map[Segments, (Int, Any)],
+                   workerCache: mutable.Map[Segments, (Int, Any)],
                    watched: Seq[(ammonite.interp.Watchable, Long)])
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
