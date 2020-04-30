@@ -128,7 +128,7 @@ case class Evaluator(home: os.Path,
   }
 
   def getFailing(sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
-                 results: collection.mutable.LinkedHashMap[Task[_], Result[(Any, Int)]]) = {
+                 results: collection.Map[Task[_], Result[(Any, Int)]]) = {
 
     val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
     for((k, vs) <- sortedGroups.items()){
@@ -162,7 +162,6 @@ case class Evaluator(home: os.Path,
 
       val terminals = sortedGroups.keys().toVector
 
-      val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
       val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
       val count = new AtomicInteger(0)
@@ -178,11 +177,16 @@ case class Evaluator(home: os.Path,
         futures(k) = Future.sequence(deps.map(futures)).map { upstreamValues =>
           if (failed.get()) None
           else {
+            val upstreamResults = upstreamValues
+              .iterator
+              .flatMap(_.iterator.flatMap(_.newResults))
+              .toMap
+
             val startTime = System.currentTimeMillis()
             val res = evaluateGroupCached(
               k,
               sortedGroups.lookupKey(k),
-              x => synchronized(results.get(x)),
+              upstreamResults.get,
               s"${count.getAndIncrement()}/$totalCount",
               reporter,
               testReporter,
@@ -200,23 +204,32 @@ case class Evaluator(home: os.Path,
               thread = Thread.currentThread().getName(),
               cached = res.cached
             )
-            synchronized {
-              for ((k, v) <- res.newResults) results(k) = v
-            }
+
             Some(res)
           }
         }
       }
 
-      val finished = terminals.map(futures).flatMap(Await.result(_, duration.Duration.Inf))
+      val finishedOpts = terminals
+        .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
+        .toMap
 
       timeLog.close()
-      for(group <- sortedGroups.values(); task <- group){
-        if (!results.contains(task)) results(task) = Aborted
-      }
+      val results = terminals
+        .flatMap{t =>
+          val group = sortedGroups.lookupKey(t)
+          group.map{ t0 =>
+            finishedOpts(t) match{
+              case None => (t0, Aborted)
+              case Some(res) => (t0, res.newResults(t0))
+            }
+          }
+        }
+        .toMap
+
       Evaluator.Results(
         goals.indexed.map(results(_).map(_._1)),
-        finished.flatMap(_.newEvaluated),
+        finishedOpts.values.flatMap(_.toSeq.flatMap(_.newEvaluated)),
         transitive,
         getFailing(sortedGroups, results),
         results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
