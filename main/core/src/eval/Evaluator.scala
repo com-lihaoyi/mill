@@ -177,8 +177,10 @@ case class Evaluator(home: os.Path,
         val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
 
         Future.sequence(deps.map(taskFutures(_))).map { upstreamValues =>
-          if (failed.get()) None
-          else {
+          if (failed.get()) {
+            println(printTerm(k) + " X")
+            None
+          } else {
             println(printTerm(k) + " A")
             val startTime = System.currentTimeMillis()
             println(printTerm(k) + " B")
@@ -219,6 +221,7 @@ case class Evaluator(home: os.Path,
       }
 
       println("Awaiting Futures")
+      terminals.map(printTerm).foreach(println)
       val finished = futures.flatMap(Await.result(_, duration.Duration.Inf))
       println("Finished Awaiting Futures")
       timeLog.close()
