@@ -172,6 +172,7 @@ case class Evaluator(home: os.Path,
       val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
       val count = new AtomicInteger(0)
+      println("Scheduling Futures")
       val futures = terminals.map { k =>
         val deps = interGroupDeps((k, sortedGroups.lookupKey(k))).map(_._1)
 
@@ -212,8 +213,9 @@ case class Evaluator(home: os.Path,
           }
       }
 
+      println("Awaiting Futures")
       val finished = futures.flatMap(Await.result(_, duration.Duration.Inf))
-
+      println("Finished Awaiting Futures")
       timeLog.close()
       for(group <- sortedGroups.values(); task <- group){
         if (!results.contains(task)) results(task) = Aborted
