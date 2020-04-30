@@ -2,7 +2,7 @@ package mill.eval
 
 import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentHashMap
-import java.util.concurrent.atomic.AtomicInteger
+import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import ammonite.runtime.SpecialClassLoader
 import mill.api.Result.{Aborted, OuterStack, Success}
@@ -174,7 +174,7 @@ case class Evaluator(home: os.Path,
       val taskFutures: Map[Terminal, Future[Any]] = promises.map { case (k, p) => (k, p.future) }
 
       val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
-
+      val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
       val count = new AtomicInteger(0)
       val futures = terminals.map { k =>
@@ -182,38 +182,47 @@ case class Evaluator(home: os.Path,
 
         Future.sequence(deps.map(taskFutures(_)))
           .map { upstreamValues =>
-            val startTime = System.currentTimeMillis()
+            if (failed.get()) None
+            else {
+              val startTime = System.currentTimeMillis()
 
-            val res = evaluateGroupCached(
-              k,
-              sortedGroups.lookupKey(k),
-              x => synchronized(results.lift(x)),
-              s"${count.getAndIncrement()}/$totalCount",
-              reporter,
-              testReporter,
-              logger)
+              val res = evaluateGroupCached(
+                k,
+                sortedGroups.lookupKey(k),
+                x => synchronized(results.lift(x)),
+                s"${count.getAndIncrement()}/$totalCount",
+                reporter,
+                testReporter,
+                logger)
 
-            val endTime = System.currentTimeMillis()
+              if (res.newResults.values.exists(_.asSuccess.isEmpty)) {
+                failed.set(true)
+              }
+              val endTime = System.currentTimeMillis()
 
-            timeLog.timeTrace(
-              task = label(k) + " " + System.identityHashCode(k),
-              cat = "job",
-              startTime = startTime,
-              endTime = endTime,
-              thread = Thread.currentThread().getName(),
-              cached = res.cached
-            )
-            synchronized{
-              for ((k, v) <- res.newResults) results(k) = v
+              timeLog.timeTrace(
+                task = label(k) + " " + System.identityHashCode(k),
+                cat = "job",
+                startTime = startTime,
+                endTime = endTime,
+                thread = Thread.currentThread().getName(),
+                cached = res.cached
+              )
+              synchronized {
+                for ((k, v) <- res.newResults) results(k) = v
+              }
+              promises(k).success(123)
+              Some(res)
             }
-            promises(k).success(123)
-            res
           }
       }
 
-      val finished = futures.map(Await.result(_, duration.Duration.Inf))
+      val finished = futures.flatMap(Await.result(_, duration.Duration.Inf))
 
       timeLog.close()
+      for(group <- sortedGroups.values(); task <- group){
+        if (!results.contains(task)) results(task) = Aborted
+      }
       Evaluator.Results(
         goals.indexed.map(results(_).map(_._1)),
         finished.flatMap(_.newEvaluated),
