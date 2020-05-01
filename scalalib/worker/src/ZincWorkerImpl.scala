@@ -101,6 +101,8 @@ class ZincWorkerImpl(compilerBridge: Either[
     )
   }
 
+  val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
+
   def docJar(scalaVersion: String,
              scalaOrganization: String,
              compilerClasspath: Agg[os.Path],
@@ -169,24 +171,18 @@ class ZincWorkerImpl(compilerBridge: Either[
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / scalaVersion
+        val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
         val compiledDest = workingDir / 'compiled
-        // Use double-checked locking around scala compiler bridge compilation so
-        // tasks which need a compiler bridge that has already been fully compiled
-        // do not need to wait for the compilation lock to become available
-        if (os.exists(compiledDest / "DONE")) compiledDest
-        else {
-          synchronized{
-            if (os.exists(compiledDest)) compiledDest
-            else {
-              val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
-              cp match {
-                case None => bridgeJar
-                case Some(bridgeClasspath) =>
-                  val compilerJars = compilerClasspath.toArray.map(_.toIO)
-                  compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
-                  os.write(compiledDest / "DONE", "")
-                  compiledDest
-              }
+        lock.synchronized{
+          if (os.exists(compiledDest)) compiledDest
+          else {
+            val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
+            cp match {
+              case None => bridgeJar
+              case Some(bridgeClasspath) =>
+                val compilerJars = compilerClasspath.toArray.map(_.toIO)
+                compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
+                compiledDest
             }
           }
 
