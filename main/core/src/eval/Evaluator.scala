@@ -206,7 +206,6 @@ case class Evaluator(
               thread = Thread.currentThread().getName(),
               cached = res.cached
             )
-
             Some(res)
           }
         }
@@ -219,11 +218,10 @@ case class Evaluator(
       timeLog.close()
       val results = terminals
         .flatMap{t =>
-          val group = sortedGroups.lookupKey(t)
-          group.map{ t0 =>
+          sortedGroups.lookupKey(t).flatMap{ t0 =>
             finishedOpts(t) match{
-              case None => (t0, Aborted)
-              case Some(res) => (t0, res.newResults(t0))
+              case None => Some((t0, Aborted))
+              case Some(res) => res.newResults.get(t0).map(r => (t0, r))
             }
           }
         }
