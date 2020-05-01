@@ -164,24 +164,32 @@ class ZincWorkerImpl(compilerBridge: Either[
   /** If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
     * @return a path to the directory containing the compiled classes, or to the downloaded jar file
     */
-  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = synchronized {
+  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = {
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / scalaVersion
         val compiledDest = workingDir / 'compiled
-        if (os.exists(compiledDest)) {
-          compiledDest
-        } else {
-          val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
-          cp match {
-            case None =>
-              bridgeJar
-            case Some(bridgeClasspath) =>
-              val compilerJars = compilerClasspath.toArray.map(_.toIO)
-              compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
-              compiledDest
+        // Use double-checked locking around scala compiler bridge compilation so
+        // tasks which need a compiler bridge that has already been fully compiled
+        // do not need to wait for the compilation lock to become available
+        if (os.exists(compiledDest / "DONE")) compiledDest
+        else {
+          synchronized{
+            if (os.exists(compiledDest)) compiledDest
+            else {
+              val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
+              cp match {
+                case None => bridgeJar
+                case Some(bridgeClasspath) =>
+                  val compilerJars = compilerClasspath.toArray.map(_.toIO)
+                  compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
+                  os.write(compiledDest / "DONE", "")
+                  compiledDest
+              }
+            }
           }
+
         }
     }
 
