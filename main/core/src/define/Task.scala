@@ -235,17 +235,29 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   def worker[T](t: Task[T])
-               (implicit ctx: mill.define.Ctx): Worker[T] = new Worker(t, ctx)
+               (implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl1[T]
 
-  def worker[T](t: Result[T])
-               (implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl[T]
-
-  def workerImpl[T: c.WeakTypeTag](c: Context)
-                                  (t: c.Expr[T])
-                                  (ctx: c.Expr[mill.define.Ctx]): c.Expr[Worker[T]] = {
+  def workerImpl1[T: c.WeakTypeTag](c: Context)
+                                   (t: c.Expr[Task[T]])
+                                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Worker[T]] = {
     import c.universe._
-    reify(
-      new Worker[T](Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice, ctx.splice)
+    mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+      reify(
+        new Worker[T](t.splice, ctx.splice)
+      )
+    )
+  }
+  def worker[T](t: Result[T])
+               (implicit ctx: mill.define.Ctx): Worker[T] = macro workerImpl2[T]
+
+  def workerImpl2[T: c.WeakTypeTag](c: Context)
+                                   (t: c.Expr[T])
+                                   (ctx: c.Expr[mill.define.Ctx]): c.Expr[Worker[T]] = {
+    import c.universe._
+    mill.moduledefs.Cacher.impl0[Worker[T]](c)(
+      reify(
+        new Worker[T](Applicative.impl[Task, T, mill.api.Ctx](c)(t).splice, ctx.splice)
+      )
     )
   }
 
