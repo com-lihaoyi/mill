@@ -16,6 +16,9 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
     new PrintStream(Files.newOutputStream((outPath / "mill-par-profile.json").toNIO, options: _*))
   }
 
+  def getThreadId(thread: String) = synchronized{
+    threadIds.getOrElseUpdate(thread, threadIds.size)
+  }
   def timeTrace(task: String,
                  cat: String,
                  startTime: Long,
@@ -35,7 +38,7 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
             ts = startTime * 1000,
             dur = (endTime - startTime) * 1000 /*chrome treats the duration as microseconds*/,
             pid = 1,
-            tid = threadIds.getOrElseUpdate(thread, threadIds.size),
+            tid = getThreadId(thread),
             args = if (cached) Seq("cached") else Seq()
           )
         )

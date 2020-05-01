@@ -28,9 +28,9 @@ import java.io._
 trait Logger {
   def colored: Boolean
 
-  val errorStream: PrintStream
-  val outputStream: PrintStream
-  val inStream: InputStream
+  def errorStream: PrintStream
+  def outputStream: PrintStream
+  def inStream: InputStream
 
   def info(s: String): Unit
   def error(s: String): Unit

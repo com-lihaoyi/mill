@@ -1,7 +1,6 @@
 package mill.util
 
-import java.io.FilterOutputStream
-import java.io.OutputStream
+import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
 
 /**
  * Prefixes the first and each new line with a dynamically provided prefix.
@@ -9,26 +8,37 @@ import java.io.OutputStream
  * @param out The underlying output stream.
  */
 class LinePrefixOutputStream(
-  val linePrefix: () => String,
+  linePrefix: String,
   out: OutputStream
 ) extends FilterOutputStream(out) {
 
   private[this] var isFirst = true
 
+  val buffer = new ByteArrayOutputStream()
   override def write(b: Array[Byte]) = write(b, 0, b.length)
-  override def write(b: Array[Byte], off: Int, len: Int) = for (i <- off until len) {
-    write(b(i))
+  override def write(b: Array[Byte], off: Int, len: Int) = {
+    var i = off
+    while(i < len){
+      write(b(i))
+      i += 1
+    }
   }
   override def write(b: Int) = {
+
     if (isFirst) {
       isFirst = false
-      linePrefix() match {
-        case null =>
-        case prefix => out.write(prefix.getBytes("UTF-8"))
+      if (linePrefix != ""){
+        buffer.write(linePrefix.getBytes("UTF-8"))
       }
     }
-    out.write(b)
-    if (b == '\n') isFirst = true
+    buffer.write(b)
+    if (b == '\n') {
+      out.synchronized{
+        out.write(buffer.toByteArray)
+      }
+      buffer.reset()
+      isFirst = true
+    }
   }
 
 }

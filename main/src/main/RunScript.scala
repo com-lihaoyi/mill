@@ -9,7 +9,7 @@ import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{EitherOps, ParseArgs, Watched}
+import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import mill.api.Logger
 import mill.api.Strict.Agg
 
@@ -28,7 +28,7 @@ object RunScript{
                 instantiateInterpreter: => Either[(Res.Failing, Seq[(ammonite.interp.Watchable, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
-                log: Logger,
+                log: PrintLogger,
                 env : Map[String, String],
                 keepGoing: Boolean,
                 systemProperties: Map[String, String],

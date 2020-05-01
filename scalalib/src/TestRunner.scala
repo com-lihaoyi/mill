@@ -40,7 +40,7 @@ object TestRunner {
           System.err,
           System.in,
           debugEnabled = false,
-          useContext = false
+          context = ""
         )
         val home = os.Path(homeStr)
       }

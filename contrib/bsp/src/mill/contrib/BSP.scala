@@ -101,7 +101,7 @@ object BSP extends ExternalModule {
     *          server
     */
   def start(ev: Evaluator): Command[Unit] = T.command {
-    val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.log, ev.classLoaderSig,
+    val eval = new Evaluator(ev.home, ev.outPath, ev.externalOutPath, ev.rootModule, ev.baseLogger, ev.classLoaderSig,
                              ev.workerCache, ev.env, false)
     val millServer = new mill.contrib.bsp.MillBuildServer(eval, bspProtocolVersion, version, languages)
     val executor = Executors.newCachedThreadPool()

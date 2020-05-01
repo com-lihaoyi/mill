@@ -193,7 +193,7 @@ trait MainModule extends mill.Module{
       evaluator.copy(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
-        log = evaluator.log match{
+        baseLogger = evaluator.baseLogger match{
           case PrintLogger(c1, d, c2, o, i, e, in, de, uc) => PrintLogger(c1, d, c2, e, i, e, in, de, uc)
           case l => l
         }
@@ -213,7 +213,7 @@ trait MainModule extends mill.Module{
     */
   def clean(evaluator: Evaluator, targets: String*) = mill.T.command {
     if(evaluator.effectiveThreadCount > 1) {
-      evaluator.log.error("The clean target in parallel mode might result in unexpected effects")
+      evaluator.baseLogger.error("The clean target in parallel mode might result in unexpected effects")
     }
 
     val rootDir = ammonite.ops.pwd / OutDir

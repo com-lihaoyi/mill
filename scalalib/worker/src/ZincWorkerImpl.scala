@@ -1,6 +1,6 @@
 package mill.scalalib.worker
 
-import java.io.{ByteArrayInputStream, File, InputStream, SequenceInputStream}
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, InputStream, PrintStream, SequenceInputStream}
 import java.net.URI
 import java.nio.file.attribute.PosixFilePermission
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
@@ -127,6 +127,7 @@ class ZincWorkerImpl(compilerBridge: Either[
                         compilerJars: Array[File],
                         compilerBridgeClasspath: Array[os.Path],
                         compilerBridgeSourcesJar: os.Path): Unit = {
+    val compileLog = compileDest / "compile-log.txt"
     ctx0.log.info("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
@@ -154,7 +155,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       )
       compilerMain
         .getMethod("process", classOf[Array[String]])
-        .invoke(null, argsArray)
+        .invoke(null, argsArray ++ Array("-nowarn"))
     } else {
       throw new IllegalArgumentException("Currently not implemented case.")
     }

@@ -50,7 +50,7 @@ case class Evaluator(
   outPath: os.Path,
   externalOutPath: os.Path,
   rootModule: mill.define.BaseModule,
-  log: Logger,
+  baseLogger: ColorLogger,
   classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv,
@@ -72,17 +72,17 @@ case class Evaluator(
   def evaluate(goals: Agg[Task[_]],
                reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                testReporter: TestReporter = DummyTestReporter,
-               logger: Logger = log): Evaluator.Results = {
+               logger: ColorLogger = baseLogger): Evaluator.Results = {
     os.makeDir.all(outPath)
 
-    if(effectiveThreadCount > 1) parallelEvaluate(goals, effectiveThreadCount, reporter, testReporter, logger)
-    else sequentialEvaluate(goals, reporter, testReporter, logger)
+    if(effectiveThreadCount > 1) parallelEvaluate(goals, effectiveThreadCount, logger, reporter, testReporter)
+    else sequentialEvaluate(goals, logger, reporter, testReporter)
   }
 
   def sequentialEvaluate(goals: Agg[Task[_]],
+                         logger: ColorLogger,
                          reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
-                         testReporter: TestReporter = DummyTestReporter,
-                         logger: Logger) = {
+                         testReporter: TestReporter = DummyTestReporter) = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
@@ -144,9 +144,9 @@ case class Evaluator(
 
   def parallelEvaluate(goals: Agg[Task[_]],
                        threadCount: Int,
+                       logger: ColorLogger,
                        reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
-                       testReporter: TestReporter = DummyTestReporter,
-                       logger: Logger): Evaluator.Results = {
+                       testReporter: TestReporter = DummyTestReporter): Evaluator.Results = {
     logger.info(s"Using experimental parallel evaluator with $threadCount threads")
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
@@ -185,14 +185,18 @@ case class Evaluator(
               .toMap
 
             val startTime = System.currentTimeMillis()
+            val threadId = timeLog.getThreadId(Thread.currentThread().getName())
+            val fraction = s"${count.getAndIncrement()}/$totalCount"
+            val contextLogger = new PrefixLogger(logger, context = s"[#$threadId] ")
+
             val res = evaluateGroupCached(
               k,
               sortedGroups.lookupKey(k),
               upstreamResults,
-              s"${count.getAndIncrement()}/$totalCount",
+              fraction,
               reporter,
               testReporter,
-              logger
+              contextLogger
             )
 
             if (failFast && res.newResults.values.exists(_.asSuccess.isEmpty)) failed.set(true)
@@ -247,7 +251,7 @@ case class Evaluator(
     counterMsg: String,
     zincProblemReporter: Int => Option[BuildProblemReporter],
     testReporter: TestReporter,
-    logger: Logger
+    logger: ColorLogger
   ): Evaluated = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
@@ -391,8 +395,7 @@ case class Evaluator(
     reporter: Int => Option[BuildProblemReporter],
     testReporter: TestReporter,
     logger: Logger
-   ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) =
-    PrintLogger.withContext(maybeTargetLabel.filterNot(_ => effectiveThreadCount == 1).map(_ + ": ")) {
+   ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
     val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
@@ -410,7 +413,7 @@ case class Evaluator(
 
     val tickerPrefix = maybeTargetLabel.map { targetLabel =>
       val prefix = s"[$counterMsg] $targetLabel "
-      if(logRun) log.ticker(prefix)
+      if(logRun) logger.ticker(prefix)
       prefix + "| "
     }
 
@@ -495,7 +498,7 @@ case class Evaluator(
     if(!failFast) maybeTargetLabel.foreach { targetLabel =>
       val taskFailed = newResults.exists(task => !task._2.isInstanceOf[Success[_]])
       if(taskFailed) {
-        log.error(s"[${counterMsg}] ${targetLabel} failed")
+        logger.error(s"[${counterMsg}] ${targetLabel} failed")
       }
     }
 
@@ -507,7 +510,7 @@ case class Evaluator(
 
   def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match{
     case None => logger
-    case Some(path) => MultiLogger(logger.colored, log, new FileLogger(logger.colored, path, debugEnabled = true))
+    case Some(path) => MultiLogger(logger.colored, logger, new FileLogger(logger.colored, path, debugEnabled = true))
   }
 
   /**

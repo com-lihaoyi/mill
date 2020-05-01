@@ -29,7 +29,7 @@ object ReplApplyHandler{
       System.err,
       System.in,
       debugEnabled = debugLog,
-      useContext = true
+      context = ""
     )
     logger.debug(s"Using explicit system properties: ${systemProperties}")
 

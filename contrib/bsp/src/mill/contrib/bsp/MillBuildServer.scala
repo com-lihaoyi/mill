@@ -261,7 +261,7 @@ class MillBuildServer(evaluator: Evaluator,
                                           getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                                                                    TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
                                           DummyTestReporter,
-                                          new MillBspLogger(client, taskId, millEvaluator.log)
+                                          new MillBspLogger(client, taskId, millEvaluator.baseLogger)
                                           )
       val compileResult = new CompileResult(getStatusCode(result))
       compileResult.setOriginId(compileParams.getOriginId)
@@ -285,7 +285,7 @@ class MillBuildServer(evaluator: Evaluator,
                                                t => s"Started compiling target: $t",
                                                TaskDataKind.COMPILE_TASK,
                                                (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
-                                             logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.log))
+        logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.baseLogger))
       val response = runResult.results(runTask) match {
         case _: Result.Success[Any] => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
@@ -343,7 +343,7 @@ class MillBuildServer(evaluator: Evaluator,
               getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                                        TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
               testReporter,
-              new MillBspLogger(client, testTask.hashCode, millEvaluator.log))
+              new MillBspLogger(client, testTask.hashCode, millEvaluator.baseLogger))
             val endTime = System.currentTimeMillis()
             val statusCode = getStatusCode(results)
             statusCode match {
@@ -441,7 +441,7 @@ class MillBuildServer(evaluator: Evaluator,
         val cleanTask = mainModule.clean(millEvaluator, List(s"${module.millModuleSegments.render}.compile"): _*)
         val cleanResult = millEvaluator.evaluate(
           Strict.Agg(cleanTask),
-          logger = new MillBspLogger(client, cleanTask.hashCode, millEvaluator.log)
+          logger = new MillBspLogger(client, cleanTask.hashCode, millEvaluator.baseLogger)
           )
         if (cleanResult.failing.keyCount > 0) {
           cleaned = false
