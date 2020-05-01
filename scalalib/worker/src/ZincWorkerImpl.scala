@@ -12,7 +12,7 @@ import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Prob
 import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
-import sbt.internal.util.{ConsoleOut, MainAppender}
+import sbt.internal.util.{ConsoleAppender, ConsoleLogger, ConsoleOut, MainAppender}
 import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 
@@ -174,7 +174,7 @@ class ZincWorkerImpl(compilerBridge: Either[
         val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
         val compiledDest = workingDir / 'compiled
         lock.synchronized{
-          if (os.exists(compiledDest)) compiledDest
+          if (os.exists(compiledDest / "DONE")) compiledDest
           else {
             val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
             cp match {
@@ -182,6 +182,7 @@ class ZincWorkerImpl(compilerBridge: Either[
               case Some(bridgeClasspath) =>
                 val compilerJars = compilerClasspath.toArray.map(_.toIO)
                 compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
+                os.write(compiledDest / "DONE", "")
                 compiledDest
             }
           }
@@ -369,16 +370,17 @@ class ZincWorkerImpl(compilerBridge: Either[
                              (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
-    val logger = {
-      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-        ctx.log.outputStream
-      ))
-      val id = Thread.currentThread().getId().toString
-      val l = LogExchange.logger(id)
-      LogExchange.unbindLoggerAppenders(id)
-      LogExchange.bindLoggerAppenders(id, (consoleAppender -> sbt.util.Level.Info) :: Nil)
-      l
-    }
+    val consoleAppender = ConsoleAppender(
+      "ZincLogAppender",
+      ConsoleOut.printStreamOut(ctx.log.outputStream),
+      ctx.log.colored,
+      ctx.log.colored,
+      _ => None
+    )
+    val loggerId = Thread.currentThread().getId().toString
+    LogExchange.unbindLoggerAppenders(loggerId)
+    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
+    val logger = LogExchange.logger(loggerId)
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {

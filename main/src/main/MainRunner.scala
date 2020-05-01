@@ -18,6 +18,7 @@ import mill.define.Segments
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
 class MainRunner(val config: ammonite.main.Cli.Config,
+                 mainInteractive: Boolean,
                  disableTicker: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
@@ -70,7 +71,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       printing = true,
       mainCfg => {
         val logger = new PrintLogger(
-          colors != ammonite.util.Colors.BlackWhite,
+          config.colored.getOrElse(mainInteractive),
           disableTicker,
           colors,
           outprintStream,

@@ -199,7 +199,8 @@ object MillMain {
               )
 
             val runner = new mill.main.MainRunner(
-              config.copy(colored = config.colored orElse Option(mainInteractive)),
+              config,
+              mainInteractive,
               disableTicker,
               stdout, stderr, stdin,
               stateCache,
