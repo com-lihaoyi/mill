@@ -19,9 +19,9 @@ custom Target (for cached computations) or Command (for un-cached actions) and
 you're done.
 
 For subprocess/filesystem operations, you can use the
-[Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library that comes bundled with
+[OS-Lib](https://github.com/lihaoyi/os-lib) library that comes bundled with
 Mill, or even plain `java.nio`/`java.lang.Process`. Each target gets its own
-[T.ctx.dest](http://www.lihaoyi.com/mill/page/tasks#millutilctxdestctx) folder
+[T.dest](https://www.lihaoyi.com/mill/page/tasks#task-context-api) folder
 that you can use to place files without worrying about colliding with other
 targets.
 
@@ -48,7 +48,7 @@ object foo extends ScalaModule {
 
 def deploy(assembly: PathRef, credentials: String) = ???
 
-def deployFoo(credentials: String) = T.command { deployFoo(foo.assembly()) }
+def deployFoo(credentials: String) = T.command { deploy(foo.assembly(), credentials) }
 ```
 
 
@@ -181,4 +181,3 @@ Many built-in tools are implemented as custom evaluator commands:
 [all](http://www.lihaoyi.com/mill/#all), [inspect](http://www.lihaoyi.com/mill/#inspect),
 [resolve](http://www.lihaoyi.com/mill/#resolve), [show](http://www.lihaoyi.com/mill/#show).
 If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.
-

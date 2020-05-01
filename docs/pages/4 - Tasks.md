@@ -19,11 +19,11 @@ def resourceRoot = T.sources { os.pwd / 'resources }
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 
 def classFiles = T {
-  os.makeDir.all(T.ctx.dest)
+  os.makeDir.all(T.dest)
 
-  os.proc("javac", allSources().map(_.path.toString()), "-d", T.ctx.dest)
-    .call(cwd = T.ctx.dest)
-  PathRef(T.ctx.dest)
+  os.proc("javac", allSources().map(_.path.toString()), "-d", T.dest)
+    .call(cwd = T.dest)
+  PathRef(T.dest)
 }
 
 def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
@@ -40,7 +40,7 @@ roots of our task graph. `allSources` depends on `sourceRoot` by calling
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
 
 Filesystem operations in Mill are done using the
-[Ammonite-Ops](http://ammonite.io/#Ammonite-Ops) library.
+[OS-Lib](https://github.com/lihaoyi/os-lib) library.
 
 The above build defines the following task graph:
 
@@ -63,10 +63,6 @@ what input sources changed:
 
 - If the files in `resourceRoot` change, it will only re-evaluate `jar` and use
   the cached output of `allSources` and `classFiles`
-
-Apart from the `foo()` call-sites which define what each targets depend on, the
-code within each `T {...}` wrapper is arbitrary Scala code that can compute an
-arbitrary result from its inputs.
 
 ## Different Kinds of Tasks
 
@@ -104,14 +100,14 @@ object MyCaseClass {
 ```
 
 If you want to return a file or a set of files as the result of a `Target`,
-write them to disk within your `T.ctx.dest` available through the
-[Task Context API](#task-context-api) and return a `PathRef` to the files you
-wrote.
+write them to disk within your `T.dest` available through the
+[Task Context API](#task-context-api) and return a `PathRef(T.dest)`
+that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn't affect the classfiles, then
 downstream targets do not re-evaluate. This is determined using the `.hashCode`
-of the Target's return value. For targets returning `ammonite.ops.Path`s that
+of the Target's return value. For targets returning `os.Path`s that
 reference files on disk, you can wrap the `Path` in a `PathRef` (shown above)
 whose `.hashCode()` will include the hashes of all files on disk at time of
 creation.
@@ -134,7 +130,7 @@ def sourceRoots = T.sources { sourceRootPath }
 ```
 
 `Source`s are defined using `T.sources { ... }`, taking one-or-more
-`ammonite.ops.Path`s as arguments. A `Source` is a subclass of
+`os.Path`s as arguments. A `Source` is a subclass of
 `Target[Seq[PathRef]]`: this means that its build signature/`hashCode` depends
 not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of
 the filesystem tree under that path.
@@ -145,7 +141,7 @@ definition:
 
 ```scala
 def additionalSources = T.sources { os.pwd / 'additionalSources }
-def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }
+override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }
 ```
 
 ### Commands
@@ -160,6 +156,8 @@ Defined using `T.command { ... }` syntax, `Command`s can run arbitrary code, wit
 dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
+A command with no parameter is defined as `def myCommand() = T.command {...}`.
+It is a compile error if `()` is missing.
 
 Like [Targets](#targets), a command only evaluates after all its upstream
 dependencies have completed, and will not begin to run if any upstream
@@ -179,7 +177,7 @@ Command:
 
 ### mill.api.Ctx.Dest
 
-- `T.ctx.dest`
+- `T.dest`
 - `implicitly[mill.api.Ctx.Dest]`
 
 This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
@@ -241,9 +239,10 @@ runnable from the command-line, but can be used to share common code you find
 yourself repeating in `Target`s and `Command`s.
 
 ```scala
-def downstreamTarget = T { ... foo() ... } 
-def downstreamCommand = T.command { ... foo() ... } 
+def downstreamTarget = T { ... foo(42)() ... } 
+def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
 ```
+
 Anonymous task's output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments. Unlike
 [Targets](#targets) or [Commands](#commands), anonymous tasks can be defined
@@ -251,8 +250,8 @@ anywhere and passed around any way you want, until you finally make use of them
 within a downstream target or command.
 
 While an anonymous task `foo`'s own output is not cached, if it is used in a
-downstream target `bar` and the upstream targets `baz` `qux` haven't changed,
-`bar`'s cached output will be used and `foo`'s evaluation will be skipped
+downstream target `baz` and the upstream target `bar` hasn't changed,
+`baz`'s cached output will be used and `foo`'s evaluation will be skipped
 altogether.
 
 ### Persistent Targets
@@ -353,4 +352,3 @@ different Task types:
 | Runnable from the Command Line | X      | X       |              |                | X                 |        |
 | Can Take Arguments             |        | X       |              | X              |                   |        |
 | Cached between Evaluations     |        |         |              |                |                   | X      |
-
