@@ -50,6 +50,10 @@ class CallbackStream(
     setPrintState(b.toChar)
     wrapped.write(b)
   }
+
+  override def flush(): Unit = {
+    wrapped.flush()
+  }
 }
 
 sealed trait PrintState
