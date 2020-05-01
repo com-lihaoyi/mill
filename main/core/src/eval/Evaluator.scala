@@ -46,17 +46,17 @@ case class Labelled[T](task: NamedTask[T],
   *                    or [[None]] to use n threads where n is the number of available logical processors.
   */
 case class Evaluator(
-    home: os.Path,
-    outPath: os.Path,
-    externalOutPath: os.Path,
-    rootModule: mill.define.BaseModule,
-    log: Logger,
-    classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
-    workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
-    env: Map[String, String] = Evaluator.defaultEnv,
-    failFast: Boolean = true,
-    threadCount: Option[Int] = Some(1)
-  ) {
+  home: os.Path,
+  outPath: os.Path,
+  externalOutPath: os.Path,
+  rootModule: mill.define.BaseModule,
+  log: Logger,
+  classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
+  workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
+  env: Map[String, String] = Evaluator.defaultEnv,
+  failFast: Boolean = true,
+  threadCount: Option[Int] = Some(1)
+) {
 
   val effectiveThreadCount: Int = this.threadCount.getOrElse(Runtime.getRuntime().availableProcessors())
 
