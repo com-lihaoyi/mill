@@ -213,13 +213,13 @@ case class Evaluator(
 
       val finishedOpts = terminals
         .map(t => (t, Await.result(futures(t), duration.Duration.Inf)))
-        .toMap
 
-      timeLog.close()
+      val finishedOptsMap = finishedOpts.toMap
+
       val results = terminals
         .flatMap{t =>
           sortedGroups.lookupKey(t).flatMap{ t0 =>
-            finishedOpts(t) match{
+            finishedOptsMap(t) match{
               case None => Some((t0, Aborted))
               case Some(res) => res.newResults.get(t0).map(r => (t0, r))
             }
@@ -227,12 +227,14 @@ case class Evaluator(
         }
         .toMap
 
+      timeLog.close()
+
       Evaluator.Results(
         goals.indexed.map(results(_).map(_._1)),
-        finishedOpts.values.flatMap(_.toSeq.flatMap(_.newEvaluated)),
+        finishedOpts.map(_._2).flatMap(_.toSeq.flatMap(_.newEvaluated)),
         transitive,
         getFailing(sortedGroups, results),
-        results.toSeq.toMap.map { case (k, v) => (k, v.map(_._1)) }
+        results.map { case (k, v) => (k, v.map(_._1)) }
       )
     }
     finally threadPool.shutdown()
