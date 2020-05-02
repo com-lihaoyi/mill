@@ -11,7 +11,7 @@ class AmmoniteTests(fork: Boolean)
       val replTests = eval(
         s"amm.repl[$scalaVersion].test", "{ammonite.unit,ammonite.session.ProjectTests.guava}"
       )
-      val replTestMeta = meta(s"amm.repl[$scalaVersion].test.test")
+      val replTestMeta = meta(s"amm.repl[$scalaVersion].test.testUncached")
       assert(
         replTests,
         replTestMeta.contains("ammonite.session.ProjectTests.guava"),

@@ -8,20 +8,20 @@ class UpickleTests(fork: Boolean) extends IntegrationTestSuite("MILL_UPICKLE_REP
     'jvm21111 - {
       mill.util.TestUtil.disableInJava9OrAbove({
         assert(eval("upickleJvm[2.11.11].test"))
-        val jvmMeta = meta("upickleJvm[2.11.11].test.test")
+        val jvmMeta = meta("upickleJvm[2.11.11].test.testUncached")
         assert(jvmMeta.contains("example.ExampleTests.simple"))
         assert(jvmMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
       })
     }
     'jvm2124 - {
       assert(eval("upickleJvm[2.12.4].test"))
-      val jvmMeta = meta("upickleJvm[2.12.4].test.test")
+      val jvmMeta = meta("upickleJvm[2.12.4].test.testUncached")
       assert(jvmMeta.contains("example.ExampleTests.simple"))
       assert(jvmMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
     }
     'js - {
       assert(eval("upickleJs[2.12.4].test"))
-      val jsMeta = meta("upickleJs[2.12.4].test.test")
+      val jsMeta = meta("upickleJs[2.12.4].test.testUncached")
       assert(jsMeta .contains("example.ExampleTests.simple"))
       assert(jsMeta .contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
     }
