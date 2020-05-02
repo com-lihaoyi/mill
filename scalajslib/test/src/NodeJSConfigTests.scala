@@ -77,7 +77,7 @@ object NodeJSConfigTests extends TestSuite {
     'test - {
 
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) = {
-        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs, notNodeArgs)
+        checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.testUncached(), nodeArgs, notNodeArgs)
       }
 
       'test - checkUtest(nodeArgsEmpty, nodeArgs2G)
