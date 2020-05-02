@@ -67,7 +67,7 @@ object HelloJavaTests extends TestSuite {
     'test - {
       val eval = init()
 
-      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
+      val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.testUncached())
 
       assert(
         v1._2(0).fullyQualifiedName == "hello.MyCoreTests.lengthTest",
@@ -76,7 +76,7 @@ object HelloJavaTests extends TestSuite {
         v1._2(1).status == "Failure"
       )
 
-      val Right((v2, _)) = eval.apply(HelloJava.app.test.test())
+      val Right((v2, _)) = eval.apply(HelloJava.app.test.testUncached())
 
       assert(
         v2._2(0).fullyQualifiedName == "hello.MyAppTests.appTest",

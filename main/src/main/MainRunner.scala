@@ -38,7 +38,12 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   var stateCache  = stateCache0
 
   override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
-    printInfo(s"Watching for changes to ${watched.size} values... (Ctrl-C to exit)")
+    val (watchedPaths, watchedValues) = watched.partitionMap {
+      case (ammonite.interp.Watchable.Path(p), _) => Left(())
+      case (_, _) => Right(())
+    }
+    val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
+    printInfo(s"Watching for changes to ${watchedPaths} values$watchedValueStr... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       file.poll() == lastMTime
     }

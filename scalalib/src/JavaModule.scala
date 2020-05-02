@@ -574,7 +574,7 @@ trait JavaModule extends mill.Module
 }
 
 trait TestModule extends JavaModule with TaskModule {
-  override def defaultCommandName() = "test"
+  override def defaultCommandName() = "testUncached"
   /**
     * What test frameworks to use.
     */
@@ -584,7 +584,7 @@ trait TestModule extends JavaModule with TaskModule {
     * results to the console.
     * @see [[testCached]]
     */
-  def test(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
+  def testUncached(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
     testTask(T.task{args})()
   }
 

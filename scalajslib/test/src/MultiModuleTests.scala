@@ -57,7 +57,7 @@ object MultiModuleTests extends TestSuite {
     'fullOpt - TestUtil.disableInJava9OrAbove(checkOpt(FullOpt))
 
     'test - {
-      val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())
+      val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.testUncached())
 
       assert(
         evalCount > 0,

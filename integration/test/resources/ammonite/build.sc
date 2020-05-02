@@ -262,16 +262,16 @@ class SshdModule(val crossScalaVersion: String) extends AmmModule{
 }
 
 def unitTest(scalaVersion: String = sys.env("TRAVIS_SCALA_VERSION")) = T.command{
-  ops(scalaVersion).test.test()()
-  terminal(scalaVersion).test.test()()
-  amm.repl(scalaVersion).test.test()()
-  amm(scalaVersion).test.test()()
-  shell(scalaVersion).test.test()()
-  sshd(scalaVersion).test.test()()
+  ops(scalaVersion).test.testUncached()()
+  terminal(scalaVersion).test.testUncached()()
+  amm.repl(scalaVersion).test.testUncached()()
+  amm(scalaVersion).test.testUncached()()
+  shell(scalaVersion).test.testUncached()()
+  sshd(scalaVersion).test.testUncached()()
 }
 
 def integrationTest(scalaVersion: String = sys.env("TRAVIS_SCALA_VERSION")) = T.command{
-  integration(scalaVersion).test.test()()
+  integration(scalaVersion).test.testUncached()()
 }
 
 def generateConstantsFile(version: String = buildVersion,
