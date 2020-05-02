@@ -122,7 +122,7 @@ object upickleJs extends Cross[UpickleJsModule]("2.11.11", "2.12.4")
 class UpickleJsModule(val crossScalaVersion: String) extends UpickleModule with ScalaJSModule {
   def platformSegment = "js"
 
-  def scalaJSVersion = "0.6.22"
+  def scalaJSVersion = "0.6.32"
   def scalacOptions = T{
     super.scalacOptions() ++ Seq({
       val a = build.millSourcePath.toString.replaceFirst("[^/]+/?$", "")

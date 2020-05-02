@@ -36,19 +36,23 @@ class CallbackStream(
     setPrintState0(printState)
   }
 
-  override def write(b: Array[Byte]): Unit = {
+  override def write(b: Array[Byte]): Unit = synchronized{
     if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
     wrapped.write(b)
   }
 
-  override def write(b: Array[Byte], off: Int, len: Int): Unit = {
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized{
     if (len != 0) setPrintState(b(off + len - 1).toChar)
     wrapped.write(b, off, len)
   }
 
-  override def write(b: Int): Unit = {
+  override def write(b: Int): Unit = synchronized{
     setPrintState(b.toChar)
     wrapped.write(b)
+  }
+
+  override def flush(): Unit = {
+    wrapped.flush()
   }
 }
 
@@ -59,7 +63,30 @@ object PrintState {
   case object Newline extends PrintState
   case object Middle extends PrintState
 }
+trait ColorLogger extends Logger{
+  def colors: ammonite.util.Colors
+}
+case class PrefixLogger(out: ColorLogger, context: String) extends ColorLogger{
+  override def colored = out.colored
 
+  def colors = out.colors
+  override val errorStream = new PrintStream(new LinePrefixOutputStream(
+    colors.info()(context).render, out.errorStream
+  ))
+  override val outputStream = new PrintStream(new LinePrefixOutputStream(
+    colors.info()(context).render, out.outputStream
+  ))
+
+  override def inStream = out.inStream
+
+  override def info(s: String): Unit = out.info(context + s)
+
+  override def error(s: String): Unit = out.error(context + s)
+
+  override def ticker(s: String): Unit = out.ticker(context + s)
+
+  override def debug(s: String): Unit = out.debug(context + s)
+}
 case class PrintLogger(
   colored: Boolean,
   disableTicker: Boolean,
@@ -69,37 +96,29 @@ case class PrintLogger(
   errStream: PrintStream,
   inStream: InputStream,
   debugEnabled: Boolean,
-  useContext: Boolean
-) extends Logger {
+  context: String
+) extends ColorLogger {
 
   var printState: PrintState = PrintState.Newline
 
   override val errorStream = new PrintStream(
-    new CallbackStream(
-      new LinePrefixOutputStream(() => context, errStream),
-      printState = _
-    )
+    new CallbackStream(errStream, printState = _)
   )
   override val outputStream = new PrintStream(
-    new CallbackStream(
-      new LinePrefixOutputStream(() => context, outStream),
-      printState = _
-    )
+    new CallbackStream(outStream, printState = _)
   )
 
-  private[this] def context = if (useContext) PrintLogger.getContext.getOrElse("") else ""
-
-  def info(s: String) = {
+  def info(s: String) = synchronized{
     printState = PrintState.Newline
-    infoStream.println(context + colors.info()(s))
+    infoStream.println(colors.info()(context + s))
   }
 
-  def error(s: String) = {
+  def error(s: String) = synchronized{
     printState = PrintState.Newline
-    errStream.println(context + colors.error()(s))
+    errStream.println((colors.info()(context) ++ colors.error()(s)).render)
   }
 
-  def ticker(s: String) = {
+  def ticker(s: String) = synchronized{
     if(!disableTicker) {
       printState match{
         case PrintState.Newline =>
@@ -110,30 +129,24 @@ case class PrintLogger(
         case PrintState.Ticker =>
           val p = new PrintWriter(infoStream)
           // Need to make this more "atomic"
-          synchronized {
-            val nav = new ammonite.terminal.AnsiNav(p)
-            nav.up(1)
-            nav.clearLine(2)
-            nav.left(9999)
-            p.flush()
+          val nav = new ammonite.terminal.AnsiNav(p)
+          nav.up(1)
+          nav.clearLine(2)
+          nav.left(9999)
+          p.flush()
 
-            infoStream.println(colors.info()(s))
-          }
+          infoStream.println(colors.info()(s))
       }
       printState = PrintState.Ticker
     }
   }
 
-  def debug(s: String) = if (debugEnabled) {
-    printState = PrintState.Newline
-    errStream.println(context + s)
+  def debug(s: String) = synchronized{
+    if (debugEnabled) {
+      printState = PrintState.Newline
+      errStream.println(context + s)
+    }
   }
-}
-
-object PrintLogger {
-  private[this] val _context = new DynamicVariable[Option[String]](None)
-  def withContext[T](context: Option[String])(f: => T): T = _context.withValue(context)(f)
-  def getContext: Option[String] = _context.value
 }
 
 class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {

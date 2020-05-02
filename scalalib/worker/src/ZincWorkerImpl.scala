@@ -1,14 +1,18 @@
 package mill.scalalib.worker
 
-import java.io.File
-import java.util.Optional
+import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, InputStream, PrintStream, SequenceInputStream}
+import java.net.URI
+import java.nio.file.attribute.PosixFilePermission
+import java.nio.file.{FileSystems, Files, StandardOpenOption}
+import java.util.{Collections, Optional}
+import java.util.jar.JarFile
 
 import mill.api.Loose.Agg
-import mill.api.{Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn, BuildProblemReporter}
+import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn}
 import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
-import sbt.internal.util.{ConsoleOut, MainAppender}
+import sbt.internal.util.{ConsoleAppender, ConsoleLogger, ConsoleOut, MainAppender}
 import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 
@@ -97,6 +101,8 @@ class ZincWorkerImpl(compilerBridge: Either[
     )
   }
 
+  val compilerBridgeLocks = collection.mutable.Map.empty[String, Object]
+
   def docJar(scalaVersion: String,
              scalaOrganization: String,
              compilerClasspath: Agg[os.Path],
@@ -123,6 +129,7 @@ class ZincWorkerImpl(compilerBridge: Either[
                         compilerJars: Array[File],
                         compilerBridgeClasspath: Array[os.Path],
                         compilerBridgeSourcesJar: os.Path): Unit = {
+    val compileLog = compileDest / "compile-log.txt"
     ctx0.log.info("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
@@ -150,7 +157,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       )
       compilerMain
         .getMethod("process", classOf[Array[String]])
-        .invoke(null, argsArray)
+        .invoke(null, argsArray ++ Array("-nowarn"))
     } else {
       throw new IllegalArgumentException("Currently not implemented case.")
     }
@@ -159,25 +166,27 @@ class ZincWorkerImpl(compilerBridge: Either[
   /** If needed, compile (for Scala 2) or download (for Dotty) the compiler bridge.
     * @return a path to the directory containing the compiled classes, or to the downloaded jar file
     */
-  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = synchronized {
+  def compileBridgeIfNeeded(scalaVersion: String, scalaOrganization: String, compilerClasspath: Agg[os.Path]): os.Path = {
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / scalaVersion
+        val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
         val compiledDest = workingDir / 'compiled
-
-        if (os.exists(compiledDest)) {
-          compiledDest
-        } else {
-          val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
-          cp match {
-            case None =>
-              bridgeJar
-            case Some(bridgeClasspath) =>
-              val compilerJars = compilerClasspath.toArray.map(_.toIO)
-              compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
-              compiledDest
+        lock.synchronized{
+          if (os.exists(compiledDest / "DONE")) compiledDest
+          else {
+            val (cp, bridgeJar) = bridgeProvider(scalaVersion, scalaOrganization)
+            cp match {
+              case None => bridgeJar
+              case Some(bridgeClasspath) =>
+                val compilerJars = compilerClasspath.toArray.map(_.toIO)
+                compileZincBridge(ctx0, workingDir, compiledDest, scalaVersion, compilerJars, bridgeClasspath, bridgeJar)
+                os.write(compiledDest / "DONE", "")
+                compiledDest
+            }
           }
+
         }
     }
 
@@ -330,10 +339,14 @@ class ZincWorkerImpl(compilerBridge: Either[
           grepJar(compilerClasspath, s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
         else
           compilerJarNameGrep(compilerClasspath, scalaVersion)
+
       val scalaInstance = new ScalaInstance(
         version = scalaVersion,
         loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
-        libraryJar = libraryJarNameGrep(compilerClasspath, scalaVersion).toIO,
+        libraryJar = libraryJarNameGrep(
+          compilerClasspath,
+          if (isDotty(scalaVersion)) "2.13.0" else scalaVersion
+        ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
         explicitActual = None
@@ -357,16 +370,17 @@ class ZincWorkerImpl(compilerBridge: Either[
                              (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[(os.Path, os.Path)] = {
     os.makeDir.all(ctx.dest)
 
-    val logger = {
-      val consoleAppender = MainAppender.defaultScreen(ConsoleOut.printStreamOut(
-        ctx.log.outputStream
-      ))
-      val id = Thread.currentThread().getId().toString
-      val l = LogExchange.logger(id)
-      LogExchange.unbindLoggerAppenders(id)
-      LogExchange.bindLoggerAppenders(id, (consoleAppender -> sbt.util.Level.Info) :: Nil)
-      l
-    }
+    val consoleAppender = ConsoleAppender(
+      "ZincLogAppender",
+      ConsoleOut.printStreamOut(ctx.log.outputStream),
+      ctx.log.colored,
+      ctx.log.colored,
+      _ => None
+    )
+    val loggerId = Thread.currentThread().getId().toString
+    LogExchange.unbindLoggerAppenders(loggerId)
+    LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
+    val logger = LogExchange.logger(loggerId)
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {
@@ -430,7 +444,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       pr = {
         val prev = store.get()
         PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
-      }
+      },
+      temporaryClassesDirectory = java.util.Optional.empty()
     )
 
     try {

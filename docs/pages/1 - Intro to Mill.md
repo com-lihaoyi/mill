@@ -44,7 +44,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1-assembly, and save
+https://github.com/lihaoyi/mill/releases/download/0.6.2/0.6.2-assembly, and save
 it as `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -81,7 +81,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.6.2/0.6.2 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
 ### Bootstrap Scripts (Linux/OS-X Only)
@@ -90,7 +90,7 @@ If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 `./mill` script in the project folder:
 
 ```bash
-curl -L https://github.com/lihaoyi/mill/releases/download/0.6.1/0.6.1 > mill && chmod +x mill
+curl -L https://github.com/lihaoyi/mill/releases/download/0.6.2/0.6.2 > mill && chmod +x mill
 ```
 
 Now, anyone who wants to work with the project can simply use the `./mill`
@@ -138,7 +138,7 @@ The simplest Mill build for a Scala project looks as follows:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 }
 ```
 
@@ -205,6 +205,8 @@ out/
     foo/
         compile/
         run/
+        runBackground/
+        launcher/
         jar/
         assembly/
 ```
@@ -237,11 +239,11 @@ object bar extends JavaModule {
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 }
 object bar extends ScalaModule {
   def moduleDeps = Seq(foo)
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 }
 ```
 
@@ -294,10 +296,10 @@ Modules can also be nested:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
   object bar extends ScalaModule {
     def moduleDeps = Seq(foo)
-    def scalaVersion = "2.12.4"
+    def scalaVersion = "2.13.1"
   }
 }
 ```
@@ -405,34 +407,33 @@ mill all __.compile  # run compile for every module
 
 ```bash
 $ mill resolve _
-main
-moduledefs
-core
-scalaworker
-scalalib
-scalajslib
-integration
-testRepos
-...
+[1/1] resolve
+all
+clean
+foo
+inspect
+par
+path
+plan
+resolve
+show
+shutdown
+version
+visualize
+visualizePlan
 
 $ mill resolve _.compile
+[1/1] resolve
+foo.compile
 
-main.compile
-moduledefs.compile
-core.compile
-scalalib.worker.compile
-scalalib.compile
-scalajslib.compile
-integration.compile
-
-$ mill resolve core._
-
-core.test
-core.compile
-core.publishVersion
-core.runClasspath
-core.testArgs
-core.sources
+$ mill resolve foo._
+[1/1] resolve
+foo.allSourceFiles
+foo.allSources
+foo.ammoniteReplClasspath
+foo.ammoniteVersion
+foo.artifactId
+foo.artifactName
 ...
 ```
 
@@ -447,23 +448,25 @@ mill resolve "foo.{compile,run}"
 mill resolve foo.compile foo.run
 mill resolve _.compile          # list the compile tasks for every top-level module
 mill resolve __.compile         # list the compile tasks for every module
-mill resolve _                  # list every top level module or task
+mill resolve _                  # list every top level module and task
 mill resolve foo._              # list every task directly within the foo module
-mill resolve __                 # list every module or task recursively
-mill resolve foo.__             # list every task recursively within the foo module
+mill resolve __                 # list every module and task recursively
 ```
 
 ### inspect
 
 ```bash
-$ mill inspect core.run
+$ mill inspect foo.run
+[1/1] inspect
+foo.run(JavaModule.scala:442)
+    Runs this module's code in a subprocess and waits for it to finish
 
-core.run(ScalaModule.scala:211)
 Inputs:
-    core.mainClass
-    core.runClasspath
-    core.forkArgs
-    core.forkEnv
+    foo.finalMainClass
+    foo.runClasspath
+    foo.forkArgs
+    foo.forkEnv
+    foo.forkWorkingDir
 ```
 
 `inspect` is a more verbose version of [resolve](#resolve). In addition to
@@ -485,14 +488,14 @@ mill inspect __.compile
 mill inspect _
 mill inspect foo._
 mill inspect __
-mill inspect foo._
 ```
 
 ### show
 
 ```bash
-$ mill show core.scalaVersion
-"2.12.4"
+$ mill show foo.scalaVersion
+[1/1] show
+"2.13.1"
 ```
 
 By default, Mill does not print out the metadata from evaluating a task. Most
@@ -507,11 +510,11 @@ produced by the compilation:
 
 ```bash
 $ mill show foo.compile
+[1/1] show
+[10/25] foo.resources
 {
-    "analysisFile": "/Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/zinc",
-    "classes": {
-        "path": "/Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/classes"
-    }
+    "analysisFile": "/Users/lihaoyi/Dropbox/Github/test//out/foo/compile/dest/zinc",
+    "classes": "ref:07960649:/Users/lihaoyi/Dropbox/Github/test//out/foo/compile/dest/classes"
 }
 ```
 
@@ -520,16 +523,18 @@ build:
 
 ```bash
 $ mill show foo.sources
+[1/1] show
+[1/1] foo.sources
 [
-    "/Users/lihaoyi/Dropbox/Github/test/foo/src"
+    "ref:8befb7a8:/Users/lihaoyi/Dropbox/Github/test/foo/src"
 ]
 
-$ mill show foo.compileDepClasspath
+$ mill show foo.compileClasspath
+[1/1] show
+[2/11] foo.resources
 [
-    ".../org/scala-lang/scala-compiler/2.12.4/scala-compiler-2.12.4.jar",
-    ".../org/scala-lang/scala-library/2.12.4/scala-library-2.12.4.jar",
-    ".../org/scala-lang/scala-reflect/2.12.4/scala-reflect-2.12.4.jar",
-    ".../org/scala-lang/modules/scala-xml_2.12/1.0.6/scala-xml_2.12-1.0.6.jar"
+    "ref:c984eca8:/Users/lihaoyi/Dropbox/Github/test/foo/resources",
+    ".../org/scala-lang/scala-library/2.13.1/scala-library-2.13.1.jar"
 ]
 ```
 
@@ -539,13 +544,14 @@ JSON it outputs is structured and easily parsed & manipulated.
 ### path
 
 ```bash
-$ mill path core.assembly core.sources
-core.sources
-core.allSources
-core.allSourceFiles
-core.compile
-core.localClasspath
-core.assembly
+$ mill path foo.assembly foo.sources
+[1/1] path
+foo.sources
+foo.allSources
+foo.allSourceFiles
+foo.compile
+foo.localClasspath
+foo.assembly
 ```
 
 `mill path` prints out a dependency chain between the first task and the
@@ -556,17 +562,19 @@ dependency chains, one of them is picked arbitrarily.
 ### plan
 
 ```bash
-$ mill plan moduledefs.compileClasspath
-moduledefs.transitiveLocalClasspath
-moduledefs.resources
-moduledefs.unmanagedClasspath
-moduledefs.scalaVersion
-moduledefs.platformSuffix
-moduledefs.compileIvyDeps
-moduledefs.scalaLibraryIvyDeps
-moduledefs.ivyDeps
-moduledefs.transitiveIvyDeps
-moduledefs.compileClasspath
+$ mill plan foo.compileClasspath
+[1/1] plan
+foo.transitiveLocalClasspath
+foo.resources
+foo.unmanagedClasspath
+foo.scalaVersion
+foo.platformSuffix
+foo.compileIvyDeps
+foo.scalaOrganization
+foo.scalaLibraryIvyDeps
+foo.ivyDeps
+foo.transitiveIvyDeps
+foo.compileClasspath
 ```
 
 `mill plan foo` prints out what tasks would be evaluated, in what order, if you
@@ -579,7 +587,9 @@ individual upstream task to see exactly how `foo` depends on it.
 ### visualize
 
 ```bash
-$ mill show visualize core._
+$ mill show visualize foo._
+[1/1] show
+[3/3] visualize
 [
     ".../out/visualize/dest/out.txt",
     ".../out/visualize/dest/out.dot",
@@ -596,24 +606,14 @@ and `.json` for easy processing by downstream tools.
 
 The above command generates the following diagram:
 
-![VisualizeCore.svg](VisualizeCore.svg)
-
-Another use case is to view the relationships between modules:
-
-```bash
-$ mill show visualize __.compile
-```
-
-This command diagrams the relationships between the `compile` tasks of each
-module, which illustrates which module depends on which other module's
-compilation output:
-
-![VisualizeCompile.svg](VisualizeCompile.svg)
+![VisualizeFoo.svg](VisualizeFoo.svg)
 
 ### visualizePlan
 
 ```bash
-$ mill show visualizePlan moduledefs.compile
+$ mill show visualizePlan foo.compile
+[1/1] show
+[3/3] visualizePlan
 [
     ".../out/visualizePlan/dest/out.txt",
     ".../out/visualizePlan/dest/out.dot",
@@ -631,6 +631,25 @@ and dependencies are shown with a dotted border.
 The above command generates the following diagram:
 
 ![VisualizePlan.svg](VisualizePlan.svg)
+
+Another use case is to view the relationships between modules. For the following two modules:
+
+```scala
+// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.1"
+}
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+  def scalaVersion = "2.13.1"
+}
+```
+
+`mill show visualizePlan _.compile` diagrams the relationships between the compile tasks of each module, which illustrates which module depends on which other module's compilation output:
+
+![VisualizeCompile.svg](VisualizeCompile.svg)
 
 ### clean
 
@@ -689,31 +708,37 @@ your build file itself.
 $ mill -i
 Loading...
 @ foo
-res1: foo.type = ammonite.predef.build#foo:2
+res0: foo.type = ammonite.predef.build#foo:4
 Commands:
+    .ideaJavaModuleFacets(ideaConfigVersion: Int)()
+    .ideaConfigFiles(ideaConfigVersion: Int)()
+    .ivyDepsTree(inverse: Boolean, withCompile: Boolean, withRuntime: Boolean)()
     .runLocal(args: String*)()
     .run(args: String*)()
+    .runBackground(args: String*)()
+    .runMainBackground(mainClass: String, args: String*)()
     .runMainLocal(mainClass: String, args: String*)()
     .runMain(mainClass: String, args: String*)()
     .console()()
+    .repl(replOptions: String*)()
 Targets:
-    .allSources()
-    .artifactId()
-    .artifactName()
 ...
 
 @ foo.compile
-res3: mill.package.T[mill.scalalib.CompilationResult] = mill.scalalib.ScalaModule#compile:152
+res1: mill.package.T[mill.scalalib.api.CompilationResult] = foo.compile(ScalaModule.scala:143)
+    Compiles the current module to generate compiled classfiles/bytecode
+
 Inputs:
-    foo.scalaVersion
-    foo.allSources
-    foo.compileDepClasspath
+    foo.upstreamCompileOutput
+    foo.allSourceFiles
+    foo.compileClasspath
 ...
     
 @ foo.compile()
-res2: mill.scalalib.CompilationResult = CompilationResult(
-  root/'Users/'lihaoyi/'Dropbox/'Github/'test/'out/'foo/'compile/'dest/'zinc,
-  PathRef(root/'Users/'lihaoyi/'Dropbox/'Github/'test/'out/'foo/'compile/'dest/'classes, false)
+[25/25] foo.compile
+res2: mill.scalalib.api.CompilationResult = CompilationResult(
+  /Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/zinc,
+  PathRef(/Users/lihaoyi/Dropbox/Github/test/out/foo/compile/dest/classes, false, -61934706)
 )
 ```
 
@@ -738,7 +763,7 @@ build:
 import mill._, scalalib._
 
 object foo extends ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
 }
 ```
 
@@ -767,7 +792,7 @@ To publish to Maven Central, you need to make `foo` also extend Mill's
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.1"
   def publishVersion = "0.0.1"
 
   def pomSettings = PomSettings(
@@ -837,7 +862,7 @@ Each folder currently contains the following files:
 
 - `dest/`: a path for the `Task` to use either as a scratch space, or to place
   generated files that are returned using `PathRef`s. `Task`s should only output
-  files within their given `dest/` folder (available as `T.ctx.dest`) to avoid
+  files within their given `dest/` folder (available as `T.dest`) to avoid
   conflicting with other `Task`s, but files within `dest/` can be named
   arbitrarily.
 
@@ -846,7 +871,7 @@ Each folder currently contains the following files:
 
 - `meta.json`: the cache-key and JSON-serialized return-value of the
   `Target`/`Command`. The return-value can also be retrieved via `mill show
-  core.compile`. Binary blobs are typically not included in `meta.json`, and
+  foo.compile`. Binary blobs are typically not included in `meta.json`, and
   instead stored as separate binary files in `dest/` which are then referenced
   by `meta.json` via `PathRef`s
 

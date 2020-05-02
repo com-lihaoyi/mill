@@ -1,4 +1,4 @@
-import $ivy.`org.scalariform::scalariform:0.2.5`
+import $ivy.`org.scalariform::scalariform:0.2.10`
 
 import mill._, scalalib._
 

@@ -108,6 +108,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
       def isEmpty: Boolean = items.isEmpty
       def seq: scala.collection.TraversableOnce[V] = items
       def toTraversable: Traversable[V] = items.toTraversable
+      def iterator: Iterator[V] = items
 
       override def hashCode() = items.map(_.hashCode()).sum
       override def equals(other: Any) = other match{

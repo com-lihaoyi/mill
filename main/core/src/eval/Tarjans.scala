@@ -43,9 +43,9 @@ object Tarjans {
           lowlink(x) = Integer.MAX_VALUE
           if (x == u) done = true
         }
-        components.append(component)
+        components.append(component.toSeq)
       }
     }
-    components
+    components.toSeq
   }
 }

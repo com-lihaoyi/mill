@@ -9,7 +9,7 @@ import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
 import mill.eval.{Evaluator, PathRef, Result}
-import mill.util.{EitherOps, ParseArgs, Watched}
+import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import mill.api.Logger
 import mill.api.Strict.Agg
 
@@ -25,15 +25,15 @@ object RunScript{
   def runScript(home: os.Path,
                 wd: os.Path,
                 path: os.Path,
-                instantiateInterpreter: => Either[(Res.Failing, Seq[(os.Path, Long)]), ammonite.interp.Interpreter],
+                instantiateInterpreter: => Either[(Res.Failing, Seq[(ammonite.interp.Watchable, Long)]), ammonite.interp.Interpreter],
                 scriptArgs: Seq[String],
                 stateCache: Option[Evaluator.State],
-                log: Logger,
+                log: PrintLogger,
                 env : Map[String, String],
                 keepGoing: Boolean,
                 systemProperties: Map[String, String],
                 threadCount: Option[Int])
-  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(os.Path, Long)]) = {
+  : (Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])], Seq[(ammonite.interp.Watchable, Long)]) = {
 
     systemProperties.foreach {case (k,v) =>
       System.setProperty(k, v)
@@ -52,9 +52,9 @@ object RunScript{
                 rootModule,
                 rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader].classpathSignature,
                 mutable.Map.empty[Segments, (Int, Any)],
-                interp.watchedFiles
+                interp.watchedValues.toSeq
               )
-            (eval, interp.watchedFiles)
+            (eval, interp.watchedValues)
         }
     }
 
@@ -69,11 +69,11 @@ object RunScript{
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
-    (evaluated, interpWatched)
+    (evaluated, interpWatched.toSeq)
   }
 
-  def watchedSigUnchanged(sig: Seq[(os.Path, Long)]) = {
-    sig.forall{case (p, l) => Interpreter.pathSignature(p) == l}
+  def watchedSigUnchanged(sig: Seq[(ammonite.interp.Watchable, Long)]) = {
+    sig.forall{case (p, l) => p.poll() == l}
   }
 
   def evaluateRootModule(wd: os.Path,
@@ -210,7 +210,8 @@ object RunScript{
     val watched = evaluated.results
       .iterator
       .collect {
-        case (t: define.Sources, Result.Success(p: Seq[PathRef])) => p
+        case (t: define.Sources, Result.Success(ps: Seq[PathRef])) => ps
+        case (t: define.Source, Result.Success(p: PathRef)) => Seq(p)
       }
       .flatten
       .toSeq

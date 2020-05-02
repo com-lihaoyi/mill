@@ -40,7 +40,7 @@ object TestRunner {
           System.err,
           System.in,
           debugEnabled = false,
-          useContext = false
+          context = ""
         )
         val home = os.Path(homeStr)
       }
@@ -89,7 +89,7 @@ object TestRunner {
             yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
         )
 
-        val taskQueue = tasks.to[mutable.Queue]
+        val taskQueue = tasks.to(mutable.Queue)
         while (taskQueue.nonEmpty){
           val next = taskQueue.dequeue().execute(
             new EventHandler {
@@ -114,7 +114,7 @@ object TestRunner {
                 def info(msg: String) = ctx.log.outputStream.println(msg)
               })
           )
-          taskQueue.enqueue(next:_*)
+          taskQueue.enqueueAll(next)
         }
         runner.done()
       }
@@ -138,7 +138,7 @@ object TestRunner {
         )
       }
 
-      (doneMessages.mkString("\n"), results)
+      (doneMessages.mkString("\n"), results.toSeq)
     })
   }
 

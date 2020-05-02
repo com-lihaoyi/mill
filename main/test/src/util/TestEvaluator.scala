@@ -35,7 +35,7 @@ class TestEvaluator(
   val logger = new PrintLogger(
     colored = true, disableTicker=false,
     ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false,
-    useContext = false
+    context = ""
  ) {
     val prefix = {
       val idx = fullName.value.lastIndexOf(".")

@@ -148,6 +148,7 @@ object HelloNativeWorldTests extends TestSuite {
       testResults
         .groupBy(_.fullyQualifiedName)
         .mapValues(_.map(e => e.selector -> e).toMap)
+        .toMap
     }
 
     def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {

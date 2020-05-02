@@ -80,7 +80,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
-            Lib.depToDependency(_, "2.12.8", ""),
+            Lib.depToDependency(_, "2.13.2", ""),
             for(name <- artifactNames)
             yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
             false,
@@ -92,7 +92,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           {
             scalalib.Lib.resolveDependencies(
               repos.toList,
-              Lib.depToDependency(_, "2.12.8", ""),
+              Lib.depToDependency(_, "2.13.2", ""),
               for(name <- artifactNames)
               yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
               true,
@@ -241,7 +241,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
     //TODO: also check against fixed files
     val fileContributions: Seq[(RelPath, Elem)] = collisionFree(configFileContributions).toSeq.map {
       case (file, configs) =>
-        val map: Map[String, Seq[GenIdeaModule.Element]] = configs.groupBy(_.component).mapValues(_.flatMap(_.config))
+        val map: Map[String, Seq[GenIdeaModule.Element]] =
+          configs
+            .groupBy(_.component)
+            .mapValues(_.flatMap(_.config))
+            .toMap
         (os.rel / ".idea" / file) -> ideaConfigFileTemplate(map)
     }
 
@@ -251,6 +255,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .filter(_._2.size > 1)
       .mapValues(_.zipWithIndex)
       .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
+      .toMap
 
     val pathToLibName = allResolved
       .map(p => p -> pathShortLibNameDuplicate.getOrElse(p, p.last))
@@ -298,7 +303,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
       val artifactWithScalaVersion = artifactId.substring(artifactId.length - math.min(5, artifactId.length)) match {
         case scalaArtifactRegex(_*) => artifactId
-        case _ => artifactId + "_2.12"
+        case _ => artifactId + "_2.13"
       }
       s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }

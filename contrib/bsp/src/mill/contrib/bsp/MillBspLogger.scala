@@ -2,7 +2,7 @@ package mill.contrib.bsp
 
 import ch.epfl.scala.bsp4j._
 import mill.api.Logger
-import mill.util.ProxyLogger
+import mill.util.{ColorLogger, ProxyLogger}
 
 
 /**
@@ -18,7 +18,9 @@ import mill.util.ProxyLogger
   * @param logger the logger to which the messages received by this
   *               MillBspLogger are being redirected
   */
-class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger) extends ProxyLogger(logger) {
+class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
+  extends ProxyLogger(logger)  with ColorLogger {
+  def colors = ammonite.util.Colors.BlackWhite
 
   override def ticker(s: String): Unit = {
     try {

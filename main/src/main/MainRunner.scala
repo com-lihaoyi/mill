@@ -18,6 +18,7 @@ import mill.define.Segments
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
 class MainRunner(val config: ammonite.main.Cli.Config,
+                 mainInteractive: Boolean,
                  disableTicker: Boolean,
                  outprintStream: PrintStream,
                  errPrintStream: PrintStream,
@@ -36,11 +37,10 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
   var stateCache  = stateCache0
 
-  override def watchAndWait(watched: Seq[(os.Path, Long)]) = {
-    val dirCount = watched.count(f => os.isDir(f._1))
-    printInfo(s"Watching for changes to ${dirCount} dirs and ${watched.length - dirCount} files... (Ctrl-C to exit)")
+  override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
+    printInfo(s"Watching for changes to ${watched.size} values... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
-      Interpreter.pathSignature(file) == lastMTime
+      file.poll() == lastMTime
     }
     setIdle(true)
     while(statAll()) Thread.sleep(100)
@@ -54,7 +54,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     */
   @tailrec final def watchLoop2[T](isRepl: Boolean,
                                    printing: Boolean,
-                                   run: Main => (Res[T], () => Seq[(os.Path, Long)])): Boolean = {
+                                   run: Main => (Res[T], () => Seq[(ammonite.interp.Watchable, Long)])): Boolean = {
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
@@ -71,7 +71,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       printing = true,
       mainCfg => {
         val logger = new PrintLogger(
-          colors != ammonite.util.Colors.BlackWhite,
+          config.colored.getOrElse(mainInteractive),
           disableTicker,
           colors,
           outprintStream,
@@ -79,7 +79,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           errPrintStream,
           stdIn,
           debugEnabled = debugLog,
-          useContext = true
+          context = ""
         )
         logger.debug(s"Using explicit system properties: ${systemProperties}")
 
@@ -110,8 +110,12 @@ class MainRunner(val config: ammonite.main.Cli.Config,
               // pathSignatures the same way Ammonite would and hand over the
               // values, so Ammonite can watch them and only re-run if they
               // subsequently change
-              if (alreadyStale) evalWatches.map(_.path -> util.Random.nextLong())
-              else evalWatches.map(p => p.path -> Interpreter.pathSignature(p.path))
+              if (alreadyStale) evalWatches.map(p =>
+                (ammonite.interp.Watchable.Path(p.path), util.Random.nextLong())
+              )
+              else evalWatches.map(p =>
+                (ammonite.interp.Watchable.Path(p.path), ammonite.interp.Watchable.pathSignature(p.path))
+              )
             }
             (Res(res), () => interpWatched ++ watched())
           case _ => (result, () => interpWatched)

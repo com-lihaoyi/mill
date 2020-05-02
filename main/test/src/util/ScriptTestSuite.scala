@@ -22,6 +22,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val threadCount = Try(sys.props("MILL_THREAD_COUNT").toInt).toOption
   lazy val runner = new mill.main.MainRunner(
     config = ammonite.main.Cli.Config(wd = wd),
+    mainInteractive = false,
     disableTicker = disableTicker,
     outprintStream = stdOutErr,
     errPrintStream = stdOutErr,
