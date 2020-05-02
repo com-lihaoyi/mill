@@ -104,7 +104,7 @@ macros which allow you to use `Task#apply()` within the block to "extract" a
 value.
 
 ```scala
-def test() = T.command {
+def testUncached() = T.command {
   TestRunner.apply(
    "mill.UTestFramework",
    runDepClasspath().map(_.path) :+ compile().path,
@@ -116,7 +116,7 @@ def test() = T.command {
 This is roughly equivalent to the following:
 
 ```scala
-def test() = T.command { T.zipMap(runDepClasspath, compile, compile) { 
+def testUncached() = T.command { T.zipMap(runDepClasspath, compile, compile) { 
   (runDepClasspath1, compile2, compile3) =>
   TestRunner.apply(
     "mill.UTestFramework",
