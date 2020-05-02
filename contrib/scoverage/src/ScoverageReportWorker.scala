@@ -3,7 +3,7 @@ package mill.contrib.scoverage
 import mill.{Agg, T}
 import mill.api.{ClassLoader, Ctx}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
-import mill.define.{Discover, ExternalModule}
+import mill.define.{Discover, ExternalModule, Worker}
 
 class ScoverageReportWorker {
   private var scoverageInstanceCache = Option.empty[(Long, api.ScoverageReportWorkerApi)]
@@ -34,6 +34,6 @@ class ScoverageReportWorker {
 
 object ScoverageReportWorker extends ExternalModule {
 
-  def scoverageReportWorker = T.worker { new ScoverageReportWorker() }
+  def scoverageReportWorker: Worker[ScoverageReportWorker] = T.worker { new ScoverageReportWorker() }
   lazy val millDiscover = Discover[this.type]
 }
