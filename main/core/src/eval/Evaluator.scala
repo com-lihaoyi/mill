@@ -99,12 +99,12 @@ case class Evaluator(
 
         val startTime = System.currentTimeMillis()
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
+        val counterMsg = (i+1) + "/" + sortedGroups.keyCount
         val Evaluated(newResults, newEvaluated, cached) = evaluateGroupCached(
           terminal,
           group,
           results,
-          (i+1),
-          sortedGroups.keyCount,
+          counterMsg,
           reporter,
           testReporter,
           logger
@@ -186,14 +186,14 @@ case class Evaluator(
 
             val startTime = System.currentTimeMillis()
             val threadId = timeLog.getThreadId(Thread.currentThread().getName())
+            val fraction = s"${count.getAndIncrement()}/$totalCount"
             val contextLogger = new PrefixLogger(logger, context = s"[#$threadId] ")
 
             val res = evaluateGroupCached(
               k,
               sortedGroups.lookupKey(k),
               upstreamResults,
-              count.getAndIncrement(),
-              totalCount,
+              fraction,
               reporter,
               testReporter,
               contextLogger
@@ -248,13 +248,12 @@ case class Evaluator(
   protected def evaluateGroupCached(terminal: Terminal,
     group: Agg[Task[_]],
     results: collection.Map[Task[_], Result[(Any, Int)]],
-    counterNum: Int,
-    counterTotal: Int,
+    counterMsg: String,
     zincProblemReporter: Int => Option[BuildProblemReporter],
     testReporter: TestReporter,
     logger: ColorLogger
   ): Evaluated = {
-    val counterMsg = s"$counterNum/$counterTotal"
+
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(
       group.items.flatMap(_.inputs).filter(!group.contains(_))
         .flatMap(results(_).asSuccess.map(_.value._2))
@@ -268,7 +267,6 @@ case class Evaluator(
 
     terminal match {
       case Left(task) =>
-
         val (newResults, newEvaluated) = evaluateGroup(
           group,
           results,
@@ -288,10 +286,7 @@ case class Evaluator(
 
         val paths = Evaluator.resolveDestPaths(
           out,
-          destSegments(labelledNamedTask) ++ (labelledNamedTask.task match{
-            case c: Command[_] => Seq(Segment.Label(s"run-$counterNum"))
-            case _ => Nil
-          })
+          destSegments(labelledNamedTask)
         )
 
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
