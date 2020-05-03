@@ -43,7 +43,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       case (_, _) => Right(())
     }
     val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
-    printInfo(s"Watching for changes to ${watchedPaths} values$watchedValueStr... (Ctrl-C to exit)")
+    printInfo(s"Watching for changes to ${watchedPaths.size} values$watchedValueStr... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       file.poll() == lastMTime
     }
@@ -70,13 +70,17 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     }
   }
 
+
+  val colored = config.colored.getOrElse(mainInteractive)
+
+  override val colors = if(colored) Colors.Default else Colors.BlackWhite
   override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
     watchLoop2(
       isRepl = false,
       printing = true,
       mainCfg => {
         val logger = new PrintLogger(
-          config.colored.getOrElse(mainInteractive),
+          colored,
           disableTicker,
           colors,
           outprintStream,
