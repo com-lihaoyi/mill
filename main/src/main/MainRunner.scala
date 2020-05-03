@@ -43,7 +43,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       case (_, _) => Right(())
     }
     val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
-    printInfo(s"Watching for changes to ${watchedPaths.size} values$watchedValueStr... (Ctrl-C to exit)")
+    printInfo(s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Ctrl-C to exit)")
     def statAll() = watched.forall{ case (file, lastMTime) =>
       file.poll() == lastMTime
     }
