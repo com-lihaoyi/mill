@@ -43,10 +43,10 @@ jobs:
 
 
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release-github.sh"
+    env: CI_SCRIPT="ci/on-master-or-main-branch.py ci/release-github.sh"
     jdk: oraclejdk9
   - stage: release
-    env: CI_SCRIPT="ci/on-master.py ci/release-maven.sh"
+    env: CI_SCRIPT="ci/on-master-or-main-branch.py ci/release-maven.sh"
     jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
