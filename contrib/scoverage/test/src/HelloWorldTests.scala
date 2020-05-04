@@ -107,11 +107,11 @@ object HelloWorldTests extends utest.TestSuite {
               evalCount > 0
             )
           }
-          "dataDir" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.dataDir)
+          "data" - workspaceTest(HelloWorld) { eval =>
+            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
 
             assert(
-              result.path.toIO.getPath.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/dataDir/core/scoverage/dataDir/dest"),
+              result.path.toIO.getPath.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data/dest"),
               evalCount > 0
             )
           }

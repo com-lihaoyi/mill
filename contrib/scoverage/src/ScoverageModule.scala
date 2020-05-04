@@ -2,11 +2,12 @@ package mill
 package contrib
 package scoverage
 
-import coursier.MavenRepository
+import coursier.{MavenRepository, Repository}
+import mill.api.Loose
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
-import mill.define.Persistent
+import mill.define.{Command, Persistent, Sources, Target, Task}
 import mill.eval.PathRef
-import mill.scalalib.{DepSyntax, JavaModule, Lib, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule}
 
 
 /** Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -56,14 +57,14 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     */
   def scoverageVersion: T[String]
 
-  private def scoverageRuntimeDep = T {
+  def scoverageRuntimeDep = T {
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
-  private def scoveragePluginDep = T {
+  def scoveragePluginDep = T {
     ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
-  private def toolsClasspath = T {
+  def toolsClasspath = T {
     scoverageReportWorkerClasspath() ++ scoverageClasspath()
   }
 
@@ -86,41 +87,43 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     )
   }
 
-  object scoverage extends ScalaModule {
-    private def doReport(reportType: ReportType) = T.task {
+  val scoverage: ScoverageData = new ScoverageData(implicitly)
+  class ScoverageData(ctx0: mill.define.Ctx) extends Module()(ctx0) with ScalaModule {
+
+    def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
         .scoverageReportWorker()
         .bridge(toolsClasspath().map(_.path))
-        .report(reportType, allSources().map(_.path), dataDir().path)
+        .report(reportType, allSources().map(_.path), Seq(data().path))
     }
 
     /**
       * The persistent data dir used to store scoverage coverage data.
       * Use to store coverage data at compile-time and by the various report targets.
       */
-    def dataDir: Persistent[PathRef] = T.persistent {
+    def data: Persistent[PathRef] = T.persistent {
       // via the persistent target, we ensure, the dest dir doesn't get cleared
       PathRef(T.dest)
     }
 
-    override def generatedSources = outer.generatedSources()
-    override def allSources = outer.allSources()
-    override def moduleDeps = outer.moduleDeps
-    override def sources = outer.sources
-    override def resources = outer.resources
-    override def scalaVersion = outer.scalaVersion()
-    override def repositories = outer.repositories
-    override def compileIvyDeps = outer.compileIvyDeps()
-    override def ivyDeps = outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep())
-    override def unmanagedClasspath = outer.unmanagedClasspath()
+    override def generatedSources: Target[Seq[PathRef]] = T{ outer.generatedSources() }
+    override def allSources: Target[Seq[PathRef]] = T{ outer.allSources() }
+    override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
+    override def sources: Sources = T.sources { outer.sources() }
+    override def resources: Sources = T.sources { outer.resources() }
+    override def scalaVersion = T{ outer.scalaVersion() }
+    override def repositories: Seq[Repository] = outer.repositories
+    override def compileIvyDeps: Target[Loose.Agg[Dep]] = T{ outer.compileIvyDeps() }
+    override def ivyDeps: Target[Loose.Agg[Dep]] = T{ outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep()) }
+    override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T{ outer.unmanagedClasspath() }
     /** Add the scoverage scalac plugin. */
-    override def scalacPluginIvyDeps = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
+    override def scalacPluginIvyDeps: Target[Loose.Agg[Dep]] = T{ outer.scalacPluginIvyDeps() ++ Agg(outer.scoveragePluginDep()) }
     /** Add the scoverage specific plugin settings (`dataDir`). */
-    override def scalacOptions = T{ outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${dataDir().path.toIO.getPath()}") }
+    override def scalacOptions: Target[Seq[String]] = T{ outer.scalacOptions() ++ Seq(s"-P:scoverage:dataDir:${data().path.toIO.getPath()}") }
 
-    def htmlReport() = T.command { doReport(ReportType.Html) }
-    def xmlReport() = T.command { doReport(ReportType.Xml) }
-    def consoleReport() = T.command { doReport(ReportType.Console) }
+    def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
+    def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }
+    def consoleReport(): Command[Unit] = T.command { doReport(ReportType.Console) }
   }
 
   trait ScoverageTests extends outer.Tests {
