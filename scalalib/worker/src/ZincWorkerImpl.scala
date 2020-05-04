@@ -345,7 +345,9 @@ class ZincWorkerImpl(compilerBridge: Either[
         loader = getCachedClassLoader(compilersSig, combinedCompilerJars),
         libraryJar = libraryJarNameGrep(
           compilerClasspath,
-          if (isDotty(scalaVersion)) "2.13.0" else scalaVersion
+          // we don't support too outdated dotty versions
+          // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
+          if (isDotty(scalaVersion)) "2.13." else scalaVersion
         ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,
