@@ -1,9 +1,7 @@
 package mill.scalalib.publish
 
 import java.util.Base64
-
-
-
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 
 
@@ -108,6 +106,7 @@ class SonatypeHttpApi(
         data = s"""{"data": {"stagedRepositoryId": "${repositoryId}", "description": "drop staging repository"}}"""
       )
     )
+
     response.statusCode == 201
   }
 
@@ -125,12 +124,14 @@ class SonatypeHttpApi(
     )
   }
 
+  @tailrec
   private def withRetry(request: => requests.Response,
-                        retries: Int = 10): requests.Response = {
+                        retries: Int = 10,
+                        initialTimeout: FiniteDuration = 100.millis): requests.Response = {
     val resp = request
     if (resp.is5xx && retries > 0) {
-      Thread.sleep(500)
-      withRetry(request, retries - 1)
+      Thread.sleep(initialTimeout.toMillis)
+      withRetry(request, retries - 1, initialTimeout * 2)
     } else {
       resp
     }
