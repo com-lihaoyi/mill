@@ -9,7 +9,7 @@ tasks to be executed from the IDE.
 # Importing an existing mill project in IntelliJ via BSP
 
 1) Clone the mill git repo
-2) Publish your mill version locally with `ci/publish-contrib`
+2) Publish your mill version locally with `ci/publish-local`
 3) Run the following command in the working directory of your project:
    
                    `~/mill-release -i mill.contrib.BSP/install`
