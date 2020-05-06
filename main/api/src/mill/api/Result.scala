@@ -1,11 +1,15 @@
 package mill.api
 
+import scala.language.implicitConversions
+
 /**
  * The result of a task execution.
+ *
  * @tparam T The result type of the computed task.
  */
 sealed trait Result[+T] {
   def map[V](f: T => V): Result[V]
+  def flatMap[V](f: T => Result[V]): Result[V]
   def asSuccess: Option[Result.Success[T]] = None
 }
 
@@ -21,22 +25,25 @@ object Result {
    * @tparam T The result type of the computed task.
    */
   case class Success[+T](value: T) extends Result[T] {
-    def map[V](f: T => V) = Result.Success(f(value))
-    override def asSuccess = Some(this)
+    def map[V](f: T => V): Success[V] = Result.Success(f(value))
+    def flatMap[V](f: T => Result[V]): Result[V] = f(value)
+    override def asSuccess: Option[Success[T]] = Some(this)
   }
 
   /**
    * A task execution was skipped because of failures in it's dependencies.
    */
   case object Skipped extends Result[Nothing] {
-    def map[V](f: Nothing => V) = this
+    def map[V](f: Nothing => V): Skipped.type = this
+    def flatMap[V](f: Nothing => Result[V]): Skipped.type = this
   }
 
   /**
    * A task execution was skipped/aborted because of earlier (maybe unrelated) tasks failed and the evaluation was in fail-fast mode.
    */
   case object Aborted extends Result[Nothing] {
-    def map[V](f: Nothing => V) = this
+    def map[V](f: Nothing => V): Aborted.type = this
+    def flatMap[V](f: Nothing => Result[V]): Aborted.type = this
   }
 
   /**
@@ -45,6 +52,7 @@ object Result {
    */
   sealed trait Failing[+T] extends Result[T] {
     def map[V](f: T => V): Failing[V]
+    def flatMap[V](f: T => Result[V]): Failing[V]
   }
 
   /**
@@ -54,7 +62,8 @@ object Result {
    * @tparam T The result type of the computed task.
    */
   case class Failure[T](msg: String, value: Option[T] = None) extends Failing[T] {
-    def map[V](f: T => V) = Result.Failure(msg, value.map(f(_)))
+    def map[V](f: T => V): Failure[V] = Result.Failure(msg, value.map(f(_)))
+    def flatMap[V](f: T => Result[V]): Failure[V] = Failure(msg, value.flatMap(f(_).asSuccess.map(_.value)))
   }
 
   /**
@@ -63,7 +72,8 @@ object Result {
    * @param outerStack The [[OuterStack]] of the failed task.
    */
   case class Exception(throwable: Throwable, outerStack: OuterStack) extends Failing[Nothing] {
-    def map[V](f: Nothing => V) = this
+    def map[V](f: Nothing => V): Exception = this
+    def flatMap[V](f: Nothing => Result[V]): Exception = this
   }
 
   class OuterStack(val value: Seq[StackTraceElement]) {
