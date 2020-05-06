@@ -9,9 +9,8 @@ import os.Shellable
 class SonatypePublisher(uri: String,
                         snapshotUri: String,
                         credentials: String,
-                        gpgPassphrase: Option[String],
-                        gpgKeyName: Option[String],
                         signed: Boolean,
+                        gpgArgs: Seq[String],
                         readTimeout: Int,
                         connectTimeout: Int,
                         log: Logger,
@@ -25,7 +24,6 @@ class SonatypePublisher(uri: String,
   }
 
   def publishAll(release: Boolean, artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
-
     val mappings = for ((fileMapping0, artifact) <- artifacts) yield {
       val publishPath = Seq(
         artifact.group.replace(".", "/"),
@@ -35,7 +33,7 @@ class SonatypePublisher(uri: String,
       val fileMapping = fileMapping0.map { case (file, name) => (file, publishPath + "/" + name) }
 
       val signedArtifacts = if (signed) fileMapping.map {
-        case (file, name) => poorMansSign(file, gpgPassphrase, gpgKeyName) -> s"$name.asc"
+        case (file, name) => gpgSigned(file, gpgArgs) -> s"$name.asc"
       } else Seq()
 
       artifact -> (fileMapping ++ signedArtifacts).flatMap {
@@ -122,7 +120,7 @@ class SonatypePublisher(uri: String,
   }
 
   private def reportPublishResults(publishResults: Seq[requests.Response],
-                                   artifacts: Seq[Artifact]) = {
+                                   artifacts: Seq[Artifact]): Unit = {
     if (publishResults.forall(_.is2xx)) {
       log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Sonatype")
     } else {
@@ -154,12 +152,9 @@ class SonatypePublisher(uri: String,
   }
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
-  private def poorMansSign(file: os.Path, maybePassphrase: Option[String], maybeKeyName: Option[String]): os.Path = {
+  private def gpgSigned(file: os.Path, args: Seq[String]): os.Path = {
     val fileName = file.toString
-    val optionFlag = (flag: String, ov: Option[String]) => ov.map(flag :: _ :: Nil).getOrElse(Nil)
-    val command = "gpg" ::
-      optionFlag("--passphrase", maybePassphrase) ++ optionFlag("-u", maybeKeyName) ++
-        Seq("--batch", "--yes", "-a", "-b", fileName)
+    val command = "gpg" +: args :+ fileName
 
     os.proc(command.map(v => v: Shellable))
       .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
