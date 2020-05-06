@@ -61,6 +61,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         new BloopOps(self).bloop.config()
       }
     }
+
+    /**
+      * Setting to true enables the bloop configuration generation
+      */
+    def skipBloop: Boolean = false
   }
 
   /**
@@ -97,15 +102,20 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
   }
 
-  private def computeModules: Seq[JavaModule] = {
+  protected def computeModules: Seq[JavaModule] = {
     val eval = ev()
     if (eval != null) {
       val rootModule = eval.rootModule
       rootModule.millInternal.segmentsToModules.values.collect {
-        case m: scalalib.JavaModule => m
+        case m: scalalib.JavaModule if !skippable(m) => m
       }.toSeq
     } else Seq()
   }
+
+  // class-based pattern matching against path-dependant types doesn't seem to work.
+  private def skippable(module: scalalib.JavaModule) : Boolean =
+    if(module.isInstanceOf[outer.Module]) module.asInstanceOf[outer.Module].skipBloop
+    else false
 
   /**
     * Computes sources files paths for the whole project. Cached in a way
@@ -206,6 +216,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
               mode = m.releaseMode() match {
                 case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
                 case ReleaseMode.Release => BloopConfig.LinkerMode.Release
+                case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
+                case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
               targetTriple = m.nativeTarget(),
