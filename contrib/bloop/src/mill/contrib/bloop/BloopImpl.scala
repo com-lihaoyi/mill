@@ -63,7 +63,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
 
     /**
-      * Setting to true enables the bloop configuration generation
+      * Setting to true enables skipping the bloop configuration generation
       */
     def skipBloop: Boolean = false
   }
