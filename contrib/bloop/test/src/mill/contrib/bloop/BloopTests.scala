@@ -57,6 +57,11 @@ object BloopTests extends TestSuite {
       override def releaseMode = T(ReleaseMode.Release)
     }
 
+    object skippedModule extends scalalib.ScalaModule with testBloop.Module {
+      def scalaVersion = "2.12.8"
+      override def skipBloop: Boolean = true
+    }
+
 
   }
 
@@ -161,6 +166,10 @@ object BloopTests extends TestSuite {
         assert(version == "2.11.12")
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
         assert(platform.config.clang == clang.toNIO)
+      }
+      'skipped - {
+        val exists = os.exists(workdir / ".bloop" / "skippedModule.json")
+        assert(exists == false)
       }
     }
   }
