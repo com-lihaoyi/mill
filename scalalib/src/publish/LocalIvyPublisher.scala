@@ -24,7 +24,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy -> releaseDir / "ivys" / "ivy.xml"
     )
     writeFiles(extras.map { entry =>
-      (entry.file.path, releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.ivyClassifier.mkString("-", "", "")}.${entry.ivyExt}")
+      (entry.file.path, releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.classifierPart}.${entry.ivyExt}")
     }: _*)
   }
 

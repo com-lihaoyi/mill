@@ -22,8 +22,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
       docJar -> releaseDir / s"${artifact.id}-${artifact.version}-javadoc.jar",
       pom -> releaseDir / s"${artifact.id}-${artifact.version}.pom"
     ) ++ extras.map { e =>
-      e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.ivyClassifier.mkString("-", "", "")}.${e.ivyExt}"
-        //case (file, suffix) => file -> releaseDir / s"${artifact.id}-${artifact.version}${suffix}"
+      e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ivyExt}"
     }
     toCopy.map {
         case (from, to) =>

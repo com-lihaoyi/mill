@@ -16,7 +16,9 @@ case class ExtraPublish(
   ivyClassifier: Option[String] = None,
   ivyConfig: String = "compile",
   ivyExt: String = "jar"
-)
+) {
+  val classifierPart : String = ivyClassifier.map(c => s"-$c").getOrElse("")
+}
 
 object ExtraPublish {
   implicit def jsonify: upickle.default.ReadWriter[ExtraPublish] = upickle.default.macroRW
