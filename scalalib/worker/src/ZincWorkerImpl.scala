@@ -381,7 +381,7 @@ class ZincWorkerImpl(compilerBridge: Either[
     val logger = LogExchange.logger(loggerId)
     LogExchange.unbindLoggerAppenders(loggerId)
     LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
-    
+
     val newReporter = reporter match {
       case None => new ManagedLoggedReporter(10, logger)
       case Some(r) => new ManagedLoggedReporter(10, logger) {
