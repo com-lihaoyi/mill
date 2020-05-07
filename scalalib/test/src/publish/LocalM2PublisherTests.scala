@@ -28,6 +28,7 @@ object LocalM2PublisherTests extends TestSuite {
         repo / "pom",
         artifact,
         Seq(ExtraPublish(file = PathRef(repo / "extra"), ivyClassifier = Some("extra")))
+      )
       val expected = Set(
         subrepo / "id-version.jar",
         subrepo / "id-version.pom",
