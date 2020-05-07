@@ -42,7 +42,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def ivy: Target[PathRef] = T {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps())
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)

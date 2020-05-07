@@ -15,7 +15,12 @@ object Ivy {
   ): String = {
 
     def renderExtra(e : ExtraPublish) : Elem = {
-      <artifact name={artifact.id} />
+      e.ivyClassifier match {
+        case None =>
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ivyExt} conf={e.ivyConfig} />
+        case Some(c) =>
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ivyExt} conf={e.ivyConfig} e:classifier={c} />
+      }
     }
 
     val xml =
