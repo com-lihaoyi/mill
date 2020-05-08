@@ -10,7 +10,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
     docJar: os.Path,
     pom: os.Path,
     artifact: Artifact,
-    extras: Seq[ExtraPublish]
+    extras: Seq[PublishInfo]
   )(implicit ctx: Ctx.Log): Seq[os.Path] = {
 
     val releaseDir = m2Repo / artifact.group.split("[.]") / artifact.id / artifact.version
@@ -22,7 +22,7 @@ class LocalM2Publisher(m2Repo: os.Path) {
       docJar -> releaseDir / s"${artifact.id}-${artifact.version}-javadoc.jar",
       pom -> releaseDir / s"${artifact.id}-${artifact.version}.pom"
     ) ++ extras.map { e =>
-      e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ivyExt}"
+      e.file.path -> releaseDir / s"${artifact.id}-${artifact.version}${e.classifierPart}.${e.ext}"
     }
     toCopy.map {
         case (from, to) =>

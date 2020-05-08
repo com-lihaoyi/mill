@@ -24,8 +24,8 @@ object IvyTests extends TestSuite {
     )
 
     val extras = Seq(
-      ExtraPublish(file = dummyFile, ivyClassifier = Some("dist")),
-      ExtraPublish(file = dummyFile, ivyType = "dist", ivyExt = "zip", ivyConfig = "runtime", ivyClassifier = None)
+      PublishInfo(file = dummyFile, classifier = Some("dist"), ivyConfig = "compile"),
+      PublishInfo(file = dummyFile, ivyType = "dist", ext = "zip", ivyConfig = "runtime", classifier = None)
     )
 
     'fullIvy - {
@@ -50,7 +50,7 @@ object IvyTests extends TestSuite {
           IvyInfo(artifact.id, "src", "jar", "compile", Some("sources")),
           IvyInfo(artifact.id, "doc", "jar", "compile", Some("javadoc")),
         ) ++ extras.map(e => IvyInfo(
-          artifact.id, e.ivyType, e.ivyExt, e.ivyConfig, e.ivyClassifier
+          artifact.id, e.ivyType, e.ext, e.ivyConfig, e.classifier
         ))
 
         expected.foreach(exp => assert(publications.contains(exp)))
@@ -90,9 +90,9 @@ object IvyTests extends TestSuite {
   private case class IvyInfo(
     name : String,
     ivyType : String,
-    ivyExt: String,
+    ext: String,
     ivyConf: String,
-    ivyClassifier: Option[String]
+    classifier: Option[String]
   )
 
   private object IvyInfo {
@@ -100,9 +100,9 @@ object IvyTests extends TestSuite {
       IvyInfo(
         name = mandatoryAttr(node, "name"),
         ivyType = mandatoryAttr(node, "type"),
-        ivyExt = mandatoryAttr(node, "ext"),
+        ext = mandatoryAttr(node, "ext"),
         ivyConf = mandatoryAttr(node, "conf"),
-        ivyClassifier = optionalAttr(node, "e:classifier")
+        classifier = optionalAttr(node, "e:classifier")
       )
     }
   }

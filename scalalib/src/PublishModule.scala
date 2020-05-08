@@ -55,7 +55,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
     * Extra artifacts to publish.
     */
-  def extraPublish: Target[Seq[ExtraPublish]] = T{ Seq.empty[ExtraPublish] }
+  def extraPublish: Target[Seq[PublishInfo]] = T{ Seq.empty[PublishInfo] }
 
   /**
     * Publish artifacts to a local ivy repository.
@@ -110,7 +110,7 @@ trait PublishModule extends JavaModule { outer =>
         sourceJar() -> s"$baseName-sources.jar",
         docJar() -> s"$baseName-javadoc.jar",
         pom() -> s"$baseName.pom"
-      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.ivyClassifier.mkString("-", "", "")}.${p.ivyExt}"))
+      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifier.mkString("-", "", "")}.${p.ext}"))
     )
   }
 

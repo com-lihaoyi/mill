@@ -11,7 +11,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       pom: os.Path,
       ivy: os.Path,
       artifact: Artifact,
-      extras: Seq[ExtraPublish]
+      extras: Seq[PublishInfo]
   )(implicit ctx: Ctx.Log): Unit = {
 
     ctx.log.info(s"Publishing ${artifact} to ivy repo ${localIvyRepo}")
@@ -24,7 +24,7 @@ class LocalIvyPublisher(localIvyRepo: os.Path) {
       ivy -> releaseDir / "ivys" / "ivy.xml"
     )
     writeFiles(extras.map { entry =>
-      (entry.file.path, releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.classifierPart}.${entry.ivyExt}")
+      (entry.file.path, releaseDir / s"${entry.ivyType}s" / s"${artifact.id}${entry.classifierPart}.${entry.ext}")
     }: _*)
   }
 

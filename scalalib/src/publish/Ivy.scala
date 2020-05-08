@@ -11,15 +11,15 @@ object Ivy {
   def apply(
     artifact: Artifact,
     dependencies: Agg[Dependency],
-    extras: Seq[ExtraPublish] = Seq.empty
+    extras: Seq[PublishInfo] = Seq.empty
   ): String = {
 
-    def renderExtra(e : ExtraPublish) : Elem = {
-      e.ivyClassifier match {
+    def renderExtra(e : PublishInfo) : Elem = {
+      e.classifier match {
         case None =>
-          <artifact name={artifact.id} type={e.ivyType} ext={e.ivyExt} conf={e.ivyConfig} />
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} />
         case Some(c) =>
-          <artifact name={artifact.id} type={e.ivyType} ext={e.ivyExt} conf={e.ivyConfig} e:classifier={c} />
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} e:classifier={c} />
       }
     }
 
