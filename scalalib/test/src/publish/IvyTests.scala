@@ -8,9 +8,12 @@ import scala.xml.{Node, NodeSeq, XML}
 object IvyTests extends TestSuite {
 
   def tests: Tests = Tests {
-    val artifactId = "mill-scalalib_2.12"
+
+    val dummyFile : PathRef =  PathRef(os.temp.dir() / "dummy.txt")
+
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
+
     val deps = Agg(
       Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"),
         Scope.Compile),
@@ -20,16 +23,37 @@ object IvyTests extends TestSuite {
         Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
     )
 
+    val extras = Seq(
+      PublishInfo(file = dummyFile, classifier = Some("dist"), ivyConfig = "compile"),
+      PublishInfo(file = dummyFile, ivyType = "dist", ext = "zip", ivyConfig = "runtime", classifier = None)
+    )
+
     'fullIvy - {
-      val fullIvy = XML.loadString(Ivy(artifact, deps))
+      val fullIvy = XML.loadString(Ivy(artifact, deps, extras))
 
       'topLevel - {
         val info = singleNode(fullIvy \ "info")
         assert(
-          singleAttr(info, "organisation") == artifact.group,
-          singleAttr(info, "module") == artifact.id,
-          singleAttr(info, "revision") == artifact.version
+          mandatoryAttr(info, "organisation") == artifact.group,
+          mandatoryAttr(info, "module") == artifact.id,
+          mandatoryAttr(info, "revision") == artifact.version
         )
+      }
+
+      'publications - {
+        val publications : List[IvyInfo] = (fullIvy \ "publications" \ "artifact").iterator.map(IvyInfo.apply).toList
+        assert(publications.size == 4 + extras.size)
+
+        val expected : List[IvyInfo] = List(
+          IvyInfo(artifact.id, "pom", "pom", "pom", None),
+          IvyInfo(artifact.id, "jar", "jar", "compile", None),
+          IvyInfo(artifact.id, "src", "jar", "compile", Some("sources")),
+          IvyInfo(artifact.id, "doc", "jar", "compile", Some("javadoc")),
+        ) ++ extras.map(e => IvyInfo(
+          artifact.id, e.ivyType, e.ext, e.ivyConfig, e.classifier
+        ))
+
+        expected.foreach(exp => assert(publications.contains(exp)))
       }
 
       'dependencies - {
@@ -40,12 +64,12 @@ object IvyTests extends TestSuite {
 
         dependencies.zipWithIndex.foreach { case (dep, index) =>
           assert(
-            singleAttr(dep, "org") == ivyDeps(index).artifact.group,
-            singleAttr(dep, "name") == ivyDeps(index).artifact.id,
-            singleAttr(dep, "rev") == ivyDeps(index).artifact.version,
+            mandatoryAttr(dep, "org") == ivyDeps(index).artifact.group,
+            mandatoryAttr(dep, "name") == ivyDeps(index).artifact.id,
+            mandatoryAttr(dep, "rev") == ivyDeps(index).artifact.version,
             (dep \ "exclude").zipWithIndex forall { case (exclude, j) =>
-              singleAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
-                singleAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
+              mandatoryAttr(exclude, "org") == ivyDeps(index).exclusions(j)._1 &&
+                mandatoryAttr(exclude, "name") == ivyDeps(index).exclusions(j)._2
             }
           )
         }
@@ -53,8 +77,33 @@ object IvyTests extends TestSuite {
     }
   }
 
-  def singleNode(seq: NodeSeq): Node =
+  private def singleNode(seq: NodeSeq): Node =
     seq.headOption.getOrElse(throw new RuntimeException("empty seq"))
-  def singleAttr(node: Node, attr: String): String =
-    node.attribute(attr).flatMap(_.headOption.map(_.text)).getOrElse(throw new RuntimeException(s"empty attr $attr"))
+
+  private def mandatoryAttr(node: Node, attr: String): String =
+    optionalAttr(node, attr).getOrElse(throw new RuntimeException(s"empty attr $attr"))
+
+  private def optionalAttr(node : Node, attr: String) : Option[String] = {
+    node.attributes.asAttrMap.get(attr)
+  }
+
+  private case class IvyInfo(
+    name : String,
+    ivyType : String,
+    ext: String,
+    ivyConf: String,
+    classifier: Option[String]
+  )
+
+  private object IvyInfo {
+    def apply(node : Node) : IvyInfo = {
+      IvyInfo(
+        name = mandatoryAttr(node, "name"),
+        ivyType = mandatoryAttr(node, "type"),
+        ext = mandatoryAttr(node, "ext"),
+        ivyConf = mandatoryAttr(node, "conf"),
+        classifier = optionalAttr(node, "e:classifier")
+      )
+    }
+  }
 }
