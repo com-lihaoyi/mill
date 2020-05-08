@@ -2,16 +2,27 @@ package mill.scalalib.publish
 
 import mill.api.Loose.Agg
 
-import scala.xml.PrettyPrinter
+import scala.xml.{Elem, PrettyPrinter}
 
 object Ivy {
 
   val head = "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n"
 
   def apply(
-      artifact: Artifact,
-      dependencies: Agg[Dependency]
+    artifact: Artifact,
+    dependencies: Agg[Dependency],
+    extras: Seq[PublishInfo] = Seq.empty
   ): String = {
+
+    def renderExtra(e : PublishInfo) : Elem = {
+      e.classifier match {
+        case None =>
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} />
+        case Some(c) =>
+          <artifact name={artifact.id} type={e.ivyType} ext={e.ext} conf={e.ivyConfig} e:classifier={c} />
+      }
+    }
+
     val xml =
       <ivy-module version="2.0" xmlns:e="http://ant.apache.org/ivy/extra">
         <info
@@ -32,6 +43,7 @@ object Ivy {
           <artifact name={artifact.id} type="jar" ext="jar" conf="compile"/>
           <artifact name={artifact.id} type="src" ext="jar" conf="compile" e:classifier="sources"/>
           <artifact name={artifact.id} type="doc" ext="jar" conf="compile" e:classifier="javadoc"/>
+          {extras.map(renderExtra)}
         </publications>
         <dependencies>{dependencies.map(renderDependency).toSeq}</dependencies>
       </ivy-module>
@@ -40,7 +52,7 @@ object Ivy {
     head + pp.format(xml).replaceAll("&gt;", ">")
   }
 
-  private def renderDependency(dep: Dependency) = {
+  private def renderDependency(dep: Dependency) : Elem = {
     if (dep.exclusions.isEmpty)
       <dependency org={dep.artifact.group} name={dep.artifact.id} rev={dep.artifact.version} conf={s"${depIvyConf(dep)}->${dep.configuration.getOrElse("default(compile)")}"} />
     else

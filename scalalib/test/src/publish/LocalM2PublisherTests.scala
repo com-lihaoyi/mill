@@ -1,8 +1,6 @@
 package mill.scalalib.publish
 
-import java.io.{InputStream, PrintStream}
-
-import mill.api.{Ctx, Logger}
+import mill.api.{Ctx, Logger, PathRef}
 import mill.util.DummyLogger
 import utest.{TestSuite, Tests, assert, test}
 
@@ -24,7 +22,13 @@ object LocalM2PublisherTests extends TestSuite {
 
       val publisher = new LocalM2Publisher(repo)
       val artifact = Artifact("group.org", "id", "version")
-      val res = publisher.publish(repo / "jar", repo / "src", repo / "doc", repo / "pom", artifact, Seq(repo / "extra" -> "-extra.jar"))
+      val res = publisher.publish(
+        repo / "jar",
+        repo / "src", repo / "doc",
+        repo / "pom",
+        artifact,
+        Seq(PublishInfo(file = PathRef(repo / "extra"), classifier = Some("extra"), ivyConfig = "compile"))
+      )
       val expected = Set(
         subrepo / "id-version.jar",
         subrepo / "id-version.pom",
