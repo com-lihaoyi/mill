@@ -122,7 +122,7 @@ trait PublishModule extends JavaModule { outer =>
   def publish(sonatypeCreds: String,
               signed: Boolean = true,
               gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
-              release: Boolean,
+              release: Boolean = false,
               readTimeout: Int = 60000,
               connectTimeout: Int = 5000,
               awaitTimeout: Int = 120 * 1000,

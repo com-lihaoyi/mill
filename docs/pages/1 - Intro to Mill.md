@@ -826,12 +826,11 @@ Arguments provided did not match expected signature:
 
 publish
   --sonatypeCreds   String (format: "username:password")
-  --gpgPassphrase   String (default null)
-  --gpgKeyName      String (default null)
   --signed          Boolean (default true)
+  --gpgArgs         Seq[String] (default Seq("--batch", "--yes", "-a", "-b"))
   --readTimeout     Int (default 60000)
+  --release         Boolean (default true)
   --connectTimeout  Int (default 5000) 
-  --release         Boolean
   --awaitTimeout    Int (default 120000)
   --stagingRelease  Boolean (default true)
 ```
