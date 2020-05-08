@@ -110,7 +110,7 @@ trait PublishModule extends JavaModule { outer =>
         sourceJar() -> s"$baseName-sources.jar",
         docJar() -> s"$baseName-javadoc.jar",
         pom() -> s"$baseName.pom"
-      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifier.mkString("-", "", "")}.${p.ext}"))
+      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifierPart}.${p.ext}"))
     )
   }
 

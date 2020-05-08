@@ -5,10 +5,10 @@ import mill.PathRef
 /** An extra resource artifact to publish.
  *
  * @param file The artifact file
- * @param ivyType The ivy type, this will implicitly define the directory, the file will be published to (e.g. "jar" -> "jars")
  * @param classifier An Optional classifier to be used when publishing the file
- * @param ivyConfig The ivy config to be used
  * @param ext The extension that will be used publishing the file to the ivy repo
+ * @param ivyConfig The ivy config to be used
+ * @param ivyType The ivy type, this will implicitly define the directory, the file will be published to (e.g. "jar" -> "jars")
  */
 case class PublishInfo(
   file: PathRef,
