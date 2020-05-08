@@ -23,11 +23,12 @@ trait JavaModule extends mill.Module
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
-  trait Tests extends TestModule{
-    override def moduleDeps = Seq(outer)
-    override def repositories = outer.repositories
-    override def javacOptions = outer.javacOptions
-    override def zincWorker = outer.zincWorker
+  trait Tests extends TestModule {
+    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def repositories: Seq[Repository] = outer.repositories
+    override def javacOptions: T[Seq[String]] = outer.javacOptions
+    override def zincWorker: ZincWorkerModule = outer.zincWorker
+    override def skipIdea: Boolean = outer.skipIdea
   }
   def defaultCommandName() = "run"
 

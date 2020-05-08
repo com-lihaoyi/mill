@@ -15,15 +15,12 @@ import mill.api.DummyInputStream
   * Core configuration required to compile a single Scala compilation target
   */
 trait ScalaModule extends JavaModule { outer =>
-  trait Tests extends TestModule with ScalaModule{
+
+  trait Tests extends super.Tests with ScalaModule {
     override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
-    override def repositories = outer.repositories
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacOptions = outer.scalacOptions
-    override def javacOptions = outer.javacOptions
-    override def zincWorker = outer.zincWorker
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
   }
 
   /**
