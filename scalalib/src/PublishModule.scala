@@ -21,7 +21,7 @@ trait PublishModule extends JavaModule { outer =>
     Artifact(pomSettings().organization, artifactId(), publishVersion())
   }
 
-  def publishXmlDeps = T.task {
+  def publishXmlDeps: Task[Agg[Dependency]] = T.task {
     val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
@@ -42,7 +42,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def ivy: Target[PathRef] = T {
-    val ivy = Ivy(artifactMetadata(), publishXmlDeps())
+    val ivy = Ivy(artifactMetadata(), publishXmlDeps(), extraPublish())
     val ivyPath = T.dest / "ivy.xml"
     os.write.over(ivyPath, ivy)
     PathRef(ivyPath)
@@ -55,7 +55,7 @@ trait PublishModule extends JavaModule { outer =>
   /**
     * Extra artifacts to publish.
     */
-  def extraPublish: Target[Seq[PublishModule.ExtraPublish]] = T{ Seq.empty[PublishModule.ExtraPublish] }
+  def extraPublish: Target[Seq[PublishInfo]] = T{ Seq.empty[PublishInfo] }
 
   /**
     * Publish artifacts to a local ivy repository.
@@ -75,7 +75,7 @@ trait PublishModule extends JavaModule { outer =>
       pom = pom().path,
       ivy = ivy().path,
       artifact = artifactMetadata(),
-      extras = extraPublish().map(ep => (ep.file.path, ep.ivyCategory, ep.suffix))
+      extras = extraPublish()
     )
   }
 
@@ -93,7 +93,7 @@ trait PublishModule extends JavaModule { outer =>
         docJar = docJar().path,
         pom = pom().path,
         artifact = artifactMetadata(),
-        extras = extraPublish().map(ep => (ep.file.path, ep.suffix))
+        extras = extraPublish()
       ).map(PathRef(_))
   }
 
@@ -110,7 +110,7 @@ trait PublishModule extends JavaModule { outer =>
         sourceJar() -> s"$baseName-sources.jar",
         docJar() -> s"$baseName-javadoc.jar",
         pom() -> s"$baseName.pom"
-      ) ++ extraPublish().map(p => (p.file, baseName + p.suffix))
+      ) ++ extraPublish().map(p => (p.file, s"$baseName${p.classifierPart}.${p.ext}"))
     )
   }
 
@@ -122,7 +122,7 @@ trait PublishModule extends JavaModule { outer =>
   def publish(sonatypeCreds: String,
               signed: Boolean = true,
               gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
-              release: Boolean,
+              release: Boolean = false,
               readTimeout: Int = 60000,
               connectTimeout: Int = 5000,
               awaitTimeout: Int = 120 * 1000,
@@ -149,18 +149,6 @@ object PublishModule extends ExternalModule {
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
   object PublishData{
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
-  }
-
-  /**
-    * An extra resource artifact to publish.
-    * @param file The artifact file
-    * @param ivyCategory The ivy catogory (e.g. "jars", "zips")
-    * @param suffix The file suffix including the file extension (e.g. "-with-deps.jar", "-dist.zip").
-    *               It will be appended to the artifact id to construct the full file name.
-    */
-  case class ExtraPublish(file: PathRef, ivyCategory: String, suffix: String)
-  object ExtraPublish {
-    implicit def jsonify: upickle.default.ReadWriter[ExtraPublish] = upickle.default.macroRW
   }
 
   /**

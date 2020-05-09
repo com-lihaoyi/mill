@@ -106,6 +106,38 @@ Optionally, you can specify the ensime server version using the --server flag li
 mill fun.valycorp.mill.GenEnsime/ensimeConfig --server "3.0.0-SNAPSHOT"
 ```
 
+## Git
+
+A git version plugin for mill.
+
+Project home: https://github.com/joan38/mill-git
+
+*build.sc*:
+```scala
+import $ivy.`com.goyeau::mill-git:<latest version>`
+import com.goyeau.mill.git.GitVersionedPublishModule
+import mill.scalalib.JavaModule
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
+
+object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+  override def pomSettings = PomSettings(
+    description = "JVM Project",
+    organization = "com.goyeau",
+    url = "https://github.com/joan38/mill-git",
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github("joan38", "mill-git"),
+    developers = Seq(Developer("joan38", "Joan Goyeau", "https://github.com/joan38"))
+  )
+}
+```
+
+```shell script
+> mill show jvm-project.publishVersion
+[1/1] show 
+[2/2] com.goyeau.mill.git.GitVersionModule.version 
+"0.0.0-470-6d0b3d9"
+```
+
 ## Integration Testing Mill Plugins
 
 Integration testing for mill plugins.
@@ -416,7 +448,6 @@ object project extends ScalaModule with OsgiBundleModule {
 }
 ```
 
-
 ## PublishM2
 
 _Since Mill `0.6.1-27-f265a4` there is a built-in `publishM2Local` target in `PublishModule`._
@@ -456,4 +487,33 @@ Publishing to custom local Maven repository
 > mill project.publishM2Local /tmp/m2repo
 [40/40] project.publishM2Local
 Publishing to /tmp/m2repo
+```
+
+## Scalafix
+
+[Scalafix](https://scalacenter.github.io/scalafix/) support for mill.
+
+Project home: https://github.com/joan38/mill-scalafix
+
+### Fix sources
+
+*build.sc*:
+```scala
+import $ivy.`com.goyeau::mill-scalafix:<latest version>`
+import com.goyeau.mill.scalafix.ScalafixModule
+import mill.scalalib._
+
+object project extends ScalaModule with ScalafixModule {
+  def scalaVersion = "2.12.11"
+}
+```
+
+```shell script
+> mill project.fix
+[29/29] project.fix
+/project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
+  private var hashLength = 7
+          ^^^
+1 targets failed
+project.fix A Scalafix linter error was reported
 ```
