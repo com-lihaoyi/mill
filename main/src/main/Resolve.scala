@@ -10,21 +10,21 @@ import mill.util.Scripts
 import scala.reflect.ClassTag
 
 object ResolveMetadata extends Resolve[String]{
-  def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean) = {
+  def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[String] = {
     val modules = obj.millModuleDirectChildren.map(_.toString)
     val targets =
       obj
         .millInternal
         .reflectAll[Target[_]]
         .map(_.toString)
-    val commands = for{
+    val commands = for {
       (cls, entryPoints) <- discover.value
       if cls.isAssignableFrom(obj.getClass)
       ep <- entryPoints
-    } yield {
+    } yield
       if (isRootModule) ep._2.name
-      else obj + "." + ep._2.name
-    }
+      else s"$obj.${ep._2.name}"
+
     modules ++ targets ++ commands
   }
 
@@ -32,23 +32,19 @@ object ResolveMetadata extends Resolve[String]{
                       revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
-                      rest: Seq[String]): Either[String, List[String]] = {
-
-    val direct = singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty)
+                      rest: Seq[String]): Either[String, Seq[String]] = {
+    def direct = singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty)
     last match{
       case "__" =>
         Right(
           // Filter out our own module in
-          obj.millInternal.modules
-            .filter(_ != obj)
-            .flatMap(m => singleModuleMeta(m, discover, m != obj))
-            .toList
+          obj.millInternal.modules.flatMap(m => singleModuleMeta(m, discover, m == obj))
         )
-      case "_" => Right(direct.toList)
+      case "_" => Right(direct)
       case _ =>
-        direct.find(_.split('.').last == last) match{
+        direct.find(_.split('.').last == last) match {
           case None => Resolve.errorMsgLabel(direct, last, revSelectorsSoFar)
-          case Some(s) => Right(List(s))
+          case Some(s) => Right(Seq(s))
         }
     }
   }
@@ -162,11 +158,9 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
                       revSelectorsSoFar: List[Segment],
                       last: List[String],
                       discover: Discover[_],
-                      rest: Seq[String])= {
-
+                      rest: Seq[String]): Either[String, Seq[NamedTask[Any]]] = {
     obj match{
       case c: Cross[Module] =>
-
         Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match{
           case None =>
             Left(
@@ -187,7 +181,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
                       revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
-                      rest: Seq[String]) = last match{
+                      rest: Seq[String]): Either[String, Seq[NamedTask[Any]]] = last match{
     case "__" =>
       Right(
         obj.millInternal.modules
@@ -395,8 +389,8 @@ abstract class Resolve[R: ClassTag] {
           case Segment.Label(singleLabel) =>
             recurse(
               if (singleLabel == "__") obj.millInternal.modules
-              else if (singleLabel == "_") obj.millModuleDirectChildren.toSeq
-              else{
+              else if (singleLabel == "_") obj.millModuleDirectChildren
+              else {
                 obj.millInternal.reflectNestedObjects[mill.Module]
                   .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
                   .toSeq
@@ -410,12 +404,17 @@ abstract class Resolve[R: ClassTag] {
                 "Cannot resolve " + Segments((remainingSelector.reverse ++ revSelectorsSoFar).reverse:_*).render +
                 ". Try `mill resolve " + Segments((Segment.Label("_") :: revSelectorsSoFar).reverse:_*).render + "` to see what's available"
               )
+            ).map(
+              _.distinctBy {
+                case t: NamedTask[_] => t.ctx.segments
+                case t => t
+              }
             )
           case Segment.Cross(cross) =>
             obj match{
               case c: Cross[Module] =>
                 recurse(
-                  if(cross == Seq("__")) for ((k, v) <- c.items) yield v
+                  if(cross == Seq("__")) for ((_, v) <- c.items) yield v
                   else if (cross.contains("_")){
                     for {
                       (k, v) <- c.items

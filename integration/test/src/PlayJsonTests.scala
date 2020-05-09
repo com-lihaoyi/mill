@@ -14,7 +14,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
 
     'jvm - {
       assert(eval("playJsonJvm[2.12.4].test"))
-      val jvmMeta = meta("playJsonJvm[2.12.4].test.testUncached")
+      val jvmMeta = meta("playJsonJvm[2.12.4].test.test")
 
       assert(
         jvmMeta.contains("play.api.libs.json.JsonSharedSpec"),
@@ -28,7 +28,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
     }
     'js - {
       assert(eval("playJsonJs[2.12.4].test"))
-      val jsMeta = meta("playJsonJs[2.12.4].test.testUncached")
+      val jsMeta = meta("playJsonJs[2.12.4].test.test")
 
       assert(
         jsMeta.contains("play.api.libs.json.JsonSharedSpec"),
@@ -42,7 +42,7 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
     }
     'playJoda - {
       assert(eval("playJoda[2.12.4].test"))
-      val metaFile = meta("playJoda[2.12.4].test.testUncached")
+      val metaFile = meta("playJoda[2.12.4].test.test")
 
       assert(
         metaFile.contains("play.api.libs.json.JsonJodaValidSpec"),

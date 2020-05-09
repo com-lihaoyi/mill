@@ -153,7 +153,7 @@ object HelloNativeWorldTests extends TestSuite {
 
     def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val Right(((message, results), _)) = helloWorldEvaluator(
-        if (!cached) HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.testUncached()
+        if (!cached) HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test()
         else HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 
@@ -165,7 +165,7 @@ object HelloNativeWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.testUncached()
+        if (!cached) HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test()
         else HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 
@@ -185,7 +185,7 @@ object HelloNativeWorldTests extends TestSuite {
 
     def checkScalaTest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.testUncached()
+        if (!cached) HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.test()
         else HelloNativeWorld.buildScalaTest(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 

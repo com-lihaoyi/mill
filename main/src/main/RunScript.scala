@@ -1,7 +1,6 @@
 package mill.main
 
 import java.nio.file.NoSuchFileException
-
 import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
@@ -12,7 +11,6 @@ import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import mill.api.Logger
 import mill.api.Strict.Agg
-
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -121,7 +119,6 @@ object RunScript{
       } catch {
         case e: Throwable => Res.Exception(e, "")
       }
-//      _ <- Res(consistencyCheck(mapping))
     } yield module
   }
 
@@ -137,7 +134,6 @@ object RunScript{
           for(res <- prepareResolve(evaluator, scopedSel, sel))
           yield {
             val (rootModule, crossSelectors) = res
-
 
             try {
               // We inject the `evaluator.rootModule` into the TargetScopt, rather
@@ -158,7 +154,10 @@ object RunScript{
         EitherOps.sequence(selected)
       }
       res <- EitherOps.sequence(taskss)
-    } yield res.flatten
+    } yield res.flatten//.distinctBy {
+//      case t: NamedTask[_] => t.ctx.segments
+//      case t => t
+//    }
   }
 
   def resolveRootModule[T](evaluator: Evaluator, scopedSel: Option[Segments]) = {

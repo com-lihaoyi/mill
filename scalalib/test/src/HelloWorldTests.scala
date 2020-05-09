@@ -907,7 +907,7 @@ object HelloWorldTests extends TestSuite {
       HelloScalacheck,
       resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-scalacheck"
     ){ eval =>
-      val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.testUncached())
+      val Right((res, evalCount)) = eval.apply(HelloScalacheck.foo.test.test())
       assert(
         evalCount > 0,
         res._2.map(_.selector) == Seq(

@@ -160,7 +160,7 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testUncached()
+        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
         else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
       )
 
@@ -180,7 +180,7 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testUncached()
+        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
         else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
       )
 
