@@ -590,14 +590,22 @@ def launcherScript(shellJvmArgs: Seq[String],
          |else
          |  JAVACMD="$$JAVA_HOME/bin/java"
          |fi
-         |case "$$1" in
-         |  -i | --interactive )
+         |
+         |# Client-server mode doesn't seem to work on WSL, just disable it for now
+         |# https://stackoverflow.com/a/43618657/871202
+         |if grep -qEi "(Microsoft|WSL)" foo.txt &> /dev/null ; then
          |    ${java("mill.MillMain")}
-         |    ;;
-         |  *)
-         |    ${java("mill.main.client.MillClientMain")}
-         |    ;;
-         |esac""".stripMargin
+         |else
+         |    case "$$1" in
+         |      -i | --interactive )
+         |        ${java("mill.MillMain")}
+         |        ;;
+         |      *)
+         |        ${java("mill.main.client.MillClientMain")}
+         |        ;;
+         |esac
+         |fi
+         |""".stripMargin
     },
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
