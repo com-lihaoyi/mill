@@ -175,7 +175,12 @@ class Server[T](lockBase: String,
 
 
     t.interrupt()
-    t.stop()
+    // Try to give thread a moment to stop before we kill it for real
+    Thread.sleep(5)
+    try t.stop()
+    catch{case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
+      // ignore this error and do nothing; seems benign
+    }
 
     // flush before closing the socket
     System.out.flush()
