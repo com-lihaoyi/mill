@@ -163,7 +163,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     def name = clazz.getName.reverse.dropWhile(_ == '$').reverse
   }
 
-  override def testLocal(args: String*) = T.command { testUncached(args:_*) }
+  override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
     val outputPath = T.dest / "out.json"

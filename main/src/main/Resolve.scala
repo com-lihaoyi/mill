@@ -10,51 +10,45 @@ import mill.util.Scripts
 import scala.reflect.ClassTag
 
 object ResolveMetadata extends Resolve[String]{
-  def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean) = {
+  def singleModuleMeta(obj: Module, discover: Discover[_], isRootModule: Boolean): Seq[String] = {
     val modules = obj.millModuleDirectChildren.map(_.toString)
     val targets =
       obj
         .millInternal
         .reflectAll[Target[_]]
         .map(_.toString)
-    val commands = for{
+    val commands = for {
       (cls, entryPoints) <- discover.value
       if cls.isAssignableFrom(obj.getClass)
       ep <- entryPoints
-    } yield {
+    } yield
       if (isRootModule) ep._2.name
-      else obj + "." + ep._2.name
-    }
+      else s"$obj.${ep._2.name}"
+
     modules ++ targets ++ commands
   }
 
   def endResolveLabel(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
-                      rest: Seq[String]): Either[String, List[String]] = {
-
-    val direct = singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty)
+                      rest: Seq[String]): Either[String, Seq[String]] = {
+    def direct = singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty)
     last match{
       case "__" =>
         Right(
           // Filter out our own module in
-          obj.millInternal.modules
-            .filter(_ != obj)
-            .flatMap(m => singleModuleMeta(m, discover, m != obj))
-            .toList
+          obj.millInternal.modules.flatMap(m => singleModuleMeta(m, discover, m == obj))
         )
-      case "_" => Right(direct.toList)
+      case "_" => Right(direct)
       case _ =>
-        direct.find(_.split('.').last == last) match{
-          case None => Resolve.errorMsgLabel(direct, last, revSelectorsSoFar)
-          case Some(s) => Right(List(s))
+        direct.find(_.split('.').last == last) match {
+          case None => Resolve.errorMsgLabel(direct, last, obj.millModuleSegments.value)
+          case Some(s) => Right(Seq(s))
         }
     }
   }
 
   def endResolveCross(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: List[String],
                       discover: Discover[_],
                       rest: Seq[String]): Either[String, List[String]] = {
@@ -71,7 +65,7 @@ object ResolveMetadata extends Resolve[String]{
                 Resolve.errorMsgCross(
                   c.items.map(_._1.map(_.toString)),
                   last,
-                  revSelectorsSoFar
+                  obj.millModuleSegments.value
                 )
               case res => Right(res)
             }
@@ -79,8 +73,8 @@ object ResolveMetadata extends Resolve[String]{
         }
       case _ =>
         Left(
-          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
-          Resolve.hintListLabel(revSelectorsSoFar)
+          Resolve.unableToResolve(Segment.Cross(last), obj.millModuleSegments.value) +
+          Resolve.hintListLabel(obj.millModuleSegments.value)
         )
     }
   }
@@ -89,7 +83,6 @@ object ResolveMetadata extends Resolve[String]{
 object ResolveSegments extends Resolve[Segments] {
 
   override def endResolveCross(obj: Module,
-                               revSelectorsSoFar: List[Segment],
                                last: List[String],
                                discover: Discover[_],
                                rest: Seq[String]): Either[String, Seq[Segments]] = {
@@ -106,21 +99,20 @@ object ResolveSegments extends Resolve[Segments] {
                 Resolve.errorMsgCross(
                   c.items.map(_._1.map(_.toString)),
                   last,
-                  revSelectorsSoFar
+                  obj.millModuleSegments.value
                 )
               case res => Right(res)
             }
         }
       case _ =>
         Left(
-          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
-            Resolve.hintListLabel(revSelectorsSoFar)
+          Resolve.unableToResolve(Segment.Cross(last), obj.millModuleSegments.value) +
+            Resolve.hintListLabel(obj.millModuleSegments.value)
         )
     }
   }
 
   def endResolveLabel(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
                       rest: Seq[String]): Either[String, Seq[Segments]] = {
@@ -145,9 +137,9 @@ object ResolveSegments extends Resolve[Segments] {
     command orElse target orElse module match {
       case None =>
         Resolve.errorMsgLabel(
-          singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+          singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
           last,
-          revSelectorsSoFar
+          obj.millModuleSegments.value
         )
 
       case Some(either) => either.right.map(Seq(_))
@@ -159,35 +151,31 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
 
 
   def endResolveCross(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: List[String],
                       discover: Discover[_],
-                      rest: Seq[String])= {
-
+                      rest: Seq[String]): Either[String, Seq[NamedTask[Any]]] = {
     obj match{
       case c: Cross[Module] =>
-
         Resolve.runDefault(obj, Segment.Cross(last), discover, rest).flatten.headOption match{
           case None =>
             Left(
               "Cannot find default task to evaluate for module " +
-              Segments((Segment.Cross(last) :: revSelectorsSoFar).reverse:_*).render
+              Segments((Segment.Cross(last) +: obj.millModuleSegments.value).reverse:_*).render
             )
           case Some(v) => v.map(Seq(_))
         }
       case _ =>
         Left(
-          Resolve.unableToResolve(Segment.Cross(last), revSelectorsSoFar) +
-          Resolve.hintListLabel(revSelectorsSoFar)
+          Resolve.unableToResolve(Segment.Cross(last), obj.millModuleSegments.value) +
+          Resolve.hintListLabel(obj.millModuleSegments.value)
         )
     }
   }
 
   def endResolveLabel(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
-                      rest: Seq[String]) = last match{
+                      rest: Seq[String]): Either[String, Seq[NamedTask[Any]]] = last match{
     case "__" =>
       Right(
         obj.millInternal.modules
@@ -208,9 +196,9 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
       command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
         case None =>
           Resolve.errorMsgLabel(
-            singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+            singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
             last,
-            revSelectorsSoFar
+            obj.millModuleSegments.value
           )
 
         // Contents of `either` *must* be a `Task`, because we only select
@@ -238,28 +226,27 @@ object Resolve{
     dist(s2.length)(s1.length)
   }
 
-  def unableToResolve(last: Segment, revSelectorsSoFar: List[Segment]): String = {
-    unableToResolve(Segments((last :: revSelectorsSoFar).reverse: _*).render)
+  def unableToResolve(last: Segment, revSelectorsSoFar: Seq[Segment]): String = {
+    unableToResolve(Segments((last +: revSelectorsSoFar).reverse: _*).render)
   }
 
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
-  def hintList(revSelectorsSoFar: List[Segment]) = {
+  def hintList(revSelectorsSoFar: Seq[Segment]) = {
     val search = Segments(revSelectorsSoFar.reverse: _*).render
     s" Try `mill resolve $search` to see what's available."
   }
 
-  def hintListLabel(revSelectorsSoFar: List[Segment]) = {
-    hintList(Segment.Label("_") :: revSelectorsSoFar)
+  def hintListLabel(revSelectorsSoFar: Seq[Segment]) = {
+    hintList(Segment.Label("_") +: revSelectorsSoFar)
   }
 
-  def hintListCross(revSelectorsSoFar: List[Segment]) = {
-    hintList(Segment.Cross(Seq("__")) :: revSelectorsSoFar)
+  def hintListCross(revSelectorsSoFar: Seq[Segment]) = {
+    hintList(Segment.Cross(Seq("__")) +: revSelectorsSoFar)
   }
 
   def errorMsgBase[T](direct: Seq[T],
                       last0: T,
-                      revSelectorsSoFar: List[Segment],
                       editSplit: String => String,
                       defaultErrorMsg: String)
                      (strings: T => Seq[String],
@@ -288,11 +275,10 @@ object Resolve{
     }
   }
 
-  def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: List[Segment]) = {
+  def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: Seq[Segment]) = {
     errorMsgBase(
       direct,
-      Segments((Segment.Label(last) :: revSelectorsSoFar).reverse:_*).render,
-      revSelectorsSoFar,
+      Segments((Segment.Label(last) +: revSelectorsSoFar).reverse:_*).render,
       _.split('.').last,
       hintListLabel(revSelectorsSoFar)
     )(
@@ -303,16 +289,15 @@ object Resolve{
 
   def errorMsgCross(crossKeys: Seq[Seq[String]],
                     last: Seq[String],
-                    revSelectorsSoFar: List[Segment]) = {
+                    revSelectorsSoFar: Seq[Segment]) = {
     errorMsgBase(
       crossKeys,
       last,
-      revSelectorsSoFar,
       x => x,
       hintListCross(revSelectorsSoFar)
     )(
       crossKeys => crossKeys,
-      crossKeys => Segments((Segment.Cross(crossKeys) :: revSelectorsSoFar).reverse:_*).render
+      crossKeys => Segments((Segment.Cross(crossKeys) +: revSelectorsSoFar).reverse:_*).render
     )
   }
 
@@ -352,12 +337,10 @@ object Resolve{
 }
 abstract class Resolve[R: ClassTag] {
   def endResolveCross(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: List[String],
                       discover: Discover[_],
                       rest: Seq[String]): Either[String, Seq[R]]
   def endResolveLabel(obj: Module,
-                      revSelectorsSoFar: List[Segment],
                       last: String,
                       discover: Discover[_],
                       rest: Seq[String]): Either[String, Seq[R]]
@@ -366,21 +349,18 @@ abstract class Resolve[R: ClassTag] {
               obj: mill.Module,
               discover: Discover[_],
               rest: Seq[String],
-              remainingCrossSelectors: List[List[String]],
-              revSelectorsSoFar: List[Segment]): Either[String, Seq[R]] = {
+              remainingCrossSelectors: List[List[String]]): Either[String, Seq[R]] = {
 
     remainingSelector match{
       case Segment.Cross(last) :: Nil =>
-        endResolveCross(obj, revSelectorsSoFar, last.map(_.toString).toList, discover, rest)
+        endResolveCross(obj, last.map(_.toString).toList, discover, rest)
       case Segment.Label(last) :: Nil =>
-        endResolveLabel(obj, revSelectorsSoFar, last, discover, rest)
+        endResolveLabel(obj, last, discover, rest)
 
       case head :: tail =>
-        val newRevSelectorsSoFar = head :: revSelectorsSoFar
-
         def recurse(searchModules: Seq[Module], resolveFailureMsg: => Left[String, Nothing]) = {
           val matching = searchModules
-            .map(resolve(tail, _, discover, rest, remainingCrossSelectors, newRevSelectorsSoFar))
+            .map(resolve(tail, _, discover, rest, remainingCrossSelectors))
 
           matching match{
             case Seq(Left(err)) => Left(err)
@@ -395,27 +375,32 @@ abstract class Resolve[R: ClassTag] {
           case Segment.Label(singleLabel) =>
             recurse(
               if (singleLabel == "__") obj.millInternal.modules
-              else if (singleLabel == "_") obj.millModuleDirectChildren.toSeq
-              else{
+              else if (singleLabel == "_") obj.millModuleDirectChildren
+              else {
                 obj.millInternal.reflectNestedObjects[mill.Module]
                   .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
                   .toSeq
               },
               if (singleLabel != "_") Resolve.errorMsgLabel(
-                singleModuleMeta(obj, discover, revSelectorsSoFar.isEmpty),
+                singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
                 singleLabel,
-                revSelectorsSoFar
+                obj.millModuleSegments.value
               )
               else Left(
-                "Cannot resolve " + Segments((remainingSelector.reverse ++ revSelectorsSoFar).reverse:_*).render +
-                ". Try `mill resolve " + Segments((Segment.Label("_") :: revSelectorsSoFar).reverse:_*).render + "` to see what's available"
+                "Cannot resolve " + Segments((remainingSelector.reverse ++ obj.millModuleSegments.value).reverse:_*).render +
+                ". Try `mill resolve " + Segments((Segment.Label("_") +: obj.millModuleSegments.value).reverse:_*).render + "` to see what's available"
               )
+            ).map(
+              _.distinctBy {
+                case t: NamedTask[_] => t.ctx.segments
+                case t => t
+              }
             )
           case Segment.Cross(cross) =>
             obj match{
               case c: Cross[Module] =>
                 recurse(
-                  if(cross == Seq("__")) for ((k, v) <- c.items) yield v
+                  if(cross == Seq("__")) for ((_, v) <- c.items) yield v
                   else if (cross.contains("_")){
                     for {
                       (k, v) <- c.items
@@ -426,7 +411,7 @@ abstract class Resolve[R: ClassTag] {
                   Resolve.errorMsgCross(
                     c.items.map(_._1.map(_.toString)),
                     cross.map(_.toString),
-                    revSelectorsSoFar
+                    obj.millModuleSegments.value
                   )
                 )
               case _ =>

@@ -12,7 +12,7 @@ class BetterFilesTests(fork: Boolean)
       assert(eval("akka.test"))
       assert(eval("benchmarks.test.compile"))
 
-      val coreTestMeta = meta("core.test.testUncached")
+      val coreTestMeta = meta("core.test.test")
       assert(coreTestMeta.contains("better.files.FileSpec"))
       assert(coreTestMeta.contains("files should handle BOM"))
 

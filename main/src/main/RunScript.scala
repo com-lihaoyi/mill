@@ -1,7 +1,6 @@
 package mill.main
 
 import java.nio.file.NoSuchFileException
-
 import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
@@ -12,7 +11,6 @@ import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import mill.api.Logger
 import mill.api.Strict.Agg
-
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -121,7 +119,6 @@ object RunScript{
       } catch {
         case e: Throwable => Res.Exception(e, "")
       }
-//      _ <- Res(consistencyCheck(mapping))
     } yield module
   }
 
@@ -138,7 +135,6 @@ object RunScript{
           yield {
             val (rootModule, crossSelectors) = res
 
-
             try {
               // We inject the `evaluator.rootModule` into the TargetScopt, rather
               // than the `rootModule`, because even if you are running an external
@@ -146,10 +142,7 @@ object RunScript{
               // main build. Resolving targets from external builds as CLI arguments
               // is not currently supported
               mill.eval.Evaluator.currentEvaluator.set(evaluator)
-              resolver.resolve(
-                sel.value.toList, rootModule, rootModule.millDiscover,
-                args, crossSelectors.toList, Nil
-              )
+              resolver.resolve(sel.value.toList, rootModule, rootModule.millDiscover, args, crossSelectors.toList)
             } finally {
               mill.eval.Evaluator.currentEvaluator.set(null)
             }
