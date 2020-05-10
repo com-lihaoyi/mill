@@ -42,7 +42,7 @@ object ResolveMetadata extends Resolve[String]{
       case "_" => Right(direct)
       case _ =>
         direct.find(_.split('.').last == last) match {
-          case None => Resolve.errorMsgLabel(direct, last, obj.millModuleSegments.value)
+          case None => Resolve.errorMsgLabel(direct, Seq(Segment.Label(last)), obj.millModuleSegments.value)
           case Some(s) => Right(Seq(s))
         }
     }
@@ -138,7 +138,7 @@ object ResolveSegments extends Resolve[Segments] {
       case None =>
         Resolve.errorMsgLabel(
           singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
-          last,
+          Seq(Segment.Label(last)),
           obj.millModuleSegments.value
         )
 
@@ -197,7 +197,7 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
         case None =>
           Resolve.errorMsgLabel(
             singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
-            last,
+            Seq(Segment.Label(last)),
             obj.millModuleSegments.value
           )
 
@@ -233,16 +233,16 @@ object Resolve{
   def unableToResolve(segments: String): String = "Cannot resolve " + segments + "."
 
   def hintList(revSelectorsSoFar: Seq[Segment]) = {
-    val search = Segments(revSelectorsSoFar.reverse: _*).render
+    val search = Segments(revSelectorsSoFar:_*).render
     s" Try `mill resolve $search` to see what's available."
   }
 
   def hintListLabel(revSelectorsSoFar: Seq[Segment]) = {
-    hintList(Segment.Label("_") +: revSelectorsSoFar)
+    hintList(revSelectorsSoFar :+ Segment.Label("_"))
   }
 
   def hintListCross(revSelectorsSoFar: Seq[Segment]) = {
-    hintList(Segment.Cross(Seq("__")) +: revSelectorsSoFar)
+    hintList(revSelectorsSoFar :+ Segment.Cross(Seq("__")))
   }
 
   def errorMsgBase[T](direct: Seq[T],
@@ -275,10 +275,10 @@ object Resolve{
     }
   }
 
-  def errorMsgLabel(direct: Seq[String], last: String, revSelectorsSoFar: Seq[Segment]) = {
+  def errorMsgLabel(direct: Seq[String], remaining: Seq[Segment], revSelectorsSoFar: Seq[Segment]) = {
     errorMsgBase(
       direct,
-      Segments((Segment.Label(last) +: revSelectorsSoFar).reverse:_*).render,
+      Segments(revSelectorsSoFar ++ remaining:_*).render,
       _.split('.').last,
       hintListLabel(revSelectorsSoFar)
     )(
@@ -374,22 +374,33 @@ abstract class Resolve[R: ClassTag] {
         head match{
           case Segment.Label(singleLabel) =>
             recurse(
-              if (singleLabel == "__") obj.millInternal.modules
-              else if (singleLabel == "_") obj.millModuleDirectChildren
-              else {
-                obj.millInternal.reflectNestedObjects[mill.Module]
-                  .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
-                  .toSeq
+              singleLabel match{
+                case "__" => obj.millInternal.modules
+                case "_" => obj.millModuleDirectChildren
+                case _ =>
+                  obj.millInternal.reflectNestedObjects[mill.Module]
+                    .find(_.millOuterCtx.segment == Segment.Label(singleLabel))
+                    .toSeq
               },
-              if (singleLabel != "_") Resolve.errorMsgLabel(
-                singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
-                singleLabel,
-                obj.millModuleSegments.value
-              )
-              else Left(
-                "Cannot resolve " + Segments((remainingSelector.reverse ++ obj.millModuleSegments.value).reverse:_*).render +
-                ". Try `mill resolve " + Segments((Segment.Label("_") +: obj.millModuleSegments.value).reverse:_*).render + "` to see what's available"
-              )
+              singleLabel match{
+                case "_" =>
+                  Left(
+                    "Cannot resolve " + Segments((remainingSelector.reverse ++ obj.millModuleSegments.value).reverse:_*).render +
+                      ". Try `mill resolve " + Segments((Segment.Label("_") +: obj.millModuleSegments.value).reverse:_*).render + "` to see what's available."
+                  )
+                case "__" =>
+                  Resolve.errorMsgLabel(
+                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+                    remainingSelector,
+                    obj.millModuleSegments.value
+                  )
+                case _ =>
+                  Resolve.errorMsgLabel(
+                    singleModuleMeta(obj, discover, obj.millModuleSegments.value.isEmpty),
+                    Seq(Segment.Label(singleLabel)),
+                    obj.millModuleSegments.value
+                  )
+              }
             ).map(
               _.distinctBy {
                 case t: NamedTask[_] => t.ctx.segments

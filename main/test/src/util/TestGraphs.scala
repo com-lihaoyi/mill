@@ -24,7 +24,7 @@ class TestGraphs(){
     val `up-target` = test()
     val `a-down-target` = test(`up-target`)
     val `invisible&` = test()
-    object `nested-module` extends TestUtil.BaseModule {
+    object `nested-module` extends Module {
       val `nested-target` = test()
     }
   }
