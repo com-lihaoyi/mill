@@ -151,10 +151,7 @@ object RunScript{
         EitherOps.sequence(selected)
       }
       res <- EitherOps.sequence(taskss)
-    } yield res.flatten//.distinctBy {
-//      case t: NamedTask[_] => t.ctx.segments
-//      case t => t
-//    }
+    } yield res.flatten
   }
 
   def resolveRootModule[T](evaluator: Evaluator, scopedSel: Option[Segments]) = {
