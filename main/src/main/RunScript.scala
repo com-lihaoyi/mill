@@ -142,10 +142,7 @@ object RunScript{
               // main build. Resolving targets from external builds as CLI arguments
               // is not currently supported
               mill.eval.Evaluator.currentEvaluator.set(evaluator)
-              resolver.resolve(
-                sel.value.toList, rootModule, rootModule.millDiscover,
-                args, crossSelectors.toList, Nil
-              )
+              resolver.resolve(sel.value.toList, rootModule, rootModule.millDiscover, args, crossSelectors.toList)
             } finally {
               mill.eval.Evaluator.currentEvaluator.set(null)
             }
