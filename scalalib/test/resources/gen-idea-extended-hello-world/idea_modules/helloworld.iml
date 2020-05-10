@@ -5,10 +5,11 @@
         <content url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest/classes">
             <sourceFolder url="file://$MODULE_DIR$/../out/HelloWorld/generatedSources/dest/classes" isTestSource="false" generated="true"/>
         </content>
-        <content url="file://$MODULE_DIR$/../HelloWorld">
+        <content url="file://$MODULE_DIR$/../HelloWorld/src">
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/src" isTestSource="false"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../HelloWorld/resources">
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/resources" type="java-resource"/>
-            <excludeFolder url="file://$MODULE_DIR$/../HelloWorld/target"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

@@ -2,10 +2,11 @@
     <component name="NewModuleRootManager">
         <output url="file://$MODULE_DIR$/../out/HelloWorld/ideaCompileOutput/dest/classes"/>
         <exclude-output/>
-        <content url="file://$MODULE_DIR$/../HelloWorld">
+        <content url="file://$MODULE_DIR$/../HelloWorld/src">
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/src" isTestSource="false"/>
+        </content>
+        <content url="file://$MODULE_DIR$/../HelloWorld/resources">
             <sourceFolder url="file://$MODULE_DIR$/../HelloWorld/resources" type="java-resource"/>
-            <excludeFolder url="file://$MODULE_DIR$/../HelloWorld/target"/>
         </content>
         <orderEntry type="inheritedJdk"/>
         <orderEntry type="sourceFolder" forTests="false"/>

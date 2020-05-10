@@ -542,29 +542,34 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
         <exclude-output />
         {
+          for {
+            generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted
+            path <- Seq(relify(generatedSourcePath))
+          } yield
+              <content url={"file://$MODULE_DIR$/" + path}>
+                <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true" />
+              </content>
+          }
+        {
+          // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
+          for {
+            normalSourcePath <- normalSourcePaths.toSeq.sorted
+            path <- Seq(relify(normalSourcePath))
+          } yield
+              <content url={"file://$MODULE_DIR$/" + path}>
+                <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} />
+              </content>
+          }
+        {
+        val resourceType = if (isTest) "java-test-resource" else "java-resource"
         for {
-          generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted
-          path <- Seq(relify(generatedSourcePath))
+          resourcePath <- resourcePaths.toSeq.sorted
+          path <- Seq(relify(resourcePath))
         } yield
             <content url={"file://$MODULE_DIR$/" + path}>
-              <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true" />
+              <sourceFolder url={"file://$MODULE_DIR$/" + path} type={resourceType} />
             </content>
         }
-        <content url={"file://$MODULE_DIR$/" + relify(basePath)}>
-          {
-          // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-          for (normalSourcePath <- normalSourcePaths.toSeq.sorted)
-            yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(normalSourcePath)} isTestSource={isTest.toString} />
-          }
-          {
-          val resourceType = if (isTest) "java-test-resource" else "java-resource"
-          for (resourcePath <- resourcePaths.toSeq.sorted)
-            yield
-              <sourceFolder url={"file://$MODULE_DIR$/" + relify(resourcePath)} type={resourceType} />
-          }
-          <excludeFolder url={"file://$MODULE_DIR$/" +  relify(basePath) + "/target"} />
-        </content>
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
         {
