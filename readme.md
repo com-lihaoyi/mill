@@ -170,8 +170,22 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.6.1](https://github.com/lihaoyi/mill/milestone/36?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.1...master).*
+[milestone after 0.6.2](https://github.com/lihaoyi/mill/milestone/37?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master).*
+
+
+### 0.6.3 - 2020-05-10
+
+- Finished incomplete support to publish extra artifacts to IVY repositories (`publishLocal`)
+- Improved Sonatype uploads
+- `GenIdea`: improvements for shared source dirs and skipped modules
+- `ScoverageModule`: Some refactorings to allow better customization 
+- More robust classpath handling under Windows
+
+*For details refer to
+[milestone 0.6.3](https://github.com/lihaoyi/mill/milestone/38?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.2...0.6.3).*
+
 
 ### 0.6.1 - 2020-02-24
 
