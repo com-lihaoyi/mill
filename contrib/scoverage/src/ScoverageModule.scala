@@ -124,6 +124,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def htmlReport(): Command[Unit] = T.command { doReport(ReportType.Html) }
     def xmlReport(): Command[Unit] = T.command { doReport(ReportType.Xml) }
     def consoleReport(): Command[Unit] = T.command { doReport(ReportType.Console) }
+
+    override def skipIdea = outer.skipIdea
   }
 
   trait ScoverageTests extends outer.Tests {

@@ -8,3 +8,7 @@ trait HelloWorldModule extends scalalib.ScalaModule {
 }
 
 object HelloWorld extends HelloWorldModule
+
+object HiddenWorld extends HelloWorldModule {
+  override def skipIdea = true
+}
