@@ -67,6 +67,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val modules: Seq[(Segments, JavaModule)] = rootModule.millInternal.segmentsToModules.values
       .collect{ case x: scalalib.JavaModule => x }
       .flatMap(_.transitiveModuleDeps)
+      .filterNot(_.skipIdea)
       .map(x => (x.millModuleSegments, x))
       .toSeq
       .distinct
@@ -339,9 +340,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       Tuple2(
         os.rel/".idea"/"modules.xml",
         allModulesXmlTemplate(
-          modules
-            .filter(!_._2.skipIdea)
-            .map { case (segments, mod) => moduleName(segments) }
+          modules.map { case (segments, mod) => moduleName(segments) }.sorted
         )
       ),
       Tuple2(
@@ -398,7 +397,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Strict.Agg.from(generatedSourcePaths),
         compilerOutput,
         Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-        Strict.Agg.from(mod.moduleDeps.map{ m => moduleName(moduleLabels(m))}.distinct),
+        Strict.Agg.from(mod.moduleDeps.filterNot(_.skipIdea).map{ m => moduleName(moduleLabels(m))}.distinct),
         isTest,
         facets
       )
