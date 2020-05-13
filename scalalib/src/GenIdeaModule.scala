@@ -4,8 +4,8 @@ import mill.define.Command
 import mill.{Module, PathRef, T}
 
 /**
- * Module specific configuration of the Idea project file generator.
- */
+  * Module specific configuration of the Idea project file generator.
+  */
 trait GenIdeaModule extends Module {
   import GenIdeaModule._
 
@@ -21,14 +21,14 @@ trait GenIdeaModule extends Module {
     * @param ideaConfigVersion The IDEA configuration version in use. Probably `4`.
     * @return
     */
-  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] = T.command { Seq[JavaFacet]() }
+  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] = T.command(Seq[JavaFacet]())
 
   /**
     * Contribute components to idea config files.
     */
-  def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command { Seq[IdeaConfigFile]() }
+  def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command(Seq[IdeaConfigFile]())
 
-  def ideaCompileOutput: T[PathRef] = T.persistent { PathRef(T.dest / "classes") }
+  def ideaCompileOutput: T[PathRef] = T.persistent(PathRef(T.dest / "classes"))
 
 }
 

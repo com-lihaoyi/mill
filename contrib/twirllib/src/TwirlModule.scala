@@ -15,23 +15,25 @@ trait TwirlModule extends mill.Module {
 
   def twirlVersion: T[String]
 
-  def twirlSources: Sources = T.sources {
-    millSourcePath / 'views
-  }
+  def twirlSources: Sources =
+    T.sources {
+      millSourcePath / 'views
+    }
 
-  def twirlClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, "2.12.4"),
-      Seq(
-        ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
-        ivy"org.scala-lang.modules::scala-parser-combinators:1.1.0"
+  def twirlClasspath: T[Loose.Agg[PathRef]] =
+    T {
+      resolveDependencies(
+        Seq(
+          coursier.LocalRepositories.ivy2Local,
+          MavenRepository("https://repo1.maven.org/maven2")
+        ),
+        Lib.depToDependency(_, "2.12.4"),
+        Seq(
+          ivy"com.typesafe.play::twirl-compiler:${twirlVersion()}",
+          ivy"org.scala-lang.modules::scala-parser-combinators:1.1.0"
+        )
       )
-    )
-  }
+    }
 
   def twirlAdditionalImports: Seq[String] = Nil
 
@@ -41,15 +43,17 @@ trait TwirlModule extends mill.Module {
 
   def twirlInclusiveDot: Boolean = false
 
-  def compileTwirl: T[mill.scalalib.api.CompilationResult] = T.persistent {
-    TwirlWorkerApi.twirlWorker
-      .compile(
-        twirlClasspath().map(_.path),
-        twirlSources().map(_.path),
-        T.dest,
-        twirlAdditionalImports,
-        twirlConstructorAnnotations,
-        twirlCodec,
-        twirlInclusiveDot)
-  }
+  def compileTwirl: T[mill.scalalib.api.CompilationResult] =
+    T.persistent {
+      TwirlWorkerApi.twirlWorker
+        .compile(
+          twirlClasspath().map(_.path),
+          twirlSources().map(_.path),
+          T.dest,
+          twirlAdditionalImports,
+          twirlConstructorAnnotations,
+          twirlCodec,
+          twirlInclusiveDot
+        )
+    }
 }

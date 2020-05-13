@@ -17,38 +17,45 @@ import mill.define.Segments
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(val config: ammonite.main.Cli.Config,
-                 mainInteractive: Boolean,
-                 disableTicker: Boolean,
-                 outprintStream: PrintStream,
-                 errPrintStream: PrintStream,
-                 stdIn: InputStream,
-                 stateCache0: Option[Evaluator.State] = None,
-                 env : Map[String, String],
-                 setIdle: Boolean => Unit,
-                 debugLog: Boolean,
-                 keepGoing: Boolean,
-                 systemProperties: Map[String, String],
-                 threadCount: Option[Int])
-  extends ammonite.MainRunner(
-    config, outprintStream, errPrintStream,
-    stdIn, outprintStream, errPrintStream
-  ){
+class MainRunner(
+    val config: ammonite.main.Cli.Config,
+    mainInteractive: Boolean,
+    disableTicker: Boolean,
+    outprintStream: PrintStream,
+    errPrintStream: PrintStream,
+    stdIn: InputStream,
+    stateCache0: Option[Evaluator.State] = None,
+    env: Map[String, String],
+    setIdle: Boolean => Unit,
+    debugLog: Boolean,
+    keepGoing: Boolean,
+    systemProperties: Map[String, String],
+    threadCount: Option[Int]
+) extends ammonite.MainRunner(
+      config,
+      outprintStream,
+      errPrintStream,
+      stdIn,
+      outprintStream,
+      errPrintStream
+    ) {
 
-  var stateCache  = stateCache0
+  var stateCache = stateCache0
 
   override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
     val (watchedPaths, watchedValues) = watched.partitionMap {
       case (ammonite.interp.Watchable.Path(p), _) => Left(())
-      case (_, _) => Right(())
+      case (_, _)                                 => Right(())
     }
     val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
     printInfo(s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Ctrl-C to exit)")
-    def statAll() = watched.forall{ case (file, lastMTime) =>
-      file.poll() == lastMTime
-    }
+    def statAll() =
+      watched.forall {
+        case (file, lastMTime) =>
+          file.poll() == lastMTime
+      }
     setIdle(true)
-    while(statAll()) Thread.sleep(100)
+    while (statAll()) Thread.sleep(100)
     setIdle(false)
   }
 
@@ -57,23 +64,24 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     * signature only on demand, so if we don't have config.watch enabled we do
     * not pay the cost of generating it
     */
-  @tailrec final def watchLoop2[T](isRepl: Boolean,
-                                   printing: Boolean,
-                                   run: Main => (Res[T], () => Seq[(ammonite.interp.Watchable, Long)])): Boolean = {
+  @tailrec final def watchLoop2[T](
+      isRepl: Boolean,
+      printing: Boolean,
+      run: Main => (Res[T], () => Seq[(ammonite.interp.Watchable, Long)])
+  ): Boolean = {
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
     if (!config.watch) success
-    else{
+    else {
       watchAndWait(watched())
       watchLoop2(isRepl, printing, run)
     }
   }
 
-
   val colored = config.colored.getOrElse(mainInteractive)
 
-  override val colors = if(colored) Colors.Default else Colors.BlackWhite
+  override val colors = if (colored) Colors.Default else Colors.BlackWhite
   override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
     watchLoop2(
       isRepl = false,
@@ -90,7 +98,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           debugEnabled = debugLog,
           context = ""
         )
-        logger.debug(s"Using explicit system properties: ${systemProperties}")
+        logger.debug(s"Using explicit system properties: $systemProperties")
 
         val (result, interpWatched) = RunScript.runScript(
           config.home,
@@ -106,7 +114,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
           threadCount = threadCount
         )
 
-        result match{
+        result match {
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
@@ -119,12 +127,11 @@ class MainRunner(val config: ammonite.main.Cli.Config,
               // pathSignatures the same way Ammonite would and hand over the
               // values, so Ammonite can watch them and only re-run if they
               // subsequently change
-              if (alreadyStale) evalWatches.map(p =>
-                (ammonite.interp.Watchable.Path(p.path), util.Random.nextLong())
-              )
-              else evalWatches.map(p =>
-                (ammonite.interp.Watchable.Path(p.path), ammonite.interp.Watchable.pathSignature(p.path))
-              )
+              if (alreadyStale) evalWatches.map(p => (ammonite.interp.Watchable.Path(p.path), util.Random.nextLong()))
+              else
+                evalWatches.map(p =>
+                  (ammonite.interp.Watchable.Path(p.path), ammonite.interp.Watchable.pathSignature(p.path))
+                )
             }
             (Res(res), () => interpWatched ++ watched())
           case _ => (result, () => interpWatched)
@@ -132,31 +139,34 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       }
     )
 
-  override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
-    res match{
+  override def handleWatchRes[T](res: Res[T], printing: Boolean) =
+    res match {
       case Res.Success(value) => true
-      case _ => super.handleWatchRes(res, printing)
+      case _                  => super.handleWatchRes(res, printing)
     }
-  }
 
   override def initMain(isRepl: Boolean) = {
     val hooks = ImportHook.defaults + (Seq("ivy") -> MillIvyHook)
-    super.initMain(isRepl).copy(
-      scriptCodeWrapper = CustomCodeWrapper,
-      // Ammonite does not properly forward the wd from CliConfig to Main, so
-      // force forward it outselves
-      wd = config.wd,
-      importHooks = hooks
-    )
+    super
+      .initMain(isRepl)
+      .copy(
+        scriptCodeWrapper = CustomCodeWrapper,
+        // Ammonite does not properly forward the wd from CliConfig to Main, so
+        // force forward it outselves
+        wd = config.wd,
+        importHooks = hooks
+      )
   }
 
   object CustomCodeWrapper extends ammonite.interp.CodeWrapper {
-    def apply(code: String,
-              source: CodeSource,
-              imports: ammonite.util.Imports,
-              printCode: String,
-              indexedWrapperName: ammonite.util.Name,
-              extraCode: String): (String, String, Int) = {
+    def apply(
+        code: String,
+        source: CodeSource,
+        imports: ammonite.util.Imports,
+        printCode: String,
+        indexedWrapperName: ammonite.util.Name,
+        extraCode: String
+    ): (String, String, Int) = {
       import source.pkgName
       val wrapName = indexedWrapperName.backticked
       val path = source.path
@@ -168,36 +178,35 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         // of the foreign module relatively to the current build.
         val relative = path.relativeTo(config.wd)
         // Encoding the number of `/..`
-        val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
-        val segs = Seq("foreign-modules") ++ ups ++ relative.segments
+        val ups      = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
+        val segs     = Seq("foreign-modules") ++ ups ++ relative.segments
         val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
         s"Some(mill.define.Segments.labels($segsList))"
-      }
-      else "None"
+      } else "None"
 
-      val top = s"""
-        |package ${pkgName.head.encoded}
-        |package ${Util.encodeScalaSourcePath(pkgName.tail)}
-        |$imports
-        |import mill._
-        |object $wrapName
-        |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
-        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
-        |)
-        |with $wrapName{
-        |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-        |  // even if it does nothing...
-        |  def $$main() = Iterator[String]()
-        |
-        |  // Need to wrap the returned Module in Some(...) to make sure it
-        |  // doesn't get picked up during reflective child-module discovery
-        |  def millSelf = Some(this)
-        |
-        |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
-        |}
-        |
-        |sealed trait $wrapName extends mill.main.MainModule{
-        |""".stripMargin
+      val top    = s"""
+                   |package ${pkgName.head.encoded}
+                   |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+                   |$imports
+                   |import mill._
+                   |object $wrapName
+                   |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
+                   |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
+                   |)
+                   |with $wrapName{
+                   |  // Stub to make sure Ammonite has something to call after it evaluates a script,
+                   |  // even if it does nothing...
+                   |  def $$main() = Iterator[String]()
+                   |
+                   |  // Need to wrap the returned Module in Some(...) to make sure it
+                   |  // doesn't get picked up during reflective child-module discovery
+                   |  def millSelf = Some(this)
+                   |
+                   |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+                   |}
+                   |
+                   |sealed trait $wrapName extends mill.main.MainModule{
+                   |""".stripMargin
       val bottom = "\n}"
 
       (top, bottom, 1)

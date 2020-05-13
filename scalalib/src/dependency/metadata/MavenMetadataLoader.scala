@@ -4,8 +4,7 @@ import coursier.maven.MavenRepository
 import coursier.util.Task
 import mill.scalalib.dependency.versions.Version
 
-private[dependency] final case class MavenMetadataLoader(mavenRepo: MavenRepository)
-    extends MetadataLoader {
+final private[dependency] case class MavenMetadataLoader(mavenRepo: MavenRepository) extends MetadataLoader {
 
   private val fetch = coursier.cache.FileCache[Task].fetch
 

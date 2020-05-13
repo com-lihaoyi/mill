@@ -3,29 +3,30 @@ import mill.eval.Evaluator
 
 case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
-object Tasks{
+object Tasks {
 
   class Scopt[T]() extends scopt.Read[Tasks[T]] {
     def arity = 1
 
-    def reads = s => {
-      RunScript.resolveTasks(
-        mill.main.ResolveTasks,
-        Evaluator.currentEvaluator.get,
-        Seq(s),
-        multiSelect = false
-      ) match{
-        case Left(err) => throw new Exception(err)
-        case Right(tasks) => Tasks(tasks).asInstanceOf[Tasks[T]]
+    def reads =
+      s => {
+        RunScript.resolveTasks(
+          mill.main.ResolveTasks,
+          Evaluator.currentEvaluator.get,
+          Seq(s),
+          multiSelect = false
+        ) match {
+          case Left(err)    => throw new Exception(err)
+          case Right(tasks) => Tasks(tasks).asInstanceOf[Tasks[T]]
+        }
       }
-    }
   }
 }
 
-class EvaluatorScopt[T]()
-  extends scopt.Read[mill.eval.Evaluator]{
+class EvaluatorScopt[T]() extends scopt.Read[mill.eval.Evaluator] {
   def arity = 0
-  def reads = s => {
-    Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]
-  }
+  def reads =
+    s => {
+      Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]
+    }
 }

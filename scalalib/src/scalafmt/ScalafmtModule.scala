@@ -6,32 +6,33 @@ import mill.scalalib._
 
 trait ScalafmtModule extends JavaModule {
 
-  def reformat(): Command[Unit] = T.command {
-    ScalafmtWorkerModule
-      .worker()
-      .reformat(
-        filesToFormat(sources()),
-        scalafmtConfig().head
-      )
-  }
+  def reformat(): Command[Unit] =
+    T.command {
+      ScalafmtWorkerModule
+        .worker()
+        .reformat(
+          filesToFormat(sources()),
+          scalafmtConfig().head
+        )
+    }
 
-  def checkFormat(): Command[Unit] = T.command {
-    ScalafmtWorkerModule
-      .worker()
-      .checkFormat(
-        filesToFormat(sources()),
-        scalafmtConfig().head
-      )
-  }
+  def checkFormat(): Command[Unit] =
+    T.command {
+      ScalafmtWorkerModule
+        .worker()
+        .checkFormat(
+          filesToFormat(sources()),
+          scalafmtConfig().head
+        )
+    }
 
   def scalafmtConfig: Sources = T.sources(os.pwd / ".scalafmt.conf")
 
-  protected def filesToFormat(sources: Seq[PathRef]) = {
+  protected def filesToFormat(sources: Seq[PathRef]) =
     for {
       pathRef <- sources if os.exists(pathRef.path)
-      file <- os.walk(pathRef.path) if os.isFile(file) && file.ext == "scala"
+      file    <- os.walk(pathRef.path) if os.isFile(file) && file.ext == "scala"
     } yield PathRef(file)
-  }
 
 }
 

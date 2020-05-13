@@ -3,17 +3,18 @@ package mill.contrib.artifactory
 import mill.api.Logger
 import mill.scalalib.publish.Artifact
 
-class ArtifactoryPublisher(releaseUri: String,
-                           snapshotUri: String,
-                           credentials: String,
-                           readTimeout: Int,
-                           connectTimeout: Int,
-                           log: Logger) {
+class ArtifactoryPublisher(
+    releaseUri: String,
+    snapshotUri: String,
+    credentials: String,
+    readTimeout: Int,
+    connectTimeout: Int,
+    log: Logger
+) {
   private val api = new ArtifactoryHttpApi(credentials, readTimeout = readTimeout, connectTimeout = connectTimeout)
 
-  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit = {
+  def publish(fileMapping: Seq[(os.Path, String)], artifact: Artifact): Unit =
     publishAll(fileMapping -> artifact)
-  }
 
   def publishAll(artifacts: (Seq[(os.Path, String)], Artifact)*): Unit = {
     log.info("arts: " + artifacts)
@@ -35,10 +36,8 @@ class ArtifactoryPublisher(releaseUri: String,
     if (snapshots.nonEmpty) publishToRepo(snapshotUri, snapshots.flatMap(_._2), snapshots.map(_._1))
     if (releases.nonEmpty) publishToRepo(releaseUri, releases.flatMap(_._2), releases.map(_._1))
   }
-  
-  private def publishToRepo(repoUri: String,
-                            payloads: Seq[(String, Array[Byte])],
-                            artifacts: Seq[Artifact]): Unit = {
+
+  private def publishToRepo(repoUri: String, payloads: Seq[(String, Array[Byte])], artifacts: Seq[Artifact]): Unit = {
     val publishResults = payloads.map {
       case (fileName, data) =>
         log.info(s"Uploading $fileName")
@@ -48,11 +47,10 @@ class ArtifactoryPublisher(releaseUri: String,
     reportPublishResults(publishResults, artifacts)
   }
 
-  private def reportPublishResults(publishResults: Seq[requests.Response],
-                                   artifacts: Seq[Artifact]) = {
-    if (publishResults.forall(_.is2xx)) {
+  private def reportPublishResults(publishResults: Seq[requests.Response], artifacts: Seq[Artifact]) =
+    if (publishResults.forall(_.is2xx))
       log.info(s"Published ${artifacts.map(_.id).mkString(", ")} to Artifactory")
-    } else {
+    else {
       val errors = publishResults.filterNot(_.is2xx).map { response =>
         s"Code: ${response.statusCode}, message: ${response.text()}"
       }
@@ -60,5 +58,4 @@ class ArtifactoryPublisher(releaseUri: String,
         s"Failed to publish ${artifacts.map(_.id).mkString(", ")} to Artifactory. Errors: \n${errors.mkString("\n")}"
       )
     }
-  }
 }

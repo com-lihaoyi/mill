@@ -12,26 +12,23 @@ import scala.concurrent.ExecutionContext.Implicits.global
  * in scala-js/scala-js.
  */
 private[worker] object Run {
+
   /** Starts and waits for a run on the given [[JSEnv]] interruptibly.
-   *
+    *
    *  Interruption can be triggered by typing anything into stdin.
-   */
+    */
   def runInterruptible(jsEnv: JSEnv, input: Seq[Input], config: RunConfig): Unit = {
     val readPromise = Promise[Unit]()
     val readThread = new Thread {
-      override def run(): Unit = {
+      override def run(): Unit =
         try {
-          while (System.in.available() == 0) {
+          while (System.in.available() == 0)
             Thread.sleep(50)
-          }
 
           System.in.read()
         } catch {
           case _: InterruptedException =>
-        } finally {
-          readPromise.success(())
-        }
-      }
+        } finally readPromise.success(())
     }
 
     val run = jsEnv.start(input, config)
@@ -40,9 +37,7 @@ private[worker] object Run {
 
       val fut = Future.firstCompletedOf(List(readPromise.future, run.future))
       Await.result(fut, Duration.Inf)
-    } finally {
-      run.close()
-    }
+    } finally run.close()
 
     readThread.interrupt()
     readThread.join()

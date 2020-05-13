@@ -11,18 +11,14 @@ object Dependency extends ExternalModule {
   /** Calculate possible dependency updates. */
   def updates(ev: Evaluator, allowPreRelease: Boolean = false) =
     T.command {
-      DependencyUpdatesImpl(
-        ev,
-        implicitly,
-        ev.rootModule,
-        ev.rootModule.millDiscover,
-        allowPreRelease)
+      DependencyUpdatesImpl(ev, implicitly, ev.rootModule, ev.rootModule.millDiscover, allowPreRelease)
     }
 
   /** Show possible dependency updates. */
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) = T.command{
-    DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
-  }
+  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) =
+    T.command {
+      DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
+    }
 
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] =
     new mill.main.EvaluatorScopt[T]()

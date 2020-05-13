@@ -16,25 +16,23 @@ import mill.api.Loose.Agg
 /**
   * Core configuration required to compile a single Scala compilation target
   */
-trait JavaModule extends mill.Module
-  with TaskModule
-  with GenIdeaModule
-  with CoursierModule { outer =>
+trait JavaModule extends mill.Module with TaskModule with GenIdeaModule with CoursierModule { outer =>
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
   trait Tests extends TestModule {
-    override def moduleDeps: Seq[JavaModule] = Seq(outer)
+    override def moduleDeps: Seq[JavaModule]   = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
-    override def javacOptions: T[Seq[String]] = outer.javacOptions
-    override def zincWorker: ZincWorkerModule = outer.zincWorker
-    override def skipIdea: Boolean = outer.skipIdea
+    override def javacOptions: T[Seq[String]]  = outer.javacOptions
+    override def zincWorker: ZincWorkerModule  = outer.zincWorker
+    override def skipIdea: Boolean             = outer.skipIdea
   }
   def defaultCommandName() = "run"
 
-  def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{
-    Artifact.fromDepJava(_: Dep)
-  }
+  def resolvePublishDependency: Task[Dep => publish.Dependency] =
+    T.task {
+      Artifact.fromDepJava(_: Dep)
+    }
 
   /**
     * Allows you to specify an explicit main class to use for the `run` command.
@@ -43,96 +41,98 @@ trait JavaModule extends mill.Module
     */
   def mainClass: T[Option[String]] = None
 
-  def finalMainClassOpt: T[Either[String, String]] = T{
-    mainClass() match{
-      case Some(m) => Right(m)
-      case None =>
-        zincWorker.worker().discoverMainClasses(compile())match {
-          case Seq() => Left("No main class specified or found")
-          case Seq(main) => Right(main)
-          case mains =>
-            Left(
-              s"Multiple main classes found (${mains.mkString(",")}) " +
-                "please explicitly specify which one to use by overriding mainClass"
-            )
-        }
+  def finalMainClassOpt: T[Either[String, String]] =
+    T {
+      mainClass() match {
+        case Some(m) => Right(m)
+        case None =>
+          zincWorker.worker().discoverMainClasses(compile()) match {
+            case Seq()     => Left("No main class specified or found")
+            case Seq(main) => Right(main)
+            case mains =>
+              Left(
+                s"Multiple main classes found (${mains.mkString(",")}) " +
+                  "please explicitly specify which one to use by overriding mainClass"
+              )
+          }
+      }
     }
-  }
 
-  def finalMainClass: T[String] = T{
-    finalMainClassOpt() match {
-      case Right(main) => Result.Success(main)
-      case Left(msg)   => Result.Failure(msg)
+  def finalMainClass: T[String] =
+    T {
+      finalMainClassOpt() match {
+        case Right(main) => Result.Success(main)
+        case Left(msg)   => Result.Failure(msg)
+      }
     }
-  }
 
   /**
     * Any ivy dependencies you want to add to this Module, in the format
     * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
     * for Java dependencies
     */
-  def ivyDeps = T{ Agg.empty[Dep] }
+  def ivyDeps = T(Agg.empty[Dep])
 
   /**
     * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
     * macro-related dependencies like `scala-reflect` that doesn't need to be
     * present at runtime
     */
-  def compileIvyDeps = T{ Agg.empty[Dep] }
+  def compileIvyDeps = T(Agg.empty[Dep])
+
   /**
     * Same as `ivyDeps`, but only present at runtime. Useful for e.g.
     * selecting different versions of a dependency to use at runtime after your
     * code has already been compiled
     */
-  def runIvyDeps = T{ Agg.empty[Dep] }
+  def runIvyDeps = T(Agg.empty[Dep])
 
   /**
     * Options to pass to the java compiler
     */
-  def javacOptions = T{ Seq.empty[String] }
+  def javacOptions = T(Seq.empty[String])
 
   /** The direct dependencies of this module */
   def moduleDeps = Seq.empty[JavaModule]
 
   /** The direct and indirect dependencies of this module */
-  def recursiveModuleDeps: Seq[JavaModule] = {
+  def recursiveModuleDeps: Seq[JavaModule] =
     moduleDeps.flatMap(_.transitiveModuleDeps).distinct
-  }
 
   /** Like `recursiveModuleDeps` but also include the module itself */
-  def transitiveModuleDeps: Seq[JavaModule] = {
+  def transitiveModuleDeps: Seq[JavaModule] =
     Seq(this) ++ recursiveModuleDeps
-  }
 
   /**
     * Additional jars, classfiles or resources to add to the classpath directly
     * from disk rather than being downloaded from Maven Central or other package
     * repositories
     */
-  def unmanagedClasspath = T{ Agg.empty[PathRef] }
+  def unmanagedClasspath = T(Agg.empty[PathRef])
 
   /**
     * The transitive ivy dependencies of this module and all it's upstream modules
     */
-  def transitiveIvyDeps: T[Agg[Dep]] = T{
-    ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
-  }
+  def transitiveIvyDeps: T[Agg[Dep]] =
+    T {
+      ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    }
 
   /**
     * The upstream compilation output of all this module's upstream modules
     */
-  def upstreamCompileOutput = T{
-    T.traverse(recursiveModuleDeps)(_.compile)
-  }
+  def upstreamCompileOutput =
+    T {
+      T.traverse(recursiveModuleDeps)(_.compile)
+    }
 
   /**
     * The transitive version of `localClasspath`
     */
-  def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    T.traverse(moduleDeps)(m =>
-      T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
-    )().flatten
-  }
+  def transitiveLocalClasspath: T[Agg[PathRef]] =
+    T {
+      T.traverse(moduleDeps)(m => T.task(m.localClasspath() ++ m.transitiveLocalClasspath()))().flatten
+    }
 
   def repositories: Seq[Repository] = zincWorker.repositories
 
@@ -140,7 +140,7 @@ trait JavaModule extends mill.Module
     * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
     * projects
     */
-  def platformSuffix: T[String] = T{ "" }
+  def platformSuffix: T[String] = T("")
 
   private val Milestone213 = raw"""2.13.(\d+)-M(\d+)""".r
 
@@ -149,112 +149,124 @@ trait JavaModule extends mill.Module
     * Defaults to a generic "universal" launcher that should work for Windows,
     * OS-X and Linux
     */
-  def prependShellScript: T[String] = T{
-    finalMainClassOpt().toOption match{
-      case None => ""
-      case Some(cls) =>
-        mill.modules.Jvm.launcherUniversalScript(
-          cls,
-          Agg("$0"), Agg("%~dpnx0"),
-          forkArgs()
-        )
+  def prependShellScript: T[String] =
+    T {
+      finalMainClassOpt().toOption match {
+        case None => ""
+        case Some(cls) =>
+          mill.modules.Jvm.launcherUniversalScript(
+            cls,
+            Agg("$0"),
+            Agg("%~dpnx0"),
+            forkArgs()
+          )
+      }
     }
-  }
 
   def assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
 
   /**
     * The folders where the source files for this module live
     */
-  def sources = T.sources{ millSourcePath / 'src }
+  def sources = T.sources(millSourcePath / 'src)
+
   /**
     * The folders where the resource files for this module live
     */
-  def resources = T.sources{ millSourcePath / 'resources }
+  def resources = T.sources(millSourcePath / 'resources)
+
   /**
     * Folders containing source files that are generated rather than
     * hand-written; these files can be generated in this target itself,
     * or can refer to files generated from other targets
     */
-  def generatedSources = T{ Seq.empty[PathRef] }
+  def generatedSources = T(Seq.empty[PathRef])
 
   /**
     * The folders containing all source files fed into the compiler
     */
-  def allSources = T{ sources() ++ generatedSources() }
+  def allSources = T(sources() ++ generatedSources())
 
   /**
     * All individual source files fed into the Java compiler
     */
-  def allSourceFiles = T{
-    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-    for {
-      root <- allSources()
-      if os.exists(root.path)
-      path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && ((path.ext == "java") && !isHiddenFile(path))
-    } yield PathRef(path)
-  }
-
+  def allSourceFiles =
+    T {
+      def isHiddenFile(path: os.Path) = path.last.startsWith(".")
+      for {
+        root <- allSources()
+        if os.exists(root.path)
+        path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
+        if os.isFile(path) && ((path.ext == "java") && !isHiddenFile(path))
+      } yield PathRef(path)
+    }
 
   /**
     * Compiles the current module to generate compiled classfiles/bytecode
     */
-  def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-    zincWorker.worker().compileJava(
-      upstreamCompileOutput(),
-      allSourceFiles().map(_.path),
-      compileClasspath().map(_.path),
-      javacOptions(),
-      T.reporter.apply(hashCode)
-    )
-  }
+  def compile: T[mill.scalalib.api.CompilationResult] =
+    T.persistent {
+      zincWorker
+        .worker()
+        .compileJava(
+          upstreamCompileOutput(),
+          allSourceFiles().map(_.path),
+          compileClasspath().map(_.path),
+          javacOptions(),
+          T.reporter.apply(hashCode)
+        )
+    }
 
   /**
     * The output classfiles/resources from this module, excluding upstream
     * modules and third-party dependencies
     */
-  def localClasspath = T{
-    resources() ++ Agg(compile().classes)
-  }
+  def localClasspath =
+    T {
+      resources() ++ Agg(compile().classes)
+    }
 
   /**
     * All classfiles and resources from upstream modules and dependencies
     * necessary to compile this module
     */
-  def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{compileIvyDeps() ++ transitiveIvyDeps()})()
-  }
+  def compileClasspath =
+    T {
+      transitiveLocalClasspath() ++
+        resources() ++
+        unmanagedClasspath() ++
+        resolveDeps(T.task(compileIvyDeps() ++ transitiveIvyDeps()))()
+    }
 
   /**
     * All upstream classfiles and resources necessary to build and executable
     * assembly, but without this module's contribution
     */
-  def upstreamAssemblyClasspath = T{
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
-    resolveDeps(T.task{runIvyDeps() ++ transitiveIvyDeps()})()
-  }
+  def upstreamAssemblyClasspath =
+    T {
+      transitiveLocalClasspath() ++
+        unmanagedClasspath() ++
+        resolveDeps(T.task(runIvyDeps() ++ transitiveIvyDeps()))()
+    }
 
   /**
     * All classfiles and resources from upstream modules and dependencies
     * necessary to run this module's code after compilation
     */
-  def runClasspath = T{
-    localClasspath() ++
-    upstreamAssemblyClasspath()
-  }
+  def runClasspath =
+    T {
+      localClasspath() ++
+        upstreamAssemblyClasspath()
+    }
 
   /**
     * Creates a manifest representation which can be modifed or replaced
     * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
     */
-  def manifest: T[Jvm.JarManifest] = T{
-    Jvm.createManifest(finalMainClassOpt().toOption)
-  }
+  def manifest: T[Jvm.JarManifest] =
+    T {
+      Jvm.createManifest(finalMainClassOpt().toOption)
+    }
 
   /**
     * Build the assembly for upstream dependencies separate from the current
@@ -263,163 +275,175 @@ trait JavaModule extends mill.Module
     * This should allow much faster assembly creation in the common case where
     * upstream dependencies do not change
     */
-  def upstreamAssembly = T{
-    createAssembly(
-      upstreamAssemblyClasspath().map(_.path),
-      manifest(),
-      assemblyRules = assemblyRules
-    )
-  }
+  def upstreamAssembly =
+    T {
+      createAssembly(
+        upstreamAssemblyClasspath().map(_.path),
+        manifest(),
+        assemblyRules = assemblyRules
+      )
+    }
 
   /**
     * An executable uber-jar/assembly containing all the resources and compiled
     * classfiles from this module and all it's upstream modules and dependencies
     */
-  def assembly = T{
-    createAssembly(
-      Agg.from(localClasspath().map(_.path)),
-      manifest(),
-      prependShellScript(),
-      Some(upstreamAssembly().path),
-      assemblyRules
-    )
-  }
+  def assembly =
+    T {
+      createAssembly(
+        Agg.from(localClasspath().map(_.path)),
+        manifest(),
+        prependShellScript(),
+        Some(upstreamAssembly().path),
+        assemblyRules
+      )
+    }
 
   /**
     * A jar containing only this module's resources and compiled classfiles,
     * without those from upstream modules and dependencies
     */
-  def jar = T{
-    createJar(
-      localClasspath().map(_.path).filter(os.exists),
-      manifest()
-    )
-  }
+  def jar =
+    T {
+      createJar(
+        localClasspath().map(_.path).filter(os.exists),
+        manifest()
+      )
+    }
 
   /**
-   * Additional options to be used by the javadoc tool.
-   * You should not set the `-d` setting for specifying the target directory,
-   * as that is done in the [[docJar]] target.
-   */
-  def javadocOptions: T[Seq[String]] = T { Seq[String]() }
+    * Additional options to be used by the javadoc tool.
+    * You should not set the `-d` setting for specifying the target directory,
+    * as that is done in the [[docJar]] target.
+    */
+  def javadocOptions: T[Seq[String]] = T(Seq[String]())
 
   /**
-   * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
-   * publishing to Maven Central
-   */
-  def docJar = T[PathRef] {
-    val outDir = T.dest
+    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
+    * publishing to Maven Central
+    */
+  def docJar =
+    T[PathRef] {
+      val outDir = T.dest
 
-    val javadocDir = outDir / 'javadoc
-    os.makeDir.all(javadocDir)
+      val javadocDir = outDir / 'javadoc
+      os.makeDir.all(javadocDir)
 
-    val files = for {
-      ref <- allSources()
-      if os.exists(ref.path)
-      p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
-      if os.isFile(p) && (p.ext == "java")
-    } yield p.toNIO.toString
+      val files = for {
+        ref <- allSources()
+        if os.exists(ref.path)
+        p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
+        if os.isFile(p) && (p.ext == "java")
+      } yield p.toNIO.toString
 
-    val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
+      val options = javadocOptions() ++ Seq("-d", javadocDir.toNIO.toString)
 
-    if (files.nonEmpty) Jvm.runSubprocess(
-      commandArgs = Seq(
-        "javadoc"
-      ) ++ options ++
-        Seq(
-          "-classpath",
-          compileClasspath()
-          .map(_.path)
-          .filter(_.ext != "pom")
-          .mkString(java.io.File.pathSeparator)
-        ) ++
-          files.map(_.toString),
-      envArgs = Map(),
-      workingDir = T.dest
-    )
+      if (files.nonEmpty)
+        Jvm.runSubprocess(
+          commandArgs = Seq(
+            "javadoc"
+          ) ++ options ++
+            Seq(
+              "-classpath",
+              compileClasspath()
+                .map(_.path)
+                .filter(_.ext != "pom")
+                .mkString(java.io.File.pathSeparator)
+            ) ++
+            files.map(_.toString),
+          envArgs = Map(),
+          workingDir = T.dest
+        )
 
-    createJar(Agg(javadocDir))(outDir)
-  }
+      createJar(Agg(javadocDir))(outDir)
+    }
 
   /**
     * The source jar, containing only source code for publishing to Maven Central
     */
-  def sourceJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(os.exists), manifest())
-  }
+  def sourceJar =
+    T {
+      createJar((allSources() ++ resources()).map(_.path).filter(os.exists), manifest())
+    }
 
   /**
     * Any command-line parameters you want to pass to the forked JVM under `run`,
     * `test` or `repl`
     */
-  def forkArgs = T{ Seq.empty[String] }
+  def forkArgs = T(Seq.empty[String])
 
   /**
     * Any environment variables you want to pass to the forked JVM under `run`,
     * `test` or `repl`
     */
-  def forkEnv = T{ sys.env.toMap }
+  def forkEnv = T(sys.env.toMap)
 
   /**
     * Builds a command-line "launcher" file that can be used to run this module's
     * code, without the Mill process. Useful for deployment & other places where
     * you do not want a build tool running
     */
-  def launcher = T{
-    Result.Success(
-      Jvm.createLauncher(
-        finalMainClass(),
-        runClasspath().map(_.path),
-        forkArgs()
+  def launcher =
+    T {
+      Result.Success(
+        Jvm.createLauncher(
+          finalMainClass(),
+          runClasspath().map(_.path),
+          forkArgs()
+        )
       )
-    )
-  }
+    }
 
   /**
-   * Task that print the transitive dependency tree to STDOUT.
-   * @param inverse Invert the tree representation, so that the root is on the bottom.
-   * @param additionalDeps Additional dependency to be included into the tree.
-   */
-  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]) = T.task {
-    val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories,
-      resolveCoursierDependency().apply(_),
-      additionalDeps() ++ transitiveIvyDeps(),
-      Some(mapDependencies())
-    )
-
-    println(
-      coursier.util.Print.dependencyTree(
-        roots = flattened,
-        resolution = resolution,
-        printExclusions = false,
-        reverse = inverse
+    * Task that print the transitive dependency tree to STDOUT.
+    * @param inverse Invert the tree representation, so that the root is on the bottom.
+    * @param additionalDeps Additional dependency to be included into the tree.
+    */
+  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]) =
+    T.task {
+      val (flattened, resolution) = Lib.resolveDependenciesMetadata(
+        repositories,
+        resolveCoursierDependency().apply(_),
+        additionalDeps() ++ transitiveIvyDeps(),
+        Some(mapDependencies())
       )
-    )
 
-    Result.Success()
-  }
+      println(
+        coursier.util.Print.dependencyTree(
+          roots = flattened,
+          resolution = resolution,
+          printExclusions = false,
+          reverse = inverse
+        )
+      )
+
+      Result.Success()
+    }
 
   /**
-   * Command to print the transitive dependency tree to STDOUT.
-   *
+    * Command to print the transitive dependency tree to STDOUT.
+    *
    * @param inverse Invert the tree representation, so that the root is on the bottom.
-   * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
-   * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
-   */
+    * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
+    * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
+    */
   def ivyDepsTree(inverse: Boolean = false, withCompile: Boolean = false, withRuntime: Boolean = false): Command[Unit] =
     (withCompile, withRuntime) match {
-      case (true, true) => T.command {
-          printDepsTree(inverse, T.task{ compileIvyDeps() ++ runIvyDeps() })
+      case (true, true) =>
+        T.command {
+          printDepsTree(inverse, T.task(compileIvyDeps() ++ runIvyDeps()))
         }
-      case (true, false) => T.command {
+      case (true, false) =>
+        T.command {
           printDepsTree(inverse, compileIvyDeps)
         }
-      case (false, true) => T.command {
+      case (false, true) =>
+        T.command {
           printDepsTree(inverse, runIvyDeps)
         }
-      case _ => T.command {
-          printDepsTree(inverse, T.task { Agg.empty[Dep] })
+      case _ =>
+        T.command {
+          printDepsTree(inverse, T.task(Agg.empty[Dep]))
         }
     }
 
@@ -429,33 +453,39 @@ trait JavaModule extends mill.Module
     * since the code can dirty the parent Mill process and potentially leave it
     * in a bad state.
     */
-  def runLocal(args: String*) = T.command {
-    Jvm.runLocal(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      args
-    )
-  }
+  def runLocal(args: String*) =
+    T.command {
+      Jvm.runLocal(
+        finalMainClass(),
+        runClasspath().map(_.path),
+        args
+      )
+    }
 
   /**
     * Runs this module's code in a subprocess and waits for it to finish
     */
-  def run(args: String*) = T.command{
-    try Result.Success(Jvm.runSubprocess(
-      finalMainClass(),
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = forkWorkingDir()
-    )) catch { case e: Exception =>
-       Result.Failure("subprocess failed")
+  def run(args: String*) =
+    T.command {
+      try Result.Success(
+        Jvm.runSubprocess(
+          finalMainClass(),
+          runClasspath().map(_.path),
+          forkArgs(),
+          forkEnv(),
+          args,
+          workingDir = forkWorkingDir()
+        )
+      )
+      catch {
+        case e: Exception =>
+          Result.Failure("subprocess failed")
+      }
     }
-  }
 
   private[this] def backgroundSetup(dest: os.Path) = {
-    val token = java.util.UUID.randomUUID().toString
-    val procId = dest / ".mill-background-process-id"
+    val token         = java.util.UUID.randomUUID().toString
+    val procId        = dest / ".mill-background-process-id"
     val procTombstone = dest / ".mill-background-process-tombstone"
     // The backgrounded subprocesses poll the procId file, and kill themselves
     // when the procId file is deleted. This deletion happens immediately before
@@ -470,7 +500,7 @@ trait JavaModule extends mill.Module
     // appear in a short amount of time, we assume the subprocess exited or was
     // killed via some other means, and continue anyway.
     val start = System.currentTimeMillis()
-    while({
+    while (
       if (os.exists(procTombstone)) {
         Thread.sleep(10)
         os.remove.all(procTombstone)
@@ -479,7 +509,7 @@ trait JavaModule extends mill.Module
         Thread.sleep(10)
         System.currentTimeMillis() - start < 100
       }
-    })()
+    ) ()
 
     os.write(procId, token)
     os.write(procTombstone, token)
@@ -497,65 +527,81 @@ trait JavaModule extends mill.Module
     * when ready. This is useful when working on long-running server processes
     * that would otherwise run forever
     */
-  def runBackground(args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.dest)
-    try Result.Success(Jvm.runSubprocess(
-      "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
-      forkArgs(),
-      forkEnv(),
-      Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
-      workingDir = forkWorkingDir(),
-      background = true
-    )) catch { case e: Exception =>
-       Result.Failure("subprocess failed")
+  def runBackground(args: String*) =
+    T.command {
+      val (procId, procTombstone, token) = backgroundSetup(T.dest)
+      try Result.Success(
+        Jvm.runSubprocess(
+          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
+          forkArgs(),
+          forkEnv(),
+          Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
+          workingDir = forkWorkingDir(),
+          background = true
+        )
+      )
+      catch {
+        case e: Exception =>
+          Result.Failure("subprocess failed")
+      }
     }
-  }
 
   /**
     * Same as `runBackground`, but lets you specify a main class to run
     */
-  def runMainBackground(mainClass: String, args: String*) = T.command{
-    val (procId, procTombstone, token) = backgroundSetup(T.dest)
-    try Result.Success(Jvm.runSubprocess(
-      "mill.scalalib.backgroundwrapper.BackgroundWrapper",
-      (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
-      forkArgs(),
-      forkEnv(),
-      Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
-      workingDir = forkWorkingDir(),
-      background = true
-    )) catch { case e: Exception =>
-      Result.Failure("subprocess failed")
+  def runMainBackground(mainClass: String, args: String*) =
+    T.command {
+      val (procId, procTombstone, token) = backgroundSetup(T.dest)
+      try Result.Success(
+        Jvm.runSubprocess(
+          "mill.scalalib.backgroundwrapper.BackgroundWrapper",
+          (runClasspath() ++ zincWorker.backgroundWrapperClasspath()).map(_.path),
+          forkArgs(),
+          forkEnv(),
+          Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
+          workingDir = forkWorkingDir(),
+          background = true
+        )
+      )
+      catch {
+        case e: Exception =>
+          Result.Failure("subprocess failed")
+      }
     }
-  }
 
   /**
     * Same as `runLocal`, but lets you specify a main class to run
     */
-  def runMainLocal(mainClass: String, args: String*) = T.command {
-    Jvm.runLocal(
-      mainClass,
-      runClasspath().map(_.path),
-      args
-    )
-  }
+  def runMainLocal(mainClass: String, args: String*) =
+    T.command {
+      Jvm.runLocal(
+        mainClass,
+        runClasspath().map(_.path),
+        args
+      )
+    }
 
   /**
     * Same as `run`, but lets you specify a main class to run
     */
-  def runMain(mainClass: String, args: String*) = T.command{
-    try Result.Success(Jvm.runSubprocess(
-      mainClass,
-      runClasspath().map(_.path),
-      forkArgs(),
-      forkEnv(),
-      args,
-      workingDir = forkWorkingDir()
-    )) catch { case e: Exception =>
-      Result.Failure("subprocess failed")
+  def runMain(mainClass: String, args: String*) =
+    T.command {
+      try Result.Success(
+        Jvm.runSubprocess(
+          mainClass,
+          runClasspath().map(_.path),
+          forkArgs(),
+          forkEnv(),
+          args,
+          workingDir = forkWorkingDir()
+        )
+      )
+      catch {
+        case e: Exception =>
+          Result.Failure("subprocess failed")
+      }
     }
-  }
 
   /**
     * Override this to change the published artifact id.
@@ -571,28 +617,31 @@ trait JavaModule extends mill.Module
     */
   def artifactId: T[String] = artifactName()
 
-  def forkWorkingDir = T{ ammonite.ops.pwd }
+  def forkWorkingDir = T(ammonite.ops.pwd)
 }
 
 trait TestModule extends JavaModule with TaskModule {
   override def defaultCommandName() = "test"
+
   /**
     * What test frameworks to use.
     */
   def testFrameworks: T[Seq[String]]
+
   /**
     * Discovers and runs the module's tests in a subprocess, reporting the
     * results to the console.
     * @see [[testCached]]
     */
-  def test(args: String*): Command[(String, Seq[TestRunner.Result])] = T.command {
-    testTask(T.task{args})()
-  }
+  def test(args: String*): Command[(String, Seq[TestRunner.Result])] =
+    T.command {
+      testTask(T.task(args))()
+    }
 
   /**
     * Args to be used by [[testCached]].
     */
-  def testCachedArgs: T[Seq[String]] = T{ Seq[String]() }
+  def testCachedArgs: T[Seq[String]] = T(Seq[String]())
 
   /**
     * Discovers and runs the module's tests in a subprocess, reporting the
@@ -600,67 +649,71 @@ trait TestModule extends JavaModule with TaskModule {
     * If no input has changed since the last run, no test were executed.
     * @see [[test()]]
     */
-  def testCached: T[(String, Seq[TestRunner.Result])] = T {
-    testTask(testCachedArgs)()
-  }
-
-  protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.dest / "out.json"
-
-    Jvm.runSubprocess(
-      mainClass = "mill.scalalib.TestRunner",
-      classPath = zincWorker.scalalibClasspath().map(_.path),
-      jvmArgs = forkArgs(),
-      envArgs = forkEnv(),
-      mainArgs =
-        Seq(testFrameworks().length.toString) ++
-        testFrameworks() ++
-        Seq(runClasspath().length.toString) ++
-        runClasspath().map(_.path.toString) ++
-        Seq(args().length.toString) ++
-        args() ++
-        Seq(outputPath.toString, T.log.colored.toString, compile().classes.path.toString, T.home.toString),
-      workingDir = forkWorkingDir()
-    )
-
-    if(!os.exists(outputPath)) Result.Failure("Test execution failed.")
-    else  try {
-      val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-      TestModule.handleResults(doneMsg, results)
-    } catch {
-      case e: Throwable =>
-        Result.Failure("Test reporting failed: " + e)
+  def testCached: T[(String, Seq[TestRunner.Result])] =
+    T {
+      testTask(testCachedArgs)()
     }
-  }
+
+  protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
+    T.task {
+      val outputPath = T.dest / "out.json"
+
+      Jvm.runSubprocess(
+        mainClass = "mill.scalalib.TestRunner",
+        classPath = zincWorker.scalalibClasspath().map(_.path),
+        jvmArgs = forkArgs(),
+        envArgs = forkEnv(),
+        mainArgs =
+          Seq(testFrameworks().length.toString) ++
+            testFrameworks() ++
+            Seq(runClasspath().length.toString) ++
+            runClasspath().map(_.path.toString) ++
+            Seq(args().length.toString) ++
+            args() ++
+            Seq(outputPath.toString, T.log.colored.toString, compile().classes.path.toString, T.home.toString),
+        workingDir = forkWorkingDir()
+      )
+
+      if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
+      else
+        try {
+          val jsonOutput         = ujson.read(outputPath.toIO)
+          val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+          TestModule.handleResults(doneMsg, results)
+        } catch {
+          case e: Throwable =>
+            Result.Failure("Test reporting failed: " + e)
+        }
+    }
 
   /**
     * Discovers and runs the module's tests in-process in an isolated classloader,
     * reporting the results to the console
     */
-  def testLocal(args: String*) = T.command {
-    val outputPath = T.dest / "out.json"
+  def testLocal(args: String*) =
+    T.command {
+      val outputPath = T.dest / "out.json"
 
-    val (doneMsg, results) = TestRunner.runTests(
-      TestRunner.frameworks(testFrameworks()),
-      runClasspath().map(_.path),
-      Agg(compile().classes.path),
-      args,
-      T.testReporter
-    )
+      val (doneMsg, results) = TestRunner.runTests(
+        TestRunner.frameworks(testFrameworks()),
+        runClasspath().map(_.path),
+        Agg(compile().classes.path),
+        args,
+        T.testReporter
+      )
 
-    TestModule.handleResults(doneMsg, results)
+      TestModule.handleResults(doneMsg, results)
 
-  }
+    }
 }
 
-object TestModule{
+object TestModule {
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result]) = {
 
     val badTests = results.filter(x => Set("Error", "Failure").contains(x.status))
     if (badTests.isEmpty) Result.Success((doneMsg, results))
     else {
-      val suffix = if (badTests.length == 1) "" else " and " + (badTests.length-1) + " more"
+      val suffix = if (badTests.length == 1) "" else " and " + (badTests.length - 1) + " more"
 
       Result.Failure(
         badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,

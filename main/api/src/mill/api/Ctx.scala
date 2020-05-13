@@ -1,12 +1,12 @@
 package mill.api
 
-import scala.annotation.{StaticAnnotation, compileTimeOnly}
+import scala.annotation.{compileTimeOnly, StaticAnnotation}
 import scala.language.implicitConversions
 import os.Path
 
 /**
- * Provides access to various resources in the context of a currently execution Target.
- */
+  * Provides access to various resources in the context of a currently execution Target.
+  */
 object Ctx {
   @compileTimeOnly("Target.ctx() / T.ctx() / T.* APIs can only be used with a T{...} block")
   @ImplicitStub
@@ -29,9 +29,9 @@ object Ctx {
   }
 
   /**
-   * Access to some internal storage dir used by underlying ammonite.
-   * You should not need this in a buildscript.
-   */
+    * Access to some internal storage dir used by underlying ammonite.
+    * You should not need this in a buildscript.
+    */
   trait Home {
     def home: os.Path
   }
@@ -60,26 +60,23 @@ object Ctx {
   class ImplicitStub extends StaticAnnotation
 }
 
-
 class Ctx(
-  val args: IndexedSeq[_],
-  dest0: () => os.Path,
-  val log: Logger,
-  val home: os.Path,
-  val env: Map[String, String],
-  val reporter: Int => Option[BuildProblemReporter],
-  val testReporter: TestReporter
-)
-  extends Ctx.Dest
-  with Ctx.Log
-  with Ctx.Args
-  with Ctx.Home
-  with Ctx.Env {
+    val args: IndexedSeq[_],
+    dest0: () => os.Path,
+    val log: Logger,
+    val home: os.Path,
+    val env: Map[String, String],
+    val reporter: Int => Option[BuildProblemReporter],
+    val testReporter: TestReporter
+) extends Ctx.Dest
+    with Ctx.Log
+    with Ctx.Args
+    with Ctx.Home
+    with Ctx.Env {
 
-  def dest: Path = dest0()
+  def dest: Path  = dest0()
   def length: Int = args.length
-  def apply[T](index: Int): T = {
+  def apply[T](index: Int): T =
     if (index >= 0 && index < args.length) args(index).asInstanceOf[T]
     else throw new IndexOutOfBoundsException(s"Index $index outside of range 0 - ${args.length}")
-  }
 }

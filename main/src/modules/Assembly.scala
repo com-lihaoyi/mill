@@ -40,8 +40,8 @@ object Assembly {
 
   def groupAssemblyEntries(inputPaths: Agg[os.Path], assemblyRules: Seq[Assembly.Rule]): Map[String, GroupedEntry] = {
     val rulesMap = assemblyRules.collect {
-      case r@Rule.Append(path, _) => path -> r
-      case r@Rule.Exclude(path) => path -> r
+      case r @ Rule.Append(path, _) => path -> r
+      case r @ Rule.Exclude(path)   => path -> r
     }.toMap
 
     val appendPatterns = assemblyRules.collect {
@@ -77,28 +77,26 @@ object Assembly {
     }
   }
 
-  private def classpathIterator(inputPaths: Agg[os.Path]): Generator[AssemblyEntry] = {
-    Generator.from(inputPaths)
+  private def classpathIterator(inputPaths: Agg[os.Path]): Generator[AssemblyEntry] =
+    Generator
+      .from(inputPaths)
       .filter(os.exists)
-      .flatMap {
-        p =>
-          if (os.isFile(p)) {
-            val jf = new JarFile(p.toIO)
-            Generator.from(
-              for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield JarFileEntry(entry.getName, () => jf.getInputStream(entry))
-            )
-          }
-          else {
-            os.walk.stream(p)
-              .filter(os.isFile)
-              .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
-          }
+      .flatMap { p =>
+        if (os.isFile(p)) {
+          val jf = new JarFile(p.toIO)
+          Generator.from(
+            for (entry <- jf.entries().asScala if !entry.isDirectory)
+              yield JarFileEntry(entry.getName, () => jf.getInputStream(entry))
+          )
+        } else
+          os.walk
+            .stream(p)
+            .filter(os.isFile)
+            .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
       }
-  }
 }
 
-private[modules] sealed trait GroupedEntry {
+sealed private[modules] trait GroupedEntry {
   def append(entry: AssemblyEntry): GroupedEntry
 }
 
@@ -114,7 +112,7 @@ private[modules] case class WriteOnceEntry(entry: AssemblyEntry) extends Grouped
   def append(entry: AssemblyEntry): GroupedEntry = this
 }
 
-private[this] sealed trait AssemblyEntry {
+sealed private[this] trait AssemblyEntry {
   def mapping: String
   def inputStream: InputStream
 }

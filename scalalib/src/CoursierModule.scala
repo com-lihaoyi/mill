@@ -13,9 +13,10 @@ import mill.eval.PathRef
   */
 trait CoursierModule extends mill.Module {
 
-  def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
-    Lib.depToDependencyJava(_: Dep)
-  }
+  def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
+    T.task {
+      Lib.depToDependencyJava(_: Dep)
+    }
 
   /**
     * Task that resolves the given dependencies using the repositories defined with [[repositories]].
@@ -24,16 +25,17 @@ trait CoursierModule extends mill.Module {
     * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
     * @return The [[PathRef]]s to the resolved files.
     */
-  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
-    Lib.resolveDependencies(
-      repositories,
-      resolveCoursierDependency().apply(_),
-      deps(),
-      sources,
-      mapDependencies = Some(mapDependencies()),
-      Some(implicitly[mill.util.Ctx.Log])
-    )
-  }
+  def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] =
+    T.task {
+      Lib.resolveDependencies(
+        repositories,
+        resolveCoursierDependency().apply(_),
+        deps(),
+        sources,
+        mapDependencies = Some(mapDependencies()),
+        Some(implicitly[mill.util.Ctx.Log])
+      )
+    }
 
   /**
     * Map dependencies before resolving them.

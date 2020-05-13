@@ -36,10 +36,12 @@ object ModuleUtils {
     *                           of the mill project
     * @return JavaModule -> BuildTarget mapping
     */
-  def millModulesToBspTargets(modules: Seq[JavaModule],
-                              rootModule: JavaModule,
-                              evaluator: Evaluator,
-                              supportedLanguages: List[String]): Predef.Map[JavaModule, BuildTarget] = {
+  def millModulesToBspTargets(
+      modules: Seq[JavaModule],
+      rootModule: JavaModule,
+      evaluator: Evaluator,
+      supportedLanguages: List[String]
+  ): Predef.Map[JavaModule, BuildTarget] = {
 
     val moduleIdMap = getModuleTargetIdMap(modules, evaluator)
 
@@ -63,16 +65,16 @@ object ModuleUtils {
     *                    with it.
     * @return build target for `module`
     */
-  def getTarget(rootModule: JavaModule,
-                module: JavaModule,
-                evaluator: Evaluator,
-                moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
-               ): BuildTarget = {
+  def getTarget(
+      rootModule: JavaModule,
+      module: JavaModule,
+      evaluator: Evaluator,
+      moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
+  ): BuildTarget =
     if (module == rootModule)
       getRootTarget(module, evaluator, moduleIdMap)
     else
       getRegularTarget(module, evaluator, moduleIdMap)
-  }
 
   /**
     * Given the BaseModule corresponding to the root
@@ -90,21 +92,25 @@ object ModuleUtils {
 
       override def millSourcePath: Path = rootBaseModule.millSourcePath
 
-      override def sources = T.sources {
-        millSourcePath / "src"
-      }
+      override def sources =
+        T.sources {
+          millSourcePath / "src"
+        }
 
-      def out = T.sources {
-        millSourcePath / "out"
-      }
+      def out =
+        T.sources {
+          millSourcePath / "out"
+        }
 
-      def target = T.sources {
-        millSourcePath / "target"
-      }
+      def target =
+        T.sources {
+          millSourcePath / "target"
+        }
 
-      override def generatedSources: Target[Seq[PathRef]] = T.sources {
-        out() ++ target()
-      }
+      override def generatedSources: Target[Seq[PathRef]] =
+        T.sources {
+          out() ++ target()
+        }
     }
   }
 
@@ -123,16 +129,18 @@ object ModuleUtils {
     * @return root BuildTarget
     */
   def getRootTarget(
-                     rootModule: JavaModule,
-                     evaluator: Evaluator,
-                     moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
+      rootModule: JavaModule,
+      evaluator: Evaluator,
+      moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
+  ): BuildTarget = {
 
     val rootTarget = new BuildTarget(
       moduleIdMap(rootModule),
       List.empty[String].asJava,
       List.empty[String].asJava,
       List.empty[BuildTargetIdentifier].asJava,
-      new BuildTargetCapabilities(false, false, false))
+      new BuildTargetCapabilities(false, false, false)
+    )
     rootTarget.setBaseDirectory(rootModule.millSourcePath.toIO.toURI.toString)
     rootTarget.setDataKind(BuildTargetDataKind.SCALA)
     rootTarget.setTags(List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
@@ -158,11 +166,12 @@ object ModuleUtils {
     * @return inner BuildTarget
     */
   def getRegularTarget(
-                        module: JavaModule,
-                        evaluator: Evaluator,
-                        moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
+      module: JavaModule,
+      evaluator: Evaluator,
+      moduleIdMap: Map[JavaModule, BuildTargetIdentifier]
+  ): BuildTarget = {
     val dataBuildTarget = computeBuildTargetData(module, evaluator)
-    val capabilities = getModuleCapabilities(module, evaluator)
+    val capabilities    = getModuleCapabilities(module, evaluator)
     val buildTargetTag: List[String] = module match {
       case m: TestModule => List(BuildTargetTag.TEST)
       case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
@@ -172,14 +181,15 @@ object ModuleUtils {
       case m: JavaModule => m.moduleDeps.map(dep => moduleIdMap(dep)).toList.asJava
     }
 
-    val buildTarget = new BuildTarget(moduleIdMap(module),
-                                      buildTargetTag.asJava,
-                                      List("scala", "java").asJava,
-                                      dependencies,
-                                      capabilities)
-    if (module.isInstanceOf[ScalaModule]) {
+    val buildTarget = new BuildTarget(
+      moduleIdMap(module),
+      buildTargetTag.asJava,
+      List("scala", "java").asJava,
+      dependencies,
+      capabilities
+    )
+    if (module.isInstanceOf[ScalaModule])
       buildTarget.setDataKind(BuildTargetDataKind.SCALA)
-    }
     buildTarget.setData(dataBuildTarget)
     buildTarget.setDisplayName(moduleName(module.millModuleSegments))
     buildTarget.setBaseDirectory(module.intellijModulePath.toIO.toURI.toString)
@@ -194,9 +204,8 @@ object ModuleUtils {
     * @param task      task to evaluate
     * @tparam T
     */
-  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] = {
+  def getTaskResult[T](evaluator: Evaluator, task: Task[T]): Result[Any] =
     evaluator.evaluate(Strict.Agg(task)).results(task)
-  }
 
   /**
     * Evaluate the given task using the given mill evaluator and return
@@ -211,7 +220,7 @@ object ModuleUtils {
     val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
     evaluated match {
       case Success(value) => evaluated.asSuccess.get.value.asInstanceOf[T]
-      case default => defaultValue
+      case default        => defaultValue
     }
   }
 
@@ -223,27 +232,35 @@ object ModuleUtils {
     * @param evaluator mill evalautor to resolve build information
     * @return JavaModule -> BuildTargetIdentifier mapping
     */
-  def getModuleTargetIdMap(modules: Seq[JavaModule], evaluator: Evaluator): Predef.Map[JavaModule, BuildTargetIdentifier] = {
-
+  def getModuleTargetIdMap(
+      modules: Seq[JavaModule],
+      evaluator: Evaluator
+  ): Predef.Map[JavaModule, BuildTargetIdentifier] =
     (for (module <- modules)
-      yield (module, new BuildTargetIdentifier(
-        (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).
-          toIO.toURI.toString))).toMap
-  }
+      yield (
+        module,
+        new BuildTargetIdentifier(
+          (module.millOuterCtx.millSourcePath / os.RelPath(moduleName(module.millModuleSegments))).toIO.toURI.toString
+        )
+      )).toMap
 
   // this is taken from mill.scalalib GenIdeaImpl
-  def moduleName(p: Segments) = p.value.foldLeft(StringBuilder.newBuilder) {
-    case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
-    case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-    case (sb, Segment.Label(s)) => sb.append(".").append(s)
-    case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
-  }.mkString.toLowerCase()
+  def moduleName(p: Segments) =
+    p.value
+      .foldLeft(StringBuilder.newBuilder) {
+        case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
+        case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
+        case (sb, Segment.Label(s))               => sb.append(".").append(s)
+        case (sb, Segment.Cross(s))               => sb.append("-").append(s.mkString("-"))
+      }
+      .mkString
+      .toLowerCase()
 
   // obtain the capabilities of the given module ( ex: canCompile, canRun, canTest )
   private[this] def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
     val canTest = module match {
       case _: TestModule => true
-      case default => false
+      case default       => false
     }
 
     new BuildTargetCapabilities(true, canTest, true)
@@ -251,7 +268,7 @@ object ModuleUtils {
 
   // Compute the ScalaBuildTarget from information about the given JavaModule.
   //TODO: Fix the data field for JavaModule when the bsp specification is updated
-  private[this] def computeBuildTargetData(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget = {
+  private[this] def computeBuildTargetData(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget =
     module match {
       case m: ScalaModule =>
         val scalaVersion = evaluateInformativeTask(evaluator, m.scalaVersion, "")
@@ -260,38 +277,30 @@ object ModuleUtils {
           scalaVersion,
           Util.scalaBinaryVersion(scalaVersion),
           getScalaTargetPlatform(m),
-          computeScalaLangDependencies(m, evaluator).
-            map(pathRef => pathRef.path.toIO.toURI.toString).
-            toList.asJava)
+          computeScalaLangDependencies(m, evaluator).map(pathRef => pathRef.path.toIO.toURI.toString).toList.asJava
+        )
 
       case m: JavaModule =>
         val scalaVersion = "2.12.8"
-        new ScalaBuildTarget(
-          "or.scala-lang",
-          "2.12.8",
-          "2.12",
-          ScalaPlatform.JVM,
-          List.empty[String].asJava)
+        new ScalaBuildTarget("or.scala-lang", "2.12.8", "2.12", ScalaPlatform.JVM, List.empty[String].asJava)
     }
-  }
 
   // Compute all relevant scala dependencies of `module`, like scala-library, scala-compiler,
   // and scala-reflect
-  private[this] def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] = {
+  private[this] def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] =
     evaluateInformativeTask(evaluator, module.resolveDeps(module.scalaLibraryIvyDeps), Loose.Agg.empty[PathRef]) ++
       evaluateInformativeTask(evaluator, module.scalacPluginClasspath, Loose.Agg.empty[PathRef]) ++
-      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Loose.Agg.empty[PathRef]).
-        filter(pathRef => pathRef.path.toIO.toURI.toString.contains("scala-compiler") ||
+      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Loose.Agg.empty[PathRef]).filter(pathRef =>
+        pathRef.path.toIO.toURI.toString.contains("scala-compiler") ||
           pathRef.path.toIO.toURI.toString.contains("scala-reflect") ||
-          pathRef.path.toIO.toURI.toString.contains("scala-library"))
-  }
+          pathRef.path.toIO.toURI.toString.contains("scala-library")
+      )
 
   // Obtain the scala platform for `module`
-  private[this] def getScalaTargetPlatform(module: ScalaModule): ScalaPlatform = {
+  private[this] def getScalaTargetPlatform(module: ScalaModule): ScalaPlatform =
     module match {
       case m: ScalaNativeModule => ScalaPlatform.NATIVE
-      case m: ScalaJSModule => ScalaPlatform.JS
-      case m: ScalaModule => ScalaPlatform.JVM
+      case m: ScalaJSModule     => ScalaPlatform.JS
+      case m: ScalaModule       => ScalaPlatform.JVM
     }
-  }
 }

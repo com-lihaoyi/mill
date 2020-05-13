@@ -36,8 +36,10 @@ private[dependency] object UpdatesFinder {
 
   import scala.Ordered._
 
-  def findUpdates(dependencyVersions: ModuleDependenciesVersions,
-                  allowPreRelease: Boolean): ModuleDependenciesUpdates = {
+  def findUpdates(
+      dependencyVersions: ModuleDependenciesVersions,
+      allowPreRelease: Boolean
+  ): ModuleDependenciesUpdates = {
     val dependencies =
       dependencyVersions.dependencies.map { dependencyVersion =>
         findUpdates(dependencyVersion, allowPreRelease)
@@ -45,31 +47,28 @@ private[dependency] object UpdatesFinder {
     ModuleDependenciesUpdates(dependencyVersions.modulePath, dependencies)
   }
 
-  def findUpdates(dependencyVersion: DependencyVersions,
-                  allowPreRelease: Boolean): DependencyUpdates = {
-    val current = dependencyVersion.currentVersion
+  def findUpdates(dependencyVersion: DependencyVersions, allowPreRelease: Boolean): DependencyUpdates = {
+    val current  = dependencyVersion.currentVersion
     val versions = dependencyVersion.allversions.to(SortedSet)
 
     val updates = versions
       .filter(isUpdate(current))
       .filterNot(lessStable(current, allowPreRelease))
 
-    DependencyUpdates(dependencyVersion.dependency,
-                      dependencyVersion.currentVersion,
-                      updates)
+    DependencyUpdates(dependencyVersion.dependency, dependencyVersion.currentVersion, updates)
   }
 
-  private def lessStable(current: Version, allowPreRelease: Boolean)(
-      another: Version): Boolean = (current, another) match {
-    case (ReleaseVersion(_), ReleaseVersion(_))       => false
-    case (SnapshotVersion(_, _, _), _)                => false
-    case (_, SnapshotVersion(_, _, _))                => true
-    case (ReleaseVersion(_), PreReleaseVersion(_, _)) => !allowPreRelease
-    case (ReleaseVersion(_), PreReleaseBuildVersion(_, _, _)) =>
-      !allowPreRelease
-    case (ReleaseVersion(_), _) => true
-    case (_, _)                 => false
-  }
+  private def lessStable(current: Version, allowPreRelease: Boolean)(another: Version): Boolean =
+    (current, another) match {
+      case (ReleaseVersion(_), ReleaseVersion(_))       => false
+      case (SnapshotVersion(_, _, _), _)                => false
+      case (_, SnapshotVersion(_, _, _))                => true
+      case (ReleaseVersion(_), PreReleaseVersion(_, _)) => !allowPreRelease
+      case (ReleaseVersion(_), PreReleaseBuildVersion(_, _, _)) =>
+        !allowPreRelease
+      case (ReleaseVersion(_), _) => true
+      case (_, _)                 => false
+    }
 
   private def isUpdate(current: Version) = current < _
 }

@@ -22,15 +22,15 @@ class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
     var cacheEntry = keyToCache.get(key)
     // null if we haven't seen this key before
     if (cacheEntry == null) {
-      val newSemaphore = new Semaphore(perKeySize, true /* fair */)
-      val newCache = Array.fill[(Boolean, Option[T])](perKeySize)((false, None))
+      val newSemaphore = new Semaphore(perKeySize, true /* fair */ )
+      val newCache     = Array.fill[(Boolean, Option[T])](perKeySize)((false, None))
       // Important that we use putIfAbsent, ensuring we are thread-safe
       keyToCache.putIfAbsent(key, (newSemaphore, newCache))
       // Need to call another get, because another thread may have beat us to putting the semaphore
       // and cache in the map
       cacheEntry = keyToCache.get(key)
     }
-    val perKeySemaphore: Semaphore = cacheEntry._1
+    val perKeySemaphore: Semaphore               = cacheEntry._1
     val perKeyCache: Array[(Boolean, Option[T])] = cacheEntry._2
 
     perKeySemaphore.acquire()
@@ -39,8 +39,10 @@ class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
       // This will always return a valid value (ie, positive and within the array bounds) because
       // our guarding semaphore is the same size as our cache.
       val usableCompilerSlot = perKeyCache.indexWhere { case (compilerInUse, _) => !compilerInUse }
-      require(usableCompilerSlot >= 0,
-        s"Invariant violated: usableCompilerSlot must be >= 0. Found $usableCompilerSlot")
+      require(
+        usableCompilerSlot >= 0,
+        s"Invariant violated: usableCompilerSlot must be >= 0. Found $usableCompilerSlot"
+      )
       val (inUse, compilerOpt) = perKeyCache(usableCompilerSlot)
       require(!inUse, "Invariant violated: Compiler must not be in use")
       // Set the `compilerInUse` flag to true
@@ -49,23 +51,23 @@ class FixSizedCache[T](perKeySize: Int) extends KeyedLockedCache[T] {
     }
 
     // The compiler may not be initialized yet. If it's None we need to initialize it
-    val compiler = try {
-      compilerOpt.getOrElse(f)
-    } catch {
-      case t: Throwable =>
-        // If we fail to initialize a compiler, print the error and exit the process
-        t.printStackTrace()
-        sys.exit(1)
-    }
-
-    val result = try {
-      f2(compiler)
-    } finally {
-      perKeyCache.synchronized {
-        perKeyCache(usableCompilerSlot) = (false, Some(compiler))
+    val compiler =
+      try compilerOpt.getOrElse(f)
+      catch {
+        case t: Throwable =>
+          // If we fail to initialize a compiler, print the error and exit the process
+          t.printStackTrace()
+          sys.exit(1)
       }
-      perKeySemaphore.release()
-    }
+
+    val result =
+      try f2(compiler)
+      finally {
+        perKeyCache.synchronized {
+          perKeyCache(usableCompilerSlot) = (false, Some(compiler))
+        }
+        perKeySemaphore.release()
+      }
 
     result
   }

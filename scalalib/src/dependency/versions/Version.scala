@@ -39,16 +39,13 @@ sealed trait Version {
   def patch: Long
 }
 
-case class ValidVersion(text: String,
-                                            releasePart: List[Long],
-                                            preReleasePart: List[String],
-                                            buildPart: List[String])
+case class ValidVersion(text: String, releasePart: List[Long], preReleasePart: List[String], buildPart: List[String])
     extends Version {
-  def major: Long = releasePart.headOption getOrElse 0
+  def major: Long = releasePart.headOption.getOrElse(0)
 
-  def minor: Long = releasePart.drop(1).headOption getOrElse 1
+  def minor: Long = releasePart.drop(1).headOption.getOrElse(1)
 
-  def patch: Long = releasePart.drop(2).headOption getOrElse 1
+  def patch: Long = releasePart.drop(2).headOption.getOrElse(1)
 
   override def toString: String = text
 }
@@ -72,28 +69,28 @@ object InvalidVersion {
 private[dependency] object ReleaseVersion {
   private val releaseKeyword: Regex = "(?i)final|release".r
 
-  def unapply(v: Version): Option[List[Long]] = v match {
-    case ValidVersion(_, releasePart, Nil, Nil) => Some(releasePart)
-    case ValidVersion(_, releasePart, releaseKeyword() :: Nil, Nil) =>
-      Some(releasePart)
-    case _ => None
-  }
+  def unapply(v: Version): Option[List[Long]] =
+    v match {
+      case ValidVersion(_, releasePart, Nil, Nil) => Some(releasePart)
+      case ValidVersion(_, releasePart, releaseKeyword() :: Nil, Nil) =>
+        Some(releasePart)
+      case _ => None
+    }
 }
 
 private[dependency] object PreReleaseVersion {
-  def unapply(v: Version): Option[(List[Long], List[String])] = v match {
-    case ValidVersion(_, releasePart, preReleasePart, Nil)
-        if preReleasePart.nonEmpty =>
-      Some(releasePart, preReleasePart)
-    case _ => None
-  }
+  def unapply(v: Version): Option[(List[Long], List[String])] =
+    v match {
+      case ValidVersion(_, releasePart, preReleasePart, Nil) if preReleasePart.nonEmpty =>
+        Some(releasePart, preReleasePart)
+      case _ => None
+    }
 }
 
 private[dependency] object PreReleaseBuildVersion {
   def unapply(v: Version): Option[(List[Long], List[String], List[String])] =
     v match {
-      case ValidVersion(_, releasePart, preReleasePart, buildPart)
-          if preReleasePart.nonEmpty && buildPart.nonEmpty =>
+      case ValidVersion(_, releasePart, preReleasePart, buildPart) if preReleasePart.nonEmpty && buildPart.nonEmpty =>
         Some(releasePart, preReleasePart, buildPart)
       case _ => None
     }
@@ -102,30 +99,31 @@ private[dependency] object PreReleaseBuildVersion {
 private[dependency] object SnapshotVersion {
   def unapply(v: Version): Option[(List[Long], List[String], List[String])] =
     v match {
-      case ValidVersion(_, releasePart, preReleasePart, buildPart)
-          if preReleasePart.lastOption.contains("SNAPSHOT") =>
+      case ValidVersion(_, releasePart, preReleasePart, buildPart) if preReleasePart.lastOption.contains("SNAPSHOT") =>
         Some(releasePart, preReleasePart, buildPart)
       case _ => None
     }
 }
 
 private[dependency] object BuildVersion {
-  def unapply(v: Version): Option[(List[Long], List[String])] = v match {
-    case ValidVersion(_, releasePart, Nil, buildPart) if buildPart.nonEmpty =>
-      Some(releasePart, buildPart)
-    case _ => None
-  }
+  def unapply(v: Version): Option[(List[Long], List[String])] =
+    v match {
+      case ValidVersion(_, releasePart, Nil, buildPart) if buildPart.nonEmpty =>
+        Some(releasePart, buildPart)
+      case _ => None
+    }
 }
 
 private[dependency] object Version {
-  def apply(text: String): Version = synchronized {
-    VersionParser
-      .parse(text)
-      .fold(
-        (_, _, _) => InvalidVersion(text),
-        { case ((a, b, c), _) => ValidVersion(text, a.toList, b.toList, c.toList)}
-      )
-  }
+  def apply(text: String): Version =
+    synchronized {
+      VersionParser
+        .parse(text)
+        .fold(
+          (_, _, _) => InvalidVersion(text),
+          { case ((a, b, c), _) => ValidVersion(text, a.toList, b.toList, c.toList) }
+        )
+    }
 
   implicit def versionOrdering: Ordering[Version] = VersionOrdering
   implicit val rw: upickle.default.ReadWriter[Version] =
@@ -137,42 +135,43 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
   private val subParts = "(\\d+)?(\\D+)?".r
 
   private def parsePart(s: String): Seq[Either[Int, String]] =
-    try {
-      subParts
-        .findAllIn(s)
-        .matchData
-        .flatMap {
-          case Groups(num, str) =>
-            Seq(Option(num).map(_.toInt).map(Left.apply),
-                Option(str).map(Right.apply))
-        }
-        .flatten
-        .toList
-    } catch {
+    try subParts
+      .findAllIn(s)
+      .matchData
+      .flatMap {
+        case Groups(num, str) =>
+          Seq(Option(num).map(_.toInt).map(Left.apply), Option(str).map(Right.apply))
+      }
+      .flatten
+      .toList
+    catch {
       case _: NumberFormatException => List(Right(s))
     }
 
   private def toOpt(x: Int): Option[Int] = if (x == 0) None else Some(x)
 
-  private def comparePart(a: String, b: String) = {
+  private def comparePart(a: String, b: String) =
     if (a == b) None
     else
-      (parsePart(a) zip parsePart(b)) map {
-        case (Left(x), Left(y))   => x compareTo y
-        case (Left(_), Right(_))  => -1
-        case (Right(_), Left(_))  => 1
-        case (Right(x), Right(y)) => x compareTo y
-      } find (0 != _) orElse Some(a compareTo b)
-  }
+      (parsePart(a)
+        .zip(parsePart(b)))
+        .map {
+          case (Left(x), Left(y))   => x.compareTo(y)
+          case (Left(_), Right(_))  => -1
+          case (Right(_), Left(_))  => 1
+          case (Right(x), Right(y)) => x.compareTo(y)
+        }
+        .find(0 != _)
+        .orElse(Some(a.compareTo(b)))
 
   private def compareNumericParts(a: List[Long], b: List[Long]): Option[Int] =
     (a, b) match {
       case (ah :: at, bh :: bt) =>
-        toOpt(ah compareTo bh) orElse compareNumericParts(at, bt)
+        toOpt(ah.compareTo(bh)).orElse(compareNumericParts(at, bt))
       case (ah :: at, Nil) =>
-        toOpt(ah compareTo 0L) orElse compareNumericParts(at, Nil)
+        toOpt(ah.compareTo(0L)).orElse(compareNumericParts(at, Nil))
       case (Nil, bh :: bt) =>
-        toOpt(0L compareTo bh) orElse compareNumericParts(Nil, bt)
+        toOpt(0L.compareTo(bh)).orElse(compareNumericParts(Nil, bt))
       case (Nil, Nil) =>
         None
     }
@@ -180,7 +179,7 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
   private def compareParts(a: List[String], b: List[String]): Option[Int] =
     (a, b) match {
       case (ah :: at, bh :: bt) =>
-        comparePart(ah, bh) orElse compareParts(at, bt)
+        comparePart(ah, bh).orElse(compareParts(at, bt))
       case (_ :: _, Nil) =>
         Some(1)
       case (Nil, _ :: _) =>
@@ -189,49 +188,46 @@ private[dependency] object VersionOrdering extends Ordering[Version] {
         None
     }
 
-  def compare(x: Version, y: Version): Int = (x, y) match {
-    case (InvalidVersion(a), InvalidVersion(b)) =>
-      a compareTo b
-    case (InvalidVersion(_), _) =>
-      -1
-    case (_, InvalidVersion(_)) =>
-      1
-    case (ReleaseVersion(r1), ReleaseVersion(r2)) =>
-      compareNumericParts(r1, r2) getOrElse 0
-    case (ReleaseVersion(r1), PreReleaseVersion(r2, p2)) =>
-      compareNumericParts(r1, r2) getOrElse 1
-    case (ReleaseVersion(r1), PreReleaseBuildVersion(r2, p2, b2)) =>
-      compareNumericParts(r1, r2) getOrElse 1
-    case (ReleaseVersion(r1), BuildVersion(r2, b2)) =>
-      compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseVersion(r1, p1), ReleaseVersion(r2)) =>
-      compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseVersion(r1, p1), PreReleaseVersion(r2, p2)) =>
-      compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse 0
-    case (PreReleaseVersion(r1, p1), PreReleaseBuildVersion(r2, p2, b2)) =>
-      compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse -1
-    case (PreReleaseVersion(r1, p1), BuildVersion(r2, b2)) =>
-      compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseBuildVersion(r1, p1, b1), ReleaseVersion(r2)) =>
-      compareNumericParts(r1, r2) getOrElse -1
-    case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseVersion(r2, p2)) =>
-      compareNumericParts(r1, r2) orElse compareParts(p1, p2) getOrElse 1
-    case (PreReleaseBuildVersion(r1, p1, b1),
-          PreReleaseBuildVersion(r2, p2, b2)) =>
-      compareNumericParts(r1, r2) orElse
-        compareParts(p1, p2) orElse
-        compareParts(b1, b2) getOrElse
-        0
-    case (PreReleaseBuildVersion(r1, p1, b1), BuildVersion(r2, b2)) =>
-      compareNumericParts(r1, r2) getOrElse -1
-    case (BuildVersion(r1, b1), ReleaseVersion(r2)) =>
-      compareNumericParts(r1, r2) getOrElse 1
-    case (BuildVersion(r1, b1), PreReleaseVersion(r2, p2)) =>
-      compareNumericParts(r1, r2) getOrElse 1
-    case (BuildVersion(r1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
-      compareNumericParts(r1, r2) getOrElse 1
-    case (BuildVersion(r1, b1), BuildVersion(r2, b2)) =>
-      compareNumericParts(r1, r2) orElse compareParts(b1, b2) getOrElse 0
-  }
+  def compare(x: Version, y: Version): Int =
+    (x, y) match {
+      case (InvalidVersion(a), InvalidVersion(b)) =>
+        a.compareTo(b)
+      case (InvalidVersion(_), _) =>
+        -1
+      case (_, InvalidVersion(_)) =>
+        1
+      case (ReleaseVersion(r1), ReleaseVersion(r2)) =>
+        compareNumericParts(r1, r2).getOrElse(0)
+      case (ReleaseVersion(r1), PreReleaseVersion(r2, p2)) =>
+        compareNumericParts(r1, r2).getOrElse(1)
+      case (ReleaseVersion(r1), PreReleaseBuildVersion(r2, p2, b2)) =>
+        compareNumericParts(r1, r2).getOrElse(1)
+      case (ReleaseVersion(r1), BuildVersion(r2, b2)) =>
+        compareNumericParts(r1, r2).getOrElse(-1)
+      case (PreReleaseVersion(r1, p1), ReleaseVersion(r2)) =>
+        compareNumericParts(r1, r2).getOrElse(-1)
+      case (PreReleaseVersion(r1, p1), PreReleaseVersion(r2, p2)) =>
+        compareNumericParts(r1, r2).orElse(compareParts(p1, p2)).getOrElse(0)
+      case (PreReleaseVersion(r1, p1), PreReleaseBuildVersion(r2, p2, b2)) =>
+        compareNumericParts(r1, r2).orElse(compareParts(p1, p2)).getOrElse(-1)
+      case (PreReleaseVersion(r1, p1), BuildVersion(r2, b2)) =>
+        compareNumericParts(r1, r2).getOrElse(-1)
+      case (PreReleaseBuildVersion(r1, p1, b1), ReleaseVersion(r2)) =>
+        compareNumericParts(r1, r2).getOrElse(-1)
+      case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseVersion(r2, p2)) =>
+        compareNumericParts(r1, r2).orElse(compareParts(p1, p2)).getOrElse(1)
+      case (PreReleaseBuildVersion(r1, p1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
+        compareNumericParts(r1, r2).orElse(compareParts(p1, p2)).orElse(compareParts(b1, b2)).getOrElse(0)
+      case (PreReleaseBuildVersion(r1, p1, b1), BuildVersion(r2, b2)) =>
+        compareNumericParts(r1, r2).getOrElse(-1)
+      case (BuildVersion(r1, b1), ReleaseVersion(r2)) =>
+        compareNumericParts(r1, r2).getOrElse(1)
+      case (BuildVersion(r1, b1), PreReleaseVersion(r2, p2)) =>
+        compareNumericParts(r1, r2).getOrElse(1)
+      case (BuildVersion(r1, b1), PreReleaseBuildVersion(r2, p2, b2)) =>
+        compareNumericParts(r1, r2).getOrElse(1)
+      case (BuildVersion(r1, b1), BuildVersion(r2, b2)) =>
+        compareNumericParts(r1, r2).orElse(compareParts(b1, b2)).getOrElse(0)
+    }
 
 }

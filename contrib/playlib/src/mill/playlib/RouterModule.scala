@@ -10,13 +10,14 @@ import mill.scalalib.api._
 
 trait RouterModule extends ScalaModule with Version {
 
-  def routes: T[Seq[PathRef]] = T.sources { millSourcePath / 'routes }
+  def routes: T[Seq[PathRef]] = T.sources(millSourcePath / 'routes)
 
-  private def routeFiles = T {
-    val paths = routes().flatMap(file => os.walk(file.path))
-    val routeFiles=paths.filter(_.ext=="routes") ++ paths.filter(_.last == "routes")
-    routeFiles.map(f=>PathRef(f))
-  }
+  private def routeFiles =
+    T {
+      val paths      = routes().flatMap(file => os.walk(file.path))
+      val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
+      routeFiles.map(f => PathRef(f))
+    }
 
   /**
     * A [[Seq]] of additional imports to be added to the routes file.
@@ -25,10 +26,11 @@ trait RouterModule extends ScalaModule with Version {
     * - controllers.Assets.Asset
     * - play.libs.F
     */
-  def routesAdditionalImport: Seq[String] = Seq(
-    "controllers.Assets.Asset",
-    "play.libs.F"
-  )
+  def routesAdditionalImport: Seq[String] =
+    Seq(
+      "controllers.Assets.Asset",
+      "play.libs.F"
+    )
 
   def generateForwardsRouter: Boolean = true
 
@@ -46,56 +48,65 @@ trait RouterModule extends ScalaModule with Version {
     */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
-  def routerClasspath: T[Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, scalaVersion()),
-      Seq(
-        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
+  def routerClasspath: T[Agg[PathRef]] =
+    T {
+      resolveDependencies(
+        Seq(
+          coursier.LocalRepositories.ivy2Local,
+          MavenRepository("https://repo1.maven.org/maven2")
+        ),
+        Lib.depToDependency(_, scalaVersion()),
+        Seq(
+          ivy"com.typesafe.play::routes-compiler:${playVersion()}"
+        )
       )
-    )
-  }
+    }
 
-  final def compileRouter: T[CompilationResult] = T.persistent {
-    T.log.debug(s"compiling play routes with ${playVersion()} worker")
-    RouteCompilerWorkerModule.routeCompilerWorker().compile(
-      toolsClasspath().map(_.path),
-      routeFiles().map(_.path),
-      routesAdditionalImport,
-      generateForwardsRouter,
-      generateReverseRouter,
-      namespaceReverseRouter,
-      generatorType,
-      T.dest)
-  }
+  final def compileRouter: T[CompilationResult] =
+    T.persistent {
+      T.log.debug(s"compiling play routes with ${playVersion()} worker")
+      RouteCompilerWorkerModule
+        .routeCompilerWorker()
+        .compile(
+          toolsClasspath().map(_.path),
+          routeFiles().map(_.path),
+          routesAdditionalImport,
+          generateForwardsRouter,
+          generateReverseRouter,
+          namespaceReverseRouter,
+          generatorType,
+          T.dest
+        )
+    }
 
-  private def playRouteCompilerWorkerClasspath = T {
-    val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
+  private def playRouteCompilerWorkerClasspath =
+    T {
+      val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
 
-    //While the following seems to work (tests pass), I am not completely
-    //confident that the strings I used for artifact and resolveFilter are
-    //actually correct
-    mill.modules.Util.millProjectModule(
-      workerKey,
-      s"mill-contrib-playlib-worker-${playMinorVersion()}",
-      repositories,
-      resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
-      artifactSuffix = "_2.12"
-    )
-  }
+      //While the following seems to work (tests pass), I am not completely
+      //confident that the strings I used for artifact and resolveFilter are
+      //actually correct
+      mill.modules.Util.millProjectModule(
+        workerKey,
+        s"mill-contrib-playlib-worker-${playMinorVersion()}",
+        repositories,
+        resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
+        artifactSuffix = "_2.12"
+      )
+    }
 
-  private def toolsClasspath = T {
-    playRouteCompilerWorkerClasspath() ++ routerClasspath()
-  }
+  private def toolsClasspath =
+    T {
+      playRouteCompilerWorkerClasspath() ++ routerClasspath()
+    }
 
-  def routerClasses = T{
-    Seq(compileRouter().classes)
-  }
+  def routerClasses =
+    T {
+      Seq(compileRouter().classes)
+    }
 
-  override def generatedSources = T {
-    super.generatedSources() ++ routerClasses()
-  }
+  override def generatedSources =
+    T {
+      super.generatedSources() ++ routerClasses()
+    }
 }

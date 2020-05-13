@@ -15,20 +15,15 @@ trait TestReporter {
 
   def logFinish(event: Event): Unit
 
-
 }
 
 /**
   * Dummy Test Reporter that doesn't report
   * anything for any testing event.
   */
-object  DummyTestReporter extends TestReporter {
-  override def logStart(event:  Event): Unit = {
-
-  }
-  override def logFinish(event:  Event): Unit = {
-
-  }
+object DummyTestReporter extends TestReporter {
+  override def logStart(event: Event): Unit = {}
+  override def logFinish(event: Event): Unit = {}
 }
 
 /**
@@ -90,8 +85,6 @@ trait ProblemPosition {
 }
 
 sealed trait Severity
-case object Info extends Severity
+case object Info  extends Severity
 case object Error extends Severity
-case object Warn extends Severity
-
-
+case object Warn  extends Severity

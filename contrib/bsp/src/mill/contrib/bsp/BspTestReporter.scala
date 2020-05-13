@@ -6,7 +6,6 @@ import ch.epfl.scala.bsp4j._
 import mill.api.TestReporter
 import sbt.testing._
 
-
 /**
   * Context class for BSP, specialized for sending `task-start` and
   * `task-finish` notifications for every test being ran.
@@ -21,16 +20,14 @@ import sbt.testing._
   *                  in case special arguments need to be passed to
   *                  the compiler before running the test task.
   */
-class BspTestReporter(client: BuildClient,
-                      targetId: BuildTargetIdentifier,
-                      taskId: TaskId,
-                      arguments: Seq[String]) extends TestReporter {
+class BspTestReporter(client: BuildClient, targetId: BuildTargetIdentifier, taskId: TaskId, arguments: Seq[String])
+    extends TestReporter {
 
-  var passed = 0
-  var failed = 0
-  var cancelled = 0
-  var ignored = 0
-  var skipped = 0
+  var passed          = 0
+  var failed          = 0
+  var cancelled       = 0
+  var ignored         = 0
+  var skipped         = 0
   var totalTime: Long = 0
 
   override def logStart(event: Event): Unit = {
@@ -44,24 +41,25 @@ class BspTestReporter(client: BuildClient,
 
   // Compute the display name of the test / test suite
   // to which the given event relates
-  private[this] def getDisplayName(e: Event): String = {
+  private[this] def getDisplayName(e: Event): String =
     e.selector() match {
-      case s: NestedSuiteSelector => s.suiteId()
-      case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-      case s: SuiteSelector => s.toString
-      case s: TestSelector => s.testName()
+      case s: NestedSuiteSelector  => s.suiteId()
+      case s: NestedTestSelector   => s.suiteId() + "." + s.testName()
+      case s: SuiteSelector        => s.toString
+      case s: TestSelector         => s.testName()
       case s: TestWildcardSelector => s.testWildcard()
     }
-  }
 
   override def logFinish(event: Event): Unit = {
     totalTime += event.duration()
-    val taskFinishParams = new TaskFinishParams(taskId,
-                                                event.status() match {
-                                                  case sbt.testing.Status.Canceled => StatusCode.CANCELLED
-                                                  case sbt.testing.Status.Error => StatusCode.ERROR
-                                                  case default => StatusCode.OK
-                                                })
+    val taskFinishParams = new TaskFinishParams(
+      taskId,
+      event.status() match {
+        case sbt.testing.Status.Canceled => StatusCode.CANCELLED
+        case sbt.testing.Status.Error    => StatusCode.ERROR
+        case default                     => StatusCode.OK
+      }
+    )
     val status = event.status match {
       case sbt.testing.Status.Success =>
         passed += 1
@@ -87,12 +85,12 @@ class BspTestReporter(client: BuildClient,
     }
 
     taskFinishParams.setDataKind(TaskDataKind.TEST_FINISH)
-    taskFinishParams.setData({
+    taskFinishParams.setData {
       val testFinish = new TestFinish(getDisplayName(event), status)
       if (event.throwable.isDefined)
         testFinish.setMessage(throwableToString(event.throwable().get()))
       testFinish
-    })
+    }
     taskFinishParams.setEventTime(System.currentTimeMillis())
     client.onBuildTaskFinish(taskFinishParams)
   }

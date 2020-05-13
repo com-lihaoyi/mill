@@ -27,14 +27,16 @@ import scala.language.implicitConversions
   *                            back as part of the published diagnostics
   *                            as well as compile report
   */
-class BspLoggedReporter(client: bsp.BuildClient,
-                        targetId: BuildTargetIdentifier,
-                        taskId: TaskId,
-                        compilationOriginId: Option[String]) extends BuildProblemReporter {
+class BspLoggedReporter(
+    client: bsp.BuildClient,
+    targetId: BuildTargetIdentifier,
+    taskId: TaskId,
+    compilationOriginId: Option[String]
+) extends BuildProblemReporter {
 
-  var errors = new AtomicInteger(0)
+  var errors   = new AtomicInteger(0)
   var warnings = new AtomicInteger(0)
-  var infos = new AtomicInteger(0)
+  var infos    = new AtomicInteger(0)
   var diagnosticMap: concurrent.Map[TextDocumentIdentifier, bsp.PublishDiagnosticsParams] =
     new ConcurrentHashMap[TextDocumentIdentifier, bsp.PublishDiagnosticsParams]().asScala
 
@@ -54,24 +56,22 @@ class BspLoggedReporter(client: bsp.BuildClient,
   // compile request )
   //TODO: document that if the problem is a general information without a text document
   // associated to it, then the document field of the diagnostic is set to the uri of the target
-  private[this] def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
-  bsp.PublishDiagnosticsParams = {
+  private[this] def getDiagnostics(
+      problem: Problem,
+      targetId: bsp.BuildTargetIdentifier,
+      originId: Option[String]
+  ): bsp.PublishDiagnosticsParams = {
     val diagnostic = getSingleDiagnostic(problem)
     val sourceFile = problem.position.sourceFile
-    val textDocument = new TextDocumentIdentifier(
-      sourceFile.getOrElse(None) match {
-        case None => targetId.getUri
-        case f: File => f.toURI.toString
-      })
-    val params = new bsp.PublishDiagnosticsParams(textDocument,
-                                                  targetId,
-                                                  appendDiagnostics(textDocument,
-                                                                    diagnostic).asJava,
-                                                  true)
+    val textDocument = new TextDocumentIdentifier(sourceFile.getOrElse(None) match {
+      case None    => targetId.getUri
+      case f: File => f.toURI.toString
+    })
+    val params =
+      new bsp.PublishDiagnosticsParams(textDocument, targetId, appendDiagnostics(textDocument, diagnostic).asJava, true)
 
-    if (originId.nonEmpty) {
+    if (originId.nonEmpty)
       params.setOriginId(originId.get)
-    }
     diagnosticMap.put(textDocument, params)
     params
   }
@@ -79,18 +79,20 @@ class BspLoggedReporter(client: bsp.BuildClient,
   // Update the published diagnostics for the fiven text file by
   // adding the recently computed diagnostic to the list of
   // all previous diagnostics generated for the same file.
-  private[this] def appendDiagnostics(textDocument: TextDocumentIdentifier,
-                                      currentDiagnostic: Diagnostic): List[Diagnostic] = {
-    diagnosticMap.putIfAbsent(textDocument, new bsp.PublishDiagnosticsParams(
+  private[this] def appendDiagnostics(
+      textDocument: TextDocumentIdentifier,
+      currentDiagnostic: Diagnostic
+  ): List[Diagnostic] = {
+    diagnosticMap.putIfAbsent(
       textDocument,
-      targetId,
-      List.empty[Diagnostic].asJava, true))
+      new bsp.PublishDiagnosticsParams(textDocument, targetId, List.empty[Diagnostic].asJava, true)
+    )
     diagnosticMap(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
   }
 
   // Computes the diagnostic related to the given Problem
   private[this] def getSingleDiagnostic(problem: Problem): Diagnostic = {
-    val pos = problem.position
+    val pos        = problem.position
     val i: Integer = pos.startLine.orElse(pos.line).getOrElse[Int](0)
     println(i)
     val start = new bsp.Position(
@@ -99,16 +101,16 @@ class BspLoggedReporter(client: bsp.BuildClient,
     )
     val end = new bsp.Position(
       pos.endLine.orElse(pos.line).getOrElse[Int](start.getLine.intValue()),
-      pos.endOffset.orElse(pos.offset).getOrElse[Int](start.getCharacter.intValue()))
+      pos.endOffset.orElse(pos.offset).getOrElse[Int](start.getCharacter.intValue())
+    )
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
     diagnostic.setCode(pos.lineContent)
     diagnostic.setSource("compiler from mill")
     diagnostic.setSeverity(problem.severity match {
-                             case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION
-                             case mill.api.Error => bsp.DiagnosticSeverity.ERROR
-                             case mill.api.Warn => bsp.DiagnosticSeverity.WARNING
-                           }
-                           )
+      case mill.api.Info  => bsp.DiagnosticSeverity.INFORMATION
+      case mill.api.Error => bsp.DiagnosticSeverity.ERROR
+      case mill.api.Warn  => bsp.DiagnosticSeverity.WARNING
+    })
     diagnostic
   }
 
@@ -125,14 +127,13 @@ class BspLoggedReporter(client: bsp.BuildClient,
     val compileReport = new CompileReport(targetId, errors.get, warnings.get)
     compilationOriginId match {
       case Some(id) => compileReport.setOriginId(id)
-      case None =>
+      case None     =>
     }
     taskFinishParams.setData(compileReport)
     client.onBuildTaskFinish(taskFinishParams)
   }
 
   // Compute the compilation status code
-  private[this] def getStatusCode: StatusCode = {
+  private[this] def getStatusCode: StatusCode =
     if (errors.get > 0) StatusCode.ERROR else StatusCode.OK
-  }
 }

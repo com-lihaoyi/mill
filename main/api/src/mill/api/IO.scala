@@ -3,23 +3,23 @@ package mill.api
 import java.io.{InputStream, OutputStream}
 
 /**
- * Misc IO utilities, eventually probably should be pushed upstream into
- * ammonite-ops
- */
+  * Misc IO utilities, eventually probably should be pushed upstream into
+  * ammonite-ops
+  */
 object IO extends StreamSupport {
 
   /**
-   * Unpacks the given `src` path into the context specific destination directory.
-   * @param src The ZIP file
-   * @param dest The relative ouput folder under the context specifix destination directory.
-   * @param ctx The target context
-   * @return The [[PathRef]] to the unpacked folder.
-   */
+    * Unpacks the given `src` path into the context specific destination directory.
+    * @param src The ZIP file
+    * @param dest The relative ouput folder under the context specifix destination directory.
+    * @param ctx The target context
+    * @return The [[PathRef]] to the unpacked folder.
+    */
   def unpackZip(src: os.Path, dest: os.RelPath = os.rel / "unpacked")(implicit ctx: Ctx.Dest): PathRef = {
 
     val byteStream = os.read.inputStream(src)
-    val zipStream = new java.util.zip.ZipInputStream(byteStream)
-    while ({
+    val zipStream  = new java.util.zip.ZipInputStream(byteStream)
+    while (
       zipStream.getNextEntry match {
         case null => false
         case entry =>
@@ -33,7 +33,7 @@ object IO extends StreamSupport {
           zipStream.closeEntry()
           true
       }
-    }) ()
+    ) ()
     PathRef(ctx.dest / dest)
   }
 }

@@ -26,29 +26,23 @@ object ConsoleLog {
 class ConsoleLog(val level: ConsoleLog.Level.Level) extends Log {
   override def isDebugEnabled: Boolean = level eq ConsoleLog.Level.DEBUG
 
-  override def debug(message: String): Unit = {
+  override def debug(message: String): Unit =
     if (isDebugEnabled) System.out.println("DEBUG: " + message)
-  }
 
-  override def info(message: String): Unit = {
+  override def info(message: String): Unit =
     if (level.compareTo(ConsoleLog.Level.INFO) <= 0) System.out.println(message)
-  }
 
-  override def warn(message: String): Unit = {
+  override def warn(message: String): Unit =
     System.out.println("WARNING: " + message)
-  }
 
-  override def error(message: String): Unit = {
+  override def error(message: String): Unit =
     System.err.println("ERROR: " + message)
-  }
 
   override def error(message: String, e: Exception): Unit = {
     System.err.println("ERROR: " + message)
     e.printStackTrace(System.err)
   }
 }
-
-
 
 /**
   * Log Creator for the Command-Line console.

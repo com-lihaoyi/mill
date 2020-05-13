@@ -9,22 +9,18 @@ import scala.util.Try
 
 object ClassLoader {
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
-  def create(urls: Seq[URL],
-             parent: java.lang.ClassLoader,
-             sharedPrefixes: Seq[String] = Seq())
-            (implicit ctx: Ctx.Home): URLClassLoader = {
+  def create(urls: Seq[URL], parent: java.lang.ClassLoader, sharedPrefixes: Seq[String] = Seq())(implicit
+      ctx: Ctx.Home
+  ): URLClassLoader =
     new URLClassLoader(
       makeUrls(urls).toArray,
       refinePlatformParent(parent)
     ) {
       val allSharedPrefixes = sharedPrefixes :+ "com.sun.jna"
-      override def findClass(name: String): Class[_] = {
+      override def findClass(name: String): Class[_] =
         if (allSharedPrefixes.exists(name.startsWith)) getClass.getClassLoader.loadClass(name)
         else super.findClass(name)
-      }
     }
-  }
-
 
   /**
     *  Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,
@@ -34,9 +30,9 @@ object ClassLoader {
     *  `ClassLoader.getPlatformClassLoader` call is implemented via runtime reflection, cause otherwise
     *  mill could be compiled only with jdk 9 or above. We don't want to introduce this restriction now.
     */
-  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader = {
+  private def refinePlatformParent(parent: java.lang.ClassLoader): ClassLoader =
     if (!java9OrAbove || parent != null) parent
-    else {
+    else
       // Make sure when `parent == null`, we only delegate java.* classes
       // to the parent getPlatformClassLoader. This is necessary because
       // in Java 9+, somehow the getPlatformClassLoader ends up with all
@@ -46,29 +42,27 @@ object ClassLoader {
         .getMethod("getPlatformClassLoader")
         .invoke(null)
         .asInstanceOf[ClassLoader]
-    }
-  }
 
-  private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] = {
+  private def makeUrls(urls: Seq[URL])(implicit ctx: Ctx.Home): Seq[URL] =
     if (java9OrAbove) {
       val java90rtJar = ctx.home / Export.rtJarName
-      if(!os.exists(java90rtJar)) {
+      if (!os.exists(java90rtJar))
         Try {
           os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-        }.recoverWith { case e: FileAlreadyExistsException =>
-          // some race?
-          if(os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
-            // all good
-            ()
-          } else Try {
-            // retry
-            os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
-          }
+        }.recoverWith {
+          case e: FileAlreadyExistsException =>
+            // some race?
+            if (os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
+              // all good
+              ()
+            }
+            else
+              Try {
+                // retry
+                os.copy(os.Path(Export.rt()), java90rtJar, replaceExisting = true, createFolders = true)
+              }
         }.get
-      }
       urls :+ java90rtJar.toIO.toURI().toURL()
-    } else {
+    } else
       urls
-    }
-  }
 }

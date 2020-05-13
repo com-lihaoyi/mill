@@ -10,26 +10,25 @@ object Pom {
 
   implicit class XmlOps(val e: Elem) extends AnyVal {
     // source: https://stackoverflow.com/a/5254068/449071
-    def optional : NodeSeq = {
+    def optional: NodeSeq = {
       require(e.child.length == 1)
       e.child.head match {
-        case atom: Atom[Option[_]] => atom.data match {
-          case None    => NodeSeq.Empty
-          case Some(x) => e.copy(child = x match {
-            case n: NodeSeq => n
-            case x => new Atom(x)
-          })
-        }
+        case atom: Atom[Option[_]] =>
+          atom.data match {
+            case None => NodeSeq.Empty
+            case Some(x) =>
+              e.copy(child = x match {
+                case n: NodeSeq => n
+                case x          => new Atom(x)
+              })
+          }
         case _ => e
       }
     }
   }
 
   //TODO - not only jar packaging support?
-  def apply(artifact: Artifact,
-            dependencies: Agg[Dependency],
-            name: String,
-            pomSettings: PomSettings): String = {
+  def apply(artifact: Artifact, dependencies: Agg[Dependency], name: String, pomSettings: PomSettings): String = {
     val xml =
       <project
         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd"
@@ -49,10 +48,10 @@ object Pom {
           {pomSettings.licenses.map(renderLicense)}
         </licenses>
         <scm>
-          { <connection>{pomSettings.versionControl.connection}</connection>.optional }
-          { <developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optional }
-          { <tag>{pomSettings.versionControl.tag}</tag>.optional }
-          { <url>{pomSettings.versionControl.browsableRepository}</url>.optional }
+          {<connection>{pomSettings.versionControl.connection}</connection>.optional}
+          {<developerConnection>{pomSettings.versionControl.developerConnection}</developerConnection>.optional}
+          {<tag>{pomSettings.versionControl.tag}</tag>.optional}
+          {<url>{pomSettings.versionControl.browsableRepository}</url>.optional}
         </scm>
         <developers>
           {pomSettings.developers.map(renderDeveloper)}
@@ -66,22 +65,20 @@ object Pom {
     head + pp.format(xml)
   }
 
-  private def renderLicense(l: License): Elem = {
+  private def renderLicense(l: License): Elem =
     <license>
       <name>{l.name}</name>
       <url>{l.url}</url>
       <distribution>{l.distribution}</distribution>
     </license>
-  }
 
-  private def renderDeveloper(d: Developer): Elem = {
+  private def renderDeveloper(d: Developer): Elem =
     <developer>
       <id>{d.id}</id>
       <name>{d.name}</name>
-      { <organization>{d.organization}</organization>.optional }
-      { <organizationUrl>{d.organizationUrl}</organizationUrl>.optional }
+      {<organization>{d.organization}</organization>.optional}
+      {<organizationUrl>{d.organizationUrl}</organizationUrl>.optional}
     </developer>
-  }
 
   private def renderDependency(d: Dependency): Elem = {
     val scope = d.scope match {
@@ -107,12 +104,12 @@ object Pom {
         <artifactId>{d.artifact.id}</artifactId>
         <version>{d.artifact.version}</version>
         <exclusions>
-          {d.exclusions.map(ex =>
-            <exclusion>
+          {
+        d.exclusions.map(ex => <exclusion>
               <groupId>{ex._1}</groupId>
               <artifactId>{ex._2}</artifactId>
-            </exclusion>
-          )}
+            </exclusion>)
+      }
         </exclusions>
         {scope}
         {optional}

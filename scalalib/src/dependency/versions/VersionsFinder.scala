@@ -10,9 +10,10 @@ import mill.api.{Loose, Strict}
 private[dependency] object VersionsFinder {
 
   def findVersions(
-    evaluator: Evaluator,
-    ctx: Log with Home,
-    rootModule: BaseModule): Seq[ModuleDependenciesVersions] = {
+      evaluator: Evaluator,
+      ctx: Log with Home,
+      rootModule: BaseModule
+  ): Seq[ModuleDependenciesVersions] = {
 
     val javaModules = rootModule.millInternal.modules.collect {
       case javaModule: JavaModule => javaModule
@@ -22,17 +23,14 @@ private[dependency] object VersionsFinder {
     resolveVersions(resolvedDependencies)
   }
 
-  private def resolveDependencies(evaluator: Evaluator,
-                                  javaModules: Seq[JavaModule]) =
+  private def resolveDependencies(evaluator: Evaluator, javaModules: Seq[JavaModule]) =
     javaModules.map { javaModule =>
       val depToDependency =
         eval(evaluator, javaModule.resolveCoursierDependency)
       val deps = evalOrElse(evaluator, javaModule.ivyDeps, Loose.Agg.empty[Dep])
 
       val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(javaModule.repositories,
-                                        depToDependency,
-                                        deps)
+        Lib.resolveDependenciesMetadata(javaModule.repositories, depToDependency, deps)
 
       (javaModule, dependencies)
     }
@@ -61,9 +59,7 @@ private[dependency] object VersionsFinder {
       case Seq(e: T) => e
     }
 
-  private def evalOrElse[T](evaluator: Evaluator,
-                            e: Task[T],
-                            default: => T): T =
+  private def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T =
     evaluator.evaluate(Strict.Agg(e)).values match {
       case Seq()     => default
       case Seq(e: T) => e
