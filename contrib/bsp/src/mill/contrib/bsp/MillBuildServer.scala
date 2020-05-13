@@ -22,25 +22,21 @@ import os.Path
 import scala.collection.JavaConverters._
 
 
-class MillBuildServer(evaluator: Evaluator,
-                      _bspVersion: String,
-                      serverVersion: String,
-                      languages: List[String]) extends ExternalModule with BuildServer with ScalaBuildServer {
+class MillBuildServer(val evaluator: Evaluator,
+                      val bspVersion: String,
+                      val millServerVersion: String,
+                      val supportedLanguages: List[String]) extends ExternalModule with BuildServer with ScalaBuildServer {
 
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
-  val bspVersion: String = _bspVersion
-  val supportedLanguages: List[String] = languages
-  val millServerVersion: String = serverVersion
-  val millEvaluator: Evaluator = evaluator
   val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
     val log: DummyLogger.type = mill.util.DummyLogger
     val home: Path = os.pwd
   }
   var cancelator: () => Unit = () => ()
   var rootModule: JavaModule = ModuleUtils.getRootJavaModule(evaluator.rootModule)
-  var millModules: Seq[JavaModule] = getMillModules(millEvaluator)
+  var millModules: Seq[JavaModule] = getMillModules(evaluator)
   var client: BuildClient = _
   var moduleToTargetId: Predef.Map[JavaModule, BuildTargetIdentifier] = ModuleUtils.getModuleTargetIdMap(
     millModules,
@@ -133,11 +129,11 @@ class MillBuildServer(evaluator: Evaluator,
 
     def getInverseSourcesResult: InverseSourcesResult = {
       val textDocument = inverseSourcesParams.getTextDocument
-      val targets = millModules.filter(m => ModuleUtils.evaluateInformativeTask(
-        millEvaluator, m.allSourceFiles, Seq.empty[PathRef]).
-        map(pathRef => pathRef.path.toIO.toURI.toString).
-        contains(textDocument.getUri)).
-        map(m => moduleToTargetId(m))
+      val targets = millModules.filter(m =>
+        ModuleUtils.evaluateInformativeTask(evaluator, m.allSourceFiles, Seq.empty[PathRef])
+          .map(pathRef => pathRef.path.toIO.toURI.toString)
+          .contains(textDocument.getUri)
+      ).map(m => moduleToTargetId(m))
       new InverseSourcesResult(targets.asJava)
     }
 
@@ -182,9 +178,9 @@ class MillBuildServer(evaluator: Evaluator,
   // Recompute the modules in the project in case any changes to the build took place
   // and update all the mappings that depend on this info
   private[this] def recomputeTargets(): Unit = {
-    rootModule = ModuleUtils.getRootJavaModule(millEvaluator.rootModule)
-    millModules = getMillModules(millEvaluator)
-    moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules, millEvaluator)
+    rootModule = ModuleUtils.getRootJavaModule(evaluator.rootModule)
+    millModules = getMillModules(evaluator)
+    moduleToTargetId = ModuleUtils.getModuleTargetIdMap(millModules, evaluator)
     targetIdToModule = targetToModule(moduleToTargetId)
     moduleToTarget = ModuleUtils.millModulesToBspTargets(millModules, rootModule, evaluator, List("scala", "java"))
   }
@@ -257,11 +253,11 @@ class MillBuildServer(evaluator: Evaluator,
       val compileTasks = Strict.Agg(params.getTargets.
         filter(targetId => targetId != moduleToTarget(rootModule).getId).
         map(targetId => targetIdToModule(targetId).compile): _*)
-      val result = millEvaluator.evaluate(compileTasks,
+      val result = evaluator.evaluate(compileTasks,
                                           getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                                                                    TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
                                           DummyTestReporter,
-                                          new MillBspLogger(client, taskId, millEvaluator.baseLogger)
+                                          new MillBspLogger(client, taskId, evaluator.baseLogger)
                                           )
       val compileResult = new CompileResult(getStatusCode(result))
       compileResult.setOriginId(compileParams.getOriginId)
@@ -279,13 +275,13 @@ class MillBuildServer(evaluator: Evaluator,
       val module = targetIdToModule(params.getTargets.head)
       val args = params.getArguments.getOrElse(Seq.empty[String])
       val runTask = module.run(args: _*)
-      val runResult = millEvaluator.evaluate(Strict.Agg(runTask),
+      val runResult = evaluator.evaluate(Strict.Agg(runTask),
                                              getBspLoggedReporterPool(
                                                params,
                                                t => s"Started compiling target: $t",
                                                TaskDataKind.COMPILE_TASK,
                                                (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
-        logger = new MillBspLogger(client, runTask.hashCode(), millEvaluator.baseLogger))
+        logger = new MillBspLogger(client, runTask.hashCode(), evaluator.baseLogger))
       val response = runResult.results(runTask) match {
         case _: Result.Success[Any] => new RunResult(StatusCode.OK)
         case _ => new RunResult(StatusCode.ERROR)
@@ -338,12 +334,12 @@ class MillBuildServer(evaluator: Evaluator,
               new TaskId(testTask.hashCode().toString),
               Seq.empty[String])
 
-            val results = millEvaluator.evaluate(
+            val results = evaluator.evaluate(
               Strict.Agg(testTask),
               getBspLoggedReporterPool(params, t => s"Started compiling target: $t",
                                        TaskDataKind.COMPILE_TASK, (targetId: BuildTargetIdentifier) => new CompileTask(targetId)),
               testReporter,
-              new MillBspLogger(client, testTask.hashCode, millEvaluator.baseLogger))
+              new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger))
             val endTime = System.currentTimeMillis()
             val statusCode = getStatusCode(results)
             statusCode match {
@@ -438,10 +434,10 @@ class MillBuildServer(evaluator: Evaluator,
             Discover[this.type]
           }
         }
-        val cleanTask = mainModule.clean(millEvaluator, List(s"${module.millModuleSegments.render}.compile"): _*)
-        val cleanResult = millEvaluator.evaluate(
+        val cleanTask = mainModule.clean(evaluator, List(s"${module.millModuleSegments.render}.compile"): _*)
+        val cleanResult = evaluator.evaluate(
           Strict.Agg(cleanTask),
-          logger = new MillBspLogger(client, cleanTask.hashCode, millEvaluator.baseLogger)
+          logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
           )
         if (cleanResult.failing.keyCount > 0) {
           cleaned = false
@@ -505,7 +501,7 @@ class MillBuildServer(evaluator: Evaluator,
       var items = List.empty[ScalaMainClassesItem]
       for (targetId <- scalaMainClassesParams.getTargets.asScala) {
         val module = targetIdToModule(targetId)
-        val scalaMainClasses = getTaskResult(millEvaluator, module.finalMainClassOpt) match {
+        val scalaMainClasses = getTaskResult(evaluator, module.finalMainClassOpt) match {
           case result: Result.Success[Any] => result.asSuccess.get.value match {
             case mainClass: Right[String, String] =>
               List(new ScalaMainClass(
@@ -551,9 +547,9 @@ class MillBuildServer(evaluator: Evaluator,
 
   // Detect and return the test classes contained in the given TestModule
   private[this] def getTestClasses(module: TestModule)(implicit ctx: Ctx.Home): Seq[String] = {
-    val runClasspath = getTaskResult(millEvaluator, module.runClasspath)
-    val frameworks = getTaskResult(millEvaluator, module.testFrameworks)
-    val compilationResult = getTaskResult(millEvaluator, module.compile)
+    val runClasspath = getTaskResult(evaluator, module.runClasspath)
+    val frameworks = getTaskResult(evaluator, module.testFrameworks)
+    val compilationResult = getTaskResult(evaluator, module.compile)
 
     (runClasspath, frameworks, compilationResult) match {
       case (Result.Success(classpath), Result.Success(testFrameworks), Result.Success(compResult)) =>

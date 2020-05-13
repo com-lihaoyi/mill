@@ -147,6 +147,7 @@ object HelloNativeWorldTests extends TestSuite {
       val (doneMsg, testResults) = res
       testResults
         .groupBy(_.fullyQualifiedName)
+        .view
         .mapValues(_.map(e => e.selector -> e).toMap)
         .toMap
     }

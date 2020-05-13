@@ -26,7 +26,7 @@ object MillMain {
       System.out,
       System.err,
       System.getenv().asScala.toMap,
-      b => (),
+      _ => (),
       initialSystemProperties = Map()
     )
     System.exit(if (result) 0 else 1)
@@ -53,7 +53,7 @@ object MillMain {
     val interactiveSignature = Arg[Config, Unit](
       "interactive", Some('i'),
       "Run Mill in interactive mode, suitable for opening REPLs and taking user input. In this mode, no mill server will be used.",
-      (c, v) => {
+      (c, _) => {
         interactive = true
         c
       }
@@ -92,7 +92,7 @@ object MillMain {
     var keepGoing = false
     val keepGoingSignature = Arg[Config, Unit] (
       name = "keep-going", shortName = Some('k'), doc = "Continue build, even after build failures",
-      (c,v) => {
+      (c, _) => {
         keepGoing = true
         c
       }

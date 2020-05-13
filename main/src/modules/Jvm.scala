@@ -7,7 +7,6 @@ import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.Collections
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-
 import coursier.{Dependency, Fetch, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import geny.Generator
@@ -16,7 +15,7 @@ import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import mill.api.IO
 import mill.api.Loose.Agg
-
+import os.SubProcess
 import scala.collection.mutable
 import scala.collection.JavaConverters._
 import upickle.default.{macroRW, ReadWriter => RW}
@@ -31,8 +30,7 @@ object Jvm {
                      jvmArgs: Seq[String] = Seq.empty,
                      envArgs: Map[String, String] = Map.empty,
                      mainArgs: Seq[String] = Seq.empty,
-                     workingDir: os.Path = null,
-                     streamOut: Boolean = true)
+                     workingDir: os.Path = null)
                     (implicit ctx: Ctx) = {
 
     val commandArgs =
@@ -80,7 +78,7 @@ object Jvm {
     */
   def runSubprocess(commandArgs: Seq[String],
                     envArgs: Map[String, String],
-                    workingDir: os.Path) = {
+                    workingDir: os.Path): Unit = {
     val process = spawnSubprocess(commandArgs, envArgs, workingDir)
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
@@ -88,7 +86,7 @@ object Jvm {
         process.destroy()
       }
     }
-    Runtime.getRuntime().addShutdownHook(shutdownHook)
+    Runtime.getRuntime.addShutdownHook(shutdownHook)
     try {
       process.waitFor()
     } catch {
@@ -98,7 +96,7 @@ object Jvm {
         // rethrow
         throw e
     } finally {
-      Runtime.getRuntime().removeShutdownHook(shutdownHook)
+      Runtime.getRuntime.removeShutdownHook(shutdownHook)
     }
     if (process.exitCode() == 0) ()
     else throw new Exception("Interactive Subprocess Failed (exit code " + process.exitCode() + ")")
@@ -112,7 +110,7 @@ object Jvm {
     */
   def spawnSubprocess(commandArgs: Seq[String],
                       envArgs: Map[String, String],
-                      workingDir: os.Path) = {
+                      workingDir: os.Path): SubProcess = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
@@ -182,12 +180,11 @@ object Jvm {
                   (implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
     val cl = if (classLoaderOverrideSbtTesting) {
-      val outerClassLoader = getClass.getClassLoader
-      mill.api.ClassLoader.create(urls.toVector, null, Seq("sbt.testing."))
+      mill.api.ClassLoader.create(urls.iterator.to(Seq), null, Seq("sbt.testing."))
     } else if (isolated) {
-      mill.api.ClassLoader.create(urls.toVector, null)
+      mill.api.ClassLoader.create(urls.iterator.to(Seq), null)
     } else {
-      mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
+      mill.api.ClassLoader.create(urls.iterator.to(Seq), getClass.getClassLoader)
     }
 
     val oldCl = Thread.currentThread().getContextClassLoader
@@ -220,7 +217,6 @@ object Jvm {
     * be provided for the jar. An optional filter function may also be provided to
     * selectively include/exclude specific files.
     * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
-    * @param mainClass - optional main class for the jar
     * @param fileFilter - optional file filter to select files to be included.
     *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
     *                   return true if the file is to be included in the jar.
@@ -229,7 +225,7 @@ object Jvm {
     */
   def createJar(inputPaths: Agg[os.Path],
                 manifest: JarManifest = JarManifest.Default,
-                fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
+                fileFilter: (os.Path, os.RelPath) => Boolean = (_, _) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
     os.remove.all(outputPath)
@@ -242,7 +238,7 @@ object Jvm {
     )
 
     try{
-      assert(inputPaths.forall(os.exists(_)))
+      assert(inputPaths.iterator.forall(os.exists(_)))
       for{
         p <- inputPaths
         (file, mapping) <-
@@ -373,7 +369,7 @@ object Jvm {
                               shellClassPath: Agg[String],
                               cmdClassPath: Agg[String],
                               jvmArgs: Seq[String],
-                              shebang: Boolean = false) = {
+                              shebang: Boolean = false): String = {
     universalScript(
       shellCommands =
         s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
@@ -385,7 +381,7 @@ object Jvm {
   def createLauncher(mainClass: String,
                      classPath: Agg[os.Path],
                      jvmArgs: Seq[String])
-                    (implicit ctx: Ctx.Dest)= {
+                    (implicit ctx: Ctx.Dest): PathRef = {
     val isWin = scala.util.Properties.isWin
     val isBatch = isWin &&
       !(org.jline.utils.OSUtils.IS_CYGWIN
@@ -518,7 +514,7 @@ object Jvm {
 
     import scala.concurrent.ExecutionContext.Implicits.global
     val resolution = start.process.run(fetch).unsafeRun()
-    (deps.toSeq, resolution)
+    (deps.iterator.to(Seq), resolution)
   }
 
   /**

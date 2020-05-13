@@ -48,7 +48,7 @@ class Cross[T](cases: Any*)
 
   override lazy val millModuleDirectChildren =
     this.millInternal.reflectNestedObjects[Module] ++
-    items.collect{case (k, v: mill.define.Module) => v}
+    items.collect{case (_, v: Module) => v}
 
   val items = for(c0 <- cases.toList) yield{
     val c = c0 match{

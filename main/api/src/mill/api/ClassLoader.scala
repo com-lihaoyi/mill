@@ -55,7 +55,7 @@ object ClassLoader {
       if(!os.exists(java90rtJar)) {
         Try {
           os.copy(os.Path(Export.rt()), java90rtJar, createFolders = true)
-        }.recoverWith { case e: FileAlreadyExistsException =>
+        }.recoverWith { case _: FileAlreadyExistsException =>
           // some race?
           if(os.exists(java90rtJar) && PathRef(java90rtJar) == PathRef(os.Path(Export.rt()))) Try {
             // all good

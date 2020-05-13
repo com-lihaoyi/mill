@@ -140,7 +140,7 @@ object JavaCompileJarTests extends TestSuite{
       val executed = os.proc('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo").call(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)
 
-      for(i <- 0 until 3){
+      for(_ <- 0 until 3){
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))

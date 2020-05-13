@@ -2,14 +2,13 @@ package mill.main
 
 import java.io._
 import java.net.Socket
-
 import mill.MillMain
-
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
+import scala.util.Try
 import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T]{
@@ -218,7 +217,7 @@ object Server{
     val thread = new Thread(
       () => {
         try Thread.sleep(millis)
-        catch{ case t: InterruptedException => /* Do Nothing */ }
+        catch { case _: InterruptedException => /* Do Nothing */ }
         if (interrupt) {
           interrupted = true
           close
@@ -229,9 +228,7 @@ object Server{
 
     thread.start()
     try {
-      val res =
-        try Some(t)
-        catch {case e: Throwable => None}
+      val res = Try(t).toOption
 
       if (interrupted) None
       else res

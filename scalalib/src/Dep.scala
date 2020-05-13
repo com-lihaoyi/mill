@@ -130,9 +130,9 @@ sealed trait CrossVersion {
     this match {
       case cross: Constant =>
         s"${firstSuffix}${cross.value}"
-      case cross: Binary =>
+      case _: Binary =>
         s"${firstSuffix}_${binaryVersion}"
-      case cross: Full =>
+      case _: Full =>
         s"${firstSuffix}_${fullVersion}"
     }
   }

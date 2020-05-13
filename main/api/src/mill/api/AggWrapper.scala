@@ -12,11 +12,11 @@ sealed class AggWrapper(strictUniqueness: Boolean){
     * ordering. Raises an exception if a duplicate is found; call
     * `toSeq.distinct` if you explicitly want to make it swallow duplicates
     */
-  trait Agg[V] extends TraversableOnce[V]{
+  trait Agg[V] extends IterableOnce[V]{
     def contains(v: V): Boolean
     def items: Iterator[V]
     def indexed: IndexedSeq[V]
-    def flatMap[T](f: V => TraversableOnce[T]): Agg[T]
+    def flatMap[T](f: V => IterableOnce[T]): Agg[T]
     def map[T](f: V => T): Agg[T]
     def filter(f: V => Boolean): Agg[V]
     def withFilter(f: V => Boolean): Agg[V]
@@ -24,7 +24,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
     def zipWithIndex: Agg[(V, Int)]
     def reverse: Agg[V]
     def zip[T](other: Agg[T]): Agg[(V, T)]
-    def ++[T >: V](other: TraversableOnce[T]): Agg[T]
+    def ++[T >: V](other: IterableOnce[T]): Agg[T]
     def length: Int
   }
 
@@ -32,15 +32,15 @@ sealed class AggWrapper(strictUniqueness: Boolean){
     def empty[V]: Agg[V] = new Agg.Mutable[V]
     implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
       upickle.default.readwriter[Seq[T]].bimap[Agg[T]](
-        _.toList,
+        _.iterator.to(Seq),
         Agg.from(_)
       )
 
     def apply[V](items: V*) = from(items)
 
-    implicit def from[V](items: TraversableOnce[V]): Agg[V] = {
+    implicit def from[V](items: IterableOnce[V]): Agg[V] = {
       val set = new Agg.Mutable[V]()
-      items.foreach(set.append)
+      items.iterator.foreach(set.append)
       set
     }
 
@@ -65,7 +65,7 @@ sealed class AggWrapper(strictUniqueness: Boolean){
         for(i <- items) output.append(f(i))
         output
       }
-      def flatMap[T](f: V => TraversableOnce[T]): Agg[T] = {
+      def flatMap[T](f: V => IterableOnce[T]): Agg[T] = {
         val output = new Agg.Mutable[T]
         for(i <- items) for(i0 <- f(i)) output.append(i0)
         output
@@ -90,13 +90,13 @@ sealed class AggWrapper(strictUniqueness: Boolean){
       def reverse = Agg.from(indexed.reverseIterator)
 
       def zip[T](other: Agg[T]) = Agg.from(items.zip(other.items))
-      def ++[T >: V](other: TraversableOnce[T]) = Agg.from(items ++ other)
+      def ++[T >: V](other: IterableOnce[T]) = Agg.from(items ++ other)
       def length: Int = set0.size
 
       // Members declared in scala.collection.GenTraversableOnce
       def isTraversableAgain: Boolean = items.isTraversableAgain
-      def toIterator: Iterator[V] = items.toIterator
-      def toStream: Stream[V] = items.toStream
+      def toIterator: Iterator[V] = items
+      def toStream: LazyList[V] = items.to(LazyList)
 
       // Members declared in scala.collection.TraversableOnce
       def copyToArray[B >: V](xs: Array[B], start: Int,len: Int): Unit = items.copyToArray(xs, start, len)
@@ -106,8 +106,8 @@ sealed class AggWrapper(strictUniqueness: Boolean){
       def foreach[U](f: V => U): Unit = items.foreach(f)
       def hasDefiniteSize: Boolean = items.hasDefiniteSize
       def isEmpty: Boolean = items.isEmpty
-      def seq: scala.collection.TraversableOnce[V] = items
-      def toTraversable: Traversable[V] = items.toTraversable
+      def seq: IterableOnce[V] = items
+      def toTraversable: Iterable[V] = items.toTraversable
       def iterator: Iterator[V] = items
 
       override def hashCode() = items.map(_.hashCode()).sum

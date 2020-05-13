@@ -61,7 +61,7 @@ against the full Scala version (eg. `2.12.4` instead of just `2.12`),
 you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
 To select the test-jars from a dependency use the following syntax:
-`ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
+`ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests"`.
 
 By default these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:

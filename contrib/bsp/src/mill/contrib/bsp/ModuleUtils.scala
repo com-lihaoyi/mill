@@ -162,10 +162,10 @@ object ModuleUtils {
                         evaluator: Evaluator,
                         moduleIdMap: Map[JavaModule, BuildTargetIdentifier]): BuildTarget = {
     val dataBuildTarget = computeBuildTargetData(module, evaluator)
-    val capabilities = getModuleCapabilities(module, evaluator)
+    val capabilities = getModuleCapabilities(module)
     val buildTargetTag: List[String] = module match {
-      case m: TestModule => List(BuildTargetTag.TEST)
-      case m: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
+      case _: TestModule => List(BuildTargetTag.TEST)
+      case _: JavaModule => List(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION)
     }
 
     val dependencies = module match {
@@ -209,10 +209,7 @@ object ModuleUtils {
     */
   def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
     val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
-    evaluated match {
-      case Success(value) => evaluated.asSuccess.get.value.asInstanceOf[T]
-      case default => defaultValue
-    }
+    evaluated.asSuccess.fold(defaultValue)(_.value.asInstanceOf[T])
   }
 
   /**
@@ -240,10 +237,10 @@ object ModuleUtils {
   }.mkString.toLowerCase()
 
   // obtain the capabilities of the given module ( ex: canCompile, canRun, canTest )
-  private[this] def getModuleCapabilities(module: JavaModule, evaluator: Evaluator): BuildTargetCapabilities = {
+  private[this] def getModuleCapabilities(module: JavaModule): BuildTargetCapabilities = {
     val canTest = module match {
       case _: TestModule => true
-      case default => false
+      case _ => false
     }
 
     new BuildTargetCapabilities(true, canTest, true)
@@ -264,8 +261,7 @@ object ModuleUtils {
             map(pathRef => pathRef.path.toIO.toURI.toString).
             toList.asJava)
 
-      case m: JavaModule =>
-        val scalaVersion = "2.12.8"
+      case _: JavaModule =>
         new ScalaBuildTarget(
           "or.scala-lang",
           "2.12.8",
@@ -289,9 +285,9 @@ object ModuleUtils {
   // Obtain the scala platform for `module`
   private[this] def getScalaTargetPlatform(module: ScalaModule): ScalaPlatform = {
     module match {
-      case m: ScalaNativeModule => ScalaPlatform.NATIVE
-      case m: ScalaJSModule => ScalaPlatform.JS
-      case m: ScalaModule => ScalaPlatform.JVM
+      case _: ScalaNativeModule => ScalaPlatform.NATIVE
+      case _: ScalaJSModule => ScalaPlatform.JS
+      case _: ScalaModule => ScalaPlatform.JVM
     }
   }
 }

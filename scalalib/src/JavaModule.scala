@@ -187,12 +187,11 @@ trait JavaModule extends mill.Module
     * All individual source files fed into the Java compiler
     */
   def allSourceFiles = T{
-    def isHiddenFile(path: os.Path) = path.last.startsWith(".")
     for {
       root <- allSources()
       if os.exists(root.path)
       path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
-      if os.isFile(path) && ((path.ext == "java") && !isHiddenFile(path))
+      if os.isFile(path) && ((path.ext == "java") && !path.toIO.isHidden)
     } yield PathRef(path)
   }
 

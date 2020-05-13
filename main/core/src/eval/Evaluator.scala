@@ -3,7 +3,6 @@ package mill.eval
 import java.net.URLClassLoader
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
-
 import ammonite.runtime.SpecialClassLoader
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
@@ -12,9 +11,9 @@ import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util._
-
 import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.util.Try
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T],
@@ -70,7 +69,7 @@ case class Evaluator(
     * @param testReporter Listener for test events like start, finish with success/error
     */
   def evaluate(goals: Agg[Task[_]],
-               reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+               reporter: Int => Option[BuildProblemReporter] = _ => Option.empty[BuildProblemReporter],
                testReporter: TestReporter = DummyTestReporter,
                logger: ColorLogger = baseLogger): Evaluator.Results = {
     os.makeDir.all(outPath)
@@ -81,7 +80,7 @@ case class Evaluator(
 
   def sequentialEvaluate(goals: Agg[Task[_]],
                          logger: ColorLogger,
-                         reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+                         reporter: Int => Option[BuildProblemReporter] = _ => Option.empty[BuildProblemReporter],
                          testReporter: TestReporter = DummyTestReporter) = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
@@ -145,7 +144,7 @@ case class Evaluator(
   def parallelEvaluate(goals: Agg[Task[_]],
                        threadCount: Int,
                        logger: ColorLogger,
-                       reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
+                       reporter: Int => Option[BuildProblemReporter] = _ => Option.empty[BuildProblemReporter],
                        testReporter: TestReporter = DummyTestReporter): Evaluator.Results = {
     logger.info(s"Using experimental parallel evaluator with $threadCount threads")
     os.makeDir.all(outPath)
@@ -291,15 +290,11 @@ case class Evaluator(
 
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
         val cached = for{
-          cached <-
-            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
-            catch {case e: Throwable => None}
+          cached <- Try(upickle.default.read[Evaluator.Cached](paths.meta.toIO)).toOption
 
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
-          parsed <-
-            try Some(upickle.default.read(cached.value)(reader))
-            catch {case e: Throwable => None}
+          parsed <- Try(upickle.default.read(cached.value)(reader)).toOption
         } yield (parsed, cached.valueHash)
 
         val workerCached: Option[Any] = labelledNamedTask.task.asWorker
@@ -373,7 +368,7 @@ case class Evaluator(
           .asInstanceOf[Option[upickle.default.Writer[Any]]]
           .map(w => upickle.default.writeJs(v)(w) -> v)
 
-        for((json, v) <- terminalResult){
+        for((json, _) <- terminalResult){
           os.write.over(
             metaPath,
             upickle.default.stream(
@@ -632,7 +627,7 @@ object Evaluator{
       case t: NamedTask[Any]   =>
         val segments = t.ctx.segments
         val finalTaskOverrides = t match{
-          case t: Target[_] =>
+          case _: Target[_] =>
             rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
 
           case c: mill.define.Command[_] =>
@@ -655,7 +650,7 @@ object Evaluator{
               case None => 0
             }
 
-          case c: mill.define.Worker[_] => 0
+          case _: Worker[_] => 0
         }
 
         val additional =

@@ -83,9 +83,6 @@ object Util {
     }
   }
 
-  def millProperty(key: String): String = {
-    val sysPropValue = sys.props(key)
-    if(sysPropValue != null) sysPropValue // system property has priority
-    else LongMillProps.getProperty(key)
-  }
+  def millProperty(key: String): String =
+    Option(sys.props(key)).getOrElse(LongMillProps.getProperty(key))
 }

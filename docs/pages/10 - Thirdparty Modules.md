@@ -87,7 +87,7 @@ Project home: https://github.com/davoclavo/mill-ensime
 ```scala
 import mill._
 interp.repositories() =
-  interp.repositories() ++ Seq(coursier.MavenRepository("https://jitpack.io"))
+  interp.repositories() ++ Seq(coursierapi.MavenRepository("https://jitpack.io"))
 
 @
 

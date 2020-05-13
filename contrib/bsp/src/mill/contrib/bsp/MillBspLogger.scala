@@ -35,7 +35,7 @@ class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
       client.onBuildTaskProgress(params)
       super.ticker(s)
     } catch {
-      case e: Exception =>
+      case _: Exception =>
     }
   }
 

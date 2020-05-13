@@ -39,7 +39,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
   override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
     val (watchedPaths, watchedValues) = watched.partitionMap {
-      case (ammonite.interp.Watchable.Path(p), _) => Left(())
+      case (ammonite.interp.Watchable.Path(_), _) => Left(())
       case (_, _) => Right(())
     }
     val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
@@ -79,7 +79,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       isRepl = false,
       printing = true,
       mainCfg => {
-        val logger = new PrintLogger(
+        val logger = PrintLogger(
           colored,
           disableTicker,
           colors,
@@ -134,7 +134,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
 
   override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
     res match{
-      case Res.Success(value) => true
+      case Res.Success(_) => true
       case _ => super.handleWatchRes(res, printing)
     }
   }

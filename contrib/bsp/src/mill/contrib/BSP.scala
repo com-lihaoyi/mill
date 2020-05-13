@@ -3,11 +3,11 @@ package mill.contrib
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
-
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
+import mill.modules.Util
 import org.eclipse.lsp4j.jsonrpc.Launcher
 import upickle.default._
 
@@ -56,7 +56,7 @@ object BSP extends ExternalModule {
     try {
       os.write(bspDirectory / "mill.json", createBspConnectionJson())
     } catch {
-      case e: FileAlreadyExistsException =>
+      case _: FileAlreadyExistsException =>
         println("The bsp connection json file probably exists already - will be overwritten")
         os.remove(bspDirectory / "mill.json")
         os.write(bspDirectory / "mill.json", createBspConnectionJson())
@@ -69,7 +69,7 @@ object BSP extends ExternalModule {
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(): String = {
-    val millPath = Option(mill.modules.Util.millProperty("MILL_CLASSPATH")).getOrElse(System.getProperty("MILL_CLASSPATH"))
+    val millPath = Option(Util.millProperty("MILL_CLASSPATH")).getOrElse(System.getProperty("MILL_CLASSPATH"))
     val millVersion = scala.sys.props.get("MILL_VERSION").getOrElse(System.getProperty("MILL_VERSION"))
     write(BspConfigJson("mill-bsp",
                         List(whichJava,
@@ -86,9 +86,7 @@ object BSP extends ExternalModule {
   }
 
   // computes the path to the java executable
-  def whichJava: String = {
-    if (scala.sys.props.contains("JAVA_HOME")) scala.sys.props("JAVA_HOME") else "java"
-  }
+  def whichJava: String = sys.props.getOrElse("JAVA_HOME", "java")
 
   /**
     * Computes a mill command which starts the mill-bsp
@@ -120,7 +118,8 @@ object BSP extends ExternalModule {
       millServer.onConnectWithClient(launcher.getRemoteProxy)
       val listening = launcher.startListening()
       millServer.cancelator = () => listening.cancel(true)
-      val voidFuture = listening.get()
+      listening.get()
+      ()
     } catch {
       case _: CancellationException => System.err.println("The mill server was shut down.")
       case e: Exception =>
