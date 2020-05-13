@@ -2,12 +2,12 @@ import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-
 import coursier.maven.MavenRepository
 import mill._
 import mill.scalalib._
 import publish._
 import mill.modules.Jvm.createAssembly
+import mill.scalalib.scalafmt.ScalafmtModule
 
 object Deps {
 
@@ -92,7 +92,7 @@ trait MillPublishModule extends PublishModule{
 
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
-trait MillApiModule extends MillPublishModule with ScalaModule{
+trait MillApiModule extends MillPublishModule with ScalaModule with ScalafmtModule {
   def scalaVersion = T{ "2.13.1" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
@@ -102,7 +102,6 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
   )
 }
 trait MillModule extends MillApiModule { outer =>
-  def scalaVersion = T{ "2.13.1" }
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
