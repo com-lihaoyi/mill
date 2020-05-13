@@ -42,7 +42,7 @@ trait ScalaModule extends JavaModule { outer =>
     for {
       root <- allSources()
       if os.exists(root.path)
-      path <- (if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path))
+      path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
       if os.isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(path))
     } yield PathRef(path)
   }

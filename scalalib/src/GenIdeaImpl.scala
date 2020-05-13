@@ -1,7 +1,6 @@
 package mill.scalalib
 
 import scala.collection.immutable
-
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
@@ -11,11 +10,11 @@ import mill.api.Strict.Agg
 import mill.api.{Loose, Result, Strict}
 import mill.define._
 import mill.eval.{Evaluator, PathRef}
+import mill.modules.Util
 import mill.{T, scalalib}
 import os.{Path, RelPath}
 import scala.util.Try
 import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
-
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 
 case class GenIdeaImpl(evaluator: Evaluator,
@@ -74,7 +73,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
     val buildLibraryPaths: immutable.Seq[Path] =
       if (!fetchMillModules) Nil
-      else Option(mill.modules.Util.millProperty("MILL_BUILD_LIBRARIES")) match {
+      else Util.millProperty("MILL_BUILD_LIBRARIES") match {
         case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
         case None =>
           val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories } ++ Set(LocalRepositories.ivy2Local, Repositories.central)
@@ -632,7 +631,7 @@ object GenIdeaImpl {
     * Create the module name (to be used by Idea) for the module based on it segments.
     * @see [[Module.millModuleSegments]]
     */
-  def moduleName(p: Segments): String = p.value.foldLeft(StringBuilder.newBuilder) {
+  def moduleName(p: Segments): String = p.value.foldLeft(new StringBuilder()) {
     case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
     case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
     case (sb, Segment.Label(s)) => sb.append(".").append(s)
