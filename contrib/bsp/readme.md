@@ -12,7 +12,7 @@ tasks to be executed from the IDE.
 2) Publish your mill version locally with `ci/publish-local`
 3) Run the following command in the working directory of your project:
    
-                   `~/mill-release -i mill.contrib.BSP/install`
+         ~/mill-release -i mill.contrib.BSP/install
                    
     This should create a `.bsp/` directory inside your working directory,
     containing a BSP connection file that clients can use to start the
@@ -30,11 +30,11 @@ After the bsp support module would be published, it should be enough to:
 1) Install mill
 2) Add the following import statement in the build.sc of your project:
 
-        `import $ivy.com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
+        import $ivy.`com.lihaoyi::mill-contrib-bsp:$OFFICIAL_MILL_VERSION`
 
 3) Run the following command in the working directory of your project:
-
-                      `mill -i mill.contrib.BSP/install`
+        
+        mill -i mill.contrib.BSP/install
 
 ## Known Issues:
 
