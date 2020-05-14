@@ -93,7 +93,7 @@ trait MillPublishModule extends PublishModule{
   def javacOptions = Seq("-source", "1.8", "-target", "1.8")
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.13.1" }
+  def scalaVersion = T{ "2.13.2" }
   def compileIvyDeps = Agg(Deps.acyclic)
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -102,7 +102,7 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
   )
 }
 trait MillModule extends MillApiModule { outer =>
-  def scalaVersion = T{ "2.13.1" }
+  def scalaVersion = T{ "2.13.2" }
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
@@ -189,7 +189,7 @@ object main extends MillModule {
   }
 
   object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.13.1" }
+    def scalaVersion = T{ "2.13.2" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode,
