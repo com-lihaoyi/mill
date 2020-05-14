@@ -307,8 +307,8 @@ class Router [C <: Context](val c: C) {
       if (curCls.members.exists(_.name.toString == defaultName)) Some(defaultName)
       else None
     }
-    val argListSymbol = q"${c.freshName[TermName]("argsList")}"
-    val extrasSymbol = q"${c.freshName[TermName]("extras")}"
+    val argListSymbol = q"${c.freshName[TermName](TermName("argsList"))}"
+    val extrasSymbol = q"${c.freshName[TermName](TermName("extras"))}"
     val defaults = for ((arg, i) <- flattenedArgLists.zipWithIndex) yield {
       val arg = TermName(c.freshName())
       hasDefault(i).map(defaultName => q"($arg: $curCls) => $arg.${TermName(defaultName)}")
@@ -334,7 +334,7 @@ class Router [C <: Context](val c: C) {
       (vararg, unwrappedType)
     }
 
-    val argSigSymbol = q"${c.freshName[TermName]("argSigs")}"
+    val argSigSymbol = q"${c.freshName[TermName](TermName("argSigs"))}"
 
     val (_, methodDoc) = getDocAnnotation(meth.annotations)
     val readArgSigs = for(
