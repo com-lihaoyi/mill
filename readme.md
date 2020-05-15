@@ -176,7 +176,8 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master
 
 ### 0.7.0 - 2020-05-15
 
-- Greatly improved parallel
+- Greatly improved parallel builds via `-j <n>`/`--jobs <n>`, with better scheduling
+  and utilization of multiple cores
 - `build.sc` files now uses Scala 2.13.2
 - Avoid duplicate target resolution with `mill resolve __`
 - Add ability to pass GPG arguments to publish via `--gpgArgs`
