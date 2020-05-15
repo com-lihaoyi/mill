@@ -6,7 +6,7 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import coursier.maven.MavenRepository
 import mill._
 import mill.scalalib._
-import publish._
+import mill.scalalib.publish._
 import mill.modules.Jvm.createAssembly
 
 object Deps {
@@ -657,9 +657,9 @@ object dev extends MillModule{
     PathRef(outputPath)
   }
 
-//  override def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq(
-//    PublishModule.ExtraPublish(assembly(), "jars", "-assembly.jar")
-//  )}
+  override def extraPublish: T[Seq[PublishInfo]] = T{ Seq(
+    PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
+  )}
 
   def assembly = T{
     val isWin = scala.util.Properties.isWin
