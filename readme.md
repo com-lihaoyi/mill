@@ -174,6 +174,14 @@ corresponding version of Mill.
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master).*
 
 
+### 0.7.0 - 2020-05-15
+
+- Greatly improved parallel
+- `build.sc` files now uses Scala 2.13.2
+- Avoid duplicate target resolution with `mill resolve __`
+- Add ability to pass GPG arguments to publish via `--gpgArgs`
+- `-w`/`--watch` now works for `T.source` targets
+
 ### 0.6.3 - 2020-05-10
 
 - Finished incomplete support to publish extra artifacts to IVY repositories (`publishLocal`)
