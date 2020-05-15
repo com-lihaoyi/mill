@@ -593,7 +593,7 @@ def launcherScript(shellJvmArgs: Seq[String],
          |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
-         |if grep -qEi "(Microsoft|WSL)" foo.txt > /dev/null 2> /dev/null ; then
+         |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
          |    ${java("mill.MillMain")}
          |else
          |    case "$$1" in
