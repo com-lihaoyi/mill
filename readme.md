@@ -170,9 +170,8 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.6.3](https://github.com/lihaoyi/mill/milestone/37?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master).*
-
+[milestone after 0.7.0](https://github.com/lihaoyi/mill/milestone/39?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.0...master).*
 
 ### 0.7.0 - 2020-05-15
 
@@ -182,6 +181,11 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master
 - Avoid duplicate target resolution with `mill resolve __`
 - Add ability to pass GPG arguments to publish via `--gpgArgs`
 - `-w`/`--watch` now works for `T.source` targets
+
+*For details refer to
+[milestone 0.7.0](https://github.com/lihaoyi/mill/milestone/37?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.6.3...master).*
+
 
 ### 0.6.3 - 2020-05-10
 
