@@ -499,7 +499,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
     </module>
   }
   def libraryXmlTemplate(name: String, path: os.Path, sources: Option[os.Path], scalaCompilerClassPath: Loose.Agg[Path]): Elem = {
-    def url(path: os.Path): String = if (path.ext == "jar") "jar://" + path + "!/" else "file://" + path
+    def url(path: os.Path): String = {
+      if (path.ext == "jar") "jar://$PROJECT_DIR$/" + path.relativeTo(cwd) + "!/"
+      else "file://$PROJECT_DIR$/" + path.relativeTo(cwd)
+    }
+
     val isScalaLibrary = scalaCompilerClassPath.nonEmpty
     <component name="libraryTable">
       <library name={name} type={if(isScalaLibrary) "Scala" else null}>
@@ -507,7 +511,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         <properties>
           <compiler-classpath>
             {
-            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://" + p}/>)
+            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://$PROJECT_DIR$/" + p.relativeTo(cwd)}/>)
             }
           </compiler-classpath>
         </properties>
@@ -547,33 +551,31 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
         <exclude-output />
         {
-          for {
-            generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted
-            path <- Seq(relify(generatedSourcePath))
-          } yield
-              <content url={"file://$MODULE_DIR$/" + path}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} generated="true" />
+          for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
+            val rel = relify(generatedSourcePath)
+              <content url={"file://$MODULE_DIR$/" + rel}>
+                <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} generated="true" />
               </content>
           }
+        }
+
         {
           // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-          for {
-            normalSourcePath <- normalSourcePaths.toSeq.sorted
-            path <- Seq(relify(normalSourcePath))
-          } yield
-              <content url={"file://$MODULE_DIR$/" + path}>
-                <sourceFolder url={"file://$MODULE_DIR$/" + path} isTestSource={isTest.toString} />
+          for (normalSourcePath <- normalSourcePaths.toSeq.sorted) yield {
+            val rel = relify(normalSourcePath)
+            <content url={"file://$MODULE_DIR$/" + rel}>
+              <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} />
+            </content>
+          }
+        }
+        {
+          val resourceType = if (isTest) "java-test-resource" else "java-resource"
+          for (resourcePath <- resourcePaths.toSeq.sorted) yield {
+              val rel = relify(resourcePath)
+              <content url={"file://$MODULE_DIR$/" + rel}>
+                <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
               </content>
           }
-        {
-        val resourceType = if (isTest) "java-test-resource" else "java-resource"
-        for {
-          resourcePath <- resourcePaths.toSeq.sorted
-          path <- Seq(relify(resourcePath))
-        } yield
-            <content url={"file://$MODULE_DIR$/" + path}>
-              <sourceFolder url={"file://$MODULE_DIR$/" + path} type={resourceType} />
-            </content>
         }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
