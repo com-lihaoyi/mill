@@ -6,7 +6,7 @@ import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import coursier.maven.MavenRepository
 import mill._
 import mill.scalalib._
-import publish._
+import mill.scalalib.publish._
 import mill.modules.Jvm.createAssembly
 
 object Deps {
@@ -593,7 +593,7 @@ def launcherScript(shellJvmArgs: Seq[String],
          |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
-         |if grep -qEi "(Microsoft|WSL)" foo.txt &> /dev/null ; then
+         |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
          |    COURSIER_CACHE=out/.coursier ${java("mill.MillMain")}
          |else
          |    case "$$1" in
@@ -657,9 +657,9 @@ object dev extends MillModule{
     PathRef(outputPath)
   }
 
-//  override def extraPublish: T[Seq[PublishModule.ExtraPublish]] = T{ Seq(
-//    PublishModule.ExtraPublish(assembly(), "jars", "-assembly.jar")
-//  )}
+  override def extraPublish: T[Seq[PublishInfo]] = T{ Seq(
+    PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
+  )}
 
   def assembly = T{
     val isWin = scala.util.Properties.isWin
