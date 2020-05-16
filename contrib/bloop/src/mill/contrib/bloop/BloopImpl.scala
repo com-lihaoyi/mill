@@ -30,6 +30,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
   def install() = T.command {
     val res = Task.traverse(computeModules)(_.bloop.writeConfig)()
     val written = res.map(_._2).map(_.path)
+    // Make bloopDir if it doesn't exists
+    if (!os.exists(bloopDir)) {
+      os.makeDir(bloopDir)
+    }
     // Cleaning up configs that weren't generated in this run.
     os.list(bloopDir)
       .filter(_.ext == "json")
