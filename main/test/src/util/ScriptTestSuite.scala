@@ -64,5 +64,6 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     // destination instead of the folder containing the wrapper.
 
     os.copy(scriptSourcePath, workspacePath)
+    workspacePath
   }
 }
