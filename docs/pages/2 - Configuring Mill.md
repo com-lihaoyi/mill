@@ -108,7 +108,7 @@ object foo extends ScalaModule {
 }
 ```
 
-- [Example 3](../example-3.zip)
+- [Example 3](https://github.com/lihaoyi/mill/releases/download/0.7.0/0.7.0-example-3.zip)
 
 You can define a test suite by creating a nested module extending `Tests`, and
 specifying the ivy coordinates and name of your test framework. This expects the

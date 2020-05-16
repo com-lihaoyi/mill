@@ -157,13 +157,6 @@ def main(publish: Boolean = false, targetDir: os.Path = targetFolder) = {
   os.copy(os.pwd/"VisualizeFoo.svg", targetDir/"VisualizeFoo.svg")
   os.copy(os.pwd/"VisualizePlan.svg", targetDir/"VisualizePlan.svg")
 
-  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-1" / "mill")
-  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-2" / "mill")
-  os.copy.over(os.pwd / os.up / "mill", os.pwd / "example-3" / "mill")
-  os.proc('zip, "-r", targetDir/"example-1.zip", "example-1").call()
-  os.proc('zip, "-r", targetDir/"example-2.zip", "example-2").call()
-  os.proc('zip, "-r", targetDir/"example-3.zip", "example-3").call()
-
   for(i <- posts.indices){
     val post = posts(i)
 

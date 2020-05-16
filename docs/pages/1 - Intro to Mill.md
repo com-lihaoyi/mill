@@ -159,7 +159,7 @@ out/
 
 You can download an example project with this layout here:
 
-- [Example 1](example-1.zip)
+- [Example 1](https://github.com/lihaoyi/mill/releases/download/0.7.0/0.7.0-example-1.zip)
 
 The source code for this module would live in the `foo/src/` folder, matching
 the name you assigned to the module. Output for this module (compiled files,
@@ -813,7 +813,7 @@ by overriding `artifactName` in the module you want to publish.
 
 You can download an example project with this layout here:
 
-- [Example 2](example-2.zip)
+- [Example 2](https://github.com/lihaoyi/mill/releases/download/0.7.0/0.7.0-example-2.zip)
 
 Which you can then publish using the `mill foo.publish` command, which takes
 your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
