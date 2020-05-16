@@ -12,7 +12,7 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
 
   def tests: Tests = Tests {
     'genIdeaTests - {
-      initWorkspace()
+      val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
       Seq(
@@ -27,15 +27,19 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
 
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
-          val generatedString = normaliseLibraryPaths(os.read(generated))
+          val generatedString = normaliseLibraryPaths(os.read(generated), workspacePath)
 
           assert(resourceString == generatedString)
         }
     }
   }
 
-  private def normaliseLibraryPaths(in: String): String = {
-    in.replaceAll(coursier.paths.CoursierPaths.cacheDirectory().toString, "COURSIER_HOME")
+  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
+    in.replace(
+      "$PROJECT_DIR$/" +
+      os.Path(coursier.paths.CoursierPaths.cacheDirectory()).relativeTo(workspacePath),
+      "COURSIER_HOME"
+    )
   }
 
 }

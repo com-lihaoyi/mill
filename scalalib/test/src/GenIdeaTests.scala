@@ -8,7 +8,7 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
   def tests: Tests = Tests {
     'genIdeaTests - {
-      initWorkspace()
+      val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
       Seq(
@@ -24,15 +24,20 @@ object GenIdeaTests extends ScriptTestSuite(false) {
           workspacePath / ".idea" / "misc.xml"
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")
-          val generatedString = normaliseLibraryPaths(os.read(generated))
+          val generatedString = normaliseLibraryPaths(os.read(generated), workspacePath)
 
           assert(resourceString == generatedString)
         }
     }
   }
 
-  private def normaliseLibraryPaths(in: String): String = {
-    in.replaceAll(coursier.paths.CoursierPaths.cacheDirectory().toString, "COURSIER_HOME")
+  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
+
+    in.replace(
+      "$PROJECT_DIR$/" +
+      os.Path(coursier.paths.CoursierPaths.cacheDirectory()).relativeTo(workspacePath),
+      "COURSIER_HOME"
+    )
   }
 
   override def workspaceSlug: String = "gen-idea-hello-world"
