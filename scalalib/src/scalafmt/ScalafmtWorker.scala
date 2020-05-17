@@ -9,6 +9,7 @@ import org.scalafmt.interfaces.Scalafmt
 
 import scala.collection.mutable
 import mill.api.Result
+import java.nio.file.Files
 
 object ScalafmtWorkerModule extends ExternalModule {
   def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
@@ -65,12 +66,15 @@ private[scalafmt] class ScalafmtWorker {
         .create(this.getClass.getClassLoader)
         .withRespectVersion(false)
 
+      val isScalaFmtConfigExists = os.exists(scalafmtConfig.path)
       val configPath =
-        if (os.exists(scalafmtConfig.path))
+        if (isScalaFmtConfigExists)
           scalafmtConfig.path.toNIO
-        else
-          JPaths.get(getClass.getResource("default.scalafmt.conf").toURI)
-
+        else {
+          val temp = Files.createTempFile("temp", ".scalafmt.conf").toUri
+          JPaths.get(temp) 
+        }
+        
       // keeps track of files that are misformatted
       val misformatted = mutable.ListBuffer.empty[PathRef]
 
@@ -94,6 +98,11 @@ private[scalafmt] class ScalafmtWorker {
         }
 
       }
+
+      if (!isScalaFmtConfigExists) {
+        Files.delete(configPath)
+      }
+
       configSig = scalafmtConfig.sig
       misformatted.toList
     } else {
