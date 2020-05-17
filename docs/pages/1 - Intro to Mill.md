@@ -383,7 +383,7 @@ mill -j 4 __.compile
 To use as much threads as your machine has (logical) processor cores use `--jobs 0`.
 To disable parallel execution use `--jobs 1`. This is currently the default.
 
-Please note the the maximal possible parallelism depends on your project.
+Please note that the maximal possible parallelism depends on your project.
 Tasks that depend on each other can't be processes in parallel.
 
 
