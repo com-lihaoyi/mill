@@ -847,9 +847,9 @@ def uploadToGithub(authKey: String) = T.command{
 
   for(example <- Seq("example-1", "example-2", "example-3")) {
     os.copy(os.pwd / "example" / example, T.dest / example)
-    os.copy(os.pwd / "mill", T.dest / example / "mill")
+    os.copy(launcher().path, T.dest / example / "mill")
     os.proc('zip, "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
-    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example, authKey)
+    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey)
   }
   upload.apply(assembly().path, releaseTag, label + "-assembly", authKey)
 
