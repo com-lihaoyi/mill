@@ -9,6 +9,11 @@ import org.scalafmt.interfaces.Scalafmt
 
 import scala.collection.mutable
 import mill.api.Result
+import java.nio.file.Files
+import scala.util.Try
+import java.nio.file.Path
+import scala.util.Failure
+import scala.util.Success
 
 object ScalafmtWorkerModule extends ExternalModule {
   def worker: Worker[ScalafmtWorker] = T.worker { new ScalafmtWorker() }
@@ -65,12 +70,23 @@ private[scalafmt] class ScalafmtWorker {
         .create(this.getClass.getClassLoader)
         .withRespectVersion(false)
 
-      val configPath =
-        if (os.exists(scalafmtConfig.path))
-          scalafmtConfig.path.toNIO
-        else
-          JPaths.get(getClass.getResource("default.scalafmt.conf").toURI)
+      def readDefaultScalafmtConfig(): Try[Path] = {
+        Try(JPaths.get(getClass.getResource("default.scalafmt.conf").toURI))
+      }
 
+      val (configPath, tmpFileCreated) =
+        if (os.exists(scalafmtConfig.path))
+          (scalafmtConfig.path.toNIO, false)
+        else {
+          readDefaultScalafmtConfig() match {
+            case Success(defaultConfig) => (defaultConfig, false)
+            case Failure(exception) => {
+              ctx.log.debug(s"Read default scalafmt config fail, create a temp one")
+              (JPaths.get(Files.createTempFile("temp", ".scalafmt.conf").toUri), true)
+            }
+          }
+        }
+        
       // keeps track of files that are misformatted
       val misformatted = mutable.ListBuffer.empty[PathRef]
 
@@ -94,6 +110,11 @@ private[scalafmt] class ScalafmtWorker {
         }
 
       }
+
+      if (tmpFileCreated) {
+        Files.delete(configPath)
+      }
+
       configSig = scalafmtConfig.sig
       misformatted.toList
     } else {
