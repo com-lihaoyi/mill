@@ -2,7 +2,8 @@ package mill.modules
 
 
 import coursier.Repository
-import mill.api.{PathRef, IO}
+import mill.BuildInfo
+import mill.api.{IO, PathRef}
 import mill.util.Ctx
 import mill.api.Loose
 
@@ -64,28 +65,26 @@ object Util {
                         repositories: Seq[Repository],
                         resolveFilter: os.Path => Boolean = _ => true,
                         artifactSuffix: String = "_2.13") = {
-    val localPath = millProperty(key)
-    if (localPath != null) {
-      mill.api.Result.Success(
-        mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
-      )
-    } else {
-      mill.modules.Jvm.resolveDependencies(
-        repositories,
-        Seq(
-          coursier.Dependency(
-            coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
-            millProperty("MILL_VERSION")
-          )
-        ),
-        Nil
-      ).map(_.filter(x => resolveFilter(x.path)))
+    millProperty(key) match {
+      case Some(localPath) =>
+        mill.api.Result.Success(
+          mill.api.Loose.Agg.from(localPath.split(',').map(p => PathRef(os.Path(p), quick = true)))
+        )
+      case None =>
+        mill.modules.Jvm.resolveDependencies(
+          repositories,
+          Seq(
+            coursier.Dependency(
+              coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
+              millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion)
+            )
+          ),
+          Nil
+        ).map(_.filter(x => resolveFilter(x.path)))
     }
   }
 
-  def millProperty(key: String): String = {
-    val sysPropValue = sys.props(key)
-    if(sysPropValue != null) sysPropValue // system property has priority
-    else LongMillProps.getProperty(key)
-  }
+  def millProperty(key: String): Option[String] =
+    Option(sys.props(key)) // System property has priority
+      .orElse(Option(LongMillProps.getProperty(key)))
 }
