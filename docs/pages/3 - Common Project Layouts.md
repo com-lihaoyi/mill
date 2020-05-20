@@ -288,9 +288,9 @@ central via:
 
 ```bash
 mill mill.scalalib.PublishModule/publishAll \
+        foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        $GPG_PASSWORD \ 
-        foo.publishArtifacts
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b
 ```
 
 This uploads them to `oss.sonatype.org` where you can log-in and stage/release
@@ -299,9 +299,9 @@ staging/release automatically:
 
 ```bash
 mill mill.scalalib.PublishModule/publishAll \
-        lihaoyi:$SONATYPE_PASSWORD \
-        $GPG_PASSWORD \ 
         foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
         --release true
 ```
 
@@ -310,9 +310,9 @@ wildcard syntax:
 
 ```bash
 mill mill.scalalib.PublishModule/publishAll \
-        lihaoyi:$SONATYPE_PASSWORD \
-        $GPG_PASSWORD \ 
         __.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
         --release true
 ```
 
@@ -321,8 +321,8 @@ nexus at `example.company.com`, you can pass in the `--sonatypeUri` and
 `--sonatypeSnapshotUri` parameters to uploads to different site:
 ```bash
 mill mill.scalalib.PublishModule/publishAll \
-        lihaoyi:$SONATYPE_PASSWORD \
         foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --sonatypeSnaphostUri http://example.company.com/snapshot
 ```
@@ -333,8 +333,8 @@ example, a self-hosted OSS nexus site), you can pass in the
 maven path under `sonatypeUri` instead of staging path.
 ```bash
 mill mill.scalalib.PublishModule/publishAll \
-        lihaoyi:$SONATYPE_PASSWORD \
         foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
         --sonatypeUri http://example.company.com/release \
         --stagingRelease false
 ``` 
