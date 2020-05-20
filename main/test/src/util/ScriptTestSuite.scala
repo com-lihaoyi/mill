@@ -33,7 +33,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     debugLog = debugLog,
     keepGoing = keepGoing,
     systemProperties = systemProperties,
-    threadCount = threadCount
+    threadCount = threadCount,
+    ringBell = false
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)

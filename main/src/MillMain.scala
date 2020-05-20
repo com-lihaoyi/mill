@@ -220,7 +220,8 @@ object MillMain {
               debugLog = debugLog,
               keepGoing = keepGoing,
               systemProperties = systemProps,
-              threadCount = threadCount
+              threadCount = threadCount,
+              ringBell = ringBell
             )
 
             if (mill.main.client.Util.isJava9OrAbove) {

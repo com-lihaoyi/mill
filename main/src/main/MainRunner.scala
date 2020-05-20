@@ -29,7 +29,8 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  debugLog: Boolean,
                  keepGoing: Boolean,
                  systemProperties: Map[String, String],
-                 threadCount: Option[Int])
+                 threadCount: Option[Int],
+                 ringBell: Boolean)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
     stdIn, outprintStream, errPrintStream
@@ -63,6 +64,14 @@ class MainRunner(val config: ammonite.main.Cli.Config,
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
+    if (ringBell){
+      if (success) println("\u0007")
+      else {
+        println("\u0007")
+        Thread.sleep(250)
+        println("\u0007")
+      }
+    }
     if (!config.watch) success
     else{
       watchAndWait(watched())
