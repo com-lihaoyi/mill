@@ -140,8 +140,9 @@ object MillMain {
           debugLogSignature,
           keepGoingSignature,
           extraSystemPropertiesSignature,
-          threadCountSignature
-          )
+          threadCountSignature,
+          ringBellSignature
+        )
 
     val (success, newStateCache) = Cli.groupArgs(
       args.toList,
