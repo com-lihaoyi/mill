@@ -143,7 +143,7 @@ object MillMain {
           threadCountSignature
           )
 
-    val (success, stateCache) = Cli.groupArgs(
+    val (success, newStateCache) = Cli.groupArgs(
       args.toList,
       millArgSignature,
       Cli.Config(home = millHome, remoteLogging = false)
@@ -248,6 +248,6 @@ object MillMain {
         println("\u0007")
       }
     }
-    (success, stateCache)
+    (success, newStateCache)
   }
 }
