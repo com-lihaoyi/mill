@@ -64,13 +64,13 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
     handleExceptions {
       val targets = getTargets(getModules(evaluator), evaluator)
 
-      // Remove the sortBy, reverse and distinctBy when https://youtrack.jetbrains.com/issue/SCL-17551 is resolved
-      new WorkspaceBuildTargetsResult(targets.sortBy(_.getId.getUri).reverse.distinctBy(_.getBaseDirectory).asJava)
+      new WorkspaceBuildTargetsResult(targets.asJava)
     }
 
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       def sourceItem(source: Path, generated: Boolean) = {
         val file = source.toIO
@@ -83,7 +83,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
       val items = sourcesParams.getTargets.asScala.foldLeft(Seq.empty[SourcesItem]) { (items, targetId) =>
         val newItem =
-          if (targetId == getMillBuildTargetId(evaluator))
+          if (targetId == millBuildTargetId)
             new SourcesItem(
               targetId,
               Seq(sourceItem(evaluator.rootModule.millSourcePath / "src", generated = false)).asJava // Intellij needs one
@@ -127,22 +127,27 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   ): CompletableFuture[DependencySourcesResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      val items =
-        dependencySourcesParams.getTargets.asScala.foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
-          val newItem =
-            if (targetId == getMillBuildTargetId(evaluator)) new DependencySourcesItem(targetId, Seq.empty.asJava)
-            else {
-              val sources = evaluateInformativeTask(
-                evaluator,
-                getModule(targetId, modules).compileClasspath,
-                Agg.empty[PathRef]
-              )
+      val items = dependencySourcesParams.getTargets.asScala
+        .filter(_ != millBuildTargetId)
+        .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
+          val module = getModule(targetId, modules)
+          val sources = evaluateInformativeTask(
+            evaluator,
+            module.resolveDeps(T.task(module.compileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
+            Agg.empty[PathRef]
+          )
+          val unmanaged = evaluateInformativeTask(
+            evaluator,
+            module.unmanagedClasspath,
+            Agg.empty[PathRef]
+          )
 
-              new DependencySourcesItem(targetId, sources.map(_.path.toIO.toURI.toString).iterator.to(Seq).asJava)
-            }
-
-          items :+ newItem
+          items :+ new DependencySourcesItem(
+            targetId,
+            (sources ++ unmanaged).map(_.path.toIO.toURI.toString).iterator.toSeq.asJava
+          )
         }
 
       new DependencySourcesResult(items.asJava)
@@ -151,20 +156,16 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   override def buildTargetResources(resourcesParams: ResourcesParams): CompletableFuture[ResourcesResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      val items = resourcesParams.getTargets.asScala.foldLeft(Seq.empty[ResourcesItem]) { (items, targetId) =>
-        val newItem =
-          if (targetId == getMillBuildTargetId(evaluator)) new ResourcesItem(targetId, Seq.empty.asJava)
-          else {
-            val resources =
-              evaluateInformativeTask(evaluator, getModule(targetId, modules).resources, Seq.empty[PathRef])
-                .filter(pathRef => os.exists(pathRef.path))
+      val items = resourcesParams.getTargets.asScala
+        .filter(_ != millBuildTargetId)
+        .foldLeft(Seq.empty[ResourcesItem]) { (items, targetId) =>
+          val resources = evaluateInformativeTask(evaluator, getModule(targetId, modules).resources, Seq.empty[PathRef])
+            .filter(pathRef => os.exists(pathRef.path))
 
-            new ResourcesItem(targetId, resources.map(_.path.toNIO.toUri.toString).asJava)
-          }
-
-        items :+ newItem
-      }
+          items :+ new ResourcesItem(targetId, resources.map(_.path.toNIO.toUri.toString).asJava)
+        }
 
       new ResourcesResult(items.asJava)
     }
@@ -174,10 +175,13 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   override def buildTargetCompile(compileParams: CompileParams): CompletableFuture[CompileResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val params = TaskParameters.fromCompileParams(compileParams)
       val taskId = params.hashCode()
-      val compileTasks = Strict.Agg(params.getTargets.map(targetId => getModule(targetId, modules).compile): _*)
+      val compileTasks = Strict.Agg(
+        params.getTargets.filter(_ != millBuildTargetId).map(getModule(_, modules).compile): _*
+      )
       val result = evaluator.evaluate(
         compileTasks,
         getBspLoggedReporterPool(
@@ -234,6 +238,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
     handleExceptions {
       val modules = getModules(evaluator)
       val targets = getTargets(modules, evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val params = TaskParameters.fromTestParams(testParams)
       val argsMap =
@@ -249,64 +254,61 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
             (for (targetId <- testParams.getTargets.asScala) yield (targetId.getUri, Seq.empty[String])).toMap
         }
 
-      var overallStatusCode = StatusCode.OK
-      for (targetId <- testParams.getTargets.asScala) {
-        getModule(targetId, modules) match {
-          case m: TestModule =>
-            val testModule = m.asInstanceOf[TestModule]
-            val testTask = testModule.testLocal(argsMap(targetId.getUri): _*)
+      val overallStatusCode = testParams.getTargets.asScala
+        .filter(_ != millBuildTargetId)
+        .foldLeft(StatusCode.OK) { (overallStatusCode, targetId) =>
+          getModule(targetId, modules) match {
+            case m: TestModule =>
+              val testModule = m.asInstanceOf[TestModule]
+              val testTask = testModule.testLocal(argsMap(targetId.getUri): _*)
 
-            // notifying the client that the testing of this build target started
-            val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
-            taskStartParams.setEventTime(System.currentTimeMillis())
-            taskStartParams.setMessage("Testing target: " + targetId)
-            taskStartParams.setDataKind(TaskDataKind.TEST_TASK)
-            taskStartParams.setData(new TestTask(targetId))
-            client.onBuildTaskStart(taskStartParams)
+              // notifying the client that the testing of this build target started
+              val taskStartParams = new TaskStartParams(new TaskId(testTask.hashCode().toString))
+              taskStartParams.setEventTime(System.currentTimeMillis())
+              taskStartParams.setMessage("Testing target: " + targetId)
+              taskStartParams.setDataKind(TaskDataKind.TEST_TASK)
+              taskStartParams.setData(new TestTask(targetId))
+              client.onBuildTaskStart(taskStartParams)
 
-            val testReporter =
-              new BspTestReporter(client, targetId, new TaskId(testTask.hashCode().toString), Seq.empty[String])
+              val testReporter =
+                new BspTestReporter(client, targetId, new TaskId(testTask.hashCode().toString), Seq.empty[String])
 
-            val results = evaluator.evaluate(
-              Strict.Agg(testTask),
-              getBspLoggedReporterPool(
-                params,
-                t => s"Started compiling target: $t",
-                TaskDataKind.COMPILE_TASK,
-                (targetId: BuildTargetIdentifier) => new CompileTask(targetId),
-                modules,
-                evaluator,
-                client
-              ),
-              testReporter,
-              new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
-            )
-            val endTime = System.currentTimeMillis()
-            val statusCode = getStatusCode(results)
-            statusCode match {
-              case StatusCode.ERROR => overallStatusCode = StatusCode.ERROR
-              case StatusCode.CANCELLED =>
-                overallStatusCode =
-                  if (overallStatusCode == StatusCode.ERROR) StatusCode.ERROR else StatusCode.CANCELLED
-              case StatusCode.OK =>
-            }
-            // notifying the client that the testing of this build target ended
-            val taskFinishParams = new TaskFinishParams(
-              new TaskId(testTask.hashCode().toString),
-              statusCode
-            )
-            taskFinishParams.setEventTime(endTime)
-            taskFinishParams.setMessage(
-              "Finished testing target" +
-                targets.find(_.getId == targetId).fold("")(t => s": ${t.getDisplayName}")
-            )
-            taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
-            taskFinishParams.setData(testReporter.getTestReport)
-            client.onBuildTaskFinish(taskFinishParams)
+              val results = evaluator.evaluate(
+                Strict.Agg(testTask),
+                getBspLoggedReporterPool(
+                  params,
+                  t => s"Started compiling target: $t",
+                  TaskDataKind.COMPILE_TASK,
+                  (targetId: BuildTargetIdentifier) => new CompileTask(targetId),
+                  modules,
+                  evaluator,
+                  client
+                ),
+                testReporter,
+                new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
+              )
+              val endTime = System.currentTimeMillis()
+              val statusCode = getStatusCode(results)
+              // Notifying the client that the testing of this build target ended
+              val taskFinishParams = new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
+              taskFinishParams.setEventTime(endTime)
+              taskFinishParams.setMessage(
+                "Finished testing target" + targets.find(_.getId == targetId).fold("")(t => s": ${t.getDisplayName}")
+              )
+              taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
+              taskFinishParams.setData(testReporter.getTestReport)
+              client.onBuildTaskFinish(taskFinishParams)
 
-          case _ =>
+              (statusCode, overallStatusCode) match {
+                case (StatusCode.ERROR, _) | (_, StatusCode.ERROR) => StatusCode.ERROR
+                case (StatusCode.CANCELLED, _) => StatusCode.CANCELLED
+                case (StatusCode.OK, _) => StatusCode.OK
+              }
+
+            case _ => overallStatusCode
+          }
         }
-      }
+
       val testResult = new TestResult(overallStatusCode)
       params.getOriginId match {
         case None => testResult
@@ -320,43 +322,39 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      var msg = ""
-      var cleaned = true
-      for (targetId <- cleanCacheParams.getTargets.asScala) {
-        val module = getModule(targetId, modules)
-        val mainModule = new MainModule {
-          override implicit def millDiscover: Discover[_] = {
-            Discover[this.type]
+      val (msg, cleaned) = cleanCacheParams.getTargets.asScala.filter(_ != millBuildTargetId).foldLeft(("", true)) {
+        case ((msg, cleaned), targetId) =>
+          val module = getModule(targetId, modules)
+          val mainModule = new MainModule {
+            override implicit def millDiscover: Discover[_] = Discover[this.type]
           }
-        }
-        val cleanTask = mainModule.clean(evaluator, Seq(s"${module.millModuleSegments.render}.compile"): _*)
-        val cleanResult = evaluator.evaluate(
-          Strict.Agg(cleanTask),
-          logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
-        )
-        if (cleanResult.failing.keyCount > 0) {
-          cleaned = false
-          msg += s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n"
-          cleanResult.results(cleanTask) match {
-            case fail: Result.Failure[Any] => msg += fail.msg + "\n"
-            case _ => msg += "could not retrieve message"
-          }
-        } else {
-          msg += s"${module.millModuleSegments.render} cleaned \n"
+          val cleanTask = mainModule.clean(evaluator, Seq(s"${module.millModuleSegments.render}.compile"): _*)
+          val cleanResult = evaluator.evaluate(
+            Strict.Agg(cleanTask),
+            logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
+          )
+          if (cleanResult.failing.keyCount > 0) (
+            msg + s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n" +
+              (cleanResult.results(cleanTask) match {
+                case fail: Result.Failure[Any] => fail.msg + "\n"
+                case _ => "could not retrieve message"
+              }),
+            false
+          ) else {
+            val outDir = Evaluator
+              .resolveDestPaths(
+                evaluator.outPath,
+                module.millModuleSegments ++ Seq(Label("compile"))
+              )
+              .out
+            while (os.exists(outDir)) Thread.sleep(10)
 
-          val outDir = Evaluator
-            .resolveDestPaths(
-              os.pwd / "out",
-              module.millModuleSegments ++
-                Seq(Label("compile"))
-            )
-            .out
-          while (os.exists(outDir)) {
-            Thread.sleep(10)
+            (msg + s"${module.millModuleSegments.render} cleaned \n", cleaned)
           }
-        }
       }
+
       new CleanCacheResult(msg, cleaned)
     }
 
@@ -365,31 +363,29 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   ): CompletableFuture[ScalacOptionsResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      val items = scalacOptionsParams.getTargets.asScala.foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
-        val newItem =
-          if (targetId == getMillBuildTargetId(evaluator)) None
-          else {
-            getModule(targetId, modules) match {
-              case m: ScalaModule =>
-                val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
-                val classpath = evaluateInformativeTask(evaluator, m.runClasspath, Seq.empty[PathRef])
-                  .map(_.path.toNIO.toUri.toString)
-                  .toList
-                val classDirectory = (Evaluator
-                  .resolveDestPaths(
-                    os.pwd / "out",
-                    m.millModuleSegments ++ Seq(Label("compile"))
-                  )
-                  .dest / "classes").toNIO.toUri.toString
+      val items = scalacOptionsParams.getTargets.asScala
+        .filter(_ != millBuildTargetId)
+        .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
+          val newItem = getModule(targetId, modules) match {
+            case m: ScalaModule =>
+              val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
+              val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                .map(_.path.toNIO.toUri.toString)
+              val classDirectory = (Evaluator
+                .resolveDestPaths(
+                  evaluator.outPath,
+                  m.millModuleSegments ++ Seq(Label("compile"))
+                )
+                .dest / "classes").toNIO.toUri.toString
 
-                Some(new ScalacOptionsItem(targetId, options.asJava, classpath.asJava, classDirectory))
-              case _: JavaModule => None
-            }
+              Some(new ScalacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+            case _: JavaModule => None
           }
 
-        items ++ newItem
-      }
+          items ++ newItem
+        }
 
       new ScalacOptionsResult(items.asJava)
     }
@@ -402,9 +398,11 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   ): CompletableFuture[ScalaMainClassesResult] =
     handleExceptions {
       val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      val items =
-        scalaMainClassesParams.getTargets.asScala.foldLeft(Seq.empty[ScalaMainClassesItem]) { (items, targetId) =>
+      val items = scalaMainClassesParams.getTargets.asScala
+        .filter(_ != millBuildTargetId)
+        .foldLeft(Seq.empty[ScalaMainClassesItem]) { (items, targetId) =>
           val module = getModule(targetId, modules)
           val scalaMainClasses = getTaskResult(evaluator, module.finalMainClassOpt) match {
             case result: Result.Success[_] =>
