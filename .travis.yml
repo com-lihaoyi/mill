@@ -60,5 +60,5 @@ script:
 
 cache:
   directories:
-  - $HOME/.cache/oursier
+  - $HOME/.cache/coursier
   - $HOME/.cache/mill/download
