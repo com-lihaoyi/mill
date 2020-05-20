@@ -69,6 +69,16 @@ object MillMain {
       }
     )
 
+    var ringBell = false
+    val ringBellSignature = Arg[Config, Unit](
+      name = "bell", Some('b'),
+      doc = "Ring the bell once if the run completes successfully, twice if it fails.",
+      (c, v) => {
+        ringBell = true
+        c
+      }
+    )
+
     var disableTicker = false
     val disableTickerSignature = Arg[Config, Unit](
       name = "disable-ticker", shortName = None,
@@ -133,7 +143,7 @@ object MillMain {
           threadCountSignature
           )
 
-    Cli.groupArgs(
+    val (success, stateCache) = Cli.groupArgs(
       args.toList,
       millArgSignature,
       Cli.Config(home = millHome, remoteLogging = false)
@@ -229,5 +239,15 @@ object MillMain {
           }
 
       }
+
+    if (ringBell){
+      if (success) println("\u0007")
+      else {
+        println("\u0007")
+        Thread.sleep(250)
+        println("\u0007")
+      }
+    }
+    (success, stateCache)
   }
 }
