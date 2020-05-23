@@ -25,7 +25,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
   implicit val ctx: Ctx.Log with Ctx.Home = new Ctx.Log with Ctx.Home {
     val log: DummyLogger.type = mill.util.DummyLogger
-    val home: Path = os.pwd
+    val home: Path = evaluator.rootModule.millSourcePath
   }
   var cancelator: () => Unit = () => ()
   var client: BuildClient = _

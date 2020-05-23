@@ -1,5 +1,6 @@
 package mill.contrib
 
+import ammonite.runtime.SpecialClassLoader
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
@@ -13,6 +14,7 @@ import org.eclipse.lsp4j.jsonrpc.Launcher
 import upickle.default._
 import scala.collection.JavaConverters._
 import scala.concurrent.CancellationException
+import scala.util.Try
 
 case class BspConfigJson(
     name: String,
@@ -49,9 +51,9 @@ object BSP extends ExternalModule {
    * printed to stdout.
    *
     */
-  def install(ev: Evaluator): Command[Unit] =
+  def install(evaluator: Evaluator): Command[Unit] =
     T.command {
-      val bspDirectory = os.pwd / ".bsp"
+      val bspDirectory = evaluator.rootModule.millSourcePath / ".bsp"
       if (!os.exists(bspDirectory)) os.makeDir.all(bspDirectory)
       try {
         os.write(bspDirectory / "mill.json", createBspConnectionJson())
@@ -69,16 +71,15 @@ object BSP extends ExternalModule {
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(): String = {
-    val millPath = Util
-      .millProperty("MILL_CLASSPATH")
-      .getOrElse(throw new IllegalStateException("MILL_CLASSPATH not set"))
+    val millPath = sys.props.get("java.class.path")
+      .getOrElse(throw new IllegalStateException("System property java.class.path not set"))
+
     val millVersion = Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion)
     write(
       BspConfigJson(
         "mill-bsp",
         Seq(
           whichJava,
-          s"-DMILL_CLASSPATH=$millPath",
           s"-DMILL_VERSION=$millVersion",
           "-Djna.nosys=true",
           "-cp",
@@ -108,7 +109,7 @@ object BSP extends ExternalModule {
    */
   def start(ev: Evaluator): Command[Unit] =
     T.command {
-      val eval = new Evaluator(
+      val evaluator = new Evaluator(
         ev.home,
         ev.outPath,
         ev.externalOutPath,
@@ -119,7 +120,7 @@ object BSP extends ExternalModule {
         ev.env,
         false
       )
-      val millServer = new MillBuildServer(eval, bspProtocolVersion, BuildInfo.millVersion)
+      val millServer = new MillBuildServer(evaluator, bspProtocolVersion, BuildInfo.millVersion)
       val executor = Executors.newCachedThreadPool()
 
       val stdin = System.in
@@ -130,7 +131,7 @@ object BSP extends ExternalModule {
           .setInput(stdin)
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
-          .traceMessages(new PrintWriter((os.pwd / ".bsp" / "mill.log").toIO))
+          .traceMessages(new PrintWriter((evaluator.rootModule.millSourcePath / ".bsp" / "mill.log").toIO))
           .setExecutorService(executor)
           .create()
         millServer.onConnectWithClient(launcher.getRemoteProxy)

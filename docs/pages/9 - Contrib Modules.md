@@ -192,7 +192,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bsp:$MILL_VERSION`
 2) Run the following command in the working directory of your project:
 
 ```
-mill -i mill.contrib.BSP/install
+mill mill.contrib.BSP/install
 ```
 
 ### Known Issues:
