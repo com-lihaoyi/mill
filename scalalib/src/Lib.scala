@@ -72,14 +72,22 @@ object Lib{
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
-        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion(),
-        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+        ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
     else
       Agg(
         ivy"$scalaOrganization:scala-compiler:$scalaVersion".forceVersion(),
         ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
+
+  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String) =
+    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+      Agg(
+        ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+      )
+    else
+      // in Scala <= 2.13, the scaladoc tool is included in the compiler
+      scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) = Agg[Dep](
     ivy"$scalaOrganization:scala-library:$scalaVersion".forceVersion()
