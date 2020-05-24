@@ -160,7 +160,12 @@ trait ScalaModule extends JavaModule { outer =>
     os.makeDir.all(javadocDir)
 
     if (isDotty(scalaVersion())) {
-      os.copy(dottydocSiteRoot(), javadocDir, replaceExisting = true)
+      val root = dottydocSiteRoot()
+      if (os.exists(root)) {
+        os.copy(root, javadocDir, replaceExisting = true)
+      } else {
+        os.makeDir.all(javadocDir)
+      }
     }
 
     val files = allSourceFiles().map(_.path.toString)
