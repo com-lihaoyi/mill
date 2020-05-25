@@ -2,9 +2,9 @@
 import mill._, scalalib._
 
 object foo extends ScalaModule{
-  def scalaVersion = "2.13.1"
+  def scalaVersion = "2.13.2"
   object test extends Tests{
-    def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.3")
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.4")
     def testFrameworks = Seq("utest.runner.Framework")
   }
 }
