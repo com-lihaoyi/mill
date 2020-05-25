@@ -170,8 +170,14 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.7.2](https://github.com/lihaoyi/mill/milestone/41?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.2...master).*
+[milestone after 0.7.3](https://github.com/lihaoyi/mill/milestone/42?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.3...master).*
+
+### 0.7.3
+
+*For details refer to
+[milestone 0.7.3](https://github.com/lihaoyi/mill/milestone/41?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.2...0.7.3).*
 
 ### 0.7.2 - 2020-05-19
 
