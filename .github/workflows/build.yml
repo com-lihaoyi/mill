@@ -1,0 +1,31 @@
+on: [push, pull_request]
+
+jobs: 
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest]
+        java-version: [1.8, 11]
+        buildcmd:
+          - ci/test-mill-release.sh
+          - ci/test-mill-dev.sh
+          - ci/test-mill-bootstrap-0.sh
+          - ci/test-mill-bootstrap-1.sh
+          - ci/test-mill-0.sh
+          - ci/test-mill-1.sh
+          - ci/test-mill-2.sh
+          - ./mill -i docs.generate
+
+    runs-on: ${{ matrix.os }}
+    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      - run: ${{ matrix.buildcmd }}
+
