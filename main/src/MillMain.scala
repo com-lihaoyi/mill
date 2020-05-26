@@ -199,7 +199,7 @@ object MillMain {
                   |  build.millDiscover,
                   |  debugLog = $debugLog,
                   |  keepGoing = $keepGoing,
-                  |  systemProperties = ${systemProps},
+                  |  systemProperties = ${systemProps.toSeq.map(p => s""""${p._1}" -> "${p._2}"""").mkString("Map[String,String](", ",", ")")},
                   |  threadCount = $threadCount
                   |)
                   |repl.pprinter() = replApplyHandler.pprinter
