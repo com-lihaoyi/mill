@@ -36,7 +36,7 @@ case class Labelled[T](task: NamedTask[T],
   * @param outPath The output base path.
   * @param externalOutPath The output base path to use for external modules.
   * @param rootModule The projects root module.
-  * @param log
+  * @param baseLogger
   * @param classLoaderSig
   * @param workerCache Mutable worker cache.
   * @param env
@@ -187,7 +187,7 @@ case class Evaluator(
             val startTime = System.currentTimeMillis()
             val threadId = timeLog.getThreadId(Thread.currentThread().getName())
             val fraction = s"${count.getAndIncrement()}/$totalCount"
-            val contextLogger = new PrefixLogger(logger, context = s"[#$threadId] ")
+            val contextLogger = new PrefixLogger(logger, context = s"[#${if(effectiveThreadCount > 9) f"$threadId%02d" else threadId}] ")
 
             val res = evaluateGroupCached(
               k,
