@@ -2,9 +2,9 @@ package mill.contrib.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
-import mill.{BuildInfo, T}
+import mill._
 import mill.api.Result.Success
-import mill.api.{Loose, Strict}
+import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
@@ -77,7 +77,7 @@ object ModuleUtils {
     target.setBaseDirectory(evaluator.rootModule.millSourcePath.toNIO.toUri.toString)
     target.setDataKind(BuildTargetDataKind.SCALA)
     target.setTags(Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
-    target.setDisplayName(evaluator.rootModule.millSourcePath.last)
+    target.setDisplayName("mill")
 
     val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
       .fold(_ => Seq.empty, _.allJars.map(url => PathRef(Path(url.getFile))).filter(p => exists(p.path)))
@@ -124,7 +124,6 @@ object ModuleUtils {
     }
     buildTarget.setData(dataBuildTarget)
     buildTarget.setDisplayName(module.millModuleSegments.render)
-    buildTarget.setBaseDirectory(module.intellijModulePath.toNIO.toUri.toString)
     buildTarget
   }
 
@@ -200,21 +199,19 @@ object ModuleUtils {
           BuildInfo.scalaVersion,
           Util.scalaBinaryVersion(BuildInfo.scalaVersion),
           ScalaPlatform.JVM,
-          List.empty[String].asJava
+          Seq.empty[String].asJava
         )
       case m =>
-        throw new IllegalStateException(
-          s"Module type of ${m.millModuleSegments.render} not supported by BSP"
-        )
+        throw new IllegalStateException(s"Module type of ${m.millModuleSegments.render} not supported by BSP")
     }
   }
 
   // Compute all relevant scala dependencies of `module`, like scala-library, scala-compiler,
   // and scala-reflect
-  private[this] def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Loose.Agg[PathRef] = {
-    evaluateInformativeTask(evaluator, module.resolveDeps(module.scalaLibraryIvyDeps), Loose.Agg.empty[PathRef]) ++
-      evaluateInformativeTask(evaluator, module.scalacPluginClasspath, Loose.Agg.empty[PathRef]) ++
-      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Loose.Agg.empty[PathRef]).filter(pathRef =>
+  private[this] def computeScalaLangDependencies(module: ScalaModule, evaluator: Evaluator): Agg[PathRef] = {
+    evaluateInformativeTask(evaluator, module.resolveDeps(module.scalaLibraryIvyDeps), Agg.empty[PathRef]) ++
+      evaluateInformativeTask(evaluator, module.scalacPluginClasspath, Agg.empty[PathRef]) ++
+      evaluateInformativeTask(evaluator, module.resolveDeps(module.ivyDeps), Agg.empty[PathRef]).filter(pathRef =>
         pathRef.path.toNIO.toUri.toString.contains("scala-compiler") ||
           pathRef.path.toNIO.toUri.toString.contains("scala-reflect") ||
           pathRef.path.toNIO.toUri.toString.contains("scala-library")
