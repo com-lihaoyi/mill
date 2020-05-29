@@ -304,6 +304,14 @@ trait JavaModule extends mill.Module
   def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
   /**
+    * Extra directories to be processed by the API documentation tool.
+    *
+    * Typically includes static files such as html and markdown, but depends
+    * on the doc tool that is actually used.
+    */
+  def docSources = T.sources(millSourcePath / 'docs)
+
+  /**
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
    * publishing to Maven Central
    */

@@ -91,9 +91,12 @@ trait ScalaModule extends JavaModule { outer =>
     */
   def scalacOptions = T{ Seq.empty[String] }
 
-  def scalaDocOptions = T{ scalacOptions() }
-
-
+  def scalaDocOptions: T[Seq[String]] = T{
+    val defaults = if (isDotty(scalaVersion())) Seq(
+      "-project", artifactName()
+    ) else Seq()
+    scalacOptions() ++ defaults
+  }
 
   /**
     * The local classpath of Scala compiler plugins on-disk; you can add
@@ -169,34 +172,34 @@ trait ScalaModule extends JavaModule { outer =>
     os.makeDir.all(javadocDir)
 
     if (isDotty(scalaVersion())) {
-      val root = dottydocSiteRoot().path
-      if (os.exists(root)) {
-        os.copy(root, javadocDir, replaceExisting = true)
-      } else {
-        os.makeDir.all(javadocDir)
+      if (docSources().length > 1) {
+        T.ctx.log.error(
+          s"Dottydoc only supports one source directory. Using the last one from docSources: ${docSources().last.path}."
+        )
+      }
+      docSources().lastOption.foreach{ ref =>
+        if (os.exists(ref.path)) {
+          os.copy(ref.path, javadocDir, replaceExisting = true)
+        }
       }
     }
 
     val files = allSourceFiles().map(_.path.toString)
 
-    val docToolOptions =
+    val outputOptions =
       if (isDotty(scalaVersion()))
-        Seq(
-          "-project", dottydocProjectName(),
-          "-siteroot", javadocDir.toNIO.toString
-        )
+        Seq("-siteroot", javadocDir.toNIO.toString)
       else
-        Seq(
-          "-d", javadocDir.toNIO.toString
-        )
+        Seq("-d", javadocDir.toNIO.toString)
+
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
       "-classpath", compileCp.mkString(java.io.File.pathSeparator)
     ) ++
-      docToolOptions ++
+      outputOptions ++
       pluginOptions ++
-      scalaDocOptions()
+      scalaDocOptions() // user options come last, so they can override any other settings
 
     if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
     else {
@@ -216,10 +219,6 @@ trait ScalaModule extends JavaModule { outer =>
       }
     }
   }
-
-  def dottydocProjectName = T { artifactName() }
-
-  def dottydocSiteRoot = T.source { millSourcePath / 'docs }
 
   /**
     * Opens up a Scala console with your module and all dependencies present,
