@@ -115,9 +115,17 @@ class ZincWorkerImpl(compilerBridge: Either[
       compilerClasspath,
       scalacPluginClasspath
     ) { compilers: Compilers =>
-      val scaladocClass = compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
-      val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
-      scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
+      if (isDotty(scalaVersion)) {
+        val dottydocClass = compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
+        val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
+        val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
+        val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
+        !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
+      } else {
+        val scaladocClass = compilers.scalac().scalaInstance().loader().loadClass("scala.tools.nsc.ScalaDoc")
+        val scaladocMethod = scaladocClass.getMethod("process", classOf[Array[String]])
+        scaladocMethod.invoke(scaladocClass.newInstance(), args.toArray).asInstanceOf[Boolean]
+      }
     }
   }
 

@@ -91,9 +91,12 @@ trait ScalaModule extends JavaModule { outer =>
     */
   def scalacOptions = T{ Seq.empty[String] }
 
-  def scalaDocOptions = T{ scalacOptions() }
-
-
+  def scalaDocOptions: T[Seq[String]] = T{
+    val defaults = if (isDotty(scalaVersion())) Seq(
+      "-project", artifactName()
+    ) else Seq()
+    scalacOptions() ++ defaults
+  }
 
   /**
     * The local classpath of Scala compiler plugins on-disk; you can add
@@ -102,6 +105,15 @@ trait ScalaModule extends JavaModule { outer =>
     */
   def scalacPluginClasspath: T[Agg[PathRef]] = T {
     resolveDeps(scalacPluginIvyDeps)()
+  }
+
+  /**
+    * Classpath of the scaladoc (or dottydoc) tool.
+    */
+  def scalaDocClasspath: T[Agg[PathRef]] = T {
+    resolveDeps(
+      T.task{scalaDocIvyDeps(scalaOrganization(), scalaVersion())}
+    )()
   }
 
   /**
@@ -159,27 +171,51 @@ trait ScalaModule extends JavaModule { outer =>
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
 
+    if (isDotty(scalaVersion())) {
+      // merge all docSources into one directory by copying all children
+      for {
+        ref <- docSources()
+        docSource = ref.path
+        if os.exists(docSource) && os.isDir(docSource)
+        children = os.walk(docSource)
+        child <- children
+        if os.isFile(child)
+      } {
+        os.copy.over(child, javadocDir / (child.subRelativeTo(docSource)), createFolders = true)
+      }
+    }
+
     val files = allSourceFiles().map(_.path.toString)
+
+    val outputOptions =
+      if (isDotty(scalaVersion()))
+        Seq("-siteroot", javadocDir.toNIO.toString)
+      else
+        Seq("-d", javadocDir.toNIO.toString)
 
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
     val options = Seq(
-      "-d", javadocDir.toNIO.toString,
       "-classpath", compileCp.mkString(java.io.File.pathSeparator)
     ) ++
+      outputOptions ++
       pluginOptions ++
-      scalaDocOptions()
+      scalaDocOptions() // user options come last, so they can override any other settings
 
     if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
     else {
       zincWorker.worker().docJar(
         scalaVersion(),
         scalaOrganization(),
-        scalaCompilerClasspath().map(_.path),
+        scalaDocClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
         files ++ options
       ) match{
-        case true => Result.Success(createJar(Agg(javadocDir))(outDir))
+        case true =>
+          val inputPath =
+            if (isDotty(scalaVersion())) javadocDir / '_site
+            else javadocDir
+          Result.Success(createJar(Agg(inputPath))(outDir))
         case false => Result.Failure("docJar generation failed")
       }
     }
