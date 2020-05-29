@@ -172,15 +172,17 @@ trait ScalaModule extends JavaModule { outer =>
     os.makeDir.all(javadocDir)
 
     if (isDotty(scalaVersion())) {
-      if (docSources().length > 1) {
-        T.ctx.log.error(
-          s"Dottydoc only supports one source directory. Using the last one from docSources: ${docSources().last.path}."
-        )
-      }
-      docSources().lastOption.foreach{ ref =>
-        if (os.exists(ref.path)) {
-          os.copy(ref.path, javadocDir, replaceExisting = true)
-        }
+      // merge all docSources into one directory by symlinking their contents
+      for {
+        ref <- docSources()
+        path = ref.path
+        if os.exists(path) && os.isDir(path)
+        children = os.list(path)
+        src <- children
+      } {
+        val dest = javadocDir / src.last
+        if (os.exists(dest)) os.remove(dest)
+        os.symlink(dest, src)
       }
     }
 
