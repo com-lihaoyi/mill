@@ -172,17 +172,16 @@ trait ScalaModule extends JavaModule { outer =>
     os.makeDir.all(javadocDir)
 
     if (isDotty(scalaVersion())) {
-      // merge all docSources into one directory by symlinking their contents
+      // merge all docSources into one directory by copying all children
       for {
         ref <- docSources()
-        path = ref.path
-        if os.exists(path) && os.isDir(path)
-        children = os.list(path)
-        src <- children
+        docSource = ref.path
+        if os.exists(docSource) && os.isDir(docSource)
+        children = os.walk(docSource)
+        child <- children
+        if os.isFile(child)
       } {
-        val dest = javadocDir / src.last
-        if (os.exists(dest)) os.remove(dest)
-        os.symlink(dest, src)
+        os.copy.over(child, javadocDir / (child.subRelativeTo(docSource)), createFolders = true)
       }
     }
 

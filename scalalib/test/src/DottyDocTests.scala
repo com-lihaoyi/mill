@@ -27,6 +27,17 @@ object DottyDocTests extends TestSuite {
     }
   }
 
+  // a project with multiple static doc folders
+  object MultiDocsModule extends TestBase {
+    object multidocs extends ScalaModule {
+      def scalaVersion = "0.24.0-RC1"
+      def docSources = T.sources(
+        millSourcePath / 'docs1,
+        millSourcePath / 'docs2
+      )
+    }
+  }
+
   val resourcePath = os.pwd / 'scalalib / 'test / 'resources / 'dottydoc
 
   def workspaceTest[T](
@@ -60,6 +71,19 @@ object DottyDocTests extends TestSuite {
       assert(
         os.exists(dest / "out.jar"),
         os.exists(dest / 'javadoc / '_site / 'api / 'pkg / "SomeClass.html")
+      )
+    }
+    'multiple - workspaceTest(MultiDocsModule){ eval =>
+      val Right((_, _)) = eval.apply(MultiDocsModule.multidocs.docJar)
+      val dest = eval.outPath / 'multidocs / 'docJar / 'dest
+      assert(
+        os.exists(dest / "out.jar"), // final jar should exist
+        os.exists(dest / 'javadoc / '_site / 'api / 'pkg / "SomeClass.html"),
+        os.exists(dest / 'javadoc / '_site / "index.html"),
+        os.exists(dest / 'javadoc / '_site / 'nested / "original.html"),
+        os.exists(dest / 'javadoc / '_site / 'nested / "extra.html"),
+        // check that later doc sources overwrite earlier ones
+        os.read(dest / 'javadoc / '_site / "index.html").contains("overwritten")
       )
     }
   }
