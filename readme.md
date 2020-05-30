@@ -17,9 +17,14 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
-If you use Mill and like it, please support it by donating to our Patreon:
+If you use Mill and like it, you will probably enjoy the following book by the Author:
 
-- [https://www.patreon.com/lihaoyi](https://www.patreon.com/lihaoyi)
+- [*Hands-on Scala Programming*](https://www.handsonscala.com/)
+
+*Hands-on Scala* has a *Chapter 10: Static Build Pipelines* dedicated to Mill,
+but rest of the book introduces other libraries and tools in a similar style.
+*Hands-on Scala* is a great way to level up your skills in Scala in general 
+and Mill in particular
 
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
