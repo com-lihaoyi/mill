@@ -583,8 +583,9 @@ object Evaluator{
     case Segment.Label(s) => Seq(s)
     case Segment.Cross(values) => values.map(_.toString)
   }
-  def resolveDestPaths(workspacePath: os.Path, segments: Segments): Paths = {
-    val segmentStrings = makeSegmentStrings(segments)
+  def resolveDestPaths(workspacePath: os.Path, segments: Segments, foreignSegments: Option[Segments] = None): Paths = {
+    val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
+    val segmentStrings = makeSegmentStrings(refinedSegments)
     val targetPath = workspacePath / segmentStrings
     Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
   }
