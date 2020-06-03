@@ -15,6 +15,11 @@ programming language, and can serve as a replacement for
 other language or platform via modules (written in Java or Scala) or through
 external subprocesses.
 
+If you are using Mill, you will probably find the following book by the Author
+useful in using Mill to the fullest:
+
+- [https://handsonscala.com/](https://handsonscala.com/)
+
 ## Installation 
 
 ### OS X
