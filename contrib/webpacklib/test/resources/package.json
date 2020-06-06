@@ -1,6 +1,6 @@
 {
   "dependencies": {
-    "snabbdom": "0.7.4"
+    "snabbdom": "0.7.1"
   },
   "devDependencies": {
     "webpack": "4.43.0",

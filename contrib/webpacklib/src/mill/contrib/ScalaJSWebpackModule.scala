@@ -1,19 +1,41 @@
 package mill
 package contrib
 
-import java.io
-import java.util.zip
+import java.io._
+import java.util.zip.{ZipEntry, ZipInputStream}
 
 import ammonite.ops
 import mill.define.{Target, Task}
 import mill.scalajslib._
-import mill.scalalib._
 import mill.util.Ctx
-import ujson.Js
 
-import scala.collection.mutable
+object ScalaJSWebpackModule {
+
+  case class JsDeps(
+      dependencies: List[(String, String)] = Nil,
+      devDependencies: List[(String, String)] = Nil,
+      jsSources: Map[String, String] = Map.empty
+  ) {
+
+    def ++(that: JsDeps): JsDeps =
+      JsDeps(
+        dependencies ++ that.dependencies,
+        devDependencies ++ that.devDependencies,
+        jsSources ++ that.jsSources)
+  }
+
+  object JsDeps {
+    val empty: JsDeps = JsDeps()
+
+    implicit def rw: upickle.default.ReadWriter[JsDeps] =
+      upickle.default.macroRW
+  }
+
+}
 
 trait ScalaJSWebpackModule extends ScalaJSModule {
+  import ScalaJSWebpackModule._
+
   def webpackVersion: Target[String] = "4.43.0"
 
   def webpackCliVersion: Target[String] = "3.3.11"
@@ -24,75 +46,39 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
 
   def bundleFilename: Target[String] = "out-bundle.js"
 
-  case class JsDeps(
-      compileDependencies: List[(String, String)],
-      compileDevDependencies: List[(String, String)],
-      jsSources: Map[String, String]) {
-    def ++(that: JsDeps): JsDeps =
-      JsDeps(
-        compileDependencies ++ that.compileDependencies,
-        compileDevDependencies ++ that.compileDevDependencies,
-        jsSources ++ that.jsSources)
+  def webpackFilename: Target[String] = "webpack.config.js"
+
+  def transitiveJsDeps: Task.Sequence[JsDeps] =
+    T.sequence(recursiveModuleDeps.collect {
+      case mod: ScalaJSWebpackModule => mod.jsDeps
+    })
+
+  def jsDeps: Target[JsDeps] = T {
+    val jsDepsFromIvyDeps =
+      resolveDeps(transitiveIvyDeps)().flatMap(pathRef =>
+        jsDepsFromJar(pathRef.path.toIO))
+    val allJsDeps = jsDepsFromIvyDeps ++ transitiveJsDeps()
+    allJsDeps.iterator.foldLeft(JsDeps.empty)(_ ++ _)
   }
 
-  object JsDeps {
-    def apply(json: mutable.Map[String, Js.Value]): JsDeps = {
-      def read(key: String): List[(String, String)] =
-        json.get(key).fold(List.empty[(String, String)]) {
-          _.arr.flatMap {
-            _.obj.headOption.map { case (s, v) => s -> v.str }
-          }.toList
-        }
+  def writePackageSpec: Task[(JsDeps, ops.Path) => Unit] = T.task {
+    (jsDeps: JsDeps, dst: ops.Path) =>
+      val compileDeps = jsDeps.dependencies
+      val compileDevDeps =
+        jsDeps.devDependencies ++ Seq(
+          "webpack" -> webpackVersion(),
+          "webpack-cli" -> webpackCliVersion(),
+          "webpack-dev-server" -> webpackDevServerVersion(),
+          "source-map-loader" -> sourceMapLoaderVersion()
+        )
 
-      JsDeps(
-        read("compileDependencies") ++ read("compile-dependencies"),
-        read("compileDevDependencies") ++ read("compile-devDependencies"),
-        Map.empty)
-    }
-  }
-
-  def sbtBundlerDeps: Task[JsDeps] = T.task {
-    Lib.resolveDependencies(
-      repositories,
-      resolveCoursierDependency().apply,
-      transitiveIvyDeps() ++ ivyDeps(),
-      sources = false,
-      Some(mapDependencies()))
-      .asSuccess
-      .get
-      .value
-      .flatMap { x =>
-        def read(
-            in: zip.ZipInputStream,
-            buffer: Array[Byte] = new Array[Byte](8192),
-            out: io.ByteArrayOutputStream =
-            new io.ByteArrayOutputStream): io.ByteArrayOutputStream = {
-          val byteCount = in.read(buffer)
-          if (byteCount >= 0) {
-            out.write(buffer, 0, byteCount)
-            read(in, buffer, out)
-          } else out
-        }
-
-        val stream: zip.ZipInputStream =
-          new zip.ZipInputStream(
-            new io.BufferedInputStream(new io.FileInputStream(x.path.toIO)))
-        val deps: Seq[JsDeps] =
-          Iterator.continually(stream.getNextEntry)
-            .takeWhile { _ != null }
-            .collect {
-              case z if z.getName == "NPM_DEPENDENCIES" =>
-                JsDeps(ujson.read(read(stream).toString).obj)
-              case z if z.getName.endsWith(".js") &&
-                !z.getName.startsWith("scala/") =>
-                JsDeps(Nil, Nil, Map(z.getName -> read(stream).toString))
-            }
-            .to(Seq)
-        stream.close()
-        deps
-      }
-      .toSeq
-      .foldLeft(JsDeps(Nil, Nil, Map.empty)) { _ ++ _ }
+      ops.write(
+        dst / "package.json",
+        ujson
+          .Obj(
+            "dependencies" -> compileDeps,
+            "devDependencies" -> compileDevDeps)
+          .render(2) + "\n")
   }
 
   def writeBundleSources: Task[(JsDeps, ops.Path) => Unit] = T.task {
@@ -105,49 +91,37 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
       (dst: ops.Path, cfg: String, io: String, out: String, opt: Boolean) =>
         ops.write(
           dst / cfg,
-          "module.exports = " + Js.Obj(
-            "mode" -> (if (opt) "production" else "development"),
-            "devtool" -> "source-map",
-            "entry" -> io,
-            "output" -> Js.Obj(
-              "path" -> dst.toString,
-              "filename" -> out)).render(2) + ";\n")
+          "module.exports = " + ujson
+            .Obj(
+              "mode" -> (if (opt) "production" else "development"),
+              "devtool" -> "source-map",
+              "entry" -> io,
+              "output" -> ujson.Obj("path" -> dst.toString, "filename" -> out))
+            .render(2) + ";\n"
+        )
     }
-
-  def writePackageSpec: Task[(JsDeps, ops.Path) => Unit] = T.task {
-    (jsDeps: JsDeps, dst: ops.Path) =>
-      val compileDeps = jsDeps.compileDependencies
-      val compileDevDeps =
-        jsDeps.compileDevDependencies ++ Seq(
-          "webpack" -> webpackVersion(),
-          "webpack-cli" -> webpackCliVersion(),
-          "webpack-dev-server" -> webpackDevServerVersion(),
-          "source-map-loader" -> sourceMapLoaderVersion())
-
-      ops.write(
-        dst / "package.json",
-        Js.Obj(
-          "dependencies" -> compileDeps,
-          "devDependencies" -> compileDevDeps).render(2) + "\n")
-  }
 
   def runWebpack: Task[(ops.Path, String) => Unit] = T.task {
     (dst: ops.Path, cfg: String) =>
       print(ops.%%("npm", "install")(dst).out.string)
-      print(ops.%%(
-        "node",
-        dst / "node_modules" / "webpack" / "bin" / "webpack",
-        "--bail",
-        "--profile",
-        "--config",
-        cfg)(dst).out.string)
+      print(
+        ops
+          .%%(
+            "node",
+            dst / "node_modules" / "webpack" / "bin" / "webpack",
+            "--bail",
+            "--profile",
+            "--config",
+            cfg)(dst)
+          .out
+          .string)
   }
 
   def webpack: Task[(ops.Path, ops.Path, Boolean) => Unit] = T.task {
     (src: ops.Path, dst: ops.Path, opt: Boolean) =>
       val outjs = dst / src.segments.toSeq.last
-      val deps = sbtBundlerDeps()
-      val cfg = "webpack.config.js"
+      val deps = jsDeps()
+      val cfg = webpackFilename()
       ops.cp(src, outjs)
       writeBundleSources().apply(deps, dst)
       writeWpConfig().apply(dst, cfg, outjs.toString, bundleFilename(), opt)
@@ -167,4 +141,60 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
     webpack().apply(fullOpt().path, dst, true)
     PathRef(dst)
   }
+
+  @scala.annotation.tailrec
+  private def readStringFromInputStream(
+      in: InputStream,
+      buffer: Array[Byte] = new Array[Byte](8192),
+      out: ByteArrayOutputStream = new ByteArrayOutputStream): String = {
+    val byteCount = in.read(buffer)
+    if (byteCount < 0) {
+      out.toString
+    } else {
+      out.write(buffer, 0, byteCount)
+      readStringFromInputStream(in, buffer, out)
+    }
+  }
+
+  private def collectZipEntries[R](jar: File)(
+      f: PartialFunction[(ZipEntry, ZipInputStream), R]): List[R] = {
+    val stream = new ZipInputStream(
+      new BufferedInputStream(new FileInputStream(jar)))
+    try Iterator
+      .continually(stream.getNextEntry)
+      .takeWhile(_ != null)
+      .map(_ -> stream)
+      .collect(f)
+      .toList
+    finally stream.close()
+  }
+
+  private def jsDepsFromJar(jar: File): Seq[JsDeps] = {
+    collectZipEntries(jar) {
+      case (zipEntry, stream) if zipEntry.getName == "NPM_DEPENDENCIES" =>
+        val contentsAsJson = ujson.read(readStringFromInputStream(stream)).obj
+
+        def dependenciesOfType(key: String): List[(String, String)] =
+          contentsAsJson
+            .getOrElse(key, ujson.Arr())
+            .arr
+            .flatMap(_.obj.map {
+              case (s: String, v: ujson.Value) => s -> v.str
+            })
+            .toList
+
+        JsDeps(
+          dependenciesOfType("compileDependencies") ++ dependenciesOfType(
+            "compile-dependencies"),
+          dependenciesOfType("compileDevDependencies") ++ dependenciesOfType(
+            "compile-devDependencies")
+        )
+      case (zipEntry, stream)
+          if zipEntry.getName.endsWith(".js") && !zipEntry.getName.startsWith(
+            "scala/") =>
+        JsDeps(jsSources =
+          Map(zipEntry.getName -> readStringFromInputStream(stream)))
+    }
+  }
+
 }

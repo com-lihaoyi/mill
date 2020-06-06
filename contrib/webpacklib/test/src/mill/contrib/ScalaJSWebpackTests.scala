@@ -3,6 +3,9 @@ package contrib
 
 import ammonite.ops
 import ammonite.ops.Path
+import mill.contrib.ScalaJSWebpackModule.JsDeps
+import mill.define.Target
+import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, _}
@@ -10,9 +13,13 @@ import utest.{TestSuite, Tests, _}
 object ScalaJSWebpackTests extends TestSuite {
 
   object WebpackModule extends TestUtil.BaseModule with ScalaJSWebpackModule {
-    override def scalaJSVersion: T[String] = "1.1.0"
+    override def scalaJSVersion: T[String] = "0.6.25"
 
-    override def scalaVersion: T[String] = "2.13.2"
+    override def scalaVersion: T[String] = "2.12.6"
+
+    override def ivyDeps: Target[Agg[Dep]] = Agg(
+      ivy"io.github.outwatch::outwatch::1.0.0-RC2",
+    )
   }
 
   def webpackTest[T](
@@ -46,11 +53,11 @@ object ScalaJSWebpackTests extends TestSuite {
   override def tests: Tests = Tests {
     "bundlerDeps" - {
       "extractFromJars" - webpackTest(WebpackModule) { ev =>
-        val Right((result, _)) = ev(WebpackModule.sbtBundlerDeps)
+        val Right((result, _)) = ev(WebpackModule.jsDeps)
 
         assert(
-          result.compileDependencies == Seq("snabbdom" -> "0.7.4"),
-          result.compileDevDependencies == Nil,
+          result.dependencies == Seq("snabbdom" -> "0.7.1"),
+          result.devDependencies == Nil,
           result.jsSources get "snabbdom-custom-props.js" contains sProps,
         )
       }
@@ -61,10 +68,7 @@ object ScalaJSWebpackTests extends TestSuite {
         val Right((result, _)) = ev(WebpackModule.writeBundleSources)
 
         result(
-          WebpackModule.JsDeps(
-            Nil,
-            Nil,
-            Map("snabbdom-custom-props.js" -> sProps)),
+          JsDeps(jsSources = Map("snabbdom-custom-props.js" -> sProps)),
           ev.outPath)
 
         val src = ops.read(ev.outPath / "snabbdom-custom-props.js")
@@ -95,10 +99,7 @@ object ScalaJSWebpackTests extends TestSuite {
         val Right((result, count)) = ev(WebpackModule.writePackageSpec)
 
         result(
-          WebpackModule.JsDeps(
-            List("snabbdom" -> "0.7.4"),
-            Nil,
-            Map.empty),
+          JsDeps(List("snabbdom" -> "0.7.1")),
           ev.outPath)
 
         val pkg = ops.read(ev.outPath / "package.json")
