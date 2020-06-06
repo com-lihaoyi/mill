@@ -14,11 +14,15 @@ import ujson.Js
 import scala.collection.mutable
 
 trait ScalaJSWebpackModule extends ScalaJSModule {
-  def webpackVersion: Target[String] = "4.17.1"
+  def webpackVersion: Target[String] = "4.43.0"
 
-  def webpackCliVersion: Target[String] = "3.1.0"
+  def webpackCliVersion: Target[String] = "3.3.11"
 
-  def webpackDevServerVersion: Target[String] = "3.1.7"
+  def webpackDevServerVersion: Target[String] = "3.11.0"
+
+  def sourceMapLoaderVersion: Target[String] = "1.0.0"
+
+  def bundleFilename: Target[String] = "out-bundle.js"
 
   case class JsDeps(
       compileDependencies: List[(String, String)],
@@ -83,7 +87,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
                 !z.getName.startsWith("scala/") =>
                 JsDeps(Nil, Nil, Map(z.getName -> read(stream).toString))
             }
-            .to[Seq]
+            .to(Seq)
         stream.close()
         deps
       }
@@ -118,7 +122,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
           "webpack" -> webpackVersion(),
           "webpack-cli" -> webpackCliVersion(),
           "webpack-dev-server" -> webpackDevServerVersion(),
-          "source-map-loader" -> "0.2.3")
+          "source-map-loader" -> sourceMapLoaderVersion())
 
       ops.write(
         dst / "package.json",
@@ -141,12 +145,12 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
 
   def webpack: Task[(ops.Path, ops.Path, Boolean) => Unit] = T.task {
     (src: ops.Path, dst: ops.Path, opt: Boolean) =>
-      val outjs = dst / src.segments.last
+      val outjs = dst / src.segments.toSeq.last
       val deps = sbtBundlerDeps()
       val cfg = "webpack.config.js"
       ops.cp(src, outjs)
       writeBundleSources().apply(deps, dst)
-      writeWpConfig().apply(dst, cfg, outjs.toString, "out-bundle.js", opt)
+      writeWpConfig().apply(dst, cfg, outjs.toString, bundleFilename(), opt)
       writePackageSpec().apply(deps, dst)
       runWebpack().apply(dst, cfg)
       ops.rm(outjs)

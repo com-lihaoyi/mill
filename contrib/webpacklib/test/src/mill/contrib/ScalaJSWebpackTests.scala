@@ -3,22 +3,16 @@ package contrib
 
 import ammonite.ops
 import ammonite.ops.Path
-import mill.define.Target
-import mill.scalalib._
-import mill.util.{Loose, TestEvaluator, TestUtil}
-import utest.{Tests, TestSuite, _}
+import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
+import utest.{TestSuite, Tests, _}
 
 object ScalaJSWebpackTests extends TestSuite {
 
   object WebpackModule extends TestUtil.BaseModule with ScalaJSWebpackModule {
-    override def scalaJSVersion: T[String] = "0.6.25"
+    override def scalaJSVersion: T[String] = "1.1.0"
 
-    override def scalaVersion: T[String] = "2.12.6"
-
-    override def ivyDeps: Target[Loose.Agg[Dep]] = Agg(
-      ivy"io.github.outwatch::outwatch::1.0.0-RC2",
-    )
+    override def scalaVersion: T[String] = "2.13.2"
   }
 
   def webpackTest[T](
@@ -55,7 +49,7 @@ object ScalaJSWebpackTests extends TestSuite {
         val Right((result, _)) = ev(WebpackModule.sbtBundlerDeps)
 
         assert(
-          result.compileDependencies == Seq("snabbdom" -> "0.7.1"),
+          result.compileDependencies == Seq("snabbdom" -> "0.7.4"),
           result.compileDevDependencies == Nil,
           result.jsSources get "snabbdom-custom-props.js" contains sProps,
         )
@@ -102,7 +96,7 @@ object ScalaJSWebpackTests extends TestSuite {
 
         result(
           WebpackModule.JsDeps(
-            List("snabbdom" -> "0.7.1"),
+            List("snabbdom" -> "0.7.4"),
             Nil,
             Map.empty),
           ev.outPath)
