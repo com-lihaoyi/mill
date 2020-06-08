@@ -180,7 +180,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val params = TaskParameters.fromCompileParams(compileParams)
       val taskId = params.hashCode()
       val compileTasks = Strict.Agg(
-        params.getTargets.filter(_ != millBuildTargetId).map(getModule(_, modules).compile): _*
+        params.getTargets.distinct.filter(_ != millBuildTargetId).map(getModule(_, modules).compile): _*
       )
       val result = evaluator.evaluate(
         compileTasks,
