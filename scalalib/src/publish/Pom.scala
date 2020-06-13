@@ -78,6 +78,7 @@ object Pom {
     <developer>
       <id>{d.id}</id>
       <name>{d.name}</name>
+      <url>{d.url}</url>
       { <organization>{d.organization}</organization>.optional }
       { <organizationUrl>{d.organizationUrl}</organizationUrl>.optional }
     </developer>
