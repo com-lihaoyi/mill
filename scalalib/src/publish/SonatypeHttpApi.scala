@@ -1,8 +1,12 @@
 package mill.scalalib.publish
 
 import java.util.Base64
+
 import scala.annotation.tailrec
 import scala.concurrent.duration._
+
+import mill.BuildInfo
+import requests.BaseSession
 
 
 class SonatypeHttpApi(
@@ -18,7 +22,8 @@ class SonatypeHttpApi(
   private val commonHeaders = Seq(
     "Authorization" -> s"Basic $base64Creds",
     "Accept" -> "application/json",
-    "Content-Type" -> "application/json"
+    "Content-Type" -> "application/json",
+    "User-Agent" -> s"mill-${BuildInfo.millVersion}${BaseSession.defaultHeaders.get("User-Agent").map(" ("+_+")").getOrElse("")}"
   )
 
   // https://oss.sonatype.org/nexus-staging-plugin/default/docs/path__staging_profiles.html
