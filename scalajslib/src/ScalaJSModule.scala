@@ -24,7 +24,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
@@ -53,15 +53,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         Seq(
           ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0",
-          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-        )
-      case v if v.startsWith("1.0") =>
-        Seq(
-          ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
           ivy"org.scala-js::scalajs-env-jsdom-nodejs:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-phantomjs:${scalaJSVersion()}"
+          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
         )
     }
     resolveDependencies(

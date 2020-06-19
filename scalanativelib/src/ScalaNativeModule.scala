@@ -32,7 +32,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def scalaNativeBinaryVersion = T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaJSNativeWorkerVersion(scalaNativeVersion()) }
+  def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
   def scalaNativeWorker = T.task{
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())

@@ -25,7 +25,7 @@ object HelloJSWorldTests extends TestSuite {
   object HelloJSWorld extends TestUtil.BaseModule {
     val matrix = for {
       scala <- Seq("2.11.12", "2.12.3", "2.12.4", "2.13.1")
-      scalaJS <- Seq("0.6.32", "1.0.0")
+      scalaJS <- Seq("0.6.32", "1.1.0")
     } yield (scala, scalaJS)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -101,8 +101,8 @@ object HelloJSWorldTests extends TestSuite {
       'fromScratch_2124_0632 - testCompileFromScratch("2.12.4", "0.6.32")
       'fromScratch_2123_0632 - testCompileFromScratch("2.12.3", "0.6.32")
       'fromScratch_21112_0632 - TestUtil.disableInJava9OrAbove(testCompileFromScratch("2.11.12", "0.6.32"))
-      'fromScratch_2124_100 - testCompileFromScratch("2.12.4", "1.0.0")
-      'fromScratch_2131_100 - testCompileFromScratch("2.13.1", "1.0.0")
+      'fromScratch_2124_110 - testCompileFromScratch("2.12.4", "1.1.0")
+      'fromScratch_2131_110 - testCompileFromScratch("2.13.1", "1.1.0")
     }
 
     def testRun(scalaVersion: String,
@@ -121,13 +121,13 @@ object HelloJSWorldTests extends TestSuite {
       'run_2124_0632 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.32", FullOpt))
       'run_2123_0632 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.32", FullOpt))
       'run_21112_0632 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.32", FullOpt))
-      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FullOpt))
+      'run_2124_110 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.1.0", FullOpt))
     }
     'fastOpt - {
       'run_2124_0632 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "0.6.32", FastOpt))
       'run_2123_0632 - TestUtil.disableInJava9OrAbove(testRun("2.12.3", "0.6.32", FastOpt))
       'run_21112_0632 - TestUtil.disableInJava9OrAbove(testRun("2.11.12", "0.6.32", FastOpt))
-      'run_2124_100 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.0.0", FastOpt))
+      'run_2124_110 - TestUtil.disableInJava9OrAbove(testRun("2.12.4", "1.1.0", FastOpt))
     }
     'jar - {
       'containsSJSIRs - {
@@ -145,7 +145,7 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       'artifactId_0632 - testArtifactId("2.12.4", "0.6.32", "hello-js-world_sjs0.6_2.12")
-      'artifactId_100 - testArtifactId("2.12.4", "1.0.0", "hello-js-world_sjs1_2.12")
+      'artifactId_110 - testArtifactId("2.12.4", "1.1.0", "hello-js-world_sjs1_2.12")
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -202,40 +202,37 @@ object HelloJSWorldTests extends TestSuite {
       val cached = false
       'utest_2124_0632 - checkUtest("2.12.4", "0.6.32", cached)
       'utest_2131_0632 - checkUtest("2.13.1", "0.6.32", cached)
-      'utest_2124_100 - checkUtest("2.12.4", "1.0.0", cached)
-      'utest_2131_100 - checkUtest("2.13.1", "1.0.0", cached)
-//      No utest artifact for Scala.js 1.0.0 published yet
-//      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
-//      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
+      'utest_2124_110 - checkUtest("2.12.4", "1.1.0", cached)
+      'utest_2131_110 - checkUtest("2.13.1", "1.1.0", cached)
 
       // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
       'scalaTest_21112_0632 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.32", cached))
       'scalaTest_2124_0632 - checkScalaTest("2.12.4", "0.6.32", cached)
-      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0", cached)
-      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0", cached)
+      'scalaTest_21112_110 - checkScalaTest("2.11.12", "1.1.0", cached)
+      'scalaTest_2124_110 - checkScalaTest("2.12.4", "1.1.0", cached)
 //      No ScalaTest artifact for Scala.js 1.0.0 published yet
-//      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
-//      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
+//      'scalaTest_21112_110 - checkScalaTest("2.11.12", "1.1.0")
+//      'scalaTest_2124_110 - checkScalaTest("2.12.4", "1.1.0")
     }
 
     'testCached - {
       val cached = true
       'utest_2124_0632 - checkUtest("2.12.4", "0.6.32", cached)
       'utest_2131_0632 - checkUtest("2.13.1", "0.6.32", cached)
-      'utest_2124_100 - checkUtest("2.12.4", "1.0.0", cached)
-      'utest_2131_100 - checkUtest("2.13.1", "1.0.0", cached)
+      'utest_2124_110 - checkUtest("2.12.4", "1.1.0", cached)
+      'utest_2131_110 - checkUtest("2.13.1", "1.1.0", cached)
       //      No utest artifact for Scala.js 1.0.0 published yet
-      //      'utest_21112_100 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.0.0"))
-      //      'utest_2124_100 - checkUtest("2.12.4", "1.0.0")
+      //      'utest_21112_110 - TestUtil.disableInJava9OrAbove(checkUtest("2.11.12", "1.1.0"))
+      //      'utest_2124_110 - checkUtest("2.12.4", "1.1.0")
 
       // No test for ScalaTest with 0.6.22 because ScalaTest 3.1.0 requires Scala.js 0.6.29+
       'scalaTest_21112_0632 - TestUtil.disableInJava9OrAbove(checkScalaTest("2.11.12", "0.6.32", cached))
       'scalaTest_2124_0632 - checkScalaTest("2.12.4", "0.6.32", cached)
-      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0", cached)
-      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0", cached)
+      'scalaTest_21112_110 - checkScalaTest("2.11.12", "1.1.0", cached)
+      'scalaTest_2124_110 - checkScalaTest("2.12.4", "1.1.0", cached)
       //      No ScalaTest artifact for Scala.js 1.0.0 published yet
-      //      'scalaTest_21112_100 - checkScalaTest("2.11.12", "1.0.0")
-      //      'scalaTest_2124_100 - checkScalaTest("2.12.4", "1.0.0")
+      //      'scalaTest_21112_110 - checkScalaTest("2.11.12", "1.1.0")
+      //      'scalaTest_2124_110 - checkScalaTest("2.12.4", "1.1.0")
     }
 
 
@@ -261,10 +258,10 @@ object HelloJSWorldTests extends TestSuite {
       'run_21112_0632  - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "0.6.32"))
       'run_2124_0632  - checkRun("2.12.4", "0.6.32")
       'run_2131_0632  - checkRun("2.13.1", "0.6.32")
-      'run_21112_100 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0"))
-      'run_2124_100 - checkRun("2.12.4", "1.0.0")
-      'run_21112_100 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.0.0"))
-      'run_2131_100 - checkRun("2.13.1", "1.0.0")
+      'run_21112_110 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.1.0"))
+      'run_2124_110 - checkRun("2.12.4", "1.1.0")
+      'run_21112_110 - TestUtil.disableInJava9OrAbove(checkRun("2.11.12", "1.1.0"))
+      'run_2131_110 - checkRun("2.13.1", "1.1.0")
     }
   }
 
