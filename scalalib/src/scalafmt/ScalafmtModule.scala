@@ -29,7 +29,13 @@ trait ScalafmtModule extends JavaModule {
   protected def filesToFormat(sources: Seq[PathRef]) = {
     for {
       pathRef <- sources if os.exists(pathRef.path)
-      file <- os.walk(pathRef.path) if os.isFile(file) && file.ext == "scala"
+      file <- {
+        if (os.isDir(pathRef.path)) {
+          os.walk(pathRef.path).filter(file => os.isFile(file) && (file.ext == "scala" || file.ext == "sc"))
+        } else {
+          Seq(pathRef.path)
+        }
+      }
     } yield PathRef(file)
   }
 
