@@ -100,7 +100,7 @@ object HelloJSWorldTests extends TestSuite {
         assert(unchangedEvalCount == 0)
       }
 
-      testAllMatrix { case (scala, scalaJS) => testCompileFromScratch(scala, scalaJS) }
+      testAllMatrix((scala, scalaJS) => testCompileFromScratch(scala, scalaJS))
     }
 
     def testRun(scalaVersion: String,
@@ -116,10 +116,10 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     'fullOpt - {
-      testAllMatrix { case (scala, scalaJS) => TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FullOpt)) }
+      testAllMatrix((scala, scalaJS) => TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FullOpt)))
     }
     'fastOpt - {
-      testAllMatrix { case (scala, scalaJS) => TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt)) }
+      testAllMatrix((scala, scalaJS) => TestUtil.disableInJava9OrAbove(testRun(scala, scalaJS, FastOpt)))
     }
     'jar - {
       'containsSJSIRs - {
@@ -194,14 +194,14 @@ object HelloJSWorldTests extends TestSuite {
 
     'test - {
       val cached = false
-      testAllMatrix { case (scala, scalaJS) => checkUtest(scala, scalaJS, cached) }
-      testAllMatrix { case (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached) }
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
+      testAllMatrix((scala, scalaJS) => checkScalaTest(scala, scalaJS, cached))
     }
 
     'testCached - {
       val cached = false
-      testAllMatrix { case (scala, scalaJS) => checkUtest(scala, scalaJS, cached) }
-      testAllMatrix { case (scala, scalaJS) => checkScalaTest(scala, scalaJS, cached) }
+      testAllMatrix((scala, scalaJS) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
+      testAllMatrix((scala, scalaJS) => checkScalaTest(scala, scalaJS, cached))
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String): Unit = {
@@ -223,9 +223,7 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     'run - {
-      testAllMatrix { case (scala, scalaJS) => checkRun(scala, scalaJS) }
-
-      'run_213_1 - checkRun(HelloJSWorld.scalaVersions.head, "1.0.0")
+      testAllMatrix((scala, scalaJS) => checkRun(scala, scalaJS))
     }
   }
 
@@ -241,7 +239,7 @@ object HelloJSWorldTests extends TestSuite {
       parentDir / "Main$delayedInit$body.sjsir"
     )
 
-    if (scalaJSVersion.startsWith("1.") && scalaJSVersion != "1.0.0-RC1") {
+    if (scalaJSVersion.startsWith("1.")) {
       inAllVersions ++ Set(
         parentDir / "ArgsParser.sjsir",
         parentDir / "Main.sjsir"
@@ -257,8 +255,14 @@ object HelloJSWorldTests extends TestSuite {
     os.copy(millSourcePath, workspacePath)
   }
   
-  def testAllMatrix(f: (String, String) => Any): Unit = {
-    for ((scala, scalaJS) <- HelloJSWorld.matrix) {
+  def testAllMatrix(f: (String, String) => Unit,
+                    skipScala: String => Boolean = _ => false,
+                    skipScalaJS: String => Boolean = _ => false): Unit = {
+    for {
+      (scala, scalaJS) <- HelloJSWorld.matrix
+      if !skipScala(scala)
+      if !skipScalaJS(scalaJS)
+    } {
       if(scala.startsWith("2.11.")) {
         TestUtil.disableInJava9OrAbove(f(scala,scalaJS))
       } else {
