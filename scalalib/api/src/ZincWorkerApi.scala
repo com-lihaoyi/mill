@@ -107,6 +107,13 @@ object Util {
           major
   }
 
+  def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
+    case _ if scalaJSVersion.startsWith("0.6.") =>
+      "0.6"
+    case ScalaJSFullVersion(major, _, _, _) =>
+      major
+  }
+
   private val ScalaNativeFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
   def scalaNativeBinaryVersion(version: String) = version match {
@@ -117,9 +124,9 @@ object Util {
         s"$major.$minor"
   }
 
-  def scalaJSNativeWorkerVersion(version: String) = version match {
-      case ScalaNativeFullVersion(major, minor, _, _) =>
-        s"$major.$minor"
+  def scalaNativeWorkerVersion(version: String) = version match {
+    case ScalaNativeFullVersion(major, minor, _, _) =>
+      s"$major.$minor"
   }
 
   /* Starting from Scala.js 0.6.29 and in 1.x, test artifacts must depend on

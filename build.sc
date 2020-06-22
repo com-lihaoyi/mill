@@ -17,12 +17,12 @@ object Deps {
     val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.32"
   }
 
-  object Scalajs_1_0 {
-    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.0.0"
-    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.0.0"
+  object Scalajs_1 {
+    val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
+    val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.0.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.0.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.1.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.1.0"
   }
   object Scalanative_0_3 {
     val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
@@ -307,7 +307,7 @@ object scalajslib extends MillModule {
   def testArgs = T{
     val mapping = Map(
       "MILL_SCALAJS_WORKER_0_6" -> worker("0.6").compile().classes.path,
-      "MILL_SCALAJS_WORKER_1_0" -> worker("1.0").compile().classes.path
+      "MILL_SCALAJS_WORKER_1" -> worker("1").compile().classes.path
     )
     Seq("-Djna.nosys=true") ++
     scalalib.worker.testArgs() ++
@@ -319,7 +319,7 @@ object scalajslib extends MillModule {
     def moduleDeps = Seq(main.api)
     def ivyDeps = Agg(Deps.sbtTestInterface)
   }
-  object worker extends Cross[WorkerModule]("0.6", "1.0")
+  object worker extends Cross[WorkerModule]("0.6", "1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule{
     def moduleDeps = Seq(scalajslib.api)
     def ivyDeps = scalajsWorkerVersion match {
@@ -332,13 +332,13 @@ object scalajslib extends MillModule {
           Deps.jettyServer,
           Deps.javaxServlet
         )
-      case "1.0" =>
+      case "1" =>
         Agg(
-          Deps.Scalajs_1_0.scalajsLinker,
-          Deps.Scalajs_1_0.scalajsSbtTestAdapter,
-          Deps.Scalajs_1_0.scalajsEnvNodejs,
-          Deps.Scalajs_1_0.scalajsEnvJsdomNodejs,
-          Deps.Scalajs_1_0.scalajsEnvPhantomjs,
+          Deps.Scalajs_1.scalajsLinker,
+          Deps.Scalajs_1.scalajsSbtTestAdapter,
+          Deps.Scalajs_1.scalajsEnvNodejs,
+          Deps.Scalajs_1.scalajsEnvJsdomNodejs,
+          Deps.Scalajs_1.scalajsEnvPhantomjs,
           Deps.jettyWebsocket,
           Deps.jettyServer,
           Deps.javaxServlet
