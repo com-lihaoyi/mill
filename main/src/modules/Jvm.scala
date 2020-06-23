@@ -376,7 +376,7 @@ object Jvm {
                               shebang: Boolean = false) = {
     universalScript(
       shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@"""",
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" '$mainClass' "$$@"""",
       cmdCommands =
         s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
       shebang = shebang
