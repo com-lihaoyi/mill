@@ -17,7 +17,7 @@ object ScalaJSWebpackTests extends TestSuite {
 
     def scalaVersion: T[String] = "2.12.6"
 
-    override def npmDeps = Agg("tailwindcss" -> "1.4.6")
+    override def npmDeps = Agg("uuid" -> "8.1.0")
   }
 
   object WebpackModuleTransitive extends TestUtil.BaseModule with ScalaJSWebpackModule {
@@ -172,7 +172,7 @@ object ScalaJSWebpackTests extends TestSuite {
       "writePackageJson simple" - webpackTest(WebpackModuleSimple) { ev =>
         val Right((result, _)) = ev(WebpackModuleTransitive.writePackageSpec)
 
-        result(JsDeps(List("tailwindcss" -> "1.4.6")), ev.outPath)
+        result(JsDeps(List("uuid" -> "8.1.0")), ev.outPath)
 
         val pkg = ops.read(ev.outPath / "package.json")
 
