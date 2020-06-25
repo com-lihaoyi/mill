@@ -11,7 +11,7 @@ sealed trait Segment{
 }
 object Segment{
   case class Label(value: String) extends Segment{
-    assert(!value.contains('.'))
+    assert(!value.contains('.'), s"$value contained a .")
   }
   case class Cross(value: Seq[Any]) extends Segment
 }

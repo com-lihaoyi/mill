@@ -179,7 +179,12 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         // Encoding the number of `/..`
         val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
         val segs = Seq("foreign-modules") ++ ups ++ relative.segments
-        val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+        val segsList = segs
+          .map({
+            case ".mill" => "DOT-mill"
+            case seg => seg
+          })
+          .map(pprint.Util.literalize(_)).mkString(", ")
         s"Some(mill.define.Segments.labels($segsList))"
       }
       else "None"
