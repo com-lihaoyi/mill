@@ -29,6 +29,9 @@ object ScalaJSWebpackModule {
     // Direct npm dependencies
     def npmDeps: T[Agg[(String, String)]] = Agg.empty[(String, String)]
 
+    // Direct npm development dependencies
+    def npmDevDeps: T[Agg[(String, String)]] = Agg.empty[(String, String)]
+
     def webpackVersion: Target[String] = "4.43.0"
 
     def webpackMergeVersion: Target[String] = "4.2.2"
@@ -59,7 +62,8 @@ object ScalaJSWebpackModule {
         resolveDeps(transitiveIvyDeps)().flatMap(pathRef =>
           jsDepsFromJar(pathRef.path.toIO))
       val allJsDeps = jsDepsFromIvyDeps ++ transitiveJsDeps() ++ Agg(
-        JsDeps(npmDeps().iterator.toList))
+        JsDeps(npmDeps().iterator.toList, devDependencies = npmDevDeps().iterator.toList)
+      )
       allJsDeps.iterator.foldLeft(JsDeps.empty)(_ ++ _)
     }
 
