@@ -100,6 +100,13 @@ object ScalaJSWebpackModule {
         jsDeps.jsSources foreach { case (n, s) => ops.write.over(dst / n, s) }
     }
 
+    def writeResources: Task[ops.Path => Unit] = T.task {
+      (dst: ops.Path) =>
+        resources() foreach { resourcePath: PathRef =>
+          os.copy.over(resourcePath.path, dst)
+        }
+    }
+
     def writeWpConfig: Task[
       (ops.Path, String, Option[os.Path], String, String, Boolean) => Unit] =
       T.task {
@@ -169,8 +176,9 @@ object ScalaJSWebpackModule {
         val outJs = dst / src.segments.toSeq.last
         val deps = jsDeps()
         val cfg = webpackFilename()
-        ops.cp(src, outJs)
         writeBundleSources().apply(deps, dst)
+        writeResources().apply(dst)
+        ops.cp.over(src, outJs)
         writeWpConfig()
           .apply(
             dst,
