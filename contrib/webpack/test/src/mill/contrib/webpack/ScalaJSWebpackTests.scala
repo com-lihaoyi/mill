@@ -11,19 +11,17 @@ import utest.{TestSuite, Tests, _}
 
 object ScalaJSWebpackTests extends TestSuite {
 
-  object WebpackModuleSimple extends TestUtil.BaseModule with ScalaJSWebpackModule {
-    def scalaJSVersion: T[String] = "0.6.25"
+  trait WebpackTestModule extends TestUtil.BaseModule with ScalaJSWebpackModule {
+      def scalaJSVersion: T[String] = "0.6.33"
 
-    def scalaVersion: T[String] = "2.12.6"
+      def scalaVersion: T[String] = "2.12.11"
+  }
 
+  object WebpackModuleSimple extends WebpackTestModule {
     override def npmDeps = Agg("uuid" -> "8.1.0")
   }
 
-  object WebpackModuleTransitive extends TestUtil.BaseModule with ScalaJSWebpackModule {
-    def scalaJSVersion: T[String] = "0.6.25"
-
-    def scalaVersion: T[String] = "2.12.6"
-
+  object WebpackModuleTransitive extends WebpackTestModule {
     override def ivyDeps: Target[Agg[Dep]] = Agg(
       ivy"io.github.outwatch::outwatch::1.0.0-RC2",
     )
