@@ -597,7 +597,7 @@ def launcherScript(shellJvmArgs: Seq[String],
          |    COURSIER_CACHE=.coursier ${java("mill.MillMain")}
          |else
          |    case "$$1" in
-         |      -i | --interactive )
+         |      -i | --interactive | --repl | --no-server )
          |        ${java("mill.MillMain")}
          |        ;;
          |      *)
@@ -616,6 +616,8 @@ def launcherScript(shellJvmArgs: Seq[String],
          |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
          |if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
+         |if "%1" == "--repl" set _I_=true
+         |if "%1" == "--no-server" set _I_=true
          |if defined _I_ (
          |  ${java("mill.MillMain")}
          |) else (

@@ -297,10 +297,11 @@ the same testing framework, etc. and all that can be extracted out into the
 
 Mill builds on ammonite which allows you to
 [define global configuration](http://ammonite.io/#ScriptPredef). Depending on
-how you start mill 2 different files will be loaded. For interactive mode it's
-`~/.mill/ammonite/predef.sc` and from the command line it's
-`~/.mill/ammonite/predefScript.sc`. You might want to create a symlink from one
-to the other to avoid duplication.
+how you start mill, one of two files will be loaded. For the build REPL
+(`--repl` or `-i` without specifying a target), `~/.mill/ammonite/predef.sc`
+will be loaded, and for builds from the command line the file
+`~/.mill/ammonite/predefScript.sc` will be included. You might want to create
+a symlink from one to the other to avoid duplication.
 
 Example `~/.mill/ammonite/predef.sc`
 ```scala
