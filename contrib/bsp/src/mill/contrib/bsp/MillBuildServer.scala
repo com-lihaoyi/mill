@@ -1,5 +1,6 @@
 package mill.contrib.bsp
 
+import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import java.util.concurrent.CompletableFuture
@@ -13,8 +14,9 @@ import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.scalalib._
 import mill.util.{Ctx, DummyLogger}
-import os.Path
+import os.{Path, exists}
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: String)
     extends ExternalModule
@@ -366,23 +368,33 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val items = scalacOptionsParams.getTargets.asScala
-        .filter(_ != millBuildTargetId)
         .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
-          val newItem = getModule(targetId, modules) match {
-            case m: ScalaModule =>
-              val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
-              val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
-                .map(_.path.toNIO.toUri.toString)
-              val classDirectory = (Evaluator
-                .resolveDestPaths(
-                  evaluator.outPath,
-                  m.millModuleSegments ++ Seq(Label("compile"))
-                )
-                .dest / "classes").toNIO.toUri.toString
+          val newItem =
+            if (targetId == millBuildTargetId) {
+              val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
+                .fold(_ => Seq.empty, _.allJars.filter(url => exists(Path(url.getFile))).map(_.toURI.toString))
+              Some(new ScalacOptionsItem(
+                targetId,
+                Seq.empty.asJava,
+                classpath.iterator.toSeq.asJava,
+                evaluator.outPath.toNIO.toUri.toString
+              ))
+            } else
+              getModule(targetId, modules) match {
+                case m: ScalaModule =>
+                  val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
+                  val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                    .map(_.path.toNIO.toUri.toString)
+                  val classDirectory = (Evaluator
+                    .resolveDestPaths(
+                      evaluator.outPath,
+                      m.millModuleSegments ++ Seq(Label("compile"))
+                    )
+                    .dest / "classes").toNIO.toUri.toString
 
-              Some(new ScalacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
-            case _: JavaModule => None
-          }
+                  Some(new ScalacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+                case _: JavaModule => None
+              }
 
           items ++ newItem
         }
