@@ -65,7 +65,9 @@ Mill also works on a sh environment on Windows (e.g.,
 [WSL](https://docs.microsoft.com/en-us/windows/wsl);
 to get started, follow the instructions in the [manual](#manual) section below. Note that:
 
-* In some environments (such as WSL), mill might have to be run using interactive mode (`-i`)
+* In some environments (such as WSL), mill might have to be run
+  without a server (using `-i`, `--interactive`, `--no-server`, or
+  `--repl`.)
 
 * On Cygwin, run the following after downloading mill:
 
@@ -707,10 +709,10 @@ generate an IntelliJ project config for your build.
 This also configures IntelliJ to allow easy navigate & code-completion within
 your build file itself.
 
-## The Build Repl
+## The Build REPL
 
 ```bash
-$ mill -i
+$ mill --repl
 Loading...
 @ foo
 res0: foo.type = ammonite.predef.build#foo:4
@@ -747,10 +749,10 @@ res2: mill.scalalib.api.CompilationResult = CompilationResult(
 )
 ```
 
-You can run `mill -i` to open a build REPL; this is a Scala console with your
-`build.sc` loaded, which lets you run tasks interactively. The task-running
-syntax is slightly different from the command-line, but more in-line with how
-you would depend on tasks from within your build file.
+You can run `mill --repl` to open a build REPL; this is a Scala console with
+your `build.sc` loaded, which lets you run tasks interactively. The
+task-running syntax is slightly different from the command-line, but more
+in-line with how you would depend on tasks from within your build file.
 
 You can use this REPL to interactively explore your build to see what is available.
 
