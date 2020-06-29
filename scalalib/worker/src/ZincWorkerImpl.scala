@@ -43,8 +43,8 @@ class ZincProblem(base: xsbti.Problem) extends Problem {
 class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
 
   object JavaOptionConverter {
-    implicit def convertInt(x: Optional[Integer]): Option[Int] = if (x.isEmpty) None else Some(x.get().intValue())
-    implicit def convert[T](x: Optional[T]): Option[T] = if (x.isEmpty) None else Some(x.get())
+    implicit def convertInt(x: Optional[Integer]): Option[Int] = if (x.isPresent) Some(x.get().intValue()) else None
+    implicit def convert[T](x: Optional[T]): Option[T] = if (x.isPresent) Some(x.get()) else None
   }
 
   import JavaOptionConverter._
