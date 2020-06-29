@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import coursier.{Dependency, Repository}
+import coursier.{Dependency, Repository, Resolve}
 import mill.{Agg, T}
 import mill.define.Task
 import mill.eval.PathRef
@@ -44,6 +44,6 @@ trait CoursierModule extends mill.Module {
   /**
     * The repositories used to resolved dependencies with [[resolveDeps()]].
     */
-  def repositories: Seq[Repository]
+  def repositories: Seq[Repository] = Resolve.defaultRepositories
 
 }

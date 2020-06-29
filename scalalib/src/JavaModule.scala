@@ -134,8 +134,6 @@ trait JavaModule extends mill.Module
     )().flatten
   }
 
-  def repositories: Seq[Repository] = zincWorker.repositories
-
   /**
     * What platform suffix to use for publishing, e.g. `_sjs` for Scala.js
     * projects
