@@ -187,7 +187,6 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
           opt)
       writePackageSpec().apply(deps, dst)
       runWebpack().apply(dst, cfg)
-      ops.rm(outJs)
   }
 
   def fastOptWp: Target[PathRef] = T.persistent {
