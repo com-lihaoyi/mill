@@ -1,6 +1,5 @@
 package mill.contrib.bsp
 
-import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.api.Result.Success
@@ -8,12 +7,12 @@ import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
+import mill.scalalib.Lib.{depToDependency, resolveDependencies, scalaRuntimeIvyDeps}
 import mill.scalalib.api.Util
 import mill.scalalib.{JavaModule, ScalaModule, TestModule}
 import mill.scalanativelib._
-import os._
+import mill.util.Ctx
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 /**
  * Utilities for translating the mill build into
@@ -49,9 +48,9 @@ object ModuleUtils {
    *                           about the mill project
    * @return JavaModule -> BuildTarget mapping
    */
-  def getTargets(modules: Seq[JavaModule], evaluator: Evaluator): Seq[BuildTarget] = {
+  def getTargets(modules: Seq[JavaModule], evaluator: Evaluator)(implicit ctx: Ctx.Log): Seq[BuildTarget] = {
     val targets = modules.map(module => getTarget(module, evaluator))
-    val millBuildTarget = getMillBuildTarget(evaluator)
+    val millBuildTarget = getMillBuildTarget(evaluator, modules)
 
     millBuildTarget +: targets
   }
@@ -66,7 +65,7 @@ object ModuleUtils {
    *                    build information
    * @return the Mill BuildTarget
    */
-  def getMillBuildTarget(evaluator: Evaluator): BuildTarget = {
+  def getMillBuildTarget(evaluator: Evaluator, modules: Seq[JavaModule])(implicit ctx: Ctx.Log): BuildTarget = {
     val target = new BuildTarget(
       getMillBuildTargetId(evaluator),
       Seq.empty[String].asJava,
@@ -77,14 +76,20 @@ object ModuleUtils {
     target.setBaseDirectory(evaluator.rootModule.millSourcePath.toNIO.toUri.toString)
     target.setDataKind(BuildTargetDataKind.SCALA)
     target.setTags(Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
-    target.setDisplayName("mill")
+    target.setDisplayName("mill-build")
 
-    val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
-      .fold(_ => Seq.empty, _.allJars.map(url => PathRef(Path(url.getFile))).filter(p => exists(p.path)))
+    val scalaOrganization = "org.scala-lang"
+    val scalaLibDep = scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
+    val classpath = resolveDependencies(
+      modules.flatMap(_.repositories).distinct,
+      depToDependency(_, BuildInfo.scalaVersion),
+      scalaLibDep,
+      ctx = Some(ctx)
+    ).asSuccess.toSeq.flatMap(_.value)
 
     target.setData(
       new ScalaBuildTarget(
-        "org.scala-lang",
+        scalaOrganization,
         BuildInfo.scalaVersion,
         Util.scalaBinaryVersion(BuildInfo.scalaVersion),
         ScalaPlatform.JVM,
