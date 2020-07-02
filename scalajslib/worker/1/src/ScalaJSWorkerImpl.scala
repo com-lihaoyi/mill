@@ -12,7 +12,6 @@ import org.scalajs.linker.{PathIRContainer, PathIRFile, PathOutputFile, Standard
 import org.scalajs.linker.interface.{ModuleKind => ScalaJSModuleKind, _}
 import org.scalajs.logging.ScalaConsoleLogger
 import org.scalajs.jsenv.{Input, JSEnv, RunConfig}
-import org.scalajs.jsenv.nodejs._
 import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
@@ -51,7 +50,12 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
     val libraryIRsFuture = irContainersPairs.flatMap(pair => cache.cached(pair._1))
-    val linkerOutput = LinkerOutput(PathOutputFile(dest.toPath()))
+    val jsFile = dest.toPath()
+    val sourceMap = jsFile.resolveSibling(jsFile.getFileName + ".map")
+    val linkerOutput = LinkerOutput(PathOutputFile(jsFile))
+      .withJSFileURI(java.net.URI.create(jsFile.getFileName.toString))
+      .withSourceMap(PathOutputFile(sourceMap))
+      .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
     val logger = new ScalaConsoleLogger
     val mainInitializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
     val testInitializer =
