@@ -111,8 +111,13 @@ object HelloJSWorldTests extends TestSuite {
         case FastOpt => HelloJSWorld.helloJsWorld(scalaVersion, scalaJSVersion).fastOpt
       }
       val Right((result, evalCount)) = helloWorldEvaluator(task)
-      val output = ScalaJsUtils.runJS(result.path)
+      val jsFile = result.path
+      val output = ScalaJsUtils.runJS(jsFile)
       assert(output == "Hello Scala.js")
+      val sourceMap= jsFile / os.up / (jsFile.last + ".map")
+      assert(sourceMap.toIO.exists()) // sourceMap file was generated
+      assert(os.read(jsFile).contains("//# sourceMappingURL=out.js.map")) // jsFile references sourceMap
+      assert(os.read(sourceMap).contains("\"file\": \"out.js\",")) // sourceMap references jsFile
     }
 
     'fullOpt - {
