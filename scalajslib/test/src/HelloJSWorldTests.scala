@@ -116,8 +116,8 @@ object HelloJSWorldTests extends TestSuite {
       assert(output == "Hello Scala.js")
       val sourceMap= jsFile / os.up / (jsFile.last + ".map")
       assert(sourceMap.toIO.exists()) // sourceMap file was generated
-      assert(os.read(jsFile).contains("//# sourceMappingURL=out.js.map")) // jsFile references sourceMap
-      assert(os.read(sourceMap).contains("\"file\": \"out.js\",")) // sourceMap references jsFile
+      assert(os.read(jsFile).contains(s"//# sourceMappingURL=${sourceMap.toNIO.getFileName}")) // jsFile references sourceMap
+      assert(ujson.read(sourceMap.toIO).obj.get("file").exists(_.str == jsFile.toNIO.getFileName.toString)) // sourceMap references jsFile
     }
 
     'fullOpt - {
