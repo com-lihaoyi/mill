@@ -175,8 +175,19 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.7.3](https://github.com/lihaoyi/mill/milestone/42?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.3...master).*
+[milestone after 0.7.4](https://github.com/lihaoyi/mill/milestone/43?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.4...master).*
+
+### 0.7.4 - 2020-07-03
+
+* new command line options `--repl` and `--no-server`, deprecated `--interactive` option
+* Support for Scala.js 1.1
+* Fixed missing source maps for Scala.js 1.0 and 1.1
+* Improved BSP contrib module
+
+*For details refer to
+[milestone 0.7.3](https://github.com/lihaoyi/mill/milestone/42?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.3...0.7.4).*
 
 ### 0.7.3
 
