@@ -186,7 +186,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.4...master
 * Improved BSP contrib module
 
 *For details refer to
-[milestone 0.7.3](https://github.com/lihaoyi/mill/milestone/42?closed=1)
+[milestone 0.7.4](https://github.com/lihaoyi/mill/milestone/42?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.3...0.7.4).*
 
 ### 0.7.3
