@@ -52,8 +52,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case "1" =>
         Seq(
           ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-nodejs:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-jsdom-nodejs:${scalaJSVersion()}",
+          ivy"org.scala-js::scalajs-env-nodejs:1.1.1",
+          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0",
           ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
         )
     }
