@@ -24,7 +24,7 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val scalaVersions = Seq("2.13.2", "2.12.11", "2.11.12")
-    val scalaJSVersions = Seq("1.1.0", "1.0.0", "0.6.33")
+    val scalaJSVersions = Seq("1.1.1", "1.0.1", "0.6.33")
     val matrix = for {
       scala <- scalaVersions
       scalaJS <- scalaJSVersions
@@ -143,8 +143,8 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       'artifactId_06 - testArtifactId(HelloJSWorld.scalaVersions.head, "0.6.33", "hello-js-world_sjs0.6_2.13")
-      'artifactId_10 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.0.0", "hello-js-world_sjs1_2.13")
-      'artifactId_1 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.1.0", "hello-js-world_sjs1_2.13")
+      'artifactId_10 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.0.1", "hello-js-world_sjs1_2.13")
+      'artifactId_1 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.1.1", "hello-js-world_sjs1_2.13")
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {

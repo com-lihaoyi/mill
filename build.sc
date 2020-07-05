@@ -21,9 +21,10 @@ object Deps {
     val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.1.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.1.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.1.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.1.1"
   }
+
   object Scalanative_0_3 {
     val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
     val scalanativeUtil = ivy"org.scala-native::util:0.3.9"
