@@ -681,7 +681,7 @@ mill clean __.compile
 ### Search for dependency updates
 
 ```bash
-$ mill mill.scalalib.Dependency/updates
+$ mill mill.scalalib.Dependency/showUpdates
 ```
 
 Mill can search for updated versions of your project's dependencies,
@@ -697,8 +697,8 @@ Current limitations:
 itself.
 
 ```bash
-mill mill.scalalib.Dependency/updates
-mill mill.scalalib.Dependency/updates --allowPreRelease true # also show pre-release versions
+mill mill.scalalib.Dependency/showUpdates
+mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
 ```
 
 ## IntelliJ Support
