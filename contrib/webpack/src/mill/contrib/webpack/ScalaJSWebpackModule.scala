@@ -40,7 +40,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
 
   def sourceMapLoaderVersion: Target[String] = "1.0.0"
 
-  def scalaJsFriendlySourceMapLoaderVersion = "0.1.5"
+  def scalaJsFriendlySourceMapLoaderVersion: Target[String] = "0.1.5"
 
   override def moduleKind: T[ModuleKind] = T {
     ModuleKind.CommonJSModule
