@@ -85,7 +85,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
           "webpack-merge" -> webpackMergeVersion(),
           "webpack-cli" -> webpackCliVersion(),
           "source-map-loader" -> sourceMapLoaderVersion(),
-          "scalajs-friendly-source-map-loader" -> scalaJsFriendlySourceMapLoaderVersion
+          "scalajs-friendly-source-map-loader" -> scalaJsFriendlySourceMapLoaderVersion()
         )
 
       ops.write.over(
