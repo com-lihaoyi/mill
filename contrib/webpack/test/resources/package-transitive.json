@@ -6,7 +6,7 @@
     "webpack": "4.43.0",
     "webpack-merge": "4.2.2",
     "webpack-cli": "3.3.11",
-    "webpack-dev-server": "3.11.0",
-    "source-map-loader": "1.0.0"
+    "source-map-loader": "1.0.0",
+    "scalajs-friendly-source-map-loader": "0.1.5"
   }
 }
