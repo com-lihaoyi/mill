@@ -58,7 +58,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
   // Custom webpack configuration objects that get merged with the generated config
   def customWebpackConfigs: Sources = T.sources()
 
-  // All JS dependenciesx
+  // All JS dependencies
   def jsDeps: T[JsDeps] = T {
     val jsDepsFromIvyDeps =
       resolveDeps(transitiveIvyDeps)().flatMap(pathRef =>
