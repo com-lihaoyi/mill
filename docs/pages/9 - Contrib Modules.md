@@ -1147,7 +1147,7 @@ class BackendModule(mode: String) extends ScalaModule {
   def jsBundle: Task[PathRef] = mode match {
     case "dev" => frontend.fastOptWp
     case "prod" => frontend.fullOptWp
-    case _ => throw new UnsupportedOperationException(s"Supported modules modes: ${
+    case _ => throw new UnsupportedOperationException(s"Supported module modes: ${
       backend.items.map { case (name, _) => s"`$name`" }.mkString(", ")
     }")
   }
