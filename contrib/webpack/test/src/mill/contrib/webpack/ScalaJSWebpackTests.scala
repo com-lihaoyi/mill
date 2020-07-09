@@ -11,40 +11,10 @@ import utest._
 
 object ScalaJSWebpackTests extends TestSuite {
 
-  private val jsPlaceholderFilename =  "placeholder.js"
-
-  trait WebpackTestModule extends TestUtil.BaseModule with ScalaJSWebpackModule {
-      def optimizeJs = false
-
-      def fastOpt: T[PathRef] = T { PathRef(millSourcePath / jsPlaceholderFilename) }
-
-      def scalaJSVersion: T[String] = "0.6.33"
-
-      def scalaVersion: T[String] = "2.12.11"
-  }
-
-  object WebpackModuleSimple extends WebpackTestModule {
-    override def npmDeps = Agg("uuid" -> "8.1.0")
-  }
-
-  object WebpackModuleTransitive extends WebpackTestModule {
-    override def ivyDeps: Target[Agg[Dep]] = Agg(
-      ivy"io.github.outwatch::outwatch::1.0.0-RC2",
-    )
-
-  }
-
-  def webpackTest[T](m: TestUtil.BaseModule)(f: TestEvaluator => T)(
-      implicit
-      tp: TestPath): T = {
-    val ev = new TestEvaluator(m)
-    ops.rm(ev.outPath)
-    f(ev)
-  }
-
   val sProps: String = ops.read(os.resource / "snabbdom-custom-props.js")
   val npmSimpleJson: String = ops.read(os.resource / "package-simple.json")
-  val npmTransitiveJson: String = ops.read(os.resource / "package-transitive.json")
+  val npmTransitiveJson: String =
+    ops.read(os.resource / "package-transitive.json")
   val wpConf: String => String = outputPath =>
     s"""const merge = require('webpack-merge');
        |
@@ -71,7 +41,7 @@ object ScalaJSWebpackTests extends TestSuite {
        |
        |module.exports = generatedWebpackCfg;
        |""".stripMargin
-
+  private val jsPlaceholderFilename = "placeholder.js"
   override def tests: Tests = Tests {
     "bundlerDeps" - {
       "extractFromJars" - webpackTest(WebpackModuleTransitive) { ev =>
@@ -86,7 +56,8 @@ object ScalaJSWebpackTests extends TestSuite {
 
     "webpack" - {
       "writeJsSources" - webpackTest(WebpackModuleTransitive) { ev =>
-        val Right((result, _)) = ev(WebpackModuleTransitive.writeWebpackBundleSources)
+        val Right((result, _)) =
+          ev(WebpackModuleTransitive.writeWebpackBundleSources)
         val src = ops.read(result.path / "snabbdom-custom-props.js")
         assert(src == sProps)
       }
@@ -102,10 +73,41 @@ object ScalaJSWebpackTests extends TestSuite {
         assert(pkgSpec == npmSimpleJson)
       }
 
-      "writePackageJson transitive" - webpackTest(WebpackModuleTransitive) { ev =>
-        val Right((pkgSpec, count)) = ev(WebpackModuleTransitive.webpackPackageSpec)
-        assert(pkgSpec == npmTransitiveJson, count > 0)
+      "writePackageJson transitive" - webpackTest(WebpackModuleTransitive) {
+        ev =>
+          val Right((pkgSpec, count)) =
+            ev(WebpackModuleTransitive.webpackPackageSpec)
+          assert(pkgSpec == npmTransitiveJson, count > 0)
       }
     }
+  }
+  def webpackTest[T](m: TestUtil.BaseModule)(f: TestEvaluator => T)(
+      implicit
+      tp: TestPath): T = {
+    val ev = new TestEvaluator(m)
+    ops.rm(ev.outPath)
+    f(ev)
+  }
+  trait WebpackTestModule
+      extends TestUtil.BaseModule
+      with ScalaJSWebpackModule {
+    def optimizeJs = false
+
+    def fastOpt: T[PathRef] = T {
+      PathRef(millSourcePath / jsPlaceholderFilename)
+    }
+
+    def scalaJSVersion: T[String] = "0.6.33"
+
+    def scalaVersion: T[String] = "2.12.11"
+  }
+  object WebpackModuleSimple extends WebpackTestModule {
+    override def npmDeps = Agg("uuid" -> "8.1.0")
+  }
+  object WebpackModuleTransitive extends WebpackTestModule {
+    override def ivyDeps: Target[Agg[Dep]] = Agg(
+      ivy"io.github.outwatch::outwatch::1.0.0-RC2",
+    )
+
   }
 }

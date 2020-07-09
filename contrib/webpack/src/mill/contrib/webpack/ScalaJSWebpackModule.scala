@@ -14,38 +14,38 @@ import mill.util.Ctx
 import os.ReadablePath
 
 /**
-  * Trait for Scala.js modules that create a webpack bundle from their NPM dependencies.
-  *
-  * Usage example:
-  * {{{
-  * import mill.contrib.ScalaJSWebpackModule
-  *
-  * object frontend extends mill.Cross[FrontendModule]("dev", "prod")
-  *
-  * class FrontendModule(jsCompilationMode: String) extends ScalaJSWebpackModule {
-  *
-  *   override def optimizeJs: Boolean = jsCompilationMode match {
-  *     case "dev"  => false
-  *     case "prod" => true
-  *     case _ =>
-  *       throw new UnsupportedOperationException(
-  *         s"Supported module modes: ['dev', 'prod']")
-  *   }
-  *
-  *   // Same sources and resources for "dev" and "prod"
-  *   override def millSourcePath = super.millSourcePath / os.up
-  *
-  *   override def npmDeps = Agg(
-  *     "uuid" -> "8.1.0"
-  *   )
-  *
-  *   ...
-  *
-  * }
-  * }}}
-  *
-  * How to compile: `./mill "frontend[dev].compile"`
-  */
+ * Trait for Scala.js modules that create a webpack bundle from their NPM dependencies.
+ *
+ * Usage example:
+ * {{{
+ * import mill.contrib.ScalaJSWebpackModule
+ *
+ * object frontend extends mill.Cross[FrontendModule]("dev", "prod")
+ *
+ * class FrontendModule(jsCompilationMode: String) extends ScalaJSWebpackModule {
+ *
+ *   override def optimizeJs: Boolean = jsCompilationMode match {
+ *     case "dev"  => false
+ *     case "prod" => true
+ *     case _ =>
+ *       throw new UnsupportedOperationException(
+ *         s"Supported module modes: ['dev', 'prod']")
+ *   }
+ *
+ *   // Same sources and resources for "dev" and "prod"
+ *   override def millSourcePath = super.millSourcePath / os.up
+ *
+ *   override def npmDeps = Agg(
+ *     "uuid" -> "8.1.0"
+ *   )
+ *
+ *   ...
+ *
+ * }
+ * }}}
+ *
+ * How to compile: `./mill "frontend[dev].compile"`
+ */
 trait ScalaJSWebpackModule extends ScalaJSModule {
 
   def optimizeJs: Boolean
@@ -200,11 +200,11 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
     } else {
       s"""|$generatedCfg
           |${customCfgSnippets
-        .map { case (_, cfgString) => cfgString }
-        .mkString("\n")}
+           .map { case (_, cfgString) => cfgString }
+           .mkString("\n")}
           |module.exports = merge($generatedCfgName, ${customCfgSnippets
-        .map { case (cfgName, _) => cfgName }
-        .mkString(",")});
+           .map { case (cfgName, _) => cfgName }
+           .mkString(",")});
           |""".stripMargin
     }
   }
@@ -237,9 +237,9 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
 
   @scala.annotation.tailrec
   private def readStringFromInputStream(
-    in: InputStream,
-    buffer: Array[Byte] = new Array[Byte](8192),
-    out: ByteArrayOutputStream = new ByteArrayOutputStream
+      in: InputStream,
+      buffer: Array[Byte] = new Array[Byte](8192),
+      out: ByteArrayOutputStream = new ByteArrayOutputStream
   ): String = {
     val byteCount = in.read(buffer)
     if (byteCount < 0) {
@@ -251,7 +251,7 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
   }
 
   private def collectZipEntries[R](jar: File)(
-    f: PartialFunction[(ZipEntry, ZipInputStream), R]
+      f: PartialFunction[(ZipEntry, ZipInputStream), R]
   ): List[R] = {
     val stream = new ZipInputStream(
       new BufferedInputStream(new FileInputStream(jar)))
@@ -285,8 +285,8 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
             "compile-devDependencies")
         )
       case (zipEntry, stream)
-        if zipEntry.getName.endsWith(".js") && !zipEntry.getName.startsWith(
-          "scala/") =>
+          if zipEntry.getName.endsWith(".js") && !zipEntry.getName.startsWith(
+            "scala/") =>
         JsDeps(
           jsSources = Map(zipEntry.getName -> readStringFromInputStream(stream))
         )
@@ -296,9 +296,9 @@ trait ScalaJSWebpackModule extends ScalaJSModule {
 }
 
 case class JsDeps(
-  dependencies: Seq[(String, String)] = Nil,
-  devDependencies: Seq[(String, String)] = Nil,
-  jsSources: Map[String, String] = Map.empty
+    dependencies: Seq[(String, String)] = Nil,
+    devDependencies: Seq[(String, String)] = Nil,
+    jsSources: Map[String, String] = Map.empty
 ) {
 
   def ++(that: JsDeps): JsDeps =
