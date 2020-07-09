@@ -1069,12 +1069,25 @@ It also bundles Javascript sources from Ivy dependencies that were created by th
 A Scala JS module that extends `ScalaJSWebpackModule` can configure npm dependencies:
 
 ```scala
-import contrib.webpack.ScalaJSWebpackModule
+import mill.contrib.ScalaJSWebpackModule
 
-object exampleProject extends ScalaJSWebpackModule {
+object exampleProject extends mill.Cross[ExampleProjectModule]("dev", "prod")
+
+class ExampleProjectModule(jsCompilationMode: String) extends ScalaJSWebpackModule {
+
+  override def optimizeJs: Boolean = jsCompilationMode match {
+    case "dev"  => false
+    case "prod" => true
+    case _ =>
+      throw new UnsupportedOperationException(
+        s"Supported module modes: ['dev', 'prod']")
+  }
+
+  // Same sources and resources for "dev" and "prod"
+  override def millSourcePath = super.millSourcePath / os.up
 
   override def npmDeps = Agg(
-    "npmDependencyName" -> "1.0.0"
+    "uuid" -> "8.1.0"
   )
 
   override def npmDevDeps = Agg(
@@ -1086,7 +1099,12 @@ object exampleProject extends ScalaJSWebpackModule {
 }
 ```
 
-The bundled webpack Javascript sources are accessible in the `fastOptWp` and `fullOptWp` targets, which correspond to the respective Scala JS compilation options.
+How to compile:
+```bash
+./mill "frontend[dev].compile"
+```
+
+The bundled webpack Javascript sources are available in the `webpackBundle` target.
 
 ### Custom webpack configuration
 
@@ -1121,10 +1139,10 @@ Example of a custom config file `custom-webpack.config` placed inside the module
 
 Usage in `ScalaJSWebpackModule`:
 ```scala
-import contrib.webpack.ScalaJSWebpackModule
+import mill.contrib.ScalaJSWebpackModule
 
-object exampleProject extends ScalaJSWebpackModule {
-  
+class ExampleProjectModule(jsCompilationMode: String) extends ScalaJSWebpackModule {
+
   override def customWebpackConfigs = T.sources(millSourcePath /  "custom-webpack.config")
 
   ...
@@ -1136,7 +1154,9 @@ object exampleProject extends ScalaJSWebpackModule {
 
 The generated bundle can be used as a dependency in a full stack project:
 ```scala
-object frontend extends ScalaJSWebpackModule {
+object frontend extends mill.Cross[FrontendModule]("dev", "prod")
+
+object FrontendModule extends ScalaJSWebpackModule {
   ...
 }
 
@@ -1145,12 +1165,10 @@ object backend extends mill.Cross[BackendModule]("dev", "prod")
 class BackendModule(mode: String) extends ScalaModule {
 
   def jsBundle: Task[PathRef] = mode match {
-    case "dev" => frontend.fastOptWp
-    case "prod" => frontend.fullOptWp
-    case _ => throw new UnsupportedOperationException(s"Supported module modes: ${
-      backend.items.map { case (name, _) => s"`$name`" }.mkString(", ")
-    }")
-  }
+    case "dev"  => frontend("dev").webpackBundle
+    case "prod" => frontend("prod").webpackBundle
+    case _ => throw new UnsupportedOperationException("Supported module modes: [`dev`, `prod`]")
+    }
 
   // Same sources for "dev" and "prod"
   override def millSourcePath = super.millSourcePath / up
@@ -1179,7 +1197,7 @@ The following targets can be overridden to configure the webpack module:
 
 - `webpackConfigFilename` specifies the name of the generated webpack config file
 
-The npm development dependency versions of the Javascript webpack pipeline can be configured with the following targets:
+The npm development dependency versions of the Javascript webpack pipeline is configured with the following targets:
 
 - `webpackVersion` => `webpack` version
 
