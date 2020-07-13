@@ -497,12 +497,23 @@ case class GenIdeaImpl(evaluator: Evaluator,
       </component>
     </module>
   }
-  def libraryXmlTemplate(name: String, path: os.Path, sources: Option[os.Path], scalaCompilerClassPath: Loose.Agg[Path]): Elem = {
-    def url(path: os.Path): String = {
-      if (path.ext == "jar") "jar://$PROJECT_DIR$/" + path.relativeTo(cwd) + "!/"
-      else "file://$PROJECT_DIR$/" + path.relativeTo(cwd)
-    }
 
+  /** Try to make the file path a relative JAR URL (to PROJECT_DIR). */
+  def relativeJarUrl(path: os.Path) = {
+    // When coursier cache dir is on different logical drive than project dir
+    // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
+    val relPath = Try("$PROJECT_DIR$/" + path.relativeTo(cwd)).getOrElse(path)
+    if (path.ext == "jar") "jar://" + relPath + "!/" else "file://" + relPath
+  }
+
+  /** Try to make the file path a relative URL (to PROJECT_DIR). */
+  def relativeFileUrl(path: Path): String = {
+    // When coursier cache dir is on different logical drive than project dir
+    // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
+    "file://" + Try("$PROJECT_DIR$/" + path.relativeTo(cwd)).getOrElse(path)
+  }
+
+  def libraryXmlTemplate(name: String, path: os.Path, sources: Option[os.Path], scalaCompilerClassPath: Loose.Agg[Path]): Elem = {
     val isScalaLibrary = scalaCompilerClassPath.nonEmpty
     <component name="libraryTable">
       <library name={name} type={if(isScalaLibrary) "Scala" else null}>
@@ -510,18 +521,18 @@ case class GenIdeaImpl(evaluator: Evaluator,
         <properties>
           <compiler-classpath>
             {
-            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={"file://$PROJECT_DIR$/" + p.relativeTo(cwd)}/>)
+            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={relativeFileUrl(p)}/>)
             }
           </compiler-classpath>
         </properties>
           }
         }
         <CLASSES>
-          <root url={url(path)}/>
+          <root url={relativeJarUrl(path)}/>
         </CLASSES>
         { if (sources.isDefined) {
           <SOURCES>
-            <root url={url(sources.get)}/>
+            <root url={relativeJarUrl(sources.get)}/>
           </SOURCES>
           }
         }
