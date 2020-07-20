@@ -1,25 +1,19 @@
 package mill.scalalib
 
-
-import coursier.maven.MavenRepository
 import mill.Agg
 import mill.T
-import mill.api.{Ctx, KeyedLockedCache, Loose, FixSizedCache}
-import mill.define.{Discover, Worker}
+import mill.api.{Ctx, KeyedLockedCache, FixSizedCache}
+import mill.define.{Discover, ExternalModule, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty}
 import mill.scalalib.api.ZincWorkerApi
 import mill.util.JsonFormatters._
 
-object ZincWorkerModule extends mill.define.ExternalModule with ZincWorkerModule {
+object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
 }
-trait ZincWorkerModule extends mill.Module {
-  def repositories = Seq(
-    coursier.LocalRepositories.ivy2Local,
-    MavenRepository("https://repo1.maven.org/maven2"),
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
+
+trait ZincWorkerModule extends mill.Module { self: CoursierModule =>
 
   def classpath = T{
     mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories)
