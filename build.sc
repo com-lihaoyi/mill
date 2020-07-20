@@ -40,7 +40,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.1.4"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.0-RC6-15"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
@@ -60,7 +60,7 @@ object Deps {
   
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.0"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.1"
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
@@ -68,8 +68,8 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
-  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:1.1.0"
-  val upickle = ivy"com.lihaoyi::upickle:1.1.0"
+  val ujsonCirce = ivy"com.lihaoyi::ujson-circe:1.2.0"
+  val upickle = ivy"com.lihaoyi::upickle:1.2.0"
   val utest = ivy"com.lihaoyi::utest:0.7.4"
   val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
