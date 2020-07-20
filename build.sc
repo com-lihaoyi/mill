@@ -41,6 +41,7 @@ object Deps {
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
   val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0"
+  val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.0-RC6-15"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
@@ -161,6 +162,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       Deps.ammonite,
+      Deps.scalametaTrees.forceVersion(),
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
