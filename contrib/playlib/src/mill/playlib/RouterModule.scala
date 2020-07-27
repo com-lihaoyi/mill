@@ -52,7 +52,7 @@ trait RouterModule extends ScalaModule with Version {
         coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      Lib.depToDependency(_, scalaVersion()),
+      Lib.depToDependency(_, if (playMinorVersion().equals("2.8")) "2.13" else "2.12"),
       Seq(
         ivy"com.typesafe.play::routes-compiler:${playVersion()}"
       )
@@ -83,7 +83,7 @@ trait RouterModule extends ScalaModule with Version {
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositories,
       resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
-      artifactSuffix = "_2.12"
+      artifactSuffix = if (playMinorVersion().equals("2.8")) "_2.13" else "_2.12"
     )
   }
 

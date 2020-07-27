@@ -20,8 +20,7 @@ private[playlib] class RouteCompilerWorker {
         ctx.log.debug("Loading classes from\n"+toolsClassPath.mkString("\n"))
         val cl = mill.api.ClassLoader.create(
           toolsClassPath,
-          null,
-          sharedPrefixes = Seq("mill.playlib.api.")
+          getClass.getClassLoader
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")

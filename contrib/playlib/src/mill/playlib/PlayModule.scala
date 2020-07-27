@@ -14,6 +14,8 @@ trait PlayApiModule extends Dependencies with Router with Server{
           Agg(ivy"org.scalatestplus.play::scalatestplus-play::3.1.2")
         case Versions.PLAY_2_7=>
           Agg(ivy"org.scalatestplus.play::scalatestplus-play::4.0.1")
+        case Versions.PLAY_2_8=>
+          Agg(ivy"org.scalatestplus.play::scalatestplus-play::5.1.0")
       }
     }
     override def sources = T.sources{ millSourcePath }
