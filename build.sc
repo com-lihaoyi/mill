@@ -55,10 +55,10 @@ object Deps {
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
-  
+
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
-  
+
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.7.1"
@@ -585,8 +585,10 @@ def launcherScript(shellJvmArgs: Seq[String],
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
-      def java(mainClass: String) =
-        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+      def java(mainClass: String, passMillJvmOpts: Boolean) = {
+        val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
+        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+      }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
          |  JAVACMD="java"
@@ -594,17 +596,37 @@ def launcherScript(shellJvmArgs: Seq[String],
          |  JAVACMD="$$JAVA_HOME/bin/java"
          |fi
          |
+         |mill_jvm_opts=""
+         |init_mill_jvm_opts () {
+         |  if [ -z $$MILL_JVM_OPTS_PATH ] ; then
+         |    mill_jvm_opts_file=".mill-jvm-opts"
+         |  else
+         |    mill_jvm_opts_file=$$MILL_JVM_OPTS_PATH
+         |  fi
+         |
+         |  if [ -f "$$mill_jvm_opts_file" ] ; then
+         |    while IFS= read line
+         |    do
+         |      case $$line in
+         |        "-X"*) mill_jvm_opts="$${mill_jvm_opts} $$line"
+         |      esac
+         |    done <"$$mill_jvm_opts_file"
+         |  fi
+         |}
+         |
          |# Client-server mode doesn't seem to work on WSL, just disable it for now
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
-         |    COURSIER_CACHE=.coursier ${java("mill.MillMain")}
+         |    init_mill_jvm_opts
+         |    COURSIER_CACHE=.coursier ${java("mill.MillMain", true)}
          |else
          |    case "$$1" in
          |      -i | --interactive | --repl | --no-server )
-         |        ${java("mill.MillMain")}
+         |        init_mill_jvm_opts
+         |        ${java("mill.MillMain", true)}
          |        ;;
          |      *)
-         |        ${java("mill.main.client.MillClientMain")}
+         |        ${java("mill.main.client.MillClientMain", false)}
          |        ;;
          |esac
          |fi
@@ -612,20 +634,36 @@ def launcherScript(shellJvmArgs: Seq[String],
     },
     cmdCommands = {
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
-      def java(mainClass: String) =
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+      def java(mainClass: String, passMillJvmOpts: Boolean) = {
+        val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
+        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+      }
 
-      s"""set "JAVACMD=java.exe"
+      s"""setlocal EnableDelayedExpansion
+         |set "JAVACMD=java.exe"
          |if not "%JAVA_HOME%"=="" set "JAVACMD=%JAVA_HOME%\\bin\\java.exe"
          |if "%1" == "-i" set _I_=true
          |if "%1" == "--interactive" set _I_=true
          |if "%1" == "--repl" set _I_=true
          |if "%1" == "--no-server" set _I_=true
+         |
+         |set "mill_jvm_opts="
+         |set "mill_jvm_opts_file=.mill-jvm-opts"
+         |if not "%MILL_JVM_OPTS_PATH%"=="" set "mill_jvm_opts_file=%MILL_JVM_OPTS_PATH%"
+         |
          |if defined _I_ (
-         |  ${java("mill.MillMain")}
+         |  if exist %mill_jvm_opts_file% (
+         |    for /f "delims=" %%G in (%mill_jvm_opts_file%) do (
+         |      set line=%%G
+         |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
+         |    )
+         |  )
+         |  ${java("mill.MillMain", true)}
          |) else (
-         |  ${java("mill.main.client.MillClientMain")}
-         |)""".stripMargin
+         |  ${java("mill.main.client.MillClientMain", false)}
+         |)
+         |endlocal
+         |""".stripMargin
     }
   )
 }
@@ -694,7 +732,7 @@ object dev extends MillModule{
     // for more detailed explanation
     val isWin = scala.util.Properties.isWin
     val classpath = runClasspath().map{ pathRef =>
-      val path = if (isWin) "/" + pathRef.path.toString.replace("\\", "/") 
+      val path = if (isWin) "/" + pathRef.path.toString.replace("\\", "/")
                  else pathRef.path.toString
       if (path.endsWith(".jar")) path
       else path + "/"

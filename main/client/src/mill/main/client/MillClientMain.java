@@ -19,7 +19,7 @@ public class MillClientMain {
 	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
 
     static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
-        
+
         String selfJars = "";
         List<String> vmOptions = new ArrayList<>();
         String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
@@ -49,6 +49,23 @@ public class MillClientMain {
         }
         if (setJnaNoSys) {
             vmOptions.add("-Djna.nosys=true");
+        }
+
+        String millJvmOptsPath = System.getProperty("MILL_JVM_OPTS_PATH");
+        if (millJvmOptsPath == null) {
+            millJvmOptsPath = ".mill-jvm-opts";
+        }
+
+        File millJvmOptsFile =  new File(millJvmOptsPath);
+        if (millJvmOptsFile.exists()) {
+            try (Scanner sc = new Scanner(millJvmOptsFile)) {
+                while (sc.hasNextLine()) {
+                    String arg = sc.nextLine();
+                    if (arg.startsWith("-X")) {
+                        vmOptions.add(arg);
+                    }
+                }
+            }
         }
 
         List<String> l = new ArrayList<>();

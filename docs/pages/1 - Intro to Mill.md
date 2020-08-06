@@ -934,3 +934,15 @@ variable or `.mill-version` file.
 
 Come by our [Gitter Channel](https://gitter.im/lihaoyi/mill) if you want to ask
 questions or say hi!
+
+## Running Mill with custom JVM options
+
+It's possible to pass JVM options to the Mill launcher. To do this you need to create a `.mill-jvm-opts` file in your project's root. This file should contain JVM options (strings, starting with `-X`), one per line. All other lines will be ignored.
+
+For example, if your build requires a lot of memory and bigger stack size, your `.mill-jvm-opts` could look like this:
+```
+-Xss10m
+-Xmx10G
+```
+
+The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don't want to use `.mill-jvm-opts` file name, add `MILL_JVM_OPTS_PATH` environment variable with any other file name.
