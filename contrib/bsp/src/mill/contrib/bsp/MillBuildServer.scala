@@ -132,24 +132,28 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
       val items = dependencySourcesParams.getTargets.asScala
-        .filter(_ != millBuildTargetId)
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
-          val module = getModule(targetId, modules)
-          val sources = evaluateInformativeTask(
-            evaluator,
-            module.resolveDeps(T.task(module.compileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
-            Agg.empty[PathRef]
-          )
-          val unmanaged = evaluateInformativeTask(
-            evaluator,
-            module.unmanagedClasspath,
-            Agg.empty[PathRef]
-          )
+          val all = if (targetId == millBuildTargetId) {
+            Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
+              _ => Seq.empty,
+              _.allJars.filter(url => isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
+            )
+          } else {
+            val module = getModule(targetId, modules)
+            val sources = evaluateInformativeTask(
+              evaluator,
+              module.resolveDeps(T.task(module.compileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
+              Agg.empty[PathRef]
+            )
+            val unmanaged = evaluateInformativeTask(
+              evaluator,
+              module.unmanagedClasspath,
+              Agg.empty[PathRef]
+            )
 
-          items :+ new DependencySourcesItem(
-            targetId,
-            (sources ++ unmanaged).map(_.path.toIO.toURI.toString).iterator.toSeq.asJava
-          )
+            (sources ++ unmanaged).map(_.path.toIO.toURI.toString).iterator.toSeq
+          }
+          items :+ new DependencySourcesItem(targetId, all.asJava)
         }
 
       new DependencySourcesResult(items.asJava)
@@ -371,8 +375,10 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
           val newItem =
             if (targetId == millBuildTargetId) {
-              val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
-                .fold(_ => Seq.empty, _.allJars.filter(url => exists(Path(url.getFile))).map(_.toURI.toString))
+              val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
+                _ => Seq.empty,
+                _.allJars.filter(url => !isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
+              )
               Some(new ScalacOptionsItem(
                 targetId,
                 Seq.empty.asJava,

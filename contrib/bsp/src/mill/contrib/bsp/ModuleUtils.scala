@@ -1,6 +1,7 @@
 package mill.contrib.bsp
 
 import ch.epfl.scala.bsp4j._
+import java.net.URL
 import mill._
 import mill.api.Result.Success
 import mill.api.{PathRef, Strict}
@@ -181,6 +182,8 @@ object ModuleUtils {
 
   def getTargetId(moduleHashCode: Int, modules: Seq[JavaModule]): Option[BuildTargetIdentifier] =
     modules.find(_.hashCode == moduleHashCode).map(getTargetId)
+
+  def isSourceJar(url: URL): Boolean = url.getFile.endsWith("-sources.jar")
 
   // Compute the ScalaBuildTarget from information about the given JavaModule.
   private[this] def computeBuildTargetData(module: JavaModule, evaluator: Evaluator): ScalaBuildTarget = {
