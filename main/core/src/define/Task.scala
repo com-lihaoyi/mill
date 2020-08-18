@@ -1,11 +1,11 @@
 package mill.define
 
 import ammonite.main.Router.Overrides
+import mill.json.{JsonRW, JsonWriter}
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
 import mill.util.EnclosingClass
 import sourcecode.Compat.Context
-import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.blackbox.Context
@@ -50,7 +50,7 @@ trait NamedTask[+T] extends Task[T]{
 }
 trait Target[+T] extends NamedTask[T]{
   override def asTarget = Some(this)
-  def readWrite: RW[_]
+  def readWrite: JsonRW[_]
 }
 
 object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Result, mill.api.Ctx] {
@@ -64,12 +64,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   def reporter(implicit ctx: mill.api.Ctx) = ctx.reporter
 
   implicit def apply[T](t: T)
-                       (implicit rw: RW[T],
+                       (implicit rw: JsonRW[T],
                         ctx: mill.define.Ctx): Target[T] = macro targetImpl[T]
 
   def targetImpl[T: c.WeakTypeTag](c: Context)
                                   (t: c.Expr[T])
-                                  (rw: c.Expr[RW[T]],
+                                  (rw: c.Expr[JsonRW[T]],
                                    ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     val lhs = Applicative.impl0[Task, T, mill.api.Ctx](c)(reify(Result.Success(t.splice)).tree)
@@ -82,12 +82,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   implicit def apply[T](t: Result[T])
-                       (implicit rw: RW[T],
+                       (implicit rw: JsonRW[T],
                         ctx: mill.define.Ctx): Target[T] = macro targetResultImpl[T]
 
   def targetResultImpl[T: c.WeakTypeTag](c: Context)
                                         (t: c.Expr[Result[T]])
-                                        (rw: c.Expr[RW[T]],
+                                        (rw: c.Expr[JsonRW[T]],
                                          ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
@@ -102,12 +102,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
   }
 
   def apply[T](t: Task[T])
-              (implicit rw: RW[T],
+              (implicit rw: JsonRW[T],
                ctx: mill.define.Ctx): Target[T] = macro targetTaskImpl[T]
 
   def targetTaskImpl[T: c.WeakTypeTag](c: Context)
                                       (t: c.Expr[Task[T]])
-                                      (rw: c.Expr[RW[T]],
+                                      (rw: c.Expr[JsonRW[T]],
                                        ctx: c.Expr[mill.define.Ctx]): c.Expr[Target[T]] = {
     import c.universe._
     mill.moduledefs.Cacher.impl0[Target[T]](c)(
@@ -182,12 +182,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     )
   }
   def input[T](value: Result[T])
-              (implicit rw: RW[T],
+              (implicit rw: JsonRW[T],
                 ctx: mill.define.Ctx): Input[T] = macro inputImpl[T]
 
   def inputImpl[T: c.WeakTypeTag](c: Context)
                                   (value: c.Expr[T])
-                                  (rw: c.Expr[RW[T]],
+                                  (rw: c.Expr[JsonRW[T]],
                                    ctx: c.Expr[mill.define.Ctx]): c.Expr[Input[T]] = {
     import c.universe._
 
@@ -204,21 +204,21 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def command[T](t: Task[T])
                 (implicit ctx: mill.define.Ctx,
-                 w: W[T],
+                 w: JsonWriter[T],
                  cls: EnclosingClass,
                  overrides: Overrides): Command[T] = {
     new Command(t, ctx, w, cls.value, overrides.value)
   }
 
   def command[T](t: Result[T])
-                (implicit w: W[T],
+                (implicit w: JsonWriter[T],
                  ctx: mill.define.Ctx,
                  cls: EnclosingClass,
                  overrides: Overrides): Command[T] = macro commandImpl[T]
 
   def commandImpl[T: c.WeakTypeTag](c: Context)
                                    (t: c.Expr[T])
-                                   (w: c.Expr[W[T]],
+                                   (w: c.Expr[JsonWriter[T]],
                                     ctx: c.Expr[mill.define.Ctx],
                                     cls: c.Expr[EnclosingClass],
                                     overrides: c.Expr[Overrides]): c.Expr[Command[T]] = {
@@ -263,12 +263,12 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
 
   def task[T](t: Result[T]): Task[T] = macro Applicative.impl[Task, T, mill.api.Ctx]
 
-  def persistent[T](t: Result[T])(implicit rw: RW[T],
+  def persistent[T](t: Result[T])(implicit rw: JsonRW[T],
                                   ctx: mill.define.Ctx): Persistent[T] = macro persistentImpl[T]
 
   def persistentImpl[T: c.WeakTypeTag](c: Context)
                                       (t: c.Expr[T])
-                                      (rw: c.Expr[RW[T]],
+                                      (rw: c.Expr[JsonRW[T]],
                                        ctx: c.Expr[mill.define.Ctx]): c.Expr[Persistent[T]] = {
     import c.universe._
 
@@ -310,12 +310,12 @@ abstract class NamedTaskImpl[+T](ctx0: mill.define.Ctx, t: Task[T]) extends Name
 
 class TargetImpl[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
-                     val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T] {
+                     val readWrite: JsonRW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T] {
 }
 
 class Command[+T](t: Task[T],
                   ctx0: mill.define.Ctx,
-                  val writer: W[_],
+                  val writer: JsonWriter[_],
                   val cls: Class[_],
                   val overrides: Int) extends NamedTaskImpl[T](ctx0, t) {
   override def asCommand = Some(this)
@@ -327,21 +327,21 @@ class Worker[+T](t: Task[T], ctx0: mill.define.Ctx) extends NamedTaskImpl[T](ctx
 }
 class Persistent[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
-                     readWrite: RW[_])
+                     readWrite: JsonRW[_])
   extends TargetImpl[T](t, ctx0, readWrite) {
 
   override def flushDest = false
 }
 class Input[T](t: Task[T],
                ctx0: mill.define.Ctx,
-               val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T]{
+               val readWrite: JsonRW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T]{
   override def sideHash = util.Random.nextInt()
 }
 class Sources(t: Task[Seq[PathRef]],
               ctx0: mill.define.Ctx) extends Input[Seq[PathRef]](
   t,
   ctx0,
-  RW.join(
+  JsonRW.join(
     upickle.default.SeqLikeReader[Seq, PathRef],
     upickle.default.SeqLikeWriter[Seq, PathRef]
   )
