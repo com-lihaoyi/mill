@@ -341,15 +341,15 @@ class Sources(t: Task[Seq[PathRef]],
               ctx0: mill.define.Ctx) extends Input[Seq[PathRef]](
   t,
   ctx0,
-  JsonRW.join(
+  JsonRW.fromUpickleRW(upickle.default.ReadWriter.join(
     upickle.default.SeqLikeReader[Seq, PathRef],
     upickle.default.SeqLikeWriter[Seq, PathRef]
-  )
+  ))
 )
 class Source(t: Task[PathRef], ctx0: mill.define.Ctx) extends Input[PathRef](
   t,
   ctx0,
-  PathRef.jsonFormatter
+  JsonRW.fromUpickleRW(PathRef.jsonFormatter)
 )
 object Task {
 

@@ -12,6 +12,7 @@ import mill.modules.Jvm.{createAssembly, createJar}
 import Lib._
 import mill.scalalib.publish.{Artifact, Scope}
 import mill.api.Loose.Agg
+import mill.json.JsonReader
 
 /**
   * Core configuration required to compile a single Scala compilation target
@@ -630,9 +631,8 @@ trait TestModule extends JavaModule with TaskModule {
     )
 
     if(!os.exists(outputPath)) Result.Failure("Test execution failed.")
-    else  try {
-      val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+    else try {
+      val (doneMsg, results) = JsonReader[(String, Seq[TestRunner.Result])].readFromPath(outputPath)
       TestModule.handleResults(doneMsg, results)
     } catch {
       case e: Throwable =>

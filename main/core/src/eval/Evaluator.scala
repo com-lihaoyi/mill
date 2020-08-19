@@ -9,6 +9,7 @@ import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
+import mill.json.{JsonRW, JsonReader, JsonWriter}
 import mill.util
 import mill.util.Router.EntryPoint
 import mill.util._
@@ -19,13 +20,13 @@ import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T],
                        segments: Segments){
-  def format = task match{
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+  def format: Option[JsonRW[T]] = task match{
+    case t: Target[T] => Some(t.readWrite.asInstanceOf[JsonRW[T]])
     case _ => None
   }
-  def writer = task match{
-    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[upickle.default.Writer[T]])
-    case t: Target[T] => Some(t.readWrite.asInstanceOf[upickle.default.ReadWriter[T]])
+  def writer: Option[JsonWriter[T]] = task match{
+    case t: mill.define.Command[T] => Some(t.writer.asInstanceOf[JsonWriter[T]])
+    case t: Target[T] => Some(t.readWrite.asInstanceOf[JsonRW[T]])
     case _ => None
   }
 }
@@ -292,13 +293,13 @@ case class Evaluator(
         if (!os.exists(paths.out)) os.makeDir.all(paths.out)
         val cached = for{
           cached <-
-            try Some(upickle.default.read[Evaluator.Cached](paths.meta.toIO))
+            try Some(JsonReader[Evaluator.Cached].readFromPath(paths.meta))
             catch {case e: Throwable => None}
 
           if cached.inputsHash == inputsHash
           reader <- labelledNamedTask.format
           parsed <-
-            try Some(upickle.default.read(cached.value)(reader))
+            try Some(reader.read(cached.value))
             catch {case e: Throwable => None}
         } yield (parsed, cached.valueHash)
 
@@ -370,8 +371,8 @@ case class Evaluator(
       case None =>
         val terminalResult = labelledNamedTask
           .writer
-          .asInstanceOf[Option[upickle.default.Writer[Any]]]
-          .map(w => upickle.default.writeJs(v)(w) -> v)
+          .asInstanceOf[Option[JsonWriter[Any]]]
+          .map(w => w.write(v) -> v)
 
         for((json, v) <- terminalResult){
           os.write.over(

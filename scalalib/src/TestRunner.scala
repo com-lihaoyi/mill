@@ -2,6 +2,7 @@ package mill.scalalib
 import ammonite.util.Colors
 import mill.Agg
 import mill.api.{DummyTestReporter, TestReporter}
+import mill.json.JsonWriter
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
@@ -56,7 +57,7 @@ object TestRunner {
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(os.Path(outputPath), upickle.default.stream(result))
+      os.write(os.Path(outputPath), JsonWriter[(String, Seq[Result])].write(result)) // TODO: do we really needed stream here?
     }catch{case e: Throwable =>
       println(e)
       e.printStackTrace()

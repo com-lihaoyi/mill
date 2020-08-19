@@ -3,6 +3,10 @@ package json
 
 trait JsonReader[A] {
   def read(s: String): A
+
+  final def readFromPath(path: os.Path): A = {
+    read(os.read(path))
+  }
 }
 object JsonReader {
   def apply[A](implicit ev: JsonReader[A]): JsonReader[A] = ev
