@@ -61,7 +61,6 @@ trait VersionFileModule extends Module {
       case snapshot: Version.Snapshot => s"Setting next version to $version"
     }
 
-  import upickle.core._
   import upickle.default._
 
   implicit val shellableReadWriter: ReadWriter[os.Shellable] =
@@ -86,7 +85,7 @@ object VersionFileModule extends define.ExternalModule {
       proc  <- procs
     } yield proc.call()
   }
-  
+
   implicit val millScoptTargetReads = new mill.main.Tasks.Scopt[Seq[os.proc]]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]

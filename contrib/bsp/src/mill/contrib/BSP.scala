@@ -9,9 +9,10 @@ import mill._
 import mill.contrib.bsp.MillBuildServer
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
+import mill.json.JsonWriter
 import mill.modules.Util
 import org.eclipse.lsp4j.jsonrpc.Launcher
-import upickle.default._
+import upickle.default.{ReadWriter, macroRW}
 import scala.collection.JavaConverters._
 import scala.concurrent.CancellationException
 import scala.util.Try
@@ -76,7 +77,7 @@ object BSP extends ExternalModule {
       .get("java.class.path")
       .getOrElse(throw new IllegalStateException("System property java.class.path not set"))
 
-    write(
+    JsonWriter[BspConfigJson].write(
       BspConfigJson(
         "mill-bsp",
         Seq(

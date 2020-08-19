@@ -11,6 +11,7 @@ import mill.eval.{Evaluator, PathRef, Result}
 import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
 import mill.api.Logger
 import mill.api.Strict.Agg
+import mill.json.JsonReader
 import scala.collection.mutable
 import scala.reflect.ClassTag
 
@@ -240,7 +241,7 @@ object RunScript{
               val jsonFile = Evaluator
                 .resolveDestPaths(evaluator.outPath, t.ctx.segments, t.ctx.foreign)
                 .meta
-              val metadata = upickle.default.read[Evaluator.Cached](ujson.read(jsonFile.toIO))
+              val metadata = JsonReader[Evaluator.Cached].read(ujson.read(jsonFile.toIO))
               Some(metadata.value)
 
             case _ => None

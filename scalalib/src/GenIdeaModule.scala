@@ -33,7 +33,7 @@ trait GenIdeaModule extends Module {
 }
 
 object GenIdeaModule {
-  import upickle.default._
+  import upickle.default.{ReadWriter, macroRW}
 
   case class Element(name: String, attributes: Map[String, String] = Map(), childs: Seq[Element] = Seq())
   object Element {

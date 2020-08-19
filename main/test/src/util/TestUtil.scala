@@ -6,6 +6,7 @@ import mill.api.Result
 import mill.api.Result.OuterStack
 import utest.assert
 import mill.api.Strict.Agg
+import mill.json.JsonRW
 import utest.framework.TestPath
 
 import scala.collection.mutable
@@ -65,7 +66,7 @@ object TestUtil {
                   (implicit ctx0: mill.define.Ctx)
     extends Test(inputs) with Target[Int]{
     val ctx = ctx0.copy(segments = ctx0.segments ++ Seq(ctx0.segment))
-    val readWrite = upickle.default.readwriter[Int]
+    val readWrite = JsonRW[Int]
 
 
   }

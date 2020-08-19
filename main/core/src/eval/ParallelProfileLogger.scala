@@ -2,6 +2,7 @@ package mill.eval
 
 import java.io.PrintStream
 import java.nio.file.{Files, StandardOpenOption}
+import mill.json.JsonWriter
 
 
 class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
@@ -30,7 +31,7 @@ class ParallelProfileLogger(outPath: os.Path, startTime: Long) {
       else traceStream.println("[")
       used = true
       traceStream.print(
-        upickle.default.write(
+        JsonWriter[TraceEvent].write(
           TraceEvent(
             name = task,
             cat = cat,

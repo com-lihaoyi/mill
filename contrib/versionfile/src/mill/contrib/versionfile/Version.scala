@@ -53,7 +53,7 @@ object Version {
         Release(major.toInt, minor.toInt, patch.toInt)
 
       case MinorSnapshotVersion(major, minor, patch) =>
-        Snapshot(major.toInt, minor.toInt, patch.toInt)        
+        Snapshot(major.toInt, minor.toInt, patch.toInt)
     }
 
   case class Release(major: Int, minor: Int, patch: Int) extends Version
@@ -62,7 +62,6 @@ object Version {
   val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.(\d+)-SNAPSHOT""".r
 
-  import upickle.core._
   import upickle.default._
 
   implicit val readWriter: ReadWriter[Version] =

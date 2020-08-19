@@ -578,7 +578,7 @@ object Jvm {
   }
 
   object JarManifest {
-    implicit val jarManifestRW: RW[JarManifest] = upickle.default.macroRW
+    implicit val jarManifestRW: RW[JarManifest] = macroRW
     final val Default = createManifest(None)
   }
 

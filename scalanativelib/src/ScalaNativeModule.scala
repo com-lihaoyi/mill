@@ -11,7 +11,6 @@ import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, T
 import mill.api.Loose.Agg
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
-import upickle.default.{ReadWriter => RW, macroRW}
 import mill.scalanativelib.api._
 
 
@@ -257,7 +256,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
         s""""${t.name}" -> $inst"""
       }
       .mkString(", ")
-    
+
       (frameworks, testsMap)
   }
 
