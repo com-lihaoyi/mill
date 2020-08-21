@@ -175,8 +175,8 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.7.4](https://github.com/lihaoyi/mill/milestone/43?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.4...master).*
+[milestone after 0.8.0](https://github.com/lihaoyi/mill/milestone/44?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.8.0...master).*
 
 ### 0.8.0 - 2020-07-20
 
@@ -184,6 +184,11 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.4...master
 * Use default coursier repos (#931)
 * Work around relative paths issue on windows (#936)
 * Support Scala.js versions >1.0.0 (#934)
+
+
+*For details refer to
+[milestone 0.8.0](https://github.com/lihaoyi/mill/milestone/43?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.7.4...0.8.0).*
 
 ### 0.7.4 - 2020-07-03
 
