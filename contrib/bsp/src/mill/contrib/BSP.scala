@@ -1,6 +1,5 @@
 package mill.contrib
 
-import ammonite.runtime.SpecialClassLoader
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
@@ -22,7 +21,7 @@ case class BspConfigJson(
     millVersion: String,
     bspVersion: String,
     languages: Seq[String]
-) extends BspConnectionDetails(name, argv.asJava, millVersion, bspVersion, languages.asJava) {}
+) extends BspConnectionDetails(name, argv.asJava, millVersion, bspVersion, languages.asJava)
 
 object BspConfigJson {
   implicit val rw: ReadWriter[BspConfigJson] = macroRW
