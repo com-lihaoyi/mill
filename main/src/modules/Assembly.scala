@@ -3,10 +3,8 @@ package mill.modules
 import java.io.InputStream
 import java.util.jar.JarFile
 import java.util.regex.Pattern
-
-import geny.Generator
 import mill.Agg
-
+import os.Generator
 import scala.collection.JavaConverters._
 
 object Assembly {
@@ -38,7 +36,10 @@ object Assembly {
     case class ExcludePattern(pattern: Pattern) extends Rule
   }
 
-  def groupAssemblyEntries(inputPaths: Agg[os.Path], assemblyRules: Seq[Assembly.Rule]): Map[String, GroupedEntry] = {
+  def groupAssemblyEntries(
+    mappings: Generator[(String, UnopenedInputStream)],
+    assemblyRules: Seq[Assembly.Rule]
+  ): Map[String, GroupedEntry] = {
     val rulesMap = assemblyRules.collect {
       case r@Rule.Append(path, _) => path -> r
       case r@Rule.Exclude(path) => path -> r
@@ -52,23 +53,19 @@ object Assembly {
       case Rule.ExcludePattern(pattern) => pattern.asPredicate().test(_)
     }
 
-    classpathIterator(inputPaths).foldLeft(Map.empty[String, GroupedEntry]) {
-      case (entries, entry) =>
-        val mapping = entry.mapping
-
+    mappings.foldLeft(Map.empty[String, GroupedEntry]) {
+      case (entries, (mapping, entry)) =>
         rulesMap.get(mapping) match {
           case Some(_: Assembly.Rule.Exclude) =>
             entries
           case Some(a: Assembly.Rule.Append) =>
             val newEntry = entries.getOrElse(mapping, AppendEntry(Nil, a.separator)).append(entry)
             entries + (mapping -> newEntry)
-
           case _ if excludePatterns.exists(_(mapping)) =>
             entries
           case _ if appendPatterns.exists(_(mapping)) =>
             val newEntry = entries.getOrElse(mapping, AppendEntry.empty).append(entry)
             entries + (mapping -> newEntry)
-
           case _ if !entries.contains(mapping) =>
             entries + (mapping -> WriteOnceEntry(entry))
           case _ =>
@@ -77,52 +74,36 @@ object Assembly {
     }
   }
 
-  private def classpathIterator(inputPaths: Agg[os.Path]): Generator[AssemblyEntry] = {
-    Generator.from(inputPaths)
-      .filter(os.exists)
-      .flatMap {
-        p =>
-          if (os.isFile(p)) {
-            val jf = new JarFile(p.toIO)
-            Generator.from(
-              for(entry <- jf.entries().asScala if !entry.isDirectory)
-                yield JarFileEntry(entry.getName, () => jf.getInputStream(entry))
-            )
-          }
-          else {
-            os.walk.stream(p)
-              .filter(os.isFile)
-              .map(sub => PathEntry(sub.relativeTo(p).toString, sub))
-          }
+  def loadClasspath(
+    inputPaths: Agg[os.Path]
+  ): Generator[(String, UnopenedInputStream)] = {
+    Generator.from(inputPaths).filter(os.exists).flatMap { path =>
+      if (os.isFile(path)) {
+        val jarFile = new JarFile(path.toIO)
+        Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
+          .map(entry => entry.getName -> (() => jarFile.getInputStream(entry)))
       }
+      else {
+        os.walk
+          .stream(path)
+          .filter(os.isFile)
+          .map(subPath => subPath.relativeTo(path).toString -> (() => os.read.inputStream(subPath)))
+      }
+    }
   }
-}
 
-private[modules] sealed trait GroupedEntry {
-  def append(entry: AssemblyEntry): GroupedEntry
-}
+  type UnopenedInputStream = () => InputStream
 
-private[modules] object AppendEntry {
-  val empty: AppendEntry = AppendEntry(Nil, Assembly.defaultSeparator)
-}
-
-private[modules] case class AppendEntry(entries: List[AssemblyEntry], separator: String) extends GroupedEntry {
-  def append(entry: AssemblyEntry): GroupedEntry = copy(entries = entry :: this.entries)
-}
-
-private[modules] case class WriteOnceEntry(entry: AssemblyEntry) extends GroupedEntry {
-  def append(entry: AssemblyEntry): GroupedEntry = this
-}
-
-private[this] sealed trait AssemblyEntry {
-  def mapping: String
-  def inputStream: InputStream
-}
-
-private[this] case class PathEntry(mapping: String, path: os.Path) extends AssemblyEntry {
-  def inputStream: InputStream = os.read.inputStream(path)
-}
-
-private[this] case class JarFileEntry(mapping: String, getIs: () => InputStream) extends AssemblyEntry {
-  def inputStream: InputStream = getIs()
+  private[modules] sealed trait GroupedEntry {
+    def append(entry: UnopenedInputStream): GroupedEntry
+  }
+  private[modules] object AppendEntry {
+    val empty: AppendEntry = AppendEntry(Nil, defaultSeparator)
+  }
+  private[modules] case class AppendEntry(inputStreams: Seq[UnopenedInputStream], separator: String) extends GroupedEntry {
+    def append(inputStream: UnopenedInputStream): GroupedEntry = copy(inputStreams = inputStreams :+ inputStream)
+  }
+  private[modules] case class WriteOnceEntry(inputStream: UnopenedInputStream) extends GroupedEntry {
+    def append(entry: UnopenedInputStream): GroupedEntry = this
+  }
 }

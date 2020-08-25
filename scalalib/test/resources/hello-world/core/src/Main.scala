@@ -1,4 +1,3 @@
-import scala.collection._
 import java.nio.file.{Files, Paths}
 import java.sql.Date
 import java.time.LocalDate
