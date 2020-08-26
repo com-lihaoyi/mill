@@ -136,16 +136,12 @@ trait ScalaModule extends JavaModule { outer =>
       }
     )()
   }
-  override def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
+
+  override def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  override def upstreamAssemblyClasspath = T{
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
+  override def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 

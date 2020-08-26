@@ -220,10 +220,14 @@ trait JavaModule extends mill.Module
     * All classfiles and resources from upstream modules and dependencies
     * necessary to compile this module
     */
-  def compileClasspath = T{
+  def compileClasspath = T {
     transitiveLocalClasspath() ++
     resources() ++
     unmanagedClasspath() ++
+    resolvedIvyDeps()
+  }
+
+  def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{compileIvyDeps() ++ transitiveIvyDeps()})()
   }
 
@@ -231,9 +235,13 @@ trait JavaModule extends mill.Module
     * All upstream classfiles and resources necessary to build and executable
     * assembly, but without this module's contribution
     */
-  def upstreamAssemblyClasspath = T{
+  def upstreamAssemblyClasspath = T {
     transitiveLocalClasspath() ++
     unmanagedClasspath() ++
+    resolvedRunIvyDeps()
+  }
+
+  def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{runIvyDeps() ++ transitiveIvyDeps()})()
   }
 
