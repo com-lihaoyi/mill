@@ -1,11 +1,13 @@
 package mill.modules
 
-import java.io.InputStream
+import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
+import java.io.{ByteArrayInputStream, InputStream}
 import java.util.jar.JarFile
 import java.util.regex.Pattern
 import mill.Agg
 import os.Generator
 import scala.collection.JavaConverters._
+import scala.tools.nsc.io.Streamable
 
 object Assembly {
 
@@ -29,6 +31,8 @@ object Assembly {
     case class AppendPattern(pattern: Pattern) extends Rule
 
     case class Exclude(path: String) extends Rule
+
+    case class Relocate(from: String, to: String) extends Rule
 
     object ExcludePattern {
       def apply(pattern: String): ExcludePattern = ExcludePattern(Pattern.compile(pattern))
@@ -74,20 +78,35 @@ object Assembly {
     }
   }
 
-  def loadClasspath(
-    inputPaths: Agg[os.Path]
+  def loadShadedClasspath(
+    inputPaths: Agg[os.Path],
+    assemblyRules: Seq[Assembly.Rule]
   ): Generator[(String, UnopenedInputStream)] = {
+    val shadeRules = assemblyRules.collect {
+      case Rule.Relocate(from, to) => ShadePattern.Rename(List(from -> to)).inAll
+    }
+    val shader =
+      if (shadeRules.isEmpty) (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
+      else {
+        val shader = Shader.bytecodeShader(shadeRules, verbose = false)
+        (name: String, inputStream: UnopenedInputStream) =>
+          shader(Streamable.bytes(inputStream()), name).map {
+            case (bytes, name) =>
+              name -> (() => new ByteArrayInputStream(bytes) { override def close(): Unit = inputStream().close() })
+          }
+      }
+
     Generator.from(inputPaths).filter(os.exists).flatMap { path =>
       if (os.isFile(path)) {
         val jarFile = new JarFile(path.toIO)
         Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
-          .map(entry => entry.getName -> (() => jarFile.getInputStream(entry)))
+          .flatMap(entry => shader(entry.getName, () => jarFile.getInputStream(entry)))
       }
       else {
         os.walk
           .stream(path)
           .filter(os.isFile)
-          .map(subPath => subPath.relativeTo(path).toString -> (() => os.read.inputStream(subPath)))
+          .flatMap(subPath => shader(subPath.relativeTo(path).toString, () => os.read.inputStream(subPath)))
       }
     }
   }

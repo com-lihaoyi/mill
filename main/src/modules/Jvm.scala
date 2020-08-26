@@ -286,7 +286,7 @@ object Jvm {
     manifest.build.write(manifestOut)
     manifestOut.close()
 
-    val mappings = Assembly.loadClasspath(inputPaths)
+    val mappings = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
     Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
       case (mapping, entry) =>
         val path = zipFs.getPath(mapping).toAbsolutePath
