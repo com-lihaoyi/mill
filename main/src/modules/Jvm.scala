@@ -5,21 +5,19 @@ import java.lang.reflect.Modifier
 import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
-import java.util.Collections
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
-
-import coursier.{Dependency, Fetch, Repository, Resolution}
+import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
-import geny.Generator
+import java.util.Collections
 import mill.main.client.InputPumper
 import mill.eval.{PathRef, Result}
 import mill.util.Ctx
 import mill.api.IO
 import mill.api.Loose.Agg
-
+import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
-import scala.collection.JavaConverters._
-import upickle.default.{macroRW, ReadWriter => RW}
+import scala.jdk.CollectionConverters._
+import upickle.default.{ReadWriter => RW}
 
 object Jvm {
   /**
@@ -220,7 +218,6 @@ object Jvm {
     * be provided for the jar. An optional filter function may also be provided to
     * selectively include/exclude specific files.
     * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
-    * @param mainClass - optional main class for the jar
     * @param fileFilter - optional file filter to select files to be included.
     *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
     *                   return true if the file is to be included in the jar.
@@ -270,18 +267,14 @@ object Jvm {
                      base: Option[os.Path] = None,
                      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
                     (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
-
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
-    val hm = new java.util.HashMap[String, String]()
-
-    base match{
-      case Some(b) => os.copy(b, tmp)
-      case None => hm.put("create", "true")
+    val hm = base.fold(Map("create" -> "true")) { b =>
+      os.copy(b, tmp)
+      Map.empty
     }
-
-    val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm)
+    val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)
 
     val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
     Files.createDirectories(manifestPath.getParent)
@@ -293,30 +286,26 @@ object Jvm {
     manifest.build.write(manifestOut)
     manifestOut.close()
 
-    Assembly.groupAssemblyEntries(inputPaths, assemblyRules).view
-      .foreach {
-        case (mapping, AppendEntry(entries, separator)) =>
-          val path = zipFs.getPath(mapping).toAbsolutePath
-          val separated =
-            if (entries.isEmpty) Nil
-            else
-              entries.head +: entries.tail.flatMap { e =>
-                List(JarFileEntry(e.mapping, () => new ByteArrayInputStream(separator.getBytes)), e)
-              }
-          val concatenated = new SequenceInputStream(
-            Collections.enumeration(separated.map(_.inputStream).asJava))
-          writeEntry(path, concatenated, append = true)
-        case (mapping, WriteOnceEntry(entry)) =>
-          val path = zipFs.getPath(mapping).toAbsolutePath
-          writeEntry(path, entry.inputStream, append = false)
-      }
-
+    val mappings = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
+    Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
+      case (mapping, entry) =>
+        val path = zipFs.getPath(mapping).toAbsolutePath
+        entry match {
+          case entry: AppendEntry =>
+            val separated = entry.inputStreams
+              .flatMap(inputStream => Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream()))
+              .drop(1)
+            val concatenated = new SequenceInputStream(Collections.enumeration(separated.asJava))
+            writeEntry(path, concatenated, append = true)
+          case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
+        }
+    }
     zipFs.close()
-    val output = ctx.dest / "out.jar"
 
+    val output = ctx.dest / "out.jar"
     // Prepend shell script and make it executable
     if (prependShellScript.isEmpty) os.move(tmp, output)
-    else{
+    else {
       val lineSep = if (!prependShellScript.endsWith("\n")) "\n\r\n" else ""
       os.write(output, prependShellScript + lineSep)
       os.write.append(output, os.read.inputStream(tmp))
@@ -335,16 +324,16 @@ object Jvm {
     PathRef(output)
   }
 
-  private def writeEntry(p: java.nio.file.Path, is: InputStream, append: Boolean): Unit = {
+  private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
     val options =
       if(append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
     val outputStream = java.nio.file.Files.newOutputStream(p, options:_*)
-    IO.stream(is, outputStream)
+    IO.stream(inputStream, outputStream)
     outputStream.close()
-    is.close()
+    inputStream.close()
   }
 
   def universalScript(shellCommands: String,

@@ -87,6 +87,14 @@ object HelloWorldTests extends TestSuite {
     }
   }
 
+  object HelloWorldAkkaHttpRelocate extends HelloBase {
+    object core extends HelloWorldModuleWithMain {
+      def ivyDeps = akkaHttpDeps
+
+      def assemblyRules = Seq(Assembly.Rule.Relocate("akka.**", "shaded.akka.@1"))
+    }
+  }
+
   object HelloWorldAkkaHttpNoRules extends HelloBase {
     object core extends HelloWorldModuleWithMain {
       def ivyDeps = akkaHttpDeps
@@ -684,9 +692,7 @@ object HelloWorldTests extends TestSuite {
               referenceContent.contains("Akka Stream Reference Config File"),
               // our application config is present too
               referenceContent.contains("My application Reference Config File"),
-              referenceContent.contains(
-                """akka.http.client.user-agent-header="hello-world-client""""
-              )
+              referenceContent.contains("""akka.http.client.user-agent-header="hello-world-client"""")
             )
           }
 
@@ -766,6 +772,34 @@ object HelloWorldTests extends TestSuite {
           HelloWorldMultiExcludePattern.core.assembly,
           resourcePath = helloWorldMultiResourcePath
         )
+
+        def checkRelocate[M <: TestUtil.BaseModule](module: M,
+                                                   target: Target[PathRef],
+                                                   resourcePath: os.Path = resourcePath
+                                                  ) =
+          workspaceTest(module, resourcePath) { eval =>
+            val Right((result, _)) = eval.apply(target)
+
+            val jarFile = new JarFile(result.path.toIO)
+
+            assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
+            assert(jarEntries(jarFile).contains("shaded/akka/http/scaladsl/model/HttpEntity.class"))
+          }
+
+        'relocate - {
+          'withDeps - checkRelocate(
+            HelloWorldAkkaHttpRelocate,
+            HelloWorldAkkaHttpRelocate.core.assembly
+          )
+
+          'run - workspaceTest(
+            HelloWorldAkkaHttpRelocate,
+            resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-deps"
+          ) { eval =>
+            val Right((_, evalCount)) = eval.apply(HelloWorldAkkaHttpRelocate.core.runMain("Main"))
+            assert(evalCount > 0)
+          }
+        }
 
         'writeDownstreamWhenNoRule - {
           'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
