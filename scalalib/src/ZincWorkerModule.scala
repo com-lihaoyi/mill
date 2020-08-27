@@ -2,8 +2,8 @@ package mill.scalalib
 
 import mill.Agg
 import mill.T
-import mill.api.{Ctx, KeyedLockedCache, FixSizedCache}
-import mill.define.{Discover, ExternalModule, Worker}
+import mill.api.{Ctx, FixSizedCache, KeyedLockedCache}
+import mill.define.{Command, Discover, ExternalModule, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty}
 import mill.scalalib.api.ZincWorkerApi
@@ -13,7 +13,7 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
   lazy val millDiscover = Discover[this.type]
 }
 
-trait ZincWorkerModule extends mill.Module { self: CoursierModule =>
+trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath = T{
     mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories)
@@ -113,6 +113,21 @@ trait ZincWorkerModule extends mill.Module { self: CoursierModule =>
       Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
       ctx = Some(implicitly[mill.util.Ctx.Log])
     )
+  }
+
+  override def prepareOffline(): Command[Unit] = T.command {
+    super.prepareOffline()
+    classpath()
+    compilerInterfaceClasspath()
+    // worker()
+    ()
+  }
+
+  def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] = T.command {
+    classpath()
+    val cp = compilerInterfaceClasspath()
+    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp)
+    ()
   }
 
 }

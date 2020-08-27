@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.Repository
-import mill.define.{Target, Task, TaskModule}
+import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
@@ -252,9 +252,13 @@ trait ScalaModule extends JavaModule { outer =>
     localClasspath() ++
     transitiveLocalClasspath() ++
     unmanagedClasspath() ++
+    resolvedAmmoniteReplIvyDeps()
+  }
+
+  def resolvedAmmoniteReplIvyDeps = T{
     resolveDeps(T.task{
       runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
+        Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
     })()
   }
 
@@ -297,4 +301,11 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
+  override def prepareOffline(): Command[Unit] = T.command {
+    super.prepareOffline()
+    resolveDeps(scalacPluginIvyDeps)()
+    resolveDeps(scalaDocPluginIvyDeps)()
+    resolvedAmmoniteReplIvyDeps()
+    ()
+  }
 }
