@@ -21,7 +21,7 @@ object HelloWorldTests extends TestSuite {
   object HelloWorld extends HelloBase {
 
     object core extends HelloWorldModule {
-      override def twirlAdditionalImports: Seq[String] = testAdditionalImports
+      override def twirlImports = super.twirlImports() ++ testAdditionalImports
       override def twirlConstructorAnnotations: Seq[String] = testConstructorAnnotations
     }
 
