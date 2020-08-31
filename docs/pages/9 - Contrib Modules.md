@@ -177,7 +177,7 @@ object project extends BuildInfo {
 
 The contrib.bsp module was created in order to integrate the Mill build tool
 with IntelliJ IDEA via the Build Server Protocol (BSP). It implements most of
-the server side functionality described in BSP, and can therefore connect to a 
+the server side functionality described in BSP, and can therefore connect to a
 BSP client, including the one behind IntelliJ IDEA. This allows a lot of mill
 tasks to be executed from the IDE.
 
@@ -818,14 +818,6 @@ object app extends ScalaModule with TwirlModule {
 }
 ```
 
-### Twirl configuration options
-
-* `def twirlVersion: T[String]` (mandatory) - the version of the twirl compiler to use, like "1.3.15"
-* `def twirlAdditionalImports: Seq[String] = Nil` - the additional imports that will be added by twirl compiler to the top of all templates
-* `def twirlConstructorAnnotations: Seq[String] = Nil` - annotations added to the generated classes' constructors (note it only applies to templates with `@this(...)` constructors)
-* `def twirlCodec = Codec(Properties.sourceEncoding)` - the codec used to generate the files (the default is the same sbt plugin uses)
-* `def twirlInclusiveDot: Boolean = false`
-
 ### Details
 
 The following filesystem layout is expected:
@@ -833,9 +825,9 @@ The following filesystem layout is expected:
 ```text
 build.sc
 app/
-    views/
-        view1.scala.html
-        view2.scala.html
+  views/
+    view1.scala.html
+    view2.scala.html
 ```
 
 `TwirlModule` adds the `compileTwirl` task to the module:
@@ -861,7 +853,28 @@ object app extends ScalaModule with TwirlModule {
 }
 ```
 
-To add additional imports to all of the twirl templates:
+### Twirl configuration options
+
+#### `def twirlVersion: T[String]`
+
+Mandatory - the version of the twirl compiler to use, like "1.3.15".
+
+#### `def twirlImports: T[Seq[String]]`
+
+The imports that will be added by the twirl compiler to the top of all templates, defaults to [twirl's default imports](https://github.com/playframework/twirl/blob/1.5.0/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L166-L173):
+
+```scala
+Seq(
+  "_root_.play.twirl.api.TwirlFeatureImports._",
+  "_root_.play.twirl.api.TwirlHelperImports._",
+  "_root_.play.twirl.api.Html",
+  "_root_.play.twirl.api.JavaScript",
+  "_root_.play.twirl.api.Txt",
+  "_root_.play.twirl.api.Xml"
+)
+```
+
+To add additional imports to all of the twirl templates, override `twirlImports` in your build:
 
 ```scala
 // build.sc
@@ -871,32 +884,62 @@ import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
 
 object app extends ScalaModule with TwirlModule {
   def twirlVersion = "1.3.15"
-  override def twirlAdditionalImports = Seq("my.additional.stuff._", "my.other.stuff._")
+  override def twirlImports = super.twirlImports() ++ Seq("my.additional.stuff._", "my.other.stuff._")
+  def generatedSources = T{ Seq(compileTwirl().classes) }
+}
+
+// out.template.scala
+@import _root_.play.twirl.api.TwirlFeatureImports._
+// ...
+@import _root_.play.twirl.api.Xml
+@import my.additional.stuff._
+@import my.other.stuff._
+```
+
+To exclude the default imports, simply override `twirlImports` without calling `super`:
+
+```scala
+// build.sc
+object app extends ScalaModule with TwirlModule {
+  // ...
+  override def twirlImports = Seq("my.stuff._")
+}
+
+// out.template.scala
+@import my.stuff._
+```
+
+#### `def twirlFormats: Map[String, String]`
+
+A mapping of file extensions to class names that will be compiled by twirl, e.g. `Map("html" -> "play.twirl.api.HtmlFormat")`.
+By default `html`, `xml`, `js`, and `txt` files will be compiled using the corresponding [twirl format](https://github.com/playframework/twirl/blob/1.5.0/api/shared/src/main/scala/play/twirl/api/Formats.scala).
+
+To add additional formats, override `twirlFormats` in your build:
+
+```scala
+// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+
+object app extends ScalaModule with TwirlModule {
+  def twirlVersion = "1.3.15"
+  override def twirlFormats = super.twirlFormats() + Map("svg" -> "play.twirl.api.HtmlFormat")
   def generatedSources = T{ Seq(compileTwirl().classes) }
 }
 ```
 
-as the result all templates will get this line at the top:
+#### `def twirlConstructorAnnotations: Seq[String] = Nil`
 
-```scala
-@import "my.additional.stuff._"
-@import "my.other.stuff._"
-```
+Annotations added to the generated classes' constructors (note it only applies to templates with `@this(...)` constructors).
 
-Besides that, twirl compiler has default imports, at the moment these:
+#### `def twirlCodec = Codec(Properties.sourceEncoding)`
 
-```scala
-Seq(
-    "_root_.play.twirl.api.TwirlFeatureImports._",
-    "_root_.play.twirl.api.TwirlHelperImports._",
-    "_root_.play.twirl.api.Html",
-    "_root_.play.twirl.api.JavaScript",
-    "_root_.play.twirl.api.Txt",
-    "_root_.play.twirl.api.Xml"
-)
-```
+The codec used to generate the files (the default is the same sbt plugin uses).
 
-These imports will always be added to every template.  You don't need to list them if you override `twirlAdditionalImports`.
+#### `def twirlInclusiveDot: Boolean = false`
+
+Whether the twirl parser should parse with an inclusive dot.
 
 ### Example
 There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
