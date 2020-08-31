@@ -11,6 +11,7 @@ import mill.scalalib.api.CompilationResult
 
 import scala.jdk.CollectionConverters._
 import scala.io.Codec
+import scala.util.matching.Regex
 
 class TwirlWorker {
 
@@ -120,24 +121,33 @@ class TwirlWorker {
     twirlClass(twirlClasspath).getField("DEFAULT_IMPORTS")
       .get(null).asInstanceOf[java.util.Set[String]].asScala.toSeq
 
+  def defaultFormats: Map[String, String] =
+    Map(
+      "html" -> "play.twirl.api.HtmlFormat",
+      "xml" -> "play.twirl.api.XmlFormat",
+      "js" -> "play.twirl.api.JavaScriptFormat",
+      "txt" -> "play.twirl.api.TxtFormat")
+
   def compile(twirlClasspath: Agg[os.Path],
               sourceDirectories: Seq[os.Path],
               dest: os.Path,
               imports: Seq[String],
+              formats: Map[String, String],
               constructorAnnotations: Seq[String],
               codec: Codec,
               inclusiveDot: Boolean)
              (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
+    val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 
     def compileTwirlDir(inputDir: os.Path) {
-      os.walk(inputDir).filter(_.last.matches(".*.scala.(html|xml|js|txt)"))
+      os.walk(inputDir).filter(_.last.matches(s".*.scala.($formatExtsRegex)"))
         .foreach { template =>
-          val extFormat = twirlExtensionFormat(template.last)
+          val extClass = twirlExtensionClass(template.last, formats)
           compiler.compileTwirl(template.toIO,
             inputDir.toIO,
             dest.toIO,
-            s"play.twirl.api.$extFormat",
+            extClass,
             imports,
             constructorAnnotations,
             codec,
@@ -154,11 +164,10 @@ class TwirlWorker {
     mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
   }
 
-  private def twirlExtensionFormat(name: String) =
-    if (name.endsWith("html")) "HtmlFormat"
-    else if (name.endsWith("xml")) "XmlFormat"
-    else if (name.endsWith("js")) "JavaScriptFormat"
-    else "TxtFormat"
+  private def twirlExtensionClass(name: String, formats: Map[String, String]) =
+    formats.collectFirst { case (ext, klass) if name.endsWith(ext) => klass }.getOrElse {
+      throw new IllegalStateException(s"Unknown twirl extension for file: $name. Known extensions: ${formats.keys.mkString(", ")}")
+    }
 }
 
 trait TwirlWorkerApi {
