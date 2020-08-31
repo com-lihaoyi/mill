@@ -9,12 +9,15 @@ import java.nio.charset.Charset
 import mill.api.PathRef
 import mill.scalalib.api.CompilationResult
 
+import scala.jdk.CollectionConverters._
 import scala.io.Codec
+import scala.util.matching.Regex
+
 class TwirlWorker {
 
-  private var twirlInstanceCache = Option.empty[(Long, TwirlWorkerApi)]
+  private var twirlInstanceCache = Option.empty[(Long, (TwirlWorkerApi, Class[_]))]
 
-  private def twirl(twirlClasspath: Agg[os.Path]) = {
+  private def twirlCompilerAndClass(twirlClasspath: Agg[os.Path]): (TwirlWorkerApi, Class[_]) = {
     val classloaderSig = twirlClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     twirlInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
@@ -23,7 +26,7 @@ class TwirlWorker {
 
         // Switched to using the java api because of the hack-ish thing going on later.
         //
-        // * we'll need to construct a collection of additional imports (will need to also include the defaults and add the user-provided additional imports)
+        // * we'll need to construct a collection of imports
         // * we'll need to construct a collection of constructor annotations// *
         // * the default collection in scala api is a Seq[String]
         // * but it is defined in a different classloader (namely in cl)
@@ -57,26 +60,20 @@ class TwirlWorker {
           cl.loadClass("scala.io.Codec"),
           classOf[Boolean])
 
-        val defaultImportsMethod = twirlCompilerClass.getField("DEFAULT_IMPORTS")
-
-        val hashSetConstructor = hashSetClass.getConstructor(cl.loadClass("java.util.Collection"))
-
         val instance = new TwirlWorkerApi {
           override def compileTwirl(source: File,
                                     sourceDirectory: File,
                                     generatedDirectory: File,
                                     formatterType: String,
-                                    additionalImports: Seq[String],
+                                    imports: Seq[String],
                                     constructorAnnotations: Seq[String],
                                     codec: Codec,
                                     inclusiveDot: Boolean) {
-            // val defaultImports = play.japi.twirl.compiler.TwirlCompiler.DEFAULT_IMPORTS()
-            // val twirlAdditionalImports = new HashSet(defaultImports)
-            // additionalImports.foreach(twirlAdditionalImports.add)
-            val defaultImports = defaultImportsMethod.get(null) // unmodifiable collection
-            val twirlAdditionalImports = hashSetConstructor.newInstance(defaultImports).asInstanceOf[Object]
-            val hashSetAddMethod = twirlAdditionalImports.getClass.getMethod("add", classOf[Object])
-            additionalImports.foreach(hashSetAddMethod.invoke(twirlAdditionalImports, _))
+            // val twirlImports = new HashSet()
+            // imports.foreach(twirlImports.add)
+            val twirlImports = hashSetClass.newInstance().asInstanceOf[Object]
+            val hashSetAddMethod = twirlImports.getClass.getMethod("add", classOf[Object])
+            imports.foreach(hashSetAddMethod.invoke(twirlImports, _))
 
             // Codec.apply(Charset.forName(codec.charSet.name()))
             val twirlCodec = codecApplyMethod.invoke(null, charsetForNameMethod.invoke(null, codec.charSet.name()))
@@ -102,37 +99,56 @@ class TwirlWorker {
               sourceDirectory,
               generatedDirectory,
               formatterType,
-              twirlAdditionalImports,
+              twirlImports,
               twirlConstructorAnnotations,
               twirlCodec,
               Boolean.box(inclusiveDot)
             )
           }
         }
-        twirlInstanceCache = Some((classloaderSig, instance))
-        instance
+        twirlInstanceCache = Some(classloaderSig -> (instance -> twirlCompilerClass))
+        (instance, twirlCompilerClass)
     }
   }
+
+  private def twirl(twirlClasspath: Agg[os.Path]): TwirlWorkerApi =
+    twirlCompilerAndClass(twirlClasspath)._1
+
+  private def twirlClass(twirlClasspath: Agg[os.Path]): Class[_] =
+    twirlCompilerAndClass(twirlClasspath)._2
+
+  def defaultImports(twirlClasspath: Agg[os.Path]): Seq[String] =
+    twirlClass(twirlClasspath).getField("DEFAULT_IMPORTS")
+      .get(null).asInstanceOf[java.util.Set[String]].asScala.toSeq
+
+  def defaultFormats: Map[String, String] =
+    Map(
+      "html" -> "play.twirl.api.HtmlFormat",
+      "xml" -> "play.twirl.api.XmlFormat",
+      "js" -> "play.twirl.api.JavaScriptFormat",
+      "txt" -> "play.twirl.api.TxtFormat")
 
   def compile(twirlClasspath: Agg[os.Path],
               sourceDirectories: Seq[os.Path],
               dest: os.Path,
-              additionalImports: Seq[String],
+              imports: Seq[String],
+              formats: Map[String, String],
               constructorAnnotations: Seq[String],
               codec: Codec,
               inclusiveDot: Boolean)
              (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
+    val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 
     def compileTwirlDir(inputDir: os.Path) {
-      os.walk(inputDir).filter(_.last.matches(".*.scala.(html|xml|js|txt)"))
+      os.walk(inputDir).filter(_.last.matches(s".*.scala.($formatExtsRegex)"))
         .foreach { template =>
-          val extFormat = twirlExtensionFormat(template.last)
+          val extClass = twirlExtensionClass(template.last, formats)
           compiler.compileTwirl(template.toIO,
             inputDir.toIO,
             dest.toIO,
-            s"play.twirl.api.$extFormat",
-            additionalImports,
+            extClass,
+            imports,
             constructorAnnotations,
             codec,
             inclusiveDot
@@ -148,11 +164,10 @@ class TwirlWorker {
     mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
   }
 
-  private def twirlExtensionFormat(name: String) =
-    if (name.endsWith("html")) "HtmlFormat"
-    else if (name.endsWith("xml")) "XmlFormat"
-    else if (name.endsWith("js")) "JavaScriptFormat"
-    else "TxtFormat"
+  private def twirlExtensionClass(name: String, formats: Map[String, String]) =
+    formats.collectFirst { case (ext, klass) if name.endsWith(ext) => klass }.getOrElse {
+      throw new IllegalStateException(s"Unknown twirl extension for file: $name. Known extensions: ${formats.keys.mkString(", ")}")
+    }
 }
 
 trait TwirlWorkerApi {
@@ -160,7 +175,7 @@ trait TwirlWorkerApi {
                    sourceDirectory: File,
                    generatedDirectory: File,
                    formatterType: String,
-                   additionalImports: Seq[String],
+                   imports: Seq[String],
                    constructorAnnotations: Seq[String],
                    codec: Codec,
                    inclusiveDot: Boolean)

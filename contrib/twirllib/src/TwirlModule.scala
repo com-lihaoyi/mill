@@ -33,7 +33,11 @@ trait TwirlModule extends mill.Module {
     )
   }
 
-  def twirlAdditionalImports: Seq[String] = Nil
+  def twirlImports: T[Seq[String]] = T {
+    TwirlWorkerApi.twirlWorker.defaultImports(twirlClasspath().map(_.path))
+  }
+
+  def twirlFormats: T[Map[String, String]] = TwirlWorkerApi.twirlWorker.defaultFormats
 
   def twirlConstructorAnnotations: Seq[String] = Nil
 
@@ -47,7 +51,8 @@ trait TwirlModule extends mill.Module {
         twirlClasspath().map(_.path),
         twirlSources().map(_.path),
         T.dest,
-        twirlAdditionalImports,
+        twirlImports(),
+        twirlFormats(),
         twirlConstructorAnnotations,
         twirlCodec,
         twirlInclusiveDot)
