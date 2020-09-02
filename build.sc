@@ -362,11 +362,12 @@ object contrib extends MillModule {
   }
 
   object twirllib extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object playlib extends MillModule {
-    def moduleDeps = Seq(scalalib, twirllib, playlib.api)
+    def moduleDeps = Seq(twirllib, playlib.api)
+    def compileModuleDeps = Seq(scalalib)
 
     def testArgs = T {
       val mapping = Map(
@@ -404,15 +405,16 @@ object contrib extends MillModule {
   }
 
   object scalapblib extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object scoverage extends MillModule {
     object api extends MillApiModule {
-      def moduleDeps = Seq(main.api)
+      def compileModuleDeps = Seq(main.api)
     }
 
-    def moduleDeps = Seq(scalalib, scoverage.api)
+    def moduleDeps = Seq(scoverage.api)
+    def compileModuleDeps = Seq(scalalib)
 
     def testArgs = T {
       val mapping = Map(
@@ -432,14 +434,18 @@ object contrib extends MillModule {
     object worker extends MillApiModule {
       def moduleDeps = Seq(scoverage.api)
       def compileIvyDeps = T{
-        // compile-time only, need to provide the correct scoverage version runtime
-        Agg(Deps.scalacScoveragePlugin)
+        Agg(
+          // compile-time only, need to provide the correct scoverage version runtime
+          Deps.scalacScoveragePlugin,
+          // provided by mill runtime
+          Deps.osLib
+        )
       }
     }
   }
 
   object buildinfo extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
     // why do I need this?
     def testArgs = T{
       Seq("-Djna.nosys=true") ++
@@ -449,7 +455,7 @@ object contrib extends MillModule {
    }
 
   object tut extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
     def testArgs = T{
       scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs()
@@ -457,17 +463,17 @@ object contrib extends MillModule {
   }
 
   object flyway extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
     def ivyDeps = Agg(Deps.flywayCore)
   }
 
 
   object docker extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object bloop extends MillModule {
-    def moduleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
       Deps.bloopConfig
     )
@@ -476,7 +482,7 @@ object contrib extends MillModule {
 
   object bsp extends MillModule {
 
-    def moduleDeps = Seq(scalalib, scalajslib, main, scalanativelib)
+    def compileModuleDeps = Seq(scalalib, scalajslib, main, scalanativelib)
     def ivyDeps = Agg(
       Deps.bsp,
       Deps.ujsonCirce,
@@ -485,15 +491,15 @@ object contrib extends MillModule {
   }
 
   object artifactory extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object versionfile extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
   object bintray extends MillModule {
-    def moduleDeps = Seq(scalalib)
+    def compileModuleDeps = Seq(scalalib)
   }
 
 }
