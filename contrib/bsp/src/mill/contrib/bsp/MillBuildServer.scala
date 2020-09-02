@@ -142,7 +142,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
             val module = getModule(targetId, modules)
             val sources = evaluateInformativeTask(
               evaluator,
-              module.resolveDeps(T.task(module.compileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
+              module.resolveDeps(T.task(module.transitiveCompileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
               Agg.empty[PathRef]
             )
             val unmanaged = evaluateInformativeTask(

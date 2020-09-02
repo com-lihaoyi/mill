@@ -100,7 +100,7 @@ trait TutModule extends ScalaModule {
     Lib.resolveDependencies(
       repositories :+ MavenRepository(s"https://dl.bintray.com/tpolecat/maven"),
       Lib.depToDependency(_, scalaVersion()),
-      compileIvyDeps() ++ transitiveIvyDeps() ++ Seq(
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps() ++ Seq(
         ivy"org.tpolecat::tut-core:${tutVersion()}"
       )
     )

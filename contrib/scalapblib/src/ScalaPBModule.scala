@@ -72,7 +72,7 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { compileIvyDeps() ++ transitiveIvyDeps() })()
+    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
   def scalaPBUnpackProto: T[PathRef] = T {
