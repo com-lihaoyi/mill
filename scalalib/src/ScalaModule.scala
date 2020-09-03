@@ -20,6 +20,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+    override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
   }
 
