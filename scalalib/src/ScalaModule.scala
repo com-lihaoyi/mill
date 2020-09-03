@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.Repository
-import mill.define.{Target, Task, TaskModule}
+import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
@@ -20,6 +20,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+    override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
   }
 
@@ -136,16 +137,12 @@ trait ScalaModule extends JavaModule { outer =>
       }
     )()
   }
-  override def compileClasspath = T{
-    transitiveLocalClasspath() ++
-    resources() ++
-    unmanagedClasspath() ++
+
+  override def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{transitiveCompileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
-  override def upstreamAssemblyClasspath = T{
-    transitiveLocalClasspath() ++
-    unmanagedClasspath() ++
+  override def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task{runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
@@ -256,9 +253,13 @@ trait ScalaModule extends JavaModule { outer =>
     localClasspath() ++
     transitiveLocalClasspath() ++
     unmanagedClasspath() ++
+    resolvedAmmoniteReplIvyDeps()
+  }
+
+  def resolvedAmmoniteReplIvyDeps = T{
     resolveDeps(T.task{
       runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
-      Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
+        Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
     })()
   }
 
@@ -301,4 +302,11 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
+  override def prepareOffline(): Command[Unit] = T.command {
+    super.prepareOffline()
+    resolveDeps(scalacPluginIvyDeps)()
+    resolveDeps(scalaDocPluginIvyDeps)()
+    resolvedAmmoniteReplIvyDeps()
+    ()
+  }
 }
