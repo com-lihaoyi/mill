@@ -26,7 +26,7 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers=T{
       Map(
         "scalaVersion" -> scalaVersion(),
-      )
+        )
     }
   }
 
@@ -36,15 +36,15 @@ object BuildInfoTests extends TestSuite {
     def buildInfoMembers=T{
       Map(
         "scalaVersion" -> scalaVersion()
-      )
+        )
     }
   }
 
   val testModuleSourcesPath: Path = os.pwd / 'contrib / 'buildinfo / 'test / 'resources / "buildinfo"
 
   def workspaceTest[T](m: TestUtil.BaseModule)
-                      (t: TestEvaluator => T)
-                      (implicit tp: TestPath): T = {
+    (t: TestEvaluator => T)
+    (implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -59,15 +59,23 @@ object BuildInfoTests extends TestSuite {
       'createSourcefile - workspaceTest(BuildInfo){ eval =>
         val expected =
           s"""|
+              |import ujson._
+              |
               |object BuildInfo {
               |  def scalaVersion = "2.12.4"
+              |
+              |  val toMap = Map[String, String](
+              |    "scalaVersion" -> scalaVersion)
+              |
+              |  val toJson = Js.Obj(
+              |    "scalaVersion" -> scalaVersion)
               |}""".stripMargin
         val Right(((result, _), evalCount)) = eval.apply(BuildInfo.generatedBuildInfo)
         assert(
           result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
             os.read(result.head.path) == expected
-        )
+          )
       }
 
       'notCreateEmptySourcefile - workspaceTest(EmptyBuildInfo){ eval =>
@@ -75,22 +83,30 @@ object BuildInfoTests extends TestSuite {
         assert(
           result.isEmpty &&
             !os.exists(eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala")
-        )
+          )
       }
 
       'supportCustomSettings - workspaceTest(BuildInfoSettings){ eval =>
         val expected =
           s"""|package foo
               |
+              |import ujson._
+              |
               |object bar {
               |  def scalaVersion = "2.12.4"
+              |
+              |  val toMap = Map[String, String](
+              |    "scalaVersion" -> scalaVersion)
+              |
+              |  val toJson = Js.Obj(
+              |    "scalaVersion" -> scalaVersion)
               |}""".stripMargin
         val Right(((result, _), evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
         assert(
           result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
             os.read(result.head.path) == expected
-        )
+          )
       }
 
       'compile - workspaceTest(BuildInfo){ eval =>
@@ -104,7 +120,7 @@ object BuildInfoTests extends TestSuite {
         assert(
           os.exists(runResult),
           os.read(runResult) == scalaVersionString
-        )
+          )
       }
 
       "generatedSources must be a folder" - workspaceTest(BuildInfo) { eval =>
@@ -114,7 +130,7 @@ object BuildInfoTests extends TestSuite {
           result.size == 1,
           os.isDir(result.head.path),
           result.head.path == buildInfoGeneratedSourcesFolder
-        )
+          )
       }
     }
   }
