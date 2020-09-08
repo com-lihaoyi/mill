@@ -1,9 +1,10 @@
 package mill.contrib.buildinfo
 
 import mill.T
-import mill.api.Logger
-import mill.api.PathRef
-import mill.scalalib.ScalaModule
+import mill.Agg
+import mill.api.{ Logger, Loose, PathRef }
+import mill.define.Target
+import mill.scalalib.{ Dep, ScalaModule, DepSyntax }
 
 trait BuildInfo extends ScalaModule {
 
@@ -26,14 +27,20 @@ trait BuildInfo extends ScalaModule {
             case (name, value) => s"""  def ${name} = "${value}""""
           }
           .mkString("\n")
+      val map = members.map {
+        case (name, _) => s""""${name}" -> ${name}"""
+      }.mkString(",")
       logger.debug(s"Generating object [${buildInfoPackageName.map(_ + ".").getOrElse("")}${buildInfoObjectName}] with [${members.size}] members to [${outputFile}]")
       os.write(
         outputFile,
         s"""|${buildInfoPackageName.map(packageName => s"package ${packageName}\n").getOrElse("")}
             |object ${buildInfoObjectName} {
             |$internalMembers
+            |
+            |  val toMap = Map[String, String](
+            |    $map)
             |}""".stripMargin
-      )
+        )
       (Seq(PathRef(outputFile)), PathRef(T.dest))
     } else {
       logger.debug("No build info member defined, skipping code generation")
