@@ -8,8 +8,6 @@ import mill.scalalib.{ Dep, ScalaModule, DepSyntax }
 
 trait BuildInfo extends ScalaModule {
 
-  override def ivyDeps = super.ivyDeps() ++ Agg(ivy"com.lihaoyi::ujson-circe:1.2.0")
-
   def buildInfoPackageName: Option[String] = None
 
   def buildInfoObjectName: String = "BuildInfo"
@@ -36,15 +34,10 @@ trait BuildInfo extends ScalaModule {
       os.write(
         outputFile,
         s"""|${buildInfoPackageName.map(packageName => s"package ${packageName}\n").getOrElse("")}
-            |import ujson._
-            |
             |object ${buildInfoObjectName} {
             |$internalMembers
             |
             |  val toMap = Map[String, String](
-            |    $map)
-            |
-            |  val toJson = Js.Obj(
             |    $map)
             |}""".stripMargin
         )

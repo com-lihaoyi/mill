@@ -61,15 +61,10 @@ object BuildInfoTests extends TestSuite {
       'createSourcefile - workspaceTest(BuildInfo) { eval =>
         val expected =
           s"""|
-              |import ujson._
-              |
               |object BuildInfo {
               |  def scalaVersion = "2.12.4"
               |
               |  val toMap = Map[String, String](
-              |    "scalaVersion" -> scalaVersion)
-              |
-              |  val toJson = Js.Obj(
               |    "scalaVersion" -> scalaVersion)
               |}""".stripMargin
         val Right(((result, _), evalCount)) =
@@ -95,15 +90,10 @@ object BuildInfoTests extends TestSuite {
         val expected =
           s"""|package foo
               |
-              |import ujson._
-              |
               |object bar {
               |  def scalaVersion = "2.12.4"
               |
               |  val toMap = Map[String, String](
-              |    "scalaVersion" -> scalaVersion)
-              |
-              |  val toJson = Js.Obj(
               |    "scalaVersion" -> scalaVersion)
               |}""".stripMargin
         val Right(((result, _), evalCount)) =
