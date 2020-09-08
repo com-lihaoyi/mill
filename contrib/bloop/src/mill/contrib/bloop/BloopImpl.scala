@@ -356,7 +356,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     val bloopResolution: Task[BloopConfig.Resolution] = T.task {
       val repos = module.repositories
       val allIvyDeps = module
-        .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.compileIvyDeps()
+        .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.transitiveCompileIvyDeps()
       val coursierDeps =
         allIvyDeps.map(module.resolveCoursierDependency()).toList
       BloopConfig.Resolution(artifacts(repos, coursierDeps))
@@ -371,13 +371,13 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       case _              => T.task(Loose.Agg.empty[Dep])
     }
 
-    val ivyDepsClasspath =
-      module
-        .resolveDeps(T.task {
-          module.compileIvyDeps() ++ module
-            .transitiveIvyDeps() ++ scalaLibIvyDeps()
+    val ivyDepsClasspath = module
+      .resolveDeps(T.task {
+          module.transitiveCompileIvyDeps() ++
+            module.transitiveIvyDeps() ++
+            scalaLibIvyDeps()
         })
-        .map(_.map(_.path).toSeq)
+      .map(_.map(_.path).toSeq)
 
     def transitiveClasspath(m: JavaModule): Task[Seq[Path]] = T.task {
       m.moduleDeps.map(classes) ++

@@ -134,7 +134,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         case x: ScalaModule => x.scalaLibraryIvyDeps
         case _ => T.task{Loose.Agg.empty[Dep]}
       }
-      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod.compileIvyDeps()}
+      val allIvyDeps = T.task{mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod.transitiveCompileIvyDeps()}
 
       val scalaCompilerClasspath = mod match{
         case x: ScalaModule => x.scalaCompilerClasspath

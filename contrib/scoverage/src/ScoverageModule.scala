@@ -109,6 +109,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def generatedSources: Target[Seq[PathRef]] = T{ outer.generatedSources() }
     override def allSources: Target[Seq[PathRef]] = T{ outer.allSources() }
     override def moduleDeps: Seq[JavaModule] = outer.moduleDeps
+    override def compileModuleDeps: Seq[JavaModule] = outer.compileModuleDeps
     override def sources: Sources = T.sources { outer.sources() }
     override def resources: Sources = T.sources { outer.resources() }
     override def scalaVersion = T{ outer.scalaVersion() }

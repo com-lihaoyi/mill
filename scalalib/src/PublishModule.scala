@@ -30,8 +30,13 @@ trait PublishModule extends JavaModule { outer =>
       .map(_.copy(scope = Scope.Provided))
 
     val modulePomDeps = T.sequence(moduleDeps.map(_.publishSelfDependency))()
+    val compileModulePomDeps = T.sequence(compileModuleDeps.collect {
+      case m: PublishModule => m.publishSelfDependency
+    })()
 
-    ivyPomDeps ++ compileIvyPomDeps ++ modulePomDeps.map(Dependency(_, Scope.Compile))
+    ivyPomDeps ++ compileIvyPomDeps ++
+      modulePomDeps.map(Dependency(_, Scope.Compile)) ++
+      compileModulePomDeps.map(Dependency(_, Scope.Provided))
   }
 
   def pom: Target[PathRef] = T {

@@ -95,6 +95,32 @@ trait JavaModule extends mill.Module
   /** The direct dependencies of this module */
   def moduleDeps = Seq.empty[JavaModule]
 
+  /** The compile-only direct dependencies of this module. */
+  def compileModuleDeps = Seq.empty[JavaModule]
+
+  /** The compile-only transitive ivy dependencies of this module and all it's upstream compile-only modules. */
+  def transitiveCompileIvyDeps: T[Agg[Dep]] = T{
+    // We never include compile-only dependencies transitively, but we must include normal transitive dependencies!
+    compileIvyDeps() ++ T.traverse(compileModuleDeps)(_.transitiveIvyDeps)().flatten
+  }
+
+  /**
+    * Show the module dependencies.
+    * @param recursive If `true` include all recursive module dependencies, else only show direct dependencies.
+    */
+  def showModuleDeps(recursive: Boolean = false) = T.command {
+    val normalDeps = if (recursive) recursiveModuleDeps else moduleDeps
+    val compileDeps = if(recursive) compileModuleDeps.flatMap(_.transitiveModuleDeps).distinct else compileModuleDeps
+    val deps = (normalDeps ++ compileDeps).distinct
+    val asString = s"${if(recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:\n\t${
+      deps.map { dep =>
+        dep.millModuleSegments.render ++
+          (if (compileModuleDeps.contains(dep) || !normalDeps.contains(dep)) " (compile)" else "")
+      }.mkString("\n\t")
+    }"
+    T.log.outputStream.println(asString)
+  }
+
   /** The direct and indirect dependencies of this module */
   def recursiveModuleDeps: Seq[JavaModule] = {
     moduleDeps.flatMap(_.transitiveModuleDeps).distinct
@@ -123,14 +149,14 @@ trait JavaModule extends mill.Module
     * The upstream compilation output of all this module's upstream modules
     */
   def upstreamCompileOutput = T{
-    T.traverse(recursiveModuleDeps)(_.compile)
+    T.traverse((recursiveModuleDeps ++ compileModuleDeps.flatMap(_.transitiveModuleDeps)).distinct)(_.compile)
   }
 
   /**
     * The transitive version of `localClasspath`
     */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T{
-    T.traverse(moduleDeps)(m =>
+    T.traverse(moduleDeps ++ compileModuleDeps)(m =>
       T.task{m.localClasspath() ++ m.transitiveLocalClasspath()}
     )().flatten
   }
@@ -229,7 +255,7 @@ trait JavaModule extends mill.Module
   }
 
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task{compileIvyDeps() ++ transitiveIvyDeps()})()
+    resolveDeps(T.task{transitiveCompileIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   /**
@@ -425,10 +451,10 @@ trait JavaModule extends mill.Module
   def ivyDepsTree(inverse: Boolean = false, withCompile: Boolean = false, withRuntime: Boolean = false): Command[Unit] =
     (withCompile, withRuntime) match {
       case (true, true) => T.command {
-          printDepsTree(inverse, T.task{ compileIvyDeps() ++ runIvyDeps() })
+          printDepsTree(inverse, T.task{ transitiveCompileIvyDeps() ++ runIvyDeps() })
         }
       case (true, false) => T.command {
-          printDepsTree(inverse, compileIvyDeps)
+          printDepsTree(inverse, transitiveCompileIvyDeps)
         }
       case (false, true) => T.command {
           printDepsTree(inverse, runIvyDeps)

@@ -139,7 +139,7 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task{compileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
+    resolveDeps(T.task{transitiveCompileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()})()
   }
 
   override def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
