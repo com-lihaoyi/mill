@@ -71,9 +71,9 @@ object BSP extends ExternalModule {
 
   // creates a Json with the BSP connection details
   def createBspConnectionJson(): String = {
-    val millPath = sys.props
-      .get("java.class.path")
-      .getOrElse(throw new IllegalStateException("System property java.class.path not set"))
+    val millScriptPath = sys.props
+      .get("MILL_SCRIPT_PATH")
+      .getOrElse(throw new IllegalStateException("System property MILL_SCRIPT_PATH not set"))
 
     write(
       BspConfigJson(
@@ -81,7 +81,7 @@ object BSP extends ExternalModule {
         Seq(
           "sh",
           "-c",
-          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millPath -i mill.contrib.BSP/start"
+          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millScriptPath -i mill.contrib.BSP/start"
         ),
         Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
         bspProtocolVersion,

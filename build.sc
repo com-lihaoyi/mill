@@ -589,7 +589,7 @@ def launcherScript(shellJvmArgs: Seq[String],
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(":")}" -DMILL_SCRIPT_PATH=$$(pwd)/$$0 $mainClass "$$@""""
       }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
@@ -638,7 +638,7 @@ def launcherScript(shellJvmArgs: Seq[String],
       val jvmArgsStr = cmdJvmArgs.mkString(" ")
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "!mill_jvm_opts!" else ""
-        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(";")}" $mainClass %*"""
+        s""""%JAVACMD%" $jvmArgsStr %JAVA_OPTS% $millJvmOpts -cp "${cmdClassPath.mkString(";")}" -DMILL_SCRIPT_PATH=%~dpnx0 $mainClass %*"""
       }
 
       s"""setlocal EnableDelayedExpansion
