@@ -414,7 +414,7 @@ object contrib extends MillModule {
     }
 
     def moduleDeps = Seq(scoverage.api)
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
 
     def testArgs = T {
       val mapping = Map(
@@ -455,7 +455,7 @@ object contrib extends MillModule {
    }
 
   object tut extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
     def testArgs = T{
       scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs()
@@ -463,7 +463,7 @@ object contrib extends MillModule {
   }
 
   object flyway extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
     def ivyDeps = Agg(Deps.flywayCore)
   }
 
@@ -482,7 +482,7 @@ object contrib extends MillModule {
 
   object bsp extends MillModule {
 
-    def compileModuleDeps = Seq(scalalib, scalajslib, main, scalanativelib)
+    override def compileModuleDeps = Seq(scalalib, scalajslib, main, scalanativelib)
     def ivyDeps = Agg(
       Deps.bsp,
       Deps.ujsonCirce,
@@ -499,7 +499,7 @@ object contrib extends MillModule {
   }
 
   object bintray extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
 }
