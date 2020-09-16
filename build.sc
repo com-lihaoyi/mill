@@ -362,12 +362,12 @@ object contrib extends MillModule {
   }
 
   object twirllib extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
   object playlib extends MillModule {
     def moduleDeps = Seq(twirllib, playlib.api)
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
 
     def testArgs = T {
       val mapping = Map(
@@ -405,12 +405,12 @@ object contrib extends MillModule {
   }
 
   object scalapblib extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
   object scoverage extends MillModule {
     object api extends MillApiModule {
-      def compileModuleDeps = Seq(main.api)
+      override def compileModuleDeps = Seq(main.api)
     }
 
     def moduleDeps = Seq(scoverage.api)
@@ -433,7 +433,7 @@ object contrib extends MillModule {
 
     object worker extends MillApiModule {
       def moduleDeps = Seq(scoverage.api)
-      def compileIvyDeps = T{
+      override def compileIvyDeps = T{
         Agg(
           // compile-time only, need to provide the correct scoverage version runtime
           Deps.scalacScoveragePlugin,
@@ -445,7 +445,7 @@ object contrib extends MillModule {
   }
 
   object buildinfo extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
     // why do I need this?
     def testArgs = T{
       Seq("-Djna.nosys=true") ++
@@ -469,11 +469,11 @@ object contrib extends MillModule {
 
 
   object docker extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
   object bloop extends MillModule {
-    def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
+    override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
     def ivyDeps = Agg(
       Deps.bloopConfig
     )
@@ -491,11 +491,11 @@ object contrib extends MillModule {
   }
 
   object artifactory extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
   object versionfile extends MillModule {
-    def compileModuleDeps = Seq(scalalib)
+    override def compileModuleDeps = Seq(scalalib)
   }
 
   object bintray extends MillModule {
