@@ -5,6 +5,7 @@ on:
 
 jobs:
   publish:
+    if: github.repository == 'lihaoyi/mill'
     needs: build
 
     strategy:

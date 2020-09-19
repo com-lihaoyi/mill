@@ -27,5 +27,8 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - run: ${{ matrix.buildcmd }}
+      - run: |
+          git config --add user.name "Mill GithHub Actions"
+          git config --add user.email "mill-ci@fake-tld.com"
+          ${{ matrix.buildcmd }}
 
