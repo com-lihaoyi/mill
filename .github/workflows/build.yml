@@ -18,6 +18,8 @@ jobs:
         exclude:
           - java-version: 11
             buildcmd: ci/test-mill-1.sh
+          - java-version: 11
+            buildcmd: ci/test-mill-release.sh
 
     runs-on: ${{ matrix.os }}
     continue-on-error: ${{ matrix.os == 'windows-latest' }}
