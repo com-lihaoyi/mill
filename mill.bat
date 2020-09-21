@@ -55,6 +55,9 @@ if not exist "%MILL%" (
     if [!VERSION_PREFIX!]==[0.4.] set DOWNLOAD_SUFFIX=
     set VERSION_PREFIX=
 
+    set _endbit=%MILL_VERSION:*\-=%
+    call set MILL_BASE_VERSION=%%MILL_VERSION:%_endbit%=%%
+
     rem there seems to be no way to generate a unique temporary file path (on native Windows)
     set DOWNLOAD_FILE=%MILL%.tmp
 
@@ -66,7 +69,7 @@ if not exist "%MILL%" (
     rem without /dynamic, github returns 403
     rem bitadmin is sometimes needlessly slow but it looks better with /priority foreground
     if not exist "%MILL_DOWNLOAD_PATH%" mkdir "%MILL_DOWNLOAD_PATH%"
-    bitsadmin /transfer millDownloadJob /dynamic /priority foreground "https://github.com/lihaoyi/mill/releases/download/%MILL_VERSION%/%MILL_VERSION%!DOWNLOAD_SUFFIX!" "!DOWNLOAD_FILE!"
+    bitsadmin /transfer millDownloadJob /dynamic /priority foreground "https://github.com/lihaoyi/mill/releases/download/%MILL_BASE_VERSION%/%MILL_VERSION%!DOWNLOAD_SUFFIX!" "!DOWNLOAD_FILE!"
     if not exist "!DOWNLOAD_FILE!" (
         echo Could not download mill %MILL_VERSION%
         exit 1
