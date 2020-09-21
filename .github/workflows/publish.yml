@@ -5,6 +5,7 @@ on:
 
 jobs:
   publish:
+    if: github.repository == 'lihaoyi/mill'
     needs: build
 
     strategy:
@@ -25,5 +26,3 @@ jobs:
           java-version: 1.8
 
       - run: ${{ matrix.buildcmd }}
-        if: github.repository == 'lihaoyi/mill'
-
