@@ -32,8 +32,7 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Prepare build
-        if: matrix.buildcmd == 'ci/test-mill-dev.sh'
+      - name: Prepare scala-native build
         run: sudo apt-get install libunwind8-dev libre2-dev
 
       - name: Run '${{ matrix.buildcmd }}'
