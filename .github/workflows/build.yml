@@ -34,7 +34,7 @@ jobs:
 
       - name: Prepare build
         if: matrix.buildcmd == 'ci/test-mill-dev.sh'
-        run: sudo apt-get install libunwind8-dev
+        run: sudo apt-get install libunwind8-dev libre2-dev
 
       - name: Run '${{ matrix.buildcmd }}'
         run: |
