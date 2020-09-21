@@ -1,10 +1,9 @@
 on: [push, pull_request]
 
-jobs: 
+jobs:
   build:
     strategy:
       matrix:
-        os: [ubuntu-latest]
         java-version: [1.8, 11]
         buildcmd:
           - ci/test-mill-release.sh
@@ -21,8 +20,7 @@ jobs:
           - java-version: 11
             buildcmd: ci/test-mill-release.sh
 
-    runs-on: ${{ matrix.os }}
-    continue-on-error: ${{ matrix.os == 'windows-latest' }}
+    runs-on: ubuntu-latest
 
     steps:
       - uses: actions/checkout@v2
@@ -40,4 +38,23 @@ jobs:
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@fake-tld.com"
           ${{ matrix.buildcmd }}
+
+  build_windows:
+    strategy:
+      matrix:
+        java-version: [1.8, 11]
+
+    runs-on: windows-latest
+    
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      - run: mill.bat -i "{__.publishLocal,assembly}"
+      - run: RD /S /Q %USERPROFILE%\.mill
+      - run: out\assembly\dest\mill -i "{main.test,scalajslib.test}"
 
