@@ -12,30 +12,27 @@ import os.Path
 import os.PathChunk
 
 trait Proguard extends ScalaModule {
-  def proguardVersion: T[String] = T { "4.4" }
+  def proguardVersion: T[String] = T { "7.0.0" }
 
   def shrink: T[Boolean] = T { true }
-
   def optimize: T[Boolean] = T { true }
-
   def obfuscate: T[Boolean] = T { true }
-
   def preverify: T[Boolean] = T { true }
 
-  // maybe this should be the assembly() target instead?
-  def inJars: T[Seq[PathRef]] = T { localClasspath() }
-
+  def inJar: T[PathRef] = T { assembly() }
   def outJar: T[PathRef] = T { PathRef(T.dest / "out.jar") }
-
-  def libraryJars: T[Seq[PathRef]] = T { upstreamAssemblyClasspath().iterator.to(Seq) }
+  def libraryJars: T[Seq[PathRef]] = T {
+    upstreamAssemblyClasspath().toSeq
+  }
 
   def proguard: T[PathRef] = T {
-    os
-      .proc(
-        "java -jar",
-        proguardClasspath().indexed.head.path,
+    val cmd = os.proc(
+        "java",
+        "-cp",
+        proguardClasspath().map(_.path).mkString(":"),
+        "proguard.ProGuard",
         "-injars",
-        inJars().map(_.path),
+        inJar().path,
         "-outjars",
         outJar().path,
         "-libraryjars",
@@ -43,17 +40,19 @@ trait Proguard extends ScalaModule {
         steps(),
         additionalOptions()
       )
-      .call(stdout = T.dest / "stdout.txt", stderr = T.dest / "stderr.txt")
+    System.out.println("Running command: " + cmd.command.flatMap(_.value).mkString(" "))
+    cmd.call(stdout = T.dest / "stdout.txt", stderr = T.dest / "stderr.txt")
 
-    // the call above already throws an exception on a non-zero exit code
+    // the call above already throws an exception on a non-zero exit code,
+    // so if we reached this point we've succeeded!
     outJar()
   }
 
   def proguardClasspath: T[Loose.Agg[PathRef]] = T {
     resolveDependencies(
-      Seq(Repositories.central),
+      Seq(Repositories.jcenter),
       Lib.depToDependencyJava(_),
-      Seq(ivy"net.sf.proguard:proguard:${proguardVersion()}"))
+      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}"))
   }
 
   def steps: T[Seq[String]] = T {
