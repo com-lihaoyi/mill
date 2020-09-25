@@ -75,6 +75,7 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
+  val proguard = ivy"com.guardsquare:proguard-core:7.0.0"
 }
 
 trait MillPublishModule extends PublishModule{
@@ -453,6 +454,11 @@ object contrib extends MillModule {
       scalalib.backgroundwrapper.testArgs()
     }
    }
+
+  object proguard extends MillModule {
+    override def moduleDeps = Seq(scalalib)
+    def ivyDeps = Agg(Deps.proguard, Deps.osLib)
+  }
 
   object tut extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
