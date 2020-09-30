@@ -3,6 +3,7 @@ package mill.contrib.bsp
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
+import java.net.URLClassLoader
 import java.util.concurrent.CompletableFuture
 import mill._
 import mill.api.{DummyTestReporter, Result, Strict}
@@ -134,9 +135,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val items = dependencySourcesParams.getTargets.asScala
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
           val all = if (targetId == millBuildTargetId) {
-            Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
+            Try(getClass.getClassLoader.asInstanceOf[URLClassLoader]).fold(
               _ => Seq.empty,
-              _.allJars.filter(url => isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
+              _.getURLs.filter(url => isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString).toSeq
             )
           } else {
             val module = getModule(targetId, modules)
