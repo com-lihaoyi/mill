@@ -1,4 +1,4 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import ch.epfl.scala.bsp4j.{BuildTargetIdentifier, CompileParams, RunParams, TestParams}
 

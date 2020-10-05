@@ -175,24 +175,11 @@ object project extends BuildInfo {
 
 ## BSP - Build Server Protocol
 
-The contrib.bsp module was created in order to integrate the Mill build tool
-with IntelliJ IDEA via the Build Server Protocol (BSP). It implements most of
-the server side functionality described in BSP, and can therefore connect to a
-BSP client, including the one behind IntelliJ IDEA. This allows a lot of mill
-tasks to be executed from the IDE.
+The contrib.bsp module is now included in mill by default and will eventually replace GenIdea.
 
-### Importing an existing mill project in IntelliJ via BSP
-
-1) Add the following import statement in the `build.sc` of your project:
-
-```scala
-import $ivy.`com.lihaoyi::mill-contrib-bsp:$MILL_VERSION`
+Run the following command in the working directory of your project to generate the BSP config:
 ```
-
-2) Run the following command in the working directory of your project:
-
-```
-mill mill.contrib.BSP/install
+mill mill.bsp.BSP/install
 ```
 
 ### Known Issues:

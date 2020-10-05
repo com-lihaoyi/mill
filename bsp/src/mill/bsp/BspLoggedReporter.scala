@@ -1,4 +1,4 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import java.io.File
 import java.util.concurrent.ConcurrentHashMap

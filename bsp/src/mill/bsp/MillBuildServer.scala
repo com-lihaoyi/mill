@@ -1,4 +1,4 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
@@ -6,8 +6,8 @@ import com.google.gson.JsonObject
 import java.util.concurrent.CompletableFuture
 import mill._
 import mill.api.{DummyTestReporter, Result, Strict}
-import mill.contrib.bsp.ModuleUtils._
-import mill.contrib.bsp.Utils._
+import mill.bsp.ModuleUtils._
+import mill.bsp.Utils._
 import mill.define.Segment.Label
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator

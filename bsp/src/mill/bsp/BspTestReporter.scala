@@ -1,4 +1,4 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import java.io.{PrintWriter, StringWriter}
 

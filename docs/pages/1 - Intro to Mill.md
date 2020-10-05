@@ -701,9 +701,16 @@ mill mill.scalalib.Dependency/showUpdates
 mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre-release versions
 ```
 
-## IntelliJ Support
+## IDE Support
 
-Mill supports IntelliJ by default. Use `mill mill.scalalib.GenIdea/idea` to
+Mill supports any IDE that is compatible with [BSP](https://build-server-protocol.github.io/), such as IntelliJ.  
+Use `mill mill.bsp.BSP/install` to generate the BSP project config for your build.
+
+It also enables Intellij to provide navigation & code-completion features within your build file itself.
+
+## IntelliJ Support (legacy)
+
+Mill supports IntelliJ configuration generation. Use `mill mill.scalalib.GenIdea/idea` to
 generate an IntelliJ project config for your build.
 
 This also configures IntelliJ to allow easy navigate & code-completion within
