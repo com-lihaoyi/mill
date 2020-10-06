@@ -27,13 +27,15 @@ trait Proguard extends ScalaModule {
   }
 
   def inJar: T[PathRef] = T { assembly() }
-  def outJar: T[PathRef] = T { PathRef(T.dest / "out.jar") }
+
   def libraryJars: T[Seq[PathRef]] = T {
     val javaJars = os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar")
     javaJars.toSeq.map(PathRef(_))
   }
 
   def proguard: T[PathRef] = T {
+    val outJar = PathRef(T.dest / "out.jar")
+
     val cmd = os.proc(
       "java",
       "-cp",
@@ -54,7 +56,7 @@ trait Proguard extends ScalaModule {
 
     // the call above already throws an exception on a non-zero exit code,
     // so if we reached this point we've succeeded!
-    outJar()
+    outJar
   }
 
   def proguardClasspath: T[Loose.Agg[PathRef]] = T {
