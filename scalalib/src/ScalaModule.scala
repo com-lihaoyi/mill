@@ -6,7 +6,7 @@ import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.isDotty
+import mill.scalalib.api.Util.{ isDotty, isDotty0, isDotty3 }
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
@@ -29,7 +29,7 @@ trait ScalaModule extends JavaModule { outer =>
     * @return
     */
   def scalaOrganization: T[String] = T {
-    if (isDotty(scalaVersion()))
+    if (isDotty0(scalaVersion()))
       "ch.epfl.lamp"
     else
       "org.scala-lang"
@@ -55,8 +55,10 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
     val artifacts =
-      if (isDotty(scalaVersion()))
+      if (isDotty0(scalaVersion()))
         Set("dotty-library", "dotty-compiler")
+      else if (isDotty3(scalaVersion()))
+        Set("scala3-library", "scala3-compiler")
       else
         Set("scala-library", "scala-compiler", "scala-reflect")
     if (!artifacts(d.module.name.value)) d

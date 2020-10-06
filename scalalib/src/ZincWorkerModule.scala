@@ -5,7 +5,7 @@ import mill.T
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache}
 import mill.define.{Command, Discover, ExternalModule, Worker}
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty}
+import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty, isDotty0}
 import mill.scalalib.api.ZincWorkerApi
 import mill.util.JsonFormatters._
 
@@ -83,7 +83,9 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     val (bridgeDep, bridgeName, bridgeVersion) =
       if (isDotty(scalaVersion0)) {
         val org = scalaOrganization
-        val name = "dotty-sbt-bridge"
+        val name =
+          if (isDotty0(scalaVersion0)) "dotty-sbt-bridge"
+          else "scala3-sbt-bridge"
         val version = scalaVersion
         (ivy"$org:$name:$version", name, version)
       } else {

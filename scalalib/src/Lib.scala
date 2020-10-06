@@ -70,9 +70,13 @@ object Lib{
     )
   }
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty0(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
+      )
+    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+      Agg(
+        ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
     else
       Agg(
@@ -81,19 +85,29 @@ object Lib{
       )
 
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty0(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
+      )
+    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+      Agg(
+        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
     else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty0(scalaVersion)) {
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
+      )
+    }
+    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+      Agg(
+        // note that dotty-library has a binary version suffix, hence the :: is necessary here
+        ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()
       )
     else
       Agg(

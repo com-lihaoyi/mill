@@ -9,7 +9,7 @@ import java.util.jar.JarFile
 
 import mill.api.Loose.Agg
 import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn}
-import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
+import mill.scalalib.api.Util.{grepJar, isDotty, isDotty0, isDotty3, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleLogger, ConsoleOut, MainAppender}
@@ -343,8 +343,10 @@ class ZincWorkerImpl(compilerBridge: Either[
 
     compilerCache.withCachedValue(compilersSig){
       val compilerJar =
-        if (isDotty(scalaVersion))
+        if (isDotty0(scalaVersion))
           grepJar(compilerClasspath, s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
+        else if (isDotty3(scalaVersion))
+          grepJar(compilerClasspath, s"scala3-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
         else
           compilerJarNameGrep(compilerClasspath, scalaVersion)
 
