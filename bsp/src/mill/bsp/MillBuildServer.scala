@@ -133,12 +133,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
       val items = dependencySourcesParams.getTargets.asScala
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
-          val all = if (targetId == millBuildTargetId) {
-            Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
-              _ => Seq.empty,
-              _.allJars.filter(url => isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
-            )
-          } else {
+          val all = if (targetId == millBuildTargetId)
+            getMillBuildClasspath(evaluator, source = true)
+          else {
             val module = getModule(targetId, modules)
             val sources = evaluateInformativeTask(
               evaluator,
@@ -375,10 +372,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
           val newItem =
             if (targetId == millBuildTargetId) {
-              val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
-                _ => Seq.empty,
-                _.allJars.filter(url => !isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
-              )
+              val classpath = getMillBuildClasspath(evaluator, source = false)
               Some(new ScalacOptionsItem(
                 targetId,
                 Seq.empty.asJava,
