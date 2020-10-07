@@ -6,7 +6,7 @@ import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{ isDotty, isDotty0, isDotty3 }
+import mill.scalalib.api.Util.{ isDotty, isDottyOrScala3, isScala3 }
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
@@ -29,7 +29,7 @@ trait ScalaModule extends JavaModule { outer =>
     * @return
     */
   def scalaOrganization: T[String] = T {
-    if (isDotty0(scalaVersion()))
+    if (isDotty(scalaVersion()))
       "ch.epfl.lamp"
     else
       "org.scala-lang"
@@ -55,9 +55,9 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def mapDependencies = T.task{ d: coursier.Dependency =>
     val artifacts =
-      if (isDotty0(scalaVersion()))
+      if (isDotty(scalaVersion()))
         Set("dotty-library", "dotty-compiler")
-      else if (isDotty3(scalaVersion()))
+      else if (isScala3(scalaVersion()))
         Set("scala3-library", "scala3-compiler")
       else
         Set("scala-library", "scala-compiler", "scala-reflect")
@@ -95,7 +95,7 @@ trait ScalaModule extends JavaModule { outer =>
   def scalacOptions = T{ Seq.empty[String] }
 
   def scalaDocOptions: T[Seq[String]] = T{
-    val defaults = if (isDotty(scalaVersion())) Seq(
+    val defaults = if (isDottyOrScala3(scalaVersion())) Seq(
       "-project", artifactName()
     ) else Seq()
     scalacOptions() ++ defaults
@@ -170,7 +170,7 @@ trait ScalaModule extends JavaModule { outer =>
     val javadocDir = outDir / 'javadoc
     os.makeDir.all(javadocDir)
 
-    if (isDotty(scalaVersion())) {
+    if (isDottyOrScala3(scalaVersion())) {
       // merge all docSources into one directory by copying all children
       for {
         ref <- docSources()
@@ -187,7 +187,7 @@ trait ScalaModule extends JavaModule { outer =>
     val files = allSourceFiles().map(_.path.toString)
 
     val outputOptions =
-      if (isDotty(scalaVersion()))
+      if (isDottyOrScala3(scalaVersion()))
         Seq("-siteroot", javadocDir.toNIO.toString)
       else
         Seq("-d", javadocDir.toNIO.toString)
@@ -212,7 +212,7 @@ trait ScalaModule extends JavaModule { outer =>
       ) match{
         case true =>
           val inputPath =
-            if (isDotty(scalaVersion())) javadocDir / '_site
+            if (isDottyOrScala3(scalaVersion())) javadocDir / '_site
             else javadocDir
           Result.Success(createJar(Agg(inputPath))(outDir))
         case false => Result.Failure("docJar generation failed")
@@ -230,7 +230,7 @@ trait ScalaModule extends JavaModule { outer =>
     }else{
       Jvm.runSubprocess(
         mainClass =
-          if (isDotty(scalaVersion()))
+          if (isDottyOrScala3(scalaVersion()))
             "dotty.tools.repl.Main"
           else
             "scala.tools.nsc.MainGenericRunner",

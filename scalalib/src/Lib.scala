@@ -70,11 +70,11 @@ object Lib{
     )
   }
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty0(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         ivy"$scalaOrganization::scala3-compiler:$scalaVersion".forceVersion()
       )
@@ -85,11 +85,11 @@ object Lib{
       )
 
   def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty0(scalaVersion))
+    if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
       )
@@ -98,13 +98,13 @@ object Lib{
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
   def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) =
-    if (mill.scalalib.api.Util.isDotty0(scalaVersion)) {
+    if (mill.scalalib.api.Util.isDotty(scalaVersion)) {
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
     }
-    else if (mill.scalalib.api.Util.isDotty3(scalaVersion))
+    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::scala3-library:$scalaVersion".forceVersion()

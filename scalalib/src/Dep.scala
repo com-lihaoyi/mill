@@ -5,7 +5,7 @@ import upickle.default.{macroRW, ReadWriter => RW}
 import CrossVersion._
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
-  import mill.scalalib.api.Util.{isDotty, DottyVersion, Scala3Version}
+  import mill.scalalib.api.Util.{isDottyOrScala3, DottyVersion, Scala3Version}
 
   def artifactName(binaryVersion: String, fullVersion: String, platformSuffix: String) = {
     val suffix = cross.suffixString(binaryVersion, fullVersion, platformSuffix)
@@ -54,7 +54,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
     */
   def withDottyCompat(scalaVersion: String): Dep =
     cross match {
-      case cross: Binary if isDotty(scalaVersion) =>
+      case cross: Binary if isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
             case Scala3Version(_, _, _) =>
