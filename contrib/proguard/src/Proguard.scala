@@ -35,9 +35,10 @@ trait Proguard extends ScalaModule {
 
   def proguard: T[PathRef] = T {
     val outJar = PathRef(T.dest / "out.jar")
+    val java = javaHome().path / "bin" / "java"
 
     val cmd = os.proc(
-      "java",
+      java,
       "-cp",
       proguardClasspath().map(_.path).mkString(":"),
       "proguard.ProGuard",
@@ -45,7 +46,7 @@ trait Proguard extends ScalaModule {
       "-injars",
       inJar().path,
       "-outjars",
-      outJar().path,
+      outJar.path,
       "-libraryjars",
       libraryJars().map(_.path).mkString(":"),
       entryPoint(),
