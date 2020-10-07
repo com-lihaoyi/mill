@@ -45,6 +45,7 @@ jobs:
         java-version: [1.8, 11]
 
     runs-on: windows-latest
+    continue-on-error: ${{ matrix.java-version == '11' }}
     
     steps:
       - uses: actions/checkout@v2
