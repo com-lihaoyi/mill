@@ -9,7 +9,7 @@ import java.util.jar.JarFile
 
 import mill.api.Loose.Agg
 import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn}
-import mill.scalalib.api.Util.{grepJar, isDotty, scalaBinaryVersion}
+import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleLogger, ConsoleOut, MainAppender}
@@ -115,7 +115,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       compilerClasspath,
       scalacPluginClasspath
     ) { compilers: Compilers =>
-      if (isDotty(scalaVersion)) {
+      if (isDottyOrScala3(scalaVersion)) {
         val dottydocClass = compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
         val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
         val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
@@ -160,7 +160,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       (Seq("javac") ++ argsArray).!
     } else if (allScala) {
       val compilerMain = classloader.loadClass(
-        if (isDotty(scalaVersion)) "dotty.tools.dotc.Main"
+        if (isDottyOrScala3(scalaVersion)) "dotty.tools.dotc.Main"
         else "scala.tools.nsc.Main"
       )
       compilerMain
@@ -345,6 +345,8 @@ class ZincWorkerImpl(compilerBridge: Either[
       val compilerJar =
         if (isDotty(scalaVersion))
           grepJar(compilerClasspath, s"dotty-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
+        else if (isScala3(scalaVersion))
+          grepJar(compilerClasspath, s"scala3-compiler_${scalaBinaryVersion(scalaVersion)}", scalaVersion)
         else
           compilerJarNameGrep(compilerClasspath, scalaVersion)
 
@@ -355,7 +357,7 @@ class ZincWorkerImpl(compilerBridge: Either[
           compilerClasspath,
           // we don't support too outdated dotty versions
           // and because there will be no scala 2.14, so hardcode "2.13." here is acceptable
-          if (isDotty(scalaVersion)) "2.13." else scalaVersion
+          if (isDottyOrScala3(scalaVersion)) "2.13." else scalaVersion
         ).toIO,
         compilerJar = compilerJar.toIO,
         allJars = combinedCompilerJars,

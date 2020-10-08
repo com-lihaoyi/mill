@@ -51,9 +51,9 @@ object CompilationResult {
 case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 
 object Util {
-  def isDotty(scalaVersion: String) =
-    scalaVersion.startsWith("0.") ||
-    scalaVersion.startsWith("3.")
+  def isDotty(scalaVersion: String) = scalaVersion.startsWith("0.")
+  def isScala3(scalaVersion: String) = scalaVersion.startsWith("3.")
+  def isDottyOrScala3(scalaVersion: String) = isDotty(scalaVersion) || isScala3(scalaVersion)
 
   // eg, grepJar(classPath, name = "scala-library", versionPrefix = "2.13.")
   // return first path in `classPath` that match:
@@ -82,7 +82,8 @@ object Util {
   val PartialVersion = raw"""(\d+)\.(\d+)\.*""".r
   val ReleaseVersion = raw"""(\d+)\.(\d+)\.(\d+)""".r
   val MinorSnapshotVersion = raw"""(\d+)\.(\d+)\.([1-9]\d*)-SNAPSHOT""".r
-  val DottyVersion = raw"""(0|3)\.(\d+)\.(\d+).*""".r
+  val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
+  val Scala3Version = raw"""3\.(\d+)\.(\d+)-(\w+).*""".r
   val DottyNightlyVersion = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
   val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
@@ -90,7 +91,8 @@ object Util {
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
       case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case DottyVersion("0", minor, _) => s"0.$minor"
+      case DottyVersion(minor, _) => s"0.$minor"
+      case Scala3Version(minor, patch, milestone) => s"3.$minor.$patch-$milestone"
       case TypelevelVersion(major, minor, _) => s"$major.$minor"
       case _ => scalaVersion
   }
@@ -140,7 +142,8 @@ object Util {
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) = scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) => major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
-      case DottyVersion(major, minor, _) => major.toInt > 0 || minor.toInt >= 13 // 0.13.0-RC1 or more
+      case DottyVersion(minor, _) => minor.toInt >= 13 // 0.13.0-RC1 or more
+      case Scala3Version(_, _, _) => true
       case _ => false
   }
 }
