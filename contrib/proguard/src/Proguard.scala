@@ -46,7 +46,7 @@ trait Proguard extends ScalaModule {
    * This is used for both the `java` command binary,
    * as well as the standard library jars.
    * Defaults to the `java.home` system property. */
-  def javaHome: T[PathRef] = T {
+  def javaHome: T[PathRef] = T.input {
     PathRef(Path(System.getProperty("java.home")))
   }
 
@@ -66,7 +66,7 @@ trait Proguard extends ScalaModule {
    *  The stdout and stderr of the command are written to the `dest/` folder.
    *  The output jar is written to `dest/our.jar`. */
   def proguard: T[PathRef] = T {
-    val outJar = PathRef(T.dest / "out.jar")
+    val outJar = T.dest / "out.jar"
     val java = javaHome().path / "bin" / "java"
 
     val cmd = os.proc(
@@ -78,7 +78,7 @@ trait Proguard extends ScalaModule {
       "-injars",
       inJar().path,
       "-outjars",
-      outJar.path,
+      outJar,
       "-libraryjars",
       libraryJars().map(_.path).mkString(":"),
       entryPoint(),
@@ -89,7 +89,7 @@ trait Proguard extends ScalaModule {
 
     // the call above already throws an exception on a non-zero exit code,
     // so if we reached this point we've succeeded!
-    outJar
+    PathRef(outJar)
   }
 
   /** The location of the proguard jar files.
