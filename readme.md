@@ -17,6 +17,21 @@ If you want to use Mill in your own projects, check out our documentation:
 
 - [Documentation](http://www.lihaoyi.com/mill/)
 
+Here is some quick example, so that you can imagine how it looks:
+
+```scala
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.1"
+}
+
+object bar extends ScalaModule {
+  def moduleDeps = Seq(foo)
+  def scalaVersion = "2.13.1"
+}
+```
+
 If you use Mill and like it, you will probably enjoy the following book by the Author:
 
 - [*Hands-on Scala Programming*](https://www.handsonscala.com/)
