@@ -8,6 +8,23 @@ If you develop or maintain a mill plugin, please create a [pull request](https:/
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 
+## Antlr
+[ANTLR parser generator](https://www.antlr.org/) support for mill.
+
+Project home: https://github.com/ml86/mill-antlr
+
+### Quickstart
+```scala
+import $ivy.`net.mlbox::mill-antlr:0.1.0`
+import net.mlbox.millantlr.AntlrModule
+
+object foo extends ScalaModule with AntlrModule {
+  override def antlrGrammarSources = T.sources {
+    Seq(os.pwd/"someGrammar.g4").map(PathRef(_))
+  }
+}
+```
+
 ## AspectJ
 
 [AspectJ compiler](https://projects.eclipse.org/projects/tools.aspectj) support for mill.
