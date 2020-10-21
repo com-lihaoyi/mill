@@ -1,10 +1,10 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import ch.epfl.scala.bsp4j._
 import mill._
 import mill.api.Result.{Skipped, Success}
 import mill.api.{BuildProblemReporter, Result}
-import mill.contrib.bsp.ModuleUtils._
+import mill.bsp.ModuleUtils._
 import mill.eval.Evaluator
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests

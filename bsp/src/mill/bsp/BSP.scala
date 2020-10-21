@@ -1,37 +1,22 @@
-package mill.contrib
+package mill.bsp
 
+import ch.epfl.scala.bsp4j.BuildClient
 import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
-import ch.epfl.scala.bsp4j._
-import mill._
-import mill.contrib.bsp.MillBuildServer
+import mill.{BuildInfo, T}
+import mill.bsp.{BspConfigJson, MillBuildServer}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.modules.Util
 import org.eclipse.lsp4j.jsonrpc.Launcher
-import upickle.default._
-import scala.collection.JavaConverters._
 import scala.concurrent.CancellationException
-import scala.util.Try
-
-case class BspConfigJson(
-    name: String,
-    argv: Seq[String],
-    millVersion: String,
-    bspVersion: String,
-    languages: Seq[String]
-) extends BspConnectionDetails(name, argv.asJava, millVersion, bspVersion, languages.asJava)
-
-object BspConfigJson {
-  implicit val rw: ReadWriter[BspConfigJson] = macroRW
-}
+import upickle.default.write
 
 object BSP extends ExternalModule {
-
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
-  lazy val millDiscover: Discover[BSP.this.type] = Discover[this.type]
+  lazy val millDiscover: Discover[this.type] = Discover[this.type]
   val bspProtocolVersion = "2.0.0"
   val languages = Seq("scala", "java")
 
@@ -73,7 +58,8 @@ object BSP extends ExternalModule {
   def createBspConnectionJson(): String = {
     val millPath = sys.props
       .get("java.class.path")
-      .getOrElse(throw new IllegalStateException("System property java.class.path not set"))
+      .getOrElse(throw new IllegalStateException(
+        "System property java.class.path not set"))
 
     write(
       BspConfigJson(
@@ -81,7 +67,7 @@ object BSP extends ExternalModule {
         Seq(
           "sh",
           "-c",
-          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millPath -i mill.contrib.BSP/start"
+          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millPath -i ${BSP.getClass.getCanonicalName.split("\\$").last}/start"
         ),
         Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
         bspProtocolVersion,
@@ -113,7 +99,10 @@ object BSP extends ExternalModule {
         ev.env,
         false
       )
-      val millServer = new MillBuildServer(evaluator, bspProtocolVersion, BuildInfo.millVersion)
+      val millServer = new MillBuildServer(
+        evaluator,
+        bspProtocolVersion,
+        BuildInfo.millVersion)
       val executor = Executors.newCachedThreadPool()
 
       val stdin = System.in

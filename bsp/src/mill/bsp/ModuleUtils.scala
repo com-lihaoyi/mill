@@ -1,7 +1,9 @@
-package mill.contrib.bsp
+package mill.bsp
 
+import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import java.net.URL
+import java.net.URLClassLoader
 import mill._
 import mill.api.Result.Success
 import mill.api.{PathRef, Strict}
@@ -13,7 +15,9 @@ import mill.scalalib.api.Util
 import mill.scalalib.{JavaModule, ScalaModule, TestModule}
 import mill.scalanativelib._
 import mill.util.Ctx
+import os.{Path, exists}
 import scala.collection.JavaConverters._
+import scala.util.Try
 
 /**
  * Utilities for translating the mill build into
@@ -99,6 +103,17 @@ object ModuleUtils {
     )
 
     target
+  }
+
+  def getMillBuildClasspath(evaluator: Evaluator, source: Boolean): Seq[String] = {
+    val all = Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
+      _ => Seq.empty,
+      _.allJars
+    )
+    val filtered =
+      if (source) all.filter(url => isSourceJar(url))
+      else all.filter(url => !isSourceJar(url))
+    filtered.filter(url => exists(Path(url.getFile))).map(_.toURI.toString)
   }
 
   /**

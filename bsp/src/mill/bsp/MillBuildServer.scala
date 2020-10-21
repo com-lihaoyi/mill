@@ -1,4 +1,4 @@
-package mill.contrib.bsp
+package mill.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
@@ -6,8 +6,8 @@ import com.google.gson.JsonObject
 import java.util.concurrent.CompletableFuture
 import mill._
 import mill.api.{DummyTestReporter, Result, Strict}
-import mill.contrib.bsp.ModuleUtils._
-import mill.contrib.bsp.Utils._
+import mill.bsp.ModuleUtils._
+import mill.bsp.Utils._
 import mill.define.Segment.Label
 import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
@@ -133,12 +133,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
       val items = dependencySourcesParams.getTargets.asScala
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
-          val all = if (targetId == millBuildTargetId) {
-            Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
-              _ => Seq.empty,
-              _.allJars.filter(url => isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
-            )
-          } else {
+          val all = if (targetId == millBuildTargetId)
+            getMillBuildClasspath(evaluator, source = true)
+          else {
             val module = getModule(targetId, modules)
             val sources = evaluateInformativeTask(
               evaluator,
@@ -375,10 +372,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
           val newItem =
             if (targetId == millBuildTargetId) {
-              val classpath = Try(getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
-                _ => Seq.empty,
-                _.allJars.filter(url => !isSourceJar(url) && exists(Path(url.getFile))).map(_.toURI.toString)
-              )
+              val classpath = getMillBuildClasspath(evaluator, source = false)
               Some(new ScalacOptionsItem(
                 targetId,
                 Seq.empty.asJava,
