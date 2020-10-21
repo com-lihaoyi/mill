@@ -16,6 +16,7 @@ trait CrossModuleBase extends ScalaModule {
   def scalaVersion = T{ crossScalaVersion }
 
   override def millSourcePath = super.millSourcePath / ammonite.ops.up
+  override def artifactName: T[String] = millModuleSegments.parts.init.mkString("-")
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] = new Resolver[CrossModuleBase]{
     def resolve[V <: CrossModuleBase](c: Cross[V]): V = {
       crossScalaVersion.split('.')

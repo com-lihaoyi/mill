@@ -492,6 +492,13 @@ object HelloWorldTests extends TestSuite {
       }
     }
 
+    'artifactNameCross - {
+      workspaceTest(CrossHelloWorld) { eval =>
+        val Right((artifactName, _)) = eval.apply(CrossHelloWorld.core("2.13.1").artifactName)
+        assert(artifactName == "core")
+      }
+    }
+
     'runMain - {
       'runMainObject - workspaceTest(HelloWorld){eval =>
         val runResult = eval.outPath / 'core / 'runMain / 'dest / "hello-mill"
