@@ -133,7 +133,7 @@ object Lib{
       else listClassFiles(base).flatMap { path =>
         val cls = cl.loadClass(path.stripSuffix(".class").replace('/', '.'))
         val publicConstructorCount =
-          cls.getConstructors.count(c => c.getParameterCount == 0 && Modifier.isPublic(c.getModifiers))
+          cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
         if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1) {
           None
