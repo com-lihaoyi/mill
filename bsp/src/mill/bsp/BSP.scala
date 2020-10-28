@@ -64,11 +64,7 @@ object BSP extends ExternalModule {
     write(
       BspConfigJson(
         "mill-bsp",
-        Seq(
-          "sh",
-          "-c",
-          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millPath -i ${BSP.getClass.getCanonicalName.split("\\$").last}/start"
-        ),
+        Seq(s"$millPath -i ${BSP.getClass.getCanonicalName.split("\\$").head}/start"),
         Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
         bspProtocolVersion,
         languages
