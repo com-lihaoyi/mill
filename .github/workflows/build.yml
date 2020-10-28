@@ -56,7 +56,7 @@ jobs:
           java-version: ${{ matrix.java-version }}
 
       - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly}"
-      - run: rd /S /Q %USERPROFILE%\.mill
+      - run: cmd /C rd /S /Q "%USERPROFILE%\.mill"
       - run: cmd /C %GITHUB_WORKSPACE%\out\assembly\dest\mill -i "{main.test,scalajslib.test}"
 
   publish:
