@@ -59,3 +59,25 @@ jobs:
       - run: rd /S /Q %USERPROFILE%\.mill
       - run: cmd /C %GITHUB_WORKSPACE%\out\assembly\dest\mill -i "{main.test,scalajslib.test}"
 
+  publish:
+    if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
+    needs: build
+
+    strategy:
+      matrix:
+        buildcmd:
+          - ci/on-master.py ci/release-github.sh
+          - ci/on-master.py ci/release-maven.sh
+          - ci/on-master.py ci/publish-docs.sh
+
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+      - run: git fetch --prune --unshallow
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 1.8
+
+      - run: ${{ matrix.buildcmd }}
