@@ -207,7 +207,7 @@ object mymodule extends CodeartifactPublishModule {
 
 Then in your terminal:
 ```
-export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain domain-name --domain-owner domain-owner-id --query authorizationToken --output text --profile profile-name`
+$ export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain domain-name --domain-owner domain-owner-id --query authorizationToken --output text --profile profile-name`
 $ mill mymodule.publishCodeartifact --credentials '$CODEARTIFACT_AUTH_TOKEN'
 ```
 
