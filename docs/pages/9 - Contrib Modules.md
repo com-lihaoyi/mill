@@ -188,6 +188,28 @@ mill mill.bsp.BSP/install
 being thrown during the evaluation of tasks, a bug not easy to reproduce.
 In this case it is recommended to refresh the bsp project.
 
+## Codeartifact
+
+This plugin allows publishing to AWS Codeartifact.
+
+### Quickstart
+```scala
+import $ivy.`com.lihaoyi::mill-contrib-codeartifact:$MILL_VERSION`
+import mill.contrib.codeartifact.CodeartifactPublishModule
+
+object mymodule extends CodeartifactPublishModule {
+  def codeartifactUri: String = "https://domain-name-domain-owner-id.d.codeartifact.region.amazonaws.com/maven/repo-name"
+  def codeartifactSnapshotUri: String = "https://domain-name-domain-owner-id.d.codeartifact.region.amazonaws.com/maven/snapshot-repo-name"
+
+  ...
+}
+```
+
+Then in your terminal:
+```
+export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain domain-name --domain-owner domain-owner-id --query authorizationToken --output text --profile profile-name`
+$ mill mymodule.publishCodeartifact --credentials '$CODEARTIFACT_AUTH_TOKEN'
+```
 
 ## Docker
 
