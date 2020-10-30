@@ -50,7 +50,7 @@ trait Proguard extends ScalaModule {
     PathRef(Path(System.getProperty("java.home")))
   }
 
-  /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */ */
+  /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
   def inJar: T[PathRef] = T { assembly() }
 
   /** The library jars proguard requires
