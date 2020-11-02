@@ -15,7 +15,7 @@ import os.pwd
 
 /**
   * Implementation of the Bloop related tasks. Inherited by the
-  * `mill.contrib.Bloop` object, and usable in tests by passing
+  * `mill.contrib.bloop.Bloop` object, and usable in tests by passing
   * a custom evaluator.
   */
 class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
