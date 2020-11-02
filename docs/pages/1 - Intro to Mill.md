@@ -91,6 +91,7 @@ To get started, download Mill and install it into your system via the following
 sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.7.4/0.7.4 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
+
 ### Bootstrap Scripts (Linux/OS-X Only)
 
 If you are using Mill in a codebase, you can commit the bootstrap launcher as a
@@ -116,6 +117,17 @@ script. Note this only works for versions 0.5.0 and above.
 Bootstrap scripts are also useful for running Mill in CI, ensuring that your
 Jenkins/Travis/etc. box has the correct version of Mill present to
 build/compile/test your code.
+
+
+### millw 
+
+Instead of installing mill directly, you can also use [lefou/millw](https://github.com/lefou/millw) as drop-in replacement for mill.
+It provides a small shell script and also a Windows batch file, that transparently downloads mill and executes it on your behalf.
+It respects various ways to configure the preferred mill version (`MILL_VERSION` env var, `.mill-version` file, `--mill-version` option) and can also be used as bootstrap script in your project.
+
+### Coursier (unsupported)
+
+Installing mill via `coursier` or `cs` is currently not officially supported. There are various issues, especially with interactive mode.
 
 
 ## Updating Mill
