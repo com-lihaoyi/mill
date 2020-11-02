@@ -14,11 +14,11 @@ jobs:
     jdk: oraclejdk8
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: openjdk9
+    jdk: openjdk11
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
-    jdk: openjdk10
+    jdk: openjdk11
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
     jdk: oraclejdk11
@@ -53,7 +53,7 @@ jobs:
     jdk: oraclejdk9
   - stage: release
     env: CI_SCRIPT="ci/on-master.py ci/publish-docs.sh"
-    jdk: openjdk10
+    jdk: openjdk11
 
 script:
   - "$CI_SCRIPT"
