@@ -453,6 +453,10 @@ object contrib extends MillModule {
     }
    }
 
+  object proguard extends MillModule {
+    override def compileModuleDeps = Seq(scalalib)
+  }
+
   object tut extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
     def testArgs = T{

@@ -609,6 +609,38 @@ object app extends ScalaModule with RouterModule {
 }
 ```
 
+## Proguard
+
+This module allows [Proguard](https://www.guardsquare.com/en/products/proguard/manual/introduction) to be used in Mill builds.
+ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier. 
+
+By default, all four steps - shrink, optimize, obfuscate, verify - are run, but this can be configured through task options.
+Any additional options can be specified as a list of strings with `additionalOptions`. The full list of proguard options
+can be found [here](https://www.guardsquare.com/en/products/proguard/manual/usage).
+
+The output of `assembly` is used as the input jar and the output is written to `out.jar` in the `dest` folder.
+
+The `stdout` and `stderr` from the proguard command can be found under the `dest` folder.
+
+The only default entrypoint is the main class (i.e. `finalMainClass` task). Additional entrypoints can be configured using `additionalOptions` as well.
+
+Here is a simple example:
+
+```
+import $ivy.`com.lihaoyi::mill-contrib-proguard:$MILL_VERSION`
+import contrib.proguard._
+
+object foo extends ScalaModule with Proguard {
+  def scalaVersion = "2.12.0"
+
+  override def shrink: T[Boolean] = T { true }
+  override def optimize: T[Boolean] = T { false }
+  override def obfuscate: T[Boolean] = T { false }
+}
+```
+
+Also, please note that Proguard doesn't seem to work with scala 2.13 yet.
+
 ## ScalaPB
 
 This module allows [ScalaPB](https://scalapb.github.io) to be used in Mill builds. ScalaPB is a [Protocol Buffers](https://developers.google.com/protocol-buffers/) compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.
