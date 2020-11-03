@@ -689,4 +689,13 @@ object Evaluator{
     )
   }
 
+  /**
+    * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
+    */
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
+    evaluator.evaluate(Agg(e)).values match {
+      case Seq() => default
+      case Seq(e: T) => e
+    }
+  }
 }

@@ -1,5 +1,6 @@
 package mill.scalalib.dependency.versions
 
+import coursier.core.Repository
 import mill.define.{BaseModule, Task}
 import mill.eval.Evaluator
 import mill.scalalib.dependency.metadata.MetadataLoaderFactory
@@ -19,29 +20,30 @@ private[dependency] object VersionsFinder {
     }
 
     val resolvedDependencies = resolveDependencies(evaluator, javaModules)
-    resolveVersions(resolvedDependencies)
+    resolveVersions(evaluator, resolvedDependencies)
   }
 
   private def resolveDependencies(evaluator: Evaluator,
                                   javaModules: Seq[JavaModule]) =
     javaModules.map { javaModule =>
-      val depToDependency =
-        eval(evaluator, javaModule.resolveCoursierDependency)
+      val depToDependency = eval(evaluator, javaModule.resolveCoursierDependency)
       val deps = evalOrElse(evaluator, javaModule.ivyDeps, Loose.Agg.empty[Dep])
+      val repos = evalOrElse(evaluator, javaModule.repositories, Seq.empty[Repository])
 
       val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(javaModule.repositories,
+        Lib.resolveDependenciesMetadata(repos,
                                         depToDependency,
                                         deps)
 
       (javaModule, dependencies)
     }
 
-  private def resolveVersions(resolvedDependencies: Seq[ResolvedDependencies]) =
+  private def resolveVersions(evaluator: Evaluator,
+                              resolvedDependencies: Seq[ResolvedDependencies]) =
     resolvedDependencies.map {
       case (javaModule, dependencies) =>
-        val metadataLoaders =
-          javaModule.repositories.flatMap(MetadataLoaderFactory(_))
+        val metadataLoaders = evalOrElse(evaluator, javaModule.repositories, Seq.empty[Repository])
+          .flatMap(MetadataLoaderFactory(_))
 
         val versions = dependencies.map { dependency =>
           val currentVersion = Version(dependency.version)

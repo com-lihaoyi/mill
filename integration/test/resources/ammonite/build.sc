@@ -49,7 +49,7 @@ trait AmmDependenciesResourceFileModule extends JavaModule{
 
     val deps0 = T.task{compileIvyDeps() ++ transitiveIvyDeps()}()
     val (_, res) = mill.modules.Jvm.resolveDependenciesMetadata(
-      repositories,
+      repositories(),
       deps0.map(resolveCoursierDependency().apply(_)),
       deps0.filter(_.force).map(resolveCoursierDependency().apply(_)),
       mapDependencies = Some(mapDependencies())

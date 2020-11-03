@@ -1,11 +1,12 @@
 package mill.scalalib
 
+import coursier.core.Repository
 import mill.Agg
 import mill.T
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache}
 import mill.define.{Command, Discover, ExternalModule, Worker}
 import mill.scalalib.Lib.resolveDependencies
-import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDottyOrScala3, isDotty}
+import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.ZincWorkerApi
 import mill.util.JsonFormatters._
 
@@ -16,14 +17,14 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath = T{
-    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories)
+    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories())
   }
 
   def scalalibClasspath = T{
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_LIB",
       "mill-scalalib",
-      repositories,
+      repositories(),
       artifactSuffix = "_2.13"
     )
   }
@@ -31,7 +32,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   def backgroundWrapperClasspath = T{
     mill.modules.Util.millProjectModule(
       "MILL_BACKGROUNDWRAPPER", "mill-scalalib-backgroundwrapper",
-      repositories, artifactSuffix = ""
+      repositories(), artifactSuffix = ""
     )
   }
 
@@ -63,7 +64,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       .newInstance(
         Left((
           T.ctx(),
-          (x: String, y: String) => scalaCompilerBridgeJar(x, y, cp).asSuccess.get.value
+          (x: String, y: String) => scalaCompilerBridgeJar(x, y, cp, repositories()).asSuccess.get.value
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
@@ -75,7 +76,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def scalaCompilerBridgeJar(scalaVersion: String,
                              scalaOrganization: String,
-                             compileClassPath: Agg[mill.api.PathRef]) = {
+                             compileClassPath: Agg[mill.api.PathRef],
+                             repositories: Seq[Repository]) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
     }
@@ -110,7 +112,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def compilerInterfaceClasspath = T{
     resolveDependencies(
-      repositories,
+      repositories(),
       Lib.depToDependency(_, "2.12.4", ""),
       Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
       ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -128,7 +130,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] = T.command {
     classpath()
     val cp = compilerInterfaceClasspath()
-    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp)
+    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp, repositories())
     ()
   }
 

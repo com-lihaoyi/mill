@@ -26,7 +26,7 @@ trait CoursierModule extends mill.Module {
     */
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     Lib.resolveDependencies(
-      repositories,
+      repositories(),
       resolveCoursierDependency().apply(_),
       deps(),
       sources,
@@ -44,6 +44,6 @@ trait CoursierModule extends mill.Module {
   /**
     * The repositories used to resolved dependencies with [[resolveDeps()]].
     */
-  def repositories: Seq[Repository] = Resolve.defaultRepositories
+  def repositories: Task[Seq[Repository]] = T.task { Resolve.defaultRepositories }
 
 }

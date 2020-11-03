@@ -18,6 +18,7 @@ import mill.util.Ctx
 import os.{Path, exists}
 import scala.collection.JavaConverters._
 import scala.util.Try
+import coursier.core.Repository
 
 /**
  * Utilities for translating the mill build into
@@ -85,8 +86,15 @@ object ModuleUtils {
 
     val scalaOrganization = "org.scala-lang"
     val scalaLibDep = scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
+
+    val repos = Evaluator.evalOrElse(evaluator, T.task {
+        T.traverse(modules)(_.repositories)()
+      }, Seq.empty[Seq[Repository]])
+      .flatten
+      .distinct
+
     val classpath = resolveDependencies(
-      modules.flatMap(_.repositories).distinct,
+      repos,
       depToDependency(_, BuildInfo.scalaVersion),
       scalaLibDep,
       ctx = Some(ctx)
