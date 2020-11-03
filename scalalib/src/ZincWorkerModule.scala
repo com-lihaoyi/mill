@@ -17,14 +17,14 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
   def classpath = T{
-    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositories())
+    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositoriesTask())
   }
 
   def scalalibClasspath = T{
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_LIB",
       "mill-scalalib",
-      repositories(),
+      repositoriesTask(),
       artifactSuffix = "_2.13"
     )
   }
@@ -32,7 +32,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   def backgroundWrapperClasspath = T{
     mill.modules.Util.millProjectModule(
       "MILL_BACKGROUNDWRAPPER", "mill-scalalib-backgroundwrapper",
-      repositories(), artifactSuffix = ""
+      repositoriesTask(), artifactSuffix = ""
     )
   }
 
@@ -64,7 +64,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       .newInstance(
         Left((
           T.ctx(),
-          (x: String, y: String) => scalaCompilerBridgeJar(x, y, cp, repositories()).asSuccess.get.value
+          (x: String, y: String) => scalaCompilerBridgeJar(x, y, cp, repositoriesTask()).asSuccess.get.value
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
@@ -112,7 +112,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def compilerInterfaceClasspath = T{
     resolveDependencies(
-      repositories(),
+      repositoriesTask(),
       Lib.depToDependency(_, "2.12.4", ""),
       Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
       ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -130,7 +130,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] = T.command {
     classpath()
     val cp = compilerInterfaceClasspath()
-    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp, repositories())
+    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp, repositoriesTask())
     ()
   }
 

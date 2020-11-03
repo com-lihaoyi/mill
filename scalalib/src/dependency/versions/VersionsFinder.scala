@@ -28,7 +28,7 @@ private[dependency] object VersionsFinder {
     javaModules.map { javaModule =>
       val depToDependency = eval(evaluator, javaModule.resolveCoursierDependency)
       val deps = evalOrElse(evaluator, javaModule.ivyDeps, Loose.Agg.empty[Dep])
-      val repos = evalOrElse(evaluator, javaModule.repositories, Seq.empty[Repository])
+      val repos = evalOrElse(evaluator, javaModule.repositoriesTask, Seq.empty[Repository])
 
       val (dependencies, _) =
         Lib.resolveDependenciesMetadata(repos,
@@ -42,7 +42,7 @@ private[dependency] object VersionsFinder {
                               resolvedDependencies: Seq[ResolvedDependencies]) =
     resolvedDependencies.map {
       case (javaModule, dependencies) =>
-        val metadataLoaders = evalOrElse(evaluator, javaModule.repositories, Seq.empty[Repository])
+        val metadataLoaders = evalOrElse(evaluator, javaModule.repositoriesTask, Seq.empty[Repository])
           .flatMap(MetadataLoaderFactory(_))
 
         val versions = dependencies.map { dependency =>

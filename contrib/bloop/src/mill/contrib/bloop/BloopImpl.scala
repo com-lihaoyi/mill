@@ -354,7 +354,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = T.task {
-      val repos = module.repositories()
+      val repos = module.repositoriesTask()
       val allIvyDeps = module
         .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.transitiveCompileIvyDeps()
       val coursierDeps =

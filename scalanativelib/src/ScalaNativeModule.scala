@@ -43,7 +43,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalanativelib-worker-${scalaNativeWorkerVersion()}",
-      repositories(),
+      repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalanativelib-worker"),
       artifactSuffix = "_2.12"
     )

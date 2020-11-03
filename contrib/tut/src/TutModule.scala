@@ -98,7 +98,7 @@ trait TutModule extends ScalaModule {
     */
   def tutIvyDeps: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
-      repositories() :+ MavenRepository(s"https://dl.bintray.com/tpolecat/maven"),
+      repositoriesTask() :+ MavenRepository(s"https://dl.bintray.com/tpolecat/maven"),
       Lib.depToDependency(_, scalaVersion()),
       transitiveCompileIvyDeps() ++ transitiveIvyDeps() ++ Seq(
         ivy"org.tpolecat::tut-core:${tutVersion()}"

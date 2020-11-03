@@ -23,7 +23,7 @@ trait FlywayModule extends JavaModule {
   def flywayFileLocations: T[Seq[PathRef]] = T(resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick)))
   def flywayDriverDeps: T[Agg[Dep]]
   def jdbcClasspath = T ( resolveDependencies(
-    repositories(),
+    repositoriesTask(),
     Lib.depToDependencyJava(_),
     flywayDriverDeps()
   ))

@@ -78,7 +78,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         case None =>
 
           val moduleRepos = evalOrElse(evaluator, T.task {
-            T.traverse(modules)(_._2.repositories)()
+            T.traverse(modules)(_._2.repositoriesTask)()
           }, Seq.empty[Seq[Repository]])
 
           val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(LocalRepositories.ivy2Local, Repositories.central)

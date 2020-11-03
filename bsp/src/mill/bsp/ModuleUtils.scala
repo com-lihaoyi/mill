@@ -88,7 +88,7 @@ object ModuleUtils {
     val scalaLibDep = scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
 
     val repos = Evaluator.evalOrElse(evaluator, T.task {
-        T.traverse(modules)(_.repositories)()
+        T.traverse(modules)(_.repositoriesTask)()
       }, Seq.empty[Seq[Repository]])
       .flatten
       .distinct

@@ -82,7 +82,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-contrib-scoverage-worker",
-      repositories(),
+      repositoriesTask(),
       resolveFilter = _.toString.contains("mill-contrib-scoverage-worker")
     )
   }
@@ -113,7 +113,8 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     override def sources: Sources = T.sources { outer.sources() }
     override def resources: Sources = T.sources { outer.resources() }
     override def scalaVersion = T{ outer.scalaVersion() }
-    override def repositories: Task[Seq[Repository]] = T.task { outer.repositories() }
+    override def repositories: Seq[Repository] = outer.repositories
+    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
     override def compileIvyDeps: Target[Loose.Agg[Dep]] = T{ outer.compileIvyDeps() }
     override def ivyDeps: Target[Loose.Agg[Dep]] = T{ outer.ivyDeps() ++ Agg(outer.scoverageRuntimeDep()) }
     override def unmanagedClasspath: Target[Loose.Agg[PathRef]] = T{ outer.unmanagedClasspath() }

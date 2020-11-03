@@ -7,8 +7,8 @@ import $file.deps
 import deps.{benchmarkLibraries, benchmarkVersions, libraries, testLibraries, testVersions, versions}
 
 trait CaffeineModule extends MavenModule{
-  override def repositories = T.task {
-    super.repositories() ++ Seq(
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
       coursier.ivy.IvyRepository.parse(
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" +
           coursier.ivy.Pattern.default.string,
