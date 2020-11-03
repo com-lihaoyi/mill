@@ -493,6 +493,10 @@ object contrib extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
 
+  object codeartifact extends MillModule {
+    override def compileModuleDeps = Seq(scalalib)
+  }
+
   object versionfile extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
