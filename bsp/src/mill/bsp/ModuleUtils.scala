@@ -137,7 +137,7 @@ object ModuleUtils {
       getTargetId(module),
       buildTargetTag.asJava,
       Seq("scala", "java").asJava,
-      module.moduleDeps.map(getTargetId).toList.asJava,
+      (module.moduleDeps ++ module.compileModuleDeps).map(getTargetId).toList.asJava,
       capabilities
     )
     if (module.isInstanceOf[ScalaModule]) {
