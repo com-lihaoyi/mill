@@ -63,11 +63,11 @@ object BSP extends ExternalModule {
 
     write(
       BspConfigJson(
-        "mill-bsp",
-        Seq(s"$millPath -i ${BSP.getClass.getCanonicalName.split("\\$").head}/start"),
-        Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
-        bspProtocolVersion,
-        languages
+        name = "mill-bsp",
+        argv = Seq(millPath, "-i", s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"),
+        millVersion = Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
+        bspVersion = bspProtocolVersion,
+        languages = languages
       )
     )
   }
