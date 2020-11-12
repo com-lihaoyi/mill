@@ -7,16 +7,18 @@ import $file.deps
 import deps.{benchmarkLibraries, benchmarkVersions, libraries, testLibraries, testVersions, versions}
 
 trait CaffeineModule extends MavenModule{
-  def repositories = super.repositories ++ Seq(
-    coursier.ivy.IvyRepository.parse(
-      "https://dl.bintray.com/sbt/sbt-plugin-releases/" +
-      coursier.ivy.Pattern.default.string,
-      dropInfoAttributes = true
-    ).toOption.get,
-    MavenRepository("https://jcenter.bintray.com/"),
-    MavenRepository("https://jitpack.io/"),
-    MavenRepository("http://repo.spring.io/plugins-release")
-  )
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
+      coursier.ivy.IvyRepository.parse(
+        "https://dl.bintray.com/sbt/sbt-plugin-releases/" +
+          coursier.ivy.Pattern.default.string,
+        dropInfoAttributes = true
+      ).toOption.get,
+      MavenRepository("https://jcenter.bintray.com/"),
+      MavenRepository("https://jitpack.io/"),
+      MavenRepository("http://repo.spring.io/plugins-release")
+    )
+  }
   trait Tests extends super.Tests{
     def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
     def ivyDeps = Agg(

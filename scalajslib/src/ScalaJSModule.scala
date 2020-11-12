@@ -31,7 +31,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories,
+      repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalajslib-worker")
     )
   }
@@ -58,7 +58,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         )
     }
     resolveDependencies(
-      repositories,
+      repositoriesTask(),
       Lib.depToDependency(_, "2.13.1", ""),
       commonDeps ++ envDep,
       ctx = Some(implicitly[mill.util.Ctx.Log])

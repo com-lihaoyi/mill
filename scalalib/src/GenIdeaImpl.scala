@@ -76,7 +76,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
       else Util.millProperty("MILL_BUILD_LIBRARIES") match {
         case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
         case None =>
-          val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories } ++ Set(LocalRepositories.ivy2Local, Repositories.central)
+
+          val moduleRepos = evalOrElse(evaluator, T.task {
+            T.traverse(modules)(_._2.repositoriesTask)()
+          }, Seq.empty[Seq[Repository]])
+
+          val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(LocalRepositories.ivy2Local, Repositories.central)
           val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
