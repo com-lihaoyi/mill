@@ -66,7 +66,8 @@ object PrintState {
 trait ColorLogger extends Logger{
   def colors: ammonite.util.Colors
 }
-case class PrefixLogger(out: ColorLogger, context: String) extends ColorLogger{
+
+case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "") extends ColorLogger {
   override def colored = out.colored
 
   def colors = out.colors
@@ -83,10 +84,11 @@ case class PrefixLogger(out: ColorLogger, context: String) extends ColorLogger{
 
   override def error(s: String): Unit = out.error(context + s)
 
-  override def ticker(s: String): Unit = out.ticker(context + s)
+  override def ticker(s: String): Unit = out.ticker(context + tickerContext + s)
 
   override def debug(s: String): Unit = out.debug(context + s)
 }
+
 case class PrintLogger(
   colored: Boolean,
   disableTicker: Boolean,
