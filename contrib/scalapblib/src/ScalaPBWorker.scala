@@ -21,15 +21,7 @@ class ScalaPBWorker {
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 
         val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path]) {
-            val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-            val args = protocPath.map(path => s"--protoc=$path").toSeq ++ Seq(
-              "--throw",
-              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-              s"--proto_path=${source.getParentFile.getCanonicalPath}"
-            ) ++
-              includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}") :+
-              source.getCanonicalPath
+          override def compileScalaPB(args: Seq[String]) {
             mainMethod.invoke(null, args.toArray)
           }
         }
@@ -38,28 +30,52 @@ class ScalaPBWorker {
     }
   }
 
-  def compile(scalaPBClasspath: Agg[os.Path], protocPath: Option[String], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path, scalaPBIncludePath: Seq[os.Path])
-             (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
-    val compiler = scalaPB(scalaPBClasspath, protocPath)
-
-    def compileScalaPBDir(inputDir: os.Path) {
-      // ls throws if the path doesn't exist
-      if (inputDir.toIO.exists) {
-        os.walk(inputDir).filter(_.last.matches(".*.proto"))
-          .foreach { proto =>
-            compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO, scalaPBIncludePath)
-          }
+  /** Builds the compilation arguments for scalaPBC:
+   *
+   *   - 1st seq to encapsulate the sources.
+   *   - 2nd seq for proto files.
+   *   - 3rd seq for the args.
+   */
+  def compilationArgs(
+    protocPath: Option[String],
+    scalaPBSources: Seq[os.Path],
+    scalaPBOptions: String,
+    generatedDirectory: os.Path,
+    includes: Seq[os.Path],
+    customArgs: Seq[String]
+  ): Seq[Seq[Seq[String]]] = 
+    // ls throws if the path doesn't exist
+    scalaPBSources.filter(_.toIO.exists).map { inputDir: os.Path =>
+      os.walk(inputDir).filter(_.last.matches(".*.proto")).map { proto =>
+        val source = proto.toIO
+        val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
+        protocPath.map(path => s"--protoc=$path").toSeq ++ Seq(
+          "--throw",
+          s"--scala_out=${opts}${generatedDirectory.toIO.getCanonicalPath}",
+          s"--proto_path=${source.getParentFile.getCanonicalPath}"
+        ) ++ customArgs ++
+          includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}") :+
+          source.getCanonicalPath
       }
     }
 
-    scalaPBSources.foreach(compileScalaPBDir)
+  def compile(
+    scalaPBClasspath: Agg[os.Path],
+    protocPath: Option[String],
+    dest: os.Path,
+    args: Seq[Seq[Seq[String]]]
+  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+    val compiler = scalaPB(scalaPBClasspath, protocPath)
+
+    args.foreach(_.foreach(compiler.compileScalaPB))
 
     mill.api.Result.Success(PathRef(dest))
   }
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path])
+  // def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path], customArgs: Seq[String])
+  def compileScalaPB(args: Seq[String])
 }
 
 object ScalaPBWorkerApi {

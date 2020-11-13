@@ -71,6 +71,8 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
 
+  def scalaPBCustomArgs: T[Seq[String]] = T { Seq.empty[String] }
+
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
@@ -110,14 +112,25 @@ trait ScalaPBModule extends ScalaModule {
     PathRef(dest)
   }
 
-  def compileScalaPB: T[PathRef] = T.persistent {
-    ScalaPBWorkerApi.scalaPBWorker
-      .compile(
-        scalaPBClasspath().map(_.path),
-        scalaPBProtocPath(),
-        scalaPBSources().map(_.path),
-        scalaPBOptions(),
-        T.dest,
-        scalaPBIncludePath().map(_.path))
+  def compilationArgsScalaPB: T[Seq[Seq[Seq[String]]]] = T {
+    ScalaPBWorkerApi.scalaPBWorker.compilationArgs(
+      scalaPBProtocPath(),
+      scalaPBSources().map(_.path),
+      scalaPBOptions(),
+      T.dest,
+      scalaPBIncludePath().map(_.path),
+      scalaPBCustomArgs()
+    )
   }
+
+  def compileScalaPB: T[PathRef] = T.persistent {
+    ScalaPBWorkerApi.scalaPBWorker.compile(
+      scalaPBClasspath().map(_.path),
+      scalaPBProtocPath(),
+      T.dest,
+      compilationArgsScalaPB()
+    )
+  }
+
+
 }

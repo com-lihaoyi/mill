@@ -30,6 +30,14 @@ object TutorialTests extends TestSuite {
     }
   }
 
+  object TutorialWithCustomArgs extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBCustomArgs = Seq(
+        s"--zio_out=..."
+      )
+    }
+  }
+
   val resourcePath: os.Path = os.pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
@@ -69,10 +77,10 @@ object TutorialTests extends TestSuite {
     }
 
 //     'compileScalaPB - {
-      // Broken in Travis due to 
-      // protoc-jar: caught exception, retrying: java.io.IOException: 
+      // Broken in Travis due to
+      // protoc-jar: caught exception, retrying: java.io.IOException:
       // Cannot run program "/dev/null": error=13, Permission denied
-      
+
 //       'calledDirectly - workspaceTest(Tutorial) { eval =>
 //         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
@@ -128,6 +136,18 @@ object TutorialTests extends TestSuite {
       'calledWithWrongProtocFile - workspaceTest(TutorialWithProtoc) { eval =>
         val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
         assert(result.isLeft)
+      }
+    }
+
+    'compilationArgs - {
+      'calledWithCustomArgs - workspaceTest(TutorialWithCustomArgs) { eval =>
+        val result = eval.apply(TutorialWithCustomArgs.core.compilationArgsScalaPB)
+        result match {
+          case Right((seq, _)) =>
+            val args = seq.flatten
+            assert(args.head.exists(_.contains("--zio_out")))
+          case _ => assert(false)
+        }
       }
     }
   }
