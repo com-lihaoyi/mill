@@ -34,7 +34,7 @@ class ScalaPBWorker {
    *
    *   - 1st seq to encapsulate the sources.
    *   - 2nd seq for proto files.
-   *   - 3rd seq for the args.
+   *   - 3rd seq for the scalaPBC args.
    */
   def compilationArgs(
     protocPath: Option[String],
@@ -74,7 +74,6 @@ class ScalaPBWorker {
 }
 
 trait ScalaPBWorkerApi {
-  // def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path], customArgs: Seq[String])
   def compileScalaPB(args: Seq[String])
 }
 
