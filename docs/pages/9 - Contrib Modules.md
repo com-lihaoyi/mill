@@ -707,7 +707,7 @@ example/
 
 * scalaPBProtocPath - A `Option[Path]` option which determines the protoc compiler to use. If `None`, a java embedded protoc will be used, if set to `Some` path, the given binary is used.
 
-If you'd like to configure the options that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
+If you'd like to configure the [options](https://scalapb.github.io/docs/scalapbc#passing-generator-parameters) that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
 ```scala
 // build.sc
@@ -722,6 +722,20 @@ object example extends ScalaPBModule {
 }
 ```
 
+If you'd like to pass additional arguments to the ScalaPB compiler directly, you can override the `scalaPBCustomArgs` task, for example:
+
+```scala
+// build.sc
+
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = "2.12.6"
+  def scalaPBVersion = "0.7.4"
+  override def scalaPBCustomArgs = Seq(s"--zio_out=${T.dest.toIO.getCanonicalPath}")
+}
+```
 
 ## Scoverage
 
