@@ -88,7 +88,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       isRepl = false,
       printing = true,
       mainCfg => {
-        val logger = new PrintLogger(
+        val logger = PrintLogger(
           colored,
           disableTicker,
           colors,
