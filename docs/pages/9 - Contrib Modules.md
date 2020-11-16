@@ -634,7 +634,7 @@ object app extends ScalaModule with RouterModule {
 ## Proguard
 
 This module allows [Proguard](https://www.guardsquare.com/en/products/proguard/manual/introduction) to be used in Mill builds.
-ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier. 
+ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier.
 
 By default, all four steps - shrink, optimize, obfuscate, verify - are run, but this can be configured through task options.
 Any additional options can be specified as a list of strings with `additionalOptions`. The full list of proguard options
@@ -765,6 +765,31 @@ The measurement data is by default available at `out/foo/scoverage/data/dest`,
 the html report is saved in `out/foo/scoverage/htmlReport/dest/`,
 and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
+### Multi-module projects
+
+If you're using Scoverage on a project with multiple modules then an additonal
+module, `ScoverageReport`, is available to help aggregate the reports from all
+`ScoverageModule`s.
+
+Simply define a `scoverage` module at the root of your project as shown:
+```scala
+  object scoverage extends ScoverageReport {
+    override def scalaVersion     = "<scala-version>"
+    override def scoverageVersion = "<scoverage-version>"
+  }
+```
+
+This provides you with various reporting functions:
+
+```
+mill __.test                     # run tests for all modules
+mill scoverage.htmlReportAll     # generates report in html format for all modules
+mill scoverage.xmlReportAll      # generates report in xml format for all modules
+mill scoverage.consoleReportAll  # reports to the console for all modules
+```
+
+The aggregated report will be available at either `out/scoverage/htmlReportAll/dest/`
+for html reports or `out/scoverage/xmlReportAll/dest/` for xml reports.
 
 ## TestNG
 
