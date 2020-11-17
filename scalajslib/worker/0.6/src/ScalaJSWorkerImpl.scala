@@ -23,7 +23,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
            testBridgeInit: Boolean, // ignored in 0.6
            fullOpt: Boolean,
            moduleKind: ModuleKind,
-           useECMAScript2015: Boolean /* ignored in 0.6 */) = {
+           useECMAScript2015: Boolean) = {
 
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
