@@ -12,17 +12,17 @@ import mill.modules.Jvm.createAssembly
 object Deps {
 
   object Scalajs_0_6 {
-    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.32"
-    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.32"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.32"
+    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.33"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.33"
   }
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.1.1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.1.1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.3.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.3.1"
   }
 
   object Scalanative_0_3 {

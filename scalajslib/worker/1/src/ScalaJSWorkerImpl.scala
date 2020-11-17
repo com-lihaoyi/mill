@@ -23,7 +23,8 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
            main: String,
            testBridgeInit: Boolean,
            fullOpt: Boolean,
-           moduleKind: ModuleKind) = {
+           moduleKind: ModuleKind,
+           useECMAScript2015: Boolean) = {
     import scala.concurrent.ExecutionContext.Implicits.global
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
@@ -32,19 +33,14 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val scalaJSModuleKind = moduleKind match {
       case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
+      case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
     }
-    /* TODO We currently force ECMAScript 5.1, because the *tests* of
-     * scalajslib use Nashorn (see ScalaJsUtils.scala) which does not support
-     * ES 2015. This should at least be turned into a configuration option, but
-     * also we should change ScalaJsUtils to support ES 2015, for example by
-     * using Scala.js' own NodeJSEnv to perform the tests.
-     */
     val config = StandardConfig()
       .withOptimizer(fullOpt)
       .withClosureCompilerIfAvailable(fullOpt)
       .withSemantics(semantics)
       .withModuleKind(scalaJSModuleKind)
-      .withESFeatures(_.withUseECMAScript2015(false))
+      .withESFeatures(_.withUseECMAScript2015(useECMAScript2015))
     val linker = StandardImpl.linker(config)
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))

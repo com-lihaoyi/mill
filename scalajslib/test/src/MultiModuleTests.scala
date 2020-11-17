@@ -13,8 +13,8 @@ object MultiModuleTests extends TestSuite {
 
   object MultiModule extends TestUtil.BaseModule {
     trait BaseModule extends ScalaJSModule {
-      def scalaVersion = "2.12.4"
-      def scalaJSVersion = "0.6.32"
+      def scalaVersion = "2.13.3"
+      def scalaJSVersion = "0.6.33"
     }
 
     object client extends BaseModule {
@@ -23,7 +23,7 @@ object MultiModuleTests extends TestSuite {
       override def mainClass = Some("Main")
       object test extends Tests {
         def testFrameworks = Seq("utest.runner.Framework")
-        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
+        override def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.5")
       }
     }
 
@@ -49,7 +49,7 @@ object MultiModuleTests extends TestSuite {
       val runOutput = ScalaJsUtils.runJS(linked.path)
       assert(
         evalCount > 0,
-        runOutput == "Hello from Scala.js, result is: 3"
+        runOutput == "Hello from Scala.js, result is: 3\n"
       )
     }
 
