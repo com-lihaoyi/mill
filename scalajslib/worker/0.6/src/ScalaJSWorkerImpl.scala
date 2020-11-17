@@ -15,14 +15,15 @@ import org.scalajs.jsenv._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
-    
+
   def link(sources: Array[File],
            libraries: Array[File],
            dest: File,
            main: String,
            testBridgeInit: Boolean, // ignored in 0.6
            fullOpt: Boolean,
-           moduleKind: ModuleKind) = {
+           moduleKind: ModuleKind,
+           useECMAScript2015: Boolean /* ignored in 0.6 */) = {
 
     val semantics = fullOpt match {
         case true => Semantics.Defaults.optimized
@@ -31,12 +32,14 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val scalaJSModuleKind = moduleKind match {
       case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
       case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
+      case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
     }
     val config = StandardLinker.Config()
       .withOptimizer(fullOpt)
       .withClosureCompilerIfAvailable(fullOpt)
       .withSemantics(semantics)
       .withModuleKind(scalaJSModuleKind)
+      .withESFeatures(_.withUseECMAScript2015(useECMAScript2015))
     val linker = StandardLinker(config)
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars = libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
@@ -71,6 +74,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     val tconfig = moduleKind match {
       case ModuleKind.NoModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger)
       case ModuleKind.CommonJSModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(ScalaJSModuleKind.CommonJSModule, moduleIdentifier)
+      case ModuleKind.ESModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(ScalaJSModuleKind.ESModule, moduleIdentifier)
     }
 
     val adapter =

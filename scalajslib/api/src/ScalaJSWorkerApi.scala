@@ -8,7 +8,8 @@ trait ScalaJSWorkerApi {
            main: String,
            testBridgeInit: Boolean,
            fullOpt: Boolean,
-           moduleKind: ModuleKind): Result[File]
+           moduleKind: ModuleKind,
+           useECMAScript2015: Boolean): Result[File]
 
   def run(config: JsEnvConfig, linkedFile: File): Unit
 
@@ -29,6 +30,7 @@ sealed trait ModuleKind
 object ModuleKind{
   object NoModule extends ModuleKind
   object CommonJSModule extends ModuleKind
+  object ESModule extends ModuleKind
 }
 
 
