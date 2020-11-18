@@ -722,7 +722,7 @@ object example extends ScalaPBModule {
 }
 ```
 
-If you'd like to pass additional arguments to the ScalaPB compiler directly, you can override the `scalaPBCustomArgs` task, for example:
+If you'd like to pass additional arguments to the ScalaPB compiler directly, you can override the `scalaPBAdditionalArgs` task, for example:
 
 ```scala
 // build.sc
@@ -733,7 +733,8 @@ import contrib.scalapblib._
 object example extends ScalaPBModule {
   def scalaVersion = "2.12.6"
   def scalaPBVersion = "0.7.4"
-  override def scalaPBCustomArgs = Seq(s"--zio_out=${T.dest.toIO.getCanonicalPath}")
+  override def scalaPBAdditionalArgs =
+    Seq(s"--zio_out=${T.dest.toIO.getCanonicalPath}")
 }
 ```
 
