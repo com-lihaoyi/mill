@@ -12,9 +12,10 @@ jobs:
   - stage: build
     env: CI_SCRIPT=ci/test-mill-release.sh
     jdk: oraclejdk8
-  - stage: build
-    env: CI_SCRIPT=ci/test-mill-release.sh
-    jdk: openjdk9
+# disabled as it always fails on travis
+#  - stage: build
+#    env: CI_SCRIPT=ci/test-mill-release.sh
+#    jdk: openjdk9
 
   - stage: build
     env: CI_SCRIPT=ci/test-mill-dev.sh
