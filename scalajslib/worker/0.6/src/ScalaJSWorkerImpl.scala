@@ -9,12 +9,43 @@ import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
-import org.scalajs.core.tools.linker.{ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{Linker, ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.testadapter.TestAdapter
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
+  private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean)
+  private object ScalaJSLinker {
+    private var cache = Map.empty[LinkerInput, Linker]
+    def reuseOrCreate(input: LinkerInput): Linker =
+      cache.getOrElse(
+        input,
+        {
+          val newLinker = createLinker(input)
+          cache += (input -> newLinker)
+          newLinker
+        }
+      )
+    private def createLinker(input: LinkerInput): Linker = {
+      val semantics = input.fullOpt match {
+        case true => Semantics.Defaults.optimized
+        case false => Semantics.Defaults
+      }
+      val scalaJSModuleKind = input.moduleKind match {
+        case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
+        case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
+        case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
+      }
+      val config = StandardLinker.Config()
+        .withOptimizer(input.fullOpt)
+        .withClosureCompilerIfAvailable(input.fullOpt)
+        .withSemantics(semantics)
+        .withModuleKind(scalaJSModuleKind)
+        .withESFeatures(_.withUseECMAScript2015(input.useECMAScript2015))
+      StandardLinker(config)
+    }
+  }
 
   def link(sources: Array[File],
            libraries: Array[File],
@@ -24,23 +55,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
            fullOpt: Boolean,
            moduleKind: ModuleKind,
            useECMAScript2015: Boolean) = {
-
-    val semantics = fullOpt match {
-        case true => Semantics.Defaults.optimized
-        case false => Semantics.Defaults
-    }
-    val scalaJSModuleKind = moduleKind match {
-      case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
-      case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
-      case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
-    }
-    val config = StandardLinker.Config()
-      .withOptimizer(fullOpt)
-      .withClosureCompilerIfAvailable(fullOpt)
-      .withSemantics(semantics)
-      .withModuleKind(scalaJSModuleKind)
-      .withESFeatures(_.withUseECMAScript2015(useECMAScript2015))
-    val linker = StandardLinker(config)
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
     val jars = libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
