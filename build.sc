@@ -168,6 +168,7 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       Deps.ammoniteExcludingTrees,
+      ivy"com.lihaoyi::mainargs:0.1.3",
       Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
