@@ -192,7 +192,7 @@ object PublishModule extends ExternalModule {
     )
   }
 
-  implicit def millScoptTargetReads[T]: scopt.Read[Tasks[T]] = new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptTargetReads[T]: mainargs.TokensReader[Tasks[T]] = new mill.main.Tasks.Scopt[T]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

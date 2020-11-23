@@ -40,7 +40,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0-6-ed7f361"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -102,9 +102,9 @@ trait MillPublishModule extends PublishModule{
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.13.2" }
-  def compileIvyDeps = Agg(Deps.acyclic)
-  def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(Deps.acyclic)
+//  def compileIvyDeps = Agg(Deps.acyclic)
+//  def scalacOptions = Seq("-P:acyclic:force")
+//  def scalacPluginIvyDeps = Agg(Deps.acyclic)
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
