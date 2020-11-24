@@ -63,15 +63,11 @@ object BSP extends ExternalModule {
 
     write(
       BspConfigJson(
-        "mill-bsp",
-        Seq(
-          "sh",
-          "-c",
-          s"env ${sys.env.map { case (k, v) => s""""$k=$v"""" }.toSeq.mkString(" ")} $millPath -i ${BSP.getClass.getCanonicalName.split("\\$").last}/start"
-        ),
-        Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
-        bspProtocolVersion,
-        languages
+        name = "mill-bsp",
+        argv = Seq(millPath, "-i", "--disable-ticker", "--color", "false", s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"),
+        millVersion = Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
+        bspVersion = bspProtocolVersion,
+        languages = languages
       )
     )
   }
@@ -105,12 +101,13 @@ object BSP extends ExternalModule {
         BuildInfo.millVersion)
       val executor = Executors.newCachedThreadPool()
 
-      val stdin = System.in
-      val stdout = System.out
+      val logger = T.ctx.log
+      val in = logger.inStream
+      val out = logger.outputStream
       try {
         val launcher = new Launcher.Builder[BuildClient]()
-          .setOutput(stdout)
-          .setInput(stdin)
+          .setOutput(out)
+          .setInput(in)
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(

@@ -36,7 +36,7 @@ object VersionTests extends TestSuite {
       }
 
       test("scopt") {
-        assertMatch(Version.read.reads("1.2.3")) {
+        assertMatch(Version.read.read(Seq("1.2.3"))) {
           case Version.Release(1, 2, 3) =>
         }
       }

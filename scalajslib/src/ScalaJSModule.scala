@@ -31,7 +31,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositories,
+      repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalajslib-worker")
     )
   }
@@ -58,7 +58,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
         )
     }
     resolveDependencies(
-      repositories,
+      repositoriesTask(),
       Lib.depToDependency(_, "2.13.1", ""),
       commonDeps ++ envDep,
       ctx = Some(implicitly[mill.util.Ctx.Log])
@@ -75,7 +75,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       finalMainClassOpt().toOption,
       testBridgeInit = false,
       FastOpt,
-      moduleKind()
+      moduleKind(),
+      useECMAScript2015()
     )
   }
 
@@ -87,7 +88,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       finalMainClassOpt().toOption,
       testBridgeInit = false,
       FullOpt,
-      moduleKind()
+      moduleKind(),
+      useECMAScript2015()
     )
   }
 
@@ -121,7 +123,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
            mainClass: Option[String],
            testBridgeInit: Boolean,
            mode: OptimizeMode,
-           moduleKind: ModuleKind)(implicit ctx: Ctx): Result[PathRef] = {
+           moduleKind: ModuleKind,
+           useECMAScript2015: Boolean)(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
     os.makeDir.all(ctx.dest)
@@ -141,7 +144,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       mainClass,
       testBridgeInit,
       mode == FullOpt,
-      moduleKind
+      moduleKind,
+      useECMAScript2015
     ).map(PathRef(_))
   }
 
@@ -167,6 +171,8 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def jsEnvConfig: T[JsEnvConfig] = T { JsEnvConfig.NodeJs() }
 
   def moduleKind: T[ModuleKind] = T { ModuleKind.NoModule }
+
+  def useECMAScript2015: T[Boolean] = false
 }
 
 trait TestScalaJSModule extends ScalaJSModule with TestModule {
@@ -190,7 +196,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       None,
       testBridgeInit = true,
       FastOpt,
-      moduleKind()
+      moduleKind(),
+      useECMAScript2015()
     )
   }
 

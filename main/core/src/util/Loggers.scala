@@ -66,7 +66,8 @@ object PrintState {
 trait ColorLogger extends Logger{
   def colors: ammonite.util.Colors
 }
-case class PrefixLogger(out: ColorLogger, context: String) extends ColorLogger{
+
+case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "") extends ColorLogger {
   override def colored = out.colored
 
   def colors = out.colors
@@ -83,10 +84,11 @@ case class PrefixLogger(out: ColorLogger, context: String) extends ColorLogger{
 
   override def error(s: String): Unit = out.error(context + s)
 
-  override def ticker(s: String): Unit = out.ticker(context + s)
+  override def ticker(s: String): Unit = out.ticker(context + tickerContext + s)
 
   override def debug(s: String): Unit = out.debug(context + s)
 }
+
 case class PrintLogger(
   colored: Boolean,
   disableTicker: Boolean,
@@ -202,17 +204,12 @@ class MultiStream(stream1: OutputStream, stream2: OutputStream) extends PrintStr
   }
 })
 
-case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger) extends Logger {
+case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream) extends Logger {
 
 
   lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
 
   lazy val errorStream: PrintStream = new MultiStream(logger1.errorStream, logger2.errorStream)
-
-  lazy val inStream = Seq(logger1, logger2).collectFirst{case t: PrintLogger => t} match{
-    case Some(x) => x.inStream
-    case None => new ByteArrayInputStream(Array())
-  }
 
   def info(s: String) = {
     logger1.info(s)
@@ -253,5 +250,6 @@ case class ProxyLogger(logger: Logger) extends Logger {
   def error(s: String) = logger.error(s)
   def ticker(s: String) = logger.ticker(s)
   def debug(s: String) = logger.debug(s)
+
   override def close() = logger.close()
 }

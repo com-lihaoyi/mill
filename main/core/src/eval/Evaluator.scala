@@ -1,16 +1,17 @@
 package mill.eval
 
 import java.net.URLClassLoader
-import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import ammonite.runtime.SpecialClassLoader
+import mainargs.MainData
+
+import scala.util.DynamicVariable
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
 import mill.util
-import mill.util.Router.EntryPoint
 import mill.util._
 
 import scala.collection.JavaConverters._
@@ -93,9 +94,15 @@ case class Evaluator(
     for (((terminal, group), i) <- sortedGroups.items().zipWithIndex) {
       if(failFast && someTaskFailed) {
         // we exit early and set aborted state for all left tasks
-        group.foreach { task => results.put(task, Aborted)}
+        group.iterator.foreach { task => results.put(task, Aborted)}
 
       } else {
+
+        val contextLogger = PrefixLogger(
+          out = logger,
+          context = "",
+          tickerContext = Evaluator.dynamicTickerPrefix.value
+        )
 
         val startTime = System.currentTimeMillis()
         // Increment the counter message by 1 to go from 1/10 to 10/10 instead of 0/10 to 9/10
@@ -107,7 +114,7 @@ case class Evaluator(
           counterMsg,
           reporter,
           testReporter,
-          logger
+          contextLogger
         )
         someTaskFailed = someTaskFailed || newResults.exists(task => !task._2.isInstanceOf[Success[_]])
 
@@ -166,7 +173,7 @@ case class Evaluator(
 
       val failed = new AtomicBoolean(false)
       val totalCount = terminals.size
-      val count = new AtomicInteger(0)
+      val count = new AtomicInteger(1)
       val futures = mutable.Map.empty[Terminal, Future[Option[Evaluated]]]
 
       // We walk the task graph in topological order and schedule the futures
@@ -187,7 +194,11 @@ case class Evaluator(
             val startTime = System.currentTimeMillis()
             val threadId = timeLog.getThreadId(Thread.currentThread().getName())
             val fraction = s"${count.getAndIncrement()}/$totalCount"
-            val contextLogger = new PrefixLogger(logger, context = s"[#${if(effectiveThreadCount > 9) f"$threadId%02d" else threadId}] ")
+            val contextLogger = PrefixLogger(
+              out = logger,
+              context = s"[#${if(effectiveThreadCount > 9) f"$threadId%02d" else threadId}] ",
+              tickerContext = Evaluator.dynamicTickerPrefix.value
+            )
 
             val res = evaluateGroupCached(
               k,
@@ -317,17 +328,21 @@ case class Evaluator(
             // uncached
             if (labelledNamedTask.task.flushDest) os.remove.all(paths.dest)
 
-            val (newResults, newEvaluated) = evaluateGroup(
-              group,
-              results,
-              inputsHash,
-              paths = Some(paths),
-              maybeTargetLabel = Some(printTerm(lntRight)),
-              counterMsg = counterMsg,
-              zincProblemReporter,
-              testReporter,
-              logger
-            )
+            val targetLabel = printTerm(lntRight)
+
+            val (newResults, newEvaluated) = Evaluator.dynamicTickerPrefix.withValue(s"[$counterMsg] $targetLabel > ") {
+              evaluateGroup(
+                group,
+                results,
+                inputsHash,
+                paths = Some(paths),
+                maybeTargetLabel = Some(targetLabel),
+                counterMsg = counterMsg,
+                zincProblemReporter,
+                testReporter,
+                logger
+              )
+            }
 
             newResults(labelledNamedTask.task) match{
               case Result.Failure(_, Some((v, hashCode))) =>
@@ -510,7 +525,7 @@ case class Evaluator(
 
   def resolveLogger(logPath: Option[os.Path], logger: Logger): Logger = logPath match{
     case None => logger
-    case Some(path) => MultiLogger(logger.colored, logger, new FileLogger(logger.colored, path, debugEnabled = true))
+    case Some(path) => MultiLogger(logger.colored, logger, new FileLogger(logger.colored, path, debugEnabled = true), logger.inStream)
   }
 
   /**
@@ -637,7 +652,7 @@ object Evaluator{
             rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
 
           case c: mill.define.Command[_] =>
-            def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
+            def findMatching(cls: Class[_]): Option[Seq[(Int, MainData[_, _])]] = {
               rootModule.millDiscover.value.get(cls) match{
                 case Some(v) => Some(v)
                 case None =>
@@ -689,4 +704,15 @@ object Evaluator{
     )
   }
 
+  /**
+    * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
+    */
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
+    evaluator.evaluate(Agg(e)).values match {
+      case Seq() => default
+      case Seq(e: T) => e
+    }
+  }
+
+  private val dynamicTickerPrefix = new DynamicVariable("")
 }

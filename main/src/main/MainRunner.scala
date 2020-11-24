@@ -17,7 +17,7 @@ import mill.define.Segments
   * `build.sc` scripts with mill-specific tweaks such as a custom
   * `scriptCodeWrapper` or with a persistent evaluator between runs.
   */
-class MainRunner(val config: ammonite.main.Cli.Config,
+class MainRunner(val config: ammonite.main.Config,
                  mainInteractive: Boolean,
                  disableTicker: Boolean,
                  outprintStream: PrintStream,
@@ -30,10 +30,12 @@ class MainRunner(val config: ammonite.main.Cli.Config,
                  keepGoing: Boolean,
                  systemProperties: Map[String, String],
                  threadCount: Option[Int],
-                 ringBell: Boolean)
+                 ringBell: Boolean,
+                 wd: os.Path)
   extends ammonite.MainRunner(
     config, outprintStream, errPrintStream,
-    stdIn, outprintStream, errPrintStream
+    stdIn, outprintStream, errPrintStream,
+    wd
   ){
 
   var stateCache  = stateCache0
@@ -72,7 +74,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         println("\u0007")
       }
     }
-    if (!config.watch) success
+    if (!config.core.watch.value) success
     else{
       watchAndWait(watched())
       watchLoop2(isRepl, printing, run)
@@ -80,7 +82,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
   }
 
 
-  val colored = config.colored.getOrElse(mainInteractive)
+  val colored = config.core.color.getOrElse(mainInteractive)
 
   override val colors = if(colored) Colors.Default else Colors.BlackWhite
   override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
@@ -88,7 +90,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       isRepl = false,
       printing = true,
       mainCfg => {
-        val logger = new PrintLogger(
+        val logger = PrintLogger(
           colored,
           disableTicker,
           colors,
@@ -102,7 +104,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
         logger.debug(s"Using explicit system properties: ${systemProperties}")
 
         val (result, interpWatched) = RunScript.runScript(
-          config.home,
+          config.core.home,
           mainCfg.wd,
           scriptPath,
           mainCfg.instantiateInterpreter(),
@@ -154,7 +156,7 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       scriptCodeWrapper = CustomCodeWrapper,
       // Ammonite does not properly forward the wd from CliConfig to Main, so
       // force forward it outselves
-      wd = config.wd,
+      wd = wd,
       importHooks = hooks
     )
   }
@@ -170,12 +172,12 @@ class MainRunner(val config: ammonite.main.Cli.Config,
       val wrapName = indexedWrapperName.backticked
       val path = source.path
         .map(_ / os.up)
-        .getOrElse(config.wd)
+        .getOrElse(wd)
       val literalPath = pprint.Util.literalize(path.toString)
-      val foreign = if (path != config.wd) {
+      val foreign = if (path != wd) {
         // Computing a path in "out" that uniquely reflects the location
         // of the foreign module relatively to the current build.
-        val relative = path.relativeTo(config.wd)
+        val relative = path.relativeTo(wd)
         // Encoding the number of `/..`
         val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
         val segs = Seq("foreign-modules") ++ ups ++ relative.segments

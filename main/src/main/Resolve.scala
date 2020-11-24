@@ -3,9 +3,8 @@ package mill.main
 import mill.define._
 import mill.define.TaskModule
 import ammonite.util.Res
+import mainargs.{MainData, TokenGrouping}
 import mill.main.ResolveMetadata.singleModuleMeta
-import mill.util.Router.EntryPoint
-import mill.util.Scripts
 
 import scala.reflect.ClassTag
 
@@ -124,7 +123,7 @@ object ResolveSegments extends Resolve[Segments] {
 
     val command =
       Resolve
-        .invokeCommand(obj, last, discover, rest)
+        .invokeCommand(obj, last, discover.asInstanceOf[Discover[Module]], rest)
         .headOption
         .map(_.map(_.ctx.segments))
 
@@ -191,7 +190,12 @@ object ResolveTasks extends Resolve[NamedTask[Any]]{
           .reflectSingle[Target[_]](last)
           .map(Right(_))
 
-      val command = Resolve.invokeCommand(obj, last, discover, rest).headOption
+      val command = Resolve.invokeCommand(
+        obj,
+        last,
+        discover.asInstanceOf[Discover[Module]],
+        rest
+      ).headOption
 
       command orElse target orElse Resolve.runDefault(obj, Segment.Label(last), discover, rest).flatten.headOption match {
         case None =>
@@ -303,25 +307,40 @@ object Resolve{
 
   def invokeCommand(target: Module,
                     name: String,
-                    discover: Discover[_],
+                    discover: Discover[Module],
                     rest: Seq[String]) = for {
     (cls, entryPoints) <- discover.value
     if cls.isAssignableFrom(target.getClass)
     ep <- entryPoints
     if ep._2.name == name
-  } yield Scripts.runMainMethod(
-    target,
-    ep._2.asInstanceOf[EntryPoint[Module]],
-    ammonite.main.Scripts.groupArgs(rest.toList)
-  ) match {
-    case Res.Success(v: Command[_]) => Right(v)
-    case Res.Failure(msg) => Left(msg)
-    case Res.Exception(ex, msg) =>
-      val sw = new java.io.StringWriter()
-      ex.printStackTrace(new java.io.PrintWriter(sw))
-      val prefix = if (msg.nonEmpty) msg + "\n" else msg
-      Left(prefix + sw.toString)
-
+  } yield {
+    mainargs.TokenGrouping.groupArgs(
+      rest,
+      ep._2.argSigs0,
+      allowPositional = true,
+      allowRepeats = false,
+      allowLeftover = ep._2.leftoverArgSig.nonEmpty
+    ).flatMap { grouped =>
+      mainargs.Invoker.invoke(
+        target,
+        ep._2.asInstanceOf[MainData[_, Any]],
+        grouped.asInstanceOf[TokenGrouping[Any]]
+      )
+    } match {
+      case mainargs.Result.Success(v: Command[_]) => Right(v)
+      case f: mainargs.Result.Failure =>
+        Left(
+          mainargs.Renderer.renderResult(
+            ep._2,
+            f,
+            totalWidth = 100,
+            printHelpOnError = true,
+            docsOnNewLine = false,
+            customName = None,
+            customDoc = None
+          )
+        )
+    }
   }
 
   def runDefault(obj: Module, last: Segment, discover: Discover[_], rest: Seq[String]) = for {
@@ -329,7 +348,14 @@ object Resolve{
     if child.millOuterCtx.segment == last
     res <- child match {
       case taskMod: TaskModule =>
-        Some(invokeCommand(child, taskMod.defaultCommandName(), discover, rest).headOption)
+        Some(
+          invokeCommand(
+            child,
+            taskMod.defaultCommandName(),
+            discover.asInstanceOf[Discover[Module]],
+            rest
+          ).headOption
+        )
       case _ => None
     }
   } yield res

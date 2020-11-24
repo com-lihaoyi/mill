@@ -12,17 +12,17 @@ import mill.modules.Jvm.createAssembly
 object Deps {
 
   object Scalajs_0_6 {
-    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.32"
-    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.32"
-    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.32"
+    val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.33"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
+    val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.33"
   }
 
   object Scalajs_1 {
     val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.1.1"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.1.1"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.3.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.3.1"
   }
 
   object Scalanative_0_3 {
@@ -40,7 +40,13 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0-25-6e75eb47"
+  // Exclude trees here to force the version of we have defined. We use this
+  // here instead of a `forceVersion()` on scalametaTrees since it's not
+  // respected in the POM causing issues for Coursier Mill users.
+  val ammoniteExcludingTrees = ammonite.exclude(
+    "org.scalameta" -> "trees_2.13"
+  )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.0"
@@ -96,9 +102,9 @@ trait MillPublishModule extends PublishModule{
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.13.2" }
-  def compileIvyDeps = Agg(Deps.acyclic)
-  def scalacOptions = Seq("-P:acyclic:force")
-  def scalacPluginIvyDeps = Agg(Deps.acyclic)
+//  def compileIvyDeps = Agg(Deps.acyclic)
+//  def scalacOptions = Seq("-P:acyclic:force")
+//  def scalacPluginIvyDeps = Agg(Deps.acyclic)
   def repositories = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
@@ -161,8 +167,8 @@ object main extends MillModule {
     )
 
     def ivyDeps = Agg(
-      Deps.ammonite,
-      Deps.scalametaTrees.forceVersion(),
+      Deps.ammoniteExcludingTrees,
+      Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
@@ -484,6 +490,10 @@ object contrib extends MillModule {
   }
 
   object artifactory extends MillModule {
+    override def compileModuleDeps = Seq(scalalib)
+  }
+
+  object codeartifact extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
   }
 
@@ -845,16 +855,11 @@ def launcher = T{
   PathRef(outputPath)
 }
 
-val isMasterCommit = {
-  sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
-  (sys.env.get("TRAVIS_BRANCH") == Some("master") || sys.env("TRAVIS_TAG") != "")
-}
+val isMasterCommit =
+  sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
+  sys.env.get("GITHUB_REF").exists(_.endsWith("/master"))
 
-def gitHead = T.input{
-  sys.env.get("TRAVIS_COMMIT").getOrElse(
-    os.proc('git, "rev-parse", "HEAD").call().out.trim
-  )
-}
+def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
 
 def publishVersion = T.input{
   val tag =

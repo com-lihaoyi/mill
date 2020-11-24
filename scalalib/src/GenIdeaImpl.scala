@@ -76,7 +76,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
       else Util.millProperty("MILL_BUILD_LIBRARIES") match {
         case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
         case None =>
-          val repos = modules.foldLeft(Set.empty[Repository]) { _ ++ _._2.repositories } ++ Set(LocalRepositories.ivy2Local, Repositories.central)
+
+          val moduleRepos = evalOrElse(evaluator, T.task {
+            T.traverse(modules)(_._2.repositoriesTask)()
+          }, Seq.empty[Seq[Repository]])
+
+          val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(LocalRepositories.ivy2Local, Repositories.central)
           val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
@@ -395,8 +400,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Strict.Agg.from(normalSourcePaths),
         Strict.Agg.from(generatedSourcePaths),
         compilerOutput,
-        Strict.Agg.from(resolvedDeps.map(pathToLibName)),
-        Strict.Agg.from(mod.moduleDeps.filterNot(_.skipIdea).map{ m => moduleName(moduleLabels(m))}.distinct),
+        Strict.Agg.from(resolvedDeps.map(pathToLibName)).iterator.toSeq,
+        Strict.Agg.from(mod.moduleDeps.map((_, None)) ++ mod.compileModuleDeps.map((_, Some("PROVIDED"))))
+          .filter(!_._1.skipIdea)
+          .map{ case(v,s) => Scoped(moduleName(moduleLabels(v)), s) }
+          .iterator.toSeq
+          .distinct,
         isTest,
         facets
       )
@@ -545,8 +554,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
                         normalSourcePaths: Strict.Agg[os.Path],
                         generatedSourcePaths: Strict.Agg[os.Path],
                         compileOutputPath: os.Path,
-                        libNames: Strict.Agg[String],
-                        depNames: Strict.Agg[String],
+                        libNames: Seq[String],
+                        depNames: Seq[Scoped[String]],
                         isTest: Boolean,
                         facets: Seq[GenIdeaModule.JavaFacet]
                        ): Elem = {
@@ -571,7 +580,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
         {
           // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-          for (normalSourcePath <- normalSourcePaths.toSeq.sorted) yield {
+          for (normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted) yield {
             val rel = relify(normalSourcePath)
             <content url={"file://$MODULE_DIR$/" + rel}>
               <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} />
@@ -580,7 +589,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
         {
           val resourceType = if (isTest) "java-test-resource" else "java-resource"
-          for (resourcePath <- resourcePaths.toSeq.sorted) yield {
+          for (resourcePath <- resourcePaths.iterator.toSeq.sorted) yield {
               val rel = relify(resourcePath)
               <content url={"file://$MODULE_DIR$/" + rel}>
                 <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
@@ -595,13 +604,17 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
 
         {
-        for(name <- libNames.toSeq.sorted)
+        for(name <- libNames.iterator.toSeq.sorted)
         yield <orderEntry type="library" name={name} level="project" />
 
         }
         {
-        for(depName <- depNames.toSeq.sorted)
-        yield <orderEntry type="module" module-name={depName} exported="" />
+        for(dep <- depNames.sorted)
+        yield
+          dep.scope match {
+            case None => <orderEntry type="module" module-name={dep.value} exported="" />
+            case Some(scope) => <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+          }
         }
       </component>
       { if (facets.isEmpty) NodeSeq.Empty else { <component name="FacetManager">
@@ -662,9 +675,20 @@ object GenIdeaImpl {
   }
 
   sealed trait ResolvedLibrary { def path : os.Path }
-  case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path]) extends ResolvedLibrary
-  case class OtherResolved(path : os.Path) extends ResolvedLibrary
-  case class WithSourcesResolved(path : os.Path, sources: Option[os.Path]) extends ResolvedLibrary
+  final case class CoursierResolved(path : os.Path, pom : os.Path, sources : Option[os.Path]) extends ResolvedLibrary
+  final case class OtherResolved(path : os.Path) extends ResolvedLibrary
+  final case class WithSourcesResolved(path : os.Path, sources: Option[os.Path]) extends ResolvedLibrary
 
+  final case class Scoped[T <: Comparable[T]](value: T, scope: Option[String]) extends Ordered[Scoped[T]] {
+    override def compare(that: Scoped[T]): Int = value.compareTo(that.value) match {
+      case 0 => (scope, that.scope) match {
+        case (None, None) => 0
+        case (Some(l), Some(r)) => l.compare(r)
+        case (None, _) => -1
+        case (_, None) => +1
+      }
+      case x => x
+    }
+  }
 
 }

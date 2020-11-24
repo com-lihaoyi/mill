@@ -37,7 +37,8 @@ class ScalaJSWorker {
            main: Option[String],
            testBridgeInit: Boolean,
            fullOpt: Boolean,
-           moduleKind: ModuleKind)
+           moduleKind: ModuleKind,
+           useECMAScript2015: Boolean)
           (implicit ctx: Ctx.Home): Result[os.Path] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
@@ -46,7 +47,8 @@ class ScalaJSWorker {
       main.orNull,
       testBridgeInit,
       fullOpt,
-      moduleKind
+      moduleKind,
+      useECMAScript2015
     ).map(os.Path(_))
   }
 

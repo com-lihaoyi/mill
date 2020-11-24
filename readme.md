@@ -135,6 +135,10 @@ references jars published locally in your `~/.ivy2/local` cache. You can then
 use this standalone assembly to build & re-build your current Mill checkout
 without worrying about stomping over compiled code that the assembly is using.
 
+This assemby is design to work on bash, bash-like shells and Windows Cmd. 
+If you have another default shell like zsh or fish, you probably need to invoke it
+with `sh ~/mill-release` or prepend the file with a proper shebang. 
+
 ### Troubleshooting
 
 In case of troubles with caching and/or incremental compilation, you can always

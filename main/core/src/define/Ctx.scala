@@ -79,7 +79,7 @@ object Ctx{
                     millName0: sourcecode.Name,
                     millModuleBasePath0: BasePath,
                     segments0: Segments,
-                    overrides0: mill.util.Router.Overrides,
+                    overrides0: mill.define.Overrides,
                     external0: External,
                     foreign0: Foreign,
                     fileName: sourcecode.File,

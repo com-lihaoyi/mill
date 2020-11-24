@@ -5,27 +5,23 @@ case class Tasks[T](value: Seq[mill.define.NamedTask[T]])
 
 object Tasks{
 
-  class Scopt[T]() extends scopt.Read[Tasks[T]] {
-    def arity = 1
-
-    def reads = s => {
-      RunScript.resolveTasks(
-        mill.main.ResolveTasks,
-        Evaluator.currentEvaluator.get,
-        Seq(s),
-        multiSelect = false
-      ) match{
-        case Left(err) => throw new Exception(err)
-        case Right(tasks) => Tasks(tasks).asInstanceOf[Tasks[T]]
-      }
-    }
-  }
+  class Scopt[T]() extends mainargs.TokensReader[Tasks[T]](
+    shortName = "<tasks>",
+    read = s => RunScript.resolveTasks(
+      mill.main.ResolveTasks,
+      Evaluator.currentEvaluator.get,
+      s,
+      multiSelect = false
+    ).map(x => Tasks(x.asInstanceOf[Seq[mill.define.NamedTask[T]]])),
+    alwaysRepeatable = false,
+    allowEmpty  = false
+  )
 }
 
-class EvaluatorScopt[T]()
-  extends scopt.Read[mill.eval.Evaluator]{
-  def arity = 0
-  def reads = s => {
-    Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]
-  }
-}
+class EvaluatorScopt[T]() extends mainargs.TokensReader[mill.eval.Evaluator](
+  shortName = "<eval>",
+  read = s => Right(Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]),
+  alwaysRepeatable = false,
+  allowEmpty  = true,
+  noTokens = true
+)

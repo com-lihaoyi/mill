@@ -27,6 +27,7 @@ trait JavaModule extends mill.Module
   trait Tests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
+    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
     override def javacOptions: T[Seq[String]] = outer.javacOptions
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
@@ -423,7 +424,7 @@ trait JavaModule extends mill.Module
    */
   protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]) = T.task {
     val (flattened, resolution) = Lib.resolveDependenciesMetadata(
-      repositories,
+      repositoriesTask(),
       resolveCoursierDependency().apply(_),
       additionalDeps() ++ transitiveIvyDeps(),
       Some(mapDependencies())

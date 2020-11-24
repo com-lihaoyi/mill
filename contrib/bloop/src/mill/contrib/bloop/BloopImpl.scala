@@ -354,7 +354,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
 
     val bloopResolution: Task[BloopConfig.Resolution] = T.task {
-      val repos = module.repositories
+      val repos = module.repositoriesTask()
       val allIvyDeps = module
         .transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ module.transitiveCompileIvyDeps()
       val coursierDeps =
@@ -380,9 +380,9 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       .map(_.map(_.path).toSeq)
 
     def transitiveClasspath(m: JavaModule): Task[Seq[Path]] = T.task {
-      m.moduleDeps.map(classes) ++
+      (m.moduleDeps ++ m.compileModuleDeps).map(classes) ++
         m.unmanagedClasspath().map(_.path) ++
-        Task.traverse(m.moduleDeps)(transitiveClasspath)().flatten
+        Task.traverse(m.moduleDeps ++ m.compileModuleDeps)(transitiveClasspath)().flatten
     }
 
     val classpath = T
@@ -407,7 +407,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         directory = module.millSourcePath.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
-        dependencies = module.moduleDeps.map(name).toList,
+        dependencies = (module.moduleDeps ++ module.compileModuleDeps).map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
         classesDir = classes(module).toNIO,

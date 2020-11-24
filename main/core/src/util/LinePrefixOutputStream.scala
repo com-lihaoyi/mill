@@ -33,12 +33,16 @@ class LinePrefixOutputStream(
     }
     buffer.write(b)
     if (b == '\n') {
-      out.synchronized{
-        out.write(buffer.toByteArray)
-      }
-      buffer.reset()
+      flush()
       isFirst = true
     }
   }
 
+  override def flush(): Unit = {
+    out.synchronized{
+      out.write(buffer.toByteArray)
+    }
+    buffer.reset()
+    super.flush()
+  }
 }
