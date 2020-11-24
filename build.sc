@@ -40,7 +40,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0-6-ed7f361"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0-25-6e75eb47"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -168,7 +168,6 @@ object main extends MillModule {
 
     def ivyDeps = Agg(
       Deps.ammoniteExcludingTrees,
-      ivy"com.lihaoyi::mainargs:0.1.3",
       Deps.scalametaTrees,
       Deps.coursier,
       // Necessary so we can share the JNA classes throughout the build process
