@@ -859,7 +859,7 @@ val isMasterCommit =
   sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
   sys.env.get("GITHUB_REF").exists(_.endsWith("/master"))
 
-def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim) }
+def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
 
 def publishVersion = T.input{
   val tag =
