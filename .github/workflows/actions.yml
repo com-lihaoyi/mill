@@ -43,6 +43,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-java@v1
         with: {java-version: '10'}
+      - run: curl https://raw.githubusercontent.com/scala-native/scala-native/master/scripts/travis_setup.sh | bash -
       - run: ci/test-mill-0.sh
   test-1-jdk8:
     runs-on: ubuntu-latest
