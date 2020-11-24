@@ -17,6 +17,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-java@v1
         with: {java-version: '11'}
+      - run: sudo apt-get install libunwind8-dev libre2-dev
       - run: ci/test-mill-dev.sh
 
   test-bootstrap-0-jdk8:
@@ -26,6 +27,7 @@ jobs:
         with: {fetch-depth: 0}
       - uses: actions/setup-java@v1
         with: {java-version: '8'}
+      - run: sudo apt-get install libunwind8-dev libre2-dev
       - run: ci/test-mill-bootstrap-0.sh
   test-bootstrap-1-jdk9:
     runs-on: ubuntu-latest
