@@ -855,16 +855,11 @@ def launcher = T{
   PathRef(outputPath)
 }
 
-val isMasterCommit = {
-  sys.env.get("TRAVIS_PULL_REQUEST") == Some("false") &&
-  (sys.env.get("TRAVIS_BRANCH") == Some("master") || sys.env("TRAVIS_TAG") != "")
-}
+val isMasterCommit =
+  sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
+  sys.env.get("GITHUB_REF").exists(_.endsWith("/master"))
 
-def gitHead = T.input{
-  sys.env.get("TRAVIS_COMMIT").getOrElse(
-    os.proc('git, "rev-parse", "HEAD").call().out.trim
-  )
-}
+def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim) }
 
 def publishVersion = T.input{
   val tag =
