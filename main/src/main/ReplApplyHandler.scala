@@ -67,7 +67,7 @@ object ReplApplyHandler{
           case Some(commands) =>
             ctx.applyPrefixColor("\nCommands:").toString +: commands.map{c =>
               "\n    ." + c._2.name + "(" +
-                c._2.argSignatures.map(s => s.name + ": " + s.typeString).mkString(", ") +
+                c._2.argSigs.map(s => mainargs.Renderer.renderArgShort(s)).mkString(", ") +
                 ")()"
             }
         }) ++

@@ -68,6 +68,8 @@ object Version {
   implicit val readWriter: ReadWriter[Version] =
     readwriter[String].bimap(_.toString, Version.of)
 
-  implicit val read: scopt.Read[Version] =
-    scopt.Read.reads(Version.of)
+  implicit val read: mainargs.TokensReader[Version] = new mainargs.TokensReader[Version](
+      "<version>",
+      s => Right(Version.of(s.last))
+    )
 }

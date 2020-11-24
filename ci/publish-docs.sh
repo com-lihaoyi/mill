@@ -6,7 +6,7 @@ curl -L -o ~/bin/amm https://github.com/lihaoyi/Ammonite/releases/download/1.4.0
 
 cd docs
 
-echo $GITHUB_DEPLOY_KEY | base64 --decode > deploy_key
+echo $REPO_DEPLOY_KEY | base64 --decode > deploy_key
 
 eval "$(ssh-agent -s)"
 chmod 600 deploy_key

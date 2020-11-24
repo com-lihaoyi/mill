@@ -7,4 +7,4 @@ set -eux
 
 rm -rf ~/.mill
 
-out/dev/assembly/dest/mill uploadToGithub $GITHUB_ACCESS_TOKEN
+out/dev/assembly/dest/mill uploadToGithub $REPO_ACCESS_TOKEN

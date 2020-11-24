@@ -2,8 +2,9 @@ package mill.util
 
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
-import scala.util.Try
+import mainargs.Flag
 
+import scala.util.Try
 import utest._
 
 abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
@@ -21,7 +22,18 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val systemProperties = Map[String, String]()
   val threadCount = Try(sys.props("MILL_THREAD_COUNT").toInt).toOption
   lazy val runner = new mill.main.MainRunner(
-    config = ammonite.main.Cli.Config(wd = wd),
+    config = ammonite.main.Config(
+      ammonite.main.Config.Core(
+        noDefaultPredef = Flag(),
+        silent = Flag(),
+        watch = Flag(),
+        bsp = Flag(),
+        thin = Flag(),
+        help = Flag()
+      ),
+      ammonite.main.Config.Predef(noHomePredef = Flag()),
+      ammonite.main.Config.Repl(noRemoteLogging = Flag(), classBased = Flag()),
+    ),
     mainInteractive = false,
     disableTicker = disableTicker,
     outprintStream = stdOutErr,
@@ -34,7 +46,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     keepGoing = keepGoing,
     systemProperties = systemProperties,
     threadCount = threadCount,
-    ringBell = false
+    ringBell = false,
+    wd = wd
   )
   def eval(s: String*) = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)

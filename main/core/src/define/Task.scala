@@ -1,6 +1,5 @@
 package mill.define
 
-import ammonite.main.Router.Overrides
 import mill.define.Applicative.Applyable
 import mill.eval.{PathRef, Result}
 import mill.util.EnclosingClass

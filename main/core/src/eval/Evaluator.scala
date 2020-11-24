@@ -4,6 +4,7 @@ import java.net.URLClassLoader
 import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import ammonite.runtime.SpecialClassLoader
+import mainargs.MainData
 
 import scala.util.DynamicVariable
 import mill.api.Result.{Aborted, OuterStack, Success}
@@ -11,7 +12,6 @@ import mill.api.Strict.Agg
 import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
 import mill.util
-import mill.util.Router.EntryPoint
 import mill.util._
 
 import scala.collection.JavaConverters._
@@ -652,7 +652,7 @@ object Evaluator{
             rootModule.millInternal.segmentsToTargets.get(segments).fold(0)(_.ctx.overrides)
 
           case c: mill.define.Command[_] =>
-            def findMatching(cls: Class[_]): Option[Seq[(Int, EntryPoint[_])]] = {
+            def findMatching(cls: Class[_]): Option[Seq[(Int, MainData[_, _])]] = {
               rootModule.millDiscover.value.get(cls) match{
                 case Some(v) => Some(v)
                 case None =>
