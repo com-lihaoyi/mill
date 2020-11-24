@@ -16,19 +16,20 @@ import org.scalajs.jsenv.nodejs.NodeJSEnv.SourceMap
 import org.scalajs.testing.adapter.TestAdapter
 import org.scalajs.testing.adapter.{TestAdapterInitializer => TAI}
 
+import scala.collection.mutable
+import scala.ref.WeakReference
+
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
   private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean)
   private object ScalaJSLinker {
-    private var cache = Map.empty[LinkerInput, Linker]
-    def reuseOrCreate(input: LinkerInput): Linker =
-      cache.getOrElse(
-        input,
-        {
-          val newLinker = createLinker(input)
-          cache += (input -> newLinker)
-          newLinker
-        }
-      )
+    private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
+    def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
+      case Some(WeakReference(linker)) => linker
+      case _ =>
+        val newLinker = createLinker(input)
+        cache.update(input, WeakReference(newLinker))
+        newLinker
+    }
     private def createLinker(input: LinkerInput): Linker = {
       val semantics = input.fullOpt match {
           case true => Semantics.Defaults.optimized
