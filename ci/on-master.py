@@ -2,9 +2,8 @@
 
 import os, sys, subprocess
 is_master_commit = (
-    os.environ["TRAVIS_PULL_REQUEST"] == "false" and
-    os.environ["TRAVIS_REPO_SLUG"] == "lihaoyi/mill" and
-    (os.environ["TRAVIS_BRANCH"] == "master" or os.environ["TRAVIS_TAG"] != "")
+    os.environ["GITHUB_REPOSITORY"] == "lihaoyi/mill" and
+    (os.environ["GITHUB_REF"].endswith("/master")
 )
 
 if is_master_commit:
