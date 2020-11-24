@@ -22,5 +22,6 @@ class EvaluatorScopt[T]() extends mainargs.TokensReader[mill.eval.Evaluator](
   shortName = "<eval>",
   read = s => Right(Evaluator.currentEvaluator.get.asInstanceOf[mill.eval.Evaluator]),
   alwaysRepeatable = false,
-  allowEmpty  = true
+  allowEmpty  = true,
+  noTokens = true
 )
