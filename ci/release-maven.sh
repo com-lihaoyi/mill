@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
-echo $GPG_PRIVATE_KEY_B64 | base64 --decode > gpg_key
+echo $SONATYPE_PGP_SECRET | base64 --decode > gpg_key
 
 gpg --import gpg_key
 

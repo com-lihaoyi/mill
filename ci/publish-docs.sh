@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
+mkdir ~/bin
 curl -L -o ~/bin/amm https://github.com/lihaoyi/Ammonite/releases/download/1.4.0/2.12-1.4.0 && chmod +x ~/bin/amm
 
 cd docs
