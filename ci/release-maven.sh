@@ -14,7 +14,7 @@ rm gpg_key
 rm -rf ~/.mill
 
 out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
-    --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
+    --sonatypeCreds $SONATYPE_DEPLOY_USER:$SONATYPE_PASSWORD \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
     --readTimeout 600000 \
