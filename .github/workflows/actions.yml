@@ -9,7 +9,7 @@ on:
       - master
 jobs:
 
-  build:
+  test:
     strategy:
       matrix:
         java-version: [8, 11]
@@ -50,7 +50,7 @@ jobs:
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
-    needs: build
+    needs: test
 
     runs-on: ubuntu-latest
 
