@@ -4,7 +4,7 @@ set -eu
 
 echo $SONATYPE_PGP_SECRET | base64 --decode > gpg_key
 
-gpg --import gpg_key
+gpg --import gpg_key --no-tty --batch --pinentrymode loopback --yes
 
 rm gpg_key
 
