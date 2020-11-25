@@ -104,7 +104,7 @@ import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 Then in your terminal :
 
 ```
-> mill mill.contrib.Bloop/install
+> mill mill.contrib.bloop.Bloop/install
 ```
 
 It generate correct bloop config for any `JavaModule`, `ScalaModule`,
@@ -119,7 +119,7 @@ the deserialised configuration for that particular module:
 // build.sc
 import mill._
 import mill.scalalib._
-import mill.contrib.Bloop
+import mill.contrib.bloop.Bloop
 
 object MyModule extends ScalaModule with Bloop.Module {
   def myTask = T { bloop.config() }
