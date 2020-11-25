@@ -18,4 +18,4 @@ rm deploy_key
 git config --global user.email "haoyi.sg+travis@gmail.com"
 git config --global user.name "Ammonite Travis Bot"
 
-amm build.sc --publish true
+~/bin/amm build.sc --publish true
