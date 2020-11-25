@@ -1,10 +1,10 @@
 #!/usr/bin/env bash
 
-set -eux
+set -eu
 
-echo $GPG_PRIVATE_KEY_B64 | base64 --decode > gpg_key
+echo $SONATYPE_PGP_SECRET | base64 --decode > gpg_key
 
-gpg --import gpg_key
+gpg --import  --no-tty --batch --yes gpg_key
 
 rm gpg_key
 
@@ -14,8 +14,8 @@ rm gpg_key
 rm -rf ~/.mill
 
 out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
-    --sonatypeCreds lihaoyi:$SONATYPE_PASSWORD \
-    --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \
+    --sonatypeCreds $SONATYPE_DEPLOY_USER:$SONATYPE_DEPLOY_PASSWORD \
+    --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
     --readTimeout 600000 \
     --release true \

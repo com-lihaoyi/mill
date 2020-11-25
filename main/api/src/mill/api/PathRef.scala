@@ -24,18 +24,25 @@ object PathRef {
    */
   def apply(path: os.Path, quick: Boolean = false): PathRef = {
     val sig = {
+      val isPosix = path.wrapped.getFileSystem.supportedFileAttributeViews().contains("posix")
       val digest = MessageDigest.getInstance("MD5")
       val digestOut = new DigestOutputStream(DummyOutputStream, digest)
+      def updateWithInt(value: Int): Unit = {
+        digest.update((value >>> 24).toByte)
+        digest.update((value >>> 16).toByte)
+        digest.update((value >>> 8).toByte)
+        digest.update(value.toByte)
+      }
       if (os.exists(path)) {
         for ((path, attrs) <- os.walk.attrs(path, includeTarget = true, followLinks = true)) {
           digest.update(path.toString.getBytes)
           if (!attrs.isDir) {
+            if (isPosix) {
+              updateWithInt(os.perms(path).value)
+            }
             if (quick) {
               val value = (attrs.mtime, attrs.size).hashCode()
-              digest.update((value >>> 24).toByte)
-              digest.update((value >>> 16).toByte)
-              digest.update((value >>> 8).toByte)
-              digest.update(value.toByte)
+              updateWithInt(value)
             } else if (jnio.Files.isReadable(path.toNIO)) {
               val is = os.read.inputStream(path)
               StreamSupport.stream(is, digestOut)
