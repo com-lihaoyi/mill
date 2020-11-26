@@ -60,10 +60,10 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -j 0 "{__.publishLocal,assembly}"
+      - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly}"
       - run: cmd /C rd /S /Q %USERPROFILE%\.mill
       - run: cmd /C copy "%GITHUB_WORKSPACE%\out\assembly\mill" "%GITHUB_WORKSPACE%\mill-release"
-      - run: cmd /C %GITHUB_WORKSPACE%\mill-release -i -j 0 "{main.test,scalalib.test,scalajslib.test}"
+      - run: cmd /C %GITHUB_WORKSPACE%\mill-release -i "{main.test,scalalib.test,scalajslib.test}"
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
