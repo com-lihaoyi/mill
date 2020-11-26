@@ -40,7 +40,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.2.0-25-6e75eb47"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -857,7 +857,7 @@ def launcher = T{
 
 val isMasterCommit =
   sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
-  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master") || x.startsWith("refs/tags/"))
+  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master"))
 
 def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
 

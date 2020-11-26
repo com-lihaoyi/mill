@@ -60,6 +60,11 @@ case class MillConfig(
       use as much threads as available processors."""
   )
   threadCountRaw: Option[Int],
+  @arg(
+    name = "rest",
+    doc = """The name of the targets you want to build, followed by any parameters
+      you wish to pass to those targets."""
+  )
   leftoverArgs: Leftover[String]
 )
 
