@@ -18,5 +18,6 @@ out/dev/assembly/dest/mill mill.scalalib.PublishModule/publishAll \
     --gpgArgs --passphrase=$SONATYPE_PGP_PASSWORD,--no-tty,--pinentry-mode,loopback,--batch,--yes,-a,-b \
     --publishArtifacts __.publishArtifacts \
     --readTimeout 600000 \
+    --awaitTimeout 600000 \
     --release true \
     --signed true
