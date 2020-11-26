@@ -1,4 +1,5 @@
 name: ci-push-validation
+
 on:
   push:
     branches:
@@ -7,81 +8,52 @@ on:
     branches:
       - master
 jobs:
-  test-release-jdk8:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '8'}
-      - run: ci/test-mill-release.sh
 
-  test-dev-jdk11:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '11'}
-      - run: sudo apt-get install libunwind8-dev libre2-dev
-      - run: ci/test-mill-dev.sh
+  test:
+    strategy:
+      matrix:
+        java-version: [8, 11]
+        buildcmd:
+          - ci/test-mill-release.sh
+          - ci/test-mill-dev.sh
+          - ci/test-mill-bootstrap-0.sh
+          - ci/test-mill-bootstrap-1.sh
+          - ci/test-mill-0.sh
+          - ci/test-mill-1.sh
+          - ci/test-mill-2.sh
+          - ./mill -i docs.generate
+        exclude:
+          - java-version: 11
+            buildcmd: ci/test-mill-1.sh
+          - java-version: 11
+            buildcmd: ci/test-mill-release.sh
 
-  test-bootstrap-0-jdk8:
     runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '8'}
-      - run: sudo apt-get install libunwind8-dev libre2-dev
-      - run: ci/test-mill-bootstrap-0.sh
-  test-bootstrap-1-jdk9:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '9'}
-      - run: ci/test-mill-bootstrap-1.sh
 
-  test-0-jdk10:
-    runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '10'}
-      - run: sudo apt-get install libunwind8-dev libre2-dev
-      - run: ci/test-mill-0.sh
-  test-1-jdk8:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '8'}
-      - run: ci/test-mill-1.sh
-  test-2-jdk11:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
-      - uses: actions/setup-java@v1
-        with: {java-version: '11'}
-      - run: ci/test-mill-2.sh
+        with:
+          fetch-depth: 0
 
-  release-github:
-    runs-on: ubuntu-latest
-    env:
-      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-    steps:
-      - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
       - uses: actions/setup-java@v1
-        with: {java-version: '9'}
-      - run: ci/on-master.py ci/release-github.sh
-  release-maven:
+        with:
+          java-version: ${{ matrix.java-version }}
+
+      - name: Prepare scala-native build
+        run: sudo apt-get install libunwind8-dev libre2-dev
+
+      - name: Run '${{ matrix.buildcmd }}'
+        run: |
+          git config --add user.name "Mill GithHub Actions"
+          git config --add user.email "mill-ci@localhost"
+          ${{ matrix.buildcmd }}
+
+  publish-sonatype:
+    if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
+    needs: test
+
     runs-on: ubuntu-latest
+
     env:
       SONATYPE_PGP_SECRET: ${{ secrets.SONATYPE_PGP_SECRET }}
       SONATYPE_DEPLOY_USER: ${{ secrets.SONATYPE_DEPLOY_USER }}
@@ -90,19 +62,41 @@ jobs:
       LANG: "en_US.UTF-8"
       LC_MESSAGES: "en_US.UTF-8"
       LC_ALL: "en_US.UTF-8"
+
     steps:
       - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-java@v1
-        with: {java-version: '9'}
+        with:
+          java-version: 9
+
       - run: ci/on-master.py ci/release-maven.sh
-  publish-docs:
+
+  release-github-and-site:
+    if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
+    needs: publish-sonatype
+
+    strategy:
+      matrix:
+        buildcmd:
+          - ci/on-master.py ci/release-github.sh
+          - ci/on-master.py ci/publish-docs.sh
+
     runs-on: ubuntu-latest
+
     env:
+      REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+
     steps:
       - uses: actions/checkout@v2
-        with: {fetch-depth: 0}
+        with:
+          fetch-depth: 0
+
       - uses: actions/setup-java@v1
-        with: {java-version: '10'}
-      - run: ci/on-master.py ci/publish-docs.sh
+        with:
+          java-version: 9
+
+      - run: ${{ matrix.buildcmd }}
