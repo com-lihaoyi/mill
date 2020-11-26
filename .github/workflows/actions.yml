@@ -18,9 +18,9 @@ jobs:
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ci/test-mill-0.sh
-          - ci/test-mill-1.sh
-          - ci/test-mill-2.sh
+          - ./mill -i -j 0 "{main,scalalib,scalajslib,scalanativelib,contrib.twirllib,contrib.playlib,main.client,contrib.scalapblib,contrib.flyway,contrib.scoverage}.test"
+          - ./mill -i -j 0 integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
+          - ./mill -i -j 0 integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
         exclude:
           - java-version: 11
@@ -42,11 +42,27 @@ jobs:
       - name: Prepare scala-native build
         run: sudo apt-get install libunwind8-dev libre2-dev
 
-      - name: Run '${{ matrix.buildcmd }}'
+      - name: Prepare script runner
         run: |
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
-          ${{ matrix.buildcmd }}
+
+      - name: Run '${{ matrix.buildcmd }}'
+        run: ${{ matrix.buildcmd }}
+
+  test-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -j 0 "{__.publishLocal,assembly}"
+      - run: cmd /C rd /S /Q %USERPROFILE%\.mill
+      - run: cmd /C %USERPROFILE%/mill-release -i "{main.test,scalalib.test,scalajslib.test}"
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
