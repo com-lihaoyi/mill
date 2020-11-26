@@ -197,6 +197,30 @@ corresponding version of Mill.
 [milestone after 0.8.0](https://github.com/lihaoyi/mill/milestone/44?closed=1)
 and the [list of commits](https://github.com/lihaoyi/mill/compare/0.8.0...master).*
 
+### 0.9.3 - 2020-11-26
+
+* Replace the built in `@main` method functionality with the
+  [MainArgs](https://github.com/lihaoyi/mainargs) library
+* Note that the MainArgs replacement has some backwards incompatibilities: Short
+  flags like `-i` can no longer be passed via `--i`, the `@doc("")` is now
+  `@arg(doc = "")`, `Seq[T]` parameters are now passed via repeated `--foo`
+  flags rather than comma-separated.
+* Add the ability to relocate/shade files in `.assembly` [#947](https://github.com/lihaoyi/mill/pull/947)
+* Twirl enhancements [#952](https://github.com/lihaoyi/mill/pull/952)
+* Add `scalacPluginClasspath` to Tests
+  [#956](https://github.com/lihaoyi/mill/pull/956)
+* Add `toMap` methods to `BuildInfo`
+  [#958](https://github.com/lihaoyi/mill/pull/958)
+* Bump coursier to version 2.0.0
+  [#973](https://github.com/lihaoyi/mill/pull/973)
+* Make BSP support a first-class citizen
+  [#969](https://github.com/lihaoyi/mill/pull/969)
+* Omit the suffix in `artifactName` in cross modules
+  [#953](https://github.com/lihaoyi/mill/pull/953)
+* Allow test classes with constructor parameters
+  [#982](https://github.com/lihaoyi/mill/pull/982)
+* Proguard contrib module [#972](https://github.com/lihaoyi/mill/pull/972)
+
 ### 0.8.0 - 2020-07-20
 
 * Bump external dependencies: uPickle 1.2.0, Ammonite 2.2.0, etc.
