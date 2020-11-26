@@ -35,7 +35,7 @@ case class MillConfig(
     doc = "Ring the bell once if the run completes successfully, twice if it fails.")
   ringBell: Flag,
   @arg(
-    name = "disable-ticket",
+    name = "disable-ticker",
     doc = "Disable ticker log (e.g. short-lived prints of stages and progress bars)")
   disableTicker: Flag,
   @arg(
