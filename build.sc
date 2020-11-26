@@ -857,7 +857,7 @@ def launcher = T{
 
 val isMasterCommit =
   sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
-  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master") || x.startsWith("/refs/tags/"))
+  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master") || x.startsWith("refs/tags/"))
 
 def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
 
