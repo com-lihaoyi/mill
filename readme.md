@@ -194,10 +194,12 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.8.0](https://github.com/lihaoyi/mill/milestone/44?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.8.0...master).*
+[milestone after 0.8.0](https://github.com/lihaoyi/mill/milestone/45?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master).*
 
 ### 0.9.3 - 2020-11-26
+
+*(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but dues to release difficultied, we ask you to don't use them.)*
 
 * Replace the built in `@main` method functionality with the
   [MainArgs](https://github.com/lihaoyi/mainargs) library
@@ -220,6 +222,12 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.8.0...master
 * Allow test classes with constructor parameters
   [#982](https://github.com/lihaoyi/mill/pull/982)
 * Proguard contrib module [#972](https://github.com/lihaoyi/mill/pull/972)
+
+
+*For details refer to
+[milestone 0.9.3](https://github.com/lihaoyi/mill/milestone/44?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.8.0...0.9.3).*
+
 
 ### 0.8.0 - 2020-07-20
 
