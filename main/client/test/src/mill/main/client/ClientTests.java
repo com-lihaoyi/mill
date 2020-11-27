@@ -5,10 +5,11 @@ import static org.junit.Assert.assertTrue;
 
 import org.junit.Test;
 
-import java.io.ByteArrayInputStream;
-import java.io.ByteArrayOutputStream;
-import java.io.OutputStream;
+import java.io.*;
+import java.net.URL;
+import java.nio.Buffer;
 import java.util.*;
+import java.util.stream.StreamSupport;
 
 public class ClientTests {
     @Test
@@ -61,16 +62,25 @@ public class ClientTests {
         assertEquals(i.available(), 0);
     }
 
-    public byte[] readSamples(String ...samples) throws Exception{
+    static void copy(InputStream in, OutputStream out) throws IOException {
+        byte[] buffer = new byte[4096];
+        int count = -1;
+        while (-1 != (count = in.read(buffer))) {
+            out.write(buffer, 0, count);
+        }
+    }
+
+    public byte[] readSamples(String... samples) throws Exception {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
-        for(String sample: samples) {
-            byte[] bytes = java.nio.file.Files.readAllBytes(
-                java.nio.file.Paths.get(getClass().getResource(sample).getFile())
-            );
-            out.write(bytes);
+        for (String sample : samples) {
+            final URL resource = getClass().getResource(sample);
+            try (InputStream in = resource.openStream()) {
+                copy(in, out);
+            }
         }
         return out.toByteArray();
     }
+
     @Test
     public void tinyProxyInputOutputStream() throws Exception{
         proxyInputOutputStreams(
