@@ -199,7 +199,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master
 
 ### 0.9.3 - 2020-11-26
 
-*(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but dues to release difficultied, we ask you to don't use them.)*
+*(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties, we ask you not to use them.)*
 
 * Replace the built in `@main` method functionality with the
   [MainArgs](https://github.com/lihaoyi/mainargs) library
@@ -222,6 +222,10 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master
 * Allow test classes with constructor parameters
   [#982](https://github.com/lihaoyi/mill/pull/982)
 * Proguard contrib module [#972](https://github.com/lihaoyi/mill/pull/972)
+* Support Scala.js useECMAScript2015 option and ModuleKind.ESModule
+  [#1004](https://github.com/lihaoyi/mill/pull/1004)
+* Support Scala.js incremental linking
+  [#1007](https://github.com/lihaoyi/mill/pull/1007)
 
 
 *For details refer to
