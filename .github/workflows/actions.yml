@@ -18,7 +18,7 @@ jobs:
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.testCached
+          - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.testCached"
           - ./mill -i "contrib.__.testCached"
           - ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
