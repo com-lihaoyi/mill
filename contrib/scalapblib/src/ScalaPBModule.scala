@@ -19,6 +19,7 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.api.Loose
 
+/** @see [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb ScalaPB Module]] */
 trait ScalaPBModule extends ScalaModule {
 
   override def generatedSources = T {
@@ -35,6 +36,11 @@ trait ScalaPBModule extends ScalaModule {
          ))
   }
 
+  /**
+   * Override this to specify the scalaPB version to use.
+   *
+   *  @return A string representing the scalaPB version to use.
+   */
   def scalaPBVersion: T[String]
 
   def scalaPBFlatPackage: T[Boolean] = T { false }
@@ -129,6 +135,22 @@ trait ScalaPBModule extends ScalaModule {
     PathRef(dest)
   }
 
+  /**
+   * Builds the compilation arguments for scalaPBC.
+   *
+   *  To build the args this method fetches data from:
+   *
+   *    - scalaPBProtocPath
+   *    - scalaPBSources
+   *    - scalaPBOptions
+   *    - scalaPBIncludePath
+   *    - scalaPBAdditionalArgs
+   *
+   *  If you want to customize the arguments it is often better to override the
+   *  functions listed above instead of this one.
+   *
+   * @return a sequence of arguments to pass to compileScalaPB.
+   */
   def compilationArgsScalaPB: T[Seq[Seq[Seq[String]]]] = T {
     ScalaPBWorkerApi.scalaPBWorker.compilationArgs(
       scalaPBProtocPath(),
@@ -140,6 +162,12 @@ trait ScalaPBModule extends ScalaModule {
     )
   }
 
+  /**
+   * Calls scalaPBC (scalaPB compiler)
+   *
+   * @see See [[https://scalapb.github.io/docs/scalapbc ScalaPBC]] to know more.
+   * @return the destination path.
+   */
   def compileScalaPB: T[PathRef] = T.persistent {
     ScalaPBWorkerApi.scalaPBWorker.compile(
       scalaPBClasspath().map(_.path),
