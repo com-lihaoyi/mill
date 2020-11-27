@@ -98,7 +98,7 @@ trait MillPublishModule extends PublishModule{
     )
   )
 
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8")
+  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 trait MillApiModule extends MillPublishModule with ScalaModule{
   def scalaVersion = T{ "2.13.2" }
