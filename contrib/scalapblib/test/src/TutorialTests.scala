@@ -7,7 +7,8 @@ import utest.{TestSuite, Tests, assert, _}
 object TutorialTests extends TestSuite {
 
   trait TutorialBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: os.Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait TutorialModule extends ScalaPBModule {
@@ -30,13 +31,23 @@ object TutorialTests extends TestSuite {
     }
   }
 
-  val resourcePath: os.Path = os.pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
+  object TutorialWithAdditionalArgs extends TutorialBase {
+    object core extends TutorialModule {
+      override def scalaPBAdditionalArgs = Seq(
+        s"--zio_out=..."
+      )
+    }
+  }
+
+  val resourcePath: os.Path =
+    os.pwd / 'contrib / 'scalapblib / 'test / 'protobuf / 'tutorial
 
   def protobufOutPath(eval: TestEvaluator): os.Path =
     eval.outPath / 'core / 'compileScalaPB / 'dest / 'com / 'example / 'tutorial
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)
-                      (implicit tp: TestPath): T = {
+  def workspaceTest[T](
+      m: TestUtil.BaseModule
+  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     println(m.millSourcePath)
@@ -59,7 +70,8 @@ object TutorialTests extends TestSuite {
     'scalapbVersion - {
 
       'fromBuild - workspaceTest(Tutorial) { eval =>
-        val Right((result, evalCount)) = eval.apply(Tutorial.core.scalaPBVersion)
+        val Right((result, evalCount)) =
+          eval.apply(Tutorial.core.scalaPBVersion)
 
         assert(
           result == "0.7.4",
@@ -69,10 +81,10 @@ object TutorialTests extends TestSuite {
     }
 
 //     'compileScalaPB - {
-      // Broken in Travis due to 
-      // protoc-jar: caught exception, retrying: java.io.IOException: 
-      // Cannot run program "/dev/null": error=13, Permission denied
-      
+    // Broken in Travis due to
+    // protoc-jar: caught exception, retrying: java.io.IOException:
+    // Cannot run program "/dev/null": error=13, Permission denied
+
 //       'calledDirectly - workspaceTest(Tutorial) { eval =>
 //         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
@@ -96,29 +108,29 @@ object TutorialTests extends TestSuite {
 //         assert(unchangedEvalCount == 0)
 //       }
 
-      // This throws a NullPointerException in coursier somewhere
-      //
-      // 'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
-      //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
+    // This throws a NullPointerException in coursier somewhere
+    //
+    // 'triggeredByScalaCompile - workspaceTest(Tutorial) { eval =>
+    //   val Right((_, evalCount)) = eval.apply(Tutorial.core.compile)
 
-      //   val outPath = protobufOutPath(eval)
+    //   val outPath = protobufOutPath(eval)
 
-      //   val outputFiles = os.walk(outPath).filter(_.isFile)
+    //   val outputFiles = os.walk(outPath).filter(_.isFile)
 
-      //   val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+    //   val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-      //   assert(
-      //     outputFiles.nonEmpty,
-      //     outputFiles.forall(expectedSourcefiles.contains),
-      //     outputFiles.size == 3,
-      //     evalCount > 0
-      //   )
+    //   assert(
+    //     outputFiles.nonEmpty,
+    //     outputFiles.forall(expectedSourcefiles.contains),
+    //     outputFiles.size == 3,
+    //     evalCount > 0
+    //   )
 
-      //   // don't recompile if nothing changed
-      //   val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
+    //   // don't recompile if nothing changed
+    //   val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compile)
 
-      //   assert(unchangedEvalCount == 0)
-      // }
+    //   assert(unchangedEvalCount == 0)
+    // }
 //     }
 
     'useExternalProtocCompiler - {
@@ -128,6 +140,20 @@ object TutorialTests extends TestSuite {
       'calledWithWrongProtocFile - workspaceTest(TutorialWithProtoc) { eval =>
         val result = eval.apply(TutorialWithProtoc.core.compileScalaPB)
         assert(result.isLeft)
+      }
+    }
+
+    'compilationArgs - {
+      'calledWithAdditionalArgs - workspaceTest(TutorialWithAdditionalArgs) {
+        eval =>
+          val result =
+            eval.apply(TutorialWithAdditionalArgs.core.compilationArgsScalaPB)
+          result match {
+            case Right((seq, _)) =>
+              val args = seq.flatten
+              assert(args.head.exists(_.contains("--zio_out")))
+            case _ => assert(false)
+          }
       }
     }
   }

@@ -11,25 +11,26 @@ class ScalaPBWorker {
 
   private var scalaPBInstanceCache = Option.empty[(Long, ScalaPBWorkerApi)]
 
-  private def scalaPB(scalaPBClasspath: Agg[os.Path], protocPath: Option[String]) = {
-    val classloaderSig = scalaPBClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
+  private def scalaPB(
+      scalaPBClasspath: Agg[os.Path],
+      protocPath: Option[String]
+  ) = {
+    val classloaderSig =
+      scalaPBClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val cl = new URLClassLoader(scalaPBClasspath.map(_.toIO.toURI.toURL).toArray)
+        val cl = new URLClassLoader(
+          scalaPBClasspath.map(_.toIO.toURI.toURL).toArray
+        )
         val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
-        val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
+        val mainMethod = scalaPBCompilerClass.getMethod(
+          "main",
+          classOf[Array[java.lang.String]]
+        )
 
         val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path]) {
-            val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
-            val args = protocPath.map(path => s"--protoc=$path").toSeq ++ Seq(
-              "--throw",
-              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
-              s"--proto_path=${source.getParentFile.getCanonicalPath}"
-            ) ++
-              includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}") :+
-              source.getCanonicalPath
+          override def compileScalaPB(args: Seq[String]) {
             mainMethod.invoke(null, args.toArray)
           }
         }
@@ -38,31 +39,67 @@ class ScalaPBWorker {
     }
   }
 
-  def compile(scalaPBClasspath: Agg[os.Path], protocPath: Option[String], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path, scalaPBIncludePath: Seq[os.Path])
-             (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
-    val compiler = scalaPB(scalaPBClasspath, protocPath)
-
-    def compileScalaPBDir(inputDir: os.Path) {
-      // ls throws if the path doesn't exist
-      if (inputDir.toIO.exists) {
-        os.walk(inputDir).filter(_.last.matches(".*.proto"))
-          .foreach { proto =>
-            compiler.compileScalaPB(proto.toIO, scalaPBOptions, dest.toIO, scalaPBIncludePath)
-          }
+  /**
+   * Builds the compilation arguments for scalaPBC:
+   *
+   * @param protocPath optional protoc path.
+   * @param scalaPBSources sequence of sources paths.
+   * @param scalaPBOptions options for scala_out arg.
+   * @param generatedDirectory scala out path.
+   * @param includes proto paths.
+   * @param additionalArgs to append.
+   * @return a sequence of arguments to pass to scalaPBC.
+   */
+  def compilationArgs(
+      protocPath: Option[String],
+      scalaPBSources: Seq[os.Path],
+      scalaPBOptions: String,
+      generatedDirectory: os.Path,
+      includes: Seq[os.Path],
+      additionalArgs: Seq[String]
+  ): Seq[Seq[Seq[String]]] =
+    // ls throws if the path doesn't exist
+    scalaPBSources.filter(_.toIO.exists).map { inputDir: os.Path =>
+      os.walk(inputDir).filter(_.last.matches(".*.proto")).map { proto =>
+        val source = proto.toIO
+        val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
+        protocPath.map(path => s"--protoc=$path").toSeq ++ Seq(
+          "--throw",
+          s"--scala_out=${opts}${generatedDirectory.toIO.getCanonicalPath}",
+          s"--proto_path=${source.getParentFile.getCanonicalPath}"
+        ) ++ additionalArgs ++
+          includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}") :+
+          source.getCanonicalPath
       }
     }
 
-    scalaPBSources.foreach(compileScalaPBDir)
+  /**
+   * Calls the ScalaPB compiler.
+   *
+   * @param scalaPBClasspath the class path.
+   * @param protocPath optional protoc path.
+   * @param dest Destination path.
+   * @param args to pass the compiler.
+   * @return the compilation result.
+   */
+  def compile(
+      scalaPBClasspath: Agg[os.Path],
+      protocPath: Option[String],
+      dest: os.Path,
+      args: Seq[Seq[Seq[String]]]
+  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+    val compiler = scalaPB(scalaPBClasspath, protocPath)
+
+    args.foreach(_.foreach(compiler.compileScalaPB))
 
     mill.api.Result.Success(PathRef(dest))
   }
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, includes: Seq[os.Path])
+  def compileScalaPB(args: Seq[String])
 }
 
 object ScalaPBWorkerApi {
-
   def scalaPBWorker = new ScalaPBWorker()
 }

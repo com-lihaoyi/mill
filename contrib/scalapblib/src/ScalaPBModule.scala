@@ -3,7 +3,13 @@ package contrib.scalapblib
 
 import java.net.URI
 import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileSystems, Files, Path, SimpleFileVisitor, StandardCopyOption}
+import java.nio.file.{
+  FileSystems,
+  Files,
+  Path,
+  SimpleFileVisitor,
+  StandardCopyOption
+}
 
 import coursier.MavenRepository
 import coursier.core.Version
@@ -13,16 +19,28 @@ import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.api.Loose
 
+/** @see [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb ScalaPB Module]] */
 trait ScalaPBModule extends ScalaModule {
 
-  override def generatedSources = T { super.generatedSources() :+ compileScalaPB() }
+  override def generatedSources = T {
+    super.generatedSources() :+ compileScalaPB()
+  }
 
   override def ivyDeps = T {
     super.ivyDeps() ++
       Agg(ivy"com.thesamet.scalapb::scalapb-runtime:${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg() else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      (if (!scalaPBGrpc()) Agg()
+       else
+         Agg(
+           ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"
+         ))
   }
 
+  /**
+   * Override this to specify the scalaPB version to use.
+   *
+   *  @return A string representing the scalaPB version to use.
+   */
   def scalaPBVersion: T[String]
 
   def scalaPBFlatPackage: T[Boolean] = T { false }
@@ -45,16 +63,18 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBOptions: T[String] = T {
     (
       (if (scalaPBFlatPackage()) Seq("flat_package") else Seq.empty) ++
-      (if (scalaPBJavaConversions()) Seq("java_conversions") else Seq.empty) ++
-      (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
-      (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
-        if (!scalaPBSingleLineToProtoString()) Seq.empty else {
-          if (Version(scalaPBVersion()) >= Version("0.7.0"))
-            Seq("single_line_to_proto_string")
-          else
-            Seq("single_line_to_string")
-        }
-      )
+        (if (scalaPBJavaConversions()) Seq("java_conversions")
+         else Seq.empty) ++
+        (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
+        (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
+          if (!scalaPBSingleLineToProtoString()) Seq.empty
+          else {
+            if (Version(scalaPBVersion()) >= Version("0.7.0"))
+              Seq("single_line_to_proto_string")
+            else
+              Seq("single_line_to_string")
+          }
+        )
     ).mkString(",")
   }
 
@@ -71,17 +91,33 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
 
+  /**
+   * Additional arguments for scalaPBC.
+   *
+   *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
+   *  you can override this task.
+   *
+   *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
+   *       know more.
+   *  @return a sequence of Strings representing the additional arguments to append
+   *          (defaults to empty Seq[String]).
+   */
+  def scalaPBAdditionalArgs: T[Seq[String]] = T { Seq.empty[String] }
+
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
     resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
   }
 
   def scalaPBUnpackProto: T[PathRef] = T {
-    val cp   = scalaPBProtoClasspath()
+    val cp = scalaPBProtoClasspath()
     val dest = T.dest
     cp.foreach { ref =>
       val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
       val jarFs =
-        FileSystems.newFileSystem(URI.create(baseUri), new java.util.HashMap[String, String]())
+        FileSystems.newFileSystem(
+          URI.create(baseUri),
+          new java.util.HashMap[String, String]()
+        )
       try {
         import scala.collection.JavaConverters._
         jarFs.getRootDirectories.asScala.foreach { r =>
@@ -110,14 +146,46 @@ trait ScalaPBModule extends ScalaModule {
     PathRef(dest)
   }
 
-  def compileScalaPB: T[PathRef] = T.persistent {
-    ScalaPBWorkerApi.scalaPBWorker
-      .compile(
-        scalaPBClasspath().map(_.path),
-        scalaPBProtocPath(),
-        scalaPBSources().map(_.path),
-        scalaPBOptions(),
-        T.dest,
-        scalaPBIncludePath().map(_.path))
+  /**
+   * Builds the compilation arguments for scalaPBC.
+   *
+   *  To build the args this method fetches data from:
+   *
+   *    - scalaPBProtocPath
+   *    - scalaPBSources
+   *    - scalaPBOptions
+   *    - scalaPBIncludePath
+   *    - scalaPBAdditionalArgs
+   *
+   *  If you want to customize the arguments it is often better to override the
+   *  functions listed above instead of this one.
+   *
+   * @return a sequence of arguments to pass to compileScalaPB.
+   */
+  def compilationArgsScalaPB: T[Seq[Seq[Seq[String]]]] = T {
+    ScalaPBWorkerApi.scalaPBWorker.compilationArgs(
+      scalaPBProtocPath(),
+      scalaPBSources().map(_.path),
+      scalaPBOptions(),
+      T.dest,
+      scalaPBIncludePath().map(_.path),
+      scalaPBAdditionalArgs()
+    )
   }
+
+  /**
+   * Calls scalaPBC (scalaPB compiler)
+   *
+   * @see See [[https://scalapb.github.io/docs/scalapbc ScalaPBC]] to know more.
+   * @return the destination path.
+   */
+  def compileScalaPB: T[PathRef] = T.persistent {
+    ScalaPBWorkerApi.scalaPBWorker.compile(
+      scalaPBClasspath().map(_.path),
+      scalaPBProtocPath(),
+      T.dest,
+      compilationArgsScalaPB()
+    )
+  }
+
 }
