@@ -7,12 +7,16 @@ import mainargs.Flag
 import scala.util.Try
 import utest._
 
-abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
+abstract class ScriptTestSuite(fork: Boolean, shared: Boolean = true) extends TestSuite{
   def workspaceSlug: String
   def scriptSourcePath: os.Path
   def buildPath: os.SubPath = os.sub / "build.sc"
 
-  val workspacePath = os.pwd / 'target / 'workspace / workspaceSlug
+  val workspacePath = {
+    val base = os.pwd / 'target / 'workspace
+      if(shared) base / workspaceSlug
+      else os.temp.dir(base, prefix = workspaceSlug, deleteOnExit = false).last
+  }
   val wd = workspacePath / buildPath / os.up
   val stdOutErr = System.out // new PrintStream(new ByteArrayOutputStream())
   val stdIn = new ByteArrayInputStream(Array())
