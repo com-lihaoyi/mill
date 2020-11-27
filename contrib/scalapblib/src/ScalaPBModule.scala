@@ -91,6 +91,17 @@ trait ScalaPBModule extends ScalaModule {
 
   def scalaPBIncludePath: T[Seq[PathRef]] = T.sources { Seq.empty[PathRef] }
 
+  /**
+   * Additional arguments for scalaPBC.
+   *
+   *  If you'd like to pass additional arguments to the ScalaPB compiler directly,
+   *  you can override this task.
+   *
+   *  @see See [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb Configuration Options]] to
+   *       know more.
+   *  @return a sequence of Strings representing the additional arguments to append
+   *          (defaults to empty Seq[String]).
+   */
   def scalaPBAdditionalArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   def scalaPBProtoClasspath: T[Agg[PathRef]] = T {
