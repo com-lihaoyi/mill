@@ -15,7 +15,7 @@ abstract class ScriptTestSuite(fork: Boolean, shared: Boolean = true) extends Te
   val workspacePath = {
     val base = os.pwd / 'target / 'workspace
       if(shared) base / workspaceSlug
-      else os.temp.dir(base, prefix = workspaceSlug, deleteOnExit = false).last
+      else os.temp.dir(base, prefix = workspaceSlug, deleteOnExit = false)
   }
   val wd = workspacePath / buildPath / os.up
   val stdOutErr = System.out // new PrintStream(new ByteArrayOutputStream())
