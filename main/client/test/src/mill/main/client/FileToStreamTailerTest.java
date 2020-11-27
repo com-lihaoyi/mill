@@ -52,7 +52,7 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("log line");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line\n");
+                    expectEquals(bas.toString(), "log line" + System.lineSeparator());
                 }
             }
         });
@@ -78,7 +78,7 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("log line");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line\n");
+                    expectEquals(bas.toString(), "log line" + System.lineSeparator());
                 }
             }
         });
@@ -104,7 +104,7 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("log line");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line\n");
+                    expectEquals(bas.toString(), "log line" + System.lineSeparator());
                 }
             }
         });
@@ -133,7 +133,8 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("log line 2");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line 1\nlog line 2\n");
+                    expectEquals(bas.toString(),
+                        "log line 1" + System.lineSeparator() + "log line 2" + System.lineSeparator());
                 }
 
                 // Now delete file and give some time, then append new lines
@@ -147,7 +148,10 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("new line");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line 1\nlog line 2\nnew line\n");
+                    expectEquals(bas.toString(),
+                        "log line 1" + System.lineSeparator() +
+                            "log line 2" + System.lineSeparator() +
+                            "new line" + System.lineSeparator());
                 }
 
             }
