@@ -199,7 +199,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master
 
 ### 0.9.3 - 2020-11-26
 
-*(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but dues to release difficultied, we ask you not to use them.)*
+*(We also tagged `0.9.0`, `0.9.1`, and `0.9.2`, but due to release difficulties, we ask you not to use them.)*
 
 * Replace the built in `@main` method functionality with the
   [MainArgs](https://github.com/lihaoyi/mainargs) library
