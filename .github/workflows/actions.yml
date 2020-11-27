@@ -21,7 +21,7 @@ jobs:
           - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.testCached"
           # disabled contrib.proguard
           # - ./mill -i "contrib.__.testCached"
-          - ./mill -i "contrib.{artifactory,bintray,bloop,buildinfo,docker,flyway,playlib,scalapblib,scoverage,testng,tut,twirllib,versionfile}.__.testCached"
+          - ./mill -i "contrib.{artifactory,bintray,bloop,buildinfo,codeartifact,docker,flyway,playlib,scalapblib,scoverage,tut,twirllib,versionfile}.__.testCached"
           - ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
