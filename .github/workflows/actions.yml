@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 8
-      - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly}"
+      - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly,__.compile}"
       - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{main,scalalib,scalajslib,bsp}.__.testCached"
 
   publish-sonatype:
