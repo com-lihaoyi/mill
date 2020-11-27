@@ -78,7 +78,7 @@ public class FileToStreamTailerTest extends FreeSpec {
                     out.println("log line");
                     expectTrue(file.exists());
                     Thread.sleep(100);
-                    expectEquals(bas.toString(), "log line\n");
+                    expectEquals(bas.toString(), "log line" + System.lineSeparator());
                 }
             }
         });
