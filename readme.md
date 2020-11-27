@@ -222,6 +222,10 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master
 * Allow test classes with constructor parameters
   [#982](https://github.com/lihaoyi/mill/pull/982)
 * Proguard contrib module [#972](https://github.com/lihaoyi/mill/pull/972)
+* Support Scala.js useECMAScript2015 option and ModuleKind.ESModule
+  [#1004](https://github.com/lihaoyi/mill/pull/1004)
+* Support Scala.js incremental linking
+  [#1007](https://github.com/lihaoyi/mill/pull/1007)
 
 
 *For details refer to
