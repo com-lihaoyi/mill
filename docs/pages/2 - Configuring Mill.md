@@ -259,7 +259,7 @@ object foo extends ScalaModule with ScalafmtModule {
 }
 ```
 
-Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill checkFormat`.
+Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill foo.checkFormat`.
 
 You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command,
 or only check the code's format with `mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources`.
