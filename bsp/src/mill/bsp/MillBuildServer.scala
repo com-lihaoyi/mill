@@ -21,7 +21,8 @@ import scala.util.Try
 class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: String)
     extends ExternalModule
     with BuildServer
-    with ScalaBuildServer {
+    with ScalaBuildServer
+    with JavaBuildServer {
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
@@ -68,6 +69,12 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
       new WorkspaceBuildTargetsResult(targets.asJava)
     }
+
+  override def workspaceReload(): CompletableFuture[Object] =
+    handleExceptions {
+      "reload this server".asInstanceOf[Object]
+    }
+
 
   override def buildTargetSources(sourcesParams: SourcesParams): CompletableFuture[SourcesResult] =
     handleExceptions {
@@ -400,6 +407,41 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         }
 
       new ScalacOptionsResult(items.asJava)
+    }
+
+  override def buildTargetJavacOptions(
+                                         javacOptionsParams: JavacOptionsParams
+                                       ): CompletableFuture[JavacOptionsResult] =
+    handleExceptions {
+      val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
+
+      val items = javacOptionsParams.getTargets.asScala
+        .foldLeft(Seq.empty[JavacOptionsItem]) { (items, targetId) =>
+          val newItem =
+            if (targetId == millBuildTargetId) {
+              None
+            } else
+              getModule(targetId, modules) match {
+                case m: JavaModule =>
+                  val options = evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
+                  val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                    .map(_.path.toNIO.toUri.toString)
+                  val classDirectory = (Evaluator
+                    .resolveDestPaths(
+                      evaluator.outPath,
+                      m.millModuleSegments ++ Seq(Label("compile"))
+                    )
+                    .dest / "classes").toNIO.toUri.toString
+
+                  Some(new JavacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+                case _: ScalaModule => None
+              }
+
+          items ++ newItem
+        }
+
+      new JavacOptionsResult(items.asJava)
     }
 
   // TODO: In the case when mill fails to provide a main classes because multiple were
