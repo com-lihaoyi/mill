@@ -3,7 +3,6 @@ package mill.bsp
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import java.net.URL
-import java.net.URLClassLoader
 import mill._
 import mill.api.Result.Success
 import mill.api.{PathRef, Strict}

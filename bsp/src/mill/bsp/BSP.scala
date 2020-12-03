@@ -5,7 +5,6 @@ import java.io.PrintWriter
 import java.nio.file.FileAlreadyExistsException
 import java.util.concurrent.Executors
 import mill.{BuildInfo, T}
-import mill.bsp.{BspConfigJson, MillBuildServer}
 import mill.define.{Command, Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.modules.Util

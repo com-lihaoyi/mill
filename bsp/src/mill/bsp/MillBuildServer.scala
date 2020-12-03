@@ -1,6 +1,5 @@
 package mill.bsp
 
-import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import java.util.concurrent.CompletableFuture
@@ -14,14 +13,14 @@ import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.scalalib._
 import mill.util.{Ctx, DummyLogger}
-import os.{Path, exists}
+import os.Path
 import scala.collection.JavaConverters._
-import scala.util.Try
 
 class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: String)
     extends ExternalModule
     with BuildServer
-    with ScalaBuildServer {
+    with ScalaBuildServer
+    with JavaBuildServer {
   implicit def millScoptEvaluatorReads[T]: EvaluatorScopt[T] = new mill.main.EvaluatorScopt[T]()
 
   lazy val millDiscover: Discover[MillBuildServer.this.type] = Discover[this.type]
@@ -187,15 +186,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       )
       val result = evaluator.evaluate(
         compileTasks,
-        getBspLoggedReporterPool(
-          params,
-          t => s"Started compiling target: $t",
-          TaskDataKind.COMPILE_TASK,
-          targetId => new CompileTask(targetId),
-          modules,
-          evaluator,
-          client
-        ),
+        getBspLoggedReporterPool(params, modules, evaluator, client),
         DummyTestReporter,
         new MillBspLogger(client, taskId, evaluator.baseLogger)
       )
@@ -214,15 +205,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val runTask = module.run(args: _*)
       val runResult = evaluator.evaluate(
         Strict.Agg(runTask),
-        getBspLoggedReporterPool(
-          params,
-          t => s"Started compiling target: $t",
-          TaskDataKind.COMPILE_TASK,
-          targetId => new CompileTask(targetId),
-          modules,
-          evaluator,
-          client
-        ),
+        getBspLoggedReporterPool(params, modules, evaluator, client),
         logger = new MillBspLogger(client, runTask.hashCode(), evaluator.baseLogger)
       )
       val response = runResult.results(runTask) match {
@@ -278,23 +261,15 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
               val results = evaluator.evaluate(
                 Strict.Agg(testTask),
-                getBspLoggedReporterPool(
-                  params,
-                  t => s"Started compiling target: $t",
-                  TaskDataKind.COMPILE_TASK,
-                  (targetId: BuildTargetIdentifier) => new CompileTask(targetId),
-                  modules,
-                  evaluator,
-                  client
-                ),
+                getBspLoggedReporterPool(params, modules, evaluator, client),
                 testReporter,
                 new MillBspLogger(client, testTask.hashCode, evaluator.baseLogger)
               )
-              val endTime = System.currentTimeMillis()
               val statusCode = getStatusCode(results)
+
               // Notifying the client that the testing of this build target ended
               val taskFinishParams = new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
-              taskFinishParams.setEventTime(endTime)
+              taskFinishParams.setEventTime(System.currentTimeMillis())
               taskFinishParams.setMessage(
                 "Finished testing target" + targets.find(_.getId == targetId).fold("")(t => s": ${t.getDisplayName}")
               )
@@ -361,6 +336,50 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       new CleanCacheResult(msg, cleaned)
     }
 
+  override def workspaceReload(): CompletableFuture[Object] =
+    handleExceptions {
+      BSP.install(evaluator)
+    }
+
+  override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams): CompletableFuture[JavacOptionsResult] =
+    handleExceptions {
+      val modules = getModules(evaluator)
+      val millBuildTargetId = getMillBuildTargetId(evaluator)
+
+      val items = javacOptionsParams.getTargets.asScala
+        .foldLeft(Seq.empty[JavacOptionsItem]) { (items, targetId) =>
+          val newItem =
+            if (targetId == millBuildTargetId) {
+              val classpath = getMillBuildClasspath(evaluator, source = false)
+              Some(new JavacOptionsItem(
+                targetId,
+                Seq.empty.asJava,
+                classpath.iterator.toSeq.asJava,
+                evaluator.outPath.toNIO.toUri.toString
+              ))
+            } else
+              getModule(targetId, modules) match {
+                case m: JavaModule =>
+                  val options = evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
+                  val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                    .map(_.path.toNIO.toUri.toString)
+                  val classDirectory = (Evaluator
+                    .resolveDestPaths(
+                      evaluator.outPath,
+                      m.millModuleSegments ++ Seq(Label("compile"))
+                    )
+                    .dest / "classes").toNIO.toUri.toString
+
+                  Some(new JavacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+                case _ => None
+              }
+
+          items ++ newItem
+        }
+
+      new JavacOptionsResult(items.asJava)
+    }
+
   override def buildTargetScalacOptions(
       scalacOptionsParams: ScalacOptionsParams
   ): CompletableFuture[ScalacOptionsResult] =
@@ -393,7 +412,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
                     .dest / "classes").toNIO.toUri.toString
 
                   Some(new ScalacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
-                case _: JavaModule => None
+                case _ => None
               }
 
           items ++ newItem
