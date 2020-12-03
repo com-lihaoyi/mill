@@ -78,7 +78,7 @@ object Deps {
   val upickle = ivy"com.lihaoyi::upickle:1.2.1"
   val utest = ivy"com.lihaoyi::utest:0.7.4"
   val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
-  val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M4"
+  val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
 }
 

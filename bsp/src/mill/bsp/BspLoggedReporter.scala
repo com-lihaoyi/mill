@@ -27,11 +27,12 @@ import scala.language.implicitConversions
   *                            back as part of the published diagnostics
   *                            as well as compile report
   */
-class BspLoggedReporter(client: bsp.BuildClient,
-                        targetId: BuildTargetIdentifier,
-                        taskId: TaskId,
-                        compilationOriginId: Option[String]) extends BuildProblemReporter {
-
+class BspLoggedReporter(
+  client: bsp.BuildClient,
+  target: BuildTarget,
+  taskId: TaskId,
+  compilationOriginId: Option[String]
+) extends BuildProblemReporter {
   var errors = new AtomicInteger(0)
   var warnings = new AtomicInteger(0)
   var infos = new AtomicInteger(0)
@@ -39,12 +40,12 @@ class BspLoggedReporter(client: bsp.BuildClient,
     new ConcurrentHashMap[TextDocumentIdentifier, bsp.PublishDiagnosticsParams]().asScala
 
   override def logError(problem: Problem): Unit = {
-    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    client.onBuildPublishDiagnostics(getDiagnostics(problem, target.getId, compilationOriginId))
     errors.incrementAndGet()
   }
 
   override def logInfo(problem: Problem): Unit = {
-    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    client.onBuildPublishDiagnostics(getDiagnostics(problem, target.getId, compilationOriginId))
     infos.incrementAndGet()
   }
 
@@ -83,7 +84,7 @@ class BspLoggedReporter(client: bsp.BuildClient,
                                       currentDiagnostic: Diagnostic): List[Diagnostic] = {
     diagnosticMap.putIfAbsent(textDocument, new bsp.PublishDiagnosticsParams(
       textDocument,
-      targetId,
+      target.getId,
       List.empty[Diagnostic].asJava, true))
     diagnosticMap(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
   }
@@ -114,16 +115,16 @@ class BspLoggedReporter(client: bsp.BuildClient,
   }
 
   override def logWarning(problem: Problem): Unit = {
-    client.onBuildPublishDiagnostics(getDiagnostics(problem, targetId, compilationOriginId))
+    client.onBuildPublishDiagnostics(getDiagnostics(problem, target.getId, compilationOriginId))
     warnings.incrementAndGet()
   }
 
   override def printSummary(): Unit = {
     val taskFinishParams = new TaskFinishParams(taskId, getStatusCode)
     taskFinishParams.setEventTime(System.currentTimeMillis())
-    taskFinishParams.setMessage("Finished compiling target: " + targetId.getUri)
-    taskFinishParams.setDataKind("compile-report")
-    val compileReport = new CompileReport(targetId, errors.get, warnings.get)
+    taskFinishParams.setMessage(s"Compiled ${target.getDisplayName}")
+    taskFinishParams.setDataKind(TaskDataKind.COMPILE_REPORT)
+    val compileReport = new CompileReport(target.getId, errors.get, warnings.get)
     compilationOriginId match {
       case Some(id) => compileReport.setOriginId(id)
       case None =>
