@@ -14,15 +14,14 @@ class ScalaPBWorker {
   private def scalaPB(
       scalaPBClasspath: Agg[os.Path],
       protocPath: Option[String]
-  ) = {
+  )(implicit ctx: mill.api.Ctx) = {
     val classloaderSig =
       scalaPBClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaPBInstanceCache match {
       case Some((sig, instance)) if sig == classloaderSig => instance
       case _ =>
-        val cl = new URLClassLoader(
-          scalaPBClasspath.map(_.toIO.toURI.toURL).toArray
-        )
+        val pbcClasspath = scalaPBClasspath.map(_.toIO.toURI.toURL).toVector
+        val cl = mill.api.ClassLoader.create(pbcClasspath, null)
         val scalaPBCompilerClass = cl.loadClass("scalapb.ScalaPBC")
         val mainMethod = scalaPBCompilerClass.getMethod(
           "main",
