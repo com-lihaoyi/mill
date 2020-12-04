@@ -389,7 +389,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       ctx.log.colored,
       _ => None
     )
-    val loggerId = Thread.currentThread().getId().toString
+    val loggerId = Thread.currentThread().getId.toString
     val logger = LogExchange.logger(loggerId)
     LogExchange.unbindLoggerAppenders(loggerId)
     LogExchange.bindLoggerAppenders(loggerId, (consoleAppender -> sbt.util.Level.Info) :: Nil)
@@ -410,6 +410,11 @@ class ZincWorkerImpl(compilerBridge: Either[
         override def logInfo(problem: xsbti.Problem): Unit = {
           r.logInfo(new ZincProblem(problem))
           super.logInfo(problem)
+        }
+
+        override def printSummary(): Unit = {
+          r.printSummary()
+          super.printSummary()
         }
       }
     }

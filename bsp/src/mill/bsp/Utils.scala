@@ -18,9 +18,6 @@ object Utils {
   // module's hash code TODO: find something more reliable than the hash code
   def getBspLoggedReporterPool(
       params: Parameters,
-      taskStartMessage: String => String,
-      taskStartDataKind: String,
-      taskStartData: BuildTargetIdentifier => Object,
       modules: Seq[JavaModule],
       evaluator: Evaluator,
       client: BuildClient
@@ -29,11 +26,11 @@ object Utils {
       val taskId = new TaskId(getModule(target.getId, modules).compile.hashCode.toString)
       val taskStartParams = new TaskStartParams(taskId)
       taskStartParams.setEventTime(System.currentTimeMillis())
-      taskStartParams.setData(taskStartData(target.getId))
-      taskStartParams.setDataKind(taskStartDataKind)
-      taskStartParams.setMessage(taskStartMessage(target.getDisplayName))
+      taskStartParams.setData(new CompileTask(target.getId))
+      taskStartParams.setDataKind(TaskDataKind.COMPILE_TASK)
+      taskStartParams.setMessage(s"Compiling target ${target.getDisplayName}")
       client.onBuildTaskStart(taskStartParams)
-      new BspLoggedReporter(client, target.getId, taskId, params.getOriginId)
+      new BspLoggedReporter(client, target, taskId, params.getOriginId)
     }
   }
 
@@ -50,7 +47,7 @@ object Utils {
 
   private[this] def getStatusCodePerTask(results: Evaluator.Results, task: mill.define.Task[_]): StatusCode = {
     results.results(task) match {
-      case _: Success[_] => StatusCode.OK
+      case Success(_) => StatusCode.OK
       case Skipped => StatusCode.CANCELLED
       case _ => StatusCode.ERROR
     }
