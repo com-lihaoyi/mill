@@ -2,9 +2,7 @@ package mill.main
 
 import java.io._
 import java.net.Socket
-
-import mill.MillMain
-
+import mill.{BuildInfo, MillMain}
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
@@ -124,7 +122,7 @@ class Server[T](lockBase: String,
     val argStream = new FileInputStream(lockBase + "/run")
     val interactive = argStream.read() != 0
     val clientMillVersion = Util.readString(argStream)
-    val serverMillVersion = sys.props("MILL_VERSION")
+    val serverMillVersion = BuildInfo.millVersion
     if (clientMillVersion != serverMillVersion) {
       stderr.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
       java.nio.file.Files.write(

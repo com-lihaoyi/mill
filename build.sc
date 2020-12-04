@@ -248,6 +248,7 @@ object scalalib extends MillModule {
 
   override def generatedSources = T{
     val dest = T.ctx.dest
+    val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
     os.write(dest / "Versions.scala",
       s"""package mill.scalalib
         |
@@ -260,6 +261,8 @@ object scalalib extends MillModule {
         |  val ammonite = "${Deps.ammonite.dep.version}"
         |  /** Version of Zinc. */
         |  val zinc = "${Deps.zinc.dep.version}"
+        |  /** Dependency artifacts embedded in mill by default. */
+        |  val millEmbeddedDeps = ${artifacts.map(artifact => s"""ivy"${artifact.group}::${artifact.id}:${artifact.version}"""")}
         |}
         |
         |""".stripMargin)
@@ -687,7 +690,7 @@ def launcherScript(shellJvmArgs: Seq[String],
   )
 }
 
-object dev extends MillModule{
+object dev extends MillModule {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
 
 
