@@ -120,7 +120,7 @@ object ModuleUtils {
     val millJars = resolveDependencies(
       Resolve.defaultRepositories,
       depToDependency(_, BuildInfo.scalaVersion),
-      Versions.millEmbeddedDeps,
+      BuildInfo.millEmbeddedDeps.map(d => ivy"$d"),
       sources = sources
     ).asSuccess.toSeq.flatMap(_.value).map(_.path.toNIO.toUri.toURL)
 

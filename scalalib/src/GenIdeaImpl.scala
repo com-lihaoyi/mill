@@ -82,10 +82,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
           }, Seq.empty[Seq[Repository]])
 
           val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(LocalRepositories.ivy2Local, Repositories.central)
+          val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
             Lib.depToDependency(_, "2.13.2", ""),
-            Versions.millEmbeddedDeps,
+            millDeps,
             sources = false,
             None,
             ctx
@@ -96,7 +97,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
             scalalib.Lib.resolveDependencies(
               repos.toList,
               Lib.depToDependency(_, "2.13.2", ""),
-              Versions.millEmbeddedDeps,
+              millDeps,
               sources = true,
               None,
               ctx

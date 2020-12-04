@@ -179,18 +179,20 @@ object main extends MillModule {
 
     def generatedSources = T {
       val dest = T.ctx.dest
-      writeBuildInfo(dest, scalaVersion(), publishVersion())
+      writeBuildInfo(dest, scalaVersion(), publishVersion(), T.traverse(dev.moduleDeps)(_.publishSelfDependency)())
       shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 
-    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String) = {
+    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String, artifacts: Seq[Artifact]) = {
       val code = s"""
         |package mill
         |
         |object BuildInfo {
         |  val scalaVersion = "$scalaVersion"
         |  val millVersion = "$millVersion"
+        |  /** Dependency artifacts embedded in mill by default. */
+        |  val millEmbeddedDeps = ${artifacts.map(artifact => s""""${artifact.group}:${artifact.id}:${artifact.version}"""")}
         |}
       """.stripMargin.trim
 
@@ -261,8 +263,6 @@ object scalalib extends MillModule {
         |  val ammonite = "${Deps.ammonite.dep.version}"
         |  /** Version of Zinc. */
         |  val zinc = "${Deps.zinc.dep.version}"
-        |  /** Dependency artifacts embedded in mill by default. */
-        |  val millEmbeddedDeps = ${artifacts.map(artifact => s"""ivy"${artifact.group}::${artifact.id}:${artifact.version}"""")}
         |}
         |
         |""".stripMargin)
