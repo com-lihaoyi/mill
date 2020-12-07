@@ -133,7 +133,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val items = dependencySourcesParams.getTargets.asScala
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
           val all = if (targetId == millBuildTargetId)
-            getMillBuildClasspath(evaluator, source = true)
+            getMillBuildClasspath(evaluator, sources = true)
           else {
             val module = getModule(targetId, modules)
             val sources = evaluateInformativeTask(
@@ -350,7 +350,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         .foldLeft(Seq.empty[JavacOptionsItem]) { (items, targetId) =>
           val newItem =
             if (targetId == millBuildTargetId) {
-              val classpath = getMillBuildClasspath(evaluator, source = false)
+              val classpath = getMillBuildClasspath(evaluator, sources = false)
               Some(new JavacOptionsItem(
                 targetId,
                 Seq.empty.asJava,
@@ -391,7 +391,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         .foldLeft(Seq.empty[ScalacOptionsItem]) { (items, targetId) =>
           val newItem =
             if (targetId == millBuildTargetId) {
-              val classpath = getMillBuildClasspath(evaluator, source = false)
+              val classpath = getMillBuildClasspath(evaluator, sources = false)
               Some(new ScalacOptionsItem(
                 targetId,
                 Seq.empty.asJava,

@@ -11,7 +11,7 @@ import mill.api.{Loose, Result, Strict}
 import mill.define._
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Util
-import mill.{T, scalalib}
+import mill.{BuildInfo, T, scalalib}
 import os.{Path, RelPath}
 import scala.util.Try
 import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
@@ -82,13 +82,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
           }, Seq.empty[Seq[Repository]])
 
           val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(LocalRepositories.ivy2Local, Repositories.central)
-          val artifactNames = Seq("main-moduledefs", "main-api", "main-core", "scalalib", "scalajslib")
+          val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
           val Result.Success(res) = scalalib.Lib.resolveDependencies(
             repos.toList,
             Lib.depToDependency(_, "2.13.2", ""),
-            for(name <- artifactNames)
-            yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
-            false,
+            millDeps,
+            sources = false,
             None,
             ctx
           )
@@ -98,9 +97,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
             scalalib.Lib.resolveDependencies(
               repos.toList,
               Lib.depToDependency(_, "2.13.2", ""),
-              for(name <- artifactNames)
-              yield ivy"com.lihaoyi::mill-$name:${sys.props("MILL_VERSION")}",
-              true,
+              millDeps,
+              sources = true,
               None,
               ctx
             )

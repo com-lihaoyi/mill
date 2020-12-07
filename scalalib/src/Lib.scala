@@ -36,7 +36,7 @@ object Lib{
                                   depToDependency: Dep => coursier.Dependency,
                                   deps: TraversableOnce[Dep],
                                   mapDependencies: Option[Dependency => Dependency] = None,
-                                  ctx: Option[mill.util.Ctx.Log] = None) = {
+                                  ctx: Option[mill.util.Ctx.Log] = None): (Seq[Dependency], Resolution) = {
     val depSeq = deps.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
       repositories,

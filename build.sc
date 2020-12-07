@@ -50,9 +50,9 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.7"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.8"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
@@ -178,18 +178,20 @@ object main extends MillModule {
 
     def generatedSources = T {
       val dest = T.ctx.dest
-      writeBuildInfo(dest, scalaVersion(), publishVersion())
+      writeBuildInfo(dest, scalaVersion(), publishVersion(), T.traverse(dev.moduleDeps)(_.publishSelfDependency)())
       shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 
-    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String) = {
+    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String, artifacts: Seq[Artifact]) = {
       val code = s"""
         |package mill
         |
         |object BuildInfo {
         |  val scalaVersion = "$scalaVersion"
         |  val millVersion = "$millVersion"
+        |  /** Dependency artifacts embedded in mill by default. */
+        |  val millEmbeddedDeps = ${artifacts.map(artifact => s""""${artifact.group}:${artifact.id}:${artifact.version}"""")}
         |}
       """.stripMargin.trim
 
@@ -247,6 +249,7 @@ object scalalib extends MillModule {
 
   override def generatedSources = T{
     val dest = T.ctx.dest
+    val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
     os.write(dest / "Versions.scala",
       s"""package mill.scalalib
         |
@@ -396,7 +399,7 @@ object contrib extends MillModule {
         case  "2.6"=>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.6.0"
+            ivy"com.typesafe.play::routes-compiler::2.6.25"
           )
         case "2.7" =>
           Agg(
@@ -686,7 +689,7 @@ def launcherScript(shellJvmArgs: Seq[String],
   )
 }
 
-object dev extends MillModule{
+object dev extends MillModule {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
 
 
