@@ -71,7 +71,7 @@ object Deps {
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.2"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
