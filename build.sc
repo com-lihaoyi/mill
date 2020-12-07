@@ -13,7 +13,7 @@ object Deps {
 
   object Scalajs_0_6 {
     val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.33"
-    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
+    val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:1.3.1"
     val scalajsTools = ivy"org.scala-js::scalajs-tools:0.6.33"
   }
 
