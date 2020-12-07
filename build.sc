@@ -47,7 +47,7 @@ object Deps {
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
+  val scalametaTrees = ivy"org.scalameta::trees:4.3.24"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.0"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
