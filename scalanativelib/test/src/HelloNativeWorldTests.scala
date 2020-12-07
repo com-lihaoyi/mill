@@ -212,7 +212,7 @@ object HelloNativeWorldTests extends TestSuite {
       'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
       'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
       'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
-      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
+      'utest_21112_040M2_release_fast - (checkUtest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
 //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
@@ -229,7 +229,7 @@ object HelloNativeWorldTests extends TestSuite {
       'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
       'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
       'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
-      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
+      'utest_21112_040M2_release_fast - (checkUtest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
       //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
