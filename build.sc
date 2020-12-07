@@ -49,10 +49,10 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
-  val coursier = ivy"io.get-coursier::coursier:2.0.7"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
+  val coursier = ivy"io.get-coursier::coursier:2.0.0"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.8"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
@@ -400,7 +400,7 @@ object contrib extends MillModule {
         case  "2.6"=>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.6.0"
+            ivy"com.typesafe.play::routes-compiler::2.6.25"
           )
         case "2.7" =>
           Agg(
