@@ -57,7 +57,7 @@ object HelloNativeWorldTests extends TestSuite {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.7.4"
+          ivy"com.lihaoyi::utest::0.7.5"
         )
       }
     }
@@ -79,7 +79,7 @@ object HelloNativeWorldTests extends TestSuite {
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
       object test extends super.Tests {
         override def sources = T.sources{ millSourcePath / 'src / "no-tests" }
-        def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.4")
+        def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.7.5")
         def testFrameworks = Seq("utest.runner.Framework")
       }
     }
