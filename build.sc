@@ -49,8 +49,8 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
-  val coursier = ivy"io.get-coursier::coursier:2.0.0"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
+  val coursier = ivy"io.get-coursier::coursier:2.0.7"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.8"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
@@ -173,7 +173,6 @@ object main extends MillModule {
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
-      Deps.coursier,
       Deps.jarjarabrams
     )
 
@@ -204,7 +203,7 @@ object main extends MillModule {
     def scalaVersion = T{ "2.13.2" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode,
+      Deps.sourcecode
     )
   }
 
