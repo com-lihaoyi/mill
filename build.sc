@@ -412,7 +412,7 @@ object contrib extends MillModule {
         case "2.7" =>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.7.0"
+            ivy"com.typesafe.play::routes-compiler::2.7.8"
           )
       }
     }
