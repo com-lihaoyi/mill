@@ -50,7 +50,6 @@ jobs:
 
   test-windows:
     runs-on: windows-latest
-    continue-on-error: true
     steps:
       - uses: actions/checkout@v2
         with:
@@ -62,7 +61,7 @@ jobs:
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
-    needs: test
+    needs: [test, test-windows]
 
     runs-on: ubuntu-latest
 
