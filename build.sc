@@ -49,10 +49,10 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
-  val coursier = ivy"io.get-coursier::coursier:2.0.0"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
+  val coursier = ivy"io.get-coursier::coursier:2.0.7"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.8"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
@@ -60,7 +60,7 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.22.v20160922"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.22.v20160922"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.1"
 
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
@@ -173,7 +173,6 @@ object main extends MillModule {
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
-      Deps.coursier,
       Deps.jarjarabrams
     )
 
@@ -204,7 +203,7 @@ object main extends MillModule {
     def scalaVersion = T{ "2.13.2" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode,
+      Deps.sourcecode
     )
   }
 
@@ -362,11 +361,19 @@ object scalajslib extends MillModule {
 
 
 object contrib extends MillModule {
-  object testng extends MillPublishModule{
+  object testng extends MillModule{
     def ivyDeps = Agg(
       Deps.sbtTestInterface,
       Deps.testng
     )
+    def moduleDeps = Seq(scalalib)
+    override def testArgs = T{
+//      "-agentlib:jdwp=transport=dt_socket,server=y,suspend=y,address=4000",
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
+        "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(","),
+      )++scalalib.worker.testArgs()
+    }
   }
 
   object twirllib extends MillModule {
@@ -400,7 +407,7 @@ object contrib extends MillModule {
         case  "2.6"=>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.6.0"
+            ivy"com.typesafe.play::routes-compiler::2.6.25"
           )
         case "2.7" =>
           Agg(
