@@ -1,18 +1,14 @@
 package mill.scalalib.worker
 
-import java.io.{ByteArrayInputStream, ByteArrayOutputStream, File, InputStream, PrintStream, SequenceInputStream}
-import java.net.URI
-import java.nio.file.attribute.PosixFilePermission
-import java.nio.file.{FileSystems, Files, StandardOpenOption}
-import java.util.{Collections, Optional}
-import java.util.jar.JarFile
+import java.io.File
+import java.util.Optional
 
 import mill.api.Loose.Agg
-import mill.api.{BuildProblemReporter, IO, Info, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity, Warn}
+import mill.api.{BuildProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity}
 import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, scalaBinaryVersion}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
-import sbt.internal.util.{ConsoleAppender, ConsoleLogger, ConsoleOut, MainAppender}
+import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.util.LogExchange
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 
@@ -313,7 +309,14 @@ class ZincWorkerImpl(compilerBridge: Either[
       classloaderCache.get(compilersSig) match {
         case Some(WeakReference(cl)) => cl
         case _ =>
-          val cl = mill.api.ClassLoader.create(combinedCompilerJars.map(_.toURI.toURL), null)
+          // the Scala compiler must load the `xsbti.*` classes from the same loader than `ZincWorkerImpl`
+          val sharedPrefixes = Seq("xsbti")
+          val cl = mill.api.ClassLoader.create(
+            combinedCompilerJars.map(_.toURI.toURL),
+            parent = null,
+            sharedLoader = getClass.getClassLoader,
+            sharedPrefixes
+          )
           classloaderCache.update(compilersSig, WeakReference(cl))
           cl
       }
