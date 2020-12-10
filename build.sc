@@ -58,8 +58,8 @@ object Deps {
     "net.java.dev.jna" -> "jna-platform"
   )
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
-  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
+  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.22.v20160922"
+  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.22.v20160922"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
 
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
