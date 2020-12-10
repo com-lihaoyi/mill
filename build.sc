@@ -50,7 +50,7 @@ object Deps {
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
   val coursier = ivy"io.get-coursier::coursier:2.0.7"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.8"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
@@ -60,7 +60,7 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.22.v20160922"
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.22.v20160922"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.1"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
 
   val jna = ivy"net.java.dev.jna:jna:5.0.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
@@ -71,7 +71,7 @@ object Deps {
   val testng = ivy"org.testng:testng:6.11"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.2"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
