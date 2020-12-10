@@ -52,7 +52,7 @@ object Deps {
   val coursier = ivy"io.get-coursier::coursier:2.0.7"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.10"
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.3.0"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
