@@ -47,8 +47,8 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
-    class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String)
-      extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015 = false) {
+    class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
+      extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
       object test extends super.Tests {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         def testFrameworks = Seq("utest.runner.Framework")
@@ -59,8 +59,8 @@ object HelloJSWorldTests extends TestSuite {
     }
 
     object buildScalaTest extends Cross[BuildModuleScalaTest](matrix:_*)
-    class BuildModuleScalaTest(crossScalaVersion: String, sjsVersion0: String)
-      extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015 = false) {
+    class BuildModuleScalaTest(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
+      extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
       object test extends super.Tests {
         override def sources = T.sources{ millSourcePath / 'src / 'scalatest }
         def testFrameworks = Seq("org.scalatest.tools.Framework")
@@ -160,8 +160,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.test()
-        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion).test.testCached
+        if(!cached) HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion, false).test.test()
+        else HelloJSWorld.buildUTest(scalaVersion, scalaJSVersion, false).test.testCached
       )
 
       val mainTests = resultMap("MainTests")
@@ -180,8 +180,8 @@ object HelloJSWorldTests extends TestSuite {
 
     def checkScalaTest(scalaVersion: String, scalaJSVersion: String, cached: Boolean) = {
       val resultMap = runTests(
-        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.test()
-        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion).test.testCached
+        if(!cached) HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion, false).test.test()
+        else HelloJSWorld.buildScalaTest(scalaVersion, scalaJSVersion, false).test.testCached
       )
 
       val mainSpec = resultMap("MainSpec")
@@ -269,7 +269,7 @@ object HelloJSWorldTests extends TestSuite {
       (scala, scalaJS, useECMAScript2015) <- HelloJSWorld.matrix
       if !skipScala(scala)
       if !skipScalaJS(scalaJS)
-      if !skipECMAScript2015 && useECMAScript2015
+      if !(skipECMAScript2015 && useECMAScript2015)
     } {
       if(scala.startsWith("2.11.")) {
         TestUtil.disableInJava9OrAbove(f(scala,scalaJS, useECMAScript2015))
