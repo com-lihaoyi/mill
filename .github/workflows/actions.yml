@@ -42,7 +42,7 @@ jobs:
       - name: Cache coursier
         uses: actions/cache@v2
         with:
-          key: ubuntu-coursier
+          key: key: ${{ runner.os }}-coursier-${{ hashFiles('.mill-version', 'mill', 'build.sc') }}
           path: ~/.cache/coursier
 
       - name: Prepare scala-native build
@@ -92,7 +92,7 @@ jobs:
       - name: Cache coursier
         uses: actions/cache@v2
         with:
-          key: ubuntu-coursier
+          key: key: ${{ runner.os }}-coursier-${{ hashFiles('.mill-version', 'mill', 'build.sc') }}
           path: ~/.cache/coursier
 
       - run: ci/on-master.py ci/release-maven.sh
@@ -125,7 +125,7 @@ jobs:
       - name: Cache coursier
         uses: actions/cache@v2
         with:
-          key: ubuntu-coursier
+          key: key: ${{ runner.os }}-coursier-${{ hashFiles('.mill-version', 'mill', 'build.sc') }}
           path: ~/.cache/coursier
 
       - run: ${{ matrix.buildcmd }}
