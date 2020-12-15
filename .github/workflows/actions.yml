@@ -39,6 +39,12 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
+      - name: Cache coursier
+        uses: actions/cache@v2
+        with:
+          key: ubuntu-coursier
+          path: ~/.cache/coursier
+
       - name: Prepare scala-native build
         run: sudo apt-get install libunwind8-dev libre2-dev
 
@@ -83,6 +89,12 @@ jobs:
         with:
           java-version: 9
 
+      - name: Cache coursier
+        uses: actions/cache@v2
+        with:
+          key: ubuntu-coursier
+          path: ~/.cache/coursier
+
       - run: ci/on-master.py ci/release-maven.sh
 
   release-github-and-site:
@@ -109,5 +121,11 @@ jobs:
       - uses: actions/setup-java@v1
         with:
           java-version: 9
+
+      - name: Cache coursier
+        uses: actions/cache@v2
+        with:
+          key: ubuntu-coursier
+          path: ~/.cache/coursier
 
       - run: ${{ matrix.buildcmd }}
