@@ -290,7 +290,11 @@ central via:
 mill mill.scalalib.PublishModule/publishAll \
         foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b
+        --gpgArgs --passphrase=$GPG_PASSWORD \
+        --gpgArgs --batch \
+        --gpgArgs --yes \
+        --gpgArgs -a \
+        --gpgArgs -b
 ```
 
 This uploads them to `oss.sonatype.org` where you can log-in and stage/release
@@ -301,7 +305,11 @@ staging/release automatically:
 mill mill.scalalib.PublishModule/publishAll \
         foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
+        --gpgArgs --passphrase=$GPG_PASSWORD \
+        --gpgArgs  --batch \
+        --gpgArgs  --yes \
+        --gpgArgs  -a \
+        --gpgArgs  -b \ 
         --release true
 ```
 
@@ -312,7 +320,11 @@ wildcard syntax:
 mill mill.scalalib.PublishModule/publishAll \
         __.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
+        --gpgArgs --passphrase=$GPG_PASSWORD \
+        --gpgArgs --batch \
+        --gpgArgs --yes \
+        --gpgArgs -a \
+        --gpgArgs -b \ 
         --release true
 ```
 

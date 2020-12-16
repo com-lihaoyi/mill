@@ -203,7 +203,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master
   [MainArgs](https://github.com/lihaoyi/mainargs) library
 * Note that the MainArgs replacement has some backwards incompatibilities: Short
   flags like `-i` can no longer be passed via `--i`, the `@doc("")` is now
-  `@arg(doc = "")`, `Seq[T]` parameters are now passed via repeated `--foo`
+  `@arg(doc = "")`, `Seq[T]` parameters such as `--gpgArgs` are now passed via repeated `--foo`
   flags rather than comma-separated.
 * Add the ability to relocate/shade files in `.assembly` [#947](https://github.com/lihaoyi/mill/pull/947)
 * Twirl enhancements [#952](https://github.com/lihaoyi/mill/pull/952)
