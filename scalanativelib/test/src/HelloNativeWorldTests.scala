@@ -31,7 +31,7 @@ object HelloNativeWorldTests extends TestSuite {
     val matrix = for {
       scala <- Seq(scala211)
       scalaNative <- Seq(scalaNative03, scalaNative04)
-      mode <- List(ReleaseMode.Debug, ReleaseMode.Release)
+      mode <- List(ReleaseMode.Debug, if(scalaNative == scalaNative03) ReleaseMode.Release else ReleaseMode.ReleaseFast)
     } yield (scala, scalaNative, mode)
 
     object helloNativeWorld extends Cross[BuildModule](matrix:_*)
@@ -205,36 +205,36 @@ object HelloNativeWorldTests extends TestSuite {
     'test - {
       val cached = false
       'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Release, cached))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative04, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_release_fast - (checkNoTests(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
       'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
       'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
       'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
-      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
+      'utest_21112_040M2_release_fast - (checkUtest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
 //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
-//      Disabled since it consumes too much memory      
-//      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
+//      Disabled since it consumes too much memory
+      'scalaTest_21112_040M2_release_fast - (checkScalaTest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
     }
     'testCached - {
       val cached = true
       'no_tests_21112_039_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
-      'no_tests_21112_040M2_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Debug, cached))
+      'no_tests_21112_039_release - (checkNoTests(scala211, scalaNative03, ReleaseMode.Release, cached))
+      'no_tests_21112_040M2_debug - (checkNoTests(scala211, scalaNative04, ReleaseMode.Debug, cached))
+      'no_tests_21112_040M2_release_fast - (checkNoTests(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
       'utest_21112_039_debug - (checkUtest(scala211, scalaNative03, ReleaseMode.Debug, cached))
       'utest_21112_039_release - (checkUtest(scala211, scalaNative03, ReleaseMode.Release, cached))
       'utest_21112_040M2_debug - (checkUtest(scala211, scalaNative04, ReleaseMode.Debug, cached))
-      'utest_21112_040M2_release - (checkUtest(scala211, scalaNative04, ReleaseMode.Release, cached))
+      'utest_21112_040M2_release_fast - (checkUtest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
 
       //      Scalatest dropped Scala Native 0.3 support
       'scalaTest_21112_040M2_debug - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Debug, cached))
       //      Disabled since it consumes too much memory
-      //      'scalaTest_21112_040M2_release - (checkScalaTest(scala211, scalaNative04, ReleaseMode.Release))
+      'scalaTest_21112_040M2_release_fast - (checkScalaTest(scala211, scalaNative04, ReleaseMode.ReleaseFast, cached))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
@@ -256,7 +256,7 @@ object HelloNativeWorldTests extends TestSuite {
       'run_21112_039_debug  - (checkRun(scala211, scalaNative03, ReleaseMode.Debug))
       'run_21112_039_release  - (checkRun(scala211, scalaNative03, ReleaseMode.Release))
       'run_21112_040M2_debug  - (checkRun(scala211, scalaNative04, ReleaseMode.Debug))
-      'run_21112_040M2_release  - (checkRun(scala211, scalaNative04, ReleaseMode.Release))
+      'run_21112_040M2_release_fast  - (checkRun(scala211, scalaNative04, ReleaseMode.ReleaseFast))
     }
   }
 
