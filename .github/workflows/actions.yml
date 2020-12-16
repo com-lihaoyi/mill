@@ -14,6 +14,7 @@ jobs:
     strategy:
       fail-fast: false
       matrix:
+        os: [ubuntu-latest, macosx]
         java-version: [8, 17]
         buildcmd:
           - ci/test-mill-release.sh
@@ -37,7 +38,7 @@ jobs:
               ./mill -i -k __.ivyDepsTree
               ./mill -i -k __.ivyDepsTree --withRuntime true
 
-    runs-on: ubuntu-latest
+    runs-on: ${{ matrix.os }}
 
     steps:
       - uses: actions/checkout@v3
