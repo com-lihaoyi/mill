@@ -40,7 +40,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
       ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908",
-      ivy"org.eclipse.jetty:jetty-server:8.2.0.v20160908",
+      ivy"org.eclipse.jetty:jetty-server:11.0.0",
       ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
     )
     val envDep = scalaJSBinaryVersion() match {
