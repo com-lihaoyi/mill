@@ -470,6 +470,12 @@ object contrib extends MillModule {
 
   object proguard extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
+        "-DMILL_PROGUARD_LIB=" + runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
   }
 
   object tut extends MillModule {
