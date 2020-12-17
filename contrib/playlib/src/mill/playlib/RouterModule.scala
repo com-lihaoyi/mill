@@ -47,14 +47,24 @@ trait RouterModule extends ScalaModule with Version {
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
+    val routerScalaVersion = playMinorVersion() match {
+      case "2.7" => "2.13"
+      case _ => scalaVersion()
+    }
+
+    val routerPlayVersion = playMinorVersion() match {
+      case "2.7" => "2.7.9"
+      case _ => playVersion()
+    }
+
     resolveDependencies(
       Seq(
         coursier.LocalRepositories.ivy2Local,
         MavenRepository("https://repo1.maven.org/maven2")
       ),
-      Lib.depToDependency(_, scalaVersion()),
+      Lib.depToDependency(_, routerScalaVersion),
       Seq(
-        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
+        ivy"com.typesafe.play::routes-compiler:${routerPlayVersion}"
       )
     )
   }
@@ -83,7 +93,7 @@ trait RouterModule extends ScalaModule with Version {
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
       resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
-      artifactSuffix = "_2.12"
+      artifactSuffix = "_2.13"
     )
   }
 

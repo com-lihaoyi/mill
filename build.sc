@@ -401,7 +401,10 @@ object contrib extends MillModule {
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
     class WorkerModule(scalajsBinary: String) extends MillApiModule  {
-      def scalaVersion = T { "2.12.10" }
+      def scalaVersion = T { scalajsBinary match {
+        case "2.6"=>"2.12.10"
+        case _ => "2.13.2"
+      } }
       def moduleDeps = Seq(playlib.api)
       def ivyDeps = scalajsBinary match {
         case  "2.6"=>
