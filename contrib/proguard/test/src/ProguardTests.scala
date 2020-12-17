@@ -1,7 +1,6 @@
 package mill.contrib.proguard
 
 import mill._
-import mill.define.Sources
 import mill.define.Target
 import mill.scalalib.ScalaModule
 import mill.util.TestEvaluator
@@ -45,7 +44,7 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - workspaceTest(proguard) { eval =>
         val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
-        assert(!agg.iterator.toSeq.isEmpty)
+        assert(agg.iterator.toSeq.nonEmpty)
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
