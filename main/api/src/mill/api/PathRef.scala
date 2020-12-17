@@ -38,7 +38,7 @@ object PathRef {
           digest.update(path.toString.getBytes)
           if (!attrs.isDir) {
             if (isPosix) {
-              updateWithInt(os.perms(path).value)
+              updateWithInt(os.perms(path, followLinks = false).value)
             }
             if (quick) {
               val value = (attrs.mtime, attrs.size).hashCode()
