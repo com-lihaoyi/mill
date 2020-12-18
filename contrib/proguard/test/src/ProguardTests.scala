@@ -1,5 +1,7 @@
 package mill.contrib.proguard
 
+import scala.util.control.NonFatal
+
 import mill._
 import mill.define.Target
 import mill.scalalib.ScalaModule
@@ -57,8 +59,8 @@ object ProguardTests extends TestSuite {
           assert(os.exists(path.path))
 
         } catch {
-          case a: utest.AssertionError if acceptFailure =>
-            a.printStackTrace(Console.err)
+          case NonFatal(e) if acceptFailure =>
+            e.printStackTrace(Console.err)
             s"TEST FAILED: Ignoring failure on Github Actions with Java ${javaVersion}"
         }
       }
