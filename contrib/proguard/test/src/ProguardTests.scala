@@ -42,12 +42,6 @@ object ProguardTests extends TestSuite {
 
   def tests: Tests = Tests {
     test("Proguard module") {
-      test("debug env") - workspaceTest(proguard) { eval =>
-        println("proguard classpath: " + eval.apply(proguard.proguardClasspath))
-        println("compile classpath: " + eval.apply(proguard.compileClasspath))
-        println("scala compiler classpath: " + eval.apply(proguard.scalaCompilerClasspath))
-      }
-
       test("should download proguard jars") - workspaceTest(proguard) { eval =>
         val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
         assert(agg.iterator.toSeq.nonEmpty)
