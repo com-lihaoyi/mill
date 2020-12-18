@@ -22,7 +22,6 @@ jobs:
           - ci/test-mill-1.sh
           - ci/test-mill-2.sh
           - ./mill -i docs.generate
-          - ./mill -i contrib.proguard.test
         exclude:
           - java-version: 11
             buildcmd: ci/test-mill-1.sh
