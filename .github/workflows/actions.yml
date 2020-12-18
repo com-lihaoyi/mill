@@ -28,6 +28,8 @@ jobs:
             buildcmd: ci/test-mill-1.sh
           - java-version: 11
             buildcmd: ci/test-mill-release.sh
+          - java-version: 11
+            buildcmd: ./mill -i contrib.proguard.test
 
     runs-on: ubuntu-latest
 
