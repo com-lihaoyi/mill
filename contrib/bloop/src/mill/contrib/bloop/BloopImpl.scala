@@ -202,6 +202,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ModuleKind.NoModule => Config.ModuleKindJS.NoModule
                 case ModuleKind.CommonJSModule =>
                   Config.ModuleKindJS.CommonJSModule
+                case ModuleKind.ESModule => Config.ModuleKindJS.ESModule
               },
               emitSourceMaps = m.jsEnvConfig() match{
                 case c: JsEnvConfig.NodeJs => c.sourceMap
