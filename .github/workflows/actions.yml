@@ -18,13 +18,14 @@ jobs:
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ci/test-mill-0.sh
-          - ci/test-mill-1.sh
-          - ci/test-mill-2.sh
+          - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+          - ./mill -i "contrib._.test"
+          - ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
+          - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
         exclude:
           - java-version: 11
-            buildcmd: ci/test-mill-1.sh
+            buildcmd: ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
           - java-version: 11
             buildcmd: ci/test-mill-release.sh
 

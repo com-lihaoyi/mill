@@ -31,4 +31,4 @@ git stash -a
 rm -rf ~/.mill
 
 # Use second build to run tests using Mill
-~/mill-2 -i all {main,scalalib,scalajslib,scalanativelib}.test
+~/mill-2 -i all {main,scalalib,scalajslib,scalanativelib,bsp}.__.test
