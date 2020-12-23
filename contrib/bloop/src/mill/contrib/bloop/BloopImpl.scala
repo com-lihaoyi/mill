@@ -249,7 +249,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 else s"-Duser.dir=$wd" :: forkArgs
               }
             ),
-            mainClass = module.mainClass()
+            mainClass = module.mainClass(),
+            runtimeConfig = None,
+            classpath = Some(module.compileClasspath().map(_.path.toNIO).toList),
+            resources = Some(module.resources().map(_.path.toNIO).toList)
           )
         }
     }
@@ -407,6 +410,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         directory = module.millSourcePath.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
+        sourcesGlobs = None,
+        sourceRoots = None,
         dependencies = (module.moduleDeps ++ module.compileModuleDeps).map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
@@ -418,6 +423,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         test = testConfig(),
         platform = Some(platform()),
         resolution = Some(bloopResolution()),
+        tags = None
       )
     }
 
