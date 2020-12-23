@@ -18,9 +18,10 @@ jobs:
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ci/test-mill-0.sh
+          - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+          - ./mill -i "contrib._.test"
           - ci/test-mill-1.sh
-          - ci/test-mill-2.sh
+          - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
         exclude:
           - java-version: 11
