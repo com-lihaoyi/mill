@@ -62,8 +62,8 @@ object Deps {
   val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
 
-  val jna = ivy"net.java.dev.jna:jna:5.0.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
+  val jna = ivy"net.java.dev.jna:jna:5.6.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.6.0"
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
