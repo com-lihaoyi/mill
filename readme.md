@@ -192,8 +192,21 @@ corresponding version of Mill.
 ### master
 
 *For details refer to
-[milestone after 0.8.0](https://github.com/lihaoyi/mill/milestone/45?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...master).*
+[milestone after 0.9.4](https://github.com/lihaoyi/mill/milestone/46?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.4...master).*
+
+
+### 0.9.4 - 2020-12-21
+
+* Implemented more BSP protocol commands and fixed some glitches with IntelliJ
+* Stabilized CI builds
+* Various fixes and improvements
+* Various version bumps
+
+*For details refer to
+[milestone 0.9.4](https://github.com/lihaoyi/mill/milestone/45?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.3...0.9.4).*
+
 
 ### 0.9.3 - 2020-11-26
 
