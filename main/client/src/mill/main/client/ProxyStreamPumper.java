@@ -40,19 +40,8 @@ public class ProxyStreamPumper implements Runnable{
                     else dest2.write(buffer, 0, offset);
                 }
             } catch (IOException e) {
-                // Win32NamedPipeSocket input stream somehow doesn't return -1,
-                // instead it throws an IOException whose message contains "ReadFile()".
-                // However, if it throws an IOException before ever reading some bytes,
-                // it could not connect to the server, so exit.
-                if (Util.isWindows && e.getMessage().contains("ReadFile()")) {
-                    if (first) {
-                        System.err.println("Failed to connect to server");
-                        System.exit(1);
-                    } else running = false;
-                } else {
-                    e.printStackTrace();
-                    System.exit(1);
-                }
+                e.printStackTrace();
+                System.exit(1);
             }
         }
     }

@@ -3,9 +3,10 @@ package mill.main.client;
 import org.scalasbt.ipcsocket.*;
 
 import java.io.*;
-import java.net.Socket;
-import java.net.URISyntaxException;
+import java.net.*;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -196,19 +197,19 @@ public class MillClientMain {
         }
         while(locks.processLock.probe()) Thread.sleep(3);
 
-        // Need to give sometime for Win32NamedPipeSocket to work
-        // if the server is just initialized
-        if (serverInit && Util.isWindows) Thread.sleep(1000);
-
         Socket ioSocket = null;
 
         long retryStart = System.currentTimeMillis();
 
         while(ioSocket == null && System.currentTimeMillis() - retryStart < 5000){
             try{
-                ioSocket = Util.isWindows?
-                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())
-                        : new UnixDomainSocket(lockBase + "/io");
+                if (Util.isWindows) {
+                    int port = Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/serverPort")).get(0));
+                    ioSocket = new Socket(InetAddress.getLoopbackAddress(), port);
+                    ioSocket.setTcpNoDelay(true);
+                } else {
+                    ioSocket = new UnixDomainSocket(lockBase + "/io");
+                }
             }catch(Throwable e){
                 Thread.sleep(1);
             }
@@ -230,8 +231,8 @@ public class MillClientMain {
 
         locks.serverLock.await();
 
-        try(FileInputStream fis = new FileInputStream(lockBase + "/exitCode")){
-            return Integer.parseInt(new BufferedReader(new InputStreamReader(fis)).readLine());
+        try {
+            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/exitCode")).get(0));
         } catch(Throwable e){
             return ExitClientCodeCannotReadFromExitCodeFile();
         } finally{

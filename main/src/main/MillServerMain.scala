@@ -2,6 +2,7 @@ package mill.main
 
 import java.io._
 import java.net.Socket
+import java.net.InetAddress
 import mill.{BuildInfo, MillMain}
 import scala.collection.JavaConverters._
 import org.scalasbt.ipcsocket._
@@ -9,6 +10,7 @@ import mill.main.client._
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
 import sun.misc.{Signal, SignalHandler}
+import java.net.ServerSocket
 
 trait MillServerMain[T]{
   var stateCache = Option.empty[T]
@@ -81,8 +83,12 @@ class Server[T](lockBase: String,
       while (running) {
         Server.lockBlock(locks.serverLock){
           val (serverSocket, socketClose) = if (Util.isWindows) {
-            val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
-            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
+            val ss = new ServerSocket(0, 0, InetAddress.getLoopbackAddress())
+            java.nio.file.Files.write(
+              java.nio.file.Paths.get(lockBase + "/serverPort"),
+              ss.getLocalPort.toString.getBytes
+            )
+            (ss, () => ss.close())
           } else {
             val socketName = lockBase + "/io"
             new File(socketName).delete()
@@ -184,15 +190,7 @@ class Server[T](lockBase: String,
     System.out.flush()
     System.err.flush()
 
-    if (Util.isWindows) {
-      // Closing Win32NamedPipeSocket can often take ~5s
-      // It seems OK to exit the client early and subsequently
-      // start up mill client again (perhaps closing the server
-      // socket helps speed up the process).
-      val t = new Thread(() => clientSocket.close())
-      t.setDaemon(true)
-      t.start()
-    } else clientSocket.close()
+    clientSocket.close()
   }
 }
 object Server{
