@@ -1,9 +1,7 @@
 package mill
 package scalajslib
 
-import coursier.maven.MavenRepository
 import mill.eval.{PathRef, Result}
-import mill.api.Result.Success
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
 import mill.util.Ctx
@@ -36,14 +34,14 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T{
+  def scalaJSLinkerClasspath: T[Loose.Agg[PathRef]] = T {
     val commonDeps = Seq(
       ivy"org.scala-js::scalajs-sbt-test-adapter:${scalaJSVersion()}",
-      ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908",
-      ivy"org.eclipse.jetty:jetty-server:8.2.0.v20160908",
-      ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
+      ivy"${ScalaJSBuildInfo.Deps.jettyWebsocket}",
+      ivy"${ScalaJSBuildInfo.Deps.jettyServer}",
+      ivy"${ScalaJSBuildInfo.Deps.javaxServlet}"
     )
-    val envDep = scalaJSBinaryVersion() match {
+    val envDeps = scalaJSBinaryVersion() match {
       case "0.6" =>
         Seq(
           ivy"org.scala-js::scalajs-tools:${scalaJSVersion()}",
@@ -52,15 +50,15 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case "1" =>
         Seq(
           ivy"org.scala-js::scalajs-linker:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-env-nodejs:1.1.1",
-          ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0",
-          ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
+          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvNodejs}",
+          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvJsdomNodejs}",
+          ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
         )
     }
     resolveDependencies(
       repositoriesTask(),
       Lib.depToDependency(_, "2.13.1", ""),
-      commonDeps ++ envDep,
+      commonDeps ++ envDeps,
       ctx = Some(implicitly[mill.util.Ctx.Log])
     )
   }
