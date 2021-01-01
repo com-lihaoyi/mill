@@ -3,7 +3,8 @@ package mill
 import java.io.{InputStream, PrintStream}
 import java.util.Locale
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters.MapHasAsScala
+
 import io.github.retronym.java9rtexport.Export
 import mainargs.{Flag, Leftover, arg}
 import mill.eval.Evaluator
@@ -159,7 +160,7 @@ object MillMain {
                     if (!useRepl) ""
                     else s"""import $$file.build, build._
                             |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                            |  os.Path(${pprint.apply(config.ammoniteCore.home.toIO.getCanonicalPath.replaceAllLiterally("$", "$$")).plainText}),
+                            |  os.Path(${pprint.apply(config.ammoniteCore.home.toIO.getCanonicalPath.replace("$", "$$")).plainText}),
                             |  ${config.disableTicker.value},
                             |  interp.colors(),
                             |  repl.pprinter(),
