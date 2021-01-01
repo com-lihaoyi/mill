@@ -13,7 +13,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
       )
 
   }
-  trait Tests extends super.Tests {
+  trait CrossSbtModuleTests extends SbtModuleTests {
     override def millSourcePath = outer.millSourcePath
     override def sources = T.sources {
       super.sources() ++
@@ -23,4 +23,5 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
         )
     }
   }
+  trait Tests extends CrossSbtModuleTests
 }
