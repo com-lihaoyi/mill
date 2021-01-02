@@ -89,7 +89,7 @@ class MainRunner(val config: ammonite.main.Config,
     watchLoop2(
       isRepl = false,
       printing = true,
-      mainCfg => {
+      (mainCfg: Main) => {
         val logger = PrintLogger(
           colored,
           disableTicker,
@@ -150,7 +150,7 @@ class MainRunner(val config: ammonite.main.Config,
     }
   }
 
-  override def initMain(isRepl: Boolean) = {
+  override def initMain(isRepl: Boolean): Main = {
     val hooks = ImportHook.defaults + (Seq("ivy") -> MillIvyHook)
     super.initMain(isRepl).copy(
       scriptCodeWrapper = CustomCodeWrapper,

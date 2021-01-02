@@ -15,11 +15,75 @@ import scala.collection.mutable
 import scala.reflect.ClassTag
 
 /**
-  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
-  * directly without going through Ammonite's main-method/argument-parsing
-  * subsystem
-  */
-object RunScript{
+ * Custom version of ammonite.main.Scripts, letting us run the build.sc script
+ * directly without going through Ammonite's main-method/argument-parsing
+ * subsystem
+ */
+object RunScript {
+
+  def withEvaluator[T](
+      home: os.Path,
+      wd: os.Path,
+      path: os.Path,
+      instantiateInterpreter: => Either[
+        (Res.Failing, Seq[(ammonite.interp.Watchable, Long)]),
+        ammonite.interp.Interpreter
+      ],
+      stateCache: Option[Evaluator.State],
+      log: Logger,
+      env: Map[String, String],
+      keepGoing: Boolean,
+      systemProperties: Map[String, String],
+      threadCount: Option[Int]
+  )(f: Evaluator => T): T = {
+
+    systemProperties.foreach { case (k, v) =>
+      System.setProperty(k, v)
+    }
+
+    val (evalState, interpWatched) = stateCache match {
+      case Some(s) if watchedSigUnchanged(s.watched) =>
+        Res.Success(s) -> s.watched
+      case _ =>
+        instantiateInterpreter match {
+          case Left((res, watched)) => (res, watched)
+          case Right(interp) =>
+            interp.watch(path)
+            val eval =
+              for (rootModule <- evaluateRootModule(wd, path, interp, log))
+                yield Evaluator.State(
+                  rootModule,
+                  rootModule.getClass.getClassLoader
+                    .asInstanceOf[SpecialClassLoader]
+                    .classpathSignature,
+                  mutable.Map.empty[Segments, (Int, Any)],
+                  interp.watchedValues.toSeq
+                )
+            (eval, interp.watchedValues)
+        }
+    }
+
+    val evalRes: Res[Evaluator] =
+      for (s: Evaluator.State <- evalState)
+        yield new Evaluator(
+          home,
+          wd / 'out,
+          wd / 'out,
+          s.rootModule,
+          log,
+          s.classLoaderSig,
+          s.workerCache,
+          env,
+          failFast = !keepGoing,
+          threadCount = threadCount
+        )
+
+    evalRes match {
+      case Res.Success(x) => f(x)
+      case Res.Failure(e) => throw new RuntimeException(s"Could not create evaluator: $e")
+    }
+  }
+
   def runScript(home: os.Path,
                 wd: os.Path,
                 path: os.Path,

@@ -51,7 +51,7 @@ case class Evaluator(
   outPath: os.Path,
   externalOutPath: os.Path,
   rootModule: mill.define.BaseModule,
-  baseLogger: ColorLogger,
+  baseLogger: Logger,
   classLoaderSig: Seq[(Either[String, java.net.URL], Long)] = Evaluator.classLoaderSig,
   workerCache: mutable.Map[Segments, (Int, Any)] = mutable.Map.empty,
   env: Map[String, String] = Evaluator.defaultEnv,
@@ -73,7 +73,7 @@ case class Evaluator(
   def evaluate(goals: Agg[Task[_]],
                reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                testReporter: TestReporter = DummyTestReporter,
-               logger: ColorLogger = baseLogger): Evaluator.Results = {
+               logger: Logger = baseLogger): Evaluator.Results = {
     os.makeDir.all(outPath)
 
     if(effectiveThreadCount > 1) parallelEvaluate(goals, effectiveThreadCount, logger, reporter, testReporter)
@@ -81,7 +81,7 @@ case class Evaluator(
   }
 
   def sequentialEvaluate(goals: Agg[Task[_]],
-                         logger: ColorLogger,
+                         logger: Logger,
                          reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                          testReporter: TestReporter = DummyTestReporter) = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
@@ -151,7 +151,7 @@ case class Evaluator(
 
   def parallelEvaluate(goals: Agg[Task[_]],
                        threadCount: Int,
-                       logger: ColorLogger,
+                       logger: Logger,
                        reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                        testReporter: TestReporter = DummyTestReporter): Evaluator.Results = {
     logger.info(s"Using experimental parallel evaluator with $threadCount threads")
@@ -262,7 +262,7 @@ case class Evaluator(
     counterMsg: String,
     zincProblemReporter: Int => Option[BuildProblemReporter],
     testReporter: TestReporter,
-    logger: ColorLogger
+    logger: Logger
   ): Evaluated = {
 
     val externalInputsHash = scala.util.hashing.MurmurHash3.orderedHash(

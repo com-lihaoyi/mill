@@ -53,7 +53,7 @@ object ModuleUtils {
    *                           about the mill project
    * @return JavaModule -> BuildTarget mapping
    */
-  def getTargets(modules: Seq[JavaModule], evaluator: Evaluator)(implicit ctx: Ctx.Log): Seq[BuildTarget] = {
+  def getTargets(modules: Seq[JavaModule], evaluator: Evaluator): Seq[BuildTarget] = {
     val targets = modules.map(module => getTarget(module, evaluator))
     val millBuildTarget = getMillBuildTarget(evaluator, modules)
 
@@ -70,7 +70,10 @@ object ModuleUtils {
    *                    build information
    * @return the Mill BuildTarget
    */
-  def getMillBuildTarget(evaluator: Evaluator, modules: Seq[JavaModule])(implicit ctx: Ctx.Log): BuildTarget = {
+  def getMillBuildTarget(
+      evaluator: Evaluator,
+      modules: Seq[JavaModule]
+  ): BuildTarget = {
     val target = new BuildTarget(
       getMillBuildTargetId(evaluator),
       Seq.empty[String].asJava,
@@ -91,12 +94,21 @@ object ModuleUtils {
       .flatten
       .distinct
 
-    val classpath = resolveDependencies(
-      repos,
-      depToDependency(_, BuildInfo.scalaVersion),
-      scalaLibDep,
-      ctx = Some(ctx)
-    ).asSuccess.toSeq.flatMap(_.value)
+    val classpath: Seq[PathRef] = Evaluator
+      .evalOrElse(
+        evaluator,
+        T.task {
+          resolveDependencies(
+            repos,
+            depToDependency(_, BuildInfo.scalaVersion),
+            scalaLibDep,
+            ctx = Some(T.ctx)
+          )
+        },
+        Agg.empty
+      )
+      .iterator
+      .toSeq
 
     target.setData(
       new ScalaBuildTarget(

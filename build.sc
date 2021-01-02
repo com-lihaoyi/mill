@@ -603,7 +603,9 @@ object bsp extends MillModule {
   object newbsp extends MillModule {
     def moduleDeps = Seq(
       main,
+      main.core,
       scalalib,
+      bsp
     )
     def ivyDeps = Agg(
       Deps.bsp,
