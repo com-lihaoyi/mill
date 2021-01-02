@@ -2,6 +2,7 @@ package mill.bsp
 
 import ammonite.runtime.SpecialClassLoader
 import ch.epfl.scala.bsp4j._
+import coursier.Resolve
 import java.net.URL
 import mill._
 import mill.api.Result.Success
@@ -9,15 +10,14 @@ import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
+import mill.scalalib._
 import mill.scalalib.Lib.{depToDependency, resolveDependencies, scalaRuntimeIvyDeps}
 import mill.scalalib.api.Util
-import mill.scalalib.{JavaModule, ScalaModule, TestModule}
 import mill.scalanativelib._
 import mill.util.Ctx
 import os.{Path, exists}
 import scala.collection.JavaConverters._
 import scala.util.Try
-import coursier.core.Repository
 
 /**
  * Utilities for translating the mill build into
@@ -86,9 +86,8 @@ object ModuleUtils {
     val scalaOrganization = "org.scala-lang"
     val scalaLibDep = scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
 
-    val repos = Evaluator.evalOrElse(evaluator, T.task {
-        T.traverse(modules)(_.repositoriesTask)()
-      }, Seq.empty[Seq[Repository]])
+    val repos = Evaluator
+      .evalOrElse(evaluator, T.traverse(modules)(_.repositoriesTask), Seq.empty)
       .flatten
       .distinct
 
@@ -112,15 +111,24 @@ object ModuleUtils {
     target
   }
 
-  def getMillBuildClasspath(evaluator: Evaluator, source: Boolean): Seq[String] = {
-    val all = Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
+  def getMillBuildClasspath(evaluator: Evaluator, sources: Boolean): Seq[String] = {
+    val classpath = Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader]).fold(
       _ => Seq.empty,
       _.allJars
     )
-    val filtered =
-      if (source) all.filter(url => isSourceJar(url))
+
+    val millJars = resolveDependencies(
+      Resolve.defaultRepositories,
+      depToDependency(_, BuildInfo.scalaVersion),
+      BuildInfo.millEmbeddedDeps.map(d => ivy"$d"),
+      sources = sources
+    ).asSuccess.toSeq.flatMap(_.value).map(_.path.toNIO.toUri.toURL)
+
+    val all = classpath ++ millJars
+    val binarySource =
+      if (sources) all.filter(url => isSourceJar(url))
       else all.filter(url => !isSourceJar(url))
-    filtered.filter(url => exists(Path(url.getFile))).map(_.toURI.toString)
+    binarySource.filter(url => exists(Path(url.getFile))).map(_.toURI.toString)
   }
 
   /**

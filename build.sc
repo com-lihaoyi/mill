@@ -1,10 +1,11 @@
 import $file.ci.shared
 import $file.ci.upload
 import java.nio.file.attribute.PosixFilePermission
-import $ivy.`org.scalaj::scalaj-http:2.4.2`
 
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import coursier.maven.MavenRepository
 import mill._
+import mill.define.Target
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm.createAssembly
@@ -49,34 +50,34 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
-  val coursier = ivy"io.get-coursier::coursier:2.0.0"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.0.1"
-  val graphvizJava = ivy"guru.nidi:graphviz-java:0.8.3"
-  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.0"
+  val coursier = ivy"io.get-coursier::coursier:2.0.8"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
+  val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
+  val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.3.0"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
   )
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.1.16.v20140903"
-  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.1.16.v20140903"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.3.0"
+  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.2.0.v20160908"
+  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
 
-  val jna = ivy"net.java.dev.jna:jna:5.0.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.0.0"
+  val jna = ivy"net.java.dev.jna:jna:5.6.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.6.0"
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
   val osLib = ivy"com.lihaoyi::os-lib:0.7.1"
-  val testng = ivy"org.testng:testng:6.11"
+  val testng = ivy"org.testng:testng:7.3.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.2.1"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
-  val upickle = ivy"com.lihaoyi::upickle:1.2.1"
-  val utest = ivy"com.lihaoyi::utest:0.7.4"
+  val upickle = ivy"com.lihaoyi::upickle:1.2.2"
+  val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
@@ -173,24 +174,25 @@ object main extends MillModule {
       // Necessary so we can share the JNA classes throughout the build process
       Deps.jna,
       Deps.jnaPlatform,
-      Deps.coursier,
       Deps.jarjarabrams
     )
 
     def generatedSources = T {
       val dest = T.ctx.dest
-      writeBuildInfo(dest, scalaVersion(), publishVersion())
+      writeBuildInfo(dest, scalaVersion(), publishVersion(), T.traverse(dev.moduleDeps)(_.publishSelfDependency)())
       shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 
-    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String) = {
+    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String, artifacts: Seq[Artifact]) = {
       val code = s"""
         |package mill
         |
         |object BuildInfo {
         |  val scalaVersion = "$scalaVersion"
         |  val millVersion = "$millVersion"
+        |  /** Dependency artifacts embedded in mill by default. */
+        |  val millEmbeddedDeps = ${artifacts.map(artifact => s""""${artifact.group}:${artifact.id}:${artifact.version}"""")}
         |}
       """.stripMargin.trim
 
@@ -202,7 +204,7 @@ object main extends MillModule {
     def scalaVersion = T{ "2.13.2" }
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
-      Deps.sourcecode,
+      Deps.sourcecode
     )
   }
 
@@ -248,6 +250,7 @@ object scalalib extends MillModule {
 
   override def generatedSources = T{
     val dest = T.ctx.dest
+    val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
     os.write(dest / "Versions.scala",
       s"""package mill.scalalib
         |
@@ -325,6 +328,35 @@ object scalajslib extends MillModule {
     (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
 
+  def generatedBuildInfo = T {
+    val dir = T.dest
+    val resolve = resolveCoursierDependency()
+    val packageNames = Seq("mill", "scalajslib")
+    val className = "ScalaJSBuildInfo"
+    def formatDep(dep: Dep) = {
+      val d = resolve(dep)
+      s"${d.module.organization.value}:${d.module.name.value}:${d.version}"
+    }
+    val content =
+      s"""package ${packageNames.mkString(".")}
+         |/** Generated by mill at built-time. */
+         |object ${className} {
+         |  object Deps {
+         |    val jettyWebsocket = "${formatDep(Deps.jettyWebsocket)}"
+         |    val jettyServer = "${formatDep(Deps.jettyServer)}"
+         |    val javaxServlet = "${formatDep(Deps.javaxServlet)}"
+         |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
+         |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
+         |    val scalajsEnvPhantomJs = "${formatDep(Deps.Scalajs_1.scalajsEnvPhantomjs)}"
+         |  }
+         |}
+         |""".stripMargin
+    os.write(dir / packageNames / s"${className}.scala" , content, createFolders = true)
+    PathRef(dir)
+  }
+
+  override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
+
   object api extends MillApiModule {
     def moduleDeps = Seq(main.api)
     def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -359,11 +391,18 @@ object scalajslib extends MillModule {
 
 
 object contrib extends MillModule {
-  object testng extends MillPublishModule{
-    def ivyDeps = Agg(
+  object testng extends MillModule{
+    override def ivyDeps = Agg(
       Deps.sbtTestInterface,
       Deps.testng
     )
+    override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T{
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
+        "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(","),
+      ) ++ scalalib.worker.testArgs()
+    }
   }
 
   object twirllib extends MillModule {
@@ -397,12 +436,12 @@ object contrib extends MillModule {
         case  "2.6"=>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.6.0"
+            ivy"com.typesafe.play::routes-compiler::2.6.25"
           )
         case "2.7" =>
           Agg(
             Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.7.0"
+            ivy"com.typesafe.play::routes-compiler::2.7.9"
           )
       }
     }
@@ -461,6 +500,12 @@ object contrib extends MillModule {
 
   object proguard extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq(
+        "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
+        "-DMILL_PROGUARD_LIB=" + runClasspath().map(_.path).mkString(",")
+      ) ++ scalalib.worker.testArgs()
+    }
   }
 
   object tut extends MillModule {
@@ -687,7 +732,7 @@ def launcherScript(shellJvmArgs: Seq[String],
   )
 }
 
-object dev extends MillModule{
+object dev extends MillModule {
   def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
 
 

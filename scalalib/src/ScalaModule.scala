@@ -16,13 +16,14 @@ import mill.api.DummyInputStream
   */
 trait ScalaModule extends JavaModule { outer =>
 
-  trait Tests extends super.Tests with ScalaModule {
+  trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization = outer.scalaOrganization()
     def scalaVersion = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
   }
+  trait Tests extends ScalaModuleTests
 
   /**
     * What Scala organization to use

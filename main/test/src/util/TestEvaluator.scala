@@ -25,7 +25,7 @@ object TestEvaluator{
 class TestEvaluator(
   module: TestUtil.BaseModule,
   failFast: Boolean = false,
-  threads: Option[Int] = None
+  threads: Option[Int] = Some(1)
 )(implicit fullName: sourcecode.FullName,
   tp: TestPath
 ){
