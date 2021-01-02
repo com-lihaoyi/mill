@@ -136,11 +136,9 @@ trait MillModule extends MillApiModule { outer =>
 
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
-
   def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
-
   def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
@@ -602,6 +600,16 @@ object bsp extends MillModule {
     Deps.bsp,
     Deps.sbtTestInterface
   )
+  object newbsp extends MillModule {
+    def moduleDeps = Seq(
+      main,
+      scalalib,
+    )
+    def ivyDeps = Agg(
+      Deps.bsp,
+      Deps.sbtTestInterface
+    )
+  }
 }
 
 def testRepos = T{
@@ -733,7 +741,7 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
+  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp, bsp.newbsp)
 
 
   def forkArgs =
