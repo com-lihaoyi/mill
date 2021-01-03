@@ -128,7 +128,10 @@ object ModuleUtils {
     val binarySource =
       if (sources) all.filter(url => isSourceJar(url))
       else all.filter(url => !isSourceJar(url))
-    binarySource.filter(url => exists(Path(url.getFile))).map(_.toURI.toString)
+    binarySource.filter(url => {
+      val file = if(url.getFile.matches("\\/[A-z]:\\/.*")) url.getFile.substring(1) else url.getFile
+      exists(Path(file))
+    }).map(_.toURI.toString)
   }
 
   /**
