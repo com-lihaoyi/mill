@@ -149,12 +149,17 @@ case class Evaluator(
     failing
   }
 
+  private[this] var warnOncePar = true
+
   def parallelEvaluate(goals: Agg[Task[_]],
                        threadCount: Int,
                        logger: Logger,
                        reporter: Int => Option[BuildProblemReporter] = (int: Int) => Option.empty[BuildProblemReporter],
                        testReporter: TestReporter = DummyTestReporter): Evaluator.Results = {
-    logger.info(s"Using experimental parallel evaluator with $threadCount threads")
+    if(warnOncePar) {
+      logger.info(s"Using experimental parallel evaluator with $threadCount threads")
+      warnOncePar = false
+    }
     os.makeDir.all(outPath)
     val timeLog = new ParallelProfileLogger(outPath, System.currentTimeMillis())
 
