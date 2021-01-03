@@ -1,6 +1,7 @@
 package mill.main
 
 import java.nio.file.NoSuchFileException
+
 import ammonite.interp.Interpreter
 import ammonite.runtime.SpecialClassLoader
 import ammonite.util.Util.CodeSource
@@ -13,6 +14,7 @@ import mill.api.Logger
 import mill.api.Strict.Agg
 import scala.collection.mutable
 import scala.reflect.ClassTag
+import scala.util.{Failure, Success, Try}
 
 /**
  * Custom version of ammonite.main.Scripts, letting us run the build.sc script
@@ -21,7 +23,7 @@ import scala.reflect.ClassTag
  */
 object RunScript {
 
-  def withEvaluator[T](
+  def initEvaluator(
       home: os.Path,
       wd: os.Path,
       path: os.Path,
@@ -35,7 +37,7 @@ object RunScript {
       keepGoing: Boolean,
       systemProperties: Map[String, String],
       threadCount: Option[Int]
-  )(f: Evaluator => T): T = {
+  ): Try[Evaluator] = {
 
     systemProperties.foreach { case (k, v) =>
       System.setProperty(k, v)
@@ -79,8 +81,44 @@ object RunScript {
         )
 
     evalRes match {
-      case Res.Success(x) => f(x)
-      case Res.Failure(e) => throw new RuntimeException(s"Could not create evaluator: $e")
+      case Res.Success(x)      => Success(x)
+      case Res.Exception(e, _) => Failure(e)
+      case Res.Failure(e) =>
+        Failure(new RuntimeException(s"Could not create evaluator: $e"))
+      case _ => Failure(new RuntimeException("Could not create evaluator"))
+    }
+  }
+
+  def withEvaluator[T](
+      home: os.Path,
+      wd: os.Path,
+      path: os.Path,
+      instantiateInterpreter: => Either[
+        (Res.Failing, Seq[(ammonite.interp.Watchable, Long)]),
+        ammonite.interp.Interpreter
+      ],
+      stateCache: Option[Evaluator.State],
+      log: Logger,
+      env: Map[String, String],
+      keepGoing: Boolean,
+      systemProperties: Map[String, String],
+      threadCount: Option[Int]
+  )(f: Evaluator => T): T = {
+    val evaluator = initEvaluator(
+      home,
+      wd,
+      path,
+      instantiateInterpreter,
+      stateCache,
+      log,
+      env,
+      keepGoing,
+      systemProperties,
+      threadCount
+    )
+    evaluator match {
+      case Success(x) => f(x)
+      case Failure(e) => throw e
     }
   }
 
