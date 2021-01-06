@@ -134,7 +134,6 @@ class ZincWorkerImpl(compilerBridge: Either[
                         compilerJars: Array[File],
                         compilerBridgeClasspath: Array[os.Path],
                         compilerBridgeSourcesJar: os.Path): Unit = {
-    val compileLog = compileDest / "compile-log.txt"
     ctx0.log.info("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
@@ -143,7 +142,14 @@ class ZincWorkerImpl(compilerBridge: Either[
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
     val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
 
-    val sources = os.walk(sourceFolder.path).filter(a => a.ext == "scala" || a.ext == "java")
+    val (sources, resources) =
+      os.walk(sourceFolder.path).filter(os.isFile)
+        .partition(a => a.ext == "scala" || a.ext == "java")
+
+    resources.foreach { res =>
+      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      os.move(res, dest, replaceExisting = true, createFolders = true)
+    }
 
     val argsArray = Array[String](
       "-d", compileDest.toString,
