@@ -181,7 +181,7 @@ class ZincWorkerImpl(compilerBridge: Either[
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>
-        val workingDir = ctx0.dest / scalaVersion
+        val workingDir = ctx0.dest / s"zinc-${Versions.zinc}" / scalaVersion
         val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
         val compiledDest = workingDir / 'compiled
         lock.synchronized{

@@ -309,6 +309,25 @@ object scalalib extends MillModule {
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
     )}
+
+    override def generatedSources = T{
+      val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      os.write(dest / "Versions.scala",
+        s"""package mill.scalalib.worker
+           |
+           |/**
+           | * Dependency versions.
+           | * Generated from mill in build.sc.
+           | */
+           |object Versions {
+           |  /** Version of Zinc. */
+           |  val zinc = "${Deps.zinc.dep.version}"
+           |}
+           |
+           |""".stripMargin)
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
 }
 
