@@ -134,6 +134,14 @@ class ZincWorkerImpl(compilerBridge: Either[
                         compilerJars: Array[File],
                         compilerBridgeClasspath: Array[os.Path],
                         compilerBridgeSourcesJar: os.Path): Unit = {
+    if (scalaVersion == "2.12.0") {
+      // The Scala 2.10.0 compiler fails on compiling the compiler bridge
+      throw new IllegalArgumentException(
+        "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
+          "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
+      )
+    }
+
     ctx0.log.info("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
