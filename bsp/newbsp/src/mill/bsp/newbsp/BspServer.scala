@@ -32,7 +32,7 @@ class BspServer(
     serverConfig: BspServerConfig,
     runner: MainRunner,
     scriptPath: os.Path,
-    debug: Option[OutputStream] = None,
+    debugStream: Option[OutputStream] = None,
     stopMill: () => Unit,
     stopBspServer: () => Unit
 ) extends BuildServer
@@ -40,10 +40,10 @@ class BspServer(
     with ScalaBuildServer
     with MillModuleSupport { server =>
 
-  val wd: os.Path = scriptPath / os.up
+  val projectDir: os.Path = scriptPath / os.up
 
   object log {
-    val debugOut = server.debug.map {
+    val debugOut = server.debugStream.map {
       case s: PrintStream => s
       case s              => new PrintStream(s)
     }
@@ -81,7 +81,7 @@ class BspServer(
         synchronized {
           val main = runner.initMain(false)
 
-          val logger: Logger = debug match {
+          val logger: Logger = debugStream match {
             case None => DummyLogger
             case Some(debugStream) =>
               val ps = new PrintStream(debugStream)
@@ -99,14 +99,14 @@ class BspServer(
           }
 
           val evaluator: Try[Evaluator] = RunScript.initEvaluator(
-            home = wd / "out" / "ammonite",
-            wd = wd / "out",
+            home = projectDir / "out" / "ammonite",
+            wd = projectDir / "out",
             path = scriptPath,
             instantiateInterpreter = main.instantiateInterpreter(),
             stateCache = None,
             log = logger,
             env = sys.env,
-            keepGoing = serverConfig.keepGoing,
+            keepGoing = serverConfig.keepGoing.value,
             systemProperties = sys.props.toMap,
             threadCount = serverConfig.threadCount
           )
@@ -772,10 +772,39 @@ class BspServer(
 }
 
 object BspServer {
-  def main(args: Array[String]): Unit = {
 
+  case class BspServerExit(code: Int, msg: Option[String])
+      extends Exception(msg.orNull)
+
+  def main(args: Array[String]): Unit = {
+    try run(args)
+    catch {
+      case BspServerExit(code, msg) =>
+        msg.foreach { m => System.err.println(m) }
+        System.exit(code)
+      case NonFatal(x) =>
+        System.exit(1)
+    }
+  }
+
+  def run(args: Array[String]): Unit = {
     val parser = mainargs.ParserForClass[BspServerConfig]
-    val config = parser.constructOrThrow(args)
+    val config: BspServerConfig =
+      parser.constructEither(
+        args = args,
+        autoPrintHelpAndExit = None,
+        printHelpOnExit = false
+      ) match {
+        case Right(c)  => c
+        case Left(msg) => throw BspServerExit(1, Some(msg))
+      }
+
+    if (config.help.value) {
+      throw BspServerExit(0, Some(parser.helpText()))
+    }
+
+    val projectDir =
+      config.dir.map(dir => Path.apply(dir, os.pwd)).getOrElse(os.pwd)
 
     val ammConfig = ammonite.main.Config(
       core = config.ammoniteCore,
@@ -802,18 +831,18 @@ object BspServer {
       env = sys.env,
       setIdle = b => (),
       debugLog = true,
-      keepGoing = config.keepGoing,
+      keepGoing = config.keepGoing.value,
       systemProperties = sys.props.toMap,
       threadCount = config.threadCount,
       ringBell = false,
-      wd = os.pwd
+      wd = projectDir
     )
 
     val bspServer = new BspServer(
       config,
       runner = runner,
-      scriptPath = os.pwd / "build.sc",
-      debug = Some(System.err),
+      scriptPath = projectDir / "build.sc",
+      debugStream = Some(System.err),
       stopMill = { () =>
         System.err.println("TODO: Mill shutdown")
         ()
@@ -830,7 +859,7 @@ object BspServer {
         .setInput(System.in)
         .setLocalService(bspServer)
         .setRemoteInterface(classOf[BuildClient])
-        .traceMessages(new PrintWriter((os.pwd / ".bsp" / "mill.log").toIO))
+        .traceMessages(new PrintWriter((projectDir / ".bsp" / "mill.log").toIO))
         // .setExecutorService(executor)
         .create()
       // millServer.onConnectWithClient(launcher.getRemoteProxy)

@@ -1,9 +1,15 @@
 package mill.bsp.newbsp
 
+import mainargs.{Flag, arg}
+
 case class BspServerConfig(
     ammoniteCore: ammonite.main.Config.Core,
-    @mainargs.arg(name = "jobs", short = 'j')
+    @arg(name = "jobs", short = 'j')
     threadCount: Option[Int] = Option(1),
-    @mainargs.arg(name = "keep-going", short = 'k')
-    keepGoing: Boolean = false
+    @arg(name = "keep-going", short = 'k')
+    keepGoing: Flag = Flag(),
+    dir: Option[String] = None,
+    help: Flag = Flag(),
+    @arg(doc = "Write a BSP connection file (`.bsp/mill.json`)")
+    install: Flag = Flag()
 )
