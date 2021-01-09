@@ -1,6 +1,6 @@
 package mill.scalalib
 
-import coursier.core.Repository
+import coursier.Repository
 import mill.Agg
 import mill.T
 import mill.api.{Ctx, FixSizedCache, KeyedLockedCache}
@@ -8,7 +8,6 @@ import mill.define.{Command, Discover, ExternalModule, Worker}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.api.Util.{isBinaryBridgeAvailable, isDotty, isDottyOrScala3}
 import mill.scalalib.api.ZincWorkerApi
-import mill.util.JsonFormatters._
 
 object ZincWorkerModule extends ExternalModule with ZincWorkerModule with CoursierModule {
   lazy val millDiscover = Discover[this.type]
@@ -43,7 +42,6 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       case _ => 1
     }
     ctx.log.debug(s"ZinkWorker: using cache size ${jobs}")
-    val cp = compilerInterfaceClasspath()
     val cl = mill.api.ClassLoader.create(
       classpath().map(_.path.toNIO.toUri.toURL).toVector,
       getClass.getClassLoader
@@ -64,7 +62,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       .newInstance(
         Left((
           T.ctx(),
-          (x: String, y: String) => scalaCompilerBridgeJar(x, y, cp, repositoriesTask()).asSuccess.get.value
+          (x: String, y: String) => scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
@@ -76,7 +74,6 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
 
   def scalaCompilerBridgeJar(scalaVersion: String,
                              scalaOrganization: String,
-                             compileClassPath: Agg[mill.api.PathRef],
                              repositories: Seq[Repository]) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
@@ -98,39 +95,57 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       }
     val useSources = !isBinaryBridgeAvailable(scalaVersion)
 
-    resolveDependencies(
+    val bridgeJar = resolveDependencies(
       repositories,
       Lib.depToDependency(_, scalaVersion0),
       Seq(bridgeDep),
-      useSources
-    ).map{deps =>
-      val cp = if (useSources) Some(compileClassPath.map(_.path).toArray) else None
-      val res = mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
-      (cp, res)
+      useSources,
+      Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
+    ).map( deps =>
+      mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
+    )
+
+    if (useSources) {
+      for {
+        jar <- bridgeJar
+        classpath <- compilerInterfaceClasspath(scalaVersion, scalaOrganization, repositories)
+      } yield (Some(classpath.map(_.path).toArray), jar)
+    } else {
+      bridgeJar.map((None, _))
     }
   }
 
-  def compilerInterfaceClasspath = T{
+  def compilerInterfaceClasspath(scalaVersion: String,
+                                 scalaOrganization: String,
+                                 repositories: Seq[Repository]) = {
     resolveDependencies(
-      repositoriesTask(),
+      repositories,
       Lib.depToDependency(_, "2.12.4", ""),
       Seq(ivy"org.scala-sbt:compiler-interface:${Versions.zinc}"),
-      ctx = Some(implicitly[mill.util.Ctx.Log])
+      // Since Zinc 1.4.0, the compiler-interface depends on the Scala library
+      // We need to override it with the scalaVersion and scalaOrganization of the module
+      mapDependencies = Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
     )
+  }
+
+  def overrideScalaLibrary(scalaVersion: String, scalaOrganization: String)
+                          (dep: coursier.Dependency): coursier.Dependency = {
+    if (dep.module.name.value == "scala-library") {
+      dep.withModule(dep.module.withOrganization(coursier.Organization(scalaOrganization)))
+        .withVersion(scalaVersion)
+    } else dep
   }
 
   override def prepareOffline(): Command[Unit] = T.command {
     super.prepareOffline()
     classpath()
-    compilerInterfaceClasspath()
     // worker()
     ()
   }
 
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] = T.command {
     classpath()
-    val cp = compilerInterfaceClasspath()
-    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, cp, repositoriesTask())
+    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
     ()
   }
 

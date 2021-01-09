@@ -78,7 +78,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
   val upickle = ivy"com.lihaoyi::upickle:1.2.2"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.4.0-M1"
+  val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
 }
@@ -309,6 +309,25 @@ object scalalib extends MillModule {
     def testArgs = T{Seq(
       "-DMILL_SCALA_WORKER=" + runClasspath().map(_.path).mkString(",")
     )}
+
+    override def generatedSources = T{
+      val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      os.write(dest / "Versions.scala",
+        s"""package mill.scalalib.worker
+           |
+           |/**
+           | * Dependency versions.
+           | * Generated from mill in build.sc.
+           | */
+           |object Versions {
+           |  /** Version of Zinc. */
+           |  val zinc = "${Deps.zinc.dep.version}"
+           |}
+           |
+           |""".stripMargin)
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
 }
 

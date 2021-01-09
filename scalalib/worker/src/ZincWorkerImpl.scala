@@ -2,7 +2,6 @@ package mill.scalalib.worker
 
 import java.io.File
 import java.util.Optional
-
 import mill.api.Loose.Agg
 import mill.api.{BuildProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity}
 import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, scalaBinaryVersion}
@@ -10,15 +9,16 @@ import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
 import sbt.util.LogExchange
+import xsbti.{PathBasedFile, VirtualFile}
 import xsbti.compile.{CompilerCache => _, FileAnalysisStore => _, ScalaInstance => _, _}
 
 import scala.ref.WeakReference
 
-case class MockedLookup(am: File => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
-  override def analysis(classpathEntry: File): Optional[CompileAnalysis] =
+case class MockedLookup(am: VirtualFile => Optional[CompileAnalysis]) extends PerClasspathEntryLookup {
+  override def analysis(classpathEntry: VirtualFile): Optional[CompileAnalysis] =
     am(classpathEntry)
 
-  override def definesClass(classpathEntry: File): DefinesClass =
+  override def definesClass(classpathEntry: VirtualFile): DefinesClass =
     Locate.definesClass(classpathEntry)
 }
 
@@ -85,7 +85,8 @@ class ZincWorkerImpl(compilerBridge: Either[
     // Zinc does not have an entry point for Java-only compilation, so we need
     // to make up a dummy ScalaCompiler instance.
     val scalac = ZincUtil.scalaCompiler(
-      new ScalaInstance("", null, null, dummyFile, dummyFile, new Array(0), Some("")), null,
+      new ScalaInstance("", null, null, dummyFile, dummyFile, new Array(0), Some("")),
+      dummyFile,
       classpathOptions // this is used for javac too
     )
 
@@ -133,7 +134,14 @@ class ZincWorkerImpl(compilerBridge: Either[
                         compilerJars: Array[File],
                         compilerBridgeClasspath: Array[os.Path],
                         compilerBridgeSourcesJar: os.Path): Unit = {
-    val compileLog = compileDest / "compile-log.txt"
+    if (scalaVersion == "2.12.0") {
+      // The Scala 2.10.0 compiler fails on compiling the compiler bridge
+      throw new IllegalArgumentException(
+        "The current version of Zinc is incompatible with Scala 2.12.0.\n" +
+          "Use Scala 2.12.1 or greater (2.12.12 is recommended)."
+      )
+    }
+
     ctx0.log.info("Compiling compiler interface...")
 
     os.makeDir.all(workingDir)
@@ -142,7 +150,14 @@ class ZincWorkerImpl(compilerBridge: Either[
     val sourceFolder = mill.api.IO.unpackZip(compilerBridgeSourcesJar)(workingDir)
     val classloader = mill.api.ClassLoader.create(compilerJars.map(_.toURI.toURL), null)(ctx0)
 
-    val sources = os.walk(sourceFolder.path).filter(a => a.ext == "scala" || a.ext == "java")
+    val (sources, resources) =
+      os.walk(sourceFolder.path).filter(os.isFile)
+        .partition(a => a.ext == "scala" || a.ext == "java")
+
+    resources.foreach { res =>
+      val dest = compileDest / res.relativeTo(sourceFolder.path)
+      os.move(res, dest, replaceExisting = true, createFolders = true)
+    }
 
     val argsArray = Array[String](
       "-d", compileDest.toString,
@@ -174,7 +189,7 @@ class ZincWorkerImpl(compilerBridge: Either[
     compilerBridge match {
       case Right(compiled) => compiled(scalaVersion)
       case Left((ctx0, bridgeProvider)) =>
-        val workingDir = ctx0.dest / scalaVersion
+        val workingDir = ctx0.dest / s"zinc-${Versions.zinc}" / scalaVersion
         val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
         val compiledDest = workingDir / 'compiled
         lock.synchronized{
@@ -423,9 +438,13 @@ class ZincWorkerImpl(compilerBridge: Either[
     }
     val analysisMap0 = upstreamCompileOutput.map(_.swap).toMap
 
-    def analysisMap(f: File): Optional[CompileAnalysis] = {
-      analysisMap0.get(os.Path(f)) match{
-        case Some(zincPath) => FileAnalysisStore.binary(zincPath.toIO).get().map[CompileAnalysis](_.getAnalysis)
+    def analysisMap(f: VirtualFile): Optional[CompileAnalysis] = {
+      val analysisFile = f match {
+        case pathBased: PathBasedFile => analysisMap0.get(os.Path(pathBased.toPath))
+        case _ => None
+      }
+      analysisFile match {
+        case Some(zincPath) => FileAnalysisStore.binary(zincPath.toIO).get().map(_.getAnalysis)
         case None => Optional.empty[CompileAnalysis]
       }
     }
@@ -437,15 +456,21 @@ class ZincWorkerImpl(compilerBridge: Either[
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"
 
-    val zincIOFile = zincFile.toIO
-    val classesIODir = classesDir.toIO
+    val store = FileAnalysisStore.binary(zincFile.toIO)
 
-    val store = FileAnalysisStore.binary(zincIOFile)
+    val converter = PlainVirtualFileConverter.converter
+    val classpath = (compileClasspath.iterator ++ Some(classesDir))
+      .map(path => converter.toVirtualFile(path.toNIO))
+      .toArray
+    val virtualSources = sources.iterator
+      .map(path => converter.toVirtualFile(path.toNIO))
+      .toArray
 
     val inputs = ic.inputs(
-      classpath = classesIODir +: compileClasspath.map(_.toIO).toArray,
-      sources = sources.toArray.map(_.toIO),
-      classesDirectory = classesIODir,
+      classpath = classpath,
+      sources = virtualSources,
+      classesDirectory = classesDir.toNIO,
+      earlyJarPath = None,
       scalacOptions = scalacOptions.toArray,
       javacOptions = javacOptions.toArray,
       maxErrors = 10,
@@ -455,18 +480,23 @@ class ZincWorkerImpl(compilerBridge: Either[
       setup = ic.setup(
         lookup,
         skip = false,
-        zincIOFile,
+        zincFile.toNIO,
         new FreshCompilerCache,
         IncOptions.of(),
         newReporter,
+        None,
         None,
         Array()
       ),
       pr = {
         val prev = store.get()
-        PreviousResult.of(prev.map(_.getAnalysis), prev.map(_.getMiniSetup))
+        PreviousResult.of(
+          prev.map(_.getAnalysis): Optional[CompileAnalysis],
+          prev.map(_.getMiniSetup): Optional[MiniSetup])
       },
-      temporaryClassesDirectory = java.util.Optional.empty()
+      temporaryClassesDirectory = java.util.Optional.empty(),
+      converter = converter,
+      stampReader = Stamps.timeWrapBinaryStamps(converter)
     )
 
     try {
