@@ -75,6 +75,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
+  def scalatest = ivy"org.scalatest::scalatest:3.2.3"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.1"
   val upickle = ivy"com.lihaoyi::upickle:1.2.2"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
@@ -601,16 +602,23 @@ object bsp extends MillModule {
     Deps.sbtTestInterface
   )
   object newbsp extends MillModule {
-    def moduleDeps = Seq(
+    override def moduleDeps = Seq(
       main,
       main.core,
       scalalib,
       bsp
     )
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.bsp,
       Deps.sbtTestInterface
     )
+    override val test = new Tests(implicitly)
+    class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
+      override def ivyDeps = Agg(Deps.scalatest)
+      override def testFrameworks = Seq("org.scalatest.tools.Framework")
+      override def scalacPluginClasspath =
+        super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
+    }
   }
 }
 
