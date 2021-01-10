@@ -12,6 +12,11 @@ import mill.modules.Jvm.createAssembly
 
 object Deps {
 
+  // The Scala version to use
+  val scalaVersion = "2.13.3"
+  // The Scala 2.12.x version to use for some workers
+  val workerScalaVersion212 = "2.12.10"
+
   object Scalajs_0_6 {
     val scalajsJsEnvs =  ivy"org.scala-js::scalajs-js-envs:0.6.33"
     val scalajsSbtTestAdapter =  ivy"org.scala-js::scalajs-sbt-test-adapter:0.6.33"
@@ -101,8 +106,8 @@ trait MillPublishModule extends PublishModule{
 
   def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
-trait MillApiModule extends MillPublishModule with ScalaModule{
-  def scalaVersion = T{ "2.13.2" }
+trait MillApiModule extends MillPublishModule with ScalaModule {
+  def scalaVersion = Deps.scalaVersion
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
@@ -111,7 +116,6 @@ trait MillApiModule extends MillPublishModule with ScalaModule{
   )
 }
 trait MillModule extends MillApiModule { outer =>
-  def scalaVersion = T{ "2.13.2" }
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
@@ -200,8 +204,8 @@ object main extends MillModule {
     }
   }
 
-  object moduledefs extends MillPublishModule with ScalaModule{
-    def scalaVersion = T{ "2.13.2" }
+  object moduledefs extends MillPublishModule with ScalaModule {
+    def scalaVersion = Deps.scalaVersion
     def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode
@@ -449,7 +453,7 @@ object contrib extends MillModule {
     object worker extends Cross[WorkerModule]( "2.6", "2.7")
 
     class WorkerModule(scalajsBinary: String) extends MillApiModule  {
-      def scalaVersion = T { "2.12.10" }
+      def scalaVersion = Deps.workerScalaVersion212
       def moduleDeps = Seq(playlib.api)
       def ivyDeps = scalajsBinary match {
         case  "2.6"=>
@@ -591,7 +595,7 @@ object scalanativelib extends MillModule {
   }
   object worker extends Cross[WorkerModule]("0.3", "0.4")
     class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
-    def scalaVersion = T{ "2.12.10" }
+    def scalaVersion = Deps.workerScalaVersion212
     override def millSourcePath(): os.Path = super.millSourcePath / os.up
     def moduleDeps = Seq(scalanativelib.api)
     def ivyDeps = scalaNativeWorkerVersion match {
