@@ -1,7 +1,7 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.{Config => BloopConfig}
+import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Loose
 import mill.define.{Module => MillModule, _}
@@ -405,6 +405,8 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         .map(_.toNIO)
         .toList
 
+      val tags = module match { case _: TestModule => List(BloopTag.Test); case _ => List(BloopTag.Library) }
+
       BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
@@ -423,7 +425,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         test = testConfig(),
         platform = Some(platform()),
         resolution = Some(bloopResolution()),
-        tags = None
+        tags = Some(tags)
       )
     }
 
