@@ -9,11 +9,12 @@ import mill.api.Result
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.api.Loose.Agg
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
 import upickle.default.{ReadWriter => RW, macroRW}
 import mill.scalanativelib.api._
-
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -103,9 +104,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       .getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
-  def nativeTarget = T{
-    scalaNativeWorker().discoverTarget(nativeClang().toIO, nativeWorkdir().toIO)
-  }
+  def nativeTarget: T[Option[String]] = T { None }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = T{ scalaNativeWorker().discoverCompileOptions }
@@ -134,7 +133,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeWorkdir().toIO,
       nativeClang().toIO,
       nativeClangPP().toIO,
-      nativeTarget(),
+      nativeTarget().toJava,
       nativeCompileOptions(),
       nativeLinkingOptions(),
       nativeGC(),
@@ -166,42 +165,33 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
   override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.dest / "out.json"
-    val (frameworks, testsMap) = frameworksAndTestsMap()
-    val (doneMsg, results) = if(frameworks.nonEmpty && testsMap.nonEmpty) {
-      // The test frameworks run under the JVM and communicate with the native binary over a socket
-      // therefore the test framework is loaded from a JVM classloader
-      val testClassloader =
-      new URLClassLoader(runClasspath().map(_.path.toIO.toURI.toURL).toArray,
-        this.getClass.getClassLoader)
-      val frameworkInstances = TestRunner.frameworks(testFrameworks())(testClassloader)
-      val testBinary = testRunnerNative.nativeLink().toIO
-      val envVars = forkEnv()
 
-      val nativeFrameworks = (cl: ClassLoader) =>
-        frameworkInstances.zipWithIndex.map { case (f, id) =>
-          import collection.JavaConverters._
-          scalaNativeWorker().newScalaNativeFrameWork(
-            f, id, testBinary, logLevel(), envVars.asJava
-          )
-        }
+    val getFrameworkResult = scalaNativeWorker().getFramework(
+      testRunnerNative.nativeLink().toIO,
+      forkEnv().asJava,
+      logLevel(),
+      testFrameworks().head
+    )
+    val framework = getFrameworkResult.framework
+    val close = getFrameworkResult.close
 
-      TestRunner.runTests(
-        nativeFrameworks,
-        runClasspath().map(_.path),
-        Agg(compile().classes.path),
-        args(),
-        T.testReporter
-      )
-    } else ("No tests were executed", Seq.empty)
-
-    TestModule.handleResults(doneMsg, results)
+    val (doneMsg, results) = TestRunner.runTests(
+      _ => Seq(framework),
+      runClasspath().map(_.path),
+      Agg(compile().classes.path),
+      args(),
+      T.testReporter
+    )
+    val res = TestModule.handleResults(doneMsg, results)
+    // Hack to try and let the Scala Native subprocess finish streaming it's stdout
+    // to the JVM. Without this, the stdout can still be streaming when `close()`
+    // is called, and some of the output is dropped onto the floor.
+    Thread.sleep(100)
+    close.run()
+    res
   }
 
-  private val testMainClassName = "ScalaNativeTestMain"
-
-  // creates a specific binary used for running tests - has a different (generated) main class
-  // which knows the names of all the tests and references to invoke them
+  // creates a specific binary used for running tests
   object testRunnerNative extends ScalaNativeModule {
     override def zincWorker = testOuter.zincWorker
     override def scalaOrganization = testOuter.scalaOrganization()
@@ -218,63 +208,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
       ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
     )
 
-    override def mainClass = Some(testMainClassName)
-
-    override def generatedSources = T {
-      val outDir = T.dest
-      ammonite.ops.write.over(outDir / s"$testMainClassName.scala", makeTestMain())
-      Seq(PathRef(outDir))
-    }
-  }
-
-  private def fullClassName(name: String): String = {
-    val isInAPackage = name.contains(".")
-    if (isInAPackage) s"_root_.$name" else name
-  }
-
-  private def frameworksAndTestsMap = T{
-    val frameworkInstances = TestRunner.frameworks(testFrameworks()) _
-
-    val testClasses = Jvm.inprocess(runClasspath().map(_.path), classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = true,
-      cl => {
-        frameworkInstances(cl).flatMap { framework =>
-          val df = Lib.discoverTests(cl, framework, Agg(compile().classes.path))
-          df.map{ case (clazz, fingerprint) => TestDefinition(framework.getClass.getName, clazz, fingerprint) }
-        }
-      }
-    )
-
-    val frameworks = testClasses.map(_.framework).distinct
-
-    val testsMap = testClasses
-      .map { t =>
-        val isModule = t.fingerprint match {
-          case af: AnnotatedFingerprint => af.isModule
-          case sf: SubclassFingerprint  => sf.isModule
-        }
-        val fullName = fullClassName(t.name)
-        val inst     = if (isModule) fullName else s"new $fullName"
-        s""""${t.name}" -> $inst"""
-      }
-      .mkString(", ")
-    
-      (frameworks, testsMap)
-  }
-
-  // generate a main class for the tests
-  def makeTestMain = T{
-    val (frameworks, testsMap) = frameworksAndTestsMap()
-
-    val frameworksList = frameworks
-      .map(f => s"new ${fullClassName(f)}")
-      .mkString("List(", ", ", ")")
-
-    s"""object $testMainClassName extends scala.scalanative.testinterface.TestMainBase {
-       |  override val frameworks = $frameworksList
-       |  override val tests = Map[String, AnyRef]($testsMap)
-       |  def main(args: Array[String]): Unit =
-       |    testMain(args)
-       |}""".stripMargin
+    override def mainClass = Some("scala.scalanative.testinterface.TestMain")
   }
 }
 
