@@ -67,7 +67,7 @@ object HelloNativeWorldTests extends TestSuite {
     object buildNoTests extends Cross[BuildModuleNoTests](matrix:_*)
     class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-        object test extends super.Tests with JUnitTestModule {
+      object test extends super.Tests with JUnitTestModule {
         override def sources = T.sources{ millSourcePath / "src" / "no-tests" }
       }
     }
