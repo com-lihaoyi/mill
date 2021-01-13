@@ -4,17 +4,17 @@ package scalanativelib
 import java.net.URLClassLoader
 
 import coursier.maven.MavenRepository
-import mill.define.{Target, Task}
+import mill.api.Loose.Agg
 import mill.api.Result
+import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
-import mill.api.Loose.Agg
-import scala.jdk.CollectionConverters._
-import scala.jdk.OptionConverters._
+import mill.scalanativelib.api._
 import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
 import sbt.testing.Fingerprint
+import scala.jdk.CollectionConverters._
+import scala.jdk.OptionConverters._
 import upickle.default.{ReadWriter => RW, macroRW}
-import mill.scalanativelib.api._
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -192,7 +192,7 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
   )
-  override def mainClass = Some("scala.scalanative.testinterface.TestMain")
+  override def mainClass: T[Option[String]] = Some("scala.scalanative.testinterface.TestMain")
 }
 
 trait SbtNativeModule extends ScalaNativeModule with SbtModule
