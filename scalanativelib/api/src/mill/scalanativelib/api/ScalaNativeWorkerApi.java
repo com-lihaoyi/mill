@@ -7,8 +7,7 @@ public interface ScalaNativeWorkerApi {
     String[] discoverCompileOptions();
     String[] discoverLinkingOptions();
 
-    NativeConfig config(java.io.File nativeLibJar,
-                        String mainClass,
+    NativeConfig config(String mainClass,
                         java.io.File[] classpath,
                         java.io.File nativeWorkdir,
                         java.io.File nativeClang,

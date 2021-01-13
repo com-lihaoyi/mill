@@ -83,8 +83,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
-  override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++
-    Agg(ivy"org.scala-native:nscplugin_${scalaVersion()}:${scalaNativeVersion()}")
+  override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
+    ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
+  )
 
   def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
 
@@ -98,7 +99,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Location of the clang++ compiler
   def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
 
-  // GC choice, either "none", "boehm" or "immix"
+  // GC choice, either "none", "boehm", "immix" or "commix"
   def nativeGC = T{
     Option(System.getenv.get("SCALANATIVE_GC"))
       .getOrElse(scalaNativeWorker().defaultGarbageCollector)
@@ -115,10 +116,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
 
-
+  // TODO: Remove once Bloop is updated to Scala Native 0.4.0
+  // since it is not needed anymore
   def nativeLibJar = T{
     resolveDeps(T.task{Agg(nativeLibIvy())})()
-      .filter{p => p.toString.contains("scala-native") && p.toString.contains("nativelib")}
+      .filter{ p =>
+        p.path.toString.contains("/org.scala-native/nativelib_native") &&
+        p.path.last.contains("nativelib_native")
+      }
       .toList
       .head
   }
@@ -157,17 +162,12 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 }
 
 
-trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOuter =>
-  case class TestDefinition(framework: String, clazz: Class[_], fingerprint: Fingerprint) {
-    def name = clazz.getName.reverse.dropWhile(_ == '$').reverse
-  }
-
+trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
-
   override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val getFrameworkResult = scalaNativeWorker().getFramework(
-      testRunnerNative.nativeLink().toIO,
+      nativeLink().toIO,
       forkEnv().asJava,
       logLevel(),
       testFrameworks().head
@@ -190,26 +190,10 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule { testOute
     close.run()
     res
   }
-
-  // creates a specific binary used for running tests
-  object testRunnerNative extends ScalaNativeModule {
-    override def zincWorker = testOuter.zincWorker
-    override def scalaOrganization = testOuter.scalaOrganization()
-    override def scalaVersion = testOuter.scalaVersion()
-    override def scalaNativeVersion = testOuter.scalaNativeVersion()
-    override def moduleDeps = Seq(testOuter)
-    override def releaseMode = testOuter.releaseMode()
-    override def logLevel = testOuter.logLevel()
-    override def nativeLinkStubs = true
-    override def nativeLinkingOptions = testOuter.nativeLinkingOptions()
-    override def nativeCompileOptions = testOuter.nativeCompileOptions()
-
-    override def ivyDeps = testOuter.ivyDeps() ++ Agg(
-      ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
-    )
-
-    override def mainClass = Some("scala.scalanative.testinterface.TestMain")
-  }
+  override def ivyDeps = super.ivyDeps() ++ Agg(
+    ivy"org.scala-native::test-interface::${scalaNativeVersion()}"
+  )
+  override def mainClass = Some("scala.scalanative.testinterface.TestMain")
 }
 
 trait SbtNativeModule extends ScalaNativeModule with SbtModule

@@ -5,14 +5,13 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule, TestRunner}
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
+import mill.scalanativelib.api._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 
-
 import scala.collection.JavaConverters._
-import mill.scalanativelib.api._
 
 object HelloNativeWorldTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-native-world"
@@ -48,33 +47,28 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
+    trait JUnitTestModule extends ScalaNativeModule with TestModule {
+      override def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+      override def ivyDeps = super.ivyDeps() ++ Agg(
+        ivy"org.scala-native::junit-runtime::${scalaNativeVersion()}"  
+      )
+      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(  
+        ivy"org.scala-native:::junit-plugin:${scalaNativeVersion()}"  
+      )
+    }
     object buildJUnit extends Cross[BuildModuleJUnit](matrix:_*)
     class BuildModuleJUnit(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests {
+      object test extends super.Tests with JUnitTestModule {
         override def sources = T.sources{ millSourcePath / 'src / 'junit }
-        def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-        override def ivyDeps = Agg(
-          ivy"org.scala-native::junit-runtime::$sNativeVersion"  
-        )
-        override def compileIvyDeps = Agg(  
-          ivy"org.scala-native:::junit-plugin:$sNativeVersion"  
-        )
       }
     }
 
     object buildNoTests extends Cross[BuildModuleNoTests](matrix:_*)
     class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests {
+        object test extends super.Tests with JUnitTestModule {
         override def sources = T.sources{ millSourcePath / "src" / "no-tests" }
-        def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-        override def ivyDeps = Agg(
-          ivy"org.scala-native::junit-runtime::$sNativeVersion"  
-        )
-        override def compileIvyDeps = Agg(  
-          ivy"org.scala-native:::junit-plugin:$sNativeVersion"  
-        )
       }
     }
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
@@ -143,6 +137,26 @@ object HelloNativeWorldTests extends TestSuite {
         .toMap
     }
 
+    def checkJUnit(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
+      val resultMap = runTests(
+        if (!cached) HelloNativeWorld.buildJUnit(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildJUnit(scalaVersion, scalaNativeVersion, mode).test.testCached
+      )
+
+      val mainTests = resultMap("hellotest.MainTests")
+      val argParserTests = resultMap("hellotest.ArgsParserTests")
+
+      assert(
+        mainTests.size == 2,
+        mainTests("hellotest.MainTests.vmNameContainsNative").status == "Success",
+        mainTests("hellotest.MainTests.vmNameContainsScala").status == "Success",
+
+        argParserTests.size == 2,
+        argParserTests("hellotest.ArgsParserTests.one").status == "Success",
+        argParserTests("hellotest.ArgsParserTests.two").status == "Failure"
+      )
+    }
+
     def checkNoTests(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val Right(((message, results), _)) = helloWorldEvaluator(
         if (!cached) HelloNativeWorld.buildNoTests(scalaVersion, scalaNativeVersion, mode).test.test()
@@ -159,10 +173,12 @@ object HelloNativeWorldTests extends TestSuite {
       val cached = false
 
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
+      testAllMatrix((scala, scalaNative, releaseMode) => checkJUnit(scala, scalaNative, releaseMode, cached))
     }
     'testCached - {
       val cached = true
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
+      testAllMatrix((scala, scalaNative, releaseMode) => checkJUnit(scala, scalaNative, releaseMode, cached))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {

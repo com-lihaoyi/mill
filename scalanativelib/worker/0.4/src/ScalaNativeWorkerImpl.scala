@@ -25,8 +25,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
   def discoverLinkingOptions: Array[String] = Discover.linkingOptions().toArray
   def defaultGarbageCollector: String = GC.default.name
 
-  def config(nativeLibJar: java.io.File,
-             mainClass: String,
+  def config(mainClass: String,
              classpath: Array[java.io.File],
              nativeWorkdir: java.io.File,
              nativeClang: java.io.File,

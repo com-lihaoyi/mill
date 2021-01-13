@@ -1,18 +1,19 @@
 package hellotest
 
 import hello._
+import org.junit.Assert.assertTrue
 import org.junit.Test
 
 class MainTests {
 
   @Test
-  def vmNameContainsNative() = {
+  def vmNameContainsNative(): Unit = {
     assertTrue(
       Main.vmName.contains("Native")
     )
   }
   @Test
-  def vmNameContainsScala() = {
+  def vmNameContainsScala(): Unit = {
     assertTrue(
       Main.vmName.contains("Scala")
     )

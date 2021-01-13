@@ -1,6 +1,6 @@
 import org.junit.Test
 
-class EmptyPackageTests extends TestSuite{
+class EmptyPackageTests {
   
   @Test
   def suitesInTheEmptyPackageShouldRun() = {
