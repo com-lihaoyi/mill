@@ -132,7 +132,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 
     scalaNativeWorker().config(
-      nativeLibJar().path.toIO,
       finalMainClass(),
       classpath.toArray.map(_.toIO),
       nativeWorkdir().toIO,
