@@ -41,6 +41,11 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
     {
       val entry = mainClass + "$"
 
+      val optimize = releaseMode match {
+        case ReleaseMode.Debug => false
+        case _ => true
+      }
+
       val config =
         Config.empty
           .withMainClass(entry)
@@ -56,6 +61,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
               .withGC(GC(nativeGC))
               .withLinkStubs(nativeLinkStubs)
               .withMode(Mode(releaseMode.value))
+              .withOptimize(optimize)
               .withLTO(ScalaNativeLTO(nativeLTO.value))
           )
           .withLogger(logger(logLevel))
