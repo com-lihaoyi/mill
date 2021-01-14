@@ -17,6 +17,7 @@ public interface ScalaNativeWorkerApi {
                         String[] nativeLinkingOptions,
                         String nativeGC,
                         boolean nativeLinkStubs,
+                        LTO nativeLTO,
                         ReleaseMode releaseMode,
                         NativeLogLevel logLevel);
 

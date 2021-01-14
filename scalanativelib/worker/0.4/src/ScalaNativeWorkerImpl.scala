@@ -4,8 +4,8 @@ import java.io.File
 import java.lang.System.{err, out}
 
 import scala.scalanative.util.Scope
-import scala.scalanative.build.{Build, BuildException, Config, Discover, GC, Logger, Mode, NativeConfig => ScalaNativeNativeConfig}
-import mill.scalanativelib.api.{GetFrameworkResult, NativeConfig, NativeLogLevel, ReleaseMode}
+import scala.scalanative.build.{Build, BuildException, Config, Discover, GC, Logger, LTO => ScalaNativeLTO, Mode, NativeConfig => ScalaNativeNativeConfig}
+import mill.scalanativelib.api.{GetFrameworkResult, LTO, NativeConfig, NativeLogLevel, ReleaseMode}
 import sbt.testing.Framework
 
 import scala.scalanative.testinterface.adapter.TestAdapter
@@ -35,6 +35,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
              nativeLinkingOptions: Array[String],
              nativeGC: String,
              nativeLinkStubs: Boolean,
+             nativeLTO: LTO,
              releaseMode: ReleaseMode,
              logLevel: NativeLogLevel): NativeConfig =
     {
@@ -55,6 +56,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
               .withGC(GC(nativeGC))
               .withLinkStubs(nativeLinkStubs)
               .withMode(Mode(releaseMode.value))
+              .withLTO(ScalaNativeLTO(nativeLTO.value))
           )
           .withLogger(logger(logLevel))
       new NativeConfig(config)

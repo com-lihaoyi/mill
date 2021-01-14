@@ -105,7 +105,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       .getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
-  def nativeTarget: T[Option[String]] = T { None }
+  def nativeTarget: Target[Option[String]] = T { None }
 
   // Options that are passed to clang during compilation
   def nativeCompileOptions = T{ scalaNativeWorker().discoverCompileOptions }
@@ -115,6 +115,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
+
+  def nativeLTO: Target[LTO] = T { LTO.None }
 
   // TODO: Remove once Bloop is updated to Scala Native 0.4.0
   // since it is not needed anymore
@@ -142,6 +144,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeLinkingOptions(),
       nativeGC(),
       nativeLinkStubs(),
+      nativeLTO(),
       releaseMode(),
       logLevel())
   }
