@@ -55,7 +55,7 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.3.7"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.0-RC1"
-  val coursier = ivy"io.get-coursier::coursier:2.0.8"
+  val coursier = ivy"io.get-coursier::coursier:2.0.9"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.3.0"
