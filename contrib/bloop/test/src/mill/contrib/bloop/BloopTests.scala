@@ -53,8 +53,8 @@ object BloopTests extends TestSuite {
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
       override def scalaVersion = "2.11.12"
-      override def scalaNativeVersion = "0.3.8"
-      override def releaseMode = T(ReleaseMode.Release)
+      override def scalaNativeVersion = "0.4.0"
+      override def releaseMode = T(ReleaseMode.Debug)
     }
 
     object skippedModule extends scalalib.ScalaModule with testBloop.Module {
@@ -164,7 +164,7 @@ object BloopTests extends TestSuite {
         assert(workspaceDir == Some(workdir.wrapped))
         assert(sources == List(workdir / "scalanativeModule" / "src"))
         assert(version == "2.11.12")
-        assert(platform.config.mode == BloopConfig.LinkerMode.Release)
+        assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
         assert(platform.config.clang == clang.toNIO)
       }
       'skipped - {
