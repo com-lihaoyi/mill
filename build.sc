@@ -32,10 +32,10 @@ object Deps {
   }
 
   object Scalanative_0_3 {
-    val scalanativeTools = ivy"org.scala-native::tools:0.3.9"
-    val scalanativeUtil = ivy"org.scala-native::util:0.3.9"
-    val scalanativeNir = ivy"org.scala-native::nir:0.3.9"
-    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.3.9"
+    val scalanativeTools = ivy"org.scala-native::tools:0.4.0"
+    val scalanativeUtil = ivy"org.scala-native::util:0.4.0"
+    val scalanativeNir = ivy"org.scala-native::nir:0.4.0"
+    val scalanativeTestRunner = ivy"org.scala-native::test-runner:0.4.0"
   }
 
   object Scalanative_0_4 {
