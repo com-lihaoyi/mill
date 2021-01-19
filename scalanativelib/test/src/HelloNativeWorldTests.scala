@@ -27,7 +27,7 @@ object HelloNativeWorldTests extends TestSuite {
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
-      scala <- Seq(scala213, "2.12.12", "2.11.12")
+      scala <- Seq(scala213, "2.12.13", "2.11.12")
       scalaNative <- Seq(scalaNative04)
       mode <- List(ReleaseMode.Debug, ReleaseMode.ReleaseFast)
     } yield (scala, scalaNative, mode)
@@ -47,27 +47,24 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    trait JUnitTestModule extends ScalaNativeModule with TestModule {
-      override def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
+    trait UtestTestModule extends ScalaNativeModule with TestModule {
+      override def testFrameworks = Seq("utest.runner.Framework")
       override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"org.scala-native::junit-runtime::${scalaNativeVersion()}"  
-      )
-      override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(  
-        ivy"org.scala-native:::junit-plugin:${scalaNativeVersion()}"  
+        ivy"com.github.lolgab::utest::0.7.5" // TODO Update to com.lihaoyi once published
       )
     }
-    object buildJUnit extends Cross[BuildModuleJUnit](matrix:_*)
-    class BuildModuleJUnit(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
+    object buildUtest extends Cross[BuildModuleUtest](matrix:_*)
+    class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with JUnitTestModule {
-        override def sources = T.sources{ millSourcePath / 'src / 'junit }
+      object test extends super.Tests with UtestTestModule {
+        override def sources = T.sources{ millSourcePath / 'src / 'utest }
       }
     }
 
     object buildNoTests extends Cross[BuildModuleNoTests](matrix:_*)
     class BuildModuleNoTests(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
-      object test extends super.Tests with JUnitTestModule {
+      object test extends super.Tests with UtestTestModule {
         override def sources = T.sources{ millSourcePath / "src" / "no-tests" }
       }
     }
@@ -137,10 +134,10 @@ object HelloNativeWorldTests extends TestSuite {
         .toMap
     }
 
-    def checkJUnit(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
+    def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloNativeWorld.buildJUnit(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.buildJUnit(scalaVersion, scalaNativeVersion, mode).test.testCached
+        if (!cached) HelloNativeWorld.buildUtest(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildUtest(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 
       val mainTests = resultMap("hellotest.MainTests")
@@ -173,12 +170,12 @@ object HelloNativeWorldTests extends TestSuite {
       val cached = false
 
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
-      testAllMatrix((scala, scalaNative, releaseMode) => checkJUnit(scala, scalaNative, releaseMode, cached))
+      testAllMatrix((scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached))
     }
     'testCached - {
       val cached = true
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
-      testAllMatrix((scala, scalaNative, releaseMode) => checkJUnit(scala, scalaNative, releaseMode, cached))
+      testAllMatrix((scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached))
     }
 
     def checkRun(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode): Unit = {
