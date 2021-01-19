@@ -53,8 +53,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def toolsIvyDeps = T{
     Seq(
       ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:util_2.12:${scalaNativeVersion()}",
-      ivy"org.scala-native:nir_2.12:${scalaNativeVersion()}",
       ivy"org.scala-native:test-runner_2.12:${scalaNativeVersion()}"
     )
   }
