@@ -121,7 +121,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLibJar = T{
     resolveDeps(T.task{Agg(nativeLibIvy())})()
       .filter{ p =>
-        p.path.toString.contains("/org.scala-native/nativelib_native") &&
+        p.path.toString.contains("/org/scala-native/nativelib_native") &&
         p.path.last.contains("nativelib_native")
       }
       .toList
