@@ -53,7 +53,7 @@ object HelloNativeWorldTests extends TestSuite {
         ivy"com.github.lolgab::utest::0.7.5" // TODO Update to com.lihaoyi once published
       )
     }
-    object buildUtest extends Cross[BuildModuleUtest](matrix:_*)
+    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
     class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
       object test extends super.Tests with UtestTestModule {
@@ -136,8 +136,8 @@ object HelloNativeWorldTests extends TestSuite {
 
     def checkUtest(scalaVersion: String, scalaNativeVersion: String, mode: ReleaseMode, cached: Boolean) = {
       val resultMap = runTests(
-        if (!cached) HelloNativeWorld.buildUtest(scalaVersion, scalaNativeVersion, mode).test.test()
-        else HelloNativeWorld.buildUtest(scalaVersion, scalaNativeVersion, mode).test.testCached
+        if (!cached) HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.test()
+        else HelloNativeWorld.buildUTest(scalaVersion, scalaNativeVersion, mode).test.testCached
       )
 
       val mainTests = resultMap("hellotest.MainTests")
