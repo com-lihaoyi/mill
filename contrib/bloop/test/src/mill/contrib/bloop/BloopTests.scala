@@ -53,7 +53,7 @@ object BloopTests extends TestSuite {
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
       override def scalaVersion = "2.11.12"
-      override def scalaNativeVersion = "0.4.0-SNAPSHOT"
+      override def scalaNativeVersion = "0.4.0"
       override def releaseMode = T(ReleaseMode.Debug)
     }
 

@@ -23,7 +23,7 @@ object HelloNativeWorldTests extends TestSuite {
   }
 
   val scala213 = "2.13.4"
-  val scalaNative04 = "0.4.0-SNAPSHOT"
+  val scalaNative04 = "0.4.0"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
     val matrix = for {
@@ -124,7 +124,7 @@ object HelloNativeWorldTests extends TestSuite {
           HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode: ReleaseMode).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_040 - testArtifactId(scala213, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4.0-SNAPSHOT_2.13")
+      'artifactId_040 - testArtifactId(scala213, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4_2.13")
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
