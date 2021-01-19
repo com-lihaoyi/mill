@@ -145,8 +145,8 @@ object HelloNativeWorldTests extends TestSuite {
 
       assert(
         mainTests.size == 2,
-        mainTests("hellotest.MainTests.vmNameContainsNative").status == "Success",
-        mainTests("hellotest.MainTests.vmNameContainsScala").status == "Success",
+        mainTests("hellotest.MainTests.vmName.containNative").status == "Success",
+        mainTests("hellotest.MainTests.vmName.containScala").status == "Success",
 
         argParserTests.size == 2,
         argParserTests("hellotest.ArgsParserTests.one").status == "Success",
@@ -162,7 +162,7 @@ object HelloNativeWorldTests extends TestSuite {
 
       assert(
         results.size == 0,
-        message == ""
+        message == "\n"
       )
     }
 
