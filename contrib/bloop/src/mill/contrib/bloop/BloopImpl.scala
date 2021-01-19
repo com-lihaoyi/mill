@@ -219,12 +219,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
               version = m.scalaNativeVersion(),
               mode = m.releaseMode() match {
                 case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
-                case ReleaseMode.Release => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
-              targetTriple = m.nativeTarget(),
+              targetTriple = m.nativeTarget().getOrElse(BloopConfig.NativeConfig.empty.targetTriple),
               nativelib = m.nativeLibJar().path.toNIO,
               clang = m.nativeClang().toNIO,
               clangpp = m.nativeClangPP().toNIO,
