@@ -25,7 +25,7 @@ object BloopTests extends TestSuite {
 
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
-      val bloopVersion = "1.4.0-RC1"
+      val bloopVersion = "1.4.6"
       override def mainClass = Some("foo.bar.Main")
 
       override def ivyDeps = Agg(
