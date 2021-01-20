@@ -7,6 +7,6 @@ object Overrides{
   implicit def generate: Overrides = macro impl
   def impl(c: Context): c.Tree = {
     import c.universe._
-    q"new mill.define.Overrides(${c.internal.enclosingOwner.overrides.length})"
+    q"new _root_.mill.define.Overrides(${c.internal.enclosingOwner.overrides.length})"
   }
 }

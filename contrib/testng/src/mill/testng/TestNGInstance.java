@@ -1,21 +1,29 @@
 package mill.testng;
 
 
-import org.testng.*;
+import java.util.Arrays;
+
+import org.testng.CommandLineArgs;
+import org.testng.ITestContext;
+import org.testng.ITestListener;
+import org.testng.ITestResult;
+import org.testng.TestNG;
 import sbt.testing.EventHandler;
 import sbt.testing.Logger;
 
-import com.beust.jcommander.JCommander;
-
-import java.net.URLClassLoader;
-import java.util.Arrays;
-
 class TestNGListener implements ITestListener{
-    EventHandler basket;
-    String lastName = "";
+
+    private final EventHandler basket;
+    private final boolean printEnabled;
+
+    private String lastName = "";
+
     public TestNGListener(EventHandler basket){
         this.basket = basket;
+        String prop = System.getProperty("mill.testng.printProgress", "1");
+        this.printEnabled = Arrays.asList("1", "y", "yes", "true").contains(prop);
     }
+
     public void onTestStart(ITestResult iTestResult) {
         String newName = iTestResult.getTestClass().getName() + " " + iTestResult.getName() + " ";
         if(!newName.equals(lastName)){
@@ -28,17 +36,17 @@ class TestNGListener implements ITestListener{
     }
 
     public void onTestSuccess(ITestResult iTestResult) {
-        System.out.print('+');
+        printProgress('+');
         basket.handle(ResultEvent.success(iTestResult));
     }
 
     public void onTestFailure(ITestResult iTestResult) {
-        System.out.print('X');
+        printProgress('X');
         basket.handle(ResultEvent.failure(iTestResult));
     }
 
     public void onTestSkipped(ITestResult iTestResult) {
-        System.out.print('-');
+        printProgress('-');
         basket.handle(ResultEvent.skipped(iTestResult));
     }
 
@@ -49,6 +57,12 @@ class TestNGListener implements ITestListener{
     public void onStart(ITestContext iTestContext) {}
 
     public void onFinish(ITestContext iTestContext) {}
+    
+    protected void printProgress(char progress) {
+        if(printEnabled) {
+            System.out.print(progress);
+        }
+    }
 }
 
 public class TestNGInstance extends TestNG{

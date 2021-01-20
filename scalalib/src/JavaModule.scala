@@ -24,7 +24,7 @@ trait JavaModule extends mill.Module
 
   def zincWorker: ZincWorkerModule = mill.scalalib.ZincWorkerModule
 
-  trait Tests extends TestModule {
+  trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
     override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
@@ -32,6 +32,8 @@ trait JavaModule extends mill.Module
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
   }
+  trait Tests extends JavaModuleTests
+
   def defaultCommandName() = "run"
 
   def resolvePublishDependency: Task[Dep => publish.Dependency] = T.task{

@@ -11,6 +11,7 @@ object ClassLoader {
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
+             sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
              sharedPrefixes: Seq[String] = Seq())
             (implicit ctx: Ctx.Home): URLClassLoader = {
     new URLClassLoader(
@@ -19,7 +20,7 @@ object ClassLoader {
     ) {
       val allSharedPrefixes = sharedPrefixes :+ "com.sun.jna"
       override def findClass(name: String): Class[_] = {
-        if (allSharedPrefixes.exists(name.startsWith)) getClass.getClassLoader.loadClass(name)
+        if (allSharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
         else super.findClass(name)
       }
     }

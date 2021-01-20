@@ -42,6 +42,27 @@ object PathRefTests extends TestSuite {
         check(quick = false)
       }
     }
+
+    'symlinks - {
+      def check(quick: Boolean) = withTmpDir{ tmpDir =>
+        // invalid symlink
+        os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
+
+        // symlink to empty dir
+        os.symlink(tmpDir / "emptylink", tmpDir / "empty")
+        os.makeDir(tmpDir / "empty")
+
+        // recursive symlinks
+        os.symlink(tmpDir / "rlink1", tmpDir / "rlink2")
+        os.symlink(tmpDir / "rlink2", tmpDir / "rlink1")
+
+        val sig1 = PathRef(tmpDir, quick).sig
+        val sig2 = PathRef(tmpDir, quick).sig
+        assert(sig1 == sig2)
+      }
+      check(quick = true)
+      check(quick = false)
+    }
   }
 
   private def withTmpDir[T](body: os.Path => T): T = {

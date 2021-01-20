@@ -30,6 +30,7 @@ object BloopFormats {
   implicit val resolutionRW: ReadWriter[BloopConfig.Resolution] = macroRW
   implicit val sbtRW: ReadWriter[BloopConfig.Sbt] = macroRW
   implicit val scalaRw: ReadWriter[BloopConfig.Scala] = macroRW
+  implicit val sourcesGlobsRW: ReadWriter[BloopConfig.SourcesGlobs] = macroRW
   implicit val testArgumentRW: ReadWriter[BloopConfig.TestArgument] = macroRW
   implicit val testFrameworkRW: ReadWriter[BloopConfig.TestFramework] = macroRW
   implicit val testOptionsRW: ReadWriter[BloopConfig.TestOptions] = macroRW

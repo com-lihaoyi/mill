@@ -1,7 +1,7 @@
 package mill.contrib.bloop
 
 import ammonite.ops._
-import bloop.config.{Config => BloopConfig}
+import bloop.config.{Config => BloopConfig, Tag => BloopTag}
 import mill._
 import mill.api.Loose
 import mill.define.{Module => MillModule, _}
@@ -202,6 +202,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ModuleKind.NoModule => Config.ModuleKindJS.NoModule
                 case ModuleKind.CommonJSModule =>
                   Config.ModuleKindJS.CommonJSModule
+                case ModuleKind.ESModule => Config.ModuleKindJS.ESModule
               },
               emitSourceMaps = m.jsEnvConfig() match{
                 case c: JsEnvConfig.NodeJs => c.sourceMap
@@ -219,12 +220,11 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
               version = m.scalaNativeVersion(),
               mode = m.releaseMode() match {
                 case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
-                case ReleaseMode.Release => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
                 case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
-              targetTriple = m.nativeTarget(),
+              targetTriple = m.nativeTarget().getOrElse(BloopConfig.NativeConfig.empty.targetTriple),
               nativelib = m.nativeLibJar().path.toNIO,
               clang = m.nativeClang().toNIO,
               clangpp = m.nativeClangPP().toNIO,
@@ -249,7 +249,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 else s"-Duser.dir=$wd" :: forkArgs
               }
             ),
-            mainClass = module.mainClass()
+            mainClass = module.mainClass(),
+            runtimeConfig = None,
+            classpath = Some(module.compileClasspath().map(_.path.toNIO).toList),
+            resources = Some(module.resources().map(_.path.toNIO).toList)
           )
         }
     }
@@ -402,11 +405,15 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         .map(_.toNIO)
         .toList
 
+      val tags = module match { case _: TestModule => List(BloopTag.Test); case _ => List(BloopTag.Library) }
+
       BloopConfig.Project(
         name = name(module),
         directory = module.millSourcePath.toNIO,
         workspaceDir = Some(wd.toNIO),
         sources = mSources,
+        sourcesGlobs = None,
+        sourceRoots = None,
         dependencies = (module.moduleDeps ++ module.compileModuleDeps).map(name).toList,
         classpath = classpath().map(_.toNIO).toList,
         out = out(module).toNIO,
@@ -418,6 +425,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         test = testConfig(),
         platform = Some(platform()),
         resolution = Some(bloopResolution()),
+        tags = Some(tags)
       )
     }
 
