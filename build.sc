@@ -13,7 +13,7 @@ import mill.modules.Jvm.createAssembly
 object Deps {
 
   // The Scala version to use
-  val scalaVersion = "2.13.3"
+  val scalaVersion = "2.13.4"
   // The Scala 2.12.x version to use for some workers
   val workerScalaVersion212 = "2.12.10"
 
