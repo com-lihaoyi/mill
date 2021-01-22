@@ -39,12 +39,13 @@ import mill.scalalib._
 import mill.define._
 
 // Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj:0.1.0`, de.tobiasroeser.mill.aspectj._
+import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01
+import de.tobiasroeser.mill.aspectj._
 
 object main extends AspectjModule {
 
   // Select the AspectJ version
-  def aspectjVersion = T{ "{aspectjVersion}" }
+  def aspectjVersion = "1.9.5"
 
   // Set AspectJ options, e.g. the language level and annotation processor
   // Run `mill main.ajcHelp` to get a list of supported options
@@ -53,22 +54,7 @@ object main extends AspectjModule {
 }
 ```
 
-### Configuration
-
-Your module needs to extend `de.tobiasroeser.mill.aspectj.AspectjModule` which itself extends `mill.scalalib.JavaModule`.
-
-The module trait `de.tobiasroeser.mill.aspectj.AspectjModule` has various configuration options (over those from `mill.scalalib.JavaModule`).
-
-The most essential targets are:
-
-* `def aspectjVersion: T[String]` - The AspectJ version. _Required_.
-For a list of available releases refer to the [AspectJ Download Page](https://www.eclipse.org/aspectj/downloads.php).
-
-* `def ajcOptions: T[Seq[String]]` - Additional options to be used by `ajc` in the `compile` target.
-
-* `def compile: T[CompilationResult]` - Compiles the source code with the ajc compiler.
-
-For a complete list of configuration options and more documentation, please refer to the [project home page](https://github.com/lefou/mill-aspectj).
+For documentation, please refer to the [project home page](https://github.com/lefou/mill-aspectj).
 
 ## Bash Completion
 
@@ -159,6 +145,9 @@ object `jvm-project` extends JavaModule with GitVersionedPublishModule {
 
 Integration testing for mill plugins.
 
+Project home: https://github.com/lefou/mill-integrationtest
+
+
 ### Quickstart
 
 We assume, you have a mill plugin named `mill-demo`
@@ -171,15 +160,20 @@ object demo extends ScalaModule with PublishModule {
 }
 ```
 
-Add an new test sub-project, e.g. `it`.
+Add a new test sub-project, e.g. `itest`.
 
 ```scala
-import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest:0.1.0`
+// build.sc
+import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
 import de.tobiasroeser.mill.integrationtest._
 
-object it extends MillIntegrationTest {
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
 
-  def millTestVersion = "{exampleMillVersion}"
+object itest extends MillIntegrationTestModule {
+
+  def millTestVersion = "0.9.3"
 
   def pluginsUnderTest = Seq(demo)
 
@@ -217,47 +211,8 @@ import $exec.plugins
 
 Effectively, at execution time, this line gets replaced by the content of `plugins.sc`, a file which was generated just before the test started to execute.
 
-### Configuration and Targets
 
-The mill-integrationtest plugin provides the following targets.
-
-#### Mandatory configuration
-
-* `def millTestVersion: T[String]`
-  The mill version used for executing the test cases.
-  Used by `downloadMillTestVersion` to automatically download.
-
-* `def pluginsUnderTest: Seq[PublishModule]` -
-  The plugins used in the integration test.
-  You should at least add your plugin under test here.
-  You can also add additional libraries, e.g. those that assist you in the test result validation (e.g. a local test support project).
-  The defined modules will be published into a temporary ivy repository before the tests are executed.
-  In your test `build.sc` file, instead of the typical `import $ivy.` line,
-  you should use `import $exec.plugins` to include all plugins that are defined here.
-
-#### Optional configuration
-
-* `def sources: Sources` -
-  Locations where integration tests are located.
-  Each integration test is a sub-directory, containing a complete test mill project.
-
-* `def testCases: T[Seq[PathRef]]` -
-  The directories each representing a mill test case.
-  Derived from `sources`.
-
-* `def testTargets: T[Seq[String]]` -
-  The targets which are called to test the project.
-  Defaults to `verify`, which should implement test result validation.
-
-* `def downloadMillTestVersion: T[PathRef]` -
-  Download the mill version as defined by `millTestVersion`.
-  Override this, if you need to use a custom built mill version.
-  Returns the `PathRef` to the mill executable (must have the executable flag).
-
-#### Commands
-
-* `def test(): Command[Unit]` -
-  Run the integration tests.
+Please always refer to the https://github.com/lefou/mill-integrationtest[official plugin documentation site] for complete and  up-to-date information.
 
 
 ## JBake
@@ -359,21 +314,23 @@ Project home: https://github.com/lefou/mill-kotlin
 ### Quickstart
 
 ```scala
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin_mill0.9:0.2.0`
+
 import mill._
 import mill.scalalib._
 import mill.define._
 
-// Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin:0.0.1`, de.tobiasroeser.mill.kotlin._
+import de.tobiasroeser.mill.kotlin._
 
 object main extends KotlinModule {
 
   // Select the Kotlin version
-  def kotlinVersion = T{ "{kotlinVersion}" }
+  def kotlinVersion = "1.4.21"
 
   // Set additional Kotlin compiler options, e.g. the language level and annotation processor
   // Run `mill main.kotlincHelp` to get a list of supported options
-  def kotlincOptions = Seq("-verbose")
+  def kotlincOptions = super.kotlincOptions() ++ Seq("-verbose")
 
 }
 ```
@@ -533,4 +490,28 @@ object project extends ScalaModule with ScalafixModule {
           ^^^
 1 targets failed
 project.fix A Scalafix linter error was reported
+```
+
+## VCS Version
+
+Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.
+
+Project home: https://github.com/lefou/mill-vcs-version
+
+Lots of formatting options are provided.
+When used with its defaults, the outcome is identical to the version scheme used by mill.
+
+### Quickstart
+
+```scala
+import mill._
+import mill.scalalib._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+
+object main extends JavaModule with PublishModule {
+  override def publishVersion: T[String] = VcsVersion.vcsState().format()
+}
 ```
