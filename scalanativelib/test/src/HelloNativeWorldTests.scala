@@ -50,7 +50,7 @@ object HelloNativeWorldTests extends TestSuite {
     trait UtestTestModule extends ScalaNativeModule with TestModule {
       override def testFrameworks = Seq("utest.runner.Framework")
       override def ivyDeps = super.ivyDeps() ++ Agg(
-        ivy"com.github.lolgab::utest::0.7.5" // TODO Update to com.lihaoyi once published
+        ivy"com.lihaoyi::utest::0.7.6"
       )
     }
     object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
