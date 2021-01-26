@@ -189,11 +189,28 @@ corresponding version of Mill.
 
 ## Changelog
 
+
 ### master
 
 *For details refer to
-[milestone after 0.9.4](https://github.com/lihaoyi/mill/milestone/46?closed=1)
-and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.4...master).*
+[milestone after 0.9.5](https://github.com/lihaoyi/mill/milestone/46?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.5...master).*
+
+
+
+### 0.9.5 - 2021-01-26
+
+* Updated zinc to 1.4.4
+* Support for Scala Native 0.4.0
+* Support for Scala.js ESModule (including Bloop support)
+* Inner `Tests` traits in modules like `JavaModule`, `ScalaModule` and others now have unique 
+  names (`JavaModuleTests`, `ScalaModuleTests`, etc), to allow for easier customization
+* Various version bumps of dependencies
+* CI now runs all tests, it did miss some before
+
+*For details refer to
+[milestone 0.9.5](https://github.com/lihaoyi/mill/milestone/46?closed=1)
+and the [list of commits](https://github.com/lihaoyi/mill/compare/0.9.4...0.9.5).*
 
 
 ### 0.9.4 - 2020-12-21

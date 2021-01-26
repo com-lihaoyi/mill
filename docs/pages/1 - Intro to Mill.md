@@ -49,7 +49,7 @@ pkg install mill
 ### Windows
 
 To get started, download Mill from:
-https://github.com/lihaoyi/mill/releases/download/0.9.4/0.9.4-assembly, and save
+https://github.com/lihaoyi/mill/releases/download/0.9.5/0.9.5-assembly, and save
 it as `mill.bat`.
 
 If you're using [Scoop](https://scoop.sh) you can install Mill via
@@ -88,7 +88,7 @@ To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
 ```bash
-sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.9.4/0.9.4 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
+sudo curl -L https://github.com/lihaoyi/mill/releases/download/0.9.5/0.9.5 > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ```
 
 
@@ -98,7 +98,7 @@ If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 `./mill` script in the project folder:
 
 ```bash
-curl -L https://github.com/lihaoyi/mill/releases/download/0.9.4/0.9.4 > mill && chmod +x mill
+curl -L https://github.com/lihaoyi/mill/releases/download/0.9.5/0.9.5 > mill && chmod +x mill
 ```
 
 Now, anyone who wants to work with the project can simply use the `./mill`
@@ -178,7 +178,7 @@ out/
 
 You can download an example project with this layout here:
 
-- [Example 1](https://github.com/lihaoyi/mill/releases/download/0.9.4/0.9.4-example-1.zip)
+- [Example 1](https://github.com/lihaoyi/mill/releases/download/0.9.5/0.9.5-example-1.zip)
 
 The source code for this module would live in the `foo/src/` folder, matching
 the name you assigned to the module. Output for this module (compiled files,
@@ -839,7 +839,7 @@ by overriding `artifactName` in the module you want to publish.
 
 You can download an example project with this layout here:
 
-- [Example 2](https://github.com/lihaoyi/mill/releases/download/0.9.4/0.9.4-example-2.zip)
+- [Example 2](https://github.com/lihaoyi/mill/releases/download/0.9.5/0.9.5-example-2.zip)
 
 Which you can then publish using the `mill foo.publish` command, which takes
 your sonatype credentials (e.g. `lihaoyi:foobarbaz`) and GPG password as inputs:
