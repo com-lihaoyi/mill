@@ -455,14 +455,15 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val isTest = mod.isInstanceOf[TestModule]
 
         val elem = moduleXmlTemplate(
-          mod.intellijModulePath,
-          scalaVersionOpt,
-          Strict.Agg.from(resourcesPathRefs.map(_.path)),
-          Strict.Agg.from(normalSourcePaths),
-          Strict.Agg.from(generatedSourcePaths),
-          compilerOutput,
-          Strict.Agg.from(resolvedDeps.map(pathToLibName)).iterator.toSeq,
-          Strict.Agg
+          basePath = mod.intellijModulePath,
+          scalaVersionOpt = scalaVersionOpt,
+          resourcePaths = Strict.Agg.from(resourcesPathRefs.map(_.path)),
+          normalSourcePaths = Strict.Agg.from(normalSourcePaths),
+          generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
+          compileOutputPath = compilerOutput,
+          libNames =
+            Strict.Agg.from(resolvedDeps.map(pathToLibName)).iterator.toSeq,
+          depNames = Strict.Agg
             .from(mod.moduleDeps.map((_, None)) ++ mod.compileModuleDeps.map(
               (_, Some("PROVIDED"))))
             .filter(!_._1.skipIdea)
@@ -470,8 +471,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
             .iterator
             .toSeq
             .distinct,
-          isTest,
-          facets
+          isTest = isTest,
+          facets = facets
         )
         Tuple2(os.rel / ".idea_modules" / s"${moduleName(path)}.iml", elem)
     }
