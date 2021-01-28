@@ -1,6 +1,9 @@
 package mill.scalalib
 
 import scala.collection.immutable
+import scala.util.Try
+import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
+
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
@@ -11,11 +14,9 @@ import mill.api.{Loose, Result, Strict}
 import mill.define._
 import mill.eval.{Evaluator, PathRef}
 import mill.modules.Util
+import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.{BuildInfo, T, scalalib}
 import os.{Path, RelPath}
-import scala.util.Try
-import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
-import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 
 case class GenIdeaImpl(evaluator: Evaluator,
                        ctx: Log with Home,
@@ -125,26 +126,17 @@ case class GenIdeaImpl(evaluator: Evaluator,
       }
       .getOrElse(Seq())
 
-    case class ResolvedModule(
-        path: Segments,
-        classpath: Loose.Agg[Path],
-        module: JavaModule,
-        pluginClasspath: Loose.Agg[Path],
-        scalaOptions: Seq[String],
-        compilerClasspath: Loose.Agg[Path],
-        libraryClasspath: Loose.Agg[Path],
-        facets: Seq[JavaFacet],
-        configFileContributions: Seq[IdeaConfigFile],
-        compilerOutput: Path
-    )
-
-    def resolveTasks: Seq[Task[ResolvedModule]] =
-      for ((path, mod) <- modules) yield {
+    def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {
+      case (path, mod) => {
 
         val scalaLibraryIvyDeps = mod match {
           case x: ScalaModule => x.scalaLibraryIvyDeps
-          case _              => T.task { Loose.Agg.empty[Dep] }
+          case _ =>
+            T.task {
+              Loose.Agg.empty[Dep]
+            }
         }
+
         val allIvyDeps = T.task {
           mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod
             .transitiveCompileIvyDeps()
@@ -152,7 +144,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
         val scalaCompilerClasspath = mod match {
           case x: ScalaModule => x.scalaCompilerClasspath
-          case _              => T.task { Loose.Agg.empty[PathRef] }
+          case _ =>
+            T.task {
+              Loose.Agg.empty[PathRef]
+            }
         }
 
         val externalLibraryDependencies = T.task {
@@ -161,10 +156,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
         val externalDependencies = T.task {
           mod.resolveDeps(allIvyDeps)() ++
-            Task
-              .traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)()
-              .flatten
+            T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
         }
+        val extCompileIvyDeps = mod.resolveDeps(mod.compileIvyDeps)
+        val extRunIvyDeps = mod.resolveDeps(mod.runIvyDeps)
 
         val externalSources = T.task {
           mod.resolveDeps(allIvyDeps, sources = true)()
@@ -172,7 +167,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
         val (scalacPluginsIvyDeps, scalacOptions) = mod match {
           case mod: ScalaModule =>
-            T.task { mod.scalacPluginIvyDeps() } -> T.task {
+            T.task {
+              mod.scalacPluginIvyDeps()
+            } -> T.task {
               mod.scalacOptions()
             }
           case _ => T.task(Loose.Agg[Dep]()) -> T.task(Seq())
@@ -194,12 +191,18 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
 
         T.task {
-          val resolvedCp: Loose.Agg[PathRef] = externalDependencies()
+          val resolvedCp: Loose.Agg[Scoped[Path]] =
+            externalDependencies().map(_.path).map(Scoped(_, None)) ++
+              extCompileIvyDeps()
+                .map(_.path)
+                .map(Scoped(_, Some("PROVIDED"))) ++
+              extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
           // unused, but we want to trigger sources, to have them available (automatically)
           // TODO: make this a separate eval to handle resolve errors
           val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
           val resolvedSp: Loose.Agg[PathRef] = scalacPluginDependencies()
-          val resolvedCompilerCp: Loose.Agg[PathRef] = scalaCompilerClasspath()
+          val resolvedCompilerCp: Loose.Agg[PathRef] =
+            scalaCompilerClasspath()
           val resolvedLibraryCp: Loose.Agg[PathRef] =
             externalLibraryDependencies()
           val scalacOpts: Seq[String] = scalacOptions()
@@ -212,7 +215,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
             path = path,
             // FIXME: why do we need to sources in the classpath?
             // FIXED, was: classpath = resolvedCp.map(_.path).filter(_.ext == "jar") ++ resolvedSrcs.map(_.path),
-            classpath = resolvedCp.map(_.path).filter(_.ext == "jar"),
+            classpath = resolvedCp.filter(_.value.ext == "jar"),
             module = mod,
             pluginClasspath = resolvedSp.map(_.path).filter(_.ext == "jar"),
             scalaOptions = scalacOpts,
@@ -224,12 +227,17 @@ case class GenIdeaImpl(evaluator: Evaluator,
           )
         }
       }
+    }
 
-    val resolved = evalOrElse(evaluator, T.sequence(resolveTasks), Seq())
+    val resolved: Seq[ResolvedModule] =
+      evalOrElse(evaluator, T.sequence(resolveTasks), Seq())
 
     val moduleLabels = modules.map(_.swap).toMap
 
-    val allResolved = resolved.flatMap(_.classpath) ++ buildLibraryPaths ++ buildDepsPaths
+    val allResolved =
+      resolved.flatMap(_.classpath).map(_.value) ++
+        buildLibraryPaths ++
+        buildDepsPaths
 
     val librariesProperties = resolved
       .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
@@ -452,6 +460,41 @@ case class GenIdeaImpl(evaluator: Evaluator,
           case _ => None
         }
 
+        val sanizedDeps: Seq[ScopedOrd[String]] = {
+          resolvedDeps
+            .map((s: Scoped[Path]) => pathToLibName(s.value) -> s.scope)
+            .iterator
+            .toSeq
+            .groupBy(_._1)
+            .view
+            .mapValues(_.map(_._2))
+            .map {
+              case (lib, scopes) =>
+                val isProvided = scopes.contains(Some("PROVIDED"))
+                val isRuntime = scopes.contains(Some("RUNTIME"))
+
+                val finalScope = (isProvided, isRuntime) match {
+                  case (true, false) => Some("PROVIDED")
+                  case (false, true) => Some("RUNTIME")
+                  case _             => None
+                }
+
+                ScopedOrd(lib, finalScope)
+            }
+            .toSeq
+        }
+
+        val libNames = Strict.Agg.from(sanizedDeps).iterator.toSeq
+
+        val depNames = Strict.Agg
+          .from(mod.moduleDeps.map((_, None)) ++
+            mod.compileModuleDeps.map((_, Some("PROVIDED"))))
+          .filter(!_._1.skipIdea)
+          .map { case (v, s) => ScopedOrd(moduleName(moduleLabels(v)), s) }
+          .iterator
+          .toSeq
+          .distinct
+
         val isTest = mod.isInstanceOf[TestModule]
 
         val elem = moduleXmlTemplate(
@@ -461,16 +504,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
           normalSourcePaths = Strict.Agg.from(normalSourcePaths),
           generatedSourcePaths = Strict.Agg.from(generatedSourcePaths),
           compileOutputPath = compilerOutput,
-          libNames =
-            Strict.Agg.from(resolvedDeps.map(pathToLibName)).iterator.toSeq,
-          depNames = Strict.Agg
-            .from(mod.moduleDeps.map((_, None)) ++ mod.compileModuleDeps.map(
-              (_, Some("PROVIDED"))))
-            .filter(!_._1.skipIdea)
-            .map { case (v, s) => Scoped(moduleName(moduleLabels(v)), s) }
-            .iterator
-            .toSeq
-            .distinct,
+          libNames = libNames,
+          depNames = depNames,
           isTest = isTest,
           facets = facets
         )
@@ -624,8 +659,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
                         normalSourcePaths: Strict.Agg[os.Path],
                         generatedSourcePaths: Strict.Agg[os.Path],
                         compileOutputPath: os.Path,
-                        libNames: Seq[String],
-                        depNames: Seq[Scoped[String]],
+                        libNames: Seq[ScopedOrd[String]],
+                        depNames: Seq[ScopedOrd[String]],
                         isTest: Boolean,
                         facets: Seq[GenIdeaModule.JavaFacet]): Elem = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
@@ -673,14 +708,16 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
 
         {
-        for(name <- libNames.iterator.toSeq.sorted)
-        yield <orderEntry type="library" name={name} level="project" />
+        for(name <- libNames.sorted)
+        yield name.scope match {
+          case None => <orderEntry type="library" name={name.value} level="project" />
+          case Some(scope) => <orderEntry type="library" scope={scope} name={name.value} level="project" />
+        }
 
         }
         {
         for(dep <- depNames.sorted)
-        yield
-          dep.scope match {
+        yield dep.scope match {
             case None => <orderEntry type="module" module-name={dep.value} exported="" />
             case Some(scope) => <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
           }
@@ -757,9 +794,12 @@ object GenIdeaImpl {
   final case class WithSourcesResolved(path: os.Path, sources: Option[os.Path])
       extends ResolvedLibrary
 
-  final case class Scoped[T <: Comparable[T]](value: T, scope: Option[String])
-      extends Ordered[Scoped[T]] {
-    override def compare(that: Scoped[T]): Int =
+  final case class Scoped[T](value: T, scope: Option[String])
+
+  final case class ScopedOrd[T <: Comparable[T]](value: T,
+                                                 scope: Option[String])
+      extends Ordered[ScopedOrd[T]] {
+    override def compare(that: ScopedOrd[T]): Int =
       value.compareTo(that.value) match {
         case 0 =>
           (scope, that.scope) match {
@@ -771,5 +811,22 @@ object GenIdeaImpl {
         case x => x
       }
   }
+  object ScopedOrd {
+    def apply[T <: Comparable[T]](scoped: Scoped[T]): ScopedOrd[T] =
+      ScopedOrd(scoped.value, scoped.scope)
+  }
+
+  final case class ResolvedModule(
+      path: Segments,
+      classpath: Loose.Agg[Scoped[Path]],
+      module: JavaModule,
+      pluginClasspath: Loose.Agg[Path],
+      scalaOptions: Seq[String],
+      compilerClasspath: Loose.Agg[Path],
+      libraryClasspath: Loose.Agg[Path],
+      facets: Seq[JavaFacet],
+      configFileContributions: Seq[IdeaConfigFile],
+      compilerOutput: Path
+  )
 
 }
