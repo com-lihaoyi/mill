@@ -74,7 +74,7 @@ object Deps {
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.2"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.3"
   val upickle = ivy"com.lihaoyi::upickle:1.2.2"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
