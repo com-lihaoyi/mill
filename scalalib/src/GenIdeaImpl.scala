@@ -712,10 +712,6 @@ case class GenIdeaImpl(evaluator: Evaluator,
         }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
-        {
-          for(scalaVersion <- scalaVersionOpt.toSeq)
-          yield <orderEntry type="library" name={s"scala-sdk-$scalaVersion"} level="application" />
-        }
 
         {
         for(name <- libNames.sorted)
