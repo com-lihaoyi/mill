@@ -2,7 +2,7 @@ package mill.scalalib
 
 import scala.collection.immutable
 import scala.util.Try
-import scala.xml.{Elem, MetaData, NodeSeq, Null, UnprefixedAttribute}
+import scala.xml.{Elem, MetaData, Node, NodeSeq, Null, UnprefixedAttribute}
 
 import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
@@ -16,7 +16,7 @@ import mill.eval.{Evaluator, PathRef}
 import mill.modules.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.{BuildInfo, T, scalalib}
-import os.{Path, RelPath}
+import os.{Path, SubPath}
 
 case class GenIdeaImpl(evaluator: Evaluator,
                        ctx: Log with Home,
@@ -24,27 +24,28 @@ case class GenIdeaImpl(evaluator: Evaluator,
                        discover: Discover[_]) {
   import GenIdeaImpl._
 
-  val cwd: Path = rootModule.millSourcePath
+  val workDir: Path = rootModule.millSourcePath
 
   val ideaConfigVersion = 4
 
   def run(): Unit = {
 
     val pp = new scala.xml.PrettyPrinter(999, 4)
-    val jdkInfo = extractCurrentJdk(cwd / ".idea" / "misc.xml")
+    val jdkInfo = extractCurrentJdk(workDir / ".idea" / "misc.xml")
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
     ctx.log.info("Analyzing modules ...")
-    val layout = xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
+    val layout: Seq[(SubPath, Node)] =
+      xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
 
     ctx.log.debug("Cleaning obsolete IDEA project files ...")
-    os.remove.all(cwd / ".idea" / "libraries")
-    os.remove.all(cwd / ".idea" / "scala_compiler.xml")
-    os.remove.all(cwd / ".idea_modules")
+    os.remove.all(workDir / ".idea" / "libraries")
+    os.remove.all(workDir / ".idea" / "scala_compiler.xml")
+    os.remove.all(workDir / ".idea_modules")
 
     ctx.log.info("Writing IDEA project files ...")
-    for ((relPath, xml) <- layout) {
-      os.write.over(cwd / relPath, pp.format(xml), createFolders = true)
+    for ((subPath, xml) <- layout) {
+      os.write.over(workDir / subPath, pp.format(xml), createFolders = true)
     }
   }
 
@@ -67,7 +68,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
       rootModule: mill.Module,
       jdkInfo: (String, String),
       ctx: Option[Log],
-      fetchMillModules: Boolean = true): Seq[(os.RelPath, scala.xml.Node)] = {
+      fetchMillModules: Boolean = true): Seq[(os.SubPath, scala.xml.Node)] = {
 
     val modules: Seq[(Segments, JavaModule)] =
       rootModule.millInternal.segmentsToModules.values
@@ -245,18 +246,19 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
     val configFileContributions = resolved.flatMap(_.configFileContributions)
 
-    type FileComponent = (String, String)
+    type FileComponent = (SubPath, String)
     def collisionFree(
-        confs: Seq[IdeaConfigFile]): Map[String, Seq[IdeaConfigFile]] = {
+        confs: Seq[IdeaConfigFile]
+    ): Map[SubPath, Seq[IdeaConfigFile]] = {
       var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
-      var result: Map[String, Seq[IdeaConfigFile]] = Map()
+      var result: Map[SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
-        val key = conf.name -> conf.component
+        val key = conf.subPath -> conf.component
         seen.get(key) match {
           case None =>
             seen += key -> conf.config
-            result += conf.name -> (result
-              .get(conf.name)
+            result += conf.subPath -> (result
+              .get(conf.subPath)
               .getOrElse(Seq()) ++ Seq(conf))
           case Some(existing) if conf.config == existing =>
           // identical, ignore
@@ -275,20 +277,22 @@ case class GenIdeaImpl(evaluator: Evaluator,
     }
 
     //TODO: also check against fixed files
-    val fileContributions: Seq[(RelPath, Elem)] =
+    val fileContributions: Seq[(SubPath, Elem)] =
       collisionFree(configFileContributions).toSeq.map {
         case (file, configs) =>
           val map: Map[String, Seq[GenIdeaModule.Element]] =
             configs
               .groupBy(_.component)
+              .view
               .mapValues(_.flatMap(_.config))
               .toMap
-          (os.rel / ".idea" / file) -> ideaConfigFileTemplate(map)
+          (os.sub / ".idea" / file) -> ideaConfigFileTemplate(map)
       }
 
     val pathShortLibNameDuplicate = allResolved.distinct
       .groupBy(_.last)
       .filter(_._2.size > 1)
+      .view
       .mapValues(_.zipWithIndex)
       .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
       .toMap
@@ -378,21 +382,21 @@ case class GenIdeaImpl(evaluator: Evaluator,
     val allBuildLibraries: Set[ResolvedLibrary] =
       resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
 
-    val fixedFiles: Seq[(RelPath, Elem)] = Seq(
-      Tuple2(os.rel / ".idea" / "misc.xml", miscXmlTemplate(jdkInfo)),
-      Tuple2(os.rel / ".idea" / "scala_settings.xml", scalaSettingsTemplate()),
+    val fixedFiles: Seq[(SubPath, Elem)] = Seq(
+      Tuple2(os.sub / ".idea" / "misc.xml", miscXmlTemplate(jdkInfo)),
+      Tuple2(os.sub / ".idea" / "scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
-        os.rel / ".idea" / "modules.xml",
+        os.sub / ".idea" / "modules.xml",
         allModulesXmlTemplate(
           modules.map { case (segments, mod) => moduleName(segments) }.sorted
         )
       ),
       Tuple2(
-        os.rel / ".idea_modules" / "mill-build.iml",
+        os.sub / ".idea_modules" / "mill-build.iml",
         rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib)))
       ),
       Tuple2(
-        os.rel / ".idea" / "scala_compiler.xml",
+        os.sub / ".idea" / "scala_compiler.xml",
         scalaCompilerTemplate(compilerSettings)
       )
     )
@@ -401,27 +405,28 @@ case class GenIdeaImpl(evaluator: Evaluator,
       name.replaceAll("""[-.]""", "_")
     }
 
-    val libraries = resolvedLibraries(allResolved).flatMap { resolved =>
-      import resolved.path
-      val names = libraryNames(resolved)
-      val sources = resolved match {
-        case CoursierResolved(_, _, s) => s
-        case WithSourcesResolved(_, s) => s
-        case OtherResolved(_)          => None
+    val libraries: Seq[(SubPath, Elem)] =
+      resolvedLibraries(allResolved).flatMap { resolved =>
+        import resolved.path
+        val names = libraryNames(resolved)
+        val sources = resolved match {
+          case CoursierResolved(_, _, s) => s
+          case WithSourcesResolved(_, s) => s
+          case OtherResolved(_)          => None
+        }
+        for (name <- names)
+          yield
+            Tuple2(
+              os.sub / ".idea" / 'libraries / s"${ideaifyLibraryName(name)}.xml",
+              libraryXmlTemplate(
+                name,
+                path,
+                sources,
+                librariesProperties.getOrElse(path, Loose.Agg.empty))
+            )
       }
-      for (name <- names)
-        yield
-          Tuple2(
-            os.rel / ".idea" / 'libraries / s"${ideaifyLibraryName(name)}.xml",
-            libraryXmlTemplate(
-              name,
-              path,
-              sources,
-              librariesProperties.getOrElse(path, Loose.Agg.empty))
-          )
-    }
 
-    val moduleFiles = resolved.map {
+    val moduleFiles: Seq[(SubPath, Elem)] = resolved.map {
       case ResolvedModule(
           path,
           resolvedDeps,
@@ -512,14 +517,15 @@ case class GenIdeaImpl(evaluator: Evaluator,
           isTest = isTest,
           facets = facets
         )
-        Tuple2(os.rel / ".idea_modules" / s"${moduleName(path)}.iml", elem)
+
+        Tuple2(os.sub / ".idea_modules" / s"${moduleName(path)}.iml", elem)
     }
 
     fixedFiles ++ fileContributions ++ libraries ++ moduleFiles
   }
 
   def relify(p: os.Path) = {
-    val r = p.relativeTo(cwd / ".idea_modules")
+    val r = p.relativeTo(workDir / ".idea_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
@@ -616,7 +622,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
   def relativeJarUrl(path: os.Path) = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    val relPath = Try("$PROJECT_DIR$/" + path.relativeTo(cwd)).getOrElse(path)
+    val relPath =
+      Try("$PROJECT_DIR$/" + path.relativeTo(workDir)).getOrElse(path)
     if (path.ext == "jar") "jar://" + relPath + "!/" else "file://" + relPath
   }
 
@@ -624,7 +631,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
   def relativeFileUrl(path: Path): String = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    "file://" + Try("$PROJECT_DIR$/" + path.relativeTo(cwd)).getOrElse(path)
+    "file://" + Try("$PROJECT_DIR$/" + path.relativeTo(workDir)).getOrElse(path)
   }
 
   def libraryXmlTemplate(name: String,
