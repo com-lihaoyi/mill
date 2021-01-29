@@ -67,7 +67,7 @@ object Deps {
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.2"
   val testng = ivy"org.testng:testng:7.3.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
