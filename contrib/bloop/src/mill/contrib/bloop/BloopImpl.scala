@@ -224,8 +224,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
                 case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
               },
               gc = m.nativeGC(),
-              targetTriple = m.nativeTarget().getOrElse(BloopConfig.NativeConfig.empty.targetTriple),
-              nativelib = m.nativeLibJar().path.toNIO,
+              targetTriple = m.nativeTarget(),
               clang = m.nativeClang().toNIO,
               clangpp = m.nativeClangPP().toNIO,
               options = Config.NativeOptions(
