@@ -94,7 +94,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
             val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
             val Result.Success(res) = scalalib.Lib.resolveDependencies(
               repos.toList,
-              Lib.depToDependency(_, "2.13.2", ""),
+              Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
               millDeps,
               sources = false,
               None,
@@ -105,7 +105,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
             {
               scalalib.Lib.resolveDependencies(
                 repos.toList,
-                Lib.depToDependency(_, "2.13.2", ""),
+                Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
                 millDeps,
                 sources = true,
                 None,
@@ -343,8 +343,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val artifactWithScalaVersion = artifactId.substring(
         artifactId.length - math.min(5, artifactId.length)) match {
         case scalaArtifactRegex(_*) => artifactId
-        case _                      => artifactId + "_2.13"
+        case _                      =>
+          // Default to the scala binary version used by mill itself
+          s"${artifactId}_${BuildInfo.scalaVersion.split("[.]").take(2).mkString(".")}"
       }
+      // This needs to be "SBT: " to trigger some compatibility mode in Idea
       s"SBT: ${pom.module.organization.value}:$artifactWithScalaVersion:${pom.version}:jar"
     }
 
