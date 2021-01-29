@@ -52,7 +52,7 @@ object BloopTests extends TestSuite {
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
-      override def scalaVersion = "2.11.12"
+      override def scalaVersion = "2.13.4"
       override def scalaNativeVersion = "0.4.0"
       override def releaseMode = T(ReleaseMode.Debug)
     }
@@ -163,7 +163,7 @@ object BloopTests extends TestSuite {
         assert(name == "scalanativeModule")
         assert(workspaceDir == Some(workdir.wrapped))
         assert(sources == List(workdir / "scalanativeModule" / "src"))
-        assert(version == "2.11.12")
+        assert(version == "2.13.4")
         assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
         assert(platform.config.clang == clang.toNIO)
       }
