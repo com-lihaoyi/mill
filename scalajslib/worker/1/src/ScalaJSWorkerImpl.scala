@@ -20,7 +20,7 @@ import scala.collection.mutable
 import scala.ref.WeakReference
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
-  private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean)
+  private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean, dest: File)
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
@@ -58,7 +58,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
            moduleKind: ModuleKind,
            useECMAScript2015: Boolean) = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015))
+    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
