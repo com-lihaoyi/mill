@@ -549,6 +549,18 @@ object contrib extends MillModule {
       Deps.bloopConfig
     )
     def testArgs = T(scalanativelib.testArgs())
+    override def generatedSources = T{
+      val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      os.write(dest / "Versions.scala",
+        s"""package mill.contrib.bloop
+           |
+           |object Versions {
+           |  val bloop = "${Deps.bloopConfig.dep.version}"
+           |}
+           |""".stripMargin)
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
 
   object artifactory extends MillModule {
