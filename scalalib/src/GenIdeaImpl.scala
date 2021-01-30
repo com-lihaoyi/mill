@@ -43,8 +43,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
     os.remove.all(workDir / ".idea" / "scala_compiler.xml")
     os.remove.all(workDir / ".idea_modules")
 
-    ctx.log.info("Writing IDEA project files ...")
+    ctx.log.info(s"Writing ${layout.size} IDEA project files ...")
     for ((subPath, xml) <- layout) {
+      ctx.log.debug(s"Writing ${subPath} ...")
       os.write.over(workDir / subPath, pp.format(xml), createFolders = true)
     }
   }
@@ -235,10 +236,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
     val moduleLabels = modules.map(_.swap).toMap
 
-    val allResolved =
-      resolved.flatMap(_.classpath).map(_.value) ++
+    val allResolved: Seq[Path] =
+      (resolved.flatMap(_.classpath).map(_.value) ++
         buildLibraryPaths ++
-        buildDepsPaths
+        buildDepsPaths).distinct
 
     val librariesProperties = resolved
       .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
@@ -289,7 +290,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
           (os.sub / ".idea" / file) -> ideaConfigFileTemplate(map)
       }
 
-    val pathShortLibNameDuplicate = allResolved.distinct
+    val pathShortLibNameDuplicate = allResolved
       .groupBy(_.last)
       .filter(_._2.size > 1)
       .view
@@ -417,12 +418,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
         for (name <- names)
           yield
             Tuple2(
-              os.sub / ".idea" / 'libraries / s"${ideaifyLibraryName(name)}.xml",
+              os.sub / ".idea" / "libraries" / s"${ideaifyLibraryName(name)}.xml",
               libraryXmlTemplate(
-                name,
-                path,
-                sources,
-                librariesProperties.getOrElse(path, Loose.Agg.empty))
+                name = name,
+                path = path,
+                sources = sources,
+                scalaCompilerClassPath = librariesProperties.getOrElse(path, Loose.Agg.empty))
             )
       }
 
