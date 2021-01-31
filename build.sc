@@ -47,7 +47,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.7"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
   val coursier = ivy"io.get-coursier::coursier:2.0.9"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
@@ -549,6 +549,18 @@ object contrib extends MillModule {
       Deps.bloopConfig
     )
     def testArgs = T(scalanativelib.testArgs())
+    override def generatedSources = T{
+      val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      os.write(dest / "Versions.scala",
+        s"""package mill.contrib.bloop
+           |
+           |object Versions {
+           |  val bloop = "${Deps.bloopConfig.dep.version}"
+           |}
+           |""".stripMargin)
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
 
   object artifactory extends MillModule {
