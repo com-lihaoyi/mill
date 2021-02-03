@@ -86,12 +86,14 @@ object Util {
   val DottyVersion = raw"""0\.(\d+)\.(\d+).*""".r
   val Scala3Version = raw"""3\.(\d+)\.(\d+)-(\w+).*""".r
   val DottyNightlyVersion = raw"""(0|3)\.(\d+)\.(\d+)-bin-(.*)-NIGHTLY""".r
+  val NightlyVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
   val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
 
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
       case ReleaseVersion(major, minor, _) => s"$major.$minor"
       case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+      case NightlyVersion(major, minor, _) => s"$major.$minor"
       case DottyVersion(minor, _) => s"0.$minor"
       case Scala3Version(minor, patch, milestone) => s"3.$minor.$patch-$milestone"
       case TypelevelVersion(major, minor, _) => s"$major.$minor"
