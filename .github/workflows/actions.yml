@@ -50,7 +50,7 @@ jobs:
           git config --add user.email "mill-ci@localhost"
           ${{ matrix.buildcmd }}
 
-  test-windows:
+  build-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -60,6 +60,21 @@ jobs:
         with:
           java-version: 8
       - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly,__.compile}"
+
+  test-windows:
+    runs-on: windows-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+      - name: Test core
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+      - name: Test contrib
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "contrib._.test"
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
