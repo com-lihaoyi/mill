@@ -65,7 +65,7 @@ public class ClientTests {
         ByteArrayOutputStream out = new ByteArrayOutputStream();
         for(String sample: samples) {
             byte[] bytes = java.nio.file.Files.readAllBytes(
-                java.nio.file.Paths.get(getClass().getResource(sample).getFile())
+                java.nio.file.Paths.get(getClass().getResource(sample).toURI())
             );
             out.write(bytes);
         }
