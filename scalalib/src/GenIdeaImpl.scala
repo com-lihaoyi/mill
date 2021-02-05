@@ -479,13 +479,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
             .mapValues(_.map(_._2))
             .map {
               case (lib, scopes) =>
+                val isCompile = scopes.contains(None)
                 val isProvided = scopes.contains(Some("PROVIDED"))
                 val isRuntime = scopes.contains(Some("RUNTIME"))
 
-                val finalScope = (isProvided, isRuntime) match {
-                  case (true, false) => Some("PROVIDED")
-                  case (false, true) => Some("RUNTIME")
-                  case _             => None
+                val finalScope = (isCompile, isProvided, isRuntime) match {
+                  case (_, true, false)     => Some("PROVIDED")
+                  case (false, false, true) => Some("RUNTIME")
+                  case _                    => None
                 }
 
                 ScopedOrd(lib, finalScope)
