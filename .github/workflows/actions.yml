@@ -78,7 +78,7 @@ jobs:
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
-    needs: [test, test-windows]
+    needs: [test, build-windows, test-windows]
 
     runs-on: ubuntu-latest
 
