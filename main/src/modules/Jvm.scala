@@ -16,6 +16,7 @@ import mill.api.IO
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
+import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import upickle.default.{ReadWriter => RW}
 
@@ -48,13 +49,11 @@ object Jvm {
   def javaExe: String =
     sys.props
       .get("java.home")
-      .to(LazyList)
-      .map(new File(_).getAbsoluteFile())
-      .flatMap(d => Seq(new File(d, "bin/java"), new File(d, "bin/java.exe")))
+      .map(h =>
+        if(isWin) new File(h, "bin\\java.exe")
+        else new File(h, "bin/java"))
       .filter(f => f.exists())
-      .map(_.getAbsolutePath())
-      .headOption
-      .getOrElse("java")
+      .fold("java")(_.getAbsolutePath())
 
   /**
     * Runs a JVM subprocess with the given configuration and streams
