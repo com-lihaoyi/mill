@@ -58,7 +58,7 @@ public class ClientTests {
         Util.writeString(o, example);
         ByteArrayInputStream i = new ByteArrayInputStream(o.toByteArray());
         String s = Util.readString(i);
-        expectEquals(example, s);
+        expectEquals(example, s, "String as bytes: ["+example.getBytes()+"] differs from expected: ["+s.getBytes()+"]");
         expectEquals(i.available(), 0);
     }
 
