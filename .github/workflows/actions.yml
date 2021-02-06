@@ -72,9 +72,9 @@ jobs:
         with:
           java-version: 8
       - name: Test core
-        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
       - name: Test contrib
-        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "contrib._.test"
+        run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "contrib._.test"
 
   publish-sonatype:
     if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'

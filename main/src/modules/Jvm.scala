@@ -65,12 +65,16 @@ object Jvm {
                     envArgs: Map[String, String] = Map.empty,
                     mainArgs: Seq[String] = Seq.empty,
                     workingDir: os.Path = null,
-                    background: Boolean = false): Unit = {
+                    background: Boolean = false)
+                   (implicit ctx: Ctx): Unit = {
+
     val args =
       Vector(javaExe) ++
         jvmArgs ++
         Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
         mainArgs
+
+    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}''").mkString(" ")}")
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
     else runSubprocess(args, envArgs, workingDir)
