@@ -34,16 +34,27 @@ object Jvm {
                     (implicit ctx: Ctx) = {
 
     val commandArgs =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
     os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
   }
+
+  def javaExe: String =
+    sys.props
+      .get("java.home")
+      .to(LazyList)
+      .map(new File(_).getAbsoluteFile())
+      .flatMap(d => Seq(new File(d, "bin/java"), new File(d, "bin/java.exe")))
+      .filter(f => f.exists())
+      .map(_.getAbsolutePath())
+      .headOption
+      .getOrElse("java")
 
   /**
     * Runs a JVM subprocess with the given configuration and streams
@@ -57,10 +68,10 @@ object Jvm {
                     workingDir: os.Path = null,
                     background: Boolean = false): Unit = {
     val args =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
     else runSubprocess(args, envArgs, workingDir)
