@@ -28,18 +28,31 @@ trait HelloWorldModule extends scalalib.ScalaModule {
     }
   }
 
-  override def ideaConfigFiles(ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command {
+  override def ideaConfigFiles(
+      ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command {
     ideaConfigVersion match {
       case 4 =>
         Seq(
+          // whole file
+          IdeaConfigFile(
+            os.sub / "runConfigurations" / "testrun.xml",
+            None,
+            Seq(Element("test"))),
+          // components in project file
           IdeaConfigFile(
             name = "compiler.xml",
             component = "AjcSettings",
-            config = Seq(Element("option", Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")))),
+            config = Seq(
+              Element(
+                "option",
+                Map("name" -> "ajcPath", "value" -> "/tmp/aspectjtools.jar")))),
           IdeaConfigFile(
             name = "compiler.xml",
             component = "CompilerConfiguration",
-            config = Seq(Element("option", Map("name" -> "DEFAULT_COMPILER", "value" -> "ajc")))
+            config = Seq(
+              Element(
+                "option",
+                Map("name" -> "DEFAULT_COMPILER", "value" -> "ajc")))
           )
         )
     }
