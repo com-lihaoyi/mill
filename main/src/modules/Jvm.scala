@@ -16,6 +16,7 @@ import mill.api.IO
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
+import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import upickle.default.{ReadWriter => RW}
 
@@ -34,16 +35,25 @@ object Jvm {
                     (implicit ctx: Ctx) = {
 
     val commandArgs =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
 
     os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
   }
+
+  def javaExe: String =
+    sys.props
+      .get("java.home")
+      .map(h =>
+        if(isWin) new File(h, "bin\\java.exe")
+        else new File(h, "bin/java"))
+      .filter(f => f.exists())
+      .fold("java")(_.getAbsolutePath())
 
   /**
     * Runs a JVM subprocess with the given configuration and streams
@@ -55,12 +65,16 @@ object Jvm {
                     envArgs: Map[String, String] = Map.empty,
                     mainArgs: Seq[String] = Seq.empty,
                     workingDir: os.Path = null,
-                    background: Boolean = false): Unit = {
+                    background: Boolean = false)
+                   (implicit ctx: Ctx): Unit = {
+
     val args =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
+
+    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}''").mkString(" ")}")
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
     else runSubprocess(args, envArgs, workingDir)

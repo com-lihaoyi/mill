@@ -116,18 +116,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def nativeLTO: Target[LTO] = T { LTO.None }
 
-  // TODO: Remove once Bloop is updated to Scala Native 0.4.0
-  // since it is not needed anymore
-  def nativeLibJar = T{
-    resolveDeps(T.task{Agg(nativeLibIvy())})()
-      .filter{ p =>
-        p.path.toString.contains("/org/scala-native/nativelib_native") &&
-        p.path.last.contains("nativelib_native")
-      }
-      .toList
-      .head
-  }
-
   def nativeConfig = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
 

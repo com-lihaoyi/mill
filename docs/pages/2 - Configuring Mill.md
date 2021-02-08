@@ -81,7 +81,7 @@ custom `ZincWorkerModule`, and override the `zincWorker` method in your
 ```scala
 import coursier.maven.MavenRepository
 
-object CustomZincWorkerModule extends ZincWorkerModule {
+object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
   def repositories() = super.repositories ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
   )
