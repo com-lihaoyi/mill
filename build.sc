@@ -46,8 +46,8 @@ object Deps {
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val scalametaTrees = ivy"org.scalameta::trees:4.3.24"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.8"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
   val coursier = ivy"io.get-coursier::coursier:2.0.9"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
@@ -67,15 +67,15 @@ object Deps {
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.1"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.2"
   val testng = ivy"org.testng:testng:7.3.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.3"
-  val upickle = ivy"com.lihaoyi::upickle:1.2.2"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.2"
+  val upickle = ivy"com.lihaoyi::upickle:1.2.3"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
@@ -549,6 +549,18 @@ object contrib extends MillModule {
       Deps.bloopConfig
     )
     def testArgs = T(scalanativelib.testArgs())
+    override def generatedSources = T{
+      val dest = T.ctx.dest
+      val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      os.write(dest / "Versions.scala",
+        s"""package mill.contrib.bloop
+           |
+           |object Versions {
+           |  val bloop = "${Deps.bloopConfig.dep.version}"
+           |}
+           |""".stripMargin)
+      super.generatedSources() ++ Seq(PathRef(dest))
+    }
   }
 
   object artifactory extends MillModule {
@@ -658,7 +670,7 @@ def launcherScript(shellJvmArgs: Seq[String],
       val jvmArgsStr = shellJvmArgs.mkString(" ")
       def java(mainClass: String, passMillJvmOpts: Boolean) = {
         val millJvmOpts = if (passMillJvmOpts) "$mill_jvm_opts" else ""
-        s"""exec $$JAVACMD $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
+        s"""exec "$$JAVACMD" $jvmArgsStr $$JAVA_OPTS $millJvmOpts -cp "${shellClassPath.mkString(":")}" $mainClass "$$@""""
       }
 
       s"""if [ -z "$$JAVA_HOME" ] ; then
