@@ -74,7 +74,7 @@ object Jvm {
         Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
         mainArgs
 
-    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}''").mkString(" ")}")
+    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
     else runSubprocess(args, envArgs, workingDir)
