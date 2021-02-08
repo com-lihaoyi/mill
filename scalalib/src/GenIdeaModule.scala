@@ -74,15 +74,22 @@ object GenIdeaModule {
     // This also works as requirement check
     /** The sub-path of the config file, relative to the Idea config directory (`.idea`). */
     val subPath: SubPath = SubPath(name)
+    // An empty component name meas we contribute a whole file
+    // If we have a fill file, we only accept a single root xml node.
+    require(component.nonEmpty ||  config.size == 1, "Files contributions must have exactly one root element.")
+
+    def asWholeFile: Option[(SubPath, Element)] = if(component.isEmpty) {
+      Option(subPath -> config.head)
+    }else None
   }
   object IdeaConfigFile {
 
     /** Alternative creator accepting a sub-path as config file name. */
     def apply(
         subPath: SubPath,
-        component: String,
+        component: Option[String],
         config: Seq[Element]
-    ): IdeaConfigFile = IdeaConfigFile(subPath.toString(), component, config)
+    ): IdeaConfigFile = IdeaConfigFile(subPath.toString(), component.getOrElse(""), config)
 
     implicit def rw: ReadWriter[IdeaConfigFile] = macroRW
   }

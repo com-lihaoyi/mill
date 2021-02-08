@@ -245,12 +245,24 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
       .toMap
 
-    val configFileContributions = resolved.flatMap(_.configFileContributions)
+    val (wholeFileConfigs, configFileContributions) =
+      resolved
+        .flatMap(_.configFileContributions)
+        .partition(_.asWholeFile.isDefined)
+
+    // whole file
+    val ideaWholeConfigFiles: Seq[(SubPath, Elem)] =
+      wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
+        os.sub / ".idea" / wf._1 -> ideaConfigElementTemplate(wf._2)
+      }
 
     type FileComponent = (SubPath, String)
-    def collisionFree(
+
+    /** Ensure, the additional configs don't collide. */
+    def collisionFreeExtraConfigs(
         confs: Seq[IdeaConfigFile]
     ): Map[SubPath, Seq[IdeaConfigFile]] = {
+
       var seen: Map[FileComponent, Seq[GenIdeaModule.Element]] = Map()
       var result: Map[SubPath, Seq[IdeaConfigFile]] = Map()
       confs.foreach { conf =>
@@ -277,9 +289,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
       result
     }
 
-    //TODO: also check against fixed files
-    val fileContributions: Seq[(SubPath, Elem)] =
-      collisionFree(configFileContributions).toSeq.map {
+    val fileComponentContributions: Seq[(SubPath, Elem)] =
+      collisionFreeExtraConfigs(configFileContributions).toSeq.map {
         case (file, configs) =>
           val map: Map[String, Seq[GenIdeaModule.Element]] =
             configs
@@ -523,7 +534,20 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Tuple2(os.sub / ".idea_modules" / s"${moduleName(path)}.iml", elem)
     }
 
-    fixedFiles ++ fileContributions ++ libraries ++ moduleFiles
+    {
+      // file collision checks
+      val map =
+        (fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions)
+          .groupBy(_._1)
+          .filter(_._2.size > 1)
+      if (map.nonEmpty) {
+        ctx.map(_.log.error(
+          s"Config file collisions detected. Check you `ideaConfigFiles` targets. Colliding files: ${map
+            .map(_._1)}. All project files: ${map}"))
+      }
+    }
+
+    fixedFiles ++ ideaWholeConfigFiles ++ fileComponentContributions ++ libraries ++ moduleFiles
   }
 
   def relify(p: os.Path) = {
