@@ -1,10 +1,13 @@
 package mill.scalalib
+
 import ammonite.util.Colors
 import mill.Agg
 import mill.api.{DummyTestReporter, TestReporter}
 import mill.modules.Jvm
 import mill.scalalib.Lib.discoverTests
+import mill.scalalib.api._
 import mill.util.{Ctx, PrintLogger}
+import mill.util.JsonFormatters._
 import sbt.testing._
 import scala.collection.mutable
 import scala.util.Try
