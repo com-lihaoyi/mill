@@ -656,40 +656,59 @@ trait TestModule extends JavaModule with TaskModule {
     testTask(testCachedArgs)()
   }
 
-  protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
-    val outputPath = T.dest / "out.json"
+  /** Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
+   * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
+   * */
+  def testUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
 
-    Jvm.runSubprocess(
-      mainClass = "mill.scalalib.TestRunner",
-      classPath = zincWorker.scalalibClasspath().map(_.path),
-      jvmArgs = forkArgs(),
-      envArgs = forkEnv(),
-      mainArgs =
-        Seq(testFrameworks().length.toString) ++
-        testFrameworks() ++
-        Seq(runClasspath().length.toString) ++
-        runClasspath().map(_.path.toString) ++
-        Seq(args().length.toString) ++
-        args() ++
-        Seq(outputPath.toString, T.log.colored.toString, compile().classes.path.toString, T.home.toString),
-      workingDir = forkWorkingDir()
-    )
+  protected def testTask(
+      args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
+    T.task {
+      val outputPath = T.dest / "out.json"
 
-    if(!os.exists(outputPath)) Result.Failure("Test execution failed.")
-    else  try {
-      val jsonOutput = ujson.read(outputPath.toIO)
-      val (doneMsg, results) = upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
-      TestModule.handleResults(doneMsg, results)
-    } catch {
-      case e: Throwable =>
-        Result.Failure("Test reporting failed: " + e)
+      val testArgs = TestRunner.TestArgs(
+        frameworks = testFrameworks(),
+        classpath = runClasspath().map(_.path.toString()),
+        arguments = args(),
+        outputPath = outputPath.toString(),
+        colored = T.log.colored,
+        testCp = compile().classes.path.toString(),
+        homeStr = T.home.toString()
+      )
+
+      val mainArgs = if (testUseArgsFile()) {
+        val argsFile = T.dest / "testargs"
+        Seq(testArgs.writeArgsFile(argsFile))
+      } else {
+        testArgs.toArgsSeq
+      }
+
+      Jvm.runSubprocess(
+        mainClass = "mill.scalalib.TestRunner",
+        classPath = zincWorker.scalalibClasspath().map(_.path),
+        jvmArgs = forkArgs(),
+        envArgs = forkEnv(),
+        mainArgs = mainArgs,
+        workingDir = forkWorkingDir()
+      )
+
+      if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
+      else
+        try {
+          val jsonOutput = ujson.read(outputPath.toIO)
+          val (doneMsg, results) =
+            upickle.default.read[(String, Seq[TestRunner.Result])](jsonOutput)
+          TestModule.handleResults(doneMsg, results)
+        } catch {
+          case e: Throwable =>
+            Result.Failure("Test reporting failed: " + e)
+        }
     }
-  }
 
   /**
-    * Discovers and runs the module's tests in-process in an isolated classloader,
-    * reporting the results to the console
-    */
+   * Discovers and runs the module's tests in-process in an isolated classloader,
+   * reporting the results to the console
+   */
   def testLocal(args: String*) = T.command {
     val outputPath = T.dest / "out.json"
 
