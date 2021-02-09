@@ -1,22 +1,67 @@
 package mill.scalalib
+
 import ammonite.util.Colors
 import mill.Agg
 import mill.api.{DummyTestReporter, TestReporter}
 import mill.modules.Jvm
+import mill.scalalib.api._
 import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
 import mill.util.JsonFormatters._
 import sbt.testing._
-import mill.scalalib.api._
-
 import scala.collection.mutable
+import scala.util.Try
+
 object TestRunner {
 
+  case class TestArgs(
+      frameworks: Seq[String],
+      classpath: Seq[String],
+      arguments: Seq[String],
+      outputPath: String,
+      colored: Boolean,
+      testCp: String,
+      homeStr: String
+  ) {
+    def toArgsSeq: Seq[String] =
+      Seq(
+        Seq(frameworks.size.toString) ++
+          frameworks ++
+          Seq(classpath.size.toString) ++
+          classpath ++
+          Seq(arguments.size.toString) ++
+          arguments ++
+          Seq(outputPath, colored.toString, testCp, homeStr)
+      ).flatten
 
-  def main(args: Array[String]): Unit = {
-    try{
+    def writeArgsFile(argsFile: os.Path): String = {
+      os.write.over(
+        argsFile,
+        data = toArgsSeq.mkString("\n"),
+        createFolders = true)
+      s"@${argsFile.toString()}"
+    }
+  }
+
+  object TestArgs {
+
+    def parseArgs(args: Array[String]): Try[TestArgs] = {
+      args match {
+        case Array(fileArg) if fileArg.startsWith("@") =>
+          val file = os.Path(fileArg.drop(1), os.pwd)
+          parseFile(file)
+        case _ => parseArray(args)
+      }
+    }
+
+    def parseFile(file: os.Path): Try[TestArgs] =
+      Try {
+        os.read(file).linesIterator.filter(_.trim().nonEmpty).to(Array)
+      }.flatMap(parseArray)
+
+    def parseArray(args: Array[String]): Try[TestArgs] = Try {
       var i = 0
-      def readArray() = {
+      def readArray(): Array[String] = {
         val count = args(i).toInt
         val slice = args.slice(i + 1, i + count + 1)
         i = i + count + 1
@@ -29,11 +74,27 @@ object TestRunner {
       val colored = args(i + 1)
       val testCp = args(i + 2)
       val homeStr = args(i + 3)
+
+      TestArgs(
+        frameworks,
+        classpath,
+        arguments,
+        outputPath,
+        colored = Seq("true", "1", "on", "yes").contains(colored),
+        testCp = testCp,
+        homeStr = homeStr
+      )
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    try {
+      val testArgs = TestArgs.parseArgs(args).get
       val ctx = new Ctx.Log with Ctx.Home {
         val log = PrintLogger(
-          colored == "true",
+          testArgs.colored,
           true,
-          if(colored == "true") Colors.Default
+          if (testArgs.colored) Colors.Default
           else Colors.BlackWhite,
           System.out,
           System.err,
@@ -42,13 +103,13 @@ object TestRunner {
           debugEnabled = false,
           context = ""
         )
-        val home = os.Path(homeStr)
+        val home = os.Path(testArgs.homeStr)
       }
       val result = runTests(
-        frameworkInstances = TestRunner.frameworks(frameworks),
-        entireClasspath = Agg.from(classpath.map(os.Path(_))),
-        testClassfilePath = Agg(os.Path(testCp)),
-        args = arguments,
+        frameworkInstances = TestRunner.frameworks(testArgs.frameworks),
+        entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
+        testClassfilePath = Agg(os.Path(testArgs.testCp)),
+        args = testArgs.arguments,
         DummyTestReporter
       )(ctx)
 
@@ -56,10 +117,11 @@ object TestRunner {
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(os.Path(outputPath), upickle.default.stream(result))
-    }catch{case e: Throwable =>
-      println(e)
-      e.printStackTrace()
+      os.write(os.Path(testArgs.outputPath), upickle.default.stream(result))
+    } catch {
+      case e: Throwable =>
+        println(e)
+        e.printStackTrace()
     }
     // Tests are over, kill the JVM whether or not anyone's threads are still running
     // Always return 0, even if tests fail. The caller can pick up the detailed test
