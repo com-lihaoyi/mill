@@ -169,7 +169,7 @@ object HelloWorldTests extends TestSuite {
 
   object HelloWorldOnlyDocVersion extends HelloBase {
     object core extends HelloWorldModule {
-      def scalacOptions = T(Seq("-Ywarn-unused", "-Xfatal-warnings"))
+      def scalacOptions = T(Seq("-Ywarn-unused"))
       def scalaDocOptions = T(Seq("-doc-version", "1.2.3"))
     }
   }
@@ -395,7 +395,7 @@ object HelloWorldTests extends TestSuite {
         resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world"
       ){ eval =>
         // scaladoc generation fails because of "-Xfatal-warnings" flag
-        val Left(Result.Failure("docJar generation failed", None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
+        val Left(Result.Failure("Compilation failed", None)) = eval.apply(HelloWorldWithDocVersion.core.docJar)
       }
       'docJarOnlyVersion - workspaceTest(
         HelloWorldOnlyDocVersion,

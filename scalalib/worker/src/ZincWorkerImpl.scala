@@ -4,7 +4,7 @@ import java.io.File
 import java.util.Optional
 import mill.api.Loose.Agg
 import mill.api.{BuildProblemReporter, KeyedLockedCache, PathRef, Problem, ProblemPosition, Severity}
-import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, scalaBinaryVersion}
+import mill.scalalib.api.Util.{grepJar, isDotty, isDottyOrScala3, isScala3, scalaBinaryVersion, useScaladocInScala3}
 import mill.scalalib.api.{CompilationResult, ZincWorkerApi}
 import sbt.internal.inc._
 import sbt.internal.util.{ConsoleAppender, ConsoleOut}
@@ -113,9 +113,13 @@ class ZincWorkerImpl(compilerBridge: Either[
       scalacPluginClasspath
     ) { compilers: Compilers =>
       if (isDottyOrScala3(scalaVersion)) {
-        val dottydocClass = compilers.scalac().scalaInstance().loader().loadClass("dotty.tools.dottydoc.DocDriver")
-        val dottydocMethod = dottydocClass.getMethod("process", classOf[Array[String]])
-        val reporter = dottydocMethod.invoke(dottydocClass.newInstance(), args.toArray)
+        val (docClassName, docMethodName) = 
+          if (useScaladocInScala3(scalaVersion)) ("dotty.tools.scaladoc.Main", "run")
+          else ("dotty.tools.dottydoc.DocDriver", "process")
+    
+        val docClass = compilers.scalac().scalaInstance().loader().loadClass(docClassName)
+        val docMethod = docClass.getMethod(docMethodName, classOf[Array[String]])
+        val reporter = docMethod.invoke(docClass.newInstance(), args.toArray)
         val hasErrorsMethod = reporter.getClass().getMethod("hasErrors")
         !hasErrorsMethod.invoke(reporter).asInstanceOf[Boolean]
       } else {

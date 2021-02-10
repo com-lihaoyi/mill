@@ -6,7 +6,7 @@ import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{ isDotty, isDottyOrScala3, isScala3 }
+import mill.scalalib.api.Util.{ isDotty, isDottyOrScala3, isScala3, useScaladocInScala3 }
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
@@ -185,10 +185,15 @@ trait ScalaModule extends JavaModule { outer =>
       }
     }
 
-    val files = allSourceFiles().map(_.path.toString)
+    val files = 
+      if (isDottyOrScala3(scalaVersion()) && useScaladocInScala3(scalaVersion()))
+        // scaladoc 3.x required list of tasty files, jars or classes directories
+        compile().classes.path.toString :: Nil
+      else 
+        allSourceFiles().map(_.path.toString)
 
     val outputOptions =
-      if (isDottyOrScala3(scalaVersion()))
+      if (isDottyOrScala3(scalaVersion()) && !useScaladocInScala3(scalaVersion()))
         Seq("-siteroot", javadocDir.toNIO.toString)
       else
         Seq("-d", javadocDir.toNIO.toString)
@@ -213,7 +218,7 @@ trait ScalaModule extends JavaModule { outer =>
       ) match{
         case true =>
           val inputPath =
-            if (isDottyOrScala3(scalaVersion())) javadocDir / '_site
+            if (isDottyOrScala3(scalaVersion())&& !useScaladocInScala3(scalaVersion())) javadocDir / '_site
             else javadocDir
           Result.Success(createJar(Agg(inputPath))(outDir))
         case false => Result.Failure("docJar generation failed")

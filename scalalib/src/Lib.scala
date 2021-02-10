@@ -89,11 +89,16 @@ object Lib{
       Agg(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
       )
-    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
-      Agg(
-        ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
-      )
-    else
+    else if (mill.scalalib.api.Util.isScala3(scalaVersion)){
+      if (mill.scalalib.api.Util.useScaladocInScala3(scalaVersion)) 
+        Agg(
+          ivy"$scalaOrganization::scaladoc:$scalaVersion".forceVersion()
+        )
+      else
+        Agg(
+          ivy"$scalaOrganization::scala3-doc:$scalaVersion".forceVersion()
+        )
+    } else
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 

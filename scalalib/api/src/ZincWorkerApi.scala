@@ -53,6 +53,8 @@ case class CompilationResult(analysisFile: os.Path, classes: PathRef)
 object Util {
   def isDotty(scalaVersion: String) = scalaVersion.startsWith("0.")
   def isScala3(scalaVersion: String) = scalaVersion.startsWith("3.")
+  def useScaladocInScala3(scalaVersion: String) = 
+    isScala3(scalaVersion) && !Seq("M1", "M2", "M3").exists(mx => scalaVersion.startsWith(s"3.0.0-$mx"))
   def isDottyOrScala3(scalaVersion: String) = isDotty(scalaVersion) || isScala3(scalaVersion)
 
   // eg, grepJar(classPath, name = "scala-library", versionPrefix = "2.13.")
