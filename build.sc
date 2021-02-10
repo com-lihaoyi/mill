@@ -70,6 +70,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.7.2"
   val testng = ivy"org.testng:testng:7.3.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.14.1"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
@@ -114,6 +115,7 @@ trait MillModule extends MillApiModule { outer =>
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
   def testArgs = T{ Seq.empty[String] }
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
@@ -124,7 +126,7 @@ trait MillModule extends MillApiModule { outer =>
     def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
-    def ivyDeps = Agg(Deps.utest)
+    override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath =
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -267,6 +269,7 @@ object scalalib extends MillModule {
     super.generatedSources() ++ Seq(PathRef(dest))
   }
 
+  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T{
     val genIdeaArgs =
       genTask(main.moduledefs)() ++
