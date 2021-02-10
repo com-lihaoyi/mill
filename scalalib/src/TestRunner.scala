@@ -18,6 +18,7 @@ object TestRunner {
       frameworks: Seq[String],
       classpath: Seq[String],
       arguments: Seq[String],
+      sysProps: Map[String, String],
       outputPath: String,
       colored: Boolean,
       testCp: String,
@@ -31,6 +32,8 @@ object TestRunner {
           classpath ++
           Seq(arguments.size.toString) ++
           arguments ++
+          Seq((sysProps.size * 2).toString) ++
+          sysProps.flatMap { case (k, v) => Seq(k, v) } ++
           Seq(outputPath, colored.toString, testCp, homeStr)
       ).flatten
 
@@ -67,18 +70,27 @@ object TestRunner {
         i = i + count + 1
         slice
       }
+      def readString(): String = {
+        val string = args(i)
+        i = i + 1
+        string
+      }
       val frameworks = readArray()
       val classpath = readArray()
       val arguments = readArray()
-      val outputPath = args(i + 0)
-      val colored = args(i + 1)
-      val testCp = args(i + 2)
-      val homeStr = args(i + 3)
+      val sysProps = readArray()
+      val outputPath = readString()
+      val colored = readString()
+      val testCp = readString()
+      val homeStr = readString()
 
       TestArgs(
         frameworks,
         classpath,
         arguments,
+        sysProps.grouped(2).foldLeft(Map[String, String]()) { (map, prop) =>
+          map.updated(prop(0), prop(1))
+        },
         outputPath,
         colored = Seq("true", "1", "on", "yes").contains(colored),
         testCp = testCp,
@@ -105,6 +117,9 @@ object TestRunner {
         )
         val home = os.Path(testArgs.homeStr)
       }
+      ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
+      testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
+
       val result = runTests(
         frameworkInstances = TestRunner.frameworks(testArgs.frameworks),
         entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
@@ -133,78 +148,94 @@ object TestRunner {
                entireClasspath: Agg[os.Path],
                testClassfilePath: Agg[os.Path],
                args: Seq[String],
-               testReporter: TestReporter)
-              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
+    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = false, cl => {
-      val frameworks = frameworkInstances(cl)
+    Jvm.inprocess(
+      entireClasspath,
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = false,
+      cl => {
+        val frameworks = frameworkInstances(cl)
 
-      val events = mutable.Buffer.empty[Event]
+        val events = mutable.Buffer.empty[Event]
 
-      val doneMessages = frameworks.map{ framework =>
-        val runner = framework.runner(args.toArray, Array[String](), cl)
+        val doneMessages = frameworks.map {
+          framework =>
+            val runner = framework.runner(args.toArray, Array[String](), cl)
 
-        val testClasses = discoverTests(cl, framework, testClassfilePath)
+            val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-        val tasks = runner.tasks(
-          for ((cls, fingerprint) <- testClasses.toArray)
-            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-        )
+            val tasks = runner.tasks(
+              for ((cls, fingerprint) <- testClasses.toArray)
+                yield
+                  new TaskDef(
+                    cls.getName.stripSuffix("$"),
+                    fingerprint,
+                    true,
+                    Array(new SuiteSelector))
+            )
 
-        val taskQueue = tasks.to(mutable.Queue)
-        while (taskQueue.nonEmpty){
-          val next = taskQueue.dequeue().execute(
-            new EventHandler {
-              def handle(event: Event) = {
-                testReporter.logStart(event)
-                events.append(event)
-                testReporter.logFinish(event)
-              }
-            },
-            Array(
-              new Logger {
-                def debug(msg: String) = ctx.log.outputStream.println(msg)
+            val taskQueue = tasks.to(mutable.Queue)
+            while (taskQueue.nonEmpty) {
+              val next = taskQueue
+                .dequeue()
+                .execute(
+                  new EventHandler {
+                    def handle(event: Event) = {
+                      testReporter.logStart(event)
+                      events.append(event)
+                      testReporter.logFinish(event)
+                    }
+                  },
+                  Array(new Logger {
+                    def debug(msg: String) = ctx.log.outputStream.println(msg)
 
-                def error(msg: String) = ctx.log.outputStream.println(msg)
+                    def error(msg: String) = ctx.log.outputStream.println(msg)
 
-                def ansiCodesSupported() = true
+                    def ansiCodesSupported() = true
 
-                def warn(msg: String) = ctx.log.outputStream.println(msg)
+                    def warn(msg: String) = ctx.log.outputStream.println(msg)
 
-                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
+                    def trace(t: Throwable) =
+                      t.printStackTrace(ctx.log.outputStream)
 
-                def info(msg: String) = ctx.log.outputStream.println(msg)
-              })
-          )
-          taskQueue.enqueueAll(next)
+                    def info(msg: String) = ctx.log.outputStream.println(msg)
+                  })
+                )
+              taskQueue.enqueueAll(next)
+            }
+            runner.done()
         }
-        runner.done()
-      }
 
-      val results = for(e <- events) yield {
-        val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
-        mill.scalalib.TestRunner.Result(
+        val results = for (e <- events) yield {
+          val ex =
+            if (e.throwable().isDefined) Some(e.throwable().get) else None
+          mill.scalalib.TestRunner.Result(
             e.fullyQualifiedName(),
-            e.selector() match{
-            case s: NestedSuiteSelector => s.suiteId()
-            case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-            case s: SuiteSelector => s.toString
-            case s: TestSelector => s.testName()
-            case s: TestWildcardSelector => s.testWildcard()
-          },
+            e.selector() match {
+              case s: NestedSuiteSelector  => s.suiteId()
+              case s: NestedTestSelector   => s.suiteId() + "." + s.testName()
+              case s: SuiteSelector        => s.toString
+              case s: TestSelector         => s.testName()
+              case s: TestWildcardSelector => s.testWildcard()
+            },
             e.duration(),
             e.status().toString,
             ex.map(_.getClass.getName),
             ex.map(_.getMessage),
             ex.map(_.getStackTrace)
-        )
-      }
+          )
+        }
 
-      (doneMessages.mkString("\n"), results.toSeq)
-    })
+        (doneMessages.mkString("\n"), results.toSeq)
+      }
+    )
   }
 
-  def frameworks(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
+  def frameworks(frameworkNames: Seq[String])(
+      cl: ClassLoader): Seq[sbt.testing.Framework] = {
     frameworkNames.map { name =>
       cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
     }
@@ -218,7 +249,8 @@ object TestRunner {
                     exceptionMsg: Option[String] = None,
                     exceptionTrace: Option[Seq[StackTraceElement]] = None)
 
-  object Result{
-    implicit def resultRW: upickle.default.ReadWriter[Result] = upickle.default.macroRW[Result]
+  object Result {
+    implicit def resultRW: upickle.default.ReadWriter[Result] =
+      upickle.default.macroRW[Result]
   }
 }

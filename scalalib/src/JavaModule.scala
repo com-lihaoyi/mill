@@ -666,10 +666,27 @@ trait TestModule extends JavaModule with TaskModule {
     T.task {
       val outputPath = T.dest / "out.json"
 
+      val (jvmArgs, props: Map[String, String]) = if (testUseArgsFile()) {
+        val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
+        val sysProps =
+          props
+            .map(_.drop(2).split("[=]", 2))
+            .map {
+              case Array(k, v) => k -> v
+              case Array(k)    => k -> ""
+            }
+            .toMap
+
+        jvmArgs -> sysProps
+      } else {
+        forkArgs() -> Map()
+      }
+
       val testArgs = TestRunner.TestArgs(
         frameworks = testFrameworks(),
         classpath = runClasspath().map(_.path.toString()),
         arguments = args(),
+        sysProps = props,
         outputPath = outputPath.toString(),
         colored = T.log.colored,
         testCp = compile().classes.path.toString(),
@@ -686,7 +703,7 @@ trait TestModule extends JavaModule with TaskModule {
       Jvm.runSubprocess(
         mainClass = "mill.scalalib.TestRunner",
         classPath = zincWorker.scalalibClasspath().map(_.path),
-        jvmArgs = forkArgs(),
+        jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
         workingDir = forkWorkingDir()
