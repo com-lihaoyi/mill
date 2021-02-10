@@ -105,9 +105,11 @@ trait MillApiModule extends MillPublishModule with ScalaModule {
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-  def repositories = super.repositories ++ Seq(
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
+  }
 }
 trait MillModule extends MillApiModule { outer =>
   def scalacPluginClasspath =
@@ -117,9 +119,6 @@ trait MillModule extends MillApiModule { outer =>
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
-    def repositories = super.repositories ++ Seq(
-      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-    )
     def forkArgs = T{ testArgs() }
     def moduleDeps =
       if (this == main.test) Seq(main)
@@ -834,7 +833,7 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, os.pwd)
         os.makeDir.all(wd)
-        mill.modules.Jvm.baseInteractiveSubprocess(
+        mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
