@@ -17,8 +17,8 @@ jobs:
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
-          - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
-          - ./mill -i "contrib._.test"
+          - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
+          - ./mill -i -k "contrib._.test"
           - ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
@@ -52,12 +52,10 @@ jobs:
         java-version: [8, 11]
         buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "main.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalajslib,bsp}.__.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "scalalib.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "scalajslib.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "bsp.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "contrib._.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.UpickleTests"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
 
     runs-on: windows-latest
     continue-on-error: true
