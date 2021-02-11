@@ -70,7 +70,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.7.2"
   val testng = ivy"org.testng:testng:7.3.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.14.1"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.14.3"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
