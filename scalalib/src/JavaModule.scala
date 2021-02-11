@@ -788,16 +788,21 @@ object TestModule {
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result])
     : Result[(String, Seq[TestRunner.Result])] = {
 
-    val badTests =
+    val badTests: Seq[TestRunner.Result] =
       results.filter(x => Set("Error", "Failure").contains(x.status))
-    if (badTests.isEmpty) Result.Success((doneMsg, results))
-    else {
+    if (badTests.isEmpty) {
+      Result.Success((doneMsg, results))
+    } else {
+      val reportCount = 5
       val suffix =
-        if (badTests.length == 1) ""
-        else " and " + (badTests.length - 1) + " more"
+        if (badTests.length <= reportCount) ""
+        else s" and ${badTests.length - reportCount} more ..."
 
       Result.Failure(
-        badTests.head.fullyQualifiedName + " " + badTests.head.selector + suffix,
+        s"${badTests.last} tests failed: ${badTests
+          .take(reportCount)
+          .map(t => s"${t.fullyQualifiedName} ${t.selector}")
+          .mkString(", ")}$suffix",
         Some((doneMsg, results))
       )
     }
