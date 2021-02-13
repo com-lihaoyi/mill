@@ -1,6 +1,6 @@
 package mill.playlib.api;
 
-public enum RouteCompilerType{
+public enum RouteCompilerType {
     InjectedGenerator,
     StaticGenerator
 }
