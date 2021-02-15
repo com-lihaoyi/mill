@@ -48,7 +48,7 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.8"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.11"
+  val coursier = ivy"io.get-coursier::coursier:2.0.12"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
