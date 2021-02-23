@@ -13,7 +13,7 @@ by Gradle? Give Mill a try!
 
 If you want to use Mill in your own projects, check out our documentation:
 
-- [Documentation](http://www.lihaoyi.com/mill/)
+- [Documentation](http://com-lihaoyi.github.io/mill)
 
 Here is some quick example, so that you can imagine how it looks:
 
