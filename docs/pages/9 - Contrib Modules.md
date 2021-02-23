@@ -782,7 +782,7 @@ and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
 ### Multi-module projects
 
-If you're using Scoverage on a project with multiple modules then an additonal
+If you're using Scoverage on a project with multiple modules then an additional
 module, `ScoverageReport`, is available to help aggregate the reports from all
 `ScoverageModule`s.
 
@@ -1045,7 +1045,7 @@ object versionFile extends VersionFileModule
 The module will read and write to the file `version` located at the module's `millSourcePath`.
 In the example above, that would be `/versionFile/version` relative to the `build.sc` file.
 
-Create the version file with the intial version number:
+Create the version file with the initial version number:
 ```bash
 $ 0.1.0-SNAPSHOT > versionFile/version
 ```
