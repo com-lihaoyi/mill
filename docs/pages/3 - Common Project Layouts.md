@@ -281,7 +281,7 @@ You can make a module publishable by extending `PublishModule`.
 
 `PublishModule` then needs you to define a `publishVersion` and `pomSettings`.
 The `artifactName` defaults to the name of your module (in this case `foo`) but
-can be overriden. The `organization` is defined in `pomSettings`.
+can be overridden. The `organization` is defined in `pomSettings`.
 
 Once you've mixed in `PublishModule`, you can publish your libraries to maven
 central via:
