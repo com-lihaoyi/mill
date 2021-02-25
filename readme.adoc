@@ -209,11 +209,9 @@ corresponding version of Mill.
 == Changelog
 
 === master
-:compare-from: 0.9.5
-:compare-to: master
 
 _For details refer to
-{link-milestone}/46?closed=1[milestone after 0.9.5]
+{link-milestone}/47?closed=1[milestone after 0.9.5]
 and the {link-compare}/0.9.5\...master[list of commits]._
 
 === 0.9.5 - 2021-01-26
