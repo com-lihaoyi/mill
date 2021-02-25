@@ -75,7 +75,7 @@ jobs:
         run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "contrib._.test"
 
   publish-sonatype:
-    if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
     needs: [test, build-windows, test-windows]
 
     runs-on: ubuntu-latest
@@ -101,7 +101,7 @@ jobs:
       - run: ci/on-master.py ci/release-maven.sh
 
   release-github-and-site:
-    if: github.repository == 'lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
     needs: publish-sonatype
 
     strategy:
