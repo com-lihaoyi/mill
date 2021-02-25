@@ -13,7 +13,7 @@ by Gradle? Give Mill a try!
 
 If you want to use Mill in your own projects, check out our documentation:
 
-- [Documentation](http://www.lihaoyi.com/mill/)
+- [Documentation](http://com-lihaoyi.github.io/mill)
 
 Here is some quick example, so that you can imagine how it looks:
 
@@ -384,7 +384,7 @@ and the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.9...0.6.0)
 *For details refer to
 the [list of commits](https://github.com/lihaoyi/mill/compare/0.5.7...0.5.9).*
 
-**Verison 0.5.8 has some binary compatibility issues in requests-scala/geny and should not be used.**
+**Version 0.5.8 has some binary compatibility issues in requests-scala/geny and should not be used.**
 
 ### 0.5.7 - 2019-12-28
 

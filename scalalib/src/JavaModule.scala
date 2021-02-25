@@ -285,7 +285,7 @@ trait JavaModule extends mill.Module
   }
 
   /**
-    * Creates a manifest representation which can be modifed or replaced
+    * Creates a manifest representation which can be modified or replaced
     * The default implementation just adds the `Manifest-Version`, `Main-Class` and `Created-By` attributes
     */
   def manifest: T[Jvm.JarManifest] = T{

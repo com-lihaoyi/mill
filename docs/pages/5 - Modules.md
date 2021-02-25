@@ -77,7 +77,7 @@ object canOverrideSuper with BaseModule {
 ```
 
 You can override targets and commands to customize them or change what they do.
-The overriden version is available via `super`. You can omit the `override`
+The overridden version is available via `super`. You can omit the `override`
 keyword in Mill builds.
 
 ## millSourcePath
@@ -169,7 +169,7 @@ This allows, for instance, to depend on other projects' sources, or split
 your build logic into smaller files.
      
 
-For instance, assuming the following stucture : 
+For instance, assuming the following structure : 
 
 ```text
 foo/
