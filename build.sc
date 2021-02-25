@@ -59,7 +59,7 @@ object Deps {
   )
   object jetty {
     val version = "8.2.0.v20160908"
-    val server = ivy"org.eclipse.jetty:jetty-server:8.2.0.v20160908"
+    val server = ivy"org.eclipse.jetty:jetty-server:11.0.1"
     val websocket =  ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
   }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
