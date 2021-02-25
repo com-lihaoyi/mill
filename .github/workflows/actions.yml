@@ -39,9 +39,6 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Prepare scala-native build
-        run: sudo apt-get install libunwind8-dev libre2-dev
-
       - name: Run '${{ matrix.buildcmd }}'
         run: |
           git config --add user.name "Mill GithHub Actions"
