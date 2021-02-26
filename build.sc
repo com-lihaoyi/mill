@@ -1,14 +1,15 @@
 import $file.ci.shared
 import $file.ci.upload
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
+
 import java.nio.file.attribute.PosixFilePermission
 
-import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import coursier.maven.MavenRepository
 import mill._
 import mill.define.Target
 import mill.scalalib._
 import mill.scalalib.publish._
-import mill.modules.Jvm.createAssembly
+import mill.modules.Jvm
 
 object Deps {
 
@@ -86,24 +87,30 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
 }
 
+object Settings {
+  val pomOrg = "com.lihaoyi"
+  val githubOrg = "com-lihaoyi"
+  val githubRepo = "mill"
+  val projectUrl = "https://github.com/lihaoyi/mill"
+}
+
 trait MillPublishModule extends PublishModule{
-
-  def artifactName = "mill-" + super.artifactName()
+  override def artifactName = "mill-" + super.artifactName()
   def publishVersion = build.publishVersion()._2
-
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/mill",
+    organization = Settings.pomOrg,
+    url = Settings.projectUrl,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "mill"),
+    versionControl = VersionControl.github(Settings.githubOrg, Settings.githubRepo),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi"),
+      Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
     )
   )
-
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
+  override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
+
 trait MillApiModule extends MillPublishModule with ScalaModule {
   def scalaVersion = Deps.scalaVersion
 //  def compileIvyDeps = Agg(Deps.acyclic)
@@ -893,7 +900,7 @@ def assembly = T{
   val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
   val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
   os.move(
-    createAssembly(
+    Jvm.createAssembly(
       devRunClasspath,
       prependShellScript = launcherScript(
         shellArgs,
@@ -923,10 +930,6 @@ def launcher = T{
   os.perms.set(outputPath, "rwxrwxrwx")
   PathRef(outputPath)
 }
-
-val isMasterCommit =
-  sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
-  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master"))
 
 def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
 
@@ -958,7 +961,7 @@ def uploadToGithub(authKey: String) = T.command{
   val (releaseTag, label) = publishVersion()
 
   if (releaseTag == label){
-    scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
+    scalaj.http.Http(s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases")
       .postData(
         ujson.write(
           ujson.Obj(

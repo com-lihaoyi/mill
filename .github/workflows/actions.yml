@@ -104,8 +104,8 @@ jobs:
     strategy:
       matrix:
         buildcmd:
-          - ci/on-master.py ci/release-github.sh
-          - ci/on-master.py ci/publish-docs.sh
+          - ci/release-github.sh
+          - ci/publish-docs.sh
 
     runs-on: ubuntu-latest
 
