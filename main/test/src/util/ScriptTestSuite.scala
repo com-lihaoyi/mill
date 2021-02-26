@@ -20,7 +20,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
   val debugLog = false
   val keepGoing = false
   val systemProperties = Map[String, String]()
-  val threadCount = Try(sys.props("MILL_THREAD_COUNT").toInt).toOption
+  val threadCount = sys.props.get("MILL_THREAD_COUNT").map(_.toInt).orElse(Some(1))
   lazy val runner = new mill.main.MainRunner(
     config = ammonite.main.Config(
       ammonite.main.Config.Core(
