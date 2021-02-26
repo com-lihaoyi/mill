@@ -95,7 +95,7 @@ jobs:
         with:
           java-version: 9
 
-      - run: ci/on-master.py ci/release-maven.sh
+      - run: ci/release-maven.sh
 
   release-github-and-site:
     if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
