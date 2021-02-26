@@ -91,7 +91,7 @@ object Settings {
   val pomOrg = "com.lihaoyi"
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
-  val projectUrl = "https://github.com/lihaoyi/mill"
+  val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
 }
 
 trait MillPublishModule extends PublishModule{
@@ -978,9 +978,9 @@ def uploadToGithub(authKey: String) = T.command{
     os.copy(os.pwd / "example" / example, T.dest / example)
     os.copy(launcher().path, T.dest / example / "mill")
     os.proc('zip, "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
-    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey)
+    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey, Settings.githubOrg, Settings.githubRepo)
   }
-  upload.apply(assembly().path, releaseTag, label + "-assembly", authKey)
+  upload.apply(assembly().path, releaseTag, label + "-assembly", authKey, Settings.githubOrg, Settings.githubRepo)
 
-  upload.apply(launcher().path, releaseTag, label, authKey)
+  upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
 }
