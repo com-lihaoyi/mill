@@ -3,13 +3,13 @@ import utest._
 object MainTests extends TestSuite {
 
   def tests: Tests = Tests {
-    'vmName - {
-      'containJs - {
+    test("vmName") {
+      test("containJs") {
         assert(
           Main.vmName.contains("js")
         )
       }
-      'containScala - {
+      test("containScala") {
         assert(
           Main.vmName.contains("Scala")
         )
