@@ -5,6 +5,7 @@ import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
 import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
+import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
@@ -23,11 +24,12 @@ object HelloJSWorldTests extends TestSuite {
   }
 
   object HelloJSWorld extends TestUtil.BaseModule {
-    val scalaVersions = Seq("2.13.5", "2.12.12", "2.11.12")
-    val scalaJSVersionsAndUseECMA2015 = Seq(("1.3.1", false), ("1.3.1", true), ("1.0.1", false), ("0.6.33", false))
+    val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
+    val scalaJSVersionsAndUseECMA2015 = Seq(("1.4.0", false), ("1.3.1", true), ("1.0.1", false), ("0.6.33", false))
     val matrix = for {
       scala <- scalaVersions
       (scalaJS, useECMAScript2015) <- scalaJSVersionsAndUseECMA2015
+      if !(isScala3(scala) && scalaJS != scalaJSVersionsAndUseECMA2015.head._1)
     } yield (scala, scalaJS, useECMAScript2015)
 
     object helloJsWorld extends Cross[BuildModule](matrix:_*)
@@ -88,7 +90,7 @@ object HelloJSWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath)
-        val expectedClassfiles = compileClassfiles(outPath, scalaJSVersion)
+        val expectedClassfiles = compileClassfiles(outPath, scalaVersion, scalaJSVersion)
         assert(
           outputFiles.toSet == expectedClassfiles,
           evalCount > 0
@@ -145,7 +147,7 @@ object HelloJSWorldTests extends TestSuite {
       }
       'artifactId_06 - testArtifactId(HelloJSWorld.scalaVersions.head, "0.6.33", "hello-js-world_sjs0.6_2.13")
       'artifactId_10 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.0.1", "hello-js-world_sjs1_2.13")
-      'artifactId_1 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.3.1", "hello-js-world_sjs1_2.13")
+      'artifactId_1 - testArtifactId(HelloJSWorld.scalaVersions.head, "1.4.0", "hello-js-world_sjs1_2.13")
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -200,14 +202,14 @@ object HelloJSWorldTests extends TestSuite {
 
     'test - {
       val cached = false
-      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
-      testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached))
+      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = v => v.startsWith("2.11.") || isScala3(v))
+      testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached), skipScala = isScala3)
     }
 
     'testCached - {
       val cached = false
-      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
-      testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached))
+      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = v => v.startsWith("2.11.") || isScala3(v))
+      testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached), skipScala = isScala3)
     }
 
     def checkRun(scalaVersion: String, scalaJSVersion: String, useECMAScript2015: Boolean): Unit = {
@@ -233,26 +235,28 @@ object HelloJSWorldTests extends TestSuite {
     }
   }
 
-  def compileClassfiles(parentDir: os.Path, scalaJSVersion: String) = {
+  def compileClassfiles(parentDir: os.Path, scalaVersion: String, scalaJSVersion: String) = {
     val inAllVersions = Set(
       parentDir / "ArgsParser$.class",
       parentDir / "ArgsParser$.sjsir",
       parentDir / "ArgsParser.class",
       parentDir / "Main.class",
       parentDir / "Main$.class",
-      parentDir / "Main$delayedInit$body.class",
       parentDir / "Main$.sjsir",
+    )
+    val scalaJSVersionSpecific = if(scalaJSVersion.startsWith("1.")) Set(
+      parentDir / "ArgsParser.sjsir",
+      parentDir / "Main.sjsir"
+    ) else Set.empty
+    val scalaVersionSpecific = if(isScala3(scalaVersion)) Set(
+      parentDir / "ArgsParser.tasty",
+      parentDir / "Main.tasty"
+    ) else Set(
+      parentDir / "Main$delayedInit$body.class",
       parentDir / "Main$delayedInit$body.sjsir"
     )
 
-    if (scalaJSVersion.startsWith("1.")) {
-      inAllVersions ++ Set(
-        parentDir / "ArgsParser.sjsir",
-        parentDir / "Main.sjsir"
-      )
-    } else {
-      inAllVersions
-    }
+    inAllVersions ++ scalaJSVersionSpecific ++ scalaVersionSpecific
   }
 
   def prepareWorkspace(): Unit = {
