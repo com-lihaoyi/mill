@@ -4,7 +4,7 @@ The modules (aka plugins) in this section are developed/maintained outside the m
 Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated.
 
-If you develop or maintain a mill plugin, please create a [pull request](https://github.com/lihaoyi/mill/pulls) to get your plugin listed here.
+If you develop or maintain a mill plugin, please create a [pull request](https://github.com/com-lihaoyi/mill/pulls) to get your plugin listed here.
 
 [comment]: # (Please keep list of plugins in alphabetical order)
 

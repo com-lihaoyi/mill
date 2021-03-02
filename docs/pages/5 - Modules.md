@@ -60,7 +60,7 @@ typical Scala module.
 
 When defining your own module abstractions, in general you should use `trait`s
 and not `class`es, except in the case of
-[Cross Builds](http://www.lihaoyi.com/mill/page/cross-builds.html).
+[Cross Builds](https://com-lihaoyi.github.io/mill/page/cross-builds.html).
 
 ## Overriding Targets
 
