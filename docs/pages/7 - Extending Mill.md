@@ -160,7 +160,7 @@ For more information, see Ammonite's
 
 ## Evaluator Commands (experimental)
 
-_Evaluator Command are experimental and suspected to change. See [issue #502](https://github.com/lihaoyi/mill/issues/502) for details._
+_Evaluator Command are experimental and suspected to change. See [issue #502](https://github.com/com-lihaoyi/mill/issues/502) for details._
 
 You can define a command that takes in the current `Evaluator` as an argument,
 which you can use to inspect the entire build, or run arbitrary tasks. For
@@ -178,6 +178,6 @@ def idea(ev: Evaluator) = T.command {
 ```
 
 Many built-in tools are implemented as custom evaluator commands:
-[all](http://www.lihaoyi.com/mill/#all), [inspect](http://www.lihaoyi.com/mill/#inspect),
-[resolve](http://www.lihaoyi.com/mill/#resolve), [show](http://www.lihaoyi.com/mill/#show).
+[all](https://com-lihaoyi.github.io/mill/#all), [inspect](https://com-lihaoyi.github.io/mill/#inspect),
+[resolve](https://com-lihaoyi.github.io/mill/#resolve), [show](https://com-lihaoyi.github.io/mill/#show).
 If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.
