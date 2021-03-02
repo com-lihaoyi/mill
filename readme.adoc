@@ -53,7 +53,7 @@ and Mill in particular
 The remainder of this readme is developer-documentation targeted at people who
 wish to work on Mill's own codebase. The developer docs assume you have read
 through the user-facing documentation linked above. It's also worth spending a
-few minutes reading the following blog posts to get a sense of Mill's design &amp;
+few minutes reading the following blog posts to get a sense of Mill's design &
 motivation:
 
 * http://www.lihaoyi.com/post/SowhatswrongwithSBT.html["So, what's wrong with SBT?"]
@@ -148,7 +148,7 @@ ci/publish-local.sh
 
 This creates a standalone assembly at `~/mill-release` you can use, which
 references jars published locally in your `~/.ivy2/local` cache. You can then
-use this standalone assembly to build &amp; re-build your current Mill checkout
+use this standalone assembly to build & re-build your current Mill checkout
 without worrying about stomping over compiled code that the assembly is using.
 
 This assemby is design to work on bash, bash-like shells and Windows Cmd.
@@ -684,7 +684,7 @@ and the {link-compare}/0.5.0\...0.5.1[list of commits]._
 
 * Support for ivy version-pinning via `ivy"...".forceVersion()`
 
-* Support for ivy excludes via `ivy&quot;...&quot;.exclude()` ({link-pr}/254[#254])
+* Support for ivy excludes via `ivy"...".exclude()` ({link-pr}/254[#254])
 
 * Make `ivyDepsTree` properly handle transitive dependencies ({link-issue}/226[#226])
 
