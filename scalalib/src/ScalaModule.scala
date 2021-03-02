@@ -235,7 +235,7 @@ trait ScalaModule extends JavaModule { outer =>
           "-d", javadocDir.toNIO.toString,
           "-siteroot", combinedStaticDir.toNIO.toString
         ),
-        Seq(jar()).map(_.path.toString), // scaladoc3 uses tasty to generate docs
+        os.walk(compile().classes.path).filter(_.ext == "tasty").map(_.toString),
         javadocDir
       )
     } else { // scaladoc 2
