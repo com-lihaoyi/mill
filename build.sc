@@ -1,10 +1,12 @@
 import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
 
 import java.nio.file.attribute.PosixFilePermission
 
 import coursier.maven.MavenRepository
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.define.Target
 import mill.scalalib._
@@ -96,7 +98,7 @@ object Settings {
 
 trait MillPublishModule extends PublishModule{
   override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = build.publishVersion()._2
+  def publishVersion = VcsVersion.vcsState().format()
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
@@ -154,7 +156,7 @@ object main extends MillModule {
     Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
   def testArgs = Seq(
-    "-DMILL_VERSION=" + build.publishVersion()._2,
+    "-DMILL_VERSION=" + publishVersion(),
   )
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
@@ -663,7 +665,7 @@ object integration extends MillModule {
     scalanativelib.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
-      "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_VERSION=" + publishVersion(),
       "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
@@ -778,7 +780,7 @@ object dev extends MillModule {
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_VERSION=" + build.publishVersion()._2,
+        "-DMILL_VERSION=" + publishVersion(),
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
@@ -888,7 +890,7 @@ object docs extends Module {
 
 def assembly = T{
 
-  val version = publishVersion()._2
+  val version = VcsVersion.vcsState().format()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
@@ -924,41 +926,17 @@ def launcher = T{
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + publishVersion()._2
+        millBootstrapGrepPrefix + VcsVersion.vcsState().format()
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
   PathRef(outputPath)
 }
 
-def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
-
-def publishVersion = T.input{
-  val tag =
-    try Option(
-      os.proc('git, 'describe, "--exact-match", "--tags", "--always", gitHead()).call().out.trim
-    )
-    catch{case e => None}
-
-  val dirtySuffix = os.proc('git, 'diff).call().out.trim match{
-    case "" => ""
-    case s => "-DIRTY" + Integer.toHexString(s.hashCode)
-  }
-
-  tag match{
-    case Some(t) => (t, t)
-    case None =>
-      val latestTaggedVersion = os.proc('git, 'describe, "--abbrev=0", "--always", "--tags").call().out.trim
-
-      val commitsSinceLastTag =
-        os.proc('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count").call().out.trim.toInt
-
-      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
-  }
-}
-
 def uploadToGithub(authKey: String) = T.command{
-  val (releaseTag, label) = publishVersion()
+  val vcsState = VcsVersion.vcsState()
+  val label = vcsState.format()
+  val releaseTag = vcsState.lastTag.getOrElse(sys.error("Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."))
 
   if (releaseTag == label){
     scalaj.http.Http(s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases")
