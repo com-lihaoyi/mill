@@ -370,7 +370,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
     // Hack so that Intellij does not complain about unresolved magic
     // imports in build.sc when in fact they are resolved
     def sbtLibraryNameFromPom(pomPath: os.Path): String = {
-      val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project).right.get
+      val pom = xmlParseDom(os.read(pomPath)).flatMap(Pom.project)
+        .getOrElse(throw new RuntimeException(s"Could not parse pom file: ${pomPath}"))
 
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
@@ -387,7 +388,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
     def libraryNames(resolvedJar: ResolvedLibrary): Seq[String] =
       resolvedJar match {
-        case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) =>
+        case CoursierResolved(path, pom, _) if buildDepsPaths.contains(path) && pom.toIO.exists() =>
           Seq(sbtLibraryNameFromPom(pom), pathToLibName(path))
         case CoursierResolved(path, _, _) =>
           Seq(pathToLibName(path))
