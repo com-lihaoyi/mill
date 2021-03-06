@@ -313,26 +313,42 @@ case class GenIdeaImpl(evaluator: Evaluator,
       .map(p => p -> pathShortLibNameDuplicate.getOrElse(p, p.last))
       .toMap
 
+    type ArtifactAndVersion = (String, String)
+
+    def guessJarArtifactNameAndVersionFromPath(
+        path: Path): Option[ArtifactAndVersion] =
+      Try {
+        // in a local maven repo or a local Coursier repo,
+        // the dir-layout reflects the jar coordinates
+        val fileName = path.last
+        val parentDir = (path / os.up).last
+        val grandParentDir = (path / os.up / os.up).last
+        if (fileName.startsWith(s"${grandParentDir}-${parentDir}")) {
+          // could be a maven or coursier repo
+          Some((grandParentDir, parentDir))
+        } else {
+          None
+        }
+      }.toOption.flatten
+
     // Tries to group jars with their poms and sources.
     def toResolvedJar(path: os.Path): Option[ResolvedLibrary] = {
-      val inCoursierCache =
-        path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
+      val guessedArtifactVersion = guessJarArtifactNameAndVersionFromPath(path)
+      val inCoursierCache = path.startsWith(os.Path(coursier.paths.CoursierPaths.cacheDirectory()))
       val inIvyLikeLocal = (path / os.up).last == "jars"
-      def inMavenLikeLocal =
-        Try {
-          val version = path / os.up
-          val artifact = version / os.up
-          path.last.startsWith(s"${artifact.last}-${version.last}")
-        }.getOrElse(false)
+      def inMavenLikeLocal = guessedArtifactVersion.isDefined
       val isSource = path.last.endsWith("sources.jar")
       val isPom = path.ext == "pom"
+      val baseName = guessedArtifactVersion
+        .map(av => s"${av._1}-${av._2}")
+        .getOrElse(path.baseName)
+
       if (inCoursierCache && (isSource || isPom)) {
         // Remove sources and pom as they'll be recovered from the jar path
         None
       } else if (inCoursierCache && path.ext == "jar") {
-        val withoutExt = path.last.dropRight(path.ext.length + 1)
-        val pom = path / os.up / s"$withoutExt.pom"
-        val sources = Some(path / os.up / s"$withoutExt-sources.jar")
+        val pom = path / os.up / s"$baseName.pom"
+        val sources = Some(path / os.up / s"$baseName-sources.jar")
           .filter(_.toIO.exists())
         Some(CoursierResolved(path, pom, sources))
       } else if (inIvyLikeLocal && path.ext == "jar") {
@@ -343,10 +359,12 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Some(WithSourcesResolved(path, sources))
       } else if (inMavenLikeLocal) {
         // assume some maven-like dir structure
-        val sources = Some(path / os.up / s"${path.baseName}-sources.jar")
+        val sources = Some(path / os.up / s"${baseName}-sources.jar")
           .filter(_.toIO.exists())
         Some(WithSourcesResolved(path, sources))
-      } else Some(OtherResolved(path))
+      } else {
+        Some(OtherResolved(path))
+      }
     }
 
     // Hack so that Intellij does not complain about unresolved magic
@@ -434,7 +452,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
                 name = name,
                 path = path,
                 sources = sources,
-                scalaCompilerClassPath = librariesProperties.getOrElse(path, Loose.Agg.empty))
+                scalaCompilerClassPath =
+                  librariesProperties.getOrElse(path, Loose.Agg.empty))
             )
       }
 
