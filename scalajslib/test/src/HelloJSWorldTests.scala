@@ -54,7 +54,7 @@ object HelloJSWorldTests extends TestSuite {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.7.5"
+          ivy"com.lihaoyi::utest::0.7.7"
         )
       }
     }
@@ -201,7 +201,7 @@ object HelloJSWorldTests extends TestSuite {
 
     'test - {
       val cached = false
-      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = v => v.startsWith("2.11.") || isScala3(v))
+      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
       testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached), skipScala = isScala3)
     }
 
