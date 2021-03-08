@@ -1,14 +1,17 @@
 import $file.ci.shared
 import $file.ci.upload
+import $ivy.`org.scalaj::scalaj-http:2.4.2`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+
 import java.nio.file.attribute.PosixFilePermission
 
-import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import coursier.maven.MavenRepository
+import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.define.Target
 import mill.scalalib._
 import mill.scalalib.publish._
-import mill.modules.Jvm.createAssembly
+import mill.modules.Jvm
 
 object Deps {
 
@@ -39,92 +42,102 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-4-88785969"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-36-1cce53f3"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.8"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.9"
+  val coursier = ivy"io.get-coursier::coursier:2.0.12"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
-  val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.0"
+  val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
   val ipcsocketExcludingJna = ipcsocket.exclude(
     "net.java.dev.jna" -> "jna",
     "net.java.dev.jna" -> "jna-platform"
   )
+  object jetty {
+    val version = "8.2.0.v20160908"
+    val server = ivy"org.eclipse.jetty:jetty-server:${version}"
+    val websocket =  ivy"org.eclipse.jetty:jetty-websocket:${version}"
+  }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jettyServer = ivy"org.eclipse.jetty:jetty-server:8.2.0.v20160908"
-  val jettyWebsocket =  ivy"org.eclipse.jetty:jetty-websocket:8.2.0.v20160908"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
 
-  val jna = ivy"net.java.dev.jna:jna:5.6.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.6.0"
+  val jna = ivy"net.java.dev.jna:jna:5.7.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.7.0"
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.2"
-  val testng = ivy"org.testng:testng:7.3.0"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.3"
+  val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.2"
-  val upickle = ivy"com.lihaoyi::upickle:1.2.3"
-  val utest = ivy"com.lihaoyi::utest:0.7.7"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.4"
+  val upickle = ivy"com.lihaoyi::upickle:1.3.0"
+  val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
 }
 
+object Settings {
+  val pomOrg = "com.lihaoyi"
+  val githubOrg = "com-lihaoyi"
+  val githubRepo = "mill"
+  val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+}
+
 trait MillPublishModule extends PublishModule{
-
-  def artifactName = "mill-" + super.artifactName()
-  def publishVersion = build.publishVersion()._2
-
+  override def artifactName = "mill-" + super.artifactName()
+  def publishVersion = VcsVersion.vcsState().format()
   def pomSettings = PomSettings(
     description = artifactName(),
-    organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/mill",
+    organization = Settings.pomOrg,
+    url = Settings.projectUrl,
     licenses = Seq(License.MIT),
-    versionControl = VersionControl.github("lihaoyi", "mill"),
+    versionControl = VersionControl.github(Settings.githubOrg, Settings.githubRepo),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi"),
+      Developer("lefou", "Tobias Roeser", "https://github.com/lefou")
     )
   )
-
-  def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
+  override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
+
 trait MillApiModule extends MillPublishModule with ScalaModule {
   def scalaVersion = Deps.scalaVersion
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-  def repositories = super.repositories ++ Seq(
-    MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
+    )
+  }
 }
 trait MillModule extends MillApiModule { outer =>
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
   def testArgs = T{ Seq.empty[String] }
+  def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
 
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
-    def repositories = super.repositories ++ Seq(
-      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-    )
     def forkArgs = T{ testArgs() }
     def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
-    def ivyDeps = Agg(Deps.utest)
+    override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
     def testFrameworks = Seq("mill.UTestFramework")
     def scalacPluginClasspath =
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -143,7 +156,7 @@ object main extends MillModule {
     Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
   def testArgs = Seq(
-    "-DMILL_VERSION=" + build.publishVersion()._2,
+    "-DMILL_VERSION=" + publishVersion(),
   )
   val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
@@ -267,6 +280,7 @@ object scalalib extends MillModule {
     super.generatedSources() ++ Seq(PathRef(dest))
   }
 
+  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T{
     val genIdeaArgs =
       genTask(main.moduledefs)() ++
@@ -359,8 +373,8 @@ object scalajslib extends MillModule {
          |/** Generated by mill at built-time. */
          |object ${className} {
          |  object Deps {
-         |    val jettyWebsocket = "${formatDep(Deps.jettyWebsocket)}"
-         |    val jettyServer = "${formatDep(Deps.jettyServer)}"
+         |    val jettyWebsocket = "${formatDep(Deps.jetty.websocket)}"
+         |    val jettyServer = "${formatDep(Deps.jetty.server)}"
          |    val javaxServlet = "${formatDep(Deps.javaxServlet)}"
          |    val scalajsEnvNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvNodejs)}"
          |    val scalajsEnvJsdomNodejs = "${formatDep(Deps.Scalajs_1.scalajsEnvJsdomNodejs)}"
@@ -375,20 +389,20 @@ object scalajslib extends MillModule {
   override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
 
   object api extends MillApiModule {
-    def moduleDeps = Seq(main.api)
-    def ivyDeps = Agg(Deps.sbtTestInterface)
+    override def moduleDeps = Seq(main.api)
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.6", "1")
   class WorkerModule(scalajsWorkerVersion: String) extends MillApiModule{
-    def moduleDeps = Seq(scalajslib.api)
-    def ivyDeps = scalajsWorkerVersion match {
+    override def moduleDeps = Seq(scalajslib.api)
+    override def ivyDeps = scalajsWorkerVersion match {
       case "0.6" =>
         Agg(
           Deps.Scalajs_0_6.scalajsTools,
           Deps.Scalajs_0_6.scalajsSbtTestAdapter,
           Deps.Scalajs_0_6.scalajsJsEnvs,
-          Deps.jettyWebsocket,
-          Deps.jettyServer,
+          Deps.jetty.websocket,
+          Deps.jetty.server,
           Deps.javaxServlet
         )
       case "1" =>
@@ -398,8 +412,8 @@ object scalajslib extends MillModule {
           Deps.Scalajs_1.scalajsEnvNodejs,
           Deps.Scalajs_1.scalajsEnvJsdomNodejs,
           Deps.Scalajs_1.scalajsEnvPhantomjs,
-          Deps.jettyWebsocket,
-          Deps.jettyServer,
+          Deps.jetty.websocket,
+          Deps.jetty.server,
           Deps.javaxServlet
         )
     }
@@ -651,7 +665,7 @@ object integration extends MillModule {
     scalanativelib.testArgs() ++
     Seq(
       "-DMILL_TESTNG=" + contrib.testng.runClasspath().map(_.path).mkString(","),
-      "-DMILL_VERSION=" + build.publishVersion()._2,
+      "-DMILL_VERSION=" + publishVersion(),
       "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
       "-Djna.nosys=true"
     ) ++
@@ -766,7 +780,7 @@ object dev extends MillModule {
       // https://github.com/sbt/sbt/blame/6718803ee6023ab041b045a6988fafcfae9d15b5/main/src/main/scala/sbt/Main.scala#L130
       Seq(
         "-Djna.nosys=true",
-        "-DMILL_VERSION=" + build.publishVersion()._2,
+        "-DMILL_VERSION=" + publishVersion(),
         "-DMILL_CLASSPATH=" + runClasspath().map(_.path.toString).mkString(",")
       )
     ).distinct
@@ -834,7 +848,7 @@ object dev extends MillModule {
       case wd0 +: rest =>
         val wd = os.Path(wd0, os.pwd)
         os.makeDir.all(wd)
-        mill.modules.Jvm.baseInteractiveSubprocess(
+        mill.modules.Jvm.runSubprocess(
           Seq(launcher().path.toString) ++ rest,
           forkEnv(),
           workingDir = wd
@@ -876,7 +890,7 @@ object docs extends Module {
 
 def assembly = T{
 
-  val version = publishVersion()._2
+  val version = VcsVersion.vcsState().format()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
@@ -888,7 +902,7 @@ def assembly = T{
   val shellArgs = Seq("-DMILL_CLASSPATH=$0") ++ commonArgs
   val cmdArgs = Seq(""""-DMILL_CLASSPATH=%~dpnx0"""") ++ commonArgs
   os.move(
-    createAssembly(
+    Jvm.createAssembly(
       devRunClasspath,
       prependShellScript = launcherScript(
         shellArgs,
@@ -912,48 +926,20 @@ def launcher = T{
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + publishVersion()._2
+        millBootstrapGrepPrefix + VcsVersion.vcsState().format()
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
   PathRef(outputPath)
 }
 
-val isMasterCommit =
-  sys.env.get("GITHUB_REPOSITORY") == Some("lihaoyi/Ammonite") &&
-  sys.env.get("GITHUB_REF").exists(x => x.endsWith("/master"))
-
-def gitHead = T.input{ os.proc('git, "rev-parse", "HEAD").call().out.trim }
-
-def publishVersion = T.input{
-  val tag =
-    try Option(
-      os.proc('git, 'describe, "--exact-match", "--tags", "--always", gitHead()).call().out.trim
-    )
-    catch{case e => None}
-
-  val dirtySuffix = os.proc('git, 'diff).call().out.trim match{
-    case "" => ""
-    case s => "-DIRTY" + Integer.toHexString(s.hashCode)
-  }
-
-  tag match{
-    case Some(t) => (t, t)
-    case None =>
-      val latestTaggedVersion = os.proc('git, 'describe, "--abbrev=0", "--always", "--tags").call().out.trim
-
-      val commitsSinceLastTag =
-        os.proc('git, "rev-list", gitHead(), "--not", latestTaggedVersion, "--count").call().out.trim.toInt
-
-      (latestTaggedVersion, s"$latestTaggedVersion-$commitsSinceLastTag-${gitHead().take(6)}$dirtySuffix")
-  }
-}
-
 def uploadToGithub(authKey: String) = T.command{
-  val (releaseTag, label) = publishVersion()
+  val vcsState = VcsVersion.vcsState()
+  val label = vcsState.format()
+  val releaseTag = vcsState.lastTag.getOrElse(sys.error("Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."))
 
   if (releaseTag == label){
-    scalaj.http.Http("https://api.github.com/repos/lihaoyi/mill/releases")
+    scalaj.http.Http(s"https://api.github.com/repos/${Settings.githubOrg}/${Settings.githubRepo}/releases")
       .postData(
         ujson.write(
           ujson.Obj(
@@ -970,9 +956,9 @@ def uploadToGithub(authKey: String) = T.command{
     os.copy(os.pwd / "example" / example, T.dest / example)
     os.copy(launcher().path, T.dest / example / "mill")
     os.proc('zip, "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
-    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey)
+    upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey, Settings.githubOrg, Settings.githubRepo)
   }
-  upload.apply(assembly().path, releaseTag, label + "-assembly", authKey)
+  upload.apply(assembly().path, releaseTag, label + "-assembly", authKey, Settings.githubOrg, Settings.githubRepo)
 
-  upload.apply(launcher().path, releaseTag, label, authKey)
+  upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
 }

@@ -36,14 +36,12 @@ trait JsonFormatters {
       "fileName" -> ujson.Arr(Option(ste.getFileName()).map(ujson.Str(_)).toSeq :_*),
       "lineNumber" -> ujson.Num(ste.getLineNumber)
     ),
-    {
-      case json: ujson.Obj =>
+    json =>
         new StackTraceElement(
           json("declaringClass").str.toString,
           json("methodName").str.toString,
           json("fileName").arr.headOption.map(_.str.toString).orNull,
           json("lineNumber").num.toInt
         )
-    }
   )
 }

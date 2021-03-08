@@ -201,7 +201,7 @@ public class MillClientMain {
         if (serverInit && Util.isWindows) Thread.sleep(1000);
 
         Socket ioSocket = null;
-
+        Throwable socketThrowable = null;
         long retryStart = System.currentTimeMillis();
 
         while(ioSocket == null && System.currentTimeMillis() - retryStart < 5000){
@@ -210,11 +210,12 @@ public class MillClientMain {
                         new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
             }catch(Throwable e){
+                socketThrowable = e;
                 Thread.sleep(1);
             }
         }
         if (ioSocket == null){
-            throw new Exception("Failed to connect to server");
+            throw new Exception("Failed to connect to server", socketThrowable);
         }
 
         InputStream outErr = ioSocket.getInputStream();

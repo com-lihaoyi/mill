@@ -23,7 +23,8 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
 
         s"$workspaceSlug/idea/modules.xml" -> workspacePath / ".idea" / "modules.xml",
         s"$workspaceSlug/idea/misc.xml" -> workspacePath / ".idea" / "misc.xml",
-        s"$workspaceSlug/idea/compiler.xml" -> workspacePath / ".idea" / "compiler.xml"
+        s"$workspaceSlug/idea/compiler.xml" -> workspacePath / ".idea" / "compiler.xml",
+        s"$workspaceSlug/idea/runConfigurations/testrun.xml" -> workspacePath / ".idea" / "runConfigurations" / "testrun.xml"
 
       ).foreach { case (resource, generated) =>
           val resourceString = scala.io.Source.fromResource(resource).getLines().mkString("\n")

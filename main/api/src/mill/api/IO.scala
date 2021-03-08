@@ -11,7 +11,7 @@ object IO extends StreamSupport {
   /**
    * Unpacks the given `src` path into the context specific destination directory.
    * @param src The ZIP file
-   * @param dest The relative ouput folder under the context specifix destination directory.
+   * @param dest The relative output folder under the context specifix destination directory.
    * @param ctx The target context
    * @return The [[PathRef]] to the unpacked folder.
    */

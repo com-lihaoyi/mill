@@ -46,7 +46,7 @@ For a more more complex, real-world example of a Java build, check out our
 example build for the popular [Caffeine](https://github.com/ben-manes/caffeine)
 project:
 
-- [Example Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc)
+- [Example Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc)
 
 ### Cross Scala-Version Modules
 
@@ -267,7 +267,7 @@ object foo extends ScalaModule with PublishModule {
   def pomSettings = PomSettings(
     description = "My first library",
     organization = "com.lihaoyi",
-    url = "https://github.com/lihaoyi/mill",
+    url = "https://github.com/com-lihaoyi/mill",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "mill"),
     developers = Seq(
@@ -281,7 +281,7 @@ You can make a module publishable by extending `PublishModule`.
 
 `PublishModule` then needs you to define a `publishVersion` and `pomSettings`.
 The `artifactName` defaults to the name of your module (in this case `foo`) but
-can be overriden. The `organization` is defined in `pomSettings`.
+can be overridden. The `organization` is defined in `pomSettings`.
 
 Once you've mixed in `PublishModule`, you can publish your libraries to maven
 central via:
@@ -347,7 +347,7 @@ integration tests and examples:
 
 ### Acyclic
 
-- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1)
+- [Mill Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1)
 
 A small single-module cross-build, with few sources, minimal dependencies, and
 wired up for publishing to Maven Central.
@@ -355,7 +355,7 @@ wired up for publishing to Maven Central.
 
 ### Better-Files
 
-- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1)
+- [Mill Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1)
 
 A collection of small modules compiled for a single Scala version.
 
@@ -364,21 +364,21 @@ compiler flags, and download artifacts as part of the build.
 
 ### Jawn
 
-- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1)
+- [Mill Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1)
 
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
 ### Upickle
 
-- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
+- [Mill Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1)
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
 versions of Scala, including the setup necessary for publishing to Maven Central.
 
 ### Ammonite
 
-- [Mill Build](https://github.com/lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1)
+- [Mill Build](https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1)
 
 A relatively complex build with numerous submodules, some cross-built across
 Scala major versions while others are cross-built against Scala minor versions.

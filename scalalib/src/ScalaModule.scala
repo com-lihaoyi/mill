@@ -6,7 +6,7 @@ import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{ isDotty, isDottyOrScala3, isScala3 }
+import mill.scalalib.api.Util.{ isDotty, isDottyOrScala3, isScala3, isScala3Milestone }
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
@@ -166,13 +166,32 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def docJar = T {
-    val outDir = T.dest
+    val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
+    val compileCp = Seq(
+      "-classpath", compileClasspath().filter(_.path.ext != "pom").map(_.path).mkString(java.io.File.pathSeparator)
+    )
 
-    val javadocDir = outDir / 'javadoc
-    os.makeDir.all(javadocDir)
+    def packageWithZinc(options: Seq[String], files: Seq[String], javadocDir: os.Path) = {
+      if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
+      else {
+        zincWorker.worker().docJar(
+          scalaVersion(),
+          scalaOrganization(),
+          scalaDocClasspath().map(_.path),
+          scalacPluginClasspath().map(_.path),
+          files ++ options ++ pluginOptions ++ compileCp ++ scalaDocOptions()
+        ) match{
+          case true =>
+            Result.Success(createJar(Agg(javadocDir))(T.dest))
+          case false => Result.Failure("docJar generation failed")
+        }
+      }
+    }
 
-    if (isDottyOrScala3(scalaVersion())) {
-      // merge all docSources into one directory by copying all children
+    if (isDotty(scalaVersion()) || isScala3Milestone(scalaVersion())) { // dottydoc
+      val javadocDir =  T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
+
       for {
         ref <- docSources()
         docSource = ref.path
@@ -183,42 +202,53 @@ trait ScalaModule extends JavaModule { outer =>
       } {
         os.copy.over(child, javadocDir / (child.subRelativeTo(docSource)), createFolders = true)
       }
-    }
+      packageWithZinc(
+        Seq("-siteroot", javadocDir.toNIO.toString),
+        allSourceFiles().map(_.path.toString),
+        javadocDir / "_site"
+      )
 
-    val files = allSourceFiles().map(_.path.toString)
+    } else if (isScala3(scalaVersion())) { // scaladoc 3
+      val javadocDir =  T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
 
-    val outputOptions =
-      if (isDottyOrScala3(scalaVersion()))
-        Seq("-siteroot", javadocDir.toNIO.toString)
-      else
-        Seq("-d", javadocDir.toNIO.toString)
+      // Scaladoc 3 allows including static files in documentation, but it only
+      // supports one directory. Hence, to allow users to generate files
+      // dynamically, we consolidate all files from all `docSources` into one
+      // directory.
+      val combinedStaticDir = T.dest / "static"
+      os.makeDir.all(combinedStaticDir)
 
-    val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
-    val compileCp = compileClasspath().filter(_.path.ext != "pom").map(_.path)
-    val options = Seq(
-      "-classpath", compileCp.mkString(java.io.File.pathSeparator)
-    ) ++
-      outputOptions ++
-      pluginOptions ++
-      scalaDocOptions() // user options come last, so they can override any other settings
-
-    if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(outDir))
-    else {
-      zincWorker.worker().docJar(
-        scalaVersion(),
-        scalaOrganization(),
-        scalaDocClasspath().map(_.path),
-        scalacPluginClasspath().map(_.path),
-        files ++ options
-      ) match{
-        case true =>
-          val inputPath =
-            if (isDottyOrScala3(scalaVersion())) javadocDir / '_site
-            else javadocDir
-          Result.Success(createJar(Agg(inputPath))(outDir))
-        case false => Result.Failure("docJar generation failed")
+      for {
+        ref <- docSources()
+        docSource = ref.path
+        if os.exists(docSource) && os.isDir(docSource)
+        children = os.walk(docSource)
+        child <- children
+        if os.isFile(child)
+      } {
+        os.copy.over(child, combinedStaticDir / (child.subRelativeTo(docSource)), createFolders = true)
       }
+
+      packageWithZinc(
+        Seq(
+          "-d", javadocDir.toNIO.toString,
+          "-siteroot", combinedStaticDir.toNIO.toString
+        ),
+        os.walk(compile().classes.path).filter(_.ext == "tasty").map(_.toString),
+        javadocDir
+      )
+    } else { // scaladoc 2
+      val javadocDir = T.dest / "javadoc"
+      os.makeDir.all(javadocDir)
+
+      packageWithZinc(
+        Seq("-d", javadocDir.toNIO.toString),
+        allSourceFiles().map(_.path.toString),
+        javadocDir
+      )
     }
+
   }
 
   /**

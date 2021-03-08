@@ -112,7 +112,7 @@ trait Proguard extends ScalaModule {
   /** The default `entrypoint` to proguard.
    *
    * Defaults to the `main` method of `finalMainClass`.
-   * Can be overriden to specify a different entrypoint,
+   * Can be overridden to specify a different entrypoint,
    * or additional entrypoints can be specified with `additionalOptions`. */
   def entryPoint: T[String] = T {
     s"""|-keep public class ${finalMainClass()} {
