@@ -163,13 +163,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     }
   }
   override def scalaLibraryIvyDeps = T{
-    if(isScala3(scalaVersion())) {
-      super.scalaLibraryIvyDeps() ++ Seq(
-        ivy"org.scala-js:scalajs-library_2.13:${scalaJSVersion()}"
-      )
-    } else {
-      Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
-    }
+    super.scalaLibraryIvyDeps() ++ Seq(
+      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
+    )
   }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
@@ -196,17 +192,10 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       val bridgeOrInterface =
         if (mill.scalalib.api.Util.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
         else "interface"
-      if(isScala3(scalaVersion())) {
-        Loose.Agg(
-          ivy"org.scala-js:scalajs-library_2.13:${scalaJSVersion()}",
-          ivy"org.scala-js:scalajs-test-bridge_2.13:${scalaJSVersion()}"
-        )
-      } else {
-        Loose.Agg(
-          ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-test-$bridgeOrInterface:${scalaJSVersion()}"
-        )
-      }
+      Loose.Agg(
+        ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
+        ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
+      ).map(_.withDottyCompat(scalaVersion()))
     })
   }
 
