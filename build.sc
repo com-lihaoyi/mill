@@ -96,9 +96,11 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
 }
 
+def millVersion = T{ VcsVersion.vcsState().format() }
+
 trait MillPublishModule extends PublishModule{
   override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = VcsVersion.vcsState().format()
+  def publishVersion = millVersion()
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
@@ -890,7 +892,7 @@ object docs extends Module {
 
 def assembly = T{
 
-  val version = VcsVersion.vcsState().format()
+  val version = millVersion()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
@@ -926,7 +928,7 @@ def launcher = T{
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + VcsVersion.vcsState().format()
+        millBootstrapGrepPrefix + millVersion()
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
@@ -936,6 +938,7 @@ def launcher = T{
 def uploadToGithub(authKey: String) = T.command{
   val vcsState = VcsVersion.vcsState()
   val label = vcsState.format()
+  if(label != millVersion()) sys.error("Modified mill version detected, aborting upload")
   val releaseTag = vcsState.lastTag.getOrElse(sys.error("Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."))
 
   if (releaseTag == label){
