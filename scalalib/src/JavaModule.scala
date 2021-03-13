@@ -5,7 +5,7 @@ import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 
 import coursier.Repository
-import mill.define.{Command, Task, TaskModule}
+import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
@@ -386,23 +386,25 @@ trait JavaModule extends mill.Module
   }
 
   /**
-    * The source jar, containing only source code for publishing to Maven Central
-    */
-  def sourceJar = T {
-    createJar((allSources() ++ resources()).map(_.path).filter(os.exists), manifest())
+   * The source jar, containing only source code for publishing to Maven Central
+   */
+  def sourceJar: T[PathRef] = T {
+    createJar(
+      (allSources() ++ resources()).map(_.path).filter(os.exists),
+      manifest())
   }
 
   /**
-    * Any command-line parameters you want to pass to the forked JVM under `run`,
-    * `test` or `repl`
-    */
-  def forkArgs = T{ Seq.empty[String] }
+   * Any command-line parameters you want to pass to the forked JVM under `run`,
+   * `test` or `repl`
+   */
+  def forkArgs: T[Seq[String]] = T { Seq.empty[String] }
 
   /**
-    * Any environment variables you want to pass to the forked JVM under `run`,
-    * `test` or `repl`
-    */
-  def forkEnv = T{ sys.env.toMap }
+   * Any environment variables you want to pass to the forked JVM under `run`,
+   * `test` or `repl`
+   */
+  def forkEnv: T[Map[String, String]] = T { sys.env.toMap }
 
   /**
     * Builds a command-line "launcher" file that can be used to run this module's
