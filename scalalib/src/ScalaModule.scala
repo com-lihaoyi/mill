@@ -1,7 +1,7 @@
 package mill
 package scalalib
 
-import coursier.Repository
+import coursier.{Dependency, Repository}
 import mill.define.{Command, Target, Task, TaskModule}
 import mill.eval.{PathRef, Result}
 import mill.modules.Jvm
@@ -22,8 +22,8 @@ import mill.api.DummyInputStream
 trait ScalaModule extends JavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
-    override def scalaOrganization = outer.scalaOrganization()
-    def scalaVersion = outer.scalaVersion()
+    override def scalaOrganization: T[String] = outer.scalaOrganization()
+    override def scalaVersion: T[String] = outer.scalaVersion()
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
@@ -44,7 +44,7 @@ trait ScalaModule extends JavaModule { outer =>
   /**
    * All individual source files fed into the Zinc compiler.
    */
-  override def allSourceFiles = T {
+  override def allSourceFiles: T[Seq[PathRef]] = T {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
     for {
       root <- allSources()
@@ -61,22 +61,23 @@ trait ScalaModule extends JavaModule { outer =>
    */
   def scalaVersion: T[String]
 
-  override def mapDependencies = T.task { d: coursier.Dependency =>
-    val artifacts =
-      if (isDotty(scalaVersion()))
-        Set("dotty-library", "dotty-compiler")
-      else if (isScala3(scalaVersion()))
-        Set("scala3-library", "scala3-compiler")
+    override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+    d: coursier.Dependency =>
+      val artifacts =
+        if (isDotty(scalaVersion()))
+          Set("dotty-library", "dotty-compiler")
+        else if (isScala3(scalaVersion()))
+          Set("scala3-library", "scala3-compiler")
+        else
+          Set("scala-library", "scala-compiler", "scala-reflect")
+      if (!artifacts(d.module.name.value)) d
       else
-        Set("scala-library", "scala-compiler", "scala-reflect")
-    if (!artifacts(d.module.name.value)) d
-    else
-      d.withModule(
-          d.module.withOrganization(
-            coursier.Organization(scalaOrganization())
+        d.withModule(
+            d.module.withOrganization(
+              coursier.Organization(scalaOrganization())
+            )
           )
-        )
-        .withVersion(scalaVersion())
+          .withVersion(scalaVersion())
   }
 
   override def resolveCoursierDependency: Task[Dep => coursier.Dependency] =
@@ -188,7 +189,7 @@ trait ScalaModule extends JavaModule { outer =>
       )
   }
 
-  override def docJar = T {
+  override def docJar: T[PathRef] = T {
     val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef =>
       s"-Xplugin:${pluginPathRef.path}")
     val compileCp = Seq(
@@ -295,9 +296,9 @@ trait ScalaModule extends JavaModule { outer =>
 
   /**
    * Opens up a Scala console with your module and all dependencies present,
-   * for you to test and operate your code interactively
+   * for you to test and operate your code interactively.
    */
-  def console() = T.command {
+  def console(): Command[Unit] = T.command {
     if (T.log.inStream == DummyInputStream) {
       Result.Failure("console needs to be run with the -i/--interactive flag")
     } else {
@@ -322,12 +323,12 @@ trait ScalaModule extends JavaModule { outer =>
    * Ammonite's version used in the `repl` command is by default
    * set to the one Mill is built against.
    */
-  def ammoniteVersion = T(Versions.ammonite)
+  def ammoniteVersion: T[String] = T(Versions.ammonite)
 
   /**
    * Dependencies that are necessary to run the Ammonite Scala REPL
    */
-  def ammoniteReplClasspath = T {
+  def ammoniteReplClasspath: T[Seq[PathRef]] = T {
     localClasspath() ++
       transitiveLocalClasspath() ++
       unmanagedClasspath() ++
