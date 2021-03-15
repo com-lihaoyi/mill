@@ -37,8 +37,10 @@ class EchoServer extends MillServerMain[Int]{
 }
 
 object ClientServerTests extends TestSuite{
+  val ENDL = System.lineSeparator()
+
   def initStreams() = {
-    val in = new ByteArrayInputStream("hello\n".getBytes())
+    val in = new ByteArrayInputStream(s"hello${ENDL}".getBytes())
     val out = new ByteArrayOutputStream()
     val err = new ByteArrayOutputStream()
     (in, out, err)
@@ -81,62 +83,61 @@ object ClientServerTests extends TestSuite{
 
   def tests = Tests{
     'hello - {
-      if (!Util.isWindows){
-        val (tmpDir, locks) = init()
-        def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
+      val (tmpDir, locks) = init()
+      def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
-        // Make sure the simple "have the client start a server and
-        // exchange one message" workflow works from end to end.
+      // Make sure the simple "have the client start a server and
+      // exchange one message" workflow works from end to end.
 
-        assert(
-          locks.clientLock.probe(),
-          locks.serverLock.probe(),
-          locks.processLock.probe()
-        )
+      assert(
+        locks.clientLock.probe(),
+        locks.serverLock.probe(),
+        locks.processLock.probe()
+      )
 
-        val (out1, err1) = runClient("world")
+      val (out1, err1) = runClient("world")
 
-        assert(
-          out1 == "helloworld\n",
-          err1 == "HELLOworld\n"
-        )
+      assert(
+        out1 == s"helloworld${ENDL}",
+        err1 == s"HELLOworld${ENDL}"
+      )
 
-        // Give a bit of time for the server to release the lock and
-        // re-acquire it to signal to the client that it's done
-        Thread.sleep(100)
+      // Give a bit of time for the server to release the lock and
+      // re-acquire it to signal to the client that it's done
+      Thread.sleep(100)
 
-        assert(
-          locks.clientLock.probe(),
-          !locks.serverLock.probe(),
-          !locks.processLock.probe()
-        )
+      assert(
+        locks.clientLock.probe(),
+        !locks.serverLock.probe(),
+        !locks.processLock.probe()
+      )
 
-        // A seecond client in sequence connect to the same server
-        val (out2, err2) = runClient(" WORLD")
+      // A seecond client in sequence connect to the same server
+      val (out2, err2) = runClient(" WORLD")
 
-        assert(
-          out2 == "hello WORLD\n",
-          err2 == "HELLO WORLD\n"
-        )
+      assert(
+        out2 == s"hello WORLD${ENDL}",
+        err2 == s"HELLO WORLD${ENDL}"
+      )
 
-        // Make sure the server times out of not used for a while
-        Thread.sleep(2000)
-        assert(
-          locks.clientLock.probe(),
-          locks.serverLock.probe(),
-          locks.processLock.probe()
-        )
+      // Make sure the server times out of not used for a while
+      Thread.sleep(2000)
+      assert(
+        locks.clientLock.probe(),
+        locks.serverLock.probe(),
+        locks.processLock.probe()
+      )
 
-        // Have a third client spawn/connect-to a new server at the same path
-        val (out3, err3) = runClient(" World")
-        assert(
-          out3 == "hello World\n",
-          err3 == "HELLO World\n"
-        )
-      }
+      // Have a third client spawn/connect-to a new server at the same path
+      val (out3, err3) = runClient(" World")
+      assert(
+        out3 == s"hello World${ENDL}",
+        err3 == s"HELLO World${ENDL}"
+      )
+      
 
       'envVars - retry(3) {
-        if (!Util.isWindows){
+        if (true){
           val (tmpDir, locks) = init()
 
           def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())
@@ -163,7 +164,7 @@ object ClientServerTests extends TestSuite{
 
 
           val (out1, err1) = runClient(env)
-          val expected = s"a=$a1000\nb=$b1000\nc=$c1000\n"
+          val expected = s"a=$a1000${ENDL}b=$b1000${ENDL}c=$c1000${ENDL}"
 
           assert(
             out1 == expected,
@@ -205,7 +206,7 @@ object ClientServerTests extends TestSuite{
           val pathEnvVar = path.mkString(":")
           val (out2, err2) = runClient(Map("PATH" -> pathEnvVar))
 
-          val expected2 = s"PATH=$pathEnvVar\n"
+          val expected2 = s"PATH=$pathEnvVar${ENDL}"
 
           assert(
             out2 == expected2,

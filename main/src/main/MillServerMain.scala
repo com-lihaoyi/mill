@@ -39,7 +39,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
       lockBase = args0(0),
       this,
       () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
-      300000,
+      acceptTimeoutMillis = 5 * 60 * 1000, // 5 minutes
       mill.main.client.Locks.files(args0(0))
     ).run()
   }
@@ -71,39 +71,40 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
 class Server[T](lockBase: String,
                 sm: MillServerMain[T],
                 interruptServer: () => Unit,
-                acceptTimeout: Int,
+                acceptTimeoutMillis: Int,
                 locks: Locks) {
 
   val originalStdout = System.out
   def run() = {
     Server.tryLockBlock(locks.processLock){
+      
+      val (serverSocket, socketClose) = if (Util.isWindows) {
+        val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
+        (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
+      } else {
+        val socketName = lockBase + "/io"
+        new File(socketName).delete()
+        (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
+      }
+      
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock){
-          val (serverSocket, socketClose) = if (Util.isWindows) {
-            val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
-            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
-          } else {
-            val socketName = lockBase + "/io"
-            new File(socketName).delete()
-            (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
-          }
 
           val sockOpt = Server.interruptWith(
             "MillSocketTimeoutInterruptThread",
-            acceptTimeout,
+            acceptTimeoutMillis,
             socketClose(),
             serverSocket.accept()
           )
 
-          sockOpt match{
-            case None => running = false
+          sockOpt match {
+            case None =>
+              running = false
+              serverSocket.close()
             case Some(sock) =>
-              try {
-                handleRun(sock)
-                serverSocket.close()
-              }
-              catch{case e: Throwable => e.printStackTrace(originalStdout) }
+              try handleRun(sock)
+              catch { case e: Throwable => e.printStackTrace(originalStdout) }
           }
         }
         // Make sure you give an opportunity for the client to probe the lock
@@ -195,12 +196,15 @@ class Server[T](lockBase: String,
     } else clientSocket.close()
   }
 }
+
 object Server{
+
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
     try t
     finally l.release()
   }
+
   def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
     lock.tryLock() match{
       case null => None
@@ -208,8 +212,8 @@ object Server{
         try Some(t)
         finally l.release()
     }
-
   }
+
   def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
     @volatile var interrupt = true
     @volatile var interrupted = false
