@@ -222,7 +222,7 @@ public class MillClientMain {
         locks.serverLock.await();
 
         try {
-            return Integer.parseInt(Files.readString(Paths.get(lockBase + "/exitCode")));
+            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/exitCode")).get(0));
         } catch (Throwable e) {
             return ExitClientCodeCannotReadFromExitCodeFile();
         } finally {
