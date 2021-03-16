@@ -8,7 +8,7 @@ import java.nio.file.attribute.PosixFilePermission
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
-import mill.define.Target
+import mill.define.{Target, Task}
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
@@ -49,7 +49,7 @@ object Deps {
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
+  val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
   val coursier = ivy"io.get-coursier::coursier:2.0.16"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
@@ -79,6 +79,7 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.5"
@@ -96,9 +97,10 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
 }
 
-def millVersion = T{ VcsVersion.vcsState().format() }
+def millVersion = T { VcsVersion.vcsState().format() }
+def millLastTag = T { VcsVersion.vcsState().lastTag.get }
 
-trait MillPublishModule extends PublishModule{
+trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
   def pomSettings = PomSettings(
@@ -115,17 +117,26 @@ trait MillPublishModule extends PublishModule{
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
-trait MillApiModule extends MillPublishModule with ScalaModule {
+trait MillCoursierModule extends CoursierModule {
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository(
+        "https://oss.sonatype.org/content/repositories/releases")
+    )
+  }
+}
+
+trait MillApiModule
+    extends MillPublishModule
+    with ScalaModule
+    with MillCoursierModule {
   def scalaVersion = Deps.scalaVersion
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-  override def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(
-      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-    )
-  }
+
 }
+
 trait MillModule extends MillApiModule { outer =>
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -861,7 +872,8 @@ object dev extends MillModule {
   }
 }
 
-object docs extends Module {
+object docs extends MillCoursierModule {
+
   /** Download ammonite. */
   def ammoniteVersion: String = "1.4.0"
   def ammonite: T[PathRef] = T.persistent {
@@ -878,15 +890,67 @@ object docs extends Module {
   }
   def sources = T.sources(millSourcePath)
   /** Generate the documentation site. */
-  def generate = T{
+  def generate = T {
     sources()
     val dest = T.dest / "site"
     mill.modules.Jvm.runSubprocess(
-      commandArgs = Seq(ammonite().path.toString(), "build.sc", "--targetDir", dest.toString()),
+      commandArgs = Seq(
+        ammonite().path.toString(),
+        "build.sc",
+        "--targetDir",
+        dest.toString()),
       envArgs = Map(),
       workingDir = millSourcePath
     )
     PathRef(dest)
+  }
+  def asciidoctorIvyDeps: Target[Agg[Dep]] = T { Agg(Deps.asciidoctorj) }
+  def asciidoctorClasspath: Target[Agg[PathRef]] = T {
+    resolveDeps(asciidoctorIvyDeps)()
+  }
+//  def asciidoctorWorker = T.worker {
+//    val cl = new URLClassLoader(asciidoctorClasspath().map(_.path.toNIO.toUri().toURL()).toArray, getClass().getClassLoader())
+//    cl.loadClass("org.asciidoctor.Asciidoctor.Factory")
+//    Jvm.runSubprocess()
+//  }
+  def asciidoctorTask(args: Task[Seq[String]]): Task[Unit] = T.task {
+    Jvm.runSubprocess(
+      mainClass = "org.asciidoctor.jruby.cli.AsciidoctorInvoker",
+      classPath = asciidoctorClasspath().map(_.path),
+      mainArgs = args(),
+      workingDir = millSourcePath
+    )
+    ()
+  }
+  def asciidoctor(args: String*) = T.command {
+    asciidoctorTask(T.task { args })()
+  }
+  def adocpages = T {
+    asciidoctorTask(T.task {
+      val dest = T.dest
+      val attributes = Map(
+        "source-highligher" -> "rouge",
+        "toc" -> "left",
+        "sectnums" -> "",
+        "sectnumlevels" -> "5",
+        "mill-version" -> millVersion(),
+        "mill-last-tag" -> millLastTag(),
+        "mill-github-url" -> "https://github.com/com-lihaoyi/mill",
+        "mill-doc-url" -> "https://com-lihaoyi.github.io/mill",
+        "utest-github-url" -> "https://githubc.om/com-lihaoyi/utest"
+      )
+      Seq(
+        "-D",
+        dest.toString(),
+        "-R",
+        (millSourcePath / "adocs").toString,
+        (millSourcePath / "adocs" / "Documentation.adoc").toString
+      ) ++ attributes.flatMap {
+        case (k, v) if v.isEmpty => Seq("-a", "${k}")
+        case (k, v)              => Seq("-a", s"${k}=${v}")
+      }
+    })()
+//    PathRef(T.dest)
   }
 }
 
