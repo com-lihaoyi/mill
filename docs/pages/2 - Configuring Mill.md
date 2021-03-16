@@ -69,9 +69,9 @@ resolvers by overriding the `repositories` definition in the module:
 ```scala
 import coursier.maven.MavenRepository
 
-def repositories = super.repositories ++ Seq(
+def repositoriesTask = T.task { super.repositoriesTask() ++ Seq(
   MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-)
+) }
 ```
 
 To add custom resolvers to the initial bootstrap of the build, you can create a
@@ -82,9 +82,9 @@ custom `ZincWorkerModule`, and override the `zincWorker` method in your
 import coursier.maven.MavenRepository
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
-  def repositories() = super.repositories ++ Seq(
+  def repositoriesTask() = T.task { super.repositoriesTask() ++ Seq(
     MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-  )
+  ) }
 }
 
 object YourBuild extends ScalaModule {
