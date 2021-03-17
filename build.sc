@@ -872,13 +872,14 @@ object dev extends MillModule {
   }
 }
 
-object docs extends MillCoursierModule {
+object docs extends Module {
 
   /** Download ammonite. */
   def ammoniteVersion: String = "1.4.0"
+
   def ammonite: T[PathRef] = T.persistent {
     val dest = T.dest / s"ammonite-${ammoniteVersion}"
-    if(!os.isFile(dest)) {
+    if (!os.isFile(dest)) {
       val download = mill.modules.Util.download(
         s"https://github.com/lihaoyi/Ammonite/releases/download/${ammoniteVersion}/2.12-${ammoniteVersion}",
         os.rel / s"ammonite-${ammoniteVersion}.part"
@@ -904,53 +905,67 @@ object docs extends MillCoursierModule {
     )
     PathRef(dest)
   }
-  def asciidoctorIvyDeps: Target[Agg[Dep]] = T { Agg(Deps.asciidoctorj) }
-  def asciidoctorClasspath: Target[Agg[PathRef]] = T {
-    resolveDeps(asciidoctorIvyDeps)()
-  }
-//  def asciidoctorWorker = T.worker {
-//    val cl = new URLClassLoader(asciidoctorClasspath().map(_.path.toNIO.toUri().toURL()).toArray, getClass().getClassLoader())
-//    cl.loadClass("org.asciidoctor.Asciidoctor.Factory")
-//    Jvm.runSubprocess()
-//  }
-  def asciidoctorTask(args: Task[Seq[String]]): Task[Unit] = T.task {
-    Jvm.runSubprocess(
-      mainClass = "org.asciidoctor.jruby.cli.AsciidoctorInvoker",
-      classPath = asciidoctorClasspath().map(_.path),
-      mainArgs = args(),
-      workingDir = millSourcePath
-    )
-    ()
-  }
-  def asciidoctor(args: String*) = T.command {
-    asciidoctorTask(T.task { args })()
-  }
-  def adocpages = T {
-    asciidoctorTask(T.task {
-      val dest = T.dest
-      val attributes = Map(
-        "source-highligher" -> "rouge",
-        "toc" -> "left",
-        "sectnums" -> "",
-        "sectnumlevels" -> "5",
-        "mill-version" -> millVersion(),
-        "mill-last-tag" -> millLastTag(),
-        "mill-github-url" -> "https://github.com/com-lihaoyi/mill",
-        "mill-doc-url" -> "https://com-lihaoyi.github.io/mill",
-        "utest-github-url" -> "https://githubc.om/com-lihaoyi/utest"
+
+  object adoc extends MillCoursierModule {
+    def sources = T.source(millSourcePath / "src")
+
+    def asciidoctorIvyDeps: Target[Agg[Dep]] = T {
+      Agg(Deps.asciidoctorj)
+    }
+
+    def asciidoctorClasspath: Target[Agg[PathRef]] = T {
+      resolveDeps(asciidoctorIvyDeps)()
+    }
+
+    //  def asciidoctorWorker = T.worker {
+    //    val cl = new URLClassLoader(asciidoctorClasspath().map(_.path.toNIO.toUri().toURL()).toArray, getClass().getClassLoader())
+    //    cl.loadClass("org.asciidoctor.Asciidoctor.Factory")
+    //    Jvm.runSubprocess()
+    //  }
+    def asciidoctorTask(args: Task[Seq[String]]): Task[Unit] = T.task {
+      Jvm.runSubprocess(
+        mainClass = "org.asciidoctor.jruby.cli.AsciidoctorInvoker",
+        classPath = asciidoctorClasspath().map(_.path),
+        mainArgs = args(),
+        workingDir = millSourcePath
       )
-      Seq(
-        "-D",
-        dest.toString(),
-        "-R",
-        (millSourcePath / "adocs").toString,
-        (millSourcePath / "adocs" / "Documentation.adoc").toString
-      ) ++ attributes.flatMap {
-        case (k, v) if v.isEmpty => Seq("-a", "${k}")
-        case (k, v)              => Seq("-a", s"${k}=${v}")
-      }
-    })()
-//    PathRef(T.dest)
+      ()
+    }
+
+    def asciidoctor(args: String*) = T.command {
+      asciidoctorTask(T.task {
+        args
+      })()
+    }
+
+    def pages = T {
+      asciidoctorTask(T.task {
+        val dest = T.dest
+        val attributes = Map(
+          "source-highligher" -> "rouge",
+          "toc" -> "left",
+          "sectnums" -> "",
+          "sectnumlevels" -> "5",
+          "mill-version" -> millVersion(),
+          "mill-last-tag" -> millLastTag(),
+          "mill-github-url" -> "https://github.com/com-lihaoyi/mill",
+          "mill-doc-url" -> "https://com-lihaoyi.github.io/mill",
+          "utest-github-url" -> "https://githubc.om/com-lihaoyi/utest"
+        )
+        Seq(
+          "-D",
+          dest.toString(),
+          "-R",
+          sources().path.toString,
+          (sources().path / "Documentation.adoc").toString
+        ) ++ attributes.flatMap {
+          case (k, v) if v.isEmpty => Seq("-a", "${k}")
+          case (k, v) => Seq("-a", s"${k}=${v}")
+        }
+      })()
+      //    PathRef(T.dest)
+    }
+
   }
 }
 
