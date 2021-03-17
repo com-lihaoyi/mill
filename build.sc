@@ -42,7 +42,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-36-1cce53f3"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-46-37b110d0"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -51,8 +51,8 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.13"
-  val flywayCore = ivy"org.flywaydb:flyway-core:7.7.0"
+  val coursier = ivy"io.get-coursier::coursier:2.0.14"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
