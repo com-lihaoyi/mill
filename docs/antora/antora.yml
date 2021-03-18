@@ -1,0 +1,5 @@
+name: mill
+title: Mill Documentation
+version: dev
+nav:
+  - modules/ROOT/nav.adoc

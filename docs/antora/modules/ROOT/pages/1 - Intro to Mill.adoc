@@ -1,4 +1,5 @@
-= Intro to Mill
+= Introduction to Mill
+:page-aliases: index.adoc
 
 {mill-github-url}[Mill] is your shiny new Java/Scala build tool!
 http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Scared of SBT]? Melancholy over Maven? Grumbling about Gradle?

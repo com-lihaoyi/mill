@@ -2,12 +2,12 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
-
 import java.nio.file.attribute.PosixFilePermission
 
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
+import mill.define.Target.ctx
 import mill.define.{Target, Task}
 import mill.scalalib._
 import mill.scalalib.publish._
@@ -95,10 +95,12 @@ object Settings {
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val docUrl = "https://com-lihaoyi.github.io/mill"
 }
 
 def millVersion = T { VcsVersion.vcsState().format() }
 def millLastTag = T { VcsVersion.vcsState().lastTag.get }
+def baseDir = build.millSourcePath
 
 trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
@@ -906,66 +908,74 @@ object docs extends Module {
     PathRef(dest)
   }
 
-  object adoc extends MillCoursierModule {
-    def sources = T.source(millSourcePath / "src")
-
-    def asciidoctorIvyDeps: Target[Agg[Dep]] = T {
-      Agg(Deps.asciidoctorj)
-    }
-
-    def asciidoctorClasspath: Target[Agg[PathRef]] = T {
-      resolveDeps(asciidoctorIvyDeps)()
-    }
-
-    //  def asciidoctorWorker = T.worker {
-    //    val cl = new URLClassLoader(asciidoctorClasspath().map(_.path.toNIO.toUri().toURL()).toArray, getClass().getClassLoader())
-    //    cl.loadClass("org.asciidoctor.Asciidoctor.Factory")
-    //    Jvm.runSubprocess()
-    //  }
-    def asciidoctorTask(args: Task[Seq[String]]): Task[Unit] = T.task {
+  /** Generates the mill documentation with Antora. */
+  object antora extends Module {
+    def npmBase: T[os.Path] = T.persistent { T.dest }
+    def prepareAntora(npmDir: os.Path) = {
       Jvm.runSubprocess(
-        mainClass = "org.asciidoctor.jruby.cli.AsciidoctorInvoker",
-        classPath = asciidoctorClasspath().map(_.path),
-        mainArgs = args(),
-        workingDir = millSourcePath
+        commandArgs = Seq("npm", "install", "@antora/cli", "@antora/site-generator-default"),
+        envArgs = Map(),
+        workingDir = npmDir
       )
-      ()
     }
-
-    def asciidoctor(args: String*) = T.command {
-      asciidoctorTask(T.task {
-        args
-      })()
+    def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit ctx: mill.api.Ctx.Log) = {
+      prepareAntora(npmDir)
+      val cmdArgs = Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
+      ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
+      Jvm.runSubprocess(
+        commandArgs = cmdArgs,
+        envArgs = Map(),
+        workingDir = workDir
+      )
+      PathRef(workDir / "build" / "site")
     }
-
-    def pages = T {
-      asciidoctorTask(T.task {
-        val dest = T.dest
-        val attributes = Map(
-          "source-highligher" -> "rouge",
-          "toc" -> "left",
-          "sectnums" -> "",
-          "sectnumlevels" -> "5",
-          "mill-version" -> millVersion(),
-          "mill-last-tag" -> millLastTag(),
-          "mill-github-url" -> "https://github.com/com-lihaoyi/mill",
-          "mill-doc-url" -> "https://com-lihaoyi.github.io/mill",
-          "utest-github-url" -> "https://githubc.om/com-lihaoyi/utest"
-        )
-        Seq(
-          "-D",
-          dest.toString(),
-          "-R",
-          sources().path.toString,
-          (sources().path / "Documentation.adoc").toString
-        ) ++ attributes.flatMap {
-          case (k, v) if v.isEmpty => Seq("-a", "${k}")
-          case (k, v) => Seq("-a", s"${k}=${v}")
-        }
-      })()
-      //    PathRef(T.dest)
+    def sources = T.sources(millSourcePath / "antora.yml", millSourcePath / "modules")
+    def githubPagesPlaybookText: T[String] = T {
+      s"""site:
+        |  title: Mill
+        |  url: ${Settings.docUrl}
+        |  start_page: mill::1 - Intro to Mill.adoc
+        |
+        |content:
+        |  sources:
+        |  - url: ${baseDir}
+        |    branches: HEAD
+        |    start_path: docs/antora
+        |
+        |ui:
+        |  bundle:
+        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+        |    snapshot: true
+        |
+        |asciidoc:
+        |  attributes:
+        |    mill-version: '${millVersion()}'
+        |    mill-last-tag: '${millLastTag()}'
+        |    mill-github-url: ${Settings.projectUrl}
+        |    mill-doc-url: ${Settings.docUrl}
+        |    utest-github-url: https://github.com/hihaoyi/utest
+        |
+        |""".stripMargin
     }
-
+    def githubPages = T {
+      // dependency to sources
+      sources()
+      val docSite = T.dest
+      val playbook = docSite / "antora-playbook.yml"
+      val siteDir = docSite / "build" / "site"
+      os.write(
+        target = playbook,
+        data = githubPagesPlaybookText(),
+        createFolders = true
+      )
+      runAntora(
+        npmDir = npmBase(),
+        workDir = docSite,
+        args = Seq(playbook.last, "--stacktrace")
+      )
+      os.write(siteDir / ".nojekyll", "")
+      PathRef(siteDir)
+    }
   }
 }
 
