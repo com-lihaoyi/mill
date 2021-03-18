@@ -973,7 +973,7 @@ Note that both of these overrides only work for versions 0.5.0 and above.
 In case you want to try out the latest features and improvements that are currently in master, unstable versions of Mill
 are
 https://github.com/com-lihaoyi/mill/releases[available] as binaries named
-`#.#.#-n-hash` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.
+`+#.#.#-n-hash+` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.
 
 The easiest way to use a development release is by updating the <<bootstrap-scripts-linuxos-x-only,Bootstrap Script>>,
 or
