@@ -930,7 +930,8 @@ object docs extends Module {
       PathRef(workDir / "build" / "site")
     }
     def sources = T.sources(millSourcePath / "antora.yml", millSourcePath / "modules")
-    def githubPagesPlaybookText: T[String] = T {
+    def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+    def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
       s"""site:
         |  title: Mill
         |  url: ${Settings.docUrl}
@@ -938,14 +939,15 @@ object docs extends Module {
         |
         |content:
         |  sources:
-        |  - url: ${baseDir}
-        |    branches: HEAD
-        |    start_path: docs/antora
+        |    - url: ${ if(authorMode) baseDir else Settings.projectUrl }
+        |      branches: ${ if(authorMode) "HEAD" else "antora" }
+        |      start_path: docs/antora
         |
         |ui:
         |  bundle:
         |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
         |    snapshot: true
+        |  supplemental_files: ${supplementalFiles().path.toString()}
         |
         |asciidoc:
         |  attributes:
@@ -958,20 +960,27 @@ object docs extends Module {
         |""".stripMargin
     }
     def githubPages = T {
+      generatePages(authorMode = false)()
+    }
+    def localPages = T {
+      generatePages(authorMode = true)()
+    }
+    def generatePages(authorMode: Boolean) = T.task {
       // dependency to sources
       sources()
       val docSite = T.dest
       val playbook = docSite / "antora-playbook.yml"
-      val siteDir = docSite / "build" / "site"
+      val siteDir = docSite / "site"
       os.write(
         target = playbook,
-        data = githubPagesPlaybookText(),
+        data = githubPagesPlaybookText(authorMode)(),
         createFolders = true
       )
       runAntora(
         npmDir = npmBase(),
         workDir = docSite,
-        args = Seq(playbook.last, "--stacktrace")
+        args = Seq(playbook.last, "--to-dir", siteDir.toString(), "--attribute", "page-pagination") ++
+          Seq("--fetch").filter(_ => !authorMode)
       )
       os.write(siteDir / ".nojekyll", "")
       PathRef(siteDir)
