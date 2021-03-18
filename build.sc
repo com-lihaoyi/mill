@@ -42,7 +42,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-36-1cce53f3"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-46-37b110d0"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -51,7 +51,7 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.12"
+  val coursier = ivy"io.get-coursier::coursier:2.0.14"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
@@ -82,8 +82,8 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.4"
-  val upickle = ivy"com.lihaoyi::upickle:1.3.0"
-  val utest = ivy"com.lihaoyi::utest:0.7.7"
+  val upickle = ivy"com.lihaoyi::upickle:1.3.4"
+  val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
@@ -96,9 +96,11 @@ object Settings {
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
 }
 
+def millVersion = T{ VcsVersion.vcsState().format() }
+
 trait MillPublishModule extends PublishModule{
   override def artifactName = "mill-" + super.artifactName()
-  def publishVersion = VcsVersion.vcsState().format()
+  def publishVersion = millVersion()
   def pomSettings = PomSettings(
     description = artifactName(),
     organization = Settings.pomOrg,
@@ -890,7 +892,7 @@ object docs extends Module {
 
 def assembly = T{
 
-  val version = VcsVersion.vcsState().format()
+  val version = millVersion()
   val devRunClasspath = dev.runClasspath().map(_.path)
   val filename = if (scala.util.Properties.isWin) "mill.bat" else "mill"
   val commonArgs = Seq(
@@ -926,7 +928,7 @@ def launcher = T{
     os.read(millBootstrap().head.path)
       .replaceAll(
         millBootstrapGrepPrefix + "[^\\n]+",
-        millBootstrapGrepPrefix + VcsVersion.vcsState().format()
+        millBootstrapGrepPrefix + millVersion()
       )
   )
   os.perms.set(outputPath, "rwxrwxrwx")
@@ -936,6 +938,7 @@ def launcher = T{
 def uploadToGithub(authKey: String) = T.command{
   val vcsState = VcsVersion.vcsState()
   val label = vcsState.format()
+  if(label != millVersion()) sys.error("Modified mill version detected, aborting upload")
   val releaseTag = vcsState.lastTag.getOrElse(sys.error("Incomplete git history. No tag found.\nIf on CI, make sure your git checkout job includes enough history."))
 
   if (releaseTag == label){
