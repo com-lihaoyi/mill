@@ -151,28 +151,24 @@ See section <<overriding-mill-versions,Overriding Mill Versions>> how to do it.
 
 The simplest Mill build for a Java project looks as follows:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends JavaModule {}
-
 ----
 
 The simplest Mill build for a Scala project looks as follows:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.13.1"
 }
-
 ----
 
 Both of these would build a project laid out as follows:
@@ -253,10 +249,9 @@ Given a task `foo.bar`, all its output and results can be found be within its re
 
 === Java Example
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends JavaModule
@@ -268,10 +263,9 @@ object bar extends JavaModule {
 
 === Scala Example
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -329,10 +323,9 @@ code in each module changes.
 
 Modules can also be nested:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -345,7 +338,6 @@ object foo extends ScalaModule {
   }
 
 }
-
 ----
 
 Which would result in a similarly nested project layout:
@@ -650,7 +642,7 @@ and `.json` for easy processing by downstream tools.
 
 The above command generates the following diagram:
 
-image:VisualizeFoo.svg[VisualizeFoo.svg]
+image::VisualizeFoo.svg[VisualizeFoo.svg]
 
 === visualizePlan
 
@@ -674,14 +666,13 @@ dependencies are shown with a dotted border.
 
 The above command generates the following diagram:
 
-image:VisualizePlan.svg[VisualizePlan.svg]
+image::VisualizePlan.svg[VisualizePlan.svg]
 
 Another use case is to view the relationships between modules. For the following two modules:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -698,7 +689,7 @@ object bar extends ScalaModule {
 `mill show visualizePlan _.compile` diagrams the relationships between the compile tasks of each module, which
 illustrates which module depends on which other module's compilation output:
 
-image:VisualizeCompile.svg[VisualizeCompile.svg]
+image::VisualizeCompile.svg[VisualizeCompile.svg]
 
 === clean
 
@@ -739,6 +730,7 @@ Current limitations:
  `CrossScalaModule`s, etc.) and Maven repositories.
 * Always applies to all modules in the build.
 * Doesn't apply to `$ivy` dependencies used in the build definition itself.
+
 [source,bash]
 ----
 mill mill.scalalib.Dependency/showUpdates
@@ -813,10 +805,9 @@ publishing (e.g. to Maven Central). Mill comes with both capabilities built in.
 
 Mill comes built-in with the ability to make assemblies. Given a simple Mill build:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -845,10 +836,9 @@ Hello World!
 To publish to Maven Central, you need to make `foo` also extend Mill's
 `PublishModule` trait:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._, publish._
 
 object foo extends ScalaModule with PublishModule {
@@ -867,7 +857,6 @@ object foo extends ScalaModule with PublishModule {
     )
   )
 }
-
 ----
 
 You can change the name of the published artifact (artifactId in the Maven POM)
@@ -975,11 +964,10 @@ are
 https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 `+#.#.#-n-hash+` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.
 
-The easiest way to use a development release is by updating the <<bootstrap-scripts-linuxos-x-only,Bootstrap Script>>,
+The easiest way to use a development release is by updating the <<_bootstrap_scripts_linuxos_x_only>>,
 or
-<<overriding-mill-versions,Overriding Mill Versions>> via an environment variable or `.mill-version` file.
+<<_overriding_mill_versions>> via an environment variable or `.mill-version` file.
 
-Come by our https://gitter.im/lihaoyi/mill[Gitter Channel] if you want to ask questions or say hi!
 
 == Running Mill with custom JVM options
 
@@ -996,3 +984,8 @@ For example, if your build requires a lot of memory and bigger stack size, your 
 
 The file name for passing JVM options to the Mill launcher is configurable. If for some reason you don't want to
 use `.mill-jvm-opts` file name, add `MILL_JVM_OPTS_PATH` environment variable with any other file name.
+
+
+---
+
+Come by our https://gitter.im/lihaoyi/mill[Gitter Channel] if you want to ask questions or say hi!
