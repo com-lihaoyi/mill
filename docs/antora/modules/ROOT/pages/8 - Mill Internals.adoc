@@ -14,17 +14,17 @@ from!
 
 === Dependency graph first
 
-Mill's most important abstraction is the dependency graph of `Task`s.
+Mill's most important abstraction is the dependency graph of ``Task``s.
 Constructed using the `T {...}` `T.task {...}` `T.command {...}` syntax, these
 track the dependencies between steps of a build, so those steps can be executed
 in the correct order, queried, or parallelized.
 
 While Mill provides helpers like `ScalaModule` and other things you can use to
 quickly instantiate a bunch of related tasks (resolve dependencies, find
-sources, compile, package into jar, …) these are secondary. When Mill
+sources, compile, package into jar, ...) these are secondary. When Mill
 executes, the dependency graph is what matters: any other mode of organization
 (hierarchies, modules, inheritance, etc.) is only important to create this
-dependency graph of `Task`s.
+dependency graph of ``Task``s.
 
 === Builds are hierarchical
 
@@ -33,13 +33,13 @@ the same as referencing a target in Scala code, `Foo.bar.baz`
 
 Everything that you can run from the command line lives in an object hierarchy
 in your `build.sc` file. Different parts of the hierarchy can have different
-`Target`s available: just add a new `def foo = T {...}` somewhere and you'll be
+``Target``s available: just add a new `def foo = T {...}` somewhere and you'll be
 able to run it.
 
 Cross builds, using the `Cross` data structure, are just another kind of node in
 the object hierarchy. The only difference is syntax: from the command line you'd
 run something via `mill core.cross[a].printIt` while from code you use
-`core.cross(&quot;a&quot;).printIt` due to different restrictions in Scala/Bash syntax.
+`core.cross("a").printIt` due to different restrictions in Scala/Bash syntax.
 
 === Caching by default
 
@@ -51,7 +51,7 @@ it to store output files etc.
 This happens whether you want it to or not. Every `Target` is cached, not just
 the "slow" ones like `compile` or `assembly`.
 
-Caching is keyed on the `.hashCode` of the returned value. For `Target`s
+Caching is keyed on the `.hashCode` of the returned value. For ``Target``s
 returning the contents of a file/folder on disk, they return `PathRef` instances
 whose hashcode is based on the hash of the disk contents. Serialization of the
 returned values is tentatively done using uPickle.
@@ -79,9 +79,9 @@ should always keep "cold" startup as fast as possible.
 
 === Static dependency graph and Applicative tasks
 
-`Task`s are _Applicative_, not _Monadic_. There is `.map`, `.zip`, but no
+``Task``s are _Applicative_, not _Monadic_. There is `.map`, `.zip`, but no
 `.flatMap` operation. That means that we can know the structure of the entire
-dependency graph before we start executing `Task`s. This lets us perform all
+dependency graph before we start executing ``Task``s. This lets us perform all
 sorts of useful operations on the graph before running it:
 
 * Given a Target the user wants to run, pre-compute and display what targets
@@ -131,14 +131,14 @@ def test() = T.command { T.zipMap(runDepClasspath, compile, compile) {
 
 ----
 
-This is similar to SBT's `:=`/`.value` macros, or `scala-async`'s
+This is similar to SBT's `:=`/`.value` macros, or ``scala-async``'s
 `async`/`await`. Like those, the `T {...}` macro should let users program most of
 their code in a "direct" style and have it "automatically" lifted into a graph
-of `Task`s.
+of ``Task``s.
 
 == How Mill aims for Simple
 
-Why should you expect that the Mill build tool can achieve simple, easy &amp;
+Why should you expect that the Mill build tool can achieve simple, easy &
 flexible, where other build tools in the past have failed?
 
 Build tools inherently encompass a huge number of different concepts:
@@ -151,7 +151,7 @@ Build tools inherently encompass a huge number of different concepts:
 * How do tasks pass data to each other? What data do they pass?
 * What tasks are cached? Where?
 * How are tasks run from the command line?
-* How do you deal with the repetition inherent in a build? (e.g. compile, run &amp;
+* How do you deal with the repetition inherent in a build? (e.g. compile, run &
  test tasks for every "module")
 * What is a "Module"? How do they relate to "Tasks"?
 * How do you configure a Module to do something different?
@@ -174,7 +174,7 @@ concepts:
 
 * The Object Hierarchy
 * The Call Graph
-* Instantiating Traits &amp; Classes
+* Instantiating Traits & Classes
 
 These concepts are already familiar to anyone experienced in Scala (or any other
 programming language…), but are enough to answer all of the complicated
@@ -184,7 +184,7 @@ build-related questions listed above.
 
 The module hierarchy is the graph of objects, starting from the root of the
 `build.sc` file, that extend `mill.Module`. At the leaves of the hierarchy are
-the `Target`s you can run.
+the ``Target``s you can run.
 
 A `Target`'s position in the module hierarchy tells you many things. For
 example, a `Target` at position `core.test.compile` would:
@@ -197,12 +197,12 @@ example, a `Target` at position `core.test.compile` would:
 
 * Be runnable from the command-line via `mill core.test.compile`
 
-* Be referenced programmatically (from other `Target`s) via `core.test.compile`
+* Be referenced programmatically (from other ``Target``s) via `core.test.compile`
 
 From the position of any `Target` within the object hierarchy, you immediately
 know how to run it, find its output files, find any caches, or refer to it from
-other `Target`s. You know up-front where the `Target`'s data "lives" on disk, and
-are sure that it will never clash with any other `Target`'s data.
+other ``Target``s. You know up-front where the ``Target``s data "lives" on disk, and
+are sure that it will never clash with any other ``Target``s data.
 
 == The Call Graph
 
@@ -210,17 +210,17 @@ The Scala call graph of "which target references which other target" is core to
 how Mill operates. This graph is reified via the `T {...}` macro to make it
 available to the Mill execution engine at runtime. The call graph tells you:
 
-* Which `Target`s depend on which other `Target`s
+* Which ``Target``s depend on which other ``Target``s
 
-* For a given `Target` to be built, what other `Target`s need to be run and in
+* For a given `Target` to be built, what other ``Target``s need to be run and in
  what order
 
-* Which `Target`s can be evaluated in parallel
+* Which ``Target``s can be evaluated in parallel
 
 * What source files need to be watched when using `--watch` on a given target (by
- tracing the call graph up to the `Source`s)
+ tracing the call graph up to the ``Source``s)
 
-* What a given `Target` makes available for other `Target`s to depend on (via
+* What a given `Target` makes available for other ``Target``s to depend on (via
  its return value)
 
 * Defining your own task that depends on others is as simple as `def foo =
@@ -239,7 +239,7 @@ val a = f(b, c, d)
 
 you are telling everyone that the value `a` depends on the values of `b` `c` and
 `d`, processed by `f`. A build tool needs exactly the same data structure:
-knowing what `Target` depends on what other `Target`s, and what processing it
+knowing what `Target` depends on what other ``Target``s, and what processing it
 does on its inputs!
 
 With Mill, you can take the Scala call graph, wrap everything in the `T {...}`
@@ -260,7 +260,7 @@ may be incremental, it may cache things, it may read and write from disk, but
 the fundamental syntax, and the data-flow that syntax represents, is unchanged
 from your normal Scala code.
 
-== Instantiating Traits &amp; Classes
+== Instantiating Traits & Classes
 
 Classes and traits are a common way of re-using common data structures in Scala:
 if you have a bunch of fields which are related and you want to make multiple
@@ -270,22 +270,22 @@ and over.
 In Mill, inheriting from traits is the primary way for re-using common parts of
 a build:
 
-* Scala "project"s with multiple related `Target`s within them, are just a
+* Scala "project"s with multiple related ``Target``s within them, are just a
  `Trait` you instantiate
 
-* Replacing the default `Target`s within a project, making them do new
- things or depend on new `Target`s, is simply `override`-ing them during
+* Replacing the default ``Target``s within a project, making them do new
+ things or depend on new ``Target``s, is simply `override`-ing them during
  inheritance
 
-* Modifying the default `Target`s within a project, making use of the old value
+* Modifying the default ``Target``s within a project, making use of the old value
  to compute the new value, is simply `override`ing them and using `super.foo()`
 
 * Required configuration parameters within a `project` are `abstract` members
 
 * Cross-builds are modelled as instantiating a (possibly anonymous) class
- multiple times, each instance with its own distinct set of `Target`s
+ multiple times, each instance with its own distinct set of ``Target``s
 
-In normal Scala, you bundle up common fields &amp; functionality into a `class` you
+In normal Scala, you bundle up common fields & functionality into a `class` you
 can instantiate over and over, and you can override the things you want to
 customize. Similarly, in Mill, you bundle up common parts of a build into
 `trait`s you can instantiate over and over, and you can override the things you
@@ -309,7 +309,7 @@ according to their position in the hierarchy, comes from Bazel.
 
 Bazel is a bit odd in its own right. The underlying data model is good
 (hierarchy + cached dependency graph) but getting there is hell. It (like SBT) is
-also a 3-layer interpretation model, but layers 1 &amp; 2 are almost exactly the
+also a 3-layer interpretation model, but layers 1 & 2 are almost exactly the
 same: mutable python which performs global side effects (layer 3 is the same
 dependency-graph evaluator as SBT/mill).
 
@@ -329,7 +329,7 @@ do_other_thing(dependencies=["blah"])
 
 ----
 
-where `&quot;blah&quot;` is a global identifier that is often constructed programmatically
+where `"blah"` is a global identifier that is often constructed programmatically
 via string concatenation and passed around. This is quite challenging.
 
 Having the two layers be “just python” is great since people know python, but I
@@ -338,7 +338,7 @@ impls") that are almost exactly the same, and I think making them interact via
 return values rather than via a global namespace of programmatically-constructed
 strings would make it easier to follow.
 
-With Mill, I’m trying to collapse Bazel’s Python layer 1 &amp; 2 into just 1 layer
+With Mill, I’m trying to collapse Bazel’s Python layer 1 & 2 into just 1 layer
 of Scala, and have it define its dependency graph/hierarchy by returning
 values, rather than by calling global-side-effecting APIs. I've had trouble
 trying to teach people how-to-bazel at work, and am pretty sure we can make

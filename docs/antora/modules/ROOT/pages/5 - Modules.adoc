@@ -25,7 +25,7 @@ object foo extends mill.Module {
 You would be able to run the two targets via `mill foo.bar` or `mill
 foo.baz.qux`. You can use `mill show foo.bar` or `mill show foo.baz.qux` to
 make Mill echo out the string value being returned by each Target. The two
-targets will store their output metadata &amp; files at `./out/foo/bar` and
+targets will store their output metadata & files at `./out/foo/bar` and
 `./out/foo/baz/qux` respectively.
 
 Modules also provide a way to define and re-use common collections of tasks, via
@@ -112,11 +112,12 @@ the common case where you probably want your build-layout and on-disk-layout to
 be the same.
 
 E.g. for `mill.scalalib.ScalaModule`, the Scala source code is assumed by
-default to be in `millSourcePath/&quot;src&quot;` while resources are automatically assumed to
-be in `millSourcePath/&quot;resources&quot;`.
+default to be in `millSourcePath / "src"` while resources are automatically assumed to
+be in `millSourcePath / "resources"`.
 
 You can override `millSourcePath`:
 
+.`build.sc`
 [source,scala]
 ----
 object foo extends mill.Module {
@@ -139,7 +140,7 @@ overriden `millSourcePath` the output paths are still the default `./out/foo/bar
 
 == External Modules
 
-Libraries for use in Mill can define `ExternalModule`s: `Module`s which are
+Libraries for use in Mill can define ``ExternalModule``s: ``Module``s which are
 shared between all builds which use that library:
 
 [source,scala]
@@ -168,7 +169,7 @@ mill foo.Bar/qux
 `ExternalModule`s are useful for someone providing a library for use with Mill
 that is shared by the entire build: for example,
 `mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
-service &amp; cache that is shared between all `ScalaModule`s, and
+service & cache that is shared between all `ScalaModule`s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `T.command` in your `build.sc` file
 

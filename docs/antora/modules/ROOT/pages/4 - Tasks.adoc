@@ -43,7 +43,7 @@ roots of our task graph. `allSources` depends on `sourceRoot` by calling
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
 
 Filesystem operations in Mill are done using the
-https://github.com/lihaoyi/os-lib[OS-Lib] library.
+https://github.com/lihaoyi/os-lib[os-lib] library.
 
 The above build defines the following task graph:
 
@@ -71,9 +71,9 @@ what input sources changed:
 
 There are three primary kinds of _Tasks_ that you should care about:
 
-* <<targets,Targets>>, defined using `T {...}`
-* <<sources,Sources>>, defined using `T.sources {...}`
-* <<commands,Commands>>, defined using `T.command {...}`
+* <<_targets>>, defined using `T {...}`
+* <<_sources>>, defined using `T.sources {...}`
+* <<_commands>>, defined using `T.command {...}`
 
 === Targets
 
@@ -87,7 +87,7 @@ other targets are defined using `foo()` to extract the value from them. Apart
 from the `foo()` calls, the `T {...}` block contains arbitrary code that does
 some work and returns a result.
 
-Each target, e.g. `classFiles`, is assigned a path on disk as scratch space &amp; to
+Each target, e.g. `classFiles`, is assigned a path on disk as scratch space & to
 store its output files at `out/classFiles/dest/`, and its returned metadata is
 automatically JSON-serialized and stored at `out/classFiles/meta.json`. The
 return-value of targets has to be JSON-serializable via
@@ -106,7 +106,7 @@ object MyCaseClass {
 
 If you want to return a file or a set of files as the result of a `Target`,
 write them to disk within your `T.dest` available through the
-<<task-context-api,Task Context API>> and return a `PathRef(T.dest)`
+<<_task_context_api>> and return a `PathRef(T.dest)`
 that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
@@ -167,7 +167,7 @@ re-evaluate every time even if none of their inputs have changed.
 A command with no parameter is defined as `def myCommand() = T.command {...}`.
 It is a compile error if `()` is missing.
 
-Like <<targets,Targets>>, a command only evaluates after all its upstream
+Like <<_targets>>, a command only evaluates after all its upstream
 dependencies have completed, and will not begin to run if any upstream
 dependency has failed.
 
@@ -198,6 +198,7 @@ to those same paths.
 === mill.api.Ctx.Log
 
 * `T.ctx.log`
+* `T.log`
 * `implicitly[mill.api.Ctx.Log]`
 
 This is the default logger provided for every task. While your task is running,
@@ -231,10 +232,10 @@ def envVar = T.input { T.ctx.env.get("ENV_VAR") }
 
 == Other Tasks
 
-* <<anonymous-tasks,Anonymous Tasks>>, defined using `T.task {...}`
-* <<persistent-targets,Persistent Targets>>
-* <<inputs,Inputs>>
-* <<workers,Workers>>
+* <<_anonymous_tasks>>, defined using `T.task {...}`
+* <<_persistent_targets>>
+* <<_inputs>>
+* <<_workers>>
 
 === Anonymous Tasks
 
@@ -255,7 +256,7 @@ def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
 
 Anonymous task's output does not need to be JSON-serializable, their output is
 not cached, and they can be defined with or without arguments. Unlike
-<<targets,Targets>> or <<commands,Commands>>, anonymous tasks can be defined
+<<_targets>> or <<_commands>>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
 within a downstream target or command.
 
@@ -268,10 +269,10 @@ altogether.
 
 [source,scala]
 ----
-def foo = T.persistent { ... }
+def foo = T.persistent {. ... }
 ----
 
-Identical to <<targets,Targets>>, except that the `dest/` folder is not
+Identical to <<_targets>>, except that the `dest/` folder is not
 cleared in between runs.
 
 This is useful if you are running external incremental-compilers, such as
@@ -292,12 +293,12 @@ filesystem states existed before.
 def foo = T.input { ... }
 ----
 
-A generalization of <<sources,Sources>>, `T.input`s are tasks that re-evaluate
-_every time_ (unlike <<anonymous-tasks,Anonymous Tasks>>), containing an
+A generalization of <<_sources>>, `T.input`s are tasks that re-evaluate
+_every time_ (unlike <<_anonymous_tasks>>), containing an
 arbitrary block of code.
 
 Inputs can be used to force re-evaluation of some external property that may
-affect your build. For example, if I have a <<targets,Target>> `bar` that makes
+affect your build. For example, if I have a <<_targets, Target>> `bar` that makes
 use of the current git version:
 
 [source,scala]
@@ -336,8 +337,8 @@ def foo = T.worker { ... }
 ----
 
 Most tasks dispose of their in-memory return-value every evaluation; in the case
-of <<targets,Targets>>, this is stored on disk and loaded next time if
-necessary, while <<commands,Commands>> just re-compute them each time. Even if
+of <<_targets>>, this is stored on disk and loaded next time if
+necessary, while <<_commands>> just re-compute them each time. Even if
 you use `--watch` or the Build REPL to keep the Mill process running, all this
 state is still discarded and re-built every evaluation.
 
@@ -350,7 +351,7 @@ https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
 https://github.com/scala-js/scala-js[Scala.js Optimizer]. This lets us keep
 them in-memory with warm caches and fast incremental execution.
 
-Like <<persistent-targets,Persistent Targets>>, Workers inherently involve
+Like <<_persistent_targets>>, Workers inherently involve
 mutable state, and it is up to the implementation to ensure that this mutable
 state is only used for caching/performance and does not affect the
 externally-visible behavior of the worker.
@@ -360,7 +361,7 @@ externally-visible behavior of the worker.
 The following table might help you make sense of the small collection of
 different Task types:
 
-[cols="<,<,<,<,<,<,<"]
+//[cols="<,<,<,<,<,<,<"]
 |===
 | |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker 
 

@@ -2,14 +2,13 @@
 
 The plugins in this section are developed/maintained in the mill git tree.
 
-When using one of these, it is important that the versions you load match your mill version. To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
+When using one of these contribution modules, it is important that the versions you load match your mill version. To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
 
-For instance :
+For instance:
 
 [source,scala]
 ----
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
-
 ----
 
 == Artifactory
@@ -33,6 +32,7 @@ object mymodule extends ArtifactoryPublishModule {
 
 Then in your terminal:
 
+[source,bash]
 ----
 $ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
 ----
@@ -60,8 +60,9 @@ object mymodule extends BintrayPublishModule {
 
 Then ensure you have created a package in the Bintray repository.
 
-The default package used is the artifact ID (e.g. mymodule_2.12). If you want to override
+The default package used is the artifact ID (e.g. `mymodule_2.12`). If you want to override
 the package used, you can do that like this:
+
 
 [source,scala]
 ----
@@ -79,25 +80,26 @@ object mymodule extends BintrayPublishModule {
 
 Then in your terminal:
 
+[source,bash]
 ----
 $ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
 ----
 
 === Options
 
-==== –credentials &lt;auth&gt;
+==== –credentials <auth>
 
 Set the username and API key to use for authentication. Expected format is `username:api_key`.
 
-==== –bintrayOwner &lt;owner&gt; (optional)
+==== –bintrayOwner <owner> (optional)
 
 Override the Bintray owner.
 
-==== –bintrayRepo &lt;repo&gt; (optional)
+==== –bintrayRepo <repo> (optional)
 
 Override the Bintray repository.
 
-==== –release &lt;true | false&gt; (default: true)
+==== –release <true | false> (default: true)
 
 Should the files should be published after upload?
 
@@ -129,9 +131,9 @@ It generate correct bloop config for any `JavaModule`, `ScalaModule`,
 You can mix-in the `Bloop.Module` trait with any JavaModule to quickly access
 the deserialised configuration for that particular module:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import mill.scalalib._
 import mill.contrib.bloop.Bloop
@@ -162,9 +164,9 @@ To declare a module that uses BuildInfo you must extend the `mill.contrib.buildi
 
 Quickstart:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
 import mill.contrib.buildinfo.BuildInfo
 
@@ -196,8 +198,9 @@ The contrib.bsp module is now included in mill by default and will eventually re
 
 Run the following command in the working directory of your project to generate the BSP config:
 
+[source,bash]
 ----
-mill mill.bsp.BSP/install
+$ mill mill.bsp.BSP/install
 ----
 
 === Known Issues:
@@ -240,6 +243,7 @@ Requires the docker CLI to be installed.
 
 In the simplest configuration just extend `DockerModule` and declare a `DockerConfig` object.
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._
@@ -254,6 +258,7 @@ object foo extends JavaModule with DockerModule {
 
 Then
 
+[source,bash]
 ----
 $ mill foo.docker.build
 $ docker run foo
@@ -286,10 +291,9 @@ The flyway module currently supports the most common flyway use cases with file 
 
 Configure flyway by overriding settings in your module. For example
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import mill._, scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
@@ -312,20 +316,16 @@ This should work regardless of if you are using a mill or sbt project layout.
 
 You can then run common flyway commands like
 
+[source,bash]
 ----
 mill foo.flywayClean
 mill foo.flywayInfo
 mill foo.flywayMigrate
 ----
 
-____
-
-REMINDER:
-You should never hard-code credentials or check them into a version control system.
+CAUTION: You should never hard-code credentials or check them into a version control system.
 You should write some code to populate the settings for flyway instead.
-For example `def flywayPassword = T.input(T.ctx.env(&quot;FLYWAY_PASSWORD&quot;))`
-
-____
+For example `def flywayPassword = T.input(T.ctx.env("FLYWAY_PASSWORD"))`
 
 == Play Framework
 
@@ -358,9 +358,9 @@ The two helper traits:
 https://github.com/playframework/play-scala-seed.g8[play-scala-seed project]. Mill is
 multi-module by default and requires a bit more configuration to have source, resource, and test
 directories at the top level alongside the `build.sc` file. This trait takes care of that (See
-<<using-singlemodule,Using SingleModule>> below).
+<<_using_singlemodule>> below).
 * `RouterModule` allows you to use the Play router without the rest of the configuration (see
-<<using-the-router-module-directly,Using the router module directly>>.)
+<<_using_the_router_module_directly>>.)
 
 === Using `PlayModule`
 
@@ -368,9 +368,9 @@ In order to use the `PlayModule` for your application, you need to provide the s
 Twirl versions. You also need to define your own test object which extends the provided
 `PlayTests` trait.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
@@ -409,16 +409,20 @@ Using the above definition, your build will be configured to use the default Pla
 
 The following compile dependencies will automatically be added to your build:
 
+[source,scala]
 ----
-ivy"com.typesafe.play::play:${playVersion()}",
-ivy"com.typesafe.play::play-guice:${playVersion()}",
-ivy"com.typesafe.play::play-server:${playVersion()}",
-ivy"com.typesafe.play::play-logback:${playVersion()}"
+Agg(
+  ivy"com.typesafe.play::play:${playVersion()}",
+  ivy"com.typesafe.play::play-guice:${playVersion()}",
+  ivy"com.typesafe.play::play-server:${playVersion()}",
+  ivy"com.typesafe.play::play-logback:${playVersion()}"
+)
 ----
 
 Scala test will be setup as the default test framework and the following test dependencies will be
 added (the actual version depends on the version of Play you are pulling `2.6.x` or `2.7.x`):
 
+[source,scala]
 ----
 ivy"org.scalatestplus.play::scalatestplus-play::4.0.1"
 ----
@@ -434,9 +438,9 @@ ivy"com.typesafe.play::play-akka-http-server:${playVersion()}"
 The `PlayApiModule` trait behaves the same as the `PlayModule` trait but it won't process .scala
 .html files and you don't need to define the `twirlVersion:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
@@ -452,7 +456,7 @@ object core extends PlayApiModule {
 === Play configuration options
 
 The Play modules themselves don't have specific configuration options at this point but the <<router-configuration-options,router
-module configuration options>> and the <<twirl-configuration-options,Twirl module configuration options>> are applicable.
+module configuration options>> and the <<_twirl_configuration_options>> are applicable.
 
 === Additional play libraries
 
@@ -471,11 +475,11 @@ The following helpers are available to provide additional Play Framework depende
 If you want to add an optional library using the helper you can do so by overriding `ivyDeps`
 like in the following example build:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayApiModule {
     //config
@@ -510,13 +514,13 @@ The `SingleModule` trait allows you to have the build descriptor at the same lev
  code on the filesystem. You can move from there to a multi-module build either by refactoring
  your directory layout into multiple subdirectories or by using mill's nested modules feature.
 
-Looking back at the sample build definition in <<using-playmodule,Using PlayModule>>:
+Looking back at the sample build definition in <<_using_playmodule>>:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
-import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`, mill.playlib._
 
 object core extends PlayModule {
     //config
@@ -553,9 +557,9 @@ The directory layout was:
 
 by mixing in the `SingleModule` trait in your build:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
@@ -598,9 +602,9 @@ If you want to use the router module in a project which doesn't use the default 
 can mix-in the `mill.playlib.routesModule` trait directly when defining your module. Your app must
 define `playVersion` and `scalaVersion`.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
 
@@ -616,7 +620,7 @@ object app extends ScalaModule with RouterModule {
 * `def scalaVersion: T[String]` - The scalaVersion in use in your project.
 * `def routes: Sources` - The directory which contains your route files. (Defaults to : `routes/`)
 * `def routesAdditionalImport: Seq[String]` - Additional imports to use in the generated routers.
- (Defaults to `Seq(&quot;controllers.Assets.Asset&quot;, &quot;play.libs.F&quot;)`
+ (Defaults to `Seq("controllers.Assets.Asset", "play.libs.F")`
 * `def generateForwardsRouter: Boolean = true` - Enables the forward router generation.
 * `def generateReverseRouter: Boolean = true` - Enables the reverse router generation.
 * `def namespaceReverseRouter: Boolean = false` - Enables the namespacing of reverse routers.
@@ -638,8 +642,9 @@ The following filesystem layout is expected by default:
 
 `RouterModule` adds the `compileRouter` task to the module:
 
+[source,bash]
 ----
-mill app.compileRouter
+$ mill app.compileRouter
 ----
 
 (it will be automatically run whenever you compile your module)
@@ -651,9 +656,9 @@ to have a custom override for `generatedSources` you can get the list of files f
 
 To add additional imports to all of the routes:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
@@ -681,6 +686,8 @@ The only default entrypoint is the main class (i.e. `finalMainClass` task). Addi
 
 Here is a simple example:
 
+.`build.sc`
+[source,scala]
 ----
 import $ivy.`com.lihaoyi::mill-contrib-proguard:$MILL_VERSION`
 import contrib.proguard._
@@ -704,10 +711,9 @@ To declare a module that uses ScalaPB you can extend the `mill.contrib.scalapbli
 
 This creates a Scala module which compiles `.proto` files in the `protobuf` folder of the module with ScalaPB and adds the resulting `.scala` sources to your module's `generatedSources`.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
 import contrib.scalapblib._
 
@@ -719,6 +725,7 @@ object example extends ScalaPBModule {
 
 This defines a project with the following layout:
 
+[source,text]
 ----
 build.sc
 example/
@@ -729,7 +736,7 @@ example/
 
 === Configuration options
 
-* scalaPBVersion (mandatory) - The ScalaPB version `String` e.g. `&quot;0.7.4&quot;`
+* scalaPBVersion (mandatory) - The ScalaPB version `String` e.g. `"0.7.4"`
 
 * scalaPBFlatPackage - A `Boolean` option which determines whether the `.proto` file name should be appended as the final segment of the package name in the generated sources.
 
@@ -743,10 +750,9 @@ example/
 
 If you'd like to configure the https://scalapb.github.io/docs/scalapbc#passing-generator-parameters[options] that are passed to the ScalaPB compiler directly, you can override the `scalaPBOptions` task, for example:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
 import contrib.scalapblib._
 
@@ -759,10 +765,9 @@ object example extends ScalaPBModule {
 
 If you'd like to pass additional arguments to the ScalaPB compiler directly, you can override the `scalaPBAdditionalArgs` task, for example:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
 import contrib.scalapblib._
 
@@ -785,6 +790,7 @@ extends the `mill.contrib.scoverage.ScoverageModule` trait when defining your
 module. Additionally, you must define a submodule that extends the
 `ScoverageTests` trait that belongs to your instance of `ScoverageModule`.
 
+.`build.sc`
 [source,scala]
 ----
 import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
@@ -804,6 +810,7 @@ object foo extends ScoverageModule  {
 In addition to the normal tasks available to your Scala module, Scoverage
 modules introduce a few new tasks and changes the behavior of an existing one.
 
+[source,bash]
 ----
 mill foo.scoverage.compile      # compiles your module with test instrumentation
                                 # (you don't have to run this manually, running the test task will force its invocation)
@@ -835,6 +842,7 @@ Simply define a `scoverage` module at the root of your project as shown:
 
 This provides you with various reporting functions:
 
+[source,bash]
 ----
 mill __.test                     # run tests for all modules
 mill scoverage.htmlReportAll     # generates report in html format for all modules
@@ -851,14 +859,17 @@ Provides support for https://testng.org/doc/index.html[TestNG].
 
 To use TestNG as test framework, you need to add it to the `TestModule.testFrameworks` property.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 object project extends ScalaModule {
   object test extends Tests{
     def testFrameworks = Seq("mill.testng.TestNGFramework")
+    def ivyDeps = super.ivyDeps ++ Agg(
+      ivy"com.lihaoyi:mill-contrib-testng_2.13:${mill.BuildInfo.millVersion}"
+    )
   }
 }
 ----
@@ -873,10 +884,9 @@ This creates a Scala module which compiles markdown, HTML and `.txt` files in th
 
 By default the resulting documents are simply placed in the Mill build output folder but they can be placed elsewhere by overriding the `tutTargetDirectory` task.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
-
 import $ivy.`com.lihaoyi::mill-contrib-tut:$MILL_VERSION`
 import contrib.tut._
 
@@ -888,6 +898,7 @@ object example extends TutModule {
 
 This defines a project with the following layout:
 
+[source,text]
 ----
 build.sc
 example/
@@ -898,6 +909,7 @@ example/
 
 In order to compile documentation we can execute the `tut` task in the module:
 
+[source,sh]
 ----
 sh> mill example.tut
 ----
@@ -906,13 +918,13 @@ sh> mill example.tut
 
 * tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the `tut` folder at the root of the module.
 
-* tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the `tutTargetDirectory` task but this can be reconfigured so that documentation goes to the root of the module (e.g. `millSourcePath`) or to a dedicated folder (e.g. `millSourcePath / &#39;docs`)
+* tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the `tutTargetDirectory` task but this can be reconfigured so that documentation goes to the root of the module (e.g. `millSourcePath`) or to a dedicated folder (e.g. `millSourcePath / "docs"`)
 
 * tutClasspath - A task which determines what classpath is used when compiling documentation. By default this is configured to use the same inputs as the `runClasspath`, except for using `tutIvyDeps` rather than the module's `ivyDeps`.
 
 * tutScalacPluginIvyDeps - A task which determines the scalac plugins which will be used when compiling code examples with Tut. The default is to use the `scalacPluginIvyDeps` for the module.
 
-* tutNameFilter - A `scala.util.matching.Regex` task which will be used to determine which files should be compiled with tut. The default pattern is as follows: `.*\.(md|markdown|txt|htm|html)`.
+* tutNameFilter - A `scala.util.matching.Regex` task which will be used to determine which files should be compiled with tut. The default pattern is as follows: `+.*\.(md|markdown|txt|htm|html)+`.
 
 * tutScalacOptions - The scalac options which will be used when compiling code examples with Tut. The default is to use the `scalacOptions` for the module but filtering out options which are problematic in the REPL, e.g. `-Xfatal-warnings`, `-Ywarn-unused-imports`.
 
@@ -929,9 +941,9 @@ Twirl templates support.
 To declare a module that needs to compile twirl templates you must extend the `mill.twirllib.TwirlModule` trait when defining your module.
 Also note that twirl templates get compiled into scala code, so you also need to extend `ScalaModule`.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
@@ -956,6 +968,7 @@ app/
 
 `TwirlModule` adds the `compileTwirl` task to the module:
 
+[source,sh]
 ----
 mill app.compileTwirl
 ----
@@ -965,9 +978,9 @@ mill app.compileTwirl
 This task will compile `*.scala.html` templates (and others, like `*.scala.txt`) into the `out/app/compileTwirl/dest`
 directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
@@ -980,11 +993,11 @@ object app extends ScalaModule with TwirlModule {
 
 === Twirl configuration options
 
-==== def twirlVersion: T[String]
+==== +def twirlVersion: T[String]+
 
 Mandatory - the version of the twirl compiler to use, like "1.3.15".
 
-==== def twirlImports: T[Seq[String]]
+==== +def twirlImports: T[Seq[String]]+
 
 The imports that will be added by the twirl compiler to the top of all templates, defaults to https://github.com/playframework/twirl/blob/1.5.0/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L166-L173[twirl's default imports]:
 
@@ -1002,9 +1015,9 @@ Seq(
 
 To add additional imports to all of the twirl templates, override `twirlImports` in your build:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
@@ -1025,9 +1038,9 @@ object app extends ScalaModule with TwirlModule {
 
 To exclude the default imports, simply override `twirlImports` without calling `super`:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 object app extends ScalaModule with TwirlModule {
   // ...
   override def twirlImports = Seq("my.stuff._")
@@ -1037,16 +1050,16 @@ object app extends ScalaModule with TwirlModule {
 @import my.stuff._
 ----
 
-==== def twirlFormats: Map[String, String]
+==== +def twirlFormats: Map[String, String]+
 
-A mapping of file extensions to class names that will be compiled by twirl, e.g. `Map(&quot;html&quot; -&gt; &quot;play.twirl.api.HtmlFormat&quot;)`.
+A mapping of file extensions to class names that will be compiled by twirl, e.g. `Map("html" \-> "play.twirl.api.HtmlFormat")`.
 By default `html`, `xml`, `js`, and `txt` files will be compiled using the corresponding https://github.com/playframework/twirl/blob/1.5.0/api/shared/src/main/scala/play/twirl/api/Formats.scala[twirl format].
 
 To add additional formats, override `twirlFormats` in your build:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill.scalalib._
 
 import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
@@ -1058,15 +1071,15 @@ object app extends ScalaModule with TwirlModule {
 }
 ----
 
-==== def twirlConstructorAnnotations: Seq[String] = Nil
+==== +def twirlConstructorAnnotations: Seq[String] = Nil+
 
 Annotations added to the generated classes' constructors (note it only applies to templates with `@this(...)` constructors).
 
-==== def twirlCodec = Codec(Properties.sourceEncoding)
+==== +def twirlCodec = Codec(Properties.sourceEncoding)+
 
 The codec used to generate the files (the default is the same sbt plugin uses).
 
-==== def twirlInclusiveDot: Boolean = false
+==== +def twirlInclusiveDot: Boolean = false+
 
 Whether the twirl parser should parse with an inclusive dot.
 

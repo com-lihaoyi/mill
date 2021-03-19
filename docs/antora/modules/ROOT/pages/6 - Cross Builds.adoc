@@ -16,7 +16,7 @@ class FooModule(crossVersion: String) extends Module {
 
 ----
 
-This defines three copies of `FooModule`: `&quot;210&quot;`, `&quot;211&quot;` and `&quot;212&quot;`, each of
+This defines three copies of `FooModule`: `"210"`, `"211"` and `"212"`, each of
 which has their own `suffix` target. You can then run them via
 
 [source,bash]
@@ -97,7 +97,7 @@ class FooModule(crossVersion: String) extends Module {
 def bar = T { "hello " + foo("2.10").suffix } 
 ----
 
-Here, `foo(&quot;2.10&quot;)` references the `&quot;2.10&quot;` instance of `FooModule`. You can
+Here, `foo("2.10")` references the `"2.10"` instance of `FooModule`. You can
 refer to whatever versions of the cross-module you want, even using multiple
 versions of the cross-module in the same target:
 

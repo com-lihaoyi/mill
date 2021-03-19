@@ -6,6 +6,7 @@ Scala build:
 
 == Java Project with Test Suite
 
+.`build.sc`
 [source,scala]
 ----
 trait JUnitTests extends TestModule {
@@ -53,6 +54,7 @@ project:
 
 == Cross Scala-Version Modules
 
+.`build.sc`
 [source,scala]
 ----
 import mill._
@@ -90,6 +92,7 @@ version lives in `src-x.y`.
 
 == Scala.js Modules
 
+.`build.sc`
 [source,scala]
 ----
 import mill._
@@ -109,6 +112,7 @@ generating the optimized Javascript file.
 
 == Scala Native Modules
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._, scalanativelib._
@@ -131,9 +135,9 @@ object hello extends ScalaNativeModule {
     │       └── Hello.scala
 ----
 
+.`hello/src/hello/Hello.scala`
 [source,scala]
 ----
-// hello/src/hello/Hello.scala
 package hello
 import scalatags.Text.all._
 object Hello{
@@ -163,6 +167,7 @@ Here's a slightly larger example, demonstrating how to use third party
 dependencies (note the two sets of double-colons `::` necessary) and a test
 suite:
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._, scalanativelib._
@@ -191,9 +196,9 @@ object hello extends ScalaNativeModule {
             └── HelloTests.scala
 ----
 
+.`hello/test/src/HelloTests.scala`
 [source,scala]
 ----
-// hello/test/src/HelloTests.scala
 package hello
 import utest._
 import scalatags.Text.all._
@@ -214,6 +219,7 @@ hello.test` to run the test suite defined here.
 
 == SBT-Compatible Modules
 
+.`build.sc`
 [source,scala]
 ----
 import mill._
@@ -243,6 +249,7 @@ to re-organize all your files
 
 == SBT-Compatible Cross Scala-Version Modules
 
+.`build.sc`
 [source,scala]
 ----
 import mill._
@@ -278,6 +285,7 @@ foo/
 
 == Publishing
 
+.`build.sc`
 [source,scala]
 ----
 import mill._
@@ -375,14 +383,14 @@ integration tests and examples:
 
 === Acyclic
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/master/integration/test/resources/acyclic/build.sc#L1[Mill Build]
 
 A small single-module cross-build, with few sources, minimal dependencies, and
 wired up for publishing to Maven Central.
 
 === Better-Files
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/master/integration/test/resources/better-files/build.sc#L1[Mill Build]
 
 A collection of small modules compiled for a single Scala version.
 
@@ -391,21 +399,21 @@ compiler flags, and download artifacts as part of the build.
 
 === Jawn
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/master/integration/test/resources/jawn/build.sc#L1[Mill Build]
 
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
 === Upickle
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/master/integration/test/resources/upickle/build.sc#L1[Mill Build]
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
 versions of Scala, including the setup necessary for publishing to Maven Central.
 
 === Ammonite
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/master/integration/test/resources/ammonite/build.sc#L1[Mill Build]
 
 A relatively complex build with numerous submodules, some cross-built across
 Scala major versions while others are cross-built against Scala minor versions.

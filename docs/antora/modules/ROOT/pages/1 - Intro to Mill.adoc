@@ -12,8 +12,7 @@ like https://bazel.build/[Bazel], to let you build your projects in a way that's
 Mill has built in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
 http://www.scala-sbt.org/[SBT], but can also be
-https://com-lihaoyi.github.io/mill/page/extending-mill.html[extended] to support any other language or platform via modules (
-written in Java or Scala) or through external subprocesses.
+xref:7 - Extending Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
 
 If you are using Mill, you will probably find the following book by the Author useful in using Mill to the fullest:
 
@@ -67,7 +66,7 @@ Mill also works on a sh environment on Windows (e.g.,
 https://www.msys2.org[MSYS2],
 https://www.cygwin.com[Cygwin],
 https://gitforwindows.org[Git-Bash],
-https://docs.microsoft.com/en-us/windows/wsl[WSL]; to get started, follow the instructions in the <<manual,manual>>
+https://docs.microsoft.com/en-us/windows/wsl[WSL]; to get started, follow the instructions in the <<_manual>>
 section below. Note that:
 
 * In some environments (such as WSL), mill might have to be run without a server (using `-i`, `--interactive`
@@ -145,7 +144,7 @@ interactive mode.
 Once installed mill is able to use newer or different versions for each project automatically. You don't need to install
 multiple versions of mill yourself.
 
-See section <<overriding-mill-versions,Overriding Mill Versions>> how to do it.
+See section <<_overriding_mill_versions>> how to do it.
 
 == Getting Started
 
@@ -508,12 +507,12 @@ Inputs:
     foo.forkWorkingDir
 ----
 
-`inspect` is a more verbose version of <<resolve,resolve>>. In addition to printing out the name of one-or-more tasks,
+`inspect` is a more verbose version of <<_resolve>>. In addition to printing out the name of one-or-more tasks,
 it also displays its source location and a list of input tasks. This is very useful for debugging and interactively
 exploring the structure of your build from the command line.
 
 `inspect` also works with the same `_`/`__` wildcard/query syntaxes that
-<<all,all>>/<<resolve,resolve>> do:
+<<_all>>/<<_resolve>> do:
 
 [source,bash]
 ----

@@ -4,6 +4,7 @@ You can configure your Mill build in a number of ways:
 
 == Compilation &amp; Execution Flags
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._
@@ -45,6 +46,7 @@ mill foo.runLocal arg1 arg2 arg3
 
 == Adding Ivy Dependencies
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._
@@ -61,18 +63,19 @@ object foo extends ScalaModule {
 ----
 
 You can define the `ivyDeps` field to add ivy dependencies to your module. The
-`ivy&quot;com.lihaoyi::upickle:0.5.1&quot;` syntax (with `::`) represents Scala
+`ivy"com.lihaoyi::upickle:0.5.1"` syntax (with `::`) represents Scala
 dependencies; for Java dependencies you would use a single `:` e.g.
-`ivy&quot;com.lihaoyi:upickle:0.5.1&quot;`. If you have dependencies cross-published
+`"ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
 against the full Scala version (eg. `2.12.4` instead of just `2.12`),
-you can use `:::` as in `ivy&quot;org.scalamacros:::paradise:2.1.1&quot;`.
+you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
 To select the test-jars from a dependency use the following syntax:
-`ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests`.
+`ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 
-By default these are resolved from maven central, but you can add your own
+By default, these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
 
+.`build.sc`
 [source,scala]
 ----
 import coursier.maven.MavenRepository
@@ -86,6 +89,7 @@ To add custom resolvers to the initial bootstrap of the build, you can create a
 custom `ZincWorkerModule`, and override the `zincWorker` method in your
 `ScalaModule` by pointing it to that custom object:
 
+.`build.sc`
 [source,scala]
 ----
 import coursier.maven.MavenRepository
@@ -104,6 +108,7 @@ object YourBuild extends ScalaModule {
 
 == Adding a Test Suite
 
+.`build.sc`
 [source,scala]
 ----
 import mill._, scalalib._
@@ -171,9 +176,9 @@ mill foo.test foo.MyTestSuite.testCaseName
 
 You can define multiple test suites if you want, e.g.:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -203,9 +208,9 @@ to `ivyDeps` and specifying the `testFrameworks` you want to use.
 
 Scalatest example:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -220,9 +225,9 @@ object foo extends ScalaModule {
 
 Specs2 example:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -238,13 +243,13 @@ object foo extends ScalaModule {
 }
 ----
 
-After that, you can follow the instructions in <<adding-a-test-suite,add a test suite>>, and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
+After that, you can follow the instructions in <<_adding_a_test_suite>>, and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
 
 == Scala Compiler Plugins
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -266,9 +271,9 @@ Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out 
 
 To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
@@ -290,9 +295,9 @@ for details.
 
 == Common Configuration
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
@@ -323,6 +328,7 @@ a symlink from one to the other to avoid duplication.
 
 Example `~/.mill/ammonite/predef.sc`
 
+.`~/.mill/ammonite/prefef.sc`
 [source,scala]
 ----
 val nexusUser = "myuser"
@@ -341,9 +347,9 @@ Everything declared in the above file will be available to any build you run.
 
 == Custom Tasks
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -396,9 +402,9 @@ your code running in the `T {...}` block.
 
 == Custom Modules
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object qux extends Module {
@@ -425,9 +431,9 @@ mill qux.bar.run
 You can also define your own module traits, with their own set of custom tasks,
 to represent other things e.g. Javascript bundles, docker image building,:
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 trait MySpecialModule extends Module {
   ...
 }
@@ -437,9 +443,9 @@ object bar extends MySpecialModule
 
 == Module/Task Names
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._
 import mill.scalalib._
 
@@ -459,13 +465,13 @@ object unhyphenatedModule extends Module {
 }
 ----
 
-Mill modules and tasks may be composed of any of the following characters types:
+Mill modules and tasks may be composed of the following character types:
 
 * Alphanumeric (A-Z, a-z, and 0-9)
-* Underscore (_)
-* Hyphen (-)
+* Underscore (`_`)
+* Hyphen (`-`)
 
-Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).
+Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (```).
 
 Using hyphenated names at the command line is unaffected by these restrictions.
 
@@ -478,9 +484,9 @@ mill unhyphenatedModule.unhyphenated_target2
 
 == Overriding Tasks
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -508,9 +514,9 @@ In Mill builds the `override` keyword is optional.
 
 == Unmanaged Jars
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -528,9 +534,9 @@ filesystem, e.g. in the above snippet any jars that happen to live in the
 
 == Defining a Main Class
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -550,12 +556,12 @@ When you make a runnable jar of your project with `assembly` command,
 you may want to exclude some files from a final jar (like signature files, and manifest files from library jars),
 and merge duplicated files (for instance `reference.conf` files from library dependencies).
 
-By default mill excludes all `*.sf`, `*.dsa`, `*.rsa`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
+By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
 You can also define your own merge/exclude rules.
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 import mill.modules.Assembly._
 
@@ -572,9 +578,9 @@ object foo extends ScalaModule {
 
 To exclude Scala library from assembly
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 import mill.modules.Assembly._
 
@@ -587,9 +593,9 @@ object foo extends ScalaModule {
 
 == Downloading Non-Maven Jars
 
+.`build.sc`
 [source,scala]
 ----
-// build.sc
 import mill._, scalalib._
 
 object foo extends ScalaModule {
