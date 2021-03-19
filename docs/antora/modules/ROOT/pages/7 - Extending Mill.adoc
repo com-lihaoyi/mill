@@ -20,7 +20,7 @@ If you have something you just want to _do_ that isn't covered by the built-in `
 For subprocess/filesystem operations, you can use the
 https://github.com/lihaoyi/os-lib[os-lib] library that comes bundled with Mill, or even plain `java.nio`/`java.lang.Process`.
 Each target gets its own
-xref:4 - Tasks.adoc#_task_context_api[T.dest] folder that you can use to place files without worrying about colliding with other targets.
+xref:4 - Tasks.adoc#_mill_api_ctx_dest[T.dest] folder that you can use to place files without worrying about colliding with other targets.
 
 This covers use cases like:
 
