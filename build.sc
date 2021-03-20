@@ -931,6 +931,16 @@ object docs extends Module {
     }
     def sources = T.sources(millSourcePath / "antora.yml", millSourcePath / "modules")
     def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+    def devAntora = T{
+      val dest = T.dest
+      sources().foreach(s => os.copy.into(s.path, dest))
+      val lines = os.read(dest / "antora.yml").linesIterator.map {
+        case l if l.startsWith("version:") => s"version: 'master'"
+        case l => l
+      }
+      os.write.over(dest / "antora.yml", lines.mkString("\n"))
+      PathRef(dest)
+    }
     def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
       s"""site:
         |  title: Mill
@@ -942,7 +952,10 @@ object docs extends Module {
         |    - url: ${ if(authorMode) baseDir else Settings.projectUrl }
         |      branches: ${ if(authorMode) "HEAD" else "antora" }
         |      start_path: docs/antora
-        |
+        |    # Example to demonstrate how multiple sources may work
+        |    - url: ${ baseDir }
+        |      branches: HEAD
+        |      start_path: ${ devAntora().path.relativeTo(baseDir) }
         |ui:
         |  bundle:
         |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
@@ -955,7 +968,8 @@ object docs extends Module {
         |    mill-last-tag: '${millLastTag()}'
         |    mill-github-url: ${Settings.projectUrl}
         |    mill-doc-url: ${Settings.docUrl}
-        |    utest-github-url: https://github.com/hihaoyi/utest
+        |    utest-github-url: https://github.com/com-lihaoyi/utest
+        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
         |
         |""".stripMargin
     }
