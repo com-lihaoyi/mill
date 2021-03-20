@@ -12,7 +12,7 @@ like https://bazel.build/[Bazel], to let you build your projects in a way that's
 Mill has built in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
 http://www.scala-sbt.org/[SBT], but can also be
-xref:7 - Extending Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
+xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
 
 If you are using Mill, you will probably find the following book by the Author useful in using Mill to the fullest:
 

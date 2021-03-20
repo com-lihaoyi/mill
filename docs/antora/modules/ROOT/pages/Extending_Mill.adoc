@@ -20,7 +20,7 @@ If you have something you just want to _do_ that isn't covered by the built-in `
 For subprocess/filesystem operations, you can use the
 https://github.com/lihaoyi/os-lib[os-lib] library that comes bundled with Mill, or even plain `java.nio`/`java.lang.Process`.
 Each target gets its own
-xref:4 - Tasks.adoc#_mill_api_ctx_dest[T.dest] folder that you can use to place files without worrying about colliding with other targets.
+xref:Tasks.adoc#_mill_api_ctx_dest[T.dest] folder that you can use to place files without worrying about colliding with other targets.
 
 This covers use cases like:
 
@@ -178,9 +178,9 @@ def idea(ev: Evaluator) = T.command {
 ----
 
 Many built-in tools are implemented as custom evaluator commands:
-xref:1 - Intro to Mill.adoc#_all[all],
-xref:1 - Intro to Mill.adoc#_inspect[inspect],
-xref:1 - Intro to Mill.adoc#_resolve[resolve],
-xref:1 - Intro to Mill.adoc#_show[show].
+xref:Intro_to_Mill.adoc#_all[all],
+xref:Intro_to_Mill.adoc#_inspect[inspect],
+xref:Intro_to_Mill.adoc#_resolve[resolve],
+xref:Intro_to_Mill.adoc#_show[show].
 If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.
 

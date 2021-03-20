@@ -945,11 +945,12 @@ object docs extends Module {
       s"""site:
         |  title: Mill
         |  url: ${Settings.docUrl}
-        |  start_page: mill::1 - Intro to Mill.adoc
+        |  start_page: mill::Intro_to_Mill.adoc
         |
         |content:
         |  sources:
-        |    # TODO: the in-repo version tagged documentation (currently only the pr branch)
+        |    # the in-repo version-tagged documentation (currently only the pr branch)
+        |    # TODO: switch branch to master and add tags for releases with antora docs
         |    - url: ${ if(authorMode) baseDir else Settings.projectUrl }
         |      branches: ${ if(authorMode) "HEAD" else "antora" }
         |      start_path: docs/antora

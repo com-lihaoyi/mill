@@ -1,5 +1,7 @@
 = Tasks
 
+== Task Graphs
+
 One of Mill's core abstractions is its _Task Graph_: this is how Mill defines,
 orders and caches work it needs to do, and exists independently of any support
 for building Scala.
@@ -67,7 +69,7 @@ Subsequent invocations of `mill jar` will evaluate only as much as is necessary,
 * If the files in `resourceRoot` change, it will only re-evaluate `jar` and use
  the cached output of `allSources` and `classFiles`
 
-== Different Kinds of Tasks
+== Primary Tasks
 
 There are three primary kinds of _Tasks_ that you should care about:
 
@@ -105,7 +107,7 @@ object MyCaseClass {
 
 If you want to return a file or a set of files as the result of a `Target`,
 write them to disk within your `T.dest` available through the
-<<_task_context_api>> and return a `PathRef(T.dest)`
+xref:Task_Context_API.adoc#_mill_api_ctx_dest[] and return a `PathRef(T.dest)`
 that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
@@ -170,60 +172,6 @@ Targets are, and its returned metadata stored at the same `out/run/meta.json`
 path for consumption by external tools.
 
 Commands can only be defined directly within a `Module` body.
-
-== Task Context API
-
-There are several APIs available to you within the body of a `T {...}` or
-`T.command {...}` block to help your write the code implementing your Target or
-Command:
-
-=== mill.api.Ctx.Dest
-
-* `T.dest`
-* `implicitly[mill.api.Ctx.Dest]`
-
-This is a unique `os.Path` (e.g. `out/classFiles/dest/` or `out/run/dest/`)  that is
-assigned to every Target or Command. It is cleared before your task runs, and
-you can use it as a scratch space for temporary files or a place to put returned
-artifacts.
-This is guaranteed to be unique for every `Target` or `Command`, so
-you can be sure that you will not collide or interfere with anyone else writing
-to those same paths.
-
-=== mill.api.Ctx.Log
-
-* `T.ctx.log`
-* `T.log`
-* `implicitly[mill.api.Ctx.Log]`
-
-This is the default logger provided for every task. While your task is running,
-`System.out` and `System.in` are also redirected to this logger. The logs for a
-task are streamed to standard out/error as you would expect, but each task's
-specific output is also streamed to a log file on disk, e.g. `out/run/log` or
-`out/classFiles/log` for you to inspect later.
-
-Messages logged with `log.debug` appear by default only in the log files.
-You can use the `--debug` option when running mill to show them on the console too.
-
-=== mill.api.Ctx.Env
-
-* `T.ctx.env`
-* `implicitly[mill.api.Ctx.Env]`
-
-Mill keeps a long-lived JVM server to avoid paying the cost of recurrent
-classloading.
-Because of this, running `System.getenv` in a task might not yield
-up to date environment variables, since it will be initialised when the server
-starts, rather than when the client executes.
-To circumvent this, mill's client sends the environment variables to the server as it sees them, and the server makes them available as a `Map[String, String]` via the `Ctx` API.
-
-If the intent is to always pull the latest environment values, the call should
-be wrapped in an `Input` as such : 
-
-[source,scala]
-----
-def envVar = T.input { T.ctx.env.get("ENV_VAR") }
-----
 
 == Other Tasks
 
