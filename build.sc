@@ -949,10 +949,11 @@ object docs extends Module {
         |
         |content:
         |  sources:
+        |    # TODO: the in-repo version tagged documentation (currently only the pr branch)
         |    - url: ${ if(authorMode) baseDir else Settings.projectUrl }
         |      branches: ${ if(authorMode) "HEAD" else "antora" }
         |      start_path: docs/antora
-        |    # Example to demonstrate how multiple sources may work
+        |    # the master documentation
         |    - url: ${ baseDir }
         |      branches: HEAD
         |      start_path: ${ devAntora().path.relativeTo(baseDir) }
