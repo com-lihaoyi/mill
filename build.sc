@@ -876,38 +876,6 @@ object dev extends MillModule {
 
 object docs extends Module {
 
-  /** Download ammonite. */
-  def ammoniteVersion: String = "1.4.0"
-
-  def ammonite: T[PathRef] = T.persistent {
-    val dest = T.dest / s"ammonite-${ammoniteVersion}"
-    if (!os.isFile(dest)) {
-      val download = mill.modules.Util.download(
-        s"https://github.com/lihaoyi/Ammonite/releases/download/${ammoniteVersion}/2.12-${ammoniteVersion}",
-        os.rel / s"ammonite-${ammoniteVersion}.part"
-      )
-      os.move(download.path, dest)
-    }
-    os.perms.set(dest, os.perms(dest) + PosixFilePermission.OWNER_EXECUTE)
-    PathRef(dest)
-  }
-  def sources = T.sources(millSourcePath)
-  /** Generate the documentation site. */
-  def generate = T {
-    sources()
-    val dest = T.dest / "site"
-    mill.modules.Jvm.runSubprocess(
-      commandArgs = Seq(
-        ammonite().path.toString(),
-        "build.sc",
-        "--targetDir",
-        dest.toString()),
-      envArgs = Map(),
-      workingDir = millSourcePath
-    )
-    PathRef(dest)
-  }
-
   /** Generates the mill documentation with Antora. */
   object antora extends Module {
     def npmBase: T[os.Path] = T.persistent { T.dest }
@@ -1086,7 +1054,7 @@ def uploadToGithub(authKey: String) = T.command{
   for(example <- Seq("example-1", "example-2", "example-3")) {
     os.copy(os.pwd / "example" / example, T.dest / example)
     os.copy(launcher().path, T.dest / example / "mill")
-    os.proc('zip, "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+    os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
     upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey, Settings.githubOrg, Settings.githubRepo)
   }
   upload.apply(assembly().path, releaseTag, label + "-assembly", authKey, Settings.githubOrg, Settings.githubRepo)
