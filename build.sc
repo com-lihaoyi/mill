@@ -913,7 +913,7 @@ object docs extends Module {
     def npmBase: T[os.Path] = T.persistent { T.dest }
     def prepareAntora(npmDir: os.Path) = {
       Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "@antora/cli", "@antora/site-generator-default"),
+        commandArgs = Seq("npm", "install", "@antora/cli", "@antora/site-generator-default", "gitlab:antora/xref-validator"),
         envArgs = Map(),
         workingDir = npmDir
       )
@@ -991,10 +991,24 @@ object docs extends Module {
         data = githubPagesPlaybookText(authorMode)(),
         createFolders = true
       )
+      // check xrefs
       runAntora(
         npmDir = npmBase(),
         workDir = docSite,
-        args = Seq(playbook.last, "--to-dir", siteDir.toString(), "--attribute", "page-pagination") ++
+        args = Seq(
+          "--generator", "@antora/xref-validator",
+          playbook.last,
+          "--to-dir", siteDir.toString(), "--attribute", "page-pagination") ++
+          Seq("--fetch").filter(_ => !authorMode)
+      )
+      // generate site
+      runAntora(
+        npmDir = npmBase(),
+        workDir = docSite,
+        args = Seq(
+          playbook.last,
+          "--to-dir", siteDir.toString(),
+          "--attribute", "page-pagination") ++
           Seq("--fetch").filter(_ => !authorMode)
       )
       os.write(siteDir / ".nojekyll", "")
