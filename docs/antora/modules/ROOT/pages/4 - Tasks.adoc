@@ -37,7 +37,7 @@ def run(mainClsName: String) = T.command {
 
 ----
 
-Here, we have two `T.sources`s, `sourceRoot` and `resourceRoot`, which act as the
+Here, we have two ``T.sources``, `sourceRoot` and `resourceRoot`, which act as the
 roots of our task graph. `allSources` depends on `sourceRoot` by calling
 `sourceRoot()` to extract its value, `classFiles` depends on `allSources` the
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
@@ -47,6 +47,7 @@ https://github.com/lihaoyi/os-lib[os-lib] library.
 
 The above build defines the following task graph:
 
+.Task graph for `jar`
 ----
 sourceRoot -> allSources -> classFiles
                                |
@@ -58,8 +59,7 @@ When you first evaluate `jar` (e.g. via `mill jar` at the command line), it will
 evaluate all the defined targets: `sourceRoot`, `allSources`, `classFiles`,
 `resourceRoot` and `jar`.
 
-Subsequent `mill jar`s will evaluate only as much as is necessary, depending on
-what input sources changed:
+Subsequent invocations of `mill jar` will evaluate only as much as is necessary, depending on what input sources changed:
 
 * If the files in `sourceRoot` change, it will re-evaluate `allSources`,
  compiling to `classFiles`, and building the `jar`
@@ -82,16 +82,15 @@ There are three primary kinds of _Tasks_ that you should care about:
 def allSources = T { os.walk(sourceRoot().path).map(PathRef(_)) }
 ----
 
-`Target`s are defined using the `def foo = T {...}` syntax, and dependencies on
-other targets are defined using `foo()` to extract the value from them. Apart
-from the `foo()` calls, the `T {...}` block contains arbitrary code that does
-some work and returns a result.
+``Target``s are defined using the `def foo = T {...}` syntax, and dependencies on
+other targets are defined using `foo()` to extract the value from them.
+Apart from the `foo()` calls, the `T {...}` block contains arbitrary code that does some work and returns a result.
 
 Each target, e.g. `classFiles`, is assigned a path on disk as scratch space & to
 store its output files at `out/classFiles/dest/`, and its returned metadata is
-automatically JSON-serialized and stored at `out/classFiles/meta.json`. The
-return-value of targets has to be JSON-serializable via
-https://github.com/lihaoyi/upickle[uPickle].
+automatically JSON-serialized and stored at `out/classFiles/meta.json`.
+The return-value of targets has to be JSON-serializable via
+{upickle-github-url}[uPickle].
 
 In case you want return your own
 case class (e.g. `MyCaseClass`), you can make it JSON-serializable by adding the
@@ -111,19 +110,16 @@ that hashes the files you wrote.
 
 If a target's inputs change but its output does not, e.g. someone changes a
 comment within the source files that doesn't affect the classfiles, then
-downstream targets do not re-evaluate. This is determined using the `.hashCode`
-of the Target's return value. For targets returning `os.Path`s that
-reference files on disk, you can wrap the `Path` in a `PathRef` (shown above)
-whose `.hashCode()` will include the hashes of all files on disk at time of
-creation.
+downstream targets do not re-evaluate.
+This is determined using the `.hashCode` of the Target's return value.
+For targets returning ``os.Path``s that reference files on disk, you can wrap the `Path` in a `PathRef` (shown above) whose `.hashCode()` will include the hashes of all files on disk at time of creation.
 
 The graph of inter-dependent targets is evaluated in topological order; that
 means that the body of a target will not even begin to evaluate if one of its
-upstream dependencies has failed. This is unlike normal Scala functions: a plain
-old function `foo` would evaluate halfway and then blow up if one of `foo`'s
-dependencies throws an exception.
+upstream dependencies has failed.
+This is unlike normal Scala functions: a plain old function `foo` would evaluate halfway and then blow up if one of ``foo``'s dependencies throws an exception.
 
-Targets cannot take parameters and must be 0-argument `def`s defined directly
+Targets cannot take parameters and must be 0-argument ``def``s defined directly
 within a `Module` body.
 
 === Sources
@@ -135,11 +131,9 @@ def sourceRootPath = os.pwd / 'src
 def sourceRoots = T.sources { sourceRootPath }
 ----
 
-`Source`s are defined using `T.sources { ... }`, taking one-or-more
-`os.Path`s as arguments. A `Source` is a subclass of
-`Target[Seq[PathRef]]`: this means that its build signature/`hashCode` depends
-not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of
-the filesystem tree under that path.
+``Source``s are defined using `T.sources {...}`, taking one-or-more
+``os.Path``s as arguments.
+A `Source` is a subclass of `Target[Seq[PathRef]]`: this means that its build signature/`hashCode` depends not just on the path it refers to (e.g. `foo/bar/baz`) but also the MD5 hash of the filesystem tree under that path.
 
 `T.sources` also has an overload which takes `Seq[PathRef]`, to let you
 override-and-extend source lists the same way you would any other `T {...}`
@@ -160,7 +154,7 @@ def run(mainClsName: String) = T.command {
 }
 ----
 
-Defined using `T.command { ... }` syntax, `Command`s can run arbitrary code, with
+Defined using `T.command {...}` syntax, ``Command``s can run arbitrary code, with
 dependencies declared using the same `foo()` syntax (e.g. `classFiles()` above).
 Commands can be parametrized, but their output is not cached, so they will
 re-evaluate every time even if none of their inputs have changed.
@@ -188,10 +182,11 @@ Command:
 * `T.dest`
 * `implicitly[mill.api.Ctx.Dest]`
 
-This is the unique `out/classFiles/dest/` path or `out/run/dest/` path that is
+This is a unique `os.Path` (e.g. `out/classFiles/dest/` or `out/run/dest/`)  that is
 assigned to every Target or Command. It is cleared before your task runs, and
 you can use it as a scratch space for temporary files or a place to put returned
-artifacts. This is guaranteed to be unique for every `Target` or `Command`, so
+artifacts.
+This is guaranteed to be unique for every `Target` or `Command`, so
 you can be sure that you will not collide or interfere with anyone else writing
 to those same paths.
 
@@ -216,11 +211,11 @@ You can use the `--debug` option when running mill to show them on the console t
 * `implicitly[mill.api.Ctx.Env]`
 
 Mill keeps a long-lived JVM server to avoid paying the cost of recurrent
-classloading. Because of this, running `System.getenv` in a task might not yield
+classloading.
+Because of this, running `System.getenv` in a task might not yield
 up to date environment variables, since it will be initialised when the server
-starts, rather than when the client executes. To circumvent this, mill's client
-sends the environment variables to the server as it sees them, and the server
-makes them available as a `Map[String, String]` via the `Ctx` API. 
+starts, rather than when the client executes.
+To circumvent this, mill's client sends the environment variables to the server as it sees them, and the server makes them available as a `Map[String, String]` via the `Ctx` API.
 
 If the intent is to always pull the latest environment values, the call should
 be wrapped in an `Input` as such : 
@@ -244,9 +239,8 @@ def envVar = T.input { T.ctx.env.get("ENV_VAR") }
 def foo(x: Int) = T.task { ... x ... bar() ... }
 ----
 
-You can define anonymous tasks using the `T.task { ... }` syntax. These are not
-runnable from the command-line, but can be used to share common code you find
-yourself repeating in `Target`s and `Command`s.
+You can define anonymous tasks using the `T.task {...}` syntax.
+These are not runnable from the command-line, but can be used to share common code you find yourself repeating in ``Target``s and ``Command``s.
 
 [source,scala]
 ----
@@ -255,25 +249,24 @@ def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
 ----
 
 Anonymous task's output does not need to be JSON-serializable, their output is
-not cached, and they can be defined with or without arguments. Unlike
-<<_targets>> or <<_commands>>, anonymous tasks can be defined
+not cached, and they can be defined with or without arguments.
+Unlike <<_targets>> or <<_commands>>, anonymous tasks can be defined
 anywhere and passed around any way you want, until you finally make use of them
 within a downstream target or command.
 
-While an anonymous task `foo`'s own output is not cached, if it is used in a
+While an anonymous task ``foo``'s own output is not cached, if it is used in a
 downstream target `baz` and the upstream target `bar` hasn't changed,
-`baz`'s cached output will be used and `foo`'s evaluation will be skipped
+``baz``'s cached output will be used and ``foo``'s evaluation will be skipped
 altogether.
 
 === Persistent Targets
 
 [source,scala]
 ----
-def foo = T.persistent {. ... }
+def foo = T.persistent { ... }
 ----
 
-Identical to <<_targets>>, except that the `dest/` folder is not
-cleared in between runs.
+Identical to <<_targets>>, except that the `dest/` folder is not cleared in between runs.
 
 This is useful if you are running external incremental-compilers, such as
 Scala's https://github.com/sbt/zinc[Zinc], Javascript's
@@ -293,7 +286,7 @@ filesystem states existed before.
 def foo = T.input { ... }
 ----
 
-A generalization of <<_sources>>, `T.input`s are tasks that re-evaluate
+A generalization of <<_sources>>, ``T.input``s are tasks that re-evaluate
 _every time_ (unlike <<_anonymous_tasks>>), containing an
 arbitrary block of code.
 
@@ -301,32 +294,32 @@ Inputs can be used to force re-evaluation of some external property that may
 affect your build. For example, if I have a <<_targets, Target>> `bar` that makes
 use of the current git version:
 
+
 [source,scala]
 ----
-def bar = T { ... os.proc("git", "rev-parse", "HEAD").call().out.string ... }
+def bar = T { ... os.proc("git", "rev-parse", "HEAD").call().out.text() ... }
 ----
 
 `bar` will not know that `git rev-parse` can change, and will
 not know to re-evaluate when your `git rev-parse HEAD` _does_ change. This means
-`bar` will continue to use any previously cached value, and `bar`'s output will
+`bar` will continue to use any previously cached value, and ``bar``'s output will
 be out of date!
 
 To fix this, you can wrap your `git rev-parse HEAD` in a `T.input`:
 
 [source,scala]
 ----
-def foo = T.input { os.proc("git", "rev-parse", "HEAD").call().out.string }
+def foo = T.input { os.proc("git", "rev-parse", "HEAD").call().out.text() }
 def bar = T { ... foo() ... }
 ----
 
-This makes `foo` will always re-evaluate every build; if `git rev-parse HEAD`
-does not change, that will not invalidate `bar`'s caches. But if `git rev-parse
-HEAD` _does_ change, `foo`'s output will change and `bar` will be correctly
-invalidated and re-compute using the new version of `foo`.
+This makes `foo` to always re-evaluate every build; if `git rev-parse HEAD`
+does not change, that will not invalidate ``bar``'s caches.
+But if `git rev-parse HEAD` _does_ change, ``foo``'s output will change and `bar` will be correctly invalidated and re-compute using the new version of `foo`.
 
-Note that because `T.input`s re-evaluate every time, you should ensure that the
+Note that because ``T.input``s re-evaluate every time, you should ensure that the
 code you put in `T.input` runs quickly. Ideally it should just be a simple check
-"did anything change?" and any heavy-lifting can be delegated to downstream
+"did anything change?" and any heavy-lifting should be delegated to downstream
 targets.
 
 === Workers
@@ -338,34 +331,33 @@ def foo = T.worker { ... }
 
 Most tasks dispose of their in-memory return-value every evaluation; in the case
 of <<_targets>>, this is stored on disk and loaded next time if
-necessary, while <<_commands>> just re-compute them each time. Even if
-you use `--watch` or the Build REPL to keep the Mill process running, all this
-state is still discarded and re-built every evaluation.
+necessary, while <<_commands>> just re-compute them each time.
+Even if you use `--watch` or the Build REPL to keep the Mill process running, all this state is still discarded and re-built every evaluation.
 
 Workers are unique in that they store their in-memory return-value between
-evaluations. This makes them useful for storing in-memory caches or references
-to long-lived external worker processes that you can re-use.
+evaluations.
+This makes them useful for storing in-memory caches or references to long-lived external worker processes that you can re-use.
 
 Mill uses workers to manage long-lived instances of the
 https://github.com/sbt/zinc[Zinc Incremental Scala Compiler] and the
-https://github.com/scala-js/scala-js[Scala.js Optimizer]. This lets us keep
-them in-memory with warm caches and fast incremental execution.
+https://github.com/scala-js/scala-js[Scala.js Optimizer].
+This lets us keep them in-memory with warm caches and fast incremental execution.
 
 Like <<_persistent_targets>>, Workers inherently involve
 mutable state, and it is up to the implementation to ensure that this mutable
 state is only used for caching/performance and does not affect the
 externally-visible behavior of the worker.
 
-== Cheat Sheet
+== Task Cheat Sheet
 
 The following table might help you make sense of the small collection of
 different Task types:
 
-//[cols="<,<,<,<,<,<,<"]
+[cols="<,<,<,<,<,<,<"]
 |===
 | |Target |Command |Source/Input |Anonymous Task |Persistent Target |Worker 
 
-|Cached on Disk |X |X | | |X | 
+|Cached to Disk |X |X | | |X |
 |Must be JSON Writable |X |X | | |X | 
 |Must be JSON Readable |X | | | |X | 
 |Runnable from the Command Line |X |X | | |X | 
