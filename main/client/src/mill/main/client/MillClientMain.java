@@ -198,7 +198,6 @@ public class MillClientMain {
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
                 ioSocket = Util.isWindows?
-                        //new Win32NamedPipeClientSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
                         new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
             } catch (Throwable e){

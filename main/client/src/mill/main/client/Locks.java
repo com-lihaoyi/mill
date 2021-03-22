@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Locks implements AutoCloseable {
 
-    public Lock processLock; // running server lock
+    public Lock processLock;
     public Lock serverLock;
     public Lock clientLock;
 
