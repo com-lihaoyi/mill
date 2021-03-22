@@ -51,8 +51,8 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.14"
-  val flywayCore = ivy"org.flywaydb:flyway-core:7.7.0"
+  val coursier = ivy"io.get-coursier::coursier:2.0.15"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
@@ -66,7 +66,7 @@ object Deps {
     val websocket =  ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
-  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.0"
+  val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
 
   val jna = ivy"net.java.dev.jna:jna:5.7.0"
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.7.0"
@@ -82,7 +82,7 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.4"
-  val upickle = ivy"com.lihaoyi::upickle:1.3.0"
+  val upickle = ivy"com.lihaoyi::upickle:1.3.8"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
