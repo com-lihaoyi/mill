@@ -31,6 +31,7 @@ public class InputPumper implements Runnable{
                 }
             }
         }catch(Exception e){
+            //if (e.getMessage().matches(".+(6)")) return;
             throw new RuntimeException(e);
         }
     }

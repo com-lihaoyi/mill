@@ -1,6 +1,7 @@
 package mill.main.client;
 
-import org.scalasbt.ipcsocket.*;
+import org.scalasbt.ipcsocket.UnixDomainSocket;
+import org.scalasbt.ipcsocket.Win32NamedPipeSocket;
 
 import java.io.*;
 import java.net.Socket;
@@ -197,7 +198,8 @@ public class MillClientMain {
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
                 ioSocket = Util.isWindows?
-                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())
+                        //new Win32NamedPipeClientSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
+                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
             } catch (Throwable e){
                 socketThrowable = e;

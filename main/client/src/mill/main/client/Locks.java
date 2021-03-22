@@ -6,7 +6,7 @@ import java.util.concurrent.locks.ReentrantLock;
 
 public class Locks implements AutoCloseable {
 
-    public Lock processLock;
+    public Lock processLock; // running server lock
     public Lock serverLock;
     public Lock clientLock;
 
@@ -98,10 +98,10 @@ class MemoryLocked implements Locked {
 
 class MemoryLock extends Lock {
 
-    private ReentrantLock innerLock = new ReentrantLock(true);
+    private ReentrantLock innerLock = new ReentrantLock();
 
     public boolean probe() {
-          return !innerLock.isLocked();
+        return !innerLock.isLocked();
     }
 
     public Locked lock() {

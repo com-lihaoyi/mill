@@ -27,16 +27,17 @@ class EchoServer extends MillServerMain[Int]{
     systemProperties.toSeq.sortBy(_._1).foreach{
       case (key, value) => stdout.println(s"$key=$value")
     }
-    stdout.flush()
     if (args.nonEmpty){
       stderr.println(str.toUpperCase + args(0))
     }
+    stdout.flush()
     stderr.flush()
     (true, None)
   }
 }
 
 object ClientServerTests extends TestSuite{
+
   val ENDL = System.lineSeparator()
 
   def initStreams() = {
@@ -83,61 +84,63 @@ object ClientServerTests extends TestSuite{
 
   def tests = Tests{
     'hello - {
-      val (tmpDir, locks) = init()
-      def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
+        val (tmpDir, locks) = init()
+        def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
-      // Make sure the simple "have the client start a server and
-      // exchange one message" workflow works from end to end.
+        // Make sure the simple "have the client start a server and
+        // exchange one message" workflow works from end to end.
 
-      assert(
-        locks.clientLock.probe(),
-        locks.serverLock.probe(),
-        locks.processLock.probe()
-      )
+        assert(
+          locks.clientLock.probe(),
+          locks.serverLock.probe(),
+          locks.processLock.probe()
+        )
 
-      val (out1, err1) = runClient("world")
+        val (out1, err1) = runClient("world")
 
-      assert(
-        out1 == s"helloworld${ENDL}",
-        err1 == s"HELLOworld${ENDL}"
-      )
+        assert(
+          out1 == s"helloworld${ENDL}",
+          err1 == s"HELLOworld${ENDL}"
+        )
 
-      // Give a bit of time for the server to release the lock and
-      // re-acquire it to signal to the client that it's done
-      Thread.sleep(100)
+        // Give a bit of time for the server to release the lock and
+        // re-acquire it to signal to the client that it's done
+        Thread.sleep(100)
 
-      assert(
-        locks.clientLock.probe(),
-        !locks.serverLock.probe(),
-        !locks.processLock.probe()
-      )
+        assert(
+          locks.clientLock.probe(),
+          !locks.serverLock.probe(),
+          !locks.processLock.probe()
+        )
 
-      // A seecond client in sequence connect to the same server
-      val (out2, err2) = runClient(" WORLD")
+        // A seecond client in sequence connect to the same server
+        val (out2, err2) = runClient(" WORLD")
 
-      assert(
-        out2 == s"hello WORLD${ENDL}",
-        err2 == s"HELLO WORLD${ENDL}"
-      )
+        assert(
+          out2 == s"hello WORLD${ENDL}",
+          err2 == s"HELLO WORLD${ENDL}"
+        )
 
-      // Make sure the server times out of not used for a while
-      Thread.sleep(2000)
-      assert(
-        locks.clientLock.probe(),
-        locks.serverLock.probe(),
-        locks.processLock.probe()
-      )
+        if (!Util.isWindows) {
+          // Make sure the server times out of not used for a while
+          Thread.sleep(2000)
+          assert(
+            locks.clientLock.probe(),
+            locks.serverLock.probe(),
+            locks.processLock.probe()
+          )
+          
 
-      // Have a third client spawn/connect-to a new server at the same path
-      val (out3, err3) = runClient(" World")
-      assert(
-        out3 == s"hello World${ENDL}",
-        err3 == s"HELLO World${ENDL}"
-      )
+          // Have a third client spawn/connect-to a new server at the same path
+          val (out3, err3) = runClient(" World")
+          assert(
+            out3 == s"hello World${ENDL}",
+            err3 == s"HELLO World${ENDL}"
+          )
+        }
       
 
       'envVars - retry(3) {
-        if (true){
           val (tmpDir, locks) = init()
 
           def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())
@@ -212,7 +215,6 @@ object ClientServerTests extends TestSuite{
             out2 == expected2,
             err2 == ""
           )
-        }
       }
     }
   }
