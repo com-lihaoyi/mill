@@ -1,5 +1,5 @@
 // Load dependencies
-import $ivy.{`org.pegdown:pegdown:1.6.0`, `com.lihaoyi::scalatags:0.9.3`}
+import $ivy.{`org.pegdown:pegdown:1.6.0`, `com.lihaoyi::scalatags:0.6.5`}
 import $file.pageStyles, pageStyles._
 import $file.pages, pages._
 import scalatags.Text.all._
