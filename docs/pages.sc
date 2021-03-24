@@ -1,4 +1,4 @@
-import $ivy.`com.lihaoyi::scalatags:0.6.5`
+import $ivy.`com.lihaoyi::scalatags:0.9.3`
 import scalatags.Text.all._, scalatags.Text.tags2
 import java.time.LocalDate
 import $file.pageStyles, pageStyles._
@@ -130,7 +130,7 @@ def navBar(homePage: Boolean, contentHeaders: Seq[(String, Int)], pageHeaders: S
       ),
       padding := "30px 0",
       margin := 0,
-      font-size := 36.px
+      attr("font-size") := 36.px
     ),
     div(
       Styles.headerLinkBox,

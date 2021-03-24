@@ -1,4 +1,4 @@
-import $ivy.`com.lihaoyi::scalatags:0.6.5`
+import $ivy.`com.lihaoyi::scalatags:0.9.3`
 
 import scalatags.stylesheet._
 import scalatags.Text.all._

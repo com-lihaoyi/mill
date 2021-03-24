@@ -30,7 +30,7 @@ val sections = for(i <- -numSections/2 to numSections/2) yield polyline(
   fill := "#666",
 )
 val svgFrag = svg(
-  xmlns := "https://www.w3.org/2000/svg",
+  xmlns := "http://www.w3.org/2000/svg",
   height := svgHeight,
   width := svgWidth
 )(
