@@ -1002,17 +1002,19 @@ object docs extends Module {
       )
       os.write(siteDir / ".nojekyll", "")
       // sanitize devAntora source URLs
-      sanitizeDevUrls(siteDir, devAntoraSources().path, baseDir)
+      sanitizeDevUrls(siteDir, devAntoraSources().path, sources().path, baseDir)
       PathRef(siteDir)
     }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
     def sanitizeDevUrls(
         dir: os.Path,
         sourceDir: os.Path,
+        newSourceDir: os.Path,
         baseDir: os.Path
     ): Unit = {
-      val pathToRemove = "/" + sourceDir.relativeTo(baseDir).toString()
-      println(s"Cleaning relative path '${pathToRemove}' ...")
+      val pathToRemove = sourceDir.relativeTo(baseDir).toString()
+      val replacePath = newSourceDir.relativeTo(baseDir).toString()
+//      println(s"Cleaning relative path '${pathToRemove}' ...")
       import org.htmlcleaner._
       val cleaner = new HtmlCleaner()
       var changed = false
@@ -1023,7 +1025,7 @@ object docs extends Module {
             htmlNode match {
               case tag: TagNode if tag.getName() == "a" =>
                 Option(tag.getAttributeByName("href")).foreach { href =>
-                  val newHref = href.replace(pathToRemove, "")
+                  val newHref = href.replace(pathToRemove, replacePath)
                   if (href != newHref) {
                     tag.removeAttribute("href")
                     tag.addAttribute("href", newHref)
