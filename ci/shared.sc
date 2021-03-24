@@ -5,7 +5,8 @@
   */
 
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
-import ammonite.ops.{write, Path, mkdir, RelPath, up}
+import ammonite.ops.{RelPath, mkdir, write}
+import os.{Path,up}
 
 def argNames(n: Int) = {
   val uppercases = (0 until n).map("T" + _)
@@ -152,4 +153,65 @@ def generateCoreTestSources(p: Path) = {
 def downloadTestRepo(label: String, commit: String, dest: Path) = {
   unpackZip(dest, s"https://github.com/$label/archive/$commit.zip")
   dest
+}
+
+/**
+  * Copy of os-lib copy utility providing an additional `mergeFolders` option.
+  * See pr https://github.com/com-lihaoyi/os-lib/pull/65
+  */
+object mycopy {
+  import os._
+  import java.nio.file
+  import java.nio.file.{CopyOption, LinkOption, StandardCopyOption, Files}
+  def apply(
+             from: Path,
+             to: Path,
+             followLinks: Boolean = true,
+             replaceExisting: Boolean = false,
+             copyAttributes: Boolean = false,
+             createFolders: Boolean = false,
+             mergeFolders: Boolean = false
+           ): Unit = {
+    if (createFolders) makeDir.all(to / up)
+    val opts1 =
+      if (followLinks) Array[CopyOption]()
+      else Array[CopyOption](LinkOption.NOFOLLOW_LINKS)
+    val opts2 =
+      if (replaceExisting) Array[CopyOption](StandardCopyOption.REPLACE_EXISTING)
+      else Array[CopyOption]()
+    val opts3 =
+      if (copyAttributes) Array[CopyOption](StandardCopyOption.COPY_ATTRIBUTES)
+      else Array[CopyOption]()
+    require(
+      !to.startsWith(from),
+      s"Can't copy a directory into itself: $to is inside $from"
+    )
+
+    def copyOne(p: Path): file.Path = {
+      val target = to / p.relativeTo(from)
+      if (mergeFolders && isDir(p, followLinks) && isDir(target, followLinks)) {
+        // nothing to do
+        target.wrapped
+      } else {
+        Files.copy(p.wrapped, target.wrapped, opts1 ++ opts2 ++ opts3: _*)
+      }
+    }
+
+    copyOne(from)
+    if (stat(from, followLinks).isDir) walk(from).map(copyOne)
+  }
+
+  object into {
+    def apply(
+               from: Path,
+               to: Path,
+               followLinks: Boolean = true,
+               replaceExisting: Boolean = false,
+               copyAttributes: Boolean = false,
+               createFolders: Boolean = false,
+               mergeFolders: Boolean = false
+             ): Unit = {
+      mycopy(from, to / from.last, followLinks, replaceExisting, copyAttributes, createFolders, mergeFolders)
+    }
+  }
 }

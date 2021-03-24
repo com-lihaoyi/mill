@@ -2,16 +2,18 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.define.Target.ctx
-import mill.define.{Target, Task}
+import mill.define.{Source, Sources, Target, Task}
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
+import os.RelPath
 
 object Deps {
 
@@ -881,29 +883,39 @@ object docs extends Module {
     def npmBase: T[os.Path] = T.persistent { T.dest }
     def prepareAntora(npmDir: os.Path) = {
       Jvm.runSubprocess(
-        commandArgs = Seq("npm", "install", "@antora/cli", "@antora/site-generator-default", "gitlab:antora/xref-validator"),
+        commandArgs = Seq(
+          "npm",
+          "install",
+          "@antora/cli",
+          "@antora/site-generator-default",
+          "gitlab:antora/xref-validator"
+        ),
         envArgs = Map(),
         workingDir = npmDir
       )
     }
-    def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit ctx: mill.api.Ctx.Log) = {
+    def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+        ctx: mill.api.Ctx.Log
+    ) = {
       prepareAntora(npmDir)
-      val cmdArgs = Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
+      val cmdArgs =
+        Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
       ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
       Jvm.runSubprocess(
         commandArgs = cmdArgs,
-        envArgs = Map(),
+        envArgs = Map("CI" -> "true"),
         workingDir = workDir
       )
       PathRef(workDir / "build" / "site")
     }
-    def sources = T.sources(millSourcePath / "antora.yml", millSourcePath / "modules")
+    def sources: Source = T.source(millSourcePath)
     def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
-    def devAntora = T{
+    def devAntoraSources: Target[PathRef] = T {
       val dest = T.dest
-      sources().foreach(s => os.copy.into(s.path, dest))
+      shared.mycopy(sources().path, dest, mergeFolders = true)
       val lines = os.read(dest / "antora.yml").linesIterator.map {
-        case l if l.startsWith("version:") => s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
+        case l if l.startsWith("version:") =>
+          s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
         case l => l
       }
       os.write.over(dest / "antora.yml", lines.mkString("\n"))
@@ -911,37 +923,38 @@ object docs extends Module {
     }
     def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
       s"""site:
-        |  title: Mill
-        |  url: ${Settings.docUrl}
-        |  start_page: mill::Intro_to_Mill.adoc
-        |
-        |content:
-        |  sources:
-        |    # the in-repo version-tagged documentation (currently only the pr branch)
-        |    # TODO: switch branch to master and add tags for releases with antora docs
-        |    - url: ${ if(authorMode) baseDir else Settings.projectUrl }
-        |      branches: ${ if(authorMode) "HEAD" else "antora" }
-        |      start_path: docs/antora
-        |    # the master documentation
-        |    - url: ${ baseDir }
-        |      branches: HEAD
-        |      start_path: ${ devAntora().path.relativeTo(baseDir) }
-        |ui:
-        |  bundle:
-        |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
-        |    snapshot: true
-        |  supplemental_files: ${supplementalFiles().path.toString()}
-        |
-        |asciidoc:
-        |  attributes:
-        |    mill-version: '${millVersion()}'
-        |    mill-last-tag: '${millLastTag()}'
-        |    mill-github-url: ${Settings.projectUrl}
-        |    mill-doc-url: ${Settings.docUrl}
-        |    utest-github-url: https://github.com/com-lihaoyi/utest
-        |    upickle-github-url: https://github.com/com-lihaoyi/upickle
-        |
-        |""".stripMargin
+         |  title: Mill
+         |  url: ${Settings.docUrl}
+         |  start_page: mill::Intro_to_Mill.adoc
+         |
+         |content:
+         |  sources:
+         |    # the in-repo version-tagged documentation (currently only the pr branch)
+         |    # TODO: switch branch to master and add tags for releases with antora docs
+         |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
+         |      branches: ${if (authorMode) "HEAD" else "antora"}
+         |      start_path: docs/antora
+         |    # the master documentation
+         |    - url: ${baseDir}
+         |      # edit_url: ${ Settings.projectUrl }/edit/{refname}/{path}
+         |      branches: HEAD
+         |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
+         |ui:
+         |  bundle:
+         |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+         |    snapshot: true
+         |  supplemental_files: ${supplementalFiles().path.toString()}
+         |
+         |asciidoc:
+         |  attributes:
+         |    mill-version: '${millVersion()}'
+         |    mill-last-tag: '${millLastTag()}'
+         |    mill-github-url: ${Settings.projectUrl}
+         |    mill-doc-url: ${Settings.docUrl}
+         |    utest-github-url: https://github.com/com-lihaoyi/utest
+         |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+         |
+         |""".stripMargin
     }
     def githubPages = T {
       generatePages(authorMode = false)()
@@ -965,23 +978,70 @@ object docs extends Module {
         npmDir = npmBase(),
         workDir = docSite,
         args = Seq(
-          "--generator", "@antora/xref-validator",
+          "--generator",
+          "@antora/xref-validator",
           playbook.last,
-          "--to-dir", siteDir.toString(), "--attribute", "page-pagination") ++
+          "--to-dir",
+          siteDir.toString(),
+          "--attribute",
+          "page-pagination"
+        ) ++
           Seq("--fetch").filter(_ => !authorMode)
       )
-      // generate site
+      // generate site (we can skip the --fetch now)
       runAntora(
         npmDir = npmBase(),
         workDir = docSite,
         args = Seq(
           playbook.last,
-          "--to-dir", siteDir.toString(),
-          "--attribute", "page-pagination") ++
-          Seq("--fetch").filter(_ => !authorMode)
+          "--to-dir",
+          siteDir.toString(),
+          "--attribute",
+          "page-pagination"
+        )
       )
       os.write(siteDir / ".nojekyll", "")
+      // sanitize devAntora source URLs
+      sanitizeDevUrls(siteDir, devAntoraSources().path, baseDir)
       PathRef(siteDir)
+    }
+//    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
+    def sanitizeDevUrls(
+        dir: os.Path,
+        sourceDir: os.Path,
+        baseDir: os.Path
+    ): Unit = {
+      val pathToRemove = "/" + sourceDir.relativeTo(baseDir).toString()
+      println(s"Cleaning relative path '${pathToRemove}' ...")
+      import org.htmlcleaner._
+      val cleaner = new HtmlCleaner()
+      var changed = false
+      os.walk(dir).foreach { file =>
+        if (os.isFile(file) && file.ext == "html") {
+          val node: TagNode = cleaner.clean(file.toIO)
+          node.traverse { (parentNode: TagNode, htmlNode: HtmlNode) =>
+            htmlNode match {
+              case tag: TagNode if tag.getName() == "a" =>
+                Option(tag.getAttributeByName("href")).foreach { href =>
+                  val newHref = href.replace(pathToRemove, "")
+                  if (href != newHref) {
+                    tag.removeAttribute("href")
+                    tag.addAttribute("href", newHref)
+                    changed = true
+                    println(s"Replaced: '${href}' --> '${newHref}'")
+                  }
+                }
+                true
+              case _ => true
+            }
+          }
+          if(changed) {
+            println(s"Writing '${file}' ...")
+            val newHtml = new SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
+            os.write.over(file, newHtml)
+          }
+        }
+      }
     }
   }
 }
