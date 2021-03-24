@@ -81,7 +81,7 @@ sh> mill plugin.dgraph.browseDeps(proj)()
 
 ## Ensime
 
-Create an [.ensime](http://ensime.github.io/ "ensime") file for your build.
+Create an [.ensime](https://ensime.github.io/ "ensime") file for your build.
 
 Project home: https://github.com/davoclavo/mill-ensime
 

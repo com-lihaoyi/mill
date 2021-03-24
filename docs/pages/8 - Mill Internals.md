@@ -159,7 +159,7 @@ that would make a build tool hard to understand.
 
 Before you continue, take a moment to think: how would you answer to each of
 those questions using an existing build tool you are familiar with? Different
-tools like [SBT](http://www.scala-sbt.org/),
+tools like [SBT](https://www.scala-sbt.org/),
 [Fake](https://fake.build/legacy-index.html), [Gradle](https://gradle.org/) or
 [Grunt](https://gruntjs.com/) have very different answers.
 
