@@ -37,7 +37,7 @@ def pageChrome(titleText: Option[String],
       script(src:="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"),
       script(raw("hljs.initHighlightingOnLoad();")),
       // This makes media queries work on iphone (???)
-      // http://stackoverflow.com/questions/13002731/responsive-design-media-query-not-working-on-iphone
+      // https://stackoverflow.com/questions/13002731/responsive-design-media-query-not-working-on-iphone
       meta(name:="viewport", content:="initial-scale = 1.0,maximum-scale = 1.0")
     ),
     body(margin := 0, backgroundColor := "#f8f8f8")(
@@ -110,12 +110,12 @@ def navBar(homePage: Boolean, contentHeaders: Seq[(String, Int)], pageHeaders: S
 
   val headerBox = div(
     NarrowStyles.headerContent,
-    h1(
+    div(
       textAlign.center,
       a(
         img(
           src := {homePage match{
-            case false => s"../logo-white.svg"
+            case false => "../logo-white.svg"
             case true => "logo-white.svg"
           }},
           height := 30,
@@ -128,8 +128,9 @@ def navBar(homePage: Boolean, contentHeaders: Seq[(String, Int)], pageHeaders: S
         NarrowStyles.flexFont,
         fontWeight.bold
       ),
-      padding := "30px 30px",
-      margin := 0
+      padding := "30px 0",
+      margin := 0,
+      font-size := 36.px
     ),
     div(
       Styles.headerLinkBox,

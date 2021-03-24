@@ -1023,7 +1023,7 @@ The codec used to generate the files (the default is the same sbt plugin uses).
 Whether the twirl parser should parse with an inclusive dot.
 
 ### Example
-There's an [example project](https://github.com/lihaoyi/cask/tree/master/example/twirl)
+There's an [example project](https://github.com/com-lihaoyi/cask/tree/master/example/twirl)
 
 ## Version file
 

@@ -1,14 +1,14 @@
 [Mill](https://github.com/com-lihaoyi/mill) is your shiny new Java/Scala build tool!
-[Scared of SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html)? Melancholy over Maven? Grumbling about Gradle?
+[Scared of SBT](https://www.lihaoyi.com/post/SowhatswrongwithSBT.html)? Melancholy over Maven? Grumbling about Gradle?
 Baffled by Bazel? Give Mill a try!
 
 Mill aims for simplicity by re-using concepts you are already
-[familiar with](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html), borrowing ideas from modern tools
+[familiar with](https://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html), borrowing ideas from modern tools
 like [Bazel](https://bazel.build/), to let you build your projects in a way that's simple, fast, and predictable.
 
 Mill has built in support for the [Scala](https://www.scala-lang.org/)
 programming language, and can serve as a replacement for
-[SBT](http://www.scala-sbt.org/), but can also be
+[SBT](https://www.scala-sbt.org/), but can also be
 [extended](https://com-lihaoyi.github.io/mill/page/extending-mill.html) to support any other language or platform via modules (
 written in Java or Scala) or through external subprocesses.
 
@@ -36,7 +36,7 @@ pacman -S mill
 
 ### FreeBSD
 
-Installation via [pkg(8)](http://man.freebsd.org/pkg/8):
+Installation via [pkg(8)](https://man.freebsd.org/pkg/8):
 
 ```sh
 pkg install mill

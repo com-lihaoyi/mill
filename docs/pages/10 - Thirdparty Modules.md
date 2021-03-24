@@ -252,8 +252,8 @@ bash> mill site.jbakeServe
 
 ## JBuildInfo
 
-This is a [mill](https://www.lihaoyi.com/mill/) module similar to 
-[BuildInfo](https://www.lihaoyi.com/mill/page/contrib-modules.html#buildinfo)
+This is a [mill](https://com-lihaoyi.github.io/mill) module similar to 
+[BuildInfo](https://com-lihaoyi.github.io/mill/page/contrib-modules.html#buildinfo)
 but for Java. 
 It will generate a Java class containing information from your build.
 

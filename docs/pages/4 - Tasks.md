@@ -40,7 +40,7 @@ roots of our task graph. `allSources` depends on `sourceRoot` by calling
 same way, and `jar` depends on both `classFiles` and `resourceRoot`.
 
 Filesystem operations in Mill are done using the
-[OS-Lib](https://github.com/lihaoyi/os-lib) library.
+[OS-Lib](https://github.com/com-lihaoyi/os-lib) library.
 
 The above build defines the following task graph:
 
@@ -87,7 +87,7 @@ Each target, e.g. `classFiles`, is assigned a path on disk as scratch space & to
 store its output files at `out/classFiles/dest/`, and its returned metadata is
 automatically JSON-serialized and stored at `out/classFiles/meta.json`. The
 return-value of targets has to be JSON-serializable via
-[uPickle](https://github.com/lihaoyi/upickle).
+[uPickle](https://github.com/com-lihaoyi/upickle).
 
 In case you want return your own
 case class (e.g. `MyCaseClass`), you can make it JSON-serializable by adding the

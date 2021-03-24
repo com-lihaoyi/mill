@@ -19,9 +19,9 @@ custom Target (for cached computations) or Command (for un-cached actions) and
 you're done.
 
 For subprocess/filesystem operations, you can use the
-[OS-Lib](https://github.com/lihaoyi/os-lib) library that comes bundled with
+[OS-Lib](https://github.com/com-lihaoyi/os-lib) library that comes bundled with
 Mill, or even plain `java.nio`/`java.lang.Process`. Each target gets its own
-[T.dest](https://www.lihaoyi.com/mill/page/tasks#task-context-api) folder
+[T.dest](https://com-lihaoyi.github.io/mill/page/tasks#task-context-api) folder
 that you can use to place files without worrying about colliding with other
 targets.
 
@@ -126,7 +126,7 @@ def printFoo() = T.command { println(foo.fooValue()) }
 ```
 
 Mill's `import $file` syntax supports the full functionality of
-[Ammonite Scripts](http://ammonite.io/#ScalaScripts)
+[Ammonite Scripts](https://ammonite.io/#ScalaScripts)
 
 ## import $ivy
 
@@ -156,7 +156,7 @@ If you want to publish re-usable libraries that *other* people can use in their
 builds, simply publish your code as a library to maven central.
 
 For more information, see Ammonite's
-[Ivy Dependencies documentation](http://ammonite.io/#import$ivy).
+[Ivy Dependencies documentation](https://ammonite.io/#import$ivy).
 
 ## Evaluator Commands (experimental)
 

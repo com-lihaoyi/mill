@@ -105,7 +105,7 @@ val posts = {
         b("About Mill: "),
         i(
           "Mill is an Open Source Project created by ",
-          a(href:="http://www.lihaoyi.com")("Li Haoyi"), ". ",
+          a(href:="https://www.lihaoyi.com")("Li Haoyi"), ". ",
           "It is actively maintained and the git repository has ",
           a(href:="https://github.com/com-lihaoyi/mill/graphs/contributors")("more that 100 individual contributors"),
           " around the world. "
@@ -115,10 +115,10 @@ val posts = {
         b("About Mills Creator:"),
         i(
           " Li Haoyi is a software engineer, an early contributor to ",
-          a(href:="http://www.scala-js.org/")("Scala.js"),
+          a(href:="https://www.scala-js.org/")("Scala.js"),
           ", and the author of many open-source Scala tools such as Mill, the ",
-          a(href:="http://lihaoyi.com/Ammonite", "Ammonite REPL"), " and ",
-          a(href:="https://github.com/lihaoyi/fastparse", "FastParse"), ". ",
+          a(href:="https://ammonite.io", "Ammonite REPL"), " and ",
+          a(href:="https://github.com/com-lihaoyi/fastparse", "FastParse"), ". ",
 
           "If you've enjoyed using Mill, or enjoyed using Haoyi's other open ",
           "source libraries, please chip in (or get your Company to chip in!) via ",

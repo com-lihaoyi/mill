@@ -3,11 +3,11 @@
 
 A lot of Mill's design principles are intended to fix SBT's flaws, as described
 in the blog post
-[What's wrong with SBT](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html),
+[What's wrong with SBT](https://www.lihaoyi.com/post/SowhatswrongwithSBT.html),
 building on the best ideas from tools like [CBT](https://github.com/cvogt/cbt)
 and [Bazel](https://bazel.build/), and the ideas from my blog post
 [Build Tools as
-Pure Functional Programs](http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html).
+Pure Functional Programs](https://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html).
 Before working on Mill, read through that post to understand where it is coming
 from!
 
@@ -290,7 +290,7 @@ reduced to simply instantiating a `trait` over and over, with tweaks.
 ### SBT
 
 Mill is built as a substitute for SBT, whose problems are
-[described here](http://www.lihaoyi.com/post/SowhatswrongwithSBT.html).
+[described here](https://www.lihaoyi.com/post/SowhatswrongwithSBT.html).
 Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task
 graph with an Applicative "idiom bracket" macro) where it makes sense.
 

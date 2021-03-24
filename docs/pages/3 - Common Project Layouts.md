@@ -137,13 +137,13 @@ want to build a standalone executable, you can use `mill show hello.nativeLink`
 to create it.
 
 `ScalaNativeModule` builds scala sources to executable binaries using
-[Scala Native](http://www.scala-native.org). You will need to have the
-[relevant parts](http://www.scala-native.org/en/latest/user/setup.html) of the
+[Scala Native](https://www.scala-native.org). You will need to have the
+[relevant parts](https://www.scala-native.org/en/latest/user/setup.html) of the
 LLVM toolchain installed on your system. Optimized binaries can be built by
 setting `releaseMode` (see above) and more verbose logging can be enabled using
 `logLevel`. Currently two test frameworks are supported
-[utest](https://github.com/lihaoyi/utest) and
-[scalatest](http://www.scalatest.org/). Support for
+[utest](https://github.com/com-lihaoyi/utest) and
+[scalatest](https://www.scalatest.org/). Support for
 [scalacheck](https://www.scalacheck.org/) should be possible when the relevant
 artifacts have been published for scala native.
 
@@ -323,8 +323,8 @@ nexus at `example.company.com`, you can pass in the `--sonatypeUri` and
 mill mill.scalalib.PublishModule/publishAll \
         foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        --sonatypeUri http://example.company.com/release \
-        --sonatypeSnaphostUri http://example.company.com/snapshot
+        --sonatypeUri https://example.company.com/release \
+        --sonatypeSnaphostUri https://example.company.com/snapshot
 ```
 
 If the site does not support staging release as `oss.sonatype.org` does (for
@@ -335,7 +335,7 @@ maven path under `sonatypeUri` instead of staging path.
 mill mill.scalalib.PublishModule/publishAll \
         foo.publishArtifacts \
         lihaoyi:$SONATYPE_PASSWORD \
-        --sonatypeUri http://example.company.com/release \
+        --sonatypeUri https://example.company.com/release \
         --stagingRelease false
 ``` 
 

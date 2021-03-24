@@ -149,7 +149,7 @@ mill foo.test.testLocal
 To run tests in-process in an isolated classloader.
 
 If you want to pass any arguments to the test framework, simply put them after
-`foo.test` in the command line. e.g. [uTest](https://github.com/lihaoyi/utest)
+`foo.test` in the command line. e.g. [uTest](https://github.com/com-lihaoyi/utest)
 lets you pass in a selector to decide which test to run, which in Mill would be:
 
 ```bash
@@ -296,7 +296,7 @@ the same testing framework, etc. and all that can be extracted out into the
 ## Global configuration
 
 Mill builds on ammonite which allows you to
-[define global configuration](http://ammonite.io/#ScriptPredef). Depending on
+[define global configuration](https://ammonite.io/#ScriptPredef). Depending on
 how you start mill, one of two files will be loaded. For the build REPL
 (`--repl` or `-i` without specifying a target), `~/.mill/ammonite/predef.sc`
 will be loaded, and for builds from the command line the file
@@ -342,7 +342,7 @@ You can define new cached Targets using the `T {...}` syntax, depending on
 existing Targets e.g. `foo.sources` via the `foo.sources()` syntax to extract
 their current value, as shown in `lineCount` above. The return-type of a Target
 has to be JSON-serializable (using
-[uPickle](https://github.com/lihaoyi/upickle)) and the Target is cached when
+[uPickle](https://github.com/com-lihaoyi/upickle)) and the Target is cached when
 first run until its inputs change (in this case, if someone edits the
 `foo.sources` files which live in `foo/src`. Cached Targets cannot take
 parameters.
