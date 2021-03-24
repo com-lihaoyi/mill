@@ -183,6 +183,16 @@ class Server[T](lockBase: String,
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
+    
+    if (Util.isWindows) {
+      // Closing Win32NamedPipeSocket can often take ~5s
+      // It seems OK to exit the client early and subsequently
+      // start up mill client again (perhaps closing the server
+      // socket helps speed up the process).
+      val t = new Thread(() => clientSocket.close())
+      t.setDaemon(true)
+      t.start()
+    } else clientSocket.close()
   }
 }
 
