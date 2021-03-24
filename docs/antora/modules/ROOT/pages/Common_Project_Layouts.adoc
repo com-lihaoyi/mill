@@ -230,7 +230,7 @@ object foo extends SbtModule {
 }
 ----
 
-These are basically the same as normal `ScalaModule`s, but configured to follow
+These are basically the same as normal ``ScalaModule``s, but configured to follow
 the SBT project layout:
 
 [source,text]
@@ -286,7 +286,7 @@ foo/
 == Publishing
 
 .`build.sc`
-[source,scala]
+[source,scala,subs="verbatim,attributes"]
 ----
 import mill._
 import mill.scalalib._
@@ -297,11 +297,11 @@ object foo extends ScalaModule with PublishModule {
   def pomSettings = PomSettings(
     description = "My first library",
     organization = "com.lihaoyi",
-    url = "https://github.com/com-lihaoyi/mill",
+    url = "{mill-github-url}",
     licenses = Seq(License.MIT),
     versionControl = VersionControl.github("lihaoyi", "mill"),
     developers = Seq(
-      Developer("lihaoyi", "Li Haoyi","https://github.com/lihaoyi")
+      Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi")
     )
   )
 }

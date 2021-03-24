@@ -1,6 +1,6 @@
 = Modules
 
-Mill modules are `object`s extending `mill.Module`, and let you group related
+Mill modules are ``object``s extending `mill.Module`, and let you group related
 tasks together to keep things neat and organized. Mill's comes with built in
 modules such as `mill.scalalib.ScalaModule` and `mill.scalalib.CrossSbtModule`,
 but you can use modules for other purposes as well.
@@ -29,7 +29,7 @@ targets will store their output metadata & files at `./out/foo/bar` and
 `./out/foo/baz/qux` respectively.
 
 Modules also provide a way to define and re-use common collections of tasks, via
-Scala `trait`s. For example, you can define your own `FooModule` trait:
+Scala ``trait``s. For example, you can define your own `FooModule` trait:
 
 [source,scala]
 ----
@@ -64,7 +64,7 @@ The built-in `mill.scalalib` package uses this to define
 operations such as `compile` `jar` or `assembly` that you may expect from a
 typical Scala module.
 
-When defining your own module abstractions, in general you should use `trait`s
+When defining your own module abstractions, in general you should use ``trait``s
 and not `class`es, except in the case of
 https://com-lihaoyi.github.io/mill/page/cross-builds.html[Cross Builds].
 
@@ -166,10 +166,10 @@ mill foo.Bar/baz
 mill foo.Bar/qux
 ----
 
-`ExternalModule`s are useful for someone providing a library for use with Mill
+``ExternalModule``s are useful for someone providing a library for use with Mill
 that is shared by the entire build: for example,
 `mill.scalalib.ZincWorkerApi/zincWorker` provides a shared Scala compilation
-service & cache that is shared between all `ScalaModule`s, and
+service & cache that is shared between all ``ScalaModule``s, and
 `mill.scalalib.GenIdea/idea` lets you generate IntelliJ projects without
 needing to define your own `T.command` in your `build.sc` file
 

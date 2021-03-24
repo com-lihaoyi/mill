@@ -96,7 +96,7 @@ docker run -it nightscape/scala-mill
 To get started, download Mill and install it into your system via the following
 `curl`/`chmod` command:
 
-[source,bash]
+[source,bash,subs="verbatim,attributes"]
 ----
 sudo curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
 ----
@@ -106,7 +106,7 @@ sudo curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}
 If you are using Mill in a codebase, you can commit the bootstrap launcher as a
 `./mill` script in the project folder:
 
-[source,bash]
+[source,bash,subs="verbatim,attributes"]
 ----
 curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > mill && chmod +x mill
 ----
@@ -725,8 +725,8 @@ dependencies with particularly weird version numbers.
 
 Current limitations:
 
-* Only works for `JavaModule`s (including `ScalaModule`s,
- `CrossScalaModule`s, etc.) and Maven repositories.
+* Only works for ``JavaModule``s (including ``ScalaModule``s,
+ ``CrossScalaModule``s, etc.) and Maven repositories.
 * Always applies to all modules in the build.
 * Doesn't apply to `$ivy` dependencies used in the build definition itself.
 
@@ -909,15 +909,15 @@ executed. This is very useful if you want to find out exactly what tasks are bei
 Each folder currently contains the following files:
 
 * `dest/`: a path for the `Task` to use either as a scratch space, or to place generated files that are returned
- using `PathRef`s. `Task`s should only output files within their given `dest/` folder (available as `T.dest`) to avoid
- conflicting with other `Task`s, but files within `dest/` can be named arbitrarily.
+ using ``PathRef``s. ``Task``s should only output files within their given `dest/` folder (available as `T.dest`) to avoid
+ conflicting with other ``Task``s, but files within `dest/` can be named arbitrarily.
 
 * `log`: the `stdout`/`stderr` of the `Task`. This is also streamed to the console during evaluation.
 
 * `meta.json`: the cache-key and JSON-serialized return-value of the
  `Target`/`Command`. The return-value can also be retrieved via `mill show foo.compile`. Binary blobs are typically not
  included in `meta.json`, and instead stored as separate binary files in `dest/` which are then referenced
- by `meta.json` via `PathRef`s
+ by `meta.json` via ``PathRef``s
 
 The `out/` folder is intentionally kept simplistic and user-readable. If your build is not behaving as you would expect,
 feel free to poke around the various

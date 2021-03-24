@@ -828,7 +828,7 @@ and the xml report is saved in `out/foo/scoverage/xmlReport/dest/`.
 
 If you're using Scoverage on a project with multiple modules then an additional
 module, `ScoverageReport`, is available to help aggregate the reports from all
-`ScoverageModule`s.
+``ScoverageModule``s.
 
 Simply define a `scoverage` module at the root of your project as shown:
 

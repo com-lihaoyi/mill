@@ -198,7 +198,7 @@ object foo extends ScalaModule {
 Each of which will expect their sources to be in their respective `foo/test` and
 `foo/integration` folder.
 
-`Tests` modules are `ScalaModule`s like any other, and all the same
+`Tests` modules are ``ScalaModule``s like any other, and all the same
 configuration options apply.
 
 == Custom Test Frameworks

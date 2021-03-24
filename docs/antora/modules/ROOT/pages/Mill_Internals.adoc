@@ -100,7 +100,7 @@ sorts of useful operations on the graph before running it:
  with an exception
 
 In order to avoid making people using `.map` and `.zip` all over the place when
-defining their `Task`s, we use the `T {...}`/`T.task {...}`/`T.command {...}`
+defining their ``Task``s, we use the `T {...}`/`T.task {...}`/`T.command {...}`
 macros which allow you to use `Task#apply()` within the block to "extract" a
 value.
 
@@ -288,7 +288,7 @@ a build:
 In normal Scala, you bundle up common fields & functionality into a `class` you
 can instantiate over and over, and you can override the things you want to
 customize. Similarly, in Mill, you bundle up common parts of a build into
-`trait`s you can instantiate over and over, and you can override the things you
+``trait``s you can instantiate over and over, and you can override the things you
 want to customize. "Subprojects", "cross-builds", and many other concepts are
 reduced to simply instantiating a `trait` over and over, with tweaks.
 
@@ -361,7 +361,7 @@ https://infoscience.epfl.ch/record/148043/files/DeprecatingObserversTR2010.pdf[D
 === CBT
 
 Mill looks a lot like https://github.com/cvogt/cbt[CBT]. The inheritance based
-model for customizing `Module`s/`ScalaModule`s comes straight from there, as
+model for customizing ``Module``s/``ScalaModule``s comes straight from there, as
 does the "command line path matches Scala selector path" idea. Most other things
 are different though: the reified dependency graph, the execution model, the
 caching module all follow Bazel more than they do CBT
