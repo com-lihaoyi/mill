@@ -328,7 +328,7 @@ a symlink from one to the other to avoid duplication.
 
 Example `~/.mill/ammonite/predef.sc`
 
-.`~/.mill/ammonite/prefef.sc`
+.`~/.mill/ammonite/predef.sc`
 [source,scala]
 ----
 val nexusUser = "myuser"
