@@ -51,8 +51,8 @@ object Deps {
   )
   val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
-  val coursier = ivy"io.get-coursier::coursier:2.0.15"
-  val flywayCore = ivy"org.flywaydb:flyway-core:7.7.0"
+  val coursier = ivy"io.get-coursier::coursier:2.0.16"
+  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
@@ -68,8 +68,8 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
 
-  val jna = ivy"net.java.dev.jna:jna:5.7.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.7.0"
+  val jna = ivy"net.java.dev.jna:jna:5.8.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.8.0"
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
