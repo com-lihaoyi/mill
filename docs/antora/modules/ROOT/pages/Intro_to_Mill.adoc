@@ -752,7 +752,7 @@ This also configures IntelliJ to allow easy navigate &amp; code-completion withi
 
 == The Build REPL
 
-[source,bash]
+[source,scala]
 ----
 $ mill --repl
 Loading...
