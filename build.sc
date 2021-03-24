@@ -903,7 +903,7 @@ object docs extends Module {
       val dest = T.dest
       sources().foreach(s => os.copy.into(s.path, dest))
       val lines = os.read(dest / "antora.yml").linesIterator.map {
-        case l if l.startsWith("version:") => s"version: 'master'"
+        case l if l.startsWith("version:") => s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
         case l => l
       }
       os.write.over(dest / "antora.yml", lines.mkString("\n"))
