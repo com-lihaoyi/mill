@@ -540,7 +540,7 @@ By default, Mill does not print out the metadata from evaluating a task. Most pe
 viewing the metadata related to incremental compilation: they just want to compile their code! However, if you want to
 inspect the build to debug problems, you can make Mill show you the metadata output for a task using the `show` command:
 
-All tasks return values that can be `show`n, not just configuration values. e.g.
+All tasks return values that can be ``show``n, not just configuration values. e.g.
 `compile` returns that path to the `classes` and `analysisFile` that are produced by the compilation:
 
 [source,bash]
@@ -575,7 +575,7 @@ $ mill show foo.compileClasspath
 ----
 
 `show` is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
-parsed &amp; manipulated.
+parsed & manipulated.
 
 === path
 
