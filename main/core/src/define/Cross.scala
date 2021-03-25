@@ -24,7 +24,6 @@ object Cross{
           override def millOuterCtx = ctx0.copy(
             crossInstances = vs.map(v => new $tpe(..$argTupleValues))
           )
-          val otherValues = vs.map(v => new $tpe(..$argTupleValues))
         } }"""
       )
 
