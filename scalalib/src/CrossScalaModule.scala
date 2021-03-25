@@ -1,6 +1,5 @@
 package mill.scalalib
 
-import mill.api.PathRef
 import mill.T
 
 /**
