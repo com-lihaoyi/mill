@@ -152,4 +152,21 @@ object Util {
       case Scala3EarlyVersion(_) |  Scala3Version(_, _) => true
       case _ => false
     }
+
+  def versionSpecificSources(version: String, allVersions: Seq[String]): Seq[String] = {
+    import scala.math.Ordering.Implicits._
+    val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
+    val all = allVersions.flatMap(
+      _.split('.').inits
+        .flatMap { l =>
+          try { Some(l.map(_.toInt)) }
+          catch { case _: NumberFormatException => None }
+        }
+        .map(_.toSeq)
+    )
+    val current = version.split('.').inits.filter(_.nonEmpty).map(_.mkString("."))
+    val plus = all.filter(v => v.nonEmpty && v <= versionParts).map(_.mkString(".") + "+")
+    val minus = all.filter(v => v.nonEmpty && v >= versionParts).map(_.mkString(".") + "-")
+    (current ++ plus ++ minus).distinct.toSeq
+  }
 }

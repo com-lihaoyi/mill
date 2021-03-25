@@ -4,7 +4,7 @@ import scala.reflect.macros.blackbox
 
 
 object Cross{
-  case class Factory[T](make: (Product, mill.define.Ctx) => T)
+  case class Factory[T](make: (Product, mill.define.Ctx, Seq[Product]) => T)
 
   object Factory{
     implicit def make[T]: Factory[T] = macro makeImpl[T]
@@ -19,8 +19,13 @@ object Cross{
         for((a, n) <- primaryConstructorArgs.zipWithIndex)
         yield q"v.productElement($n).asInstanceOf[${a.info}]"
 
-      val instance = c.Expr[(Product, mill.define.Ctx) => T](
-        q"{ (v, ctx0) => new $tpe(..$argTupleValues){  override def millOuterCtx = ctx0 } }"
+      val instance = c.Expr[(Product, mill.define.Ctx, Seq[Product]) => T](
+        q"""{ (v, ctx0, vs) => new $tpe(..$argTupleValues){
+          override def millOuterCtx = ctx0.copy(
+            crossInstances = vs.map(v => new $tpe(..$argTupleValues))
+          )
+          val otherValues = vs.map(v => new $tpe(..$argTupleValues))
+        } }"""
       )
 
       reify { mill.define.Cross.Factory[T](instance.splice) }
@@ -50,11 +55,12 @@ class Cross[T](cases: Any*)
     this.millInternal.reflectNestedObjects[Module] ++
     items.collect{case (k, v: mill.define.Module) => v}
 
-  val items = for(c0 <- cases.toList) yield{
-    val c = c0 match{
-      case p: Product => p
-      case v => Tuple1(v)
-    }
+  private val products = cases.toList.map{
+    case p: Product => p
+    case v => Tuple1(v)
+  }
+
+  val items = for(c <- products) yield{
     val crossValues = c.productIterator.toList
     val relPath = ctx.segment.pathSegments
     val sub = ci.make(
@@ -63,7 +69,8 @@ class Cross[T](cases: Any*)
         segments = ctx.segments ++ Seq(ctx.segment),
         millSourcePath = ctx.millSourcePath / relPath,
         segment = Segment.Cross(crossValues)
-      )
+      ),
+      products
     )
     (crossValues, sub)
   }
