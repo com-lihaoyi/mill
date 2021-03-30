@@ -153,12 +153,11 @@ class SonatypePublisher(uri: String,
 
   // http://central.sonatype.org/pages/working-with-pgp-signatures.html#signing-a-file
   private def gpgSigned(file: os.Path, args: Seq[String]): os.Path = {
-    val fileName = file.toString
-    val command = "gpg" +: args :+ fileName
+    val command = "gpg" +: args :+ file.relativeTo(os.pwd).toString
 
     os.proc(command.map(v => v: Shellable))
       .call(stdin = os.Inherit, stdout = os.Inherit, stderr = os.Inherit)
-    os.Path(fileName + ".asc")
+    os.Path(file.toString + ".asc")
   }
 
   private def md5hex(bytes: Array[Byte]): Array[Byte] =
