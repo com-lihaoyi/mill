@@ -30,11 +30,24 @@ object ScalaVersionTests extends TestSuite {
       val expectedSbv = "0.27"
       assert(sbv == expectedSbv)
     }
-    test("scala3") {
+    test("earlyscala3") {
       val sv = "3.0.0-RC2"
       val sbv = scalaBinaryVersion(sv)
       val expectedSbv = "3.0.0-RC2"
       assert(sbv == expectedSbv)
+    }
+    test("scala3") {
+      val expectedSbv = "3"
+      test("release") {
+        val sv = "3.0.1"
+        val sbv = scalaBinaryVersion(sv)
+        assert(sbv == expectedSbv)
+      }
+      test("RC") {
+        val sv = "3.0.2-RC4"
+        val sbv = scalaBinaryVersion(sv)
+        assert(sbv == expectedSbv)
+      }
     }
     test("typelevel") {
       val sv = "2.11.12-bin-typelevel.foo"
