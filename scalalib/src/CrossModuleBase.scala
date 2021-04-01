@@ -6,8 +6,9 @@ import mill.define.Cross.Resolver
 import mill.api.PathRef
 
 object CrossModuleBase {
-  def scalaVersionPaths(scalaVersion: String, crossScalaVersions: Seq[String], f: String => os.Path) = {
-    api.Util.versionSpecificSources(scalaVersion, crossScalaVersions).map(s => PathRef(f(s)))
+  def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {
+    for (segments <- scalaVersion.split('.').inits.filter(_.nonEmpty))
+      yield PathRef(f(segments.mkString(".")))
   }
 }
 trait CrossModuleBase extends ScalaModule {

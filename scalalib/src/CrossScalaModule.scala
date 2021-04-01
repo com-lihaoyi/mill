@@ -12,18 +12,16 @@ import mill.T
   */
 trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
   override def sources = T.sources {
-    val crossScalaVersions = millOuterCtx.crossInstances.map(_.asInstanceOf[CrossScalaModule].crossScalaVersion)
     super.sources() ++
       CrossModuleBase
-        .scalaVersionPaths(crossScalaVersion, crossScalaVersions, s => millSourcePath / s"src-$s")
+        .scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s")
   }
 
   trait CrossScalaModuleTests extends ScalaModuleTests {
     override def sources = T.sources {
-      val crossScalaVersions = millOuterCtx.crossInstances.map(_.asInstanceOf[CrossScalaModule].crossScalaVersion)
       super.sources() ++
         CrossModuleBase
-          .scalaVersionPaths(crossScalaVersion, crossScalaVersions, s => millSourcePath / s"src-$s")
+          .scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s")
     }
   }
   trait Tests extends CrossScalaModuleTests
