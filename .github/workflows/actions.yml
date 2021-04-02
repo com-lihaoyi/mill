@@ -46,7 +46,7 @@ jobs:
           git config --add user.email "mill-ci@localhost"
           ${{ matrix.buildcmd }}
 
-  build-windows:
+  test-windows:
     runs-on: windows-latest
     steps:
       - uses: actions/checkout@v2
@@ -57,7 +57,7 @@ jobs:
           java-version: 8
       - run: cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly,__.compile}"
 
-  test-windows:
+  test-windows-faulty:
     runs-on: windows-latest
     continue-on-error: true
     steps:
@@ -74,7 +74,7 @@ jobs:
 
   publish-sonatype:
     if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
-    needs: [test, build-windows, test-windows]
+    needs: [test, test-windows]
 
     runs-on: ubuntu-latest
 
