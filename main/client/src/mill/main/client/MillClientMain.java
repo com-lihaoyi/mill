@@ -1,11 +1,14 @@
 package mill.main.client;
 
-import org.scalasbt.ipcsocket.*;
+import org.scalasbt.ipcsocket.UnixDomainSocket;
+import org.scalasbt.ipcsocket.Win32NamedPipeSocket;
 
 import java.io.*;
 import java.net.Socket;
 import java.net.URISyntaxException;
 import java.nio.channels.FileChannel;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
 import java.util.*;
@@ -18,18 +21,18 @@ public class MillClientMain {
 	public static final int ExitServerCodeWhenIdle() { return 0; }
 	public static final int ExitServerCodeWhenVersionMismatch() { return 101; }
 
-    static void initServer(String lockBase, boolean setJnaNoSys) throws IOException,URISyntaxException{
+    static void initServer(String lockBase, boolean setJnaNoSys) throws IOException, URISyntaxException {
 
         String selfJars = "";
         List<String> vmOptions = new ArrayList<>();
         String millOptionsPath = System.getProperty("MILL_OPTIONS_PATH");
-        if(millOptionsPath != null) {
+        if (millOptionsPath != null) {
             // read MILL_CLASSPATH from file MILL_OPTIONS_PATH
             Properties millProps = new Properties();
             millProps.load(new FileInputStream(millOptionsPath));
             for(final String k: millProps.stringPropertyNames()){
                 String propValue = millProps.getProperty(k);
-                if("MILL_CLASSPATH".equals(k)){
+                if ("MILL_CLASSPATH".equals(k)){
                     selfJars = propValue;
                 }
             }
@@ -39,12 +42,12 @@ public class MillClientMain {
         }
 
         final Properties sysProps = System.getProperties();
-        for(final String k: sysProps.stringPropertyNames()){
+        for (final String k: sysProps.stringPropertyNames()){
             if (k.startsWith("MILL_") && !"MILL_CLASSPATH".equals(k)) {
                 vmOptions.add("-D" + k + "=" + sysProps.getProperty(k));
             }
         }
-        if(selfJars == null || selfJars.trim().isEmpty()) {
+        if (selfJars == null || selfJars.trim().isEmpty()) {
             throw new RuntimeException("MILL_CLASSPATH is empty!");
         }
         if (setJnaNoSys) {
@@ -97,80 +100,68 @@ public class MillClientMain {
 
     public static void main(String[] args) throws Exception{
         int exitCode = main0(args);
-        if(exitCode == ExitServerCodeWhenVersionMismatch()) {
+        if (exitCode == ExitServerCodeWhenVersionMismatch()) {
             exitCode = main0(args);
         }
         System.exit(exitCode);
     }
-    public static int main0(String[] args) throws Exception{
+
+    public static int main0(String[] args) throws Exception {
+
         boolean setJnaNoSys = System.getProperty("jna.nosys") == null;
-        Map<String, String> env = System.getenv();
         if (setJnaNoSys) {
             System.setProperty("jna.nosys", "true");
         }
-        int index = 0;
+        
         String jvmHomeEncoding = sha1HashPath(System.getProperty("java.home"));
-        File outFolder = new File("out");
-        String[] totalProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-"));
-        String[] thisJdkProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
+        int serverProcessesLimit = getServerProcessesLimit(jvmHomeEncoding);
 
-        int processLimit = 5;
-        if(totalProcesses != null) {
-            if(thisJdkProcesses != null) {
-                processLimit -= Math.min(totalProcesses.length - thisJdkProcesses.length, 5);
-            } else {
-                processLimit -= Math.min(totalProcesses.length, 5);
-            }
-        }
-        while (index < processLimit) {
+        int index = 0;
+        while (index < serverProcessesLimit) {
             index += 1;
             String lockBase = "out/mill-worker-" + jvmHomeEncoding + "-" + index;
             new java.io.File(lockBase).mkdirs();
 
             File stdout = new java.io.File(lockBase + "/stdout");
             File stderr = new java.io.File(lockBase + "/stderr");
-            int refeshIntervalMsec = 2;
+            int refeshIntervalMillis = 2;
 
-            try(
-                    RandomAccessFile lockFile = new RandomAccessFile(lockBase + "/clientLock", "rw");
-                    FileChannel channel = lockFile.getChannel();
-                    java.nio.channels.FileLock tryLock = channel.tryLock();
-                    Locks locks = Locks.files(lockBase);
-                    FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMsec);
-                    FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMsec);
-            ){
-                if (tryLock != null) {
+            try (
+                Locks locks = Locks.files(lockBase);
+                FileToStreamTailer stdoutTailer = new FileToStreamTailer(stdout, System.out, refeshIntervalMillis);
+                FileToStreamTailer stderrTailer = new FileToStreamTailer(stderr, System.err, refeshIntervalMillis);
+            ) {
+                Locked clientLock = locks.clientLock.tryLock();
+                if (clientLock != null) {
                     stdoutTailer.start();
                     stderrTailer.start();
 
-                    int exitCode = MillClientMain.run(
-                            lockBase,
-                            new Runnable() {
-                                @Override
-                                public void run() {
-                                    try{
-                                        initServer(lockBase, setJnaNoSys);
-                                    }catch(Exception e){
-                                        throw new RuntimeException(e);
-                                    }
-                                }
-                            },
-                            locks,
-                            System.in,
-                            System.out,
-                            System.err,
-                            args,
-                            env
+                    int exitCode = run(
+                        lockBase,
+                        () -> {
+                            try {
+                                initServer(lockBase, setJnaNoSys);
+                            } catch (Exception e) {
+                                throw new RuntimeException(e);
+                            }
+                        },
+                        locks,
+                        System.in,
+                        System.out,
+                        System.err,
+                        args,
+                        System.getenv()
                     );
 
                     // Here, we ensure we process the tails of the output files before interrupting the threads
                     stdoutTailer.flush();
                     stderrTailer.flush();
+                    clientLock.release();
                     return exitCode;
                 }
             }
         }
-        throw new Exception("Reached max process limit: " + processLimit);
+        throw new Exception("Reached max server processes limit: " + serverProcessesLimit);
     }
 
     public static int run(String lockBase,
@@ -182,7 +173,7 @@ public class MillClientMain {
                           String[] args,
                           Map<String, String> env) throws Exception{
 
-        try(FileOutputStream f = new FileOutputStream(lockBase + "/run")){
+        try (FileOutputStream f = new FileOutputStream(lockBase + "/run")) {
             f.write(System.console() != null ? 1 : 0);
             Util.writeString(f, System.getProperty("MILL_VERSION"));
             Util.writeArgs(args, f);
@@ -194,7 +185,7 @@ public class MillClientMain {
             serverInit = true;
             initServer.run();
         }
-        while(locks.processLock.probe()) Thread.sleep(3);
+        while (locks.processLock.probe()) Thread.sleep(3);
 
         // Need to give sometime for Win32NamedPipeSocket to work
         // if the server is just initialized
@@ -204,17 +195,17 @@ public class MillClientMain {
         Throwable socketThrowable = null;
         long retryStart = System.currentTimeMillis();
 
-        while(ioSocket == null && System.currentTimeMillis() - retryStart < 5000){
-            try{
+        while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
+            try {
                 ioSocket = Util.isWindows?
-                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + new File(lockBase).getName())
+                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
                         : new UnixDomainSocket(lockBase + "/io");
-            }catch(Throwable e){
+            } catch (Throwable e){
                 socketThrowable = e;
                 Thread.sleep(1);
             }
         }
-        if (ioSocket == null){
+        if (ioSocket == null) {
             throw new Exception("Failed to connect to server", socketThrowable);
         }
 
@@ -231,12 +222,29 @@ public class MillClientMain {
 
         locks.serverLock.await();
 
-        try(FileInputStream fis = new FileInputStream(lockBase + "/exitCode")){
-            return Integer.parseInt(new BufferedReader(new InputStreamReader(fis)).readLine());
-        } catch(Throwable e){
+        try {
+            return Integer.parseInt(Files.readAllLines(Paths.get(lockBase + "/exitCode")).get(0));
+        } catch (Throwable e) {
             return ExitClientCodeCannotReadFromExitCodeFile();
-        } finally{
+        } finally {
             ioSocket.close();
         }
+    }
+
+    // 5 processes max
+    private static int getServerProcessesLimit(String jvmHomeEncoding) {
+        File outFolder = new File("out");
+        String[] totalProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-"));
+        String[] thisJdkProcesses = outFolder.list((dir,name) -> name.startsWith("mill-worker-" + jvmHomeEncoding));
+
+        int processLimit = 5;
+        if (totalProcesses != null) {
+            if (thisJdkProcesses != null) {
+                processLimit -= Math.min(totalProcesses.length - thisJdkProcesses.length, 5);
+            } else {
+                processLimit -= Math.min(totalProcesses.length, 5);
+            }
+        }
+        return processLimit;
     }
 }
