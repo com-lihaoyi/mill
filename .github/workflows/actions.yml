@@ -25,7 +25,7 @@ jobs:
           - ./mill -i docs.generate
         exclude:
           - java-version: 11
-            buildcmd: ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
+            buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
           - java-version: 11
             buildcmd: ci/test-mill-release.sh
 
