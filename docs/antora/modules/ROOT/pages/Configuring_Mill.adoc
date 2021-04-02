@@ -1,8 +1,12 @@
+= Configuring Mill
+
 You can configure your Mill build in a number of ways:
 
-## Compilation & Execution Flags
+== Compilation &amp; Execution Flags
 
-```scala
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -14,7 +18,8 @@ object foo extends ScalaModule {
 
   def forkEnv = Map("HELLO_MY_ENV_VAR" -> "WORLD")
 }
-```
+
+----
 
 You can pass flags to the Scala compiler via `scalacOptions`. By default,
 `foo.run` runs the compiled code in a subprocess, and you can pass in JVM flags
@@ -22,9 +27,10 @@ via `forkArgs` or environment-variables via `forkEnv`.
 
 You can also run your code via
 
-```bash
+[source,bash]
+----
 mill foo.runLocal
-```
+----
 
 Which runs it in-process within an isolated classloader. This may be faster
 since you avoid the JVM startup, but does not support `forkArgs` or `forkEnv`.
@@ -32,14 +38,17 @@ since you avoid the JVM startup, but does not support `forkArgs` or `forkEnv`.
 If you want to pass main-method arguments to `run` or `runLocal`, simply pass
 them after the `foo.run`/`foo.runLocal`:
 
-```bash
+[source,bash]
+----
 mill foo.run arg1 arg2 arg3
 mill foo.runLocal arg1 arg2 arg3
-```
+----
 
-## Adding Ivy Dependencies
+== Adding Ivy Dependencies
 
-```scala
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -51,34 +60,38 @@ object foo extends ScalaModule {
     ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}"
   )
 }
-```
+----
 
 You can define the `ivyDeps` field to add ivy dependencies to your module. The
 `ivy"com.lihaoyi::upickle:0.5.1"` syntax (with `::`) represents Scala
 dependencies; for Java dependencies you would use a single `:` e.g.
-`ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
+`"ivy"com.lihaoyi:upickle:0.5.1"`. If you have dependencies cross-published
 against the full Scala version (eg. `2.12.4` instead of just `2.12`),
 you can use `:::` as in `ivy"org.scalamacros:::paradise:2.1.1"`.
 
 To select the test-jars from a dependency use the following syntax:
 `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 
-By default these are resolved from maven central, but you can add your own
+By default, these are resolved from maven central, but you can add your own
 resolvers by overriding the `repositories` definition in the module:
 
-```scala
+.`build.sc`
+[source,scala]
+----
 import coursier.maven.MavenRepository
 
 def repositoriesTask = T.task { super.repositoriesTask() ++ Seq(
   MavenRepository("https://oss.sonatype.org/content/repositories/releases")
 ) }
-```
+----
 
 To add custom resolvers to the initial bootstrap of the build, you can create a
 custom `ZincWorkerModule`, and override the `zincWorker` method in your
 `ScalaModule` by pointing it to that custom object:
 
-```scala
+.`build.sc`
+[source,scala]
+----
 import coursier.maven.MavenRepository
 
 object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
@@ -91,11 +104,13 @@ object YourBuild extends ScalaModule {
   def zincWorker = CustomZincWorkerModule
   // ... rest of your build definitions
 }
-```
+----
 
-## Adding a Test Suite
+== Adding a Test Suite
 
-```scala
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -106,15 +121,15 @@ object foo extends ScalaModule {
     def testFrameworks = Seq("utest.runner.Framework")
   }
 }
-```
+----
 
-- [Example 3](https://github.com/com-lihaoyi/mill/releases/download/0.7.0/0.7.0-example-3.zip)
+* {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-3.zip[Example 3]
 
 You can define a test suite by creating a nested module extending `Tests`, and
 specifying the ivy coordinates and name of your test framework. This expects the
 tests to be laid out as follows:
 
-```
+----
 build.sc
 foo/
     src/
@@ -131,35 +146,39 @@ out/
         ...
         test/
             ...
-```
+----
 
 The above example can be run via
 
-```bash
+[source,bash]
+----
 mill foo.test
-```
+----
 
 By default, tests are run in a subprocess, and `forkArg` and `forkEnv` can be
-overriden to pass JVM flags & environment variables. You can also use
+overriden to pass JVM flags &amp; environment variables. You can also use
 
-```bash
+[source,bash]
+----
 mill foo.test.testLocal
-```
+----
 
 To run tests in-process in an isolated classloader.
 
 If you want to pass any arguments to the test framework, simply put them after
-`foo.test` in the command line. e.g. [uTest](https://github.com/lihaoyi/utest)
+`foo.test` in the command line. e.g. {utest-github-url}[uTest]
 lets you pass in a selector to decide which test to run, which in Mill would be:
 
-```bash
+[source,bash]
+----
 mill foo.test foo.MyTestSuite.testCaseName
-```
+----
 
 You can define multiple test suites if you want, e.g.:
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -174,24 +193,24 @@ object foo extends ScalaModule {
     def testFrameworks = Seq("utest.runner.Framework")
   }
 }
-```
+----
 
 Each of which will expect their sources to be in their respective `foo/test` and
 `foo/integration` folder.
 
-`Tests` modules are `ScalaModule`s like any other, and all the same
+`Tests` modules are ``ScalaModule``s like any other, and all the same
 configuration options apply.
 
-## Custom Test Frameworks
+== Custom Test Frameworks
 
 Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it
 to `ivyDeps` and specifying the `testFrameworks` you want to use.
 
 Scalatest example:
 
-
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -202,12 +221,13 @@ object foo extends ScalaModule {
     def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
-```
+----
 
 Specs2 example:
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -221,14 +241,15 @@ object foo extends ScalaModule {
     )
   }
 }
-```
+----
 
-After that, you can follow the instructions in [add a test suite](#adding-a-test-suite), and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
+After that, you can follow the instructions in <<_adding_a_test_suite>>, and use `mill foo.test` as usual, or pass args to the test suite via `mill foo.test arg1 arg2 arg3`.
 
-## Scala Compiler Plugins
+== Scala Compiler Plugins
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -238,26 +259,27 @@ object foo extends ScalaModule {
   def scalacOptions = Seq("-P:acyclic:force")
   def scalacPluginIvyDeps = Agg(ivy"com.lihaoyi::acyclic:0.1.7")
 }
-```
+----
 
 You can use Scala compiler plugins by setting `scalacPluginIvyDeps`. The above
 example also adds the plugin to `compileIvyDeps`, since that plugin's artifact
 is needed on the compilation classpath (though not at runtime).
 
-## Reformatting your code
+== Reformatting your code
 
-Mill supports code formatting via [scalafmt](https://scalameta.org/scalafmt/) out of the box.
+Mill supports code formatting via https://scalameta.org/scalafmt/[scalafmt] out of the box.
 
 To have a formatting per-module you need to make your module extend `mill.scalalib.scalafmt.ScalafmtModule`:
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._, scalafmt._
 
 object foo extends ScalaModule with ScalafmtModule {
   def scalaVersion = "2.12.4"
 }
-```
+----
 
 Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill foo.checkFormat`.
 
@@ -268,13 +290,14 @@ It will reformat all sources that matches `__.sources` query.
 If you add a `.scalafmt.conf` file at the root of you project, it will be used
 to configure formatting. It can contain a `version` key to specify the scalafmt
 version used to format your code. See the
-[scalafmt configuration documentation](https://scalameta.org/scalafmt/docs/configuration.html)
+https://scalameta.org/scalafmt/docs/configuration.html[scalafmt configuration documentation]
 for details.
 
-## Common Configuration
+== Common Configuration
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 trait CommonModule extends ScalaModule {
@@ -285,18 +308,18 @@ object foo extends CommonModule
 object bar extends CommonModule {
   def moduleDeps = Seq(foo)
 }
-```
+----
 
 You can extract out configuration common to multiple modules into a `trait` that
-those modules extend. This is useful for providing convenience & ensuring
+those modules extend. This is useful for providing convenience &amp; ensuring
 consistent configuration: every module often has the same scala-version, uses
 the same testing framework, etc. and all that can be extracted out into the
 `trait`.
 
-## Global configuration
+== Global configuration
 
 Mill builds on ammonite which allows you to
-[define global configuration](http://ammonite.io/#ScriptPredef). Depending on
+http://ammonite.io/#ScriptPredef[define global configuration]. Depending on
 how you start mill, one of two files will be loaded. For the build REPL
 (`--repl` or `-i` without specifying a target), `~/.mill/ammonite/predef.sc`
 will be loaded, and for builds from the command line the file
@@ -304,24 +327,29 @@ will be loaded, and for builds from the command line the file
 a symlink from one to the other to avoid duplication.
 
 Example `~/.mill/ammonite/predef.sc`
-```scala
+
+.`~/.mill/ammonite/predef.sc`
+[source,scala]
+----
 val nexusUser = "myuser"
 val nexusPassword = "mysecret"
-```
+----
 
 Everything declared in the above file will be available to any build you run.
 
-```scala
+[source,scala]
+----
   def repositories = super.repositories ++ Seq(
     // login and pass are globally configured
     MavenRepository("https://nexus.mycompany.com/repository/maven-releases", authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
   )
-```
+----
 
-## Custom Tasks
+== Custom Tasks
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -336,22 +364,23 @@ def lineCount = T {
 def printLineCount() = T.command {
   println(lineCount())
 }
-```
+----
 
 You can define new cached Targets using the `T {...}` syntax, depending on
 existing Targets e.g. `foo.sources` via the `foo.sources()` syntax to extract
 their current value, as shown in `lineCount` above. The return-type of a Target
 has to be JSON-serializable (using
-[uPickle](https://github.com/lihaoyi/upickle)) and the Target is cached when
+https://github.com/lihaoyi/upickle[uPickle]) and the Target is cached when
 first run until its inputs change (in this case, if someone edits the
 `foo.sources` files which live in `foo/src`. Cached Targets cannot take
 parameters.
 
 You can print the value of your custom target using `show`, e.g.
 
-```bash
+[source,bash]
+----
 mill show lineCount
-```
+----
 
 You can define new un-cached Commands using the `T.command {...}` syntax. These
 are un-cached and re-evaluate every time you run them, but can take parameters.
@@ -371,10 +400,11 @@ some custom jar/zip assembly with the files you want (e.g. using
 `mill.modules.Jvm.createJar`), all of these can simply be custom targets with
 your code running in the `T {...}` block.
 
-## Custom Modules
+== Custom Modules
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object qux extends Module {
@@ -386,33 +416,36 @@ object qux extends Module {
     def scalaVersion = "2.12.4"
   }
 }
-```
+----
 
 Not every Module needs to be a `ScalaModule`; sometimes you just want to group
 things together for neatness. In the above example, you can run `foo` and `bar`
 namespaced inside `qux`:
 
-```bash
+[source,bash]
+----
 mill qux.foo.compile
 mill qux.bar.run
-```
+----
 
 You can also define your own module traits, with their own set of custom tasks,
 to represent other things e.g. Javascript bundles, docker image building,:
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 trait MySpecialModule extends Module {
   ...
 }
 object foo extends MySpecialModule
 object bar extends MySpecialModule
-```
+----
 
-## Module/Task Names
+== Module/Task Names
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._
 import mill.scalalib._
 
@@ -430,28 +463,30 @@ object unhyphenatedModule extends Module {
     println("This is the second unhyphenated target in an unhyphenated module.")
   }
 }
-```
+----
 
-Mill modules and tasks may be composed of any of the following characters types:
+Mill modules and tasks may be composed of the following character types:
 
-- Alphanumeric (A-Z, a-z, and 0-9)
-- Underscore (_)
-- Hyphen (-)
+* Alphanumeric (A-Z, a-z, and 0-9)
+* Underscore (`_`)
+* Hyphen (`-`)
 
-Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).
+Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (```).
 
 Using hyphenated names at the command line is unaffected by these restrictions.
 
-```bash
+[source,bash]
+----
 mill hyphenated-module.hyphenated-target
 mill unhyphenatedModule.unhyphenated_target
 mill unhyphenatedModule.unhyphenated_target2
-```
+----
 
-## Overriding Tasks
+== Overriding Tasks
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -465,7 +500,7 @@ object foo extends ScalaModule {
     super.run(args:_*)
   }
 }
-```
+----
 
 You can re-define targets and commands to override them, and use `super` if you
 want to refer to the originally defined task. The above example shows how to
@@ -477,10 +512,11 @@ REPL.
 
 In Mill builds the `override` keyword is optional.
 
-## Unmanaged Jars
+== Unmanaged Jars
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -490,40 +526,42 @@ object foo extends ScalaModule {
     else Agg.from(os.list(millSourcePath / "lib").map(PathRef(_)))
   }
 }
-```
+----
 
 You can override `unmanagedClasspath` to point it at any jars you place on the
 filesystem, e.g. in the above snippet any jars that happen to live in the
 `foo/lib/` folder.
 
-## Defining a Main Class
+== Defining a Main Class
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
   def mainClass = Some("foo.bar.Baz")
 }
-```
+----
 
 Mill's `foo.run` by default will discover which main class to run from your
 compilation output, but if there is more than one or the main class comes from
 some library you can explicitly specify which one to use. This also adds the
 main class to your `foo.jar` and `foo.assembly` jars.
 
-## Merge/exclude/relocate files from assembly
+== Merge/exclude/relocate files from assembly
 
 When you make a runnable jar of your project with `assembly` command,
 you may want to exclude some files from a final jar (like signature files, and manifest files from library jars),
 and merge duplicated files (for instance `reference.conf` files from library dependencies).
 
-By default mill excludes all `*.sf`, `*.dsa`, `*.rsa`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
+By default mill excludes all `+*.sf+`, `+*.dsa+`, `+*.rsa+`, and `META-INF/MANIFEST.MF` files from assembly, and concatenates all `reference.conf` files.
 You can also define your own merge/exclude rules.
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 import mill.modules.Assembly._
 
@@ -536,12 +574,13 @@ object foo extends ScalaModule {
     Rule.Relocate("shapeless.**", "shade.shapless.@1") // the `shapeless` package will be shaded under the `shade` package
   )
 }
-```
+----
 
 To exclude Scala library from assembly
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 import mill.modules.Assembly._
 
@@ -550,12 +589,13 @@ object foo extends ScalaModule {
 
   def scalaLibraryIvyDeps = T { Agg.empty }
 }
-```
+----
 
-## Downloading Non-Maven Jars
+== Downloading Non-Maven Jars
 
-```scala
-// build.sc
+.`build.sc`
+[source,scala]
+----
 import mill._, scalalib._
 
 object foo extends ScalaModule {
@@ -567,7 +607,7 @@ object foo extends ScalaModule {
     )
   )
 }
-```
+----
 
 You can also override `unmanagedClasspath` to point it at jars that you want to
 download from arbitrary URLs. Note that targets like `unmanagedClasspath` are

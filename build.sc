@@ -2,16 +2,18 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
-
+import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
-import mill.define.Target
+import mill.define.Target.ctx
+import mill.define.{Source, Sources, Target, Task}
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
+import os.RelPath
 
 object Deps {
 
@@ -49,7 +51,7 @@ object Deps {
   val ammoniteExcludingTrees = ammonite.exclude(
     "org.scalameta" -> "trees_2.13"
   )
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.11"
+  val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
   val coursier = ivy"io.get-coursier::coursier:2.0.16"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
@@ -73,15 +75,16 @@ object Deps {
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.3"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.4"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.10"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.4"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.5"
   val upickle = ivy"com.lihaoyi::upickle:1.3.8"
   val utest = ivy"com.lihaoyi::utest:0.7.5"
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
@@ -94,11 +97,14 @@ object Settings {
   val githubOrg = "com-lihaoyi"
   val githubRepo = "mill"
   val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val docUrl = "https://com-lihaoyi.github.io/mill"
 }
 
-def millVersion = T{ VcsVersion.vcsState().format() }
+def millVersion = T { VcsVersion.vcsState().format() }
+def millLastTag = T { VcsVersion.vcsState().lastTag.get }
+def baseDir = build.millSourcePath
 
-trait MillPublishModule extends PublishModule{
+trait MillPublishModule extends PublishModule {
   override def artifactName = "mill-" + super.artifactName()
   def publishVersion = millVersion()
   def pomSettings = PomSettings(
@@ -115,17 +121,26 @@ trait MillPublishModule extends PublishModule{
   override def javacOptions = Seq("-source", "1.8", "-target", "1.8", "-encoding", "UTF-8")
 }
 
-trait MillApiModule extends MillPublishModule with ScalaModule {
+trait MillCoursierModule extends CoursierModule {
+  override def repositoriesTask = T.task {
+    super.repositoriesTask() ++ Seq(
+      MavenRepository(
+        "https://oss.sonatype.org/content/repositories/releases")
+    )
+  }
+}
+
+trait MillApiModule
+    extends MillPublishModule
+    with ScalaModule
+    with MillCoursierModule {
   def scalaVersion = Deps.scalaVersion
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-  override def repositoriesTask = T.task {
-    super.repositoriesTask() ++ Seq(
-      MavenRepository("https://oss.sonatype.org/content/repositories/releases")
-    )
-  }
+
 }
+
 trait MillModule extends MillApiModule { outer =>
   def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
@@ -862,31 +877,174 @@ object dev extends MillModule {
 }
 
 object docs extends Module {
-  /** Download ammonite. */
-  def ammoniteVersion: String = "1.4.0"
-  def ammonite: T[PathRef] = T.persistent {
-    val dest = T.dest / s"ammonite-${ammoniteVersion}"
-    if(!os.isFile(dest)) {
-      val download = mill.modules.Util.download(
-        s"https://github.com/lihaoyi/Ammonite/releases/download/${ammoniteVersion}/2.12-${ammoniteVersion}",
-        os.rel / s"ammonite-${ammoniteVersion}.part"
+
+  /** Generates the mill documentation with Antora. */
+  object antora extends Module {
+    def npmBase: T[os.Path] = T.persistent { T.dest }
+    def prepareAntora(npmDir: os.Path) = {
+      Jvm.runSubprocess(
+        commandArgs = Seq(
+          "npm",
+          "install",
+          "@antora/cli",
+          "@antora/site-generator-default",
+          "gitlab:antora/xref-validator"
+        ),
+        envArgs = Map(),
+        workingDir = npmDir
       )
-      os.move(download.path, dest)
     }
-    os.perms.set(dest, os.perms(dest) + PosixFilePermission.OWNER_EXECUTE)
-    PathRef(dest)
-  }
-  def sources = T.sources(millSourcePath)
-  /** Generate the documentation site. */
-  def generate = T{
-    sources()
-    val dest = T.dest / "site"
-    mill.modules.Jvm.runSubprocess(
-      commandArgs = Seq(ammonite().path.toString(), "build.sc", "--targetDir", dest.toString()),
-      envArgs = Map(),
-      workingDir = millSourcePath
-    )
-    PathRef(dest)
+    def runAntora(npmDir: os.Path, workDir: os.Path, args: Seq[String])(implicit
+        ctx: mill.api.Ctx.Log
+    ) = {
+      prepareAntora(npmDir)
+      val cmdArgs =
+        Seq(s"${npmDir}/node_modules/@antora/cli/bin/antora") ++ args
+      ctx.log.debug(s"command: ${cmdArgs.mkString("'", "' '", "'")}")
+      Jvm.runSubprocess(
+        commandArgs = cmdArgs,
+        envArgs = Map("CI" -> "true"),
+        workingDir = workDir
+      )
+      PathRef(workDir / "build" / "site")
+    }
+    def sources: Source = T.source(millSourcePath)
+    def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
+    def devAntoraSources: Target[PathRef] = T {
+      val dest = T.dest
+      shared.mycopy(sources().path, dest, mergeFolders = true)
+      val lines = os.read(dest / "antora.yml").linesIterator.map {
+        case l if l.startsWith("version:") =>
+          s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
+        case l => l
+      }
+      os.write.over(dest / "antora.yml", lines.mkString("\n"))
+      PathRef(dest)
+    }
+    def githubPagesPlaybookText(authorMode: Boolean): Task[String] = T.task {
+      s"""site:
+         |  title: Mill
+         |  url: ${Settings.docUrl}
+         |  start_page: mill::Intro_to_Mill.adoc
+         |
+         |content:
+         |  sources:
+         |    # the in-repo version-tagged documentation (currently only the pr branch)
+         |    # TODO: switch branch to master and add tags for releases with antora docs
+         |    ##- url: ${if (authorMode) baseDir else Settings.projectUrl}
+         |    ##  branches: ${if (authorMode) "HEAD" else "antora"}
+         |    ##  start_path: docs/antora
+         |    # the master documentation
+         |    - url: ${baseDir}
+         |      # edit_url: ${ Settings.projectUrl }/edit/{refname}/{path}
+         |      branches: HEAD
+         |      start_path: ${devAntoraSources().path.relativeTo(baseDir)}
+         |ui:
+         |  bundle:
+         |    url: https://gitlab.com/antora/antora-ui-default/-/jobs/artifacts/master/raw/build/ui-bundle.zip?job=bundle-stable
+         |    snapshot: true
+         |  supplemental_files: ${supplementalFiles().path.toString()}
+         |
+         |asciidoc:
+         |  attributes:
+         |    mill-version: '${millVersion()}'
+         |    mill-last-tag: '${millLastTag()}'
+         |    mill-github-url: ${Settings.projectUrl}
+         |    mill-doc-url: ${Settings.docUrl}
+         |    utest-github-url: https://github.com/com-lihaoyi/utest
+         |    upickle-github-url: https://github.com/com-lihaoyi/upickle
+         |
+         |""".stripMargin
+    }
+    def githubPages = T {
+      generatePages(authorMode = false)()
+    }
+    def localPages = T {
+      generatePages(authorMode = true)()
+    }
+    def generatePages(authorMode: Boolean) = T.task {
+      // dependency to sources
+      sources()
+      val docSite = T.dest
+      val playbook = docSite / "antora-playbook.yml"
+      val siteDir = docSite / "site"
+      os.write(
+        target = playbook,
+        data = githubPagesPlaybookText(authorMode)(),
+        createFolders = true
+      )
+      // check xrefs
+      runAntora(
+        npmDir = npmBase(),
+        workDir = docSite,
+        args = Seq(
+          "--generator",
+          "@antora/xref-validator",
+          playbook.last,
+          "--to-dir",
+          siteDir.toString(),
+          "--attribute",
+          "page-pagination"
+        ) ++
+          Seq("--fetch").filter(_ => !authorMode)
+      )
+      // generate site (we can skip the --fetch now)
+      runAntora(
+        npmDir = npmBase(),
+        workDir = docSite,
+        args = Seq(
+          playbook.last,
+          "--to-dir",
+          siteDir.toString(),
+          "--attribute",
+          "page-pagination"
+        )
+      )
+      os.write(siteDir / ".nojekyll", "")
+      // sanitize devAntora source URLs
+      sanitizeDevUrls(siteDir, devAntoraSources().path, sources().path, baseDir)
+      PathRef(siteDir)
+    }
+//    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
+    def sanitizeDevUrls(
+        dir: os.Path,
+        sourceDir: os.Path,
+        newSourceDir: os.Path,
+        baseDir: os.Path
+    ): Unit = {
+      val pathToRemove = sourceDir.relativeTo(baseDir).toString()
+      val replacePath = newSourceDir.relativeTo(baseDir).toString()
+//      println(s"Cleaning relative path '${pathToRemove}' ...")
+      import org.htmlcleaner._
+      val cleaner = new HtmlCleaner()
+      var changed = false
+      os.walk(dir).foreach { file =>
+        if (os.isFile(file) && file.ext == "html") {
+          val node: TagNode = cleaner.clean(file.toIO)
+          node.traverse { (parentNode: TagNode, htmlNode: HtmlNode) =>
+            htmlNode match {
+              case tag: TagNode if tag.getName() == "a" =>
+                Option(tag.getAttributeByName("href")).foreach { href =>
+                  val newHref = href.replace(pathToRemove, replacePath)
+                  if (href != newHref) {
+                    tag.removeAttribute("href")
+                    tag.addAttribute("href", newHref)
+                    changed = true
+                    println(s"Replaced: '${href}' --> '${newHref}'")
+                  }
+                }
+                true
+              case _ => true
+            }
+          }
+          if(changed) {
+            println(s"Writing '${file}' ...")
+            val newHtml = new SimpleHtmlSerializer(cleaner.getProperties()).getAsString(node)
+            os.write.over(file, newHtml)
+          }
+        }
+      }
+    }
   }
 }
 
@@ -958,7 +1116,7 @@ def uploadToGithub(authKey: String) = T.command{
   for(example <- Seq("example-1", "example-2", "example-3")) {
     os.copy(os.pwd / "example" / example, T.dest / example)
     os.copy(launcher().path, T.dest / example / "mill")
-    os.proc('zip, "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
+    os.proc("zip", "-r", T.dest / s"$example.zip", example).call(cwd = T.dest)
     upload.apply(T.dest / s"$example.zip", releaseTag, label + "-" + example + ".zip", authKey, Settings.githubOrg, Settings.githubRepo)
   }
   upload.apply(assembly().path, releaseTag, label + "-assembly", authKey, Settings.githubOrg, Settings.githubRepo)
