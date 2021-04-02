@@ -931,9 +931,9 @@ object docs extends Module {
          |  sources:
          |    # the in-repo version-tagged documentation (currently only the pr branch)
          |    # TODO: switch branch to master and add tags for releases with antora docs
-         |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
-         |      branches: ${if (authorMode) "HEAD" else "antora"}
-         |      start_path: docs/antora
+         |    ##- url: ${if (authorMode) baseDir else Settings.projectUrl}
+         |    ##  branches: ${if (authorMode) "HEAD" else "antora"}
+         |    ##  start_path: docs/antora
          |    # the master documentation
          |    - url: ${baseDir}
          |      # edit_url: ${ Settings.projectUrl }/edit/{refname}/{path}
