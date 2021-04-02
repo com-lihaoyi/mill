@@ -20,17 +20,16 @@ git config --global user.name "Mill GitHub Bot"
 PAGES_REPO=gh-pages
 
 # checkout gh-pages
-git worktree add gh-pages origin/gh-pages
+git worktree add -b gh-pages gh-pages origin/gh-pages
 
 # we want to keep history, so we prepare a new commit
 rm -r ${PAGES_REPO}/*
-
-touch ${PAGES_REPO}/.nojekyll
-(cd $PAGES_REPO && git add .nojekyll)
-
 cp -r out/docs/antora/githubPages/dest/site/* ${PAGES_REPO}/
-(cd $PAGES_REPO && git add *)
+touch ${PAGES_REPO}/.nojekyll
 
-(cd $PAGES_REPO && git commit -m "Updated github pages from commit ${GITHUB_SHA}")
+cd $PAGES_REPO
 
-(cd $PAGES_REPO && git push)
+git add .nojekyll
+git add *
+git commit -m "Updated github pages from commit ${GITHUB_SHA}"
+git push origin gh-pages:gh-pages

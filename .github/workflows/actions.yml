@@ -120,21 +120,13 @@ jobs:
 
       - run: ci/release-maven.sh
 
-  release-github-and-site:
+  release-github:
     if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
     needs: publish-sonatype
-
-    strategy:
-      matrix:
-        buildcmd:
-          - ci/release-github.sh
-          - ci/publish-docs.sh
-
     runs-on: ubuntu-latest
 
     env:
       REPO_ACCESS_TOKEN: ${{ secrets.REPO_ACCESS_TOKEN }}
-      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
 
     steps:
       - uses: actions/checkout@v2
@@ -145,4 +137,22 @@ jobs:
         with:
           java-version: 9
 
-      - run: ${{ matrix.buildcmd }}
+      - run: ci/release-github.sh
+
+  publish-site:
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    env:
+      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - run: ci/publish-docs.sh
+
