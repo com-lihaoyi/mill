@@ -19,7 +19,8 @@ jobs:
           - ci/test-mill-bootstrap-1.sh
           - ./mill -i "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
           - ./mill -i "contrib._.test"
-          - ./mill -i integration.test "mill.integration.local.{JawnTests,BetterFilesTests,UpickleTests}"
+          - ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
+          # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.generate
         exclude:
