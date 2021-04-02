@@ -1,0 +1,369 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Common Project Layouts</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#common-project-layouts">Common Project Layouts</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#java-project-with-test-suite">Java Project with Test Suite</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#cross-scala-version-modules">Cross Scala-Version Modules</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scalajs-modules">Scala.js Modules</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scala-native-modules">Scala Native Modules</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#sbt-compatible-modules">SBT-Compatible Modules</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#sbt-compatible-cross-scala-version-modules">SBT-Compatible Cross Scala-Version Modules</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#publishing">Publishing</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#example-builds">Example Builds</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#acyclic">Acyclic</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#better-files">Better-Files</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#jawn">Jawn</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#upickle">Upickle</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#ammonite">Ammonite</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Common Project Layouts</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="configuring-mill.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Configuring Mill</a><a href="tasks.html">Tasks <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><h2 id="common-project-layouts" class="Styles-hoverBox">Common Project Layouts<a href="#common-project-layouts" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Earlier, we have shown how to work with the Mill default Scala module layout. Here we will explore some other common project layouts that you may want in your Scala build:</p><h3 id="java-project-with-test-suite" class="Styles-hoverBox">Java Project with Test Suite<a href="#java-project-with-test-suite" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">trait JUnitTests extends TestModule {
+  def testFrameworks = Seq(&quot;com.novocode.junit.JUnitFramework&quot;)
+  def ivyDeps = Agg(ivy&quot;com.novocode:junit-interface:0.11&quot;)
+}
+
+object core extends JavaModule {
+  object test extends Tests with JUnitTests
+}
+object app extends JavaModule {
+  def moduleDeps = Seq(core)
+  object test extends Tests with JUnitTests
+}
+</code></pre>
+<p>This build is a two-module Java project with junit test suites. It expects the following filesystem layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">build.sc
+app/
+    src/hello/
+        Main.java
+    test/src/hello/
+            MyAppTests.java
+core/
+    src/hello/
+        Core.java
+    test/src/hello/
+            MyCoreTests.java
+</code></pre>
+<p>You can then run the junit tests using <code>mill app.test</code> or <code>mill core.test</code>, and configure which exact tests you want to run using the flags defined on the <a href="https://github.com/sbt/junit-interface#junit-interface">JUnit Test Interface</a>.</p>
+<p>For a more more complex, real-world example of a Java build, check out our example build for the popular <a href="https://github.com/ben-manes/caffeine">Caffeine</a> project:</p>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc">Example Build</a></li>
+</ul><h3 id="cross-scala-version-modules" class="Styles-hoverBox">Cross Scala-Version Modules<a href="#cross-scala-version-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+object foo extends Cross[FooModule](&quot;2.10.6&quot;, &quot;2.11.11&quot;, &quot;2.12.4&quot;)
+class FooModule(val crossScalaVersion: String) extends CrossScalaModule {
+   ...
+   object test extends Tests {
+     ...
+   }
+}
+</code></pre>
+<p>Mill provides a <code>CrossScalaModule</code> template, which can be used with <code>Cross</code> to cross-build Scala modules across different versions of Scala. The default configuration for <code>CrossScalaModule</code> expects a filesystem layout as follows:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">build.sc
+foo/
+    src/
+    src-2.10/
+    src-2.11/
+    src-2.12/
+    test/
+        src/
+        src-2.10/
+        src-2.11/
+        src-2.12/
+</code></pre>
+<p>Code common to all Scala versions lives in <code>src</code>, while code specific to one version lives in <code>src-x.y</code>.</p><h3 id="scalajs-modules" class="Styles-hoverBox">Scala.js Modules<a href="#scalajs-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalajslib._
+
+object foo extends ScalaJSModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def scalaJSVersion = &quot;0.6.22&quot;
+}
+</code></pre>
+<p><code>ScalaJSModule</code> is a variant of <code>ScalaModule</code> that builds your code using Scala.js. In addition to the standard <code>foo.compile</code> and <code>foo.run</code> commands (the latter of which runs your code on Node.js, which must be pre-installed) <code>ScalaJSModule</code> also exposes the <code>foo.fastOpt</code> and <code>foo.fullOpt</code> tasks for generating the optimized Javascript file.</p><h3 id="scala-native-modules" class="Styles-hoverBox">Scala Native Modules<a href="#scala-native-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._, scalanativelib._
+
+object hello extends ScalaNativeModule {
+  def scalaVersion = &quot;2.11.12&quot;
+  def scalaNativeVersion = &quot;0.3.8&quot;
+  def logLevel = NativeLogLevel.Info // optional
+  def releaseMode = ReleaseMode.Debug // optional
+}
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+├── build.sc
+└── hello
+    ├── src
+    │   └── hello
+    │       └── Hello.scala
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// hello/src/hello/Hello.scala
+package hello
+import scalatags.Text.all._
+object Hello{
+  def main(args: Array[String]): Unit = {
+    println(&quot;Hello! &quot; + args.toList)
+    println(div(&quot;one&quot;))
+  }
+}
+</code></pre>
+<p>The normal commands <code>mill hello.compile</code>, <code>mill hello.run</code>, all work. If you want to build a standalone executable, you can use <code>mill show hello.nativeLink</code> to create it.</p>
+<p><code>ScalaNativeModule</code> builds scala sources to executable binaries using <a href="http://www.scala-native.org">Scala Native</a>. You will need to have the <a href="http://www.scala-native.org/en/latest/user/setup.html">relevant parts</a> of the LLVM toolchain installed on your system. Optimized binaries can be built by setting <code>releaseMode</code> (see above) and more verbose logging can be enabled using <code>logLevel</code>. Currently two test frameworks are supported <a href="https://github.com/lihaoyi/utest">utest</a> and <a href="http://www.scalatest.org/">scalatest</a>. Support for <a href="https://www.scalacheck.org/">scalacheck</a> should be possible when the relevant artifacts have been published for scala native.</p>
+<p>Here's a slightly larger example, demonstrating how to use third party dependencies (note the two sets of double-colons <code>::</code> necessary) and a test suite:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._, scalanativelib._
+
+object hello extends ScalaNativeModule {
+  def scalaNativeVersion = &quot;0.3.8&quot;
+  def scalaVersion = &quot;2.11.12&quot;
+  def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.6.7&quot;)
+  object test extends Tests{
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.6.3&quot;)
+    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
+  }
+}
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+├── build.sc
+└── hello
+    ├── src
+    │   └── hello
+    │       └── Hello.scala
+    └── test
+        └── src
+            └── HelloTests.scala
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// hello/test/src/HelloTests.scala
+package hello
+import utest._
+import scalatags.Text.all._
+object HelloTests extends TestSuite{
+  val tests = Tests{
+    &#39;pass - {
+      assert(div(&quot;1&quot;).toString == &quot;&lt;div&gt;1&lt;/div&gt;&quot;)
+    }
+    &#39;fail - {
+      assert(123 == 1243)
+    }
+  }
+}
+</code></pre>
+<p>The same <code>mill hello.compile</code> or <code>mill hello.run</code> still work, as does `<code>mill
+hello.test</code> to run the test suite defined here.</p><h3 id="sbt-compatible-modules" class="Styles-hoverBox">SBT-Compatible Modules<a href="#sbt-compatible-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+
+object foo extends SbtModule {
+  def scalaVersion = &quot;2.12.4&quot;
+}
+</code></pre>
+<p>These are basically the same as normal <code>ScalaModule</code>s, but configured to follow the SBT project layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">build.sc
+foo/
+    src/
+        main/
+            scala/
+        test/
+            scala/
+</code></pre>
+<p>Useful if you want to migrate an existing project built with SBT without having to re-organize all your files</p><h3 id="sbt-compatible-cross-scala-version-modules" class="Styles-hoverBox">SBT-Compatible Cross Scala-Version Modules<a href="#sbt-compatible-cross-scala-version-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+object foo extends Cross[FooModule](&quot;2.10.6&quot;, &quot;2.11.11&quot;, &quot;2.12.4&quot;)
+class FooModule(val crossScalaVersion: String) extends CrossSbtModule {
+   ...
+   object test extends Tests {
+     ...
+   }
+}
+</code></pre>
+<p>A <code>CrossSbtModule</code> is a version of <code>CrossScalaModule</code> configured with the SBT project layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">build.sc
+foo/
+    src/
+        main/
+            scala/
+            scala-2.10/
+            scala-2.11/
+            scala-2.12/
+        test/
+            scala/
+            scala-2.10/
+            scala-2.11/
+            scala-2.12/
+</code></pre><h3 id="publishing" class="Styles-hoverBox">Publishing<a href="#publishing" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+import mill.scalalib.publish._
+object foo extends ScalaModule with PublishModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def publishVersion = &quot;0.0.1&quot;
+  def pomSettings = PomSettings(
+    description = &quot;My first library&quot;,
+    organization = &quot;com.lihaoyi&quot;,
+    url = &quot;https://github.com/com-lihaoyi/mill&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;lihaoyi&quot;, &quot;mill&quot;),
+    developers = Seq(
+      Developer(&quot;lihaoyi&quot;, &quot;Li Haoyi&quot;,&quot;https://github.com/lihaoyi&quot;)
+    )
+  )
+}
+</code></pre>
+<p>You can make a module publishable by extending <code>PublishModule</code>.</p>
+<p><code>PublishModule</code> then needs you to define a <code>publishVersion</code> and <code>pomSettings</code>. The <code>artifactName</code> defaults to the name of your module (in this case <code>foo</code>) but can be overridden. The <code>organization</code> is defined in <code>pomSettings</code>.</p>
+<p>Once you've mixed in <code>PublishModule</code>, you can publish your libraries to maven central via:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill mill.scalalib.PublishModule/publishAll \
+        foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b
+</code></pre>
+<p>This uploads them to <code>oss.sonatype.org</code> where you can log-in and stage/release them manually. You can also pass in the <code>--release true</code> flag to perform the staging/release automatically:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill mill.scalalib.PublishModule/publishAll \
+        foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
+        --release true
+</code></pre>
+<p>If you want to publish/release multiple modules, you can use the <code>_</code> or <code>__</code> wildcard syntax:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill mill.scalalib.PublishModule/publishAll \
+        __.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --gpgArgs --passphrase=$GPG_PASSWORD,--batch,--yes,-a,-b \ 
+        --release true
+</code></pre>
+<p>To publish to repository other than <code>oss.sonaytype.org</code> such as internal hosted nexus at <code>example.company.com</code>, you can pass in the <code>--sonatypeUri</code> and <code>--sonatypeSnapshotUri</code> parameters to uploads to different site:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill mill.scalalib.PublishModule/publishAll \
+        foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --sonatypeUri http://example.company.com/release \
+        --sonatypeSnaphostUri http://example.company.com/snapshot
+</code></pre>
+<p>If the site does not support staging release as <code>oss.sonatype.org</code> does (for example, a self-hosted OSS nexus site), you can pass in the <code>--stagingRelease false</code> to simply upload release artifacts to corresponding maven path under <code>sonatypeUri</code> instead of staging path.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill mill.scalalib.PublishModule/publishAll \
+        foo.publishArtifacts \
+        lihaoyi:$SONATYPE_PASSWORD \
+        --sonatypeUri http://example.company.com/release \
+        --stagingRelease false
+</code></pre><h2 id="example-builds" class="Styles-hoverBox">Example Builds<a href="#example-builds" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Mill comes bundled with example builds for existing open-source projects, as integration tests and examples:</p><h3 id="acyclic" class="Styles-hoverBox">Acyclic<a href="#acyclic" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1">Mill Build</a></li>
+</ul>
+<p>A small single-module cross-build, with few sources, minimal dependencies, and wired up for publishing to Maven Central.</p><h3 id="better-files" class="Styles-hoverBox">Better-Files<a href="#better-files" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1">Mill Build</a></li>
+</ul>
+<p>A collection of small modules compiled for a single Scala version.</p>
+<p>Also demonstrates how to define shared configuration in a <code>trait</code>, enable Scala compiler flags, and download artifacts as part of the build.</p><h3 id="jawn" class="Styles-hoverBox">Jawn<a href="#jawn" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1">Mill Build</a></li>
+</ul>
+<p>A collection of relatively small modules, all cross-built across the same few versions of Scala.</p><h3 id="upickle" class="Styles-hoverBox">Upickle<a href="#upickle" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1">Mill Build</a></li>
+</ul>
+<p>A single cross-platform Scala.js/Scala-JVM module cross-built against multiple versions of Scala, including the setup necessary for publishing to Maven Central.</p><h3 id="ammonite" class="Styles-hoverBox">Ammonite<a href="#ammonite" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1">Mill Build</a></li>
+</ul>
+<p>A relatively complex build with numerous submodules, some cross-built across Scala major versions while others are cross-built against Scala minor versions.</p>
+<p>Also demonstrates how to pass one module's compiled artifacts to the <code>run</code>/<code>test</code> commands of another, via their <code>forkEnv</code>.</p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="configuring-mill.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Configuring Mill</a><a href="tasks.html">Tasks <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

@@ -1,0 +1,431 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Thirdparty Modules</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#antlr">Antlr</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#aspectj">AspectJ</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#bash-completion">Bash Completion</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#dgraph">DGraph</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#ensime">Ensime</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#git">Git</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#integration-testing-mill-plugins">Integration Testing Mill Plugins</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#jbake">JBake</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#jbuildinfo">JBuildInfo</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configuration-options">Configuration options</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#kotlin">Kotlin</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#documentation">Documentation</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#mill-wrapper-scripts">Mill Wrapper Scripts</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#how-it-works">How it works</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#use-cases">Use cases</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#osgi">OSGi</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#publishm2">PublishM2</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scalafix">Scalafix</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#fix-sources">Fix sources</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#vcs-version">VCS Version</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Thirdparty Modules</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="contrib-modules.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Contrib Modules</a><div></div></div></div><p>The modules (aka plugins) in this section are developed/maintained outside the mill git tree.</p>
+<p>Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages. The usage examples given here are most probably incomplete and sometimes outdated.</p>
+<p>If you develop or maintain a mill plugin, please create a <a href="https://github.com/com-lihaoyi/mill/pulls">pull request</a> to get your plugin listed here.</p><h2 id="antlr" class="Styles-hoverBox">Antlr<a href="#antlr" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><a href="https://www.antlr.org/">ANTLR parser generator</a> support for mill.</p>
+<p>Project home: <a href="https://github.com/ml86/mill-antlr">https://github.com/ml86/mill-antlr</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`net.mlbox::mill-antlr:0.1.0`
+import net.mlbox.millantlr.AntlrModule
+
+object foo extends ScalaModule with AntlrModule {
+  override def antlrGrammarSources = T.sources {
+    Seq(os.pwd/&quot;someGrammar.g4&quot;).map(PathRef(_))
+  }
+}
+</code></pre><h2 id="aspectj" class="Styles-hoverBox">AspectJ<a href="#aspectj" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><a href="https://projects.eclipse.org/projects/tools.aspectj">AspectJ compiler</a> support for mill.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-aspectj">https://github.com/lefou/mill-aspectj</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+import mill.define._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.aspectj_mill0.9:0.3.1-12-89db01
+import de.tobiasroeser.mill.aspectj._
+
+object main extends AspectjModule {
+
+  // Select the AspectJ version
+  def aspectjVersion = &quot;1.9.5&quot;
+
+  // Set AspectJ options, e.g. the language level and annotation processor
+  // Run `mill main.ajcHelp` to get a list of supported options
+  def ajcOptions = Seq(&quot;-8&quot;, &quot;-proc:none&quot;)
+
+}
+</code></pre>
+<p>For documentation, please refer to the <a href="https://github.com/lefou/mill-aspectj">project home page</a>.</p><h2 id="bash-completion" class="Styles-hoverBox">Bash Completion<a href="#bash-completion" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Limited bash completion support.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-bash-completion">https://github.com/lefou/mill-bash-completion</a></p><h2 id="dgraph" class="Styles-hoverBox">DGraph<a href="#dgraph" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Show transitive dependencies of your build in your browser.</p>
+<p>Project home: <a href="https://github.com/ajrnz/mill-dgraph">https://github.com/ajrnz/mill-dgraph</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.github.ajrnz::mill-dgraph:0.2.0`
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="sh">sh&gt; mill plugin.dgraph.browseDeps(proj)()
+</code></pre><h2 id="ensime" class="Styles-hoverBox">Ensime<a href="#ensime" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Create an <a href="http://ensime.github.io/" title="ensime">.ensime</a> file for your build.</p>
+<p>Project home: <a href="https://github.com/davoclavo/mill-ensime">https://github.com/davoclavo/mill-ensime</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+interp.repositories() =
+  interp.repositories() ++ Seq(coursier.MavenRepository(&quot;https://jitpack.io&quot;))
+
+@
+
+import $ivy.`com.github.yyadavalli::mill-ensime:0.0.2`
+</code></pre>
+<p>You can then run the following to generate the .ensime file</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="sh">mill fun.valycorp.mill.GenEnsime/ensimeConfig
+</code></pre>
+<p>Optionally, you can specify the ensime server version using the --server flag like</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="sh">mill fun.valycorp.mill.GenEnsime/ensimeConfig --server &quot;3.0.0-SNAPSHOT&quot;
+</code></pre><h2 id="git" class="Styles-hoverBox">Git<a href="#git" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>A git version plugin for mill.</p>
+<p>Project home: <a href="https://github.com/joan38/mill-git">https://github.com/joan38/mill-git</a></p>
+<p><em>build.sc</em>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.goyeau::mill-git:&lt;latest version&gt;`
+import com.goyeau.mill.git.GitVersionedPublishModule
+import mill.scalalib.JavaModule
+import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
+
+object `jvm-project` extends JavaModule with GitVersionedPublishModule {
+  override def pomSettings = PomSettings(
+    description = &quot;JVM Project&quot;,
+    organization = &quot;com.goyeau&quot;,
+    url = &quot;https://github.com/joan38/mill-git&quot;,
+    licenses = Seq(License.MIT),
+    versionControl = VersionControl.github(&quot;joan38&quot;, &quot;mill-git&quot;),
+    developers = Seq(Developer(&quot;joan38&quot;, &quot;Joan Goyeau&quot;, &quot;https://github.com/joan38&quot;))
+  )
+}
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="shell script">&gt; mill show jvm-project.publishVersion
+[1/1] show 
+[2/2] com.goyeau.mill.git.GitVersionModule.version 
+&quot;0.0.0-470-6d0b3d9&quot;
+</code></pre><h2 id="integration-testing-mill-plugins" class="Styles-hoverBox">Integration Testing Mill Plugins<a href="#integration-testing-mill-plugins" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Integration testing for mill plugins.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-integrationtest">https://github.com/lefou/mill-integrationtest</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>We assume, you have a mill plugin named <code>mill-demo</code></p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, mill.scalalib._
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+</code></pre>
+<p>Add a new test sub-project, e.g. <code>itest</code>.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $ivy.`de.tototec::de.tobiasroeser.mill.integrationtest_mill0.9:0.4.0`
+import de.tobiasroeser.mill.integrationtest._
+
+object demo extends ScalaModule with PublishModule {
+  // ...
+}
+
+object itest extends MillIntegrationTestModule {
+
+  def millTestVersion = &quot;0.9.3&quot;
+
+  def pluginsUnderTest = Seq(demo)
+
+}
+</code></pre>
+<p>Your project should now look similar to this:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
++-- demo/
+|   +-- src/
+|
++-- it/
+    +-- src/
+        +-- 01-first-test/
+        |   +-- build.sc
+        |   +-- src/
+        |
+        +-- 02-second-test/
+            +-- build.sc
+</code></pre>
+<p>As the buildfiles <code>build.sc</code> in your test cases typically want to access the locally built plugin(s), the plugins publishes all plugins referenced under <code>pluginsUnderTest</code> to a temporary ivy repository, just before the test is executed. The mill version used in the integration test then used that temporary ivy repository.</p>
+<p>Instead of referring to your plugin with <code>import $ivy.&#39;your::plugin:version&#39;</code>, you can use the following line instead, which ensures you will use the correct locally build plugins.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $exec.plugins
+</code></pre>
+<p>Effectively, at execution time, this line gets replaced by the content of <code>plugins.sc</code>, a file which was generated just before the test started to execute.</p>
+<p>Please always refer to the <a href="https://github.com/lefou/mill-integrationtest[official">https://github.com/lefou/mill-integrationtest[official</a> plugin documentation site] for complete and up-to-date information.</p><h2 id="jbake" class="Styles-hoverBox">JBake<a href="#jbake" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Create static sites/blogs with JBake.</p>
+<p>Plugin home: <a href="https://github.com/lefou/mill-jbake">https://github.com/lefou/mill-jbake</a></p>
+<p>JBake home: <a href="https://jbake.org">https://jbake.org</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`de.tototec::de.tobiasroeser.mill.jbake:0.1.0`
+import de.tobiasroeser.mill.jbake._
+
+object site extends JBakeModule {
+
+  def jbakeVersion = &quot;2.6.4&quot;
+
+}
+</code></pre>
+<p>Generate the site:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="sh">bash&gt; mill site.jbake
+</code></pre>
+<p>Start a local Web-Server on Port 8820 with the generated site:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="sh">bash&gt; mill site.jbakeServe
+</code></pre><h2 id="jbuildinfo" class="Styles-hoverBox">JBuildInfo<a href="#jbuildinfo" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This is a <a href="https://www.lihaoyi.com/mill/">mill</a> module similar to <a href="https://www.lihaoyi.com/mill/page/contrib-modules.html#buildinfo">BuildInfo</a> but for Java. It will generate a Java class containing information from your build.</p>
+<p>Project home: <a href="https://github.com/carueda/mill-jbuildinfo">https://github.com/carueda/mill-jbuildinfo</a></p>
+<p>To declare a module that uses this plugin, extend the <code>com.github.carueda.mill.JBuildInfo</code> trait and provide the desired information via the <code>buildInfoMembers</code> method:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $ivy.`com.github.carueda::jbuildinfo:0.1.2`
+import com.github.carueda.mill.JBuildInfo
+import mill.T
+
+object project extends JBuildInfo {
+  def buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      &quot;name&quot; -&gt; &quot;some name&quot;,
+      &quot;version&quot; -&gt; &quot;x.y.z&quot;
+    )
+  }
+}
+</code></pre>
+<p>This will generate:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="java">// BuildInfo.java
+public class BuildInfo {
+  public static final String getName() { return &quot;some name&quot;; }
+  public static final String getVersion() { return &quot;x.y.z&quot;; }
+}
+</code></pre><h3 id="configuration-options" class="Styles-hoverBox">Configuration options<a href="#configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li>
+    <p><code>def buildInfoMembers: T[Map[String, String]]</code></p>
+    <p>The map containing all member names and values for the generated class.</p>
+  </li>
+  <li>
+    <p><code>def buildInfoClassName: String</code>, default: <code>BuildInfo</code></p>
+    <p>The name of the class that will contain all the members from <code>buildInfoMembers</code>.</p>
+  </li>
+  <li>
+    <p><code>def buildInfoPackageName: Option[String]</code>, default: <code>None</code></p>
+    <p>The package name for the generated class.</p>
+  </li>
+</ul><h2 id="kotlin" class="Styles-hoverBox">Kotlin<a href="#kotlin" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><a href="https://kotlinlang.org/">Kotlin</a> compiler support for mill.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-kotlin">https://github.com/lefou/mill-kotlin</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.kotlin_mill0.9:0.2.0`
+
+import mill._
+import mill.scalalib._
+import mill.define._
+
+import de.tobiasroeser.mill.kotlin._
+
+object main extends KotlinModule {
+
+  // Select the Kotlin version
+  def kotlinVersion = &quot;1.4.21&quot;
+
+  // Set additional Kotlin compiler options, e.g. the language level and annotation processor
+  // Run `mill main.kotlincHelp` to get a list of supported options
+  def kotlincOptions = super.kotlincOptions() ++ Seq(&quot;-verbose&quot;)
+
+}
+</code></pre><h3 id="documentation" class="Styles-hoverBox">Documentation<a href="#documentation" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>For documentation please visit the <a href="https://github.com/lefou/mill-kotlin">mill-kotlin project page</a>.</p>
+<p>You will find there also a version compatibility matrix.</p><h2 id="mill-wrapper-scripts" class="Styles-hoverBox">Mill Wrapper Scripts<a href="#mill-wrapper-scripts" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Small script to automatically fetch and execute mill build tool.</p>
+<p>Project home: <a href="https://github.com/lefou/millw">https://github.com/lefou/millw</a></p><h3 id="how-it-works" class="Styles-hoverBox">How it works<a href="#how-it-works" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p><code>millw</code> is a small wrapper script around mill and works almost identical to mill. It automatically downloads a mill release into <code>$HOME/.mill/download</code>.</p>
+<p>The mill version to be used will be determined by the following steps. The search ends, after the first step that results in a version.</p>
+<ul>
+  <li>If the first parameter is <code>--mill-version</code>, the second parameter will be used as the mill version.  Example</li>
+</ul>
+<p><code>
+  sh $ mill --mill-version 0.3.6 --disable-ticker version
+  0.3.6
+</code></p>
+<ul>
+  <li>If there is a file <code>.mill-version</code> in the working directory, it’s content will be used as mill version. The file must have only a mill version as content, no additional content or comments are supported.  Example</li>
+</ul>
+<p><code>
+  sh $ echo -n &quot;0.3.6&quot; &gt; .mill-version
+  sh $ mill --disable-ticker version
+  0.3.6
+</code></p>
+<p>The values of the <code>DEFAULT_MILL_VERSION</code> variable inside the script will be used.</p><h3 id="use-cases" class="Styles-hoverBox">Use cases<a href="#use-cases" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3><h4 id="as-mill-executable" class="Styles-hoverBox">As mill executable<a href="#as-mill-executable" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Istead of installing mill, you can just place the script into you local <code>$HOME/bin</code> directory and rename it to <code>mill</code>.</p>
+<p>If you need a special mill version in a project directory, just place a <code>.mill-version</code> file with the best mill version. Example: setting mill 0.3.6 as best local mill version</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">sh $ echo -n &quot;0.3.6&quot; &gt; .mill-version
+</code></pre><h4 id="as-a-wrapper-script-in-your-project" class="Styles-hoverBox">As a wrapper script in your project<a href="#as-a-wrapper-script-in-your-project" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>To make the start for others easier or to always have the correct mill version in your CI environment, you can just place a copy of the script as <code>millw</code> in your project root directory.</p>
+<p>You should change the <code>DEFAULT_MILL_VERSION</code> variable in that script to the correct version you want to use and add the file under version control.</p><h2 id="osgi" class="Styles-hoverBox">OSGi<a href="#osgi" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Produce OSGi Bundles with mill.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-osgi">https://github.com/lefou/mill-osgi</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, mill.scalalib._
+import $ivy.`de.tototec::de.tobiasroeser.mill.osgi:0.0.5`
+import de.tobiasroeser.mill.osgi._
+
+object project extends ScalaModule with OsgiBundleModule {
+
+  def bundleSymbolicName = &quot;com.example.project&quot;
+
+  def osgiHeaders = T{ super.osgiHeaders().copy(
+    `Export-Package`   = Seq(&quot;com.example.api&quot;),
+    `Bundle-Activator` = Some(&quot;com.example.internal.Activator&quot;)
+  )}
+
+  // other settings ...
+
+}
+</code></pre><h2 id="publishm2" class="Styles-hoverBox">PublishM2<a href="#publishm2" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><em>Since Mill <code>0.6.1-27-f265a4</code> there is a built-in <code>publishM2Local</code> target in <code>PublishModule</code>.</em></p>
+<p>Mill plugin to publish artifacts into a local Maven repository.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-publishM2">https://github.com/lefou/mill-publishM2</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Just mix-in the <code>PublishM2Module</code> into your project. <code>PublishM2Module</code> already extends mill's built-in <code>PublishModule</code>.</p>
+<p>File: <code>build.sc</code></p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._, publish._
+
+import $ivy.`de.tototec::de.tobiasroeser.mill.publishM2:0.0.1`
+import de.tobiasroeser.mill.publishM2._
+
+object project extends PublishModule with PublishM2Module {
+  // ...
+}
+</code></pre>
+<p>Publishing to default local Maven repository</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">&gt; mill project.publishM2Local
+[40/40] project.publishM2Local
+Publishing to /home/user/.m2/repository
+</code></pre>
+<p>Publishing to custom local Maven repository</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">&gt; mill project.publishM2Local /tmp/m2repo
+[40/40] project.publishM2Local
+Publishing to /tmp/m2repo
+</code></pre><h2 id="scalafix" class="Styles-hoverBox">Scalafix<a href="#scalafix" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><a href="https://scalacenter.github.io/scalafix/">Scalafix</a> support for mill.</p>
+<p>Project home: <a href="https://github.com/joan38/mill-scalafix">https://github.com/joan38/mill-scalafix</a></p><h3 id="fix-sources" class="Styles-hoverBox">Fix sources<a href="#fix-sources" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p><em>build.sc</em>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.goyeau::mill-scalafix:&lt;latest version&gt;`
+import com.goyeau.mill.scalafix.ScalafixModule
+import mill.scalalib._
+
+object project extends ScalaModule with ScalafixModule {
+  def scalaVersion = &quot;2.12.11&quot;
+}
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="shell script">&gt; mill project.fix
+[29/29] project.fix
+/project/project/src/MyClass.scala:12:11: error: [DisableSyntax.var] mutable state should be avoided
+  private var hashLength = 7
+          ^^^
+1 targets failed
+project.fix A Scalafix linter error was reported
+</code></pre><h2 id="vcs-version" class="Styles-hoverBox">VCS Version<a href="#vcs-version" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Mill plugin to derive a version from (last) git tag and edit state. It may support other VCS as well.</p>
+<p>Project home: <a href="https://github.com/lefou/mill-vcs-version">https://github.com/lefou/mill-vcs-version</a></p>
+<p>Lots of formatting options are provided. When used with its defaults, the outcome is identical to the version scheme used by mill.</p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._
+import mill.scalalib._
+
+// Load the plugin from Maven Central via ivy/coursier
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import de.tobiasroeser.mill.vcs.version.VcsVersion
+
+object main extends JavaModule with PublishModule {
+  override def publishVersion: T[String] = VcsVersion.vcsState().format()
+}
+</code></pre><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="contrib-modules.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Contrib Modules</a><div></div></div></div></body></html>

@@ -1,0 +1,210 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Extending Mill</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-targets--commands">Custom Targets &amp; Commands</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#compile-some-javascript-with-webpack-and-put-it-in-your-runtime-classpath">Compile some Javascript with Webpack and put it in your runtime classpath:</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#deploy-your-compiled-assembly-to-aws">Deploy your compiled assembly to AWS</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-workers">Custom Workers</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-modules">Custom Modules</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#import-file">import $file</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#import-ivy">import $ivy</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#evaluator-commands-experimental">Evaluator Commands (experimental)</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Extending Mill</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="cross-builds.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Cross Builds</a><a href="mill-internals.html">Mill Internals <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><p>There are many different ways of extending Mill, depending on how much customization and flexibility you need. This page will go through your options from the easiest/least-flexible to the hardest/most-flexible.</p><h2 id="custom-targets--commands" class="Styles-hoverBox">Custom Targets &amp; Commands<a href="#custom-targets--commands" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The simplest way of adding custom functionality to Mill is to define a custom Target or Command:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo = T { ... }
+def bar(x: Int, s: String) = T.command { ... }
+</code></pre>
+<p>These can depend on other Targets, contain arbitrary code, and be placed top-level or within any module. If you have something you just want to <em>do</em> that isn't covered by the built-in <code>ScalaModule</code>s/<code>ScalaJSModule</code>s, simply write a custom Target (for cached computations) or Command (for un-cached actions) and you're done.</p>
+<p>For subprocess/filesystem operations, you can use the <a href="https://github.com/lihaoyi/os-lib">OS-Lib</a> library that comes bundled with Mill, or even plain <code>java.nio</code>/<code>java.lang.Process</code>. Each target gets its own <a href="https://www.lihaoyi.com/mill/page/tasks#task-context-api">T.dest</a> folder that you can use to place files without worrying about colliding with other targets.</p>
+<p>This covers use cases like:</p><h3 id="compile-some-javascript-with-webpack-and-put-it-in-your-runtime-classpath" class="Styles-hoverBox">Compile some Javascript with Webpack and put it in your runtime classpath:<a href="#compile-some-javascript-with-webpack-and-put-it-in-your-runtime-classpath" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def doWebpackStuff(sources: Seq[PathRef]): PathRef = ???
+
+def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
+def compiledJavascript = T { doWebpackStuff(javascriptSources()) }  
+object foo extends ScalaModule {
+  def runClasspath = T { super.runClasspath() ++ compiledJavascript() }
+}
+</code></pre><h3 id="deploy-your-compiled-assembly-to-aws" class="Styles-hoverBox">Deploy your compiled assembly to AWS<a href="#deploy-your-compiled-assembly-to-aws" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo extends ScalaModule {
+
+}
+
+def deploy(assembly: PathRef, credentials: String) = ???
+
+def deployFoo(credentials: String) = T.command { deploy(foo.assembly(), credentials) }
+</code></pre><h2 id="custom-workers" class="Styles-hoverBox">Custom Workers<a href="#custom-workers" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><a href="#custom-targets--commands">Custom Targets &amp; Commands</a> are re-computed from scratch each time; sometimes you want to keep values around in-memory when using <code>--watch</code> or the Build REPL. E.g. you may want to keep a webpack process running so webpack's own internal caches are hot and compilation is fast:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def webpackWorker = T.worker {
+  // Spawn a process using java.lang.Process and return it
+}
+
+def javascriptSources = T.sources { millSourcePath / &quot;js&quot; }
+
+def doWebpackStuff(webpackProcess: Process, sources: Seq[PathRef]): PathRef = ???
+
+def compiledJavascript = T { doWebpackStuff(webpackWorker(), javascriptSources()) }
+</code></pre>
+<p>Mill itself uses <code>T.worker</code>s for its built-in Scala support: we keep the Scala compiler in memory between compilations, rather than discarding it each time, in order to improve performance.</p><h2 id="custom-modules" class="Styles-hoverBox">Custom Modules<a href="#custom-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">trait FooModule extends mill.Module {
+  def bar = T { &quot;hello&quot; }
+  def baz = T { &quot;world&quot; }
+}
+</code></pre>
+<p>Custom modules are useful if you have a common set of tasks that you want to re-used across different parts of your build. You simply define a <code>trait</code> inheriting from <code>mill.Module</code>, and then use that <code>trait</code> as many times as you want in various <code>object</code>s:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo1 extends FooModule
+object foo2 extends FooModule {
+  def qux = T { &quot;I am Cow&quot; }
+}  
+</code></pre>
+<p>You can also define a <code>trait</code> extending the built-in <code>ScalaModule</code> if you have common configuration you want to apply to all your <code>ScalaModule</code>s:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">trait FooModule extends ScalaModule {
+  def scalaVersion = &quot;2.11.11&quot;
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
+    def testFrameworks = Seq(&quot;org.scalatest.tools.Framework&quot;)
+  }
+}
+</code></pre><h2 id="import-file" class="Styles-hoverBox">import $file<a href="#import-file" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>If you want to define some functionality that can be used both inside and outside the build, you can create a new <code>foo.sc</code> file next to your <code>build.sc</code>, <code>import $file.foo</code>, and use it in your <code>build.sc</code> file:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// foo.sc
+def fooValue() = 31337 
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $file.foo
+def printFoo() = T.command { println(foo.fooValue()) }
+</code></pre>
+<p>Mill's <code>import $file</code> syntax supports the full functionality of <a href="http://ammonite.io/#ScalaScripts">Ammonite Scripts</a></p><h2 id="import-ivy" class="Styles-hoverBox">import $ivy<a href="#import-ivy" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>If you want to pull in artifacts from the public repositories (e.g. Maven Central) for use in your build, you can simply use <code>import $ivy</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $ivy.`com.lihaoyi::scalatags:0.6.2`
+
+def generatedHtml = T {
+  import scalatags.Text.all._
+  html(
+    head(),
+    body(
+      h1(&quot;Hello&quot;),
+      p(&quot;World&quot;)
+    )
+  ).render  
+}
+</code></pre>
+<p>This creates the <code>generatedHtml</code> target which can then be used however you would like: written to a file, further processed, etc.</p>
+<p>If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.</p>
+<p>For more information, see Ammonite's <a href="http://ammonite.io/#import$ivy">Ivy Dependencies documentation</a>.</p><h2 id="evaluator-commands-experimental" class="Styles-hoverBox">Evaluator Commands (experimental)<a href="#evaluator-commands-experimental" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p><em>Evaluator Command are experimental and suspected to change. See <a href="https://github.com/com-lihaoyi/mill/issues/502">issue #502</a> for details.</em></p>
+<p>You can define a command that takes in the current <code>Evaluator</code> as an argument, which you can use to inspect the entire build, or run arbitrary tasks. For example, here is the <code>mill.scalalib.GenIdea/idea</code> command which uses this to traverse the module-tree and generate an Intellij project config for your build.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def idea(ev: Evaluator) = T.command {
+  mill.scalalib.GenIdea(
+    implicitly,
+    ev.rootModule,
+    ev.discover
+  )
+}
+</code></pre>
+<p>Many built-in tools are implemented as custom evaluator commands: <a href="https://com-lihaoyi.github.io/mill/#all">all</a>, <a href="https://com-lihaoyi.github.io/mill/#inspect">inspect</a>, <a href="https://com-lihaoyi.github.io/mill/#resolve">resolve</a>, <a href="https://com-lihaoyi.github.io/mill/#show">show</a>. If you want a way to run Mill commands and programmatically manipulate the tasks and outputs, you do so with your own evaluator command.</p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="cross-builds.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Cross Builds</a><a href="mill-internals.html">Mill Internals <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

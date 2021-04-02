@@ -1,0 +1,264 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Mill Internals</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#mill-design-principles">Mill Design Principles</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#dependency-graph-first">Dependency graph first</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#builds-are-hierarchical">Builds are hierarchical</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#caching-by-default">Caching by default</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#short-lived-build-processes">Short-lived build processes</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#static-dependency-graph-and-applicative-tasks">Static dependency graph and Applicative tasks</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#how-mill-aims-for-simple">How Mill aims for Simple</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#the-object-hierarchy">The Object Hierarchy</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#the-call-graph">The Call Graph</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#instantiating-traits--classes">Instantiating Traits &amp; Classes</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#prior-work">Prior Work</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#sbt">SBT</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#bazel">Bazel</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scalarx">Scala.Rx</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#cbt">CBT</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Mill Internals</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="extending-mill.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Extending Mill</a><a href="contrib-modules.html">Contrib Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><h2 id="mill-design-principles" class="Styles-hoverBox">Mill Design Principles<a href="#mill-design-principles" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>A lot of Mill's design principles are intended to fix SBT's flaws, as described in the blog post <a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">What's wrong with SBT</a>, building on the best ideas from tools like <a href="https://github.com/cvogt/cbt">CBT</a> and <a href="https://bazel.build/">Bazel</a>, and the ideas from my blog post <a href="http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html">Build Tools as Pure Functional Programs</a>. Before working on Mill, read through that post to understand where it is coming from!</p><h3 id="dependency-graph-first" class="Styles-hoverBox">Dependency graph first<a href="#dependency-graph-first" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill's most important abstraction is the dependency graph of <code>Task</code>s. Constructed using the <code>T {...}</code> <code>T.task {...}</code> <code>T.command {...}</code> syntax, these track the dependencies between steps of a build, so those steps can be executed in the correct order, queried, or parallelized.</p>
+<p>While Mill provides helpers like <code>ScalaModule</code> and other things you can use to quickly instantiate a bunch of related tasks (resolve dependencies, find sources, compile, package into jar, ...) these are secondary. When Mill executes, the dependency graph is what matters: any other mode of organization (hierarchies, modules, inheritance, etc.) is only important to create this dependency graph of <code>Task</code>s.</p><h3 id="builds-are-hierarchical" class="Styles-hoverBox">Builds are hierarchical<a href="#builds-are-hierarchical" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The syntax for running targets from the command line <code>mill Foo.bar.baz</code> is the same as referencing a target in Scala code, <code>Foo.bar.baz</code></p>
+<p>Everything that you can run from the command line lives in an object hierarchy in your <code>build.sc</code> file. Different parts of the hierarchy can have different <code>Target</code>s available: just add a new <code>def foo = T {...}</code> somewhere and you'll be able to run it.</p>
+<p>Cross builds, using the <code>Cross</code> data structure, are just another kind of node in the object hierarchy. The only difference is syntax: from the command line you'd run something via <code>mill core.cross[a].printIt</code> while from code you use <code>core.cross(&quot;a&quot;).printIt</code> due to different restrictions in Scala/Bash syntax.</p><h3 id="caching-by-default" class="Styles-hoverBox">Caching by default<a href="#caching-by-default" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Every <code>Target</code> in a build, defined by <code>def foo = T {...}</code>, is cached by default. Currently this is done using a <code>foo/meta.json</code> file in the <code>out/</code> folder. The <code>Target</code> is also provided a <code>foo/</code> path on the filesystem dedicated to it, for it to store output files etc.</p>
+<p>This happens whether you want it to or not. Every <code>Target</code> is cached, not just the "slow" ones like <code>compile</code> or <code>assembly</code>.</p>
+<p>Caching is keyed on the <code>.hashCode</code> of the returned value. For <code>Target</code>s returning the contents of a file/folder on disk, they return <code>PathRef</code> instances whose hashcode is based on the hash of the disk contents. Serialization of the returned values is tentatively done using uPickle.</p><h3 id="short-lived-build-processes" class="Styles-hoverBox">Short-lived build processes<a href="#short-lived-build-processes" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The Mill build process is meant to be run over and over, not only as a long-lived daemon/console. That means we must minimize the startup time of the process, and that a new process must be able to re-construct the in-memory data structures where a previous process left off, in order to continue the build.</p>
+<p>Re-construction is done via the hierarchical nature of the build: each <code>Target</code> <code>foo.bar.baz</code> has a fixed position in the build hierarchy, and thus a fixed position on disk <code>out/foo/bar/baz/meta.json</code>. When the old process dies and a new process starts, there will be a new instance of <code>Target</code> with the same implementation code and same position in the build hierarchy: this new <code>Target</code> can then load the <code>out/foo/bar/baz/meta.json</code> file and pick up where the previous process left off.</p>
+<p>Minimizing startup time means aggressive caching, as well as minimizing the total amount of bytecode used: Mill's current 1-2s startup time is dominated by JVM classloading. In future, we may have a long lived console or nailgun/drip-based server/client models to speed up interactive usage, but we should always keep "cold" startup as fast as possible.</p><h3 id="static-dependency-graph-and-applicative-tasks" class="Styles-hoverBox">Static dependency graph and Applicative tasks<a href="#static-dependency-graph-and-applicative-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p><code>Task</code>s are <em>Applicative</em>, not <em>Monadic</em>. There is <code>.map</code>, <code>.zip</code>, but no <code>.flatMap</code> operation. That means that we can know the structure of the entire dependency graph before we start executing <code>Task</code>s. This lets us perform all sorts of useful operations on the graph before running it:</p>
+<ul>
+  <li>
+  <p>Given a Target the user wants to run, pre-compute and display what targets  will be evaluated ("dry run"), without running them</p></li>
+  <li>
+  <p>Automatically parallelize different parts of the dependency graph that do not  depend on each other, perhaps even distributing it to different worker  machines like Bazel/Pants can</p></li>
+  <li>
+  <p>Visualize the dependency graph easily, e.g. by dumping to a DOT file</p></li>
+  <li>
+  <p>Query the graph, e.g. "why does this thing depend on that other thing?"</p></li>
+  <li>
+  <p>Avoid running tasks "halfway": if a Target's upstream Targets fail, we can  skip the Target completely rather than running halfway and then bailing out  with an exception</p></li>
+</ul>
+<p>In order to avoid making people using <code>.map</code> and <code>.zip</code> all over the place when defining their <code>Task</code>s, we use the <code>T {...}</code>/<code>T.task {...}</code>/<code>T.command {...}</code> macros which allow you to use <code>Task#apply()</code> within the block to "extract" a value.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def test() = T.command {
+  TestRunner.apply(
+   &quot;mill.UTestFramework&quot;,
+   runDepClasspath().map(_.path) :+ compile().path,
+   Seq(compile().path)
+  
+}
+</code></pre>
+<p>This is roughly equivalent to the following:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def test() = T.command { T.zipMap(runDepClasspath, compile, compile) { 
+  (runDepClasspath1, compile2, compile3) =&gt;
+  TestRunner.apply(
+    &quot;mill.UTestFramework&quot;,
+    runDepClasspath1.map(_.path) :+ compile2.path,
+    Seq(compile3.path)
+  )
+}
+</code></pre>
+<p>This is similar to SBT's <code>:=</code>/<code>.value</code> macros, or <code>scala-async</code>'s <code>async</code>/<code>await</code>. Like those, the <code>T {...}</code> macro should let users program most of their code in a "direct" style and have it "automatically" lifted into a graph of <code>Task</code>s.</p><h2 id="how-mill-aims-for-simple" class="Styles-hoverBox">How Mill aims for Simple<a href="#how-mill-aims-for-simple" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Why should you expect that the Mill build tool can achieve simple, easy &amp; flexible, where other build tools in the past have failed?</p>
+<p>Build tools inherently encompass a huge number of different concepts:</p>
+<ul>
+  <li>What "Tasks" depends on what?</li>
+  <li>How do I define my own tasks?</li>
+  <li>Where do source files come from?</li>
+  <li>What needs to run in what order to do what I want?</li>
+  <li>What can be parallelized and what can't?</li>
+  <li>How do tasks pass data to each other? What data do they pass?</li>
+  <li>What tasks are cached? Where?</li>
+  <li>How are tasks run from the command line?</li>
+  <li>How do you deal with the repetition inherent in a build? (e.g. compile, run &amp;  test tasks for every "module")</li>
+  <li>What is a "Module"? How do they relate to "Tasks"?</li>
+  <li>How do you configure a Module to do something different?</li>
+  <li>How are cross-builds (across different configurations) handled?</li>
+</ul>
+<p>These are a lot of questions to answer, and we haven't even started talking about the actually compiling/running any code yet! If each such facet of a build was modelled separately, it's easy to have an explosion of different concepts that would make a build tool hard to understand.</p>
+<p>Before you continue, take a moment to think: how would you answer to each of those questions using an existing build tool you are familiar with? Different tools like <a href="http://www.scala-sbt.org/">SBT</a>, <a href="https://fake.build/legacy-index.html">Fake</a>, <a href="https://gradle.org/">Gradle</a> or <a href="https://gruntjs.com/">Grunt</a> have very different answers.</p>
+<p>Mill aims to provide the answer to these questions using as few, as familiar core concepts as possible. The entire Mill build is oriented around a few concepts:</p>
+<ul>
+  <li>The Object Hierarchy</li>
+  <li>The Call Graph</li>
+  <li>Instantiating Traits &amp; Classes</li>
+</ul>
+<p>These concepts are already familiar to anyone experienced in Scala (or any other programming language...), but are enough to answer all of the complicated build-related questions listed above.</p><h2 id="the-object-hierarchy" class="Styles-hoverBox">The Object Hierarchy<a href="#the-object-hierarchy" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The module hierarchy is the graph of objects, starting from the root of the <code>build.sc</code> file, that extend <code>mill.Module</code>. At the leaves of the hierarchy are the <code>Target</code>s you can run.</p>
+<p>A <code>Target</code>'s position in the module hierarchy tells you many things. For example, a <code>Target</code> at position <code>core.test.compile</code> would:</p>
+<ul>
+  <li>
+  <p>Cache output metadata at <code>out/core/test/compile/meta.json</code></p></li>
+  <li>
+  <p>Output files to the folder <code>out/core/test/compile/dest/</code></p></li>
+  <li>
+  <p>Source files default to a folder in <code>core/test/</code>, <code>core/test/src/</code></p></li>
+  <li>
+  <p>Be runnable from the command-line via <code>mill core.test.compile</code></p></li>
+  <li>
+  <p>Be referenced programmatically (from other <code>Target</code>s) via <code>core.test.compile</code></p></li>
+</ul>
+<p>From the position of any <code>Target</code> within the object hierarchy, you immediately know how to run it, find its output files, find any caches, or refer to it from other <code>Target</code>s. You know up-front where the <code>Target</code>'s data "lives" on disk, and are sure that it will never clash with any other <code>Target</code>'s data.</p><h2 id="the-call-graph" class="Styles-hoverBox">The Call Graph<a href="#the-call-graph" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The Scala call graph of "which target references which other target" is core to how Mill operates. This graph is reified via the <code>T {...}</code> macro to make it available to the Mill execution engine at runtime. The call graph tells you:</p>
+<ul>
+  <li>
+  <p>Which <code>Target</code>s depend on which other <code>Target</code>s</p></li>
+  <li>
+  <p>For a given <code>Target</code> to be built, what other <code>Target</code>s need to be run and in  what order</p></li>
+  <li>
+  <p>Which <code>Target</code>s can be evaluated in parallel</p></li>
+  <li>
+  <p>What source files need to be watched when using <code>--watch</code> on a given target (by  tracing the call graph up to the <code>Source</code>s)</p></li>
+  <li>
+  <p>What a given <code>Target</code> makes available for other <code>Target</code>s to depend on (via  its return value)</p></li>
+  <li>
+  <p>Defining your own task that depends on others is as simple as <code>def foo =
+  T {...}</code></p></li>
+</ul>
+<p>The call graph within your Scala code is essentially a data-flow graph: by defining a snippet of code:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">val b = ...
+val c = ...
+val d = ...
+val a = f(b, c, d)
+</code></pre>
+<p>you are telling everyone that the value <code>a</code> depends on the values of <code>b</code> <code>c</code> and <code>d</code>, processed by <code>f</code>. A build tool needs exactly the same data structure: knowing what <code>Target</code> depends on what other <code>Target</code>s, and what processing it does on its inputs!</p>
+<p>With Mill, you can take the Scala call graph, wrap everything in the <code>T {...}</code> macro, and get a <code>Target</code>-dependency graph that matches exactly the call-graph you already had:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">val b = T { ... }
+val c = T { ... }
+val d = T { ... }
+val a = T { f(b(), c(), d()) }
+</code></pre>
+<p>Thus, if you are familiar with how data flows through a normal Scala program, you already know how data flows through a Mill build! The Mill build evaluation may be incremental, it may cache things, it may read and write from disk, but the fundamental syntax, and the data-flow that syntax represents, is unchanged from your normal Scala code.</p><h2 id="instantiating-traits--classes" class="Styles-hoverBox">Instantiating Traits &amp; Classes<a href="#instantiating-traits--classes" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Classes and traits are a common way of re-using common data structures in Scala: if you have a bunch of fields which are related and you want to make multiple copies of those fields, you put them in a class/trait and instantiate it over and over.</p>
+<p>In Mill, inheriting from traits is the primary way for re-using common parts of a build:</p>
+<ul>
+  <li>
+  <p>Scala "project"s with multiple related <code>Target</code>s within them, are just a  <code>Trait</code> you instantiate</p></li>
+  <li>
+  <p>Replacing the default <code>Target</code>s within a project, making them do new  things or depend on new <code>Target</code>s, is simply <code>override</code>-ing them during  inheritance</p></li>
+  <li>
+  <p>Modifying the default <code>Target</code>s within a project, making use of the old value  to compute the new value, is simply <code>override</code>ing them and using <code>super.foo()</code></p></li>
+  <li>
+  <p>Required configuration parameters within a <code>project</code> are <code>abstract</code> members</p></li>
+  <li>
+  <p>Cross-builds are modelled as instantiating a (possibly anonymous) class  multiple times, each instance with its own distinct set of <code>Target</code>s</p></li>
+</ul>
+<p>In normal Scala, you bundle up common fields &amp; functionality into a <code>class</code> you can instantiate over and over, and you can override the things you want to customize. Similarly, in Mill, you bundle up common parts of a build into <code>trait</code>s you can instantiate over and over, and you can override the things you want to customize. "Subprojects", "cross-builds", and many other concepts are reduced to simply instantiating a <code>trait</code> over and over, with tweaks.</p><h2 id="prior-work" class="Styles-hoverBox">Prior Work<a href="#prior-work" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2><h3 id="sbt" class="Styles-hoverBox">SBT<a href="#sbt" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill is built as a substitute for SBT, whose problems are <a href="http://www.lihaoyi.com/post/SowhatswrongwithSBT.html">described here</a>. Nevertheless, Mill takes on some parts of SBT (builds written in Scala, Task graph with an Applicative "idiom bracket" macro) where it makes sense.</p><h3 id="bazel" class="Styles-hoverBox">Bazel<a href="#bazel" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill is largely inspired by <a href="https://bazel.build/">Bazel</a>. In particular, the single-build-hierarchy, where every Target has an on-disk-cache/output-folder according to their position in the hierarchy, comes from Bazel.</p>
+<p>Bazel is a bit odd in its own right. The underlying data model is good (hierarchy + cached dependency graph) but getting there is hell. It (like SBT) is also a 3-layer interpretation model, but layers 1 &amp; 2 are almost exactly the same: mutable python which performs global side effects (layer 3 is the same dependency-graph evaluator as SBT/mill).</p>
+<p>You end up having to deal with a non-trivial python codebase where everything happens via:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="python">do_something(name=&quot;blah&quot;)
+</code></pre>
+<p>or</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="python">do_other_thing(dependencies=[&quot;blah&quot;])
+
+</code></pre>
+<p>where <code>&quot;blah&quot;</code> is a global identifier that is often constructed programmatically via string concatenation and passed around. This is quite challenging.</p>
+<p>Having the two layers be “just python” is great since people know python, but I think it's unnecessary to have two layers ("evaluating macros" and "evaluating rule impls") that are almost exactly the same, and I think making them interact via return values rather than via a global namespace of programmatically-constructed strings would make it easier to follow.</p>
+<p>With Mill, I’m trying to collapse Bazel’s Python layer 1 &amp; 2 into just 1 layer of Scala, and have it define its dependency graph/hierarchy by returning values, rather than by calling global-side-effecting APIs. I've had trouble trying to teach people how-to-bazel at work, and am pretty sure we can make something that's easier to use.</p><h3 id="scalarx" class="Styles-hoverBox">Scala.Rx<a href="#scalarx" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill's "direct-style" applicative syntax is inspired by my old <a href="https://github.com/lihaoyi/scala.rx">Scala.Rx</a> project. While there are differences (Mill captures the dependency graph lexically using Macros, Scala.Rx captures it at runtime), they are pretty similar.</p>
+<p>The end-goal is the same: to write code in a "direct style" and have it automatically "lifted" into a dependency graph, which you can introspect and use for incremental updates at runtime.</p>
+<p>Scala.Rx is itself build upon the 2010 paper <a href="https://infoscience.epfl.ch/record/148043/files/DeprecatingObserversTR2010.pdf">Deprecating the Observer Pattern</a>.</p><h3 id="cbt" class="Styles-hoverBox">CBT<a href="#cbt" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill looks a lot like <a href="https://github.com/cvogt/cbt">CBT</a>. The inheritance based model for customizing <code>Module</code>s/<code>ScalaModule</code>s comes straight from there, as does the "command line path matches Scala selector path" idea. Most other things are different though: the reified dependency graph, the execution model, the caching module all follow Bazel more than they do CBT</p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="extending-mill.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Extending Mill</a><a href="contrib-modules.html">Contrib Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

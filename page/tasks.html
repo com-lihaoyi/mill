@@ -1,0 +1,324 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Tasks</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#different-kinds-of-tasks">Different Kinds of Tasks</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#targets">Targets</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#sources">Sources</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#commands">Commands</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#task-context-api">Task Context API</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#millapictxdest">mill.api.Ctx.Dest</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#millapictxlog">mill.api.Ctx.Log</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#millapictxenv">mill.api.Ctx.Env</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#other-tasks">Other Tasks</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#anonymous-tasks">Anonymous Tasks</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#persistent-targets">Persistent Targets</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#inputs">Inputs</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#workers">Workers</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#cheat-sheet">Cheat Sheet</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Tasks</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="common-project-layouts.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Common Project Layouts</a><a href="modules.html">Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><p>One of Mill's core abstractions is its <em>Task Graph</em>: this is how Mill defines, orders and caches work it needs to do, and exists independently of any support for building Scala.</p>
+<p>The following is a simple self-contained example using Mill to compile Java:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, mill.modules.Jvm
+
+// sourceRoot -&gt; allSources -&gt; classFiles
+//                                |
+//                                v
+//           resourceRoot ----&gt;  jar
+
+def sourceRoot = T.sources { os.pwd / &#39;src }
+
+def resourceRoot = T.sources { os.pwd / &#39;resources }
+
+def allSources = T { sourceRoot().flatMap(p =&gt; os.walk(p.path)).map(PathRef(_)) }
+
+def classFiles = T {
+  os.makeDir.all(T.dest)
+
+  os.proc(&quot;javac&quot;, allSources().map(_.path.toString()), &quot;-d&quot;, T.dest)
+    .call(cwd = T.dest)
+  PathRef(T.dest)
+}
+
+def jar = T { Jvm.createJar(Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
+
+def run(mainClsName: String) = T.command {
+  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call() 
+}
+</code></pre>
+<p>Here, we have two <code>T.sources</code>s, <code>sourceRoot</code> and <code>resourceRoot</code>, which act as the roots of our task graph. <code>allSources</code> depends on <code>sourceRoot</code> by calling <code>sourceRoot()</code> to extract its value, <code>classFiles</code> depends on <code>allSources</code> the same way, and <code>jar</code> depends on both <code>classFiles</code> and <code>resourceRoot</code>.</p>
+<p>Filesystem operations in Mill are done using the <a href="https://github.com/lihaoyi/os-lib">OS-Lib</a> library.</p>
+<p>The above build defines the following task graph:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">sourceRoot -&gt; allSources -&gt; classFiles
+                               |
+                               v
+          resourceRoot ----&gt;  jar
+</code></pre>
+<p>When you first evaluate <code>jar</code> (e.g. via <code>mill jar</code> at the command line), it will evaluate all the defined targets: <code>sourceRoot</code>, <code>allSources</code>, <code>classFiles</code>, <code>resourceRoot</code> and <code>jar</code>.</p>
+<p>Subsequent <code>mill jar</code>s will evaluate only as much as is necessary, depending on what input sources changed:</p>
+<ul>
+  <li>
+  <p>If the files in <code>sourceRoot</code> change, it will re-evaluate <code>allSources</code>,  compiling to <code>classFiles</code>, and building the <code>jar</code></p></li>
+  <li>
+  <p>If the files in <code>resourceRoot</code> change, it will only re-evaluate <code>jar</code> and use  the cached output of <code>allSources</code> and <code>classFiles</code></p></li>
+</ul><h2 id="different-kinds-of-tasks" class="Styles-hoverBox">Different Kinds of Tasks<a href="#different-kinds-of-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>There are three primary kinds of <em>Tasks</em> that you should care about:</p>
+<ul>
+  <li><a href="#targets">Targets</a>, defined using <code>T {...}</code></li>
+  <li><a href="#sources">Sources</a>, defined using <code>T.sources {...}</code></li>
+  <li><a href="#commands">Commands</a>, defined using <code>T.command {...}</code></li>
+</ul><h3 id="targets" class="Styles-hoverBox">Targets<a href="#targets" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def allSources = T { os.walk(sourceRoot().path).map(PathRef(_)) }
+</code></pre>
+<p><code>Target</code>s are defined using the <code>def foo = T {...}</code> syntax, and dependencies on other targets are defined using <code>foo()</code> to extract the value from them. Apart from the <code>foo()</code> calls, the <code>T {...}</code> block contains arbitrary code that does some work and returns a result.</p>
+<p>Each target, e.g. <code>classFiles</code>, is assigned a path on disk as scratch space &amp; to store its output files at <code>out/classFiles/dest/</code>, and its returned metadata is automatically JSON-serialized and stored at <code>out/classFiles/meta.json</code>. The return-value of targets has to be JSON-serializable via <a href="https://github.com/lihaoyi/upickle">uPickle</a>.</p>
+<p>In case you want return your own case class (e.g. <code>MyCaseClass</code>), you can make it JSON-serializable by adding the following implicit def to its companion object:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object MyCaseClass {
+  implicit def rw: upickle.default.ReadWriter[MyCaseClass] = upickle.default.macroRW
+}
+</code></pre>
+<p>If you want to return a file or a set of files as the result of a <code>Target</code>, write them to disk within your <code>T.dest</code> available through the <a href="#task-context-api">Task Context API</a> and return a <code>PathRef(T.dest)</code> that hashes the files you wrote.</p>
+<p>If a target's inputs change but its output does not, e.g. someone changes a comment within the source files that doesn't affect the classfiles, then downstream targets do not re-evaluate. This is determined using the <code>.hashCode</code> of the Target's return value. For targets returning <code>os.Path</code>s that reference files on disk, you can wrap the <code>Path</code> in a <code>PathRef</code> (shown above) whose <code>.hashCode()</code> will include the hashes of all files on disk at time of creation.</p>
+<p>The graph of inter-dependent targets is evaluated in topological order; that means that the body of a target will not even begin to evaluate if one of its upstream dependencies has failed. This is unlike normal Scala functions: a plain old function <code>foo</code> would evaluate halfway and then blow up if one of <code>foo</code>'s dependencies throws an exception.</p>
+<p>Targets cannot take parameters and must be 0-argument <code>def</code>s defined directly within a <code>Module</code> body.</p><h3 id="sources" class="Styles-hoverBox">Sources<a href="#sources" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def sourceRootPath = os.pwd / &#39;src
+
+def sourceRoots = T.sources { sourceRootPath }
+</code></pre>
+<p><code>Source</code>s are defined using <code>T.sources { ... }</code>, taking one-or-more <code>os.Path</code>s as arguments. A <code>Source</code> is a subclass of <code>Target[Seq[PathRef]]</code>: this means that its build signature/<code>hashCode</code> depends not just on the path it refers to (e.g. <code>foo/bar/baz</code>) but also the MD5 hash of the filesystem tree under that path.</p>
+<p><code>T.sources</code> also has an overload which takes <code>Seq[PathRef]</code>, to let you override-and-extend source lists the same way you would any other <code>T {...}</code> definition:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def additionalSources = T.sources { os.pwd / &#39;additionalSources }
+override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }
+</code></pre><h3 id="commands" class="Styles-hoverBox">Commands<a href="#commands" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def run(mainClsName: String) = T.command {
+  os.proc(&#39;java, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+}
+</code></pre>
+<p>Defined using <code>T.command { ... }</code> syntax, <code>Command</code>s can run arbitrary code, with dependencies declared using the same <code>foo()</code> syntax (e.g. <code>classFiles()</code> above). Commands can be parametrized, but their output is not cached, so they will re-evaluate every time even if none of their inputs have changed. A command with no parameter is defined as <code>def myCommand() = T.command {...}</code>. It is a compile error if <code>()</code> is missing.</p>
+<p>Like <a href="#targets">Targets</a>, a command only evaluates after all its upstream dependencies have completed, and will not begin to run if any upstream dependency has failed.</p>
+<p>Commands are assigned the same scratch/output folder <code>out/run/dest/</code> as Targets are, and its returned metadata stored at the same <code>out/run/meta.json</code> path for consumption by external tools.</p>
+<p>Commands can only be defined directly within a <code>Module</code> body.</p><h2 id="task-context-api" class="Styles-hoverBox">Task Context API<a href="#task-context-api" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>There are several APIs available to you within the body of a <code>T {...}</code> or <code>T.command {...}</code> block to help your write the code implementing your Target or Command:</p><h3 id="millapictxdest" class="Styles-hoverBox">mill.api.Ctx.Dest<a href="#millapictxdest" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><code>T.dest</code></li>
+  <li><code>implicitly[mill.api.Ctx.Dest]</code></li>
+</ul>
+<p>This is the unique <code>out/classFiles/dest/</code> path or <code>out/run/dest/</code> path that is assigned to every Target or Command. It is cleared before your task runs, and you can use it as a scratch space for temporary files or a place to put returned artifacts. This is guaranteed to be unique for every <code>Target</code> or <code>Command</code>, so you can be sure that you will not collide or interfere with anyone else writing to those same paths.</p><h3 id="millapictxlog" class="Styles-hoverBox">mill.api.Ctx.Log<a href="#millapictxlog" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><code>T.ctx.log</code></li>
+  <li><code>implicitly[mill.api.Ctx.Log]</code></li>
+</ul>
+<p>This is the default logger provided for every task. While your task is running, <code>System.out</code> and <code>System.in</code> are also redirected to this logger. The logs for a task are streamed to standard out/error as you would expect, but each task's specific output is also streamed to a log file on disk, e.g. <code>out/run/log</code> or <code>out/classFiles/log</code> for you to inspect later.</p>
+<p>Messages logged with <code>log.debug</code> appear by default only in the log files. You can use the <code>--debug</code> option when running mill to show them on the console too.</p><h3 id="millapictxenv" class="Styles-hoverBox">mill.api.Ctx.Env<a href="#millapictxenv" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li><code>T.ctx.env</code></li>
+  <li><code>implicitly[mill.api.Ctx.Env]</code></li>
+</ul>
+<p>Mill keeps a long-lived JVM server to avoid paying the cost of recurrent classloading. Because of this, running <code>System.getenv</code> in a task might not yield up to date environment variables, since it will be initialised when the server starts, rather than when the client executes. To circumvent this, mill's client sends the environment variables to the server as it sees them, and the server makes them available as a <code>Map[String, String]</code> via the <code>Ctx</code> API. </p>
+<p>If the intent is to always pull the latest environment values, the call should be wrapped in an <code>Input</code> as such : </p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def envVar = T.input { T.ctx.env.get(&quot;ENV_VAR&quot;) }
+</code></pre><h2 id="other-tasks" class="Styles-hoverBox">Other Tasks<a href="#other-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<ul>
+  <li><a href="#anonymous-tasks">Anonymous Tasks</a>, defined using <code>T.task {...}</code></li>
+  <li><a href="#persistent-targets">Persistent Targets</a></li>
+  <li><a href="#inputs">Inputs</a></li>
+  <li><a href="#workers">Workers</a></li>
+</ul><h3 id="anonymous-tasks" class="Styles-hoverBox">Anonymous Tasks<a href="#anonymous-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo(x: Int) = T.task { ... x ... bar() ... }
+</code></pre>
+<p>You can define anonymous tasks using the <code>T.task { ... }</code> syntax. These are not runnable from the command-line, but can be used to share common code you find yourself repeating in <code>Target</code>s and <code>Command</code>s.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def downstreamTarget = T { ... foo(42)() ... } 
+def downstreamCommand(x: Int) = T.command { ... foo(x)() ... }
+</code></pre>
+<p>Anonymous task's output does not need to be JSON-serializable, their output is not cached, and they can be defined with or without arguments. Unlike <a href="#targets">Targets</a> or <a href="#commands">Commands</a>, anonymous tasks can be defined anywhere and passed around any way you want, until you finally make use of them within a downstream target or command.</p>
+<p>While an anonymous task <code>foo</code>'s own output is not cached, if it is used in a downstream target <code>baz</code> and the upstream target <code>bar</code> hasn't changed, <code>baz</code>'s cached output will be used and <code>foo</code>'s evaluation will be skipped altogether.</p><h3 id="persistent-targets" class="Styles-hoverBox">Persistent Targets<a href="#persistent-targets" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo = T.persistent { ... }
+</code></pre>
+<p>Identical to <a href="#targets">Targets</a>, except that the <code>dest/</code> folder is not cleared in between runs.</p>
+<p>This is useful if you are running external incremental-compilers, such as Scala's <a href="https://github.com/sbt/zinc">Zinc</a>, Javascript's <a href="https://webpack.js.org/">WebPack</a>, which rely on filesystem caches to speed up incremental execution of their particular build step.</p>
+<p>Since Mill no longer forces a "clean slate" re-evaluation of <code>T.persistent</code> targets, it is up to you to ensure your code (or the third-party incremental compilers you rely on!) are deterministic. They should always converge to the same outputs for a given set of inputs, regardless of what builds and what filesystem states existed before.</p><h3 id="inputs" class="Styles-hoverBox">Inputs<a href="#inputs" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo = T.input { ... }
+</code></pre>
+<p>A generalization of <a href="#sources">Sources</a>, <code>T.input</code>s are tasks that re-evaluate <em>every time</em> (unlike <a href="#anonymous-tasks">Anonymous Tasks</a>), containing an arbitrary block of code.</p>
+<p>Inputs can be used to force re-evaluation of some external property that may affect your build. For example, if I have a <a href="#targets">Target</a> <code>bar</code> that makes use of the current git version:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def bar = T { ... os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.string ... }
+</code></pre>
+<p><code>bar</code> will not know that <code>git rev-parse</code> can change, and will not know to re-evaluate when your <code>git rev-parse HEAD</code> <em>does</em> change. This means <code>bar</code> will continue to use any previously cached value, and <code>bar</code>'s output will be out of date!</p>
+<p>To fix this, you can wrap your <code>git rev-parse HEAD</code> in a <code>T.input</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo = T.input { os.proc(&quot;git&quot;, &quot;rev-parse&quot;, &quot;HEAD&quot;).call().out.string }
+def bar = T { ... foo() ... }
+</code></pre>
+<p>This makes <code>foo</code> will always re-evaluate every build; if <code>git rev-parse HEAD</code> does not change, that will not invalidate <code>bar</code>'s caches. But if <code>git rev-parse
+HEAD</code> <em>does</em> change, <code>foo</code>'s output will change and <code>bar</code> will be correctly invalidated and re-compute using the new version of <code>foo</code>.</p>
+<p>Note that because <code>T.input</code>s re-evaluate every time, you should ensure that the code you put in <code>T.input</code> runs quickly. Ideally it should just be a simple check "did anything change?" and any heavy-lifting can be delegated to downstream targets.</p><h3 id="workers" class="Styles-hoverBox">Workers<a href="#workers" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">def foo = T.worker { ... }
+</code></pre>
+<p>Most tasks dispose of their in-memory return-value every evaluation; in the case of <a href="#targets">Targets</a>, this is stored on disk and loaded next time if necessary, while <a href="#commands">Commands</a> just re-compute them each time. Even if you use <code>--watch</code> or the Build REPL to keep the Mill process running, all this state is still discarded and re-built every evaluation.</p>
+<p>Workers are unique in that they store their in-memory return-value between evaluations. This makes them useful for storing in-memory caches or references to long-lived external worker processes that you can re-use.</p>
+<p>Mill uses workers to manage long-lived instances of the <a href="https://github.com/sbt/zinc">Zinc Incremental Scala Compiler</a> and the <a href="https://github.com/scala-js/scala-js">Scala.js Optimizer</a>. This lets us keep them in-memory with warm caches and fast incremental execution.</p>
+<p>Like <a href="#persistent-targets">Persistent Targets</a>, Workers inherently involve mutable state, and it is up to the implementation to ensure that this mutable state is only used for caching/performance and does not affect the externally-visible behavior of the worker.</p><h2 id="cheat-sheet" class="Styles-hoverBox">Cheat Sheet<a href="#cheat-sheet" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The following table might help you make sense of the small collection of different Task types:</p><table class="table table-bordered">
+<thead>
+  <tr>
+    <th align="left"> </th>
+    <th align="left">Target </th>
+    <th align="left">Command </th>
+    <th align="left">Source/Input </th>
+    <th align="left">Anonymous Task </th>
+    <th align="left">Persistent Target </th>
+    <th align="left">Worker </th>
+  </tr>
+</thead>
+<tbody>
+  <tr>
+    <td align="left">Cached on Disk </td>
+    <td align="left">X </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+  </tr>
+  <tr>
+    <td align="left">Must be JSON Writable </td>
+    <td align="left">X </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+  </tr>
+  <tr>
+    <td align="left">Must be JSON Readable </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+  </tr>
+  <tr>
+    <td align="left">Runnable from the Command Line </td>
+    <td align="left">X </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+  </tr>
+  <tr>
+    <td align="left">Can Take Arguments </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+  </tr>
+  <tr>
+    <td align="left">Cached between Evaluations </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left"> </td>
+    <td align="left">X </td>
+  </tr>
+</tbody></table><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="common-project-layouts.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Common Project Layouts</a><a href="modules.html">Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

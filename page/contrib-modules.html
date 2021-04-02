@@ -1,0 +1,866 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Contrib Modules</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#artifactory">Artifactory</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#bintray">Bintray</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#options">Options</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#bloop">Bloop</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#mix-in">Mix-in</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#note-regarding-metals">Note regarding metals</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#note-regarding-current-mill-support-in-bloop">Note regarding current mill support in bloop</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#buildinfo">BuildInfo</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configuration-options">Configuration options</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#bsp---build-server-protocol">BSP - Build Server Protocol</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#known-issues">Known Issues:</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#codeartifact">Codeartifact</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#docker">Docker</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configuration">Configuration</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#flyway">Flyway</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#play-framework">Play Framework</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#using-the-plugin">Using the plugin</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#using-playmodule">Using PlayModule</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#using-playapimodule">Using PlayApiModule</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#play-configuration-options">Play configuration options</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#additional-play-libraries">Additional play libraries</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#commands-equivalence">Commands equivalence</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#using-singlemodule">Using SingleModule</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#proguard">Proguard</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scalapb">ScalaPB</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configuration-options">Configuration options</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scoverage">Scoverage</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#multi-module-projects">Multi-module projects</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#testng">TestNG</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#tut">Tut</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configuration-options">Configuration options</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#twirl">Twirl</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#details">Details</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#twirl-configuration-options">Twirl configuration options</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#example">Example</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#version-file">Version file</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#quickstart">Quickstart</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#configure-the-version-file">Configure the version file</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#set-release-version">Set release version</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#set-next-version">Set next version</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#set-version">Set version</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#output-version-numbers">Output version numbers</a></li><li style="margin-left: 20px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#vcs-operations">VCS operations</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Contrib Modules</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="mill-internals.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Mill Internals</a><a href="thirdparty-modules.html">Thirdparty Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><p>The plugins in this section are developed/maintained in the mill git tree.</p>
+<p>When using one of these, it is important that the versions you load match your mill version. To facilitate this, Mill will automatically replace the <code>$MILL_VERSION</code> literal in your ivy imports with the correct value.</p>
+<p>For instance :</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+</code></pre><h2 id="artifactory" class="Styles-hoverBox">Artifactory<a href="#artifactory" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This plugin allows publishing to Artifactory.</p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-artifactory:$MILL_VERSION`
+import mill.contrib.artifactory.ArtifactoryPublishModule
+
+object mymodule extends ArtifactoryPublishModule {
+  def artifactoryUri: String = &quot;https://example.com/artifactory/my-repo&quot;
+  def artifactorySnapshotUri: String = &quot;https://example.com/artifactory/my-snapshot-repo&quot;
+
+  ...
+}
+</code></pre>
+<p>Then in your terminal:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">$ mill mymodule.publishArtifactory --credentials $ARTIFACTORY_USER:$ARTIFACTORY_PASSWORD
+</code></pre><h2 id="bintray" class="Styles-hoverBox">Bintray<a href="#bintray" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This plugin allows publishing to Bintray.</p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Make sure your module extends from <code>BintrayPublishModule</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = &quot;owner&quot;
+  def bintrayRepo = &quot;repo&quot;
+
+  ...
+}
+</code></pre>
+<p>Then ensure you have created a package in the Bintray repository.</p>
+<p>The default package used is the artifact ID (e.g. mymodule_2.12). If you want to override the package used, you can do that like this:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-bintray:$MILL_VERSION`
+import mill.contrib.bintray.BintrayPublishModule
+
+object mymodule extends BintrayPublishModule {
+  def bintrayOwner = &quot;owner&quot;
+  def bintrayRepo = &quot;repo&quot;
+  def bintrayPackage = T {...}
+
+  ...
+}
+</code></pre>
+<p>Then in your terminal:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">$ mill mymodule.publishBintray --credentials $BINTRAY_USER:$BINTRAY_PASSWORD
+</code></pre><h3 id="options" class="Styles-hoverBox">Options<a href="#options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3><h4 id="--credentials-auth" class="Styles-hoverBox">--credentials &lt;auth&gt;<a href="#--credentials-auth" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Set the username and API key to use for authentication. Expected format is <code>username:api_key</code>.</p><h4 id="--bintrayowner-owner-optional" class="Styles-hoverBox">--bintrayOwner &lt;owner&gt; (optional)<a href="#--bintrayowner-owner-optional" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Override the Bintray owner.</p><h4 id="--bintrayrepo-repo-optional" class="Styles-hoverBox">--bintrayRepo &lt;repo&gt; (optional)<a href="#--bintrayrepo-repo-optional" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Override the Bintray repository.</p><h4 id="--release-true--false-default-true" class="Styles-hoverBox">--release &lt;true | false&gt; (default: true)<a href="#--release-true--false-default-true" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Should the files should be published after upload?</p><h2 id="bloop" class="Styles-hoverBox">Bloop<a href="#bloop" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This plugin generates <a href="https://scalacenter.github.io/bloop/">bloop</a> configuration from your build file, which lets you use the bloop CLI for compiling, and makes your scala code editable in <a href="https://scalameta.org/metals/">Metals</a></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc (or any other .sc file it depends on, including predef)
+import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
+</code></pre>
+<p>Then in your terminal :</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">&gt; mill mill.contrib.bloop.Bloop/install
+</code></pre>
+<p>It generate correct bloop config for any <code>JavaModule</code>, <code>ScalaModule</code>, <code>ScalaJsModule</code> or <code>ScalaNativeModule</code> under the <code>.bloop</code> folder</p><h3 id="mix-in" class="Styles-hoverBox">Mix-in<a href="#mix-in" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>You can mix-in the <code>Bloop.Module</code> trait with any JavaModule to quickly access the deserialised configuration for that particular module:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import mill.scalalib._
+import mill.contrib.bloop.Bloop
+
+object MyModule extends ScalaModule with Bloop.Module {
+  def myTask = T { bloop.config() }
+}
+</code></pre><h3 id="note-regarding-metals" class="Styles-hoverBox">Note regarding metals<a href="#note-regarding-metals" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Metals will automatically detect your mill workspace and generate the necessary files that bloop needs. You don't need to manually include the bloop plugin in order for this to work. Also note that your mill/ammonite related <code>.sc</code> files are only partially supported by metals when located inside a project workspace.</p><h3 id="note-regarding-current-mill-support-in-bloop" class="Styles-hoverBox">Note regarding current mill support in bloop<a href="#note-regarding-current-mill-support-in-bloop" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The mill-bloop integration currently present in the <a href="https://github.com/scalacenter/bloop/blob/master/integrations/mill-bloop/src/main/scala/bloop/integrations/mill/MillBloop.scala#L10">bloop codebase</a> will be deprecated in favour of this implementation.</p><h2 id="buildinfo" class="Styles-hoverBox">BuildInfo<a href="#buildinfo" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Generate scala code from your buildfile. This plugin generates a single object containing information from your build.</p>
+<p>To declare a module that uses BuildInfo you must extend the <code>mill.contrib.buildinfo.BuildInfo</code> trait when defining your module.</p>
+<p>Quickstart:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import $ivy.`com.lihaoyi::mill-contrib-buildinfo:$MILL_VERSION`
+import mill.contrib.buildinfo.BuildInfo
+
+object project extends BuildInfo {
+  val name = &quot;poject-name&quot;
+  def  buildInfoMembers: T[Map[String, String]] = T {
+    Map(
+      &quot;name&quot; -&gt; name),
+      &quot;scalaVersion&quot; -&gt; scalaVersion()
+    )
+  }
+}
+</code></pre><h3 id="configuration-options" class="Styles-hoverBox">Configuration options<a href="#configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li>
+  <p><code>def buildInfoMembers: T[Map[String, String]]</code>  The map containing all member names and values for the generated info object.</p></li>
+  <li>
+  <p><code>def buildInfoObjectName: String</code>, default: <code>BuildInfo</code>  The name of the object which contains all the members from <code>buildInfoMembers</code>.</p></li>
+  <li>
+  <p><code>def buildInfoPackageName: Option[String]</code>, default: <code>None</code>  The package name of the object.</p></li>
+</ul><h2 id="bsp---build-server-protocol" class="Styles-hoverBox">BSP - Build Server Protocol<a href="#bsp---build-server-protocol" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The contrib.bsp module is now included in mill by default and will eventually replace GenIdea.</p>
+<p>Run the following command in the working directory of your project to generate the BSP config:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill mill.bsp.BSP/install
+</code></pre><h3 id="known-issues" class="Styles-hoverBox">Known Issues:<a href="#known-issues" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li>Sometimes build from IntelliJ might fail due to a NoClassDefFoundException being thrown during the evaluation of tasks, a bug not easy to reproduce. In this case it is recommended to refresh the bsp project.</li>
+</ul><h2 id="codeartifact" class="Styles-hoverBox">Codeartifact<a href="#codeartifact" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This plugin allows publishing to AWS Codeartifact.</p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-codeartifact:$MILL_VERSION`
+import mill.contrib.codeartifact.CodeartifactPublishModule
+
+object mymodule extends CodeartifactPublishModule {
+  def codeartifactUri: String = &quot;https://domain-name-domain-owner-id.d.codeartifact.region.amazonaws.com/maven/repo-name&quot;
+  def codeartifactSnapshotUri: String = &quot;https://domain-name-domain-owner-id.d.codeartifact.region.amazonaws.com/maven/snapshot-repo-name&quot;
+
+  ...
+}
+</code></pre>
+<p>Then in your terminal:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">$ export CODEARTIFACT_AUTH_TOKEN=`aws codeartifact get-authorization-token --domain domain-name --domain-owner domain-owner-id --query authorizationToken --output text --profile profile-name`
+$ mill mymodule.publishCodeartifact --credentials &#39;$CODEARTIFACT_AUTH_TOKEN&#39;
+</code></pre><h2 id="docker" class="Styles-hoverBox">Docker<a href="#docker" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Automatically build docker images from your mill project.</p>
+<p>Requires the docker CLI to be installed.</p>
+<p>In the simplest configuration just extend <code>DockerModule</code> and declare a <code>DockerConfig</code> object.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-docker:$MILL_VERSION`
+import contrib.docker.DockerModule
+
+object foo extends JavaModule with DockerModule {
+  object docker extends DockerConfig
+}
+</code></pre>
+<p>Then</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">$ mill foo.docker.build
+$ docker run foo
+</code></pre><h3 id="configuration" class="Styles-hoverBox">Configuration<a href="#configuration" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Configure the image by overriding tasks in the <code>DockerConfig</code> object</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object docker extends DockerConfig {
+  // Override tags to set the output image name
+  def tags = List(&quot;aws_account_id.dkr.ecr.region.amazonaws.com/hello-repository&quot;)
+
+  def baseImage = &quot;openjdk:11&quot;
+
+  // Configure whether the docker build should check the remote registry for a new version of the base image before building.
+  // By default this is true if the base image is using a latest tag
+  def pullBaseImage = true
+}
+</code></pre>
+<p>Run mill in interactive mode to see the docker client output, like <code>mill -i foo.docker.build</code>.</p><h2 id="flyway" class="Styles-hoverBox">Flyway<a href="#flyway" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Enables you to configure and run <a href="https://flywaydb.org/">Flyway</a> commands from your mill build file. The flyway module currently supports the most common flyway use cases with file based migrations.</p>
+<p>Configure flyway by overriding settings in your module. For example</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+
+import mill._, scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-flyway:$MILL_VERSION`
+import contrib.flyway.FlywayModule
+
+object foo extends ScalaModule with FlywayModule {
+  def scalaVersion = &quot;2.12.8&quot;
+
+  //region flyway
+  def flywayUrl = &quot;jdbc:postgresql:myDb&quot; // required
+  def flywayDriverDeps = Agg(ivy&quot;org.postgresql:postgresql:42.2.5&quot;) // required
+  def flywayUser = &quot;postgres&quot; // optional
+  // def flywayPassword = &quot;&quot; // optional
+  //endregion
+}
+</code></pre>
+<p>Flyway will look for migration files in <code>db/migration</code> in all resources folders by default. This should work regardless of if you are using a mill or sbt project layout.</p>
+<p>You can then run common flyway commands like</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill foo.flywayClean
+mill foo.flywayInfo
+mill foo.flywayMigrate
+</code></pre>
+<blockquote>
+  <p>REMINDER: You should never hard-code credentials or check them into a version control system. You should write some code to populate the settings for flyway instead. For example <code>def flywayPassword = T.input(T.ctx.env(&quot;FLYWAY_PASSWORD&quot;))</code></p>
+</blockquote><h2 id="play-framework" class="Styles-hoverBox">Play Framework<a href="#play-framework" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This module adds basic Play Framework support to mill:</p>
+<ul>
+  <li>configures mill for Play default directory layout,</li>
+  <li>integrates the Play routes compiler,</li>
+  <li>provides helpers for commonly used framework libraries,</li>
+  <li>optionally: integrates the Twirl template engine,</li>
+  <li>optionally: configures mill for single module play applications.</li>
+</ul>
+<p>There is no specific Play Java support, building a Play Java application will require a bit of customization (mostly adding the proper dependencies).</p><h3 id="using-the-plugin" class="Styles-hoverBox">Using the plugin<a href="#using-the-plugin" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>There are 2 base modules and 2 helper traits in this plugin, all of which can be found  in <code>mill.playlib</code>.</p>
+<p>The base modules:</p>
+<ul>
+  <li><code>PlayModule</code> applies the default Play configuration (layout, dependencies, routes compilation, Twirl compilation and Akka HTTP server)</li>
+  <li><code>PlayApiModule</code> applies the default Play configuration without <code>Twirl</code> templating. This is useful if your Play app is a pure API server or if you want to use a different templating engine.</li>
+</ul>
+<p>The two helper traits:</p>
+<ul>
+  <li><code>SingleModule</code> can be useful to configure mill for a single module Play application such as the <a href="https://github.com/playframework/play-scala-seed.g8">play-scala-seed project</a>. Mill is multi-module by default and requires a bit more configuration to have source, resource, and test directories at the top level alongside the <code>build.sc</code> file. This trait takes care of that (See <a href="#using-singlemodule">Using SingleModule</a> below).</li>
+  <li><code>RouterModule</code> allows you to use the Play router without the rest of the configuration (see <a href="#using-the-router-module-directly">Using the router module directly</a>.)</li>
+</ul><h3 id="using-playmodule" class="Styles-hoverBox">Using <code>PlayModule</code><a href="#using-playmodule" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>In order to use the <code>PlayModule</code> for your application, you need to provide the scala, Play and Twirl versions. You also need to define your own test object which extends the provided <code>PlayTests</code> trait.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object core extends PlayModule {
+    //config
+    override def scalaVersion= T{&quot;2.12.8&quot;}
+    override def playVersion= T{&quot;2.7.0&quot;}
+    override def twirlVersion= T{&quot;1.4.0&quot;}
+
+    object test extends PlayTests
+}
+</code></pre>
+<p>Using the above definition, your build will be configured to use the default Play layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+├── build.sc
+└── core
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+</code></pre>
+<p>The following compile dependencies will automatically be added to your build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">ivy&quot;com.typesafe.play::play:${playVersion()}&quot;,
+ivy&quot;com.typesafe.play::play-guice:${playVersion()}&quot;,
+ivy&quot;com.typesafe.play::play-server:${playVersion()}&quot;,
+ivy&quot;com.typesafe.play::play-logback:${playVersion()}&quot;
+</code></pre>
+<p>Scala test will be setup as the default test framework and the following test dependencies will be added (the actual version depends on the version of Play you are pulling <code>2.6.x</code> or <code>2.7.x</code>):</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">ivy&quot;org.scalatestplus.play::scalatestplus-play::4.0.1&quot;
+</code></pre>
+<p>In order to have a working <code>start</code> command the following runtime dependency is also added:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">ivy&quot;com.typesafe.play::play-akka-http-server:${playVersion()}&quot;
+</code></pre><h3 id="using-playapimodule" class="Styles-hoverBox">Using <code>PlayApiModule</code><a href="#using-playapimodule" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The <code>PlayApiModule</code> trait behaves the same as the <code>PlayModule</code> trait but it won't process .scala .html files and you don't need to define the `twirlVersion:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object core extends PlayApiModule {
+    //config
+    override def scalaVersion= T{&quot;2.12.8&quot;}
+    override def playVersion= T{&quot;2.7.0&quot;}
+
+    object test extends PlayTests
+}
+</code></pre><h3 id="play-configuration-options" class="Styles-hoverBox">Play configuration options<a href="#play-configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The Play modules themselves don't have specific configuration options at this point but the <a href="#router-configuration-options">router module configuration options</a> and the <a href="#twirl-configuration-options">Twirl module configuration options</a> are applicable.</p><h3 id="additional-play-libraries" class="Styles-hoverBox">Additional play libraries<a href="#additional-play-libraries" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The following helpers are available to provide additional Play Framework dependencies:</p>
+<ul>
+  <li><code>core()</code> - added by default ,</li>
+  <li><code>guice()</code> - added by default,</li>
+  <li><code>server()</code> - added by default,</li>
+  <li><code>logback()</code> - added by default,</li>
+  <li><code>evolutions()</code> - optional,</li>
+  <li><code>jdbc()</code> - optional,</li>
+  <li><code>filters()</code> - optional,</li>
+  <li><code>ws()</code> - optional,</li>
+  <li><code>caffeine()</code> - optional.</li>
+</ul>
+<p>If you want to add an optional library using the helper you can do so by overriding <code>ivyDeps</code> like in the following example build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object core extends PlayApiModule {
+    //config
+    override def scalaVersion= T{&quot;2.12.8&quot;}
+    override def playVersion= T{&quot;2.7.0&quot;}
+
+    object test extends PlayTests
+
+    override def ivyDeps = T{ super.ivyDeps() ++ Agg(ws(), filters()) }
+}
+</code></pre><h3 id="commands-equivalence" class="Styles-hoverBox">Commands equivalence<a href="#commands-equivalence" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Mill commands are targets on a named build. For example if your build is called <code>core</code>:</p>
+<ul>
+  <li>compile: <code>core.compile</code></li>
+  <li>run: <em>NOT Implemented yet</em>. It can be approximated with <code>mill -w core.runBackground</code> but this starts a server in <em>PROD</em> mode which:</li>
+  <li>doesn't do any kind of classloading magic (meaning potentially slower restarts)</li>
+  <li>returns less detailed error messages (no source code extract and line numbers)</li>
+  <li>can sometimes fail because of a leftover RUNNING_PID file</li>
+  <li>start: <code>core.start</code> or <code>core.run</code> both start the server in <em>PROD</em> mode.</li>
+  <li>test: <code>core.test</code></li>
+  <li>dist: <em>NOT Implemented yet</em>. However you can use the equivalent <code>core.assembly</code> command to get a runnable fat jar of the project. The packaging is slightly different but should be find for a production deployment.</li>
+</ul><h3 id="using-singlemodule" class="Styles-hoverBox">Using <code>SingleModule</code><a href="#using-singlemodule" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The <code>SingleModule</code> trait allows you to have the build descriptor at the same level as the source  code on the filesystem. You can move from there to a multi-module build either by refactoring  your directory layout into multiple subdirectories or by using mill's nested modules feature.</p>
+<p>Looking back at the sample build definition in <a href="#using-playmodule">Using PlayModule</a>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object core extends PlayModule {
+    //config
+    override def scalaVersion= T{&quot;2.12.8&quot;}
+    override def playVersion= T{&quot;2.7.0&quot;}
+    override def twirlVersion= T{&quot;1.4.0&quot;}
+
+    object test extends PlayTests
+}
+</code></pre>
+<p>The directory layout was:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+├── build.sc
+└── core
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+</code></pre>
+<p>by mixing in the <code>SingleModule</code> trait in your build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object core extends PlayModule with SingleModule {
+	//config
+	override def scalaVersion= T{&quot;2.12.8&quot;}
+	override def playVersion= T{&quot;2.7.0&quot;}
+	override def twirlVersion= T{&quot;1.4.0&quot;}
+
+	object test extends PlayTests
+}
+</code></pre>
+<p>the layout becomes:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+└── core
+    ├── build.sc
+    ├── app
+    │   ├── controllers
+    │   └── views
+    ├── conf
+    │   └── application.conf
+    │   └── routes
+    │   └── ...
+    ├── logs
+    ├── public
+    │   ├── images
+    │   ├── javascripts
+    │   └── stylesheets
+    └── test
+        └── controllers
+</code></pre><h4 id="using-the-router-module-directly" class="Styles-hoverBox">Using the router module directly<a href="#using-the-router-module-directly" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>If you want to use the router module in a project which doesn't use the default Play layout, you can mix-in the <code>mill.playlib.routesModule</code> trait directly when defining your module. Your app must define <code>playVersion</code> and <code>scalaVersion</code>.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+
+object app extends ScalaModule with RouterModule {
+  def playVersion= T{&quot;2.7.0&quot;}
+  def scalaVersion= T{&quot;2.12.8&quot;}
+}
+</code></pre><h5 id="router-configuration-options" class="Styles-hoverBox">Router Configuration options<a href="#router-configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<ul>
+  <li><code>def playVersion: T[String]</code> (mandatory) - The version of Play to use to compile the routes file.</li>
+  <li><code>def scalaVersion: T[String]</code> - The scalaVersion in use in your project.</li>
+  <li><code>def routes: Sources</code> - The directory which contains your route files. (Defaults to : <code>routes/</code>)</li>
+  <li><code>def routesAdditionalImport: Seq[String]</code> - Additional imports to use in the generated routers.  (Defaults to <code>Seq(&quot;controllers.Assets.Asset&quot;, &quot;play.libs.F&quot;)</code></li>
+  <li><code>def generateForwardsRouter: Boolean = true</code> - Enables the forward router generation.</li>
+  <li><code>def generateReverseRouter: Boolean = true</code> - Enables the reverse router generation.</li>
+  <li><code>def namespaceReverseRouter: Boolean = false</code> - Enables the namespacing of reverse routers.</li>
+  <li><code>def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator</code> - The routes  compiler type, one of RouteCompilerType.InjectedGenerator or RouteCompilerType.StaticGenerator</li>
+</ul><h5 id="details" class="Styles-hoverBox">Details<a href="#details" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<p>The following filesystem layout is expected by default:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">.
+├── app
+│   └── routes
+│       └── routes
+└── build.sc
+</code></pre>
+<p><code>RouterModule</code> adds the <code>compileRouter</code> task to the module:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill app.compileRouter
+</code></pre>
+<p>(it will be automatically run whenever you compile your module)</p>
+<p>This task will compile <code>routes</code> templates into the <code>out/app/compileRouter/dest</code> directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code. This is done by default in the trait, but if you need to have a custom override for <code>generatedSources</code> you can get the list of files from <code>routerClasses</code></p>
+<p>To add additional imports to all of the routes:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-playlib:$MILL_VERSION`,  mill.playlib._
+
+object app extends ScalaModule with RouterModule {
+  def playVersion = &quot;2.7.0&quot;
+  override def routesAdditionalImport = Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
+}
+</code></pre><h2 id="proguard" class="Styles-hoverBox">Proguard<a href="#proguard" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This module allows <a href="https://www.guardsquare.com/en/products/proguard/manual/introduction">Proguard</a> to be used in Mill builds. ProGuard is a Java class file shrinker, optimizer, obfuscator, and preverifier.</p>
+<p>By default, all four steps - shrink, optimize, obfuscate, verify - are run, but this can be configured through task options. Any additional options can be specified as a list of strings with <code>additionalOptions</code>. The full list of proguard options can be found <a href="https://www.guardsquare.com/en/products/proguard/manual/usage">here</a>.</p>
+<p>The output of <code>assembly</code> is used as the input jar and the output is written to <code>out.jar</code> in the <code>dest</code> folder.</p>
+<p>The <code>stdout</code> and <code>stderr</code> from the proguard command can be found under the <code>dest</code> folder.</p>
+<p>The only default entrypoint is the main class (i.e. <code>finalMainClass</code> task). Additional entrypoints can be configured using <code>additionalOptions</code> as well.</p>
+<p>Here is a simple example:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">import $ivy.`com.lihaoyi::mill-contrib-proguard:$MILL_VERSION`
+import contrib.proguard._
+
+object foo extends ScalaModule with Proguard {
+  def scalaVersion = &quot;2.12.0&quot;
+
+  override def shrink: T[Boolean] = T { true }
+  override def optimize: T[Boolean] = T { false }
+  override def obfuscate: T[Boolean] = T { false }
+}
+</code></pre>
+<p>Also, please note that Proguard doesn't seem to work with scala 2.13 yet.</p><h2 id="scalapb" class="Styles-hoverBox">ScalaPB<a href="#scalapb" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This module allows <a href="https://scalapb.github.io">ScalaPB</a> to be used in Mill builds. ScalaPB is a <a href="https://developers.google.com/protocol-buffers/">Protocol Buffers</a> compiler plugin that generates Scala case classes, encoders and decoders for protobuf messages.</p>
+<p>To declare a module that uses ScalaPB you can extend the <code>mill.contrib.scalapblib.ScalaPBModule</code> trait when defining your module.</p>
+<p>This creates a Scala module which compiles <code>.proto</code> files in the <code>protobuf</code> folder of the module with ScalaPB and adds the resulting <code>.scala</code> sources to your module's <code>generatedSources</code>.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
+}
+</code></pre>
+<p>This defines a project with the following layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">build.sc
+example/
+    src/
+    protobuf/
+    resources/
+</code></pre><h3 id="configuration-options" class="Styles-hoverBox">Configuration options<a href="#configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li>
+  <p>scalaPBVersion (mandatory) - The ScalaPB version <code>String</code> e.g. <code>&quot;0.7.4&quot;</code></p></li>
+  <li>
+  <p>scalaPBFlatPackage - A <code>Boolean</code> option which determines whether the <code>.proto</code> file name should be appended as the final segment of the package name in the generated sources.</p></li>
+  <li>
+  <p>scalaPBJavaConversions - A <code>Boolean</code> option which determines whether methods for converting between the generated Scala classes and the Protocol Buffers Java API classes should be generated.</p></li>
+  <li>
+  <p>scalaPBGrpc - A <code>Boolean</code> option which determines whether <a href="https://grpc.io">grpc</a> stubs should be generated.</p></li>
+  <li>
+  <p>scalaPBSingleLineToProtoString - A <code>Boolean</code> option which determines whether the generated <code>.toString</code> methods should use a single line format.</p></li>
+  <li>
+  <p>scalaPBProtocPath - A <code>Option[Path]</code> option which determines the protoc compiler to use. If <code>None</code>, a java embedded protoc will be used, if set to <code>Some</code> path, the given binary is used.</p></li>
+</ul>
+<p>If you'd like to configure the <a href="https://scalapb.github.io/docs/scalapbc#passing-generator-parameters">options</a> that are passed to the ScalaPB compiler directly, you can override the <code>scalaPBOptions</code> task, for example:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
+  override def scalaPBOptions = &quot;flat_package,java_conversions&quot;
+}
+</code></pre>
+<p>If you'd like to pass additional arguments to the ScalaPB compiler directly, you can override the <code>scalaPBAdditionalArgs</code> task, for example:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+
+import $ivy.`com.lihaoyi::mill-contrib-scalapblib:$MILL_VERSION`
+import contrib.scalapblib._
+
+object example extends ScalaPBModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def scalaPBVersion = &quot;0.7.4&quot;
+  override def scalaPBAdditionalArgs =
+    Seq(s&quot;--zio_out=${T.dest.toIO.getCanonicalPath}&quot;)
+}
+</code></pre><h2 id="scoverage" class="Styles-hoverBox">Scoverage<a href="#scoverage" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This module allows you to generate code coverage reports for Scala projects with <a href="https://github.com/scoverage">Scoverage</a> via the <a href="https://github.com/scoverage/scalac-scoverage-plugin">scalac-scoverage-plugin</a>.</p>
+<p>To declare a module for which you want to generate coverage reports you can extends the <code>mill.contrib.scoverage.ScoverageModule</code> trait when defining your module. Additionally, you must define a submodule that extends the <code>ScoverageTests</code> trait that belongs to your instance of <code>ScoverageModule</code>.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-scoverage:$MILL_VERSION`
+import mill.contrib.scoverage.ScoverageModule
+
+object foo extends ScoverageModule  {
+  def scalaVersion = &quot;2.12.9&quot;
+  def scoverageVersion = &quot;1.4.0&quot;
+
+  object test extends ScoverageTests {
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.8&quot;)
+    def testFrameworks = Seq(&quot;org.scalatest.tools.Framework&quot;)
+  }
+}
+</code></pre>
+<p>In addition to the normal tasks available to your Scala module, Scoverage modules introduce a few new tasks and changes the behavior of an existing one.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill foo.scoverage.compile      # compiles your module with test instrumentation
+                                # (you don&#39;t have to run this manually, running the test task will force its invocation)
+
+mill foo.test                   # tests your project and collects metrics on code coverage
+mill foo.scoverage.htmlReport   # uses the metrics collected by a previous test run to generate a coverage report in html format
+mill foo.scoverage.xmlReport    # uses the metrics collected by a previous test run to generate a coverage report in xml format
+</code></pre>
+<p>The measurement data is by default available at <code>out/foo/scoverage/data/dest</code>, the html report is saved in <code>out/foo/scoverage/htmlReport/dest/</code>, and the xml report is saved in <code>out/foo/scoverage/xmlReport/dest/</code>.</p><h3 id="multi-module-projects" class="Styles-hoverBox">Multi-module projects<a href="#multi-module-projects" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>If you're using Scoverage on a project with multiple modules then an additional module, <code>ScoverageReport</code>, is available to help aggregate the reports from all <code>ScoverageModule</code>s.</p>
+<p>Simply define a <code>scoverage</code> module at the root of your project as shown:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">  object scoverage extends ScoverageReport {
+    override def scalaVersion     = &quot;&lt;scala-version&gt;&quot;
+    override def scoverageVersion = &quot;&lt;scoverage-version&gt;&quot;
+  }
+</code></pre>
+<p>This provides you with various reporting functions:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill __.test                     # run tests for all modules
+mill scoverage.htmlReportAll     # generates report in html format for all modules
+mill scoverage.xmlReportAll      # generates report in xml format for all modules
+mill scoverage.consoleReportAll  # reports to the console for all modules
+</code></pre>
+<p>The aggregated report will be available at either <code>out/scoverage/htmlReportAll/dest/</code> for html reports or <code>out/scoverage/xmlReportAll/dest/</code> for xml reports.</p><h2 id="testng" class="Styles-hoverBox">TestNG<a href="#testng" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Provides support for <a href="https://testng.org/doc/index.html">TestNG</a>.</p>
+<p>To use TestNG as test framework, you need to add it to the <code>TestModule.testFrameworks</code> property.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+object project extends ScalaModule {
+  object test extends Tests{
+    def testFrameworks = Seq(&quot;mill.testng.TestNGFramework&quot;)
+  }
+}
+</code></pre><h2 id="tut" class="Styles-hoverBox">Tut<a href="#tut" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This module allows <a href="https://tpolecat.github.io/tut">Tut</a> to be used in Mill builds. Tut is a documentation tool which compiles and evaluates Scala code in documentation files and provides various options for configuring how the results will be displayed in the compiled documentation.</p>
+<p>To declare a module that uses Tut you can extend the <code>mill.contrib.tut.TutModule</code> trait when defining your module.</p>
+<p>This creates a Scala module which compiles markdown, HTML and <code>.txt</code> files in the <code>tut</code> folder of the module with Tut.</p>
+<p>By default the resulting documents are simply placed in the Mill build output folder but they can be placed elsewhere by overriding the <code>tutTargetDirectory</code> task.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+
+import $ivy.`com.lihaoyi::mill-contrib-tut:$MILL_VERSION`
+import contrib.tut._
+
+object example extends TutModule {
+  def scalaVersion = &quot;2.12.6&quot;
+  def tutVersion = &quot;0.6.7&quot;
+}
+</code></pre>
+<p>This defines a project with the following layout:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">build.sc
+example/
+    src/
+    tut/
+    resources/
+</code></pre>
+<p>In order to compile documentation we can execute the <code>tut</code> task in the module:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">sh&gt; mill example.tut
+</code></pre><h3 id="configuration-options" class="Styles-hoverBox">Configuration options<a href="#configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<ul>
+  <li>
+  <p>tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the <code>tut</code> folder at the root of the module.</p></li>
+  <li>
+  <p>tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build's output folder for the <code>tutTargetDirectory</code> task but this can be reconfigured so that documentation goes to the root of the module (e.g. <code>millSourcePath</code>) or to a dedicated folder (e.g. <code>millSourcePath / &#39;docs</code>)</p></li>
+  <li>
+  <p>tutClasspath - A task which determines what classpath is used when compiling documentation. By default this is configured to use the same inputs as the <code>runClasspath</code>, except for using <code>tutIvyDeps</code> rather than the module's <code>ivyDeps</code>.</p></li>
+  <li>
+  <p>tutScalacPluginIvyDeps - A task which determines the scalac plugins which will be used when compiling code examples with Tut. The default is to use the <code>scalacPluginIvyDeps</code> for the module.</p></li>
+  <li>
+  <p>tutNameFilter - A <code>scala.util.matching.Regex</code> task which will be used to determine which files should be compiled with tut. The default pattern is as follows: <code>.*\.(md|markdown|txt|htm|html)</code>.</p></li>
+  <li>
+  <p>tutScalacOptions - The scalac options which will be used when compiling code examples with Tut. The default is to use the <code>scalacOptions</code> for the module but filtering out options which are problematic in the REPL, e.g. <code>-Xfatal-warnings</code>, <code>-Ywarn-unused-imports</code>.</p></li>
+  <li>
+  <p>tutVersion - The version of Tut to use.</p></li>
+  <li>
+  <p>tutIvyDeps - A task which determines how to fetch the Tut jar file and all of the dependencies required to compile documentation for the module and returns the resulting files.</p></li>
+  <li>
+  <p>tutPluginJars - A task which performs the dependency resolution for the scalac plugins to be used with Tut.</p></li>
+</ul><h2 id="twirl" class="Styles-hoverBox">Twirl<a href="#twirl" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Twirl templates support.</p>
+<p>To declare a module that needs to compile twirl templates you must extend the <code>mill.twirllib.TwirlModule</code> trait when defining your module. Also note that twirl templates get compiled into scala code, so you also need to extend <code>ScalaModule</code>.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+
+object app extends ScalaModule with TwirlModule {
+// ...
+}
+</code></pre><h3 id="details" class="Styles-hoverBox">Details<a href="#details" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The following filesystem layout is expected:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">build.sc
+app/
+  views/
+    view1.scala.html
+    view2.scala.html
+</code></pre>
+<p><code>TwirlModule</code> adds the <code>compileTwirl</code> task to the module:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">mill app.compileTwirl
+</code></pre>
+<p>(it will be automatically run whenever you compile your module)</p>
+<p>This task will compile <code>*.scala.html</code> templates (and others, like <code>*.scala.txt</code>) into the <code>out/app/compileTwirl/dest</code> directory. This directory must be added to the generated sources of the module to be compiled and made accessible from the rest of the code:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+
+object app extends ScalaModule with TwirlModule {
+  def twirlVersion = &quot;1.3.15&quot;
+  def generatedSources = T{ Seq(compileTwirl().classes) }
+}
+</code></pre><h3 id="twirl-configuration-options" class="Styles-hoverBox">Twirl configuration options<a href="#twirl-configuration-options" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3><h4 id="def-twirlversion-tstring" class="Styles-hoverBox"><code>def twirlVersion: T[String]</code><a href="#def-twirlversion-tstring" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Mandatory - the version of the twirl compiler to use, like "1.3.15".</p><h4 id="def-twirlimports-tseqstring" class="Styles-hoverBox"><code>def twirlImports: T[Seq[String]]</code><a href="#def-twirlimports-tseqstring" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>The imports that will be added by the twirl compiler to the top of all templates, defaults to <a href="https://github.com/playframework/twirl/blob/1.5.0/compiler/src/main/scala/play/twirl/compiler/TwirlCompiler.scala#L166-L173">twirl's default imports</a>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">Seq(
+  &quot;_root_.play.twirl.api.TwirlFeatureImports._&quot;,
+  &quot;_root_.play.twirl.api.TwirlHelperImports._&quot;,
+  &quot;_root_.play.twirl.api.Html&quot;,
+  &quot;_root_.play.twirl.api.JavaScript&quot;,
+  &quot;_root_.play.twirl.api.Txt&quot;,
+  &quot;_root_.play.twirl.api.Xml&quot;
+)
+</code></pre>
+<p>To add additional imports to all of the twirl templates, override <code>twirlImports</code> in your build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+
+object app extends ScalaModule with TwirlModule {
+  def twirlVersion = &quot;1.3.15&quot;
+  override def twirlImports = super.twirlImports() ++ Seq(&quot;my.additional.stuff._&quot;, &quot;my.other.stuff._&quot;)
+  def generatedSources = T{ Seq(compileTwirl().classes) }
+}
+
+// out.template.scala
+@import _root_.play.twirl.api.TwirlFeatureImports._
+// ...
+@import _root_.play.twirl.api.Xml
+@import my.additional.stuff._
+@import my.other.stuff._
+</code></pre>
+<p>To exclude the default imports, simply override <code>twirlImports</code> without calling <code>super</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+object app extends ScalaModule with TwirlModule {
+  // ...
+  override def twirlImports = Seq(&quot;my.stuff._&quot;)
+}
+
+// out.template.scala
+@import my.stuff._
+</code></pre><h4 id="def-twirlformats-mapstring-string" class="Styles-hoverBox"><code>def twirlFormats: Map[String, String]</code><a href="#def-twirlformats-mapstring-string" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>A mapping of file extensions to class names that will be compiled by twirl, e.g. <code>Map(&quot;html&quot; -&gt; &quot;play.twirl.api.HtmlFormat&quot;)</code>. By default <code>html</code>, <code>xml</code>, <code>js</code>, and <code>txt</code> files will be compiled using the corresponding <a href="https://github.com/playframework/twirl/blob/1.5.0/api/shared/src/main/scala/play/twirl/api/Formats.scala">twirl format</a>.</p>
+<p>To add additional formats, override <code>twirlFormats</code> in your build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill.scalalib._
+
+import $ivy.`com.lihaoyi::mill-contrib-twirllib:$MILL_VERSION`,  mill.twirllib._
+
+object app extends ScalaModule with TwirlModule {
+  def twirlVersion = &quot;1.3.15&quot;
+  override def twirlFormats = super.twirlFormats() + Map(&quot;svg&quot; -&gt; &quot;play.twirl.api.HtmlFormat&quot;)
+  def generatedSources = T{ Seq(compileTwirl().classes) }
+}
+</code></pre><h4 id="def-twirlconstructorannotations-seqstring--nil" class="Styles-hoverBox"><code>def twirlConstructorAnnotations: Seq[String] = Nil</code><a href="#def-twirlconstructorannotations-seqstring--nil" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Annotations added to the generated classes' constructors (note it only applies to templates with <code>@this(...)</code> constructors).</p><h4 id="def-twirlcodec--codecpropertiessourceencoding" class="Styles-hoverBox"><code>def twirlCodec = Codec(Properties.sourceEncoding)</code><a href="#def-twirlcodec--codecpropertiessourceencoding" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>The codec used to generate the files (the default is the same sbt plugin uses).</p><h4 id="def-twirlinclusivedot-boolean--false" class="Styles-hoverBox"><code>def twirlInclusiveDot: Boolean = false</code><a href="#def-twirlinclusivedot-boolean--false" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Whether the twirl parser should parse with an inclusive dot.</p><h3 id="example" class="Styles-hoverBox">Example<a href="#example" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>There's an <a href="https://github.com/lihaoyi/cask/tree/master/example/twirl">example project</a></p><h2 id="version-file" class="Styles-hoverBox">Version file<a href="#version-file" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>This plugin provides helpers for updating a version file and committing the changes to git.</p>
+<p><strong>Note: You can still make manual changes to the version file in-between execution of the targets provided by the module.</strong> <strong>Each target operates on the version file as is at the time of execution.</strong></p><h3 id="quickstart" class="Styles-hoverBox">Quickstart<a href="#quickstart" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>Add a <code>VersionFileModule</code> to the <code>build.sc</code> file:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+</code></pre>
+<p>The module will read and write to the file <code>version</code> located at the module's <code>millSourcePath</code>. In the example above, that would be <code>/versionFile/version</code> relative to the <code>build.sc</code> file.</p>
+<p>Create the version file with the initial version number:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ 0.1.0-SNAPSHOT &gt; versionFile/version
+</code></pre>
+<p>Then to write a release version or snapshot version to file:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill versionFile.setReleaseVersion           # Sets release
+$ mill versionFile.setNextVersion --bump minor # Sets snapshot
+</code></pre>
+<p>You can also make manual changes in-between:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill versionFile.setReleaseVersion
+$ echo 0.1.0 &gt; versionFile/version
+$ mill versionFile.setNextVersion --bump minor # Will now set the version to 0.2.0-SNAPSHOT
+</code></pre>
+<p>If you want to use the version file for publishing, you can do it like this:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule
+
+object mymodule extends PublishModule {
+  def publishVersion = versionFile.currentVersion().toString
+  ...
+}
+</code></pre><h3 id="configure-the-version-file" class="Styles-hoverBox">Configure the version file<a href="#configure-the-version-file" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>If you want the version file to have another name, you will need to override the <code>versionFile</code> task.</p>
+<p>If you have a project wide version file like in the example above, and you want the version file to reside at the root of the project, you can override <code>millSourcePath</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import $ivy.`com.lihaoyi::mill-contrib-versionfile:$MILL_VERSION`
+import mill.contrib.versionfile.VersionFileModule
+
+object versionFile extends VersionFileModule {
+  def millSourcePath = millOuterCtx.millSourcePath
+}
+</code></pre>
+<p>In this example, it would look for the file <code>version</code> in the same directory as the <code>build.sc</code>.</p><h3 id="set-release-version" class="Styles-hoverBox">Set release version<a href="#set-release-version" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The <code>setReleaseVersion</code> target removes the <code>-SNAPSHOT</code> identifier from the version, then overwrites the previous content in the version file with this new version.</p><h4 id="example" class="Styles-hoverBox">Example<a href="#example" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Your version file contains <code>0.1.0-SNAPSHOT</code>. In your terminal you do the following:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill versionFile.setReleaseVersion
+</code></pre>
+<p>This will update the version file to contain <code>0.1.0</code>.</p><h3 id="set-next-version" class="Styles-hoverBox">Set next version<a href="#set-next-version" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The <code>setNextVersion</code> target bumps the version and changes it to a snapshot version, then overwrites the previous content in the version file with this new version.</p><h4 id="parameters" class="Styles-hoverBox">Parameters<a href="#parameters" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4><h5 id="--bump-major--minor--patch" class="Styles-hoverBox">--bump (major | minor | patch)<a href="#--bump-major--minor--patch" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<p>Sets what segment of the version to bump.</p>
+<p>For a version number <code>1.2.3</code> in the version file:</p>
+<p><code>--bump major</code> will set it to <code>2.0.0</code></p>
+<p><code>--bump minor</code> will set it to <code>1.3.0</code></p>
+<p><code>--bump patch</code> will set it to <code>1.2.4</code></p><h4 id="example" class="Styles-hoverBox">Example<a href="#example" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Your version file contains <code>0.1.0</code>. In your terminal you do the following:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill versionFile.setNextVersion --bump minor
+</code></pre>
+<p>This will update the version file to contain <code>0.2.0-SNAPSHOT</code>.</p><h3 id="set-version" class="Styles-hoverBox">Set version<a href="#set-version" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The <code>setVersion</code> overwrites the previous content of the version file with an arbitrary version.</p><h4 id="parameters" class="Styles-hoverBox">Parameters<a href="#parameters" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4><h5 id="--version-xyz" class="Styles-hoverBox">--version x.y.z[-SNAPSHOT]<a href="#--version-xyz" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<p>The version to write to the version file.</p><h4 id="example" class="Styles-hoverBox">Example<a href="#example" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>Your version file contains <code>0.1.0</code>. In your terminal you do the following:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill versionFile.setVersion --version 0.5.2-SNAPSHOT
+</code></pre>
+<p>This will update the version file to contain <code>0.5.2-SNAPSHOT</code>.</p><h3 id="output-version-numbers" class="Styles-hoverBox">Output version numbers<a href="#output-version-numbers" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>If you need to output the version numbers (for example for other CI tools you might use), you can use the following commands:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash"># Show the current version from the version file.
+$ mill show versionFile.currentVersion
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash"># Show the version that would be used as release version.
+$ mill show versionFile.releaseVersion
+</code></pre>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash"># Show the version that would be used as next version with the given --bump argument.
+$ mill show versionFile.nextVersion --bump minor
+</code></pre><h3 id="vcs-operations" class="Styles-hoverBox">VCS operations<a href="#vcs-operations" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h3>
+<p>The module has an <code>exec</code> task that allows you to execute tasks of type <code>T[Seq[os.proc]]</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.tag
+$ mill mill.contrib.versionfile.VersionFile/exec --procs versionFile.push
+</code></pre><h4 id="built-in-git-operations" class="Styles-hoverBox">Built-in git operations<a href="#built-in-git-operations" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>The <code>VersionFileModule</code> comes with two tasks of this type:</p><h5 id="tag" class="Styles-hoverBox">Tag<a href="#tag" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<p>Commits the changes, then creates a tag with the current version for that commit.</p><h5 id="push" class="Styles-hoverBox">Push<a href="#push" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h5>
+<p>Commits the changes, then pushes the changes to origin/master with tags.</p><h4 id="custom-operations" class="Styles-hoverBox">Custom operations<a href="#custom-operations" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h4>
+<p>It's possible to override the tasks above, or add your own tasks, to adapt the module to work with other version control systems than git.</p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="mill-internals.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Mill Internals</a><a href="thirdparty-modules.html">Thirdparty Modules <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

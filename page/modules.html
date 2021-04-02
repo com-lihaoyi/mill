@@ -1,0 +1,221 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Modules</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#using-modules">Using Modules</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#overriding-targets">Overriding Targets</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#millsourcepath">millSourcePath</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#external-modules">External Modules</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#foreign-modules">Foreign Modules</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Modules</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="tasks.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tasks</a><a href="cross-builds.html">Cross Builds <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><p>Mill modules are <code>object</code>s extending <code>mill.Module</code>, and let you group related tasks together to keep things neat and organized. Mill's comes with built in modules such as <code>mill.scalalib.ScalaModule</code> and <code>mill.scalalib.CrossSbtModule</code>, but you can use modules for other purposes as well.</p><h2 id="using-modules" class="Styles-hoverBox">Using Modules<a href="#using-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>The path to a Mill module from the root of your build file corresponds to the path you would use to run tasks within that module from the command line. e.g. for the following build:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo extends mill.Module {
+  def bar = T { &quot;hello&quot; }
+  object baz extends mill.Module {
+    def qux = T { &quot;world&quot; } 
+  } 
+}
+</code></pre>
+<p>You would be able to run the two targets via <code>mill foo.bar</code> or <code>mill
+foo.baz.qux</code>. You can use <code>mill show foo.bar</code> or <code>mill show foo.baz.qux</code> to make Mill echo out the string value being returned by each Target. The two targets will store their output metadata &amp; files at <code>./out/foo/bar</code> and <code>./out/foo/baz/qux</code> respectively.</p>
+<p>Modules also provide a way to define and re-use common collections of tasks, via Scala <code>trait</code>s. For example, you can define your own <code>FooModule</code> trait:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">trait FooModule extends mill.Module {
+  def bar = T { &quot;hello&quot; }
+  def baz = T { &quot;world&quot; }
+}
+</code></pre>
+<p>And use it to define multiple modules with the same <code>bar</code> and <code>baz</code> targets, along with any other customizations such as <code>qux</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo1 extends FooModule
+object foo2 extends FooModule {
+  def qux = T { &quot;I am Cow&quot; }
+}  
+</code></pre>
+<p>This would make the following targets available from the command line</p>
+<ul>
+  <li><code>mill show foo1.bar</code></li>
+  <li><code>mill show foo1.baz</code></li>
+  <li><code>mill show foo2.bar</code></li>
+  <li><code>mill show foo2.baz</code></li>
+  <li><code>mill show foo2.qux</code></li>
+</ul>
+<p>The built-in <code>mill.scalalib</code> package uses this to define <code>mill.scalalib.ScalaModule</code>, <code>mill.scalalib.SbtModule</code> and <code>mill.scalalib.TestScalaModule</code>, all of which contain a set of "standard" operations such as <code>compile</code> <code>jar</code> or <code>assembly</code> that you may expect from a typical Scala module.</p>
+<p>When defining your own module abstractions, in general you should use <code>trait</code>s and not <code>class</code>es, except in the case of <a href="https://com-lihaoyi.github.io/mill/page/cross-builds.html">Cross Builds</a>.</p><h2 id="overriding-targets" class="Styles-hoverBox">Overriding Targets<a href="#overriding-targets" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">trait BaseModule extends Module {
+  def foo = T { Seq(&quot;base&quot;) }
+  def cmd(i: Int) = T.command { Seq(&quot;base&quot; + i) }
+}
+
+object canOverrideSuper with BaseModule {
+  def foo = T { super.foo() ++ Seq(&quot;object&quot;) }
+  def cmd(i: Int) = T.command { super.cmd(i)() ++ Seq(&quot;object&quot; + i) }
+}
+</code></pre>
+<p>You can override targets and commands to customize them or change what they do. The overridden version is available via <code>super</code>. You can omit the <code>override</code> keyword in Mill builds.</p><h2 id="millsourcepath" class="Styles-hoverBox">millSourcePath<a href="#millsourcepath" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Each Module has a <code>millSourcePath</code> field that corresponds to the path that module expects its input files to be on disk. Re-visiting our examples above:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo extends mill.Module {
+  def bar = T { &quot;hello&quot; }
+  object baz extends mill.Module {
+    def qux = T { &quot;world&quot; } 
+  } 
+}
+</code></pre>
+<p>The <code>foo</code> module has a <code>millSourcePath</code> of <code>./foo</code>, while the <code>foo.baz</code> module has a <code>millSourcePath</code> of <code>./foo/baz</code>.</p>
+<p>You can use <code>millSourcePath</code> to automatically set the source folders of your modules to match the build structure. You are not forced to rigidly use <code>millSourcePath</code> to define the source folders of all your code, but it can simplify the common case where you probably want your build-layout and on-disk-layout to be the same.</p>
+<p>E.g. for <code>mill.scalalib.ScalaModule</code>, the Scala source code is assumed by default to be in <code>millSourcePath/&quot;src&quot;</code> while resources are automatically assumed to be in <code>millSourcePath/&quot;resources&quot;</code>.</p>
+<p>You can override <code>millSourcePath</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">object foo extends mill.Module {
+  def millSourcePath = super.millSourcePath / &quot;lols&quot;
+  def bar = T { &quot;hello&quot; }
+  object baz extends mill.Module {
+    def qux = T { &quot;world&quot; } 
+  } 
+}
+</code></pre>
+<p>And any overrides propagate down to the module's children: in the above example, module <code>foo</code> would have its <code>millSourcePath</code> be <code>./foo/lols</code> while module<code>foo.baz</code> would have its <code>millSourcePath</code> be <code>./foo/lols/baz</code>.</p>
+<p>Note that <code>millSourcePath</code> is generally only used for a module's input source files. Output is always in the <code>out/</code> folder and cannot be changed, e.g. even with the overriden <code>millSourcePath</code> the output paths are still the default <code>./out/foo/bar</code> and <code>./out/foo/baz/qux</code> folders.</p><h2 id="external-modules" class="Styles-hoverBox">External Modules<a href="#external-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Libraries for use in Mill can define <code>ExternalModule</code>s: <code>Module</code>s which are shared between all builds which use that library:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">package foo
+import mill._
+
+object Bar extends mill.define.ExternalModule {
+  def baz = T { 1 }
+  def qux() = T.command { println(baz() + 1) }
+
+  lazy val millDiscover = mill.define.Discover[this.type]
+}
+</code></pre>
+<p>In the above example, <code>foo.Bar</code> is an <code>ExternalModule</code> living within the <code>foo</code> Java package, containing the <code>baz</code> target and <code>qux</code> command. Those can be run from the command line via:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.Bar/baz
+mill foo.Bar/qux
+</code></pre>
+<p><code>ExternalModule</code>s are useful for someone providing a library for use with Mill that is shared by the entire build: for example, <code>mill.scalalib.ZincWorkerApi/zincWorker</code> provides a shared Scala compilation service &amp; cache that is shared between all <code>ScalaModule</code>s, and <code>mill.scalalib.GenIdea/idea</code> lets you generate IntelliJ projects without needing to define your own <code>T.command</code> in your <code>build.sc</code> file</p><h2 id="foreign-modules" class="Styles-hoverBox">Foreign Modules<a href="#foreign-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Mill can load other mill projects from external (or sub) folders, using Ammonite's <code>$file</code> magic import, allowing to depend on foreign modules. This allows, for instance, to depend on other projects' sources, or split your build logic into smaller files.</p>
+<p>For instance, assuming the following structure : </p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="text">foo/
+    build.sc
+    bar/
+        build.sc 
+baz/
+    build.sc     
+</code></pre>
+<p>you can write the following in <code>foo/build.sc</code> : </p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">
+import $file.bar.build
+import $file.^.baz.build
+import mill._ 
+
+def someFoo = T {
+
+    ^.baz.build.someBaz(...)
+    bar.build.someBar(...) 
+    ...
+}
+</code></pre>
+<p>The output of the foreign tasks will be cached under <code>foo/out/foreign-modules/</code>. </p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="tasks.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Tasks</a><a href="cross-builds.html">Cross Builds <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>

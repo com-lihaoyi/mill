@@ -1,0 +1,472 @@
+<html><head><meta charset="utf-8" /><link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.6/css/bootstrap.min.css" rel="stylesheet" type="text/css" /><link href="https://maxcdn.bootstrapcdn.com/font-awesome/4.5.0/css/font-awesome.min.css" rel="stylesheet" type="text/css" /><link href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/styles/github-gist.min.css" rel="stylesheet" type="text/css" /><title>Configuring Mill</title><style>@media (min-width: 60em) {.WideStyles-header{
+  bottom: 0px;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  position: fixed;
+  top: 0px;
+  width: 25%;
+}
+
+.WideStyles-tableOfContentsItem{
+  display: inline-block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  vertical-align: middle;
+  width: 100%;
+}
+
+.WideStyles-tableOfContents{
+  display: flex;
+  flex-direction: column;
+  flex-grow: 1;
+  flex-shrink: 1;
+  min-height: 0px;
+  width: 100%;
+}
+
+.WideStyles-content{
+  box-sizing: border-box;
+  margin-left: 25%;
+  padding: 48px;
+}
+
+.WideStyles-footer{
+  bottom: 0px;
+  height: 50px;
+  position: fixed;
+  width: 25%;
+}
+
+.WideStyles-marginLeftZero{
+  margin-left: 0px;
+}
+}</style><style>@media (max-width: 60em) {.NarrowStyles-header{
+  margin-bottom: 10px;
+}
+
+.NarrowStyles-content{
+  padding: 16px;
+}
+
+.NarrowStyles-headerContent{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  width: 100%;
+}
+
+.NarrowStyles-flexFont{
+  font-size: 4vw;
+}
+
+.NarrowStyles-disappear{
+  display: none;
+}
+
+.NarrowStyles-floatLeft{
+  float: left;
+  margin-left: 30px;
+}
+}</style><style>.Styles-hoverBox{
+  align-items: center;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+.Styles-hoverBox:hover .Styles-hoverLink{
+  opacity: 0.5;
+}
+
+.Styles-hoverLink{
+  opacity: 0.1;
+}
+.Styles-hoverLink:hover{
+  opacity: 1.0;
+}
+
+.Styles-headerStyle{
+  background-color: rgb(61, 79, 93);
+  box-sizing: border-box;
+  display: flex;
+}
+
+.Styles-headerLinkBox{
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+}
+
+.Styles-headerLink{
+  align-items: center;
+  display: flex;
+  flex: 1;
+  justify-content: center;
+  padding: 10px 10px;
+}
+
+.Styles-footerStyle{
+  color: rgb(158, 167, 174);
+  display: flex;
+  justify-content: center;
+}
+
+.Styles-subtleLink{
+  text-decoration: none;
+}
+</style><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/highlight.min.js"></script><script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/9.1.0/languages/scala.min.js"></script><script>hljs.initHighlightingOnLoad();</script><meta name="viewport" content="initial-scale = 1.0,maximum-scale = 1.0" /></head><body style="margin: 0px;background-color: #f8f8f8;"><div class=" WideStyles-header NarrowStyles-header Styles-headerStyle"><div class=" NarrowStyles-headerContent"><h1 style="text-align: center;padding: 30px 30px;margin: 0px;"><a style="color: #f8f8f8;font-weight: bold;" href=".." class=" Styles-subtleLink NarrowStyles-flexFont"><img src="../logo-white.svg" style="height: 30px;margin-top: -5px;" /> Mill</a></h1><div class=" Styles-headerLinkBox"><div class=" WideStyles-tableOfContents" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Pages</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="../index.html">Intro to Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="configuring-mill.html">Configuring Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="common-project-layouts.html">Common Project Layouts</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="tasks.html">Tasks</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="modules.html">Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="cross-builds.html">Cross Builds</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="extending-mill.html">Extending Mill</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="mill-internals.html">Mill Internals</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="contrib-modules.html">Contrib Modules</a></li><li class=" WideStyles-marginLeftZero NarrowStyles-floatLeft"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="thirdparty-modules.html">Thirdparty Modules</a></li></ul></div></div></div></div><hr class=" NarrowStyles-disappear" style="background-color: #f8f8f8;width: 80%;" /><div class=" WideStyles-tableOfContents NarrowStyles-disappear" style="color: #f8f8f8;"><div style="padding-left: 40px;" class=" NarrowStyles-disappear"><b>Table of Contents</b></div><div style="overflow-y: auto;flex-shrink: 1;min-height: 0px;"><ul style="overflow: hidden;text-align: start;margin-top: 10px;white-space: nowrap;text-overflow: ellipsis;margin-right: 10px;"><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#compilation--execution-flags">Compilation &amp; Execution Flags</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#adding-ivy-dependencies">Adding Ivy Dependencies</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#adding-a-test-suite">Adding a Test Suite</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-test-frameworks">Custom Test Frameworks</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#scala-compiler-plugins">Scala Compiler Plugins</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#reformatting-your-code">Reformatting your code</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#common-configuration">Common Configuration</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#global-configuration">Global configuration</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-tasks">Custom Tasks</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#custom-modules">Custom Modules</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#moduletask-names">Module/Task Names</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#overriding-tasks">Overriding Tasks</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#unmanaged-jars">Unmanaged Jars</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#defining-a-main-class">Defining a Main Class</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#mergeexcluderelocate-files-from-assembly">Merge/exclude/relocate files from assembly</a></li><li style="margin-left: 0px;"><a style="color: #f8f8f8;" class=" WideStyles-tableOfContentsItem" href="#downloading-non-maven-jars">Downloading Non-Maven Jars</a></li></ul></div></div></div><div class=" WideStyles-content NarrowStyles-content" style="max-width: 900px;"><h1>Configuring Mill</h1><div style="margin-bottom: 10px;"><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="../index.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Intro to Mill</a><a href="common-project-layouts.html">Common Project Layouts <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div><p>You can configure your Mill build in a number of ways:</p><h2 id="compilation--execution-flags" class="Styles-hoverBox">Compilation &amp; Execution Flags<a href="#compilation--execution-flags" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  def scalacOptions = Seq(&quot;-Ydelambdafy:inline&quot;)
+
+  def forkArgs = Seq(&quot;-Xmx4g&quot;)
+
+  def forkEnv = Map(&quot;HELLO_MY_ENV_VAR&quot; -&gt; &quot;WORLD&quot;)
+}
+</code></pre>
+<p>You can pass flags to the Scala compiler via <code>scalacOptions</code>. By default, <code>foo.run</code> runs the compiled code in a subprocess, and you can pass in JVM flags via <code>forkArgs</code> or environment-variables via <code>forkEnv</code>.</p>
+<p>You can also run your code via</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.runLocal
+</code></pre>
+<p>Which runs it in-process within an isolated classloader. This may be faster since you avoid the JVM startup, but does not support <code>forkArgs</code> or <code>forkEnv</code>.</p>
+<p>If you want to pass main-method arguments to <code>run</code> or <code>runLocal</code>, simply pass them after the <code>foo.run</code>/<code>foo.runLocal</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.run arg1 arg2 arg3
+mill foo.runLocal arg1 arg2 arg3
+</code></pre><h2 id="adding-ivy-dependencies" class="Styles-hoverBox">Adding Ivy Dependencies<a href="#adding-ivy-dependencies" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def ivyDeps = Agg(
+    ivy&quot;com.lihaoyi::upickle:0.5.1&quot;,
+    ivy&quot;com.lihaoyi::pprint:0.5.2&quot;,
+    ivy&quot;com.lihaoyi::fansi:0.2.4&quot;,
+    ivy&quot;${scalaOrganization()}:scala-reflect:${scalaVersion()}&quot;
+  )
+}
+</code></pre>
+<p>You can define the <code>ivyDeps</code> field to add ivy dependencies to your module. The <code>ivy&quot;com.lihaoyi::upickle:0.5.1&quot;</code> syntax (with <code>::</code>) represents Scala dependencies; for Java dependencies you would use a single <code>:</code> e.g. <code>ivy&quot;com.lihaoyi:upickle:0.5.1&quot;</code>. If you have dependencies cross-published against the full Scala version (eg. <code>2.12.4</code> instead of just <code>2.12</code>), you can use <code>:::</code> as in <code>ivy&quot;org.scalamacros:::paradise:2.1.1&quot;</code>.</p>
+<p>To select the test-jars from a dependency use the following syntax: <code>ivy&quot;org.apache.spark::spark-sql:2.4.0;classifier=tests</code>.</p>
+<p>By default these are resolved from maven central, but you can add your own resolvers by overriding the <code>repositories</code> definition in the module:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import coursier.maven.MavenRepository
+
+def repositoriesTask = T.task { super.repositoriesTask() ++ Seq(
+  MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
+) }
+</code></pre>
+<p>To add custom resolvers to the initial bootstrap of the build, you can create a custom <code>ZincWorkerModule</code>, and override the <code>zincWorker</code> method in your <code>ScalaModule</code> by pointing it to that custom object:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import coursier.maven.MavenRepository
+
+object CustomZincWorkerModule extends ZincWorkerModule with CoursierModule {
+  def repositoriesTask() = T.task { super.repositoriesTask() ++ Seq(
+    MavenRepository(&quot;https://oss.sonatype.org/content/repositories/releases&quot;)
+  ) }
+}
+
+object YourBuild extends ScalaModule {
+  def zincWorker = CustomZincWorkerModule
+  // ... rest of your build definitions
+}
+</code></pre><h2 id="adding-a-test-suite" class="Styles-hoverBox">Adding a Test Suite<a href="#adding-a-test-suite" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.1&quot;
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
+    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
+  }
+}
+</code></pre>
+<ul>
+  <li><a href="https://github.com/com-lihaoyi/mill/releases/download/0.7.0/0.7.0-example-3.zip">Example 3</a></li>
+</ul>
+<p>You can define a test suite by creating a nested module extending <code>Tests</code>, and specifying the ivy coordinates and name of your test framework. This expects the tests to be laid out as follows:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="">build.sc
+foo/
+    src/
+        Example.scala
+    resources/
+        ...
+    test/
+        src/
+            ExampleTest.scala
+        resources/
+            ...
+out/
+    foo/
+        ...
+        test/
+            ...
+</code></pre>
+<p>The above example can be run via</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.test
+</code></pre>
+<p>By default, tests are run in a subprocess, and <code>forkArg</code> and <code>forkEnv</code> can be overriden to pass JVM flags &amp; environment variables. You can also use</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.test.testLocal
+</code></pre>
+<p>To run tests in-process in an isolated classloader.</p>
+<p>If you want to pass any arguments to the test framework, simply put them after <code>foo.test</code> in the command line. e.g. <a href="https://github.com/lihaoyi/utest">uTest</a> lets you pass in a selector to decide which test to run, which in Mill would be:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill foo.test foo.MyTestSuite.testCaseName
+</code></pre>
+<p>You can define multiple test suites if you want, e.g.:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
+    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
+  }
+  object integration extends Tests {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
+    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
+  }
+}
+</code></pre>
+<p>Each of which will expect their sources to be in their respective <code>foo/test</code> and <code>foo/integration</code> folder.</p>
+<p><code>Tests</code> modules are <code>ScalaModule</code>s like any other, and all the same configuration options apply.</p><h2 id="custom-test-frameworks" class="Styles-hoverBox">Custom Test Frameworks<a href="#custom-test-frameworks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it to <code>ivyDeps</code> and specifying the <code>testFrameworks</code> you want to use.</p>
+<p>Scalatest example:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
+    def testFrameworks = Seq(&quot;org.scalatest.tools.Framework&quot;)
+  }
+}
+</code></pre>
+<p>Specs2 example:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  object test extends Tests {
+    def ivyDeps = Agg(ivy&quot;org.specs2::specs2-core:4.6.0&quot;)
+    def testFrameworks = Seq(&quot;org.specs2.runner.Specs2Framework&quot;)
+    def scalacOptions = foo.scalacOptions() ++ Seq(
+      &quot;-Yrangepos&quot;    // Required by specs2
+    )
+  }
+}
+</code></pre>
+<p>After that, you can follow the instructions in <a href="#adding-a-test-suite">add a test suite</a>, and use <code>mill foo.test</code> as usual, or pass args to the test suite via <code>mill foo.test arg1 arg2 arg3</code>.</p><h2 id="scala-compiler-plugins" class="Styles-hoverBox">Scala Compiler Plugins<a href="#scala-compiler-plugins" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  def compileIvyDeps = Agg(ivy&quot;com.lihaoyi::acyclic:0.1.7&quot;)
+  def scalacOptions = Seq(&quot;-P:acyclic:force&quot;)
+  def scalacPluginIvyDeps = Agg(ivy&quot;com.lihaoyi::acyclic:0.1.7&quot;)
+}
+</code></pre>
+<p>You can use Scala compiler plugins by setting <code>scalacPluginIvyDeps</code>. The above example also adds the plugin to <code>compileIvyDeps</code>, since that plugin's artifact is needed on the compilation classpath (though not at runtime).</p><h2 id="reformatting-your-code" class="Styles-hoverBox">Reformatting your code<a href="#reformatting-your-code" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Mill supports code formatting via <a href="https://scalameta.org/scalafmt/">scalafmt</a> out of the box.</p>
+<p>To have a formatting per-module you need to make your module extend <code>mill.scalalib.scalafmt.ScalafmtModule</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._, scalafmt._
+
+object foo extends ScalaModule with ScalafmtModule {
+  def scalaVersion = &quot;2.12.4&quot;
+}
+</code></pre>
+<p>Now you can reformat code with <code>mill foo.reformat</code> command, or only check for misformatted files with <code>mill foo.checkFormat</code>.</p>
+<p>You can also reformat your project's code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources</code> command, or only check the code's format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources</code>. It will reformat all sources that matches <code>__.sources</code> query.</p>
+<p>If you add a <code>.scalafmt.conf</code> file at the root of you project, it will be used to configure formatting. It can contain a <code>version</code> key to specify the scalafmt version used to format your code. See the <a href="https://scalameta.org/scalafmt/docs/configuration.html">scalafmt configuration documentation</a> for details.</p><h2 id="common-configuration" class="Styles-hoverBox">Common Configuration<a href="#common-configuration" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+trait CommonModule extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+}
+
+object foo extends CommonModule
+object bar extends CommonModule {
+  def moduleDeps = Seq(foo)
+}
+</code></pre>
+<p>You can extract out configuration common to multiple modules into a <code>trait</code> that those modules extend. This is useful for providing convenience &amp; ensuring consistent configuration: every module often has the same scala-version, uses the same testing framework, etc. and all that can be extracted out into the <code>trait</code>.</p><h2 id="global-configuration" class="Styles-hoverBox">Global configuration<a href="#global-configuration" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>Mill builds on ammonite which allows you to <a href="http://ammonite.io/#ScriptPredef">define global configuration</a>. Depending on how you start mill, one of two files will be loaded. For the build REPL (<code>--repl</code> or <code>-i</code> without specifying a target), <code>~/.mill/ammonite/predef.sc</code> will be loaded, and for builds from the command line the file <code>~/.mill/ammonite/predefScript.sc</code> will be included. You might want to create a symlink from one to the other to avoid duplication.</p>
+<p>Example <code>~/.mill/ammonite/predef.sc</code></p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">val nexusUser = &quot;myuser&quot;
+val nexusPassword = &quot;mysecret&quot;
+</code></pre>
+<p>Everything declared in the above file will be available to any build you run.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">  def repositories = super.repositories ++ Seq(
+    // login and pass are globally configured
+    MavenRepository(&quot;https://nexus.mycompany.com/repository/maven-releases&quot;, authentication = Some(coursier.core.Authentication(nexusUser, nexusPassword)))
+  )
+</code></pre><h2 id="custom-tasks" class="Styles-hoverBox">Custom Tasks<a href="#custom-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+}
+
+def lineCount = T {
+
+  foo.sources().flatMap(ref =&gt; os.walk(ref.path)).filter(os.isFile).flatMap(os.read.lines).size
+}
+
+def printLineCount() = T.command {
+  println(lineCount())
+}
+</code></pre>
+<p>You can define new cached Targets using the <code>T {...}</code> syntax, depending on existing Targets e.g. <code>foo.sources</code> via the <code>foo.sources()</code> syntax to extract their current value, as shown in <code>lineCount</code> above. The return-type of a Target has to be JSON-serializable (using <a href="https://github.com/lihaoyi/upickle">uPickle</a>) and the Target is cached when first run until its inputs change (in this case, if someone edits the <code>foo.sources</code> files which live in <code>foo/src</code>. Cached Targets cannot take parameters.</p>
+<p>You can print the value of your custom target using <code>show</code>, e.g.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill show lineCount
+</code></pre>
+<p>You can define new un-cached Commands using the <code>T.command {...}</code> syntax. These are un-cached and re-evaluate every time you run them, but can take parameters. Their return type needs to be JSON-writable as well, or <code>(): Unit</code> if you want to return nothing.</p>
+<p>Your custom targets can depend on each other using the <code>def bar = T {... foo()
+...}</code> syntax, and you can create arbitrarily long chains of dependent targets. Mill will handle the re-evaluation and caching of the targets' output for you, and will provide you a <code>T.dest</code> folder for you to use as scratch space or to store files you want to return.</p>
+<p>Custom targets and commands can contain arbitrary code. Whether you want to download files (e.g. using <code>mill.modules.Util.download</code>), shell-out to Webpack to compile some Javascript, generate sources to feed into a compiler, or create some custom jar/zip assembly with the files you want (e.g. using <code>mill.modules.Jvm.createJar</code>), all of these can simply be custom targets with your code running in the <code>T {...}</code> block.</p><h2 id="custom-modules" class="Styles-hoverBox">Custom Modules<a href="#custom-modules" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object qux extends Module {
+  object foo extends ScalaModule {
+    def scalaVersion = &quot;2.12.4&quot;
+  }
+  object bar extends ScalaModule {
+    def moduleDeps = Seq(foo)
+    def scalaVersion = &quot;2.12.4&quot;
+  }
+}
+</code></pre>
+<p>Not every Module needs to be a <code>ScalaModule</code>; sometimes you just want to group things together for neatness. In the above example, you can run <code>foo</code> and <code>bar</code> namespaced inside <code>qux</code>:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill qux.foo.compile
+mill qux.bar.run
+</code></pre>
+<p>You can also define your own module traits, with their own set of custom tasks, to represent other things e.g. Javascript bundles, docker image building,:</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+trait MySpecialModule extends Module {
+  ...
+}
+object foo extends MySpecialModule
+object bar extends MySpecialModule
+</code></pre><h2 id="moduletask-names" class="Styles-hoverBox">Module/Task Names<a href="#moduletask-names" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._
+import mill.scalalib._
+
+object `hyphenated-module` extends Module {
+  def `hyphenated-target` = T{
+    println(&quot;This is a hyphenated target in a hyphenated module.&quot;)
+  }
+}
+
+object unhyphenatedModule extends Module {
+  def unhyphenated_target = T{
+    println(&quot;This is an unhyphenated target in an unhyphenated module.&quot;)
+  }
+  def unhyphenated_target2 = T{
+    println(&quot;This is the second unhyphenated target in an unhyphenated module.&quot;)
+  }
+}
+</code></pre>
+<p>Mill modules and tasks may be composed of any of the following characters types:</p>
+<ul>
+  <li>Alphanumeric (A-Z, a-z, and 0-9)</li>
+  <li>Underscore (_)</li>
+  <li>Hyphen (-)</li>
+</ul>
+<p>Due to Scala naming restrictions, module and task names with hyphens must be surrounded by back-ticks (`).</p>
+<p>Using hyphenated names at the command line is unaffected by these restrictions.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="bash">mill hyphenated-module.hyphenated-target
+mill unhyphenatedModule.unhyphenated_target
+mill unhyphenatedModule.unhyphenated_target2
+</code></pre><h2 id="overriding-tasks" class="Styles-hoverBox">Overriding Tasks<a href="#overriding-tasks" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def compile = T {
+    println(&quot;Compiling...&quot;)
+    super.compile()
+  }
+  def run(args: String*) = T.command {
+    println(&quot;Running...&quot; + args.mkString(&quot; &quot;))
+    super.run(args:_*)
+  }
+}
+</code></pre>
+<p>You can re-define targets and commands to override them, and use <code>super</code> if you want to refer to the originally defined task. The above example shows how to override <code>compile</code> and <code>run</code> to add additional logging messages, but you can also override <code>ScalaModule#generatedSources</code> to feed generated code to your compiler, <code>ScalaModule#prependShellScript</code> to make your assemblies executable, or <code>ScalaModule#console</code> to use the Ammonite REPL instead of the normal Scala REPL.</p>
+<p>In Mill builds the <code>override</code> keyword is optional.</p><h2 id="unmanaged-jars" class="Styles-hoverBox">Unmanaged Jars<a href="#unmanaged-jars" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def unmanagedClasspath = T {
+    if (!os.exists(millSourcePath / &quot;lib&quot;)) Agg()
+    else Agg.from(os.list(millSourcePath / &quot;lib&quot;).map(PathRef(_)))
+  }
+}
+</code></pre>
+<p>You can override <code>unmanagedClasspath</code> to point it at any jars you place on the filesystem, e.g. in the above snippet any jars that happen to live in the <code>foo/lib/</code> folder.</p><h2 id="defining-a-main-class" class="Styles-hoverBox">Defining a Main Class<a href="#defining-a-main-class" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def mainClass = Some(&quot;foo.bar.Baz&quot;)
+}
+</code></pre>
+<p>Mill's <code>foo.run</code> by default will discover which main class to run from your compilation output, but if there is more than one or the main class comes from some library you can explicitly specify which one to use. This also adds the main class to your <code>foo.jar</code> and <code>foo.assembly</code> jars.</p><h2 id="mergeexcluderelocate-files-from-assembly" class="Styles-hoverBox">Merge/exclude/relocate files from assembly<a href="#mergeexcluderelocate-files-from-assembly" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<p>When you make a runnable jar of your project with <code>assembly</code> command, you may want to exclude some files from a final jar (like signature files, and manifest files from library jars), and merge duplicated files (for instance <code>reference.conf</code> files from library dependencies).</p>
+<p>By default mill excludes all <code>*.sf</code>, <code>*.dsa</code>, <code>*.rsa</code>, and <code>META-INF/MANIFEST.MF</code> files from assembly, and concatenates all <code>reference.conf</code> files. You can also define your own merge/exclude rules.</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def assemblyRules = Seq(
+    Rule.Append(&quot;application.conf&quot;), // all application.conf files will be concatenated into single file
+    Rule.AppendPattern(&quot;.*\\.conf&quot;), // all *.conf files will be concatenated into single file
+    Rule.ExcludePattern(&quot;*.temp&quot;), // all *.temp files will be excluded from a final jar
+    Rule.Relocate(&quot;shapeless.**&quot;, &quot;shade.shapless.@1&quot;) // the `shapeless` package will be shaded under the `shade` package
+  )
+}
+</code></pre>
+<p>To exclude Scala library from assembly</p>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+import mill.modules.Assembly._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+
+  def scalaLibraryIvyDeps = T { Agg.empty }
+}
+</code></pre><h2 id="downloading-non-maven-jars" class="Styles-hoverBox">Downloading Non-Maven Jars<a href="#downloading-non-maven-jars" class=" Styles-hoverLink"><i class="fa fa-link" aria-hidden="true"></i></a></h2>
+<pre style="background-color: #f8f8f8"><code style="white-space:pre; background-color: #f8f8f8" class="scala">// build.sc
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.12.4&quot;
+  def unmanagedClasspath = Agg(
+    mill.modules.Util.download(
+      &quot;https://github.com/williamfiset/FastJavaIO/releases/download/v1.0/fastjavaio.jar&quot;,
+      &quot;fastjavaio.jar&quot;
+    )
+  )
+}
+</code></pre>
+<p>You can also override <code>unmanagedClasspath</code> to point it at jars that you want to download from arbitrary URLs. Note that targets like <code>unmanagedClasspath</code> are cached, so your jar is downloaded only once and re-used indefinitely after that.</p><hr /><p><i>This documentation was build from mill master branch. </i></p><p><b>About Mill: </b><i>Mill is an Open Source Project created by <a href="http://www.lihaoyi.com">Li Haoyi</a>. It is actively maintained and the git repository has <a href="https://github.com/com-lihaoyi/mill/graphs/contributors">more that 100 individual contributors</a> around the world. </i></p><p><b>About Mills Creator:</b><i> Li Haoyi is a software engineer, an early contributor to <a href="http://www.scala-js.org/">Scala.js</a>, and the author of many open-source Scala tools such as Mill, the <a href="http://lihaoyi.com/Ammonite">Ammonite REPL</a> and <a href="https://github.com/lihaoyi/fastparse">FastParse</a>. If you've enjoyed using Mill, or enjoyed using Haoyi's other open source libraries, please chip in (or get your Company to chip in!) via <a href="https://www.patreon.com/lihaoyi">Patreon</a> so he can continue his open-source work.</i></p><hr /><div style="display: flex;flex-direction: row;justify-content: space-between;"><a href="../index.html"><i class="fa fa-arrow-left" aria-hidden="true"></i> Intro to Mill</a><a href="common-project-layouts.html">Common Project Layouts <i class="fa fa-arrow-right" aria-hidden="true"></i></a></div></div></body></html>
