@@ -56,7 +56,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-46-37b110d0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-60-38e6564b"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
