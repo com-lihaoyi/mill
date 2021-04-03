@@ -1,0 +1,22 @@
+name: Publish Docs
+on:
+  push:
+    branches:
+      - master
+jobs:
+  publishDocs:
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    runs-on: ubuntu-latest
+    env:
+      REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}
+
+    steps:
+      - uses: actions/checkout@v2
+        with:
+          fetch-depth: 0
+
+      - uses: actions/setup-java@v1
+        with:
+          java-version: 8
+
+      - run: ci/publish-docs.sh
