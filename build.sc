@@ -15,6 +15,18 @@ import mill.scalalib.publish._
 import mill.modules.Jvm
 import os.RelPath
 
+object Settings {
+  val pomOrg = "com.lihaoyi"
+  val githubOrg = "com-lihaoyi"
+  val githubRepo = "mill"
+  val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
+  val docUrl = "https://com-lihaoyi.github.io/mill"
+  // the exact branches containing a doc root
+  val docBranches = Seq()
+  // the exact tags containing a doc root
+  val docTags = Seq("0.9.6")
+}
+
 object Deps {
 
   // The Scala version to use
@@ -90,14 +102,6 @@ object Deps {
   val zinc = ivy"org.scala-sbt::zinc:1.4.4"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.0"
-}
-
-object Settings {
-  val pomOrg = "com.lihaoyi"
-  val githubOrg = "com-lihaoyi"
-  val githubRepo = "mill"
-  val projectUrl = s"https://github.com/${githubOrg}/${githubRepo}"
-  val docUrl = "https://com-lihaoyi.github.io/mill"
 }
 
 def millVersion = T { VcsVersion.vcsState().format() }
@@ -916,6 +920,10 @@ object docs extends Module {
       val lines = os.read(dest / "antora.yml").linesIterator.map {
         case l if l.startsWith("version:") =>
           s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
+        case l if l.startsWith("    mill-version:") =>
+          s"    mill-version: '${millVersion()}'"
+        case l if l.startsWith("    mill-last-tag:") =>
+          s"    mill-last-tag: '${millLastTag()}'"
         case l => l
       }
       os.write.over(dest / "antora.yml", lines.mkString("\n"))
@@ -929,12 +937,12 @@ object docs extends Module {
          |
          |content:
          |  sources:
-         |    # the in-repo version-tagged documentation (currently only the pr branch)
-         |    # TODO: switch branch to master and add tags for releases with antora docs
-         |    ##- url: ${if (authorMode) baseDir else Settings.projectUrl}
-         |    ##  branches: ${if (authorMode) "HEAD" else "antora"}
-         |    ##  start_path: docs/antora
-         |    # the master documentation
+         |    - url: ${if (authorMode) baseDir else Settings.projectUrl}
+         |      branches: ${ if(Settings.docBranches.isEmpty) "~"
+              else Settings.docBranches.map("'" + _ + "'").mkString("[", ",", "]") }
+         |      tags: ${Settings.docTags.map("'" + _ + "'").mkString("[", ",", "]")}
+         |      start_path: docs/antora
+         |    # the master documentation (always in author mode)
          |    - url: ${baseDir}
          |      # edit_url: ${ Settings.projectUrl }/edit/{refname}/{path}
          |      branches: HEAD
@@ -947,8 +955,6 @@ object docs extends Module {
          |
          |asciidoc:
          |  attributes:
-         |    mill-version: '${millVersion()}'
-         |    mill-last-tag: '${millLastTag()}'
          |    mill-github-url: ${Settings.projectUrl}
          |    mill-doc-url: ${Settings.docUrl}
          |    utest-github-url: https://github.com/com-lihaoyi/utest

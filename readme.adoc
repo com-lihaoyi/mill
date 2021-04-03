@@ -211,8 +211,28 @@ corresponding version of Mill.
 === master
 
 _For details refer to
-{link-milestone}/47?closed=1[milestone after 0.9.5]
-and the {link-compare}/0.9.5\...master[list of commits]._
+{link-milestone}/48?closed=1[milestone after 0.9.6]
+and the {link-compare}/0.9.6\...master[list of commits]._
+
+
+=== 0.9.6 - 2021-04-03
+
+_The mill project home and repository has been moved to https://github.com/com-lihaoyi/mill._
+
+* `repl` and `console` targets now support `forkArgs` and `forkEnv`
+* Support for Scala 3 release candidates and new Scaladoc 3 tool
+* Support for Scala.js on Scala 3
+* Scala Native improvements
+* Test runner now uses an args file to support running tests on Windows
+* GenIdea: better supports source jars, full config contributions and provided/runtime dependencies
+* Various dependency updates
+* Documentation site reworked to support multiple release versions
+* Improved CI setup to better test mill on Windows
+
+_For details refer to
+{link-milestone}/47?closed=1[milestone 0.9.6]
+and the {link-compare}/0.9.5\...0.9.6[list of commits]._
+
 
 === 0.9.5 - 2021-01-26
 
