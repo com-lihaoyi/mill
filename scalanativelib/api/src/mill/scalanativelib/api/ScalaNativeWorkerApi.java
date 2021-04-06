@@ -19,6 +19,7 @@ public interface ScalaNativeWorkerApi {
                         boolean nativeLinkStubs,
                         LTO nativeLTO,
                         ReleaseMode releaseMode,
+                        boolean optimize,
                         NativeLogLevel logLevel);
 
     String defaultGarbageCollector();

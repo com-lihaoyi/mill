@@ -87,7 +87,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
 
-  def releaseMode: Target[ReleaseMode] = T { ReleaseMode.Debug }
+  private def releaseModeInput = T.input(sys.env.get("SCALANATIVE_MODE").map(ReleaseMode.valueOf))
+  def releaseMode: Target[ReleaseMode] = T {
+    releaseModeInput().getOrElse(ReleaseMode.Debug)
+  }
 
   def nativeWorkdir = T{ T.dest }
 
@@ -98,9 +101,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
+  private def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
   def nativeGC = T{
-    Option(System.getenv.get("SCALANATIVE_GC"))
-      .getOrElse(scalaNativeWorker().defaultGarbageCollector)
+    nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
   def nativeTarget: Target[Option[String]] = T { None }
@@ -114,7 +117,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
 
-  def nativeLTO: Target[LTO] = T { LTO.None }
+  // The LTO mode to use used during a release build
+  private def nativeLTOInput = T.input(sys.env.get("SCALANATIVE_LTO").map(LTO.valueOf))
+  def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
+
+  // Shall we optimize the resulting NIR code?
+  private def nativeOptimizeInput = T.input(sys.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean))
+  def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
   def nativeConfig = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
@@ -132,6 +141,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeLinkStubs(),
       nativeLTO(),
       releaseMode(),
+      nativeOptimize(),
       logLevel())
   }
 
