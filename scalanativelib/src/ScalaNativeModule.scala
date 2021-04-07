@@ -87,7 +87,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
 
-  private def releaseModeInput = T.input(sys.env.get("SCALANATIVE_MODE").map(ReleaseMode.valueOf))
+  private def releaseModeInput = T.input(
+    sys.env.get("SCALANATIVE_MODE").map(v =>
+      ReleaseMode
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"))
+    )
+  )
   def releaseMode: Target[ReleaseMode] = T {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
@@ -118,7 +125,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLinkStubs = T { false }
 
   // The LTO mode to use used during a release build
-  private def nativeLTOInput = T.input(sys.env.get("SCALANATIVE_LTO").map(LTO.valueOf))
+  private def nativeLTOInput = T.input(
+    sys.env.get("SCALANATIVE_LTO").map(v =>
+      LTO
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"))
+    )
+  )
   def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
