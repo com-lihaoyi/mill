@@ -145,10 +145,11 @@ object Util {
   }
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
-  def isBinaryBridgeAvailable(scalaVersion: String) = scalaVersion match {
+  def isBinaryBridgeAvailable(scalaVersion: String) =
+    scalaVersion match {
       case DottyNightlyVersion(major, minor, _, _) => major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
       case DottyVersion(minor, _) => minor.toInt >= 13 // 0.13.0-RC1 or more
-      case Scala3Version(_, _, _) => true
+      case Scala3EarlyVersion(_) |  Scala3Version(_, _) => true
       case _ => false
-  }
+    }
 }
