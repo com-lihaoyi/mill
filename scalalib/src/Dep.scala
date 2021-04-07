@@ -1,8 +1,8 @@
 package mill.scalalib
 import mill.util.JsonFormatters._
 import upickle.default.{macroRW, ReadWriter => RW}
-
 import CrossVersion._
+import mill.scalalib.api.Util.Scala3EarlyVersion
 
 case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
   import mill.scalalib.api.Util.{isDottyOrScala3, DottyVersion, Scala3Version}
@@ -57,7 +57,7 @@ case class Dep(dep: coursier.Dependency, cross: CrossVersion, force: Boolean) {
       case cross: Binary if isDottyOrScala3(scalaVersion) =>
         val compatSuffix =
           scalaVersion match {
-            case Scala3Version(_, _, _) =>
+            case Scala3Version(_, _) | Scala3EarlyVersion(_) =>
               "_2.13"
             case DottyVersion(minor, patch) =>
               if (minor.toInt > 18 || minor.toInt == 18 && patch.toInt >= 1)
