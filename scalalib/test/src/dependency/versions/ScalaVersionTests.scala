@@ -31,10 +31,17 @@ object ScalaVersionTests extends TestSuite {
       assert(sbv == expectedSbv)
     }
     test("earlyscala3") {
-      val sv = "3.0.0-RC2"
-      val sbv = scalaBinaryVersion(sv)
       val expectedSbv = "3.0.0-RC2"
-      assert(sbv == expectedSbv)
+      test("RC") {
+        val sv = "3.0.0-RC2"
+        val sbv = scalaBinaryVersion(sv)
+        assert(sbv == expectedSbv)
+      }
+      test("nightly") {
+        val sv = "3.0.0-RC2-bin-20210323-d4f1c26-NIGHTLY"
+        val sbv = scalaBinaryVersion(sv)
+        assert(sbv == expectedSbv)
+      }
     }
     test("scala3") {
       val expectedSbv = "3"
@@ -45,6 +52,11 @@ object ScalaVersionTests extends TestSuite {
       }
       test("RC") {
         val sv = "3.0.2-RC4"
+        val sbv = scalaBinaryVersion(sv)
+        assert(sbv == expectedSbv)
+      }
+      test("nightly") {
+        val sv = "3.0.1-RC1-bin-20210405-16776c8-NIGHTLY"
         val sbv = scalaBinaryVersion(sv)
         assert(sbv == expectedSbv)
       }
