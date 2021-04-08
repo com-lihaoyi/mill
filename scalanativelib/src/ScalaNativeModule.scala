@@ -87,7 +87,14 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
 
-  private def releaseModeInput = T.input(sys.env.get("SCALANATIVE_MODE").map(ReleaseMode.valueOf))
+  protected def releaseModeInput = T.input(
+    sys.env.get("SCALANATIVE_MODE").map(v =>
+      ReleaseMode
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"))
+    )
+  )
   def releaseMode: Target[ReleaseMode] = T {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
@@ -101,7 +108,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
-  private def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
+  protected def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
   def nativeGC = T{
     nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
@@ -118,11 +125,18 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeLinkStubs = T { false }
 
   // The LTO mode to use used during a release build
-  private def nativeLTOInput = T.input(sys.env.get("SCALANATIVE_LTO").map(LTO.valueOf))
+  protected def nativeLTOInput = T.input(
+    sys.env.get("SCALANATIVE_LTO").map(v =>
+      LTO
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"))
+    )
+  )
   def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
 
   // Shall we optimize the resulting NIR code?
-  private def nativeOptimizeInput = T.input(sys.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean))
+  protected def nativeOptimizeInput = T.input(sys.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean))
   def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
   def nativeConfig = T.task {
