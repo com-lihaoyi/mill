@@ -83,8 +83,8 @@ object Jvm {
 
     val cp =
       if(useCpPassingJar && !classPath.iterator.isEmpty) {
-        val passingJar = os.temp(prefix = "run-", suffix = ".jar")
-        ctx.log.debug(s"Creating classpath passing jar: ${passingJar}")
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ctx.log.debug(s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.mkString(" ")}")
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
       } else {
@@ -332,7 +332,7 @@ object Jvm {
       jar = jar,
       inputPaths = Agg(),
       manifest = JarManifest.Default.add(
-        "Class-Path" -> classpath.iterator.map(_.toString()).mkString(" ")
+        "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")
       ),
       fileFilter = (_, _) => true
     )

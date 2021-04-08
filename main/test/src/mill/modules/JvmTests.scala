@@ -25,7 +25,7 @@ object JvmTests extends TestSuite{
       val jar = new JarFile(aJar.toIO)
       assert(jar.getManifest().getMainAttributes().containsKey(Attributes.Name.CLASS_PATH))
       assert(jar.getManifest().getMainAttributes().getValue(Attributes.Name.CLASS_PATH) ==
-        s"${dep1.toString()} ${dep2.toString()}")
+        Seq(dep1, dep2).map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" "))
     }
 
   }
