@@ -707,8 +707,9 @@ trait TestModule extends JavaModule with TaskModule {
       args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
     T.task {
       val outputPath = T.dest / "out.json"
+      val useArgsFile = testUseArgsFile()
 
-      val (jvmArgs, props: Map[String, String]) = if (testUseArgsFile()) {
+      val (jvmArgs, props: Map[String, String]) = if (useArgsFile) {
         val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
         val sysProps =
           props
@@ -735,7 +736,7 @@ trait TestModule extends JavaModule with TaskModule {
         homeStr = T.home.toString()
       )
 
-      val mainArgs = if (testUseArgsFile()) {
+      val mainArgs = if (useArgsFile) {
         val argsFile = T.dest / "testargs"
         Seq(testArgs.writeArgsFile(argsFile))
       } else {
@@ -748,7 +749,8 @@ trait TestModule extends JavaModule with TaskModule {
         jvmArgs = jvmArgs,
         envArgs = forkEnv(),
         mainArgs = mainArgs,
-        workingDir = forkWorkingDir()
+        workingDir = forkWorkingDir(),
+        useCpPassingJar = useArgsFile
       )
 
       if (!os.exists(outputPath)) Result.Failure("Test execution failed.")
