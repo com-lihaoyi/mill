@@ -84,7 +84,8 @@ object Jvm {
     val cp =
       if(useCpPassingJar && !classPath.iterator.isEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ctx.log.debug(s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.mkString(" ")}")
+        ctx.log.debug(s"Creating classpath passing jar '${passingJar}' with Class-Path: ${
+          classPath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")}")
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
       } else {
