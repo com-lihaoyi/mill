@@ -798,12 +798,12 @@ object TestModule {
       val reportCount = 5
       val suffix =
         if (badTests.length <= reportCount) ""
-        else s" and ${badTests.length - reportCount} more ..."
+        else s"\n  and ${badTests.length - reportCount} more ..."
 
       val msg = s"${badTests.size} tests failed: ${badTests
         .take(reportCount)
         .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-        .mkString(", ")}$suffix"
+        .mkString("\n  ")}$suffix"
 
       Result.Failure(msg, Some((doneMsg, results))
       )
