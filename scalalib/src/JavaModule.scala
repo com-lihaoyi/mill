@@ -800,12 +800,12 @@ object TestModule {
         if (badTests.length <= reportCount) ""
         else s" and ${badTests.length - reportCount} more ..."
 
-      Result.Failure(
-        s"${badTests.last} tests failed: ${badTests
-          .take(reportCount)
-          .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-          .mkString(", ")}$suffix",
-        Some((doneMsg, results))
+      val msg = s"${badTests.size} tests failed: ${badTests
+        .take(reportCount)
+        .map(t => s"${t.fullyQualifiedName} ${t.selector}")
+        .mkString(", ")}$suffix"
+
+      Result.Failure(msg, Some((doneMsg, results))
       )
     }
   }
