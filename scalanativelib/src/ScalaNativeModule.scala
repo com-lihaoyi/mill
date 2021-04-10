@@ -166,10 +166,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Runs the native binary
   override def run(args: String*) = T.command{
-    Jvm.baseInteractiveSubprocess(
-      Vector(nativeLink().toString) ++ args,
-      forkEnv(),
-      workingDir = ammonite.ops.pwd)
+    Jvm.runSubprocess(
+      commandArgs = Vector(nativeLink().toString) ++ args,
+      envArgs = forkEnv(),
+      workingDir = forkWorkingDir())
   }
 }
 
@@ -182,13 +182,13 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       nativeLink().toIO,
       forkEnv().asJava,
       logLevel(),
-      testFrameworks().head
+      testFramework()
     )
     val framework = getFrameworkResult.framework
     val close = getFrameworkResult.close
 
-    val (doneMsg, results) = TestRunner.runTests(
-      _ => Seq(framework),
+    val (doneMsg, results) = TestRunner.runTestFramework(
+      _ => framework,
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),

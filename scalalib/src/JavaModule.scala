@@ -671,7 +671,22 @@ trait TestModule extends JavaModule with TaskModule {
   /**
    * What test frameworks to use.
    */
-  def testFrameworks: T[Seq[String]]
+  @deprecated("Use testFramework instead.", "mill after 0.9.6")
+  def testFrameworks: T[Seq[String]] = T{ Seq.empty[String] }
+
+  /**
+    * The test framework to use.
+    */
+  def testFramework: T[String] = T{
+    val frameworks = testFrameworks()
+    val msg = "Target testFrameworks is deprecated. Please use target testFramework or use on of the predefined TestModules: TestNg, Junit, Scalatest, ..."
+    if(frameworks.size > 1) {
+      Result.Failure("Since mill after-0.9.6 only one test framework per TestModule is supported.")
+    } else {
+      T.log.error("Warning: testFrameworks target is deprecated. Please switch to testFramework o")
+      Result.Success(frameworks.head)
+    }
+  }
 
   /**
    * Discovers and runs the module's tests in a subprocess, reporting the
@@ -726,7 +741,7 @@ trait TestModule extends JavaModule with TaskModule {
       }
 
       val testArgs = TestRunner.TestArgs(
-        frameworks = testFrameworks(),
+        framework = testFramework(),
         classpath = runClasspath().map(_.path.toString()),
         arguments = args(),
         sysProps = props,
@@ -773,8 +788,8 @@ trait TestModule extends JavaModule with TaskModule {
   def testLocal(args: String*) = T.command {
     val outputPath = T.dest / "out.json"
 
-    val (doneMsg, results) = TestRunner.runTests(
-      TestRunner.frameworks(testFrameworks()),
+    val (doneMsg, results) = TestRunner.runTestFramework(
+      TestRunner.framework(testFramework()),
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args,
