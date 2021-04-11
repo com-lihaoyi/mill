@@ -157,7 +157,7 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
     ivy"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
   )
 
-  object test extends Tests {
+  trait Tests extends super.Tests {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest:3.0.5-M1",
@@ -181,11 +181,13 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
         )
       )
     }
+  }
 
-    def testFrameworks = Seq(
-      "org.scalatest.tools.Framework",
-      "org.specs2.runner.Specs2Framework"
-    )
+  object `test-scalatest` extends Tests {
+    override def testFramework = "org.scalatest.tools.Framework"
+  }
+  object `test-specs2` extends Tests {
+    override def testFramework = "org.specs2.runner.Specs2Framework"
   }
 
 }
@@ -210,9 +212,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
       millSourcePath / "shared" / "src" / "test"
     )
 
-    def testFrameworks = Seq(
-      "org.scalatest.tools.Framework"
-    )
+    def testFramework = "org.scalatest.tools.Framework"
   }
 }
 
@@ -243,9 +243,7 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
   object test extends Tests {
     def ivyDeps = Agg(specs2Core())
 
-    def testFrameworks = Seq(
-      "org.specs2.runner.Specs2Framework"
-    )
+    def testFramework = "org.specs2.runner.Specs2Framework"
   }
 
 }
@@ -259,7 +257,8 @@ class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
 
 // TODO: we should have a way to "take all modules in this build"
 val testModules = Seq(
-  playJsonJvm("2.12.4").test,
+  playJsonJvm("2.12.4").`test-scalatest`,
+  playJsonJvm("2.12.4").`test-specs2`,
   playJsonJs("2.12.4").test,
   playJoda("2.12.4").test
 )
