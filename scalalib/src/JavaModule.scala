@@ -680,10 +680,10 @@ trait TestModule extends JavaModule with TaskModule {
   def testFramework: T[String] = T{
     val frameworks = testFrameworks()
     val msg = "Target testFrameworks is deprecated. Please use target testFramework or use on of the predefined TestModules: TestNg, Junit, Scalatest, ..."
-    if(frameworks.size > 1) {
-      Result.Failure("Since mill after-0.9.6 only one test framework per TestModule is supported.")
+    if(frameworks.size != 1) {
+      Result.Failure("Since mill after-0.9.6 only one test framework per TestModule is supported. " ++msg)
     } else {
-      T.log.error("Warning: testFrameworks target is deprecated. Please switch to testFramework o")
+      T.log.error(msg)
       Result.Success(frameworks.head)
     }
   }
