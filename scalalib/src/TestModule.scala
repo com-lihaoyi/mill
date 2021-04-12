@@ -153,7 +153,7 @@ object TestModule {
   trait TestNg extends TestModule {
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi:mill-contrib-testng_2.13:${mill.BuildInfo.millVersion}")
+        ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}")
     }
   }
 

@@ -444,6 +444,8 @@ object scalajslib extends MillModule {
 
 object contrib extends MillModule {
   object testng extends MillModule{
+    // pure Java implementation
+    override def artifactSuffix: T[String] = ""
     override def ivyDeps = Agg(
       Deps.sbtTestInterface,
       Deps.testng
@@ -455,6 +457,7 @@ object contrib extends MillModule {
         "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(","),
       ) ++ scalalib.worker.testArgs()
     }
+
   }
 
   object twirllib extends MillModule {
