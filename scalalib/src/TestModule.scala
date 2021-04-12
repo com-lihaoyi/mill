@@ -169,10 +169,10 @@ object TestModule {
   }
 
   /**
-   * TestModule that uses Scalatest Framework to run tests.
+   * TestModule that uses ScalaTest Framework to run tests.
    * You need to provide the scalatest dependencies yourself.
    */
-  trait Scalatest extends TestModule {
+  trait ScalaTest extends TestModule {
     override def testFramework: T[String] = "org.scalatest.tools.Framework"
   }
 
@@ -189,6 +189,14 @@ object TestModule {
    */
   trait Utest extends TestModule {
     override def testFramework: T[String] = "mill.UTestFramework"
+  }
+
+  /**
+    * TestModule that uses MUnit to run tests.
+    * You need to provide the munit dependencies yourself.
+    */
+  trait Munit extends TestModule {
+    override def testFramework: T[String] = "munit.Framework"
   }
 
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result])

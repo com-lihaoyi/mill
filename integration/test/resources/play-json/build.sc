@@ -183,7 +183,7 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
     }
   }
 
-  object `test-scalatest` extends Tests with TestModule.Scalatest
+  object `test-scalatest` extends Tests with TestModule.ScalaTest
   object `test-specs2` extends Tests with TestModule.Specs2
 
 }
@@ -195,7 +195,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with TestModule.Scalatest /* with Headers*/ {
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with TestModule.ScalaTest /* with Headers*/ {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
