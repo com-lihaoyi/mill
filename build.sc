@@ -446,7 +446,7 @@ object contrib extends MillModule {
   object testng extends MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
-
+    override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T{ Agg.empty[Dep] }
     override def ivyDeps = Agg(
       Deps.sbtTestInterface,
       Deps.testng
