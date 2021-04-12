@@ -24,7 +24,7 @@ trait TestModule extends JavaModule with TaskModule {
         "predefined TestModules: TestNg, Junit, Scalatest, ..."
     if (frameworks.size != 1) {
       Result.Failure(
-        "Since mill after-0.9.6 only one test framework per TestModule is supported. " ++ msg)
+        s"Since mill after-0.9.6 only one test framework per TestModule is supported. ${msg}")
     } else {
       T.log.error(msg)
       Result.Success(frameworks.head)
@@ -207,7 +207,7 @@ object TestModule {
       val msg = s"${badTests.size} tests failed: ${badTests
         .take(reportCount)
         .map(t => s"${t.fullyQualifiedName} ${t.selector}")
-        .mkString("\n  ")}$suffix"
+        .mkString("\n  ", "\n  ", "")}$suffix"
 
       Result.Failure(msg, Some((doneMsg, results)))
     }
