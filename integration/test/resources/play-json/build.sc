@@ -183,12 +183,8 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
     }
   }
 
-  object `test-scalatest` extends Tests {
-    override def testFramework = "org.scalatest.tools.Framework"
-  }
-  object `test-specs2` extends Tests {
-    override def testFramework = "org.specs2.runner.Specs2Framework"
-  }
+  object `test-scalatest` extends Tests with TestModule.Scalatest
+  object `test-specs2` extends Tests with TestModule.Specs2
 
 }
 
@@ -199,7 +195,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform/* with Headers*/ {
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with TestModule.Scalatest /* with Headers*/ {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
@@ -211,8 +207,6 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
       millSourcePath / platformSegment / "src" / "test",
       millSourcePath / "shared" / "src" / "test"
     )
-
-    def testFramework = "org.scalatest.tools.Framework"
   }
 }
 
@@ -240,10 +234,8 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
     ivy"joda-time:joda-time:2.9.9"
   )
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(specs2Core())
-
-    def testFramework = "org.specs2.runner.Specs2Framework"
   }
 
 }
