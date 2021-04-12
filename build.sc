@@ -443,14 +443,14 @@ object scalajslib extends MillModule {
 
 
 object contrib extends MillModule {
-  object testng extends MillModule{
+  object testng extends MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
+
     override def ivyDeps = Agg(
       Deps.sbtTestInterface,
       Deps.testng
     )
-    override def compileModuleDeps = Seq(scalalib)
     override def testArgs = T{
       Seq(
         "-DMILL_SCALA_LIB=" + scalalib.runClasspath().map(_.path).mkString(","),
@@ -458,6 +458,10 @@ object contrib extends MillModule {
       ) ++ scalalib.worker.testArgs()
     }
 
+    override val test = new Tests(implicitly)
+    class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
+      override def compileModuleDeps = Seq(scalalib)
+    }
   }
 
   object twirllib extends MillModule {
