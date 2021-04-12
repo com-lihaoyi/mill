@@ -148,7 +148,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
-  def scalacOptions = super.scalacOptions() ++ {
+  override def scalacOptions = super.scalacOptions() ++ {
     if(isScala3(scalaVersion())) Seq("-scalajs")
     else Seq.empty
   }
@@ -218,13 +218,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
       toolsClasspath().map(_.path),
       jsEnvConfig(),
-      testFrameworks().head,
+      testFramework(),
       fastOptTest().path.toIO,
       moduleKind()
     )
 
-    val (doneMsg, results) = TestRunner.runTests(
-      _ => Seq(framework),
+    val (doneMsg, results) = TestRunner.runTestFramework(
+      _ => framework,
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),

@@ -1,9 +1,7 @@
 import mill.Agg
 import mill.scalalib._
 
-trait JUnitTests extends TestModule{
-  def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-
+trait JUnitTests extends TestModule.Junit4 {
   /**
     * Overriden ivyDeps Docs!!!
     */

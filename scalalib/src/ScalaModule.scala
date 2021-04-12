@@ -384,7 +384,7 @@ trait ScalaModule extends JavaModule { outer =>
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
   override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()
+    super.prepareOffline()()
     resolveDeps(scalacPluginIvyDeps)()
     resolveDeps(scalaDocPluginIvyDeps)()
     resolvedAmmoniteReplIvyDeps()

@@ -12,18 +12,21 @@ class PlayJsonTests(fork: Boolean) extends IntegrationTestSuite("MILL_PLAY_JSON_
   val tests = Tests{
     initWorkspace()
 
-    'jvm - {
-      assert(eval("playJsonJvm[2.12.4].test"))
-      val jvmMeta = meta("playJsonJvm[2.12.4].test.test")
-
-      assert(
-        jvmMeta.contains("play.api.libs.json.JsonSharedSpec"),
-        jvmMeta.contains("JSON should support basic array operations")
+    "jvm" - {
+      assert(eval("playJsonJvm[2.12.4].{test-scalatest,test-specs2}"))
+      val jvmMeta: Seq[String] = Seq(
+        meta("playJsonJvm[2.12.4].test-scalatest.test"),
+        meta("playJsonJvm[2.12.4].test-specs2.test")
       )
 
       assert(
-        jvmMeta.contains("play.api.libs.json.JsonValidSpec"),
-        jvmMeta.contains("JSON reads should::validate Dates")
+        jvmMeta.exists(_.contains("play.api.libs.json.JsonSharedSpec")),
+        jvmMeta.exists(_.contains("JSON should support basic array operations"))
+      )
+
+      assert(
+        jvmMeta.exists(_.contains("play.api.libs.json.JsonValidSpec")),
+        jvmMeta.exists(_.contains("JSON reads should::validate Dates"))
       )
     }
     'js - {

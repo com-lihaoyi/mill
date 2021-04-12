@@ -137,7 +137,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
   }
 
   override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()
+    super.prepareOffline()()
     classpath()
     // worker()
     ()

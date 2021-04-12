@@ -265,8 +265,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.task {
           Some(
             BloopConfig.Test(
-              frameworks = m
-                .testFrameworks()
+              frameworks = Seq(m.testFramework())
                 .map(f => Config.TestFramework(List(f)))
                 .toList,
               options = Config.TestOptions(

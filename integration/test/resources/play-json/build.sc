@@ -157,7 +157,7 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
     ivy"com.fasterxml.jackson.datatype:jackson-datatype-jsr310:$jacksonVersion"
   )
 
-  object test extends Tests {
+  trait Tests extends super.Tests {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest:3.0.5-M1",
@@ -181,12 +181,10 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
         )
       )
     }
-
-    def testFrameworks = Seq(
-      "org.scalatest.tools.Framework",
-      "org.specs2.runner.Specs2Framework"
-    )
   }
+
+  object `test-scalatest` extends Tests with TestModule.ScalaTest
+  object `test-specs2` extends Tests with TestModule.Specs2
 
 }
 
@@ -197,7 +195,7 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
   def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
-  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform/* with Headers*/ {
+  object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with TestModule.ScalaTest /* with Headers*/ {
     def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
@@ -208,10 +206,6 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
     def sources = T.sources(
       millSourcePath / platformSegment / "src" / "test",
       millSourcePath / "shared" / "src" / "test"
-    )
-
-    def testFrameworks = Seq(
-      "org.scalatest.tools.Framework"
     )
   }
 }
@@ -240,12 +234,8 @@ class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
     ivy"joda-time:joda-time:2.9.9"
   )
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(specs2Core())
-
-    def testFrameworks = Seq(
-      "org.specs2.runner.Specs2Framework"
-    )
   }
 
 }
@@ -259,7 +249,8 @@ class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
 
 // TODO: we should have a way to "take all modules in this build"
 val testModules = Seq(
-  playJsonJvm("2.12.4").test,
+  playJsonJvm("2.12.4").`test-scalatest`,
+  playJsonJvm("2.12.4").`test-specs2`,
   playJsonJs("2.12.4").test,
   playJoda("2.12.4").test
 )
