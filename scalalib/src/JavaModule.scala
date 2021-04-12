@@ -657,9 +657,9 @@ trait JavaModule
   def forkWorkingDir: Target[Path] = T { os.pwd }
 
   override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()
+    super.prepareOffline()()
     resolvedIvyDeps()
-    zincWorker.prepareOffline()
+    zincWorker.prepareOffline()()
     resolvedRunIvyDeps()
     ()
   }
