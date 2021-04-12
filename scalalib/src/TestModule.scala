@@ -148,6 +148,7 @@ object TestModule {
 
   /** TestModule using TestNG Framework to run tests. */
   trait TestNg extends TestModule {
+
     /** The TestNG version to use. */
     def testNgVersion: T[String]
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
@@ -161,6 +162,7 @@ object TestModule {
 
   /** TestModule that uses JUnit 4 Framework to run tests. */
   trait Junit4 extends TestModule {
+
     /** The JUnit version to use. */
     def junitVersion: T[String]
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
@@ -186,6 +188,13 @@ object TestModule {
    */
   trait Specs2 extends TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
+  }
+
+  /** TestModule that uses UTest Framework to run tests.
+   * You need to provide the utest dependencies yourself.
+   */
+  trait Utest extends TestModule {
+    override def testFramework: T[String] = "mill.UTestFramework"
   }
 
   def handleResults(doneMsg: String, results: Seq[TestRunner.Result])
