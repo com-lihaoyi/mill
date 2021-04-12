@@ -443,7 +443,7 @@ object scalajslib extends MillModule {
 
 
 object contrib extends MillModule {
-  object testng extends MillModule {
+  object testng extends JavaModule with MillModule {
     // pure Java implementation
     override def artifactSuffix: T[String] = ""
     override def scalaLibraryIvyDeps: Target[Agg[Dep]] = T{ Agg.empty[Dep] }
@@ -457,7 +457,7 @@ object contrib extends MillModule {
         "-DMILL_TESTNG_LIB=" + runClasspath().map(_.path).mkString(","),
       ) ++ scalalib.worker.testArgs()
     }
-
+    override def docJar: T[PathRef] = super[JavaModule].docJar
     override val test = new Tests(implicitly)
     class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
       override def compileModuleDeps = Seq(scalalib)
