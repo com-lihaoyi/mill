@@ -874,7 +874,10 @@ object project extends ScalaModule {
 }
 ----
 
-== Tut
+[_tut]
+== Tut (no longer published)
+
+_This module is no longer published as its dependency (`org.tpolecat:tut-core`) is no longer available in Maven Central._
 
 This module allows https://tpolecat.github.io/tut[Tut] to be used in Mill builds. Tut is a documentation tool which compiles and evaluates Scala code in documentation files and provides various options for configuring how the results will be displayed in the compiled documentation.
 

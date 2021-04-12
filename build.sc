@@ -560,13 +560,13 @@ object contrib extends MillModule {
     }
   }
 
-  object tut extends MillModule {
-    override def compileModuleDeps = Seq(scalalib)
-    def testArgs = T{
-      scalalib.worker.testArgs() ++
-      scalalib.backgroundwrapper.testArgs()
-    }
-  }
+//  object tut extends MillModule {
+//    override def compileModuleDeps = Seq(scalalib)
+//    def testArgs = T{
+//      scalalib.worker.testArgs() ++
+//      scalalib.backgroundwrapper.testArgs()
+//    }
+//  }
 
   object flyway extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
