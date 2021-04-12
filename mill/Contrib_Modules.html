@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.6-16-a5da34</span>
+    <span class="version">0.9.6-17-027cfe</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.9.6-16-a5da34</a>
+          <a href="index.html">0.9.6-17-027cfe</a>
         </li>
         <li class="version">
           <a href="0.9.6/index.html">0.9.6</a>
@@ -158,9 +158,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-16-a5da34</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-17-027cfe</button>
   <div class="version-menu">
-    <a class="version is-current" href="Contrib_Modules.html">0.9.6-16-a5da34</a>
+    <a class="version is-current" href="Contrib_Modules.html">0.9.6-17-027cfe</a>
     <a class="version" href="0.9.6/Contrib_Modules.html">0.9.6</a>
   </div>
 </div>
@@ -1318,89 +1318,6 @@ object project extends ScalaModule {
     )
   }
 }</code></pre>
-</div>
-</div>
-</div>
-</div>
-<div class="sect1">
-<h2 id="_tut"><a class="anchor" href="#_tut"></a>Tut</h2>
-<div class="sectionbody">
-<div class="paragraph">
-<p>This module allows <a href="https://tpolecat.github.io/tut">Tut</a> to be used in Mill builds. Tut is a documentation tool which compiles and evaluates Scala code in documentation files and provides various options for configuring how the results will be displayed in the compiled documentation.</p>
-</div>
-<div class="paragraph">
-<p>To declare a module that uses Tut you can extend the <code>mill.contrib.tut.TutModule</code> trait when defining your module.</p>
-</div>
-<div class="paragraph">
-<p>This creates a Scala module which compiles markdown, HTML and <code>.txt</code> files in the <code>tut</code> folder of the module with Tut.</p>
-</div>
-<div class="paragraph">
-<p>By default the resulting documents are simply placed in the Mill build output folder but they can be placed elsewhere by overriding the <code>tutTargetDirectory</code> task.</p>
-</div>
-<div class="listingblock">
-<div class="title"><code>build.sc</code></div>
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::mill-contrib-tut:$MILL_VERSION`
-import contrib.tut._
-
-object example extends TutModule {
-  def scalaVersion = &quot;2.12.6&quot;
-  def tutVersion = &quot;0.6.7&quot;
-}</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>This defines a project with the following layout:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-text hljs" data-lang="text">build.sc
-example/
-    src/
-    tut/
-    resources/</code></pre>
-</div>
-</div>
-<div class="paragraph">
-<p>In order to compile documentation we can execute the <code>tut</code> task in the module:</p>
-</div>
-<div class="listingblock">
-<div class="content">
-<pre class="highlightjs highlight"><code class="language-sh hljs" data-lang="sh">sh&gt; mill example.tut</code></pre>
-</div>
-</div>
-<div class="sect2">
-<h3 id="_configuration_options_3"><a class="anchor" href="#_configuration_options_3"></a>Configuration options</h3>
-<div class="ulist">
-<ul>
-<li>
-<p>tutSourceDirectory - This task determines where documentation files must be placed in order to be compiled with Tut. By default this is the <code>tut</code> folder at the root of the module.</p>
-</li>
-<li>
-<p>tutTargetDirectory - A task which determines where the compiled documentation files will be placed. By default this is simply the Mill build’s output folder for the <code>tutTargetDirectory</code> task but this can be reconfigured so that documentation goes to the root of the module (e.g. <code>millSourcePath</code>) or to a dedicated folder (e.g. <code>millSourcePath / &quot;docs&quot;</code>)</p>
-</li>
-<li>
-<p>tutClasspath - A task which determines what classpath is used when compiling documentation. By default this is configured to use the same inputs as the <code>runClasspath</code>, except for using <code>tutIvyDeps</code> rather than the module’s <code>ivyDeps</code>.</p>
-</li>
-<li>
-<p>tutScalacPluginIvyDeps - A task which determines the scalac plugins which will be used when compiling code examples with Tut. The default is to use the <code>scalacPluginIvyDeps</code> for the module.</p>
-</li>
-<li>
-<p>tutNameFilter - A <code>scala.util.matching.Regex</code> task which will be used to determine which files should be compiled with tut. The default pattern is as follows: <code>.*\.(md|markdown|txt|htm|html)</code>.</p>
-</li>
-<li>
-<p>tutScalacOptions - The scalac options which will be used when compiling code examples with Tut. The default is to use the <code>scalacOptions</code> for the module but filtering out options which are problematic in the REPL, e.g. <code>-Xfatal-warnings</code>, <code>-Ywarn-unused-imports</code>.</p>
-</li>
-<li>
-<p>tutVersion - The version of Tut to use.</p>
-</li>
-<li>
-<p>tutIvyDeps - A task which determines how to fetch the Tut jar file and all of the dependencies required to compile documentation for the module and returns the resulting files.</p>
-</li>
-<li>
-<p>tutPluginJars - A task which performs the dependency resolution for the scalac plugins to be used with Tut.</p>
-</li>
-</ul>
 </div>
 </div>
 </div>
