@@ -146,31 +146,25 @@ trait TestModule extends JavaModule with TaskModule {
 
 object TestModule {
 
-  /** TestModule using TestNG Framework to run tests. */
+  /**
+   * TestModule using TestNG Framework to run tests.
+   * You may want to provide the testng dependency explicitly to use another version.
+   */
   trait TestNg extends TestModule {
-
-    /** The TestNG version to use. */
-    def testNgVersion: T[String]
-    override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi:mill-contrib-testng_2.13:${mill.BuildInfo.millVersion}",
-        ivy"org.testng:testng:${testNgVersion()}"
-      )
+        ivy"com.lihaoyi:mill-contrib-testng_2.13:${mill.BuildInfo.millVersion}")
     }
   }
 
-  /** TestModule that uses JUnit 4 Framework to run tests. */
+  /**
+   * TestModule that uses JUnit 4 Framework to run tests.
+   * You may want to provide the junit dependency explicitly to use another version.
+   */
   trait Junit4 extends TestModule {
-
-    /** The JUnit version to use. */
-    def junitVersion: T[String]
     override def testFramework: T[String] = "com.novocode.junit.JUnitFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
-      super.ivyDeps() ++ Agg(
-        ivy"com.novocode:junit-interface:0.11",
-        ivy"junit:junit:${junitVersion()}"
-      )
+      super.ivyDeps() ++ Agg(ivy"com.novocode:junit-interface:0.11")
     }
   }
 
