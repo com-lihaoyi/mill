@@ -7,7 +7,7 @@ import coursier.core.Repository
 import coursier.maven.MavenRepository
 import mill.T
 import mill.define.{Discover, ExternalModule}
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 
 object VisualizeModule extends ExternalModule with VisualizeModule {
   def repositories = Seq(

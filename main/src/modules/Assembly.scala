@@ -6,7 +6,7 @@ import java.util.jar.JarFile
 import java.util.regex.Pattern
 import mill.Agg
 import os.Generator
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import scala.tools.nsc.io.Streamable
 
 object Assembly {

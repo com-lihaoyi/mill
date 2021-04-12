@@ -3,7 +3,7 @@ package mill.main
 import java.io._
 import java.net.Socket
 import mill.{BuildInfo, MillMain}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator

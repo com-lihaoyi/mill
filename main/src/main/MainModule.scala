@@ -4,9 +4,11 @@ import java.util.concurrent.LinkedBlockingQueue
 
 import mill.T
 import mill.define.{NamedTask, Task}
-import mill.eval.{Evaluator, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.eval.Evaluator
 import mill.util.{Ctx, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
+
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {

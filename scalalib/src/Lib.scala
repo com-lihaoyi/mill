@@ -11,7 +11,7 @@ import ammonite.util.Util
 import coursier.{Dependency, Fetch, Repository, Resolution}
 import mill.scalalib.api.Util.isDotty
 import mill.Agg
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.modules.Jvm
 import mill.api.Ctx
 import sbt.testing._
