@@ -118,10 +118,36 @@ object foo extends ScalaModule {
 
   object test extends Tests {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
-    def testFrameworks = Seq("utest.runner.Framework")
+    def testFramework = "utest.runner.Framework"
   }
 }
 ----
+
+For convenience, you can also use one of the predefined test frameworks:
+
+* `TestModule.Junit`
+* `TestModule.TestNg`
+* `TestModule.Munit`
+* `TestModule.ScalaTest`
+* `TestModule.Specs2`
+* `TestModule.Utest`
+
+
+.`build.sc`: Useing the predefined `TestModule.Utest`
+[source,scala]
+----
+import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = "2.13.1"
+
+  object test extends Tests with TestModule.Utest {
+    def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.7.1")
+  }
+}
+----
+
+
 
 * {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-example-3.zip[Example 3]
 
@@ -184,13 +210,11 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("utest.runner.Framework")
   }
-  object integration extends Tests {
+  object integration extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest:0.6.0")
-    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ----
@@ -203,8 +227,7 @@ configuration options apply.
 
 == Custom Test Frameworks
 
-Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it
-to `ivyDeps` and specifying the `testFrameworks` you want to use.
+Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it to `ivyDeps` and specifying the `testFramework` you want to use.
 
 Scalatest example:
 
@@ -216,9 +239,8 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests {
+  object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 ----
@@ -233,12 +255,8 @@ import mill._, scalalib._
 object foo extends ScalaModule {
   def scalaVersion = "2.12.4"
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy"org.specs2::specs2-core:4.6.0")
-    def testFrameworks = Seq("org.specs2.runner.Specs2Framework")
-    def scalacOptions = foo.scalacOptions() ++ Seq(
-      "-Yrangepos"    // Required by specs2
-    )
   }
 }
 ----

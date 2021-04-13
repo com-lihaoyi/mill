@@ -180,8 +180,11 @@ object TestModule {
    * TestModule that uses Specs2 Framework to run tests.
    * You need to provide the specs2 dependencies yourself.
    */
-  trait Specs2 extends TestModule {
+  trait Specs2 extends ScalaModule with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
+    override def scalacOptions = T {
+      super.scalacOptions() ++ Seq("-Yrangepos")
+    }
   }
 
   /** TestModule that uses UTest Framework to run tests.
