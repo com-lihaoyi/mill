@@ -13,21 +13,23 @@ jobs:
       matrix:
         java-version: [8, 11]
         buildcmd:
-          - ci/test-mill-release.sh
           - ci/test-mill-dev.sh
           - ci/test-mill-bootstrap-0.sh
           - ci/test-mill-bootstrap-1.sh
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
           - ./mill -i -k "contrib._.test"
-          - ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.antora.githubPages
-        exclude:
-          - java-version: 11
-            buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
-          - java-version: 11
+        include:
+          - java-version: 8
             buildcmd: ci/test-mill-release.sh
+          - java-version: 9
+            buildcmd: ci/test-mill-release.sh
+          - java-version: 8
+            buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
+          - java-version: 9
+            buildcmd: ./mill -i integration.test "mill.integration.local.CaffeineTests"
 
     runs-on: ubuntu-latest
 
