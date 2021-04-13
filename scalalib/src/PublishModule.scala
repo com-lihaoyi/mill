@@ -138,7 +138,7 @@ trait PublishModule extends JavaModule { outer =>
       sonatypeSnapshotUri,
       sonatypeCreds,
       signed,
-      gpgArgs,
+      gpgArgs.flatMap(_.split("[,]")),
       readTimeout,
       connectTimeout,
       T.log,
