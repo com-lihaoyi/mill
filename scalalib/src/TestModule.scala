@@ -151,6 +151,7 @@ object TestModule {
    * You may want to provide the testng dependency explicitly to use another version.
    */
   trait TestNg extends TestModule {
+    override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}")
