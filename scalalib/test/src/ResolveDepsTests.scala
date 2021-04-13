@@ -2,7 +2,7 @@ package mill.scalalib
 
 import coursier.maven.MavenRepository
 import mill.api.Result.{Failure, Success}
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.api.Loose.Agg
 import utest._
 

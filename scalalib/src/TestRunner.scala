@@ -15,7 +15,7 @@ import scala.util.Try
 object TestRunner {
 
   case class TestArgs(
-      frameworks: Seq[String],
+      framework: String,
       classpath: Seq[String],
       arguments: Seq[String],
       sysProps: Map[String, String],
@@ -26,8 +26,7 @@ object TestRunner {
   ) {
     def toArgsSeq: Seq[String] =
       Seq(
-        Seq(frameworks.size.toString) ++
-          frameworks ++
+        Seq(framework) ++
           Seq(classpath.size.toString) ++
           classpath ++
           Seq(arguments.size.toString) ++
@@ -47,6 +46,29 @@ object TestRunner {
   }
 
   object TestArgs {
+
+    // only for binary compatibility
+    @deprecated("Use other apply/ctr instead.", "mill after 0.9.6")
+    def apply(
+        frameworks: Seq[String],
+        classpath: Seq[String],
+        arguments: Seq[String],
+        sysProps: Map[String, String],
+        outputPath: String,
+        colored: Boolean,
+        testCp: String,
+        homeStr: String
+    ): TestArgs =
+      TestArgs(
+        framework = frameworks.head,
+        classpath = classpath,
+        arguments = arguments,
+        sysProps = sysProps,
+        outputPath = outputPath,
+        colored = colored,
+        testCp = testCp,
+        homeStr = homeStr
+      )
 
     def parseArgs(args: Array[String]): Try[TestArgs] = {
       args match {
@@ -75,7 +97,7 @@ object TestRunner {
         i = i + 1
         string
       }
-      val frameworks = readArray()
+      val frameworks = readString()
       val classpath = readArray()
       val arguments = readArray()
       val sysProps = readArray()
@@ -120,8 +142,8 @@ object TestRunner {
       ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
-      val result = runTests(
-        frameworkInstances = TestRunner.frameworks(testArgs.frameworks),
+      val result = runTestFramework(
+        frameworkInstances = TestRunner.framework(testArgs.framework),
         entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
         testClassfilePath = Agg(os.Path(testArgs.testCp)),
         args = testArgs.arguments,
@@ -144,7 +166,24 @@ object TestRunner {
     System.exit(0)
   }
 
+  // Only for binary compatibility
+  @deprecated("Use runTestFramework instead.", "mill after 0.9.6")
   def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
+               entireClasspath: Agg[os.Path],
+               testClassfilePath: Agg[os.Path],
+               args: Seq[String],
+               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
+    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTestFramework(
+      frameworkInstances = cl => frameworkInstances(cl).head,
+      entireClasspath = entireClasspath,
+      testClassfilePath = testClassfilePath,
+      args = args,
+      testReporter = testReporter
+    )
+  }
+
+  def runTestFramework(frameworkInstances: ClassLoader => sbt.testing.Framework,
                entireClasspath: Agg[os.Path],
                testClassfilePath: Agg[os.Path],
                args: Seq[String],
@@ -157,56 +196,55 @@ object TestRunner {
       isolated = true,
       closeContextClassLoaderWhenDone = false,
       cl => {
-        val frameworks = frameworkInstances(cl)
+        val framework = frameworkInstances(cl)
 
         val events = mutable.Buffer.empty[Event]
 
-        val doneMessages = frameworks.map {
-          framework =>
-            val runner = framework.runner(args.toArray, Array[String](), cl)
+        val doneMessage = {
+          val runner = framework.runner(args.toArray, Array[String](), cl)
 
-            val testClasses = discoverTests(cl, framework, testClassfilePath)
+          val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-            val tasks = runner.tasks(
-              for ((cls, fingerprint) <- testClasses.toArray)
-                yield
-                  new TaskDef(
-                    cls.getName.stripSuffix("$"),
-                    fingerprint,
-                    true,
-                    Array(new SuiteSelector))
-            )
+          val tasks = runner.tasks(
+            for ((cls, fingerprint) <- testClasses.toArray)
+              yield
+                new TaskDef(
+                  cls.getName.stripSuffix("$"),
+                  fingerprint,
+                  true,
+                  Array(new SuiteSelector))
+          )
 
-            val taskQueue = tasks.to(mutable.Queue)
-            while (taskQueue.nonEmpty) {
-              val next = taskQueue
-                .dequeue()
-                .execute(
-                  new EventHandler {
-                    def handle(event: Event) = {
-                      testReporter.logStart(event)
-                      events.append(event)
-                      testReporter.logFinish(event)
-                    }
-                  },
-                  Array(new Logger {
-                    def debug(msg: String) = ctx.log.outputStream.println(msg)
+          val taskQueue = tasks.to(mutable.Queue)
+          while (taskQueue.nonEmpty) {
+            val next = taskQueue
+              .dequeue()
+              .execute(
+                new EventHandler {
+                  def handle(event: Event) = {
+                    testReporter.logStart(event)
+                    events.append(event)
+                    testReporter.logFinish(event)
+                  }
+                },
+                Array(new Logger {
+                  def debug(msg: String) = ctx.log.outputStream.println(msg)
 
-                    def error(msg: String) = ctx.log.outputStream.println(msg)
+                  def error(msg: String) = ctx.log.outputStream.println(msg)
 
-                    def ansiCodesSupported() = true
+                  def ansiCodesSupported() = true
 
-                    def warn(msg: String) = ctx.log.outputStream.println(msg)
+                  def warn(msg: String) = ctx.log.outputStream.println(msg)
 
-                    def trace(t: Throwable) =
-                      t.printStackTrace(ctx.log.outputStream)
+                  def trace(t: Throwable) =
+                    t.printStackTrace(ctx.log.outputStream)
 
-                    def info(msg: String) = ctx.log.outputStream.println(msg)
-                  })
-                )
-              taskQueue.enqueueAll(next)
-            }
-            runner.done()
+                  def info(msg: String) = ctx.log.outputStream.println(msg)
+                })
+              )
+            taskQueue.enqueueAll(next)
+          }
+          runner.done()
         }
 
         val results = for (e <- events) yield {
@@ -229,16 +267,22 @@ object TestRunner {
           )
         }
 
-        (doneMessages.mkString("\n"), results.toSeq)
+        (doneMessage, results.toSeq)
       }
     )
   }
 
+  @deprecated("Use framework instead.", "mill after 0.9.6")
   def frameworks(frameworkNames: Seq[String])(
       cl: ClassLoader): Seq[sbt.testing.Framework] = {
-    frameworkNames.map { name =>
-      cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
-    }
+    frameworkNames.map(name => framework(name)(cl))
+  }
+
+  def framework(frameworkName: String)(
+      cl: ClassLoader): sbt.testing.Framework = {
+    cl.loadClass(frameworkName)
+      .newInstance()
+      .asInstanceOf[sbt.testing.Framework]
   }
 
   case class Result(fullyQualifiedName: String,

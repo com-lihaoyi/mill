@@ -1,7 +1,7 @@
 package mill.define
 
+import mill.api.{Logger,PathRef,Result}
 import mill.define.Applicative.Applyable
-import mill.eval.{PathRef, Result}
 import mill.util.EnclosingClass
 import sourcecode.Compat.Context
 import upickle.default.{ReadWriter => RW, Reader => R, Writer => W}
@@ -132,7 +132,7 @@ object Target extends TargetGenerated with Applicative.Applyer[Task, Task, Resul
     mill.moduledefs.Cacher.impl0[Sources](c)(
       reify(
         new Sources(
-          Target.sequence(c.Expr[List[Task[PathRef]]](q"scala.List(..$wrapped)").splice),
+          Target.sequence(c.Expr[List[Task[PathRef]]](q"_root_.scala.List(..$wrapped)").splice),
           ctx.splice
         )
       )
@@ -324,6 +324,7 @@ class Worker[+T](t: Task[T], ctx0: mill.define.Ctx) extends NamedTaskImpl[T](ctx
   override def flushDest = false
   override def asWorker = Some(this)
 }
+
 class Persistent[+T](t: Task[T],
                      ctx0: mill.define.Ctx,
                      readWrite: RW[_])
@@ -331,11 +332,13 @@ class Persistent[+T](t: Task[T],
 
   override def flushDest = false
 }
+
 class Input[T](t: Task[T],
                ctx0: mill.define.Ctx,
                val readWrite: RW[_]) extends NamedTaskImpl[T](ctx0, t) with Target[T]{
   override def sideHash = util.Random.nextInt()
 }
+
 class Sources(t: Task[Seq[PathRef]],
               ctx0: mill.define.Ctx) extends Input[Seq[PathRef]](
   t,
@@ -345,11 +348,13 @@ class Sources(t: Task[Seq[PathRef]],
     upickle.default.SeqLikeWriter[Seq, PathRef]
   )
 )
+
 class Source(t: Task[PathRef], ctx0: mill.define.Ctx) extends Input[PathRef](
   t,
   ctx0,
   PathRef.jsonFormatter
 )
+
 object Task {
 
   class Task0[T](t: T) extends Task[T]{

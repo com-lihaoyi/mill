@@ -2,10 +2,12 @@ package mill.main
 import java.io.{InputStream, PrintStream}
 
 import ammonite.Main
-import ammonite.interp.{Interpreter, Preprocessor}
+import ammonite.interp.Interpreter
+import ammonite.compiler.iface.Preprocessor
 import ammonite.util.Util.CodeSource
 import ammonite.util._
-import mill.eval.{Evaluator, PathRef}
+import mill.eval.Evaluator
+import mill.api.PathRef
 import mill.util.PrintLogger
 
 import scala.annotation.tailrec
@@ -161,7 +163,7 @@ class MainRunner(val config: ammonite.main.Config,
     )
   }
 
-  object CustomCodeWrapper extends ammonite.interp.CodeWrapper {
+  object CustomCodeWrapper extends ammonite.compiler.iface.CodeWrapper {
     def apply(code: String,
               source: CodeSource,
               imports: ammonite.util.Imports,
@@ -182,7 +184,7 @@ class MainRunner(val config: ammonite.main.Config,
         val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
         val segs = Seq("foreign-modules") ++ ups ++ relative.segments
         val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-        s"Some(mill.define.Segments.labels($segsList))"
+        s"Some(_root_.mill.define.Segments.labels($segsList))"
       }
       else "None"
 
@@ -190,9 +192,9 @@ class MainRunner(val config: ammonite.main.Config,
         |package ${pkgName.head.encoded}
         |package ${Util.encodeScalaSourcePath(pkgName.tail)}
         |$imports
-        |import mill._
+        |import _root_.mill._
         |object $wrapName
-        |extends mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
+        |extends _root_.mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
         |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
         |)
         |with $wrapName{
@@ -204,10 +206,10 @@ class MainRunner(val config: ammonite.main.Config,
         |  // doesn't get picked up during reflective child-module discovery
         |  def millSelf = Some(this)
         |
-        |  implicit lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
+        |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
         |}
         |
-        |sealed trait $wrapName extends mill.main.MainModule{
+        |sealed trait $wrapName extends _root_.mill.main.MainModule{
         |""".stripMargin
       val bottom = "\n}"
 

@@ -3,10 +3,9 @@ package contrib
 package scoverage
 
 import coursier.{MavenRepository, Repository}
-import mill.api.Loose
+import mill.api.{Loose,PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Persistent, Sources, Target, Task}
-import mill.eval.PathRef
 import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule}
 
 

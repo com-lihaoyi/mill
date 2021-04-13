@@ -37,19 +37,10 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
              nativeLinkStubs: Boolean,
              nativeLTO: LTO,
              releaseMode: ReleaseMode,
+             nativeOptimize: Boolean,
              logLevel: NativeLogLevel): NativeConfig =
     {
       val entry = mainClass + "$"
-
-      // Linking with optimize = false is currently buggy
-      // https://github.com/scala-native/scala-native/issues/2144
-      // TODO use this code again once the bug is fixed and a new
-      //      Scala Native version is released
-      // val optimize = releaseMode match {
-      //   case ReleaseMode.Debug => false
-      //   case _ => true
-      // }
-      val optimize = true
 
       val config =
         Config.empty
@@ -66,7 +57,7 @@ class ScalaNativeWorkerImpl extends mill.scalanativelib.api.ScalaNativeWorkerApi
               .withGC(GC(nativeGC))
               .withLinkStubs(nativeLinkStubs)
               .withMode(Mode(releaseMode.value))
-              .withOptimize(optimize)
+              .withOptimize(nativeOptimize)
               .withLTO(ScalaNativeLTO(nativeLTO.value))
           )
           .withLogger(logger(logLevel))

@@ -1,7 +1,7 @@
 package mill
 package scalajslib
 
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}
@@ -148,7 +148,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
-  def scalacOptions = super.scalacOptions() ++ {
+  override def scalacOptions = super.scalacOptions() ++ {
     if(isScala3(scalaVersion())) Seq("-scalajs")
     else Seq.empty
   }
@@ -163,13 +163,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     }
   }
   override def scalaLibraryIvyDeps = T{
-    if(isScala3(scalaVersion())) {
-      super.scalaLibraryIvyDeps() ++ Seq(
-        ivy"org.scala-js:scalajs-library_2.13:${scalaJSVersion()}"
-      )
-    } else {
-      Seq(ivy"org.scala-js::scalajs-library:${scalaJSVersion()}")
-    }
+    super.scalaLibraryIvyDeps() ++ Seq(
+      ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
+    )
   }
 
   // publish artifact with name "mill_sjs0.6.4_2.12" instead of "mill_sjs0.6_2.12"
@@ -196,17 +192,10 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       val bridgeOrInterface =
         if (mill.scalalib.api.Util.scalaJSUsesTestBridge(scalaJSVersion())) "bridge"
         else "interface"
-      if(isScala3(scalaVersion())) {
-        Loose.Agg(
-          ivy"org.scala-js:scalajs-library_2.13:${scalaJSVersion()}",
-          ivy"org.scala-js:scalajs-test-bridge_2.13:${scalaJSVersion()}"
-        )
-      } else {
-        Loose.Agg(
-          ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
-          ivy"org.scala-js::scalajs-test-$bridgeOrInterface:${scalaJSVersion()}"
-        )
-      }
+      Loose.Agg(
+        ivy"org.scala-js::scalajs-library:${scalaJSVersion()}",
+        ivy"org.scala-js::scalajs-test-bridge:${scalaJSVersion()}"
+      ).map(_.withDottyCompat(scalaVersion()))
     })
   }
 
@@ -229,13 +218,13 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
       toolsClasspath().map(_.path),
       jsEnvConfig(),
-      testFrameworks().head,
+      testFramework(),
       fastOptTest().path.toIO,
       moduleKind()
     )
 
-    val (doneMsg, results) = TestRunner.runTests(
-      _ => Seq(framework),
+    val (doneMsg, results) = TestRunner.runTestFramework(
+      _ => framework,
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),

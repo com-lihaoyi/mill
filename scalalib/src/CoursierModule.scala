@@ -3,13 +3,13 @@ package mill.scalalib
 import coursier.{Dependency, Repository, Resolve}
 import mill.{Agg, T}
 import mill.define.Task
-import mill.eval.PathRef
+import mill.api.PathRef
 
 /**
   * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
   *
   * It's mainly used in [[JavaModule]], but can also be used stand-alone,
-  * in which case you must provide repositories by overriding [[CoursierModule.repositories]].
+  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
   */
 trait CoursierModule extends mill.Module {
 

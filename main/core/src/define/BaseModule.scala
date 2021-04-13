@@ -1,6 +1,5 @@
 package mill.define
 
-
 object BaseModule{
   case class Implicit(value: BaseModule)
 }
