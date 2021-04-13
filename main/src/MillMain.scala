@@ -3,7 +3,7 @@ package mill
 import java.io.{InputStream, PrintStream}
 import java.util.Locale
 
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 import io.github.retronym.java9rtexport.Export
 import mainargs.{Flag, Leftover, arg}
 import mill.eval.Evaluator

@@ -3,7 +3,7 @@ package scalalib
 
 import coursier.Repository
 import mill.define.{Command, Sources, Target, Task, TaskModule}
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.modules.{Assembly, Jvm}
 import mill.modules.Jvm.{createAssembly, createJar}
 import mill.scalalib.publish.Artifact

@@ -33,7 +33,7 @@ trait VersionFileModule extends Module {
     writeVersionToFile(versionFile(), version())
   }
 
-  def writeVersionToFile(versionFile: mill.eval.PathRef, version: Version) =
+  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version) =
     os.write.over(
       versionFile.path,
       version.toString

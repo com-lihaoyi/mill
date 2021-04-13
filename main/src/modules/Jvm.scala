@@ -10,9 +10,8 @@ import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import java.util.Collections
 import mill.main.client.InputPumper
-import mill.eval.{PathRef, Result}
 import mill.util.Ctx
-import mill.api.IO
+import mill.api.{IO,PathRef,Result}
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable

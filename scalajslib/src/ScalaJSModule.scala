@@ -1,7 +1,7 @@
 package mill
 package scalajslib
 
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{DepSyntax, Lib, TestModule, TestRunner}

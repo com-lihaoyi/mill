@@ -5,17 +5,16 @@ import java.util.concurrent.atomic.{AtomicBoolean, AtomicInteger}
 
 import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
-
 import scala.util.DynamicVariable
+
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
 import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util._
-
-import scala.collection.JavaConverters._
 import scala.collection.mutable
+import scala.jdk.CollectionConverters._
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T],
@@ -271,7 +270,7 @@ case class Evaluator(
     )
 
     val sideHashes = scala.util.hashing.MurmurHash3.orderedHash(
-      group.toIterator.map(_.sideHash)
+      group.iterator.map(_.sideHash)
     )
 
     val inputsHash = externalInputsHash + sideHashes + classLoaderSignHash
@@ -547,7 +546,7 @@ case class Evaluator(
     sortedGroups
       .items()
       .map { case (terminal, group) =>
-        terminal -> group.toSeq
+        terminal -> Seq.from(group)
           .flatMap(_.inputs)
           .filterNot(group.contains)
           .distinct

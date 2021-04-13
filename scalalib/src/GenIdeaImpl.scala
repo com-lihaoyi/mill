@@ -10,9 +10,9 @@ import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
 import mill.api.Ctx.{Home, Log}
 import mill.api.Strict.Agg
-import mill.api.{Loose, Result, Strict}
+import mill.api.{Loose, PathRef, Result, Strict}
 import mill.define._
-import mill.eval.{Evaluator, PathRef}
+import mill.eval.Evaluator
 import mill.modules.Util
 import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.{BuildInfo, T, scalalib}

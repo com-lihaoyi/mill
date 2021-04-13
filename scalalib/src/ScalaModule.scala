@@ -3,7 +3,7 @@ package scalalib
 
 import coursier.{Dependency, Repository}
 import mill.define.{Command, Target, Task, TaskModule}
-import mill.eval.{PathRef, Result}
+import mill.api.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.{
