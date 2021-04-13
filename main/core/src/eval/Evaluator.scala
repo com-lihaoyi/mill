@@ -7,9 +7,9 @@ import ammonite.runtime.SpecialClassLoader
 import mainargs.MainData
 import scala.util.DynamicVariable
 
+import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.api.Result.{Aborted, OuterStack, Success}
 import mill.api.Strict.Agg
-import mill.api.{BuildProblemReporter, DummyTestReporter, Strict, TestReporter}
 import mill.define.{Ctx => _, _}
 import mill.util
 import mill.util._
@@ -436,6 +436,11 @@ case class Evaluator(
         super.ticker(tickerPrefix.getOrElse("")+s)
       }
     }
+    // This is used to track the usage of `T.dest` in more than one Task
+    // But it's not really clear what issue we try to prevent here
+    // Vice versa, being able to use T.dest in multiple `T.task`
+    // is rather essential to split up larger tasks into small parts
+    // So I like to disable this detection for now
     var usedDest = Option.empty[(Task[_], Array[StackTraceElement])]
     for (task <- nonEvaluatedTargets) {
       newEvaluated.append(task)
@@ -448,25 +453,26 @@ case class Evaluator(
         else {
           val args = new Ctx(
             targetInputValues.toArray[Any],
-            () => usedDest match{
-              case Some((earlierTask, earlierStack)) if earlierTask != task =>
-                val inner = new Exception("Earlier usage of `dest`")
-                inner.setStackTrace(earlierStack)
-                throw new Exception(
-                  "`dest` can only be used in one place within each Target[T]",
-                  inner
-                )
-              case _ =>
+            () =>
+//              usedDest match {
+//              case Some((earlierTask, earlierStack)) if earlierTask != task =>
+//                val inner = new Exception("Earlier usage of `dest`")
+//                inner.setStackTrace(earlierStack)
+//                throw new Exception(
+//                  "`dest` can only be used in one place within each Target[T]",
+//                  inner
+//                )
+//              case _ =>
 
 
-                paths match{
+                paths match {
                   case Some(dest) =>
                     if (usedDest.isEmpty) os.makeDir.all(dest.dest)
                     usedDest = Some((task, new Exception().getStackTrace))
                     dest.dest
                   case None =>
                     throw new Exception("No `dest` folder available here")
-                }
+//                }
             },
             multiLogger,
             home,
