@@ -102,9 +102,8 @@ You can also define a `trait` extending the built-in `ScalaModule` if you have c
 ----
 trait FooModule extends ScalaModule {
   def scalaVersion = "2.11.11"
-  object test extends Tests {
+  object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.4")
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 ----
