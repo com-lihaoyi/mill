@@ -187,15 +187,15 @@ object FailureTests extends TestSuite{
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T{ + T.dest.toString.length + T.dest.toString.length }
 
-        // Using `T.ctx(  ).dest` once in two different tasks is not ok
+        // Using `T.ctx(  ).dest` once in two different tasks is ok
         val task = T.task{ T.dest.toString.length  }
         def right = T{ task() + left() + T.dest.toString().length }
       }
 
       val check = new TestEvaluator(build)
-      val Right(_) = check(build.left)
-      val Left(Result.Exception(e, _)) = check(build.right)
-      assert(e.getMessage.contains("`dest` can only be used in one place"))
+      assert(check(build.left).isRight)
+      assert(check(build.right).isRight)
+      // assert(e.getMessage.contains("`dest` can only be used in one place"))
     }
   }
 }
