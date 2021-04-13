@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.6-20-d95b51</span>
+    <span class="version">0.9.6-21-1a634f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.9.6-20-d95b51</a>
+          <a href="index.html">0.9.6-21-1a634f</a>
         </li>
         <li class="version">
           <a href="0.9.6/index.html">0.9.6</a>
@@ -158,9 +158,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-20-d95b51</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-21-1a634f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Contrib_Modules.html">0.9.6-20-d95b51</a>
+    <a class="version is-current" href="Contrib_Modules.html">0.9.6-21-1a634f</a>
     <a class="version" href="0.9.6/Contrib_Modules.html">0.9.6</a>
   </div>
 </div>
@@ -1234,9 +1234,8 @@ object foo extends ScoverageModule  {
   def scalaVersion = &quot;2.12.9&quot;
   def scoverageVersion = &quot;1.4.0&quot;
 
-  object test extends ScoverageTests {
+  object test extends ScoverageTests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.8&quot;)
-    def testFrameworks = Seq(&quot;org.scalatest.tools.Framework&quot;)
   }
 }</code></pre>
 </div>
@@ -1303,7 +1302,7 @@ for html reports or <code>out/scoverage/xmlReportAll/dest/</code> for xml report
 <p>Provides support for <a href="https://testng.org/doc/index.html">TestNG</a>.</p>
 </div>
 <div class="paragraph">
-<p>To use TestNG as test framework, you need to add it to the <code>TestModule.testFrameworks</code> property.</p>
+<p>To use TestNG as test framework, you need to add it to the <code>TestModule.testFramework</code> property.</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -1312,7 +1311,7 @@ for html reports or <code>out/scoverage/xmlReportAll/dest/</code> for xml report
 
 object project extends ScalaModule {
   object test extends Tests {
-    def testFrameworks = Seq(&quot;mill.testng.TestNGFramework&quot;)
+    def testFramework = &quot;mill.testng.TestNGFramework&quot;
     def ivyDeps = super.ivyDeps ++ Agg(
       ivy&quot;com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}&quot;
     )

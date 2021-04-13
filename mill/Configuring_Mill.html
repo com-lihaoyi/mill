@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.6-20-d95b51</span>
+    <span class="version">0.9.6-21-1a634f</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.9.6-20-d95b51</a>
+          <a href="index.html">0.9.6-21-1a634f</a>
         </li>
         <li class="version">
           <a href="0.9.6/index.html">0.9.6</a>
@@ -158,9 +158,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-20-d95b51</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.6-21-1a634f</button>
   <div class="version-menu">
-    <a class="version is-current" href="Configuring_Mill.html">0.9.6-20-d95b51</a>
+    <a class="version is-current" href="Configuring_Mill.html">0.9.6-21-1a634f</a>
     <a class="version" href="0.9.6/Configuring_Mill.html">0.9.6</a>
   </div>
 </div>
@@ -309,7 +309,46 @@ object foo extends ScalaModule {
 
   object test extends Tests {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
-    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
+    def testFramework = &quot;utest.runner.Framework&quot;
+  }
+}</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>For convenience, you can also use one of the predefined test frameworks:</p>
+</div>
+<div class="ulist">
+<ul>
+<li>
+<p><code>TestModule.Junit</code></p>
+</li>
+<li>
+<p><code>TestModule.TestNg</code></p>
+</li>
+<li>
+<p><code>TestModule.Munit</code></p>
+</li>
+<li>
+<p><code>TestModule.ScalaTest</code></p>
+</li>
+<li>
+<p><code>TestModule.Specs2</code></p>
+</li>
+<li>
+<p><code>TestModule.Utest</code></p>
+</li>
+</ul>
+</div>
+<div class="listingblock">
+<div class="title"><code>build.sc</code>: <code>ScalaModule</code> with UTest tests using the predefined <code>TestModule.Utest</code></div>
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import mill._, scalalib._
+
+object foo extends ScalaModule {
+  def scalaVersion = &quot;2.13.1&quot;
+
+  object test extends Tests with TestModule.Utest {
+    def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.7.1&quot;)
   }
 }</code></pre>
 </div>
@@ -387,13 +426,11 @@ lets you pass in a selector to decide which test to run, which in Mill would be:
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.12.4&quot;
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
-    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
   }
-  object integration extends Tests {
+  object integration extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest:0.6.0&quot;)
-    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
   }
 }</code></pre>
 </div>
@@ -412,8 +449,7 @@ configuration options apply.</p>
 <h2 id="_custom_test_frameworks"><a class="anchor" href="#_custom_test_frameworks"></a>Custom Test Frameworks</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it
-to <code>ivyDeps</code> and specifying the <code>testFrameworks</code> you want to use.</p>
+<p>Integrating with test frameworks like Scalatest or specs2 is simply a matter of adding it to <code>ivyDeps</code> and specifying the <code>testFramework</code> you want to use.</p>
 </div>
 <div class="paragraph">
 <p>Scalatest example:</p>
@@ -426,9 +462,8 @@ to <code>ivyDeps</code> and specifying the <code>testFrameworks</code> you want 
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.12.4&quot;
 
-  object test extends Tests {
+  object test extends Tests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy&quot;org.scalatest::scalatest:3.0.4&quot;)
-    def testFrameworks = Seq(&quot;org.scalatest.tools.Framework&quot;)
   }
 }</code></pre>
 </div>
@@ -444,12 +479,8 @@ object foo extends ScalaModule {
 object foo extends ScalaModule {
   def scalaVersion = &quot;2.12.4&quot;
 
-  object test extends Tests {
+  object test extends Tests with TestModule.Specs2 {
     def ivyDeps = Agg(ivy&quot;org.specs2::specs2-core:4.6.0&quot;)
-    def testFrameworks = Seq(&quot;org.specs2.runner.Specs2Framework&quot;)
-    def scalacOptions = foo.scalacOptions() ++ Seq(
-      &quot;-Yrangepos&quot;    // Required by specs2
-    )
   }
 }</code></pre>
 </div>
