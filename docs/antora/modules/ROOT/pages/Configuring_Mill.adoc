@@ -133,7 +133,7 @@ For convenience, you can also use one of the predefined test frameworks:
 * `TestModule.Utest`
 
 
-.`build.sc`: Useing the predefined `TestModule.Utest`
+.`build.sc`: `ScalaModule` with UTest tests using the predefined `TestModule.Utest`
 [source,scala]
 ----
 import mill._, scalalib._

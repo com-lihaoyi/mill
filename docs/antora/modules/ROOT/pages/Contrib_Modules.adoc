@@ -800,9 +800,8 @@ object foo extends ScoverageModule  {
   def scalaVersion = "2.12.9"
   def scoverageVersion = "1.4.0"
 
-  object test extends ScoverageTests {
+  object test extends ScoverageTests with TestModule.ScalaTest {
     def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
   }
 }
 ----
@@ -857,7 +856,7 @@ for html reports or `out/scoverage/xmlReportAll/dest/` for xml reports.
 
 Provides support for https://testng.org/doc/index.html[TestNG].
 
-To use TestNG as test framework, you need to add it to the `TestModule.testFrameworks` property.
+To use TestNG as test framework, you need to add it to the `TestModule.testFramework` property.
 
 .`build.sc`
 [source,scala]
@@ -866,7 +865,7 @@ import mill.scalalib._
 
 object project extends ScalaModule {
   object test extends Tests {
-    def testFrameworks = Seq("mill.testng.TestNGFramework")
+    def testFramework = "mill.testng.TestNGFramework"
     def ivyDeps = super.ivyDeps ++ Agg(
       ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
     )

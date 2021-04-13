@@ -9,19 +9,13 @@ Scala build:
 .`build.sc`
 [source,scala]
 ----
-trait JUnitTests extends TestModule {
-  def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-  def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-}
-
 object core extends JavaModule {
-  object test extends Tests with JUnitTests
+  object test extends Tests with TestModule.Junit
 }
 object app extends JavaModule {
   def moduleDeps = Seq(core)
-  object test extends Tests with JUnitTests
+  object test extends Tests with TestModule.Junit
 }
-
 ----
 
 This build is a two-module Java project with junit test suites. It expects the
@@ -176,9 +170,8 @@ object hello extends ScalaNativeModule {
   def scalaNativeVersion = "0.3.8"
   def scalaVersion = "2.11.12"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
-  object test extends Tests{
+  object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
-    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ----
