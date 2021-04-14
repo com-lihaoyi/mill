@@ -24,7 +24,7 @@ class ScalaPBWorker {
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 
         val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]) {
+          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit = {
 						val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = otherArgs ++ Seq(
 							s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
@@ -73,7 +73,7 @@ class ScalaPBWorker {
              (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
 
-    def compileScalaPBDir(inputDir: os.Path) {
+    def compileScalaPBDir(inputDir: os.Path): Unit = {
       // ls throws if the path doesn't exist
       if (inputDir.toIO.exists) {
         os.walk(inputDir).filter(_.last.matches(".*.proto"))
@@ -90,7 +90,7 @@ class ScalaPBWorker {
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String])
+  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit
 }
 
 object ScalaPBWorkerApi extends ExternalModule {

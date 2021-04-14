@@ -509,7 +509,7 @@ object HelloWorldTests extends TestSuite {
         )
       }
       'runCross - {
-        def cross(eval: TestEvaluator, v: String, expectedOut: String) {
+        def cross(eval: TestEvaluator, v: String, expectedOut: String): Unit = {
 
           val runResult = eval.outPath / "hello-mill"
 
