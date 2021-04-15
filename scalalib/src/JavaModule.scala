@@ -456,7 +456,7 @@ trait JavaModule
         )
       )
 
-      Result.Success()
+      Result.Success(())
     }
 
   /**

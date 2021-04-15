@@ -315,7 +315,7 @@ trait ScalaModule extends JavaModule { outer =>
         mainArgs = Seq("-usejavacp"),
         workingDir = os.pwd
       )
-      Result.Success()
+      Result.Success(())
     }
   }
 
@@ -358,7 +358,7 @@ trait ScalaModule extends JavaModule { outer =>
         mainArgs = replOptions,
         workingDir = os.pwd
       )
-      Result.Success()
+      Result.Success(())
     }
 
   }
