@@ -1,5 +1,7 @@
 package mill.main.client;
 
+import mill.main.client.lock.Locked;
+import mill.main.client.lock.Locks;
 import org.scalasbt.ipcsocket.UnixDomainSocket;
 import org.scalasbt.ipcsocket.Win32NamedPipeSocket;
 

@@ -1,10 +1,11 @@
 package mill.main
 import java.io._
 
-import mill.main.client.{Util, Locks}
-
-import scala.collection.JavaConverters._
+import mill.main.client.Util
+import mill.main.client.lock.Locks
+import scala.jdk.CollectionConverters._
 import utest._
+
 class EchoServer extends MillServerMain[Int]{
   def main0(args: Array[String],
             stateCache: Option[Int],
@@ -83,7 +84,7 @@ object ClientServerTests extends TestSuite{
   }
 
   def tests = Tests{
-    'hello - {
+    "hello" - {
         val (tmpDir, locks) = init()
         def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
