@@ -7,7 +7,7 @@ import utest._
 
 object PathRefTests extends TestSuite {
   val tests: Tests = Tests {
-    'sig - {
+    "sig" - {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
         val file = tmpDir / "foo.txt"
         os.write.over(file, "hello")
@@ -22,7 +22,7 @@ object PathRefTests extends TestSuite {
       check(quick = false)
     }
 
-    'perms - {
+    "perms" - {
       def check(quick: Boolean) = withTmpDir { tmpDir =>
         val file = tmpDir / "foo.txt"
         val content = "hello"
@@ -43,7 +43,7 @@ object PathRefTests extends TestSuite {
       }
     }
 
-    'symlinks - {
+    "symlinks" - {
       def check(quick: Boolean) = withTmpDir{ tmpDir =>
         // invalid symlink
         os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")

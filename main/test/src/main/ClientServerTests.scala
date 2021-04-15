@@ -105,7 +105,7 @@ object ClientServerTests extends TestSuite{
         )
 
         // Give a bit of time for the server to release the lock and
-        // re-acquire it to signal to the client that it's done
+        // re-acquire it to signal to the client that it"s" done
         Thread.sleep(100)
 
         assert(
@@ -141,7 +141,7 @@ object ClientServerTests extends TestSuite{
         }
       
 
-      'envVars - retry(3) {
+      "envVars" - retry(3) {
           val (tmpDir, locks) = init()
 
           def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())

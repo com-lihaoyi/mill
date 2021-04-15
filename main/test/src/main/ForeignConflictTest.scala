@@ -12,7 +12,7 @@ object ForeignConflictTest extends ScriptTestSuite(fork = false) {
 
   val tests = Tests {
     initWorkspace()
-    'test - {
+    "test" - {
       // see https://github.com/lihaoyi/mill/issues/302
       if (!ammonite.util.Util.java9OrAbove) {
         assert(
