@@ -15,7 +15,7 @@ trait MultiBiMap[K, V]{
   def lookupValueOpt(v: V): Option[K]
   def add(k: K, v: V): Unit
   def removeAll(k: K): Agg[V]
-  def addAll(k: K, vs: TraversableOnce[V]): Unit
+  def addAll(k: K, vs: IterableOnce[V]): Unit
   def keys(): Iterator[K]
   def items(): Iterator[(K, Agg[V])]
   def values(): Iterator[Agg[V]]
@@ -44,13 +44,13 @@ object MultiBiMap{
         keyToValues.remove(k)
         vs
     }
-    def addAll(k: K, vs: TraversableOnce[V]): Unit = vs.foreach(this.add(k, _))
+    def addAll(k: K, vs: IterableOnce[V]): Unit = vs.foreach(this.add(k, _))
 
     def keys(): Iterator[K] = keyToValues.keysIterator
 
-    def values() = keyToValues.valuesIterator
+    def values(): Iterator[Agg.Mutable[V]] = keyToValues.valuesIterator
 
-    def items() = keyToValues.iterator
+    def items(): Iterator[(K, Agg.Mutable[V])] = keyToValues.iterator
 
     def keyCount: Int = keyToValues.size
   }

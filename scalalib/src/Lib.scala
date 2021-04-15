@@ -1,22 +1,14 @@
 package mill
 package scalalib
 
-import java.io.{File, FileInputStream}
+import java.io.FileInputStream
 import java.lang.annotation.Annotation
 import java.lang.reflect.Modifier
 import java.util.zip.ZipInputStream
-import javax.tools.ToolProvider
 
-import ammonite.util.Util
 import coursier.{Dependency, Fetch, Repository, Resolution}
-import mill.scalalib.api.Util.isDotty
-import mill.Agg
-import mill.api.{PathRef, Result}
-import mill.modules.Jvm
-import mill.api.Ctx
+import mill.api.{Ctx, Loose, PathRef, Result}
 import sbt.testing._
-
-import scala.collection.mutable
 
 
 object Lib{
@@ -34,9 +26,9 @@ object Lib{
 
   def resolveDependenciesMetadata(repositories: Seq[Repository],
                                   depToDependency: Dep => coursier.Dependency,
-                                  deps: TraversableOnce[Dep],
+                                  deps: IterableOnce[Dep],
                                   mapDependencies: Option[Dependency => Dependency] = None,
-                                  ctx: Option[mill.util.Ctx.Log] = None): (Seq[Dependency], Resolution) = {
+                                  ctx: Option[Ctx.Log] = None): (Seq[Dependency], Resolution) = {
     val depSeq = deps.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
       repositories,
@@ -55,10 +47,10 @@ object Lib{
     */
   def resolveDependencies(repositories: Seq[Repository],
                           depToDependency: Dep => coursier.Dependency,
-                          deps: TraversableOnce[Dep],
+                          deps: IterableOnce[Dep],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None,
-                          ctx: Option[mill.util.Ctx.Log] = None): Result[Agg[PathRef]] = {
+                          ctx: Option[Ctx.Log] = None): Result[Agg[PathRef]] = {
     val depSeq = deps.toSeq
     mill.modules.Jvm.resolveDependencies(
       repositories,
@@ -69,7 +61,7 @@ object Lib{
       ctx
     )
   }
-  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String) =
+  def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-compiler:$scalaVersion".forceVersion()
@@ -84,7 +76,7 @@ object Lib{
         ivy"$scalaOrganization:scala-reflect:$scalaVersion".forceVersion()
       )
 
-  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String) =
+  def scalaDocIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
         ivy"$scalaOrganization::dotty-doc:$scalaVersion".forceVersion()
@@ -103,7 +95,7 @@ object Lib{
       // in Scala <= 2.13, the scaladoc tool is included in the compiler
       scalaCompilerIvyDeps(scalaOrganization, scalaVersion)
 
-  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String) =
+  def scalaRuntimeIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion)) {
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
@@ -121,14 +113,14 @@ object Lib{
       )
 
   def listClassFiles(base: os.Path): Iterator[String] = {
-    if (os.isDir(base)) os.walk(base).toIterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+    if (os.isDir(base)) os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
     else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
       Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
     }
   }
 
-  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Agg[os.Path]) = {
+  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Loose.Agg[os.Path]): Loose.Agg[(Class[_], Fingerprint)] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -155,7 +147,7 @@ object Lib{
 
     testClasses
   }
-  def matchFingerprints(cl: ClassLoader, cls: Class[_], fingerprints: Array[Fingerprint], isModule: Boolean) = {
+  def matchFingerprints(cl: ClassLoader, cls: Class[_], fingerprints: Array[Fingerprint], isModule: Boolean): Option[(Class[_], Fingerprint)] = {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
