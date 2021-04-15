@@ -1,6 +1,7 @@
 package mill.util
 
 import scala.collection.mutable
+
 import mill.api.Strict.Agg
 
 /**
@@ -27,11 +28,11 @@ object MultiBiMap{
   class Mutable[K, V]() extends MultiBiMap[K, V]{
     private[this] val valueToKey = mutable.LinkedHashMap.empty[V, K]
     private[this] val keyToValues = mutable.LinkedHashMap.empty[K, Agg.Mutable[V]]
-    def containsValue(v: V) = valueToKey.contains(v)
-    def lookupKey(k: K) = keyToValues(k)
-    def lookupKeyOpt(k: K) = keyToValues.get(k)
-    def lookupValue(v: V) = valueToKey(v)
-    def lookupValueOpt(v: V) = valueToKey.get(v)
+    def containsValue(v: V): Boolean = valueToKey.contains(v)
+    def lookupKey(k: K): Agg.Mutable[V] = keyToValues(k)
+    def lookupKeyOpt(k: K): Option[Agg.Mutable[V]] = keyToValues.get(k)
+    def lookupValue(v: V): K = valueToKey(v)
+    def lookupValueOpt(v: V): Option[K] = valueToKey.get(v)
     def add(k: K, v: V): Unit = {
       valueToKey(v) = k
       keyToValues.getOrElseUpdate(k, new Agg.Mutable[V]()).append(v)
