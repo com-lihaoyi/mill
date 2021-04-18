@@ -35,9 +35,7 @@ object BloopTests extends TestSuite {
         "-language:higherKinds"
       )
 
-      object test extends super.Tests {
-        def testFrameworks = Seq("utest.runner.Framework")
-      }
+      object test extends super.Tests with TestModule.Utest
     }
 
     object scalaModule2 extends scalalib.ScalaModule {

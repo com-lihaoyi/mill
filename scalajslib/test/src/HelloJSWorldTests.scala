@@ -4,7 +4,7 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule, TestRunner}
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
@@ -51,9 +51,8 @@ object HelloJSWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
     class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
       extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
-      object test extends super.Tests {
+      object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
-        def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::0.7.5"
         )
