@@ -192,7 +192,7 @@ object TestModule {
    * You need to provide the utest dependencies yourself.
    */
   trait Utest extends TestModule {
-    override def testFramework: T[String] = "mill.UTestFramework"
+    override def testFramework: T[String] = "utest.runner.Framework"
   }
 
   /**
