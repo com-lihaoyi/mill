@@ -1,22 +1,24 @@
 package mill.modules
 
-import java.io._
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream, SequenceInputStream}
 import java.lang.reflect.Modifier
 import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
+
 import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import java.util.Collections
+
 import mill.main.client.InputPumper
-import mill.util.Ctx
-import mill.api.{IO,PathRef,Result}
+import mill.api.{Ctx, IO, PathRef, Result}
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
+
 import upickle.default.{ReadWriter => RW}
 
 object Jvm {
@@ -480,8 +482,8 @@ object Jvm {
     * `import $ivy` syntax.
     */
   def resolveDependencies(repositories: Seq[Repository],
-                          deps: TraversableOnce[coursier.Dependency],
-                          force: TraversableOnce[coursier.Dependency],
+                          deps: IterableOnce[coursier.Dependency],
+                          force: IterableOnce[coursier.Dependency],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None,
                           ctx: Option[mill.util.Ctx.Log] = None): Result[Agg[PathRef]] = {
@@ -552,8 +554,8 @@ object Jvm {
 
 
   def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  deps: TraversableOnce[coursier.Dependency],
-                                  force: TraversableOnce[coursier.Dependency],
+                                  deps: IterableOnce[coursier.Dependency],
+                                  force: IterableOnce[coursier.Dependency],
                                   mapDependencies: Option[Dependency => Dependency] = None,
                                   ctx: Option[mill.util.Ctx.Log] = None) = {
 

@@ -26,12 +26,11 @@ trait JavaModule
   trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
-    override def repositoriesTask: Task[Seq[Repository]] = T.task {
-      outer.repositoriesTask()
-    }
+    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
     override def javacOptions: T[Seq[String]] = outer.javacOptions
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
+    override def runUseArgsFile: T[Boolean] = super.runUseArgsFile
   }
   trait Tests extends JavaModuleTests
 
@@ -457,7 +456,7 @@ trait JavaModule
         )
       )
 
-      Result.Success()
+      Result.Success(())
     }
 
   /**
@@ -491,6 +490,9 @@ trait JavaModule
         }
     }
 
+  /** Control whether `run*`-targets should use an args file to pass command line args, if possible. */
+  def runUseArgsFile: T[Boolean] = T{ scala.util.Properties.isWin }
+
   /**
    * Runs this module's code in-process within an isolated classloader. This is
    * faster than `run`, but in exchange you have less isolation between runs
@@ -516,7 +518,8 @@ trait JavaModule
         forkArgs(),
         forkEnv(),
         args,
-        workingDir = forkWorkingDir()
+        workingDir = forkWorkingDir(),
+        useCpPassingJar = runUseArgsFile()
       ))
     catch {
       case e: Exception =>
@@ -578,7 +581,8 @@ trait JavaModule
         forkEnv(),
         Seq(procId.toString, procTombstone.toString, token, finalMainClass()) ++ args,
         workingDir = forkWorkingDir(),
-        background = true
+        background = true,
+        useCpPassingJar = runUseArgsFile()
       ))
     catch {
       case e: Exception =>
@@ -601,7 +605,8 @@ trait JavaModule
           forkEnv(),
           Seq(procId.toString, procTombstone.toString, token, mainClass) ++ args,
           workingDir = forkWorkingDir(),
-          background = true
+          background = true,
+          useCpPassingJar = runUseArgsFile()
         ))
       catch {
         case e: Exception =>
@@ -632,7 +637,8 @@ trait JavaModule
         forkArgs(),
         forkEnv(),
         args,
-        workingDir = forkWorkingDir()
+        workingDir = forkWorkingDir(),
+        useCpPassingJar = runUseArgsFile()
       ))
     catch {
       case e: Exception =>

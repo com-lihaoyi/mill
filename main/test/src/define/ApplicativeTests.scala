@@ -33,34 +33,34 @@ object ApplicativeTests extends TestSuite {
 
   val tests = Tests{
 
-    'selfContained - {
+    "selfContained" - {
 
-      'simple - assert(Opt("lol " + 1) == Some("lol 1"))
-      'singleSome - assert(Opt("lol " + Some("hello")()) == Some("lol hello"))
-      'twoSomes - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
-      'singleNone - assert(Opt("lol " + None()) == None)
-      'twoNones - assert(Opt("lol " + None() + None()) == None)
+      "simple" - assert(Opt("lol " + 1) == Some("lol 1"))
+      "singleSome" - assert(Opt("lol " + Some("hello")()) == Some("lol hello"))
+      "twoSomes" - assert(Opt(Some("lol ")() + Some("hello")()) == Some("lol hello"))
+      "singleNone" - assert(Opt("lol " + None()) == None)
+      "twoNones" - assert(Opt("lol " + None() + None()) == None)
     }
-    'context - {
+    "context" - {
       assert(Opt(Opt.ctx() + Some("World")()) == Some("hellooooWorld"))
     }
-    'capturing - {
+    "capturing" - {
       val lol = "lol "
       def hell(o: String) = "hell" + o
-      'simple - assert(Opt(lol + 1) == Some("lol 1"))
-      'singleSome - assert(Opt(lol + Some(hell("o"))()) == Some("lol hello"))
-      'twoSomes - assert(Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello"))
-      'singleNone - assert(Opt(lol + None()) == None)
-      'twoNones - assert(Opt(lol + None() + None()) == None)
+      "simple" - assert(Opt(lol + 1) == Some("lol 1"))
+      "singleSome" - assert(Opt(lol + Some(hell("o"))()) == Some("lol hello"))
+      "twoSomes" - assert(Opt(Some(lol)() + Some(hell("o"))()) == Some("lol hello"))
+      "singleNone" - assert(Opt(lol + None()) == None)
+      "twoNones" - assert(Opt(lol + None() + None()) == None)
     }
-    'allowedLocalDef - {
+    "allowedLocalDef" - {
       // Although x is defined inside the Opt{...} block, it is also defined
       // within the LHS of the Applyable#apply call, so it is safe to life it
       // out into the `zipMap` arguments list.
       val res = Opt{ "lol " + Some("hello").flatMap(x => Some(x)).apply() }
       assert(res == Some("lol hello"))
     }
-    'upstreamAlwaysEvaluated - {
+    "upstreamAlwaysEvaluated" - {
       // Whether or not control-flow reaches the Applyable#apply call inside an
       // Opt{...} block, we always evaluate the LHS of the Applyable#apply
       // because it gets lifted out of any control flow statements
@@ -72,7 +72,7 @@ object ApplicativeTests extends TestSuite {
         counter.value == 1
       )
     }
-    'upstreamEvaluatedOnlyOnce - {
+    "upstreamEvaluatedOnlyOnce" - {
       // Even if control-flow reaches the Applyable#apply call more than once,
       // it only gets evaluated once due to its lifting out of the Opt{...} block
       val counter = new Counter()
@@ -84,7 +84,7 @@ object ApplicativeTests extends TestSuite {
         counter.value == 1
       )
     }
-    'evaluationsInsideLambdasWork - {
+    "evaluationsInsideLambdasWork" - {
       // This required some fiddling with owner chains inside the macro to get
       // working, so ensure it doesn't regress
       val counter = new Counter()
@@ -96,7 +96,7 @@ object ApplicativeTests extends TestSuite {
         down2 == Some(Seq("hello2", "hello2hello2", "hello2hello2hello2"))
       )
     }
-    'appliesEvaluatedOncePerLexicalCallsite - {
+    "appliesEvaluatedOncePerLexicalCallsite" - {
       // If you have multiple Applyable#apply() lexically in the source code of
       // your Opt{...} call, each one gets evaluated once, even if the LHS of each
       // apply() call is identical. It's up to the downstream zipMap()
@@ -106,7 +106,7 @@ object ApplicativeTests extends TestSuite {
       val down = Opt{ Seq(1, 2, 3).map(n => n + up() + up()) }
       assert(down == Some(Seq("1hello1hello2", "2hello1hello2", "3hello1hello2")))
     }
-    'appliesEvaluateBeforehand - {
+    "appliesEvaluateBeforehand" - {
       // Every Applyable#apply() within a Opt{...} block evaluates before any
       // other logic within that block, even if they would happen first in the
       // normal Scala evaluation order

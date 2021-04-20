@@ -5,10 +5,10 @@ import utest._
 
 object JavaCompileJarTests extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "java-compile-jar"
-  def scriptSourcePath = os.pwd / 'main / 'test / 'resources / 'examples / 'javac
+  def scriptSourcePath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
   val tests = Tests{
     initWorkspace()
-    'test - {
+    "test" - {
       if (!ammonite.util.Util.java9OrAbove) {
         // Basic target evaluation works
         assert(eval("classFiles"))

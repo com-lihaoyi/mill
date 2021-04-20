@@ -13,17 +13,17 @@ import scala.collection.mutable
 object TestUtil {
   def getOutPath()(implicit fullName: sourcecode.FullName,
                    tp: TestPath) = {
-    os.pwd / 'target / 'workspace / (fullName.value.split('.') ++ tp.value)
+    os.pwd / "target" / "workspace" / (fullName.value.split('.') ++ tp.value)
   }
   def getOutPathStatic()(implicit fullName: sourcecode.FullName) = {
-    os.pwd / 'target / 'workspace / fullName.value.split('.')
+    os.pwd / "target" / "workspace" / fullName.value.split('.')
   }
 
   def getSrcPathStatic()(implicit fullName: sourcecode.FullName) = {
-    os.pwd / 'target / 'worksources / fullName.value.split('.')
+    os.pwd / "target" / "worksources" / fullName.value.split('.')
   }
   def getSrcPathBase() = {
-    os.pwd / 'target / 'worksources
+    os.pwd / "target" / "worksources"
   }
 
   class BaseModule(implicit millModuleEnclosing0: sourcecode.Enclosing,

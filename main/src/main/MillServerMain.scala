@@ -2,12 +2,15 @@ package mill.main
 
 import java.io._
 import java.net.Socket
+
 import mill.{BuildInfo, MillMain}
 import scala.jdk.CollectionConverters._
+
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
+import mill.main.client.lock.{Lock, Locks}
 import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T]{
@@ -40,7 +43,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
       this,
       () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
       acceptTimeoutMillis = 5 * 60 * 1000, // 5 minutes
-      mill.main.client.Locks.files(args0(0))
+      Locks.files(args0(0))
     ).run()
   }
 
