@@ -98,7 +98,7 @@ object Deps {
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.5"
   val upickle = ivy"com.lihaoyi::upickle:1.3.11"
-  val utest = ivy"com.lihaoyi::utest:0.7.5"
+  val utest = ivy"com.lihaoyi::utest:0.7.9"
   val zinc = ivy"org.scala-sbt::zinc:1.5.0"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"

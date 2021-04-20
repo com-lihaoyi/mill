@@ -54,7 +54,7 @@ object HelloJSWorldTests extends TestSuite {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.7.5"
+          ivy"com.lihaoyi::utest::0.7.9"
         )
       }
     }
