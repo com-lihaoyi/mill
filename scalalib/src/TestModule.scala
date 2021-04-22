@@ -59,7 +59,7 @@ trait TestModule extends JavaModule with TaskModule {
   /** Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
    * */
-  def testUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
   protected def testTask(
       args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
