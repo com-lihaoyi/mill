@@ -12,7 +12,7 @@ object NodeJSConfigTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
   val scalaVersion = "2.12.4"
   val scalaJSVersion = "0.6.32"
-  val utestVersion = "0.7.5"
+  val utestVersion = "0.7.9"
   val nodeArgsEmpty = List()
   val nodeArgs2G = List("--max-old-space-size=2048")
   val nodeArgs4G = List("--max-old-space-size=4096")

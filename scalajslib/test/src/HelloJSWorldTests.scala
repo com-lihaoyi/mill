@@ -53,7 +53,7 @@ object HelloJSWorldTests extends TestSuite {
       extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
       object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
-        val utestVersion = if(isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
+        val utestVersion = if(isScala3(crossScalaVersion)) "0.7.7" else "0.7.9"
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
         )
