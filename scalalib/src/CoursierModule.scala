@@ -1,6 +1,7 @@
 package mill.scalalib
 
 import coursier.{Dependency, Repository, Resolve}
+import coursier.core.{Resolution}
 import mill.{Agg, T}
 import mill.define.Task
 import mill.api.PathRef
@@ -26,12 +27,13 @@ trait CoursierModule extends mill.Module {
     */
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     Lib.resolveDependencies(
-      repositoriesTask(),
-      resolveCoursierDependency().apply(_),
-      deps(),
-      sources,
+      repositories = repositoriesTask(),
+      depToDependency = resolveCoursierDependency().apply(_),
+      deps = deps(),
+      sources = sources,
       mapDependencies = Some(mapDependencies()),
-      Some(implicitly[mill.util.Ctx.Log])
+      customizer = resolutionCustomizer(),
+      ctx = Some(implicitly[mill.api.Ctx.Log])
     )
   }
 
@@ -39,17 +41,19 @@ trait CoursierModule extends mill.Module {
     * Map dependencies before resolving them.
     * Override this to customize the set of dependencies.
     */
-  def mapDependencies: Task[Dependency => Dependency] = T.task { d: coursier.Dependency => d }
+  def mapDependencies: Task[Dependency => Dependency] = T.task { d: Dependency => d }
+
+  /**
+    * The repositories used to resolved dependencies with [[resolveDeps()]].
+    */
+  def repositoriesTask: Task[Seq[Repository]] = T.task { repositories }
+
+  def resolutionCustomizer: Task[Option[Resolution => Resolution]] = T.task { None }
 
   /**
     * The repositories used to resolved dependencies with [[resolveDeps()]].
     */
   @deprecated("Use repositoriesTask instead", "after mill 0.8.0")
   def repositories: Seq[Repository] = Resolve.defaultRepositories
-
-  /**
-    * The repositories used to resolved dependencies with [[resolveDeps()]].
-    */
-  def repositoriesTask: Task[Seq[Repository]] = T.task { repositories }
 
 }
