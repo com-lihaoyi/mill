@@ -16,7 +16,7 @@ trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T { crossScalaVersion }
 
-  protected def scalaVersionDirectoryNames: Seq[String] = {
+  protected def scalaVersionDirectoryNames: Iterable[String] = {
     for (segments <- crossScalaVersion.split('.').inits.filter(_.nonEmpty))
       yield segments.mkString(".")
   }
