@@ -48,6 +48,23 @@ trait CoursierModule extends mill.Module {
     */
   def repositoriesTask: Task[Seq[Repository]] = T.task { repositories }
 
+  /**
+    * Customize the coursier resolution resolution process.
+    * This is rarely needed to changed, as the default try to provide a
+    * highly reproducible resolution process. But sometime, you need
+    * more control, e.g. you want to add some OS or JDK specific resolution properties
+    * which are sometimes used by Maven and therefore found in dependency artifact metadata.
+    * For example, the JavaFX artifacts are known to use OS specific properties.
+    * To fix resolution for JavaFX, you could override this task like the following:
+    * {{{
+    *     override def resolutionCustomizer = T.task {
+    *       Some( (r: coursier.core.Resolution) =>
+    *         r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
+    *       )
+    *     }
+    * }}}
+    * @return
+    */
   def resolutionCustomizer: Task[Option[Resolution => Resolution]] = T.task { None }
 
   /**
