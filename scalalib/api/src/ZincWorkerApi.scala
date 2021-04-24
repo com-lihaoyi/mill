@@ -164,9 +164,8 @@ object Util {
         }
         .map(_.toSeq)
     )
-    val current = version.split('.').inits.filter(_.nonEmpty).map(_.mkString("."))
     val plus = all.filter(v => v.nonEmpty && v <= versionParts.take(v.length)).map(_.mkString(".") + "+")
     val minus = all.filter(v => v.nonEmpty && v >= versionParts.take(v.length)).map(_.mkString(".") + "-")
-    (current ++ plus ++ minus).distinct.toSeq
+    (plus ++ minus).distinct.toSeq
   }
 }
