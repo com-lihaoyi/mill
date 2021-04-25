@@ -5,13 +5,6 @@ import mill.define.Cross
 import mill.define.Cross.Resolver
 import mill.api.PathRef
 
-object CrossModuleBase {
-  @deprecated("Not used anymore.", "0.9.6")
-  def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {
-    for (segments <- scalaVersion.split('.').inits.filter(_.nonEmpty))
-      yield PathRef(f(segments.mkString(".")))
-  }
-}
 trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T { crossScalaVersion }
