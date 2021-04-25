@@ -208,11 +208,11 @@ corresponding version of Mill.
 
 == Changelog
 
-=== master
+=== main
 
 _For details refer to
 {link-milestone}/48?closed=1[milestone after 0.9.6]
-and the {link-compare}/0.9.6\...master[list of commits]._
+and the {link-compare}/0.9.6\...main[list of commits]._
 
 
 === 0.9.6 - 2021-04-03
@@ -329,7 +329,7 @@ and the {link-compare}/0.7.0\...0.7.1[list of commits]._
 * `-w`/`--watch` now works for `T.source` targets
 
 _For details refer to {link-milestone}/37?closed=1[milestone 0.7.0]
-and the {link-compare}/0.6.3\...master[list of commits]._
+and the {link-compare}/0.6.3\...0.7.0[list of commits]._
 
 === 0.6.3 - 2020-05-10
 

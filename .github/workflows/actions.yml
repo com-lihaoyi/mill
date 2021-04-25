@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches:
-      - master
+      - main
 jobs:
 
   test:
@@ -92,7 +92,7 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     needs: [test, test-windows]
 
     runs-on: ubuntu-latest
@@ -118,7 +118,7 @@ jobs:
       - run: ci/release-maven.sh
 
   release-github:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     needs: publish-sonatype
     runs-on: ubuntu-latest
 
