@@ -16,9 +16,9 @@ trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T { crossScalaVersion }
 
-  protected def scalaVersionDirectoryNames: Iterable[String] = {
-    for (segments <- crossScalaVersion.split('.').inits.filter(_.nonEmpty))
-      yield segments.mkString(".")
+  protected def scalaVersionDirectoryNames: Seq[String] = {
+    (for (segments <- crossScalaVersion.split('.').inits.filter(_.nonEmpty))
+      yield segments.mkString(".")).to(Seq)
   }
 
   override def millSourcePath = super.millSourcePath / ammonite.ops.up
