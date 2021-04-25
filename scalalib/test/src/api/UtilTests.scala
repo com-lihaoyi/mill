@@ -11,9 +11,6 @@ object UtilTests extends TestSuite {
       )
 
       val exp = Seq(
-        "2.12.12",
-        "2.12",
-        "2",
         "2.11.12+",
         "2.11+",
         "2+",
