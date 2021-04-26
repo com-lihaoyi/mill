@@ -4,7 +4,7 @@ import java.util.jar.JarFile
 import mill._
 import mill.define.Discover
 import mill.eval.{Evaluator, Result}
-import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestRunner}
+import mill.scalalib.{CrossScalaModule, DepSyntax, Lib, PublishModule, TestModule, TestRunner}
 import mill.scalalib.api.Util.isScala3
 import mill.scalalib.publish.{Developer, License, PomSettings, VersionControl}
 import mill.util.{TestEvaluator, TestUtil}
@@ -51,11 +51,11 @@ object HelloJSWorldTests extends TestSuite {
     object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
     class BuildModuleUtest(crossScalaVersion: String, sjsVersion0: String, sjsUseECMA2015: Boolean)
       extends BuildModule(crossScalaVersion, sjsVersion0, sjsUseECMA2015) {
-      object test extends super.Tests {
+      object test extends super.Tests with TestModule.Utest {
         override def sources = T.sources{ millSourcePath / 'src / 'utest }
-        def testFrameworks = Seq("utest.runner.Framework")
+        val utestVersion = if(isScala3(crossScalaVersion)) "0.7.7" else "0.7.5"
         override def ivyDeps = Agg(
-          ivy"com.lihaoyi::utest::0.7.5"
+          ivy"com.lihaoyi::utest::$utestVersion"
         )
       }
     }
@@ -202,13 +202,13 @@ object HelloJSWorldTests extends TestSuite {
 
     'test - {
       val cached = false
-      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = v => v.startsWith("2.11.") || isScala3(v))
+      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
       testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached), skipScala = isScala3)
     }
 
     'testCached - {
       val cached = false
-      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = v => v.startsWith("2.11.") || isScala3(v))
+      testAllMatrix((scala, scalaJS, _) => checkUtest(scala, scalaJS, cached), skipScala = _.startsWith("2.11."))
       testAllMatrix((scala, scalaJS, _) => checkScalaTest(scala, scalaJS, cached), skipScala = isScala3)
     }
 

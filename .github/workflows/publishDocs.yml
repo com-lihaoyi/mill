@@ -2,10 +2,10 @@ name: Publish Docs
 on:
   push:
     branches:
-      - master
+      - main
 jobs:
   publishDocs:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
     env:
       REPO_DEPLOY_KEY: ${{ secrets.REPO_DEPLOY_KEY }}

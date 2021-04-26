@@ -165,7 +165,7 @@ case class Evaluator(
     try {
       implicit val ec = new ExecutionContext {
         def execute(runnable: Runnable) = threadPool.submit(runnable)
-        def reportFailure(t: Throwable) {}
+        def reportFailure(t: Throwable): Unit = {}
       }
 
       val terminals = sortedGroups.keys().toVector

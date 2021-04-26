@@ -1,6 +1,5 @@
 package mill.main.client;
 
-
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -20,7 +19,6 @@ public class Util {
     public static String WIN32_PIPE_PREFIX = "\\\\.\\pipe\\";
 
     public static String[] parseArgs(InputStream argStream) throws IOException {
-
         int argsLength = readInt(argStream);
         String[] args = new String[argsLength];
         for (int i = 0; i < args.length; i++) {
@@ -37,7 +35,7 @@ public class Util {
     }
 
     /**
-     * This allows the mill client to pass the environment as he sees it to the
+     * This allows the mill client to pass the environment as it sees it to the
      * server (as the server remains alive over the course of several runs and
      * does not see the environment changes the client would)
      */

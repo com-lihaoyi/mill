@@ -21,7 +21,6 @@ trait CaffeineModule extends MavenModule{
   }
   trait Tests extends super.Tests with TestModule.Junit4 {
     def ivyDeps = super.ivyDeps() ++ Agg(
-      ivy"com.lihaoyi:mill-contrib-testng:${sys.props("MILL_VERSION")}",
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
@@ -72,8 +71,7 @@ object caffeine extends CaffeineModule {
     )
   }
 
-  object test extends Tests{
-    def testFrameworks = Seq("mill.testng.TestNGFramework")
+  object test extends Tests with TestModule.TestNg {
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.ycsb,
       libraries.fastutil,

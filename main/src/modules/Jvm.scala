@@ -1,22 +1,24 @@
 package mill.modules
 
-import java.io._
+import java.io.{ByteArrayInputStream, File, FileOutputStream, InputStream, SequenceInputStream}
 import java.lang.reflect.Modifier
 import java.net.URI
 import java.nio.file.{FileSystems, Files, StandardOpenOption}
 import java.nio.file.attribute.PosixFilePermission
 import java.util.jar.{Attributes, JarEntry, JarFile, JarOutputStream, Manifest}
+
 import coursier.{Dependency, Repository, Resolution}
 import coursier.util.{Gather, Task}
 import java.util.Collections
+
 import mill.main.client.InputPumper
-import mill.util.Ctx
-import mill.api.{IO,PathRef,Result}
+import mill.api.{Ctx, IO, PathRef, Result}
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
+
 import upickle.default.{ReadWriter => RW}
 
 object Jvm {
@@ -472,6 +474,7 @@ object Jvm {
     PathRef(outputPath)
   }
 
+
   /**
     * Resolve dependencies using Coursier.
     *
@@ -480,14 +483,15 @@ object Jvm {
     * `import $ivy` syntax.
     */
   def resolveDependencies(repositories: Seq[Repository],
-                          deps: TraversableOnce[coursier.Dependency],
-                          force: TraversableOnce[coursier.Dependency],
+                          deps: IterableOnce[coursier.Dependency],
+                          force: IterableOnce[coursier.Dependency],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None,
-                          ctx: Option[mill.util.Ctx.Log] = None): Result[Agg[PathRef]] = {
+                          customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+                          ctx: Option[mill.api.Ctx.Log] = None): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
-      repositories, deps, force, mapDependencies, ctx
+      repositories, deps, force, mapDependencies, customizer, ctx
     )
     val errs = resolution.errors
 
@@ -550,12 +554,12 @@ object Jvm {
     }
   }
 
-
   def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  deps: TraversableOnce[coursier.Dependency],
-                                  force: TraversableOnce[coursier.Dependency],
+                                  deps: IterableOnce[coursier.Dependency],
+                                  force: IterableOnce[coursier.Dependency],
                                   mapDependencies: Option[Dependency => Dependency] = None,
-                                  ctx: Option[mill.util.Ctx.Log] = None) = {
+                                  customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+                                  ctx: Option[mill.api.Ctx.Log] = None): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
 
@@ -564,10 +568,12 @@ object Jvm {
       .map{d => d.module -> d.version}
       .toMap
 
-    val start = Resolution()
-      .withRootDependencies(deps.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq)
+    val start0 = Resolution()
+      .withRootDependencies(deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq)
       .withForceVersions(forceVersions)
       .withMapDependencies(mapDependencies)
+
+    val start = customizer.getOrElse(identity[Resolution](_)).apply(start0)
 
     val resolutionLogger = ctx.map(c => new TickerResolutionLogger(c))
     val cache = resolutionLogger match {
@@ -671,4 +677,37 @@ object Jvm {
       manifest
     }
   }
+
+  @deprecated("Use alternative overload. This one is only for binary backwards compatibility.", "mill after 0.9.6")
+  def resolveDependencies(repositories: Seq[Repository],
+                          deps: IterableOnce[coursier.Dependency],
+                          force: IterableOnce[coursier.Dependency],
+                          sources: Boolean,
+                          mapDependencies: Option[Dependency => Dependency],
+                          ctx: Option[mill.api.Ctx.Log]): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = None,
+      ctx = ctx
+    )
+
+  @deprecated("Use alternative overload. This one is only for binary backwards compatibility.", "mill after 0.9.6")
+  def resolveDependenciesMetadata(repositories: Seq[Repository],
+                                  deps: IterableOnce[coursier.Dependency],
+                                  force: IterableOnce[coursier.Dependency],
+                                  mapDependencies: Option[Dependency => Dependency],
+                                  ctx: Option[mill.api.Ctx.Log]): (Seq[Dependency], Resolution) =
+    resolveDependenciesMetadata(
+      repositories = repositories,
+      deps = deps,
+      force = force,
+      mapDependencies = mapDependencies,
+      customizer = None,
+      ctx = ctx
+    )
+
 }

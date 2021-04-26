@@ -20,17 +20,17 @@ object JavaCompileJarTests extends TestSuite{
   }
 
   val tests = Tests{
-    'javac {
-      val javacSrcPath = os.pwd / 'main / 'test / 'resources / 'examples / 'javac
-      val javacDestPath =  TestUtil.getOutPath() / 'src
+    "javac" - {
+      val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
+      val javacDestPath =  TestUtil.getOutPath() / "src"
 
       os.makeDir.all(javacDestPath / os.up)
       os.copy(javacSrcPath, javacDestPath)
 
       object Build extends TestUtil.BaseModule{
-        def sourceRootPath = javacDestPath / 'src
+        def sourceRootPath = javacDestPath / "src"
         def readmePath = javacDestPath / "readme.md"
-        def resourceRootPath = javacDestPath / 'resources
+        def resourceRootPath = javacDestPath / "resources"
 
         // sourceRoot -> allSources -> classFiles
         //                                |
@@ -50,7 +50,7 @@ object JavaCompileJarTests extends TestSuite{
         def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
 
         def run(mainClsName: String) = T.command{
-          os.proc('java, "-Duser.language=en", "-cp", classFiles().path, mainClsName)
+          os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
       }
@@ -117,7 +117,7 @@ object JavaCompileJarTests extends TestSuite{
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = os.proc('jar, "-tf", evaluator.outPath/'jar/'dest/"out.jar").call(evaluator.outPath).out.string
+      val jarContents = os.proc("jar", "-tf", evaluator.outPath/"jar"/"dest"/"out.jar").call(evaluator.outPath).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |test/Bar.class
@@ -134,10 +134,10 @@ object JavaCompileJarTests extends TestSuite{
       def noFoos(s: String) = !s.contains("Foo")
       val filterFunc = (p: os.Path, r: os.RelPath) => noFoos(r.last)
       eval(filterJar(filterFunc))
-      val filteredJarContents = os.proc('jar, "-tf", evaluator.outPath/'filterJar/'dest/"out.jar").call(evaluator.outPath).out.string
+      val filteredJarContents = os.proc("jar", "-tf", evaluator.outPath/"filterJar"/"dest"/"out.jar").call(evaluator.outPath).out.string
       assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(noFoos(_)).toSeq)
 
-      val executed = os.proc('java, "-cp", evaluator.outPath/'jar/'dest/"out.jar", "test.Foo").call(evaluator.outPath).out.string
+      val executed = os.proc("java", "-cp", evaluator.outPath/"jar"/"dest"/"out.jar", "test.Foo").call(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)
 
       for(i <- 0 until 3){

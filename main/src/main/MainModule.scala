@@ -143,15 +143,15 @@ trait MainModule extends mill.Module{
       for{
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
-        val defaults = pprint.PPrinter()
-        val renderer = new Renderer(
+        defaults = pprint.PPrinter()
+        renderer = new Renderer(
           defaults.defaultWidth,
           defaults.colorApplyPrefix,
           defaults.colorLiteral,
           defaults.defaultIndent
         )
-        val rendered = renderer.rec(tree, 0, 0).iter
-        val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+        rendered = renderer.rec(tree, 0, 0).iter
+        truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
         str <- truncated ++ Iterator("\n")
       } {
         output.append(str)

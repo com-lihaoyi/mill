@@ -4,7 +4,7 @@ on:
   push:
   pull_request:
     branches:
-      - master
+      - main
 jobs:
 
   test:
@@ -19,15 +19,12 @@ jobs:
           - ci/test-mill-bootstrap-1.sh
           - ./mill -i -k "{main,scalalib,scalajslib,scalanativelib,bsp}.__.test"
           - ./mill -i -k "contrib._.test"
-          - ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.antora.githubPages
-        exclude:
-          - java-version: 11
+        include:
+          - java-version: 8
             buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
-          - java-version: 11
-            buildcmd: ci/test-mill-release.sh
 
     runs-on: ubuntu-latest
 
@@ -95,7 +92,7 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     needs: [test, test-windows]
 
     runs-on: ubuntu-latest
@@ -121,7 +118,7 @@ jobs:
       - run: ci/release-maven.sh
 
   release-github:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/master'
+    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
     needs: publish-sonatype
     runs-on: ubuntu-latest
 

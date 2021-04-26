@@ -1,10 +1,11 @@
 package mill.main
 import java.io._
 
-import mill.main.client.{Util, Locks}
-
-import scala.collection.JavaConverters._
+import mill.main.client.Util
+import mill.main.client.lock.Locks
+import scala.jdk.CollectionConverters._
 import utest._
+
 class EchoServer extends MillServerMain[Int]{
   def main0(args: Array[String],
             stateCache: Option[Int],
@@ -83,7 +84,7 @@ object ClientServerTests extends TestSuite{
   }
 
   def tests = Tests{
-    'hello - {
+    "hello" - {
         val (tmpDir, locks) = init()
         def runClient(s: String) = runClientAux(tmpDir, locks)(Map.empty, Array(s))
 
@@ -104,7 +105,7 @@ object ClientServerTests extends TestSuite{
         )
 
         // Give a bit of time for the server to release the lock and
-        // re-acquire it to signal to the client that it's done
+        // re-acquire it to signal to the client that it"s" done
         Thread.sleep(100)
 
         assert(
@@ -140,7 +141,7 @@ object ClientServerTests extends TestSuite{
         }
       
 
-      'envVars - retry(3) {
+      "envVars" - retry(3) {
           val (tmpDir, locks) = init()
 
           def runClient(env : Map[String, String]) = runClientAux(tmpDir, locks)(env, Array())
