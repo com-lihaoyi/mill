@@ -28,12 +28,20 @@ private[dependency] object VersionsFinder {
     javaModules.map { javaModule =>
       val depToDependency = eval(evaluator, javaModule.resolveCoursierDependency)
       val deps = evalOrElse(evaluator, javaModule.ivyDeps, Loose.Agg.empty[Dep])
+      val compileIvyDeps = evalOrElse(evaluator, javaModule.compileIvyDeps, Loose.Agg.empty[Dep])
+      val runIvyDeps = evalOrElse(evaluator, javaModule.runIvyDeps, Loose.Agg.empty[Dep])
       val repos = evalOrElse(evaluator, javaModule.repositoriesTask, Seq.empty[Repository])
+      val mapDeps = evalOrElse(evaluator, javaModule.mapDependencies, (d: coursier.Dependency) => d)
+      val custom = evalOrElse(evaluator, javaModule.resolutionCustomizer, None)
 
       val (dependencies, _) =
-        Lib.resolveDependenciesMetadata(repos,
-                                        depToDependency,
-                                        deps)
+        Lib.resolveDependenciesMetadata(
+          repositories = repos,
+          depToDependency = depToDependency,
+          deps = deps ++ compileIvyDeps ++ runIvyDeps,
+          mapDependencies = Some(mapDeps),
+          customizer = custom
+        )
 
       (javaModule, dependencies)
     }

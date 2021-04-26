@@ -11,7 +11,7 @@ import mill.api.{Ctx, Loose, PathRef, Result}
 import sbt.testing._
 
 
-object Lib{
+object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
     assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
     depToDependency(dep, "", platformSuffix)
@@ -28,16 +28,19 @@ object Lib{
                                   depToDependency: Dep => coursier.Dependency,
                                   deps: IterableOnce[Dep],
                                   mapDependencies: Option[Dependency => Dependency] = None,
+                                  customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
                                   ctx: Option[Ctx.Log] = None): (Seq[Dependency], Resolution) = {
-    val depSeq = deps.toSeq
+    val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
-      repositories,
-      depSeq.map(depToDependency),
-      depSeq.filter(_.force).map(depToDependency),
-      mapDependencies,
-      ctx
+      repositories = repositories,
+      deps = depSeq.map(depToDependency),
+      force = depSeq.filter(_.force).map(depToDependency),
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx
     )
   }
+
   /**
     * Resolve dependencies using Coursier.
     *
@@ -50,17 +53,20 @@ object Lib{
                           deps: IterableOnce[Dep],
                           sources: Boolean = false,
                           mapDependencies: Option[Dependency => Dependency] = None,
+                          customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
                           ctx: Option[Ctx.Log] = None): Result[Agg[PathRef]] = {
-    val depSeq = deps.toSeq
+    val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependencies(
-      repositories,
-      depSeq.map(depToDependency),
-      depSeq.filter(_.force).map(depToDependency),
-      sources,
-      mapDependencies,
-      ctx
+      repositories = repositories,
+      deps = depSeq.map(depToDependency),
+      force = depSeq.filter(_.force).map(depToDependency),
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = customizer,
+      ctx = ctx
     )
   }
+
   def scalaCompilerIvyDeps(scalaOrganization: String, scalaVersion: String): Loose.Agg[Dep] =
     if (mill.scalalib.api.Util.isDotty(scalaVersion))
       Agg(
@@ -164,5 +170,37 @@ object Lib{
 
     }.map { f => (cls, f) }
   }
+
+  @deprecated("User other overload instead. Only for binary backward compatibility.", "mill after 0.9.6")
+  def resolveDependenciesMetadata(repositories: Seq[Repository],
+                                  depToDependency: Dep => coursier.Dependency,
+                                  deps: IterableOnce[Dep],
+                                  mapDependencies: Option[Dependency => Dependency],
+                                  ctx: Option[Ctx.Log]): (Seq[Dependency], Resolution) =
+    resolveDependenciesMetadata(
+      repositories = repositories,
+      depToDependency = depToDependency,
+      deps = deps,
+      mapDependencies = mapDependencies,
+      customizer = None,
+      ctx = ctx
+    )
+
+  @deprecated("User other overload instead. Only for binary backward compatibility.", "mill after 0.9.6")
+  def resolveDependencies(repositories: Seq[Repository],
+                          depToDependency: Dep => coursier.Dependency,
+                          deps: IterableOnce[Dep],
+                          sources: Boolean,
+                          mapDependencies: Option[Dependency => Dependency],
+                          ctx: Option[Ctx.Log]): Result[Agg[PathRef]] =
+    resolveDependencies(
+      repositories = repositories,
+      depToDependency = depToDependency,
+      deps = deps,
+      sources = sources,
+      mapDependencies = mapDependencies,
+      customizer = None,
+      ctx = ctx
+    )
 
 }

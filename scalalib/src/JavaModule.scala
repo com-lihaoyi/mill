@@ -444,7 +444,8 @@ trait JavaModule
         repositoriesTask(),
         resolveCoursierDependency().apply(_),
         additionalDeps() ++ transitiveIvyDeps(),
-        Some(mapDependencies())
+        Some(mapDependencies()),
+        customizer = resolutionCustomizer()
       )
 
       println(
