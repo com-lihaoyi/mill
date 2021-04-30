@@ -9,10 +9,10 @@ import mainargs.{Flag, Leftover, arg}
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
 
+import modules.InitProject
+
 case class MillConfig(
   ammoniteCore: ammonite.main.Config.Core,
-  @arg(doc = """Initialize a Mill project in current directory""")
-  init: Flag,
   @arg(doc = """Run Mill in interactive mode and start a build REPL. In this mode, no
     mill server will be used. Must be the first argument.""")
   repl: Flag,
@@ -103,10 +103,13 @@ object MillMain {
     val parser = mainargs.ParserForClass[MillConfig]
     val customName = "Mill Build Tool"
     val customDoc =  "usage: mill [mill-options] [target [target-options]]"
-    if (args.length == 0 || args.take(1).toSeq == Seq("--help")){
+    if (args.take(1).toSeq == Seq("--help")){
       stdout.println(parser.helpText(customName = customName, customDoc = customDoc))
       (true, None)
-    }else parser.constructEither(
+    } else if (args.length == 0) {
+      stdout.println(parser.helpText(customName = customName, customDoc = customDoc))
+      (false, None)
+    } else parser.constructEither(
       args,
       allowRepeats = true, autoPrintHelpAndExit = None,
       customName = customName, customDoc = customDoc
@@ -115,19 +118,7 @@ object MillMain {
         stderr.println(msg)
         (false, None)
       case Right(config) =>
-        if (config.init.value){
-          val initBuildSc = """import mill._, scalalib._
-                              |
-                              |object foo extends ScalaModule {
-                              |  def scalaVersion = "3.0.0-RC3"
-                              |}""".stripMargin
-          os.write(os.pwd / "build.sc", initBuildSc)
-
-          val initAppScala = """@main def app =
-                               |  println("Hello world!")""".stripMargin
-          os.write(os.pwd / "foo" / "src" / "app.scala", initAppScala, createFolders = true)  
-          (true, None)
-        }else if ((config.interactive.value || config.repl.value || config.noServer.value) &&
+        if ((config.interactive.value || config.repl.value || config.noServer.value) &&
             stdin == DummyInputStream){
           stderr.println("-i/--interactive/--repl/--no-server must be passed in as the first argument")
           (false, None)
@@ -155,7 +146,10 @@ object MillMain {
             } else if ( useRepl && stdin == DummyInputStream ) {
               stderr.println("Build REPL needs to be run with the -i/--interactive/--repl flag")
               (false, stateCache)
-            }else{
+            } else if ( config.leftoverArgs.value.exists(_ == "init")) {
+              InitProject.initialize(config.leftoverArgs.value.toList, stdin, stdout, stderr)
+              (true, None)
+            } else{
               if ( useRepl && config.interactive.value ) {
                 stderr.println("WARNING: Starting a build REPL without --repl is deprecated")
               }
