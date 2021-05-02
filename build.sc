@@ -99,6 +99,7 @@ object Deps {
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.6"
   val upickle = ivy"com.lihaoyi::upickle:1.3.12"
   val utest = ivy"com.lihaoyi::utest:0.7.9"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.2"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
@@ -168,6 +169,9 @@ trait MillModule extends MillApiModule { outer =>
 
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
+  def ivyDeps = Agg(
+    Deps.windowsAnsi
+  )
 
   def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
