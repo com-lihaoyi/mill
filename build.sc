@@ -87,7 +87,7 @@ object Deps {
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.5"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.6"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
@@ -97,9 +97,9 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.6"
-  val upickle = ivy"com.lihaoyi::upickle:1.3.11"
+  val upickle = ivy"com.lihaoyi::upickle:1.3.12"
   val utest = ivy"com.lihaoyi::utest:0.7.9"
-  val zinc = ivy"org.scala-sbt::zinc:1.5.1"
+  val zinc = ivy"org.scala-sbt::zinc:1.5.2"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
 }
