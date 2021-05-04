@@ -90,7 +90,7 @@ object Deps {
   val osLib = ivy"com.lihaoyi::os-lib:0.7.6"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
   val scalametaTrees = ivy"org.scalameta::trees:4.4.15"
