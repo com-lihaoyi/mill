@@ -3,8 +3,9 @@ package mill.util
 import java.io.{ByteArrayInputStream, ByteArrayOutputStream, PrintStream}
 
 import mainargs.Flag
-
 import scala.util.Try
+
+import os.Path
 import utest._
 
 abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
@@ -49,7 +50,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     ringBell = false,
     wd = wd
   )
-  def eval(s: String*) = {
+  def eval(s: String*): Boolean = {
     if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
     else{
       try {
@@ -63,14 +64,14 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
       }catch{case e: Throwable => false}
     }
   }
-  def meta(s: String) = {
+  def meta(s: String): String = {
     val (List(selector), args) = ParseArgs.apply(Seq(s), multiSelect = false).right.get
 
     os.read(wd / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
   }
 
 
-  def initWorkspace() = {
+  def initWorkspace(): Path = {
     os.remove.all(workspacePath)
     os.makeDir.all(workspacePath / os.up)
     // The unzipped git repo snapshots we get from github come with a
