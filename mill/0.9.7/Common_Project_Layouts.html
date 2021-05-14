@@ -75,7 +75,7 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="mill" data-version="0.9.6">
+<div class="nav-container" data-component="mill" data-version="0.9.7">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -128,7 +128,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.6</span>
+    <span class="version">0.9.7</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -137,11 +137,11 @@
         <li class="version is-latest">
           <a href="../index.html">0.9.7</a>
         </li>
-        <li class="version">
-          <a href="../0.9.7/index.html">0.9.7</a>
-        </li>
         <li class="version is-current">
-          <a href="index.html">0.9.6</a>
+          <a href="index.html">0.9.7</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.6/index.html">0.9.6</a>
         </li>
       </ul>
     </li>
@@ -161,14 +161,14 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.6</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.7</button>
   <div class="version-menu">
     <a class="version" href="../Common_Project_Layouts.html">0.9.7</a>
-    <a class="version" href="../0.9.7/Common_Project_Layouts.html">0.9.7</a>
-    <a class="version is-current" href="Common_Project_Layouts.html">0.9.6</a>
+    <a class="version is-current" href="Common_Project_Layouts.html">0.9.7</a>
+    <a class="version" href="../0.9.6/Common_Project_Layouts.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.9.6/docs/antora/modules/ROOT/pages/Common_Project_Layouts.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.9.7/docs/antora/modules/ROOT/pages/Common_Project_Layouts.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -191,17 +191,12 @@ Scala build:</p>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">trait JUnitTests extends TestModule {
-  def testFrameworks = Seq(&quot;com.novocode.junit.JUnitFramework&quot;)
-  def ivyDeps = Agg(ivy&quot;com.novocode:junit-interface:0.11&quot;)
-}
-
-object core extends JavaModule {
-  object test extends Tests with JUnitTests
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">object core extends JavaModule {
+  object test extends Tests with TestModule.Junit
 }
 object app extends JavaModule {
   def moduleDeps = Seq(core)
-  object test extends Tests with JUnitTests
+  object test extends Tests with TestModule.Junit
 }</code></pre>
 </div>
 </div>
@@ -237,7 +232,7 @@ project:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc">Example Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/caffeine/build.sc">Example Build</a></p>
 </li>
 </ul>
 </div>
@@ -380,9 +375,8 @@ object hello extends ScalaNativeModule {
   def scalaNativeVersion = &quot;0.3.8&quot;
   def scalaVersion = &quot;2.11.12&quot;
   def ivyDeps = Agg(ivy&quot;com.lihaoyi::scalatags::0.6.7&quot;)
-  object test extends Tests{
+  object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy&quot;com.lihaoyi::utest::0.6.3&quot;)
-    def testFrameworks = Seq(&quot;utest.runner.Framework&quot;)
   }
 }</code></pre>
 </div>
@@ -614,7 +608,7 @@ integration tests and examples:</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/acyclic/build.sc#L1">Mill Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/acyclic/build.sc#L1">Mill Build</a></p>
 </li>
 </ul>
 </div>
@@ -628,7 +622,7 @@ wired up for publishing to Maven Central.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/better-files/build.sc#L1">Mill Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/better-files/build.sc#L1">Mill Build</a></p>
 </li>
 </ul>
 </div>
@@ -645,7 +639,7 @@ compiler flags, and download artifacts as part of the build.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/jawn/build.sc#L1">Mill Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/jawn/build.sc#L1">Mill Build</a></p>
 </li>
 </ul>
 </div>
@@ -659,7 +653,7 @@ versions of Scala.</p>
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/upickle/build.sc#L1">Mill Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/upickle/build.sc#L1">Mill Build</a></p>
 </li>
 </ul>
 </div>
@@ -673,7 +667,7 @@ versions of Scala, including the setup necessary for publishing to Maven Central
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/ammonite/build.sc#L1">Mill Build</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/ammonite/build.sc#L1">Mill Build</a></p>
 </li>
 </ul>
 </div>
