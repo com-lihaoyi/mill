@@ -24,7 +24,7 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val docTags = Seq("0.9.6")
+  val docTags = Seq("0.9.6", "0.9.7")
 }
 
 object Deps {

@@ -211,8 +211,24 @@ corresponding version of Mill.
 === main
 
 _For details refer to
-{link-milestone}/48?closed=1[milestone after 0.9.6]
+{link-milestone}/49?closed=1[milestone after 0.9.7]
 and the {link-compare}/0.9.6\...main[list of commits]._
+
+=== 0.9.7 - 2021-05-14
+
+_For details refer to
+{link-milestone}/48?closed=1[milestone 0.9.7]
+and the {link-compare}/0.9.6\...0.9.7[list of commits]._
+
+* `ScalaModule`: Support for Scala 3
+* `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
+* `TestModule`: Added new `testFramework` target and only support one test framework. Deprecated `testFrameworks` targets.
+* `TestModule`: Added new convenience traits to configure popular test frameworks, e.g. `TestModule.Junit`, `TestModule.ScalaTest`, `TestModule.Utest`, and many more
+* `Bloop`: Added support for foreign modules
+* Better support for Windows environments
+* Various internal improvements, cleanups, and deprecations
+* Various dependencies updates
+* Removed tut contrib module because of unmaintained/archived upstream dependency
 
 
 === 0.9.6 - 2021-04-03
