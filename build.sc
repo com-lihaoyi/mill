@@ -488,39 +488,26 @@ object contrib extends MillModule {
         (for ((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
     }
 
-    object api extends MillPublishModule {
+    object api extends MillPublishModule
 
-    }
-    object worker extends Cross[WorkerModule]( "2.6", "2.7", "2.8")
+    object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
 
-    class WorkerModule(scalajsBinary: String) extends MillApiModule  {
-      def scalaVersion = T {
-        T.log.info(s"scalajsBinary: $scalajsBinary")
-        scalajsBinary match {
-          case "2.8" => Deps.scalaVersion
-          case _ => Deps.workerScalaVersion212
-        }
+    class WorkerModule(playBinary: String) extends MillApiModule  {
+      def scalaVersion = playBinary match {
+        case "2.6" => Deps.workerScalaVersion212
+        case _ => Deps.scalaVersion
       }
       def moduleDeps = Seq(playlib.api)
-      def ivyDeps = scalajsBinary match {
-        case  "2.6"=>
-          Agg(
-            Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.6.25"
-          )
-        case "2.7" =>
-          Agg(
-            Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.7.9"
-          )
-        case "2.8" =>
-          Agg(
-            Deps.osLib,
-            ivy"com.typesafe.play::routes-compiler::2.8.7"
-          )
+      def playVersion = playBinary match {
+        case "2.6" => "2.6.25"
+        case "2.7" => "2.7.9"
+        case "2.8" => "2.8.8"
       }
+      def ivyDeps = Agg(
+        Deps.osLib,
+        ivy"com.typesafe.play::routes-compiler::$playVersion"
+      )
     }
-
   }
 
   object scalapblib extends MillModule {
