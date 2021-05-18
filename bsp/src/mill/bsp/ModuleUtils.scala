@@ -146,6 +146,8 @@ object ModuleUtils {
      * String = /C:/Users/Developer/mill/./
      *
      * @return Mill build Classpath(URI)
+     *
+     * It works for @camper42 on MacOS IDEA
      *  */
     val classpath: Seq[Path] = Try(
       evaluator.rootModule.getClass.getClassLoader
