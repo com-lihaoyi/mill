@@ -144,6 +144,8 @@ object ModuleUtils {
      * java.net.URL = file:/C:/Users/Developer/mill/./
      * scala> java.nio.file.Paths.get(".").toAbsolutePath.toUri.toURL.getFile
      * String = /C:/Users/Developer/mill/./
+     *
+     * @return Mill build Classpath(URI)
      *  */
     val classpath: Seq[Path] = Try(
       evaluator.rootModule.getClass.getClassLoader
