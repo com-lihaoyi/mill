@@ -74,7 +74,7 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
           s"compilation error in ${error.source.getPath} at line ${error.line.getOrElse("?")}, " +
             s"column ${error.column.getOrElse("?")}: ${error.message}")
           .mkString("\n")
-        "Unable to compile play routes\n" + errorMsg
+        "Unable to compile play routes, " + errorMsg
     }
   }
 }

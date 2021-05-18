@@ -1,12 +1,11 @@
 package mill.playlib
 
-import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.T
 import mill.util.{TestEvaluator, TestUtil}
 import utest.framework.TestPath
 import utest.{TestSuite, Tests, assert, _}
 
-object PlaySingleApiModuleTests extends TestSuite {
+object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
   object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule{
     override def playVersion = T{"2.7.0"}
@@ -15,18 +14,7 @@ object PlaySingleApiModuleTests extends TestSuite {
     object test extends PlayTests
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'playlib / 'test / 'resources / "playsingleapi"
-
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator => T)
-                                                (implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
-    rm(m.millSourcePath)
-    rm(eval.outPath)
-    mkdir(m.millSourcePath / up)
-    cp(resourcePath, m.millSourcePath)
-    t(eval)
-  }
+  val resourcePath: os.Path = os.pwd / 'contrib / 'playlib / 'test / 'resources / "playsingleapi"
 
   def tests: Tests = Tests {
     'playVersion - {
@@ -59,19 +47,19 @@ object PlaySingleApiModuleTests extends TestSuite {
     'compile - workspaceTest(playsingleapi) { eval =>
       val eitherResult = eval.apply(playsingleapi.compile)
       val Right((result, evalCount)) = eitherResult
-      val outputFiles = ls.rec(result.classes.path).filter(_.isFile)
-      val expectedClassfiles = Seq[RelPath](
-        RelPath("controllers/HomeController.class"),
-        RelPath("controllers/ReverseAssets.class"),
-        RelPath("controllers/ReverseHomeController.class"),
-        RelPath("controllers/routes.class"),
-        RelPath("controllers/routes$javascript.class"),
-        RelPath("controllers/javascript/ReverseHomeController.class"),
-        RelPath("controllers/javascript/ReverseAssets.class"),
-        RelPath("router/Routes$$anonfun$routes$1.class"),
-        RelPath("router/Routes.class"),
-        RelPath("router/RoutesPrefix$.class"),
-        RelPath("router/RoutesPrefix.class")
+      val outputFiles = os.walk(result.classes.path).filter(os.isFile)
+      val expectedClassfiles = Seq[os.RelPath](
+        os.RelPath("controllers/HomeController.class"),
+        os.RelPath("controllers/ReverseAssets.class"),
+        os.RelPath("controllers/ReverseHomeController.class"),
+        os.RelPath("controllers/routes.class"),
+        os.RelPath("controllers/routes$javascript.class"),
+        os.RelPath("controllers/javascript/ReverseHomeController.class"),
+        os.RelPath("controllers/javascript/ReverseAssets.class"),
+        os.RelPath("router/Routes$$anonfun$routes$1.class"),
+        os.RelPath("router/Routes.class"),
+        os.RelPath("router/RoutesPrefix$.class"),
+        os.RelPath("router/RoutesPrefix.class")
       ).map(
         eval.outPath / 'compile / 'dest / 'classes / _
       )
