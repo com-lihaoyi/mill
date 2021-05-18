@@ -1,6 +1,7 @@
 package mill.bsp.newbsp
 
 import java.net.URL
+import java.nio.file.Paths
 
 import scala.jdk.CollectionConverters._
 import scala.util.{DynamicVariable, Try}
@@ -14,15 +15,11 @@ import mill.api.{PathRef, Strict}
 import mill.define._
 import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
-import mill.scalalib.Lib.{
-  depToDependency,
-  resolveDependencies,
-  scalaRuntimeIvyDeps
-}
+import mill.scalalib.Lib.{depToDependency, resolveDependencies, scalaRuntimeIvyDeps}
 import mill.scalalib._
 import mill.scalalib.api.Util
 import mill.scalanativelib._
-import os.{Path, exists}
+import os.{Path}
 
 /**
  * Utilities for translating the mill build into
@@ -183,7 +180,9 @@ trait MillModuleSupport {
     val binarySource =
       if (sources) all.filter(url => isSourceJar(url))
       else all.filter(url => !isSourceJar(url))
-    binarySource.filter(url => exists(Path(url.getFile))).map(_.toURI.toString)
+    binarySource
+      .filter(url => os.exists(Path(Paths.get(url.toURI()))))
+      .map(_.toURI.toString)
   }
 
   /**

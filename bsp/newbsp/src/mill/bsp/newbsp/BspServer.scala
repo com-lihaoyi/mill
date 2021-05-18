@@ -16,10 +16,15 @@ import scala.util.control.NonFatal
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import mainargs.Flag
-import mill.{Agg, PathRef, T}
+import mill.{Agg, BuildInfo, PathRef, T}
 import mill.api.{DummyTestReporter, Logger, Result, Strict}
-import mill.bsp.{BspTestReporter, MillBspLogger, TaskParameters, Utils}
-import mill.define.Discover
+import mill.bsp.{
+  BspConfigJson,
+  BspTestReporter,
+  MillBspLogger,
+  TaskParameters,
+  Utils
+}
 import mill.define.Segment.Label
 import mill.eval.Evaluator
 import mill.main.{MainModule, MainRunner, RunScript}
@@ -31,7 +36,7 @@ import os.Path
 class BspServer(
     serverConfig: BspServerConfig,
     runner: MainRunner,
-    scriptPath: os.Path,
+    projectDir: Path,
     debugStream: Option[OutputStream] = None,
     stopMill: () => Unit,
     stopBspServer: () => Unit
@@ -39,8 +44,6 @@ class BspServer(
     with JavaBuildServer
     with ScalaBuildServer
     with MillModuleSupport { server =>
-
-  val projectDir: os.Path = scriptPath / os.up
 
   object log {
     val debugOut = server.debugStream.map {
@@ -68,8 +71,6 @@ class BspServer(
     }
     future
   }
-
-  val bspVersion = "2.0.0"
 
   private[this] var cachedEvaluator: Option[Evaluator] = None
 
@@ -99,9 +100,9 @@ class BspServer(
           }
 
           val evaluator: Try[Evaluator] = RunScript.initEvaluator(
-            home = projectDir / "out" / "ammonite",
+            home = projectDir / "out" / "$ammonite",
             wd = projectDir / "out",
-            path = scriptPath,
+            path = projectDir / "build.sc",
             instantiateInterpreter = main.instantiateInterpreter(),
             stateCache = None,
             log = logger,
@@ -136,13 +137,13 @@ class BspServer(
     completable {
       val mutableCapabilities = new BuildServerCapabilities()
       mutableCapabilities.setCompileProvider(
-        new CompileProvider(List("java", "scala").asJava)
+        new CompileProvider(BspServer.languages.asJava)
       )
       mutableCapabilities.setRunProvider(
-        new RunProvider(List("java", "scala").asJava)
+        new RunProvider(BspServer.languages.asJava)
       )
       mutableCapabilities.setTestProvider(
-        new TestProvider(List("java", "scala").asJava)
+        new TestProvider(BspServer.languages.asJava)
       )
       mutableCapabilities.setDependencySourcesProvider(true)
       mutableCapabilities.setInverseSourcesProvider(true)
@@ -156,9 +157,9 @@ class BspServer(
       log.debug(s"buildInitialize ${params}")
 
       new InitializeBuildResult(
-        "mill-new-bsp",
+        BspServer.displayName,
         mill.BuildInfo.millVersion,
-        bspVersion,
+        BspServer.bspVersion,
         mutableCapabilities
       )
     }
@@ -773,7 +774,7 @@ class BspServer(
 
 object BspServer {
 
-  case class BspServerExit(code: Int, msg: Option[String])
+  case class BspServerExit(code: Int, msg: Option[String] = None)
       extends Exception(msg.orNull)
 
   def main(args: Array[String]): Unit = {
@@ -787,7 +788,41 @@ object BspServer {
     }
   }
 
-  def run(args: Array[String]): Unit = {
+  // TODO: can we get this from bsp4j?
+  val bspVersion = "2.0.0"
+  val displayName = "mill-bsp-2"
+  val languages = Seq("scala", "java")
+
+  def install(projectDir: os.Path) = {
+    val jsonFile = projectDir / ".bsp" / "mill.json"
+    if (os.exists(jsonFile)) {
+      println("warning: overriding already existing bsp connection file")
+    }
+    val millPath = sys.props
+      .get("java.class.path")
+      .getOrElse(
+        throw new IllegalStateException(
+          "System property java.class.path not set"
+        )
+      )
+
+    os.write.over(
+      target = jsonFile,
+      data = upickle.default.write(
+        t = BspConfigJson(
+          name = displayName,
+          argv = Seq(millPath),
+          millVersion = BuildInfo.millVersion,
+          bspVersion = bspVersion,
+          languages = languages
+        ),
+        indent = 2
+      ),
+      createFolders = true
+    )
+  }
+
+  def run(args: Seq[String]): Unit = {
     val parser = mainargs.ParserForClass[BspServerConfig]
     val config: BspServerConfig =
       parser.constructEither(
@@ -805,6 +840,12 @@ object BspServer {
 
     val projectDir =
       config.dir.map(dir => Path.apply(dir, os.pwd)).getOrElse(os.pwd)
+
+    if (config.install.value) {
+      // we only want to create the connection file and return afterwards
+      install(projectDir)
+      throw new BspServerExit(0)
+    }
 
     val ammConfig = ammonite.main.Config(
       core = config.ammoniteCore,
@@ -841,7 +882,7 @@ object BspServer {
     val bspServer = new BspServer(
       config,
       runner = runner,
-      scriptPath = projectDir / "build.sc",
+      projectDir = projectDir,
       debugStream = Some(System.err),
       stopMill = { () =>
         System.err.println("TODO: Mill shutdown")
