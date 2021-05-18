@@ -162,7 +162,7 @@ object ModuleUtils {
     val binarySource =
       if (sources) all.filter(url => isPathSourceJar(url))
       else all.filter(url => !isPathSourceJar(url))
-    binarySource.filter(path => exists(path)).map(_.wrapped.toString)
+    binarySource.filter(path => exists(path)).map(_.toNIO.toUri.toString)
   }
 
   /**
