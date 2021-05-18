@@ -25,7 +25,7 @@ object BloopTests extends TestSuite {
 
     object scalaModule extends scalalib.ScalaModule with testBloop.Module {
       def scalaVersion = "2.12.8"
-      val bloopVersion = "1.4.0-RC1"
+      val bloopVersion = mill.contrib.bloop.Versions.bloop
       override def mainClass = Some("foo.bar.Main")
 
       override def ivyDeps = Agg(
@@ -52,9 +52,9 @@ object BloopTests extends TestSuite {
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
-      override def scalaVersion = "2.11.12"
-      override def scalaNativeVersion = "0.3.8"
-      override def releaseMode = T(ReleaseMode.Release)
+      override def scalaVersion = "2.13.4"
+      override def scalaNativeVersion = "0.4.0"
+      override def releaseMode = T(ReleaseMode.Debug)
     }
 
     object skippedModule extends scalalib.ScalaModule with testBloop.Module {
@@ -163,8 +163,8 @@ object BloopTests extends TestSuite {
         assert(name == "scalanativeModule")
         assert(workspaceDir == Some(workdir.wrapped))
         assert(sources == List(workdir / "scalanativeModule" / "src"))
-        assert(version == "2.11.12")
-        assert(platform.config.mode == BloopConfig.LinkerMode.Release)
+        assert(version == "2.13.4")
+        assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
         assert(platform.config.clang == clang.toNIO)
       }
       'skipped - {

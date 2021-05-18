@@ -92,6 +92,6 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
       q"$lhs -> $overridesLambda"
     }
 
-    c.Expr[Discover[T]](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
+    c.Expr[Discover[T]](q"_root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))")
   }
 }

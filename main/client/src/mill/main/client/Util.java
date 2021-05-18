@@ -4,12 +4,14 @@ package mill.main.client;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
+import java.nio.charset.Charset;
 import java.util.HashMap;
 import java.util.Map;
 
 public class Util {
     public static boolean isWindows = System.getProperty("os.name").toLowerCase().startsWith("windows");
     public static boolean isJava9OrAbove = !System.getProperty("java.specification.version").startsWith("1.");
+    private static Charset utf8 = Charset.forName("UTF-8");
 
     // Windows named pipe prefix (see https://github.com/sbt/ipcsocket/blob/v1.0.0/README.md)
     // Win32NamedPipeServerSocket automatically adds this as a prefix (if it is not already is prefixed),
@@ -60,8 +62,8 @@ public class Util {
 
     public static String readString(InputStream inputStream) throws IOException {
         // Result is between 0 and 255, hence the loop.
-        int length = readInt(inputStream);
-        byte[] arr = new byte[length];
+        final int length = readInt(inputStream);
+        final byte[] arr = new byte[length];
         int total = 0;
         while(total < length){
             int res = inputStream.read(arr, total, length-total);
@@ -70,11 +72,11 @@ public class Util {
                 total += res;
             }
         }
-        return new String(arr);
+        return new String(arr, utf8);
     }
 
     public static void writeString(OutputStream outputStream, String string) throws IOException {
-        byte[] bytes = string.getBytes();
+        final byte[] bytes = string.getBytes(utf8);
         writeInt(outputStream, bytes.length);
         outputStream.write(bytes);
     }

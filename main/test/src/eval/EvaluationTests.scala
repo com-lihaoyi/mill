@@ -217,7 +217,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       'overrideSuperTask - {
         // Make sure you can override targets, call their supers, and have the
         // overriden target be allocated a spot within the overriden/ folder of
-        // the main publically-available target
+        // the main publicly-available target
         import canOverrideSuper._
 
         val checker = new Checker(canOverrideSuper)
@@ -239,7 +239,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       'overrideSuperCommand - {
         // Make sure you can override commands, call their supers, and have the
         // overriden command be allocated a spot within the overriden/ folder of
-        // the main publically-available command
+        // the main publicly-available command
         import canOverrideSuper._
 
         val checker = new Checker(canOverrideSuper)

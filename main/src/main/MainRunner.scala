@@ -2,7 +2,8 @@ package mill.main
 import java.io.{InputStream, PrintStream}
 
 import ammonite.Main
-import ammonite.interp.{Interpreter, Preprocessor}
+import ammonite.interp.Interpreter
+import ammonite.compiler.iface.Preprocessor
 import ammonite.util.Util.CodeSource
 import ammonite.util._
 import mill.eval.{Evaluator, PathRef}
@@ -161,7 +162,7 @@ class MainRunner(val config: ammonite.main.Config,
     )
   }
 
-  object CustomCodeWrapper extends ammonite.interp.CodeWrapper {
+  object CustomCodeWrapper extends ammonite.compiler.iface.CodeWrapper {
     def apply(code: String,
               source: CodeSource,
               imports: ammonite.util.Imports,

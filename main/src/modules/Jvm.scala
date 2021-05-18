@@ -16,6 +16,7 @@ import mill.api.IO
 import mill.api.Loose.Agg
 import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
+import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import upickle.default.{ReadWriter => RW}
 
@@ -34,10 +35,10 @@ object Jvm {
                     (implicit ctx: Ctx) = {
 
     val commandArgs =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", classPath.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
 
     val workingDir1 = Option(workingDir).getOrElse(ctx.dest)
     os.makeDir.all(workingDir1)
@@ -45,9 +46,30 @@ object Jvm {
     os.proc(commandArgs).call(cwd = workingDir1, env = envArgs)
   }
 
+  def javaExe: String =
+    sys.props
+      .get("java.home")
+      .map(h =>
+        if(isWin) new File(h, "bin\\java.exe")
+        else new File(h, "bin/java"))
+      .filter(f => f.exists())
+      .fold("java")(_.getAbsolutePath())
+
   /**
     * Runs a JVM subprocess with the given configuration and streams
     * it's stdout and stderr to the console.
+    * @param mainClass The main class to run
+    * @param classPath The classpath
+    * @param JvmArgs Arguments given to the forked JVM
+    * @param envArgs Environment variables used when starting the forked JVM
+    * @param workingDir The working directory to be used by the forked JVM
+    * @param background `true` if the forked JVM should be spawned in background
+    * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+    *                        to the forked JVM.
+    *                        When `true`, a temporary empty JAR is created
+    *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+    *                        This might help with long classpaths on OS'es (like Windows)
+    *                        which only supports limited command-line length
     */
   def runSubprocess(mainClass: String,
                     classPath: Agg[os.Path],
@@ -55,12 +77,28 @@ object Jvm {
                     envArgs: Map[String, String] = Map.empty,
                     mainArgs: Seq[String] = Seq.empty,
                     workingDir: os.Path = null,
-                    background: Boolean = false): Unit = {
+                    background: Boolean = false,
+                    useCpPassingJar: Boolean = false
+                   )(implicit ctx: Ctx): Unit = {
+
+    val cp =
+      if(useCpPassingJar && !classPath.iterator.isEmpty) {
+        val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
+        ctx.log.debug(s"Creating classpath passing jar '${passingJar}' with Class-Path: ${
+          classPath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")}")
+        createClasspathPassingJar(passingJar, classPath)
+        Agg(passingJar)
+      } else {
+        classPath
+      }
+
     val args =
-      Vector("java") ++
-      jvmArgs ++
-      Vector("-cp", classPath.mkString(java.io.File.pathSeparator), mainClass) ++
-      mainArgs
+      Vector(javaExe) ++
+        jvmArgs ++
+        Vector("-cp", cp.iterator.mkString(java.io.File.pathSeparator), mainClass) ++
+        mainArgs
+
+    ctx.log.debug(s"Run subprocess with args: ${args.map(a => s"'${a}'").mkString(" ")}")
 
     if (background) spawnSubprocess(args, envArgs, workingDir)
     else runSubprocess(args, envArgs, workingDir)
@@ -71,6 +109,27 @@ object Jvm {
                                 envArgs: Map[String, String],
                                 workingDir: os.Path) = {
     runSubprocess(commandArgs, envArgs, workingDir)
+  }
+
+  @deprecated("Only provided for binary compatibility. Use one of the other overloads.", "after mill 0.9.6")
+  def runSubprocess(mainClass: String,
+                    classPath: Agg[os.Path],
+                    jvmArgs: Seq[String],
+                    envArgs: Map[String, String],
+                    mainArgs: Seq[String],
+                    workingDir: os.Path,
+                    background: Boolean)
+                   (implicit ctx: Ctx): Unit = {
+    runSubprocess(
+      mainClass = mainClass,
+      classPath = classPath,
+      jvmArgs = jvmArgs,
+      envArgs = envArgs,
+      mainArgs = mainArgs,
+      workingDir = workingDir,
+      background = background,
+      useCpPassingJar = false
+    )(ctx)
   }
 
   /**
@@ -228,17 +287,28 @@ object Jvm {
                 fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
                (implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
-    os.remove.all(outputPath)
+    createJar(jar = outputPath, inputPaths = inputPaths, manifest = manifest, fileFilter = fileFilter)
+    PathRef(outputPath)
+  }
+
+  def createJar(jar: os.Path,
+                inputPaths: Agg[os.Path],
+                manifest: JarManifest,
+                fileFilter: (os.Path, os.RelPath) => Boolean
+               ): Unit = {
+    os.makeDir.all(jar / os.up)
+    os.remove.all(jar)
 
     val seen = mutable.Set.empty[os.RelPath]
     seen.add(os.rel / "META-INF" / "MANIFEST.MF")
-    val jar = new JarOutputStream(
-      new FileOutputStream(outputPath.toIO),
+
+    val jarStream = new JarOutputStream(
+      new FileOutputStream(jar.toIO),
       manifest.build
     )
 
     try{
-      assert(inputPaths.forall(os.exists(_)))
+      assert(inputPaths.iterator.forall(os.exists(_)))
       for{
         p <- inputPaths
         (file, mapping) <-
@@ -249,15 +319,24 @@ object Jvm {
         seen.add(mapping)
         val entry = new JarEntry(mapping.toString)
         entry.setTime(os.mtime(file))
-        jar.putNextEntry(entry)
-        jar.write(os.read.bytes(file))
-        jar.closeEntry()
+        jarStream.putNextEntry(entry)
+        jarStream.write(os.read.bytes(file))
+        jarStream.closeEntry()
       }
     } finally {
-      jar.close()
+      jarStream.close()
     }
+  }
 
-    PathRef(outputPath)
+  def createClasspathPassingJar(jar: os.Path, classpath: Agg[os.Path]): Unit = {
+    createJar(
+      jar = jar,
+      inputPaths = Agg(),
+      manifest = JarManifest.Default.add(
+        "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")
+      ),
+      fileFilter = (_, _) => true
+    )
   }
 
   def createAssembly(inputPaths: Agg[os.Path],

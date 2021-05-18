@@ -1,11 +1,12 @@
 package mill.testng;
 
-
-
-import sbt.testing.*;
-
+import sbt.testing.AnnotatedFingerprint;
+import sbt.testing.Fingerprint;
+import sbt.testing.Framework;
+import sbt.testing.Runner;
 
 public class TestNGFramework implements Framework {
+
     public String name(){ return "TestNG"; }
 
     public Fingerprint[] fingerprints() {
@@ -19,7 +20,10 @@ public class TestNGFramework implements Framework {
 }
 
 class TestNGFingerprint implements AnnotatedFingerprint{
-    final public static TestNGFingerprint instance = new TestNGFingerprint();
+
+    public static final TestNGFingerprint instance = new TestNGFingerprint();
+
     public String annotationName(){return "org.testng.annotations.Test";}
+
     public boolean isModule(){return false;}
 }

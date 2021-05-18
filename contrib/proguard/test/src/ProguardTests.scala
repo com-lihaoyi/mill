@@ -19,7 +19,7 @@ object ProguardTests extends TestSuite {
     override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    override def scalaVersion = "2.12.0"
+    override def scalaVersion = "2.12.1"
 
     def proguardContribClasspath = T{
       mill.modules.Util.millProjectModule("MILL_PROGUARD_LIB", "mill-contrib-proguard", repositoriesTask())
@@ -54,7 +54,7 @@ object ProguardTests extends TestSuite {
         val javaVersion = sys.props("java.version")
         val acceptFailure = isGithubActions && javaVersion.startsWith("11")
         try {
-
+          
           val Right((path, _)) = eval.apply(proguard.proguard)
           assert(os.exists(path.path))
 

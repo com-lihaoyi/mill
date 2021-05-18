@@ -1,39 +1,134 @@
 package mill.scalalib
+
 import ammonite.util.Colors
 import mill.Agg
 import mill.api.{DummyTestReporter, TestReporter}
 import mill.modules.Jvm
+import mill.scalalib.api._
 import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
 import mill.util.JsonFormatters._
 import sbt.testing._
-import mill.scalalib.api._
-
 import scala.collection.mutable
+import scala.util.Try
+
 object TestRunner {
 
+  case class TestArgs(
+      framework: String,
+      classpath: Seq[String],
+      arguments: Seq[String],
+      sysProps: Map[String, String],
+      outputPath: String,
+      colored: Boolean,
+      testCp: String,
+      homeStr: String
+  ) {
+    def toArgsSeq: Seq[String] =
+      Seq(
+        Seq(framework) ++
+          Seq(classpath.size.toString) ++
+          classpath ++
+          Seq(arguments.size.toString) ++
+          arguments ++
+          Seq((sysProps.size * 2).toString) ++
+          sysProps.flatMap { case (k, v) => Seq(k, v) } ++
+          Seq(outputPath, colored.toString, testCp, homeStr)
+      ).flatten
 
-  def main(args: Array[String]): Unit = {
-    try{
+    def writeArgsFile(argsFile: os.Path): String = {
+      os.write.over(
+        argsFile,
+        data = toArgsSeq.mkString("\n"),
+        createFolders = true)
+      s"@${argsFile.toString()}"
+    }
+  }
+
+  object TestArgs {
+
+    // only for binary compatibility
+    @deprecated("Use other apply/ctr instead.", "mill after 0.9.6")
+    def apply(
+        frameworks: Seq[String],
+        classpath: Seq[String],
+        arguments: Seq[String],
+        sysProps: Map[String, String],
+        outputPath: String,
+        colored: Boolean,
+        testCp: String,
+        homeStr: String
+    ): TestArgs =
+      TestArgs(
+        framework = frameworks.head,
+        classpath = classpath,
+        arguments = arguments,
+        sysProps = sysProps,
+        outputPath = outputPath,
+        colored = colored,
+        testCp = testCp,
+        homeStr = homeStr
+      )
+
+    def parseArgs(args: Array[String]): Try[TestArgs] = {
+      args match {
+        case Array(fileArg) if fileArg.startsWith("@") =>
+          val file = os.Path(fileArg.drop(1), os.pwd)
+          parseFile(file)
+        case _ => parseArray(args)
+      }
+    }
+
+    def parseFile(file: os.Path): Try[TestArgs] =
+      Try {
+        os.read(file).linesIterator.filter(_.trim().nonEmpty).to(Array)
+      }.flatMap(parseArray)
+
+    def parseArray(args: Array[String]): Try[TestArgs] = Try {
       var i = 0
-      def readArray() = {
+      def readArray(): Array[String] = {
         val count = args(i).toInt
         val slice = args.slice(i + 1, i + count + 1)
         i = i + count + 1
         slice
       }
-      val frameworks = readArray()
+      def readString(): String = {
+        val string = args(i)
+        i = i + 1
+        string
+      }
+      val frameworks = readString()
       val classpath = readArray()
       val arguments = readArray()
-      val outputPath = args(i + 0)
-      val colored = args(i + 1)
-      val testCp = args(i + 2)
-      val homeStr = args(i + 3)
+      val sysProps = readArray()
+      val outputPath = readString()
+      val colored = readString()
+      val testCp = readString()
+      val homeStr = readString()
+
+      TestArgs(
+        frameworks,
+        classpath,
+        arguments,
+        sysProps.grouped(2).foldLeft(Map[String, String]()) { (map, prop) =>
+          map.updated(prop(0), prop(1))
+        },
+        outputPath,
+        colored = Seq("true", "1", "on", "yes").contains(colored),
+        testCp = testCp,
+        homeStr = homeStr
+      )
+    }
+  }
+
+  def main(args: Array[String]): Unit = {
+    try {
+      val testArgs = TestArgs.parseArgs(args).get
       val ctx = new Ctx.Log with Ctx.Home {
         val log = PrintLogger(
-          colored == "true",
+          testArgs.colored,
           true,
-          if(colored == "true") Colors.Default
+          if (testArgs.colored) Colors.Default
           else Colors.BlackWhite,
           System.out,
           System.err,
@@ -42,13 +137,16 @@ object TestRunner {
           debugEnabled = false,
           context = ""
         )
-        val home = os.Path(homeStr)
+        val home = os.Path(testArgs.homeStr)
       }
-      val result = runTests(
-        frameworkInstances = TestRunner.frameworks(frameworks),
-        entireClasspath = Agg.from(classpath.map(os.Path(_))),
-        testClassfilePath = Agg(os.Path(testCp)),
-        args = arguments,
+      ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
+      testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
+
+      val result = runTestFramework(
+        frameworkInstances = TestRunner.framework(testArgs.framework),
+        entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
+        testClassfilePath = Agg(os.Path(testArgs.testCp)),
+        args = testArgs.arguments,
         DummyTestReporter
       )(ctx)
 
@@ -56,10 +154,11 @@ object TestRunner {
       // dirtied the thread-interrupted flag and forgot to clean up. Otherwise
       // that flag causes writing the results to disk to fail
       Thread.interrupted()
-      os.write(os.Path(outputPath), upickle.default.stream(result))
-    }catch{case e: Throwable =>
-      println(e)
-      e.printStackTrace()
+      os.write(os.Path(testArgs.outputPath), upickle.default.stream(result))
+    } catch {
+      case e: Throwable =>
+        println(e)
+        e.printStackTrace()
     }
     // Tests are over, kill the JVM whether or not anyone's threads are still running
     // Always return 0, even if tests fail. The caller can pick up the detailed test
@@ -67,85 +166,123 @@ object TestRunner {
     System.exit(0)
   }
 
+  // Only for binary compatibility
+  @deprecated("Use runTestFramework instead.", "mill after 0.9.6")
   def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
                entireClasspath: Agg[os.Path],
                testClassfilePath: Agg[os.Path],
                args: Seq[String],
-               testReporter: TestReporter)
-              (implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
+    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTestFramework(
+      frameworkInstances = cl => frameworkInstances(cl).head,
+      entireClasspath = entireClasspath,
+      testClassfilePath = testClassfilePath,
+      args = args,
+      testReporter = testReporter
+    )
+  }
+
+  def runTestFramework(frameworkInstances: ClassLoader => sbt.testing.Framework,
+               entireClasspath: Agg[os.Path],
+               testClassfilePath: Agg[os.Path],
+               args: Seq[String],
+               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
+    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
-    Jvm.inprocess(entireClasspath, classLoaderOverrideSbtTesting = true, isolated = true, closeContextClassLoaderWhenDone = false, cl => {
-      val frameworks = frameworkInstances(cl)
+    Jvm.inprocess(
+      entireClasspath,
+      classLoaderOverrideSbtTesting = true,
+      isolated = true,
+      closeContextClassLoaderWhenDone = false,
+      cl => {
+        val framework = frameworkInstances(cl)
 
-      val events = mutable.Buffer.empty[Event]
+        val events = mutable.Buffer.empty[Event]
 
-      val doneMessages = frameworks.map{ framework =>
-        val runner = framework.runner(args.toArray, Array[String](), cl)
+        val doneMessage = {
+          val runner = framework.runner(args.toArray, Array[String](), cl)
 
-        val testClasses = discoverTests(cl, framework, testClassfilePath)
+          val testClasses = discoverTests(cl, framework, testClassfilePath)
 
-        val tasks = runner.tasks(
-          for ((cls, fingerprint) <- testClasses.toArray)
-            yield new TaskDef(cls.getName.stripSuffix("$"), fingerprint, true, Array(new SuiteSelector))
-        )
-
-        val taskQueue = tasks.to(mutable.Queue)
-        while (taskQueue.nonEmpty){
-          val next = taskQueue.dequeue().execute(
-            new EventHandler {
-              def handle(event: Event) = {
-                testReporter.logStart(event)
-                events.append(event)
-                testReporter.logFinish(event)
-              }
-            },
-            Array(
-              new Logger {
-                def debug(msg: String) = ctx.log.outputStream.println(msg)
-
-                def error(msg: String) = ctx.log.outputStream.println(msg)
-
-                def ansiCodesSupported() = true
-
-                def warn(msg: String) = ctx.log.outputStream.println(msg)
-
-                def trace(t: Throwable) = t.printStackTrace(ctx.log.outputStream)
-
-                def info(msg: String) = ctx.log.outputStream.println(msg)
-              })
+          val tasks = runner.tasks(
+            for ((cls, fingerprint) <- testClasses.toArray)
+              yield
+                new TaskDef(
+                  cls.getName.stripSuffix("$"),
+                  fingerprint,
+                  true,
+                  Array(new SuiteSelector))
           )
-          taskQueue.enqueueAll(next)
-        }
-        runner.done()
-      }
 
-      val results = for(e <- events) yield {
-        val ex = if (e.throwable().isDefined) Some(e.throwable().get) else None
-        mill.scalalib.TestRunner.Result(
+          val taskQueue = tasks.to(mutable.Queue)
+          while (taskQueue.nonEmpty) {
+            val next = taskQueue
+              .dequeue()
+              .execute(
+                new EventHandler {
+                  def handle(event: Event) = {
+                    testReporter.logStart(event)
+                    events.append(event)
+                    testReporter.logFinish(event)
+                  }
+                },
+                Array(new Logger {
+                  def debug(msg: String) = ctx.log.outputStream.println(msg)
+
+                  def error(msg: String) = ctx.log.outputStream.println(msg)
+
+                  def ansiCodesSupported() = true
+
+                  def warn(msg: String) = ctx.log.outputStream.println(msg)
+
+                  def trace(t: Throwable) =
+                    t.printStackTrace(ctx.log.outputStream)
+
+                  def info(msg: String) = ctx.log.outputStream.println(msg)
+                })
+              )
+            taskQueue.enqueueAll(next)
+          }
+          runner.done()
+        }
+
+        val results = for (e <- events) yield {
+          val ex =
+            if (e.throwable().isDefined) Some(e.throwable().get) else None
+          mill.scalalib.TestRunner.Result(
             e.fullyQualifiedName(),
-            e.selector() match{
-            case s: NestedSuiteSelector => s.suiteId()
-            case s: NestedTestSelector => s.suiteId() + "." + s.testName()
-            case s: SuiteSelector => s.toString
-            case s: TestSelector => s.testName()
-            case s: TestWildcardSelector => s.testWildcard()
-          },
+            e.selector() match {
+              case s: NestedSuiteSelector  => s.suiteId()
+              case s: NestedTestSelector   => s.suiteId() + "." + s.testName()
+              case s: SuiteSelector        => s.toString
+              case s: TestSelector         => s.testName()
+              case s: TestWildcardSelector => s.testWildcard()
+            },
             e.duration(),
             e.status().toString,
             ex.map(_.getClass.getName),
             ex.map(_.getMessage),
             ex.map(_.getStackTrace)
-        )
-      }
+          )
+        }
 
-      (doneMessages.mkString("\n"), results.toSeq)
-    })
+        (doneMessage, results.toSeq)
+      }
+    )
   }
 
-  def frameworks(frameworkNames: Seq[String])(cl: ClassLoader): Seq[sbt.testing.Framework] = {
-    frameworkNames.map { name =>
-      cl.loadClass(name).newInstance().asInstanceOf[sbt.testing.Framework]
-    }
+  @deprecated("Use framework instead.", "mill after 0.9.6")
+  def frameworks(frameworkNames: Seq[String])(
+      cl: ClassLoader): Seq[sbt.testing.Framework] = {
+    frameworkNames.map(name => framework(name)(cl))
+  }
+
+  def framework(frameworkName: String)(
+      cl: ClassLoader): sbt.testing.Framework = {
+    cl.loadClass(frameworkName)
+      .newInstance()
+      .asInstanceOf[sbt.testing.Framework]
   }
 
   case class Result(fullyQualifiedName: String,
@@ -156,7 +293,8 @@ object TestRunner {
                     exceptionMsg: Option[String] = None,
                     exceptionTrace: Option[Seq[StackTraceElement]] = None)
 
-  object Result{
-    implicit def resultRW: upickle.default.ReadWriter[Result] = upickle.default.macroRW[Result]
+  object Result {
+    implicit def resultRW: upickle.default.ReadWriter[Result] =
+      upickle.default.macroRW[Result]
   }
 }

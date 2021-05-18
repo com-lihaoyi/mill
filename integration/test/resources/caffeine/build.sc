@@ -19,10 +19,8 @@ trait CaffeineModule extends MavenModule{
       MavenRepository("http://repo.spring.io/plugins-release")
     )
   }
-  trait Tests extends super.Tests{
-    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-    def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
+  trait Tests extends super.Tests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
       ivy"com.lihaoyi:mill-contrib-testng:${sys.props("MILL_VERSION")}",
       libraries.guava,
       testLibraries.mockito,
