@@ -47,8 +47,7 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    trait UtestTestModule extends ScalaNativeModule with TestModule {
-      override def testFrameworks = Seq("utest.runner.Framework")
+    trait UtestTestModule extends ScalaNativeModule with TestModule.Utest {
       override def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::utest::0.7.6"
       )

@@ -9,19 +9,13 @@ Scala build:
 .`build.sc`
 [source,scala]
 ----
-trait JUnitTests extends TestModule {
-  def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-  def ivyDeps = Agg(ivy"com.novocode:junit-interface:0.11")
-}
-
 object core extends JavaModule {
-  object test extends Tests with JUnitTests
+  object test extends Tests with TestModule.Junit
 }
 object app extends JavaModule {
   def moduleDeps = Seq(core)
-  object test extends Tests with JUnitTests
+  object test extends Tests with TestModule.Junit
 }
-
 ----
 
 This build is a two-module Java project with junit test suites. It expects the
@@ -50,7 +44,7 @@ For a more more complex, real-world example of a Java build, check out our
 example build for the popular https://github.com/ben-manes/caffeine[Caffeine]
 project:
 
-* https://github.com/com-lihaoyi/mill/blob/master/integration/test/resources/caffeine/build.sc[Example Build]
+* https://github.com/com-lihaoyi/mill/blob/main/integration/test/resources/caffeine/build.sc[Example Build]
 
 == Cross Scala-Version Modules
 
@@ -176,9 +170,8 @@ object hello extends ScalaNativeModule {
   def scalaNativeVersion = "0.3.8"
   def scalaVersion = "2.11.12"
   def ivyDeps = Agg(ivy"com.lihaoyi::scalatags::0.6.7")
-  object test extends Tests{
+  object test extends Tests with TestModule.Utest {
     def ivyDeps = Agg(ivy"com.lihaoyi::utest::0.6.3")
-    def testFrameworks = Seq("utest.runner.Framework")
   }
 }
 ----
@@ -383,14 +376,14 @@ integration tests and examples:
 
 === Acyclic
 
-* {mill-github-url}/blob/master/integration/test/resources/acyclic/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/test/resources/acyclic/build.sc#L1[Mill Build]
 
 A small single-module cross-build, with few sources, minimal dependencies, and
 wired up for publishing to Maven Central.
 
 === Better-Files
 
-* {mill-github-url}/blob/master/integration/test/resources/better-files/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/test/resources/better-files/build.sc#L1[Mill Build]
 
 A collection of small modules compiled for a single Scala version.
 
@@ -399,21 +392,21 @@ compiler flags, and download artifacts as part of the build.
 
 === Jawn
 
-* {mill-github-url}/blob/master/integration/test/resources/jawn/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/test/resources/jawn/build.sc#L1[Mill Build]
 
 A collection of relatively small modules, all cross-built across the same few
 versions of Scala.
 
 === Upickle
 
-* {mill-github-url}/blob/master/integration/test/resources/upickle/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/test/resources/upickle/build.sc#L1[Mill Build]
 
 A single cross-platform Scala.js/Scala-JVM module cross-built against multiple
 versions of Scala, including the setup necessary for publishing to Maven Central.
 
 === Ammonite
 
-* {mill-github-url}/blob/master/integration/test/resources/ammonite/build.sc#L1[Mill Build]
+* {mill-github-url}/blob/main/integration/test/resources/ammonite/build.sc#L1[Mill Build]
 
 A relatively complex build with numerous submodules, some cross-built across
 Scala major versions while others are cross-built against Scala minor versions.

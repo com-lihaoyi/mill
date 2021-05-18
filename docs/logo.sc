@@ -2,6 +2,7 @@ import $ivy.`com.lihaoyi::scalatags:0.6.7`
 import scalatags.Text.implicits._
 import scalatags.Text.svgTags._
 import scalatags.Text.svgAttrs._
+import os._
 
 
 val svgWidth = 24

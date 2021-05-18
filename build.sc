@@ -24,7 +24,7 @@ object Settings {
   // the exact branches containing a doc root
   val docBranches = Seq()
   // the exact tags containing a doc root
-  val docTags = Seq("0.9.6")
+  val docTags = Seq("0.9.6", "0.9.7")
 }
 
 object Deps {
@@ -44,8 +44,8 @@ object Deps {
     val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.1.1"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.4.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.4.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.5.1"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.5.1"
   }
 
   object Scalanative_0_4 {
@@ -56,7 +56,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-46-37b110d0"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-65-0f0d597f"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -87,20 +87,21 @@ object Deps {
 
   val junitInterface = ivy"com.novocode:junit-interface:0.11"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.4"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.6"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
-  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.3"
+  val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.13"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.17"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   def scalatest = ivy"org.scalatest::scalatest:3.2.3"
-  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.5"
-  val upickle = ivy"com.lihaoyi::upickle:1.3.11"
-  val utest = ivy"com.lihaoyi::utest:0.7.5"
-  val zinc = ivy"org.scala-sbt::zinc:1.5.0"
+  val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
+  val upickle = ivy"com.lihaoyi::upickle:1.3.12"
+  val utest = ivy"com.lihaoyi::utest:0.7.10"
+  val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
+  val zinc = ivy"org.scala-sbt::zinc:1.5.3"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
 }
@@ -169,6 +170,9 @@ trait MillModule extends MillApiModule { outer =>
 
 object main extends MillModule {
   def moduleDeps = Seq(core, client)
+  def ivyDeps = Agg(
+    Deps.windowsAnsi
+  )
   def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )

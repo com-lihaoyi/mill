@@ -98,7 +98,7 @@ To get started, download Mill and install it into your system via the following
 
 [source,bash,subs="verbatim,attributes"]
 ----
-sudo curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > /usr/local/bin/mill && sudo chmod +x /usr/local/bin/mill
+sudo sh -c "curl -L {mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag} > /usr/local/bin/mill && chmod +x /usr/local/bin/mill"
 ----
 
 === Bootstrap Scripts (Linux/OS-X Only)
@@ -958,7 +958,7 @@ Note that both of these overrides only work for versions 0.5.0 and above.
 
 === Development Releases
 
-In case you want to try out the latest features and improvements that are currently in master, unstable versions of Mill
+In case you want to try out the latest features and improvements that are currently in the main branch, unstable versions of Mill
 are
 https://github.com/com-lihaoyi/mill/releases[available] as binaries named
 `+#.#.#-n-hash+` linked to the latest tag. Installing the latest unstable release is recommended for bootstrapping mill.

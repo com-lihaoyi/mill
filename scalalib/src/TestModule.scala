@@ -59,7 +59,7 @@ trait TestModule extends JavaModule with TaskModule {
   /** Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
    * */
-  def testUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
+  def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
   protected def testTask(
       args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
@@ -151,6 +151,7 @@ object TestModule {
    * You may want to provide the testng dependency explicitly to use another version.
    */
   trait TestNg extends TestModule {
+    override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}")
@@ -180,15 +181,18 @@ object TestModule {
    * TestModule that uses Specs2 Framework to run tests.
    * You need to provide the specs2 dependencies yourself.
    */
-  trait Specs2 extends TestModule {
+  trait Specs2 extends ScalaModule with TestModule {
     override def testFramework: T[String] = "org.specs2.runner.Specs2Framework"
+    override def scalacOptions = T {
+      super.scalacOptions() ++ Seq("-Yrangepos")
+    }
   }
 
   /** TestModule that uses UTest Framework to run tests.
    * You need to provide the utest dependencies yourself.
    */
   trait Utest extends TestModule {
-    override def testFramework: T[String] = "mill.UTestFramework"
+    override def testFramework: T[String] = "utest.runner.Framework"
   }
 
   /**

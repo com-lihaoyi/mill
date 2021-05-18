@@ -8,9 +8,9 @@ import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
-import mill.eval.{Evaluator, PathRef, Result}
+import mill.eval.Evaluator
 import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
-import mill.api.Logger
+import mill.api.{Logger, PathRef, Result}
 import mill.api.Strict.Agg
 import scala.collection.mutable
 import scala.reflect.ClassTag

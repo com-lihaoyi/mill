@@ -3,8 +3,8 @@ package mill
 import java.io.{InputStream, PrintStream}
 import java.util.Locale
 
-import scala.jdk.CollectionConverters.MapHasAsScala
-
+import scala.jdk.CollectionConverters._
+import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mainargs.{Flag, Leftover, arg}
 import mill.eval.Evaluator
@@ -72,6 +72,10 @@ case class MillConfig(
 object MillMain {
 
   def main(args: Array[String]): Unit = {
+
+    if (Properties.isWin && System.console() != null)
+      io.github.alexarchambault.windowsansi.WindowsAnsi.setup()
+
     val (result, _) = main0(
       args,
       None,
