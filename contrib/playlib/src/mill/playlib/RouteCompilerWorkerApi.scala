@@ -68,4 +68,3 @@ private[playlib] object RouteCompilerWorkerModule extends ExternalModule {
 
   lazy val millDiscover = Discover[this.type]
 }
-

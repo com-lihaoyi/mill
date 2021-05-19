@@ -7,7 +7,7 @@ import java.io.File
 import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import play.routes.compiler
 import play.routes.compiler.RoutesCompiler.RoutesCompilerTask
-import play.routes.compiler._
+import play.routes.compiler.{InjectedRoutesGenerator, RoutesCompilationError, RoutesCompiler, RoutesGenerator}
 
 
 private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
@@ -21,18 +21,17 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
                        dest: java.io.File): String = {
     generatorType match {
       case RouteCompilerType.InjectedGenerator =>
-        val result = compileWithPlay(files.map(os.Path(_)).toSeq, additionalImports.toSeq, forwardsRouter, reverseRouter,
+        val result = compileWithPlay(files.map(os.Path(_)), additionalImports, forwardsRouter, reverseRouter,
           namespaceReverseRouter, os.Path(dest), InjectedRoutesGenerator)
         asMillResult(result)
       case RouteCompilerType.StaticGenerator =>
-        println("Static generator was deprecated in 2.6.0 and will be removed in 2.7.0")
-        val result = compileWithPlay(files.map(os.Path(_)).toSeq, additionalImports.toSeq, forwardsRouter, reverseRouter,
-          namespaceReverseRouter, os.Path(dest), StaticRoutesGenerator)
-        asMillResult(result)
-      case _ => throw new Exception(s"Unrecognized generator type: $generatorType. Use injected or static")
+        "Static generator was deprecated in 2.6.0 then removed in 2.7.x, see https://www.playframework.com/documentation/2.7.x/Migration27#StaticRoutesGenerator-removed"
     }
   }
 
+  // the following code is duplicated between play worker versions because it depends on play types
+  // which are not guaranteed to stay the same between versions even though they are currently
+  // identical
   private def compileWithPlay(files: Seq[os.Path],
                               additionalImports: Seq[String],
                               forwardsRouter: Boolean,
@@ -41,7 +40,7 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
                               dest: os.Path,
                               routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
     val seed: Either[Seq[compiler.RoutesCompilationError], List[File]] = Right(List.empty[File])
-    files.map(file => compileWithPlay(file, additionalImports, forwardsRouter, reverseRouter,
+    files.map(file => compileWithPlay(file, additionalImports.toSeq, forwardsRouter, reverseRouter,
       namespaceReverseRouter, dest, routesGenerator)).foldLeft(seed) {
       case (Right(accFiles), Right(files)) => Right(accFiles ++ files)
       case (Right(accFiles), Left(errors)) => Left(errors)
@@ -55,7 +54,7 @@ private[playlib] class RouteCompilerWorker extends RouteCompilerWorkerApi {
                               reverseRouter: Boolean,
                               namespaceReverseRouter: Boolean,
                               dest: os.Path,
-                              routesGenerator: RoutesGenerator): Either[Seq[compiler.RoutesCompilationError], Seq[File]] = {
+                              routesGenerator: RoutesGenerator) = {
     val result =
       RoutesCompiler.compile(
         RoutesCompilerTask(file.toIO, additionalImports, forwardsRouter, reverseRouter,

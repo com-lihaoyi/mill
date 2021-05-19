@@ -75,15 +75,15 @@ trait RouterModule extends ScalaModule with Version {
   private def playRouteCompilerWorkerClasspath = T {
     val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
 
-    //While the following seems to work (tests pass), I am not completely
-    //confident that the strings I used for artifact and resolveFilter are
-    //actually correct
     mill.modules.Util.millProjectModule(
       workerKey,
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
       resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
-      artifactSuffix = "_2.12"
+      artifactSuffix = playMinorVersion() match {
+        case "2.6" => "_2.12"
+        case _ => "_2.13"
+      }
     )
   }
 
