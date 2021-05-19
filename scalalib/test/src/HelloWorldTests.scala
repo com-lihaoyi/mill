@@ -3,24 +3,21 @@ package mill.scalalib
 import java.io.ByteArrayOutputStream
 import java.util.jar.JarFile
 
+import scala.jdk.CollectionConverters._
+import scala.util.Using
+
 import mill._
 import mill.define.Target
-import mill.api.Result.Exception
 import mill.eval.{Evaluator, Result}
 import mill.modules.Assembly
-import mill.scalalib.publish._
+import mill.scalalib.publish.{VersionControl, _}
 import mill.util.{TestEvaluator, TestUtil}
-import mill.scalalib.publish.VersionControl
 import utest._
 import utest.framework.TestPath
 
-import scala.collection.JavaConverters._
-import scala.util.Properties.isJavaAtLeast
-
-
 object HelloWorldTests extends TestSuite {
   trait HelloBase extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends scalalib.ScalaModule {
@@ -287,10 +284,11 @@ object HelloWorldTests extends TestSuite {
   }
 
   def readFileFromJar(jar: JarFile, name: String): String = {
-    val is = jar.getInputStream(jar.getEntry(name))
-    val baos = new ByteArrayOutputStream()
-    os.Internals.transfer(is, baos)
-    new String(baos.toByteArray)
+    Using.resource(jar.getInputStream(jar.getEntry(name))) { is =>
+      val baos = new ByteArrayOutputStream()
+      os.Internals.transfer(is, baos)
+      new String(baos.toByteArray)
+    }
   }
 
   def compileClassfiles = Seq[os.RelPath](
@@ -421,9 +419,9 @@ object HelloWorldTests extends TestSuite {
       'extend - workspaceTest(HelloWorldTypeLevel){eval =>
         val Right((result, evalCount)) = eval.apply(HelloWorldTypeLevel.foo.scalaDocPluginClasspath)
         assert(
-          result.nonEmpty,
-          result.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
-          result.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
+          result.iterator.nonEmpty,
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("scalamacros") },
+          result.iterator.exists { pathRef => pathRef.path.segments.contains("genjavadoc") },
           evalCount > 0
         )
       }
@@ -631,22 +629,23 @@ object HelloWorldTests extends TestSuite {
           evalCount > 0
         )
 
-        val jarFile = new JarFile(result.path.toIO)
-        val entries = jarFile.entries().asScala.map(_.getName).toSet
+        Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+          val entries = jarFile.entries().asScala.map(_.getName).toSet
 
-        val otherFiles = Seq[os.RelPath](
-          os.rel / "META-INF" / "MANIFEST.MF",
-          os.rel / "reference.conf"
-        )
-        val expectedFiles = compileClassfiles ++ otherFiles
+          val otherFiles = Seq[os.RelPath](
+            os.rel / "META-INF" / "MANIFEST.MF",
+            os.rel / "reference.conf"
+          )
+          val expectedFiles = compileClassfiles ++ otherFiles
 
-        assert(
-          entries.nonEmpty,
-          entries == expectedFiles.map(_.toString()).toSet
-        )
+          assert(
+            entries.nonEmpty,
+            entries == expectedFiles.map(_.toString()).toSet
+          )
 
-        val mainClass = jarMainClass(jarFile)
-        assert(mainClass.contains("Main"))
+          val mainClass = jarMainClass(jarFile)
+          assert(mainClass.contains("Main"))
+        }
       }
 
       'logOutputToFile - workspaceTest(HelloWorld){eval =>
@@ -682,50 +681,51 @@ object HelloWorldTests extends TestSuite {
           workspaceTest(module) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
-
-            assert(
-              // akka modules configs are present
-              referenceContent.contains("akka-http Reference Config File"),
-              referenceContent.contains("akka-http-core Reference Config File"),
-              referenceContent.contains("Akka Actor Reference Config File"),
-              referenceContent.contains("Akka Stream Reference Config File"),
-              // our application config is present too
-              referenceContent.contains("My application Reference Config File"),
-              referenceContent.contains("""akka.http.client.user-agent-header="hello-world-client"""")
-            )
+              assert(
+                // akka modules configs are present
+                referenceContent.contains("akka-http Reference Config File"),
+                referenceContent.contains("akka-http-core Reference Config File"),
+                referenceContent.contains("Akka Actor Reference Config File"),
+                referenceContent.contains("Akka Stream Reference Config File"),
+                // our application config is present too
+                referenceContent.contains("My application Reference Config File"),
+                referenceContent.contains("""akka.http.client.user-agent-header="hello-world-client"""")
+              )
+            }
           }
 
         val helloWorldMultiResourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-world-multi"
 
         def checkAppendMulti[M <: TestUtil.BaseModule](
             module: M,
-            target: Target[PathRef]) =
+            target: Target[PathRef]): Unit =
           workspaceTest(
             module,
             resourcePath = helloWorldMultiResourcePath
           ) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            assert(
-              // reference config from core module
-              referenceContent.contains("Core Reference Config File"),
-              // reference config from model module
-              referenceContent.contains("Model Reference Config File"),
-              // concatenated content
-              referenceContent.contains("bar.baz=hello"),
-              referenceContent.contains("foo.bar=2")
-            )
+              assert(
+                // reference config from core module
+                referenceContent.contains("Core Reference Config File"),
+                // reference config from model module
+                referenceContent.contains("Model Reference Config File"),
+                // concatenated content
+                referenceContent.contains("bar.baz=hello"),
+                referenceContent.contains("foo.bar=2")
+              )
+            }
           }
 
         'appendWithDeps - checkAppend(
@@ -752,9 +752,9 @@ object HelloWorldTests extends TestSuite {
           workspaceTest(module, resourcePath) { eval =>
             val Right((result, _)) = eval.apply(target)
 
-            val jarFile = new JarFile(result.path.toIO)
-
-            assert(!jarEntries(jarFile).contains("reference.conf"))
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(!jarEntries(jarFile).contains("reference.conf"))
+            }
           }
 
         'excludeWithDeps - checkExclude(
@@ -783,11 +783,10 @@ object HelloWorldTests extends TestSuite {
                                                   ) =
           workspaceTest(module, resourcePath) { eval =>
             val Right((result, _)) = eval.apply(target)
-
-            val jarFile = new JarFile(result.path.toIO)
-
-            assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
-            assert(jarEntries(jarFile).contains("shaded/akka/http/scaladsl/model/HttpEntity.class"))
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(!jarEntries(jarFile).contains("akka/http/scaladsl/model/HttpEntity.class"))
+              assert(jarEntries(jarFile).contains("shaded/akka/http/scaladsl/model/HttpEntity.class"))
+            }
           }
 
         'relocate - {
@@ -809,23 +808,23 @@ object HelloWorldTests extends TestSuite {
           'withDeps - workspaceTest(HelloWorldAkkaHttpNoRules) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldAkkaHttpNoRules.core.assembly)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
+              val allOccurrences = Seq(
+                referenceContent.contains("akka-http Reference Config File"),
+                referenceContent.contains("akka-http-core Reference Config File"),
+                referenceContent.contains("Akka Actor Reference Config File"),
+                referenceContent.contains("Akka Stream Reference Config File"),
+                referenceContent.contains("My application Reference Config File")
+              )
 
-            val allOccurrences = Seq(
-              referenceContent.contains("akka-http Reference Config File"),
-              referenceContent.contains("akka-http-core Reference Config File"),
-              referenceContent.contains("Akka Actor Reference Config File"),
-              referenceContent.contains("Akka Stream Reference Config File"),
-              referenceContent.contains("My application Reference Config File")
-            )
+              val timesOcccurres = allOccurrences.find(identity).size
 
-            val timesOcccurres = allOccurrences.find(identity).size
-
-            assert(timesOcccurres == 1)
+              assert(timesOcccurres == 1)
+            }
           }
 
           'multiModule - workspaceTest(
@@ -834,19 +833,19 @@ object HelloWorldTests extends TestSuite {
           ) { eval =>
             val Right((result, _)) = eval.apply(HelloWorldMultiNoRules.core.assembly)
 
-            val jarFile = new JarFile(result.path.toIO)
+            Using.resource(new JarFile(result.path.toIO)) { jarFile =>
+              assert(jarEntries(jarFile).contains("reference.conf"))
 
-            assert(jarEntries(jarFile).contains("reference.conf"))
+              val referenceContent = readFileFromJar(jarFile, "reference.conf")
 
-            val referenceContent = readFileFromJar(jarFile, "reference.conf")
+              assert(
+                !referenceContent.contains("Model Reference Config File"),
+                !referenceContent.contains("foo.bar=2"),
 
-            assert(
-              !referenceContent.contains("Model Reference Config File"),
-              !referenceContent.contains("foo.bar=2"),
-
-              referenceContent.contains("Core Reference Config File"),
-              referenceContent.contains("bar.baz=hello")
-            )
+                referenceContent.contains("Core Reference Config File"),
+                referenceContent.contains("bar.baz=hello")
+              )
+            }
           }
         }
       }
