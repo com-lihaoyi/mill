@@ -123,6 +123,13 @@ object ModuleUtils {
     target
   }
 
+  /**
+   * Compute the BuildClasspath for the Mill build (build.sc files)
+   *
+   * @param evaluator mill evaluator that can resolve build information
+   * @param sources classpath for source jars or not
+   * @return Mill build Classpath(URI)
+   */
   def getMillBuildClasspath(evaluator: Evaluator,
                             sources: Boolean): Seq[String] = {
 
@@ -144,7 +151,9 @@ object ModuleUtils {
      * java.net.URL = file:/C:/Users/Developer/mill/./
      * scala> java.nio.file.Paths.get(".").toAbsolutePath.toUri.toURL.getFile
      * String = /C:/Users/Developer/mill/./
-     *  */
+     *
+     * It works for @camper42 on MacOS & Windows IDEA, works for @fabianhjr on Linux(NixOS)
+     */
     val classpath: Seq[Path] = Try(
       evaluator.rootModule.getClass.getClassLoader
         .asInstanceOf[SpecialClassLoader])
@@ -162,7 +171,7 @@ object ModuleUtils {
     val binarySource =
       if (sources) all.filter(url => isPathSourceJar(url))
       else all.filter(url => !isPathSourceJar(url))
-    binarySource.filter(path => exists(path)).map(_.wrapped.toString)
+    binarySource.filter(path => exists(path)).map(_.toNIO.toUri.toString)
   }
 
   /**
