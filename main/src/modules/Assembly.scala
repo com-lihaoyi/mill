@@ -1,9 +1,10 @@
 package mill.modules
 
 import com.eed3si9n.jarjarabrams.{ShadePattern, Shader}
-import java.io.{ByteArrayInputStream, InputStream}
+import java.io.{ByteArrayInputStream, Closeable, InputStream}
 import java.util.jar.JarFile
 import java.util.regex.Pattern
+
 import mill.Agg
 import os.Generator
 import scala.jdk.CollectionConverters._
@@ -78,10 +79,12 @@ object Assembly {
     }
   }
 
+  type ResourceCloser = () => ()
+
   def loadShadedClasspath(
     inputPaths: Agg[os.Path],
     assemblyRules: Seq[Assembly.Rule]
-  ): Generator[(String, UnopenedInputStream)] = {
+  ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
       case Rule.Relocate(from, to) => ShadePattern.Rename(List(from -> to)).inAll
     }
@@ -89,26 +92,34 @@ object Assembly {
       if (shadeRules.isEmpty) (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
       else {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false)
-        (name: String, inputStream: UnopenedInputStream) =>
-          shader(Streamable.bytes(inputStream()), name).map {
+        (name: String, inputStream: UnopenedInputStream) => {
+          val is = inputStream()
+          shader(Streamable.bytes(is), name).map {
             case (bytes, name) =>
-              name -> (() => new ByteArrayInputStream(bytes) { override def close(): Unit = inputStream().close() })
+              name -> (() => new ByteArrayInputStream(bytes) {
+                override def close(): Unit = is.close()
+              })
           }
+        }
       }
 
-    Generator.from(inputPaths).filter(os.exists).flatMap { path =>
-      if (os.isFile(path)) {
-        val jarFile = new JarFile(path.toIO)
+     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
+       if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
+       else path -> None
+     }
+
+    val generators = Generator.from(pathsWithResources).flatMap {
+      case (path, Some(jarFile)) =>
         Generator.from(jarFile.entries().asScala.filterNot(_.isDirectory))
           .flatMap(entry => shader(entry.getName, () => jarFile.getInputStream(entry)))
-      }
-      else {
+      case (path, None) =>
         os.walk
           .stream(path)
           .filter(os.isFile)
           .flatMap(subPath => shader(subPath.relativeTo(path).toString, () => os.read.inputStream(subPath)))
-      }
     }
+
+    (generators, () => pathsWithResources.flatMap(_._2).iterator.foreach(_.close()))
   }
 
   type UnopenedInputStream = () => InputStream

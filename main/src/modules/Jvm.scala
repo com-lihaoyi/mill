@@ -18,6 +18,7 @@ import mill.modules.Assembly.{AppendEntry, WriteOnceEntry}
 import scala.collection.mutable
 import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
+import scala.util.Using
 
 import upickle.default.{ReadWriter => RW}
 
@@ -353,33 +354,37 @@ object Jvm {
       os.copy(b, tmp)
       Map.empty
     }
-    val zipFs = FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)
+    Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
 
-    val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
-    Files.createDirectories(manifestPath.getParent)
-    val manifestOut = Files.newOutputStream(
-      manifestPath,
-      StandardOpenOption.TRUNCATE_EXISTING,
-      StandardOpenOption.CREATE
-    )
-    manifest.build.write(manifestOut)
-    manifestOut.close()
+      val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
+      Files.createDirectories(manifestPath.getParent)
+      val manifestOut = Files.newOutputStream(
+        manifestPath,
+        StandardOpenOption.TRUNCATE_EXISTING,
+        StandardOpenOption.CREATE
+      )
+      manifest.build.write(manifestOut)
+      manifestOut.close()
 
-    val mappings = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
-    Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
-      case (mapping, entry) =>
-        val path = zipFs.getPath(mapping).toAbsolutePath
-        entry match {
-          case entry: AppendEntry =>
-            val separated = entry.inputStreams
-              .flatMap(inputStream => Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream()))
-              .drop(1)
-            val concatenated = new SequenceInputStream(Collections.enumeration(separated.asJava))
-            writeEntry(path, concatenated, append = true)
-          case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
+      val (mappings, resourceCleaner) = Assembly.loadShadedClasspath(inputPaths, assemblyRules)
+      try {
+        Assembly.groupAssemblyEntries(mappings, assemblyRules).foreach {
+          case (mapping, entry) =>
+            val path = zipFs.getPath(mapping).toAbsolutePath
+            entry match {
+              case entry: AppendEntry =>
+                val separated = entry.inputStreams
+                  .flatMap(inputStream => Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream()))
+                  .drop(1)
+                val concatenated = new SequenceInputStream(Collections.enumeration(separated.asJava))
+                writeEntry(path, concatenated, append = true)
+              case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
+            }
         }
+      } finally {
+        resourceCleaner()
+      }
     }
-    zipFs.close()
 
     val output = ctx.dest / "out.jar"
     // Prepend shell script and make it executable
