@@ -49,8 +49,8 @@ jobs:
       matrix:
         java-version: [8, 11]
         buildcmd:
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalajslib,bsp}.__.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
 
     runs-on: windows-latest
@@ -73,7 +73,6 @@ jobs:
       matrix:
         java-version: [8, 11]
         buildcmd:
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d "scalalib.__.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
 
     runs-on: windows-latest
