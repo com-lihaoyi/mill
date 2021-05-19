@@ -92,11 +92,15 @@ object Assembly {
       if (shadeRules.isEmpty) (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
       else {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false)
-        (name: String, inputStream: UnopenedInputStream) =>
-          shader(Streamable.bytes(inputStream()), name).map {
+        (name: String, inputStream: UnopenedInputStream) => {
+          val is = inputStream()
+          shader(Streamable.bytes(is), name).map {
             case (bytes, name) =>
-              name -> (() => new ByteArrayInputStream(bytes) { override def close(): Unit = inputStream().close() })
+              name -> (() => new ByteArrayInputStream(bytes) {
+                override def close(): Unit = is.close()
+              })
           }
+        }
       }
 
      val pathsWithResources = inputPaths.filter(os.exists).map { path =>
