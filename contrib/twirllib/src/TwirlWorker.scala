@@ -158,7 +158,7 @@ class TwirlWorker {
 
     sourceDirectories.foreach(compileTwirlDir)
 
-    val zincFile = ctx.dest / 'zinc
+    val zincFile = ctx.dest / "zinc"
     val classesDir = ctx.dest
 
     mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))

@@ -607,7 +607,7 @@ object Evaluator{
     val refinedSegments = foreignSegments.map(_ ++ segments).getOrElse(segments)
     val segmentStrings = makeSegmentStrings(refinedSegments)
     val targetPath = workspacePath / segmentStrings
-    Paths(targetPath, targetPath / 'dest, targetPath / "meta.json", targetPath / 'log)
+    Paths(targetPath, targetPath / "dest", targetPath / "meta.json", targetPath / "log")
   }
 
   // check if the build itself has changed

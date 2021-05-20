@@ -35,7 +35,7 @@ object TestNGTests extends TestSuite {
 
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'testng / 'test / 'resources / "demo"
+  val resourcePath: Path = pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
                                                 (t: TestEvaluator => T)
@@ -49,8 +49,8 @@ object TestNGTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'TestNG - {
-      'demo - workspaceTest(demo) { eval =>
+    "TestNG" - {
+      "demo" - workspaceTest(demo) { eval =>
         val Right((result, evalCount)) = eval.apply(demo.test.testFramework)
         assert(
           result == "mill.testng.TestNGFramework",

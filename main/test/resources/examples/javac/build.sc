@@ -4,8 +4,8 @@ import mill.api.PathRef
 import mill.modules.Jvm
 import mill.api.Loose
 
-def sourceRootPath = millSourcePath / 'src
-def resourceRootPath = millSourcePath / 'resources
+def sourceRootPath = millSourcePath / "src"
+def resourceRootPath = millSourcePath / "resources"
 
 // sourceRoot -> allSources -> classFiles
 //                                |
@@ -18,5 +18,5 @@ def classFiles = T{ compileAll(allSources()) }
 def jar = T{ Jvm.createJar(Loose.Agg(classFiles().path) ++ resourceRoot().map(_.path)) }
 
 def run(mainClsName: String) = T.command{
-  os.proc('java, "-cp", classFiles().path, mainClsName).call(T.dest)
+  os.proc("java", "-cp", classFiles().path, mainClsName).call(T.dest)
 }

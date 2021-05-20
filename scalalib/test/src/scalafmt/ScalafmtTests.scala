@@ -30,7 +30,7 @@ object ScalafmtTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / 'scalafmt
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "scalafmt"
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
@@ -45,7 +45,7 @@ object ScalafmtTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'scalafmt - {
+    "scalafmt" - {
       def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded:Boolean) =
         workspaceTest(ScalafmtTestModule) { eval =>
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
@@ -106,8 +106,8 @@ object ScalafmtTests extends TestSuite {
           )
         }
 
-      'reformat - checkReformat(ScalafmtTestModule.core.reformat(), false)
-      'reformatAll - checkReformat(
+      "reformat" - checkReformat(ScalafmtTestModule.core.reformat(), false)
+      "reformatAll" - checkReformat(
         ScalafmtModule.reformatAll(
           Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources)),
         ), true)

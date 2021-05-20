@@ -9,7 +9,7 @@ import utest._
 import mill.scalajslib.api._
 object MultiModuleTests extends TestSuite {
   val workspacePath =  TestUtil.getOutPathStatic() / "multi-module"
-  val sourcePath = os.pwd / 'scalajslib / 'test / 'resources / "multi-module"
+  val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
 
   object MultiModule extends TestUtil.BaseModule {
     trait BaseModule extends ScalaJSModule {
@@ -18,7 +18,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object client extends BaseModule {
-      override def millSourcePath = workspacePath / 'client
+      override def millSourcePath = workspacePath / "client"
       override def moduleDeps = Seq(shared)
       override def mainClass = Some("Main")
       object test extends Tests {
@@ -28,7 +28,7 @@ object MultiModuleTests extends TestSuite {
     }
 
     object shared extends BaseModule {
-      override def millSourcePath = workspacePath / 'shared
+      override def millSourcePath = workspacePath / "shared"
     }
 
     override lazy val millDiscover = Discover[this.type]
@@ -53,10 +53,10 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    'fastOpt - TestUtil.disableInJava9OrAbove(checkOpt(FastOpt))
-    'fullOpt - TestUtil.disableInJava9OrAbove(checkOpt(FullOpt))
+    "fastOpt" - TestUtil.disableInJava9OrAbove(checkOpt(FastOpt))
+    "fullOpt" - TestUtil.disableInJava9OrAbove(checkOpt(FullOpt))
 
-    'test - {
+    "test" - {
       val Right(((_, testResults), evalCount)) = evaluator(MultiModule.client.test.test())
 
       assert(
@@ -66,7 +66,7 @@ object MultiModuleTests extends TestSuite {
       )
     }
 
-    'run - {
+    "run" - {
       val command = MultiModule.client.run()
       
       val Right((_, evalCount)) = evaluator(command)

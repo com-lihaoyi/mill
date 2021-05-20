@@ -58,10 +58,10 @@ object caffeine extends CaffeineModule {
   object javaPoet extends MavenModule{
     def millSourcePath = caffeine.millSourcePath
     def sources = T.sources(
-      millSourcePath / 'src / 'javaPoet / 'java
+      millSourcePath / "src" / "javaPoet" / "java"
     )
     def resources = T.sources(
-      millSourcePath / 'src / 'javaPoet / 'resources
+      millSourcePath / "src" / "javaPoet" / "resources"
     )
     def ivyDeps = Agg(
       libraries.guava,

@@ -9,7 +9,7 @@ import utest.framework.TestPath
 
 import language.experimental.macros
 object TestEvaluator{
-  val externalOutPath = os.pwd / 'target / 'external
+  val externalOutPath = os.pwd / "target" / "external"
 
 
   def static(module: => TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {

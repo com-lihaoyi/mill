@@ -8,14 +8,14 @@ import mill.T
 trait SbtModule extends ScalaModule with MavenModule {
 
   override def sources = T.sources(
-    millSourcePath / 'src / 'main / 'scala,
-    millSourcePath / 'src / 'main / 'java
+    millSourcePath / "src" / "main" / "scala",
+    millSourcePath / "src" / "main" / "java"
   )
 
   trait SbtModuleTests extends ScalaModuleTests with MavenModuleTests {
     override def sources = T.sources(
-      millSourcePath / 'src / 'test / 'scala,
-      millSourcePath / 'src / 'test / 'java
+      millSourcePath / "src" / "test" / "scala",
+      millSourcePath / "src" / "test" / "java"
     )
   }
   trait Tests extends SbtModuleTests

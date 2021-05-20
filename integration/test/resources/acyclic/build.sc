@@ -23,7 +23,7 @@ class AcyclicModule(val crossScalaVersion: String) extends CrossSbtModule with P
     ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
   object test extends Tests{
-    def forkWorkingDir = ammonite.ops.pwd / 'target / 'workspace / 'acyclic
+    def forkWorkingDir = ammonite.ops.pwd / "target" / "workspace" / "acyclic"
     def ivyDeps = Agg(
       ivy"com.lihaoyi::utest:0.6.0"
     )

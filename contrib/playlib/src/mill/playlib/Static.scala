@@ -60,7 +60,7 @@ trait Static extends ScalaModule {
     * webjar resources extracted from their source jars with version from path removed
     */
   def webJarResources = T {
-    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / 'lib)
+    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / "lib")
     PathRef(T.dest)
   }
 
