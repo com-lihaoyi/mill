@@ -79,7 +79,6 @@ trait RouterModule extends ScalaModule with Version {
       workerKey,
       s"mill-contrib-playlib-worker-${playMinorVersion()}",
       repositoriesTask(),
-      resolveFilter = _.toString.contains("mill-contrib-playlib-worker"),
       artifactSuffix = playMinorVersion() match {
         case "2.6" => "_2.12"
         case _ => "_2.13"

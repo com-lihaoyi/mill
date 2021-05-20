@@ -21,6 +21,7 @@ private[playlib] class RouteCompilerWorker {
         val cl = mill.api.ClassLoader.create(
           toolsClassPath,
           null,
+          sharedLoader = getClass().getClassLoader(),
           sharedPrefixes = Seq("mill.playlib.api.")
         )
         val bridge = cl
