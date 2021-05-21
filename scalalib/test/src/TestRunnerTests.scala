@@ -38,7 +38,7 @@ object TestRunnerTests extends TestSuite {
   }
 
   override def tests: Tests = Tests {
-    'TestArgs - {
+    "TestArgs" - {
       test("args serialization") {
         forAll { (globSelectors: Seq[String]) =>
           forAll {
@@ -68,7 +68,7 @@ object TestRunnerTests extends TestSuite {
         }.check
       }
     }
-    'TestRunner - {
+    "TestRunner" - {
       "test case lookup" - workspaceTest(testrunner) { eval =>
         val Right((result, _)) = eval.apply(testrunner.test.test())
         val test = result.asInstanceOf[(String, Seq[mill.scalalib.TestRunner.Result])]
@@ -76,7 +76,7 @@ object TestRunnerTests extends TestSuite {
           test._2.size == 3
         )
       }
-      'testOnly - {
+      "testOnly" - {
         def testOnly(eval: TestEvaluator, args: Seq[String], size: Int) = {
           val Right((result1, _)) = eval.apply(testrunner.test.testOnly(args:_*))
           val testOnly = result1.asInstanceOf[(String, Seq[mill.scalalib.TestRunner.Result])]
@@ -84,16 +84,16 @@ object TestRunnerTests extends TestSuite {
             testOnly._2.size == size
           )
         }
-        'suffix - workspaceTest(testrunner) { eval =>
+        "suffix" - workspaceTest(testrunner) { eval =>
           testOnly(eval, Seq("*arTests"), 2)
         }
-        'prefix - workspaceTest(testrunner) { eval =>
+        "prefix" - workspaceTest(testrunner) { eval =>
           testOnly(eval, Seq("mill.scalalib.FooT*"), 1)
         }
-        'exactly - workspaceTest(testrunner) { eval =>
+        "exactly" - workspaceTest(testrunner) { eval =>
           testOnly(eval, Seq("mill.scalalib.FooTests"), 1)
         }
-        'multi - workspaceTest(testrunner) { eval =>
+        "multi" - workspaceTest(testrunner) { eval =>
           testOnly(eval, Seq("*Bar*", "*bar*"), 2)
         }
       }
