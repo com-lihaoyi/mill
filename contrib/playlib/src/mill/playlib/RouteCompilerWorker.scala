@@ -1,15 +1,15 @@
-package mill
-package playlib
+package mill.playlib
 
-import mill.api.{Ctx, Result}
-import mill.define.{Discover, ExternalModule, Worker}
+import mill.{Agg, T}
+import mill.api.{Ctx, PathRef, Result}
 import mill.playlib.api.RouteCompilerType
 import mill.scalalib.api.CompilationResult
 
 private[playlib] class RouteCompilerWorker {
+
   private var routeCompilerInstanceCache = Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
-  private def bridge(toolsClasspath: Agg[os.Path])
+  protected def bridge(toolsClasspath: Agg[os.Path])
                     (implicit ctx: Ctx) = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
@@ -22,18 +22,17 @@ private[playlib] class RouteCompilerWorker {
           toolsClassPath,
           null,
           sharedLoader = getClass().getClassLoader(),
-          sharedPrefixes = Seq("mill.playlib.api.")
+          sharedPrefixes = Seq("mill.playlib.api."),
+          logger = Some(ctx.log)
         )
         val bridge = cl
           .loadClass("mill.playlib.worker.RouteCompilerWorker")
-          .getDeclaredConstructor()
           .newInstance()
           .asInstanceOf[mill.playlib.api.RouteCompilerWorkerApi]
         routeCompilerInstanceCache = Some((classloaderSig, bridge))
         bridge
     }
   }
-
 
   def compile(routerClasspath: Agg[os.Path],
               files: Seq[os.Path],
@@ -60,12 +59,4 @@ private[playlib] class RouteCompilerWorker {
       case err => Result.Failure(err)
     }
   }
-}
-
-private[playlib] object RouteCompilerWorkerModule extends ExternalModule {
-  def routeCompilerWorker: Worker[RouteCompilerWorker] = T.worker {
-    new RouteCompilerWorker()
-  }
-
-  lazy val millDiscover = Discover[this.type]
 }
