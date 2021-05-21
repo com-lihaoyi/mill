@@ -11,6 +11,7 @@ object ClassLoader {
 
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
 
+  @deprecated("Use other create method instead.", "mill after 0.9.7")
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
              sharedLoader: java.lang.ClassLoader,
