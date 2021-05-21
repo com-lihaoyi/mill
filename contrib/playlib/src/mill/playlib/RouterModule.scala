@@ -1,5 +1,4 @@
-package mill
-package playlib
+package mill.playlib
 
 import coursier.MavenRepository
 import mill.api.PathRef
@@ -7,6 +6,7 @@ import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
+import mill.{Agg, T}
 
 trait RouterModule extends ScalaModule with Version {
 

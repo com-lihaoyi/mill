@@ -1,13 +1,11 @@
-package mill
-package playlib
+package mill.playlib
 
-import mill.define.Target
-import mill.scalalib._
 import mill.playlib.api.Versions
+import mill.scalalib._
+import mill.{Agg, T}
 
 trait PlayApiModule extends Dependencies with Router with Server{
-  trait PlayTests extends super.Tests{
-    def testFrameworks = Seq("org.scalatest.tools.Framework")
+  trait PlayTests extends super.Tests with TestModule.ScalaTest {
     override def ivyDeps = T{
       val scalatestPlusPlayVersion = playMinorVersion() match {
         case Versions.PLAY_2_6 => "3.1.2"

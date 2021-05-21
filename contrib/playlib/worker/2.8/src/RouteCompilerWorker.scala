@@ -1,6 +1,4 @@
-package mill
-package playlib
-package worker
+package mill.playlib.worker
 
 import java.io.File
 

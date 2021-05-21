@@ -1,23 +1,24 @@
 package mill.playlib
 
-import mill.{Agg, T}
 import mill.api.{Ctx, PathRef, Result}
-import mill.playlib.api.RouteCompilerType
+import mill.playlib.api.{RouteCompilerType, RouteCompilerWorkerApi}
 import mill.scalalib.api.CompilationResult
+import mill.{Agg, T}
 
 private[playlib] class RouteCompilerWorker {
 
-  private var routeCompilerInstanceCache = Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
+  private var routeCompilerInstanceCache =
+    Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
-  protected def bridge(toolsClasspath: Agg[os.Path])
-                    (implicit ctx: Ctx) = {
+  protected def bridge(toolsClasspath: Agg[os.Path])(
+      implicit ctx: Ctx): RouteCompilerWorkerApi = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     routeCompilerInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
       case _ =>
         val toolsClassPath = toolsClasspath.map(_.toIO.toURI.toURL).toVector
-        ctx.log.debug("Loading classes from\n"+toolsClassPath.mkString("\n"))
+        ctx.log.debug("Loading classes from\n" + toolsClassPath.mkString("\n"))
         val cl = mill.api.ClassLoader.create(
           toolsClassPath,
           null,
@@ -41,8 +42,7 @@ private[playlib] class RouteCompilerWorker {
               reverseRouter: Boolean,
               namespaceReverseRouter: Boolean,
               generatorType: RouteCompilerType,
-              dest: os.Path)(implicit ctx: Ctx)
-  : Result[CompilationResult] = {
+              dest: os.Path)(implicit ctx: Ctx): Result[CompilationResult] = {
     //the routes file must come last as it can include the routers generated
     //by the others
     bridge(routerClasspath)
@@ -54,8 +54,9 @@ private[playlib] class RouteCompilerWorker {
         namespaceReverseRouter,
         generatorType,
         dest.toIO
-      ) match{
-      case null => Result.Success(CompilationResult(T.dest / 'zinc, PathRef(T.dest)))
+      ) match {
+      case null =>
+        Result.Success(CompilationResult(T.dest / 'zinc, PathRef(T.dest)))
       case err => Result.Failure(err)
     }
   }
