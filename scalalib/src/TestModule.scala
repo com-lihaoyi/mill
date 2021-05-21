@@ -83,6 +83,7 @@ trait TestModule extends JavaModule with TaskModule {
    * */
   def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
+  @deprecated("Use testTask(args, T.task{Seq.empty[String]}) instead.", "mill after 0.9.7")
   protected def testTask(
     args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
     testTask(args, T.task{Seq.empty[String]})
