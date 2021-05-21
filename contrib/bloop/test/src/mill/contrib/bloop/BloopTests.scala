@@ -50,6 +50,7 @@ object BloopTests extends TestSuite {
     }
 
     object scalanativeModule extends scalanativelib.ScalaNativeModule with testBloop.Module {
+      override def skipBloop: Boolean = scala.util.Properties.isWin
       override def scalaVersion = "2.13.4"
       override def scalaNativeVersion = "0.4.0"
       override def releaseMode = T(ReleaseMode.Debug)
@@ -76,7 +77,8 @@ object BloopTests extends TestSuite {
       val scalaModule2Config = readBloopConf("scalaModule2.json")
       val testModuleConfig = readBloopConf("scalaModule.test.json")
       val scalajsModuleConfig = readBloopConf("scalajsModule.json")
-      val scalanativeModuleConfig = readBloopConf("scalanativeModule.json")
+      // skipped on Windows
+      val scalanativeModuleConfig = if(scala.util.Properties.isWin) None else Some(readBloopConf("scalanativeModule.json"))
 
       'scalaModule - {
         val p = scalaModuleConfig.project
@@ -149,21 +151,27 @@ object BloopTests extends TestSuite {
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
       }
       'scalanativeModule - {
-        val p = scalanativeModuleConfig.project
-        val name = p.name
-        val workspaceDir = p.workspaceDir
-        val sources = p.sources.map(Path(_))
-        val version = p.scala.get.version
-        val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
+        scalanativeModuleConfig match {
+          case None =>
+            val exists = os.exists(workdir / ".bloop" / "scalanativeModule.json")
+            assert(exists == false)
+          case Some(scalanativeModuleConfig) =>
+            val p = scalanativeModuleConfig.project
+            val name = p.name
+            val workspaceDir = p.workspaceDir
+            val sources = p.sources.map(Path(_))
+            val version = p.scala.get.version
+            val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
 
-        val (clang, _) = testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.right.get
+            val (clang, _) = testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.right.get
 
-        assert(name == "scalanativeModule")
-        assert(workspaceDir == Some(workdir.wrapped))
-        assert(sources == List(workdir / "scalanativeModule" / "src"))
-        assert(version == "2.13.4")
-        assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
-        assert(platform.config.clang == clang.toNIO)
+            assert(name == "scalanativeModule")
+            assert(workspaceDir == Some(workdir.wrapped))
+            assert(sources == List(workdir / "scalanativeModule" / "src"))
+            assert(version == "2.13.4")
+            assert(platform.config.mode == BloopConfig.LinkerMode.Debug)
+            assert(platform.config.clang == clang.toNIO)
+        }
       }
       'skipped - {
         val exists = os.exists(workdir / ".bloop" / "skippedModule.json")
