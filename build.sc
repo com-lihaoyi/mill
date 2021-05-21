@@ -492,6 +492,12 @@ object contrib extends MillModule {
 
     object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
     class WorkerModule(playBinary: String) extends MillApiModule {
+      override def sources = T.sources {
+        // We want to avoid duplicating code as long as the Play APIs allow.
+        // But if newer Play versions introduce incompatibilities,
+        // just remove the shared source dir for that worker and implement directly.
+        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+      }
       override def scalaVersion = playBinary match {
         case "2.6" => Deps.workerScalaVersion212
         case _ => Deps.scalaVersion
