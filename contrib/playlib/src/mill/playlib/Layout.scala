@@ -1,6 +1,6 @@
-package mill
-package playlib
+package mill.playlib
 
+import mill.T
 import mill.scalalib._
 
 private[playlib] trait Layout extends JavaModule{

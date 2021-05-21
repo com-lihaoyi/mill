@@ -1,4 +1,5 @@
 package mill.playlib.api;
+
 public interface RouteCompilerWorkerApi {
     String compile(java.io.File[] files,
                    String[] additionalImports,

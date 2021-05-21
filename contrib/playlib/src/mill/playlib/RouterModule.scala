@@ -1,5 +1,4 @@
-package mill
-package playlib
+package mill.playlib
 
 import coursier.MavenRepository
 import mill.api.PathRef
@@ -7,12 +6,13 @@ import mill.playlib.api.RouteCompilerType
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
 import mill.scalalib.api._
+import mill.{Agg, T}
 
 trait RouterModule extends ScalaModule with Version {
 
   def routes: T[Seq[PathRef]] = T.sources { millSourcePath / 'routes }
 
-  private def routeFiles = T {
+  def routeFiles = T {
     val paths = routes().flatMap(file => os.walk(file.path))
     val routeFiles=paths.filter(_.ext=="routes") ++ paths.filter(_.last == "routes")
     routeFiles.map(f=>PathRef(f))
@@ -59,9 +59,11 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  final def compileRouter: T[CompilationResult] = T.persistent {
+  protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
+
+  def compileRouter: T[CompilationResult] = T.persistent {
     T.log.debug(s"compiling play routes with ${playVersion()} worker")
-    RouteCompilerWorkerModule.routeCompilerWorker().compile(
+    routeCompilerWorker.routeCompilerWorker().compile(
       toolsClasspath().map(_.path),
       routeFiles().map(_.path),
       routesAdditionalImport,
@@ -72,7 +74,7 @@ trait RouterModule extends ScalaModule with Version {
       T.dest)
   }
 
-  private def playRouteCompilerWorkerClasspath = T {
+  def playRouteCompilerWorkerClasspath = T {
     val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
 
     mill.modules.Util.millProjectModule(
@@ -86,7 +88,7 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
-  private def toolsClasspath = T {
+  def toolsClasspath = T {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 

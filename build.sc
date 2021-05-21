@@ -473,10 +473,10 @@ object contrib extends MillModule {
   }
 
   object playlib extends MillModule {
-    def moduleDeps = Seq(twirllib, playlib.api)
+    override def moduleDeps = Seq(twirllib, playlib.api)
     override def compileModuleDeps = Seq(scalalib)
 
-    def testArgs = T {
+    override def testArgs = T {
       val mapping = Map(
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_6" -> worker("2.6").assembly().path,
         "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_2_7" -> worker("2.7").assembly().path,
@@ -491,19 +491,24 @@ object contrib extends MillModule {
     object api extends MillPublishModule
 
     object worker extends Cross[WorkerModule]("2.6", "2.7", "2.8")
-
-    class WorkerModule(playBinary: String) extends MillApiModule  {
-      def scalaVersion = playBinary match {
+    class WorkerModule(playBinary: String) extends MillApiModule {
+      override def sources = T.sources {
+        // We want to avoid duplicating code as long as the Play APIs allow.
+        // But if newer Play versions introduce incompatibilities,
+        // just remove the shared source dir for that worker and implement directly.
+        Seq(PathRef(millSourcePath / os.up / "src-shared")) ++ super.sources()
+      }
+      override def scalaVersion = playBinary match {
         case "2.6" => Deps.workerScalaVersion212
         case _ => Deps.scalaVersion
       }
-      def moduleDeps = Seq(playlib.api)
+      override def moduleDeps = Seq(playlib.api)
       def playVersion = playBinary match {
         case "2.6" => "2.6.25"
         case "2.7" => "2.7.9"
         case "2.8" => "2.8.8"
       }
-      def ivyDeps = Agg(
+      override def ivyDeps = Agg(
         Deps.osLib,
         ivy"com.typesafe.play::routes-compiler::$playVersion"
       )
