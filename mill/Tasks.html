@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.7-13-bf96a1</span>
+    <span class="version">0.9.7-14-5a62e2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.9.7-13-bf96a1</a>
+          <a href="index.html">0.9.7-14-5a62e2</a>
         </li>
         <li class="version">
           <a href="0.9.7/index.html">0.9.7</a>
@@ -161,9 +161,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.7-13-bf96a1</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.7-14-5a62e2</button>
   <div class="version-menu">
-    <a class="version is-current" href="Tasks.html">0.9.7-13-bf96a1</a>
+    <a class="version is-current" href="Tasks.html">0.9.7-14-5a62e2</a>
     <a class="version" href="0.9.7/Tasks.html">0.9.7</a>
     <a class="version" href="0.9.6/Tasks.html">0.9.6</a>
   </div>
@@ -196,9 +196,9 @@ for building Scala.</p>
 //                                v
 //           resourceRoot ----&gt;  jar
 
-def sourceRoot = T.sources { os.pwd / 'src }
+def sourceRoot = T.sources { os.pwd / &quot;src&quot; }
 
-def resourceRoot = T.sources { os.pwd / 'resources }
+def resourceRoot = T.sources { os.pwd / &quot;resources&quot; }
 
 def allSources = T { sourceRoot().flatMap(p =&gt; os.walk(p.path)).map(PathRef(_)) }
 
@@ -339,7 +339,7 @@ within a <code>Module</code> body.</p>
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / 'src
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / &quot;src&quot;
 
 def sourceRoots = T.sources { sourceRootPath }</code></pre>
 </div>
@@ -356,7 +356,7 @@ definition:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / 'additionalSources }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / &quot;additionalSources&quot; }
 override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }</code></pre>
 </div>
 </div>
@@ -366,7 +366,7 @@ override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources(
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClsName: String) = T.command {
-  os.proc('java, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
 }</code></pre>
 </div>
 </div>
