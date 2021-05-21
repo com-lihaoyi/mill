@@ -6,7 +6,7 @@ import utest._
 class HygieneTests(fork: Boolean)
   extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "hygiene"
-  def scriptSourcePath: os.Path = os.pwd / 'integration / 'test / 'resources / workspaceSlug
+  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
 
   val tests = Tests {
     initWorkspace()

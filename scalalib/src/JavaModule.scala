@@ -355,7 +355,7 @@ trait JavaModule
    * Typically includes static files such as html and markdown, but depends
    * on the doc tool that is actually used.
    */
-  def docSources: Sources = T.sources(millSourcePath / 'docs)
+  def docSources: Sources = T.sources(millSourcePath / "docs")
 
   /**
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
@@ -364,7 +364,7 @@ trait JavaModule
   def docJar: T[PathRef] = T[PathRef] {
     val outDir = T.dest
 
-    val javadocDir = outDir / 'javadoc
+    val javadocDir = outDir / "javadoc"
     os.makeDir.all(javadocDir)
 
     val files = for {

@@ -11,21 +11,21 @@ import mill.T
 trait MavenModule extends JavaModule { outer =>
 
   override def sources = T.sources(
-    millSourcePath / 'src / 'main / 'java
+    millSourcePath / "src" / "main" / "java"
   )
   override def resources = T.sources {
-    millSourcePath / 'src / 'main / 'resources
+    millSourcePath / "src" / "main" / "resources"
   }
 
   trait MavenModuleTests extends JavaModuleTests {
     override def millSourcePath = outer.millSourcePath
-    override def intellijModulePath = outer.millSourcePath / 'src / 'test
+    override def intellijModulePath = outer.millSourcePath / "src" / "test"
 
     override def sources = T.sources(
-      millSourcePath / 'src / 'test / 'java
+      millSourcePath / "src" / "test" / "java"
     )
     override def resources = T.sources {
-      millSourcePath / 'src / 'test / 'resources
+      millSourcePath / "src" / "test" / "resources"
     }
   }
   trait Tests extends MavenModuleTests

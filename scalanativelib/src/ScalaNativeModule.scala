@@ -161,7 +161,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   // Generates native binary
   def nativeLink = T{
-    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / 'out).toIO))
+    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / "out").toIO))
   }
 
   // Runs the native binary

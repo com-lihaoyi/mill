@@ -7,8 +7,8 @@ import utest._
 object ForeignConflictTest extends ScriptTestSuite(fork = false) {
   def workspaceSlug = "foreign-conflict"
   def scriptSourcePath =
-    os.pwd / 'main / 'test / 'resources / 'examples / 'foreign
-  override def buildPath = os.sub / 'conflict / "build.sc"
+    os.pwd / "main" / "test" / "resources" / "examples" / "foreign"
+  override def buildPath = os.sub / "conflict" / "build.sc"
 
   val tests = Tests {
     initWorkspace()

@@ -21,7 +21,7 @@ object HelloJavaTests extends TestSuite {
       object test extends Tests with TestModule.Junit4
     }
   }
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / "hello-java"
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "hello-java"
 
   def init()(implicit tp: TestPath) = {
     val eval = new TestEvaluator(HelloJava)
@@ -32,7 +32,7 @@ object HelloJavaTests extends TestSuite {
     eval
   }
   def tests: Tests = Tests {
-    'compile - {
+    "compile" - {
       val eval = init()
 
       val Right((res1, n1)) = eval.apply(HelloJava.core.compile)
@@ -49,7 +49,7 @@ object HelloJavaTests extends TestSuite {
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    'docJar  - {
+    "docJar"  - {
       val eval = init()
 
       val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)
@@ -60,7 +60,7 @@ object HelloJavaTests extends TestSuite {
         os.proc("jar", "tf", ref2.path).call().out.lines.contains("hello/Main.html")
       )
     }
-    'test - {
+    "test" - {
       val eval = init()
 
       val Left(Result.Failure(ref1, Some(v1))) = eval.apply(HelloJava.core.test.test())
@@ -81,11 +81,11 @@ object HelloJavaTests extends TestSuite {
         v2._2(1).status == "Success"
       )
     }
-    'failures - {
+    "failures" - {
       val eval = init()
 
-      val mainJava = HelloJava.millSourcePath / 'app / 'src / "Main.java"
-      val coreJava = HelloJava.millSourcePath / 'core / 'src / "Core.java"
+      val mainJava = HelloJava.millSourcePath / "app" / "src" / "Main.java"
+      val coreJava = HelloJava.millSourcePath / "core" / "src" / "Core.java"
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)

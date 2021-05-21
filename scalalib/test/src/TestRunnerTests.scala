@@ -23,7 +23,7 @@ object TestRunnerTests extends TestSuite {
     }
   }
 
-  val resourcePath = os.pwd / 'scalalib / 'test / 'resources / 'testrunner
+  val resourcePath = os.pwd / "scalalib" / "test" / "resources" / "testrunner"
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,

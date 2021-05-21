@@ -59,7 +59,7 @@ object RunScript{
 
     val evalRes =
       for(s <- evalState)
-      yield new Evaluator(home, wd / 'out, wd / 'out, s.rootModule, log,
+      yield new Evaluator(home, wd / "out", wd / "out", s.rootModule, log,
         s.classLoaderSig, s.workerCache, env, failFast = !keepGoing, threadCount = threadCount)
 
     val evaluated = for{

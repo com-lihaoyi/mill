@@ -40,7 +40,7 @@ object NodeJSConfigTests extends TestSuite {
     class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
       extends BuildModule(crossScalaVersion, nodeArgs) {
       object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / 'src / 'utest }
+        override def sources = T.sources{ millSourcePath / "src" / "utest" }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"
@@ -52,11 +52,11 @@ object NodeJSConfigTests extends TestSuite {
     override lazy val millDiscover = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / 'scalajslib / 'test / 'resources / "hello-js-world"
+  val millSourcePath = os.pwd / "scalajslib" / "test" / "resources" / "hello-js-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloJSWorld)
 
-  val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
+  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 
   def tests: Tests = Tests {
     prepareWorkspace()
@@ -74,23 +74,23 @@ object NodeJSConfigTests extends TestSuite {
       )
     }
 
-    'test - {
+    "test" - {
 
       def checkUtest(nodeArgs: List[String], notNodeArgs: List[String]) = {
         checkLog(HelloJSWorld.buildUTest(scalaVersion, nodeArgs).test.test(), nodeArgs, notNodeArgs)
       }
 
-      'test - checkUtest(nodeArgsEmpty, nodeArgs2G)
-      'test2G - checkUtest(nodeArgs2G, nodeArgs4G)
+      "test" - checkUtest(nodeArgsEmpty, nodeArgs2G)
+      "test2G" - checkUtest(nodeArgs2G, nodeArgs4G)
     }
 
     def checkRun(nodeArgs: List[String], notNodeArgs: List[String]): Unit = {
       checkLog(HelloJSWorld.helloJsWorld(scalaVersion, nodeArgs).run(), nodeArgs, notNodeArgs)
     }
 
-    'run - {
-      'run - checkRun(nodeArgsEmpty, nodeArgs2G)
-      'run2G - checkRun(nodeArgs2G, nodeArgs4G)
+    "run" - {
+      "run" - checkRun(nodeArgsEmpty, nodeArgs2G)
+      "run2G" - checkRun(nodeArgs2G, nodeArgs4G)
     }
   }
 

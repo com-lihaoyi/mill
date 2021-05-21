@@ -17,9 +17,9 @@ import mill._, mill.modules.Jvm
 //                                v
 //           resourceRoot ---->  jar
 
-def sourceRoot = T.sources { os.pwd / 'src }
+def sourceRoot = T.sources { os.pwd / "src" }
 
-def resourceRoot = T.sources { os.pwd / 'resources }
+def resourceRoot = T.sources { os.pwd / "resources" }
 
 def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
 
@@ -128,7 +128,7 @@ within a `Module` body.
 
 [source,scala]
 ----
-def sourceRootPath = os.pwd / 'src
+def sourceRootPath = os.pwd / "src"
 
 def sourceRoots = T.sources { sourceRootPath }
 ----
@@ -143,7 +143,7 @@ definition:
 
 [source,scala]
 ----
-def additionalSources = T.sources { os.pwd / 'additionalSources }
+def additionalSources = T.sources { os.pwd / "additionalSources" }
 override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }
 ----
 
@@ -152,7 +152,7 @@ override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources(
 [source,scala]
 ----
 def run(mainClsName: String) = T.command {
-  os.proc('java, "-cp", classFiles().path, mainClsName).call()
+  os.proc("java", "-cp", classFiles().path, mainClsName).call()
 }
 ----
 

@@ -198,7 +198,7 @@ class ZincWorkerImpl(compilerBridge: Either[
       case Left((ctx0, bridgeProvider)) =>
         val workingDir = ctx0.dest / s"zinc-${Versions.zinc}" / scalaVersion
         val lock = synchronized(compilerBridgeLocks.getOrElseUpdate(scalaVersion, new Object()))
-        val compiledDest = workingDir / 'compiled
+        val compiledDest = workingDir / "compiled"
         lock.synchronized{
           if (os.exists(compiledDest / "DONE")) compiledDest
           else {
@@ -458,7 +458,7 @@ class ZincWorkerImpl(compilerBridge: Either[
 
     val lookup = MockedLookup(analysisMap)
 
-    val zincFile = ctx.dest / 'zinc
+    val zincFile = ctx.dest / "zinc"
     val classesDir =
       if (compileToJar) ctx.dest / "classes.jar"
       else ctx.dest / "classes"

@@ -56,7 +56,7 @@ private[playlib] class RouteCompilerWorker {
         dest.toIO
       ) match {
       case null =>
-        Result.Success(CompilationResult(T.dest / 'zinc, PathRef(T.dest)))
+        Result.Success(CompilationResult(T.dest / "zinc", PathRef(T.dest)))
       case err => Result.Failure(err)
     }
   }

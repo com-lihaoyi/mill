@@ -9,8 +9,8 @@ import utest._
 import utest.framework.TestPath
 
 object HelloWorldTests extends utest.TestSuite {
-  val resourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world"
-  val sbtResourcePath = os.pwd / 'contrib / 'scoverage / 'test / 'resources / "hello-world-sbt"
+  val resourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world"
+  val sbtResourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
   trait HelloBase extends TestUtil.BaseModule {
     def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
@@ -44,16 +44,16 @@ object HelloWorldTests extends utest.TestSuite {
       def scalaVersion = "2.12.9"
       def scoverageVersion = "1.4.0"
       override def sources = T.sources(
-        millSourcePath / 'src / 'main / 'scala,
-        millSourcePath / 'src / 'main / 'java
+        millSourcePath / "src" / "main" / "scala",
+        millSourcePath / "src" / "main" / "java"
       )
-      override def resources = T.sources{ millSourcePath / 'src / 'main / 'resources }
+      override def resources = T.sources{ millSourcePath / "src" / "main" / "resources" }
 
       object test extends ScoverageTests {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
         def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def millSourcePath = outer.millSourcePath
-        override def intellijModulePath = outer.millSourcePath / 'src / 'test
+        override def intellijModulePath = outer.millSourcePath / "src" / "test"
       }
     }
   }

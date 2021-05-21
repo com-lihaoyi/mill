@@ -7,7 +7,7 @@ abstract class IntegrationTestSuite(repoKey: String,
                                     val workspaceSlug: String,
                                     fork: Boolean)
     extends ScriptTestSuite(fork) {
-  val buildFilePath = os.pwd / 'integration / 'test / 'resources / workspaceSlug
+  val buildFilePath = os.pwd / "integration" / "test" / "resources" / workspaceSlug
   def scriptSourcePath = {
     // The unzipped git repo snapshots we get from github come with a
     // wrapper-folder inside the zip file, so copy the wrapper folder to the

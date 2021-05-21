@@ -9,7 +9,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
     super.sources() ++
       CrossModuleBase.scalaVersionPaths(
         crossScalaVersion,
-        s => millSourcePath / 'src / 'main / s"scala-$s"
+        s => millSourcePath / "src" / "main" / s"scala-$s"
       )
 
   }
@@ -19,7 +19,7 @@ trait CrossSbtModule extends SbtModule with CrossModuleBase { outer =>
       super.sources() ++
         CrossModuleBase.scalaVersionPaths(
           crossScalaVersion,
-          s => millSourcePath / 'src / 'test / s"scala-$s"
+          s => millSourcePath / "src" / "test" / s"scala-$s"
         )
     }
   }

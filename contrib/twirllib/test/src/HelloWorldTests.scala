@@ -46,16 +46,16 @@ object HelloWorldTests extends TestSuite {
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
     os.copy(
-      os.pwd / 'contrib / 'twirllib / 'test / 'resources / resourcePathSuffix,
+      os.pwd / "contrib" / "twirllib" / "test" / "resources" / resourcePathSuffix,
       m.millSourcePath
     )
     t(eval)
   }
 
   def compileClassfiles: Seq[os.RelPath] = Seq[os.RelPath](
-    os.rel / 'html / "hello.template.scala",
-    os.rel / 'html / "wrapper.template.scala",
-    os.rel / 'svg / "test.template.scala"
+    os.rel / "html" / "hello.template.scala",
+    os.rel / "html" / "wrapper.template.scala",
+    os.rel / "svg" / "test.template.scala"
   )
 
   def expectedDefaultImports: Seq[String] = Seq(
@@ -78,9 +78,9 @@ object HelloWorldTests extends TestSuite {
   )
 
   def tests: Tests = Tests {
-    'twirlVersion - {
+    "twirlVersion" - {
 
-      'fromBuild - workspaceTest(HelloWorld, "hello-world") { eval =>
+      "fromBuild" - workspaceTest(HelloWorld, "hello-world") { eval =>
         val Right((result, evalCount)) =
           eval.apply(HelloWorld.core.twirlVersion)
 
@@ -90,16 +90,16 @@ object HelloWorldTests extends TestSuite {
         )
       }
     }
-    'compileTwirl - workspaceTest(HelloWorld, "hello-world") { eval =>
+    "compileTwirl" - workspaceTest(HelloWorld, "hello-world") { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorld.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
       val expectedClassfiles = compileClassfiles.map(
-        eval.outPath / 'core / 'compileTwirl / 'dest / _
+        eval.outPath / "core" / "compileTwirl" / "dest" / _
       )
 
       assert(
-        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest,
+        result.classes.path == eval.outPath / "core" / "compileTwirl" / "dest",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
         outputFiles.size == 3,
@@ -122,18 +122,18 @@ object HelloWorldTests extends TestSuite {
 
       assert(unchangedEvalCount == 0)
     }
-    'compileTwirlInclusiveDot - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
+    "compileTwirlInclusiveDot" - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
       val expectedClassfiles = compileClassfiles.map( name =>
-        eval.outPath / 'core / 'compileTwirl / 'dest / name / os.RelPath.up / name.last.replace(".template.scala", "$$TwirlInclusiveDot.template.scala")
+        eval.outPath / "core" / "compileTwirl" / "dest" / name / os.RelPath.up / name.last.replace(".template.scala", "$$TwirlInclusiveDot.template.scala")
       )
 
       println(s"outputFiles: $outputFiles")
 
       assert(
-        result.classes.path == eval.outPath / 'core / 'compileTwirl / 'dest,
+        result.classes.path == eval.outPath / "core" / "compileTwirl" / "dest",
         outputFiles.nonEmpty,
         outputFiles.forall(expectedClassfiles.contains),
         outputFiles.size == 3,
