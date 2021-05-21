@@ -214,7 +214,9 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
 
   override def testLocal(args: String*) = T.command { test(args:_*) }
 
-  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override protected def testTask(args: Task[Seq[String]],
+      globSeletors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
       toolsClasspath().map(_.path),
       jsEnvConfig(),
@@ -228,7 +230,8 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),
-      T.testReporter
+      T.testReporter,
+      TestRunner.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Node.js subprocess finish streaming it's stdout

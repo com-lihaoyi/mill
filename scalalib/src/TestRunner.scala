@@ -9,6 +9,8 @@ import mill.scalalib.Lib.discoverTests
 import mill.util.{Ctx, PrintLogger}
 import mill.util.JsonFormatters._
 import sbt.testing._
+
+import java.util.regex.Pattern
 import scala.collection.mutable
 import scala.util.Try
 
@@ -22,7 +24,8 @@ object TestRunner {
       outputPath: String,
       colored: Boolean,
       testCp: String,
-      homeStr: String
+      homeStr: String,
+      globSelectors: Seq[String]
   ) {
     def toArgsSeq: Seq[String] =
       Seq(
@@ -33,6 +36,8 @@ object TestRunner {
           arguments ++
           Seq((sysProps.size * 2).toString) ++
           sysProps.flatMap { case (k, v) => Seq(k, v) } ++
+          Seq(globSelectors.size.toString) ++
+          globSelectors ++
           Seq(outputPath, colored.toString, testCp, homeStr)
       ).flatten
 
@@ -67,7 +72,8 @@ object TestRunner {
         outputPath = outputPath,
         colored = colored,
         testCp = testCp,
-        homeStr = homeStr
+        homeStr = homeStr,
+        globSelectors = Seq.empty
       )
 
     def parseArgs(args: Array[String]): Try[TestArgs] = {
@@ -101,6 +107,7 @@ object TestRunner {
       val classpath = readArray()
       val arguments = readArray()
       val sysProps = readArray()
+      val globFilters = readArray()
       val outputPath = readString()
       val colored = readString()
       val testCp = readString()
@@ -116,7 +123,8 @@ object TestRunner {
         outputPath,
         colored = Seq("true", "1", "on", "yes").contains(colored),
         testCp = testCp,
-        homeStr = homeStr
+        homeStr = homeStr,
+        globFilters
       )
     }
   }
@@ -142,12 +150,15 @@ object TestRunner {
       ctx.log.debug(s"Setting ${testArgs.sysProps.size} system properties")
       testArgs.sysProps.foreach { case (k, v) => System.setProperty(k, v) }
 
+      val filter = globFilter(testArgs.globSelectors)
+
       val result = runTestFramework(
         frameworkInstances = TestRunner.framework(testArgs.framework),
         entireClasspath = Agg.from(testArgs.classpath.map(os.Path(_))),
         testClassfilePath = Agg(os.Path(testArgs.testCp)),
         args = testArgs.arguments,
-        DummyTestReporter
+        DummyTestReporter,
+        filter
       )(ctx)
 
       // Clear interrupted state in case some badly-behaved test suite
@@ -188,6 +199,16 @@ object TestRunner {
                testClassfilePath: Agg[os.Path],
                args: Seq[String],
                testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
+  : (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTestFramework(frameworkInstances, entireClasspath, testClassfilePath, args, testReporter, _ => true)
+  }
+
+  def runTestFramework(frameworkInstances: ClassLoader => sbt.testing.Framework,
+               entireClasspath: Agg[os.Path],
+               testClassfilePath: Agg[os.Path],
+               args: Seq[String],
+               testReporter: TestReporter,
+               classFilter: Class[_] => Boolean)(implicit ctx: Ctx.Log with Ctx.Home)
     : (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(
@@ -206,7 +227,7 @@ object TestRunner {
           val testClasses = discoverTests(cl, framework, testClassfilePath)
 
           val tasks = runner.tasks(
-            for ((cls, fingerprint) <- testClasses.toArray)
+            for ((cls, fingerprint) <- testClasses.toArray if classFilter(cls))
               yield
                 new TaskDef(
                   cls.getName.stripSuffix("$"),
@@ -283,6 +304,30 @@ object TestRunner {
     cl.loadClass(frameworkName)
       .newInstance()
       .asInstanceOf[sbt.testing.Framework]
+  }
+
+  def globFilter(selectors: Seq[String]): Class[_] => Boolean = {
+    val filters = selectors.map{str =>
+      if(str == "*") (_: String) => true
+      else if (str.indexOf('*') == -1) (s: String) => s == str
+      else {
+        val parts = str.split("\\*", -1)
+        parts match {
+          case Array("", suffix) => (s: String) => s.endsWith(suffix)
+          case Array(prefix, "") => (s: String) => s.startsWith(prefix)
+          case _ =>
+            val pattern = Pattern.compile(parts.map(Pattern.quote).mkString(".*"))
+            (s: String) => pattern.matcher(s).matches()
+        }
+      }
+    }
+
+    if(filters.isEmpty) (_: Class[_]) => true
+    else
+      (clz: Class[_]) => {
+        val name = clz.getName.stripSuffix("$")
+        filters.exists(f => f(name))
+      }
   }
 
   case class Result(fullyQualifiedName: String,

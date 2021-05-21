@@ -176,7 +176,8 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
-  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override protected def testTask(args: Task[Seq[String]],
+      globSeletors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val getFrameworkResult = scalaNativeWorker().getFramework(
       nativeLink().toIO,
@@ -192,7 +193,8 @@ trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),
-      T.testReporter
+      T.testReporter,
+      TestRunner.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout
