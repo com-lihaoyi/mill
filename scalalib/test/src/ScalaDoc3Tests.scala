@@ -53,7 +53,7 @@ object ScalaDoc3Tests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'static - workspaceTest(StaticDocsModule){ eval =>
+    "static" - workspaceTest(StaticDocsModule){ eval =>
       val Right((_, _)) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar" / "dest"
       assert(
@@ -65,7 +65,7 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    'empty - workspaceTest(EmptyDocsModule){ eval =>
+    "empty" - workspaceTest(EmptyDocsModule){ eval =>
       val Right((_, _)) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar" / "dest"
       assert(
@@ -73,7 +73,7 @@ object ScalaDoc3Tests extends TestSuite {
         os.exists(dest / "javadoc" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    'multiple - workspaceTest(MultiDocsModule){ eval =>
+    "multiple" - workspaceTest(MultiDocsModule){ eval =>
       val Right((_, _)) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar" / "dest"
       assert(

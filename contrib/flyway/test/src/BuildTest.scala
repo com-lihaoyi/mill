@@ -9,7 +9,7 @@ object BuildTest extends TestSuite {
   object Build extends TestUtil.BaseModule {
     object build extends FlywayModule {
 
-      def resources = T.sources(os.pwd / 'contrib / 'flyway / 'test / 'resources)
+      def resources = T.sources(os.pwd / "contrib" / "flyway" / "test" / "resources")
 
       def postgres = ivy"com.h2database:h2:1.4.199"
 
@@ -19,13 +19,13 @@ object BuildTest extends TestSuite {
   }
 
   def tests = Tests {
-    'clean - {
+    "clean" - {
       val eval = new TestEvaluator(Build)
       val Right((_, count)) = eval(Build.build.flywayClean())
       assert(count > 0)
     }
 
-    'migrate - {
+    "migrate" - {
       val eval = new TestEvaluator(Build)
       val Right((res, count)) = eval(Build.build.flywayMigrate())
       assert(
@@ -39,7 +39,7 @@ object BuildTest extends TestSuite {
       )
     }
 
-    'info - {
+    "info" - {
       val eval = new TestEvaluator(Build)
       val Right((_, count)) = eval(Build.build.flywayInfo())
       assert(count > 0)

@@ -6,11 +6,11 @@ import utest._
 class LargeProjectTests(fork: Boolean)
   extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "large-project"
-  def scriptSourcePath: os.Path = os.pwd / 'integration / 'test / 'resources / workspaceSlug
+  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
 
   val tests = Tests{
     initWorkspace()
-    'test - {
+    "test" - {
 
       assert(eval("foo.common.one.compile"))
     }

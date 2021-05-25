@@ -1,6 +1,5 @@
 package mill.define
 
-
 import scala.annotation.implicitNotFound
 
 sealed trait Segment{

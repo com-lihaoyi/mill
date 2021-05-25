@@ -4,9 +4,11 @@ import java.util.concurrent.LinkedBlockingQueue
 
 import mill.T
 import mill.define.{NamedTask, Task}
-import mill.eval.{Evaluator, PathRef, Result}
+import mill.api.{PathRef, Result}
+import mill.eval.Evaluator
 import mill.util.{Ctx, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
+
 object MainModule{
   def resolveTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
                      (f: List[NamedTask[Any]] => T) = {
@@ -141,15 +143,15 @@ trait MainModule extends mill.Module{
       for{
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
-        val defaults = pprint.PPrinter()
-        val renderer = new Renderer(
+        defaults = pprint.PPrinter()
+        renderer = new Renderer(
           defaults.defaultWidth,
           defaults.colorApplyPrefix,
           defaults.colorLiteral,
           defaults.defaultIndent
         )
-        val rendered = renderer.rec(tree, 0, 0).iter
-        val truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
+        rendered = renderer.rec(tree, 0, 0).iter
+        truncated = new Truncated(rendered, defaults.defaultWidth, defaults.defaultHeight)
         str <- truncated ++ Iterator("\n")
       } {
         output.append(str)

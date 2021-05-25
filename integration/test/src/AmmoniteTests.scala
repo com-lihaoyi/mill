@@ -24,12 +24,12 @@ class AmmoniteTests(fork: Boolean)
 
       assert(
         compileResult,
-        os.walk(workspacePath / 'out / 'integration / scalaVersion / 'test / 'compile)
+        os.walk(workspacePath / "out" / "integration" / scalaVersion / "test" / "compile")
           .exists(_.last == "ErrorTruncationTests.class")
       )
     }
 
-    'scala2124 - check("2.12.4")
+    "scala2124" - check("2.12.4")
 
   }
 }

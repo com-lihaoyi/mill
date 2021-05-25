@@ -5,36 +5,31 @@ import java.io.File
 import sbt.testing.Event
 
 /**
-  * Test reporter class that can be
-  * injected into the test task and
-  * report information upon the start
-  * and the finish of testing events
-  */
+ * Test reporter class that can be
+ * injected into the test task and
+ * report information upon the start
+ * and the finish of testing events
+ */
 trait TestReporter {
   def logStart(event: Event): Unit
 
   def logFinish(event: Event): Unit
 
-
 }
 
 /**
-  * Dummy Test Reporter that doesn't report
-  * anything for any testing event.
-  */
-object  DummyTestReporter extends TestReporter {
-  override def logStart(event:  Event): Unit = {
-
-  }
-  override def logFinish(event:  Event): Unit = {
-
-  }
+ * Dummy Test Reporter that doesn't report
+ * anything for any testing event.
+ */
+object DummyTestReporter extends TestReporter {
+  override def logStart(event: Event): Unit = {}
+  override def logFinish(event: Event): Unit = {}
 }
 
 /**
-  * A listener trait for getting notified about
-  * build output like compiler warnings and errors
-  */
+ * A listener trait for getting notified about
+ * build output like compiler warnings and errors
+ */
 trait BuildProblemReporter {
   def logError(problem: Problem): Unit
 
@@ -46,8 +41,8 @@ trait BuildProblemReporter {
 }
 
 /**
-  * Contains general information about the build problem
-  */
+ * Contains general information about the build problem
+ */
 trait Problem {
   def category: String
 
@@ -59,8 +54,8 @@ trait Problem {
 }
 
 /**
-  * Indicates the exact location (source file, line, column) of the build problem
-  */
+ * Indicates the exact location (source file, line, column) of the build problem
+ */
 trait ProblemPosition {
   def line: Option[Int]
 
@@ -93,5 +88,3 @@ sealed trait Severity
 case object Info extends Severity
 case object Error extends Severity
 case object Warn extends Severity
-
-

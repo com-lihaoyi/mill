@@ -12,7 +12,7 @@ object FailureTests extends TestSuite{
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
-    'evaluateSingle - {
+    "evaluateSingle" - {
       val check = new TestEvaluator(singleton)
       check.fail(
         target = singleton.single,
@@ -47,7 +47,7 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Exception(ex, new OuterStack(Nil)))
       )
     }
-    'evaluatePair - {
+    "evaluatePair" - {
       val check = new TestEvaluator(pair)
       check.fail(
         pair.down,
@@ -114,7 +114,7 @@ object FailureTests extends TestSuite{
       )
     }
 
-    'evaluateBacktickIdentifiers - {
+    "evaluateBacktickIdentifiers" - {
       val check = new TestEvaluator(bactickIdentifiers)
       import bactickIdentifiers._
       check.fail(
@@ -182,20 +182,20 @@ object FailureTests extends TestSuite{
       )
     }
 
-    'multipleUsesOfDest - {
+    "multipleUsesOfDest" - {
       object build extends TestUtil.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
         def left = T{ + T.dest.toString.length + T.dest.toString.length }
 
-        // Using `T.ctx(  ).dest` once in two different tasks is not ok
+        // Using `T.ctx(  ).dest` once in two different tasks is ok
         val task = T.task{ T.dest.toString.length  }
         def right = T{ task() + left() + T.dest.toString().length }
       }
 
       val check = new TestEvaluator(build)
-      val Right(_) = check(build.left)
-      val Left(Result.Exception(e, _)) = check(build.right)
-      assert(e.getMessage.contains("`dest` can only be used in one place"))
+      assert(check(build.left).isRight)
+      assert(check(build.right).isRight)
+      // assert(e.getMessage.contains("`dest` can only be used in one place"))
     }
   }
 }

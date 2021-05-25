@@ -28,14 +28,14 @@ object TestNGTests extends TestSuite {
             ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
           )
       }
-      def testFrameworks = T {
-        Seq("mill.testng.TestNGFramework")
+      override def testFramework = T {
+        "mill.testng.TestNGFramework"
       }
     }
 
   }
 
-  val resourcePath: Path = pwd / 'contrib / 'testng / 'test / 'resources / "demo"
+  val resourcePath: Path = pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
   def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
                                                 (t: TestEvaluator => T)
@@ -49,11 +49,11 @@ object TestNGTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    'TestNG - {
-      'demo - workspaceTest(demo) { eval =>
-        val Right((result, evalCount)) = eval.apply(demo.test.testFrameworks)
+    "TestNG" - {
+      "demo" - workspaceTest(demo) { eval =>
+        val Right((result, evalCount)) = eval.apply(demo.test.testFramework)
         assert(
-          result == Seq("mill.testng.TestNGFramework"),
+          result == "mill.testng.TestNGFramework",
           evalCount > 0
         )
       }

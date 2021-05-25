@@ -8,11 +8,28 @@ import io.github.retronym.java9rtexport.Export
 import scala.util.Try
 
 object ClassLoader {
+
   def java9OrAbove = !System.getProperty("java.specification.version").startsWith("1.")
+
+  @deprecated("Use other create method instead.", "mill after 0.9.7")
+  def create(urls: Seq[URL],
+             parent: java.lang.ClassLoader,
+             sharedLoader: java.lang.ClassLoader,
+             sharedPrefixes: Seq[String])
+            (implicit ctx: Ctx.Home): URLClassLoader = {
+    create(
+      urls = urls,
+      parent = parent,
+      sharedLoader = sharedLoader,
+      sharedPrefixes = sharedPrefixes,
+      logger = None)
+  }
+
   def create(urls: Seq[URL],
              parent: java.lang.ClassLoader,
              sharedLoader: java.lang.ClassLoader = getClass.getClassLoader,
-             sharedPrefixes: Seq[String] = Seq())
+             sharedPrefixes: Seq[String] = Seq(),
+             logger: Option[mill.api.Logger] = None)
             (implicit ctx: Ctx.Home): URLClassLoader = {
     new URLClassLoader(
       makeUrls(urls).toArray,
@@ -20,12 +37,13 @@ object ClassLoader {
     ) {
       val allSharedPrefixes = sharedPrefixes :+ "com.sun.jna"
       override def findClass(name: String): Class[_] = {
-        if (allSharedPrefixes.exists(name.startsWith)) sharedLoader.loadClass(name)
-        else super.findClass(name)
+        if (allSharedPrefixes.exists(name.startsWith)) {
+          logger.foreach(_.debug(s"About to load class [${name}] from shared classloader [${sharedLoader}]"))
+          sharedLoader.loadClass(name)
+        } else super.findClass(name)
       }
     }
   }
-
 
   /**
     *  Return `ClassLoader.getPlatformClassLoader` for java 9 and above, if parent class loader is null,

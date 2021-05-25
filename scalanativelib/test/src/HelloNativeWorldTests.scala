@@ -47,8 +47,7 @@ object HelloNativeWorldTests extends TestSuite {
           Seq(Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi"))
       )
     }
-    trait UtestTestModule extends ScalaNativeModule with TestModule {
-      override def testFrameworks = Seq("utest.runner.Framework")
+    trait UtestTestModule extends ScalaNativeModule with TestModule.Utest {
       override def ivyDeps = super.ivyDeps() ++ Agg(
         ivy"com.lihaoyi::utest::0.7.6"
       )
@@ -57,7 +56,7 @@ object HelloNativeWorldTests extends TestSuite {
     class BuildModuleUtest(crossScalaVersion: String, sNativeVersion: String, mode: ReleaseMode)
       extends BuildModule(crossScalaVersion, sNativeVersion, mode) {
       object test extends super.Tests with UtestTestModule {
-        override def sources = T.sources{ millSourcePath / 'src / 'utest }
+        override def sources = T.sources{ millSourcePath / "src" / "utest" }
       }
     }
 
@@ -71,15 +70,15 @@ object HelloNativeWorldTests extends TestSuite {
     override lazy val millDiscover: Discover[HelloNativeWorld.this.type] = Discover[this.type]
   }
 
-  val millSourcePath = os.pwd / 'scalanativelib / 'test / 'resources / "hello-native-world"
+  val millSourcePath = os.pwd / "scalanativelib" / "test" / "resources" / "hello-native-world"
 
   val helloWorldEvaluator = TestEvaluator.static(HelloNativeWorld)
 
-  val mainObject = helloWorldEvaluator.outPath / 'src / "Main.scala"
+  val mainObject = helloWorldEvaluator.outPath / "src" / "Main.scala"
 
   def tests: Tests = Tests {
     prepareWorkspace()
-    'compile - {
+    "compile" - {
       def testCompileFromScratch(scalaVersion: String,
                                  scalaNativeVersion: String,
                                  mode: ReleaseMode): Unit = {
@@ -88,7 +87,7 @@ object HelloNativeWorldTests extends TestSuite {
 
         val outPath = result.classes.path
         val outputFiles = os.walk(outPath).filter(os.isFile)
-        val expectedClassfiles = compileClassfiles(outPath / 'hello)
+        val expectedClassfiles = compileClassfiles(outPath / "hello")
         assert(
           outputFiles.toSet == expectedClassfiles,
           evalCount > 0
@@ -103,8 +102,8 @@ object HelloNativeWorldTests extends TestSuite {
       testAllMatrix((scala, scalaNative, releaseMode) => testCompileFromScratch(scala, scalaNative, releaseMode))
     }
 
-    'jar - {
-      'containsNirs - {
+    "jar" - {
+      "containsNirs" - {
         val Right((result, evalCount)) =
           helloWorldEvaluator(HelloNativeWorld.helloNativeWorld(scala213, scalaNative04, ReleaseMode.Debug).jar)
         val jar = result.path
@@ -112,7 +111,7 @@ object HelloNativeWorldTests extends TestSuite {
         assert(entries.contains("hello/Main$.nir"))
       }
     }
-    'publish - {
+    "publish" - {
       def testArtifactId(scalaVersion: String,
                          scalaNativeVersion: String,
                          mode: ReleaseMode,
@@ -121,7 +120,7 @@ object HelloNativeWorldTests extends TestSuite {
           HelloNativeWorld.helloNativeWorld(scalaVersion, scalaNativeVersion, mode: ReleaseMode).artifactMetadata)
         assert(result.id == artifactId)
       }
-      'artifactId_040 - testArtifactId(scala213, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4_2.13")
+      "artifactId_040" - testArtifactId(scala213, scalaNative04, ReleaseMode.Debug, "hello-native-world_native0.4_2.13")
     }
 
     def runTests(testTask: define.NamedTask[(String, Seq[TestRunner.Result])]): Map[String, Map[String, TestRunner.Result]] = {
@@ -166,13 +165,13 @@ object HelloNativeWorldTests extends TestSuite {
       )
     }
 
-    'test - {
+    "test" - {
       val cached = false
 
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
       testAllMatrix((scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached))
     }
-    'testCached - {
+    "testCached" - {
       val cached = true
       testAllMatrix((scala, scalaNative, releaseMode) => checkNoTests(scala, scalaNative, releaseMode, cached))
       testAllMatrix((scala, scalaNative, releaseMode) => checkUtest(scala, scalaNative, releaseMode, cached))
@@ -186,14 +185,14 @@ object HelloNativeWorldTests extends TestSuite {
         helloWorldEvaluator.outPath,
         task.ctx.segments
       )
-      val stdout = os.proc(paths.out / 'dest / 'out).call().out.lines
+      val stdout = os.proc(paths.out / "dest" / "out").call().out.lines
       assert(
         stdout.contains("Hello Scala Native"),
         evalCount > 0
       )
     }
 
-    'run - {
+    "run" - {
       testAllMatrix((scala, scalaNative, releaseMode) => checkRun(scala, scalaNative, releaseMode))
     }
   }

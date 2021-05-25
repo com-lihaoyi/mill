@@ -87,7 +87,17 @@ trait ScalaNativeModule extends ScalaModule { outer =>
 
   def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
 
-  def releaseMode: Target[ReleaseMode] = T { ReleaseMode.Debug }
+  protected def releaseModeInput = T.input(
+    sys.env.get("SCALANATIVE_MODE").map(v =>
+      ReleaseMode
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"))
+    )
+  )
+  def releaseMode: Target[ReleaseMode] = T {
+    releaseModeInput().getOrElse(ReleaseMode.Debug)
+  }
 
   def nativeWorkdir = T{ T.dest }
 
@@ -98,9 +108,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
+  protected def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
   def nativeGC = T{
-    Option(System.getenv.get("SCALANATIVE_GC"))
-      .getOrElse(scalaNativeWorker().defaultGarbageCollector)
+    nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
   def nativeTarget: Target[Option[String]] = T { None }
@@ -114,7 +124,20 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
 
-  def nativeLTO: Target[LTO] = T { LTO.None }
+  // The LTO mode to use used during a release build
+  protected def nativeLTOInput = T.input(
+    sys.env.get("SCALANATIVE_LTO").map(v =>
+      LTO
+        .values
+        .find(_.value == v)
+        .getOrElse(throw new Exception(s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"))
+    )
+  )
+  def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
+
+  // Shall we optimize the resulting NIR code?
+  protected def nativeOptimizeInput = T.input(sys.env.get("SCALANATIVE_OPTIMIZE").map(_.toBoolean))
+  def nativeOptimize: Target[Boolean] = T { nativeOptimizeInput().getOrElse(true) }
 
   def nativeConfig = T.task {
     val classpath = runClasspath().map(_.path).filter(_.toIO.exists).toList
@@ -132,43 +155,46 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeLinkStubs(),
       nativeLTO(),
       releaseMode(),
+      nativeOptimize(),
       logLevel())
   }
 
   // Generates native binary
   def nativeLink = T{
-    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / 'out).toIO))
+    os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / "out").toIO))
   }
 
   // Runs the native binary
   override def run(args: String*) = T.command{
-    Jvm.baseInteractiveSubprocess(
-      Vector(nativeLink().toString) ++ args,
-      forkEnv(),
-      workingDir = ammonite.ops.pwd)
+    Jvm.runSubprocess(
+      commandArgs = Vector(nativeLink().toString) ++ args,
+      envArgs = forkEnv(),
+      workingDir = forkWorkingDir())
   }
 }
 
 
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
   override def testLocal(args: String*) = T.command { test(args:_*) }
-  override protected def testTask(args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override protected def testTask(args: Task[Seq[String]],
+      globSeletors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val getFrameworkResult = scalaNativeWorker().getFramework(
       nativeLink().toIO,
       forkEnv().asJava,
       logLevel(),
-      testFrameworks().head
+      testFramework()
     )
     val framework = getFrameworkResult.framework
     val close = getFrameworkResult.close
 
-    val (doneMsg, results) = TestRunner.runTests(
-      _ => Seq(framework),
+    val (doneMsg, results) = TestRunner.runTestFramework(
+      _ => framework,
       runClasspath().map(_.path),
       Agg(compile().classes.path),
       args(),
-      T.testReporter
+      T.testReporter,
+      TestRunner.globFilter(globSeletors())
     )
     val res = TestModule.handleResults(doneMsg, results)
     // Hack to try and let the Scala Native subprocess finish streaming it's stdout

@@ -43,7 +43,7 @@ object BuildInfoTests extends TestSuite {
   }
 
   val testModuleSourcesPath
-    : Path = os.pwd / 'contrib / 'buildinfo / 'test / 'resources / "buildinfo"
+    : Path = os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
       implicit tp: TestPath): T = {
@@ -57,8 +57,8 @@ object BuildInfoTests extends TestSuite {
 
   def tests: Tests = Tests {
 
-    'buildinfo - {
-      'createSourcefile - workspaceTest(BuildInfo) { eval =>
+    "buildinfo" - {
+      "createSourcefile" - workspaceTest(BuildInfo) { eval =>
         val expected =
           s"""|
               |object BuildInfo {
@@ -70,23 +70,23 @@ object BuildInfoTests extends TestSuite {
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfo.generatedBuildInfo)
         assert(
-          result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
+          result.head.path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
             os.read(result.head.path) == expected
         )
       }
 
-      'notCreateEmptySourcefile - workspaceTest(EmptyBuildInfo) { eval =>
+      "notCreateEmptySourcefile" - workspaceTest(EmptyBuildInfo) { eval =>
         val Right(((result, _), evalCount)) =
           eval.apply(EmptyBuildInfo.generatedBuildInfo)
         assert(
           result.isEmpty &&
             !os.exists(
-              eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala")
+              eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala")
         )
       }
 
-      'supportCustomSettings - workspaceTest(BuildInfoSettings) { eval =>
+      "supportCustomSettings" - workspaceTest(BuildInfoSettings) { eval =>
         val expected =
           s"""|package foo
               |
@@ -99,18 +99,18 @@ object BuildInfoTests extends TestSuite {
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfoSettings.generatedBuildInfo)
         assert(
-          result.head.path == eval.outPath / 'generatedBuildInfo / 'dest / "BuildInfo.scala" &&
+          result.head.path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
             os.exists(result.head.path) &&
             os.read(result.head.path) == expected
         )
       }
 
-      'compile - workspaceTest(BuildInfo) { eval =>
+      "compile" - workspaceTest(BuildInfo) { eval =>
         val Right((result, evalCount)) = eval.apply(BuildInfo.compile)
         assert(true)
       }
 
-      'run - workspaceTest(BuildInfo) { eval =>
+      "run" - workspaceTest(BuildInfo) { eval =>
         val runResult = eval.outPath / "hello-mill"
         val Right((result, evalCount)) =
           eval.apply(BuildInfo.run(runResult.toString))
@@ -121,7 +121,7 @@ object BuildInfoTests extends TestSuite {
       }
 
       "generatedSources must be a folder" - workspaceTest(BuildInfo) { eval =>
-        val buildInfoGeneratedSourcesFolder = eval.outPath / 'generatedBuildInfo / 'dest
+        val buildInfoGeneratedSourcesFolder = eval.outPath / "generatedBuildInfo" / "dest"
         val Right((result, evalCount)) = eval.apply(BuildInfo.generatedSources)
         assert(
           result.size == 1,

@@ -19,11 +19,8 @@ trait CaffeineModule extends MavenModule{
       MavenRepository("http://repo.spring.io/plugins-release")
     )
   }
-  trait Tests extends super.Tests{
-    def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-    def ivyDeps = Agg(
-      ivy"com.novocode:junit-interface:0.11",
-      ivy"com.lihaoyi:mill-contrib-testng:${sys.props("MILL_VERSION")}",
+  trait Tests extends super.Tests with TestModule.Junit4 {
+    def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.guava,
       testLibraries.mockito,
       testLibraries.hamcrest,
@@ -61,10 +58,10 @@ object caffeine extends CaffeineModule {
   object javaPoet extends MavenModule{
     def millSourcePath = caffeine.millSourcePath
     def sources = T.sources(
-      millSourcePath / 'src / 'javaPoet / 'java
+      millSourcePath / "src" / "javaPoet" / "java"
     )
     def resources = T.sources(
-      millSourcePath / 'src / 'javaPoet / 'resources
+      millSourcePath / "src" / "javaPoet" / "resources"
     )
     def ivyDeps = Agg(
       libraries.guava,
@@ -74,8 +71,7 @@ object caffeine extends CaffeineModule {
     )
   }
 
-  object test extends Tests{
-    def testFrameworks = Seq("mill.testng.TestNGFramework")
+  object test extends Tests with TestModule.TestNg {
     def ivyDeps = super.ivyDeps() ++ Agg(
       libraries.ycsb,
       libraries.fastutil,

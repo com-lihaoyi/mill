@@ -1,7 +1,7 @@
-package mill
-package playlib
+package mill.playlib
 
 import mill.scalalib._
+import mill.{Agg, T}
 
 private[playlib] trait Server extends ScalaModule with Version {
 

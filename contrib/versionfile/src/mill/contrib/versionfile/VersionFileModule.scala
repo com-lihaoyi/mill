@@ -7,7 +7,7 @@ trait VersionFileModule extends Module {
   /** The file containing the current version. */
   def versionFile: define.Source = T.source(millSourcePath / "version")
   /** The current version. */
-  def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path)) }
+  def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
   /** The release version. */
   def releaseVersion = T { currentVersion().asRelease }
   /** The next snapshot version. */
@@ -33,7 +33,7 @@ trait VersionFileModule extends Module {
     writeVersionToFile(versionFile(), version())
   }
 
-  def writeVersionToFile(versionFile: mill.eval.PathRef, version: Version) =
+  def writeVersionToFile(versionFile: mill.api.PathRef, version: Version) =
     os.write.over(
       versionFile.path,
       version.toString

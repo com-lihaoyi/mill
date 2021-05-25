@@ -23,7 +23,16 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
           "-testclass", suites.mkString(",")
         ))
         assert(eval("guava.test.compile"))
-        assert(eval("guava.test"))
+        val guavaSuites = Seq(
+          "com.google.common.cache.CacheExpirationTest",
+          "com.google.common.cache.NullCacheTest",
+          "com.google.common.cache.CacheReferencesTest",
+          "com.google.common.cache.CacheBuilderGwtTest",
+          "com.google.common.cache.PopulatedCachesTest",
+          "com.google.common.cache.CacheStatsTest",
+          "com.google.common.cache.CacheBuilderTest"
+        )
+        assert(eval("guava.test", "-testclass", guavaSuites.mkString(",")))
 
         assert(eval("jcache.test.compile"))
         assert(eval("simulator.test.compile"))

@@ -94,10 +94,6 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.log.info(s"Wrote $path")
         name(jm) -> PathRef(path)
       }
-
-      def writeTransitiveConfig = T {
-        Task.traverse(jm.transitiveModuleDeps)(_.bloop.writeConfig)
-      }
     }
 
     def asBloop: Option[Module] = jm match {
@@ -106,14 +102,29 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     }
   }
 
+  // Compute all transitive modules from build children and via moduleDeps
+  def transitiveModules(mod: define.Module, found: Seq[define.Module] = Seq.empty): Seq[define.Module] = {
+    val skip = mod match {
+      case jm: JavaModule =>  skippable(jm)
+      case _ => false
+    }
+    if (found.contains(mod) || skip)
+      found
+    else {
+      val subMods = mod.millModuleDirectChildren ++ (mod match {
+        case jm: JavaModule => jm.moduleDeps
+        case other          => Seq.empty
+      })
+      subMods.foldLeft(found ++ Seq(mod)){ (all, mod) => transitiveModules(mod, all)}
+    }
+  }
+
   protected def computeModules: Seq[JavaModule] = {
     val eval = ev()
-    if (eval != null) {
-      val rootModule = eval.rootModule
-      rootModule.millInternal.segmentsToModules.values.collect {
-        case m: scalalib.JavaModule if !skippable(m) => m
-      }.toSeq
-    } else Seq()
+    if (eval != null)
+      transitiveModules(eval.rootModule).collect{ case jm: JavaModule => jm }
+    else
+      Seq.empty
   }
 
   // class-based pattern matching against path-dependant types doesn't seem to work.
@@ -146,7 +157,10 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
-    def out(m: JavaModule) = bloopDir / "out" / m.millModuleSegments.render
+    def out(m: JavaModule) = { 
+      val allSegs = m.millModuleShared.value.getOrElse(Segments()) ++ m.millModuleSegments
+      bloopDir / "out" / allSegs.render
+    }
     def classes(m: JavaModule) = out(m) / "classes"
 
     val javaConfig =
@@ -265,8 +279,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
         T.task {
           Some(
             BloopConfig.Test(
-              frameworks = m
-                .testFrameworks()
+              frameworks = Seq(m.testFramework())
                 .map(f => Config.TestFramework(List(f)))
                 .toList,
               options = Config.TestOptions(

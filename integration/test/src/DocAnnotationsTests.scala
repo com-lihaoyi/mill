@@ -5,10 +5,10 @@ import utest._
 
 class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "docannotations"
-  def scriptSourcePath: os.Path = os.pwd / 'integration / 'test / 'resources / workspaceSlug
+  def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
   val tests = Tests{
     initWorkspace()
-    'test - {
+    "test" - {
       assert(eval("inspect", "core.test.ivyDeps"))
       val inheritedIvyDeps = ujson.read(meta("inspect"))("value").str
       assert(

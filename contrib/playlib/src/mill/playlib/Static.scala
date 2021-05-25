@@ -5,8 +5,8 @@ import java.nio.file._
 import java.nio.file.attribute.BasicFileAttributes
 import java.util
 
-import mill.{PathRef, T}
 import mill.scalalib.{Lib, ScalaModule}
+import mill.{PathRef, T}
 
 trait Static extends ScalaModule {
   /**
@@ -60,12 +60,12 @@ trait Static extends ScalaModule {
     * webjar resources extracted from their source jars with version from path removed
     */
   def webJarResources = T {
-    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / 'lib)
+    extractWebJars(webJars().toSeq, os.Path(assetsPath(), T.dest) / "lib")
     PathRef(T.dest)
   }
 
   private def extractWebJars(jars: Seq[PathRef], webJarBase: os.Path): Unit = {
-    import scala.collection.JavaConverters._
+    import scala.jdk.CollectionConverters._
     val prefix = "/META-INF/resources/webjars/"
 
     jars.foreach{ jarRef =>

@@ -68,7 +68,7 @@ class TwirlWorker {
                                     imports: Seq[String],
                                     constructorAnnotations: Seq[String],
                                     codec: Codec,
-                                    inclusiveDot: Boolean) {
+                                    inclusiveDot: Boolean): Unit = {
             // val twirlImports = new HashSet()
             // imports.foreach(twirlImports.add)
             val twirlImports = hashSetClass.newInstance().asInstanceOf[Object]
@@ -140,7 +140,7 @@ class TwirlWorker {
     val compiler = twirl(twirlClasspath)
     val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 
-    def compileTwirlDir(inputDir: os.Path) {
+    def compileTwirlDir(inputDir: os.Path): Unit = {
       os.walk(inputDir).filter(_.last.matches(s".*.scala.($formatExtsRegex)"))
         .foreach { template =>
           val extClass = twirlExtensionClass(template.last, formats)
@@ -158,7 +158,7 @@ class TwirlWorker {
 
     sourceDirectories.foreach(compileTwirlDir)
 
-    val zincFile = ctx.dest / 'zinc
+    val zincFile = ctx.dest / "zinc"
     val classesDir = ctx.dest
 
     mill.api.Result.Success(CompilationResult(zincFile, PathRef(classesDir)))
@@ -178,7 +178,7 @@ trait TwirlWorkerApi {
                    imports: Seq[String],
                    constructorAnnotations: Seq[String],
                    codec: Codec,
-                   inclusiveDot: Boolean)
+                   inclusiveDot: Boolean): Unit
 }
 
 object TwirlWorkerApi {

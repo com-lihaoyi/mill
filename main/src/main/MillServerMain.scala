@@ -2,12 +2,15 @@ package mill.main
 
 import java.io._
 import java.net.Socket
+
 import mill.{BuildInfo, MillMain}
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
+
 import org.scalasbt.ipcsocket._
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
+import mill.main.client.lock.{Lock, Locks}
 import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T]{
@@ -39,8 +42,8 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
       lockBase = args0(0),
       this,
       () => System.exit(MillClientMain.ExitServerCodeWhenIdle()),
-      300000,
-      mill.main.client.Locks.files(args0(0))
+      acceptTimeoutMillis = 5 * 60 * 1000, // 5 minutes
+      Locks.files(args0(0))
     ).run()
   }
 
@@ -71,7 +74,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
 class Server[T](lockBase: String,
                 sm: MillServerMain[T],
                 interruptServer: () => Unit,
-                acceptTimeout: Int,
+                acceptTimeoutMillis: Int,
                 locks: Locks) {
 
   val originalStdout = System.out
@@ -81,7 +84,7 @@ class Server[T](lockBase: String,
       while (running) {
         Server.lockBlock(locks.serverLock){
           val (serverSocket, socketClose) = if (Util.isWindows) {
-            val socketName = Util.WIN32_PIPE_PREFIX + new File(lockBase).getName
+            val socketName = Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName
             (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
           } else {
             val socketName = lockBase + "/io"
@@ -91,7 +94,7 @@ class Server[T](lockBase: String,
 
           val sockOpt = Server.interruptWith(
             "MillSocketTimeoutInterruptThread",
-            acceptTimeout,
+            acceptTimeoutMillis,
             socketClose(),
             serverSocket.accept()
           )
@@ -103,7 +106,7 @@ class Server[T](lockBase: String,
                 handleRun(sock)
                 serverSocket.close()
               }
-              catch{case e: Throwable => e.printStackTrace(originalStdout) }
+              catch { case e: Throwable => e.printStackTrace(originalStdout) }
           }
         }
         // Make sure you give an opportunity for the client to probe the lock
@@ -183,7 +186,7 @@ class Server[T](lockBase: String,
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
-
+    
     if (Util.isWindows) {
       // Closing Win32NamedPipeSocket can often take ~5s
       // It seems OK to exit the client early and subsequently
@@ -195,12 +198,15 @@ class Server[T](lockBase: String,
     } else clientSocket.close()
   }
 }
+
 object Server{
+
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
     try t
     finally l.release()
   }
+
   def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
     lock.tryLock() match{
       case null => None
@@ -208,8 +214,8 @@ object Server{
         try Some(t)
         finally l.release()
     }
-
   }
+
   def interruptWith[T](threadName: String, millis: Int, close: => Unit, t: => T): Option[T] = {
     @volatile var interrupt = true
     @volatile var interrupted = false

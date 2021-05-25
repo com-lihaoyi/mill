@@ -16,7 +16,7 @@ trait TwirlModule extends mill.Module {
   def twirlVersion: T[String]
 
   def twirlSources: Sources = T.sources {
-    millSourcePath / 'views
+    millSourcePath / "views"
   }
 
   def twirlClasspath: T[Loose.Agg[PathRef]] = T {

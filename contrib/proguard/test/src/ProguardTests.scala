@@ -30,7 +30,7 @@ object ProguardTests extends TestSuite {
   }
 
   val testModuleSourcesPath
-    : Path = os.pwd / 'contrib / 'proguard / 'test / 'resources / "proguard"
+    : Path = os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
       implicit tp: TestPath): T = {

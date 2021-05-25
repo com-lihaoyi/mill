@@ -37,8 +37,8 @@ object ReplApplyHandler{
       pprinter0,
       new Evaluator(
         home,
-        ammonite.ops.pwd / 'out,
-        ammonite.ops.pwd / 'out,
+        ammonite.ops.pwd / "out",
+        ammonite.ops.pwd / "out",
         rootModule,
         logger,
         failFast = !keepGoing,

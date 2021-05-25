@@ -54,9 +54,9 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
     }
     val mapping = for{
       discoveredModuleType <- seen
-      val curCls = discoveredModuleType
-      val methods = getValsOrMeths(curCls)
-      val overridesRoutes = {
+      curCls = discoveredModuleType
+      methods = getValsOrMeths(curCls)
+      overridesRoutes = {
         assertParamListCounts(
           methods,
           (weakTypeOf[mill.define.Sources], 0, "`T.sources`"),
@@ -92,6 +92,6 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
       q"$lhs -> $overridesLambda"
     }
 
-    c.Expr[Discover[T]](q"mill.define.Discover(scala.collection.immutable.Map(..$mapping))")
+    c.Expr[Discover[T]](q"_root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))")
   }
 }

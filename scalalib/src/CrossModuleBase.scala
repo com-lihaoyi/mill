@@ -3,7 +3,7 @@ package mill.scalalib
 import mill.T
 import mill.define.Cross
 import mill.define.Cross.Resolver
-import mill.eval.PathRef
+import mill.api.PathRef
 
 object CrossModuleBase {
   def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {

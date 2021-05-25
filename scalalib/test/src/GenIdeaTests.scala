@@ -7,7 +7,7 @@ import utest._
 object GenIdeaTests extends ScriptTestSuite(false) {
 
   def tests: Tests = Tests {
-    'genIdeaTests - {
+    "genIdeaTests" - {
       val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
@@ -42,5 +42,5 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
   override def workspaceSlug: String = "gen-idea-hello-world"
 
-  override def scriptSourcePath: Path = os.pwd / 'scalalib / 'test / 'resources / workspaceSlug
+  override def scriptSourcePath: Path = os.pwd / "scalalib" / "test" / "resources" / workspaceSlug
 }

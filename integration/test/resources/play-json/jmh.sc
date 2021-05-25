@@ -33,8 +33,8 @@ trait Jmh extends ScalaModule {
   def generateBenchmarkSources = T {
     val dest = T.ctx.dest
 
-    val sourcesDir = dest / 'jmh_sources
-    val resourcesDir = dest / 'jmh_resources
+    val sourcesDir = dest / "jmh_sources"
+    val resourcesDir = dest / "jmh_resources"
 
     os.remove.all(sourcesDir)
     os.makeDir.all(sourcesDir)

@@ -5,7 +5,7 @@ import scala.collection.mutable
 // Adapted from
 // https://github.com/indy256/codelibrary/blob/c52247216258e84aac442a23273b7d8306ef757b/java/src/SCCTarjan.java
 object Tarjans {
-  def apply(graph0: TraversableOnce[TraversableOnce[Int]]): Seq[Seq[Int]] = {
+  def apply(graph0: IterableOnce[IterableOnce[Int]]): Seq[Seq[Int]] = {
     val graph = graph0.map(_.toArray).toArray
     val n = graph.length
     val visited = new Array[Boolean](n)
