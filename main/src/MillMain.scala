@@ -118,7 +118,6 @@ object MillMain {
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[Evaluator.State]) = {
 
-    val millHome = mill.api.Ctx.defaultHome
     val parser = mainargs.ParserForClass[MillConfig]
     val customName = "Mill Build Tool"
     val customDoc = "usage: mill [mill-options] [target [target-options]]"
