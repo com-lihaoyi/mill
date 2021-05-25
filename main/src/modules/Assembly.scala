@@ -79,7 +79,7 @@ object Assembly {
     }
   }
 
-  type ResourceCloser = () => ()
+  type ResourceCloser = () => Unit
 
   def loadShadedClasspath(
     inputPaths: Agg[os.Path],
