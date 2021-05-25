@@ -7,11 +7,18 @@ import scala.jdk.CollectionConverters._
 import scala.util.Properties
 import io.github.retronym.java9rtexport.Export
 import mainargs.{Flag, Leftover, arg}
+import ammonite.repl.tools.Util.PathRead
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
 
 case class MillConfig(
     ammoniteCore: ammonite.main.Config.Core,
+    @arg(
+      short = 'h',
+      doc =
+        "The home directory of the REPL; where it looks for config and caches"
+    )
+    home: os.Path = mill.api.Ctx.defaultHome,
     @arg(
       doc =
         """Run Mill in interactive mode and start a build REPL. In this mode, no
@@ -130,7 +137,9 @@ object MillMain {
           customDoc = customDoc
         )
         .map { config =>
-          config.copy(ammoniteCore = config.ammoniteCore.copy(home = millHome))
+          config.copy(
+            ammoniteCore = config.ammoniteCore.copy(home = config.home)
+          )
         } match {
         case Left(msg) =>
           stderr.println(msg)
