@@ -22,7 +22,7 @@ object HelloNativeWorldTests extends TestSuite {
     override def mainClass = Some("hello.Main")
   }
 
-  val scala213 = "2.13.4"
+  val scala213 = "2.13.5"
   val scalaNative04 = "0.4.0"
 
   object HelloNativeWorld extends TestUtil.BaseModule {
