@@ -96,23 +96,25 @@ case class GenIdeaImpl(evaluator: Evaluator,
               Repositories.central)
             val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
             val Result.Success(res) = scalalib.Lib.resolveDependencies(
-              repos.toList,
-              Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
-              millDeps,
+              repositories = repos.toList,
+              depToDependency = Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
+              deps = millDeps,
               sources = false,
-              None,
-              ctx
+              mapDependencies = None,
+              customizer = None,
+              ctx = ctx
             )
 
             // Also trigger resolve sources, but don't use them (will happen implicitly by Idea)
             {
               scalalib.Lib.resolveDependencies(
-                repos.toList,
-                Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
-                millDeps,
+                repositories = repos.toList,
+                depToDependency = Lib.depToDependency(_, BuildInfo.scalaVersion, ""),
+                deps = millDeps,
                 sources = true,
-                None,
-                ctx
+                mapDependencies = None,
+                customizer = None,
+                ctx = ctx
               )
             }
 
@@ -254,7 +256,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     // whole file
     val ideaWholeConfigFiles: Seq[(SubPath, Elem)] =
       wholeFileConfigs.flatMap(_.asWholeFile).map { wf =>
-        os.sub / ".idea" / wf._1 -> ideaConfigElementTemplate(wf._2)
+        os.sub / wf._1 -> ideaConfigElementTemplate(wf._2)
       }
 
     type FileComponent = (SubPath, String)
