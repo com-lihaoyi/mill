@@ -13,20 +13,28 @@ trait HelloWorldModule extends scalalib.ScalaModule {
     Seq(PathRef(T.ctx().dest / "classes"))
   }
 
-  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] = T.command {
-    ideaConfigVersion match {
-      case 4 =>
-        Seq(
-          JavaFacet("AspectJ", "AspectJ",
-            Element("configuration", childs = Seq(
-              Element("projectLibrary", childs = Seq(
-                Element("option", Map("name" -> "name", "value" -> "/tmp"))
-              ))
-            ))
+  def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] =
+    T.command {
+      ideaConfigVersion match {
+        case 4 =>
+          Seq(
+            JavaFacet(
+              "AspectJ",
+              "AspectJ",
+              Element(
+                "configuration",
+                childs = Seq(
+                  Element(
+                    "projectLibrary",
+                    childs = Seq(
+                      Element(
+                        "option",
+                        Map("name" -> "name", "value" -> "/tmp"))
+                    ))
+                )))
           )
-        )
+      }
     }
-  }
 
   override def ideaConfigFiles(
       ideaConfigVersion: Int): Command[Seq[IdeaConfigFile]] = T.command {

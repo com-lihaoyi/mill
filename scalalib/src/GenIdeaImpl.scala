@@ -25,13 +25,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
   import GenIdeaImpl._
 
   val workDir: Path = rootModule.millSourcePath
+  val ideaDir: Path = workDir / ".idea"
 
   val ideaConfigVersion = 4
 
   def run(): Unit = {
 
     val pp = new scala.xml.PrettyPrinter(999, 4)
-    val jdkInfo = extractCurrentJdk(workDir / ".idea" / "misc.xml")
+    val jdkInfo = extractCurrentJdk(ideaDir / "misc.xml")
       .getOrElse(("JDK_1_8", "1.8 (1)"))
 
     ctx.log.info("Analyzing modules ...")
@@ -39,14 +40,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
       xmlFileLayout(evaluator, rootModule, jdkInfo, Some(ctx))
 
     ctx.log.debug("Cleaning obsolete IDEA project files ...")
-    os.remove.all(workDir / ".idea" / "libraries")
-    os.remove.all(workDir / ".idea" / "scala_compiler.xml")
-    os.remove.all(workDir / ".idea_modules")
+    os.remove.all(ideaDir / "libraries")
+    os.remove.all(ideaDir / "scala_compiler.xml")
+    os.remove.all(ideaDir / "mill_modules")
 
-    ctx.log.info(s"Writing ${layout.size} IDEA project files ...")
+    ctx.log.info(s"Writing ${layout.size} IDEA project files to ${ideaDir} ...")
     for ((subPath, xml) <- layout) {
       ctx.log.debug(s"Writing ${subPath} ...")
-      os.write.over(workDir / subPath, pp.format(xml), createFolders = true)
+      os.write.over(ideaDir / subPath, pp.format(xml), createFolders = true)
     }
   }
 
@@ -298,7 +299,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
               .view
               .mapValues(_.flatMap(_.config))
               .toMap
-          (os.sub / ".idea" / file) -> ideaConfigFileTemplate(map)
+          file -> ideaConfigFileTemplate(map)
       }
 
     val pathShortLibNameDuplicate = allResolved
@@ -414,20 +415,20 @@ case class GenIdeaImpl(evaluator: Evaluator,
       resolvedLibraries(buildLibraryPaths ++ buildDepsPaths).toSet
 
     val fixedFiles: Seq[(SubPath, Elem)] = Seq(
-      Tuple2(os.sub / ".idea" / "misc.xml", miscXmlTemplate(jdkInfo)),
-      Tuple2(os.sub / ".idea" / "scala_settings.xml", scalaSettingsTemplate()),
+      Tuple2(os.sub / "misc.xml", miscXmlTemplate(jdkInfo)),
+      Tuple2(os.sub / "scala_settings.xml", scalaSettingsTemplate()),
       Tuple2(
-        os.sub / ".idea" / "modules.xml",
+        os.sub / "modules.xml",
         allModulesXmlTemplate(
           modules.map { case (segments, mod) => moduleName(segments) }.sorted
         )
       ),
       Tuple2(
-        os.sub / ".idea_modules" / "mill-build.iml",
+        os.sub / "mill_modules" / "mill-build.iml",
         rootXmlTemplate(allBuildLibraries.flatMap(lib => libraryNames(lib)))
       ),
       Tuple2(
-        os.sub / ".idea" / "scala_compiler.xml",
+        os.sub / "scala_compiler.xml",
         scalaCompilerTemplate(compilerSettings)
       )
     )
@@ -448,7 +449,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
         for (name <- names)
           yield
             Tuple2(
-              os.sub / ".idea" / "libraries" / s"${ideaifyLibraryName(name)}.xml",
+              os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
               libraryXmlTemplate(
                 name = name,
                 path = path,
@@ -551,7 +552,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
           facets = facets
         )
 
-        Tuple2(os.sub / ".idea_modules" / s"${moduleName(path)}.iml", elem)
+        Tuple2(
+          os.sub / "mill_modules" / s"${moduleName(path)}.iml",
+          elem)
     }
 
     {
@@ -571,7 +574,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
   }
 
   def relify(p: os.Path) = {
-    val r = p.relativeTo(workDir / ".idea_modules")
+    val r = p.relativeTo(ideaDir / "mill_modules")
     (Seq.fill(r.ups)("..") ++ r.segments).mkString("/")
   }
 
@@ -629,13 +632,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
       <component name="ProjectModuleManager">
         <modules>
           <module
-            fileurl="file://$PROJECT_DIR$/.idea_modules/mill-build.iml"
-            filepath="$PROJECT_DIR$/.idea_modules/mill-build.iml"
+            fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
+            filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
           />
           {
           for(selector  <- selectors)
           yield {
-            val filepath = "$PROJECT_DIR$/.idea_modules/" + selector + ".iml"
+            val filepath = "$PROJECT_DIR$/.idea/mill_modules/" + selector + ".iml"
             val fileurl = "file://" + filepath
             <module fileurl={fileurl} filepath={filepath} />
           }
@@ -647,11 +650,11 @@ case class GenIdeaImpl(evaluator: Evaluator,
   def rootXmlTemplate(libNames: Strict.Agg[String]): scala.xml.Elem = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
-        <output url="file://$MODULE_DIR$/../out/ideaOutputDir-mill-build"/>
+        <output url="file://$MODULE_DIR$/../../out/ideaOutputDir-mill-build"/>
         <content url="file://$MODULE_DIR$/..">
-          <excludeFolder url="file://$MODULE_DIR$/../project" />
-          <excludeFolder url="file://$MODULE_DIR$/../target" />
-          <excludeFolder url="file://$MODULE_DIR$/../out" />
+          <excludeFolder url="file://$MODULE_DIR$/../../project" />
+          <excludeFolder url="file://$MODULE_DIR$/../../target" />
+          <excludeFolder url="file://$MODULE_DIR$/../../out" />
         </content>
         <exclude-output/>
         <orderEntry type="inheritedJdk" />

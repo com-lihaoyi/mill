@@ -13,9 +13,9 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
       Seq(
         s"$workspaceSlug/idea_modules/helloworld.iml" ->
-          workspacePath / ".idea_modules" /"helloworld.iml",
+          workspacePath / ".idea" / "mill_modules" /"helloworld.iml",
         s"$workspaceSlug/idea_modules/helloworld.test.iml" ->
-          workspacePath / ".idea_modules" /"helloworld.test.iml",
+          workspacePath / ".idea" / "mill_modules" /"helloworld.test.iml",
         s"$workspaceSlug/idea/libraries/scala_library_2_12_4_jar.xml" ->
           workspacePath / ".idea" / "libraries" / "scala_library_2_12_4_jar.xml",
         s"$workspaceSlug/idea/modules.xml" ->
