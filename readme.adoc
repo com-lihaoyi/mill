@@ -219,17 +219,18 @@ _For details refer to
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
-=== main
+=== 0.9.8 - 2021-05-27
 :version: 0.9.8
 :prev-version: 0.9.7
 :milestone: 49
-:milestone-name: after 0.9.7
+:milestone-name: 0.9.8
 
 * Fixed some potential binary incompatibilities with external plugins (builds against older os-lib versions)
 * Fixed location and configuration of mills home path (used for caching of build scripts)
 * Properly close jar resources - should fix issues in `assembly`, esp. on Windows where open resources are locked
 * BSP: Repaired mills BSP server
 * playlib: Fixed issues with the play-contrib module and added support for Play 2.8
+* GenIdea: changed dir for generated mill modules to `.idea/mill_modules`
 * Various version bumps, including Scala 2.13.5
 
 _For details refer to
