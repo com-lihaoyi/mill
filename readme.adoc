@@ -208,12 +208,40 @@ corresponding version of Mill.
 == Changelog
 
 === main
+:version: main
+:prev-version: 0.9.8
+:milestone: 50
+:milestone-name: after 0.9.8
+
 
 _For details refer to
-{link-milestone}/49?closed=1[milestone after 0.9.7]
-and the {link-compare}/0.9.6\...main[list of commits]._
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== main
+:version: 0.9.8
+:prev-version: 0.9.7
+:milestone: 49
+:milestone-name: after 0.9.7
+
+* Fixed some potential binary incompatibilities with external plugins (builds against older os-lib versions)
+* Fixed location and configuration of mills home path (used for caching of build scripts)
+* Properly close jar resources - should fix issues in `assembly`, esp. on Windows where open resources are locked
+* BSP: Repaired mills BSP server
+* playlib: Fixed issues with the play-contrib module and added support for Play 2.8
+* Various version bumps, including Scala 2.13.5
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
 
 === 0.9.7 - 2021-05-14
+:version: 0.9.7
+:prev-version: 0.9.6
+:milestone: 48
+:milestone-name: 0.9.7
 
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
@@ -226,8 +254,8 @@ and the {link-compare}/0.9.6\...main[list of commits]._
 * Removed tut contrib module because of unmaintained/archived upstream dependency
 
 _For details refer to
-{link-milestone}/48?closed=1[milestone 0.9.7]
-and the {link-compare}/0.9.6\...0.9.7[list of commits]._
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
 
 
 === 0.9.6 - 2021-04-03
