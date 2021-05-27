@@ -75,7 +75,7 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="mill" data-version="0.9.7">
+<div class="nav-container" data-component="mill" data-version="0.9.8">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -128,7 +128,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.7</span>
+    <span class="version">0.9.8</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -137,11 +137,11 @@
         <li class="version is-latest">
           <a href="../index.html">0.9.8</a>
         </li>
-        <li class="version">
-          <a href="../0.9.8/index.html">0.9.8</a>
-        </li>
         <li class="version is-current">
-          <a href="index.html">0.9.7</a>
+          <a href="index.html">0.9.8</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.7/index.html">0.9.7</a>
         </li>
         <li class="version">
           <a href="../0.9.6/index.html">0.9.6</a>
@@ -164,15 +164,15 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.9.8</button>
   <div class="version-menu">
     <a class="version" href="../Tasks.html">0.9.8</a>
-    <a class="version" href="../0.9.8/Tasks.html">0.9.8</a>
-    <a class="version is-current" href="Tasks.html">0.9.7</a>
+    <a class="version is-current" href="Tasks.html">0.9.8</a>
+    <a class="version" href="../0.9.7/Tasks.html">0.9.7</a>
     <a class="version" href="../0.9.6/Tasks.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.9.7/docs/antora/modules/ROOT/pages/Tasks.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.9.8/docs/antora/modules/ROOT/pages/Tasks.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -200,9 +200,9 @@ for building Scala.</p>
 //                                v
 //           resourceRoot ----&gt;  jar
 
-def sourceRoot = T.sources { os.pwd / 'src }
+def sourceRoot = T.sources { os.pwd / &quot;src&quot; }
 
-def resourceRoot = T.sources { os.pwd / 'resources }
+def resourceRoot = T.sources { os.pwd / &quot;resources&quot; }
 
 def allSources = T { sourceRoot().flatMap(p =&gt; os.walk(p.path)).map(PathRef(_)) }
 
@@ -343,7 +343,7 @@ within a <code>Module</code> body.</p>
 <h3 id="_sources"><a class="anchor" href="#_sources"></a>Sources</h3>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / 'src
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def sourceRootPath = os.pwd / &quot;src&quot;
 
 def sourceRoots = T.sources { sourceRootPath }</code></pre>
 </div>
@@ -360,7 +360,7 @@ definition:</p>
 </div>
 <div class="listingblock">
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / 'additionalSources }
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def additionalSources = T.sources { os.pwd / &quot;additionalSources&quot; }
 override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources() }</code></pre>
 </div>
 </div>
@@ -370,7 +370,7 @@ override def sourceRoots = T.sources { super.sourceRoots() ++ additionalSources(
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">def run(mainClsName: String) = T.command {
-  os.proc('java, &quot;-cp&quot;, classFiles().path, mainClsName).call()
+  os.proc(&quot;java&quot;, &quot;-cp&quot;, classFiles().path, mainClsName).call()
 }</code></pre>
 </div>
 </div>
