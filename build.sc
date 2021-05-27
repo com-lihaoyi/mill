@@ -87,7 +87,7 @@ object Deps {
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
-  val osLib = ivy"com.lihaoyi::os-lib:0.7.7"
+  val osLib = ivy"com.lihaoyi::os-lib:0.7.8"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
