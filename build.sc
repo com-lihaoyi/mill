@@ -147,63 +147,63 @@ trait MillApiModule
 }
 
 trait MillModule extends MillApiModule { outer =>
-  def scalacPluginClasspath =
+  override def scalacPluginClasspath =
     super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
 
   def testArgs = T{ Seq.empty[String] }
   def testIvyDeps: T[Agg[Dep]] = Agg(Deps.utest)
 
   val test = new Tests(implicitly)
-  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests{
-    def forkArgs = T{ testArgs() }
-    def moduleDeps =
+  class Tests(ctx0: mill.define.Ctx) extends mill.Module()(ctx0) with super.Tests {
+    override def forkArgs = T{ testArgs() }
+    override def moduleDeps =
       if (this == main.test) Seq(main)
       else Seq(outer, main.test)
     override def ivyDeps: T[Agg[Dep]] = outer.testIvyDeps()
-    def testFrameworks = Seq("mill.UTestFramework")
-    def scalacPluginClasspath =
+    override def testFramework = "mill.UTestFramework"
+    override def scalacPluginClasspath =
       super.scalacPluginClasspath() ++ Seq(main.moduledefs.jar())
   }
 }
 
 
 object main extends MillModule {
-  def moduleDeps = Seq(core, client)
-  def ivyDeps = Agg(
+  override def moduleDeps = Seq(core, client)
+  override def ivyDeps = Agg(
     Deps.windowsAnsi
   )
 
-  def compileIvyDeps = Agg(
+  override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
 
-  def generatedSources = T {
+  override def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
-  def testArgs = Seq(
+  override def testArgs = Seq(
     "-DMILL_VERSION=" + publishVersion(),
   )
-  val test = new Tests(implicitly)
+  override val test = new Tests(implicitly)
   class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0){
-    def generatedSources = T {
+    override def generatedSources = T {
       Seq(PathRef(shared.generateCoreTestSources(T.ctx.dest)))
     }
   }
   object api extends MillApiModule {
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.osLib,
       Deps.upickle,
       Deps.sbtTestInterface
     )
   }
   object core extends MillModule {
-    def moduleDeps = Seq(moduledefs, api)
+    override def moduleDeps = Seq(moduledefs, api)
 
-    def compileIvyDeps = Agg(
+    override def compileIvyDeps = Agg(
       Deps.scalaReflect(scalaVersion())
     )
 
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.ammoniteExcludingTrees,
       Deps.scalametaTrees,
       Deps.coursier,
@@ -213,7 +213,7 @@ object main extends MillModule {
       Deps.jarjarabrams
     )
 
-    def generatedSources = T {
+    override def generatedSources = T {
       val dest = T.ctx.dest
       writeBuildInfo(dest, scalaVersion(), publishVersion(), T.traverse(dev.moduleDeps)(_.publishSelfDependency)())
       shared.generateCoreSources(dest)
@@ -238,19 +238,18 @@ object main extends MillModule {
 
   object moduledefs extends MillPublishModule with ScalaModule {
     def scalaVersion = Deps.scalaVersion
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.scalaCompiler(scalaVersion()),
       Deps.sourcecode
     )
   }
 
   object client extends MillPublishModule{
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.ipcsocketExcludingJna
     )
-    object test extends Tests {
-      def testFrameworks = Seq("com.novocode.junit.JUnitFramework")
-      def ivyDeps = T{ Agg(
+    object test extends Tests with TestModule.Junit4 {
+      override def ivyDeps = T{ Agg(
         Deps.junitInterface,
         Deps.lambdaTest
       )}
@@ -258,13 +257,13 @@ object main extends MillModule {
   }
 
   object graphviz extends MillModule{
-    def moduleDeps = Seq(main, scalalib)
+    override def moduleDeps = Seq(main, scalalib)
 
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.graphvizJava,
       Deps.jgraphtCore
     )
-    def testArgs = Seq(
+    override def testArgs = Seq(
       "-DMILL_GRAPHVIZ=" + runClasspath().map(_.path).mkString(",")
     )
   }
@@ -272,9 +271,9 @@ object main extends MillModule {
 
 
 object scalalib extends MillModule {
-  def moduleDeps = Seq(main, scalalib.api)
+  override def moduleDeps = Seq(main, scalalib.api)
 
-  def ivyDeps = Agg(
+  override def ivyDeps = Agg(
     Deps.sbtTestInterface,
     Deps.scalafmtDynamic
   )
@@ -305,7 +304,7 @@ object scalalib extends MillModule {
     super.generatedSources() ++ Seq(PathRef(dest))
   }
 
-  def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
+  override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T{
     val genIdeaArgs =
       genTask(main.moduledefs)() ++
@@ -324,7 +323,7 @@ object scalalib extends MillModule {
     )
   }
   object backgroundwrapper extends MillPublishModule{
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.sbtTestInterface
     )
     def testArgs = T{
@@ -334,13 +333,13 @@ object scalalib extends MillModule {
     }
   }
   object api extends MillApiModule {
-    def moduleDeps = Seq(main.api)
+    override def moduleDeps = Seq(main.api)
   }
   object worker extends MillApiModule {
 
-    def moduleDeps = Seq(scalalib.api)
+    override def moduleDeps = Seq(scalalib.api)
 
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.zinc
     )
     def testArgs = T{Seq(
@@ -371,9 +370,9 @@ object scalalib extends MillModule {
 
 object scalajslib extends MillModule {
 
-  def moduleDeps = Seq(scalalib, scalajslib.api)
+  override def moduleDeps = Seq(scalalib, scalajslib.api)
 
-  def testArgs = T{
+  override def testArgs = T{
     val mapping = Map(
       "MILL_SCALAJS_WORKER_0_6" -> worker("0.6").compile().classes.path,
       "MILL_SCALAJS_WORKER_1" -> worker("1").compile().classes.path
@@ -524,10 +523,10 @@ object contrib extends MillModule {
       override def compileModuleDeps = Seq(main.api)
     }
 
-    def moduleDeps = Seq(scoverage.api)
+    override def moduleDeps = Seq(scoverage.api)
     override def compileModuleDeps = Seq(scalalib)
 
-    def testArgs = T {
+    override def testArgs = T {
       val mapping = Map(
         "MILL_SCOVERAGE_REPORT_WORKER" -> worker.compile().classes.path
       )
@@ -537,13 +536,13 @@ object contrib extends MillModule {
     }
 
     // So we can test with buildinfo in the classpath
-    val test = new Tests(implicitly)
+    override val test = new Tests(implicitly)
     class Tests(ctx0: mill.define.Ctx) extends super.Tests(ctx0) {
       override def moduleDeps = super.moduleDeps :+ contrib.buildinfo
     }
 
     object worker extends MillApiModule {
-      def moduleDeps = Seq(scoverage.api)
+      override def moduleDeps = Seq(scoverage.api)
       override def compileIvyDeps = T{
         Agg(
           // compile-time only, need to provide the correct scoverage version runtime
@@ -558,7 +557,7 @@ object contrib extends MillModule {
   object buildinfo extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
     // why do I need this?
-    def testArgs = T{
+    override def testArgs = T{
       Seq("-Djna.nosys=true") ++
       scalalib.worker.testArgs() ++
       scalalib.backgroundwrapper.testArgs()
@@ -577,7 +576,7 @@ object contrib extends MillModule {
 
   object flyway extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
-    def ivyDeps = Agg(Deps.flywayCore)
+    override def ivyDeps = Agg(Deps.flywayCore)
   }
 
 
@@ -587,10 +586,10 @@ object contrib extends MillModule {
 
   object bloop extends MillModule {
     override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
-    def ivyDeps = Agg(
+    override def ivyDeps = Agg(
       Deps.bloopConfig
     )
-    def testArgs = T(scalanativelib.testArgs())
+    override def testArgs = T(scalanativelib.testArgs())
     override def generatedSources = T{
       val dest = T.ctx.dest
       val artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
@@ -625,11 +624,9 @@ object contrib extends MillModule {
 
 
 object scalanativelib extends MillModule {
-  def moduleDeps = Seq(scalalib, scalanativelib.api)
+  override def moduleDeps = Seq(scalalib, scalanativelib.api)
 
-  def scalacOptions = Seq[String]() // disable -P:acyclic:force
-
-  def testArgs = T{
+  override def testArgs = T{
     val mapping = Map(
       "MILL_SCALANATIVE_WORKER_0_4" -> worker("0.4").assembly().path
     )
@@ -638,13 +635,13 @@ object scalanativelib extends MillModule {
     (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
   object api extends MillPublishModule {
-    def ivyDeps = Agg(Deps.sbtTestInterface)
+    override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
   object worker extends Cross[WorkerModule]("0.4")
     class WorkerModule(scalaNativeWorkerVersion: String) extends MillApiModule {
-    def scalaVersion = Deps.workerScalaVersion212
-    def moduleDeps = Seq(scalanativelib.api)
-    def ivyDeps = scalaNativeWorkerVersion match {
+    override def scalaVersion = Deps.workerScalaVersion212
+    override def moduleDeps = Seq(scalanativelib.api)
+    override def ivyDeps = scalaNativeWorkerVersion match {
       case "0.4" =>
         Agg(
           Deps.osLib,
@@ -659,7 +656,7 @@ object scalanativelib extends MillModule {
 
 object bsp extends MillModule {
   override def compileModuleDeps = Seq(scalalib, scalajslib, scalanativelib)
-  def ivyDeps = Agg(
+  override def ivyDeps = Agg(
     Deps.bsp,
     Deps.sbtTestInterface
   )
@@ -685,8 +682,8 @@ def testRepos = T{
 }
 
 object integration extends MillModule {
-  def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
-  def testArgs = T{
+  override def moduleDeps = Seq(main.moduledefs, scalalib, scalajslib, scalanativelib)
+  override def testArgs = T{
     scalajslib.testArgs() ++
     scalalib.worker.testArgs() ++
     scalalib.backgroundwrapper.testArgs() ++
@@ -699,7 +696,7 @@ object integration extends MillModule {
     ) ++
     (for((k, v) <- testRepos()) yield s"-D$k=$v")
   }
-  def forkArgs = testArgs()
+  override def forkArgs = testArgs()
 }
 
 
@@ -794,10 +791,10 @@ def launcherScript(shellJvmArgs: Seq[String],
 }
 
 object dev extends MillModule {
-  def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
+  override def moduleDeps = Seq(scalalib, scalajslib, scalanativelib, bsp)
 
 
-  def forkArgs =
+  def forkArgs: T[Seq[String]] =
     (
       scalalib.testArgs() ++
       scalajslib.testArgs() ++
@@ -813,7 +810,7 @@ object dev extends MillModule {
       )
     ).distinct
 
-  def launcher = T{
+  override def launcher = T{
     val isWin = scala.util.Properties.isWin
     val outputPath = T.ctx.dest / (if (isWin) "run.bat" else "run")
 
@@ -829,7 +826,7 @@ object dev extends MillModule {
     PublishInfo(file = assembly(), classifier = Some("assembly"), ivyConfig = "compile")
   )}
 
-  def assembly = T{
+  override def assembly = T{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
     os.move(super.assembly().path, millPath)
