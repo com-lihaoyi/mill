@@ -87,7 +87,7 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
           if (targetId == millBuildTargetId)
             new SourcesItem(
               targetId,
-              Seq(sourceItem(evaluator.rootModule.millSourcePath / "src", generated = false)).asJava // Intellij needs one
+              Seq(sourceItem(evaluator.rootModule.millSourcePath / "build.sc", generated = false)).asJava // Intellij needs one
             )
           else {
             val module = getModule(targetId, modules)
