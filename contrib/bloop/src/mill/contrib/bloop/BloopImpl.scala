@@ -157,7 +157,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
-    def out(m: JavaModule) = { 
+    def out(m: JavaModule) = {
       val allSegs = m.millModuleShared.value.getOrElse(Segments()) ++ m.millModuleSegments
       bloopDir / "out" / allSegs.render
     }
@@ -193,81 +193,6 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           )
         }
       case _ => T.task(None)
-    }
-
-    ////////////////////////////////////////////////////////////////////////////
-    // Platform (Jvm/Js/Native)
-    ////////////////////////////////////////////////////////////////////////////
-
-    def jsLinkerMode(m: JavaModule): Task[Config.LinkerMode] =
-      (m.asBloop match {
-        case Some(bm) => T.task(bm.linkerMode())
-        case None     => T.task(None)
-      }).map(_.getOrElse(Config.LinkerMode.Debug))
-
-    val platform: Task[BloopConfig.Platform] = module match {
-      case m: ScalaJSModule =>
-        T.task {
-          BloopConfig.Platform.Js(
-            BloopConfig.JsConfig.empty.copy(
-              version = m.scalaJSVersion(),
-              mode = jsLinkerMode(m)(),
-              kind = m.moduleKind() match {
-                case ModuleKind.NoModule => Config.ModuleKindJS.NoModule
-                case ModuleKind.CommonJSModule =>
-                  Config.ModuleKindJS.CommonJSModule
-                case ModuleKind.ESModule => Config.ModuleKindJS.ESModule
-              },
-              emitSourceMaps = m.jsEnvConfig() match{
-                case c: JsEnvConfig.NodeJs => c.sourceMap
-                case _ => false
-              },
-              jsdom = Some(false),
-            ),
-            mainClass = module.mainClass()
-          )
-        }
-      case m: ScalaNativeModule =>
-        T.task {
-          BloopConfig.Platform.Native(
-            BloopConfig.NativeConfig.empty.copy(
-              version = m.scalaNativeVersion(),
-              mode = m.releaseMode() match {
-                case ReleaseMode.Debug => BloopConfig.LinkerMode.Debug
-                case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
-                case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
-              },
-              gc = m.nativeGC(),
-              targetTriple = m.nativeTarget(),
-              clang = m.nativeClang().toNIO,
-              clangpp = m.nativeClangPP().toNIO,
-              options = Config.NativeOptions(
-                m.nativeLinkingOptions().toList,
-                m.nativeCompileOptions().toList
-              ),
-              linkStubs = m.nativeLinkStubs(),
-            ),
-            mainClass = module.mainClass()
-          )
-        }
-      case _ =>
-        T.task {
-          BloopConfig.Platform.Jvm(
-            BloopConfig.JvmConfig(
-              home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
-              options = {
-                // See https://github.com/scalacenter/bloop/issues/1167
-                val forkArgs = module.forkArgs().toList
-                if (forkArgs.exists(_.startsWith("-Duser.dir="))) forkArgs
-                else s"-Duser.dir=$wd" :: forkArgs
-              }
-            ),
-            mainClass = module.mainClass(),
-            runtimeConfig = None,
-            classpath = Some(module.compileClasspath().map(_.path.toNIO).toList),
-            resources = Some(module.resources().map(_.path.toNIO).toList)
-          )
-        }
     }
 
     ////////////////////////////////////////////////////////////////////////////
@@ -404,6 +329,81 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
       .task(transitiveClasspath(module)() ++ ivyDepsClasspath())
       .map(_.distinct)
     val resources = T.task(module.resources().map(_.path.toNIO).toList)
+
+    ////////////////////////////////////////////////////////////////////////////
+    // Platform (Jvm/Js/Native)
+    ////////////////////////////////////////////////////////////////////////////
+
+    def jsLinkerMode(m: JavaModule): Task[Config.LinkerMode] =
+      (m.asBloop match {
+        case Some(bm) => T.task(bm.linkerMode())
+        case None     => T.task(None)
+      }).map(_.getOrElse(Config.LinkerMode.Debug))
+
+    def platform: Task[BloopConfig.Platform] = module match {
+      case m: ScalaJSModule =>
+        T.task {
+          BloopConfig.Platform.Js(
+            BloopConfig.JsConfig.empty.copy(
+              version = m.scalaJSVersion(),
+              mode = jsLinkerMode(m)(),
+              kind = m.moduleKind() match {
+                case ModuleKind.NoModule => Config.ModuleKindJS.NoModule
+                case ModuleKind.CommonJSModule =>
+                  Config.ModuleKindJS.CommonJSModule
+                case ModuleKind.ESModule => Config.ModuleKindJS.ESModule
+              },
+              emitSourceMaps = m.jsEnvConfig() match {
+                case c: JsEnvConfig.NodeJs => c.sourceMap
+                case _                     => false
+              },
+              jsdom = Some(false)
+            ),
+            mainClass = module.mainClass()
+          )
+        }
+      case m: ScalaNativeModule =>
+        T.task {
+          BloopConfig.Platform.Native(
+            BloopConfig.NativeConfig.empty.copy(
+              version = m.scalaNativeVersion(),
+              mode = m.releaseMode() match {
+                case ReleaseMode.Debug       => BloopConfig.LinkerMode.Debug
+                case ReleaseMode.ReleaseFast => BloopConfig.LinkerMode.Release
+                case ReleaseMode.ReleaseFull => BloopConfig.LinkerMode.Release
+              },
+              gc = m.nativeGC(),
+              targetTriple = m.nativeTarget(),
+              clang = m.nativeClang().toNIO,
+              clangpp = m.nativeClangPP().toNIO,
+              options = Config.NativeOptions(
+                m.nativeLinkingOptions().toList,
+                m.nativeCompileOptions().toList
+              ),
+              linkStubs = m.nativeLinkStubs()
+            ),
+            mainClass = module.mainClass()
+          )
+        }
+      case _ =>
+        T.task {
+          BloopConfig.Platform.Jvm(
+            BloopConfig.JvmConfig(
+              home = T.env.get("JAVA_HOME").map(s => Path(s).toNIO),
+              options = {
+                // See https://github.com/scalacenter/bloop/issues/1167
+                val forkArgs = module.forkArgs().toList
+                if (forkArgs.exists(_.startsWith("-Duser.dir="))) forkArgs
+                else s"-Duser.dir=$wd" :: forkArgs
+              }
+            ),
+            mainClass = module.mainClass(),
+            runtimeConfig = None,
+            classpath = Some(classpath().map(_.toNIO).toList),
+            resources = Some(module.resources().map(_.path.toNIO).toList)
+          )
+        }
+    }
 
     ////////////////////////////////////////////////////////////////////////////
     //  Tying up
