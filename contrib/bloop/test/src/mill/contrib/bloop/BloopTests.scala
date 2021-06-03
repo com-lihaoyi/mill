@@ -82,8 +82,6 @@ object BloopTests extends TestSuite {
 
       "no-compilation" - {
         val workspaceOut = os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
-        val scalaModuleCompile = workspaceOut / "scalaModule" / "compile"
-        val scalaModule2Compile = workspaceOut / "scalaModule2" / "compile"
 
         // Ensuring that bloop config generation didn't trigger compilation
         assert(os.exists(workspaceOut / "scalaModule"))
