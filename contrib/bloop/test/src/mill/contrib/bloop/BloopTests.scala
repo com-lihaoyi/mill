@@ -80,6 +80,16 @@ object BloopTests extends TestSuite {
       // skipped on Windows
       val scalanativeModuleConfig = if(scala.util.Properties.isWin) None else Some(readBloopConf("scalanativeModule.json"))
 
+      "no-compilation" - {
+        val workspaceOut = os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
+
+        // Ensuring that bloop config generation didn't trigger compilation
+        assert(os.exists(workspaceOut / "scalaModule"))
+        assert(!os.exists(workspaceOut / "scalaModule" / "compile"))
+        assert(os.exists(workspaceOut / "scalaModule2"))
+        assert(!os.exists(workspaceOut / "scalaModule2" / "compile"))
+      }
+
       "scalaModule" - {
         val p = scalaModuleConfig.project
         val name = p.name

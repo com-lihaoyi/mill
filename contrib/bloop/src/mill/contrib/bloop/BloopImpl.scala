@@ -157,7 +157,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
 
   def bloopConfig(module: JavaModule): Task[BloopConfig.File] = {
     import _root_.bloop.config.Config
-    def out(m: JavaModule) = { 
+    def out(m: JavaModule) = {
       val allSegs = m.millModuleShared.value.getOrElse(Segments()) ++ m.millModuleSegments
       bloopDir / "out" / allSegs.render
     }
@@ -264,7 +264,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
             ),
             mainClass = module.mainClass(),
             runtimeConfig = None,
-            classpath = Some(module.compileClasspath().map(_.path.toNIO).toList),
+            classpath = None,
             resources = Some(module.resources().map(_.path.toNIO).toList)
           )
         }
