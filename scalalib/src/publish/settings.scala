@@ -67,27 +67,3 @@ case class PomSettings(
     versionControl: VersionControl,
     developers: Seq[Developer]
 )
-
-object PomSettings {
-  @deprecated("use VersionControl instead of SCM", "0.1.3")
-  def apply(description: String,
-            organization: String,
-            url: String,
-            licenses: Seq[License],
-            scm: SCM,
-            developers: Seq[Developer]): PomSettings = {
-    PomSettings(
-      description = description,
-      organization = organization,
-      url = url,
-      licenses = licenses,
-      versionControl = VersionControl(
-        browsableRepository = Some(scm.url),
-        connection = Some(scm.connection),
-        developerConnection = None,
-        tag = None
-      ),
-      developers = developers
-    )
-  }
-}
