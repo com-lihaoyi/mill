@@ -15,6 +15,9 @@ git stash -a
 
 rm -rf ~/.mill
 
+# Patch local build
+ci/patch-mill-bootstrap.sh
+
 # Run tests
 ~/mill-release -i integration.test "mill.integration.forked.{AcyclicTests,UpickleTests,PlayJsonTests}"
 
