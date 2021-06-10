@@ -1,0 +1,18 @@
+# We broke binary compatibility by bumping upickle over >= 1.3.14
+# which will break loading of mill plugins, so we can't use mill-vcs-version plugin
+
+diff --git a/build.sc b/build.sc
+index c0164584..6caab881 100755
+--- a/build.sc
++++ b/build.sc
+@@ -105,8 +105,8 @@ object Deps {
+   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
+ }
+ 
+-def millVersion = T { VcsVersion.vcsState().format() }
+-def millLastTag = T { VcsVersion.vcsState().lastTag.get }
++def millVersion = T { "0.0.0.test" }
++def millLastTag = T { "0.0.0.test" }
+ def baseDir = build.millSourcePath
+ 
+ trait MillPublishModule extends PublishModule {
