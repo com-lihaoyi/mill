@@ -20,6 +20,9 @@ rm -rf ~/.mill
 git config --global user.name "Your Name"
 echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 
+# Patch local build
+ci/patch-mill-bootstrap.sh
+
 # Second build
 ~/mill-1 -i all __.publishLocal launcher
 cp out/launcher/dest/mill ~/mill-2
@@ -29,6 +32,9 @@ git stash -u
 git stash -a
 
 rm -rf ~/.mill
+
+# Patch local build
+ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
 ~/mill-2 -i all contrib.__.test

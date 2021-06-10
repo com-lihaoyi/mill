@@ -56,7 +56,7 @@ object Deps {
   }
 
   val acyclic = ivy"com.lihaoyi::acyclic:0.2.0"
-  val ammonite = ivy"com.lihaoyi:::ammonite:2.3.8-65-0f0d597f"
+  val ammonite = ivy"com.lihaoyi:::ammonite:2.4.0"
   // Exclude trees here to force the version of we have defined. We use this
   // here instead of a `forceVersion()` on scalametaTrees since it's not
   // respected in the POM causing issues for Coursier Mill users.
@@ -97,7 +97,7 @@ object Deps {
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
-  val upickle = ivy"com.lihaoyi::upickle:1.3.13"
+  val upickle = ivy"com.lihaoyi::upickle:1.4.0"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.5"
