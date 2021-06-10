@@ -11,6 +11,9 @@ git stash -a
 
 rm -rf ~/.mill
 
+# Patch local build
+ci/patch-mill-bootstrap.sh
+
 # Second build & run tests
 out/dev/assembly/dest/mill -i main.test.compile
 
