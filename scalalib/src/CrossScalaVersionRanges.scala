@@ -4,7 +4,7 @@ import mill.api.PathRef
 import mill.scalalib.api.Util
 import mill.T
 
-trait CrossScalaRanges extends CrossModuleBase {
+trait CrossScalaVersionRanges extends CrossModuleBase {
   val crossScalaVersions = millOuterCtx.crossInstances.map(
     _.asInstanceOf[CrossScalaModule].crossScalaVersion
   )
