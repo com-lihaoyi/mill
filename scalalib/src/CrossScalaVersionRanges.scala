@@ -21,5 +21,5 @@ trait CrossScalaVersionRanges extends CrossModuleBase {
   )
   override def scalaVersionDirectoryNames =
     super.scalaVersionDirectoryNames ++
-      Util.versionSpecificSources(crossScalaVersion, crossScalaVersions)
+      Util.versionRanges(crossScalaVersion, crossScalaVersions)
 }

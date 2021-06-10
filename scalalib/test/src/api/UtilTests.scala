@@ -4,8 +4,8 @@ import utest._
 
 object UtilTests extends TestSuite {
   val tests = Tests {
-    test("versionSpecificSources") {
-      val res = Util.versionSpecificSources(
+    test("versionRanges") {
+      val res = Util.versionRanges(
         "2.12.12",
         Seq("2.11.12", "2.12.12", "2.13.4", "3.0.0-RC1")
       )
