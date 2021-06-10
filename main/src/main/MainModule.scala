@@ -9,17 +9,23 @@ import mill.eval.Evaluator
 import mill.util.{Ctx, PrintLogger, Watched}
 import pprint.{Renderer, Truncated}
 
-object MainModule{
-  def resolveTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
-                     (f: List[NamedTask[Any]] => T) = {
-    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, multiSelect) match{
+object MainModule {
+  def resolveTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      multiSelect: Boolean
+  )(f: List[NamedTask[Any]] => T) = {
+    RunScript.resolveTasks(mill.main.ResolveTasks, evaluator, targets, multiSelect) match {
       case Left(err) => Result.Failure(err)
       case Right(tasks) => Result.Success(f(tasks))
     }
   }
-  def evaluateTasks[T](evaluator: Evaluator, targets: Seq[String], multiSelect: Boolean)
-                      (f: Seq[(Any, Option[ujson.Value])] => T) = {
-    RunScript.evaluateTasks(evaluator, targets, multiSelect) match{
+  def evaluateTasks[T](
+      evaluator: Evaluator,
+      targets: Seq[String],
+      multiSelect: Boolean
+  )(f: Seq[(Any, Option[ujson.Value])] => T) = {
+    RunScript.evaluateTasks(evaluator, targets, multiSelect) match {
       case Left(err) => Result.Failure(err)
       case Right((watched, Left(err))) => Result.Failure(err, Some(Watched((), watched)))
       case Right((watched, Right(res))) =>
@@ -29,15 +35,15 @@ object MainModule{
   }
 }
 
-trait MainModule extends mill.Module{
+trait MainModule extends mill.Module {
 
   implicit def millDiscover: mill.define.Discover[_]
   implicit def millScoptTasksReads[T] = new mill.main.Tasks.Scopt[T]()
   implicit def millScoptEvaluatorReads[T] = new mill.main.EvaluatorScopt[T]()
 
   /**
-    * Show the mill version.
-    */
+   * Show the mill version.
+   */
   def version() = mill.T.command {
     val res = System.getProperty("MILL_VERSION")
     println(res)
@@ -47,17 +53,20 @@ trait MainModule extends mill.Module{
   private val OutDir: String = "out"
 
   /**
-    * Resolves a mill query string and prints out the tasks it resolves to.
-    */
-  def resolve(evaluator: Evaluator, targets: String*) = mill.T.command{
+   * Resolves a mill query string and prints out the tasks it resolves to.
+   */
+  def resolve(evaluator: Evaluator, targets: String*) = mill.T.command {
     val resolved = RunScript.resolveTasks(
-      mill.main.ResolveMetadata, evaluator, targets, multiSelect = true
+      mill.main.ResolveMetadata,
+      evaluator,
+      targets,
+      multiSelect = true
     )
 
-    resolved match{
+    resolved match {
       case Left(err) => Result.Failure(err)
       case Right(rs) =>
-        for(r <- rs.sorted) {
+        for (r <- rs.sorted) {
           println(r)
         }
         Result.Success(())
@@ -65,13 +74,13 @@ trait MainModule extends mill.Module{
   }
 
   /**
-    * Given a set of tasks, prints out the execution plan of what tasks will be
-    * executed in what order, without actually executing them.
-    */
-  def plan(evaluator: Evaluator, targets: String*) = mill.T.command{
-    plan0(evaluator, targets) match{
+   * Given a set of tasks, prints out the execution plan of what tasks will be
+   * executed in what order, without actually executing them.
+   */
+  def plan(evaluator: Evaluator, targets: String*) = mill.T.command {
+    plan0(evaluator, targets) match {
       case Right(success) => {
-        val renderedTasks = success.map{ _.segments.render}
+        val renderedTasks = success.map { _.segments.render }
         renderedTasks.foreach(println)
         Result.Success(renderedTasks)
       }
@@ -81,51 +90,57 @@ trait MainModule extends mill.Module{
 
   private def plan0(evaluator: Evaluator, targets: Seq[String]) = {
     RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      mill.main.ResolveTasks,
+      evaluator,
+      targets,
+      multiSelect = true
     ) match {
       case Left(err) => Left(err)
       case Right(rs) =>
         val (sortedGroups, _) = Evaluator.plan(evaluator.rootModule, rs)
-        Right(sortedGroups.keys().collect{ case Right(r) => r}.toArray)
+        Right(sortedGroups.keys().collect { case Right(r) => r }.toArray)
     }
   }
 
   /**
-    * Prints out some dependency path from the `src` task to the `dest` task.
-    *
-    * If there are multiple dependency paths between `src` and `dest`, the path
-    * chosen is arbitrary.
-    */
-  def path(evaluator: Evaluator, src: String, dest: String) = mill.T.command{
+   * Prints out some dependency path from the `src` task to the `dest` task.
+   *
+   * If there are multiple dependency paths between `src` and `dest`, the path
+   * chosen is arbitrary.
+   */
+  def path(evaluator: Evaluator, src: String, dest: String) = mill.T.command {
     val resolved = RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, List(src, dest), multiSelect = true
+      mill.main.ResolveTasks,
+      evaluator,
+      List(src, dest),
+      multiSelect = true
     )
 
-    resolved match{
+    resolved match {
       case Left(err) => Result.Failure(err)
       case Right(Seq(src1, dest1)) =>
         val queue = collection.mutable.Queue[List[Task[_]]](List(src1))
         var found = Option.empty[List[Task[_]]]
         val seen = collection.mutable.Set.empty[Task[_]]
-        while(queue.nonEmpty && found.isEmpty){
+        while (queue.nonEmpty && found.isEmpty) {
           val current = queue.dequeue()
           if (current.head == dest1) found = Some(current)
-          else{
-            for{
+          else {
+            for {
               next <- current.head.inputs
               if !seen.contains(next)
-            }{
+            } {
               seen.add(next)
               queue.enqueue(next :: current)
             }
           }
         }
-        found match{
+        found match {
           case None =>
             Result.Failure(s"No path found between $src and $dest")
           case Some(list) =>
             val labels = list
-              .collect{case n: NamedTask[_] => n.ctx.segments.render}
+              .collect { case n: NamedTask[_] => n.ctx.segments.render }
 
             labels.foreach(mill.T.log.outputStream.println(_))
 
@@ -135,12 +150,12 @@ trait MainModule extends mill.Module{
   }
 
   /**
-    * Displays metadata about the given task without actually running it.
-    */
-  def inspect(evaluator: Evaluator, targets: String*) = mill.T.command{
-    MainModule.resolveTasks(evaluator, targets, multiSelect = true){ tasks =>
+   * Displays metadata about the given task without actually running it.
+   */
+  def inspect(evaluator: Evaluator, targets: String*) = mill.T.command {
+    MainModule.resolveTasks(evaluator, targets, multiSelect = true) { tasks =>
       val output = new StringBuilder
-      for{
+      for {
         task <- tasks
         tree = ReplApplyHandler.pprintTask(task, evaluator)
         defaults = pprint.PPrinter()
@@ -162,60 +177,67 @@ trait MainModule extends mill.Module{
   }
 
   /**
-    * Runs multiple tasks in a single call.
-    * For compatibility reasons, the tasks are executed single-threaded.
-    */
+   * Runs multiple tasks in a single call.
+   * For compatibility reasons, the tasks are executed single-threaded.
+   */
   def all(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
-      evaluator = if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1)) else evaluator,
+      evaluator =
+        if (evaluator.effectiveThreadCount > 1) evaluator.copy(threadCount = Some(1))
+        else evaluator,
       targets = targets,
-      multiSelect = true) { res =>
-        res.flatMap(_._2)
+      multiSelect = true
+    ) { res =>
+      res.flatMap(_._2)
     }
   }
 
   /**
-    * Runs multiple tasks in a single call in parallel.
-    */
+   * Runs multiple tasks in a single call in parallel.
+   */
   def par(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator = evaluator,
       targets = targets,
-      multiSelect = true) { res =>
-        res.flatMap(_._2)
+      multiSelect = true
+    ) { res =>
+      res.flatMap(_._2)
     }
   }
 
   /**
-    * Runs a given task and prints the JSON result to stdout. This is useful
-    * to integrate Mill into external scripts and tooling.
-    */
-  def show(evaluator: Evaluator, targets: String*) = mill.T.command{
+   * Runs a given task and prints the JSON result to stdout. This is useful
+   * to integrate Mill into external scripts and tooling.
+   */
+  def show(evaluator: Evaluator, targets: String*) = mill.T.command {
     MainModule.evaluateTasks(
       evaluator.copy(
         // When using `show`, redirect all stdout of the evaluated tasks so the
         // printed JSON is the only thing printed to stdout.
-        baseLogger = evaluator.baseLogger match{
-          case PrintLogger(c1, d, c2, _, i, e, in, de, uc) => PrintLogger(c1, d, c2, e, i, e, in, de, uc)
+        baseLogger = evaluator.baseLogger match {
+          case PrintLogger(c1, d, c2, _, i, e, in, de, uc) =>
+            PrintLogger(c1, d, c2, e, i, e, in, de, uc)
           case l => l
         }
       ),
       targets,
       multiSelect = false
-    ) {res =>
-      for(json <- res.flatMap(_._2)){
+    ) { res =>
+      for (json <- res.flatMap(_._2)) {
         println(json.render(indent = 4))
       }
     }
   }
 
   /**
-    * Deletes the given targets from the out directory. Providing no targets
-    * will clean everything.
-    */
+   * Deletes the given targets from the out directory. Providing no targets
+   * will clean everything.
+   */
   def clean(evaluator: Evaluator, targets: String*) = mill.T.command {
-    if(evaluator.effectiveThreadCount > 1) {
-      evaluator.baseLogger.error("The clean target in parallel mode might result in unexpected effects")
+    if (evaluator.effectiveThreadCount > 1) {
+      evaluator.baseLogger.error(
+        "The clean target in parallel mode might result in unexpected effects"
+      )
     }
 
     val rootDir = ammonite.ops.pwd / OutDir
@@ -232,11 +254,15 @@ trait MainModule extends mill.Module{
         Right(ammonite.ops.ls(rootDir).filterNot(keepPath))
       else
         RunScript.resolveTasks(
-          mill.main.ResolveSegments, evaluator, targets, multiSelect = true
+          mill.main.ResolveSegments,
+          evaluator,
+          targets,
+          multiSelect = true
         ).map(
           _.map { segments =>
             Evaluator.resolveDestPaths(rootDir, segments).out
-          })
+          }
+        )
 
     pathsToRemove match {
       case Left(err) =>
@@ -247,39 +273,49 @@ trait MainModule extends mill.Module{
     }
   }
 
-
   /**
-    * Renders the dependencies between the given tasks as a SVG for you to look at
-    */
-  def visualize(evaluator: Evaluator, targets: String*) = mill.T.command{
+   * Renders the dependencies between the given tasks as a SVG for you to look at
+   */
+  def visualize(evaluator: Evaluator, targets: String*) = mill.T.command {
     visualize0(evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker())
   }
 
   /**
-    * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
-    */
-  def visualizePlan(evaluator: Evaluator, targets: String*) = mill.T.command{
+   * Renders the dependencies between the given tasks, and all their dependencies, as a SVG
+   */
+  def visualizePlan(evaluator: Evaluator, targets: String*) = mill.T.command {
     plan0(evaluator, targets) match {
       case Left(err) => Result.Failure(err)
       case Right(planResults) => visualize0(
-        evaluator, targets, T.ctx(), mill.main.VisualizeModule.worker(), Some(planResults.toList.map(_.task))
-      )
+          evaluator,
+          targets,
+          T.ctx(),
+          mill.main.VisualizeModule.worker(),
+          Some(planResults.toList.map(_.task))
+        )
     }
   }
 
   /**
-    * Shuts down mill's background server
-    */
+   * Shuts down mill's background server
+   */
   def shutdown() = mill.T.command {
     T.log.info("Shutting down Mill server...")
     System.exit(0)
   }
 
-  private type VizWorker = (LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
-    LinkedBlockingQueue[Result[scala.Seq[PathRef]]])
+  private type VizWorker = (
+      LinkedBlockingQueue[(scala.Seq[_], scala.Seq[_], os.Path)],
+      LinkedBlockingQueue[Result[scala.Seq[PathRef]]]
+  )
 
-  private def visualize0(evaluator: Evaluator, targets: Seq[String], ctx: Ctx, vizWorker: VizWorker,
-                         planTasks: Option[List[NamedTask[_]]] = None) = {
+  private def visualize0(
+      evaluator: Evaluator,
+      targets: Seq[String],
+      ctx: Ctx,
+      vizWorker: VizWorker,
+      planTasks: Option[List[NamedTask[_]]] = None
+  ) = {
     def callVisualizeModule(rs: List[NamedTask[Any]], allRs: List[NamedTask[Any]]) = {
       val (in, out) = vizWorker
       in.put((rs, allRs, ctx.dest))
@@ -287,15 +323,18 @@ trait MainModule extends mill.Module{
     }
 
     RunScript.resolveTasks(
-      mill.main.ResolveTasks, evaluator, targets, multiSelect = true
+      mill.main.ResolveTasks,
+      evaluator,
+      targets,
+      multiSelect = true
     ) match {
       case Left(err) => Result.Failure(err)
       case Right(rs) => planTasks match {
-        case Some(allRs) => {
-          callVisualizeModule(rs, allRs)
+          case Some(allRs) => {
+            callVisualizeModule(rs, allRs)
+          }
+          case None => callVisualizeModule(rs, rs)
         }
-        case None => callVisualizeModule(rs, rs)
-      }
     }
   }
 }

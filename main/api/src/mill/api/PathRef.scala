@@ -15,6 +15,7 @@ case class PathRef(path: os.Path, quick: Boolean, sig: Int) {
 }
 
 object PathRef {
+
   /**
    * Create a [[PathRef]] by recursively digesting the content of a given `path`.
    * @param path The digested path.
@@ -59,8 +60,8 @@ object PathRef {
   }
 
   /**
-    * Default JSON formatter for [[PathRef]].
-    */
+   * Default JSON formatter for [[PathRef]].
+   */
   implicit def jsonFormatter: RW[PathRef] = upickle.default.readwriter[String].bimap[PathRef](
     p => {
       (if (p.quick) "qref" else "ref") + ":" +
@@ -71,7 +72,10 @@ object PathRef {
       val Array(prefix, hex, path) = s.split(":", 3)
       PathRef(
         os.Path(path),
-        prefix match { case "qref" => true case "ref" => false },
+        prefix match {
+          case "qref" => true
+          case "ref" => false
+        },
         // Parsing to a long and casting to an int is the only way to make
         // round-trip handling of negative numbers work =(
         java.lang.Long.parseLong(hex, 16).toInt

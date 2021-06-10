@@ -8,9 +8,8 @@ import utest.assert
 import utest.framework.TestPath
 
 import language.experimental.macros
-object TestEvaluator{
+object TestEvaluator {
   val externalOutPath = os.pwd / "target" / "external"
-
 
   def static(module: => TestUtil.BaseModule)(implicit fullName: sourcecode.FullName) = {
     new TestEvaluator(module)(fullName, TestPath(Nil))
@@ -23,23 +22,27 @@ object TestEvaluator{
  * @param threads explicitly used nr. of parallel threads
  */
 class TestEvaluator(
-  module: TestUtil.BaseModule,
-  failFast: Boolean = false,
-  threads: Option[Int] = Some(1)
-)(implicit fullName: sourcecode.FullName,
-  tp: TestPath
-){
-  val outPath =  TestUtil.getOutPath()
+    module: TestUtil.BaseModule,
+    failFast: Boolean = false,
+    threads: Option[Int] = Some(1)
+)(implicit fullName: sourcecode.FullName, tp: TestPath) {
+  val outPath = TestUtil.getOutPath()
 
 //  val logger = DummyLogger
   val logger = new PrintLogger(
-    colored = true, disableTicker=false,
-    ammonite.util.Colors.Default, System.out, System.out, System.err, System.in, debugEnabled = false,
+    colored = true,
+    disableTicker = false,
+    ammonite.util.Colors.Default,
+    System.out,
+    System.out,
+    System.err,
+    System.in,
+    debugEnabled = false,
     context = ""
- ) {
+  ) {
     val prefix = {
       val idx = fullName.value.lastIndexOf(".")
-      if(idx > 0) fullName.value.substring(0, idx)
+      if (idx > 0) fullName.value.substring(0, idx)
       else fullName.value
     }
     override def error(s: String): Unit = super.error(s"${prefix}: ${s}")
@@ -47,7 +50,15 @@ class TestEvaluator(
     override def debug(s: String): Unit = super.debug(s"${prefix}: ${s}")
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
-  val evaluator = new Evaluator(Ctx.defaultHome, outPath, TestEvaluator.externalOutPath, module, logger, failFast = failFast, threadCount = threads)
+  val evaluator = new Evaluator(
+    Ctx.defaultHome,
+    outPath,
+    TestEvaluator.externalOutPath,
+    module,
+    logger,
+    failFast = failFast,
+    threadCount = threads
+  )
 
   def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
@@ -58,12 +69,13 @@ class TestEvaluator(
           evaluated.rawValues.head.asInstanceOf[Result.Success[T]].value,
           evaluated.evaluated.collect {
             case t: Target[_]
-              if module.millInternal.targets.contains(t)
-              && !t.isInstanceOf[Input[_]]
-              && !t.ctx.external => t
+                if module.millInternal.targets.contains(t)
+                  && !t.isInstanceOf[Input[_]]
+                  && !t.ctx.external => t
             case t: mill.define.Command[_] => t
           }.size
-        ))
+        )
+      )
     } else {
       Left(
         evaluated.failing.lookupKey(evaluated.failing.keys().next).items.next()
@@ -76,7 +88,7 @@ class TestEvaluator(
 
     val res = evaluator.evaluate(Agg(target))
 
-    val cleaned = res.rawValues.map{
+    val cleaned = res.rawValues.map {
       case Result.Exception(ex, _) => Result.Exception(ex, new OuterStack(Nil))
       case x => x
     }

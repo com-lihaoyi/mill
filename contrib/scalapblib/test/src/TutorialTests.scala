@@ -9,7 +9,8 @@ import utest.{TestSuite, Tests, assert, _}
 object TutorialTests extends TestSuite {
 
   trait TutorialBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: os.Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait TutorialModule extends ScalaPBModule {
@@ -34,9 +35,11 @@ object TutorialTests extends TestSuite {
 
   object TutorialWithAdditionalArgs extends TutorialBase {
     object core extends TutorialModule {
-      override def scalaPBAdditionalArgs = T{Seq(
-        "--additional-test=..."
-      )}
+      override def scalaPBAdditionalArgs = T {
+        Seq(
+          "--additional-test=..."
+        )
+      }
     }
   }
 
@@ -45,8 +48,7 @@ object TutorialTests extends TestSuite {
   def protobufOutPath(eval: TestEvaluator): os.Path =
     eval.outPath / "core" / "compileScalaPB" / "dest" / "com" / "example" / "tutorial"
 
-  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)
-                      (implicit tp: TestPath): T = {
+  def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     println(m.millSourcePath)
@@ -78,29 +80,29 @@ object TutorialTests extends TestSuite {
       }
     }
 
-     "compileScalaPB" - {
-       "calledDirectly" - workspaceTest(Tutorial) { eval =>
-         val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+    "compileScalaPB" - {
+      "calledDirectly" - workspaceTest(Tutorial) { eval =>
+        val Right((result, evalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
-         val outPath = protobufOutPath(eval)
+        val outPath = protobufOutPath(eval)
 
-         val outputFiles = os.walk(result.path).filter(os.isFile)
+        val outputFiles = os.walk(result.path).filter(os.isFile)
 
-         val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
+        val expectedSourcefiles = compiledSourcefiles.map(outPath / _)
 
-         assert(
-           result.path == eval.outPath / "core" / "compileScalaPB" / "dest",
-           outputFiles.nonEmpty,
-           outputFiles.forall(expectedSourcefiles.contains),
-           outputFiles.size == 5,
-           evalCount > 0
-         )
+        assert(
+          result.path == eval.outPath / "core" / "compileScalaPB" / "dest",
+          outputFiles.nonEmpty,
+          outputFiles.forall(expectedSourcefiles.contains),
+          outputFiles.size == 5,
+          evalCount > 0
+        )
 
-         // don't recompile if nothing changed
-         val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
+        // don't recompile if nothing changed
+        val Right((_, unchangedEvalCount)) = eval.apply(Tutorial.core.compileScalaPB)
 
-         assert(unchangedEvalCount == 0)
-       }
+        assert(unchangedEvalCount == 0)
+      }
 
 //      // This throws a NullPointerException in coursier somewhere
 //      //
@@ -126,7 +128,7 @@ object TutorialTests extends TestSuite {
 //      //   assert(unchangedEvalCount == 0)
 //      // }
 //     }
-     }
+    }
 
     "useExternalProtocCompiler" - {
       /* This ensure that the `scalaPBProtocPath` is properly used.

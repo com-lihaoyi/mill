@@ -45,7 +45,8 @@ object TestRunner {
       os.write.over(
         argsFile,
         data = toArgsSeq.mkString("\n"),
-        createFolders = true)
+        createFolders = true
+      )
       s"@${argsFile.toString()}"
     }
   }
@@ -179,12 +180,13 @@ object TestRunner {
 
   // Only for binary compatibility
   @deprecated("Use runTestFramework instead.", "mill after 0.9.6")
-  def runTests(frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
-               entireClasspath: Agg[os.Path],
-               testClassfilePath: Agg[os.Path],
-               args: Seq[String],
-               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
-    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
+  def runTests(
+      frameworkInstances: ClassLoader => Seq[sbt.testing.Framework],
+      entireClasspath: Agg[os.Path],
+      testClassfilePath: Agg[os.Path],
+      args: Seq[String],
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
     runTestFramework(
       frameworkInstances = cl => frameworkInstances(cl).head,
       entireClasspath = entireClasspath,
@@ -194,22 +196,31 @@ object TestRunner {
     )
   }
 
-  def runTestFramework(frameworkInstances: ClassLoader => sbt.testing.Framework,
-               entireClasspath: Agg[os.Path],
-               testClassfilePath: Agg[os.Path],
-               args: Seq[String],
-               testReporter: TestReporter)(implicit ctx: Ctx.Log with Ctx.Home)
-  : (String, Seq[mill.scalalib.TestRunner.Result]) = {
-    runTestFramework(frameworkInstances, entireClasspath, testClassfilePath, args, testReporter, _ => true)
+  def runTestFramework(
+      frameworkInstances: ClassLoader => sbt.testing.Framework,
+      entireClasspath: Agg[os.Path],
+      testClassfilePath: Agg[os.Path],
+      args: Seq[String],
+      testReporter: TestReporter
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
+    runTestFramework(
+      frameworkInstances,
+      entireClasspath,
+      testClassfilePath,
+      args,
+      testReporter,
+      _ => true
+    )
   }
 
-  def runTestFramework(frameworkInstances: ClassLoader => sbt.testing.Framework,
-               entireClasspath: Agg[os.Path],
-               testClassfilePath: Agg[os.Path],
-               args: Seq[String],
-               testReporter: TestReporter,
-               classFilter: Class[_] => Boolean)(implicit ctx: Ctx.Log with Ctx.Home)
-    : (String, Seq[mill.scalalib.TestRunner.Result]) = {
+  def runTestFramework(
+      frameworkInstances: ClassLoader => sbt.testing.Framework,
+      entireClasspath: Agg[os.Path],
+      testClassfilePath: Agg[os.Path],
+      args: Seq[String],
+      testReporter: TestReporter,
+      classFilter: Class[_] => Boolean
+  )(implicit ctx: Ctx.Log with Ctx.Home): (String, Seq[mill.scalalib.TestRunner.Result]) = {
     //Leave the context class loader set and open so that shutdown hooks can access it
     Jvm.inprocess(
       entireClasspath,
@@ -228,12 +239,12 @@ object TestRunner {
 
           val tasks = runner.tasks(
             for ((cls, fingerprint) <- testClasses.toArray if classFilter(cls))
-              yield
-                new TaskDef(
-                  cls.getName.stripSuffix("$"),
-                  fingerprint,
-                  true,
-                  Array(new SuiteSelector))
+              yield new TaskDef(
+                cls.getName.stripSuffix("$"),
+                fingerprint,
+                true,
+                Array(new SuiteSelector)
+              )
           )
 
           val taskQueue = tasks.to(mutable.Queue)
@@ -274,10 +285,10 @@ object TestRunner {
           mill.scalalib.TestRunner.Result(
             e.fullyQualifiedName(),
             e.selector() match {
-              case s: NestedSuiteSelector  => s.suiteId()
-              case s: NestedTestSelector   => s.suiteId() + "." + s.testName()
-              case s: SuiteSelector        => s.toString
-              case s: TestSelector         => s.testName()
+              case s: NestedSuiteSelector => s.suiteId()
+              case s: NestedTestSelector => s.suiteId() + "." + s.testName()
+              case s: SuiteSelector => s.toString
+              case s: TestSelector => s.testName()
               case s: TestWildcardSelector => s.testWildcard()
             },
             e.duration(),
@@ -295,20 +306,22 @@ object TestRunner {
 
   @deprecated("Use framework instead.", "mill after 0.9.6")
   def frameworks(frameworkNames: Seq[String])(
-      cl: ClassLoader): Seq[sbt.testing.Framework] = {
+      cl: ClassLoader
+  ): Seq[sbt.testing.Framework] = {
     frameworkNames.map(name => framework(name)(cl))
   }
 
   def framework(frameworkName: String)(
-      cl: ClassLoader): sbt.testing.Framework = {
+      cl: ClassLoader
+  ): sbt.testing.Framework = {
     cl.loadClass(frameworkName)
       .newInstance()
       .asInstanceOf[sbt.testing.Framework]
   }
 
   def globFilter(selectors: Seq[String]): Class[_] => Boolean = {
-    val filters = selectors.map{str =>
-      if(str == "*") (_: String) => true
+    val filters = selectors.map { str =>
+      if (str == "*") (_: String) => true
       else if (str.indexOf('*') == -1) (s: String) => s == str
       else {
         val parts = str.split("\\*", -1)
@@ -322,7 +335,7 @@ object TestRunner {
       }
     }
 
-    if(filters.isEmpty) (_: Class[_]) => true
+    if (filters.isEmpty) (_: Class[_]) => true
     else
       (clz: Class[_]) => {
         val name = clz.getName.stripSuffix("$")
@@ -330,13 +343,15 @@ object TestRunner {
       }
   }
 
-  case class Result(fullyQualifiedName: String,
-                    selector: String,
-                    duration: Long,
-                    status: String,
-                    exceptionName: Option[String] = None,
-                    exceptionMsg: Option[String] = None,
-                    exceptionTrace: Option[Seq[StackTraceElement]] = None)
+  case class Result(
+      fullyQualifiedName: String,
+      selector: String,
+      duration: Long,
+      status: String,
+      exceptionName: Option[String] = None,
+      exceptionMsg: Option[String] = None,
+      exceptionTrace: Option[Seq[StackTraceElement]] = None
+  )
 
   object Result {
     implicit def resultRW: upickle.default.ReadWriter[Result] =

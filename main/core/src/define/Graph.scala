@@ -7,14 +7,16 @@ import mill.api.Strict.Agg
 object Graph {
 
   /**
-    * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
-    * That's why the constructor is package private.
-    * @see [[Graph.topoSorted]]
-    */
+   * The `values` [[Agg]] is guaranteed to be topological sorted and cycle free.
+   * That's why the constructor is package private.
+   * @see [[Graph.topoSorted]]
+   */
   class TopoSorted private[Graph] (val values: Agg[Task[_]])
 
-  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)
-                                    (important: PartialFunction[Task[_], T]): MultiBiMap[T, Task[_]] = {
+  def groupAroundImportantTargets[T](topoSortedTargets: TopoSorted)(important: PartialFunction[
+    Task[_],
+    T
+  ]): MultiBiMap[T, Task[_]] = {
 
     val output = new MultiBiMap.Mutable[T, Task[_]]()
     for ((target, t) <- topoSortedTargets.values.flatMap(t => important.lift(t).map((t, _)))) {
@@ -51,17 +53,18 @@ object Graph {
     sourceTargets.items.foreach(rec)
     transitiveTargets
   }
+
   /**
-    * Takes the given targets, finds all the targets they transitively depend
-    * on, and sort them topologically. Fails if there are dependency cycles
-    */
+   * Takes the given targets, finds all the targets they transitively depend
+   * on, and sort them topologically. Fails if there are dependency cycles
+   */
   def topoSorted(transitiveTargets: Agg[Task[_]]): TopoSorted = {
 
     val indexed = transitiveTargets.indexed
     val targetIndices = indexed.zipWithIndex.toMap
 
     val numberedEdges =
-      for(t <- transitiveTargets.items)
+      for (t <- transitiveTargets.items)
         yield t.inputs.collect(targetIndices)
 
     val sortedClusters = Tarjans(numberedEdges)

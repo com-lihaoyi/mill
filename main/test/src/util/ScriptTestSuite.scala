@@ -8,7 +8,7 @@ import scala.util.Try
 import os.Path
 import utest._
 
-abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
+abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
   def workspaceSlug: String
   def scriptSourcePath: os.Path
   def buildPath: os.SubPath = os.sub / "build.sc"
@@ -33,7 +33,7 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
         help = Flag()
       ),
       ammonite.main.Config.Predef(noHomePredef = Flag()),
-      ammonite.main.Config.Repl(noRemoteLogging = Flag(), classBased = Flag()),
+      ammonite.main.Config.Repl(noRemoteLogging = Flag(), classBased = Flag())
     ),
     mainInteractive = false,
     disableTicker = disableTicker,
@@ -51,17 +51,17 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
     wd = wd
   )
   def eval(s: String*): Boolean = {
-    if (!fork) runner.runScript(workspacePath / buildPath , s.toList)
-    else{
+    if (!fork) runner.runScript(workspacePath / buildPath, s.toList)
+    else {
       try {
         os.proc(os.home / "mill-release", "-i", s).call(
           wd,
           stdin = os.Inherit,
           stdout = os.Inherit,
-          stderr = os.Inherit,
+          stderr = os.Inherit
         )
         true
-      }catch{case e: Throwable => false}
+      } catch { case e: Throwable => false }
     }
   }
   def meta(s: String): String = {
@@ -69,7 +69,6 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite{
 
     os.read(wd / "out" / selector._2.value.flatMap(_.pathSegments) / "meta.json")
   }
-
 
   def initWorkspace(): Path = {
     os.remove.all(workspacePath)

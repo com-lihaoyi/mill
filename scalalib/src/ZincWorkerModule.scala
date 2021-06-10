@@ -15,11 +15,15 @@ object ZincWorkerModule extends ExternalModule with ZincWorkerModule with Coursi
 
 trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: CoursierModule =>
 
-  def classpath = T{
-    mill.modules.Util.millProjectModule("MILL_SCALA_WORKER", "mill-scalalib-worker", repositoriesTask())
+  def classpath = T {
+    mill.modules.Util.millProjectModule(
+      "MILL_SCALA_WORKER",
+      "mill-scalalib-worker",
+      repositoriesTask()
+    )
   }
 
-  def scalalibClasspath = T{
+  def scalalibClasspath = T {
     mill.modules.Util.millProjectModule(
       "MILL_SCALA_LIB",
       "mill-scalalib",
@@ -28,10 +32,12 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def backgroundWrapperClasspath = T{
+  def backgroundWrapperClasspath = T {
     mill.modules.Util.millProjectModule(
-      "MILL_BACKGROUNDWRAPPER", "mill-scalalib-backgroundwrapper",
-      repositoriesTask(), artifactSuffix = ""
+      "MILL_BACKGROUNDWRAPPER",
+      "mill-scalalib-backgroundwrapper",
+      repositoriesTask(),
+      artifactSuffix = ""
     )
   }
 
@@ -62,7 +68,8 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       .newInstance(
         Left((
           T.ctx(),
-          (x: String, y: String) => scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
+          (x: String, y: String) =>
+            scalaCompilerBridgeJar(x, y, repositoriesTask()).asSuccess.get.value
         )),
         mill.scalalib.api.Util.grepJar(_, "scala-library", _, sources = false),
         mill.scalalib.api.Util.grepJar(_, "scala-compiler", _, sources = false),
@@ -72,9 +79,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     instance.asInstanceOf[mill.scalalib.api.ZincWorkerApi]
   }
 
-  def scalaCompilerBridgeJar(scalaVersion: String,
-                             scalaOrganization: String,
-                             repositories: Seq[Repository]) = {
+  def scalaCompilerBridgeJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      repositories: Seq[Repository]
+  ) = {
     val (scalaVersion0, scalaBinaryVersion0) = scalaVersion match {
       case _ => (scalaVersion, mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion))
     }
@@ -101,7 +110,7 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
       Seq(bridgeDep),
       useSources,
       Some(overrideScalaLibrary(scalaVersion, scalaOrganization))
-    ).map( deps =>
+    ).map(deps =>
       mill.scalalib.api.Util.grepJar(deps.map(_.path), bridgeName, bridgeVersion, useSources)
     )
 
@@ -115,9 +124,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     }
   }
 
-  def compilerInterfaceClasspath(scalaVersion: String,
-                                 scalaOrganization: String,
-                                 repositories: Seq[Repository]) = {
+  def compilerInterfaceClasspath(
+      scalaVersion: String,
+      scalaOrganization: String,
+      repositories: Seq[Repository]
+  ) = {
     resolveDependencies(
       repositories,
       Lib.depToDependency(_, "2.12.4", ""),
@@ -128,8 +139,10 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     )
   }
 
-  def overrideScalaLibrary(scalaVersion: String, scalaOrganization: String)
-                          (dep: coursier.Dependency): coursier.Dependency = {
+  def overrideScalaLibrary(
+      scalaVersion: String,
+      scalaOrganization: String
+  )(dep: coursier.Dependency): coursier.Dependency = {
     if (dep.module.name.value == "scala-library") {
       dep.withModule(dep.module.withOrganization(coursier.Organization(scalaOrganization)))
         .withVersion(scalaVersion)
@@ -143,10 +156,11 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     ()
   }
 
-  def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] = T.command {
-    classpath()
-    scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
-    ()
-  }
+  def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
+    T.command {
+      classpath()
+      scalaCompilerBridgeJar(scalaVersion, scalaOrganization, repositoriesTask())
+      ()
+    }
 
 }

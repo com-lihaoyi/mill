@@ -24,10 +24,15 @@ class ScalaPBWorker {
         val mainMethod = scalaPBCompilerClass.getMethod("main", classOf[Array[java.lang.String]])
 
         val instance = new ScalaPBWorkerApi {
-          override def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit = {
-						val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
+          override def compileScalaPB(
+              source: File,
+              scalaPBOptions: String,
+              generatedDirectory: File,
+              otherArgs: Seq[String]
+          ): Unit = {
+            val opts = if (scalaPBOptions.isEmpty) "" else scalaPBOptions + ":"
             val args = otherArgs ++ Seq(
-							s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
+              s"--scala_out=${opts}${generatedDirectory.getCanonicalPath}",
               s"--proto_path=${source.getParentFile.getCanonicalPath}",
               source.getCanonicalPath
             )
@@ -53,10 +58,10 @@ class ScalaPBWorker {
       includes: Seq[os.Path],
       additionalArgs: Seq[String]
   ): Seq[String] = {
-		protocPath.map(path => s"--protoc=$path").toSeq ++ 
+    protocPath.map(path => s"--protoc=$path").toSeq ++
       Seq("--throw") ++ additionalArgs ++
-			includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}")
-	}
+      includes.map(i => s"--proto_path=${i.toIO.getCanonicalPath}")
+  }
 
   /**
    * compile protobuf using ScalaPBC
@@ -69,8 +74,13 @@ class ScalaPBWorker {
    *
    * @return execute result with path ref to `dest`
    */
-  def compile(scalaPBClasspath: Agg[os.Path], scalaPBSources: Seq[os.Path], scalaPBOptions: String, dest: os.Path, scalaPBCExtraArgs: Seq[String])
-             (implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
+  def compile(
+      scalaPBClasspath: Agg[os.Path],
+      scalaPBSources: Seq[os.Path],
+      scalaPBOptions: String,
+      dest: os.Path,
+      scalaPBCExtraArgs: Seq[String]
+  )(implicit ctx: mill.api.Ctx): mill.api.Result[PathRef] = {
     val compiler = scalaPB(scalaPBClasspath)
 
     def compileScalaPBDir(inputDir: os.Path): Unit = {
@@ -90,10 +100,15 @@ class ScalaPBWorker {
 }
 
 trait ScalaPBWorkerApi {
-  def compileScalaPB(source: File, scalaPBOptions: String, generatedDirectory: File, otherArgs: Seq[String]): Unit
+  def compileScalaPB(
+      source: File,
+      scalaPBOptions: String,
+      generatedDirectory: File,
+      otherArgs: Seq[String]
+  ): Unit
 }
 
 object ScalaPBWorkerApi extends ExternalModule {
-  def scalaPBWorker: Worker[ScalaPBWorker] = T.worker{ new ScalaPBWorker() }
+  def scalaPBWorker: Worker[ScalaPBWorker] = T.worker { new ScalaPBWorker() }
   lazy val millDiscover = Discover[this.type]
 }

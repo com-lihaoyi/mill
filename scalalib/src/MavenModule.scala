@@ -3,11 +3,10 @@ package mill.scalalib
 import mill.T
 
 /**
-  * A [[JavaModule]] with a Maven compatible directory layout.
-  *
-  * @see [[SbtModule]] if you need a scala module with Maven layout.
-  *
-  */
+ * A [[JavaModule]] with a Maven compatible directory layout.
+ *
+ * @see [[SbtModule]] if you need a scala module with Maven layout.
+ */
 trait MavenModule extends JavaModule { outer =>
 
   override def sources = T.sources(

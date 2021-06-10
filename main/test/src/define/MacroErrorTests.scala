@@ -3,9 +3,9 @@ package mill.define
 import utest._
 import mill.{T, Module}
 import mill.util.TestUtil
-object MacroErrorTests extends TestSuite{
+object MacroErrorTests extends TestSuite {
 
-  val tests = Tests{
+  val tests = Tests {
 
     "errors" - {
       val expectedMsg =
@@ -93,8 +93,8 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(e.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"
+        ))
       }
       "neg" - {
 
@@ -137,8 +137,8 @@ object MacroErrorTests extends TestSuite{
           }
         """)
         assert(borkedCachedDiamond1.msg.contains(
-          "Modules, Targets and Commands can only be defined within a mill Module")
-        )
+          "Modules, Targets and Commands can only be defined within a mill Module"
+        ))
       }
     }
   }

@@ -13,20 +13,22 @@ import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
 import sun.misc.{Signal, SignalHandler}
 
-trait MillServerMain[T]{
+trait MillServerMain[T] {
   var stateCache = Option.empty[T]
-  def main0(args: Array[String],
-            stateCache: Option[T],
-            mainInteractive: Boolean,
-            stdin: InputStream,
-            stdout: PrintStream,
-            stderr: PrintStream,
-            env : Map[String, String],
-            setIdle: Boolean => Unit,
-            systemProperties: Map[String, String]): (Boolean, Option[T])
+  def main0(
+      args: Array[String],
+      stateCache: Option[T],
+      mainInteractive: Boolean,
+      stdin: InputStream,
+      stdout: PrintStream,
+      stderr: PrintStream,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      systemProperties: Map[String, String]
+  ): (Boolean, Option[T])
 }
 
-object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
+object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -35,9 +37,12 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
     // of running a background server. Furthermore, the background server already
     // can detect when the Mill client goes away, which is necessary to handle
     // the case when a Mill client that did *not* spawn the server gets `CTRL-C`ed
-    Signal.handle(new Signal("INT"), new SignalHandler () {
-      def handle(sig: Signal) = {} // do nothing
-    })
+    Signal.handle(
+      new Signal("INT"),
+      new SignalHandler() {
+        def handle(sig: Signal) = {} // do nothing
+      }
+    )
     new Server(
       lockBase = args0(0),
       this,
@@ -47,15 +52,17 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
     ).run()
   }
 
-  def main0(args: Array[String],
-            stateCache: Option[Evaluator.State],
-            mainInteractive: Boolean,
-            stdin: InputStream,
-            stdout: PrintStream,
-            stderr: PrintStream,
-            env : Map[String, String],
-            setIdle: Boolean => Unit,
-            systemProperties: Map[String, String]): (Boolean, Option[Evaluator.State]) = {
+  def main0(
+      args: Array[String],
+      stateCache: Option[Evaluator.State],
+      mainInteractive: Boolean,
+      stdin: InputStream,
+      stdout: PrintStream,
+      stderr: PrintStream,
+      env: Map[String, String],
+      setIdle: Boolean => Unit,
+      systemProperties: Map[String, String]
+  ): (Boolean, Option[Evaluator.State]) = {
     MillMain.main0(
       args,
       stateCache,
@@ -70,27 +77,35 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State]{
   }
 }
 
-
-class Server[T](lockBase: String,
-                sm: MillServerMain[T],
-                interruptServer: () => Unit,
-                acceptTimeoutMillis: Int,
-                locks: Locks) {
+class Server[T](
+    lockBase: String,
+    sm: MillServerMain[T],
+    interruptServer: () => Unit,
+    acceptTimeoutMillis: Int,
+    locks: Locks
+) {
 
   val originalStdout = System.out
   def run() = {
-    Server.tryLockBlock(locks.processLock){
+    Server.tryLockBlock(locks.processLock) {
       var running = true
       while (running) {
-        Server.lockBlock(locks.serverLock){
-          val (serverSocket, socketClose) = if (Util.isWindows) {
-            val socketName = Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName
-            (new Win32NamedPipeServerSocket(socketName), () => new Win32NamedPipeSocket(socketName).close())
-          } else {
-            val socketName = lockBase + "/io"
-            new File(socketName).delete()
-            (new UnixDomainServerSocket(socketName), () => new UnixDomainSocket(socketName).close())
-          }
+        Server.lockBlock(locks.serverLock) {
+          val (serverSocket, socketClose) =
+            if (Util.isWindows) {
+              val socketName = Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName
+              (
+                new Win32NamedPipeServerSocket(socketName),
+                () => new Win32NamedPipeSocket(socketName).close()
+              )
+            } else {
+              val socketName = lockBase + "/io"
+              new File(socketName).delete()
+              (
+                new UnixDomainServerSocket(socketName),
+                () => new UnixDomainSocket(socketName).close()
+              )
+            }
 
           val sockOpt = Server.interruptWith(
             "MillSocketTimeoutInterruptThread",
@@ -99,14 +114,13 @@ class Server[T](lockBase: String,
             serverSocket.accept()
           )
 
-          sockOpt match{
+          sockOpt match {
             case None => running = false
             case Some(sock) =>
               try {
                 handleRun(sock)
                 serverSocket.close()
-              }
-              catch { case e: Throwable => e.printStackTrace(originalStdout) }
+              } catch { case e: Throwable => e.printStackTrace(originalStdout) }
           }
         }
         // Make sure you give an opportunity for the client to probe the lock
@@ -127,7 +141,9 @@ class Server[T](lockBase: String,
     val clientMillVersion = Util.readString(argStream)
     val serverMillVersion = BuildInfo.millVersion
     if (clientMillVersion != serverMillVersion) {
-      stderr.println(s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server")
+      stderr.println(
+        s"Mill version changed ($serverMillVersion -> $clientMillVersion), re-starting server"
+      )
       java.nio.file.Files.write(
         java.nio.file.Paths.get(lockBase + "/exitCode"),
         s"${MillClientMain.ExitServerCodeWhenVersionMismatch()}".getBytes()
@@ -141,52 +157,53 @@ class Server[T](lockBase: String,
 
     @volatile var done = false
     @volatile var idle = false
-    val t = new Thread(() =>
-      try {
-        val (result, newStateCache) = sm.main0(
-          args,
-          sm.stateCache,
-          interactive,
-          socketIn,
-          stdout,
-          stderr,
-          env.asScala.toMap,
-          idle = _,
-          systemProperties.asScala.toMap
-        )
+    val t = new Thread(
+      () =>
+        try {
+          val (result, newStateCache) = sm.main0(
+            args,
+            sm.stateCache,
+            interactive,
+            socketIn,
+            stdout,
+            stderr,
+            env.asScala.toMap,
+            idle = _,
+            systemProperties.asScala.toMap
+          )
 
-        sm.stateCache = newStateCache
-        java.nio.file.Files.write(
-          java.nio.file.Paths.get(lockBase + "/exitCode"),
-          (if (result) 0 else 1).toString.getBytes
-        )
-      } finally{
-        done = true
-        idle = true
-      },
+          sm.stateCache = newStateCache
+          java.nio.file.Files.write(
+            java.nio.file.Paths.get(lockBase + "/exitCode"),
+            (if (result) 0 else 1).toString.getBytes
+          )
+        } finally {
+          done = true
+          idle = true
+        },
       "MillServerActionRunner"
     )
     t.start()
     // We cannot simply use Lock#await here, because the filesystem doesn't
     // realize the clientLock/serverLock are held by different threads in the
     // two processes and gives a spurious deadlock error
-    while(!done && !locks.clientLock.probe()) Thread.sleep(3)
+    while (!done && !locks.clientLock.probe()) Thread.sleep(3)
 
     if (!idle) interruptServer()
-
 
     t.interrupt()
     // Try to give thread a moment to stop before we kill it for real
     Thread.sleep(5)
     try t.stop()
-    catch{case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
+    catch {
+      case e: java.lang.Error if e.getMessage.contains("Cleaner terminated abnormally") =>
       // ignore this error and do nothing; seems benign
     }
 
     // flush before closing the socket
     System.out.flush()
     System.err.flush()
-    
+
     if (Util.isWindows) {
       // Closing Win32NamedPipeSocket can often take ~5s
       // It seems OK to exit the client early and subsequently
@@ -199,7 +216,7 @@ class Server[T](lockBase: String,
   }
 }
 
-object Server{
+object Server {
 
   def lockBlock[T](lock: Lock)(t: => T): T = {
     val l = lock.lock()
@@ -208,7 +225,7 @@ object Server{
   }
 
   def tryLockBlock[T](lock: Lock)(t: => T): Option[T] = {
-    lock.tryLock() match{
+    lock.tryLock() match {
       case null => None
       case l =>
         try Some(t)
@@ -222,7 +239,7 @@ object Server{
     val thread = new Thread(
       () => {
         try Thread.sleep(millis)
-        catch{ case t: InterruptedException => /* Do Nothing */ }
+        catch { case t: InterruptedException => /* Do Nothing */ }
         if (interrupt) {
           interrupted = true
           close
@@ -235,7 +252,7 @@ object Server{
     try {
       val res =
         try Some(t)
-        catch {case e: Throwable => None}
+        catch { case e: Throwable => None }
 
       if (interrupted) None
       else res
@@ -246,5 +263,3 @@ object Server{
     }
   }
 }
-
-

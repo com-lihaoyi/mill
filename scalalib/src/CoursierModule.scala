@@ -7,11 +7,11 @@ import mill.define.Task
 import mill.api.PathRef
 
 /**
-  * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
-  *
-  * It's mainly used in [[JavaModule]], but can also be used stand-alone,
-  * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
-  */
+ * This module provides the capability to resolve (transitive) dependencies from (remote) repositories.
+ *
+ * It's mainly used in [[JavaModule]], but can also be used stand-alone,
+ * in which case you must provide repositories by overriding [[CoursierModule.repositoriesTask]].
+ */
 trait CoursierModule extends mill.Module {
 
   def resolveCoursierDependency: Task[Dep => coursier.Dependency] = T.task {
@@ -19,12 +19,12 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-    * Task that resolves the given dependencies using the repositories defined with [[repositories]].
-    *
-    * @param deps    The dependencies to resolve.
-    * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
-    * @return The [[PathRef]]s to the resolved files.
-    */
+   * Task that resolves the given dependencies using the repositories defined with [[repositories]].
+   *
+   * @param deps    The dependencies to resolve.
+   * @param sources If `true`, resolve source dependencies instead of binary dependencies (JARs).
+   * @return The [[PathRef]]s to the resolved files.
+   */
   def resolveDeps(deps: Task[Agg[Dep]], sources: Boolean = false): Task[Agg[PathRef]] = T.task {
     Lib.resolveDependencies(
       repositories = repositoriesTask(),
@@ -38,38 +38,38 @@ trait CoursierModule extends mill.Module {
   }
 
   /**
-    * Map dependencies before resolving them.
-    * Override this to customize the set of dependencies.
-    */
+   * Map dependencies before resolving them.
+   * Override this to customize the set of dependencies.
+   */
   def mapDependencies: Task[Dependency => Dependency] = T.task { d: Dependency => d }
 
   /**
-    * The repositories used to resolved dependencies with [[resolveDeps()]].
-    */
+   * The repositories used to resolved dependencies with [[resolveDeps()]].
+   */
   def repositoriesTask: Task[Seq[Repository]] = T.task { repositories }
 
   /**
-    * Customize the coursier resolution resolution process.
-    * This is rarely needed to changed, as the default try to provide a
-    * highly reproducible resolution process. But sometime, you need
-    * more control, e.g. you want to add some OS or JDK specific resolution properties
-    * which are sometimes used by Maven and therefore found in dependency artifact metadata.
-    * For example, the JavaFX artifacts are known to use OS specific properties.
-    * To fix resolution for JavaFX, you could override this task like the following:
-    * {{{
-    *     override def resolutionCustomizer = T.task {
-    *       Some( (r: coursier.core.Resolution) =>
-    *         r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
-    *       )
-    *     }
-    * }}}
-    * @return
-    */
+   * Customize the coursier resolution resolution process.
+   * This is rarely needed to changed, as the default try to provide a
+   * highly reproducible resolution process. But sometime, you need
+   * more control, e.g. you want to add some OS or JDK specific resolution properties
+   * which are sometimes used by Maven and therefore found in dependency artifact metadata.
+   * For example, the JavaFX artifacts are known to use OS specific properties.
+   * To fix resolution for JavaFX, you could override this task like the following:
+   * {{{
+   *     override def resolutionCustomizer = T.task {
+   *       Some( (r: coursier.core.Resolution) =>
+   *         r.withOsInfo(coursier.core.Activation.Os.fromProperties(sys.props.toMap))
+   *       )
+   *     }
+   * }}}
+   * @return
+   */
   def resolutionCustomizer: Task[Option[Resolution => Resolution]] = T.task { None }
 
   /**
-    * The repositories used to resolved dependencies with [[resolveDeps()]].
-    */
+   * The repositories used to resolved dependencies with [[resolveDeps()]].
+   */
   @deprecated("Use repositoriesTask instead", "mill after 0.8.0")
   def repositories: Seq[Repository] = Resolve.defaultRepositories
 

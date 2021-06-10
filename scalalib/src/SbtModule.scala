@@ -3,8 +3,8 @@ package mill.scalalib
 import mill.T
 
 /**
-  * A [[ScalaModule]] with sbt compatible directory layout.
-  */
+ * A [[ScalaModule]] with sbt compatible directory layout.
+ */
 trait SbtModule extends ScalaModule with MavenModule {
 
   override def sources = T.sources(

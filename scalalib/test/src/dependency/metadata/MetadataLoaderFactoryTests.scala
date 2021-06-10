@@ -47,7 +47,8 @@ object MetadataLoaderFactoryTests extends TestSuite {
     'ivyRepository - {
       val Right(ivyRepo) = IvyRepository.parse(
         "https://dl.bintray.com/sbt/sbt-plugin-releases/" + coursier.ivy.Pattern.default.string,
-        dropInfoAttributes = true)
+        dropInfoAttributes = true
+      )
       assertMatch(MetadataLoaderFactory(ivyRepo)) { case None => }
     }
     'otherRepository - {
@@ -57,12 +58,17 @@ object MetadataLoaderFactoryTests extends TestSuite {
   }
 
   case class CustomRepository() extends Repository {
-    override def find[F[_]](module: Module, version: String, fetch: coursier.Repository.Fetch[F])
-                           (implicit F: Monad[F]): EitherT[F, String, (ArtifactSource, Project)] =
+    override def find[F[_]](
+        module: Module,
+        version: String,
+        fetch: coursier.Repository.Fetch[F]
+    )(implicit F: Monad[F]): EitherT[F, String, (ArtifactSource, Project)] =
       ???
 
-    override def artifacts(dependency: Dependency,
-                           project: Project,
-                           overrideClassifiers: Option[Seq[Classifier]]) = ???
+    override def artifacts(
+        dependency: Dependency,
+        project: Project,
+        overrideClassifiers: Option[Seq[Classifier]]
+    ) = ???
   }
 }

@@ -61,7 +61,6 @@ object BloopTests extends TestSuite {
       override def skipBloop: Boolean = true
     }
 
-
   }
 
   def readBloopConf(jsonFile: String) =
@@ -78,10 +77,12 @@ object BloopTests extends TestSuite {
       val testModuleConfig = readBloopConf("scalaModule.test.json")
       val scalajsModuleConfig = readBloopConf("scalajsModule.json")
       // skipped on Windows
-      val scalanativeModuleConfig = if(scala.util.Properties.isWin) None else Some(readBloopConf("scalanativeModule.json"))
+      val scalanativeModuleConfig =
+        if (scala.util.Properties.isWin) None else Some(readBloopConf("scalanativeModule.json"))
 
       "no-compilation" - {
-        val workspaceOut = os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
+        val workspaceOut =
+          os.pwd / "target" / "workspace" / "mill" / "contrib" / "bloop" / "BloopTests" / "testEvaluator"
 
         // Ensuring that bloop config generation didn't trigger compilation
         assert(os.exists(workspaceOut / "scalaModule"))
@@ -108,7 +109,9 @@ object BloopTests extends TestSuite {
         assert(sources == List(workdir / "scalaModule" / "src"))
         assert(options.contains("-language:higherKinds"))
         assert(version == "2.12.8")
-        assert(classpath.exists(_.contains(s"bloop-config_2.12-${build.scalaModule.bloopVersion}.jar")))
+        assert(
+          classpath.exists(_.contains(s"bloop-config_2.12-${build.scalaModule.bloopVersion}.jar"))
+        )
         assert(platform == "jvm")
         assert(mainCLass == "foo.bar.Main")
         assert(jvmOptions.contains(s"-Duser.dir=$workdir"))
@@ -160,7 +163,7 @@ object BloopTests extends TestSuite {
         assert(platform.config.kind == BloopConfig.ModuleKindJS.CommonJSModule)
         assert(platform.config.mode == BloopConfig.LinkerMode.Release)
       }
-    "scalanativeModule" - {
+      "scalanativeModule" - {
         scalanativeModuleConfig match {
           case None =>
             val exists = os.exists(workdir / ".bloop" / "scalanativeModule.json")
@@ -173,7 +176,8 @@ object BloopTests extends TestSuite {
             val version = p.scala.get.version
             val platform = p.platform.get.asInstanceOf[BloopConfig.Platform.Native]
 
-            val (clang, _) = testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.right.get
+            val (clang, _) =
+              testEvaluator(build.scalanativeModule.nativeClang).asSuccess.get.value.right.get
 
             assert(name == "scalanativeModule")
             assert(workspaceDir == Some(workdir.wrapped))

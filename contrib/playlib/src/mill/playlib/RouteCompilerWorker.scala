@@ -11,7 +11,8 @@ private[playlib] class RouteCompilerWorker {
     Option.empty[(Long, mill.playlib.api.RouteCompilerWorkerApi)]
 
   protected def bridge(toolsClasspath: Agg[os.Path])(
-      implicit ctx: Ctx): RouteCompilerWorkerApi = {
+      implicit ctx: Ctx
+  ): RouteCompilerWorkerApi = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     routeCompilerInstanceCache match {
@@ -35,14 +36,16 @@ private[playlib] class RouteCompilerWorker {
     }
   }
 
-  def compile(routerClasspath: Agg[os.Path],
-              files: Seq[os.Path],
-              additionalImports: Seq[String],
-              forwardsRouter: Boolean,
-              reverseRouter: Boolean,
-              namespaceReverseRouter: Boolean,
-              generatorType: RouteCompilerType,
-              dest: os.Path)(implicit ctx: Ctx): Result[CompilationResult] = {
+  def compile(
+      routerClasspath: Agg[os.Path],
+      files: Seq[os.Path],
+      additionalImports: Seq[String],
+      forwardsRouter: Boolean,
+      reverseRouter: Boolean,
+      namespaceReverseRouter: Boolean,
+      generatorType: RouteCompilerType,
+      dest: os.Path
+  )(implicit ctx: Ctx): Result[CompilationResult] = {
     //the routes file must come last as it can include the routers generated
     //by the others
     bridge(routerClasspath)

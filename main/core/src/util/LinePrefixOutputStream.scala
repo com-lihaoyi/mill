@@ -8,8 +8,8 @@ import java.io.{ByteArrayOutputStream, FilterOutputStream, OutputStream}
  * @param out The underlying output stream.
  */
 class LinePrefixOutputStream(
-  linePrefix: String,
-  out: OutputStream
+    linePrefix: String,
+    out: OutputStream
 ) extends FilterOutputStream(out) {
 
   private[this] var isFirst = true
@@ -18,7 +18,7 @@ class LinePrefixOutputStream(
   override def write(b: Array[Byte]) = write(b, 0, b.length)
   override def write(b: Array[Byte], off: Int, len: Int) = {
     var i = off
-    while(i < len){
+    while (i < len) {
       write(b(i))
       i += 1
     }
@@ -27,7 +27,7 @@ class LinePrefixOutputStream(
 
     if (isFirst) {
       isFirst = false
-      if (linePrefix != ""){
+      if (linePrefix != "") {
         buffer.write(linePrefix.getBytes("UTF-8"))
       }
     }
@@ -39,7 +39,7 @@ class LinePrefixOutputStream(
   }
 
   override def flush(): Unit = {
-    out.synchronized{
+    out.synchronized {
       out.write(buffer.toByteArray)
     }
     buffer.reset()

@@ -13,7 +13,7 @@ object HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
   trait HelloBase extends TestUtil.BaseModule {
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   object HelloWorld extends HelloBase {
@@ -47,7 +47,7 @@ object HelloWorldTests extends utest.TestSuite {
         millSourcePath / "src" / "main" / "scala",
         millSourcePath / "src" / "main" / "java"
       )
-      override def resources = T.sources{ millSourcePath / "src" / "main" / "resources" }
+      override def resources = T.sources { millSourcePath / "src" / "main" / "resources" }
 
       object test extends ScoverageTests {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
@@ -58,9 +58,10 @@ object HelloWorldTests extends utest.TestSuite {
     }
   }
 
-  def workspaceTest[T](m: TestUtil.BaseModule, resourcePath: os.Path = resourcePath)
-                      (t: TestEvaluator => T)
-                      (implicit tp: TestPath): T = {
+  def workspaceTest[T](
+      m: TestUtil.BaseModule,
+      resourcePath: os.Path = resourcePath
+  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -82,7 +83,8 @@ object HelloWorldTests extends utest.TestSuite {
         }
         "scoverage" - {
           "unmanagedClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
+            val Right((result, evalCount)) =
+              eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
 
             assert(
               result.map(_.toString).exists(_.contains("unmanaged.xml")),
@@ -111,7 +113,9 @@ object HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
 
             assert(
-              result.path.toIO.getPath.endsWith("mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data/dest"),
+              result.path.toIO.getPath.endsWith(
+                "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data/dest"
+              ),
               evalCount > 0
             )
           }
@@ -133,7 +137,8 @@ object HelloWorldTests extends utest.TestSuite {
         }
         "test" - {
           "upstreamAssemblyClasspath" - workspaceTest(HelloWorld) { eval =>
-            val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
+            val Right((result, evalCount)) =
+              eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
             assert(
               result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),

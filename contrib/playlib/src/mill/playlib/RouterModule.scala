@@ -14,17 +14,17 @@ trait RouterModule extends ScalaModule with Version {
 
   def routeFiles = T {
     val paths = routes().flatMap(file => os.walk(file.path))
-    val routeFiles=paths.filter(_.ext=="routes") ++ paths.filter(_.last == "routes")
-    routeFiles.map(f=>PathRef(f))
+    val routeFiles = paths.filter(_.ext == "routes") ++ paths.filter(_.last == "routes")
+    routeFiles.map(f => PathRef(f))
   }
 
   /**
-    * A [[Seq]] of additional imports to be added to the routes file.
-    * Defaults to :
-    *
-    * - controllers.Assets.Asset
-    * - play.libs.F
-    */
+   * A [[Seq]] of additional imports to be added to the routes file.
+   * Defaults to :
+   *
+   * - controllers.Assets.Asset
+   * - play.libs.F
+   */
   def routesAdditionalImport: Seq[String] = Seq(
     "controllers.Assets.Asset",
     "play.libs.F"
@@ -37,13 +37,13 @@ trait RouterModule extends ScalaModule with Version {
   def namespaceReverseRouter: Boolean = false
 
   /**
-    * The routes compiler type to be used.
-    *
-    * Can only be one of:
-    *
-    * - [[RouteCompilerType.InjectedGenerator]]
-    * - [[RouteCompilerType.StaticGenerator]]
-    */
+   * The routes compiler type to be used.
+   *
+   * Can only be one of:
+   *
+   * - [[RouteCompilerType.InjectedGenerator]]
+   * - [[RouteCompilerType.StaticGenerator]]
+   */
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
@@ -71,11 +71,13 @@ trait RouterModule extends ScalaModule with Version {
       generateReverseRouter,
       namespaceReverseRouter,
       generatorType,
-      T.dest)
+      T.dest
+    )
   }
 
   def playRouteCompilerWorkerClasspath = T {
-    val workerKey = "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
+    val workerKey =
+      "MILL_CONTRIB_PLAYLIB_ROUTECOMPILER_WORKER_" + playMinorVersion().replace(".", "_")
 
     mill.modules.Util.millProjectModule(
       workerKey,
@@ -92,7 +94,7 @@ trait RouterModule extends ScalaModule with Version {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
-  def routerClasses = T{
+  def routerClasses = T {
     Seq(compileRouter().classes)
   }
 

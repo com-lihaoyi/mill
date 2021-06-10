@@ -32,7 +32,6 @@ object BSP extends ExternalModule {
    * If the creation of the .bsp folder fails due to any other
    * reason, the message and stacktrace of the exception will be
    * printed to stdout.
-   *
    */
   def install(evaluator: Evaluator): Command[Unit] =
     T.command {
@@ -43,7 +42,8 @@ object BSP extends ExternalModule {
       } catch {
         case _: FileAlreadyExistsException =>
           T.log.info(
-            "The bsp connection json file probably exists already - will be overwritten")
+            "The bsp connection json file probably exists already - will be overwritten"
+          )
           os.remove(bspDirectory / "mill.json")
           os.write(bspDirectory / "mill.json", createBspConnectionJson())
         case e: Exception =>
@@ -58,12 +58,20 @@ object BSP extends ExternalModule {
     val millPath = sys.props
       .get("java.class.path")
       .getOrElse(throw new IllegalStateException(
-        "System property java.class.path not set"))
+        "System property java.class.path not set"
+      ))
 
     write(
       BspConfigJson(
         name = "mill-bsp",
-        argv = Seq(millPath, "-i", "--disable-ticker", "--color", "false", s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"),
+        argv = Seq(
+          millPath,
+          "-i",
+          "--disable-ticker",
+          "--color",
+          "false",
+          s"${BSP.getClass.getCanonicalName.split("[$]").head}/start"
+        ),
         millVersion = Util.millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion),
         bspVersion = bspProtocolVersion,
         languages = languages
@@ -97,7 +105,8 @@ object BSP extends ExternalModule {
       val millServer = new MillBuildServer(
         evaluator,
         bspProtocolVersion,
-        BuildInfo.millVersion)
+        BuildInfo.millVersion
+      )
       val executor = Executors.newCachedThreadPool()
 
       val logger = T.ctx.log
@@ -110,7 +119,8 @@ object BSP extends ExternalModule {
           .setLocalService(millServer)
           .setRemoteInterface(classOf[BuildClient])
           .traceMessages(new PrintWriter(
-            (evaluator.rootModule.millSourcePath / ".bsp" / "mill.log").toIO))
+            (evaluator.rootModule.millSourcePath / ".bsp" / "mill.log").toIO
+          ))
           .setExecutorService(executor)
           .create()
         millServer.onConnectWithClient(launcher.getRemoteProxy)
@@ -124,10 +134,10 @@ object BSP extends ExternalModule {
         case e: Exception =>
           T.log.error(
             s"""An exception occured while connecting to the client.
-               |Cause: ${e.getCause}
-               |Message: ${e.getMessage}
-               |Exception class: ${e.getClass}
-               |Stack Trace: ${e.getStackTrace}""".stripMargin
+              |Cause: ${e.getCause}
+              |Message: ${e.getMessage}
+              |Exception class: ${e.getClass}
+              |Stack Trace: ${e.getStackTrace}""".stripMargin
           )
       } finally {
         T.log.error("Shutting down executor")
