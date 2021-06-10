@@ -25,7 +25,7 @@ object HelloJSWorldTests extends TestSuite {
 
   object HelloJSWorld extends TestUtil.BaseModule {
     val scalaVersions = Seq("2.13.3", "3.0.0-RC1", "2.12.12", "2.11.12")
-    val scalaJSVersionsAndUseECMA2015 = Seq(("1.4.0", false), ("1.3.1", true), ("1.0.1", false), ("0.6.33", false))
+    val scalaJSVersionsAndUseECMA2015 = Seq(("1.4.0", false), ("1.3.1", true), ("1.4.0", false), ("0.6.33", false))
     val matrix = for {
       scala <- scalaVersions
       (scalaJS, useECMAScript2015) <- scalaJSVersionsAndUseECMA2015
@@ -146,7 +146,7 @@ object HelloJSWorldTests extends TestSuite {
         assert(result.id == artifactId)
       }
       "artifactId_06" - testArtifactId(HelloJSWorld.scalaVersions.head, "0.6.33", "hello-js-world_sjs0.6_2.13")
-      "artifactId_10" - testArtifactId(HelloJSWorld.scalaVersions.head, "1.0.1", "hello-js-world_sjs1_2.13")
+      "artifactId_10" - testArtifactId(HelloJSWorld.scalaVersions.head, "1.4.0", "hello-js-world_sjs1_2.13")
       "artifactId_1" - testArtifactId(HelloJSWorld.scalaVersions.head, "1.4.0", "hello-js-world_sjs1_2.13")
     }
 
