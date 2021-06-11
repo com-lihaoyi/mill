@@ -70,7 +70,7 @@ trait CoursierModule extends mill.Module {
   /**
     * The repositories used to resolved dependencies with [[resolveDeps()]].
     */
-  @deprecated("Use repositoriesTask instead", "after mill 0.8.0")
+  @deprecated("Use repositoriesTask instead", "mill after 0.8.0")
   def repositories: Seq[Repository] = Resolve.defaultRepositories
 
 }

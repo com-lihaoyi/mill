@@ -373,13 +373,6 @@ object Task {
 
   }
 
-  @deprecated("Use `Target.traverse` or `T.traverse`")
-  def traverse[T, V](source: Seq[T])(f: T => Task[V]) = {
-    new Sequence[V](source.map(f))
-  }
-  @deprecated("Use `Target.sequence` or `T.sequence`")
-  def sequence[T](source: Seq[Task[T]]) = new Sequence[T](source)
-
   class Sequence[+T](inputs0: Seq[Task[T]]) extends Task[Seq[T]]{
     val inputs = inputs0
     def evaluate(args: mill.api.Ctx) = {

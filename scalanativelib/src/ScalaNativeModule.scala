@@ -58,7 +58,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
   }
 
   override def transitiveIvyDeps: T[Agg[Dep]] = T{
-    ivyDeps() ++ nativeIvyDeps() ++ Task.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    ivyDeps() ++ nativeIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
