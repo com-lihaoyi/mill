@@ -113,7 +113,7 @@ object Jvm {
     runSubprocess(commandArgs, envArgs, workingDir)
   }
 
-  @deprecated("Only provided for binary compatibility. Use one of the other overloads.", "after mill 0.9.6")
+  @deprecated("Only provided for binary compatibility. Use one of the other overloads.", "mill after 0.9.6")
   def runSubprocess(mainClass: String,
                     classPath: Agg[os.Path],
                     jvmArgs: Seq[String],

@@ -2,7 +2,7 @@ package mill.contrib.scoverage
 
 import mill._
 import mill.api.Result
-import mill.contrib.BuildInfo
+import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
 import mill.util.{TestEvaluator, TestUtil}
 import utest._

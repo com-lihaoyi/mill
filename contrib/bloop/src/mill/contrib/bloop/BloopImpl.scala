@@ -28,7 +28,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * under pwd/.bloop.
     */
   def install() = T.command {
-    val res = Task.traverse(computeModules)(_.bloop.writeConfig)()
+    val res = T.traverse(computeModules)(_.bloop.writeConfig)()
     val written = res.map(_._2).map(_.path)
     // Make bloopDir if it doesn't exists
     if (!os.exists(bloopDir)) {
@@ -138,7 +138,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     * from module#sources in bloopInstall
     */
   def moduleSourceMap = T.input {
-    val sources = Task.traverse(computeModules) { m =>
+    val sources = T.traverse(computeModules) { m =>
       m.allSources.map { paths =>
         m.millModuleSegments.render -> paths.map(_.path)
       }
@@ -397,7 +397,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
     def transitiveClasspath(m: JavaModule): Task[Seq[Path]] = T.task {
       (m.moduleDeps ++ m.compileModuleDeps).map(classes) ++
         m.unmanagedClasspath().map(_.path) ++
-        Task.traverse(m.moduleDeps ++ m.compileModuleDeps)(transitiveClasspath)().flatten
+        T.traverse(m.moduleDeps ++ m.compileModuleDeps)(transitiveClasspath)().flatten
     }
 
     val classpath = T

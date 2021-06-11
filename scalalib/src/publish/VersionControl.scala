@@ -20,12 +20,6 @@ case class VersionControl(
   tag: Option[String] = None
 )
 
-@deprecated("use VersionControl", "0.1.3")
-case class SCM(
-    url: String,
-    connection: String
-)
-
 object VersionControl {
   def github(owner: String, repo: String, tag: Option[String] = None): VersionControl =
     VersionControl(
