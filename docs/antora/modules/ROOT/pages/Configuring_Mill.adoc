@@ -301,9 +301,9 @@ object foo extends ScalaModule with ScalafmtModule {
 
 Now you can reformat code with `mill foo.reformat` command, or only check for misformatted files with `mill foo.checkFormat`.
 
-You can also reformat your project's code globally with `mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources` command,
-or only check the code's format with `mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources`.
-It will reformat all sources that matches `__.sources` query.
+You can also reformat your project's code globally with `+mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources+` command,
+or only check the code's format with `+mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources+`.
+It will reformat all sources that matches `+__.sources+` query.
 
 If you add a `.scalafmt.conf` file at the root of you project, it will be used
 to configure formatting. It can contain a `version` key to specify the scalafmt
