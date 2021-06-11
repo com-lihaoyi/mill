@@ -38,7 +38,7 @@ trait TestModule extends JavaModule with TaskModule {
    */
   def test(args: String*): Command[(String, Seq[TestRunner.Result])] =
     T.command {
-      testTask(T.task { args })()
+      testTask(T.task { args }, T.task{ Seq.empty[String] })()
     }
 
   /**
@@ -53,7 +53,7 @@ trait TestModule extends JavaModule with TaskModule {
    * @see [[test()]]
    */
   def testCached: T[(String, Seq[TestRunner.Result])] = T {
-    testTask(testCachedArgs)()
+    testTask(testCachedArgs, T.task{ Seq.empty[String] })()
   }
 
   /**
