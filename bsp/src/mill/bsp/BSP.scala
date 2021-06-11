@@ -48,7 +48,7 @@ object BSP extends ExternalModule {
           os.write(bspDirectory / "mill.json", createBspConnectionJson())
         case e: Exception =>
           T.log.error("An exception occurred while installing mill-bsp")
-          e.printStackTrace()
+          e.printStackTrace(T.log.errorStream)
       }
 
     }
