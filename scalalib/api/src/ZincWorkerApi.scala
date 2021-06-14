@@ -153,6 +153,11 @@ object Util {
       case _ => false
     }
 
+  def versionNumbers(version: String): Seq[String] = {
+    (for (segments <- version.split('.').inits.filter(_.nonEmpty))
+      yield segments.mkString(".")).to(Seq)
+  }
+
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
