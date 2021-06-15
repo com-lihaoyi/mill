@@ -156,9 +156,9 @@ object Util {
   /**
     * Given a version string using a semantic versioning scheme (like x.y.z) it
     * returns all the sub-versions in it (major, minor, patch, etc.).
-    * For example, versionNumbers("2.0.0") returns "2.0.0", "2.0" and "2"
+    * For example, matchingVersions("2.0.0") returns "2.0.0", "2.0" and "2"
     */
-  def versionNumbers(version: String): Seq[String] = {
+  def matchingVersions(version: String): Seq[String] = {
     (for (segments <- version.split('.').inits.filter(_.nonEmpty))
       yield segments.mkString(".")).to(Seq)
   }

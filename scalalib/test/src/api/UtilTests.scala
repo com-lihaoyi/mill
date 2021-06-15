@@ -4,8 +4,8 @@ import utest._
 
 object UtilTests extends TestSuite {
   val tests = Tests {
-    test("versionNumbers") {
-      val res = Util.versionNumbers("2.12.12")
+    test("matchingVersions") {
+      val res = Util.matchingVersions("2.12.12")
 
       val exp = Seq("2.12.12", "2.12", "2")
 
