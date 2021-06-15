@@ -153,11 +153,24 @@ object Util {
       case _ => false
     }
 
+  /**
+    * Given a version string using a semantic versioning scheme (like x.y.z) it
+    * returns all the sub-versions in it (major, minor, patch, etc.).
+    * For example, versionNumbers("2.0.0") returns "2.0.0", "2.0" and "2"
+    */
   def versionNumbers(version: String): Seq[String] = {
     (for (segments <- version.split('.').inits.filter(_.nonEmpty))
       yield segments.mkString(".")).to(Seq)
   }
 
+  /**
+    * Given a version string and the sequence of all the possible versions strings
+    * using a semantic versioning scheme (like x.y.z) it returns all the version
+    * ranges that contain `version` for all sub-version (major, minor, patch) in
+    * `allVersions`.
+    * For example, `versionRanges("2.0", Seq("1.0", "2.0", "3.0"))` returns versions
+    * like `"1+"`, `"3-"`, `"3.0-"`, `"2+"`, `"2-"` and so on.  
+    */
   def versionRanges(version: String, allVersions: Seq[String]): Seq[String] = {
     import scala.math.Ordering.Implicits._
     val versionParts = version.split('.').map(_.toIntOption).takeWhile(_.isDefined).map(_.get)
