@@ -5,9 +5,9 @@ import java.util.jar.{Attributes, JarFile}
 import mill.Agg
 import utest.{TestSuite, Tests, test}
 
-object JvmTests extends TestSuite{
+object JvmTests extends TestSuite {
 
-  val tests = Tests{
+  val tests = Tests {
 
     test("createClasspathPassingJar") {
       val tmpDir = os.temp.dir()

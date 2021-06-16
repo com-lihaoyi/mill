@@ -1,13 +1,12 @@
 package mill.eval
 
-
 import mill.define.Discover
 import mill.util.TestEvaluator
 
 import mill.util.TestGraphs.{crossResolved, doubleCross, nestedCrosses, singleCross}
 import utest._
-object CrossTests extends TestSuite{
-  val tests = Tests{
+object CrossTests extends TestSuite {
+  val tests = Tests {
     "singleCross" - {
       val check = new TestEvaluator(singleCross)
 
@@ -27,7 +26,6 @@ object CrossTests extends TestSuite{
       val Right(("_2.11", 1)) = check.apply(crossResolved.bar("2.11").longSuffix)
       val Right(("_2.12", 1)) = check.apply(crossResolved.bar("2.12").longSuffix)
     }
-
 
     "doubleCross" - {
       val check = new TestEvaluator(doubleCross)

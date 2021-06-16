@@ -10,7 +10,6 @@ import coursier.{Dependency, Fetch, Repository, Resolution}
 import mill.api.{Ctx, Loose, PathRef, Result}
 import sbt.testing._
 
-
 object Lib {
   def depToDependencyJava(dep: Dep, platformSuffix: String = ""): Dependency = {
     assert(dep.cross.isConstant, s"Not a Java dependency: $dep")
@@ -24,12 +23,14 @@ object Lib {
       platformSuffix = platformSuffix
     )
 
-  def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  depToDependency: Dep => coursier.Dependency,
-                                  deps: IterableOnce[Dep],
-                                  mapDependencies: Option[Dependency => Dependency] = None,
-                                  customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-                                  ctx: Option[Ctx.Log] = None): (Seq[Dependency], Resolution) = {
+  def resolveDependenciesMetadata(
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[Ctx.Log] = None
+  ): (Seq[Dependency], Resolution) = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependenciesMetadata(
       repositories = repositories,
@@ -42,19 +43,21 @@ object Lib {
   }
 
   /**
-    * Resolve dependencies using Coursier.
-    *
-    * We do not bother breaking this out into the separate ZincWorker classpath,
-    * because Coursier is already bundled with mill/Ammonite to support the
-    * `import $ivy` syntax.
-    */
-  def resolveDependencies(repositories: Seq[Repository],
-                          depToDependency: Dep => coursier.Dependency,
-                          deps: IterableOnce[Dep],
-                          sources: Boolean = false,
-                          mapDependencies: Option[Dependency => Dependency] = None,
-                          customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-                          ctx: Option[Ctx.Log] = None): Result[Agg[PathRef]] = {
+   * Resolve dependencies using Coursier.
+   *
+   * We do not bother breaking this out into the separate ZincWorker classpath,
+   * because Coursier is already bundled with mill/Ammonite to support the
+   * `import $ivy` syntax.
+   */
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[Ctx.Log] = None
+  ): Result[Agg[PathRef]] = {
     val depSeq = deps.iterator.toSeq
     mill.modules.Jvm.resolveDependencies(
       repositories = repositories,
@@ -107,8 +110,7 @@ object Lib {
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::dotty-library:$scalaVersion".forceVersion()
       )
-    }
-    else if (mill.scalalib.api.Util.isScala3(scalaVersion))
+    } else if (mill.scalalib.api.Util.isScala3(scalaVersion))
       Agg(
         // note that dotty-library has a binary version suffix, hence the :: is necessary here
         ivy"$scalaOrganization::scala3-library::$scalaVersion".forceVersion()
@@ -119,14 +121,21 @@ object Lib {
       )
 
   def listClassFiles(base: os.Path): Iterator[String] = {
-    if (os.isDir(base)) os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
+    if (os.isDir(base))
+      os.walk(base).iterator.filter(_.ext == "class").map(_.relativeTo(base).toString)
     else {
       val zip = new ZipInputStream(new FileInputStream(base.toIO))
-      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(".class"))
+      Iterator.continually(zip.getNextEntry).takeWhile(_ != null).map(_.getName).filter(_.endsWith(
+        ".class"
+      ))
     }
   }
 
-  def discoverTests(cl: ClassLoader, framework: Framework, classpath: Loose.Agg[os.Path]): Loose.Agg[(Class[_], Fingerprint)] = {
+  def discoverTests(
+      cl: ClassLoader,
+      framework: Framework,
+      classpath: Loose.Agg[os.Path]
+  ): Loose.Agg[(Class[_], Fingerprint)] = {
 
     val fingerprints = framework.fingerprints()
 
@@ -139,10 +148,12 @@ object Lib {
         val publicConstructorCount =
           cls.getConstructors.count(c => Modifier.isPublic(c.getModifiers))
 
-        if (Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1) {
+        if (
+          Modifier.isAbstract(cls.getModifiers) || cls.isInterface || publicConstructorCount > 1
+        ) {
           None
         } else {
-          (cls.getName.endsWith("$"), publicConstructorCount == 0) match{
+          (cls.getName.endsWith("$"), publicConstructorCount == 0) match {
             case (true, true) => matchFingerprints(cl, cls, fingerprints, isModule = true)
             case (false, false) => matchFingerprints(cl, cls, fingerprints, isModule = false)
             case _ => None
@@ -153,30 +164,42 @@ object Lib {
 
     testClasses
   }
-  def matchFingerprints(cl: ClassLoader, cls: Class[_], fingerprints: Array[Fingerprint], isModule: Boolean): Option[(Class[_], Fingerprint)] = {
+  def matchFingerprints(
+      cl: ClassLoader,
+      cls: Class[_],
+      fingerprints: Array[Fingerprint],
+      isModule: Boolean
+  ): Option[(Class[_], Fingerprint)] = {
     fingerprints.find {
       case f: SubclassFingerprint =>
         f.isModule == isModule &&
-        cl.loadClass(f.superclassName()).isAssignableFrom(cls)
+          cl.loadClass(f.superclassName()).isAssignableFrom(cls)
 
       case f: AnnotatedFingerprint =>
         val annotationCls = cl.loadClass(f.annotationName()).asInstanceOf[Class[Annotation]]
         f.isModule == isModule &&
-          (
-            cls.isAnnotationPresent(annotationCls) ||
+        (
+          cls.isAnnotationPresent(annotationCls) ||
             cls.getDeclaredMethods.exists(_.isAnnotationPresent(annotationCls)) ||
-            cls.getMethods.exists(m => m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers()))
-          )
+            cls.getMethods.exists(m =>
+              m.isAnnotationPresent(annotationCls) && Modifier.isPublic(m.getModifiers())
+            )
+        )
 
     }.map { f => (cls, f) }
   }
 
-  @deprecated("User other overload instead. Only for binary backward compatibility.", "mill after 0.9.6")
-  def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  depToDependency: Dep => coursier.Dependency,
-                                  deps: IterableOnce[Dep],
-                                  mapDependencies: Option[Dependency => Dependency],
-                                  ctx: Option[Ctx.Log]): (Seq[Dependency], Resolution) =
+  @deprecated(
+    "User other overload instead. Only for binary backward compatibility.",
+    "mill after 0.9.6"
+  )
+  def resolveDependenciesMetadata(
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      mapDependencies: Option[Dependency => Dependency],
+      ctx: Option[Ctx.Log]
+  ): (Seq[Dependency], Resolution) =
     resolveDependenciesMetadata(
       repositories = repositories,
       depToDependency = depToDependency,
@@ -186,13 +209,18 @@ object Lib {
       ctx = ctx
     )
 
-  @deprecated("User other overload instead. Only for binary backward compatibility.", "mill after 0.9.6")
-  def resolveDependencies(repositories: Seq[Repository],
-                          depToDependency: Dep => coursier.Dependency,
-                          deps: IterableOnce[Dep],
-                          sources: Boolean,
-                          mapDependencies: Option[Dependency => Dependency],
-                          ctx: Option[Ctx.Log]): Result[Agg[PathRef]] =
+  @deprecated(
+    "User other overload instead. Only for binary backward compatibility.",
+    "mill after 0.9.6"
+  )
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      depToDependency: Dep => coursier.Dependency,
+      deps: IterableOnce[Dep],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      ctx: Option[Ctx.Log]
+  ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories = repositories,
       depToDependency = depToDependency,

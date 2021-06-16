@@ -3,8 +3,8 @@ package mill.integration
 import utest._
 
 class AcyclicTests(fork: Boolean)
-  extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
-  val tests = Tests{
+    extends IntegrationTestSuite("MILL_ACYCLIC_REPO", "acyclic", fork) {
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
@@ -15,7 +15,7 @@ class AcyclicTests(fork: Boolean)
         os.walk(workspacePath).exists(_.last == "GraphAnalysis.class"),
         os.walk(workspacePath).exists(_.last == "PluginPhase.class")
       )
-      for(scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")){
+      for (scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")) {
         os.write.append(scalaFile, "\n}")
       }
 

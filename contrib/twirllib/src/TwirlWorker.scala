@@ -50,7 +50,8 @@ class TwirlWorker {
         val codecApplyMethod = codecClass.getMethod("apply", charsetClass)
         val charsetForNameMethod = charsetClass.getMethod("forName", classOf[java.lang.String])
 
-        val compileMethod = twirlCompilerClass.getMethod("compile",
+        val compileMethod = twirlCompilerClass.getMethod(
+          "compile",
           classOf[java.io.File],
           classOf[java.io.File],
           classOf[java.io.File],
@@ -58,17 +59,20 @@ class TwirlWorker {
           cl.loadClass("java.util.Collection"),
           cl.loadClass("java.util.List"),
           cl.loadClass("scala.io.Codec"),
-          classOf[Boolean])
+          classOf[Boolean]
+        )
 
         val instance = new TwirlWorkerApi {
-          override def compileTwirl(source: File,
-                                    sourceDirectory: File,
-                                    generatedDirectory: File,
-                                    formatterType: String,
-                                    imports: Seq[String],
-                                    constructorAnnotations: Seq[String],
-                                    codec: Codec,
-                                    inclusiveDot: Boolean): Unit = {
+          override def compileTwirl(
+              source: File,
+              sourceDirectory: File,
+              generatedDirectory: File,
+              formatterType: String,
+              imports: Seq[String],
+              constructorAnnotations: Seq[String],
+              codec: Codec,
+              inclusiveDot: Boolean
+          ): Unit = {
             // val twirlImports = new HashSet()
             // imports.foreach(twirlImports.add)
             val twirlImports = hashSetClass.newInstance().asInstanceOf[Object]
@@ -76,13 +80,18 @@ class TwirlWorker {
             imports.foreach(hashSetAddMethod.invoke(twirlImports, _))
 
             // Codec.apply(Charset.forName(codec.charSet.name()))
-            val twirlCodec = codecApplyMethod.invoke(null, charsetForNameMethod.invoke(null, codec.charSet.name()))
+            val twirlCodec =
+              codecApplyMethod.invoke(null, charsetForNameMethod.invoke(null, codec.charSet.name()))
 
             // val twirlConstructorAnnotations = new ArrayList()
             // constructorAnnotations.foreach(twirlConstructorAnnotations.add)
             val twirlConstructorAnnotations = arrayListClass.newInstance().asInstanceOf[Object]
-            val arrayListAddMethod = twirlConstructorAnnotations.getClass.getMethod("add", classOf[Object])
-            constructorAnnotations.foreach(arrayListAddMethod.invoke(twirlConstructorAnnotations, _))
+            val arrayListAddMethod =
+              twirlConstructorAnnotations.getClass.getMethod("add", classOf[Object])
+            constructorAnnotations.foreach(arrayListAddMethod.invoke(
+              twirlConstructorAnnotations,
+              _
+            ))
 
             // JavaAPI
             //   public static Optional<File> compile(
@@ -95,7 +104,9 @@ class TwirlWorker {
             //   Codec codec,
             //   boolean inclusiveDot
             // )
-            val o = compileMethod.invoke(null, source,
+            val o = compileMethod.invoke(
+              null,
+              source,
               sourceDirectory,
               generatedDirectory,
               formatterType,
@@ -126,17 +137,19 @@ class TwirlWorker {
       "html" -> "play.twirl.api.HtmlFormat",
       "xml" -> "play.twirl.api.XmlFormat",
       "js" -> "play.twirl.api.JavaScriptFormat",
-      "txt" -> "play.twirl.api.TxtFormat")
+      "txt" -> "play.twirl.api.TxtFormat"
+    )
 
-  def compile(twirlClasspath: Agg[os.Path],
-              sourceDirectories: Seq[os.Path],
-              dest: os.Path,
-              imports: Seq[String],
-              formats: Map[String, String],
-              constructorAnnotations: Seq[String],
-              codec: Codec,
-              inclusiveDot: Boolean)
-             (implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
+  def compile(
+      twirlClasspath: Agg[os.Path],
+      sourceDirectories: Seq[os.Path],
+      dest: os.Path,
+      imports: Seq[String],
+      formats: Map[String, String],
+      constructorAnnotations: Seq[String],
+      codec: Codec,
+      inclusiveDot: Boolean
+  )(implicit ctx: mill.api.Ctx): mill.api.Result[CompilationResult] = {
     val compiler = twirl(twirlClasspath)
     val formatExtsRegex = formats.keys.map(Regex.quote).mkString("|")
 
@@ -144,7 +157,8 @@ class TwirlWorker {
       os.walk(inputDir).filter(_.last.matches(s".*.scala.($formatExtsRegex)"))
         .foreach { template =>
           val extClass = twirlExtensionClass(template.last, formats)
-          compiler.compileTwirl(template.toIO,
+          compiler.compileTwirl(
+            template.toIO,
             inputDir.toIO,
             dest.toIO,
             extClass,
@@ -166,19 +180,23 @@ class TwirlWorker {
 
   private def twirlExtensionClass(name: String, formats: Map[String, String]) =
     formats.collectFirst { case (ext, klass) if name.endsWith(ext) => klass }.getOrElse {
-      throw new IllegalStateException(s"Unknown twirl extension for file: $name. Known extensions: ${formats.keys.mkString(", ")}")
+      throw new IllegalStateException(
+        s"Unknown twirl extension for file: $name. Known extensions: ${formats.keys.mkString(", ")}"
+      )
     }
 }
 
 trait TwirlWorkerApi {
-  def compileTwirl(source: File,
-                   sourceDirectory: File,
-                   generatedDirectory: File,
-                   formatterType: String,
-                   imports: Seq[String],
-                   constructorAnnotations: Seq[String],
-                   codec: Codec,
-                   inclusiveDot: Boolean): Unit
+  def compileTwirl(
+      source: File,
+      sourceDirectory: File,
+      generatedDirectory: File,
+      formatterType: String,
+      imports: Seq[String],
+      constructorAnnotations: Seq[String],
+      codec: Codec,
+      inclusiveDot: Boolean
+  ): Unit
 }
 
 object TwirlWorkerApi {

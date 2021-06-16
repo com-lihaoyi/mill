@@ -24,10 +24,15 @@ object LocalM2PublisherTests extends TestSuite {
       val artifact = Artifact("group.org", "id", "version")
       val res = publisher.publish(
         repo / "jar",
-        repo / "src", repo / "doc",
+        repo / "src",
+        repo / "doc",
         repo / "pom",
         artifact,
-        Seq(PublishInfo(file = PathRef(repo / "extra"), classifier = Some("extra"), ivyConfig = "compile"))
+        Seq(PublishInfo(
+          file = PathRef(repo / "extra"),
+          classifier = Some("extra"),
+          ivyConfig = "compile"
+        ))
       )
       val expected = Set(
         subrepo / "id-version.jar",
@@ -40,7 +45,7 @@ object LocalM2PublisherTests extends TestSuite {
         res.size == 5,
         res.toSet == expected,
         os.walk(subrepo).filter(os.isFile).toSet == expected,
-        os.read(subrepo  / "id-version.jar") == "JAR"
+        os.read(subrepo / "id-version.jar") == "JAR"
       )
     }
 

@@ -3,8 +3,7 @@ package mill.integration
 import mill.util.ScriptTestSuite
 import utest._
 
-class HygieneTests(fork: Boolean)
-  extends ScriptTestSuite(fork) {
+class HygieneTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "hygiene"
   def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
 

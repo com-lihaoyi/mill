@@ -12,10 +12,7 @@ object Artifact {
     fromDep(dep, "", "", "")
   }
 
-  def fromDep(dep: Dep,
-              scalaFull: String,
-              scalaBin: String,
-              platformSuffix: String): Dependency = {
+  def fromDep(dep: Dep, scalaFull: String, scalaBin: String, platformSuffix: String): Dependency = {
     val name = dep.artifactName(
       binaryVersion = scalaBin,
       fullVersion = scalaFull,
@@ -30,7 +27,7 @@ object Artifact {
       Scope.Compile,
       dep.dep.optional,
       if (dep.dep.configuration.isEmpty) None else Some(dep.dep.configuration.value),
-      dep.dep.exclusions.toList.map{case (a, b) => (a.value, b.value)}
+      dep.dep.exclusions.toList.map { case (a, b) => (a.value, b.value) }
     )
   }
 }

@@ -14,15 +14,15 @@ import org.flywaydb.core.internal.info.MigrationInfoDumper
 
 import scala.collection.JavaConverters._
 
-
 trait FlywayModule extends JavaModule {
 
   def flywayUrl: T[String]
   def flywayUser: T[String] = T("")
   def flywayPassword: T[String] = T("")
-  def flywayFileLocations: T[Seq[PathRef]] = T(resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick)))
+  def flywayFileLocations: T[Seq[PathRef]] =
+    T(resources().map(pr => PathRef(pr.path / "db" / "migration", pr.quick)))
   def flywayDriverDeps: T[Agg[Dep]]
-  def jdbcClasspath = T ( resolveDependencies(
+  def jdbcClasspath = T(resolveDependencies(
     repositoriesTask(),
     Lib.depToDependencyJava(_),
     flywayDriverDeps()
@@ -56,8 +56,9 @@ trait FlywayModule extends JavaModule {
     val log = T.log
     val info = flywayInstance().info
     val current = info.current
-    val currentSchemaVersion = if (current == null) MigrationVersion.EMPTY
-    else current.getVersion
+    val currentSchemaVersion =
+      if (current == null) MigrationVersion.EMPTY
+      else current.getVersion
     log.info("Schema version: " + currentSchemaVersion)
     log.info(MigrationInfoDumper.dumpToAsciiTable(info.all))
   }

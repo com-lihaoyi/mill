@@ -2,8 +2,9 @@ package mill.integration
 
 import utest._
 
-class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
-  val tests = Tests{
+class CaffeineTests(fork: Boolean)
+    extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
+  val tests = Tests {
     initWorkspace()
     'test - {
       // Caffeine only can build using Java 9 or up. Java 8 results in weird
@@ -20,7 +21,8 @@ class CaffeineTests(fork: Boolean) extends IntegrationTestSuite("MILL_CAFFEINE_R
         )
         assert(eval(
           "caffeine.test",
-          "-testclass", suites.mkString(",")
+          "-testclass",
+          suites.mkString(",")
         ))
         assert(eval("guava.test.compile"))
         val guavaSuites = Seq(

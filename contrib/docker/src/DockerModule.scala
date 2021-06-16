@@ -9,17 +9,18 @@ import scala.collection.immutable._
 trait DockerModule { outer: JavaModule =>
 
   trait DockerConfig extends mill.Module {
+
     /**
-      * Tags that should be applied to the built image
-      * In the standard registry/repository:tag format
-      */
+     * Tags that should be applied to the built image
+     * In the standard registry/repository:tag format
+     */
     def tags: T[Seq[String]] = T(List(outer.artifactName()))
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
     private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
       val pull = pullBaseImage()
-      if(pull) (pull, Math.random()) else (pull, 0d)
+      if (pull) (pull, Math.random()) else (pull, 0d)
     }
 
     def dockerfile: T[String] = T {
@@ -34,13 +35,13 @@ trait DockerModule { outer: JavaModule =>
         }
         .mkString(" ")
 
-      val labelLine = if(labels().isEmpty) "" else s"LABEL $labelRhs"
+      val labelLine = if (labels().isEmpty) "" else s"LABEL $labelRhs"
 
       s"""
-         |FROM ${baseImage()}
-         |$labelLine
-         |COPY $jarName /$jarName
-         |ENTRYPOINT ["java", "-jar", "/$jarName"]
+        |FROM ${baseImage()}
+        |$labelLine
+        |COPY $jarName /$jarName
+        |ENTRYPOINT ["java", "-jar", "/$jarName"]
       """.stripMargin
     }
 
@@ -57,13 +58,14 @@ trait DockerModule { outer: JavaModule =>
       val tagArgs = tags().flatMap(t => List("-t", t))
 
       val (pull, _) = baseImageCacheBuster()
-      val pullLatestBase = IterableShellable(if(pull) Some("--pull") else None)
+      val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
       val result = os
         .proc("docker", "build", tagArgs, pullLatestBase, dest)
         .call(stdout = os.Inherit, stderr = os.Inherit)
 
-      log.info(s"Docker build completed ${if(result.exitCode == 0) "successfully" else "unsuccessfully"} with ${result.exitCode}")
+      log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
+      else "unsuccessfully"} with ${result.exitCode}")
       tags()
     }
 

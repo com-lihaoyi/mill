@@ -7,26 +7,24 @@ import mill.api.Result.Success
 import utest._
 import utest.framework.TestPath
 
-
-object CacherTests extends TestSuite{
+object CacherTests extends TestSuite {
   object Base extends Base
-  trait Base extends TestUtil.BaseModule{
-    def value = T{ 1 }
-    def result = T{ Success(1) }
+  trait Base extends TestUtil.BaseModule {
+    def value = T { 1 }
+    def result = T { Success(1) }
   }
   object Middle extends Middle
-  trait Middle extends Base{
-    override def value = T{ super.value() + 2}
-    def overriden = T{ super.value()}
+  trait Middle extends Base {
+    override def value = T { super.value() + 2 }
+    def overriden = T { super.value() }
   }
-  object Terminal extends  Terminal
-  trait Terminal extends Middle{
-    override def value = T{ super.value() + 4}
+  object Terminal extends Terminal
+  trait Terminal extends Middle {
+    override def value = T { super.value() + 4 }
   }
 
-  val tests = Tests{
-    def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])
-                                         (implicit tp: TestPath) = {
+  val tests = Tests {
+    def eval[T <: TestUtil.BaseModule, V](mapping: T, v: Task[V])(implicit tp: TestPath) = {
       val evaluator = new TestEvaluator(mapping)
       evaluator(v).right.get._1
     }
@@ -42,7 +40,6 @@ object CacherTests extends TestSuite{
       Predef.assert(eval(Base, Base.result) == 1)
     }
 
-
     "overridingDefIsAlsoCached" - {
       Predef.assert(eval(Middle, Middle.value) == 3)
       Predef.assert(Middle.value eq Middle.value)
@@ -51,7 +48,6 @@ object CacherTests extends TestSuite{
     "overridenDefRemainsAvailable" - {
       Predef.assert(eval(Middle, Middle.overriden) == 1)
     }
-
 
     "multipleOverridesWork" - {
       Predef.assert(eval(Terminal, Terminal.value) == 7)
@@ -72,4 +68,3 @@ object CacherTests extends TestSuite{
     //    }
   }
 }
-

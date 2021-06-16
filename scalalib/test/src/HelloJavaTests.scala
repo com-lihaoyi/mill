@@ -1,22 +1,20 @@
 package mill
 package scalalib
 
-
 import mill.api.Result
 import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
 
-
 object HelloJavaTests extends TestSuite {
 
-  object HelloJava extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  object HelloJava extends TestUtil.BaseModule {
+    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
-    object core extends JavaModule{
+    object core extends JavaModule {
       object test extends Tests with TestModule.Junit4
     }
-    object app extends JavaModule{
+    object app extends JavaModule {
       def moduleDeps = Seq(core)
       object test extends Tests with TestModule.Junit4
     }
@@ -49,7 +47,7 @@ object HelloJavaTests extends TestSuite {
         !os.walk(res3.classes.path).exists(_.last == "Core.class")
       )
     }
-    "docJar"  - {
+    "docJar" - {
       val eval = init()
 
       val Right((ref1, _)) = eval.apply(HelloJava.core.docJar)

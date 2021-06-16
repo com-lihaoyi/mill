@@ -4,7 +4,7 @@ import scala.reflect.macros.blackbox.Context
 import language.experimental.macros
 
 case class Overrides(value: Int)
-object Overrides{
+object Overrides {
   def apply()(implicit c: Overrides) = c.value
   implicit def generate: Overrides = macro impl
   def impl(c: Context): c.Tree = {

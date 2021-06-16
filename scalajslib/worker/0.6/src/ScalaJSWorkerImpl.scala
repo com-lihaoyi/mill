@@ -9,7 +9,13 @@ import mill.scalajslib.api.{JsEnvConfig, ModuleKind}
 import org.scalajs.core.tools.io.IRFileCache.IRContainer
 import org.scalajs.core.tools.io._
 import org.scalajs.core.tools.jsdep.ResolvedJSDependency
-import org.scalajs.core.tools.linker.{Linker, ModuleInitializer, Semantics, StandardLinker, ModuleKind => ScalaJSModuleKind}
+import org.scalajs.core.tools.linker.{
+  Linker,
+  ModuleInitializer,
+  Semantics,
+  StandardLinker,
+  ModuleKind => ScalaJSModuleKind
+}
 import org.scalajs.core.tools.logging.ScalaConsoleLogger
 import org.scalajs.jsenv._
 import org.scalajs.testadapter.TestAdapter
@@ -18,7 +24,11 @@ import scala.collection.mutable
 import scala.ref.WeakReference
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
-  private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean)
+  private case class LinkerInput(
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  )
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
@@ -48,17 +58,20 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     }
   }
 
-  def link(sources: Array[File],
-           libraries: Array[File],
-           dest: File,
-           main: String,
-           testBridgeInit: Boolean, // ignored in 0.6
-           fullOpt: Boolean,
-           moduleKind: ModuleKind,
-           useECMAScript2015: Boolean) = {
+  def link(
+      sources: Array[File],
+      libraries: Array[File],
+      dest: File,
+      main: String,
+      testBridgeInit: Boolean, // ignored in 0.6
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  ) = {
     val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015))
     val sourceSJSIRs = sources.map(new FileVirtualScalaJSIRFile(_))
-    val jars = libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
+    val jars =
+      libraries.map(jar => IRContainer.Jar(new FileVirtualBinaryFile(jar) with VirtualJarFile))
     val jarSJSIRs = jars.flatMap(_.jar.sjsirFiles)
     val destFile = AtomicWritableFileVirtualJSFile(dest)
     val logger = new ScalaConsoleLogger
@@ -66,8 +79,9 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     try {
       linker.link(sourceSJSIRs ++ jarSJSIRs, initializer.toSeq, destFile, logger)
       Result.Success(dest)
-    }catch {case e: org.scalajs.core.tools.linker.LinkingException =>
-      Result.Failure(e.getMessage)
+    } catch {
+      case e: org.scalajs.core.tools.linker.LinkingException =>
+        Result.Failure(e.getMessage)
     }
   }
 
@@ -77,20 +91,30 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       .run(new ScalaConsoleLogger, ConsoleJSConsole)
   }
 
-  def getFramework(config: JsEnvConfig,
-                   frameworkName: String,
-                   linkedFile: File,
-                   moduleKind: ModuleKind): (() => Unit, sbt.testing.Framework) = {
+  def getFramework(
+      config: JsEnvConfig,
+      frameworkName: String,
+      linkedFile: File,
+      moduleKind: ModuleKind
+  ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config).loadLibs(
       Seq(ResolvedJSDependency.minimal(new FileVirtualJSFile(linkedFile)))
     )
 
     val moduleIdentifier = Option[String](linkedFile.getAbsolutePath)
-    
+
     val tconfig = moduleKind match {
       case ModuleKind.NoModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger)
-      case ModuleKind.CommonJSModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(ScalaJSModuleKind.CommonJSModule, moduleIdentifier)
-      case ModuleKind.ESModule => TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(ScalaJSModuleKind.ESModule, moduleIdentifier)
+      case ModuleKind.CommonJSModule =>
+        TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(
+          ScalaJSModuleKind.CommonJSModule,
+          moduleIdentifier
+        )
+      case ModuleKind.ESModule =>
+        TestAdapter.Config().withLogger(new ScalaConsoleLogger).withModuleSettings(
+          ScalaJSModuleKind.ESModule,
+          moduleIdentifier
+        )
     }
 
     val adapter =
@@ -106,7 +130,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     )
   }
 
-  def jsEnv(config: JsEnvConfig): ComJSEnv = config match{
+  def jsEnv(config: JsEnvConfig): ComJSEnv = config match {
     case config: JsEnvConfig.NodeJs =>
       new org.scalajs.jsenv.nodejs.NodeJSEnv(
         org.scalajs.jsenv.nodejs.NodeJSEnv.Config()

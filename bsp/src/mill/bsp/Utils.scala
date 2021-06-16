@@ -45,7 +45,10 @@ object Utils {
       StatusCode.OK
   }
 
-  private[this] def getStatusCodePerTask(results: Evaluator.Results, task: mill.define.Task[_]): StatusCode = {
+  private[this] def getStatusCodePerTask(
+      results: Evaluator.Results,
+      task: mill.define.Task[_]
+  ): StatusCode = {
     results.results(task) match {
       case Success(_) => StatusCode.OK
       case Skipped => StatusCode.CANCELLED
@@ -54,7 +57,9 @@ object Utils {
   }
 
   // Detect and return the test classes contained in the given TestModule
-  def getTestClasses(module: TestModule, evaluator: Evaluator)(implicit ctx: Ctx.Home): Seq[String] = {
+  def getTestClasses(module: TestModule, evaluator: Evaluator)(implicit
+      ctx: Ctx.Home
+  ): Seq[String] = {
     val runClasspath = getTaskResult(evaluator, module.runClasspath)
     val framework = getTaskResult(evaluator, module.testFramework)
     val compilationResult = getTaskResult(evaluator, module.compile)
@@ -68,7 +73,11 @@ object Utils {
           closeContextClassLoaderWhenDone = false,
           cl => {
             val framework = TestRunner.framework(testFramework.asInstanceOf[String])(cl)
-            discoverTests(cl, framework, Agg(compResult.asInstanceOf[CompilationResult].classes.path))
+            discoverTests(
+              cl,
+              framework,
+              Agg(compResult.asInstanceOf[CompilationResult].classes.path)
+            )
           }
         )
         Seq.from(classFingerprint.map(classF => classF._1.getName.stripSuffix("$")))

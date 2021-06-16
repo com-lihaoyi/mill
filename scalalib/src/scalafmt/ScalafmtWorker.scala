@@ -25,13 +25,11 @@ private[scalafmt] class ScalafmtWorker {
   private val reformatted: mutable.Map[os.Path, Int] = mutable.Map.empty
   private var configSig: Int = 0
 
-  def reformat(input: Seq[PathRef],
-               scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
+  def reformat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Unit = {
     reformatAction(input, scalafmtConfig, dryRun = false)
   }
 
-  def checkFormat(input: Seq[PathRef],
-                  scalafmtConfig: PathRef)(implicit ctx: Ctx): Result[Unit] = {
+  def checkFormat(input: Seq[PathRef], scalafmtConfig: PathRef)(implicit ctx: Ctx): Result[Unit] = {
 
     val misformatted = reformatAction(input, scalafmtConfig, dryRun = true)
     if (misformatted.isEmpty) {
@@ -48,9 +46,9 @@ private[scalafmt] class ScalafmtWorker {
   // run scalafmt over input files and return any files that changed
   // (only save changes to files if dryRun is false)
   private def reformatAction(
-    input: Seq[PathRef],
-    scalafmtConfig: PathRef,
-    dryRun: Boolean
+      input: Seq[PathRef],
+      scalafmtConfig: PathRef,
+      dryRun: Boolean
   )(implicit ctx: Ctx): Seq[PathRef] = {
 
     // only consider files that have changed since last reformat
@@ -86,7 +84,7 @@ private[scalafmt] class ScalafmtWorker {
             }
           }
         }
-        
+
       // keeps track of files that are misformatted
       val misformatted = mutable.ListBuffer.empty[PathRef]
 

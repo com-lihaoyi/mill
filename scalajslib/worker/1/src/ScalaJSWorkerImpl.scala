@@ -20,7 +20,12 @@ import scala.collection.mutable
 import scala.ref.WeakReference
 
 class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
-  private case class LinkerInput(fullOpt: Boolean, moduleKind: ModuleKind, useECMAScript2015: Boolean, dest: File)
+  private case class LinkerInput(
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean,
+      dest: File
+  )
   private object ScalaJSLinker {
     private val cache = mutable.Map.empty[LinkerInput, WeakReference[Linker]]
     def reuseOrCreate(input: LinkerInput): Linker = cache.get(input) match {
@@ -32,8 +37,8 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     }
     private def createLinker(input: LinkerInput): Linker = {
       val semantics = input.fullOpt match {
-          case true => Semantics.Defaults.optimized
-          case false => Semantics.Defaults
+        case true => Semantics.Defaults.optimized
+        case false => Semantics.Defaults
       }
       val scalaJSModuleKind = input.moduleKind match {
         case ModuleKind.NoModule => ScalaJSModuleKind.NoModule
@@ -49,16 +54,19 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       StandardImpl.linker(config)
     }
   }
-  def link(sources: Array[File],
-           libraries: Array[File],
-           dest: File,
-           main: String,
-           testBridgeInit: Boolean,
-           fullOpt: Boolean,
-           moduleKind: ModuleKind,
-           useECMAScript2015: Boolean) = {
+  def link(
+      sources: Array[File],
+      libraries: Array[File],
+      dest: File,
+      main: String,
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  ) = {
     import scala.concurrent.ExecutionContext.Implicits.global
-    val linker = ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015, dest))
+    val linker =
+      ScalaJSLinker.reuseOrCreate(LinkerInput(fullOpt, moduleKind, useECMAScript2015, dest))
     val cache = StandardImpl.irFileCache().newCache
     val sourceIRsFuture = Future.sequence(sources.toSeq.map(f => PathIRFile(f.toPath())))
     val irContainersPairs = PathIRContainer.fromClasspath(libraries.map(_.toPath()))
@@ -70,9 +78,12 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
       .withSourceMap(PathOutputFile(sourceMap))
       .withSourceMapURI(java.net.URI.create(sourceMap.getFileName.toString))
     val logger = new ScalaConsoleLogger
-    val mainInitializer = Option(main).map { cls => ModuleInitializer.mainMethodWithArgs(cls, "main") }
+    val mainInitializer = Option(main).map { cls =>
+      ModuleInitializer.mainMethodWithArgs(cls, "main")
+    }
     val testInitializer =
-      if (testBridgeInit) Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
+      if (testBridgeInit)
+        Some(ModuleInitializer.mainMethod(TAI.ModuleClassName, TAI.MainMethodName))
       else None
     val moduleInitializers = mainInitializer.toList ::: testInitializer.toList
 
@@ -97,10 +108,12 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     Run.runInterruptible(env, input, runConfig)
   }
 
-  def getFramework(config: JsEnvConfig,
-                   frameworkName: String,
-                   linkedFile: File,
-                   moduleKind: ModuleKind) : (() => Unit, sbt.testing.Framework) = {
+  def getFramework(
+      config: JsEnvConfig,
+      frameworkName: String,
+      linkedFile: File,
+      moduleKind: ModuleKind
+  ): (() => Unit, sbt.testing.Framework) = {
     val env = jsEnv(config)
     val input = jsEnvInput(linkedFile)
     val tconfig = TestAdapter.Config().withLogger(new ScalaConsoleLogger)
@@ -117,7 +130,7 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
     )
   }
 
-  def jsEnv(config: JsEnvConfig): JSEnv = config match{
+  def jsEnv(config: JsEnvConfig): JSEnv = config match {
     case config: JsEnvConfig.NodeJs =>
       /* In Mill, `config.sourceMap = true` means that `source-map-support`
        * should be used *if available*, as it is what was used to mean in

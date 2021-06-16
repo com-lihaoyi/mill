@@ -42,12 +42,12 @@ object Assembly {
   }
 
   def groupAssemblyEntries(
-    mappings: Generator[(String, UnopenedInputStream)],
-    assemblyRules: Seq[Assembly.Rule]
+      mappings: Generator[(String, UnopenedInputStream)],
+      assemblyRules: Seq[Assembly.Rule]
   ): Map[String, GroupedEntry] = {
     val rulesMap = assemblyRules.collect {
-      case r@Rule.Append(path, _) => path -> r
-      case r@Rule.Exclude(path) => path -> r
+      case r @ Rule.Append(path, _) => path -> r
+      case r @ Rule.Exclude(path) => path -> r
     }.toMap
 
     val appendPatterns = assemblyRules.collect {
@@ -82,31 +82,34 @@ object Assembly {
   type ResourceCloser = () => Unit
 
   def loadShadedClasspath(
-    inputPaths: Agg[os.Path],
-    assemblyRules: Seq[Assembly.Rule]
+      inputPaths: Agg[os.Path],
+      assemblyRules: Seq[Assembly.Rule]
   ): (Generator[(String, UnopenedInputStream)], ResourceCloser) = {
     val shadeRules = assemblyRules.collect {
       case Rule.Relocate(from, to) => ShadePattern.Rename(List(from -> to)).inAll
     }
     val shader =
-      if (shadeRules.isEmpty) (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
+      if (shadeRules.isEmpty)
+        (name: String, inputStream: UnopenedInputStream) => Some(name -> inputStream)
       else {
         val shader = Shader.bytecodeShader(shadeRules, verbose = false)
         (name: String, inputStream: UnopenedInputStream) => {
           val is = inputStream()
           shader(Streamable.bytes(is), name).map {
             case (bytes, name) =>
-              name -> (() => new ByteArrayInputStream(bytes) {
-                override def close(): Unit = is.close()
-              })
+              name -> (() =>
+                new ByteArrayInputStream(bytes) {
+                  override def close(): Unit = is.close()
+                }
+              )
           }
         }
       }
 
-     val pathsWithResources = inputPaths.filter(os.exists).map { path =>
-       if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
-       else path -> None
-     }
+    val pathsWithResources = inputPaths.filter(os.exists).map { path =>
+      if (os.isFile(path)) path -> Some(new JarFile(path.toIO))
+      else path -> None
+    }
 
     val generators = Generator.from(pathsWithResources).flatMap {
       case (path, Some(jarFile)) =>
@@ -116,7 +119,9 @@ object Assembly {
         os.walk
           .stream(path)
           .filter(os.isFile)
-          .flatMap(subPath => shader(subPath.relativeTo(path).toString, () => os.read.inputStream(subPath)))
+          .flatMap(subPath =>
+            shader(subPath.relativeTo(path).toString, () => os.read.inputStream(subPath))
+          )
     }
 
     (generators, () => pathsWithResources.flatMap(_._2).iterator.foreach(_.close()))
@@ -130,10 +135,13 @@ object Assembly {
   private[modules] object AppendEntry {
     val empty: AppendEntry = AppendEntry(Nil, defaultSeparator)
   }
-  private[modules] case class AppendEntry(inputStreams: Seq[UnopenedInputStream], separator: String) extends GroupedEntry {
-    def append(inputStream: UnopenedInputStream): GroupedEntry = copy(inputStreams = inputStreams :+ inputStream)
+  private[modules] case class AppendEntry(inputStreams: Seq[UnopenedInputStream], separator: String)
+      extends GroupedEntry {
+    def append(inputStream: UnopenedInputStream): GroupedEntry =
+      copy(inputStreams = inputStreams :+ inputStream)
   }
-  private[modules] case class WriteOnceEntry(inputStream: UnopenedInputStream) extends GroupedEntry {
+  private[modules] case class WriteOnceEntry(inputStream: UnopenedInputStream)
+      extends GroupedEntry {
     def append(entry: UnopenedInputStream): GroupedEntry = this
   }
 }

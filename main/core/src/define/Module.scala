@@ -8,20 +8,18 @@ import scala.language.experimental.macros
 import scala.reflect.ClassTag
 import scala.reflect.NameTransformer.decode
 
-
 /**
-  * `Module` is a class meant to be extended by `trait`s *only*, in order to
-  * propagate the implicit parameters forward to the final concrete
-  * instantiation site so they can capture the enclosing/line information of
-  * the concrete instance.
-  */
-class Module(implicit outerCtx0: mill.define.Ctx)
-  extends mill.moduledefs.Cacher{ outer =>
+ * `Module` is a class meant to be extended by `trait`s *only*, in order to
+ * propagate the implicit parameters forward to the final concrete
+ * instantiation site so they can capture the enclosing/line information of
+ * the concrete instance.
+ */
+class Module(implicit outerCtx0: mill.define.Ctx) extends mill.moduledefs.Cacher { outer =>
 
   /**
-    * Miscellaneous machinery around traversing & querying the build hierarchy,
-    * that should not be needed by normal users of Mill
-    */
+   * Miscellaneous machinery around traversing & querying the build hierarchy,
+   * that should not be needed by normal users of Mill
+   */
   object millInternal extends Module.Internal(this)
 
   lazy val millModuleDirectChildren = millInternal.reflectNestedObjects[Module].toSeq
@@ -36,8 +34,8 @@ class Module(implicit outerCtx0: mill.define.Ctx)
   override def toString = millModuleSegments.render
 }
 
-object Module{
-  class Internal(outer: Module){
+object Module {
+  class Internal(outer: Module) {
     def traverse[T](f: Module => Seq[T]): Seq[T] = {
       def rec(m: Module): Seq[T] = f(m) ++ m.millModuleDirectChildren.flatMap(rec)
       rec(outer)
@@ -46,7 +44,7 @@ object Module{
     lazy val modules = traverse(Seq(_))
     lazy val segmentsToModules = modules.map(m => (m.millModuleSegments, m)).toMap
 
-    lazy val targets = traverse{_.millInternal.reflectAll[Target[_]]}.toSet
+    lazy val targets = traverse { _.millInternal.reflectAll[Target[_]] }.toSet
 
     lazy val segmentsToTargets = targets
       .map(t => (t.ctx.segments, t))
@@ -60,11 +58,10 @@ object Module{
 
     private def reflect[T: ClassTag](filter: (String) => Boolean): Array[T] = {
       val runtimeCls = implicitly[ClassTag[T]].runtimeClass
-      for{
+      for {
         m <- outer.getClass.getMethods.sortBy(_.getName)
         n = decode(m.getName)
-        if
-          filter(n) &&
+        if filter(n) &&
           ParseArgs.isLegalIdentifier(n) &&
           m.getParameterCount == 0 &&
           (m.getModifiers & Modifier.STATIC) == 0 &&
@@ -86,8 +83,9 @@ object Module{
           .getClass
           .getClasses
           .filter(implicitly[ClassTag[T]].runtimeClass isAssignableFrom _)
-          .flatMap(c => c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T]))
-        ).distinct
+          .flatMap(c =>
+            c.getFields.find(_.getName == "MODULE$").map(_.get(c).asInstanceOf[T])
+          )).distinct
     }
   }
 }

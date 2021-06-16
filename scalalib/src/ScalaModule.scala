@@ -6,12 +6,7 @@ import mill.define.{Command, Target, Task, TaskModule}
 import mill.api.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
-import mill.scalalib.api.Util.{
-  isDotty,
-  isDottyOrScala3,
-  isScala3,
-  isScala3Milestone
-}
+import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone}
 import Lib._
 import mill.api.Loose.Agg
 import mill.api.DummyInputStream
@@ -52,7 +47,8 @@ trait ScalaModule extends JavaModule { outer =>
       path <- if (os.isDir(root.path)) os.walk(root.path) else Seq(root.path)
       if os
         .isFile(path) && ((path.ext == "scala" || path.ext == "java") && !isHiddenFile(
-        path))
+        path
+      ))
     } yield PathRef(path)
   }
 
@@ -61,7 +57,7 @@ trait ScalaModule extends JavaModule { outer =>
    */
   def scalaVersion: T[String]
 
-    override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
+  override def mapDependencies: Task[coursier.Dependency => coursier.Dependency] = T.task {
     d: coursier.Dependency =>
       val artifacts =
         if (isDotty(scalaVersion()))
@@ -73,10 +69,10 @@ trait ScalaModule extends JavaModule { outer =>
       if (!artifacts(d.module.name.value)) d
       else
         d.withModule(
-            d.module.withOrganization(
-              coursier.Organization(scalaOrganization())
-            )
+          d.module.withOrganization(
+            coursier.Organization(scalaOrganization())
           )
+        )
           .withVersion(scalaVersion())
   }
 
@@ -190,8 +186,8 @@ trait ScalaModule extends JavaModule { outer =>
   }
 
   override def docJar: T[PathRef] = T {
-    val pluginOptions = scalaDocPluginClasspath().map(pluginPathRef =>
-      s"-Xplugin:${pluginPathRef.path}")
+    val pluginOptions =
+      scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
     val compileCp = Seq(
       "-classpath",
       compileClasspath()
@@ -200,9 +196,7 @@ trait ScalaModule extends JavaModule { outer =>
         .mkString(java.io.File.pathSeparator)
     )
 
-    def packageWithZinc(options: Seq[String],
-                        files: Seq[String],
-                        javadocDir: os.Path) = {
+    def packageWithZinc(options: Seq[String], files: Seq[String], javadocDir: os.Path) = {
       if (files.isEmpty) Result.Success(createJar(Agg(javadocDir))(T.dest))
       else {
         zincWorker
@@ -236,7 +230,8 @@ trait ScalaModule extends JavaModule { outer =>
         os.copy.over(
           child,
           javadocDir / (child.subRelativeTo(docSource)),
-          createFolders = true)
+          createFolders = true
+        )
       }
       packageWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
@@ -266,7 +261,8 @@ trait ScalaModule extends JavaModule { outer =>
         os.copy.over(
           child,
           combinedStaticDir / (child.subRelativeTo(docSource)),
-          createFolders = true)
+          createFolders = true
+        )
       }
 
       packageWithZinc(
@@ -309,7 +305,8 @@ trait ScalaModule extends JavaModule { outer =>
           else
             "scala.tools.nsc.MainGenericRunner",
         classPath = runClasspath().map(_.path) ++ scalaCompilerClasspath().map(
-          _.path),
+          _.path
+        ),
         jvmArgs = forkArgs(),
         envArgs = forkEnv(),
         mainArgs = Seq("-usejavacp"),
