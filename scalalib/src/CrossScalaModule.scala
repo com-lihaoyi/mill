@@ -1,5 +1,6 @@
 package mill.scalalib
 
+import mill.api.PathRef
 import mill.T
 
 /**
@@ -13,15 +14,13 @@ import mill.T
 trait CrossScalaModule extends ScalaModule with CrossModuleBase { outer =>
   override def sources = T.sources {
     super.sources() ++
-      CrossModuleBase
-        .scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s")
+      scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
   }
 
   trait CrossScalaModuleTests extends ScalaModuleTests {
     override def sources = T.sources {
       super.sources() ++
-        CrossModuleBase
-          .scalaVersionPaths(crossScalaVersion, s => millSourcePath / s"src-$s")
+        scalaVersionDirectoryNames.map(s => PathRef(millSourcePath / s"src-$s"))
     }
   }
   trait Tests extends CrossScalaModuleTests

@@ -67,7 +67,8 @@ case class Ctx(enclosing: String,
                external: Boolean,
                foreign: Option[Segments],
                fileName: String,
-               enclosingCls: Class[_]){
+               enclosingCls: Class[_],
+               crossInstances: Seq[AnyRef]){
 }
 
 object Ctx{
@@ -93,7 +94,8 @@ object Ctx{
       external0.value,
       foreign0.value,
       fileName.value,
-      enclosing.value.getClass
+      enclosing.value.getClass,
+      Seq()
     )
   }
 }

@@ -6,14 +6,17 @@ import mill.define.Cross.Resolver
 import mill.api.PathRef
 
 object CrossModuleBase {
-  def scalaVersionPaths(scalaVersion: String, f: String => os.Path) = {
-    for (segments <- scalaVersion.split('.').inits.filter(_.nonEmpty))
-      yield PathRef(f(segments.mkString(".")))
+  @deprecated("Use mill.scalalib.api.Util.matchingVersions instead", since = "0.10.0")
+  def scalaVersionPaths(scalaVersion: String, f: String => os.Path): Iterator[PathRef] = {
+    api.Util.matchingVersions(scalaVersion).iterator.map(version => PathRef(f(version)))
   }
 }
+
 trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T { crossScalaVersion }
+
+  protected def scalaVersionDirectoryNames: Seq[String] = api.Util.matchingVersions(crossScalaVersion)
 
   override def millSourcePath = super.millSourcePath / ammonite.ops.up
   override def artifactName: T[String] = millModuleSegments.parts.init.mkString("-")
