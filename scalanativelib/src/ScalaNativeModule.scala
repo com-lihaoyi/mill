@@ -31,11 +31,13 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     override def moduleDeps = Seq(outer)
   }
 
-  def scalaNativeBinaryVersion = T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
+  def scalaNativeBinaryVersion =
+    T { mill.scalalib.api.Util.scalaNativeBinaryVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorkerVersion = T{ mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
+  def scalaNativeWorkerVersion =
+    T { mill.scalalib.api.Util.scalaNativeWorkerVersion(scalaNativeVersion()) }
 
-  def scalaNativeWorker = T.task{
+  def scalaNativeWorker = T.task {
     mill.scalanativelib.ScalaNativeWorkerApi.scalaNativeWorker().impl(bridgeFullClassPath())
   }
 
@@ -50,26 +52,26 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
-  def toolsIvyDeps = T{
+  def toolsIvyDeps = T {
     Seq(
       ivy"org.scala-native:tools_2.12:${scalaNativeVersion()}",
       ivy"org.scala-native:test-runner_2.12:${scalaNativeVersion()}"
     )
   }
 
-  override def transitiveIvyDeps: T[Agg[Dep]] = T{
+  override def transitiveIvyDeps: T[Agg[Dep]] = T {
     ivyDeps() ++ nativeIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
-  def nativeLibIvy = T{ ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
+  def nativeLibIvy = T { ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
-  def nativeIvyDeps = T{
+  def nativeIvyDeps = T {
     Seq(nativeLibIvy()) ++
-    Seq(
-      ivy"org.scala-native::javalib::${scalaNativeVersion()}",
-      ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
-      ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
-    )
+      Seq(
+        ivy"org.scala-native::javalib::${scalaNativeVersion()}",
+        ivy"org.scala-native::auxlib::${scalaNativeVersion()}",
+        ivy"org.scala-native::scalalib::${scalaNativeVersion()}"
+      )
   }
 
   def bridgeFullClassPath = T {
@@ -85,41 +87,43 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
   )
 
-  def logLevel: Target[NativeLogLevel] = T{ NativeLogLevel.Info }
+  def logLevel: Target[NativeLogLevel] = T { NativeLogLevel.Info }
 
   protected def releaseModeInput = T.input(
     sys.env.get("SCALANATIVE_MODE").map(v =>
       ReleaseMode
         .values
         .find(_.value == v)
-        .getOrElse(throw new Exception(s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"))
+        .getOrElse(throw new Exception(
+          s"SCALANATIVE_MODE=$v is not valid. Allowed values are: [${ReleaseMode.values.map(_.value).mkString(", ")}]"
+        ))
     )
   )
   def releaseMode: Target[ReleaseMode] = T {
     releaseModeInput().getOrElse(ReleaseMode.Debug)
   }
 
-  def nativeWorkdir = T{ T.dest }
+  def nativeWorkdir = T { T.dest }
 
   // Location of the clang compiler
-  def nativeClang = T{ os.Path(scalaNativeWorker().discoverClang) }
+  def nativeClang = T { os.Path(scalaNativeWorker().discoverClang) }
 
   // Location of the clang++ compiler
-  def nativeClangPP = T{ os.Path(scalaNativeWorker().discoverClangPP) }
+  def nativeClangPP = T { os.Path(scalaNativeWorker().discoverClangPP) }
 
   // GC choice, either "none", "boehm", "immix" or "commix"
   protected def nativeGCInput = T.input(sys.env.get("SCALANATIVE_GC"))
-  def nativeGC = T{
+  def nativeGC = T {
     nativeGCInput().getOrElse(scalaNativeWorker().defaultGarbageCollector)
   }
 
   def nativeTarget: Target[Option[String]] = T { None }
 
   // Options that are passed to clang during compilation
-  def nativeCompileOptions = T{ scalaNativeWorker().discoverCompileOptions }
+  def nativeCompileOptions = T { scalaNativeWorker().discoverCompileOptions }
 
   // Options that are passed to clang during linking
-  def nativeLinkingOptions = T{ scalaNativeWorker().discoverLinkingOptions }
+  def nativeLinkingOptions = T { scalaNativeWorker().discoverLinkingOptions }
 
   // Whether to link `@stub` methods, or ignore them
   def nativeLinkStubs = T { false }
@@ -130,7 +134,9 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       LTO
         .values
         .find(_.value == v)
-        .getOrElse(throw new Exception(s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"))
+        .getOrElse(throw new Exception(
+          s"SCALANATIVE_LTO=$v is not valid. Allowed values are: [${LTO.values.map(_.value).mkString(", ")}]"
+        ))
     )
   )
   def nativeLTO: Target[LTO] = T { nativeLTOInput().getOrElse(LTO.None) }
@@ -156,28 +162,31 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       nativeLTO(),
       releaseMode(),
       nativeOptimize(),
-      logLevel())
+      logLevel()
+    )
   }
 
   // Generates native binary
-  def nativeLink = T{
+  def nativeLink = T {
     os.Path(scalaNativeWorker().nativeLink(nativeConfig(), (T.dest / "out").toIO))
   }
 
   // Runs the native binary
-  override def run(args: String*) = T.command{
+  override def run(args: String*) = T.command {
     Jvm.runSubprocess(
       commandArgs = Vector(nativeLink().toString) ++ args,
       envArgs = forkEnv(),
-      workingDir = forkWorkingDir())
+      workingDir = forkWorkingDir()
+    )
   }
 }
 
-
 trait TestScalaNativeModule extends ScalaNativeModule with TestModule {
-  override def testLocal(args: String*) = T.command { test(args:_*) }
-  override protected def testTask(args: Task[Seq[String]],
-      globSeletors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override def testLocal(args: String*) = T.command { test(args: _*) }
+  override protected def testTask(
+      args: Task[Seq[String]],
+      globSeletors: Task[Seq[String]]
+  ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val getFrameworkResult = scalaNativeWorker().getFramework(
       nativeLink().toIO,

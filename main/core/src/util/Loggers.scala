@@ -21,8 +21,8 @@ object DummyLogger extends Logger {
 }
 
 class CallbackStream(
-  wrapped: OutputStream,
-  setPrintState0: PrintState => Unit
+    wrapped: OutputStream,
+    setPrintState0: PrintState => Unit
 ) extends OutputStream {
 
   private[this] var printState: PrintState = _
@@ -36,17 +36,17 @@ class CallbackStream(
     setPrintState0(printState)
   }
 
-  override def write(b: Array[Byte]): Unit = synchronized{
+  override def write(b: Array[Byte]): Unit = synchronized {
     if (b.nonEmpty) setPrintState(b(b.length - 1).toChar)
     wrapped.write(b)
   }
 
-  override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized{
+  override def write(b: Array[Byte], off: Int, len: Int): Unit = synchronized {
     if (len != 0) setPrintState(b(off + len - 1).toChar)
     wrapped.write(b, off, len)
   }
 
-  override def write(b: Int): Unit = synchronized{
+  override def write(b: Int): Unit = synchronized {
     setPrintState(b.toChar)
     wrapped.write(b)
   }
@@ -63,19 +63,22 @@ object PrintState {
   case object Newline extends PrintState
   case object Middle extends PrintState
 }
-trait ColorLogger extends Logger{
+trait ColorLogger extends Logger {
   def colors: ammonite.util.Colors
 }
 
-case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "") extends ColorLogger {
+case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String = "")
+    extends ColorLogger {
   override def colored = out.colored
 
   def colors = out.colors
   override val errorStream = new PrintStream(new LinePrefixOutputStream(
-    colors.info()(context).render, out.errorStream
+    colors.info()(context).render,
+    out.errorStream
   ))
   override val outputStream = new PrintStream(new LinePrefixOutputStream(
-    colors.info()(context).render, out.outputStream
+    colors.info()(context).render,
+    out.outputStream
   ))
 
   override def inStream = out.inStream
@@ -90,15 +93,15 @@ case class PrefixLogger(out: ColorLogger, context: String, tickerContext: String
 }
 
 case class PrintLogger(
-  colored: Boolean,
-  disableTicker: Boolean,
-  colors: ammonite.util.Colors,
-  outStream: PrintStream,
-  infoStream: PrintStream,
-  errStream: PrintStream,
-  inStream: InputStream,
-  debugEnabled: Boolean,
-  context: String
+    colored: Boolean,
+    disableTicker: Boolean,
+    colors: ammonite.util.Colors,
+    outStream: PrintStream,
+    infoStream: PrintStream,
+    errStream: PrintStream,
+    inStream: InputStream,
+    debugEnabled: Boolean,
+    context: String
 ) extends ColorLogger {
 
   var printState: PrintState = PrintState.Newline
@@ -110,19 +113,19 @@ case class PrintLogger(
     new CallbackStream(outStream, printState = _)
   )
 
-  def info(s: String) = synchronized{
+  def info(s: String) = synchronized {
     printState = PrintState.Newline
     infoStream.println(colors.info()(context + s))
   }
 
-  def error(s: String) = synchronized{
+  def error(s: String) = synchronized {
     printState = PrintState.Newline
     errStream.println((colors.info()(context) ++ colors.error()(s)).render)
   }
 
-  def ticker(s: String) = synchronized{
-    if(!disableTicker) {
-      printState match{
+  def ticker(s: String) = synchronized {
+    if (!disableTicker) {
+      printState match {
         case PrintState.Newline =>
           infoStream.println(colors.info()(s))
         case PrintState.Middle =>
@@ -143,7 +146,7 @@ case class PrintLogger(
     }
   }
 
-  def debug(s: String) = synchronized{
+  def debug(s: String) = synchronized {
     if (debugEnabled) {
       printState = PrintState.Newline
       errStream.println(context + s)
@@ -151,7 +154,12 @@ case class PrintLogger(
   }
 }
 
-class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boolean, append: Boolean = false) extends Logger {
+class FileLogger(
+    override val colored: Boolean,
+    file: os.Path,
+    debugEnabled: Boolean,
+    append: Boolean = false
+) extends Logger {
   private[this] var outputStreamUsed: Boolean = false
 
   lazy val outputStream = {
@@ -179,33 +187,32 @@ class FileLogger(override val colored: Boolean, file: os.Path, debugEnabled: Boo
   }
 }
 
+class MultiStream(stream1: OutputStream, stream2: OutputStream)
+    extends PrintStream(new OutputStream {
+      def write(b: Int): Unit = {
+        stream1.write(b)
+        stream2.write(b)
+      }
+      override def write(b: Array[Byte]): Unit = {
+        stream1.write(b)
+        stream2.write(b)
+      }
+      override def write(b: Array[Byte], off: Int, len: Int) = {
+        stream1.write(b, off, len)
+        stream2.write(b, off, len)
+      }
+      override def flush() = {
+        stream1.flush()
+        stream2.flush()
+      }
+      override def close() = {
+        stream1.close()
+        stream2.close()
+      }
+    })
 
-
-class MultiStream(stream1: OutputStream, stream2: OutputStream) extends PrintStream(new OutputStream {
-  def write(b: Int): Unit = {
-    stream1.write(b)
-    stream2.write(b)
-  }
-  override def write(b: Array[Byte]): Unit = {
-    stream1.write(b)
-    stream2.write(b)
-  }
-  override def write(b: Array[Byte], off: Int, len: Int) = {
-    stream1.write(b, off, len)
-    stream2.write(b, off, len)
-  }
-  override def flush() = {
-    stream1.flush()
-    stream2.flush()
-  }
-  override def close() = {
-    stream1.close()
-    stream2.close()
-  }
-})
-
-case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream) extends Logger {
-
+case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStream: InputStream)
+    extends Logger {
 
   lazy val outputStream: PrintStream = new MultiStream(logger1.outputStream, logger2.outputStream)
 
@@ -236,9 +243,9 @@ case class MultiLogger(colored: Boolean, logger1: Logger, logger2: Logger, inStr
 }
 
 /**
-  * A Logger that forwards all logging to another Logger.  Intended to be
-  * used as a base class for wrappers that modify logging behavior.
-  */
+ * A Logger that forwards all logging to another Logger.  Intended to be
+ * used as a base class for wrappers that modify logging behavior.
+ */
 case class ProxyLogger(logger: Logger) extends Logger {
   def colored = logger.colored
 

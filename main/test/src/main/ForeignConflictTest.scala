@@ -1,6 +1,5 @@
 package mill.main
 
-
 import mill.util.ScriptTestSuite
 import utest._
 

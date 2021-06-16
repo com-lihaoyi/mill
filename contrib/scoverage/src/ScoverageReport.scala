@@ -7,7 +7,8 @@ import mill.main.RunScript
 import mill.{PathRef, T}
 import os.Path
 
-/** Allows the aggregation of coverage reports across multi-module projects.
+/**
+ * Allows the aggregation of coverage reports across multi-module projects.
  *
  * Once tests have been run across all modules, this collects reports from
  * all modules that extend [[mill.contrib.scoverage.ScoverageModule]]. Simply
@@ -48,39 +49,44 @@ trait ScoverageReport extends Module {
 
   /** Generates report in html format for all modules */
   def htmlReportAll(
-    evaluator: Evaluator,
-    sources: String     = "__.allSources",
-    dataTargets: String = "__.scoverage.data"
+      evaluator: Evaluator,
+      sources: String = "__.allSources",
+      dataTargets: String = "__.scoverage.data"
   ): Command[PathRef] = T.command {
     reportTask(evaluator, ReportType.Html, sources, dataTargets)()
   }
 
   /** Generates report in xml format for all modules */
   def xmlReportAll(
-    evaluator: Evaluator,
-    sources: String     = "__.allSources",
-    dataTargets: String = "__.scoverage.data"
+      evaluator: Evaluator,
+      sources: String = "__.allSources",
+      dataTargets: String = "__.scoverage.data"
   ): Command[PathRef] = T.command {
     reportTask(evaluator, ReportType.Xml, sources, dataTargets)()
   }
 
   /** Reports to the console for all modules */
   def consoleReportAll(
-    evaluator: Evaluator,
-    sources: String     = "__.allSources",
-    dataTargets: String = "__.scoverage.data"
+      evaluator: Evaluator,
+      sources: String = "__.allSources",
+      dataTargets: String = "__.scoverage.data"
   ): Command[PathRef] = T.command {
     reportTask(evaluator, ReportType.Console, sources, dataTargets)()
   }
 
-  def reportTask(evaluator: Evaluator, reportType: ReportType, sources: String, dataTargets: String): Task[PathRef] = {
+  def reportTask(
+      evaluator: Evaluator,
+      reportType: ReportType,
+      sources: String,
+      dataTargets: String
+  ): Task[PathRef] = {
     val sourcesTasks: Seq[Task[Seq[PathRef]]] = RunScript.resolveTasks(
       mill.main.ResolveTasks,
       evaluator,
       Seq(sources),
       multiSelect = false
     ) match {
-      case Left(err)    => throw new Exception(err)
+      case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[Seq[PathRef]]]]
     }
     val dataTasks: Seq[Task[PathRef]] = RunScript.resolveTasks(
@@ -89,13 +95,13 @@ trait ScoverageReport extends Module {
       Seq(dataTargets),
       multiSelect = false
     ) match {
-      case Left(err)    => throw new Exception(err)
+      case Left(err) => throw new Exception(err)
       case Right(tasks) => tasks.asInstanceOf[Seq[Task[PathRef]]]
     }
 
     T.task {
       val sourcePaths: Seq[Path] = T.sequence(sourcesTasks)().flatten.map(_.path)
-      val dataPaths: Seq[Path]   = T.sequence(dataTasks)().map(_.path)
+      val dataPaths: Seq[Path] = T.sequence(dataTasks)().map(_.path)
       scoverageReportWorkerModule
         .scoverageReportWorker()
         .bridge(workerModule.toolsClasspath().map(_.path))

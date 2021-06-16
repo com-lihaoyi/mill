@@ -18,7 +18,7 @@ object VersionContolTests extends TestSuite {
             connection = Some("scm:git:git://github.com/lihaoyi/mill.git"),
             developerConnection = Some("scm:git:ssh://git@github.com:lihaoyi/mill.git"),
             tag = None
-          )        
+          )
       )
     }
     "git" - {
@@ -51,7 +51,7 @@ object VersionContolTests extends TestSuite {
     "svn" - {
       assert(
         svnSsh("example.org", "repo") ==
-         "scm:svn:svn+ssh://example.org/repo"
+          "scm:svn:svn+ssh://example.org/repo"
       )
       assert(
         svnHttp("example.org", "repo", Some("user"), Some("pass")) ==

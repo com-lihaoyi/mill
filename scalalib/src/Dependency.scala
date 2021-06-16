@@ -16,11 +16,12 @@ object Dependency extends ExternalModule {
         implicitly,
         ev.rootModule,
         ev.rootModule.millDiscover,
-        allowPreRelease)
+        allowPreRelease
+      )
     }
 
   /** Show possible dependency updates. */
-  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) = T.command{
+  def showUpdates(ev: Evaluator, allowPreRelease: Boolean = false) = T.command {
     DependencyUpdatesImpl.showAllUpdates(updates(ev, allowPreRelease)())
   }
 

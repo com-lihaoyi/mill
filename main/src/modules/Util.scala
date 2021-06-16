@@ -12,7 +12,7 @@ object Util {
 
   {
     val millOptionsPath = sys.props("MILL_OPTIONS_PATH")
-    if(millOptionsPath != null) 
+    if (millOptionsPath != null)
       LongMillProps.load(new java.io.FileInputStream(millOptionsPath))
   }
 
@@ -36,33 +36,35 @@ object Util {
 
     val website = new java.net.URI(url).toURL
     val rbc = java.nio.channels.Channels.newChannel(website.openStream)
-    try{
+    try {
       val fos = new java.io.FileOutputStream(out.toIO)
-      try{
+      try {
         fos.getChannel.transferFrom(rbc, 0, java.lang.Long.MAX_VALUE)
         PathRef(out)
-      } finally{
+      } finally {
         fos.close()
       }
-    } finally{
+    } finally {
       rbc.close()
     }
   }
 
-  def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")
-                       (implicit ctx: Ctx.Dest) = {
+  def downloadUnpackZip(url: String, dest: os.RelPath = os.rel / "unpacked")(implicit
+      ctx: Ctx.Dest
+  ) = {
 
     val tmpName = if (dest == os.rel / "tmp.zip") "tmp2.zip" else "tmp.zip"
     val downloaded = download(url, os.rel / tmpName)
     IO.unpackZip(downloaded.path, dest)
   }
 
-
-  def millProjectModule(key: String,
-                        artifact: String,
-                        repositories: Seq[Repository],
-                        resolveFilter: os.Path => Boolean = _ => true,
-                        artifactSuffix: String = "_2.13") = {
+  def millProjectModule(
+      key: String,
+      artifact: String,
+      repositories: Seq[Repository],
+      resolveFilter: os.Path => Boolean = _ => true,
+      artifactSuffix: String = "_2.13"
+  ) = {
     millProperty(key) match {
       case Some(localPath) =>
         mill.api.Result.Success(
@@ -73,7 +75,10 @@ object Util {
           repositories,
           Seq(
             coursier.Dependency(
-              coursier.Module(coursier.Organization("com.lihaoyi"), coursier.ModuleName(artifact + artifactSuffix)),
+              coursier.Module(
+                coursier.Organization("com.lihaoyi"),
+                coursier.ModuleName(artifact + artifactSuffix)
+              ),
               millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion)
             )
           ),

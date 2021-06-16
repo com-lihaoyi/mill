@@ -35,7 +35,8 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
   override def onConnectWithClient(server: BuildClient): Unit = client = server
 
-  override def buildInitialize(params: InitializeBuildParams): CompletableFuture[InitializeBuildResult] = {
+  override def buildInitialize(params: InitializeBuildParams)
+      : CompletableFuture[InitializeBuildResult] = {
     val capabilities = new BuildServerCapabilities
     capabilities.setCompileProvider(new CompileProvider(List("java", "scala").asJava))
     capabilities.setRunProvider(new RunProvider(List("java", "scala").asJava))
@@ -43,7 +44,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
     capabilities.setDependencySourcesProvider(true)
     capabilities.setInverseSourcesProvider(true)
     capabilities.setResourcesProvider(true)
-    capabilities.setBuildTargetChangedProvider(false) //TODO: for now it's false, but will try to support this later
+    capabilities.setBuildTargetChangedProvider(
+      false
+    ) //TODO: for now it's false, but will try to support this later
     val future = new CompletableFuture[InitializeBuildResult]()
     future.complete(new InitializeBuildResult("mill-bsp", serverVersion, bspVersion, capabilities))
     initialized = true
@@ -82,25 +85,29 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
         )
       }
 
-      val items = sourcesParams.getTargets.asScala.foldLeft(Seq.empty[SourcesItem]) { (items, targetId) =>
-        val newItem =
-          if (targetId == millBuildTargetId)
-            new SourcesItem(
-              targetId,
-              Seq(sourceItem(evaluator.rootModule.millSourcePath / "build.sc", generated = false)).asJava // Intellij needs one
-            )
-          else {
-            val module = getModule(targetId, modules)
-            val sources = evaluateInformativeTask(evaluator, module.sources, Seq.empty[PathRef])
-              .map(p => sourceItem(p.path, generated = false))
-            val generatedSources = evaluateInformativeTask(evaluator, module.generatedSources, Seq.empty[PathRef])
-              .map(p => sourceItem(p.path, generated = true))
+      val items =
+        sourcesParams.getTargets.asScala.foldLeft(Seq.empty[SourcesItem]) { (items, targetId) =>
+          val newItem =
+            if (targetId == millBuildTargetId)
+              new SourcesItem(
+                targetId,
+                Seq(
+                  sourceItem(evaluator.rootModule.millSourcePath / "build.sc", generated = false)
+                ).asJava // Intellij needs one
+              )
+            else {
+              val module = getModule(targetId, modules)
+              val sources = evaluateInformativeTask(evaluator, module.sources, Seq.empty[PathRef])
+                .map(p => sourceItem(p.path, generated = false))
+              val generatedSources =
+                evaluateInformativeTask(evaluator, module.generatedSources, Seq.empty[PathRef])
+                  .map(p => sourceItem(p.path, generated = true))
 
-            new SourcesItem(targetId, (sources ++ generatedSources).asJava)
-          }
+              new SourcesItem(targetId, (sources ++ generatedSources).asJava)
+            }
 
-        items :+ newItem
-      }
+          items :+ newItem
+        }
 
       new SourcesResult(items.asJava)
     }
@@ -132,30 +139,35 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
 
       val items = dependencySourcesParams.getTargets.asScala
         .foldLeft(Seq.empty[DependencySourcesItem]) { (items, targetId) =>
-          val all = if (targetId == millBuildTargetId)
-            getMillBuildClasspath(evaluator, sources = true)
-          else {
-            val module = getModule(targetId, modules)
-            val sources = evaluateInformativeTask(
-              evaluator,
-              module.resolveDeps(T.task(module.transitiveCompileIvyDeps() ++ module.transitiveIvyDeps()), sources = true),
-              Agg.empty[PathRef]
-            )
-            val unmanaged = evaluateInformativeTask(
-              evaluator,
-              module.unmanagedClasspath,
-              Agg.empty[PathRef]
-            )
+          val all =
+            if (targetId == millBuildTargetId)
+              getMillBuildClasspath(evaluator, sources = true)
+            else {
+              val module = getModule(targetId, modules)
+              val sources = evaluateInformativeTask(
+                evaluator,
+                module.resolveDeps(
+                  T.task(module.transitiveCompileIvyDeps() ++ module.transitiveIvyDeps()),
+                  sources = true
+                ),
+                Agg.empty[PathRef]
+              )
+              val unmanaged = evaluateInformativeTask(
+                evaluator,
+                module.unmanagedClasspath,
+                Agg.empty[PathRef]
+              )
 
-            (sources ++ unmanaged).map(_.path.toIO.toURI.toString).iterator.toSeq
-          }
+              (sources ++ unmanaged).map(_.path.toIO.toURI.toString).iterator.toSeq
+            }
           items :+ new DependencySourcesItem(targetId, all.asJava)
         }
 
       new DependencySourcesResult(items.asJava)
     }
 
-  override def buildTargetResources(resourcesParams: ResourcesParams): CompletableFuture[ResourcesResult] =
+  override def buildTargetResources(resourcesParams: ResourcesParams)
+      : CompletableFuture[ResourcesResult] =
     handleExceptions {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
@@ -163,7 +175,11 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val items = resourcesParams.getTargets.asScala
         .filter(_ != millBuildTargetId)
         .foldLeft(Seq.empty[ResourcesItem]) { (items, targetId) =>
-          val resources = evaluateInformativeTask(evaluator, getModule(targetId, modules).resources, Seq.empty[PathRef])
+          val resources = evaluateInformativeTask(
+            evaluator,
+            getModule(targetId, modules).resources,
+            Seq.empty[PathRef]
+          )
             .filter(pathRef => os.exists(pathRef.path))
 
           items :+ new ResourcesItem(targetId, resources.map(_.path.toNIO.toUri.toString).asJava)
@@ -182,7 +198,9 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val params = TaskParameters.fromCompileParams(compileParams)
       val taskId = params.hashCode()
       val compileTasks = Strict.Agg(
-        params.getTargets.distinct.filter(_ != millBuildTargetId).map(getModule(_, modules).compile): _*
+        params.getTargets.distinct.filter(_ != millBuildTargetId).map(
+          getModule(_, modules).compile
+        ): _*
       )
       val result = evaluator.evaluate(
         compileTasks,
@@ -233,11 +251,14 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
           (for (testItem <- scalaTestParams.get("testClasses").getAsJsonArray.asScala)
             yield (
               testItem.getAsJsonObject.get("target").getAsJsonObject.get("uri").getAsString,
-              testItem.getAsJsonObject.get("classes").getAsJsonArray.asScala.map(elem => elem.getAsString).toSeq
+              testItem.getAsJsonObject.get("classes").getAsJsonArray.asScala.map(elem =>
+                elem.getAsString
+              ).toSeq
             )).toMap
         } catch {
           case _: Exception =>
-            (for (targetId <- testParams.getTargets.asScala) yield (targetId.getUri, Seq.empty[String])).toMap
+            (for (targetId <- testParams.getTargets.asScala)
+              yield (targetId.getUri, Seq.empty[String])).toMap
         }
 
       val overallStatusCode = testParams.getTargets.asScala
@@ -257,7 +278,12 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
               client.onBuildTaskStart(taskStartParams)
 
               val testReporter =
-                new BspTestReporter(client, targetId, new TaskId(testTask.hashCode().toString), Seq.empty[String])
+                new BspTestReporter(
+                  client,
+                  targetId,
+                  new TaskId(testTask.hashCode().toString),
+                  Seq.empty[String]
+                )
 
               val results = evaluator.evaluate(
                 Strict.Agg(testTask),
@@ -268,10 +294,13 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
               val statusCode = getStatusCode(results)
 
               // Notifying the client that the testing of this build target ended
-              val taskFinishParams = new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
+              val taskFinishParams =
+                new TaskFinishParams(new TaskId(testTask.hashCode().toString), statusCode)
               taskFinishParams.setEventTime(System.currentTimeMillis())
               taskFinishParams.setMessage(
-                "Finished testing target" + targets.find(_.getId == targetId).fold("")(t => s": ${t.getDisplayName}")
+                "Finished testing target" + targets.find(_.getId == targetId).fold("")(t =>
+                  s": ${t.getDisplayName}"
+                )
               )
               taskFinishParams.setDataKind(TaskDataKind.TEST_REPORT)
               taskFinishParams.setData(testReporter.getTestReport)
@@ -297,41 +326,45 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       }
     }
 
-  override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams): CompletableFuture[CleanCacheResult] =
+  override def buildTargetCleanCache(cleanCacheParams: CleanCacheParams)
+      : CompletableFuture[CleanCacheResult] =
     handleExceptions {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
 
-      val (msg, cleaned) = cleanCacheParams.getTargets.asScala.filter(_ != millBuildTargetId).foldLeft(("", true)) {
-        case ((msg, cleaned), targetId) =>
-          val module = getModule(targetId, modules)
-          val mainModule = new MainModule {
-            override implicit def millDiscover: Discover[_] = Discover[this.type]
-          }
-          val cleanTask = mainModule.clean(evaluator, Seq(s"${module.millModuleSegments.render}.compile"): _*)
-          val cleanResult = evaluator.evaluate(
-            Strict.Agg(cleanTask),
-            logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
-          )
-          if (cleanResult.failing.keyCount > 0) (
-            msg + s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n" +
-              (cleanResult.results(cleanTask) match {
-                case fail: Result.Failure[Any] => fail.msg + "\n"
-                case _ => "could not retrieve message"
-              }),
-            false
-          ) else {
-            val outDir = Evaluator
-              .resolveDestPaths(
-                evaluator.outPath,
-                module.millModuleSegments ++ Seq(Label("compile"))
-              )
-              .out
-            while (os.exists(outDir)) Thread.sleep(10)
+      val (msg, cleaned) =
+        cleanCacheParams.getTargets.asScala.filter(_ != millBuildTargetId).foldLeft(("", true)) {
+          case ((msg, cleaned), targetId) =>
+            val module = getModule(targetId, modules)
+            val mainModule = new MainModule {
+              override implicit def millDiscover: Discover[_] = Discover[this.type]
+            }
+            val cleanTask =
+              mainModule.clean(evaluator, Seq(s"${module.millModuleSegments.render}.compile"): _*)
+            val cleanResult = evaluator.evaluate(
+              Strict.Agg(cleanTask),
+              logger = new MillBspLogger(client, cleanTask.hashCode, evaluator.baseLogger)
+            )
+            if (cleanResult.failing.keyCount > 0) (
+              msg + s" Target ${module.millModuleSegments.render} could not be cleaned. See message from mill: \n" +
+                (cleanResult.results(cleanTask) match {
+                  case fail: Result.Failure[Any] => fail.msg + "\n"
+                  case _ => "could not retrieve message"
+                }),
+              false
+            )
+            else {
+              val outDir = Evaluator
+                .resolveDestPaths(
+                  evaluator.outPath,
+                  module.millModuleSegments ++ Seq(Label("compile"))
+                )
+                .out
+              while (os.exists(outDir)) Thread.sleep(10)
 
-            (msg + s"${module.millModuleSegments.render} cleaned \n", cleaned)
-          }
-      }
+              (msg + s"${module.millModuleSegments.render} cleaned \n", cleaned)
+            }
+        }
 
       new CleanCacheResult(msg, cleaned)
     }
@@ -341,7 +374,8 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       BSP.install(evaluator)
     }
 
-  override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams): CompletableFuture[JavacOptionsResult] =
+  override def buildTargetJavacOptions(javacOptionsParams: JavacOptionsParams)
+      : CompletableFuture[JavacOptionsResult] =
     handleExceptions {
       val modules = getModules(evaluator)
       val millBuildTargetId = getMillBuildTargetId(evaluator)
@@ -360,9 +394,11 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
             } else
               getModule(targetId, modules) match {
                 case m: JavaModule =>
-                  val options = evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
-                  val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
-                    .map(_.path.toNIO.toUri.toString)
+                  val options =
+                    evaluateInformativeTask(evaluator, m.javacOptions, Seq.empty[String]).toList
+                  val classpath =
+                    evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                      .map(_.path.toNIO.toUri.toString)
                   val classDirectory = (Evaluator
                     .resolveDestPaths(
                       evaluator.outPath,
@@ -370,7 +406,12 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
                     )
                     .dest / "classes").toNIO.toUri.toString
 
-                  Some(new JavacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+                  Some(new JavacOptionsItem(
+                    targetId,
+                    options.asJava,
+                    classpath.iterator.toSeq.asJava,
+                    classDirectory
+                  ))
                 case _ => None
               }
 
@@ -401,9 +442,11 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
             } else
               getModule(targetId, modules) match {
                 case m: ScalaModule =>
-                  val options = evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
-                  val classpath = evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
-                    .map(_.path.toNIO.toUri.toString)
+                  val options =
+                    evaluateInformativeTask(evaluator, m.scalacOptions, Seq.empty[String]).toList
+                  val classpath =
+                    evaluateInformativeTask(evaluator, m.compileClasspath, Agg.empty[PathRef])
+                      .map(_.path.toNIO.toUri.toString)
                   val classDirectory = (Evaluator
                     .resolveDestPaths(
                       evaluator.outPath,
@@ -411,7 +454,12 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
                     )
                     .dest / "classes").toNIO.toUri.toString
 
-                  Some(new ScalacOptionsItem(targetId, options.asJava, classpath.iterator.toSeq.asJava, classDirectory))
+                  Some(new ScalacOptionsItem(
+                    targetId,
+                    options.asJava,
+                    classpath.iterator.toSeq.asJava,
+                    classDirectory
+                  ))
                 case _ => None
               }
 
@@ -443,13 +491,19 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
                     new ScalaMainClass(
                       mainClass.value,
                       Seq.empty[String].asJava,
-                      evaluateInformativeTask(evaluator, module.forkArgs, Seq.empty[String]).toList.asJava
+                      evaluateInformativeTask(
+                        evaluator,
+                        module.forkArgs,
+                        Seq.empty[String]
+                      ).toList.asJava
                     )
                   )
                 case msg: Left[String, String] =>
                   val messageParams = new ShowMessageParams(MessageType.WARNING, msg.value)
                   messageParams.setOriginId(scalaMainClassesParams.getOriginId)
-                  client.onBuildShowMessage(messageParams) // tell the client that no main class was found or specified
+                  client.onBuildShowMessage(
+                    messageParams
+                  ) // tell the client that no main class was found or specified
                   Seq.empty[ScalaMainClass]
               }
             case _ => Seq.empty[ScalaMainClass]
@@ -468,14 +522,19 @@ class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: S
       val modules = getModules(evaluator)
 
       val items =
-        scalaTestClassesParams.getTargets.asScala.foldLeft(Seq.empty[ScalaTestClassesItem]) { (items, targetId) =>
-          val newItem = getModule(targetId, modules) match {
-            case module: TestModule =>
-              Some(new ScalaTestClassesItem(targetId, getTestClasses(module, evaluator).toList.asJava))
-            case _: JavaModule => None // TODO: maybe send a notification that this target has no test classes
-          }
+        scalaTestClassesParams.getTargets.asScala.foldLeft(Seq.empty[ScalaTestClassesItem]) {
+          (items, targetId) =>
+            val newItem = getModule(targetId, modules) match {
+              case module: TestModule =>
+                Some(new ScalaTestClassesItem(
+                  targetId,
+                  getTestClasses(module, evaluator).toList.asJava
+                ))
+              case _: JavaModule =>
+                None // TODO: maybe send a notification that this target has no test classes
+            }
 
-          items ++ newItem
+            items ++ newItem
         }
 
       new ScalaTestClassesResult(items.asJava)

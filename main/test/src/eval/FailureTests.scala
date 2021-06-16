@@ -5,10 +5,9 @@ import mill.api.Result.OuterStack
 import utest._
 import utest.framework.TestPath
 
+object FailureTests extends TestSuite {
 
-object FailureTests extends TestSuite{
-
-  val tests = Tests{
+  val tests = Tests {
     val graphs = new mill.util.TestGraphs()
     import graphs._
 
@@ -36,10 +35,8 @@ object FailureTests extends TestSuite{
         expectedRawValues = Seq(Result.Success(0))
       )
 
-
       val ex = new IndexOutOfBoundsException()
       singleton.single.exception = Some(ex)
-
 
       check.fail(
         target = singleton.single,
@@ -81,7 +78,7 @@ object FailureTests extends TestSuite{
       )
     }
 
-    "evaluatePair (failFast=true)"- {
+    "evaluatePair (failFast=true)" - {
       val check = new TestEvaluator(pair, failFast = true)
       check.fail(
         pair.down,
@@ -185,11 +182,11 @@ object FailureTests extends TestSuite{
     "multipleUsesOfDest" - {
       object build extends TestUtil.BaseModule {
         // Using `T.ctx(  ).dest` twice in a single task is ok
-        def left = T{ + T.dest.toString.length + T.dest.toString.length }
+        def left = T { +T.dest.toString.length + T.dest.toString.length }
 
         // Using `T.ctx(  ).dest` once in two different tasks is ok
-        val task = T.task{ T.dest.toString.length  }
-        def right = T{ task() + left() + T.dest.toString().length }
+        val task = T.task { T.dest.toString.length }
+        def right = T { task() + left() + T.dest.toString().length }
       }
 
       val check = new TestEvaluator(build)
@@ -199,4 +196,3 @@ object FailureTests extends TestSuite{
     }
   }
 }
-

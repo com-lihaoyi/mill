@@ -9,7 +9,7 @@ import utest._
 import mill.scalajslib.api._
 
 object NodeJSConfigTests extends TestSuite {
-  val workspacePath =  TestUtil.getOutPathStatic() / "hello-js-world"
+  val workspacePath = TestUtil.getOutPathStatic() / "hello-js-world"
   val scalaVersion = "2.12.4"
   val scalaJSVersion = "0.6.32"
   val utestVersion = "0.7.5"
@@ -29,18 +29,19 @@ object NodeJSConfigTests extends TestSuite {
       nodeArgs <- Seq(nodeArgsEmpty, nodeArgs2G)
     } yield (scala, nodeArgs)
 
-    object helloJsWorld extends Cross[BuildModule](matrix:_*)
-    class BuildModule(val crossScalaVersion: String, nodeArgs: List[String]) extends HelloJSWorldModule {
+    object helloJsWorld extends Cross[BuildModule](matrix: _*)
+    class BuildModule(val crossScalaVersion: String, nodeArgs: List[String])
+        extends HelloJSWorldModule {
       override def artifactName = "hello-js-world"
       def scalaJSVersion = NodeJSConfigTests.scalaJSVersion
       override def jsEnvConfig = T { JsEnvConfig.NodeJs(args = nodeArgs) }
     }
 
-    object buildUTest extends Cross[BuildModuleUtest](matrix:_*)
+    object buildUTest extends Cross[BuildModuleUtest](matrix: _*)
     class BuildModuleUtest(crossScalaVersion: String, nodeArgs: List[String])
-      extends BuildModule(crossScalaVersion, nodeArgs) {
+        extends BuildModule(crossScalaVersion, nodeArgs) {
       object test extends super.Tests {
-        override def sources = T.sources{ millSourcePath / "src" / "utest" }
+        override def sources = T.sources { millSourcePath / "src" / "utest" }
         def testFrameworks = Seq("utest.runner.Framework")
         override def ivyDeps = Agg(
           ivy"com.lihaoyi::utest::$utestVersion"

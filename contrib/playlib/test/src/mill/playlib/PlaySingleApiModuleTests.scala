@@ -7,14 +7,15 @@ import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule{
-    override def playVersion = T{"2.7.0"}
-    def twirlVersion = T{"1.4.0"}
-    override def scalaVersion = T{"2.12.8"}
+  object playsingleapi extends TestUtil.BaseModule with PlayApiModule with SingleModule {
+    override def playVersion = T { "2.7.0" }
+    def twirlVersion = T { "1.4.0" }
+    override def scalaVersion = T { "2.12.8" }
     object test extends PlayTests
   }
 
-  val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "playsingleapi"
+  val resourcePath: os.Path =
+    os.pwd / "contrib" / "playlib" / "test" / "resources" / "playsingleapi"
 
   def tests: Tests = Tests {
     test("playVersion") {
@@ -40,10 +41,14 @@ object PlaySingleApiModuleTests extends TestSuite with PlayTestSuite {
           assert(
             conf.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("conf"),
             app.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("app"),
-            sources== app,
-            resources== conf,
-            testSources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("test"),
-            testResources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq("test/resources")
+            sources == app,
+            resources == conf,
+            testSources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+              "test"
+            ),
+            testResources.map(_.path.relativeTo(playsingleapi.millSourcePath).toString()) == Seq(
+              "test/resources"
+            )
           )
         }
       }

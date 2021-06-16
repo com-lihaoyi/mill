@@ -1,14 +1,12 @@
 package mill.define
 
-
 import mill.eval.Evaluator
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.api.Strict.Agg
-object GraphTests extends TestSuite{
+object GraphTests extends TestSuite {
 
-  val tests = Tests{
-
+  val tests = Tests {
 
     val graphs = new TestGraphs()
     import graphs._
@@ -71,14 +69,15 @@ object GraphTests extends TestSuite{
     }
 
     "groupAroundNamedTargets" - {
-      def check[T, R <: Target[Int]](base: T)
-                                    (target: T => R,
-                                     important0: Agg[T => Target[_]],
-                                     expected: Agg[(R, Int)]) = {
+      def check[T, R <: Target[Int]](base: T)(
+          target: T => R,
+          important0: Agg[T => Target[_]],
+          expected: Agg[(R, Int)]
+      ) = {
 
         val topoSorted = Graph.topoSorted(Graph.transitiveTargets(Agg(target(base))))
 
-        val important = important0.map(_ (base))
+        val important = important0.map(_(base))
         val grouped = Graph.groupAroundImportantTargets(topoSorted) {
           case t: Target[_] if important.contains(t) => t
         }
@@ -89,7 +88,9 @@ object GraphTests extends TestSuite{
           val grouping = grouped.lookupKey(terminal)
           assert(
             grouping.size == expectedSize,
-            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(terminal)
+            grouping.flatMap(_.asTarget: Option[Target[_]]).filter(important.contains) == Agg(
+              terminal
+            )
           )
         }
       }
@@ -188,14 +189,12 @@ object GraphTests extends TestSuite{
         assert(groupCount == 2)
       }
 
-
       "multiTerminalGroup" - {
         // Make sure the following graph ends up as two groups
         import multiTerminalGroup._
         val groupCount = countGroups(right, left)
         assert(groupCount == 2)
       }
-
 
       "multiTerminalBoundary" - {
         // Make sure the following graph ends up as a three groups: one for
@@ -205,7 +204,6 @@ object GraphTests extends TestSuite{
         assert(groupCount == 3)
       }
     }
-
 
   }
 }

@@ -55,6 +55,7 @@ trait TwirlModule extends mill.Module {
         twirlFormats(),
         twirlConstructorAnnotations,
         twirlCodec,
-        twirlInclusiveDot)
+        twirlInclusiveDot
+      )
   }
 }

@@ -7,7 +7,7 @@ object VersionTests extends TestSuite {
 
     test("toString") {
       val snapshot = Version.Snapshot(1, 2, 3)
-      val release  = Version.Release(1, 2, 3)
+      val release = Version.Release(1, 2, 3)
 
       assert(
         snapshot.toString == "1.2.3-SNAPSHOT",
@@ -30,7 +30,7 @@ object VersionTests extends TestSuite {
       }
 
       test("x.y.z.r") {
-        intercept [MatchError] {
+        intercept[MatchError] {
           Version.of("1.2.3.4")
         }
       }
@@ -44,7 +44,8 @@ object VersionTests extends TestSuite {
       test("upickle") {
         val in = Version.of("1.2.3")
         val out = Version.readWriter.visitString(
-          Version.readWriter.write(upickle.default.StringReader, in), 0
+          Version.readWriter.write(upickle.default.StringReader, in),
+          0
         )
         assert(in == out)
       }
@@ -54,7 +55,7 @@ object VersionTests extends TestSuite {
 
       test("to release") {
         val snapshot = Version.Snapshot(1, 2, 3)
-        val release  = Version.Release(1, 2, 3)
+        val release = Version.Release(1, 2, 3)
 
         assert(
           snapshot.asRelease == release,
@@ -64,7 +65,7 @@ object VersionTests extends TestSuite {
 
       test("to snapshot") {
         val snapshot = Version.Snapshot(1, 2, 3)
-        val release  = Version.Release(1, 2, 3)
+        val release = Version.Release(1, 2, 3)
 
         assert(
           release.asSnapshot == snapshot,

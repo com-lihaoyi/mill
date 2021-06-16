@@ -5,10 +5,11 @@ import upickle.default.{ReadWriter, macroRW, readwriter}
 
 object BloopFormats {
 
-  implicit val pathRW: ReadWriter[java.nio.file.Path] = readwriter[String].bimap[java.nio.file.Path](
-    _.toString,
-    java.nio.file.Paths.get(_)
-  )
+  implicit val pathRW: ReadWriter[java.nio.file.Path] =
+    readwriter[String].bimap[java.nio.file.Path](
+      _.toString,
+      java.nio.file.Paths.get(_)
+    )
   implicit val artifactRW: ReadWriter[BloopConfig.Artifact] = macroRW
   implicit val checksumRW: ReadWriter[BloopConfig.Checksum] = macroRW
   implicit val compileOrderRW: ReadWriter[BloopConfig.CompileOrder] = macroRW

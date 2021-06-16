@@ -9,7 +9,8 @@ import scala.io.Codec
 object HelloWorldTests extends TestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath: os.Path = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath: os.Path =
+      TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   trait HelloWorldModule extends mill.twirllib.TwirlModule {
@@ -73,8 +74,8 @@ object HelloWorldTests extends TestSuite {
   )
 
   def testConstructorAnnotations = Seq(
-  "@org.springframework.stereotype.Component()",
-  "@something.else.Thing()"
+    "@org.springframework.stereotype.Component()",
+    "@something.else.Thing()"
   )
 
   def tests: Tests = Tests {
@@ -106,14 +107,15 @@ object HelloWorldTests extends TestSuite {
         evalCount > 0,
         outputFiles.forall { p =>
           val lines = os.read.lines(p).map(_.trim)
-          (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(lines.contains)
+          (expectedDefaultImports ++ testAdditionalImports.map(s => s"import $s")).forall(
+            lines.contains
+          )
         },
         outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
           val lines = os.read.lines(p).map(_.trim)
           val expectedClassDeclaration = s"class hello ${testConstructorAnnotations.mkString}"
           lines.exists(_.startsWith(expectedClassDeclaration))
-        },
-
+        }
       )
 
       // don't recompile if nothing changed
@@ -122,12 +124,18 @@ object HelloWorldTests extends TestSuite {
 
       assert(unchangedEvalCount == 0)
     }
-    "compileTwirlInclusiveDot" - workspaceTest(HelloWorldWithInclusiveDot, "hello-world-inclusive-dot") { eval =>
+    "compileTwirlInclusiveDot" - workspaceTest(
+      HelloWorldWithInclusiveDot,
+      "hello-world-inclusive-dot"
+    ) { eval =>
       val Right((result, evalCount)) = eval.apply(HelloWorldWithInclusiveDot.core.compileTwirl)
 
       val outputFiles = os.walk(result.classes.path).filter(_.last.endsWith(".scala"))
-      val expectedClassfiles = compileClassfiles.map( name =>
-        eval.outPath / "core" / "compileTwirl" / "dest" / name / os.RelPath.up / name.last.replace(".template.scala", "$$TwirlInclusiveDot.template.scala")
+      val expectedClassfiles = compileClassfiles.map(name =>
+        eval.outPath / "core" / "compileTwirl" / "dest" / name / os.RelPath.up / name.last.replace(
+          ".template.scala",
+          "$$TwirlInclusiveDot.template.scala"
+        )
       )
 
       println(s"outputFiles: $outputFiles")
@@ -141,8 +149,7 @@ object HelloWorldTests extends TestSuite {
         outputFiles.filter(_.toString().contains("hello.template.scala")).forall { p =>
           val lines = os.read.lines(p).map(_.trim)
           lines.exists(_.contains("$$TwirlInclusiveDot"))
-        },
-
+        }
       )
 
       // don't recompile if nothing changed

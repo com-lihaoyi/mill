@@ -46,9 +46,11 @@ object GenIdeaModule {
    * @param attributes The optional XML element attributes
    * @param childs The optional XML child elements.
    */
-  final case class Element(name: String,
-                           attributes: Map[String, String] = Map(),
-                           childs: Seq[Element] = Seq())
+  final case class Element(
+      name: String,
+      attributes: Map[String, String] = Map(),
+      childs: Seq[Element] = Seq()
+  )
   object Element {
     implicit def rw: ReadWriter[Element] = macroRW
   }
@@ -76,11 +78,15 @@ object GenIdeaModule {
     val subPath: SubPath = SubPath(name)
     // An empty component name meas we contribute a whole file
     // If we have a fill file, we only accept a single root xml node.
-    require(component.nonEmpty ||  config.size == 1, "Files contributions must have exactly one root element.")
+    require(
+      component.nonEmpty || config.size == 1,
+      "Files contributions must have exactly one root element."
+    )
 
-    def asWholeFile: Option[(SubPath, Element)] = if(component.isEmpty) {
-      Option(subPath -> config.head)
-    }else None
+    def asWholeFile: Option[(SubPath, Element)] =
+      if (component.isEmpty) {
+        Option(subPath -> config.head)
+      } else None
   }
   object IdeaConfigFile {
 

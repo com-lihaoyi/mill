@@ -1,6 +1,5 @@
 package mill
 
 object TestMain {
-  def main(args: Array[String]): Unit = {
-  }
+  def main(args: Array[String]): Unit = {}
 }

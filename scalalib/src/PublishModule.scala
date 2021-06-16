@@ -7,8 +7,8 @@ import mill.main.Tasks
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
 /**
-  * Configuration necessary for publishing a Scala module to Maven Central or similar
-  */
+ * Configuration necessary for publishing a Scala module to Maven Central or similar
+ */
 trait PublishModule extends JavaModule { outer =>
   import mill.scalalib.publish._
 
@@ -58,15 +58,15 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-    * Extra artifacts to publish.
-    */
-  def extraPublish: Target[Seq[PublishInfo]] = T{ Seq.empty[PublishInfo] }
+   * Extra artifacts to publish.
+   */
+  def extraPublish: Target[Seq[PublishInfo]] = T { Seq.empty[PublishInfo] }
 
   /**
-    * Publish artifacts to a local ivy repository.
-    * @param localIvyRepo The local ivy repository.
-    *                     If not defined, defaults to `$HOME/.ivy2/local`
-    */
+   * Publish artifacts to a local ivy repository.
+   * @param localIvyRepo The local ivy repository.
+   *                     If not defined, defaults to `$HOME/.ivy2/local`
+   */
   def publishLocal(localIvyRepo: String = null): define.Command[Unit] = T.command {
     val publisher = localIvyRepo match {
       case null => LocalIvyPublisher
@@ -85,11 +85,12 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-    * Publish artifacts to a local Maven repository.
-    * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
-    * @return [[PathRef]]s to published files.
-    */
-  def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString()): Command[Seq[PathRef]] = T.command {
+   * Publish artifacts to a local Maven repository.
+   * @param m2RepoPath The path to the local repository  as string (default: `$HOME/.m2repository`).
+   * @return [[PathRef]]s to published files.
+   */
+  def publishM2Local(m2RepoPath: String = (os.home / ".m2" / "repository").toString())
+      : Command[Seq[PathRef]] = T.command {
     val path = os.Path(m2RepoPath, os.pwd)
     new LocalM2Publisher(path)
       .publish(
@@ -120,18 +121,20 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   /**
-    * Publish all given artifacts to Sonatype.
-    * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
-    *                 Specifying this will override/remove the defaults. Add the default args to your args to keep them.
-    */
-  def publish(sonatypeCreds: String,
-              signed: Boolean = true,
-              gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
-              release: Boolean = false,
-              readTimeout: Int = 60000,
-              connectTimeout: Int = 5000,
-              awaitTimeout: Int = 120 * 1000,
-              stagingRelease: Boolean = true): define.Command[Unit] = T.command {
+   * Publish all given artifacts to Sonatype.
+   * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                 Specifying this will override/remove the defaults. Add the default args to your args to keep them.
+   */
+  def publish(
+      sonatypeCreds: String,
+      signed: Boolean = true,
+      gpgArgs: Seq[String] = PublishModule.defaultGpgArgs,
+      release: Boolean = false,
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000,
+      awaitTimeout: Int = 120 * 1000,
+      stagingRelease: Boolean = true
+  ): define.Command[Unit] = T.command {
     val PublishModule.PublishData(artifactInfo, artifacts) = publishArtifacts()
     new SonatypePublisher(
       sonatypeUri,
@@ -144,7 +147,7 @@ trait PublishModule extends JavaModule { outer =>
       T.log,
       awaitTimeout,
       stagingRelease
-    ).publish(artifacts.map{case (a, b) => (a.path, b)}, artifactInfo, release)
+    ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
   }
 }
 
@@ -152,28 +155,30 @@ object PublishModule extends ExternalModule {
   val defaultGpgArgs = Seq("--batch", "--yes", "-a", "-b")
 
   case class PublishData(meta: Artifact, payload: Seq[(PathRef, String)])
-  object PublishData{
+  object PublishData {
     implicit def jsonify: upickle.default.ReadWriter[PublishData] = upickle.default.macroRW
   }
 
   /**
-    * Publish all given artifacts to Sonatype.
-    * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
-    *                Specifying this will override/remove the defaults. Add the default args to your args to keep them.
-    */
-  def publishAll(publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
-                 sonatypeCreds: String,
-                 signed: Boolean = true,
-                 gpgArgs: String = defaultGpgArgs.mkString(","),
-                 release: Boolean = false,
-                 sonatypeUri: String = "https://oss.sonatype.org/service/local",
-                 sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
-                 readTimeout: Int = 60000,
-                 connectTimeout: Int = 5000,
-                 awaitTimeout: Int = 120 * 1000,
-                 stagingRelease: Boolean = true): Command[Unit] = T.command {
-    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map{
-      case PublishModule.PublishData(a, s) => (s.map{case (p, f) => (p.path, f)}, a)
+   * Publish all given artifacts to Sonatype.
+   * @param gpgArgs GPG arguments. Defaults to `--batch --yes -a -b`.
+   *                Specifying this will override/remove the defaults. Add the default args to your args to keep them.
+   */
+  def publishAll(
+      publishArtifacts: mill.main.Tasks[PublishModule.PublishData],
+      sonatypeCreds: String,
+      signed: Boolean = true,
+      gpgArgs: String = defaultGpgArgs.mkString(","),
+      release: Boolean = false,
+      sonatypeUri: String = "https://oss.sonatype.org/service/local",
+      sonatypeSnapshotUri: String = "https://oss.sonatype.org/content/repositories/snapshots",
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000,
+      awaitTimeout: Int = 120 * 1000,
+      stagingRelease: Boolean = true
+  ): Command[Unit] = T.command {
+    val x: Seq[(Seq[(os.Path, String)], Artifact)] = T.sequence(publishArtifacts.value)().map {
+      case PublishModule.PublishData(a, s) => (s.map { case (p, f) => (p.path, f) }, a)
     }
     new SonatypePublisher(
       sonatypeUri,
@@ -188,11 +193,12 @@ object PublishModule extends ExternalModule {
       stagingRelease
     ).publishAll(
       release,
-      x:_*
+      x: _*
     )
   }
 
-  implicit def millScoptTargetReads[T]: mainargs.TokensReader[Tasks[T]] = new mill.main.Tasks.Scopt[T]()
+  implicit def millScoptTargetReads[T]: mainargs.TokensReader[Tasks[T]] =
+    new mill.main.Tasks.Scopt[T]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]
 }

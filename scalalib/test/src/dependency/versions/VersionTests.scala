@@ -50,9 +50,7 @@ object VersionTests extends TestSuite {
       }
       'PreReleaseBuildVersion - {
         assertMatch(Version("1.0.0-alpha.1+build.10")) {
-          case PreReleaseBuildVersion(List(1, 0, 0),
-                                      List("alpha", "1"),
-                                      List("build", "10")) =>
+          case PreReleaseBuildVersion(List(1, 0, 0), List("alpha", "1"), List("build", "10")) =>
         }
       }
       'BuildVersion - {
@@ -86,7 +84,7 @@ object VersionTests extends TestSuite {
       ).map(Version.apply)
       val pairs = v.tails.flatMap {
         case h :: t => t.map((h, _))
-        case Nil    => List.empty
+        case Nil => List.empty
       }
       pairs.foreach {
         case (a, b) =>
@@ -130,7 +128,10 @@ object VersionTests extends TestSuite {
       }
       Symbol("parse 9.1-901-1.jdbc4+build/11.e0f985a") - {
         assertMatch(VersionParser.parse("9.1-901-1.jdbc4+build/11.e0f985a")) {
-          case Parsed.Success((Seq(9, 1), Seq("901", "1", "jdbc4"), Seq("build/11", "e0f985a")), _) =>
+          case Parsed.Success(
+                (Seq(9, 1), Seq("901", "1", "jdbc4"), Seq("build/11", "e0f985a")),
+                _
+              ) =>
         }
       }
     }

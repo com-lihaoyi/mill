@@ -8,7 +8,7 @@ import mill.scalalib._
 import utest._
 import mill.scalajslib.api._
 object MultiModuleTests extends TestSuite {
-  val workspacePath =  TestUtil.getOutPathStatic() / "multi-module"
+  val workspacePath = TestUtil.getOutPathStatic() / "multi-module"
   val sourcePath = os.pwd / "scalajslib" / "test" / "resources" / "multi-module"
 
   object MultiModule extends TestUtil.BaseModule {
@@ -68,7 +68,7 @@ object MultiModuleTests extends TestSuite {
 
     "run" - {
       val command = MultiModule.client.run()
-      
+
       val Right((_, evalCount)) = evaluator(command)
 
       val paths = Evaluator.resolveDestPaths(

@@ -15,60 +15,70 @@ import ammonite.runtime.ImportHook
 import mill.define.Segments
 
 /**
-  * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
-  * `build.sc` scripts with mill-specific tweaks such as a custom
-  * `scriptCodeWrapper` or with a persistent evaluator between runs.
-  */
-class MainRunner(val config: ammonite.main.Config,
-                 mainInteractive: Boolean,
-                 disableTicker: Boolean,
-                 outprintStream: PrintStream,
-                 errPrintStream: PrintStream,
-                 stdIn: InputStream,
-                 stateCache0: Option[Evaluator.State] = None,
-                 env : Map[String, String],
-                 setIdle: Boolean => Unit,
-                 debugLog: Boolean,
-                 keepGoing: Boolean,
-                 systemProperties: Map[String, String],
-                 threadCount: Option[Int],
-                 ringBell: Boolean,
-                 wd: os.Path)
-  extends ammonite.MainRunner(
-    config, outprintStream, errPrintStream,
-    stdIn, outprintStream, errPrintStream,
-    wd
-  ){
+ * Customized version of [[ammonite.MainRunner]], allowing us to run Mill
+ * `build.sc` scripts with mill-specific tweaks such as a custom
+ * `scriptCodeWrapper` or with a persistent evaluator between runs.
+ */
+class MainRunner(
+    val config: ammonite.main.Config,
+    mainInteractive: Boolean,
+    disableTicker: Boolean,
+    outprintStream: PrintStream,
+    errPrintStream: PrintStream,
+    stdIn: InputStream,
+    stateCache0: Option[Evaluator.State] = None,
+    env: Map[String, String],
+    setIdle: Boolean => Unit,
+    debugLog: Boolean,
+    keepGoing: Boolean,
+    systemProperties: Map[String, String],
+    threadCount: Option[Int],
+    ringBell: Boolean,
+    wd: os.Path
+) extends ammonite.MainRunner(
+      config,
+      outprintStream,
+      errPrintStream,
+      stdIn,
+      outprintStream,
+      errPrintStream,
+      wd
+    ) {
 
-  var stateCache  = stateCache0
+  var stateCache = stateCache0
 
   override def watchAndWait(watched: Seq[(ammonite.interp.Watchable, Long)]) = {
     val (watchedPaths, watchedValues) = watched.partitionMap {
       case (ammonite.interp.Watchable.Path(p), _) => Left(())
       case (_, _) => Right(())
     }
-    val watchedValueStr = if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
-    printInfo(s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Ctrl-C to exit)")
-    def statAll() = watched.forall{ case (file, lastMTime) =>
+    val watchedValueStr =
+      if (watchedValues.isEmpty) "" else s" and ${watchedValues.size} other values"
+    printInfo(
+      s"Watching for changes to ${watchedPaths.size} paths$watchedValueStr... (Ctrl-C to exit)"
+    )
+    def statAll() = watched.forall { case (file, lastMTime) =>
       file.poll() == lastMTime
     }
     setIdle(true)
-    while(statAll()) Thread.sleep(100)
+    while (statAll()) Thread.sleep(100)
     setIdle(false)
   }
 
   /**
-    * Custom version of [[watchLoop]] that lets us generate the watched-file
-    * signature only on demand, so if we don't have config.watch enabled we do
-    * not pay the cost of generating it
-    */
-  @tailrec final def watchLoop2[T](isRepl: Boolean,
-                                   printing: Boolean,
-                                   run: Main => (Res[T], () => Seq[(ammonite.interp.Watchable, Long)])): Boolean = {
+   * Custom version of [[watchLoop]] that lets us generate the watched-file
+   * signature only on demand, so if we don't have config.watch enabled we do
+   * not pay the cost of generating it
+   */
+  @tailrec final def watchLoop2[T](
+      isRepl: Boolean,
+      printing: Boolean,
+      run: Main => (Res[T], () => Seq[(ammonite.interp.Watchable, Long)])
+  ): Boolean = {
     val (result, watched) = run(initMain(isRepl))
 
     val success = handleWatchRes(result, printing)
-    if (ringBell){
+    if (ringBell) {
       if (success) println("\u0007")
       else {
         println("\u0007")
@@ -77,16 +87,15 @@ class MainRunner(val config: ammonite.main.Config,
       }
     }
     if (!config.core.watch.value) success
-    else{
+    else {
       watchAndWait(watched())
       watchLoop2(isRepl, printing, run)
     }
   }
 
-
   val colored = config.core.color.getOrElse(mainInteractive)
 
-  override val colors = if(colored) Colors.Default else Colors.BlackWhite
+  override val colors = if (colored) Colors.Default else Colors.BlackWhite
   override def runScript(scriptPath: os.Path, scriptArgs: List[String]) =
     watchLoop2(
       isRepl = false,
@@ -119,11 +128,16 @@ class MainRunner(val config: ammonite.main.Config,
           threadCount = threadCount
         )
 
-        result match{
+        result match {
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
-            stateCache = Some(Evaluator.State(eval.rootModule, eval.classLoaderSig, eval.workerCache, interpWatched))
+            stateCache = Some(Evaluator.State(
+              eval.rootModule,
+              eval.classLoaderSig,
+              eval.workerCache,
+              interpWatched
+            ))
             val watched = () => {
               val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
               // If the file changed between the creation of the original
@@ -136,7 +150,10 @@ class MainRunner(val config: ammonite.main.Config,
                 (ammonite.interp.Watchable.Path(p.path), util.Random.nextLong())
               )
               else evalWatches.map(p =>
-                (ammonite.interp.Watchable.Path(p.path), ammonite.interp.Watchable.pathSignature(p.path))
+                (
+                  ammonite.interp.Watchable.Path(p.path),
+                  ammonite.interp.Watchable.pathSignature(p.path)
+                )
               )
             }
             (Res(res), () => interpWatched ++ watched())
@@ -146,7 +163,7 @@ class MainRunner(val config: ammonite.main.Config,
     )
 
   override def handleWatchRes[T](res: Res[T], printing: Boolean) = {
-    res match{
+    res match {
       case Res.Success(value) => true
       case _ => super.handleWatchRes(res, printing)
     }
@@ -164,29 +181,31 @@ class MainRunner(val config: ammonite.main.Config,
   }
 
   object CustomCodeWrapper extends ammonite.compiler.iface.CodeWrapper {
-    def apply(code: String,
-              source: CodeSource,
-              imports: ammonite.util.Imports,
-              printCode: String,
-              indexedWrapperName: ammonite.util.Name,
-              extraCode: String): (String, String, Int) = {
+    def apply(
+        code: String,
+        source: CodeSource,
+        imports: ammonite.util.Imports,
+        printCode: String,
+        indexedWrapperName: ammonite.util.Name,
+        extraCode: String
+    ): (String, String, Int) = {
       import source.pkgName
       val wrapName = indexedWrapperName.backticked
       val path = source.path
         .map(_ / os.up)
         .getOrElse(wd)
       val literalPath = pprint.Util.literalize(path.toString)
-      val foreign = if (path != wd) {
-        // Computing a path in "out" that uniquely reflects the location
-        // of the foreign module relatively to the current build.
-        val relative = path.relativeTo(wd)
-        // Encoding the number of `/..`
-        val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
-        val segs = Seq("foreign-modules") ++ ups ++ relative.segments
-        val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
-        s"Some(_root_.mill.define.Segments.labels($segsList))"
-      }
-      else "None"
+      val foreign =
+        if (path != wd) {
+          // Computing a path in "out" that uniquely reflects the location
+          // of the foreign module relatively to the current build.
+          val relative = path.relativeTo(wd)
+          // Encoding the number of `/..`
+          val ups = if (relative.ups > 0) Seq(s"up-${relative.ups}") else Seq()
+          val segs = Seq("foreign-modules") ++ ups ++ relative.segments
+          val segsList = segs.map(pprint.Util.literalize(_)).mkString(", ")
+          s"Some(_root_.mill.define.Segments.labels($segsList))"
+        } else "None"
 
       val top = s"""
         |package ${pkgName.head.encoded}

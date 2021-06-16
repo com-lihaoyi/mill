@@ -6,10 +6,13 @@ trait VersionFileModule extends Module {
 
   /** The file containing the current version. */
   def versionFile: define.Source = T.source(millSourcePath / "version")
+
   /** The current version. */
   def currentVersion: T[Version] = T { Version.of(os.read(versionFile().path).trim) }
+
   /** The release version. */
   def releaseVersion = T { currentVersion().asRelease }
+
   /** The next snapshot version. */
   def nextVersion(bump: String) = T.command { currentVersion().asSnapshot.bump(bump) }
 
@@ -41,7 +44,7 @@ trait VersionFileModule extends Module {
 
   /** Procs for tagging current version and committing changes. */
   def tag = T {
-    Seq (
+    Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "tag", currentVersion().toString)
     )
@@ -49,7 +52,7 @@ trait VersionFileModule extends Module {
 
   /** Procs for committing changes and pushing. */
   def push = T {
-    Seq (
+    Seq(
       os.proc("git", "commit", "-am", generateCommitMessage(currentVersion())),
       os.proc("git", "push", "origin", "master", "--tags")
     )
@@ -83,10 +86,10 @@ object VersionFileModule extends define.ExternalModule {
   def exec(procs: mill.main.Tasks[Seq[os.proc]]) = T.command {
     for {
       procs <- T.sequence(procs.value)()
-      proc  <- procs
+      proc <- procs
     } yield proc.call()
   }
-  
+
   implicit val millScoptTargetReads = new mill.main.Tasks.Scopt[Seq[os.proc]]()
 
   lazy val millDiscover: mill.define.Discover[this.type] = mill.define.Discover[this.type]

@@ -24,7 +24,8 @@ trait TestModule extends JavaModule with TaskModule {
         "predefined TestModules: TestNg, Junit, Scalatest, ..."
     if (frameworks.size != 1) {
       Result.Failure(
-        s"Since mill after-0.9.6 only one test framework per TestModule is supported. ${msg}")
+        s"Since mill after-0.9.6 only one test framework per TestModule is supported. ${msg}"
+      )
     } else {
       T.log.error(msg)
       Result.Success(frameworks.head)
@@ -68,48 +69,52 @@ trait TestModule extends JavaModule with TaskModule {
   def testOnly(args: String*): Command[(String, Seq[TestRunner.Result])] = {
     val splitAt = args.indexOf("--")
     val (selector, testArgs) =
-      if(splitAt == -1) (args, Seq.empty)
+      if (splitAt == -1) (args, Seq.empty)
       else {
         val (s, t) = args.splitAt(splitAt)
         (s, t.tail)
       }
     T.command {
-      testTask(T.task { testArgs }, T.task { selector } )()
+      testTask(T.task { testArgs }, T.task { selector })()
     }
   }
 
-  /** Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
+  /**
+   * Controls whether the TestRunner should receive it's arguments via an args-file instead of a as long parameter list.
    * Defaults to `true` on Windows, as Windows has a rather short parameter length limit.
-   * */
+   */
   def testUseArgsFile: T[Boolean] = T { runUseArgsFile() || scala.util.Properties.isWin }
 
   @deprecated("Use testTask(args, T.task{Seq.empty[String]}) instead.", "mill after 0.9.7")
   protected def testTask(
-    args: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
-    testTask(args, T.task{Seq.empty[String]})
+      args: Task[Seq[String]]
+  ): Task[(String, Seq[TestRunner.Result])] =
+    testTask(args, T.task { Seq.empty[String] })
 
   protected def testTask(
       args: Task[Seq[String]],
-      globSelectors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] =
+      globSelectors: Task[Seq[String]]
+  ): Task[(String, Seq[TestRunner.Result])] =
     T.task {
       val outputPath = T.dest / "out.json"
       val useArgsFile = testUseArgsFile()
 
-      val (jvmArgs, props: Map[String, String]) = if (useArgsFile) {
-        val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
-        val sysProps =
-          props
-            .map(_.drop(2).split("[=]", 2))
-            .map {
-              case Array(k, v) => k -> v
-              case Array(k)    => k -> ""
-            }
-            .toMap
+      val (jvmArgs, props: Map[String, String]) =
+        if (useArgsFile) {
+          val (props, jvmArgs) = forkArgs().partition(_.startsWith("-D"))
+          val sysProps =
+            props
+              .map(_.drop(2).split("[=]", 2))
+              .map {
+                case Array(k, v) => k -> v
+                case Array(k) => k -> ""
+              }
+              .toMap
 
-        jvmArgs -> sysProps
-      } else {
-        forkArgs() -> Map()
-      }
+          jvmArgs -> sysProps
+        } else {
+          forkArgs() -> Map()
+        }
 
       val testArgs = TestRunner.TestArgs(
         framework = testFramework(),
@@ -123,12 +128,13 @@ trait TestModule extends JavaModule with TaskModule {
         globSelectors = globSelectors()
       )
 
-      val mainArgs = if (useArgsFile) {
-        val argsFile = T.dest / "testargs"
-        Seq(testArgs.writeArgsFile(argsFile))
-      } else {
-        testArgs.toArgsSeq
-      }
+      val mainArgs =
+        if (useArgsFile) {
+          val argsFile = T.dest / "testargs"
+          Seq(testArgs.writeArgsFile(argsFile))
+        } else {
+          testArgs.toArgsSeq
+        }
 
       Jvm.runSubprocess(
         mainClass = "mill.scalalib.TestRunner",
@@ -183,7 +189,8 @@ object TestModule {
     override def testFramework: T[String] = "mill.testng.TestNGFramework"
     override def ivyDeps: T[Agg[Dep]] = T {
       super.ivyDeps() ++ Agg(
-        ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}")
+        ivy"com.lihaoyi:mill-contrib-testng:${mill.BuildInfo.millVersion}"
+      )
     }
   }
 
@@ -217,7 +224,8 @@ object TestModule {
     }
   }
 
-  /** TestModule that uses UTest Framework to run tests.
+  /**
+   * TestModule that uses UTest Framework to run tests.
    * You need to provide the utest dependencies yourself.
    */
   trait Utest extends TestModule {
@@ -225,15 +233,17 @@ object TestModule {
   }
 
   /**
-    * TestModule that uses MUnit to run tests.
-    * You need to provide the munit dependencies yourself.
-    */
+   * TestModule that uses MUnit to run tests.
+   * You need to provide the munit dependencies yourself.
+   */
   trait Munit extends TestModule {
     override def testFramework: T[String] = "munit.Framework"
   }
 
-  def handleResults(doneMsg: String, results: Seq[TestRunner.Result])
-    : Result[(String, Seq[TestRunner.Result])] = {
+  def handleResults(
+      doneMsg: String,
+      results: Seq[TestRunner.Result]
+  ): Result[(String, Seq[TestRunner.Result])] = {
 
     val badTests: Seq[TestRunner.Result] =
       results.filter(x => Set("Error", "Failure").contains(x.status))

@@ -1,6 +1,6 @@
 import mill.util.JsonFormatters
 
-package object mill extends JsonFormatters{
+package object mill extends JsonFormatters {
   val T = define.Target
   type T[T] = define.Target[T]
   val PathRef = mill.api.PathRef
