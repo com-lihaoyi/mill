@@ -3,9 +3,9 @@ package mill.define
 import mill.util.{TestGraphs, TestUtil}
 import utest._
 import mill.{Module, T}
-object BasePathTests extends TestSuite{
+object BasePathTests extends TestSuite {
   val testGraphs = new TestGraphs
-  val tests = Tests{
+  val tests = Tests {
     def check[T <: Module](m: T)(f: T => Module, segments: String*) = {
       val remaining = f(m).millSourcePath.relativeTo(m.millSourcePath).segments
       assert(remaining == segments)
@@ -25,7 +25,7 @@ object BasePathTests extends TestSuite{
     "TraitWithModuleObject" - {
       check(TestGraphs.TraitWithModuleObject)(
         _.TraitModule,
-       "TraitModule"
+        "TraitModule"
       )
     }
     "nestedModuleNested" - {
@@ -48,15 +48,18 @@ object BasePathTests extends TestSuite{
       check(TestGraphs.nestedCrosses)(_.cross, "cross")
       check(TestGraphs.nestedCrosses)(
         _.cross("210").cross2("js"),
-        "cross", "210", "cross2", "js"
+        "cross",
+        "210",
+        "cross2",
+        "js"
       )
     }
     "overriden" - {
       object overridenBasePath extends TestUtil.BaseModule {
         override def millSourcePath = os.pwd / "overridenBasePathRootValue"
-        object nested extends Module{
+        object nested extends Module {
           override def millSourcePath = super.millSourcePath / "overridenBasePathNested"
-          object nested extends Module{
+          object nested extends Module {
             override def millSourcePath = super.millSourcePath / "overridenBasePathDoubleNested"
           }
         }
@@ -70,4 +73,3 @@ object BasePathTests extends TestSuite{
 
   }
 }
-

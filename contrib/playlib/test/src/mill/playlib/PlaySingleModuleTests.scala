@@ -9,10 +9,10 @@ import utest.{TestSuite, Tests, assert, _}
 
 object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
 
-  object playsingle extends TestUtil.BaseModule with PlayModule with SingleModule{
-    override def playVersion = T{"2.8.8"}
-    override def twirlVersion = T{"1.5.1"}
-    override def scalaVersion = T{"2.13.6"}
+  object playsingle extends TestUtil.BaseModule with PlayModule with SingleModule {
+    override def playVersion = T { "2.8.8" }
+    override def twirlVersion = T { "1.5.1" }
+    override def scalaVersion = T { "2.13.6" }
     object test extends PlayTests
   }
 
@@ -34,7 +34,9 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
             sources == app,
             resources.map(_.path.relativeTo(playsingle.millSourcePath).toString()).contains("conf"),
             testSources.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("test"),
-            testResources.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq("test/resources")
+            testResources.map(_.path.relativeTo(playsingle.millSourcePath).toString()) == Seq(
+              "test/resources"
+            )
           )
         }
       }
@@ -74,9 +76,9 @@ object PlaySingleModuleTests extends TestSuite with PlayTestSuite {
         // don"t" recompile if nothing changed
         val Right((_, unchangedEvalCount)) = eval.apply(playsingle.compile)
 
-        // FIXME the following test should be uncommented once
-        // https://github.com/lihaoyi/mill/issues/554 is resolved
-        // assert(unchangedEvalCount == 0)
+      // FIXME the following test should be uncommented once
+      // https://github.com/lihaoyi/mill/issues/554 is resolved
+      // assert(unchangedEvalCount == 0)
       }
     }
   }

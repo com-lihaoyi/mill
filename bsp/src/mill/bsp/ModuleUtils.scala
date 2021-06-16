@@ -11,11 +11,7 @@ import mill.define._
 import mill.eval.{Evaluator, _}
 import mill.scalajslib.ScalaJSModule
 import mill.scalalib._
-import mill.scalalib.Lib.{
-  depToDependency,
-  resolveDependencies,
-  scalaRuntimeIvyDeps
-}
+import mill.scalalib.Lib.{depToDependency, resolveDependencies, scalaRuntimeIvyDeps}
 import mill.scalalib.api.Util
 import mill.scalanativelib._
 import mill.util.Ctx
@@ -31,7 +27,7 @@ object ModuleUtils {
 
   /**
    * Resolve all the mill modules contained in the project
-   * */
+   */
   def getModules(evaluator: Evaluator): Seq[JavaModule] =
     evaluator.rootModule.millInternal.segmentsToModules.values.collect {
       case m: JavaModule => m
@@ -39,13 +35,13 @@ object ModuleUtils {
 
   /**
    * Resolve a mill modules given a target identifier
-   * */
-  def getModule(targetId: BuildTargetIdentifier,
-                modules: Seq[JavaModule]): JavaModule =
+   */
+  def getModule(targetId: BuildTargetIdentifier, modules: Seq[JavaModule]): JavaModule =
     modules
       .find(getTargetId(_) == targetId)
       .getOrElse(throw new IllegalArgumentException(
-        s"No module found for target id ${targetId.getUri}"))
+        s"No module found for target id ${targetId.getUri}"
+      ))
 
   /**
    * Compute mapping between all the JavaModules contained in the
@@ -60,7 +56,8 @@ object ModuleUtils {
    * @return JavaModule -> BuildTarget mapping
    */
   def getTargets(modules: Seq[JavaModule], evaluator: Evaluator)(
-      implicit ctx: Ctx.Log): Seq[BuildTarget] = {
+      implicit ctx: Ctx.Log
+  ): Seq[BuildTarget] = {
     val targets = modules.map(module => getTarget(module, evaluator))
     val millBuildTarget = getMillBuildTarget(evaluator, modules)
 
@@ -69,7 +66,8 @@ object ModuleUtils {
 
   def getMillBuildTargetId(evaluator: Evaluator): BuildTargetIdentifier =
     new BuildTargetIdentifier(
-      evaluator.rootModule.millSourcePath.toNIO.toUri.toString)
+      evaluator.rootModule.millSourcePath.toNIO.toUri.toString
+    )
 
   /**
    * Compute the BuildTarget for the Mill build (build.sc files)
@@ -79,7 +77,8 @@ object ModuleUtils {
    * @return the Mill BuildTarget
    */
   def getMillBuildTarget(evaluator: Evaluator, modules: Seq[JavaModule])(
-      implicit ctx: Ctx.Log): BuildTarget = {
+      implicit ctx: Ctx.Log
+  ): BuildTarget = {
     val target = new BuildTarget(
       getMillBuildTargetId(evaluator),
       Seq.empty[String].asJava,
@@ -88,10 +87,12 @@ object ModuleUtils {
       new BuildTargetCapabilities(false, false, false)
     )
     target.setBaseDirectory(
-      evaluator.rootModule.millSourcePath.toNIO.toUri.toString)
+      evaluator.rootModule.millSourcePath.toNIO.toUri.toString
+    )
     target.setDataKind(BuildTargetDataKind.SCALA)
     target.setTags(
-      Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava)
+      Seq(BuildTargetTag.LIBRARY, BuildTargetTag.APPLICATION).asJava
+    )
     target.setDisplayName("mill-build")
 
     val scalaOrganization = "org.scala-lang"
@@ -130,10 +131,10 @@ object ModuleUtils {
    * @param sources classpath for source jars or not
    * @return Mill build Classpath(URI)
    */
-  def getMillBuildClasspath(evaluator: Evaluator,
-                            sources: Boolean): Seq[String] = {
+  def getMillBuildClasspath(evaluator: Evaluator, sources: Boolean): Seq[String] = {
 
-    /** On Windows, URLs follow an peculiar representation in Java
+    /**
+     * On Windows, URLs follow an peculiar representation in Java
      * scala> java.nio.file.Paths.get(".").toAbsolutePath.toUri.toURL
      * java.net.URL = file:/C:/Users/Developer/mill/./
      *
@@ -156,7 +157,8 @@ object ModuleUtils {
      */
     val classpath: Seq[Path] = Try(
       evaluator.rootModule.getClass.getClassLoader
-        .asInstanceOf[SpecialClassLoader])
+        .asInstanceOf[SpecialClassLoader]
+    )
       .fold(_ => Seq.empty, _.allJars)
       .map(url => Path(java.nio.file.Paths.get(url.toURI)))
 
@@ -212,10 +214,11 @@ object ModuleUtils {
 
   // obtain the capabilities of the given module ( ex: canCompile, canRun, canTest )
   private[this] def getModuleCapabilities(
-      module: JavaModule): BuildTargetCapabilities = {
+      module: JavaModule
+  ): BuildTargetCapabilities = {
     val canTest = module match {
       case _: TestModule => true
-      case _             => false
+      case _ => false
     }
 
     new BuildTargetCapabilities(true, canTest, true)
@@ -242,13 +245,11 @@ object ModuleUtils {
    * @param defaultValue default value to return in case of failure
    * @tparam T
    */
-  def evaluateInformativeTask[T](evaluator: Evaluator,
-                                 task: Task[T],
-                                 defaultValue: T): T = {
+  def evaluateInformativeTask[T](evaluator: Evaluator, task: Task[T], defaultValue: T): T = {
     val evaluated = evaluator.evaluate(Strict.Agg(task)).results(task)
     evaluated match {
       case Success(_) => evaluated.asSuccess.get.value.asInstanceOf[T]
-      case _          => defaultValue
+      case _ => defaultValue
     }
   }
 
@@ -257,13 +258,14 @@ object ModuleUtils {
       (module.millOuterCtx.millSourcePath / module.millModuleSegments.parts).toNIO.toUri.toString
     )
 
-  def getTarget(moduleHashCode: Int,
-                modules: Seq[JavaModule],
-                evaluator: Evaluator): Option[BuildTarget] =
+  def getTarget(
+      moduleHashCode: Int,
+      modules: Seq[JavaModule],
+      evaluator: Evaluator
+  ): Option[BuildTarget] =
     modules.find(_.hashCode == moduleHashCode).map(getTarget(_, evaluator))
 
-  def getTargetId(moduleHashCode: Int,
-                  modules: Seq[JavaModule]): Option[BuildTargetIdentifier] =
+  def getTargetId(moduleHashCode: Int, modules: Seq[JavaModule]): Option[BuildTargetIdentifier] =
     modules.find(_.hashCode == moduleHashCode).map(getTargetId)
 
   def isSourceJar(url: URL): Boolean = url.getFile.endsWith("-sources.jar")
@@ -274,7 +276,8 @@ object ModuleUtils {
   // Compute the ScalaBuildTarget from information about the given JavaModule.
   private[this] def computeBuildTargetData(
       module: JavaModule,
-      evaluator: Evaluator): ScalaBuildTarget = {
+      evaluator: Evaluator
+  ): ScalaBuildTarget = {
     module match {
       case m: ScalaModule =>
         val scalaVersion =
@@ -300,7 +303,8 @@ object ModuleUtils {
         )
       case m =>
         throw new IllegalStateException(
-          s"Module type of ${m.millModuleSegments.render} not supported by BSP")
+          s"Module type of ${m.millModuleSegments.render} not supported by BSP"
+        )
     }
   }
 
@@ -308,32 +312,37 @@ object ModuleUtils {
   // and scala-reflect
   private[this] def computeScalaLangDependencies(
       module: ScalaModule,
-      evaluator: Evaluator): Agg[PathRef] = {
+      evaluator: Evaluator
+  ): Agg[PathRef] = {
     evaluateInformativeTask(
       evaluator,
       module.resolveDeps(module.scalaLibraryIvyDeps),
-      Agg.empty[PathRef]) ++
+      Agg.empty[PathRef]
+    ) ++
       evaluateInformativeTask(
         evaluator,
         module.scalacPluginClasspath,
-        Agg.empty[PathRef]) ++
+        Agg.empty[PathRef]
+      ) ++
       evaluateInformativeTask(
         evaluator,
         module.resolveDeps(module.ivyDeps),
-        Agg.empty[PathRef]).filter(
-        pathRef =>
-          pathRef.path.toNIO.toUri.toString.contains("scala-compiler") ||
-            pathRef.path.toNIO.toUri.toString.contains("scala-reflect") ||
-            pathRef.path.toNIO.toUri.toString.contains("scala-library"))
+        Agg.empty[PathRef]
+      ).filter(pathRef =>
+        pathRef.path.toNIO.toUri.toString.contains("scala-compiler") ||
+          pathRef.path.toNIO.toUri.toString.contains("scala-reflect") ||
+          pathRef.path.toNIO.toUri.toString.contains("scala-library")
+      )
   }
 
   // Obtain the scala platform for `module`
   private[this] def getScalaTargetPlatform(
-      module: ScalaModule): ScalaPlatform = {
+      module: ScalaModule
+  ): ScalaPlatform = {
     module match {
       case _: ScalaNativeModule => ScalaPlatform.NATIVE
-      case _: ScalaJSModule     => ScalaPlatform.JS
-      case _: ScalaModule       => ScalaPlatform.JVM
+      case _: ScalaJSModule => ScalaPlatform.JS
+      case _: ScalaModule => ScalaPlatform.JVM
     }
   }
 }

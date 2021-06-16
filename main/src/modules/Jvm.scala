@@ -23,18 +23,20 @@ import scala.util.Using
 import upickle.default.{ReadWriter => RW}
 
 object Jvm {
+
   /**
-    * Runs a JVM subprocess with the given configuration and returns a
-    * [[os.CommandResult]] with it's aggregated output and error streams
-    */
-  def callSubprocess(mainClass: String,
-                     classPath: Agg[os.Path],
-                     jvmArgs: Seq[String] = Seq.empty,
-                     envArgs: Map[String, String] = Map.empty,
-                     mainArgs: Seq[String] = Seq.empty,
-                     workingDir: os.Path = null,
-                     streamOut: Boolean = true)
-                    (implicit ctx: Ctx) = {
+   * Runs a JVM subprocess with the given configuration and returns a
+   * [[os.CommandResult]] with it's aggregated output and error streams
+   */
+  def callSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String] = Seq.empty,
+      envArgs: Map[String, String] = Map.empty,
+      mainArgs: Seq[String] = Seq.empty,
+      workingDir: os.Path = null,
+      streamOut: Boolean = true
+  )(implicit ctx: Ctx) = {
 
     val commandArgs =
       Vector(javaExe) ++
@@ -52,42 +54,47 @@ object Jvm {
     sys.props
       .get("java.home")
       .map(h =>
-        if(isWin) new File(h, "bin\\java.exe")
-        else new File(h, "bin/java"))
+        if (isWin) new File(h, "bin\\java.exe")
+        else new File(h, "bin/java")
+      )
       .filter(f => f.exists())
       .fold("java")(_.getAbsolutePath())
 
   /**
-    * Runs a JVM subprocess with the given configuration and streams
-    * it's stdout and stderr to the console.
-    * @param mainClass The main class to run
-    * @param classPath The classpath
-    * @param JvmArgs Arguments given to the forked JVM
-    * @param envArgs Environment variables used when starting the forked JVM
-    * @param workingDir The working directory to be used by the forked JVM
-    * @param background `true` if the forked JVM should be spawned in background
-    * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
-    *                        to the forked JVM.
-    *                        When `true`, a temporary empty JAR is created
-    *                        which contains a `Class-Path` manifest entry containing the actual classpath.
-    *                        This might help with long classpaths on OS'es (like Windows)
-    *                        which only supports limited command-line length
-    */
-  def runSubprocess(mainClass: String,
-                    classPath: Agg[os.Path],
-                    jvmArgs: Seq[String] = Seq.empty,
-                    envArgs: Map[String, String] = Map.empty,
-                    mainArgs: Seq[String] = Seq.empty,
-                    workingDir: os.Path = null,
-                    background: Boolean = false,
-                    useCpPassingJar: Boolean = false
-                   )(implicit ctx: Ctx): Unit = {
+   * Runs a JVM subprocess with the given configuration and streams
+   * it's stdout and stderr to the console.
+   * @param mainClass The main class to run
+   * @param classPath The classpath
+   * @param JvmArgs Arguments given to the forked JVM
+   * @param envArgs Environment variables used when starting the forked JVM
+   * @param workingDir The working directory to be used by the forked JVM
+   * @param background `true` if the forked JVM should be spawned in background
+   * @param useCpPassingJar When `false`, the `-cp` parameter is used to pass the classpath
+   *                        to the forked JVM.
+   *                        When `true`, a temporary empty JAR is created
+   *                        which contains a `Class-Path` manifest entry containing the actual classpath.
+   *                        This might help with long classpaths on OS'es (like Windows)
+   *                        which only supports limited command-line length
+   */
+  def runSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String] = Seq.empty,
+      envArgs: Map[String, String] = Map.empty,
+      mainArgs: Seq[String] = Seq.empty,
+      workingDir: os.Path = null,
+      background: Boolean = false,
+      useCpPassingJar: Boolean = false
+  )(implicit ctx: Ctx): Unit = {
 
     val cp =
-      if(useCpPassingJar && !classPath.iterator.isEmpty) {
+      if (useCpPassingJar && !classPath.iterator.isEmpty) {
         val passingJar = os.temp(prefix = "run-", suffix = ".jar", deleteOnExit = false)
-        ctx.log.debug(s"Creating classpath passing jar '${passingJar}' with Class-Path: ${
-          classPath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")}")
+        ctx.log.debug(
+          s"Creating classpath passing jar '${passingJar}' with Class-Path: ${classPath.iterator.map(
+            _.toNIO.toUri().toURL().toExternalForm()
+          ).mkString(" ")}"
+        )
         createClasspathPassingJar(passingJar, classPath)
         Agg(passingJar)
       } else {
@@ -107,21 +114,27 @@ object Jvm {
   }
 
   @deprecated("Use runSubprocess instead")
-  def baseInteractiveSubprocess(commandArgs: Seq[String],
-                                envArgs: Map[String, String],
-                                workingDir: os.Path) = {
+  def baseInteractiveSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ) = {
     runSubprocess(commandArgs, envArgs, workingDir)
   }
 
-  @deprecated("Only provided for binary compatibility. Use one of the other overloads.", "mill after 0.9.6")
-  def runSubprocess(mainClass: String,
-                    classPath: Agg[os.Path],
-                    jvmArgs: Seq[String],
-                    envArgs: Map[String, String],
-                    mainArgs: Seq[String],
-                    workingDir: os.Path,
-                    background: Boolean)
-                   (implicit ctx: Ctx): Unit = {
+  @deprecated(
+    "Only provided for binary compatibility. Use one of the other overloads.",
+    "mill after 0.9.6"
+  )
+  def runSubprocess(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      jvmArgs: Seq[String],
+      envArgs: Map[String, String],
+      mainArgs: Seq[String],
+      workingDir: os.Path,
+      background: Boolean
+  )(implicit ctx: Ctx): Unit = {
     runSubprocess(
       mainClass = mainClass,
       classPath = classPath,
@@ -135,11 +148,9 @@ object Jvm {
   }
 
   /**
-    * Runs a generic subprocess and waits for it to terminate.
-    */
-  def runSubprocess(commandArgs: Seq[String],
-                    envArgs: Map[String, String],
-                    workingDir: os.Path) = {
+   * Runs a generic subprocess and waits for it to terminate.
+   */
+  def runSubprocess(commandArgs: Seq[String], envArgs: Map[String, String], workingDir: os.Path) = {
     val process = spawnSubprocess(commandArgs, envArgs, workingDir)
     val shutdownHook = new Thread("subprocess-shutdown") {
       override def run(): Unit = {
@@ -164,20 +175,22 @@ object Jvm {
   }
 
   /**
-    * Spawns a generic subprocess, streaming the stdout and stderr to the
-    * console. If the System.out/System.err have been substituted, makes sure
-    * that the subprocess's stdout and stderr streams go to the subtituted
-    * streams
-    */
-  def spawnSubprocess(commandArgs: Seq[String],
-                      envArgs: Map[String, String],
-                      workingDir: os.Path) = {
+   * Spawns a generic subprocess, streaming the stdout and stderr to the
+   * console. If the System.out/System.err have been substituted, makes sure
+   * that the subprocess's stdout and stderr streams go to the subtituted
+   * streams
+   */
+  def spawnSubprocess(
+      commandArgs: Seq[String],
+      envArgs: Map[String, String],
+      workingDir: os.Path
+  ) = {
     // If System.in is fake, then we pump output manually rather than relying
     // on `os.Inherit`. That is because `os.Inherit` does not follow changes
     // to System.in/System.out/System.err, so the subprocess's streams get sent
     // to the parent process's origin outputs even if we want to direct them
     // elsewhere
-    if (System.in.isInstanceOf[ByteArrayInputStream]){
+    if (System.in.isInstanceOf[ByteArrayInputStream]) {
       val process = os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
@@ -192,12 +205,12 @@ object Jvm {
         System.in -> process.stdin
       )
 
-      for((std, dest) <- sources){
+      for ((std, dest) <- sources) {
         new Thread(new InputPumper(std, dest, false)).start()
       }
 
       process
-    }else{
+    } else {
       os.proc(commandArgs).spawn(
         cwd = workingDir,
         env = envArgs,
@@ -208,14 +221,20 @@ object Jvm {
     }
   }
 
-
-  def runLocal(mainClass: String,
-               classPath: Agg[os.Path],
-               mainArgs: Seq[String] = Seq.empty)
-              (implicit ctx: Ctx): Unit = {
-    inprocess(classPath, classLoaderOverrideSbtTesting = false, isolated = true, closeContextClassLoaderWhenDone = true, cl => {
-      getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
-    })
+  def runLocal(
+      mainClass: String,
+      classPath: Agg[os.Path],
+      mainArgs: Seq[String] = Seq.empty
+  )(implicit ctx: Ctx): Unit = {
+    inprocess(
+      classPath,
+      classLoaderOverrideSbtTesting = false,
+      isolated = true,
+      closeContextClassLoaderWhenDone = true,
+      cl => {
+        getMainMethod(mainClass, cl).invoke(null, mainArgs.toArray)
+      }
+    )
   }
 
   private def getMainMethod(mainClassName: String, cl: ClassLoader) = {
@@ -232,21 +251,22 @@ object Jvm {
     method
   }
 
-
-  def inprocess[T](classPath: Agg[os.Path],
-                   classLoaderOverrideSbtTesting: Boolean,
-                   isolated: Boolean,
-                   closeContextClassLoaderWhenDone: Boolean,
-                   body: ClassLoader => T)
-                  (implicit ctx: Ctx.Home): T = {
+  def inprocess[T](
+      classPath: Agg[os.Path],
+      classLoaderOverrideSbtTesting: Boolean,
+      isolated: Boolean,
+      closeContextClassLoaderWhenDone: Boolean,
+      body: ClassLoader => T
+  )(implicit ctx: Ctx.Home): T = {
     val urls = classPath.map(_.toIO.toURI.toURL)
-    val cl = if (classLoaderOverrideSbtTesting) {
-      mill.api.ClassLoader.create(urls.toVector, null, sharedPrefixes = Seq("sbt.testing."))
-    } else if (isolated) {
-      mill.api.ClassLoader.create(urls.toVector, null)
-    } else {
-      mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
-    }
+    val cl =
+      if (classLoaderOverrideSbtTesting) {
+        mill.api.ClassLoader.create(urls.toVector, null, sharedPrefixes = Seq("sbt.testing."))
+      } else if (isolated) {
+        mill.api.ClassLoader.create(urls.toVector, null)
+      } else {
+        mill.api.ClassLoader.create(urls.toVector, getClass.getClassLoader)
+      }
 
     val oldCl = Thread.currentThread().getContextClassLoader
     Thread.currentThread().setContextClassLoader(cl)
@@ -262,42 +282,49 @@ object Jvm {
 
   def createManifest(mainClass: Option[String]): JarManifest = {
     val main =
-      Map[String,String](
+      Map[String, String](
         java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
         "Created-By" -> "Scala mill"
       ) ++
-      mainClass.map(mc =>
-        Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)
-      ).getOrElse(Map.empty)
+        mainClass.map(mc => Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)).getOrElse(
+          Map.empty
+        )
     JarManifest(main)
   }
 
   /**
-    * Create a jar file containing all files from the specified input Paths,
-    * called out.jar in the implicit ctx.dest folder. An optional main class may
-    * be provided for the jar. An optional filter function may also be provided to
-    * selectively include/exclude specific files.
-    * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
-    * @param fileFilter - optional file filter to select files to be included.
-    *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
-    *                   return true if the file is to be included in the jar.
-    * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
-    * @return - a `PathRef` for the created jar.
-    */
-  def createJar(inputPaths: Agg[os.Path],
-                manifest: JarManifest = JarManifest.Default,
-                fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true)
-               (implicit ctx: Ctx.Dest): PathRef = {
+   * Create a jar file containing all files from the specified input Paths,
+   * called out.jar in the implicit ctx.dest folder. An optional main class may
+   * be provided for the jar. An optional filter function may also be provided to
+   * selectively include/exclude specific files.
+   * @param inputPaths - `Agg` of `os.Path`s containing files to be included in the jar
+   * @param fileFilter - optional file filter to select files to be included.
+   *                   Given a `os.Path` (from inputPaths) and a `os.RelPath` for the individual file,
+   *                   return true if the file is to be included in the jar.
+   * @param ctx - implicit `Ctx.Dest` used to determine the output directory for the jar.
+   * @return - a `PathRef` for the created jar.
+   */
+  def createJar(
+      inputPaths: Agg[os.Path],
+      manifest: JarManifest = JarManifest.Default,
+      fileFilter: (os.Path, os.RelPath) => Boolean = (p: os.Path, r: os.RelPath) => true
+  )(implicit ctx: Ctx.Dest): PathRef = {
     val outputPath = ctx.dest / "out.jar"
-    createJar(jar = outputPath, inputPaths = inputPaths, manifest = manifest, fileFilter = fileFilter)
+    createJar(
+      jar = outputPath,
+      inputPaths = inputPaths,
+      manifest = manifest,
+      fileFilter = fileFilter
+    )
     PathRef(outputPath)
   }
 
-  def createJar(jar: os.Path,
-                inputPaths: Agg[os.Path],
-                manifest: JarManifest,
-                fileFilter: (os.Path, os.RelPath) => Boolean
-               ): Unit = {
+  def createJar(
+      jar: os.Path,
+      inputPaths: Agg[os.Path],
+      manifest: JarManifest,
+      fileFilter: (os.Path, os.RelPath) => Boolean
+  ): Unit = {
     os.makeDir.all(jar / os.up)
     os.remove.all(jar)
 
@@ -309,9 +336,9 @@ object Jvm {
       manifest.build
     )
 
-    try{
+    try {
       assert(inputPaths.iterator.forall(os.exists(_)))
-      for{
+      for {
         p <- inputPaths
         (file, mapping) <-
           if (os.isFile(p)) Iterator(p -> os.rel / p.last)
@@ -335,18 +362,21 @@ object Jvm {
       jar = jar,
       inputPaths = Agg(),
       manifest = JarManifest.Default.add(
-        "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(" ")
+        "Class-Path" -> classpath.iterator.map(_.toNIO.toUri().toURL().toExternalForm()).mkString(
+          " "
+        )
       ),
       fileFilter = (_, _) => true
     )
   }
 
-  def createAssembly(inputPaths: Agg[os.Path],
-                     manifest: JarManifest = JarManifest.Default,
-                     prependShellScript: String = "",
-                     base: Option[os.Path] = None,
-                     assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules)
-                    (implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
+  def createAssembly(
+      inputPaths: Agg[os.Path],
+      manifest: JarManifest = JarManifest.Default,
+      prependShellScript: String = "",
+      base: Option[os.Path] = None,
+      assemblyRules: Seq[Assembly.Rule] = Assembly.defaultRules
+  )(implicit ctx: Ctx.Dest with Ctx.Log): PathRef = {
     val tmp = ctx.dest / "out-tmp.jar"
 
     val baseUri = "jar:" + tmp.toIO.getCanonicalFile.toURI.toASCIIString
@@ -355,7 +385,6 @@ object Jvm {
       Map.empty
     }
     Using.resource(FileSystems.newFileSystem(URI.create(baseUri), hm.asJava)) { zipFs =>
-
       val manifestPath = zipFs.getPath(JarFile.MANIFEST_NAME)
       Files.createDirectories(manifestPath.getParent)
       val manifestOut = Files.newOutputStream(
@@ -374,9 +403,12 @@ object Jvm {
             entry match {
               case entry: AppendEntry =>
                 val separated = entry.inputStreams
-                  .flatMap(inputStream => Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream()))
+                  .flatMap(inputStream =>
+                    Seq(new ByteArrayInputStream(entry.separator.getBytes), inputStream())
+                  )
                   .drop(1)
-                val concatenated = new SequenceInputStream(Collections.enumeration(separated.asJava))
+                val concatenated =
+                  new SequenceInputStream(Collections.enumeration(separated.asJava))
                 writeEntry(path, concatenated, append = true)
               case entry: WriteOnceEntry => writeEntry(path, entry.inputStream(), append = false)
             }
@@ -411,18 +443,20 @@ object Jvm {
   private def writeEntry(p: java.nio.file.Path, inputStream: InputStream, append: Boolean): Unit = {
     if (p.getParent != null) Files.createDirectories(p.getParent)
     val options =
-      if(append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
+      if (append) Seq(StandardOpenOption.APPEND, StandardOpenOption.CREATE)
       else Seq(StandardOpenOption.TRUNCATE_EXISTING, StandardOpenOption.CREATE)
 
-    val outputStream = java.nio.file.Files.newOutputStream(p, options:_*)
+    val outputStream = java.nio.file.Files.newOutputStream(p, options: _*)
     IO.stream(inputStream, outputStream)
     outputStream.close()
     inputStream.close()
   }
 
-  def universalScript(shellCommands: String,
-                      cmdCommands: String,
-                      shebang: Boolean = false): String = {
+  def universalScript(
+      shellCommands: String,
+      cmdCommands: String,
+      shebang: Boolean = false
+  ): String = {
     Seq(
       if (shebang) "#!/usr/bin/env sh" else "",
       "@ 2>/dev/null # 2>nul & echo off & goto BOF\r",
@@ -442,23 +476,28 @@ object Jvm {
     ).filterNot(_.isEmpty).mkString("\n")
   }
 
-  def launcherUniversalScript(mainClass: String,
-                              shellClassPath: Agg[String],
-                              cmdClassPath: Agg[String],
-                              jvmArgs: Seq[String],
-                              shebang: Boolean = false) = {
+  def launcherUniversalScript(
+      mainClass: String,
+      shellClassPath: Agg[String],
+      cmdClassPath: Agg[String],
+      jvmArgs: Seq[String],
+      shebang: Boolean = false
+  ) = {
     universalScript(
       shellCommands =
-        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(":")}" '$mainClass' "$$@"""",
+        s"""exec java ${jvmArgs.mkString(" ")} $$JAVA_OPTS -cp "${shellClassPath.mkString(
+          ":"
+        )}" '$mainClass' "$$@"""",
       cmdCommands =
-        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(";")}" $mainClass %*""",
+        s"""java ${jvmArgs.mkString(" ")} %JAVA_OPTS% -cp "${cmdClassPath.mkString(
+          ";"
+        )}" $mainClass %*""",
       shebang = shebang
     )
   }
-  def createLauncher(mainClass: String,
-                     classPath: Agg[os.Path],
-                     jvmArgs: Seq[String])
-                    (implicit ctx: Ctx.Dest)= {
+  def createLauncher(mainClass: String, classPath: Agg[os.Path], jvmArgs: Seq[String])(implicit
+      ctx: Ctx.Dest
+  ) = {
     val isWin = scala.util.Properties.isWin
     val isBatch = isWin &&
       !(org.jline.utils.OSUtils.IS_CYGWIN
@@ -479,33 +518,39 @@ object Jvm {
     PathRef(outputPath)
   }
 
-
   /**
-    * Resolve dependencies using Coursier.
-    *
-    * We do not bother breaking this out into the separate ZincWorkerApi classpath,
-    * because Coursier is already bundled with mill/Ammonite to support the
-    * `import $ivy` syntax.
-    */
-  def resolveDependencies(repositories: Seq[Repository],
-                          deps: IterableOnce[coursier.Dependency],
-                          force: IterableOnce[coursier.Dependency],
-                          sources: Boolean = false,
-                          mapDependencies: Option[Dependency => Dependency] = None,
-                          customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-                          ctx: Option[mill.api.Ctx.Log] = None): Result[Agg[PathRef]] = {
+   * Resolve dependencies using Coursier.
+   *
+   * We do not bother breaking this out into the separate ZincWorkerApi classpath,
+   * because Coursier is already bundled with mill/Ammonite to support the
+   * `import $ivy` syntax.
+   */
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      sources: Boolean = false,
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None
+  ): Result[Agg[PathRef]] = {
 
     val (_, resolution) = resolveDependenciesMetadata(
-      repositories, deps, force, mapDependencies, customizer, ctx
+      repositories,
+      deps,
+      force,
+      mapDependencies,
+      customizer,
+      ctx
     )
     val errs = resolution.errors
 
-    if(errs.nonEmpty) {
+    if (errs.nonEmpty) {
       val header =
         s"""|
-            |Resolution failed for ${errs.length} modules:
-            |--------------------------------------------
-            |""".stripMargin
+          |Resolution failed for ${errs.length} modules:
+          |--------------------------------------------
+          |""".stripMargin
 
       val errLines = errs.map {
         case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
@@ -536,8 +581,7 @@ object Jvm {
             types = Set(coursier.Type.source, coursier.Type.javaSource),
             classifiers = Some(Seq(coursier.Classifier("sources")))
           )
-        }
-        else resolution.artifacts(
+        } else resolution.artifacts(
           types = Set(
             coursier.Type.jar,
             coursier.Type.testJar,
@@ -548,33 +592,37 @@ object Jvm {
           )
         )
       val (errors, successes) = load(sourceOrJar)
-      if(errors.isEmpty){
+      if (errors.isEmpty) {
         mill.Agg.from(
           successes.map(p => PathRef(os.Path(p), quick = true)).filter(_.path.ext == "jar")
         )
-      }else{
+      } else {
         val errorDetails = errors.map(e => s"${ammonite.util.Util.newLine}  ${e.describe}").mkString
         Result.Failure("Failed to load source dependencies" + errorDetails)
       }
     }
   }
 
-  def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  deps: IterableOnce[coursier.Dependency],
-                                  force: IterableOnce[coursier.Dependency],
-                                  mapDependencies: Option[Dependency => Dependency] = None,
-                                  customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
-                                  ctx: Option[mill.api.Ctx.Log] = None): (Seq[Dependency], Resolution) = {
+  def resolveDependenciesMetadata(
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      mapDependencies: Option[Dependency => Dependency] = None,
+      customizer: Option[coursier.core.Resolution => coursier.core.Resolution] = None,
+      ctx: Option[mill.api.Ctx.Log] = None
+  ): (Seq[Dependency], Resolution) = {
 
     val cachePolicies = coursier.cache.CacheDefaults.cachePolicies
 
     val forceVersions = force
       .map(mapDependencies.getOrElse(identity[Dependency](_)))
-      .map{d => d.module -> d.version}
+      .map { d => d.module -> d.version }
       .toMap
 
     val start0 = Resolution()
-      .withRootDependencies(deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq)
+      .withRootDependencies(
+        deps.iterator.map(mapDependencies.getOrElse(identity[Dependency](_))).toSeq
+      )
       .withForceVersions(forceVersions)
       .withMapDependencies(mapDependencies)
 
@@ -599,39 +647,47 @@ object Jvm {
   }
 
   /**
-    * A Coursier Cache.Logger implementation that updates the ticker with the count and
-    * overall byte size of artifacts being downloaded.
-    *
-    * In practice, this ticker output gets prefixed with the current target for which
-    * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
-    */
+   * A Coursier Cache.Logger implementation that updates the ticker with the count and
+   * overall byte size of artifacts being downloaded.
+   *
+   * In practice, this ticker output gets prefixed with the current target for which
+   * dependencies are being resolved, using a [[mill.util.ProxyLogger]] subclass.
+   */
   class TickerResolutionLogger(ctx: mill.util.Ctx.Log) extends coursier.cache.CacheLogger {
     case class DownloadState(var current: Long, var total: Long)
-    var downloads = new mutable.TreeMap[String,DownloadState]()
+    var downloads = new mutable.TreeMap[String, DownloadState]()
     var totalDownloadCount = 0
     var finishedCount = 0
-    var finishedState = DownloadState(0,0)
+    var finishedState = DownloadState(0, 0)
 
     def updateTicker(): Unit = {
       val sums = downloads.values
-        .fold(DownloadState(0,0)) {
-          (s1, s2) => DownloadState(
-            s1.current + s2.current,
-            Math.max(s1.current,s1.total) + Math.max(s2.current,s2.total)
-          )
+        .fold(DownloadState(0, 0)) {
+          (s1, s2) =>
+            DownloadState(
+              s1.current + s2.current,
+              Math.max(s1.current, s1.total) + Math.max(s2.current, s2.total)
+            )
         }
       sums.current += finishedState.current
       sums.total += finishedState.total
-      ctx.log.ticker(s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)")
+      ctx.log.ticker(
+        s"Downloading [${downloads.size + finishedCount}/$totalDownloadCount] artifacts (~${sums.current}/${sums.total} bytes)"
+      )
     }
 
     override def downloadingArtifact(url: String): Unit = synchronized {
       totalDownloadCount += 1
-      downloads += url -> DownloadState(0,0)
+      downloads += url -> DownloadState(0, 0)
       updateTicker()
     }
 
-    override def downloadLength(url: String, totalLength: Long, alreadyDownloaded: Long, watching: Boolean): Unit = synchronized {
+    override def downloadLength(
+        url: String,
+        totalLength: Long,
+        alreadyDownloaded: Long,
+        watching: Boolean
+    ): Unit = synchronized {
       val state = downloads(url)
       state.current = alreadyDownloaded
       state.total = totalLength
@@ -659,37 +715,46 @@ object Jvm {
     final val Default = createManifest(None)
   }
 
-  /** Represents a JAR manifest.
-    * @param main the main manifest attributes
-    * @param groups additional attributes for named entries
-    */
-  final case class JarManifest(main: Map[String,String] = Map.empty, groups: Map[String, Map[String,String]] = Map.empty) {
-    def add(entries: (String,String)*): JarManifest = copy(main = main ++ entries)
-    def addGroup(group: String, entries: (String,String)*): JarManifest =
+  /**
+   * Represents a JAR manifest.
+   * @param main the main manifest attributes
+   * @param groups additional attributes for named entries
+   */
+  final case class JarManifest(
+      main: Map[String, String] = Map.empty,
+      groups: Map[String, Map[String, String]] = Map.empty
+  ) {
+    def add(entries: (String, String)*): JarManifest = copy(main = main ++ entries)
+    def addGroup(group: String, entries: (String, String)*): JarManifest =
       copy(groups = groups + (group -> (groups.getOrElse(group, Map.empty) ++ entries)))
 
     /** Constructs a [[java.util.jar.Manifest]] from this JarManifest. */
     def build: Manifest = {
       val manifest = new Manifest
       val mainAttributes = manifest.getMainAttributes
-      main.foreach{case(key,value) => mainAttributes.putValue(key, value)}
+      main.foreach { case (key, value) => mainAttributes.putValue(key, value) }
       val entries = manifest.getEntries
-      for((group, attribs) <- groups) {
+      for ((group, attribs) <- groups) {
         val attrib = new Attributes
-        attribs.foreach{case(key,value) => attrib.putValue(key, value)}
+        attribs.foreach { case (key, value) => attrib.putValue(key, value) }
         entries.put(group, attrib)
       }
       manifest
     }
   }
 
-  @deprecated("Use alternative overload. This one is only for binary backwards compatibility.", "mill after 0.9.6")
-  def resolveDependencies(repositories: Seq[Repository],
-                          deps: IterableOnce[coursier.Dependency],
-                          force: IterableOnce[coursier.Dependency],
-                          sources: Boolean,
-                          mapDependencies: Option[Dependency => Dependency],
-                          ctx: Option[mill.api.Ctx.Log]): Result[Agg[PathRef]] =
+  @deprecated(
+    "Use alternative overload. This one is only for binary backwards compatibility.",
+    "mill after 0.9.6"
+  )
+  def resolveDependencies(
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      sources: Boolean,
+      mapDependencies: Option[Dependency => Dependency],
+      ctx: Option[mill.api.Ctx.Log]
+  ): Result[Agg[PathRef]] =
     resolveDependencies(
       repositories = repositories,
       deps = deps,
@@ -700,12 +765,17 @@ object Jvm {
       ctx = ctx
     )
 
-  @deprecated("Use alternative overload. This one is only for binary backwards compatibility.", "mill after 0.9.6")
-  def resolveDependenciesMetadata(repositories: Seq[Repository],
-                                  deps: IterableOnce[coursier.Dependency],
-                                  force: IterableOnce[coursier.Dependency],
-                                  mapDependencies: Option[Dependency => Dependency],
-                                  ctx: Option[mill.api.Ctx.Log]): (Seq[Dependency], Resolution) =
+  @deprecated(
+    "Use alternative overload. This one is only for binary backwards compatibility.",
+    "mill after 0.9.6"
+  )
+  def resolveDependenciesMetadata(
+      repositories: Seq[Repository],
+      deps: IterableOnce[coursier.Dependency],
+      force: IterableOnce[coursier.Dependency],
+      mapDependencies: Option[Dependency => Dependency],
+      ctx: Option[mill.api.Ctx.Log]
+  ): (Seq[Dependency], Resolution) =
     resolveDependenciesMetadata(
       repositories = repositories,
       deps = deps,

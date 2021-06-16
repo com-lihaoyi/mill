@@ -21,7 +21,8 @@ trait ScalaPBModule extends ScalaModule {
   override def ivyDeps = T {
     super.ivyDeps() ++
       Agg(ivy"com.thesamet.scalapb::scalapb-runtime:${scalaPBVersion()}") ++
-      (if (!scalaPBGrpc()) Agg() else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
+      (if (!scalaPBGrpc()) Agg()
+       else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
 
   def scalaPBVersion: T[String]
@@ -59,16 +60,17 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBOptions: T[String] = T {
     (
       (if (scalaPBFlatPackage()) Seq("flat_package") else Seq.empty) ++
-      (if (scalaPBJavaConversions()) Seq("java_conversions") else Seq.empty) ++
-      (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
-      (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
-        if (!scalaPBSingleLineToProtoString()) Seq.empty else {
-          if (Version(scalaPBVersion()) >= Version("0.7.0"))
-            Seq("single_line_to_proto_string")
-          else
-            Seq("single_line_to_string")
-        }
-      )
+        (if (scalaPBJavaConversions()) Seq("java_conversions") else Seq.empty) ++
+        (if (!scalaPBLenses()) Seq("no_lenses") else Seq.empty) ++
+        (if (scalaPBGrpc()) Seq("grpc") else Seq.empty) ++ (
+          if (!scalaPBSingleLineToProtoString()) Seq.empty
+          else {
+            if (Version(scalaPBVersion()) >= Version("0.7.0"))
+              Seq("single_line_to_proto_string")
+            else
+              Seq("single_line_to_string")
+          }
+        )
     ).mkString(",")
   }
 
@@ -90,7 +92,7 @@ trait ScalaPBModule extends ScalaModule {
   }
 
   def scalaPBUnpackProto: T[PathRef] = T {
-    val cp   = scalaPBProtoClasspath()
+    val cp = scalaPBProtoClasspath()
     val dest = T.dest
     cp.foreach { ref =>
       val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
@@ -127,11 +129,11 @@ trait ScalaPBModule extends ScalaModule {
   /*
    * options passing to ScalaPBC **except** `--scala_out=...`, `--proto_path=source_parent` and `source`
    */
-  def scalaPBCompileOptions: T[Seq[String]] = T{
+  def scalaPBCompileOptions: T[Seq[String]] = T {
     ScalaPBWorkerApi.scalaPBWorker().compileOptions(
-			scalaPBProtocPath(),
-			scalaPBIncludePath().map(_.path),
-			scalaPBAdditionalArgs()
+      scalaPBProtocPath(),
+      scalaPBIncludePath().map(_.path),
+      scalaPBAdditionalArgs()
     )
   }
 
@@ -142,6 +144,7 @@ trait ScalaPBModule extends ScalaModule {
         scalaPBSources().map(_.path),
         scalaPBOptions(),
         T.dest,
-        scalaPBCompileOptions())
+        scalaPBCompileOptions()
+      )
   }
 }

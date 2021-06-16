@@ -4,47 +4,50 @@ import mill.api.Loose.Agg
 import mill.api.{PathRef, BuildProblemReporter}
 import mill.api.JsonFormatters._
 
-
-
-object ZincWorkerApi{
+object ZincWorkerApi {
   type Ctx = mill.api.Ctx.Dest with mill.api.Ctx.Log with mill.api.Ctx.Home
 }
 trait ZincWorkerApi {
+
   /** Compile a Java-only project */
-  def compileJava(upstreamCompileOutput: Seq[CompilationResult],
-                  sources: Agg[os.Path],
-                  compileClasspath: Agg[os.Path],
-                  javacOptions: Seq[String],
-                  reporter: Option[BuildProblemReporter])
-                 (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  def compileJava(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Agg[os.Path],
+      compileClasspath: Agg[os.Path],
+      javacOptions: Seq[String],
+      reporter: Option[BuildProblemReporter]
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
   /** Compile a mixed Scala/Java or Scala-only project */
-  def compileMixed(upstreamCompileOutput: Seq[CompilationResult],
-                   sources: Agg[os.Path],
-                   compileClasspath: Agg[os.Path],
-                   javacOptions: Seq[String],
-                   scalaVersion: String,
-                   scalaOrganization: String,
-                   scalacOptions: Seq[String],
-                   compilerClasspath: Agg[os.Path],
-                   scalacPluginClasspath: Agg[os.Path],
-                   reporter: Option[BuildProblemReporter])
-                  (implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
+  def compileMixed(
+      upstreamCompileOutput: Seq[CompilationResult],
+      sources: Agg[os.Path],
+      compileClasspath: Agg[os.Path],
+      javacOptions: Seq[String],
+      scalaVersion: String,
+      scalaOrganization: String,
+      scalacOptions: Seq[String],
+      compilerClasspath: Agg[os.Path],
+      scalacPluginClasspath: Agg[os.Path],
+      reporter: Option[BuildProblemReporter]
+  )(implicit ctx: ZincWorkerApi.Ctx): mill.api.Result[CompilationResult]
 
-  def discoverMainClasses(compilationResult: CompilationResult)
-                         (implicit ctx: ZincWorkerApi.Ctx): Seq[String]
+  def discoverMainClasses(compilationResult: CompilationResult)(implicit
+      ctx: ZincWorkerApi.Ctx
+  ): Seq[String]
 
-  def docJar(scalaVersion: String,
-             scalaOrganization: String,
-             compilerClasspath: Agg[os.Path],
-             scalacPluginClasspath: Agg[os.Path],
-             args: Seq[String])
-            (implicit ctx: ZincWorkerApi.Ctx): Boolean
+  def docJar(
+      scalaVersion: String,
+      scalaOrganization: String,
+      compilerClasspath: Agg[os.Path],
+      scalacPluginClasspath: Agg[os.Path],
+      args: Seq[String]
+  )(implicit ctx: ZincWorkerApi.Ctx): Boolean
 }
 
-
 object CompilationResult {
-  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] = upickle.default.macroRW
+  implicit val jsonFormatter: upickle.default.ReadWriter[CompilationResult] =
+    upickle.default.macroRW
 }
 
 // analysisFile is represented by os.Path, so we won't break caches after file changes
@@ -60,7 +63,12 @@ object Util {
   // return first path in `classPath` that match:
   // **/scala-library-2.13.*.jar or
   // **/2.13.*/jars/scala-library.jar
-  def grepJar(classPath: Agg[os.Path], name: String, versionPrefix: String, sources: Boolean = false) = {
+  def grepJar(
+      classPath: Agg[os.Path],
+      name: String,
+      versionPrefix: String,
+      sources: Boolean = false
+  ) = {
     val suffix = if (sources) "-sources.jar" else ".jar"
     lazy val dir = if (sources) "srcs" else "jars"
 
@@ -77,7 +85,9 @@ object Util {
 
     classPath.iterator
       .find(p => mavenStyleMatch(p.last) || ivyStyleMatch(p))
-      .getOrElse(throw new Exception(s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"))
+      .getOrElse(throw new Exception(
+        s"Cannot find **/$name-$versionPrefix*$suffix or **/$versionPrefix*/$dir/$name$suffix in ${classPath.iterator.mkString("[", ", ", "]")}"
+      ))
   }
 
   val PartialVersion = raw"""(\d+)\.(\d+)\.*""".r
@@ -90,28 +100,27 @@ object Util {
   val NightlyVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-[a-f0-9]*""".r
   val TypelevelVersion = raw"""(\d+)\.(\d+)\.(\d+)-bin-typelevel.*""".r
 
-
   def scalaBinaryVersion(scalaVersion: String) = scalaVersion match {
-      case Scala3EarlyVersion(milestone) => s"3.0.0-$milestone"
-      case Scala3Version(_, _) => "3"
-      case ReleaseVersion(major, minor, _) => s"$major.$minor"
-      case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
-      case NightlyVersion(major, minor, _) => s"$major.$minor"
-      case DottyVersion(minor, _) => s"0.$minor"
-      case TypelevelVersion(major, minor, _) => s"$major.$minor"
-      case _ => scalaVersion
+    case Scala3EarlyVersion(milestone) => s"3.0.0-$milestone"
+    case Scala3Version(_, _) => "3"
+    case ReleaseVersion(major, minor, _) => s"$major.$minor"
+    case MinorSnapshotVersion(major, minor, _) => s"$major.$minor"
+    case NightlyVersion(major, minor, _) => s"$major.$minor"
+    case DottyVersion(minor, _) => s"0.$minor"
+    case TypelevelVersion(major, minor, _) => s"$major.$minor"
+    case _ => scalaVersion
   }
 
   private val ScalaJSFullVersion = """^([0-9]+)\.([0-9]+)\.([0-9]+)(-.*)?$""".r
 
   def scalaJSBinaryVersion(scalaJSVersion: String) = scalaJSVersion match {
-      case _ if scalaJSVersion.startsWith("0.6.") =>
-        "0.6"
-      case ScalaJSFullVersion(major, minor, patch, suffix) =>
-        if (suffix != null && minor == "0" && patch == "0")
-          s"$major.$minor$suffix"
-        else
-          major
+    case _ if scalaJSVersion.startsWith("0.6.") =>
+      "0.6"
+    case ScalaJSFullVersion(major, minor, patch, suffix) =>
+      if (suffix != null && minor == "0" && patch == "0")
+        s"$major.$minor$suffix"
+      else
+        major
   }
 
   def scalaJSWorkerVersion(scalaJSVersion: String) = scalaJSVersion match {
@@ -140,16 +149,17 @@ object Util {
    * scalajs-test-bridge instead of scalajs-test-interface.
    */
   def scalaJSUsesTestBridge(scalaJSVersion: String): Boolean = scalaJSVersion match {
-      case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
-      case _ => true
+    case ScalaJSFullVersion("0", "6", patch, _) => patch.toInt >= 29
+    case _ => true
   }
 
   /** @return true if the compiler bridge can be downloaded as an already compiled jar */
   def isBinaryBridgeAvailable(scalaVersion: String) =
     scalaVersion match {
-      case DottyNightlyVersion(major, minor, _, _) => major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
+      case DottyNightlyVersion(major, minor, _, _) =>
+        major.toInt > 0 || minor.toInt >= 14 // 0.14.0-bin or more (not 0.13.0-bin)
       case DottyVersion(minor, _) => minor.toInt >= 13 // 0.13.0-RC1 or more
-      case Scala3EarlyVersion(_) |  Scala3Version(_, _) => true
+      case Scala3EarlyVersion(_) | Scala3Version(_, _) => true
       case _ => false
     }
 

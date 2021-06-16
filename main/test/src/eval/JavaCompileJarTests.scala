@@ -11,7 +11,7 @@ import mill.api.Loose
 import utest._
 import mill._
 
-object JavaCompileJarTests extends TestSuite{
+object JavaCompileJarTests extends TestSuite {
   def compileAll(sources: mill.api.Loose.Agg[PathRef])(implicit ctx: Dest) = {
     os.makeDir.all(ctx.dest)
 
@@ -19,15 +19,15 @@ object JavaCompileJarTests extends TestSuite{
     PathRef(ctx.dest)
   }
 
-  val tests = Tests{
+  val tests = Tests {
     "javac" - {
       val javacSrcPath = os.pwd / "main" / "test" / "resources" / "examples" / "javac"
-      val javacDestPath =  TestUtil.getOutPath() / "src"
+      val javacDestPath = TestUtil.getOutPath() / "src"
 
       os.makeDir.all(javacDestPath / os.up)
       os.copy(javacSrcPath, javacDestPath)
 
-      object Build extends TestUtil.BaseModule{
+      object Build extends TestUtil.BaseModule {
         def sourceRootPath = javacDestPath / "src"
         def readmePath = javacDestPath / "readme.md"
         def resourceRootPath = javacDestPath / "resources"
@@ -38,18 +38,24 @@ object JavaCompileJarTests extends TestSuite{
         //           resourceRoot ---->  jar
         //                                ^
         //           readmePath---------- |
-        def readme = T.source{ readmePath }
-        def sourceRoot = T.sources{ sourceRootPath }
-        def resourceRoot = T.sources{ resourceRootPath }
-        def allSources = T{ sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
-        def classFiles = T{ compileAll(allSources()) }
-        def jar = T{
+        def readme = T.source { readmePath }
+        def sourceRoot = T.sources { sourceRootPath }
+        def resourceRoot = T.sources { resourceRootPath }
+        def allSources = T { sourceRoot().flatMap(p => os.walk(p.path)).map(PathRef(_)) }
+        def classFiles = T { compileAll(allSources()) }
+        def jar = T {
           Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path))
         }
         // Test createJar() with optional file filter.
-        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T{ Jvm.createJar(Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path), JarManifest.Default, fileFilter) }
+        def filterJar(fileFilter: (os.Path, os.RelPath) => Boolean) = T {
+          Jvm.createJar(
+            Loose.Agg(classFiles().path, readme().path) ++ resourceRoot().map(_.path),
+            JarManifest.Default,
+            fileFilter
+          )
+        }
 
-        def run(mainClsName: String) = T.command{
+        def run(mainClsName: String) = T.command {
           os.proc("java", "-Duser.language=en", "-cp", classFiles().path, mainClsName)
             .call(stderr = os.Pipe)
         }
@@ -67,7 +73,6 @@ object JavaCompileJarTests extends TestSuite{
 
       def append(path: os.Path, txt: String) = ammonite.ops.write.append(path, txt)
 
-
       check(
         targets = Agg(jar),
         expected = Agg(allSources, classFiles, jar)
@@ -84,7 +89,7 @@ object JavaCompileJarTests extends TestSuite{
       append(sourceRootPath / "Foo.java", " ")
       // Note that `sourceRoot` and `resourceRoot` never turn up in the `expected`
       // list, because they are `Source`s not `Target`s
-      check(targets = Agg(jar), expected = Agg(/*sourceRoot, */allSources, classFiles))
+      check(targets = Agg(jar), expected = Agg( /*sourceRoot, */ allSources, classFiles))
 
       // Appending a new class changes the classfiles, which forces us to
       // re-create the final jar
@@ -117,7 +122,9 @@ object JavaCompileJarTests extends TestSuite{
       check(targets = Agg(allSources), expected = Agg(allSources))
       check(targets = Agg(jar), expected = Agg(classFiles, jar))
 
-      val jarContents = os.proc("jar", "-tf", evaluator.outPath/"jar"/"dest"/"out.jar").call(evaluator.outPath).out.string
+      val jarContents = os.proc("jar", "-tf", evaluator.outPath / "jar" / "dest" / "out.jar").call(
+        evaluator.outPath
+      ).out.string
       val expectedJarContents =
         """META-INF/MANIFEST.MF
           |test/Bar.class
@@ -134,13 +141,24 @@ object JavaCompileJarTests extends TestSuite{
       def noFoos(s: String) = !s.contains("Foo")
       val filterFunc = (p: os.Path, r: os.RelPath) => noFoos(r.last)
       eval(filterJar(filterFunc))
-      val filteredJarContents = os.proc("jar", "-tf", evaluator.outPath/"filterJar"/"dest"/"out.jar").call(evaluator.outPath).out.string
-      assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(noFoos(_)).toSeq)
+      val filteredJarContents = os.proc(
+        "jar",
+        "-tf",
+        evaluator.outPath / "filterJar" / "dest" / "out.jar"
+      ).call(evaluator.outPath).out.string
+      assert(filteredJarContents.linesIterator.toSeq == expectedJarContents.linesIterator.filter(
+        noFoos(_)
+      ).toSeq)
 
-      val executed = os.proc("java", "-cp", evaluator.outPath/"jar"/"dest"/"out.jar", "test.Foo").call(evaluator.outPath).out.string
+      val executed = os.proc(
+        "java",
+        "-cp",
+        evaluator.outPath / "jar" / "dest" / "out.jar",
+        "test.Foo"
+      ).call(evaluator.outPath).out.string
       assert(executed == (31337 + 271828) + System.lineSeparator)
 
-      for(i <- 0 until 3){
+      for (i <- 0 until 3) {
         // Build.run is not cached, so every time we eval it it has to
         // re-evaluate
         val Right((runOutput, evalCount)) = eval(Build.run("test.Foo"))

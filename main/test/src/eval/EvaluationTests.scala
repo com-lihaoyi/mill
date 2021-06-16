@@ -1,6 +1,5 @@
 package mill.eval
 
-
 import mill.util.TestUtil.{Test, test}
 import mill.define.{Discover, Graph, Target, Task}
 import mill.{Module, T}
@@ -19,18 +18,23 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     // Make sure data is persisted even if we re-create the evaluator each time
 
     def evaluator = new TestEvaluator(module, threads = threadCount)(
-      implicitly[sourcecode.FullName], TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}")))
+      implicitly[sourcecode.FullName],
+      TestPath(tp.value ++ Seq(s"threads-${threadCount.getOrElse("native")}"))
+    )
       .evaluator
 
-    def apply(target: Task[_], expValue: Any,
-              expEvaled: Agg[Task[_]],
-              // How many "other" tasks were evaluated other than those listed above.
-              // Pass in -1 to skip the check entirely
-              extraEvaled: Int = 0,
-              // Perform a second evaluation of the same tasks, and make sure the
-              // outputs are the same but nothing was evaluated. Disable this if you
-              // are directly evaluating tasks which need to re-evaluate every time
-              secondRunNoOp: Boolean = true) = {
+    def apply(
+        target: Task[_],
+        expValue: Any,
+        expEvaled: Agg[Task[_]],
+        // How many "other" tasks were evaluated other than those listed above.
+        // Pass in -1 to skip the check entirely
+        extraEvaled: Int = 0,
+        // Perform a second evaluation of the same tasks, and make sure the
+        // outputs are the same but nothing was evaluated. Disable this if you
+        // are directly evaluating tasks which need to re-evaluate every time
+        secondRunNoOp: Boolean = true
+    ) = {
 
       val evaled = evaluator.evaluate(Agg(target))
 
@@ -44,7 +48,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
       )
 
       // Second time the value is already cached, so no evaluation needed
-      if (secondRunNoOp){
+      if (secondRunNoOp) {
         val evaled2 = evaluator.evaluate(Agg(target))
         val expecteSecondRunEvaluated = Agg()
         assert(
@@ -55,8 +59,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
     }
   }
 
-
-  val tests = Tests{
+  val tests = Tests {
     object graphs extends TestGraphs()
     import graphs._
     import TestGraphs._
@@ -187,7 +190,6 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val filtered3 = evaled3.evaluated.filter(_.isInstanceOf[Target[_]])
         assert(filtered3 == Agg(change, right))
 
-
       }
       "triangleTask" - {
 
@@ -223,11 +225,10 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val checker = new Checker(canOverrideSuper)
         checker(foo, Seq("base", "object"), Agg(foo), extraEvaled = -1)
 
-
         val public = ammonite.ops.read(checker.evaluator.outPath / "foo" / "meta.json")
         val overriden = ammonite.ops.read(
           checker.evaluator.outPath / "foo" /
-            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo"  / "meta.json"
+            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "foo" / "meta.json"
         )
         assert(
           public.contains("base"),
@@ -255,7 +256,7 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         val public = ammonite.ops.read(checker.evaluator.outPath / "cmd" / "meta.json")
         val overriden = ammonite.ops.read(
           checker.evaluator.outPath / "cmd" /
-          "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule"/ "cmd"  / "meta.json"
+            "overriden" / "mill" / "util" / "TestGraphs" / "BaseModule" / "cmd" / "meta.json"
         )
         assert(
           public.contains("base1"),
@@ -300,15 +301,15 @@ class EvaluationTests(threadCount: Option[Int]) extends TestSuite {
         // up    middle -- down
         //                /
         //           right
-        object build extends TestUtil.BaseModule{
+        object build extends TestUtil.BaseModule {
           var leftCount = 0
           var rightCount = 0
           var middleCount = 0
-          def up = T{ test.anon() }
-          def left = T.task{ leftCount += 1; up() + 1 }
-          def middle = T.task{ middleCount += 1; 100 }
-          def right = T{ rightCount += 1; 10000 }
-          def down = T{ left() + middle() + right() }
+          def up = T { test.anon() }
+          def left = T.task { leftCount += 1; up() + 1 }
+          def middle = T.task { middleCount += 1; 100 }
+          def right = T { rightCount += 1; 10000 }
+          def down = T { left() + middle() + right() }
         }
 
         import build._

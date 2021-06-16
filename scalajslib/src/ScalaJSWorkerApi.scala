@@ -9,8 +9,7 @@ import mill.{Agg, T}
 class ScalaJSWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaJSWorkerApi)]
 
-  private def bridge(toolsClasspath: Agg[os.Path])
-                    (implicit ctx: Ctx.Home) = {
+  private def bridge(toolsClasspath: Agg[os.Path])(implicit ctx: Ctx.Home) = {
     val classloaderSig =
       toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaInstanceCache match {
@@ -30,16 +29,17 @@ class ScalaJSWorker {
     }
   }
 
-  def link(toolsClasspath: Agg[os.Path],
-           sources: Agg[os.Path],
-           libraries: Agg[os.Path],
-           dest: File,
-           main: Option[String],
-           testBridgeInit: Boolean,
-           fullOpt: Boolean,
-           moduleKind: ModuleKind,
-           useECMAScript2015: Boolean)
-          (implicit ctx: Ctx.Home): Result[os.Path] = {
+  def link(
+      toolsClasspath: Agg[os.Path],
+      sources: Agg[os.Path],
+      libraries: Agg[os.Path],
+      dest: File,
+      main: Option[String],
+      testBridgeInit: Boolean,
+      fullOpt: Boolean,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  )(implicit ctx: Ctx.Home): Result[os.Path] = {
     bridge(toolsClasspath).link(
       sources.items.map(_.toIO).toArray,
       libraries.items.map(_.toIO).toArray,
@@ -52,17 +52,19 @@ class ScalaJSWorker {
     ).map(os.Path(_))
   }
 
-  def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)
-         (implicit ctx: Ctx.Home): Unit = {
+  def run(toolsClasspath: Agg[os.Path], config: JsEnvConfig, linkedFile: File)(implicit
+      ctx: Ctx.Home
+  ): Unit = {
     bridge(toolsClasspath).run(config, linkedFile)
   }
 
-  def getFramework(toolsClasspath: Agg[os.Path],
-                   config: JsEnvConfig,
-                   frameworkName: String,
-                   linkedFile: File,
-                   moduleKind: ModuleKind)
-                  (implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
+  def getFramework(
+      toolsClasspath: Agg[os.Path],
+      config: JsEnvConfig,
+      frameworkName: String,
+      linkedFile: File,
+      moduleKind: ModuleKind
+  )(implicit ctx: Ctx.Home): (() => Unit, sbt.testing.Framework) = {
     bridge(toolsClasspath).getFramework(config, frameworkName, linkedFile, moduleKind)
   }
 

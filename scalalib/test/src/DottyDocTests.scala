@@ -9,8 +9,8 @@ import scala.collection.JavaConverters._
 import scala.util.Properties.isJavaAtLeast
 
 object DottyDocTests extends TestSuite {
-  trait TestBase extends TestUtil.BaseModule{
-    def millSourcePath =  TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+  trait TestBase extends TestUtil.BaseModule {
+    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   // a project with static docs
@@ -42,8 +42,10 @@ object DottyDocTests extends TestSuite {
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath)(t: TestEvaluator => T)(
-      implicit tp: TestPath): T = {
+      resourcePath: os.Path = resourcePath
+  )(t: TestEvaluator => T)(
+      implicit tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -53,7 +55,7 @@ object DottyDocTests extends TestSuite {
   }
 
   def tests: Tests = Tests {
-    "static" - workspaceTest(StaticDocsModule){ eval =>
+    "static" - workspaceTest(StaticDocsModule) { eval =>
       val Right((_, _)) = eval.apply(StaticDocsModule.static.docJar)
       val dest = eval.outPath / "static" / "docJar" / "dest"
       assert(
@@ -65,7 +67,7 @@ object DottyDocTests extends TestSuite {
         os.exists(dest / "javadoc" / "_site" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    "empty" - workspaceTest(EmptyDocsModule){ eval =>
+    "empty" - workspaceTest(EmptyDocsModule) { eval =>
       val Right((_, _)) = eval.apply(EmptyDocsModule.empty.docJar)
       val dest = eval.outPath / "empty" / "docJar" / "dest"
       assert(
@@ -73,7 +75,7 @@ object DottyDocTests extends TestSuite {
         os.exists(dest / "javadoc" / "_site" / "api" / "pkg" / "SomeClass.html")
       )
     }
-    "multiple" - workspaceTest(MultiDocsModule){ eval =>
+    "multiple" - workspaceTest(MultiDocsModule) { eval =>
       val Right((_, _)) = eval.apply(MultiDocsModule.multidocs.docJar)
       val dest = eval.outPath / "multidocs" / "docJar" / "dest"
       assert(

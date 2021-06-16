@@ -4,22 +4,22 @@ import ch.epfl.scala.bsp4j._
 import mill.api.Logger
 import mill.util.{ColorLogger, ProxyLogger}
 
-
 /**
-  * BSP-specialized logger class which sends `task-progress`
-  * notifications ( upon the invocation of the `ticker` method ) and
-  * `show-message` notifications ( for each error or information
-  * being logged ).
-  *
-  * @param client the client to send notifications to, also the
-  *               client that initiated a request which triggered
-  *               a mill task evaluation
-  * @param taskId unique ID of the task being evaluated
-  * @param logger the logger to which the messages received by this
-  *               MillBspLogger are being redirected
-  */
+ * BSP-specialized logger class which sends `task-progress`
+ * notifications ( upon the invocation of the `ticker` method ) and
+ * `show-message` notifications ( for each error or information
+ * being logged ).
+ *
+ * @param client the client to send notifications to, also the
+ *               client that initiated a request which triggered
+ *               a mill task evaluation
+ * @param taskId unique ID of the task being evaluated
+ * @param logger the logger to which the messages received by this
+ *               MillBspLogger are being redirected
+ */
 class MillBspLogger(client: BuildClient, taskId: Int, logger: Logger)
-  extends ProxyLogger(logger)  with ColorLogger {
+    extends ProxyLogger(logger)
+    with ColorLogger {
   def colors = ammonite.util.Colors.BlackWhite
 
   override def ticker(s: String): Unit = {

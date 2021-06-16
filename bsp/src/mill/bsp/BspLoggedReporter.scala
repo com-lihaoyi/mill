@@ -13,25 +13,25 @@ import scala.collection.concurrent
 import scala.language.implicitConversions
 
 /**
-  * Specialized reporter that sends compilation diagnostics
-  * for each problem it logs, either as information, warning or
-  * error as well as task finish notifications of type `compile-report`.
-  *
-  * @param client              the client to send diagnostics to
-  * @param targetId            the target id of the target whose compilation
-  *                            the diagnostics are related to
-  * @param taskId              a unique id of the compilation task of the target
-  *                            specified by `targetId`
-  * @param compilationOriginId optional origin id the client assigned to
-  *                            the compilation request. Needs to be sent
-  *                            back as part of the published diagnostics
-  *                            as well as compile report
-  */
+ * Specialized reporter that sends compilation diagnostics
+ * for each problem it logs, either as information, warning or
+ * error as well as task finish notifications of type `compile-report`.
+ *
+ * @param client              the client to send diagnostics to
+ * @param targetId            the target id of the target whose compilation
+ *                            the diagnostics are related to
+ * @param taskId              a unique id of the compilation task of the target
+ *                            specified by `targetId`
+ * @param compilationOriginId optional origin id the client assigned to
+ *                            the compilation request. Needs to be sent
+ *                            back as part of the published diagnostics
+ *                            as well as compile report
+ */
 class BspLoggedReporter(
-  client: bsp.BuildClient,
-  target: BuildTarget,
-  taskId: TaskId,
-  compilationOriginId: Option[String]
+    client: bsp.BuildClient,
+    target: BuildTarget,
+    taskId: TaskId,
+    compilationOriginId: Option[String]
 ) extends BuildProblemReporter {
   var errors = new AtomicInteger(0)
   var warnings = new AtomicInteger(0)
@@ -55,20 +55,25 @@ class BspLoggedReporter(
   // compile request )
   //TODO: document that if the problem is a general information without a text document
   // associated to it, then the document field of the diagnostic is set to the uri of the target
-  private[this] def getDiagnostics(problem: Problem, targetId: bsp.BuildTargetIdentifier, originId: Option[String]):
-  bsp.PublishDiagnosticsParams = {
+  private[this] def getDiagnostics(
+      problem: Problem,
+      targetId: bsp.BuildTargetIdentifier,
+      originId: Option[String]
+  ): bsp.PublishDiagnosticsParams = {
     val diagnostic = getSingleDiagnostic(problem)
     val sourceFile = problem.position.sourceFile
     val textDocument = new TextDocumentIdentifier(
       sourceFile.getOrElse(None) match {
         case None => targetId.getUri
         case f: File => f.toURI.toString
-      })
-    val params = new bsp.PublishDiagnosticsParams(textDocument,
-                                                  targetId,
-                                                  appendDiagnostics(textDocument,
-                                                                    diagnostic).asJava,
-                                                  true)
+      }
+    )
+    val params = new bsp.PublishDiagnosticsParams(
+      textDocument,
+      targetId,
+      appendDiagnostics(textDocument, diagnostic).asJava,
+      true
+    )
 
     if (originId.nonEmpty) {
       params.setOriginId(originId.get)
@@ -80,12 +85,19 @@ class BspLoggedReporter(
   // Update the published diagnostics for the fiven text file by
   // adding the recently computed diagnostic to the list of
   // all previous diagnostics generated for the same file.
-  private[this] def appendDiagnostics(textDocument: TextDocumentIdentifier,
-                                      currentDiagnostic: Diagnostic): List[Diagnostic] = {
-    diagnosticMap.putIfAbsent(textDocument, new bsp.PublishDiagnosticsParams(
+  private[this] def appendDiagnostics(
+      textDocument: TextDocumentIdentifier,
+      currentDiagnostic: Diagnostic
+  ): List[Diagnostic] = {
+    diagnosticMap.putIfAbsent(
       textDocument,
-      target.getId,
-      List.empty[Diagnostic].asJava, true))
+      new bsp.PublishDiagnosticsParams(
+        textDocument,
+        target.getId,
+        List.empty[Diagnostic].asJava,
+        true
+      )
+    )
     diagnosticMap(textDocument).getDiagnostics.asScala.toList ++ List(currentDiagnostic)
   }
 

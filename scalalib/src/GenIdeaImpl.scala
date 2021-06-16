@@ -18,10 +18,12 @@ import mill.scalalib.GenIdeaModule.{IdeaConfigFile, JavaFacet}
 import mill.{BuildInfo, T, scalalib}
 import os.{Path, SubPath}
 
-case class GenIdeaImpl(evaluator: Evaluator,
-                       ctx: Log with Home,
-                       rootModule: BaseModule,
-                       discover: Discover[_]) {
+case class GenIdeaImpl(
+    evaluator: Evaluator,
+    ctx: Log with Home,
+    rootModule: BaseModule,
+    discover: Discover[_]
+) {
   import GenIdeaImpl._
 
   val workDir: Path = rootModule.millSourcePath
@@ -56,8 +58,7 @@ case class GenIdeaImpl(evaluator: Evaluator,
     Try {
       val xml = XML.loadFile(ideaPath.toString)
       (xml \\ "component")
-        .filter(x =>
-          x.attribute("project-jdk-type").map(_.text).contains("JavaSDK"))
+        .filter(x => x.attribute("project-jdk-type").map(_.text).contains("JavaSDK"))
         .map { n =>
           (n.attribute("languageLevel"), n.attribute("project-jdk-name"))
         }
@@ -70,7 +71,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
       rootModule: mill.Module,
       jdkInfo: (String, String),
       ctx: Option[Log],
-      fetchMillModules: Boolean = true): Seq[(os.SubPath, scala.xml.Node)] = {
+      fetchMillModules: Boolean = true
+  ): Seq[(os.SubPath, scala.xml.Node)] = {
 
     val modules: Seq[(Segments, JavaModule)] =
       rootModule.millInternal.segmentsToModules.values
@@ -87,13 +89,18 @@ case class GenIdeaImpl(evaluator: Evaluator,
         Util.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
-            val moduleRepos = evalOrElse(evaluator, T.task {
-              T.traverse(modules)(_._2.repositoriesTask)()
-            }, Seq.empty[Seq[Repository]])
+            val moduleRepos = evalOrElse(
+              evaluator,
+              T.task {
+                T.traverse(modules)(_._2.repositoriesTask)()
+              },
+              Seq.empty[Seq[Repository]]
+            )
 
             val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(
               LocalRepositories.ivy2Local,
-              Repositories.central)
+              Repositories.central
+            )
             val millDeps = BuildInfo.millEmbeddedDeps.map(d => ivy"$d")
             val Result.Success(res) = scalalib.Lib.resolveDependencies(
               repositories = repos.toList,
@@ -123,7 +130,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
     val buildDepsPaths = Try(
       evaluator.rootModule.getClass.getClassLoader
-        .asInstanceOf[SpecialClassLoader])
+        .asInstanceOf[SpecialClassLoader]
+    )
       .map {
         _.allJars
           .map(url => os.Path(url.getFile))
@@ -281,11 +289,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
           case Some(existing) =>
             def details(elements: Seq[GenIdeaModule.Element]) = {
               elements.map(
-                ideaConfigElementTemplate(_).toString().replaceAll("\\n", ""))
+                ideaConfigElementTemplate(_).toString().replaceAll("\\n", "")
+              )
             }
             val msg =
               s"Config collision in file `${conf.name}` and component `${conf.component}`: ${details(
-                conf.config)} vs. ${details(existing)}"
+                conf.config
+              )} vs. ${details(existing)}"
             ctx.map(_.log.error(msg))
         }
       }
@@ -319,7 +329,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
     type ArtifactAndVersion = (String, String)
 
     def guessJarArtifactNameAndVersionFromPath(
-        path: Path): Option[ArtifactAndVersion] =
+        path: Path
+    ): Option[ArtifactAndVersion] =
       Try {
         // in a local maven repo or a local Coursier repo,
         // the dir-layout reflects the jar coordinates
@@ -379,9 +390,10 @@ case class GenIdeaImpl(evaluator: Evaluator,
       val artifactId = pom.module.name.value
       val scalaArtifactRegex = ".*_[23]\\.[0-9]{1,2}".r
       val artifactWithScalaVersion = artifactId.substring(
-        artifactId.length - math.min(5, artifactId.length)) match {
+        artifactId.length - math.min(5, artifactId.length)
+      ) match {
         case scalaArtifactRegex(_*) => artifactId
-        case _                      =>
+        case _ =>
           // Default to the scala binary version used by mill itself
           s"${artifactId}_${BuildInfo.scalaVersion.split("[.]").take(2).mkString(".")}"
       }
@@ -446,33 +458,34 @@ case class GenIdeaImpl(evaluator: Evaluator,
         val sources = resolved match {
           case CoursierResolved(_, _, s) => s
           case WithSourcesResolved(_, s) => s
-          case OtherResolved(_)          => None
+          case OtherResolved(_) => None
         }
         for (name <- names)
-          yield
-            Tuple2(
-              os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
-              libraryXmlTemplate(
-                name = name,
-                path = path,
-                sources = sources,
-                scalaCompilerClassPath =
-                  librariesProperties.getOrElse(path, Loose.Agg.empty))
+          yield Tuple2(
+            os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
+            libraryXmlTemplate(
+              name = name,
+              path = path,
+              sources = sources,
+              scalaCompilerClassPath =
+                librariesProperties.getOrElse(path, Loose.Agg.empty)
             )
+          )
       }
 
     val moduleFiles: Seq[(SubPath, Elem)] = resolved.map {
       case ResolvedModule(
-          path,
-          resolvedDeps,
-          mod,
-          _,
-          _,
-          _,
-          _,
-          facets,
-          _,
-          compilerOutput) =>
+            path,
+            resolvedDeps,
+            mod,
+            _,
+            _,
+            _,
+            _,
+            facets,
+            _,
+            compilerOutput
+          ) =>
         val Seq(
           resourcesPathRefs: Seq[PathRef],
           sourcesPathRef: Seq[PathRef],
@@ -484,7 +497,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
               mod.resources,
               mod.sources,
               mod.generatedSources,
-              mod.allSources))
+              mod.allSources
+            )
+          )
           .values
 
         val generatedSourcePaths = generatedSourcePathRefs.map(_.path)
@@ -499,7 +514,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
                 .evaluate(Agg(x.scalaVersion))
                 .values
                 .head
-                .asInstanceOf[String])
+                .asInstanceOf[String]
+            )
           case _ => None
         }
 
@@ -518,9 +534,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
                 val isRuntime = scopes.contains(Some("RUNTIME"))
 
                 val finalScope = (isCompile, isProvided, isRuntime) match {
-                  case (_, true, false)     => Some("PROVIDED")
+                  case (_, true, false) => Some("PROVIDED")
                   case (false, false, true) => Some("RUNTIME")
-                  case _                    => None
+                  case _ => None
                 }
 
                 ScopedOrd(lib, finalScope)
@@ -556,7 +572,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
 
         Tuple2(
           os.sub / "mill_modules" / s"${moduleName(path)}.iml",
-          elem)
+          elem
+        )
     }
 
     {
@@ -568,7 +585,8 @@ case class GenIdeaImpl(evaluator: Evaluator,
       if (map.nonEmpty) {
         ctx.map(_.log.error(
           s"Config file collisions detected. Check you `ideaConfigFiles` targets. Colliding files: ${map
-            .map(_._1)}. All project files: ${map}"))
+            .map(_._1)}. All project files: ${map}"
+        ))
       }
     }
 
@@ -603,13 +621,14 @@ case class GenIdeaImpl(evaluator: Evaluator,
   }
 
   def ideaConfigFileTemplate(
-      components: Map[String, Seq[GenIdeaModule.Element]]): Elem = {
-    <project version={ "" + ideaConfigVersion }>
+      components: Map[String, Seq[GenIdeaModule.Element]]
+  ): Elem = {
+    <project version={"" + ideaConfigVersion}>
       {
-        components.toSeq.map { case (name, config) =>
-          <component name={ name }>{config.map(ideaConfigElementTemplate)}</component>
-        }
+      components.toSeq.map { case (name, config) =>
+        <component name={name}>{config.map(ideaConfigElementTemplate)}</component>
       }
+    }
     </project>
   }
 
@@ -623,7 +642,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
   }
   def miscXmlTemplate(jdkInfo: (String, String)) = {
     <project version={"" + ideaConfigVersion}>
-      <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={jdkInfo._2} project-jdk-type="JavaSDK">
+      <component name="ProjectRootManager" version="2" languageLevel={jdkInfo._1} project-jdk-name={
+      jdkInfo._2
+    } project-jdk-type="JavaSDK">
         <output url="file://$PROJECT_DIR$/target/idea_output"/>
       </component>
     </project>
@@ -638,13 +659,13 @@ case class GenIdeaImpl(evaluator: Evaluator,
             filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"
           />
           {
-          for(selector  <- selectors)
-          yield {
-            val filepath = "$PROJECT_DIR$/.idea/mill_modules/" + selector + ".iml"
-            val fileurl = "file://" + filepath
-            <module fileurl={fileurl} filepath={filepath} />
-          }
-          }
+      for (selector <- selectors)
+        yield {
+          val filepath = "$PROJECT_DIR$/.idea/mill_modules/" + selector + ".iml"
+          val fileurl = "file://" + filepath
+          <module fileurl={fileurl} filepath={filepath} />
+        }
+    }
         </modules>
       </component>
     </project>
@@ -662,9 +683,9 @@ case class GenIdeaImpl(evaluator: Evaluator,
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
         {
-          for(name <- libNames.toSeq.sorted)
-          yield <orderEntry type="library" name={name} level="project" />
-        }
+      for (name <- libNames.toSeq.sorted)
+        yield <orderEntry type="library" name={name} level="project" />
+    }
       </component>
     </module>
   }
@@ -685,131 +706,148 @@ case class GenIdeaImpl(evaluator: Evaluator,
     "file://" + Try("$PROJECT_DIR$/" + path.relativeTo(workDir)).getOrElse(path)
   }
 
-  def libraryXmlTemplate(name: String,
-                         path: os.Path,
-                         sources: Option[os.Path],
-                         scalaCompilerClassPath: Loose.Agg[Path]): Elem = {
+  def libraryXmlTemplate(
+      name: String,
+      path: os.Path,
+      sources: Option[os.Path],
+      scalaCompilerClassPath: Loose.Agg[Path]
+  ): Elem = {
     val isScalaLibrary = scalaCompilerClassPath.nonEmpty
     <component name="libraryTable">
-      <library name={name} type={if(isScalaLibrary) "Scala" else null}>
-        { if(isScalaLibrary) {
+      <library name={name} type={if (isScalaLibrary) "Scala" else null}>
+        {
+      if (isScalaLibrary) {
         <properties>
           <compiler-classpath>
             {
-            scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={relativeFileUrl(p)}/>)
-            }
+          scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={relativeFileUrl(p)}/>)
+        }
           </compiler-classpath>
         </properties>
-          }
-        }
+      }
+    }
         <CLASSES>
           <root url={relativeJarUrl(path)}/>
         </CLASSES>
-        { if (sources.isDefined) {
-          <SOURCES>
+        {
+      if (sources.isDefined) {
+        <SOURCES>
             <root url={relativeJarUrl(sources.get)}/>
           </SOURCES>
-          }
-        }
+      }
+    }
       </library>
     </component>
   }
-  def moduleXmlTemplate(basePath: os.Path,
-                        scalaVersionOpt: Option[String],
-                        resourcePaths: Strict.Agg[os.Path],
-                        normalSourcePaths: Strict.Agg[os.Path],
-                        generatedSourcePaths: Strict.Agg[os.Path],
-                        compileOutputPath: os.Path,
-                        libNames: Seq[ScopedOrd[String]],
-                        depNames: Seq[ScopedOrd[String]],
-                        isTest: Boolean,
-                        facets: Seq[GenIdeaModule.JavaFacet]): Elem = {
+  def moduleXmlTemplate(
+      basePath: os.Path,
+      scalaVersionOpt: Option[String],
+      resourcePaths: Strict.Agg[os.Path],
+      normalSourcePaths: Strict.Agg[os.Path],
+      generatedSourcePaths: Strict.Agg[os.Path],
+      compileOutputPath: os.Path,
+      libNames: Seq[ScopedOrd[String]],
+      depNames: Seq[ScopedOrd[String]],
+      isTest: Boolean,
+      facets: Seq[GenIdeaModule.JavaFacet]
+  ): Elem = {
     <module type="JAVA_MODULE" version={"" + ideaConfigVersion}>
       <component name="NewModuleRootManager">
         {
-          val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath)
-          if (isTest)
-            <output-test url={outputUrl} />
-          else
-            <output url={outputUrl} />
-        }
+      val outputUrl = "file://$MODULE_DIR$/" + relify(compileOutputPath)
+      if (isTest)
+        <output-test url={outputUrl} />
+      else
+        <output url={outputUrl} />
+    }
         <exclude-output />
         {
-          for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
-            val rel = relify(generatedSourcePath)
-              <content url={"file://$MODULE_DIR$/" + rel}>
+      for (generatedSourcePath <- generatedSourcePaths.toSeq.distinct.sorted) yield {
+        val rel = relify(generatedSourcePath)
+        <content url={"file://$MODULE_DIR$/" + rel}>
                 <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} generated="true" />
               </content>
-          }
-        }
+      }
+    }
 
         {
-          // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
-          for (normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted) yield {
-            val rel = relify(normalSourcePath)
-            <content url={"file://$MODULE_DIR$/" + rel}>
+      // keep the "real" base path as last content, to ensure, Idea picks it up as "main" module dir
+      for (normalSourcePath <- normalSourcePaths.iterator.toSeq.sorted) yield {
+        val rel = relify(normalSourcePath)
+        <content url={"file://$MODULE_DIR$/" + rel}>
               <sourceFolder url={"file://$MODULE_DIR$/" + rel} isTestSource={isTest.toString} />
             </content>
-          }
-        }
+      }
+    }
         {
-          val resourceType = if (isTest) "java-test-resource" else "java-resource"
-          for (resourcePath <- resourcePaths.iterator.toSeq.sorted) yield {
-              val rel = relify(resourcePath)
-              <content url={"file://$MODULE_DIR$/" + rel}>
+      val resourceType = if (isTest) "java-test-resource" else "java-resource"
+      for (resourcePath <- resourcePaths.iterator.toSeq.sorted) yield {
+        val rel = relify(resourcePath)
+        <content url={"file://$MODULE_DIR$/" + rel}>
                 <sourceFolder url={"file://$MODULE_DIR$/" + rel} type={resourceType} />
               </content>
-          }
-        }
+      }
+    }
         <orderEntry type="inheritedJdk" />
         <orderEntry type="sourceFolder" forTests="false" />
 
         {
-        for(name <- libNames.sorted)
+      for (name <- libNames.sorted)
         yield name.scope match {
           case None => <orderEntry type="library" name={name.value} level="project" />
-          case Some(scope) => <orderEntry type="library" scope={scope} name={name.value} level="project" />
+          case Some(scope) =>
+            <orderEntry type="library" scope={scope} name={name.value} level="project" />
         }
 
-        }
+    }
         {
-        for(dep <- depNames.sorted)
+      for (dep <- depNames.sorted)
         yield dep.scope match {
-            case None => <orderEntry type="module" module-name={dep.value} exported="" />
-            case Some(scope) => <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+          case None => <orderEntry type="module" module-name={dep.value} exported="" />
+          case Some(scope) =>
+            <orderEntry type="module" module-name={dep.value} exported="" scope={scope} />
+        }
+    }
+      </component>
+      {
+      if (facets.isEmpty) NodeSeq.Empty
+      else {
+        <component name="FacetManager">
+            {
+          for (facet <- facets) yield {
+            <facet type={facet.`type`} name={facet.name}>
+                  {ideaConfigElementTemplate(facet.config)}
+                </facet>
           }
         }
-      </component>
-      { if (facets.isEmpty) NodeSeq.Empty else { <component name="FacetManager">
-            { for (facet <- facets) yield { <facet type={ facet.`type` } name={ facet.name }>
-                  { ideaConfigElementTemplate(facet.config) }
-                </facet> } }
-          </component> } }
+          </component>
+      }
+    }
     </module>
   }
   def scalaCompilerTemplate(
-      settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]) = {
+      settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]
+  ) = {
 
     <project version={"" + ideaConfigVersion}>
       <component name="ScalaCompilerConfiguration">
         {
-        for((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
-        yield
-          <profile name={s"mill $i"} modules={mods.map(m => moduleName(m.millModuleSegments)).mkString(",")}>
+      for ((((plugins, params), mods), i) <- settings.toSeq.zip(1 to settings.size))
+        yield <profile name={s"mill $i"} modules={mods.map(m => moduleName(m.millModuleSegments)).mkString(",")}>
             <parameters>
               {
-              for(param <- params)
-              yield <parameter value={param} />
-              }
+          for (param <- params)
+            yield <parameter value={param} />
+        }
             </parameters>
             <plugins>
               {
-              for(plugin <- plugins.toSeq)
-              yield <plugin path={plugin.toString} />
-              }
+          for (plugin <- plugins.toSeq)
+            yield <plugin path={plugin.toString} />
+        }
             </plugins>
           </profile>
-        }
+    }
       </component>
     </project>
   }
@@ -826,8 +864,8 @@ object GenIdeaImpl {
       .foldLeft(new StringBuilder()) {
         case (sb, Segment.Label(s)) if sb.isEmpty => sb.append(s)
         case (sb, Segment.Cross(s)) if sb.isEmpty => sb.append(s.mkString("-"))
-        case (sb, Segment.Label(s))               => sb.append(".").append(s)
-        case (sb, Segment.Cross(s))               => sb.append("-").append(s.mkString("-"))
+        case (sb, Segment.Label(s)) => sb.append(".").append(s)
+        case (sb, Segment.Cross(s)) => sb.append("-").append(s.mkString("-"))
       }
       .mkString
       .toLowerCase()
@@ -837,15 +875,13 @@ object GenIdeaImpl {
    */
   def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
     evaluator.evaluate(Agg(e)).values match {
-      case Seq()     => default
+      case Seq() => default
       case Seq(e: T) => e
     }
   }
 
   sealed trait ResolvedLibrary { def path: os.Path }
-  final case class CoursierResolved(path: os.Path,
-                                    pom: os.Path,
-                                    sources: Option[os.Path])
+  final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])
       extends ResolvedLibrary
   final case class OtherResolved(path: os.Path) extends ResolvedLibrary
   final case class WithSourcesResolved(path: os.Path, sources: Option[os.Path])
@@ -853,17 +889,16 @@ object GenIdeaImpl {
 
   final case class Scoped[T](value: T, scope: Option[String])
 
-  final case class ScopedOrd[T <: Comparable[T]](value: T,
-                                                 scope: Option[String])
+  final case class ScopedOrd[T <: Comparable[T]](value: T, scope: Option[String])
       extends Ordered[ScopedOrd[T]] {
     override def compare(that: ScopedOrd[T]): Int =
       value.compareTo(that.value) match {
         case 0 =>
           (scope, that.scope) match {
-            case (None, None)       => 0
+            case (None, None) => 0
             case (Some(l), Some(r)) => l.compare(r)
-            case (None, _)          => -1
-            case (_, None)          => +1
+            case (None, _) => -1
+            case (_, None) => +1
           }
         case x => x
       }

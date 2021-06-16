@@ -16,12 +16,13 @@ object TestNGTests extends TestSuite {
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
 
     object test extends super.Tests {
-      def testngClasspath = T{
+      def testngClasspath = T {
         mill.modules.Util.millProjectModule("MILL_TESTNG_LIB", "mill-contrib-testng", repositories)
       }
 
-      override def runClasspath: Target[Seq[PathRef]] = T{super.runClasspath() ++ testngClasspath()}
-      override def ivyDeps = T{
+      override def runClasspath: Target[Seq[PathRef]] =
+        T { super.runClasspath() ++ testngClasspath() }
+      override def ivyDeps = T {
         super.ivyDeps() ++
           Agg(
             ivy"org.testng:testng:6.11",
@@ -37,9 +38,10 @@ object TestNGTests extends TestSuite {
 
   val resourcePath: Path = pwd / "contrib" / "testng" / "test" / "resources" / "demo"
 
-  def workspaceTest[T, M <: TestUtil.BaseModule](m: M, resourcePath: Path = resourcePath)
-                                                (t: TestEvaluator => T)
-                                                (implicit tp: TestPath): T = {
+  def workspaceTest[T, M <: TestUtil.BaseModule](
+      m: M,
+      resourcePath: Path = resourcePath
+  )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m)
     rm(m.millSourcePath)
     rm(eval.outPath)

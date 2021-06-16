@@ -21,19 +21,25 @@ object ProguardTests extends TestSuite {
 
     override def scalaVersion = "2.12.1"
 
-    def proguardContribClasspath = T{
-      mill.modules.Util.millProjectModule("MILL_PROGUARD_LIB", "mill-contrib-proguard", repositoriesTask())
+    def proguardContribClasspath = T {
+      mill.modules.Util.millProjectModule(
+        "MILL_PROGUARD_LIB",
+        "mill-contrib-proguard",
+        repositoriesTask()
+      )
     }
 
-    override def runClasspath: Target[Seq[PathRef]] = T{super.runClasspath() ++ proguardContribClasspath()}
+    override def runClasspath: Target[Seq[PathRef]] =
+      T { super.runClasspath() ++ proguardContribClasspath() }
 
   }
 
-  val testModuleSourcesPath
-    : Path = os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
+  val testModuleSourcesPath: Path =
+    os.pwd / "contrib" / "proguard" / "test" / "resources" / "proguard"
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
-      implicit tp: TestPath): T = {
+      implicit tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -54,7 +60,7 @@ object ProguardTests extends TestSuite {
         val javaVersion = sys.props("java.version")
         val acceptFailure = isGithubActions && javaVersion.startsWith("11")
         try {
-          
+
           val Right((path, _)) = eval.apply(proguard.proguard)
           assert(os.exists(path.path))
 

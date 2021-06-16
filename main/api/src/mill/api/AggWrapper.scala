@@ -30,8 +30,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
 
   object Agg {
     def empty[V]: Agg[V] = new Agg.Mutable[V]
-    implicit def jsonFormat[T: upickle.default.ReadWriter]
-      : upickle.default.ReadWriter[Agg[T]] =
+    implicit def jsonFormat[T: upickle.default.ReadWriter]: upickle.default.ReadWriter[Agg[T]] =
       upickle.default
         .readwriter[Seq[T]]
         .bimap[Agg[T]](
@@ -122,7 +121,7 @@ sealed class AggWrapper(strictUniqueness: Boolean) {
       override def hashCode() = items.map(_.hashCode()).sum
       override def equals(other: Any) = other match {
         case s: Agg[_] => items.sameElements(s.items)
-        case _         => super.equals(other)
+        case _ => super.equals(other)
       }
       override def toString = items.mkString("Agg(", ", ", ")")
     }

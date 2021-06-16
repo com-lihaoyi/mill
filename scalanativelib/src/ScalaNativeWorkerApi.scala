@@ -7,12 +7,10 @@ import mill.define.{Discover, Worker}
 import mill.{Agg, T}
 import mill.scalanativelib.api._
 
-
 class ScalaNativeWorker {
   private var scalaInstanceCache = Option.empty[(Long, ScalaNativeWorkerApi)]
 
-  def impl(toolsClasspath: Agg[os.Path])
-          (implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
+  def impl(toolsClasspath: Agg[os.Path])(implicit ctx: mill.api.Ctx.Home): ScalaNativeWorkerApi = {
     val classloaderSig = toolsClasspath.map(p => p.toString().hashCode + os.mtime(p)).sum
     scalaInstanceCache match {
       case Some((sig, bridge)) if sig == classloaderSig => bridge
@@ -30,8 +28,7 @@ class ScalaNativeWorker {
             .asInstanceOf[ScalaNativeWorkerApi]
           scalaInstanceCache = Some((classloaderSig, bridge))
           bridge
-        }
-        catch {
+        } catch {
           case e: Exception =>
             e.printStackTrace()
             throw e

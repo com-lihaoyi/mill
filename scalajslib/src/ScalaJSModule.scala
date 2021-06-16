@@ -23,7 +23,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
 
   def scalaJSBinaryVersion = T { mill.scalalib.api.Util.scalaJSBinaryVersion(scalaJSVersion()) }
 
-  def scalaJSWorkerVersion = T{ mill.scalalib.api.Util.scalaJSWorkerVersion(scalaJSVersion()) }
+  def scalaJSWorkerVersion = T { mill.scalalib.api.Util.scalaJSWorkerVersion(scalaJSVersion()) }
 
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
@@ -92,10 +92,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  override def runLocal(args: String*) = T.command { run(args:_*) }
+  override def runLocal(args: String*) = T.command { run(args: _*) }
 
   override def run(args: String*) = T.command {
-    finalMainClassOpt() match{
+    finalMainClassOpt() match {
       case Left(err) => Result.Failure(err)
       case Right(_) =>
         ScalaJSWorkerApi.scalaJSWorker().run(
@@ -116,14 +116,16 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     mill.api.Result.Failure("runMain is not supported in Scala.js")
   }
 
-  def link(worker: ScalaJSWorker,
-           toolsClasspath: Agg[PathRef],
-           runClasspath: Agg[PathRef],
-           mainClass: Option[String],
-           testBridgeInit: Boolean,
-           mode: OptimizeMode,
-           moduleKind: ModuleKind,
-           useECMAScript2015: Boolean)(implicit ctx: Ctx): Result[PathRef] = {
+  def link(
+      worker: ScalaJSWorker,
+      toolsClasspath: Agg[PathRef],
+      runClasspath: Agg[PathRef],
+      mainClass: Option[String],
+      testBridgeInit: Boolean,
+      mode: OptimizeMode,
+      moduleKind: ModuleKind,
+      useECMAScript2015: Boolean
+  )(implicit ctx: Ctx): Result[PathRef] = {
     val outputPath = ctx.dest / "out.js"
 
     os.makeDir.all(ctx.dest)
@@ -149,20 +151,20 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   }
 
   override def scalacOptions = super.scalacOptions() ++ {
-    if(isScala3(scalaVersion())) Seq("-scalajs")
+    if (isScala3(scalaVersion())) Seq("-scalajs")
     else Seq.empty
   }
 
-  override def scalacPluginIvyDeps = T{
+  override def scalacPluginIvyDeps = T {
     super.scalacPluginIvyDeps() ++ {
-      if(isScala3(scalaVersion())) {
+      if (isScala3(scalaVersion())) {
         Seq.empty
       } else {
         Seq(ivy"org.scala-js:::scalajs-compiler:${scalaJSVersion()}")
       }
     }
   }
-  override def scalaLibraryIvyDeps = T{
+  override def scalaLibraryIvyDeps = T {
     super.scalaLibraryIvyDeps() ++ Seq(
       ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
     )
@@ -212,10 +214,12 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
     )
   }
 
-  override def testLocal(args: String*) = T.command { test(args:_*) }
+  override def testLocal(args: String*) = T.command { test(args: _*) }
 
-  override protected def testTask(args: Task[Seq[String]],
-      globSeletors: Task[Seq[String]]): Task[(String, Seq[TestRunner.Result])] = T.task {
+  override protected def testTask(
+      args: Task[Seq[String]],
+      globSeletors: Task[Seq[String]]
+  ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
       toolsClasspath().map(_.path),

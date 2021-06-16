@@ -3,13 +3,14 @@ package mill.integration
 import utest._
 
 class AmmoniteTests(fork: Boolean)
-  extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite", fork) {
-  val tests = Tests{
+    extends IntegrationTestSuite("MILL_AMMONITE_REPO", "ammonite", fork) {
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
       val replTests = eval(
-        s"amm.repl[$scalaVersion].test", "{ammonite.unit,ammonite.session.ProjectTests.guava}"
+        s"amm.repl[$scalaVersion].test",
+        "{ammonite.unit,ammonite.session.ProjectTests.guava}"
       )
       val replTestMeta = meta(s"amm.repl[$scalaVersion].test.test")
       assert(
@@ -19,7 +20,8 @@ class AmmoniteTests(fork: Boolean)
       )
 
       val compileResult = eval(
-        "all", s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
+        "all",
+        s"{shell,sshd,amm,integration}[$scalaVersion].test.compile"
       )
 
       assert(
