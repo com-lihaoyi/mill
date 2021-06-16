@@ -3,19 +3,16 @@ package mill.moduledefs
 import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
-
-trait Cacher{
+trait Cacher {
   private[this] lazy val cacherLazyMap = mutable.Map.empty[sourcecode.Enclosing, Any]
 
-  protected[this] def cachedTarget[T](t: => T)
-                                     (implicit c: sourcecode.Enclosing): T = synchronized{
+  protected[this] def cachedTarget[T](t: => T)(implicit c: sourcecode.Enclosing): T = synchronized {
     cacherLazyMap.getOrElseUpdate(c, t).asInstanceOf[T]
   }
 }
 
-object Cacher{
-  def impl0[T: c.WeakTypeTag](c: Context)
-                                   (t: c.Expr[T]): c.Expr[T] = {
+object Cacher {
+  def impl0[T: c.WeakTypeTag](c: Context)(t: c.Expr[T]): c.Expr[T] = {
     c.Expr[T](wrapCached[T](c)(t.tree))
   }
   def wrapCached[R: c.WeakTypeTag](c: Context)(t: c.Tree) = {

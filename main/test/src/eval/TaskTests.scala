@@ -5,50 +5,50 @@ import utest._
 import mill.T
 
 import mill.util.TestEvaluator
-object TaskTests extends TestSuite{
-  val tests = Tests{
-    object build extends mill.util.TestUtil.BaseModule{
+object TaskTests extends TestSuite {
+  val tests = Tests {
+    object build extends mill.util.TestUtil.BaseModule {
       var count = 0
       // Explicitly instantiate `Function1` objects to make sure we get
       // different instances each time
-      def staticWorker = T.worker{
+      def staticWorker = T.worker {
         new Function1[Int, Int] {
           def apply(v1: Int) = v1 + 1
         }
       }
-      def noisyWorker = T.worker{
+      def noisyWorker = T.worker {
         new Function1[Int, Int] {
           def apply(v1: Int) = input() + 1
         }
       }
-      def input = T.input{
+      def input = T.input {
         count += 1
         count
       }
-      def task = T.task{
+      def task = T.task {
         count += 1
         count
       }
-      def taskInput = T{ input() }
-      def taskNoInput = T{ task() }
+      def taskInput = T { input() }
+      def taskNoInput = T { task() }
 
-      def persistent = T.persistent{
+      def persistent = T.persistent {
         input() // force re-computation
         os.makeDir.all(T.dest)
-        os.write.append(T.dest/"count", "hello\n")
-        os.read.lines(T.dest/"count").length
+        os.write.append(T.dest / "count", "hello\n")
+        os.read.lines(T.dest / "count").length
       }
-      def nonPersistent = T{
+      def nonPersistent = T {
         input() // force re-computation
         os.makeDir.all(T.dest)
-        os.write.append(T.dest/"count", "hello\n")
-        os.read.lines(T.dest/"count").length
+        os.write.append(T.dest / "count", "hello\n")
+        os.read.lines(T.dest / "count").length
       }
 
-      def staticWorkerDownstream = T{
+      def staticWorkerDownstream = T {
         staticWorker().apply(1)
       }
-      def noisyWorkerDownstream = T{
+      def noisyWorkerDownstream = T {
         noisyWorker().apply(1)
       }
     }

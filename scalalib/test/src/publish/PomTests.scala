@@ -12,12 +12,13 @@ object PomTests extends TestSuite {
     val artifact =
       Artifact("com.lihaoyi", "mill-scalalib_2.12", "0.0.1")
     val deps = Agg(
-      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"),
-                 Scope.Compile),
-      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"),
-                 Scope.Compile),
-      Dependency(Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
-                 Scope.Compile, exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12"))
+      Dependency(Artifact("com.lihaoyi", "mill-main_2.12", "0.1.4"), Scope.Compile),
+      Dependency(Artifact("org.scala-sbt", "test-interface", "1.0"), Scope.Compile),
+      Dependency(
+        Artifact("com.lihaoyi", "pprint_2.12", "0.5.3"),
+        Scope.Compile,
+        exclusions = List("com.lihaoyi" -> "fansi_2.12", "*" -> "sourcecode_2.12")
+      )
     )
     val settings = PomSettings(
       description = "mill-scalalib",
@@ -26,16 +27,14 @@ object PomTests extends TestSuite {
       licenses = Seq(License.`MIT`),
       versionControl = VersionControl.github("lihaoyi", "mill"),
       developers = List(
-        Developer("lihaoyi",
-                  "Li Haoyi",
-                  "https://github.com/lihaoyi",
-                  None,
-                  None),
-        Developer("rockjam",
-                  "Nikolai Tatarinov",
-                  "https://github.com/rockjam",
-                  Some("80pct done Inc."),
-                  Some("https://80pctdone.com/"))
+        Developer("lihaoyi", "Li Haoyi", "https://github.com/lihaoyi", None, None),
+        Developer(
+          "rockjam",
+          "Nikolai Tatarinov",
+          "https://github.com/rockjam",
+          Some("80pct done Inc."),
+          Some("https://80pctdone.com/")
+        )
       )
     )
 
@@ -133,7 +132,8 @@ object PomTests extends TestSuite {
           connection = None,
           developerConnection = None,
           tag = None
-        ))
+        )
+      )
       val pomEmptyScm = pomXml(artifact, deps, artifactId, updatedSettings)
 
       'scm - {
@@ -162,10 +162,8 @@ object PomTests extends TestSuite {
     }
 
     'pomNoDeps - {
-      val pomNoDeps = pomXml(artifact,
-                             dependencies = Agg.empty,
-                             artifactId = artifactId,
-                             pomSettings = settings)
+      val pomNoDeps =
+        pomXml(artifact, dependencies = Agg.empty, artifactId = artifactId, pomSettings = settings)
 
       'dependencies - {
         assert(
@@ -188,10 +186,12 @@ object PomTests extends TestSuite {
     }
   }
 
-  def pomXml(artifact: Artifact,
-             dependencies: Agg[Dependency],
-             artifactId: String,
-             pomSettings: PomSettings) =
+  def pomXml(
+      artifact: Artifact,
+      dependencies: Agg[Dependency],
+      artifactId: String,
+      pomSettings: PomSettings
+  ) =
     XML.loadString(Pom(artifact, dependencies, artifactId, pomSettings))
 
   def singleText(seq: NodeSeq) =

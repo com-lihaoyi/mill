@@ -15,12 +15,14 @@ trait BintrayPublishModule extends PublishModule {
     BintrayPublishData(artifactInfo, artifacts, bintrayPackage())
   }
 
-  def publishBintray(credentials: String,
-                     bintrayOwner: String = bintrayOwner,
-                     bintrayRepo: String = bintrayRepo,
-                     release: Boolean = true,
-                     readTimeout: Int = 60000,
-                     connectTimeout: Int = 5000): define.Command[Unit] = T.command {
+  def publishBintray(
+      credentials: String,
+      bintrayOwner: String = bintrayOwner,
+      bintrayRepo: String = bintrayRepo,
+      release: Boolean = true,
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000
+  ): define.Command[Unit] = T.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,
@@ -35,13 +37,15 @@ trait BintrayPublishModule extends PublishModule {
 
 object BintrayPublishModule extends ExternalModule {
 
-  def publishAll(credentials: String,
-                 bintrayOwner: String,
-                 bintrayRepo: String,
-                 release: Boolean = true,
-                 publishArtifacts: mill.main.Tasks[BintrayPublishData],
-                 readTimeout: Int = 60000,
-                 connectTimeout: Int = 5000) = T.command {
+  def publishAll(
+      credentials: String,
+      bintrayOwner: String,
+      bintrayRepo: String,
+      release: Boolean = true,
+      publishArtifacts: mill.main.Tasks[BintrayPublishData],
+      readTimeout: Int = 60000,
+      connectTimeout: Int = 5000
+  ) = T.command {
     new BintrayPublisher(
       bintrayOwner,
       bintrayRepo,

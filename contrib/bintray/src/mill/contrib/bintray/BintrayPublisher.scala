@@ -3,13 +3,15 @@ package mill.contrib.bintray
 import mill.api.Logger
 import mill.scalalib.publish.Artifact
 
-class BintrayPublisher(owner: String,
-                       repo: String,
-                       credentials: String,
-                       release: Boolean = true,
-                       readTimeout: Int,
-                       connectTimeout: Int,
-                       log: Logger) {
+class BintrayPublisher(
+    owner: String,
+    repo: String,
+    credentials: String,
+    release: Boolean = true,
+    readTimeout: Int,
+    connectTimeout: Int,
+    log: Logger
+) {
   private val api = new BintrayHttpApi(
     owner,
     repo,
@@ -21,7 +23,7 @@ class BintrayPublisher(owner: String,
 
   def publish(publishData: BintrayPublishData) = publishAll(publishData)
   def publishAll(publishData: BintrayPublishData*) = {
-    val mappings = 
+    val mappings =
       for {
         BintrayPublishData(meta, payload, pkg) <- publishData
       } yield {
@@ -46,7 +48,7 @@ class BintrayPublisher(owner: String,
 
     publishToRepo(releases)
   }
-  
+
   type BintrayPackage = String
   type FileMapping = Seq[(String, Array[Byte])]
 
@@ -75,7 +77,11 @@ class BintrayPublisher(owner: String,
     }
   }
 
-  private def reportPublishResults(publishResults: Seq[(BintrayPackage, Artifact, Seq[requests.Response])]) = {
+  private def reportPublishResults(publishResults: Seq[(
+      BintrayPackage,
+      Artifact,
+      Seq[requests.Response]
+  )]) = {
     val errors =
       for {
         (pkg, artifact, responses) <- publishResults

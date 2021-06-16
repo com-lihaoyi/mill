@@ -9,6 +9,8 @@ trait RouteCompilerWorkerModule extends Module {
   }
 }
 
-private[playlib] object RouteCompilerWorkerModule extends ExternalModule with RouteCompilerWorkerModule {
+private[playlib] object RouteCompilerWorkerModule
+    extends ExternalModule
+    with RouteCompilerWorkerModule {
   lazy val millDiscover = Discover[this.type]
 }

@@ -52,7 +52,7 @@ trait JavaModule
       case Some(m) => Right(m)
       case None =>
         zincWorker.worker().discoverMainClasses(compile()) match {
-          case Seq()     => Left("No main class specified or found")
+          case Seq() => Left("No main class specified or found")
           case Seq(main) => Right(main)
           case mains =>
             Left(
@@ -66,7 +66,7 @@ trait JavaModule
   def finalMainClass: T[String] = T {
     finalMainClassOpt() match {
       case Right(main) => Result.Success(main)
-      case Left(msg)   => Result.Failure(msg)
+      case Left(msg) => Result.Failure(msg)
     }
   }
 
@@ -121,7 +121,8 @@ trait JavaModule
       else compileModuleDeps
     val deps = (normalDeps ++ compileDeps).distinct
     val asString =
-      s"${if (recursive) "Recursive module" else "Module"} dependencies of ${millModuleSegments.render}:\n\t${deps
+      s"${if (recursive) "Recursive module"
+      else "Module"} dependencies of ${millModuleSegments.render}:\n\t${deps
         .map { dep =>
           dep.millModuleSegments.render ++
             (if (compileModuleDeps.contains(dep) || !normalDeps.contains(dep)) " (compile)"
@@ -160,7 +161,8 @@ trait JavaModule
    */
   def upstreamCompileOutput: T[Seq[CompilationResult]] = T {
     T.traverse((recursiveModuleDeps ++ compileModuleDeps.flatMap(
-      _.transitiveModuleDeps)).distinct)(_.compile)
+      _.transitiveModuleDeps
+    )).distinct)(_.compile)
   }
 
   /**
@@ -168,7 +170,8 @@ trait JavaModule
    */
   def transitiveLocalClasspath: T[Agg[PathRef]] = T {
     T.traverse(moduleDeps ++ compileModuleDeps)(m =>
-        T.task { m.localClasspath() ++ m.transitiveLocalClasspath() })()
+      T.task { m.localClasspath() ++ m.transitiveLocalClasspath() }
+    )()
       .flatten
   }
 
@@ -402,7 +405,8 @@ trait JavaModule
   def sourceJar: T[PathRef] = T {
     createJar(
       (allSources() ++ resources()).map(_.path).filter(os.exists),
-      manifest())
+      manifest()
+    )
   }
 
   /**
@@ -437,8 +441,7 @@ trait JavaModule
    * @param inverse Invert the tree representation, so that the root is on the bottom.
    * @param additionalDeps Additional dependency to be included into the tree.
    */
-  protected def printDepsTree(inverse: Boolean,
-                              additionalDeps: Task[Agg[Dep]]): Task[Unit] =
+  protected def printDepsTree(inverse: Boolean, additionalDeps: Task[Agg[Dep]]): Task[Unit] =
     T.task {
       val (flattened, resolution) = Lib.resolveDependenciesMetadata(
         repositoriesTask(),
@@ -467,15 +470,20 @@ trait JavaModule
    * @param withCompile Include the compile-time only dependencies (`compileIvyDeps`, provided scope) into the tree.
    * @param withRuntime Include the runtime dependencies (`runIvyDeps`, runtime scope) into the tree.
    */
-  def ivyDepsTree(inverse: Boolean = false,
-                  withCompile: Boolean = false,
-                  withRuntime: Boolean = false): Command[Unit] =
+  def ivyDepsTree(
+      inverse: Boolean = false,
+      withCompile: Boolean = false,
+      withRuntime: Boolean = false
+  ): Command[Unit] =
     (withCompile, withRuntime) match {
       case (true, true) =>
         T.command {
-          printDepsTree(inverse, T.task {
-            transitiveCompileIvyDeps() ++ runIvyDeps()
-          })
+          printDepsTree(
+            inverse,
+            T.task {
+              transitiveCompileIvyDeps() ++ runIvyDeps()
+            }
+          )
         }
       case (true, false) =>
         T.command {
@@ -492,7 +500,7 @@ trait JavaModule
     }
 
   /** Control whether `run*`-targets should use an args file to pass command line args, if possible. */
-  def runUseArgsFile: T[Boolean] = T{ scala.util.Properties.isWin }
+  def runUseArgsFile: T[Boolean] = T { scala.util.Properties.isWin }
 
   /**
    * Runs this module's code in-process within an isolated classloader. This is
@@ -521,7 +529,8 @@ trait JavaModule
         args,
         workingDir = forkWorkingDir(),
         useCpPassingJar = runUseArgsFile()
-      ))
+      )
+    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")
@@ -584,7 +593,8 @@ trait JavaModule
         workingDir = forkWorkingDir(),
         background = true,
         useCpPassingJar = runUseArgsFile()
-      ))
+      )
+    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")
@@ -608,7 +618,8 @@ trait JavaModule
           workingDir = forkWorkingDir(),
           background = true,
           useCpPassingJar = runUseArgsFile()
-        ))
+        )
+      )
       catch {
         case e: Exception =>
           Result.Failure("subprocess failed")
@@ -640,7 +651,8 @@ trait JavaModule
         args,
         workingDir = forkWorkingDir(),
         useCpPassingJar = runUseArgsFile()
-      ))
+      )
+    )
     catch {
       case e: Exception =>
         Result.Failure("subprocess failed")
@@ -671,4 +683,3 @@ trait JavaModule
     ()
   }
 }
-

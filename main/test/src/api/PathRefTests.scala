@@ -44,7 +44,7 @@ object PathRefTests extends TestSuite {
     }
 
     "symlinks" - {
-      def check(quick: Boolean) = withTmpDir{ tmpDir =>
+      def check(quick: Boolean) = withTmpDir { tmpDir =>
         // invalid symlink
         os.symlink(tmpDir / "nolink", tmpDir / "nonexistant")
 

@@ -6,7 +6,7 @@ import utest._
 class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
   def workspaceSlug: String = "docannotations"
   def scriptSourcePath: os.Path = os.pwd / "integration" / "test" / "resources" / workspaceSlug
-  val tests = Tests{
+  val tests = Tests {
     initWorkspace()
     "test" - {
       assert(eval("inspect", "core.test.ivyDeps"))
@@ -14,7 +14,7 @@ class DocAnnotationsTests(fork: Boolean) extends ScriptTestSuite(fork) {
       assert(
         inheritedIvyDeps.contains("core.test.ivyDeps"),
         inheritedIvyDeps.contains("Overriden ivyDeps Docs!!!"),
-        inheritedIvyDeps.contains("Any ivy dependencies you want to add to this Module"),
+        inheritedIvyDeps.contains("Any ivy dependencies you want to add to this Module")
       )
 
       assert(eval("inspect", "core.task"))

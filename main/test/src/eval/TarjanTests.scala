@@ -2,19 +2,18 @@ package mill.eval
 
 import utest._
 
-object TarjanTests extends TestSuite{
+object TarjanTests extends TestSuite {
   def check(input: Seq[Seq[Int]], expected: Seq[Seq[Int]]) = {
     val result = Tarjans(input).map(_.sorted)
     val sortedExpected = expected.map(_.sorted)
     assert(result == sortedExpected)
   }
-  val tests = Tests{
+  val tests = Tests {
     //
     "empty" - check(Seq(), Seq())
 
     // (0)
     "singleton" - check(Seq(Seq()), Seq(Seq(0)))
-
 
     // (0)-.
     //  ^._/
@@ -83,7 +82,18 @@ object TarjanTests extends TestSuite{
     //      v            /
     //     (9) <--------'
     "combinedCycles" - check(
-      Seq(Seq(1), Seq(0), Seq(0, 1), Seq(2, 4, 7, 9), Seq(3), Seq(4, 8), Seq(9), Seq(6), Seq(), Seq()),
+      Seq(
+        Seq(1),
+        Seq(0),
+        Seq(0, 1),
+        Seq(2, 4, 7, 9),
+        Seq(3),
+        Seq(4, 8),
+        Seq(9),
+        Seq(6),
+        Seq(),
+        Seq()
+      ),
       Seq(Seq(0, 1), Seq(2), Seq(9), Seq(6), Seq(7), Seq(3, 4), Seq(8), Seq(5))
     )
 

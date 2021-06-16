@@ -2,9 +2,8 @@ package mill.integration
 
 import utest._
 
-class JawnTests(fork: Boolean)
-  extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn", fork) {
-  val tests = Tests{
+class JawnTests(fork: Boolean) extends IntegrationTestSuite("MILL_JAWN_REPO", "jawn", fork) {
+  val tests = Tests {
     initWorkspace()
 
     def check(scalaVersion: String) = {
@@ -16,7 +15,7 @@ class JawnTests(fork: Boolean)
         os.walk(workspacePath).exists(_.last == "CharBuilderSpec.class")
       )
 
-      for(scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")){
+      for (scalaFile <- os.walk(workspacePath).filter(_.ext == "scala")) {
         os.write.append(scalaFile, "\n}")
       }
 

@@ -11,14 +11,9 @@ private[playlib] trait Server extends ScalaModule with Version {
 
   def playServerProvider = T { akkaHttpServer() }
 
-
   override def runIvyDeps = T {
     super.runIvyDeps() ++ Agg(playServerProvider())
   }
 
   override def mainClass = T { Some("play.core.server.ProdServerStart") }
 }
-
-
-
-

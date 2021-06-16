@@ -2,8 +2,9 @@ package mill.integration
 
 import utest._
 
-class UpickleTests(fork: Boolean) extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {
-  val tests = Tests{
+class UpickleTests(fork: Boolean)
+    extends IntegrationTestSuite("MILL_UPICKLE_REPO", "upickle", fork) {
+  val tests = Tests {
     initWorkspace()
     'jvm21111 - {
       mill.util.TestUtil.disableInJava9OrAbove({
@@ -22,8 +23,8 @@ class UpickleTests(fork: Boolean) extends IntegrationTestSuite("MILL_UPICKLE_REP
     'js - {
       assert(eval("upickleJs[2.12.4].test"))
       val jsMeta = meta("upickleJs[2.12.4].test.test")
-      assert(jsMeta .contains("example.ExampleTests.simple"))
-      assert(jsMeta .contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
+      assert(jsMeta.contains("example.ExampleTests.simple"))
+      assert(jsMeta.contains("upickle.MacroTests.commonCustomStructures.simpleAdt"))
     }
 
   }

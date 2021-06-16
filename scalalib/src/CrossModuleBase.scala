@@ -27,11 +27,11 @@ trait CrossModuleBase extends ScalaModule {
           .split('.')
           .inits
           .takeWhile(_.length > 1)
-          .flatMap(
-            prefix =>
-              c.items
-                .map(_._2)
-                .find(_.crossScalaVersion.split('.').startsWith(prefix)))
+          .flatMap(prefix =>
+            c.items
+              .map(_._2)
+              .find(_.crossScalaVersion.split('.').startsWith(prefix))
+          )
           .collectFirst { case x => x }
           .getOrElse(
             throw new Exception(

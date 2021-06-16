@@ -6,7 +6,6 @@ import language.experimental.macros
 import scala.collection.mutable
 import scala.reflect.macros.blackbox.Context
 
-
 class Router(val ctx: Context) extends mainargs.Macros(ctx) {
   import c.universe._
 
@@ -14,15 +13,15 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
     import compat._
     val seen = mutable.Set.empty[Type]
     def rec(tpe: Type): Unit = {
-      if (!seen(tpe)){
+      if (!seen(tpe)) {
         seen.add(tpe)
-        for{
+        for {
           m <- tpe.members
           memberTpe = m.typeSignature
           if memberTpe.resultType <:< typeOf[mill.define.Module] && memberTpe.paramLists.isEmpty
         } rec(memberTpe.resultType)
 
-        if (tpe <:< typeOf[mill.define.Cross[_]]){
+        if (tpe <:< typeOf[mill.define.Cross[_]]) {
           val inner = typeOf[Cross[_]]
             .typeSymbol
             .asClass
@@ -38,12 +37,13 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
     }
     rec(weakTypeOf[T])
 
-    def assertParamListCounts(methods: Iterable[MethodSymbol],
-                              cases: (Type, Int, String)*) = {
-      for (m <- methods.toList){
-        for ((tt, n, label) <- cases){
-          if (m.returnType <:< tt &&
-            m.paramLists.length != n){
+    def assertParamListCounts(methods: Iterable[MethodSymbol], cases: (Type, Int, String)*) = {
+      for (m <- methods.toList) {
+        for ((tt, n, label) <- cases) {
+          if (
+            m.returnType <:< tt &&
+            m.paramLists.length != n
+          ) {
             c.abort(
               m.pos.asInstanceOf[c.Position],
               s"$label definitions must have $n parameter list" + (if (n == 1) "" else "s")
@@ -52,7 +52,7 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
         }
       }
     }
-    val mapping = for{
+    val mapping = for {
       discoveredModuleType <- seen
       curCls = discoveredModuleType
       methods = getValsOrMeths(curCls)
@@ -66,7 +66,7 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
           (weakTypeOf[mill.define.Command[_]], 1, "`T.command`")
         )
 
-        for{
+        for {
           m <- methods.toList
           if m.returnType <:< weakTypeOf[mill.define.Command[_]]
         } yield (
@@ -88,10 +88,12 @@ class Router(val ctx: Context) extends mainargs.Macros(ctx) {
       // the problem of generating a *huge* macro method body that finally exceeds the
       // JVM's maximum allowed method size
       val overridesLambda = q"(() => $overridesRoutes)()"
-      val lhs =  q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
+      val lhs = q"classOf[${discoveredModuleType.typeSymbol.asClass}]"
       q"$lhs -> $overridesLambda"
     }
 
-    c.Expr[Discover[T]](q"_root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))")
+    c.Expr[Discover[T]](
+      q"_root_.mill.define.Discover(_root_.scala.collection.immutable.Map(..$mapping))"
+    )
   }
 }

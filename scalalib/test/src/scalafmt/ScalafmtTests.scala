@@ -34,8 +34,10 @@ object ScalafmtTests extends TestSuite {
 
   def workspaceTest[T](
       m: TestUtil.BaseModule,
-      resourcePath: os.Path = resourcePath)(t: TestEvaluator => T)(
-      implicit tp: TestPath): T = {
+      resourcePath: os.Path = resourcePath
+  )(t: TestEvaluator => T)(
+      implicit tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -46,7 +48,7 @@ object ScalafmtTests extends TestSuite {
 
   def tests: Tests = Tests {
     "scalafmt" - {
-      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded:Boolean) =
+      def checkReformat(reformatCommand: mill.define.Command[Unit], buildSrcIncluded: Boolean) =
         workspaceTest(ScalafmtTestModule) { eval =>
           val before = getProjectFiles(ScalafmtTestModule.core, eval)
 
@@ -62,10 +64,11 @@ object ScalafmtTests extends TestSuite {
             firstReformat("Person.scala").content != before("Person.scala").content,
             // resources files aren't modified
             firstReformat("application.conf").modifyTime == before(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
 
-          if(buildSrcIncluded){
+          if (buildSrcIncluded) {
             assert(
               firstReformat("util.sc").modifyTime > before("util.sc").modifyTime,
               firstReformat("util.sc").content != before("util.sc").content
@@ -73,7 +76,7 @@ object ScalafmtTests extends TestSuite {
           } else {
             assert(
               firstReformat("util.sc").modifyTime == before("util.sc").modifyTime,
-              firstReformat("util.sc").content == before("util.sc").content,
+              firstReformat("util.sc").content == before("util.sc").content
             )
           }
 
@@ -87,12 +90,12 @@ object ScalafmtTests extends TestSuite {
             cached("Person.scala").modifyTime == firstReformat("Person.scala").modifyTime,
             cached("util.sc").modifyTime == firstReformat("util.sc").modifyTime,
             cached("application.conf").modifyTime == firstReformat(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
 
           // reformat after change
-          os.write.over(cached("Main.scala").path,
-                     cached("Main.scala").content + "\n object Foo")
+          os.write.over(cached("Main.scala").path, cached("Main.scala").content + "\n object Foo")
 
           val Right(_) = eval.apply(reformatCommand)
 
@@ -102,15 +105,18 @@ object ScalafmtTests extends TestSuite {
             afterChange("Main.scala").modifyTime > cached("Main.scala").modifyTime,
             afterChange("Person.scala").modifyTime == cached("Person.scala").modifyTime,
             afterChange("application.conf").modifyTime == cached(
-              "application.conf").modifyTime
+              "application.conf"
+            ).modifyTime
           )
         }
 
       "reformat" - checkReformat(ScalafmtTestModule.core.reformat(), false)
       "reformatAll" - checkReformat(
         ScalafmtModule.reformatAll(
-          Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources)),
-        ), true)
+          Tasks(Seq(ScalafmtTestModule.core.sources, ScalafmtTestModule.core.buildSources))
+        ),
+        true
+      )
     }
   }
 

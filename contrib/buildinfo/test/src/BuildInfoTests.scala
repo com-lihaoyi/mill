@@ -13,10 +13,7 @@ import utest.framework.TestPath
 object BuildInfoTests extends TestSuite {
 
   val scalaVersionString = "2.12.4"
-  trait BuildInfoModule
-      extends TestUtil.BaseModule
-      with scalalib.ScalaModule
-      with BuildInfo {
+  trait BuildInfoModule extends TestUtil.BaseModule with scalalib.ScalaModule with BuildInfo {
     // override build root to test custom builds/modules
     override def millSourcePath: Path = TestUtil.getSrcPathStatic()
     override def scalaVersion = scalaVersionString
@@ -27,7 +24,7 @@ object BuildInfoTests extends TestSuite {
   object BuildInfo extends BuildInfoModule {
     def buildInfoMembers = T {
       Map(
-        "scalaVersion" -> scalaVersion(),
+        "scalaVersion" -> scalaVersion()
       )
     }
   }
@@ -42,11 +39,12 @@ object BuildInfoTests extends TestSuite {
     }
   }
 
-  val testModuleSourcesPath
-    : Path = os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
+  val testModuleSourcesPath: Path =
+    os.pwd / "contrib" / "buildinfo" / "test" / "resources" / "buildinfo"
 
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
-      implicit tp: TestPath): T = {
+      implicit tp: TestPath
+  ): T = {
     val eval = new TestEvaluator(m)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
@@ -61,12 +59,12 @@ object BuildInfoTests extends TestSuite {
       "createSourcefile" - workspaceTest(BuildInfo) { eval =>
         val expected =
           s"""|
-              |object BuildInfo {
-              |  def scalaVersion = "2.12.4"
-              |
-              |  val toMap = Map[String, String](
-              |    "scalaVersion" -> scalaVersion)
-              |}""".stripMargin
+            |object BuildInfo {
+            |  def scalaVersion = "2.12.4"
+            |
+            |  val toMap = Map[String, String](
+            |    "scalaVersion" -> scalaVersion)
+            |}""".stripMargin
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfo.generatedBuildInfo)
         assert(
@@ -82,20 +80,21 @@ object BuildInfoTests extends TestSuite {
         assert(
           result.isEmpty &&
             !os.exists(
-              eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala")
+              eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala"
+            )
         )
       }
 
       "supportCustomSettings" - workspaceTest(BuildInfoSettings) { eval =>
         val expected =
           s"""|package foo
-              |
-              |object bar {
-              |  def scalaVersion = "2.12.4"
-              |
-              |  val toMap = Map[String, String](
-              |    "scalaVersion" -> scalaVersion)
-              |}""".stripMargin
+            |
+            |object bar {
+            |  def scalaVersion = "2.12.4"
+            |
+            |  val toMap = Map[String, String](
+            |    "scalaVersion" -> scalaVersion)
+            |}""".stripMargin
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfoSettings.generatedBuildInfo)
         assert(

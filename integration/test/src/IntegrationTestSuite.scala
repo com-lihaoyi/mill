@@ -3,9 +3,7 @@ package mill.integration
 import mill.util.ScriptTestSuite
 import utest._
 
-abstract class IntegrationTestSuite(repoKey: String,
-                                    val workspaceSlug: String,
-                                    fork: Boolean)
+abstract class IntegrationTestSuite(repoKey: String, val workspaceSlug: String, fork: Boolean)
     extends ScriptTestSuite(fork) {
   val buildFilePath = os.pwd / "integration" / "test" / "resources" / workspaceSlug
   def scriptSourcePath = {
@@ -34,13 +32,16 @@ abstract class IntegrationTestSuite(repoKey: String,
             .map(
               _.replace(
                 "map.keySet().toArray(null);",
-                "map.keySet().toArray((Integer[]) null);")
+                "map.keySet().toArray((Integer[]) null);"
+              )
                 .replace(
                   "map.values().toArray(null);",
-                  "map.values().toArray((Integer[]) null);")
+                  "map.values().toArray((Integer[]) null);"
+                )
                 .replace(
                   "map.entrySet().toArray(null);",
-                  "map.entrySet().toArray((Integer[]) null);")
+                  "map.entrySet().toArray((Integer[]) null);"
+                )
             )
             .mkString("\n")
         )
@@ -53,10 +54,12 @@ abstract class IntegrationTestSuite(repoKey: String,
               _.replace("keys.toArray(null);", "keys.toArray((Object[]) null);")
                 .replace(
                   "values.toArray(null);",
-                  "values.toArray((Object[]) null);")
+                  "values.toArray((Object[]) null);"
+                )
                 .replace(
                   "entries.toArray(null);",
-                  "entries.toArray((Entry<Object, Object>[]) null);")
+                  "entries.toArray((Entry<Object, Object>[]) null);"
+                )
             )
             .mkString("\n")
         )

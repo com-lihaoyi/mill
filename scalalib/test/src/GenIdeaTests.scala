@@ -81,8 +81,7 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
     in.replace(
       "$PROJECT_DIR$/" +
-        os.Path(coursier.paths.CoursierPaths.cacheDirectory())
-          .relativeTo(workspacePath),
+        os.Path(coursier.paths.CoursierPaths.cacheDirectory()).relativeTo(workspacePath),
       "COURSIER_HOME"
     )
   }
