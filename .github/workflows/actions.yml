@@ -133,4 +133,4 @@ jobs:
         with:
           java-version: 9
 
-      - run: ci/release-github.sh
+      - run: ./mill -i uploadToGithub $REPO_ACCESS_TOKEN
