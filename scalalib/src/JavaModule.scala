@@ -352,6 +352,8 @@ trait JavaModule
    */
   def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
+  def processedDocSources: T[Seq[PathRef]] = allSources
+
   /**
    * Extra directories to be processed by the API documentation tool.
    *
@@ -371,7 +373,7 @@ trait JavaModule
     os.makeDir.all(javadocDir)
 
     val files = for {
-      ref <- allSources()
+      ref <- processedDocSources()
       if os.exists(ref.path)
       p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
       if os.isFile(p) && (p.ext == "java")

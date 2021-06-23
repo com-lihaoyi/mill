@@ -14,19 +14,26 @@ import mill.api.DummyInputStream
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule { outer =>
+trait ScalaModule extends JavaModule {
+  outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
+
     override def scalaVersion: T[String] = outer.scalaVersion()
+
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
+
     override def scalacPluginClasspath = outer.scalacPluginClasspath
+
     override def scalacOptions = outer.scalacOptions
   }
+
   trait Tests extends ScalaModuleTests
 
   /**
    * What Scala organization to use
+   *
    * @return
    */
   def scalaOrganization: T[String] = T {
@@ -41,6 +48,7 @@ trait ScalaModule extends JavaModule { outer =>
    */
   override def allSourceFiles: T[Seq[PathRef]] = T {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
+
     for {
       root <- allSources()
       if os.exists(root.path)
@@ -94,14 +102,20 @@ trait ScalaModule extends JavaModule { outer =>
   /**
    * Allows you to make use of Scala compiler plugins from maven central
    */
-  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
+  def scalacPluginIvyDeps = T {
+    Agg.empty[Dep]
+  }
 
-  def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
+  def scalaDocPluginIvyDeps = T {
+    scalacPluginIvyDeps()
+  }
 
   /**
    * Command-line options to pass to the Scala compiler
    */
-  def scalacOptions = T { Seq.empty[String] }
+  def scalacOptions = T {
+    Seq.empty[String]
+  }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
@@ -128,7 +142,9 @@ trait ScalaModule extends JavaModule { outer =>
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task { scalaDocIvyDeps(scalaOrganization(), scalaVersion()) }
+      T.task {
+        scalaDocIvyDeps(scalaOrganization(), scalaVersion())
+      }
     )()
   }
 
@@ -183,6 +199,11 @@ trait ScalaModule extends JavaModule { outer =>
         scalacPluginClasspath().map(_.path),
         T.reporter.apply(hashCode)
       )
+  }
+
+  override def processedDocSources: T[Seq[PathRef]] = T {
+    os.walk(compile().classes.path)
+      .map(PathRef(_))
   }
 
   override def docJar: T[PathRef] = T {
@@ -272,9 +293,9 @@ trait ScalaModule extends JavaModule { outer =>
           "-siteroot",
           combinedStaticDir.toNIO.toString
         ),
-        os.walk(compile().classes.path)
-          .filter(_.ext == "tasty")
-          .map(_.toString),
+        processedDocSources()
+          .filter(_.path.ext == "tasty")
+          .map(_.path.toString),
         javadocDir
       )
     } else { // scaladoc 2
@@ -283,7 +304,7 @@ trait ScalaModule extends JavaModule { outer =>
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        allSourceFiles().map(_.path.toString),
+        processedDocSources().map(_.path.toString),
         javadocDir
       )
     }
