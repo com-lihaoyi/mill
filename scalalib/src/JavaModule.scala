@@ -352,7 +352,7 @@ trait JavaModule
    */
   def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
-  def processedDocSources: T[Seq[PathRef]] = allSources
+  def docSources: T[Seq[PathRef]] = allSources
 
   /**
    * Extra directories to be processed by the API documentation tool.
@@ -360,7 +360,7 @@ trait JavaModule
    * Typically includes static files such as html and markdown, but depends
    * on the doc tool that is actually used.
    */
-  def docSources: Sources = T.sources(millSourcePath / "docs")
+  def docResources: Sources = T.sources(millSourcePath / "docs")
 
   /**
    * The documentation jar, containing all the Javadoc/Scaladoc HTML files, for
@@ -373,7 +373,7 @@ trait JavaModule
     os.makeDir.all(javadocDir)
 
     val files = for {
-      ref <- processedDocSources()
+      ref <- docSources()
       if os.exists(ref.path)
       p <- (if (os.isDir(ref.path)) os.walk(ref.path) else Seq(ref.path))
       if os.isFile(p) && (p.ext == "java")

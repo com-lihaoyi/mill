@@ -201,7 +201,7 @@ trait ScalaModule extends JavaModule {
       )
   }
 
-  override def processedDocSources: T[Seq[PathRef]] = T {
+  override def docSources: T[Seq[PathRef]] = T {
     os.walk(compile().classes.path)
       .map(PathRef(_))
   }
@@ -241,16 +241,16 @@ trait ScalaModule extends JavaModule {
       os.makeDir.all(javadocDir)
 
       for {
-        ref <- docSources()
-        docSource = ref.path
-        if os.exists(docSource) && os.isDir(docSource)
-        children = os.walk(docSource)
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
         child <- children
         if os.isFile(child)
       } {
         os.copy.over(
           child,
-          javadocDir / (child.subRelativeTo(docSource)),
+          javadocDir / (child.subRelativeTo(docResource)),
           createFolders = true
         )
       }
@@ -272,16 +272,16 @@ trait ScalaModule extends JavaModule {
       os.makeDir.all(combinedStaticDir)
 
       for {
-        ref <- docSources()
-        docSource = ref.path
-        if os.exists(docSource) && os.isDir(docSource)
-        children = os.walk(docSource)
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
         child <- children
         if os.isFile(child)
       } {
         os.copy.over(
           child,
-          combinedStaticDir / (child.subRelativeTo(docSource)),
+          combinedStaticDir / child.subRelativeTo(docResource),
           createFolders = true
         )
       }
@@ -293,7 +293,7 @@ trait ScalaModule extends JavaModule {
           "-siteroot",
           combinedStaticDir.toNIO.toString
         ),
-        processedDocSources()
+        docSources()
           .filter(_.path.ext == "tasty")
           .map(_.path.toString),
         javadocDir
@@ -304,7 +304,7 @@ trait ScalaModule extends JavaModule {
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        processedDocSources().map(_.path.toString),
+        docSources().map(_.path.toString),
         javadocDir
       )
     }
