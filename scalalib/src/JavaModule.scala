@@ -356,6 +356,7 @@ trait JavaModule
    * Extra directories to be processed by the API documentation tool.
    *
    * Typically includes other tasty/source files to generate documentation from.
+   * @see [[docResources]]
    */
   def docSources: Sources = T.sources(allSources())
 
@@ -364,6 +365,7 @@ trait JavaModule
    *
    * Typically includes static files such as html and markdown, but depends
    * on the doc tool that is actually used.
+   * @see [[docSources]]
    */
   def docResources: Sources = T.sources(millSourcePath / "docs")
 
