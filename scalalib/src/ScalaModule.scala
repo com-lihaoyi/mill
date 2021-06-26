@@ -253,7 +253,7 @@ trait ScalaModule extends JavaModule {
       }
       packageWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
-        allSourceFiles().map(_.path.toString),
+        docSources().map(_.path.toString),
         javadocDir / "_site"
       )
 
