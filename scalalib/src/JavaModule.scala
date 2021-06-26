@@ -352,7 +352,7 @@ trait JavaModule
    */
   def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
-  def docSources: T[Seq[PathRef]] = allSources
+  def docSources: Sources = T.sources(allSources())
 
   /**
    * Extra directories to be processed by the API documentation tool.

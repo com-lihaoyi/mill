@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.{Dependency, Repository}
-import mill.define.{Command, Target, Task, TaskModule}
+import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.api.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
@@ -201,10 +201,7 @@ trait ScalaModule extends JavaModule {
       )
   }
 
-  override def docSources: T[Seq[PathRef]] = T {
-    os.walk(compile().classes.path)
-      .map(PathRef(_))
-  }
+  override def docSources: Sources = T.sources(compile().classes.path)
 
   override def docJar: T[PathRef] = T {
     val pluginOptions =
@@ -294,8 +291,9 @@ trait ScalaModule extends JavaModule {
           combinedStaticDir.toNIO.toString
         ),
         docSources()
-          .filter(_.path.ext == "tasty")
-          .map(_.path.toString),
+          .map(_.path)
+          .filter(_.ext == "tasty")
+          .map(_.toString),
         javadocDir
       )
     } else { // scaladoc 2
@@ -304,7 +302,10 @@ trait ScalaModule extends JavaModule {
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        docSources().map(_.path.toString),
+        docSources()
+          .map(_.path)
+          .filter(_.ext == "tasty")
+          .map(_.toString),
         javadocDir
       )
     }
