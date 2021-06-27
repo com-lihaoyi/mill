@@ -353,9 +353,9 @@ trait JavaModule
   def javadocOptions: T[Seq[String]] = T { Seq[String]() }
 
   /**
-   * Extra directories to be processed by the API documentation tool.
+   * Directories to be processed by the API documentation tool.
    *
-   * Typically includes other tasty/source files to generate documentation from.
+   * Typically includes the source files to generate documentation from.
    * @see [[docResources]]
    */
   def docSources: Sources = T.sources(allSources())
