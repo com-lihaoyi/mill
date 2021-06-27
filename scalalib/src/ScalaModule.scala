@@ -302,10 +302,7 @@ trait ScalaModule extends JavaModule {
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        docSources()
-          .map(_.path)
-          .filter(_.ext == "tasty")
-          .map(_.toString),
+        docSources().map(_.path.toString),
         javadocDir
       )
     }
