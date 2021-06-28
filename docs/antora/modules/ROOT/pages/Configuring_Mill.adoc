@@ -73,7 +73,7 @@ To select the test-jars from a dependency use the following syntax:
 `ivy"org.apache.spark::spark-sql:2.4.0;classifier=tests`.
 
 By default, these are resolved from maven central, but you can add your own
-resolvers by overriding the `repositoriesTask` definition in the module:
+resolvers by overriding the `repositoriesTask` task in the module:
 
 .`build.sc`
 [source,scala]
