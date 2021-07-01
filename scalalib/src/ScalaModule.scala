@@ -253,7 +253,11 @@ trait ScalaModule extends JavaModule {
       }
       packageWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
-        docSources().map(_.path.toString),
+        docSources()
+          .map(_.path)
+          .flatMap(os.walk(_))
+          .filter(os.isFile)
+          .map(_.toString),
         javadocDir / "_site"
       )
 
@@ -292,6 +296,7 @@ trait ScalaModule extends JavaModule {
         ),
         docSources()
           .map(_.path)
+          .flatMap(os.walk(_))
           .filter(_.ext == "tasty")
           .map(_.toString),
         javadocDir
@@ -302,7 +307,11 @@ trait ScalaModule extends JavaModule {
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        docSources().map(_.path.toString),
+        docSources()
+          .map(_.path)
+          .flatMap(os.walk(_))
+          .filter(os.isFile)
+          .map(_.toString),
         javadocDir
       )
     }
