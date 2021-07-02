@@ -48,9 +48,10 @@ class ScalaJSWorkerImpl extends mill.scalajslib.api.ScalaJSWorkerApi {
         case ModuleKind.CommonJSModule => ScalaJSModuleKind.CommonJSModule
         case ModuleKind.ESModule => ScalaJSModuleKind.ESModule
       }
+      val useClosure = input.fullOpt && input.moduleKind != ModuleKind.ESModule
       val config = StandardLinker.Config()
         .withOptimizer(input.fullOpt)
-        .withClosureCompilerIfAvailable(input.fullOpt)
+        .withClosureCompilerIfAvailable(useClosure)
         .withSemantics(semantics)
         .withModuleKind(scalaJSModuleKind)
         .withESFeatures(_.withUseECMAScript2015(input.useECMAScript2015))
