@@ -66,7 +66,7 @@ object Deps {
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
   val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
   val coursier = ivy"io.get-coursier::coursier:2.0.16"
-  val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
+  val flywayCore = ivy"org.flywaydb:flyway-core:7.11.1"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
   // Warning: Avoid ipcsocket version 1.3.0, as it caused many failures on CI
   val ipcsocket = ivy"org.scala-sbt.ipcsocket:ipcsocket:1.0.1"
