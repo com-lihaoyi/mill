@@ -24,7 +24,8 @@ jobs:
           - ./mill -i docs.antora.githubPages
         include:
           - java-version: 8
-            buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
+            # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
+            buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
 
     runs-on: ubuntu-latest
 
