@@ -36,13 +36,13 @@ class MainRunner(
     ringBell: Boolean,
     wd: os.Path
 ) extends ammonite.MainRunner(
-      config,
-      outprintStream,
-      errPrintStream,
-      stdIn,
-      outprintStream,
-      errPrintStream,
-      wd
+      cliConfig = config,
+      outprintStream = outprintStream,
+      errPrintStream = errPrintStream,
+      stdIn = stdIn,
+      stdOut = outprintStream,
+      stdErr = errPrintStream,
+      wd = wd
     ) {
 
   var stateCache = stateCache0
@@ -102,27 +102,27 @@ class MainRunner(
       printing = true,
       mainCfg => {
         val logger = PrintLogger(
-          colored,
-          disableTicker,
-          colors,
-          outprintStream,
-          errPrintStream,
-          errPrintStream,
-          stdIn,
+          colored = colored,
+          disableTicker = disableTicker,
+          colors = colors,
+          outStream = outprintStream,
+          infoStream = errPrintStream,
+          errStream = errPrintStream,
+          inStream = stdIn,
           debugEnabled = debugLog,
           context = ""
         )
         logger.debug(s"Using explicit system properties: ${systemProperties}")
 
         val (result, interpWatched) = RunScript.runScript(
-          config.core.home,
-          mainCfg.wd,
-          scriptPath,
-          mainCfg.instantiateInterpreter(),
-          scriptArgs,
-          stateCache,
-          logger,
-          env,
+          home = config.core.home,
+          wd = mainCfg.wd,
+          path = scriptPath,
+          instantiateInterpreter = mainCfg.instantiateInterpreter(),
+          scriptArgs = scriptArgs,
+          stateCache = stateCache,
+          log = logger,
+          env = env,
           keepGoing = keepGoing,
           systemProperties = systemProperties,
           threadCount = threadCount
@@ -133,10 +133,10 @@ class MainRunner(
             val (eval, evalWatches, res) = data
 
             stateCache = Some(Evaluator.State(
-              eval.rootModule,
-              eval.classLoaderSig,
-              eval.workerCache,
-              interpWatched
+              rootModule = eval.rootModule,
+              classLoaderSig = eval.classLoaderSig,
+              workerCache = eval.workerCache,
+              watched = interpWatched
             ))
             val watched = () => {
               val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)
