@@ -201,7 +201,10 @@ trait ScalaModule extends JavaModule {
       )
   }
 
-  override def docSources: Sources = T.sources(compile().classes.path)
+  override def docSources: Sources = T.sources(
+    if(isDotty(scalaVersion()) || isScala3Milestone(scalaVersion())) allSources()
+    else Seq(PathRef(compile().classes.path))
+  )
 
   override def docJar: T[PathRef] = T {
     val pluginOptions =
