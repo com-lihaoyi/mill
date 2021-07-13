@@ -86,14 +86,14 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.8.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.7.8"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.23"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.24"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
@@ -244,7 +244,7 @@ object main extends MillModule {
     )
   }
 
-  object client extends MillPublishModule{
+  object client extends MillPublishModule {
     override def ivyDeps = Agg(
       Deps.ipcsocketExcludingJna
     )
@@ -704,6 +704,9 @@ def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
                    cmdClassPath: Agg[String]) = {
+  val millMainClass = "mill.MillMain"
+  val millClientMainClass = "mill.main.client.MillClientMain"
+
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
@@ -740,15 +743,15 @@ def launcherScript(shellJvmArgs: Seq[String],
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
          |    init_mill_jvm_opts
-         |    COURSIER_CACHE=.coursier ${java("mill.MillMain", true)}
+         |    COURSIER_CACHE=.coursier ${java(millMainClass, true)}
          |else
          |    case "$$1" in
          |      -i | --interactive | --repl | --no-server )
          |        init_mill_jvm_opts
-         |        ${java("mill.MillMain", true)}
+         |        ${java(millMainClass, true)}
          |        ;;
          |      *)
-         |        ${java("mill.main.client.MillClientMain", false)}
+         |        ${java(millClientMainClass, false)}
          |        ;;
          |esac
          |fi
@@ -780,9 +783,9 @@ def launcherScript(shellJvmArgs: Seq[String],
          |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
          |    )
          |  )
-         |  ${java("mill.MillMain", true)}
+         |  ${java(millMainClass, true)}
          |) else (
-         |  ${java("mill.main.client.MillClientMain", false)}
+         |  ${java(millClientMainClass, false)}
          |)
          |endlocal
          |""".stripMargin
