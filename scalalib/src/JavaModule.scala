@@ -12,7 +12,7 @@ import mill.scalalib.api.CompilationResult
 import os.Path
 
 /**
- * Core configuration required to compile a single Scala compilation target
+ * Core configuration required to compile a single Java compilation target
  */
 trait JavaModule
     extends mill.Module
@@ -26,7 +26,8 @@ trait JavaModule
   trait JavaModuleTests extends TestModule {
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
-    override def repositoriesTask: Task[Seq[Repository]] = T.task { outer.repositoriesTask() }
+    override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] = outer.resolutionCustomizer
     override def javacOptions: T[Seq[String]] = outer.javacOptions
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea
