@@ -86,7 +86,7 @@ object Deps {
   val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.8.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
-  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
+  val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
   val osLib = ivy"com.lihaoyi::os-lib:0.7.8"
   val testng = ivy"org.testng:testng:7.4.0"
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
