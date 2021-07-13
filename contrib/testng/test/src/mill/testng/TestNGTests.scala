@@ -26,7 +26,7 @@ object TestNGTests extends TestSuite {
         super.ivyDeps() ++
           Agg(
             ivy"org.testng:testng:6.11",
-            ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.0"
+            ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
           )
       }
       override def testFramework = T {
