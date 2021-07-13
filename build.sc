@@ -244,7 +244,7 @@ object main extends MillModule {
     )
   }
 
-  object client extends MillPublishModule{
+  object client extends MillPublishModule {
     override def ivyDeps = Agg(
       Deps.ipcsocketExcludingJna
     )
@@ -704,6 +704,9 @@ def launcherScript(shellJvmArgs: Seq[String],
                    cmdJvmArgs: Seq[String],
                    shellClassPath: Agg[String],
                    cmdClassPath: Agg[String]) = {
+  val millMainClass = "mill.MillMain"
+  val millClientMainClass = "mill.main.client.MillClientMain"
+
   mill.modules.Jvm.universalScript(
     shellCommands = {
       val jvmArgsStr = shellJvmArgs.mkString(" ")
@@ -740,15 +743,15 @@ def launcherScript(shellJvmArgs: Seq[String],
          |# https://stackoverflow.com/a/43618657/871202
          |if grep -qEi "(Microsoft|WSL)" /proc/version > /dev/null 2> /dev/null ; then
          |    init_mill_jvm_opts
-         |    COURSIER_CACHE=.coursier ${java("mill.MillMain", true)}
+         |    COURSIER_CACHE=.coursier ${java(millMainClass, true)}
          |else
          |    case "$$1" in
          |      -i | --interactive | --repl | --no-server )
          |        init_mill_jvm_opts
-         |        ${java("mill.MillMain", true)}
+         |        ${java(millMainClass, true)}
          |        ;;
          |      *)
-         |        ${java("mill.main.client.MillClientMain", false)}
+         |        ${java(millClientMainClass, false)}
          |        ;;
          |esac
          |fi
@@ -780,9 +783,9 @@ def launcherScript(shellJvmArgs: Seq[String],
          |      if "!line:~0,2!"=="-X" set "mill_jvm_opts=!mill_jvm_opts! !line!"
          |    )
          |  )
-         |  ${java("mill.MillMain", true)}
+         |  ${java(millMainClass, true)}
          |) else (
-         |  ${java("mill.main.client.MillClientMain", false)}
+         |  ${java(millClientMainClass, false)}
          |)
          |endlocal
          |""".stripMargin
