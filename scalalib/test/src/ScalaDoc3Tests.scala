@@ -31,7 +31,7 @@ object ScalaDoc3Tests extends TestSuite {
   object MultiDocsModule extends TestBase {
     object multidocs extends ScalaModule {
       def scalaVersion = "3.0.0-RC1"
-      def docSources = T.sources(
+      def docResources = T.sources(
         millSourcePath / "docs1",
         millSourcePath / "docs2"
       )

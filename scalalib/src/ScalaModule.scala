@@ -2,7 +2,7 @@ package mill
 package scalalib
 
 import coursier.{Dependency, Repository}
-import mill.define.{Command, Target, Task, TaskModule}
+import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.api.{PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
@@ -23,10 +23,12 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
   }
+
   trait Tests extends ScalaModuleTests
 
   /**
    * What Scala organization to use
+   *
    * @return
    */
   def scalaOrganization: T[String] = T {
@@ -185,6 +187,12 @@ trait ScalaModule extends JavaModule { outer =>
       )
   }
 
+  override def docSources: Sources = T.sources {
+    // Scaladoc 3.0.0 is consuming tasty files
+    if(isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion())) Seq(compile().classes)
+    else allSources()
+  }
+
   override def docJar: T[PathRef] = T {
     val pluginOptions =
       scalaDocPluginClasspath().map(pluginPathRef => s"-Xplugin:${pluginPathRef.path}")
@@ -220,22 +228,26 @@ trait ScalaModule extends JavaModule { outer =>
       os.makeDir.all(javadocDir)
 
       for {
-        ref <- docSources()
-        docSource = ref.path
-        if os.exists(docSource) && os.isDir(docSource)
-        children = os.walk(docSource)
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
         child <- children
         if os.isFile(child)
       } {
         os.copy.over(
           child,
-          javadocDir / (child.subRelativeTo(docSource)),
+          javadocDir / (child.subRelativeTo(docResource)),
           createFolders = true
         )
       }
       packageWithZinc(
         Seq("-siteroot", javadocDir.toNIO.toString),
-        allSourceFiles().map(_.path.toString),
+        docSources()
+          .map(_.path)
+          .flatMap(os.walk(_))
+          .filter(os.isFile)
+          .map(_.toString),
         javadocDir / "_site"
       )
 
@@ -251,16 +263,16 @@ trait ScalaModule extends JavaModule { outer =>
       os.makeDir.all(combinedStaticDir)
 
       for {
-        ref <- docSources()
-        docSource = ref.path
-        if os.exists(docSource) && os.isDir(docSource)
-        children = os.walk(docSource)
+        ref <- docResources()
+        docResource = ref.path
+        if os.exists(docResource) && os.isDir(docResource)
+        children = os.walk(docResource)
         child <- children
         if os.isFile(child)
       } {
         os.copy.over(
           child,
-          combinedStaticDir / (child.subRelativeTo(docSource)),
+          combinedStaticDir / child.subRelativeTo(docResource),
           createFolders = true
         )
       }
@@ -272,7 +284,9 @@ trait ScalaModule extends JavaModule { outer =>
           "-siteroot",
           combinedStaticDir.toNIO.toString
         ),
-        os.walk(compile().classes.path)
+        docSources()
+          .map(_.path)
+          .flatMap(os.walk(_))
           .filter(_.ext == "tasty")
           .map(_.toString),
         javadocDir
@@ -283,7 +297,11 @@ trait ScalaModule extends JavaModule { outer =>
 
       packageWithZinc(
         Seq("-d", javadocDir.toNIO.toString),
-        allSourceFiles().map(_.path.toString),
+        docSources()
+          .map(_.path)
+          .flatMap(os.walk(_))
+          .filter(os.isFile)
+          .map(_.toString),
         javadocDir
       )
     }
