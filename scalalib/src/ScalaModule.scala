@@ -189,7 +189,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
-    if(isScala3(scalaVersion() && !isScala3Milestone(scalaVersion())) Seq((compile().classes))
+    if(isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion())) Seq(compile().classes)
     else allSources()
   }
 
