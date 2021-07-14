@@ -19,13 +19,9 @@ trait ScalaModule extends JavaModule {
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
-
     override def scalaVersion: T[String] = outer.scalaVersion()
-
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
-
     override def scalacPluginClasspath = outer.scalacPluginClasspath
-
     override def scalacOptions = outer.scalacOptions
   }
 
@@ -102,20 +98,14 @@ trait ScalaModule extends JavaModule {
   /**
    * Allows you to make use of Scala compiler plugins from maven central
    */
-  def scalacPluginIvyDeps = T {
-    Agg.empty[Dep]
-  }
+  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps = T {
-    scalacPluginIvyDeps()
-  }
+  def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
 
   /**
    * Command-line options to pass to the Scala compiler
    */
-  def scalacOptions = T {
-    Seq.empty[String]
-  }
+  def scalacOptions = T { Seq.empty[String] }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
