@@ -14,18 +14,13 @@ import mill.api.DummyInputStream
 /**
  * Core configuration required to compile a single Scala compilation target
  */
-trait ScalaModule extends JavaModule {
-  outer =>
+trait ScalaModule extends JavaModule { outer =>
 
   trait ScalaModuleTests extends JavaModuleTests with ScalaModule {
     override def scalaOrganization: T[String] = outer.scalaOrganization()
-
     override def scalaVersion: T[String] = outer.scalaVersion()
-
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
-
     override def scalacPluginClasspath = outer.scalacPluginClasspath
-
     override def scalacOptions = outer.scalacOptions
   }
 
@@ -48,7 +43,6 @@ trait ScalaModule extends JavaModule {
    */
   override def allSourceFiles: T[Seq[PathRef]] = T {
     def isHiddenFile(path: os.Path) = path.last.startsWith(".")
-
     for {
       root <- allSources()
       if os.exists(root.path)
@@ -102,20 +96,14 @@ trait ScalaModule extends JavaModule {
   /**
    * Allows you to make use of Scala compiler plugins from maven central
    */
-  def scalacPluginIvyDeps = T {
-    Agg.empty[Dep]
-  }
+  def scalacPluginIvyDeps = T { Agg.empty[Dep] }
 
-  def scalaDocPluginIvyDeps = T {
-    scalacPluginIvyDeps()
-  }
+  def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
 
   /**
    * Command-line options to pass to the Scala compiler
    */
-  def scalacOptions = T {
-    Seq.empty[String]
-  }
+  def scalacOptions = T { Seq.empty[String] }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
@@ -142,9 +130,7 @@ trait ScalaModule extends JavaModule {
    */
   def scalaDocClasspath: T[Agg[PathRef]] = T {
     resolveDeps(
-      T.task {
-        scalaDocIvyDeps(scalaOrganization(), scalaVersion())
-      }
+      T.task { scalaDocIvyDeps(scalaOrganization(), scalaVersion()) }
     )()
   }
 
