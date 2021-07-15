@@ -92,7 +92,8 @@ jobs:
         run: ${{ matrix.buildcmd }}
 
   publish-sonatype:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
+    # when in master repo: all commits to main branch and all additional tags
+    if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
     needs: [test, test-windows]
 
     runs-on: ubuntu-latest
@@ -118,7 +119,8 @@ jobs:
       - run: ci/release-maven.sh
 
   release-github:
-    if: github.repository == 'com-lihaoyi/mill' && github.ref == 'refs/heads/main'
+    # when in master repo: all commits to main branch and all additional tags
+    if: github.repository == 'com-lihaoyi/mill' && ( github.ref == 'refs/heads/main' || (github.ref != 'refs/heads/main' && startsWith( github.ref, 'refs/tags/') ) )
     needs: publish-sonatype
     runs-on: ubuntu-latest
 
