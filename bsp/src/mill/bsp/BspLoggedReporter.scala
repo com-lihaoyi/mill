@@ -107,15 +107,15 @@ class BspLoggedReporter(
     val line = pos.line.map(_ - 1) // Zinc's range starts at 1 whereas BSP 0
     val start = new bsp.Position(
       pos.startLine.orElse(line).getOrElse[Int](0),
-      pos.startOffset.orElse(pos.pointer).getOrElse[Int](0)
+      pos.startColumn.orElse(pos.pointer).getOrElse[Int](0)
     )
     val end = new bsp.Position(
       pos.endLine.orElse(line).getOrElse[Int](start.getLine.intValue()),
-      pos.endOffset.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
+      pos.endColumn.orElse(pos.pointer).getOrElse[Int](start.getCharacter.intValue())
     )
     val diagnostic = new bsp.Diagnostic(new bsp.Range(start, end), problem.message)
     diagnostic.setCode(pos.lineContent)
-    diagnostic.setSource("compiler from mill")
+    diagnostic.setSource("mill")
     diagnostic.setSeverity(
       problem.severity match {
         case mill.api.Info => bsp.DiagnosticSeverity.INFORMATION

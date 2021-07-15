@@ -71,17 +71,17 @@ trait ProblemPosition {
 
   def sourceFile: Option[File]
 
-  def startOffset: Option[Int] = Option.empty
+  def startOffset: Option[Int]
 
-  def endOffset: Option[Int] = Option.empty
+  def endOffset: Option[Int]
 
-  def startLine: Option[Int] = Option.empty
+  def startLine: Option[Int]
 
-  def startColumn: Option[Int] = Option.empty
+  def startColumn: Option[Int]
 
-  def endLine: Option[Int] = Option.empty
+  def endLine: Option[Int]
 
-  def endColumn: Option[Int] = Option.empty
+  def endColumn: Option[Int]
 }
 
 sealed trait Severity
