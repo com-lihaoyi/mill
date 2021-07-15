@@ -209,10 +209,26 @@ corresponding version of Mill.
 
 === main
 :version: main
+:prev-version: 0.9.9
+:milestone: 51
+:milestone-name: after 0.9.9
+
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.9.9 - 2021-07-15
+:version: 0.9.9
 :prev-version: 0.9.8
 :milestone: 50
-:milestone-name: after 0.9.8
+:milestone-name: 0.9.9
 
+* BSP: Fixed/improved source item for root project
+* Bloop: Prevent compilation during bloop config generation
+* GenIdea: Fix content path of root project (mill-build)
+* Various version bumps
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
