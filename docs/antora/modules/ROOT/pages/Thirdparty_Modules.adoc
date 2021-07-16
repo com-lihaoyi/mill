@@ -407,6 +407,43 @@ To make the start for others easier or to always have the correct mill version i
 
 You should change the `DEFAULT_MILL_VERSION` variable in that script to the correct version you want to use and add the file under version control.
 
+== MiMa
+
+Check binary compatibility with mill.
+
+Project home: https://github.com/lolgab/mill-mima
+
+=== Quickstart
+
+Just mix-in the `Mima` trait into your `ScalaModule`.
+And set the previous artifacts you want to check binary compatibility.
+
+[source,scala]
+----
+import mill._, scalalib._
+
+import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.2`
+import com.github.lolgab.mill.mima._
+
+object main extends ScalaModule with Mima {
+
+  def mimaPreviousArtifacts = Agg(
+    ivy"my_group_id::main:my_previous_version"
+  )
+
+  // other settings ...
+
+}
+----
+
+You can then check the binary compatibility of the module with:
+
+[source,bash]
+____
+> mill main.mimaReportBinaryIssues
+Binary compatibility check passed.
+----
+
 == OSGi
 
 Produce OSGi Bundles with mill.
