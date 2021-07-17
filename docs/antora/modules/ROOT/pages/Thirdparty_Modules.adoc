@@ -439,7 +439,7 @@ object main extends ScalaModule with Mima {
 You can then check the binary compatibility of the module with:
 
 [source,bash]
-____
+----
 > mill main.mimaReportBinaryIssues
 Binary compatibility check passed.
 ----
