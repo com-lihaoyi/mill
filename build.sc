@@ -2,9 +2,11 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.2`
+import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.4`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
+import com.github.lolgab.mill.mima.Mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -109,7 +111,9 @@ object Deps {
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
-def millLastTag: T[String] = T { VcsVersion.vcsState().lastTag.get }
+def millLastTag: T[String] = T {
+  VcsVersion.vcsState().lastTag.getOrElse(sys.error("No (last) git tag found. Your git history seems incomplete!"))
+}
 def millBinPlatform: T[String] = T {
   val tag = millLastTag()
   if(tag.contains("-M")) tag
@@ -149,13 +153,14 @@ trait MillCoursierModule extends CoursierModule {
 trait MillApiModule
     extends MillPublishModule
     with ScalaModule
-    with MillCoursierModule {
+    with MillCoursierModule
+    with Mima {
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-
+  override def mimaPreviousVersions: T[Seq[String]] = Seq("0.10.0-M2", millLastTag()).distinct
 }
 
 trait MillModule extends MillApiModule { outer =>
