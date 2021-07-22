@@ -98,6 +98,10 @@ jobs:
 
     runs-on: ubuntu-latest
 
+    # only run one publish job for the same sha at the same time
+    # e.g. when a main-branch push is also tagged
+    concurrency: publish-sonatype-${{ github.sha }}
+
     env:
       SONATYPE_PGP_SECRET: ${{ secrets.SONATYPE_PGP_SECRET }}
       SONATYPE_DEPLOY_USER: ${{ secrets.SONATYPE_DEPLOY_USER }}
