@@ -74,6 +74,18 @@ class ZincProblemPosition(base: xsbti.Position) extends ProblemPosition {
   override def sourcePath: Option[String] = base.sourcePath()
 
   override def sourceFile: Option[File] = base.sourceFile()
+
+  override def startOffset: Option[Int] = base.startOffset()
+
+  override def endOffset: Option[Int] = base.endOffset()
+
+  override def startLine: Option[Int] = base.startLine()
+
+  override def startColumn: Option[Int] = base.startColumn()
+
+  override def endLine: Option[Int] = base.endLine()
+
+  override def endColumn: Option[Int] = base.endColumn()
 }
 
 class ZincWorkerImpl(
