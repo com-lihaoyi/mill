@@ -172,7 +172,7 @@ case class GenIdeaImpl(
             T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
         }
         val extCompileIvyDeps = mod.resolveDeps(mod.compileIvyDeps)
-        val extRunIvyDeps = mod.resolveDeps(mod.runIvyDeps)
+        val extRunIvyDeps = mod.resolvedRunIvyDeps
 
         val externalSources = T.task {
           mod.resolveDeps(allIvyDeps, sources = true)()
