@@ -22,6 +22,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
+    override def internalScalacOptions = outer.internalScalacOptions
   }
 
   trait Tests extends ScalaModuleTests
@@ -99,6 +100,12 @@ trait ScalaModule extends JavaModule { outer =>
   def scalacPluginIvyDeps = T { Agg.empty[Dep] }
 
   def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
+
+  /**
+   * Mandatory command-line options to pass to the Scala compiler
+   * that shouldn't be removed by overriding `scalacOptions`
+   */
+  protected def internalScalacOptions = T { Seq.empty[String] }
 
   /**
    * Command-line options to pass to the Scala compiler
@@ -180,7 +187,7 @@ trait ScalaModule extends JavaModule { outer =>
         javacOptions(),
         scalaVersion(),
         scalaOrganization(),
-        scalacOptions(),
+        internalScalacOptions() ++ scalacOptions(),
         scalaCompilerClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
         T.reporter.apply(hashCode)
