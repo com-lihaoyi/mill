@@ -14,7 +14,7 @@ object FullOptESModuleTests extends TestSuite {
 
     object fullOptESModuleModule extends ScalaJSModule {
       override def scalaVersion = "2.13.4"
-      override def scalaJSVersion = "1.6.0"
+      override def scalaJSVersion = "1.7.0"
       override def moduleKind = ModuleKind.ESModule
     }
 
