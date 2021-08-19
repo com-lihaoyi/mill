@@ -182,7 +182,7 @@ class BloopImpl(ev: () => Evaluator, wd: Path) extends ExternalModule { outer =>
           }
 
           val allScalacOptions =
-            (s.scalacOptions() ++ pluginOptions).toList
+            (s.allScalacOptions() ++ pluginOptions).toList
           Some(
             BloopConfig.Scala(
               organization = s.scalaOrganization(),

@@ -108,9 +108,14 @@ trait ScalaModule extends JavaModule { outer =>
   protected def internalScalacOptions = T { Seq.empty[String] }
 
   /**
-   * Command-line options to pass to the Scala compiler
+   * Command-line options to pass to the Scala compiler defined by the user
    */
   def scalacOptions = T { Seq.empty[String] }
+
+  /**
+   * Aggregation of all the options passed to the Scala compiler
+   */
+  protected def allScalacOptions = T { internalScalacOptions() ++ scalacOptions() }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
@@ -120,7 +125,7 @@ trait ScalaModule extends JavaModule { outer =>
           artifactName()
         )
       else Seq()
-    scalacOptions() ++ defaults
+    allScalacOptions() ++ defaults
   }
 
   /**
@@ -187,7 +192,7 @@ trait ScalaModule extends JavaModule { outer =>
         javacOptions(),
         scalaVersion(),
         scalaOrganization(),
-        internalScalacOptions() ++ scalacOptions(),
+        allScalacOptions(),
         scalaCompilerClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
         T.reporter.apply(hashCode)
