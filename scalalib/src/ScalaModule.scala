@@ -109,13 +109,15 @@ trait ScalaModule extends JavaModule { outer =>
 
   /**
    * Command-line options to pass to the Scala compiler defined by the user
+   * Consumers should use `allScalacOptions` to read them.
    */
   def scalacOptions = T { Seq.empty[String] }
 
   /**
    * Aggregation of all the options passed to the Scala compiler
+   * Do not override this Target. Override `scalacOptions` instead
    */
-  protected def allScalacOptions = T { internalScalacOptions() ++ scalacOptions() }
+  def allScalacOptions = T { internalScalacOptions() ++ scalacOptions() }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
