@@ -114,8 +114,8 @@ trait ScalaModule extends JavaModule { outer =>
   def scalacOptions = T { Seq.empty[String] }
 
   /**
-   * Aggregation of all the options passed to the Scala compiler
-   * Do not override this Target. Override `scalacOptions` instead
+   * Aggregation of all the options passed to the Scala compiler.
+   * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
    */
   def allScalacOptions = T { mandatoryScalacOptions() ++ scalacOptions() }
 
