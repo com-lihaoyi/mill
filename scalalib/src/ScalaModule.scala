@@ -22,7 +22,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
-    override def internalScalacOptions = outer.internalScalacOptions
+    override def mandatoryScalacOptions = outer.mandatoryScalacOptions
   }
 
   trait Tests extends ScalaModuleTests
@@ -105,7 +105,7 @@ trait ScalaModule extends JavaModule { outer =>
    * Mandatory command-line options to pass to the Scala compiler
    * that shouldn't be removed by overriding `scalacOptions`
    */
-  protected def internalScalacOptions = T { Seq.empty[String] }
+  protected def mandatoryScalacOptions = T { Seq.empty[String] }
 
   /**
    * Command-line options to pass to the Scala compiler defined by the user
@@ -117,7 +117,7 @@ trait ScalaModule extends JavaModule { outer =>
    * Aggregation of all the options passed to the Scala compiler
    * Do not override this Target. Override `scalacOptions` instead
    */
-  def allScalacOptions = T { internalScalacOptions() ++ scalacOptions() }
+  def allScalacOptions = T { mandatoryScalacOptions() ++ scalacOptions() }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
