@@ -108,7 +108,7 @@ trait ScalaModule extends JavaModule { outer =>
   protected def mandatoryScalacOptions = T { Seq.empty[String] }
 
   /**
-   * Command-line options to pass to the Scala compiler defined by the user
+   * Command-line options to pass to the Scala compiler defined by the user.
    * Consumers should use `allScalacOptions` to read them.
    */
   def scalacOptions = T { Seq.empty[String] }
