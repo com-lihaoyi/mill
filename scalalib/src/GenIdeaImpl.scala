@@ -178,12 +178,12 @@ case class GenIdeaImpl(
           mod.resolveDeps(allIvyDeps, sources = true)()
         }
 
-        val (scalacPluginsIvyDeps, scalacOptions) = mod match {
+        val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
           case mod: ScalaModule =>
             T.task {
               mod.scalacPluginIvyDeps()
             } -> T.task {
-              mod.scalacOptions()
+              mod.allScalacOptions()
             }
           case _ => T.task(Loose.Agg[Dep]()) -> T.task(Seq())
         }
@@ -218,7 +218,7 @@ case class GenIdeaImpl(
             scalaCompilerClasspath()
           val resolvedLibraryCp: Loose.Agg[PathRef] =
             externalLibraryDependencies()
-          val scalacOpts: Seq[String] = scalacOptions()
+          val scalacOpts: Seq[String] = allScalacOptions()
           val resolvedFacets: Seq[JavaFacet] = facets()
           val resolvedConfigFileContributions: Seq[IdeaConfigFile] =
             configFileContributions()
