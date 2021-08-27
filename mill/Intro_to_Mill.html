@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M1-24-3aaec2</span>
+    <span class="version">0.10.0-M1-25-999efe</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M1-24-3aaec2</a>
+          <a href="index.html">0.10.0-M1-25-999efe</a>
         </li>
         <li class="version">
           <a href="0.9.9/index.html">0.9.9</a>
@@ -167,9 +167,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M1-24-3aaec2</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M1-25-999efe</button>
   <div class="version-menu">
-    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M1-24-3aaec2</a>
+    <a class="version is-current" href="Intro_to_Mill.html">0.10.0-M1-25-999efe</a>
     <a class="version" href="0.9.9/Intro_to_Mill.html">0.9.9</a>
     <a class="version" href="0.9.8/Intro_to_Mill.html">0.9.8</a>
     <a class="version" href="0.9.7/Intro_to_Mill.html">0.9.7</a>
@@ -333,7 +333,7 @@ script directly:</p>
 <div class="listingblock">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">./mill version
-./mill __.compile</code></pre>
+./mill __.compile # double underscore</code></pre>
 </div>
 </div>
 <div class="paragraph">
@@ -464,7 +464,7 @@ or <code>mill show foo.scalaVersion</code> to show the output of any task.</p>
 <div class="paragraph">
 <p>The most common <strong>tasks</strong> that Mill can run are cached <strong>targets</strong>, such as
 <code>compile</code>, and un-cached <strong>commands</strong> such as <code>foo.run</code>. Targets do not re-evaluate unless one of their inputs changes,
-where-as commands re-run every time.</p>
+whereas commands re-run every time.</p>
 </div>
 </div>
 </div>
@@ -535,7 +535,8 @@ object bar extends ScalaModule {
 </div>
 <div class="paragraph">
 <p>You can define multiple modules the same way you define a single module, using
-<code>def moduleDeps</code> to define the relationship between them. The above builds expects the following project layout:</p>
+<code>def moduleDeps</code> to define the relationship between them.
+The above builds expect the following project layout:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -663,8 +664,8 @@ $ mill -w foo.run</code></pre>
 anything it imports, so any changes to your <code>build.sc</code> will automatically get picked up.</p>
 </div>
 <div class="paragraph">
-<p>For long-running processes like web-servers, you can use <code>.runBackground</code> to make sure they re-compile and re-start when
-code changes, forcefully terminating the previous process even though it may be still alive:</p>
+<p>For long-running processes like web servers, you can use <code>runBackground</code> to make sure they re-compile and re-start when code changes,
+forcefully terminating the previous process even though it may be still alive:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -678,8 +679,9 @@ $ mill -w foo.runBackground</code></pre>
 <h2 id="_parallel_task_execution_experimental"><a class="anchor" href="#_parallel_task_execution_experimental"></a>Parallel Task Execution (Experimental)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>By default, mill will evaluate all tasks in sequence. But mill also has support to process tasks in parallel. This
-feature is currently experimental and we encourage you to report any issues you find on our bug tracker.</p>
+<p>By default, mill will evaluate all tasks in sequence.
+But mill also supports processing tasks in parallel.
+This feature is currently experimental and we encourage you to report any issues you find on our bug tracker.</p>
 </div>
 <div class="paragraph">
 <p>To enable parallel task execution, use the <code>--jobs</code> (<code>-j</code>) option followed by a number of maximal parallel threads.</p>
@@ -693,12 +695,13 @@ feature is currently experimental and we encourage you to report any issues you 
 </div>
 </div>
 <div class="paragraph">
-<p>To use as much threads as your machine has (logical) processor cores use <code>--jobs 0</code>. To disable parallel execution
-use <code>--jobs 1</code>. This is currently the default.</p>
+<p>To use as many threads as your machine has (logical) processor cores use <code>--jobs 0</code>.
+To disable parallel execution use <code>--jobs 1</code>.
+This is currently the default.</p>
 </div>
 <div class="paragraph">
-<p>Please note that the maximal possible parallelism depends on your project. Tasks that depend on each other can’t be
-processes in parallel.</p>
+<p>Please note that the maximal possible parallelism depends on your project.
+Tasks that depend on each other can’t be processes in parallel.</p>
 </div>
 </div>
 </div>
@@ -706,7 +709,7 @@ processes in parallel.</p>
 <h2 id="_command_line_tools"><a class="anchor" href="#_command_line_tools"></a>Command-line Tools</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill comes built in with a small number of useful command-line utilities:</p>
+<p>Mill with a small number of useful command-line utilities built into it:</p>
 </div>
 <div class="sect2">
 <h3 id="_all"><a class="anchor" href="#_all"></a>all</h3>
@@ -831,8 +834,9 @@ viewing the metadata related to incremental compilation: they just want to compi
 inspect the build to debug problems, you can make Mill show you the metadata output for a task using the <code>show</code> command:</p>
 </div>
 <div class="paragraph">
-<p>All tasks return values that can be <code>show</code>n, not just configuration values. e.g.
-<code>compile</code> returns that path to the <code>classes</code> and <code>analysisFile</code> that are produced by the compilation:</p>
+<p><code>show</code> is not just for showing configuration values.
+All tasks return values that can be shown with <code>show</code>.
+E.g. <code>compile</code> returns the paths to the <code>classes</code> folder and <code>analysisFile</code> file produced by the compilation:</p>
 </div>
 <div class="listingblock">
 <div class="content">
@@ -868,7 +872,7 @@ $ mill show foo.compileClasspath
 </div>
 <div class="paragraph">
 <p><code>show</code> is also useful for interacting with Mill from external tools, since the JSON it outputs is structured and easily
-parsed &amp; manipulated.</p>
+parsed and manipulated.</p>
 </div>
 </div>
 <div class="sect2">
@@ -886,9 +890,9 @@ foo.assembly</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>mill path</code> prints out a dependency chain between the first task and the second. It is very useful for exploring the
-build graph and trying to figure out how data gets from one task to another. If there are multiple possible dependency
-chains, one of them is picked arbitrarily.</p>
+<p><code>mill path</code> prints out a dependency chain between the first task and the second.
+It is very useful for exploring the build graph and trying to figure out how data gets from one task to another.
+If there are multiple possible dependency chains, one of them is picked arbitrarily.</p>
 </div>
 </div>
 <div class="sect2">
@@ -911,8 +915,8 @@ foo.compileClasspath</code></pre>
 </div>
 </div>
 <div class="paragraph">
-<p><code>mill plan foo</code> prints out what tasks would be evaluated, in what order, if you ran <code>mill foo</code>, but without actually
-running them. This is a useful tool for debugging your build: e.g. if you suspect a task <code>foo</code> is running things that it
+<p><code>mill plan foo</code> shows which tasks would be evaluated, and in what order, if you ran <code>mill foo</code>, but without actually running them.
+This is a useful tool for debugging your build: e.g. if you suspect a task <code>foo</code> is running things that it
 shouldn’t be running, a quick <code>mill plan</code> will list out all the upstream tasks that <code>foo</code> needs to run, and you can then
 follow up with <code>mill path</code> on any individual upstream task to see exactly how <code>foo</code> depends on it.</p>
 </div>
@@ -1047,7 +1051,7 @@ dependencies with particularly weird version numbers.</p>
 <div class="ulist">
 <ul>
 <li>
-<p>Only works for <code>JavaModule</code>s (including <code>ScalaModule</code>s,
+<p>Only works for <code>JavaModule</code> modules (including <code>ScalaModule</code>s,
 <code>CrossScalaModule</code>s, etc.) and Maven repositories.</p>
 </li>
 <li>
@@ -1075,7 +1079,7 @@ mill mill.scalalib.Dependency/showUpdates --allowPreRelease true # also show pre
 Use <code>mill mill.bsp.BSP/install</code> to generate the BSP project config for your build.</p>
 </div>
 <div class="paragraph">
-<p>It also enables Intellij to provide navigation &amp; code-completion features within your build file itself.</p>
+<p>It also enables Intellij to provide navigation and code-completion features within your build file itself.</p>
 </div>
 </div>
 </div>
@@ -1083,7 +1087,8 @@ Use <code>mill mill.bsp.BSP/install</code> to generate the BSP project config fo
 <h2 id="_intellij_support_legacy"><a class="anchor" href="#_intellij_support_legacy"></a>IntelliJ Support (legacy)</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>Mill supports IntelliJ configuration generation. Use <code>mill mill.scalalib.GenIdea/idea</code> to generate an IntelliJ project
+<p>Mill supports IntelliJ configuration generation.
+Use <code>mill mill.scalalib.GenIdea/idea</code> to generate an IntelliJ project
 config for your build.</p>
 </div>
 <div class="paragraph">
@@ -1135,7 +1140,8 @@ res2: mill.scalalib.api.CompilationResult = CompilationResult(
 </div>
 <div class="paragraph">
 <p>You can run <code>mill --repl</code> to open a build REPL; this is a Scala console with your <code>build.sc</code> loaded, which lets you run
-tasks interactively. The task-running syntax is slightly different from the command-line, but more in-line with how you
+tasks interactively.
+The task-running syntax is slightly different from the command-line, but more in line with how you
 would depend on tasks from within your build file.</p>
 </div>
 <div class="paragraph">
@@ -1151,7 +1157,7 @@ would depend on tasks from within your build file.</p>
 publishing (e.g. to Maven Central). Mill comes with both capabilities built in.</p>
 </div>
 <div class="paragraph">
-<p>Mill comes built-in with the ability to make assemblies. Given a simple Mill build:</p>
+<p>Mill comes with the built-in with the ability to make assemblies. Given a simple Mill build:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -1291,8 +1297,8 @@ executed. This is very useful if you want to find out exactly what tasks are bei
 <ul>
 <li>
 <p><code>dest/</code>: a path for the <code>Task</code> to use either as a scratch space, or to place generated files that are returned
-using <code>PathRef</code>s. <code>Task</code>s should only output files within their given <code>dest/</code> folder (available as <code>T.dest</code>) to avoid
-conflicting with other <code>Task</code>s, but files within <code>dest/</code> can be named arbitrarily.</p>
+using <code>PathRef</code> references. A <code>Task</code> should only output files within its own given <code>dest/</code> folder (available as <code>T.dest</code>) to avoid
+conflicting with another <code>Task</code>, but can name files within <code>dest/</code>  arbitrarily.</p>
 </li>
 <li>
 <p><code>log</code>: the <code>stdout</code>/<code>stderr</code> of the <code>Task</code>. This is also streamed to the console during evaluation.</p>
@@ -1301,16 +1307,16 @@ conflicting with other <code>Task</code>s, but files within <code>dest/</code> c
 <p><code>meta.json</code>: the cache-key and JSON-serialized return-value of the
 <code>Target</code>/<code>Command</code>. The return-value can also be retrieved via <code>mill show foo.compile</code>. Binary blobs are typically not
 included in <code>meta.json</code>, and instead stored as separate binary files in <code>dest/</code> which are then referenced
-by <code>meta.json</code> via <code>PathRef</code>s</p>
+by <code>meta.json</code> via <code>PathRef</code> references.</p>
 </li>
 </ul>
 </div>
 <div class="paragraph">
-<p>The <code>out/</code> folder is intentionally kept simplistic and user-readable. If your build is not behaving as you would expect,
+<p>The <code>out/</code> folder is intentionally kept simple and user-readable. If your build is not behaving as you would expect,
 feel free to poke around the various
 <code>dest/</code> folders to see what files are being created, or the <code>meta.json</code> files to see what is being returned by a
 particular task. You can also simply delete folders within <code>out/</code> if you want to force portions of your project to be
-re-built, e.g. deleting the <code>out/main/</code> or <code>out/main/test/compile/</code> folders.</p>
+re-built, e.g. by deleting the <code>out/main/</code> or <code>out/main/test/compile/</code> folders.</p>
 </div>
 </div>
 </div>
