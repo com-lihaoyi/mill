@@ -5,16 +5,17 @@
 http://www.lihaoyi.com/post/SowhatswrongwithSBT.html[Scared of SBT]? Melancholy over Maven? Grumbling about Gradle?
 Baffled by Bazel? Give Mill a try!
 
-Mill aims for simplicity by re-using concepts you are already
+Mill aims for simplicity by reusing concepts you are already
 http://www.lihaoyi.com/post/BuildToolsasPureFunctionalPrograms.html[familiar with], borrowing ideas from modern tools
-like https://bazel.build/[Bazel], to let you build your projects in a way that's simple, fast, and predictable.
+like https://bazel.build/[Bazel].   
+It lets you build your projects in a way that's simple, fast, and predictable.
 
-Mill has built in support for the https://www.scala-lang.org/[Scala]
+Mill has built-in support for the https://www.scala-lang.org/[Scala]
 programming language, and can serve as a replacement for
-http://www.scala-sbt.org/[SBT], but can also be
-xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
+http://www.scala-sbt.org/[SBT].  
+It can be xref:Extending_Mill.adoc[extended] to support any other language or platform via modules (written in Java or Scala) or through external subprocesses.
 
-If you are using Mill, you will probably find the following book by the Author useful in using Mill to the fullest:
+If you are using Mill, you will find the following book by the Author useful in using Mill to the fullest:
 
 * https://handsonscala.com/
 
@@ -52,8 +53,8 @@ pkg install mill
 
 === Windows
 
-To get started, download Mill from:
-{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly, and save it as `mill.bat`.
+To get started, download Mill from
+{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[here], and save it as `mill.bat`.
 
 If you're using https://scoop.sh[Scoop] you can install Mill via
 
@@ -62,14 +63,14 @@ If you're using https://scoop.sh[Scoop] you can install Mill via
 scoop install mill
 ----
 
-Mill also works on a sh environment on Windows (e.g.,
+Mill also works on "sh" environments on Windows (e.g.,
 https://www.msys2.org[MSYS2],
 https://www.cygwin.com[Cygwin],
 https://gitforwindows.org[Git-Bash],
-https://docs.microsoft.com/en-us/windows/wsl[WSL]; to get started, follow the instructions in the <<_manual>>
+https://docs.microsoft.com/en-us/windows/wsl[WSL]); to get started, follow the instructions in the <<_manual>>
 section below. Note that:
 
-* In some environments (such as WSL), mill might have to be run without a server (using `-i`, `--interactive`
+* In some environments (such as WSL), Mill might have to be run without a server (using `-i`, `--interactive`
  , `--no-server`, or
  `--repl`.)
 
@@ -129,10 +130,10 @@ version of Mill present to build/compile/test your code.
 
 === millw
 
-Instead of installing mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
-replacement for mill. It provides a small shell script and also a Windows batch file, that transparently downloads mill
-and executes it on your behalf. It respects various ways to configure the preferred mill version (`MILL_VERSION` env
-var, `.mill-version` file, `--mill-version` option) and can also be used as bootstrap script in your project.
+Instead of installing Mill directly, you can also use https://github.com/lefou/millw[lefou/millw] as drop-in
+replacement for `mill`. It provides a small shell script and also a Windows batch file, that transparently downloads `mill`
+and executes it on your behalf. It respects various ways to configure the preferred Mill version (`MILL_VERSION` env
+var, `.mill-version` file, `--mill-version` option) and can also be used as a bootstrap script in your project.
 
 === Coursier (unsupported)
 
@@ -213,7 +214,7 @@ $ mill -i foo.console              # start a Scala console within your project (
 $ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ----
 
-You can run `mill resolve __` to see a full list of the different tasks that are available, `mill resolve foo._` to see
+You can run `mill resolve \__` to see a full list of the different tasks that are available, `mill resolve foo._` to see
 the tasks within `foo`, `mill inspect foo.compile` to inspect a task's doc-comment documentation or what it depends on,
 or `mill show foo.scalaVersion` to show the output of any task.
 
@@ -237,12 +238,12 @@ out/
         assembly/
 ----
 
-Within the output folder for each task, there's a `meta.json` file containing the metadata returned by that task, and
+Within the output folder for each task there's a `meta.json` file containing the metadata returned by that task, and
 a `dest/` folder containing any files that the task generates. For example, `out/foo/compile/dest/` contains the
 compiled classfiles, while `out/foo/assembly/dest/` contains the self-contained assembly with the project's classfiles
 jar-ed up with all its dependencies.
 
-Given a task `foo.bar`, all its output and results can be found be within its respective `out/foo/bar/` folder.
+Given a task `foo.bar`, all its output and results are inside its respective `out/foo/bar/` folder.
 
 == Multiple Modules
 
@@ -318,7 +319,7 @@ $ mill foo.assembly
 $ mill bar.assembly        
 ----
 
-Mill's evaluator will ensure that the modules are compiled in the right order, and re-compiled as necessary when source
+Mill's evaluator will ensure that the modules are compiled in the right order, and recompiled as necessary when source
 code in each module changes.
 
 Modules can also be nested:
@@ -394,7 +395,7 @@ $ mill -w foo.run
 Mill's `--watch` flag watches both the files you are building using Mill, as well as Mill's own `build.sc` file and
 anything it imports, so any changes to your `build.sc` will automatically get picked up.
 
-For long-running processes like web servers, you can use `runBackground` to make sure they re-compile and re-start when code changes,
+For long-running processes like web servers, you can use `runBackground` to make sure they recompile and restart when code changes,
 forcefully terminating the previous process even though it may be still alive:
 
 [source,bash]
@@ -411,7 +412,7 @@ This feature is currently experimental and we encourage you to report any issues
 
 To enable parallel task execution, use the `--jobs` (`-j`) option followed by a number of maximal parallel threads.
 
-Example: Use up to 4 parallel thread to compile all modules:
+Example: Use up to 4 parallel threads to compile all modules:
 
 [source,bash]
 ----
@@ -423,11 +424,11 @@ To disable parallel execution use `--jobs 1`.
 This is currently the default.
 
 Please note that the maximal possible parallelism depends on your project.
-Tasks that depend on each other can't be processes in parallel.
+Tasks that depend on each other can't be processed in parallel.
 
 == Command-line Tools
 
-Mill with a small number of useful command-line utilities built into it:
+Mill comes with a small number of useful command-line utilities built into it:
 
 === all
 
@@ -514,7 +515,7 @@ Inputs:
 it also displays its source location and a list of input tasks. This is very useful for debugging and interactively
 exploring the structure of your build from the command line.
 
-`inspect` also works with the same `_`/`__` wildcard/query syntaxes that
+`inspect` also works with the same `\_`/`__` wildcard/query syntaxes that
 <<_all>>/<<_resolve>> do:
 
 [source,bash]
@@ -724,7 +725,7 @@ $ mill mill.scalalib.Dependency/showUpdates
 ----
 
 Mill can search for updated versions of your project's dependencies, if available from your project's configured
-repositories. Note that it uses heuristics based on common versionning schemes, so it may not work as expected for
+repositories. Note that it uses heuristics based on common versioning schemes, so it may not work as expected for
 dependencies with particularly weird version numbers.
 
 Current limitations:
@@ -929,7 +930,7 @@ The `out/` folder is intentionally kept simple and user-readable. If your build 
 feel free to poke around the various
 `dest/` folders to see what files are being created, or the `meta.json` files to see what is being returned by a
 particular task. You can also simply delete folders within `out/` if you want to force portions of your project to be
-re-built, e.g. by deleting the `out/main/` or `out/main/test/compile/` folders.
+rebuilt, e.g. by deleting the `out/main/` or `out/main/test/compile/` folders.
 
 == Overriding Mill Versions
 
