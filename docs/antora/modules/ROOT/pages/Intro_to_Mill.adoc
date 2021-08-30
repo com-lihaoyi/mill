@@ -54,7 +54,7 @@ pkg install mill
 === Windows
 
 To get started, download Mill from
-{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[here], and save it as `mill.bat`.
+{mill-github-url}/releases/download/{mill-last-tag}/{mill-last-tag}-assembly[Github releases], and save it as `mill.bat`.
 
 If you're using https://scoop.sh[Scoop] you can install Mill via
 
@@ -214,7 +214,7 @@ $ mill -i foo.console              # start a Scala console within your project (
 $ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ----
 
-You can run `mill resolve \__` to see a full list of the different tasks that are available, `mill resolve foo._` to see
+You can run `+mill resolve __+` to see a full list of the different tasks that are available, `mill resolve foo._` to see
 the tasks within `foo`, `mill inspect foo.compile` to inspect a task's doc-comment documentation or what it depends on,
 or `mill show foo.scalaVersion` to show the output of any task.
 
@@ -515,7 +515,7 @@ Inputs:
 it also displays its source location and a list of input tasks. This is very useful for debugging and interactively
 exploring the structure of your build from the command line.
 
-`inspect` also works with the same `\_`/`__` wildcard/query syntaxes that
+`inspect` also works with the same `+_+`/`+__+` wildcard/query syntaxes that
 <<_all>>/<<_resolve>> do:
 
 [source,bash]
