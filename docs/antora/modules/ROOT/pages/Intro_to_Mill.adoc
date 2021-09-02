@@ -214,7 +214,7 @@ $ mill -i foo.console              # start a Scala console within your project (
 $ mill -i foo.repl                 # start an Ammonite REPL within your project (in interactive mode: "-i")
 ----
 
-You can run `+mill resolve __+` to see a full list of the different tasks that are available, `mill resolve foo._` to see
+You can run `+mill resolve __+` to see a full list of the different tasks that are available, `+mill resolve foo._+` to see
 the tasks within `foo`, `mill inspect foo.compile` to inspect a task's doc-comment documentation or what it depends on,
 or `mill show foo.scalaVersion` to show the output of any task.
 
@@ -480,7 +480,7 @@ foo.artifactName
 
 `resolve` lists the tasks that match a particular query, without running them. This is useful for "dry running"
 an `mill all` command to see what would be run before you run them, or to explore what modules or tasks are available
-from the command line using `resolve _`, `resolve foo._`, etc.
+from the command line using `+resolve _+`, `+resolve foo._+`, etc.
 
 [source,bash]
 ----
@@ -640,7 +640,7 @@ $ mill show visualize foo._
 ]
 ----
 
-`mill show visualize` takes a subset of the Mill build graph (e.g. `core._` is every task directly under the `core`
+`mill show visualize` takes a subset of the Mill build graph (e.g. `+core._+` is every task directly under the `core`
 module) and draws out their relationships in `.svg` and `.png` form for you to inspect. It also generates `.txt`, `.dot`
 and `.json` for easy processing by downstream tools.
 
@@ -690,7 +690,7 @@ object bar extends ScalaModule {
 }
 ----
 
-`mill show visualizePlan _.compile` diagrams the relationships between the compile tasks of each module, which
+`+mill show visualizePlan _.compile+` diagrams the relationships between the compile tasks of each module, which
 illustrates which module depends on which other module's compilation output:
 
 image::VisualizeCompile.svg[VisualizeCompile.svg]
