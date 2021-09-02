@@ -20,6 +20,7 @@ import scala.util.Properties.isWin
 import scala.jdk.CollectionConverters._
 import scala.util.Using
 
+import mill.BuildInfo
 import upickle.default.{ReadWriter => RW}
 
 object Jvm {
@@ -284,7 +285,8 @@ object Jvm {
     val main =
       Map[String, String](
         java.util.jar.Attributes.Name.MANIFEST_VERSION.toString -> "1.0",
-        "Created-By" -> "Scala mill"
+        "Created-By" -> s"Mill ${BuildInfo.millVersion}",
+        "Tool" -> s"Mill-${BuildInfo.millVersion}"
       ) ++
         mainClass.map(mc => Map(java.util.jar.Attributes.Name.MAIN_CLASS.toString -> mc)).getOrElse(
           Map.empty

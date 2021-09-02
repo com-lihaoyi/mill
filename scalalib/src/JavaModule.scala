@@ -2,13 +2,13 @@ package mill
 package scalalib
 
 import coursier.Repository
-import mill.define.{Command, Sources, Target, Task, TaskModule}
-import mill.api.{PathRef, Result}
-import mill.modules.{Assembly, Jvm}
-import mill.modules.Jvm.{createAssembly, createJar}
-import mill.scalalib.publish.Artifact
 import mill.api.Loose.Agg
+import mill.api.{PathRef, Result}
+import mill.define.{Command, Sources, Target, Task, TaskModule}
+import mill.modules.Jvm.{createAssembly, createJar}
+import mill.modules.{Assembly, Jvm}
 import mill.scalalib.api.CompilationResult
+import mill.scalalib.publish.Artifact
 import os.Path
 
 /**
@@ -27,7 +27,8 @@ trait JavaModule
     override def moduleDeps: Seq[JavaModule] = Seq(outer)
     override def repositories: Seq[Repository] = outer.repositories
     override def repositoriesTask: Task[Seq[Repository]] = outer.repositoriesTask
-    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] = outer.resolutionCustomizer
+    override def resolutionCustomizer: Task[Option[coursier.Resolution => coursier.Resolution]] =
+      outer.resolutionCustomizer
     override def javacOptions: T[Seq[String]] = outer.javacOptions
     override def zincWorker: ZincWorkerModule = outer.zincWorker
     override def skipIdea: Boolean = outer.skipIdea

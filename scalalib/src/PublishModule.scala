@@ -4,6 +4,7 @@ package scalalib
 import mill.define.{Command, ExternalModule, Target, Task}
 import mill.api.PathRef
 import mill.main.Tasks
+import mill.modules.Jvm
 import mill.scalalib.publish.{Artifact, SonatypePublisher}
 
 /**
@@ -148,6 +149,21 @@ trait PublishModule extends JavaModule { outer =>
       awaitTimeout,
       stagingRelease
     ).publish(artifacts.map { case (a, b) => (a.path, b) }, artifactInfo, release)
+  }
+
+  override def manifest: T[Jvm.JarManifest] = T {
+    import java.util.jar.Attributes.Name
+    val pom = pomSettings()
+    super.manifest().add(
+      Name.IMPLEMENTATION_TITLE.toString() -> artifactName(),
+      Name.IMPLEMENTATION_VERSION.toString() -> publishVersion(),
+      Name.IMPLEMENTATION_VENDOR.toString() -> pom.organization,
+      Name.IMPLEMENTATION_VENDOR_ID.toString() -> pom.organization,
+      Name.IMPLEMENTATION_URL.toString() -> pom.url,
+      "Description" -> pom.description,
+      "URL" -> pom.url,
+      "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
+    )
   }
 }
 

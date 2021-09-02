@@ -419,4 +419,8 @@ trait ScalaModule extends JavaModule { outer =>
     resolvedAmmoniteReplIvyDeps()
     ()
   }
+
+  override def manifest: T[Jvm.JarManifest] = T{
+    super.manifest().add("Scala-Version" -> scalaVersion())
+  }
 }
