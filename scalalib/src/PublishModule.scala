@@ -152,10 +152,14 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   override def manifest: T[Jvm.JarManifest] = T {
+    import java.util.jar.Attributes.Name
     val pom = pomSettings()
     super.manifest().add(
-      "Implementation-Version" -> publishVersion(),
-      "Implementation-Vendor-Id" -> pom.organization,
+      Name.IMPLEMENTATION_TITLE.toString() -> artifactName(),
+      Name.IMPLEMENTATION_VERSION.toString() -> publishVersion(),
+      Name.IMPLEMENTATION_VENDOR.toString() -> pom.organization,
+      Name.IMPLEMENTATION_VENDOR_ID.toString() -> pom.organization,
+      Name.IMPLEMENTATION_URL.toString() -> pom.url,
       "Description" -> pom.description,
       "URL" -> pom.url,
       "Licenses" -> pom.licenses.map(l => s"${l.name} (${l.id})").mkString(",")
