@@ -579,9 +579,13 @@ object contrib extends MillModule {
     override def ivyDeps = Agg(Deps.flywayCore)
   }
 
-
   object docker extends MillModule {
     override def compileModuleDeps = Seq(scalalib)
+    override def testArgs = T {
+      Seq("-Djna.nosys=true") ++
+        scalalib.worker.testArgs() ++
+        scalalib.backgroundwrapper.testArgs()
+    }
   }
 
   object bloop extends MillModule {
