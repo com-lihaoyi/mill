@@ -1,17 +1,22 @@
 package mill.main
 
+import sun.misc.{Signal, SignalHandler}
+
 import java.io._
 import java.net.Socket
+import java.nio.charset.StandardCharsets
+import java.math.BigInteger
+import java.security.MessageDigest
 
-import mill.{BuildInfo, MillMain}
 import scala.jdk.CollectionConverters._
 
 import org.scalasbt.ipcsocket._
+
+import mill.{BuildInfo, MillMain}
 import mill.main.client._
 import mill.eval.Evaluator
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
-import sun.misc.{Signal, SignalHandler}
 
 trait MillServerMain[T] {
   var stateCache = Option.empty[T]
@@ -91,15 +96,16 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
+          val socketBaseName = "mill." + Server.md5hex(new File(lockBase).getCanonicalPath)
           val (serverSocket, socketClose) =
             if (Util.isWindows) {
-              val socketName = Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName
+              val socketName = Util.WIN32_PIPE_PREFIX + socketBaseName
               (
                 new Win32NamedPipeServerSocket(socketName),
                 () => new Win32NamedPipeSocket(socketName).close()
               )
             } else {
-              val socketName = lockBase + "/io"
+              val socketName = socketBaseName + "/io"
               new File(socketName).delete()
               (
                 new UnixDomainServerSocket(socketName),
@@ -262,4 +268,10 @@ object Server {
       interrupt = false
     }
   }
+
+  def md5hex(str: String): String =
+    hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)))
+
+  private def hexArray(arr: Array[Byte]) =
+    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 }
