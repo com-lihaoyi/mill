@@ -44,8 +44,8 @@ object Deps {
     val scalajsEnvJsdomNodejs =  ivy"org.scala-js::scalajs-env-jsdom-nodejs:1.1.0"
     val scalajsEnvNodejs =  ivy"org.scala-js::scalajs-env-nodejs:1.2.0"
     val scalajsEnvPhantomjs =  ivy"org.scala-js::scalajs-env-phantomjs:1.0.0"
-    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.6.0"
-    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.6.0"
+    val scalajsSbtTestAdapter = ivy"org.scala-js::scalajs-sbt-test-adapter:1.7.0"
+    val scalajsLinker = ivy"org.scala-js::scalajs-linker:1.7.0"
   }
 
   object Scalanative_0_4 {
@@ -82,8 +82,8 @@ object Deps {
   val javaxServlet = ivy"org.eclipse.jetty.orbit:javax.servlet:3.0.0.v201112011016"
   val jgraphtCore = ivy"org.jgrapht:jgrapht-core:1.5.1"
 
-  val jna = ivy"net.java.dev.jna:jna:5.8.0"
-  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.8.0"
+  val jna = ivy"net.java.dev.jna:jna:5.9.0"
+  val jnaPlatform = ivy"net.java.dev.jna:jna-platform:5.9.0"
 
   val junitInterface = ivy"com.github.sbt:junit-interface:0.13.2"
   val lambdaTest = ivy"de.tototec:de.tobiasroeser.lambdatest:0.7.1"
@@ -93,16 +93,16 @@ object Deps {
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
   val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:2.7.5"
-  val scalametaTrees = ivy"org.scalameta::trees:4.4.24"
+  val scalametaTrees = ivy"org.scalameta::trees:4.4.27"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage::scalac-scoverage-plugin:1.4.1"
   val sourcecode = ivy"com.lihaoyi::sourcecode:0.2.7"
-  val upickle = ivy"com.lihaoyi::upickle:1.4.0"
+  val upickle = ivy"com.lihaoyi::upickle:1.4.1"
   val utest = ivy"com.lihaoyi::utest:0.7.10"
   val windowsAnsi = ivy"io.github.alexarchambault.windows-ansi:windows-ansi:0.0.3"
   val zinc = ivy"org.scala-sbt::zinc:1.5.7"
   val bsp = ivy"ch.epfl.scala:bsp4j:2.0.0-M13"
-  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
+  val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:1.8.0"
 }
 
 def millVersion = T { VcsVersion.vcsState().format() }

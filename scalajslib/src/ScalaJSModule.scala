@@ -150,7 +150,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
-  override def scalacOptions = super.scalacOptions() ++ {
+  override def mandatoryScalacOptions = super.mandatoryScalacOptions() ++ {
     if (isScala3(scalaVersion())) Seq("-scalajs")
     else Seq.empty
   }

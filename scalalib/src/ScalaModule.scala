@@ -22,6 +22,7 @@ trait ScalaModule extends JavaModule { outer =>
     override def scalacPluginIvyDeps = outer.scalacPluginIvyDeps
     override def scalacPluginClasspath = outer.scalacPluginClasspath
     override def scalacOptions = outer.scalacOptions
+    override def mandatoryScalacOptions = outer.mandatoryScalacOptions
   }
 
   trait Tests extends ScalaModuleTests
@@ -101,9 +102,22 @@ trait ScalaModule extends JavaModule { outer =>
   def scalaDocPluginIvyDeps = T { scalacPluginIvyDeps() }
 
   /**
-   * Command-line options to pass to the Scala compiler
+   * Mandatory command-line options to pass to the Scala compiler
+   * that shouldn't be removed by overriding `scalacOptions`
+   */
+  protected def mandatoryScalacOptions = T { Seq.empty[String] }
+
+  /**
+   * Command-line options to pass to the Scala compiler defined by the user.
+   * Consumers should use `allScalacOptions` to read them.
    */
   def scalacOptions = T { Seq.empty[String] }
+
+  /**
+   * Aggregation of all the options passed to the Scala compiler.
+   * In most cases, instead of overriding this Target you want to override `scalacOptions` instead.
+   */
+  def allScalacOptions = T { mandatoryScalacOptions() ++ scalacOptions() }
 
   def scalaDocOptions: T[Seq[String]] = T {
     val defaults =
@@ -113,7 +127,7 @@ trait ScalaModule extends JavaModule { outer =>
           artifactName()
         )
       else Seq()
-    scalacOptions() ++ defaults
+    allScalacOptions() ++ defaults
   }
 
   /**
@@ -180,7 +194,7 @@ trait ScalaModule extends JavaModule { outer =>
         javacOptions(),
         scalaVersion(),
         scalaOrganization(),
-        scalacOptions(),
+        allScalacOptions(),
         scalaCompilerClasspath().map(_.path),
         scalacPluginClasspath().map(_.path),
         T.reporter.apply(hashCode)
@@ -404,5 +418,9 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(scalaDocPluginIvyDeps)()
     resolvedAmmoniteReplIvyDeps()
     ()
+  }
+
+  override def manifest: T[Jvm.JarManifest] = T{
+    super.manifest().add("Scala-Version" -> scalaVersion())
   }
 }
