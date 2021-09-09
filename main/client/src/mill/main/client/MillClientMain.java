@@ -211,10 +211,10 @@ public class MillClientMain {
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
-                String socketBaseName = "mill." + md5hex(new File(lockBase).getCanonicalPath());
+                String socketBaseName = "mill-" + md5hex(new File(lockBase).getCanonicalPath());
                 ioSocket = Util.isWindows?
                         new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
-                        : new UnixDomainSocket(socketBaseName + "/io");
+                        : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
             } catch (Throwable e){
                 socketThrowable = e;
                 Thread.sleep(1);
@@ -263,7 +263,8 @@ public class MillClientMain {
         return processLimit;
     }
 
-    private static String md5hex(String str) throws NoSuchAlgorithmException {
+    /** @return Hex encoded MD5 hash of input string. */
+    public static String md5hex(String str) throws NoSuchAlgorithmException {
         return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
     }
 

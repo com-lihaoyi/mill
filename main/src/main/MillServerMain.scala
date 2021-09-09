@@ -96,7 +96,7 @@ class Server[T](
       var running = true
       while (running) {
         Server.lockBlock(locks.serverLock) {
-          val socketBaseName = "mill." + Server.md5hex(new File(lockBase).getCanonicalPath)
+          val socketBaseName = "mill-" + MillClientMain.md5hex(new File(lockBase).getCanonicalPath)
           val (serverSocket, socketClose) =
             if (Util.isWindows) {
               val socketName = Util.WIN32_PIPE_PREFIX + socketBaseName
@@ -105,7 +105,7 @@ class Server[T](
                 () => new Win32NamedPipeSocket(socketName).close()
               )
             } else {
-              val socketName = socketBaseName + "/io"
+              val socketName = lockBase + "/" + socketBaseName + "-io"
               new File(socketName).delete()
               (
                 new UnixDomainServerSocket(socketName),
@@ -268,10 +268,4 @@ object Server {
       interrupt = false
     }
   }
-
-  def md5hex(str: String): String =
-    hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)))
-
-  private def hexArray(arr: Array[Byte]) =
-    String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr))
 }
