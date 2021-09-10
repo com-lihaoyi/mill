@@ -3,8 +3,10 @@ package mill.scalalib
 import mill.util.ScriptTestSuite
 import os.Path
 import utest.assert
-
 import java.util.regex.Pattern
+
+import scala.util.Try
+
 import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
@@ -102,14 +104,11 @@ object GenIdeaTests extends ScriptTestSuite(false) {
     }
   }
 
-  private def normaliseLibraryPaths(
-      in: String,
-      workspacePath: os.Path
-  ): String = {
-
+  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
+    val coursierPath = os.Path(coursier.paths.CoursierPaths.cacheDirectory())
+    val path = Try(coursierPath.relativeTo(workspacePath)).getOrElse(coursierPath)
     in.replace(
-      "$PROJECT_DIR$/" +
-        os.Path(coursier.paths.CoursierPaths.cacheDirectory()).relativeTo(workspacePath),
+      "$PROJECT_DIR$/" + path,
       "COURSIER_HOME"
     )
   }
