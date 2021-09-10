@@ -3,11 +3,15 @@ package mill.scalalib
 import mill.util.ScriptTestSuite
 import os.Path
 import utest.assert
-
 import java.util.regex.Pattern
+
+import scala.util.Try
+
 import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
+
+  private val ignoreString = "<!-- IGNORE -->"
 
   /**
    * The resource content will loaded from the claspath and matched against the file.
@@ -20,40 +24,68 @@ object GenIdeaTests extends ScriptTestSuite(false) {
   ): Unit = {
     val resourcePath = s"${workspaceSlug}/idea/${resource}"
     val generated = fileBaseDir / ".idea" / resource
-    val resourceString =
-      scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
-    val generatedString =
-      normaliseLibraryPaths(os.read(generated), fileBaseDir)
+    val resourceString = scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
+    val generatedString = normaliseLibraryPaths(os.read(generated), fileBaseDir)
+    assert(!resourcePath.isEmpty)
+    assertPartialContentMatches(
+      found = generatedString,
+      expected = resourceString
+    )
+  }
 
-    resourceString.split(Pattern.quote("<!-- IGNORE -->")) match {
-      case Array(fullContent) =>
-        assert(!resourcePath.toString.isEmpty && generatedString == fullContent)
-      // case Array(start, end) =>
-      // assert(generatedString.startsWith(start))
-      // assert(generatedString.endsWith(end))
-      case Array(start, rest @ _*) =>
-        // We ignore parts of the generated file
-        assert(
-          !resourcePath.toString.isEmpty && generatedString.startsWith(start)
-        )
-        rest.toList.reverse match {
-          case end :: middle =>
-            assert(
-              !resourcePath.toString.isEmpty && generatedString.endsWith(end)
-            )
-            middle.foreach { contentPart =>
-              assert(
-                !resourcePath.toString.isEmpty &&
-                  generatedString.contains(contentPart.trim())
-              )
-            }
-        }
+  def assertPartialContentMatches(
+      found: String,
+      expected: String
+  ): Unit = {
+    if (!expected.contains(ignoreString)) {
+      assert(found == expected)
     }
 
+    val pattern =
+      "(?s)^\\Q" + expected.replaceAll(Pattern.quote(ignoreString), "\\\\E.*\\\\Q") + "\\E$"
+    assert(Pattern.compile(pattern).matcher(found).matches())
   }
 
   def tests: Tests = Tests {
-    "genIdeaTests" - {
+    test("helper assertPartialContentMatches works") {
+      val testContent =
+        s"""line 1
+          |line 2
+          |line 3
+          |line 4
+          |""".stripMargin
+
+      assertPartialContentMatches(testContent, testContent)
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(testContent, "line 1")
+      }
+      assertPartialContentMatches(
+        found = testContent,
+        expected = s"""line 1${ignoreString}line 4
+          |""".stripMargin
+      )
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(
+          found = testContent,
+          expected =
+            s"""line 1${ignoreString}line 2${ignoreString}line 2${ignoreString}line 4
+              |""".stripMargin
+        )
+      }
+      assertPartialContentMatches(
+        found = testContent,
+        expected = s"line 1${ignoreString}line 2$ignoreString"
+      )
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(
+          found = testContent,
+          expected = s"line 1${ignoreString}line 2${ignoreString}line 2$ignoreString"
+        )
+      }
+      ()
+    }
+
+    test("genIdeaTests") {
       val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
@@ -74,14 +106,11 @@ object GenIdeaTests extends ScriptTestSuite(false) {
     }
   }
 
-  private def normaliseLibraryPaths(
-      in: String,
-      workspacePath: os.Path
-  ): String = {
-
+  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
+    val coursierPath = os.Path(coursier.paths.CoursierPaths.cacheDirectory())
+    val path = Try(coursierPath.relativeTo(workspacePath)).getOrElse(coursierPath)
     in.replace(
-      "$PROJECT_DIR$/" +
-        os.Path(coursier.paths.CoursierPaths.cacheDirectory()).relativeTo(workspacePath),
+      "$PROJECT_DIR$/" + path,
       "COURSIER_HOME"
     )
   }
