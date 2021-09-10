@@ -61,23 +61,25 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       }
       assertPartialContentMatches(
         found = testContent,
-        expected = "line 1" + ignoreString + "line 4\n"
+        expected = s"""line 1${ignoreString}line 4
+          |""".stripMargin
       )
       intercept[utest.AssertionError] {
         assertPartialContentMatches(
           found = testContent,
           expected =
-            "line 1" + ignoreString + "line 2" + ignoreString + "line 2" + ignoreString + "line 4\n"
+            s"""line 1${ignoreString}line 2${ignoreString}line 2${ignoreString}line 4
+              |""".stripMargin
         )
       }
       assertPartialContentMatches(
         found = testContent,
-        expected = "line 1" + ignoreString + "line 2" + ignoreString
+        expected = s"line 1${ignoreString}line 2$ignoreString"
       )
       intercept[utest.AssertionError] {
         assertPartialContentMatches(
           found = testContent,
-          expected = "line 1" + ignoreString + "line 2" + ignoreString + "line 2" + ignoreString
+          expected = s"line 1${ignoreString}line 2${ignoreString}line 2$ignoreString"
         )
       }
       ()
