@@ -9,6 +9,8 @@ import utest.{Tests, _}
 
 object GenIdeaTests extends ScriptTestSuite(false) {
 
+  private val ignoreString = "<!-- IGNORE -->"
+
   /**
    * The resource content will loaded from the claspath and matched against the file.
    * It may contain the `<!-- IGNORE -->` String, to simulate wildcard-matches.
@@ -20,40 +22,66 @@ object GenIdeaTests extends ScriptTestSuite(false) {
   ): Unit = {
     val resourcePath = s"${workspaceSlug}/idea/${resource}"
     val generated = fileBaseDir / ".idea" / resource
-    val resourceString =
-      scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
-    val generatedString =
-      normaliseLibraryPaths(os.read(generated), fileBaseDir)
+    val resourceString = scala.io.Source.fromResource(resourcePath).getLines().mkString("\n")
+    val generatedString = normaliseLibraryPaths(os.read(generated), fileBaseDir)
+    assert(!resourcePath.isEmpty)
+    assertPartialContentMatches(
+      found = generatedString,
+      expected = resourceString
+    )
+  }
 
-    resourceString.split(Pattern.quote("<!-- IGNORE -->")) match {
-      case Array(fullContent) =>
-        assert(!resourcePath.toString.isEmpty && generatedString == fullContent)
-      // case Array(start, end) =>
-      // assert(generatedString.startsWith(start))
-      // assert(generatedString.endsWith(end))
-      case Array(start, rest @ _*) =>
-        // We ignore parts of the generated file
-        assert(
-          !resourcePath.toString.isEmpty && generatedString.startsWith(start)
-        )
-        rest.toList.reverse match {
-          case end :: middle =>
-            assert(
-              !resourcePath.toString.isEmpty && generatedString.endsWith(end)
-            )
-            middle.foreach { contentPart =>
-              assert(
-                !resourcePath.toString.isEmpty &&
-                  generatedString.contains(contentPart.trim())
-              )
-            }
-        }
+  def assertPartialContentMatches(
+      found: String,
+      expected: String
+  ): Unit = {
+    if (!expected.contains(ignoreString)) {
+      assert(found == expected)
     }
 
+    val pattern =
+      "(?s)^\\Q" + expected.replaceAll(Pattern.quote(ignoreString), "\\\\E.*\\\\Q") + "\\E$"
+    assert(Pattern.compile(pattern).matcher(found).matches())
   }
 
   def tests: Tests = Tests {
-    "genIdeaTests" - {
+    test("helper assertPartialContentMatches works") {
+      val testContent =
+        s"""line 1
+          |line 2
+          |line 3
+          |line 4
+          |""".stripMargin
+
+      assertPartialContentMatches(testContent, testContent)
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(testContent, "line 1")
+      }
+      assertPartialContentMatches(
+        found = testContent,
+        expected = "line 1" + ignoreString + "line 4\n"
+      )
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(
+          found = testContent,
+          expected =
+            "line 1" + ignoreString + "line 2" + ignoreString + "line 2" + ignoreString + "line 4\n"
+        )
+      }
+      assertPartialContentMatches(
+        found = testContent,
+        expected = "line 1" + ignoreString + "line 2" + ignoreString
+      )
+      intercept[utest.AssertionError] {
+        assertPartialContentMatches(
+          found = testContent,
+          expected = "line 1" + ignoreString + "line 2" + ignoreString + "line 2" + ignoreString
+        )
+      }
+      ()
+    }
+
+    test("genIdeaTests") {
       val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
