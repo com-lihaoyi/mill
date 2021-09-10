@@ -12,8 +12,10 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.UnsupportedEncodingException;
+import java.math.BigInteger;
 import java.net.Socket;
 import java.net.URISyntaxException;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.security.MessageDigest;
@@ -209,9 +211,10 @@ public class MillClientMain {
 
         while (ioSocket == null && System.currentTimeMillis() - retryStart < 5000) {
             try {
+                String socketBaseName = "mill-" + md5hex(new File(lockBase).getCanonicalPath());
                 ioSocket = Util.isWindows?
-                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + "mill." + new File(lockBase).getName())
-                        : new UnixDomainSocket(lockBase + "/io");
+                        new Win32NamedPipeSocket(Util.WIN32_PIPE_PREFIX + socketBaseName)
+                        : new UnixDomainSocket(lockBase + "/" + socketBaseName + "-io");
             } catch (Throwable e){
                 socketThrowable = e;
                 Thread.sleep(1);
@@ -258,5 +261,14 @@ public class MillClientMain {
             }
         }
         return processLimit;
+    }
+
+    /** @return Hex encoded MD5 hash of input string. */
+    public static String md5hex(String str) throws NoSuchAlgorithmException {
+        return hexArray(MessageDigest.getInstance("md5").digest(str.getBytes(StandardCharsets.UTF_8)));
+    }
+
+    private static String hexArray(byte[] arr) {
+        return String.format("%0" + (arr.length << 1) + "x", new BigInteger(1, arr));
     }
 }

@@ -34,13 +34,6 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
     }
   }
 
-  private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
-    in.replace(
-      "$PROJECT_DIR$/" +
-        os.Path(coursier.paths.CoursierPaths.cacheDirectory())
-          .relativeTo(workspacePath),
-      "COURSIER_HOME"
-    )
-  }
+
 
 }
