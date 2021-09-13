@@ -54,7 +54,7 @@ jobs:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           # selected contrib tests (all will run in test-windows-faulty job
           # TODO: fix all and make this CI run more generic
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.{artifactory,bintray,bloop,buildinfo,codeartifact,docker,flyway,playlib,scalapblib,testng,twirllib,versionfile}.test"
+          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.{artifactory,bintray,bloop,buildinfo,codeartifact,docker,flyway,playlib,scalapblib,scoverage,testng,twirllib,versionfile}.test"
 
     runs-on: windows-latest
 
