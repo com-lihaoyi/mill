@@ -691,11 +691,10 @@ case class GenIdeaImpl(
   }
 
   /** Try to make the file path a relative JAR URL (to PROJECT_DIR). */
-  def relativeJarUrl(path: os.Path) = {
+  def relativeJarUrl(path: os.Path): String = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    val relPath =
-      Try("$PROJECT_DIR$/" + path.relativeTo(workDir)).getOrElse(path)
+    val relPath = relForwardPath(path, "$PROJECT_DIR$/")
     if (path.ext == "jar") "jar://" + relPath + "!/" else "file://" + relPath
   }
 
@@ -703,7 +702,12 @@ case class GenIdeaImpl(
   def relativeFileUrl(path: Path): String = {
     // When coursier cache dir is on different logical drive than project dir
     // we can not use a relative path. See issue: https://github.com/lihaoyi/mill/issues/905
-    "file://" + Try("$PROJECT_DIR$/" + path.relativeTo(workDir)).getOrElse(path)
+    "file://" + relForwardPath(path, "$PROJECT_DIR$/")
+  }
+
+  private def relForwardPath(path: os.Path, prefix: String): String = {
+    def forward(p: os.FilePath): String = p.toString().replace("""\""", "/")
+    Try(prefix + forward(path.relativeTo(workDir))).getOrElse(forward(path))
   }
 
   def libraryXmlTemplate(
@@ -712,7 +716,7 @@ case class GenIdeaImpl(
       sources: Option[os.Path],
       scalaCompilerClassPath: Loose.Agg[Path]
   ): Elem = {
-    val isScalaLibrary = scalaCompilerClassPath.nonEmpty
+    val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
     <component name="libraryTable">
       <library name={name} type={if (isScalaLibrary) "Scala" else null}>
         {
