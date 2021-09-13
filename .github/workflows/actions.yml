@@ -52,33 +52,9 @@ jobs:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
-          # selected contrib tests (all except scoverage)
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.{artifactory,bintray,bloop,buildinfo,codeartifact,docker,flyway,playlib,proguard,scalapblib,testng,twirllib,versionfile}.test"
-
-    runs-on: windows-latest
-
-    steps:
-      - uses: actions/checkout@v2
-        with:
-          fetch-depth: 0
-
-      - uses: actions/setup-java@v1
-        with:
-          java-version: ${{ matrix.java-version }}
-
-      - name: Run '${{ matrix.buildcmd }}'
-        run: ${{ matrix.buildcmd }}
-
-  test-windows-faulty:
-    strategy:
-      fail-fast: false
-      matrix:
-        java-version: [8, 11]
-        buildcmd:
           - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
 
     runs-on: windows-latest
-    continue-on-error: true
 
     steps:
       - uses: actions/checkout@v2
