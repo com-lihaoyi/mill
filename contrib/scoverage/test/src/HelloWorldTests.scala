@@ -13,7 +13,7 @@ object HelloWorldTests extends utest.TestSuite {
   val sbtResourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
   trait HelloBase extends TestUtil.BaseModule {
-    def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
+    override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
   object HelloWorld extends HelloBase {
@@ -24,17 +24,16 @@ object HelloWorldTests extends utest.TestSuite {
     object core extends ScoverageModule with BuildInfo {
       def scalaVersion = "2.12.9"
       def scoverageVersion = "1.4.0"
-      def unmanagedClasspath = Agg(PathRef(unmanagedFile))
+      override def unmanagedClasspath = Agg(PathRef(unmanagedFile))
 
-      def moduleDeps = Seq(other)
+      override def moduleDeps = Seq(other)
 
-      def buildInfoMembers = T {
+      override def buildInfoMembers = T {
         Map("scoverageVersion" -> scoverageVersion())
       }
 
-      object test extends ScoverageTests {
+      object test extends ScoverageTests with TestModule.ScalaTest {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
-        def testFrameworks = Seq("org.scalatest.tools.Framework")
       }
     }
   }
@@ -49,9 +48,8 @@ object HelloWorldTests extends utest.TestSuite {
       )
       override def resources = T.sources { millSourcePath / "src" / "main" / "resources" }
 
-      object test extends ScoverageTests {
+      object test extends ScoverageTests with TestModule.ScalaTest {
         override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
-        def testFrameworks = Seq("org.scalatest.tools.Framework")
         override def millSourcePath = outer.millSourcePath
         override def intellijModulePath = outer.millSourcePath / "src" / "test"
       }
@@ -113,7 +111,7 @@ object HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.data)
 
             assert(
-              result.path.toIO.getPath.endsWith(
+              result.path.toIO.getPath.replace("""\""", "/").endsWith(
                 "mill/target/workspace/mill/contrib/scoverage/HelloWorldTests/eval/HelloWorld/core/scoverage/data/core/scoverage/data/dest"
               ),
               evalCount > 0
