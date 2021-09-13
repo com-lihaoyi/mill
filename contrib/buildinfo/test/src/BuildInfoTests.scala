@@ -1,5 +1,7 @@
 package mill.contrib.buildinfo
 
+import scala.util.Properties
+
 import mill._
 import mill.define.Sources
 import mill.define.Target
@@ -22,7 +24,7 @@ object BuildInfoTests extends TestSuite {
   object EmptyBuildInfo extends BuildInfoModule
 
   object BuildInfo extends BuildInfoModule {
-    def buildInfoMembers = T {
+    override def buildInfoMembers = T {
       Map(
         "scalaVersion" -> scalaVersion()
       )
@@ -30,9 +32,9 @@ object BuildInfoTests extends TestSuite {
   }
 
   object BuildInfoSettings extends BuildInfoModule {
-    def buildInfoPackageName = Some("foo")
-    def buildInfoObjectName = "bar"
-    def buildInfoMembers = T {
+    override def buildInfoPackageName = Some("foo")
+    override def buildInfoObjectName = "bar"
+    override def buildInfoMembers = T {
       Map(
         "scalaVersion" -> scalaVersion()
       )
@@ -86,22 +88,24 @@ object BuildInfoTests extends TestSuite {
       }
 
       "supportCustomSettings" - workspaceTest(BuildInfoSettings) { eval =>
+        val Right(((result, _), evalCount)) = eval.apply(BuildInfoSettings.generatedBuildInfo)
+        val path = result.head.path
+        assert(
+          path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
+            os.exists(path)
+        )
+
+        val found = os.read(path).replaceAll("(\r\n)|\r", "\n")
         val expected =
           s"""|package foo
-            |
-            |object bar {
-            |  def scalaVersion = "2.12.4"
-            |
-            |  val toMap = Map[String, String](
-            |    "scalaVersion" -> scalaVersion)
-            |}""".stripMargin
-        val Right(((result, _), evalCount)) =
-          eval.apply(BuildInfoSettings.generatedBuildInfo)
-        assert(
-          result.head.path == eval.outPath / "generatedBuildInfo" / "dest" / "BuildInfo.scala" &&
-            os.exists(result.head.path) &&
-            os.read(result.head.path) == expected
-        )
+              |
+              |object bar {
+              |  def scalaVersion = "2.12.4"
+              |
+              |  val toMap = Map[String, String](
+              |    "scalaVersion" -> scalaVersion)
+              |}""".stripMargin.replaceAll("(\r\n)|\r", "\n")
+        assert(found == expected)
       }
 
       "compile" - workspaceTest(BuildInfo) { eval =>
