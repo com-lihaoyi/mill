@@ -8,7 +8,12 @@ import mill.util.{TestEvaluator, TestUtil}
 import utest._
 import utest.framework.TestPath
 
-object HelloWorldTests extends utest.TestSuite {
+
+
+trait HelloWorldTests extends utest.TestSuite {
+
+  def threadCount: Option[Int]
+
   val resourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world"
   val sbtResourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
@@ -60,7 +65,7 @@ object HelloWorldTests extends utest.TestSuite {
       m: TestUtil.BaseModule,
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, threads = threadCount, debugEnabled = true)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -183,4 +188,11 @@ object HelloWorldTests extends utest.TestSuite {
       }
     }
   }
+}
+
+object HelloWorldTests extends HelloWorldTests {
+  override def threadCount: Option[Int] = Some(1)
+}
+object HelloWorldParTests extends HelloWorldTests {
+  override def threadCount: Some[Int] = Some(4)
 }
