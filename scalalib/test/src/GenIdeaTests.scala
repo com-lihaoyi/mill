@@ -108,11 +108,14 @@ object GenIdeaTests extends ScriptTestSuite(false) {
 
   private def normaliseLibraryPaths(in: String, workspacePath: os.Path): String = {
     val coursierPath = os.Path(coursier.paths.CoursierPaths.cacheDirectory())
-    val path = Try(coursierPath.relativeTo(workspacePath)).getOrElse(coursierPath)
-    in.replace(
-      "$PROJECT_DIR$/" + path,
-      "COURSIER_HOME"
-    )
+    val path =
+      Try("$PROJECT_DIR$/" + coursierPath.relativeTo(workspacePath)).getOrElse(
+        coursierPath
+      ).toString().replace(
+        """\""",
+        "/"
+      )
+    in.replace(path, "COURSIER_HOME")
   }
 
   override def workspaceSlug: String = "gen-idea-hello-world"
