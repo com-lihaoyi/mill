@@ -1,15 +1,17 @@
 package mill.contrib.proguard
 
+import scala.util.Properties
+
 import coursier.Repositories
+import io.github.retronym.java9rtexport.Export
 import mill.T
 import mill.Agg
 import mill.api.{Logger, Loose, PathRef, Result}
 import mill.define.{Sources, Target}
+import mill.modules.Jvm
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib.{Dep, DepSyntax, Lib, ScalaModule}
-import os.proc
-import os.Path
-import os.PathChunk
+import os.{Path, PathChunk, Shellable, proc}
 
 /**
  * Adds proguard capabilities when mixed-in to a module
@@ -50,21 +52,39 @@ trait Proguard extends ScalaModule {
    * This is used for both the `java` command binary,
    * as well as the standard library jars.
    * Defaults to the `java.home` system property.
+    * Keep in sync with [[java9RtJar]]-
    */
   def javaHome: T[PathRef] = T.input {
-    PathRef(Path(System.getProperty("java.home")))
+    PathRef(Path(sys.props("java.home")))
   }
 
   /** Specifies the input jar to proguard. Defaults to the output of the `assembly` task. */
   def inJar: T[PathRef] = T { assembly() }
+
+  /** This needs to return the Java RT JAR if on Java 9 or above.
+    * Keep in sync with [[javaHome]]. */
+  def java9RtJar: T[Seq[PathRef]] = T {
+    if (mill.main.client.Util.isJava9OrAbove) {
+      val rt = T.dest / Export.rtJarName
+      if (!os.exists(rt)) {
+        T.log.outputStream.println(
+          s"Preparing Java runtime JAR; this may take a minute or two ..."
+        )
+        Export.rtTo(rt.toIO, false)
+      }
+      Seq(PathRef(rt))
+    } else {
+      Seq()
+    }
+  }
 
   /**
    * The library jars proguard requires
    * Defaults the jars under `javaHome`.
    */
   def libraryJars: T[Seq[PathRef]] = T {
-    val javaJars = os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar")
-    javaJars.toSeq.map(PathRef(_))
+    val javaJars = os.list(javaHome().path / "lib", sort = false).filter(_.ext == "jar").toSeq.map(PathRef(_))
+    javaJars ++ java9RtJar()
   }
 
   /**
@@ -76,25 +96,32 @@ trait Proguard extends ScalaModule {
    */
   def proguard: T[PathRef] = T {
     val outJar = T.dest / "out.jar"
-    val java = javaHome().path / "bin" / "java"
 
-    val cmd = os.proc(
-      java,
-      "-cp",
-      proguardClasspath().map(_.path).mkString(":"),
-      "proguard.ProGuard",
+    val args = Seq[Shellable](
       steps(),
       "-injars",
       inJar().path,
       "-outjars",
       outJar,
       "-libraryjars",
-      libraryJars().map(_.path).mkString(":"),
+      libraryJars().map(_.path).mkString(java.io.File.pathSeparator),
       entryPoint(),
       additionalOptions()
+    ).flatMap(_.value)
+
+    T.log.debug(s"Running: ${args.mkString(" ")}")
+//    T.log.debug(s"stdout: ${T.dest / "stdout.txt"}")
+//    T.log.debug(s"stderr: ${T.dest / "stderr.txt"}")
+
+//    val result = os.proc(cmd).call(stdout = T.dest / "stdout.txt", stderr = T.dest / "stderr.txt")
+//    T.log.debug(s"result: ${result}")
+
+    Jvm.runSubprocess(
+      mainClass = "proguard.ProGuard",
+      classPath = proguardClasspath().map(_.path),
+      mainArgs = args,
+      workingDir = T.dest
     )
-    System.out.println(cmd.command.flatMap(_.value).mkString(" "))
-    cmd.call(stdout = T.dest / "stdout.txt", stderr = T.dest / "stderr.txt")
 
     // the call above already throws an exception on a non-zero exit code,
     // so if we reached this point we've succeeded!
