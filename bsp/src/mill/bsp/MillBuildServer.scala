@@ -3,8 +3,9 @@ package mill.bsp
 import ch.epfl.scala.bsp4j._
 import com.google.gson.JsonObject
 import java.util.concurrent.CompletableFuture
+
 import mill._
-import mill.api.{DummyTestReporter, Result, Strict}
+import mill.api.{Ctx, DummyTestReporter, Result, Strict}
 import mill.bsp.ModuleUtils._
 import mill.bsp.Utils._
 import mill.define.Segment.Label
@@ -12,9 +13,9 @@ import mill.define.{Discover, ExternalModule}
 import mill.eval.Evaluator
 import mill.main.{EvaluatorScopt, MainModule}
 import mill.scalalib._
-import mill.util.{Ctx, DummyLogger}
+import mill.util.DummyLogger
 import os.Path
-import scala.collection.JavaConverters._
+import scala.jdk.CollectionConverters._
 
 class MillBuildServer(evaluator: Evaluator, bspVersion: String, serverVersion: String)
     extends ExternalModule
