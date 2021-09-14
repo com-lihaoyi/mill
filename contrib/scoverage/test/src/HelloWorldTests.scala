@@ -190,6 +190,6 @@ trait HelloWorldTests extends utest.TestSuite {
 object HelloWorldTests extends HelloWorldTests {
   override def threadCount: Option[Int] = Some(1)
 }
-object HelloWorldParTests extends HelloWorldTests {
-  override def threadCount: Some[Int] = Some(4)
-}
+//object HelloWorldParTests extends HelloWorldTests {
+//  override def threadCount: Some[Int] = Some(4)
+//}
