@@ -49,10 +49,12 @@ jobs:
       matrix:
         java-version: [8, 11]
         buildcmd:
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
-          - cmd /C %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
+          - %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
+          - %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
+          - %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
+          - |
+              %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.prepareOffline"
+              %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
 
     runs-on: windows-latest
 
@@ -67,6 +69,7 @@ jobs:
 
       - name: Run '${{ matrix.buildcmd }}'
         run: ${{ matrix.buildcmd }}
+        shell: cmd
 
   publish-sonatype:
     # when in master repo: all commits to main branch and all additional tags
