@@ -1,5 +1,7 @@
 package mill.contrib.scoverage
 
+import scala.annotation.tailrec
+
 import mill._
 import mill.contrib.buildinfo.BuildInfo
 import mill.scalalib._
@@ -63,11 +65,22 @@ trait HelloWorldTests extends utest.TestSuite {
       resourcePath: os.Path = resourcePath
   )(t: TestEvaluator => T)(implicit tp: TestPath): T = {
     val eval = new TestEvaluator(m, threads = threadCount, debugEnabled = true)
-    os.remove.all(m.millSourcePath)
+    retry(3, 500) { os.remove.all(m.millSourcePath) }
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
     os.copy(resourcePath, m.millSourcePath)
     t(eval)
+  }
+
+  @tailrec private final def retry[T](n: Int, wait: Long)(body: => T): T = {
+    try body
+    catch {
+      case e: Throwable =>
+        if (n > 0) {
+          Thread.sleep(wait)
+          retry(n - 1, wait)(body)
+        } else throw e
+    }
   }
 
   def tests: utest.Tests = utest.Tests {
