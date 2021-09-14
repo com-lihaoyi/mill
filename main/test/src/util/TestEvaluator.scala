@@ -1,13 +1,16 @@
 package mill.util
 
+import java.io.{InputStream, PrintStream}
+
 import mill.define.{Input, Target, Task}
 import mill.api.Result.OuterStack
 import mill.eval.{Evaluator, Result}
 import mill.api.Strict.Agg
 import utest.assert
 import utest.framework.TestPath
-
 import language.experimental.macros
+
+import mill.api.DummyInputStream
 object TestEvaluator {
   val externalOutPath = os.pwd / "target" / "external"
 
@@ -24,7 +27,10 @@ object TestEvaluator {
 class TestEvaluator(
     module: TestUtil.BaseModule,
     failFast: Boolean = false,
-    threads: Option[Int] = Some(1)
+    threads: Option[Int] = Some(1),
+    outStream: PrintStream = System.out,
+    inStream: InputStream = DummyInputStream,
+    debugEnabled: Boolean = false
 )(implicit fullName: sourcecode.FullName, tp: TestPath) {
   val outPath = TestUtil.getOutPath()
 
@@ -33,11 +39,11 @@ class TestEvaluator(
     colored = true,
     disableTicker = false,
     ammonite.util.Colors.Default,
-    System.out,
-    System.out,
-    System.err,
-    System.in,
-    debugEnabled = false,
+    outStream,
+    outStream,
+    outStream,
+    inStream,
+    debugEnabled = debugEnabled,
     context = ""
   ) {
     val prefix = {
@@ -51,7 +57,7 @@ class TestEvaluator(
     override def ticker(s: String): Unit = super.ticker(s"${prefix}: ${s}")
   }
   val evaluator = new Evaluator(
-    Ctx.defaultHome,
+    mill.api.Ctx.defaultHome,
     outPath,
     TestEvaluator.externalOutPath,
     module,

@@ -1,8 +1,6 @@
 package mill.contrib.scoverage.worker
 
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi
-import _root_.scoverage.Serializer.{coverageFile, deserialize}
-import _root_.scoverage.IOUtils.{findMeasurementFiles, invoked}
 import _root_.scoverage.report.{CoverageAggregator, ScoverageHtmlWriter, ScoverageXmlWriter}
 import mill.api.Ctx
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType

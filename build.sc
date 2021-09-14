@@ -140,6 +140,7 @@ trait MillApiModule
     with ScalaModule
     with MillCoursierModule {
   def scalaVersion = Deps.scalaVersion
+  override def ammoniteVersion = Deps.ammonite.dep.version
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)

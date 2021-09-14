@@ -1,8 +1,7 @@
-package mill
-package contrib
-package scoverage
+package mill.contrib.scoverage
 
 import coursier.{MavenRepository, Repository}
+import mill._
 import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Persistent, Sources, Target, Task}
@@ -57,27 +56,27 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
    */
   def scoverageVersion: T[String]
 
-  def scoverageRuntimeDep = T {
+  def scoverageRuntimeDep: T[Dep] = T {
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
-  def scoveragePluginDep = T {
+  def scoveragePluginDep: T[Dep] = T {
     ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
-  def toolsClasspath = T {
+  def toolsClasspath: T[Agg[PathRef]] = T {
     scoverageReportWorkerClasspath() ++ scoverageClasspath()
   }
 
-  def scoverageClasspath = T {
+  def scoverageClasspath: T[Agg[PathRef]] = T {
     Lib.resolveDependencies(
       Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
       Lib.depToDependency(_, "2.13.1"),
       Seq(scoveragePluginDep()),
-      ctx = Some(implicitly[mill.util.Ctx.Log])
+      ctx = Some(implicitly[mill.api.Ctx.Log])
     )
   }
 
-  def scoverageReportWorkerClasspath = T {
+  def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {
     val workerKey = "MILL_SCOVERAGE_REPORT_WORKER"
     mill.modules.Util.millProjectModule(
       workerKey,
