@@ -40,7 +40,7 @@ object ProguardTests extends TestSuite {
   def workspaceTest[T](m: TestUtil.BaseModule)(t: TestEvaluator => T)(
       implicit tp: TestPath
   ): T = {
-    val eval = new TestEvaluator(m)
+    val eval = new TestEvaluator(m, debugEnabled = true)
     os.remove.all(m.millSourcePath)
     os.remove.all(eval.outPath)
     os.makeDir.all(m.millSourcePath / os.up)
@@ -52,7 +52,8 @@ object ProguardTests extends TestSuite {
     test("Proguard module") {
       test("should download proguard jars") - workspaceTest(proguard) { eval =>
         val Right((agg, _)) = eval.apply(proguard.proguardClasspath)
-        assert(agg.iterator.toSeq.nonEmpty)
+        assert(agg.iterator.toSeq.nonEmpty,
+          agg.iterator.toSeq.head.path.toString().contains("proguard-base"))
       }
 
       test("should create a proguarded jar") - workspaceTest(proguard) { eval =>
