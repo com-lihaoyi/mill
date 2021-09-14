@@ -52,9 +52,9 @@ jobs:
           - %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{__.publishLocal,assembly,__.compile}"
           - %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "{main,scalalib,scalajslib,bsp}.__.test"
           - %GITHUB_WORKSPACE%\ci\mill.bat -i -d integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
-          - |
+          - '|
               %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib.__.prepareOffline"
-              %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"
+              %GITHUB_WORKSPACE%\ci\mill.bat -i -d -k "contrib._.test"'
 
     runs-on: windows-latest
 
