@@ -248,10 +248,10 @@ you already had:
 
 [source,scala]
 ----
-val b = T { ... }
-val c = T { ... }
-val d = T { ... }
-val a = T { f(b(), c(), d()) }
+def b = T { ... }
+def c = T { ... }
+def d = T { ... }
+def a = T { f(b(), c(), d()) }
 ----
 
 Thus, if you are familiar with how data flows through a normal Scala program,
