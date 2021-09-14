@@ -21,7 +21,10 @@ class ScoverageReportWorker {
           toolsClassPath,
           getClass.getClassLoader
         )
-        scoverageClCache = Some((classloaderSig, cl))
+        // looks like the worker is not properly closing opened source files,
+        // which makes repetitive targets under Windows fail
+        // so we drop the whole worker
+//        scoverageClCache = Some((classloaderSig, cl))
         cl
     }
 
