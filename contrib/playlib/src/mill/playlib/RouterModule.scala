@@ -47,16 +47,7 @@ trait RouterModule extends ScalaModule with Version {
   def generatorType: RouteCompilerType = RouteCompilerType.InjectedGenerator
 
   def routerClasspath: T[Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(
-        coursier.LocalRepositories.ivy2Local,
-        MavenRepository("https://repo1.maven.org/maven2")
-      ),
-      Lib.depToDependency(_, scalaVersion()),
-      Seq(
-        ivy"com.typesafe.play::routes-compiler:${playVersion()}"
-      )
-    )
+    resolveDeps(T.task { Agg(ivy"com.typesafe.play::routes-compiler:${playVersion()}") })()
   }
 
   protected val routeCompilerWorker: RouteCompilerWorkerModule = RouteCompilerWorkerModule
