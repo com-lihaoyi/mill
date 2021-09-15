@@ -191,14 +191,14 @@ trait HelloWorldTests extends utest.TestSuite {
 object HelloWorldTests_2_12 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = "2.12.14"
-  override def testScoverageVersion = "1.4.8"
+  override def testScoverageVersion = "1.4.9"
   override def testScalatestVersion = "3.0.8"
 }
 
 object HelloWorldTests_2_13 extends HelloWorldTests {
   override def threadCount = Some(1)
   override def testScalaVersion: String = "2.13.6"
-  override def testScoverageVersion = "1.4.8"
+  override def testScoverageVersion = "1.4.9"
   override def testScalatestVersion = "3.0.8"
 }
 
