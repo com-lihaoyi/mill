@@ -64,31 +64,34 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  def toolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  @deprecated("Use scalaJsToolsClasspath instead", "mill after 0.10.0-M1")
+  def toolsClasspath = T { scalaJsToolsClasspath() }
+
+  def scalaJsToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastOpt = T {
     link(
-      ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath(),
-      runClasspath(),
-      finalMainClassOpt().toOption,
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJsToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
       testBridgeInit = false,
-      FastOpt,
-      moduleKind(),
-      useECMAScript2015()
+      mode = FastOpt,
+      moduleKind = moduleKind(),
+      useECMAScript2015 = useECMAScript2015()
     )
   }
 
   def fullOpt = T {
     link(
-      ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath(),
-      runClasspath(),
-      finalMainClassOpt().toOption,
+      worker = ScalaJSWorkerApi.scalaJSWorker(),
+      toolsClasspath = scalaJsToolsClasspath(),
+      runClasspath = runClasspath(),
+      mainClass = finalMainClassOpt().toOption,
       testBridgeInit = false,
-      FullOpt,
-      moduleKind(),
-      useECMAScript2015()
+      mode = FullOpt,
+      moduleKind = moduleKind(),
+      useECMAScript2015 = useECMAScript2015()
     )
   }
 
@@ -99,7 +102,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Left(err) => Result.Failure(err)
       case Right(_) =>
         ScalaJSWorkerApi.scalaJSWorker().run(
-          toolsClasspath().map(_.path),
+          scalaJsToolsClasspath().map(_.path),
           jsEnvConfig(),
           fastOpt().path.toIO
         )
@@ -150,9 +153,11 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     ).map(PathRef(_))
   }
 
-  override def mandatoryScalacOptions = super.mandatoryScalacOptions() ++ {
-    if (isScala3(scalaVersion())) Seq("-scalajs")
-    else Seq.empty
+  override def mandatoryScalacOptions = T {
+    super.mandatoryScalacOptions() ++ {
+      if (isScala3(scalaVersion())) Seq("-scalajs")
+      else Seq.empty
+    }
   }
 
   override def scalacPluginIvyDeps = T {
@@ -204,7 +209,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def fastOptTest = T {
     link(
       ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath(),
+      scalaJsToolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
       testBridgeInit = true,
@@ -222,7 +227,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
-      toolsClasspath().map(_.path),
+      scalaJsToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
       fastOptTest().path.toIO,
