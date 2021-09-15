@@ -1,11 +1,11 @@
 package mill.contrib.scoverage
 
-import coursier.{MavenRepository, Repository}
+import coursier.Repository
 import mill._
 import mill.api.{Loose, PathRef}
 import mill.contrib.scoverage.api.ScoverageReportWorkerApi.ReportType
 import mill.define.{Command, Persistent, Sources, Target, Task}
-import mill.scalalib.{Dep, DepSyntax, JavaModule, Lib, ScalaModule}
+import mill.scalalib.{Dep, DepSyntax, JavaModule, ScalaModule}
 
 /**
  * Adds targets to a [[mill.scalalib.ScalaModule]] to create test coverage reports.
@@ -60,20 +60,18 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     ivy"org.scoverage::scalac-scoverage-runtime:${outer.scoverageVersion()}"
   }
   def scoveragePluginDep: T[Dep] = T {
-    ivy"org.scoverage::scalac-scoverage-plugin:${outer.scoverageVersion()}"
+    ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
   def toolsClasspath: T[Agg[PathRef]] = T {
-    scoverageReportWorkerClasspath() ++ scoverageClasspath()
+    scoverageReportWorkerClasspath() ++
+      resolveDeps(T.task {
+        Agg(ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}")
+      })()
   }
 
   def scoverageClasspath: T[Agg[PathRef]] = T {
-    Lib.resolveDependencies(
-      Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),
-      Lib.depToDependency(_, "2.13.1"),
-      Seq(scoveragePluginDep()),
-      ctx = Some(implicitly[mill.api.Ctx.Log])
-    )
+    resolveDeps(T.task { Agg(scoveragePluginDep()) })()
   }
 
   def scoverageReportWorkerClasspath: T[Agg[PathRef]] = T {

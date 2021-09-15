@@ -10,9 +10,12 @@ import utest.framework.TestPath
 trait HelloWorldTests extends utest.TestSuite {
 
   def threadCount: Option[Int]
+  def testScalaVersion: String
+  def testScoverageVersion: String
+  def testScalatestVersion: String
 
   val resourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world"
-  val sbtResourcePath = os.pwd / "contrib" / "scoverage" / "test" / "resources" / "hello-world-sbt"
+  val sbtResourcePath = resourcePath / os.up / "hello-world-sbt"
   val unmanagedFile = resourcePath / "unmanaged.xml"
   trait HelloBase extends TestUtil.BaseModule {
     override def millSourcePath = TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
@@ -20,30 +23,28 @@ trait HelloWorldTests extends utest.TestSuite {
 
   object HelloWorld extends HelloBase {
     object other extends ScalaModule {
-      def scalaVersion = "2.12.9"
+      def scalaVersion = testScalaVersion
     }
 
     object core extends ScoverageModule with BuildInfo {
-      def scalaVersion = "2.12.9"
-      def scoverageVersion = "1.4.0"
+      def scalaVersion = testScalaVersion
+      def scoverageVersion = testScoverageVersion
       override def unmanagedClasspath = Agg(PathRef(unmanagedFile))
-
       override def moduleDeps = Seq(other)
-
       override def buildInfoMembers = T {
         Map("scoverageVersion" -> scoverageVersion())
       }
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
+        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
       }
     }
   }
 
   object HelloWorldSbt extends HelloBase { outer =>
     object core extends ScoverageModule {
-      def scalaVersion = "2.12.9"
-      def scoverageVersion = "1.4.0"
+      def scalaVersion = testScalaVersion
+      def scoverageVersion = testScoverageVersion
       override def sources = T.sources(
         millSourcePath / "src" / "main" / "scala",
         millSourcePath / "src" / "main" / "java"
@@ -51,7 +52,7 @@ trait HelloWorldTests extends utest.TestSuite {
       override def resources = T.sources { millSourcePath / "src" / "main" / "resources" }
 
       object test extends ScoverageTests with TestModule.ScalaTest {
-        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:3.0.8")
+        override def ivyDeps = Agg(ivy"org.scalatest::scalatest:${testScalatestVersion}")
         override def millSourcePath = outer.millSourcePath
         override def intellijModulePath = outer.millSourcePath / "src" / "test"
       }
@@ -77,7 +78,7 @@ trait HelloWorldTests extends utest.TestSuite {
           val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverageVersion)
 
           assert(
-            result == "1.4.0",
+            result == testScoverageVersion,
             evalCount > 0
           )
         }
@@ -87,7 +88,7 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.unmanagedClasspath)
 
             assert(
-              result.map(_.toString).exists(_.contains("unmanaged.xml")),
+              result.map(_.toString).iterator.exists(_.contains("unmanaged.xml")),
               evalCount > 0
             )
           }
@@ -96,7 +97,7 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.ivyDeps)
 
             assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:1.4.0"),
+              result == Agg(ivy"org.scoverage::scalac-scoverage-runtime:${testScoverageVersion}"),
               evalCount > 0
             )
           }
@@ -105,7 +106,7 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.scalacPluginIvyDeps)
 
             assert(
-              result == Agg(ivy"org.scoverage::scalac-scoverage-plugin:1.4.0"),
+              result == Agg(ivy"org.scoverage:::scalac-scoverage-plugin:${testScoverageVersion}"),
               evalCount > 0
             )
           }
@@ -141,7 +142,7 @@ trait HelloWorldTests extends utest.TestSuite {
               eval.apply(HelloWorld.core.scoverage.upstreamAssemblyClasspath)
 
             assert(
-              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
+              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime")),
               evalCount > 0
             )
           }
@@ -149,7 +150,7 @@ trait HelloWorldTests extends utest.TestSuite {
             val Right((result, evalCount)) = eval.apply(HelloWorld.core.scoverage.compileClasspath)
 
             assert(
-              result.map(_.toString).exists(_.contains("scalac-scoverage-runtime")),
+              result.map(_.toString).iterator.exists(_.contains("scalac-scoverage-runtime")),
               evalCount > 0
             )
           }
@@ -187,9 +188,23 @@ trait HelloWorldTests extends utest.TestSuite {
   }
 }
 
-object HelloWorldTests extends HelloWorldTests {
-  override def threadCount: Option[Int] = Some(1)
+object HelloWorldTests_2_12 extends HelloWorldTests {
+  override def threadCount = Some(1)
+  override def testScalaVersion: String = "2.12.14"
+  override def testScoverageVersion = "1.4.9"
+  override def testScalatestVersion = "3.0.8"
 }
-//object HelloWorldParTests extends HelloWorldTests {
+
+object HelloWorldTests_2_13 extends HelloWorldTests {
+  override def threadCount = Some(1)
+  override def testScalaVersion: String = "2.13.6"
+  override def testScoverageVersion = "1.4.9"
+  override def testScalatestVersion = "3.0.8"
+}
+
+//object HelloWorldParTests_2_13 extends HelloWorldTests {
 //  override def threadCount: Some[Int] = Some(4)
+//  override def testScalaVersion: String = "2.13.6"
+//  override def testScoverageVersion = "1.4.8"
+//  override def testScalatestVersion = "3.0.8"
 //}
