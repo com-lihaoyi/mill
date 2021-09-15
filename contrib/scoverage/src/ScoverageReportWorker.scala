@@ -16,7 +16,7 @@ class ScoverageReportWorker {
       case Some((sig, cl)) if sig == classloaderSig => cl
       case _ =>
         val toolsClassPath = classpath.map(_.toIO.toURI.toURL).toVector
-        ctx.log.debug("Loading classes from\n" + toolsClassPath.mkString("\n"))
+        ctx.log.debug("Loading worker classes from\n" + toolsClassPath.mkString("\n"))
         val cl = ClassLoader.create(
           toolsClassPath,
           getClass.getClassLoader

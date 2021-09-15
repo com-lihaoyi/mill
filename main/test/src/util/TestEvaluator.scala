@@ -66,7 +66,7 @@ class TestEvaluator(
     threadCount = threads
   )
 
-  def apply[T](t: Task[T]): Either[Result.Failing[T], (T, Int)] = {
+  def apply[T](t: Task[T]): Either[mill.api.Result.Failing[T], (T, Int)] = {
     val evaluated = evaluator.evaluate(Agg(t))
 
     if (evaluated.failing.keyCount == 0) {
