@@ -64,15 +64,15 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
     )
   }
 
-  @deprecated("Use scalaJsToolsClasspath instead", "mill after 0.10.0-M1")
-  def toolsClasspath = T { scalaJsToolsClasspath() }
+  @deprecated("Use scalaJSToolsClasspath instead", "mill after 0.10.0-M1")
+  def toolsClasspath = T { scalaJSToolsClasspath() }
 
-  def scalaJsToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
+  def scalaJSToolsClasspath = T { scalaJSWorkerClasspath() ++ scalaJSLinkerClasspath() }
 
   def fastOpt = T {
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath = scalaJsToolsClasspath(),
+      toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
       mainClass = finalMainClassOpt().toOption,
       testBridgeInit = false,
@@ -85,7 +85,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def fullOpt = T {
     link(
       worker = ScalaJSWorkerApi.scalaJSWorker(),
-      toolsClasspath = scalaJsToolsClasspath(),
+      toolsClasspath = scalaJSToolsClasspath(),
       runClasspath = runClasspath(),
       mainClass = finalMainClassOpt().toOption,
       testBridgeInit = false,
@@ -102,7 +102,7 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       case Left(err) => Result.Failure(err)
       case Right(_) =>
         ScalaJSWorkerApi.scalaJSWorker().run(
-          scalaJsToolsClasspath().map(_.path),
+          scalaJSToolsClasspath().map(_.path),
           jsEnvConfig(),
           fastOpt().path.toIO
         )
@@ -209,7 +209,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   def fastOptTest = T {
     link(
       ScalaJSWorkerApi.scalaJSWorker(),
-      scalaJsToolsClasspath(),
+      scalaJSToolsClasspath(),
       scalaJSTestDeps() ++ runClasspath(),
       None,
       testBridgeInit = true,
@@ -227,7 +227,7 @@ trait TestScalaJSModule extends ScalaJSModule with TestModule {
   ): Task[(String, Seq[TestRunner.Result])] = T.task {
 
     val (close, framework) = mill.scalajslib.ScalaJSWorkerApi.scalaJSWorker().getFramework(
-      scalaJsToolsClasspath().map(_.path),
+      scalaJSToolsClasspath().map(_.path),
       jsEnvConfig(),
       testFramework(),
       fastOptTest().path.toIO,
