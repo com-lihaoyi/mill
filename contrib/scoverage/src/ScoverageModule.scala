@@ -63,7 +63,12 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     ivy"org.scoverage:::scalac-scoverage-plugin:${outer.scoverageVersion()}"
   }
 
+  @deprecated("Use scoverageToolsClasspath instead.", "mill after 0.10.0-M1")
   def toolsClasspath: T[Agg[PathRef]] = T {
+    scoverageToolsClasspath()
+  }
+
+  def scoverageToolsClasspath: T[Agg[PathRef]] = T {
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
         Agg(ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}")
@@ -90,7 +95,7 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
     def doReport(reportType: ReportType): Task[Unit] = T.task {
       ScoverageReportWorker
         .scoverageReportWorker()
-        .bridge(toolsClasspath().map(_.path))
+        .bridge(scoverageToolsClasspath().map(_.path))
         .report(reportType, allSources().map(_.path), Seq(data().path))
     }
 

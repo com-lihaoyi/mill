@@ -64,14 +64,14 @@ trait RouterModule extends ScalaModule with Version {
   def compileRouter: T[CompilationResult] = T.persistent {
     T.log.debug(s"compiling play routes with ${playVersion()} worker")
     routeCompilerWorker.routeCompilerWorker().compile(
-      toolsClasspath().map(_.path),
-      routeFiles().map(_.path),
-      routesAdditionalImport,
-      generateForwardsRouter,
-      generateReverseRouter,
-      namespaceReverseRouter,
-      generatorType,
-      T.dest
+      routerClasspath = playRouterToolsClasspath().map(_.path),
+      files = routeFiles().map(_.path),
+      additionalImports = routesAdditionalImport,
+      forwardsRouter = generateForwardsRouter,
+      reverseRouter = generateReverseRouter,
+      namespaceReverseRouter = namespaceReverseRouter,
+      generatorType = generatorType,
+      dest = T.dest
     )
   }
 
@@ -90,7 +90,12 @@ trait RouterModule extends ScalaModule with Version {
     )
   }
 
+  @deprecated("Use playRouterToolsClasspath instead", "mill after 0.10.0-M1")
   def toolsClasspath = T {
+    playRouterToolsClasspath()
+  }
+
+  def playRouterToolsClasspath = T {
     playRouteCompilerWorkerClasspath() ++ routerClasspath()
   }
 
