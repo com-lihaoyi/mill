@@ -67,7 +67,11 @@ trait DockerModule { outer: JavaModule =>
       * for more information.
       */
     def user: T[String] = ""
-
+    /**
+      * The name of the executable to use, the default is "docker".
+      */
+    def executable: T[String] = "docker"
+    
     private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
       val pull = pullBaseImage()
       if (pull) (pull, Math.random()) else (pull, 0d)
@@ -100,7 +104,7 @@ trait DockerModule { outer: JavaModule =>
         else volumes().map(v => s"\"$v\"").mkString("VOLUME [", ", ", "]"),
         run().map(c => s"RUN $c").mkString("\n"),
         if (user().isEmpty) "" else s"USER ${user()}"
-      ).filter(_.nonEmpty).mkString("\n")
+      ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
 
       s"""
         |FROM ${baseImage()}
@@ -125,7 +129,7 @@ trait DockerModule { outer: JavaModule =>
       val pullLatestBase = IterableShellable(if (pull) Some("--pull") else None)
 
       val result = os
-        .proc("docker", "build", tagArgs, pullLatestBase, dest)
+        .proc(executable(), "build", tagArgs, pullLatestBase, dest)
         .call(stdout = os.Inherit, stderr = os.Inherit)
 
       log.info(s"Docker build completed ${if (result.exitCode == 0) "successfully"
@@ -135,7 +139,7 @@ trait DockerModule { outer: JavaModule =>
 
     final def push() = T.command {
       val tags = build()
-      tags.foreach(t => os.proc("docker", "push", t).call(stdout = os.Inherit, stderr = os.Inherit))
+      tags.foreach(t => os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit))
     }
   }
 }

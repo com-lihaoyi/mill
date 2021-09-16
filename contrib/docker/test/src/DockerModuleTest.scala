@@ -10,15 +10,21 @@ import utest.framework.TestPath
 
 object DockerModuleTest extends TestSuite {
 
+  private def testExecutable =
+    if (isInstalled("podman")) "podman"
+    else "docker"
+
   object Docker extends TestUtil.BaseModule with JavaModule with DockerModule {
 
     override def millSourcePath = TestUtil.getSrcPathStatic()
     override def artifactName = testArtifactName
 
-    object dockerDefault extends DockerConfig
+    object dockerDefault extends DockerConfig {
+      override def executable = testExecutable
+    }
 
     object dockerAll extends DockerConfig {
-      override def baseImage = "openjdk:11"
+      override def baseImage = "docker.io/openjdk:11"
       override def labels = Map("version" -> "1.0")
       override def exposedPorts = Seq(8080, 443)
       override def exposedUdpPorts = Seq(80)
@@ -29,6 +35,7 @@ object DockerModuleTest extends TestSuite {
         "useradd -ms /bin/bash user1"
       )
       override def user = "user1"
+      override def executable = testExecutable
     }
   }
 
@@ -36,6 +43,8 @@ object DockerModuleTest extends TestSuite {
 
   val testModuleSourcesPath: Path =
     os.pwd / "contrib" / "docker" / "test" / "resources" / "docker"
+
+  val multineRegex = "\\R+".r
 
   private def isInstalled(executable: String): Boolean = {
     val getPathCmd = if (scala.util.Properties.isWin) "where" else "which"
@@ -45,7 +54,7 @@ object DockerModuleTest extends TestSuite {
   private def workspaceTest(m: TestUtil.BaseModule)(t: TestEvaluator => Unit)(
       implicit tp: TestPath
   ): Unit = {
-    if (isInstalled("docker")) {
+    if (isInstalled(testExecutable) && !scala.util.Properties.isWin) {
       val eval = new TestEvaluator(m)
       os.remove.all(m.millSourcePath)
       os.remove.all(eval.outPath)
@@ -53,15 +62,16 @@ object DockerModuleTest extends TestSuite {
       os.copy(testModuleSourcesPath, m.millSourcePath)
       t(eval)
     } else {
-      println(s"Skipping '${tp.value.head}' since no docker installation was found")
+      val identifier = tp.value.mkString("/")
+      println(s"Skipping '$identifier' since no docker installation was found")
       assert(true)
     }
   }
 
   override def utestAfterAll(): Unit = {
-    if (isInstalled("docker"))
+    if (isInstalled(testExecutable) && !scala.util.Properties.isWin)
       os
-        .proc("docker", "rmi", testArtifactName)
+        .proc(testExecutable, "rmi", testArtifactName)
         .call(stdout = os.Inherit, stderr = os.Inherit)
     else ()
   }
@@ -84,21 +94,26 @@ object DockerModuleTest extends TestSuite {
       "default options" - {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerDefault.dockerfile)
-        val expected =
+        val expected = multineRegex.replaceAllIn(
           """
             |FROM gcr.io/distroless/java:latest
-            |
             |COPY out.jar /out.jar
-            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin
-        assert(dockerfileString == expected)
+            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
+          sys.props("line.separator")
+        )
+        val dockerfileStringRefined = multineRegex.replaceAllIn(
+          dockerfileString,
+          sys.props("line.separator")
+        )
+        assert(dockerfileStringRefined == expected)
       }
 
       "all options" - {
         val eval = new TestEvaluator(Docker)
         val Right((dockerfileString, _)) = eval(Docker.dockerAll.dockerfile)
-        val expected =
+        val expected = multineRegex.replaceAllIn(
           """
-            |FROM openjdk:11
+            |FROM docker.io/openjdk:11
             |LABEL "version"="1.0"
             |EXPOSE 8080/tcp 443/tcp
             |EXPOSE 80/udp
@@ -109,8 +124,14 @@ object DockerModuleTest extends TestSuite {
             |RUN useradd -ms /bin/bash user1
             |USER user1
             |COPY out.jar /out.jar
-            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin
-        assert(dockerfileString == expected)
+            |ENTRYPOINT ["java", "-jar", "/out.jar"]""".stripMargin,
+          sys.props("line.separator")
+        )
+        val dockerfileStringRefined = multineRegex.replaceAllIn(
+          dockerfileString,
+          sys.props("line.separator")
+        )
+        assert(dockerfileStringRefined == expected)
       }
     }
   }

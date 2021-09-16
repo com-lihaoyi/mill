@@ -296,6 +296,8 @@ object docker extends DockerConfig {
   )
   // User to use when running the image
   def user = "new-user"
+  // Optionally override the docker executable to use something else
+  def executable = "podman"
 }
 ----
 
