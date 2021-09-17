@@ -209,9 +209,35 @@ corresponding version of Mill.
 
 === main
 :version: main
+:prev-version: 0.10.0-M2
+:milestone: 53
+:milestone-name: 0.10.0-M3
+
+_Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.0-M2 - 2021-09-17
+:version: 0.10.0-M2
 :prev-version: 0.9.9
 :milestone: 51
-:milestone-name: after 0.9.9
+:milestone-name: 0.10.0-M2
+
+*This is a early milestone release.
+This release breaks binary compatibility for external plugins build for mill 0.9.x.
+The API is suspected to change before a 0.10.0 releae.*
+
+_Changes since {prev-version}:_
+
+* Removed deprecated API
+* `ScalaModule`: added `mandatoryScalacOptions` to avoid the common issue that users forget to include mandatory options when defining their own.
+* Renamed `toolsClasspath` targets found in various modules to avoid hard to resolve clashes when mixing traits
+* Fixed and improved our test suite on Windows
+* Various fixes and improvements
+* Various dependency updates
 
 
 _For details refer to
@@ -224,6 +250,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.9.8
 :milestone: 50
 :milestone-name: 0.9.9
+
+_Changes since {prev-version}:_
 
 * BSP: Fixed/improved source item for root project
 * Bloop: Prevent compilation during bloop config generation
@@ -240,6 +268,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.9.7
 :milestone: 49
 :milestone-name: 0.9.8
+
+_Changes since {prev-version}:_
 
 * Fixed some potential binary incompatibilities with external plugins (builds against older os-lib versions)
 * Fixed location and configuration of mills home path (used for caching of build scripts)
@@ -259,6 +289,8 @@ and the {link-compare}/{prev-version}\...{version}[list of commits]._
 :prev-version: 0.9.6
 :milestone: 48
 :milestone-name: 0.9.7
+
+_Changes since {prev-version}:_
 
 * `ScalaModule`: Support for Scala 3
 * `CoursierModule`: Support customized dependency resolution (needed to work with ScalaFX)
