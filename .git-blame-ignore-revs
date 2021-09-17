@@ -1,0 +1,5 @@
+# Tobias Roeser <le.petit.fou@web.de>  2021-06-10 09:32:19
+# Adapted scalafmt config and reformatted all source files (#1370)
+# Besides the `.scalafmt.conf` file change, all other changes are pure formatting changes.
+# Pull request: https://github.com/com-lihaoyi/mill/pull/1370
+9d4e55b2feac519497dbc62da70430174e32351b
