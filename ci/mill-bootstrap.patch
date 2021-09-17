@@ -1,14 +1,14 @@
 # We need to load a external plugins from another binary compatible slot
 
 diff --git a/build.sc b/build.sc
-index 39dd671f..2b1c53b7 100755
+index 2b1c53b7..a24465f2 100755
 --- a/build.sc
 +++ b/build.sc
 @@ -1,7 +1,7 @@
  import $file.ci.shared
  import $file.ci.upload
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
--import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1-27-b3a696`
 +import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10.0-M2:0.1.1-27-b3a696`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
  import java.nio.file.attribute.PosixFilePermission
