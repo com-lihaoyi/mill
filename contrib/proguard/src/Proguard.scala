@@ -133,11 +133,7 @@ trait Proguard extends ScalaModule {
    * These are downloaded from JCenter and fed to `java -cp`
    */
   def proguardClasspath: T[Loose.Agg[PathRef]] = T {
-    resolveDependencies(
-      Seq(Repositories.jcenter),
-      Lib.depToDependencyJava(_),
-      Seq(ivy"com.guardsquare:proguard-base:${proguardVersion()}")
-    )
+    resolveDeps(T.task{ Agg(ivy"com.guardsquare:proguard-base:${proguardVersion()}")})()
   }
 
   private def steps: T[Seq[String]] = T {
