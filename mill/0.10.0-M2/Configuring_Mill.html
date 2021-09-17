@@ -75,7 +75,7 @@
   </nav>
 </header>
 <div class="body">
-<div class="nav-container" data-component="mill" data-version="0.9.9">
+<div class="nav-container" data-component="mill" data-version="0.10.0-M2">
   <aside class="nav">
     <div class="panels">
 <div class="nav-panel-menu is-active" data-panel="menu">
@@ -128,7 +128,7 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.9.9</span>
+    <span class="version">0.10.0-M2</span>
   </div>
   <ul class="components">
     <li class="component is-current">
@@ -137,11 +137,11 @@
         <li class="version is-latest">
           <a href="../index.html">0.10.0-M2</a>
         </li>
-        <li class="version">
-          <a href="../0.10.0-M2/index.html">0.10.0-M2</a>
-        </li>
         <li class="version is-current">
-          <a href="index.html">0.9.9</a>
+          <a href="index.html">0.10.0-M2</a>
+        </li>
+        <li class="version">
+          <a href="../0.9.9/index.html">0.9.9</a>
         </li>
         <li class="version">
           <a href="../0.9.8/index.html">0.9.8</a>
@@ -170,17 +170,17 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.9.9</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M2</button>
   <div class="version-menu">
     <a class="version" href="../Configuring_Mill.html">0.10.0-M2</a>
-    <a class="version" href="../0.10.0-M2/Configuring_Mill.html">0.10.0-M2</a>
-    <a class="version is-current" href="Configuring_Mill.html">0.9.9</a>
+    <a class="version is-current" href="Configuring_Mill.html">0.10.0-M2</a>
+    <a class="version" href="../0.9.9/Configuring_Mill.html">0.9.9</a>
     <a class="version" href="../0.9.8/Configuring_Mill.html">0.9.8</a>
     <a class="version" href="../0.9.7/Configuring_Mill.html">0.9.7</a>
     <a class="version" href="../0.9.6/Configuring_Mill.html">0.9.6</a>
   </div>
 </div>
-  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.9.9/docs/antora/modules/ROOT/pages/Configuring_Mill.adoc">Edit this Page</a></div>
+  <div class="edit-this-page"><a href="https://github.com/com-lihaoyi/mill/blob/0.10.0-M2/docs/antora/modules/ROOT/pages/Configuring_Mill.adoc">Edit this Page</a></div>
   </div>
   <div class="content">
 <aside class="toc sidebar" data-title="Contents" data-levels="2">
@@ -276,7 +276,7 @@ you can use <code>:::</code> as in <code>ivy&quot;org.scalamacros:::paradise:2.1
 </div>
 <div class="paragraph">
 <p>By default, these are resolved from maven central, but you can add your own
-resolvers by overriding the <code>repositories</code> definition in the module:</p>
+resolvers by overriding the <code>repositoriesTask</code> task in the module:</p>
 </div>
 <div class="listingblock">
 <div class="title"><code>build.sc</code></div>
@@ -372,7 +372,7 @@ object foo extends ScalaModule {
 <div class="ulist">
 <ul>
 <li>
-<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.9.9/0.9.9-example-3.zip">Example 3</a></p>
+<p><a href="https://github.com/com-lihaoyi/mill/releases/download/0.10.0-M2/0.10.0-M2-example-3.zip">Example 3</a></p>
 </li>
 </ul>
 </div>
@@ -553,8 +553,8 @@ object foo extends ScalaModule with ScalafmtModule {
 <p>Now you can reformat code with <code>mill foo.reformat</code> command, or only check for misformatted files with <code>mill foo.checkFormat</code>.</p>
 </div>
 <div class="paragraph">
-<p>You can also reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll <em>.sources</em></code> command,
-or only check the code’s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll .sources</code>.
+<p>You can also reformat your project’s code globally with <code>mill mill.scalalib.scalafmt.ScalafmtModule/reformatAll __.sources</code> command,
+or only check the code’s format with <code>mill mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll __.sources</code>.
 It will reformat all sources that matches <code>__.sources</code> query.</p>
 </div>
 <div class="paragraph">
