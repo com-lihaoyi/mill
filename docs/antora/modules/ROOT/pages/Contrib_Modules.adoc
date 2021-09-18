@@ -279,6 +279,25 @@ object docker extends DockerConfig {
   // Configure whether the docker build should check the remote registry for a new version of the base image before building.
   // By default this is true if the base image is using a latest tag
   def pullBaseImage = true
+  // Add container metadata via the LABEL instruction
+  def labels = Map("version" -> "1.0")
+  // TCP ports the container will listen to
+  def exposedPorts = Seq(8080, 443)
+  // UDP ports the container will listen to
+  def exposedUdpPorts = Seq(80)
+  // The names of mount points, these will be translated to VOLUME instructions
+  def volumes = Seq("/v1", "/v2")
+  // Environment variables to be set in the container (ENV instructions)
+  def envVars = Map("foo" -> "bar", "foobar" -> "barfoo")
+  // Add RUN instructions
+  def run = Seq(
+    "/bin/bash -c 'echo Hello World!'",
+    "useradd -ms /bin/bash new-user"
+  )
+  // User to use when running the image
+  def user = "new-user"
+  // Optionally override the docker executable to use something else
+  def executable = "podman"
 }
 ----
 
