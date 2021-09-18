@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M2-1-cd7c66</span>
+    <span class="version">0.10.0-M2-2-7f282a</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M2-1-cd7c66</a>
+          <a href="index.html">0.10.0-M2-2-7f282a</a>
         </li>
         <li class="version">
           <a href="0.10.0-M2/index.html">0.10.0-M2</a>
@@ -170,9 +170,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M2-1-cd7c66</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M2-2-7f282a</button>
   <div class="version-menu">
-    <a class="version is-current" href="Contrib_Modules.html">0.10.0-M2-1-cd7c66</a>
+    <a class="version is-current" href="Contrib_Modules.html">0.10.0-M2-2-7f282a</a>
     <a class="version" href="0.10.0-M2/Contrib_Modules.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Contrib_Modules.html">0.9.9</a>
     <a class="version" href="0.9.8/Contrib_Modules.html">0.9.8</a>
@@ -549,6 +549,25 @@ $ docker run foo</code></pre>
   // Configure whether the docker build should check the remote registry for a new version of the base image before building.
   // By default this is true if the base image is using a latest tag
   def pullBaseImage = true
+  // Add container metadata via the LABEL instruction
+  def labels = Map(&quot;version&quot; -&gt; &quot;1.0&quot;)
+  // TCP ports the container will listen to
+  def exposedPorts = Seq(8080, 443)
+  // UDP ports the container will listen to
+  def exposedUdpPorts = Seq(80)
+  // The names of mount points, these will be translated to VOLUME instructions
+  def volumes = Seq(&quot;/v1&quot;, &quot;/v2&quot;)
+  // Environment variables to be set in the container (ENV instructions)
+  def envVars = Map(&quot;foo&quot; -&gt; &quot;bar&quot;, &quot;foobar&quot; -&gt; &quot;barfoo&quot;)
+  // Add RUN instructions
+  def run = Seq(
+    &quot;/bin/bash -c 'echo Hello World!'&quot;,
+    &quot;useradd -ms /bin/bash new-user&quot;
+  )
+  // User to use when running the image
+  def user = &quot;new-user&quot;
+  // Optionally override the docker executable to use something else
+  def executable = &quot;podman&quot;
 }</code></pre>
 </div>
 </div>
