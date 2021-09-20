@@ -1,6 +1,6 @@
-= Thirdparty Modules
+= Thirdparty Modules / Plugins
 
-The modules (aka plugins) in this section are developed/maintained outside the mill git tree.
+The modules (aka ((plugins))) in this section are developed/maintained outside the mill git tree.
 
 Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
 The usage examples given here are most probably incomplete and sometimes outdated.
