@@ -1,6 +1,6 @@
-= Contrib Modules
+= Contrib Modules / Plugins
 
-The plugins in this section are developed/maintained in the mill git tree.
+The ((plugins)) in this section are developed/maintained in the mill git tree.
 
 When using one of these contribution modules, it is important that the versions you load match your mill version. To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
 
