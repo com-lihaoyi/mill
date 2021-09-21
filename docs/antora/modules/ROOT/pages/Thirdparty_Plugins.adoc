@@ -1,11 +1,15 @@
-= Thirdparty Modules / Plugins
+= Thirdparty Plugins
+:page-aliases: Thirdparty_Modules.adoc
 
-The modules (aka ((plugins))) in this section are developed/maintained outside the mill git tree.
+The Plugins in this section are developed/maintained outside the mill git tree.
+This list is most likely not complete.
+If you're missing an external plugin or developed one which is not listed here, please open a https://github.com/com-lihaoyi/mill/pulls[pull request] and add that plugin with a short description.
 
-Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
-The usage examples given here are most probably incomplete and sometimes outdated.
+For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
 
-If you develop or maintain a mill plugin, please create a https://github.com/com-lihaoyi/mill/pulls[pull request] to get your plugin listed here.
+CAUTION: Besides the documentation provided here, we urge you to consult the respective linked plugin documentation pages.
+The usage examples given here are most probably incomplete and sometimes outdated!
+
 
 == Antlr
 
@@ -566,7 +570,7 @@ import mill._
 import mill.scalalib._
 
 // Load the plugin from Maven Central via ivy/coursier
-import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.1`
+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 
 object main extends JavaModule with PublishModule {
