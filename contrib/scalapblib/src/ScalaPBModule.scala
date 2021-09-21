@@ -1,17 +1,15 @@
 package mill
 package contrib.scalapblib
 
-import java.net.URI
-import java.nio.file.attribute.BasicFileAttributes
-import java.nio.file.{FileSystems, Files, Path, SimpleFileVisitor, StandardCopyOption}
-
 import coursier.MavenRepository
 import coursier.core.Version
 import mill.define.Sources
-import mill.api.PathRef
+import mill.api.{IO, Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
-import mill.api.Loose
+
+import java.util.zip.ZipInputStream
+import scala.util.Using
 
 /** @see [[http://www.lihaoyi.com/mill/page/contrib-modules.html#scalapb ScalaPB Module]] */
 trait ScalaPBModule extends ScalaModule {
@@ -94,35 +92,22 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBUnpackProto: T[PathRef] = T {
     val cp = scalaPBProtoClasspath()
     val dest = T.dest
-    cp.foreach { ref =>
-      val baseUri = "jar:" + ref.path.toIO.getCanonicalFile.toURI.toASCIIString
-      val jarFs =
-        FileSystems.newFileSystem(URI.create(baseUri), new java.util.HashMap[String, String]())
-      try {
-        import scala.collection.JavaConverters._
-        jarFs.getRootDirectories.asScala.foreach { r =>
-          Files.walkFileTree(
-            r,
-            new SimpleFileVisitor[Path] {
-              override def visitFile(f: Path, a: BasicFileAttributes) = {
-                if (f.getFileName.toString.endsWith(".proto")) {
-                  val protoDest = dest.toNIO.resolve(r.relativize(f).toString)
-                  Files.createDirectories(protoDest.getParent)
-                  Files.copy(
-                    f,
-                    protoDest,
-                    StandardCopyOption.COPY_ATTRIBUTES,
-                    StandardCopyOption.REPLACE_EXISTING
-                  )
-                }
-                super.visitFile(f, a)
+    cp.iterator.foreach { ref =>
+      Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
+        while ({
+          Option(zip.getNextEntry) match {
+            case None => false
+            case Some(entry) =>
+              if (entry.getName.endsWith(".proto")) {
+                val protoDest = dest / os.SubPath(entry.getName)
+                Using(os.write.outputStream(protoDest, createFolders = true))(IO.stream(zip, _))
               }
-            }
-          )
-        }
-      } finally jarFs.close()
+              zip.closeEntry()
+              true
+          }
+        }) ()
+      }
     }
-
     PathRef(dest)
   }
 
