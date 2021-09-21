@@ -175,15 +175,15 @@ case class GenIdeaImpl(
           mod.resolveDeps(allIvyDeps, sources = true)()
         }
 
-        val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
-          case mod: ScalaModule =>
-            T.task {
-              mod.scalacPluginIvyDeps()
-            } -> T.task {
-              mod.allScalacOptions()
-            }
-          case _ => T.task(Agg[Dep]()) -> T.task(Seq())
-        }
+        val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion: Task[Option[String]]) =
+          mod match {
+            case mod: ScalaModule =>              (
+                T.task(mod.scalacPluginIvyDeps()),
+                T.task(mod.allScalacOptions()),
+                T.task(mod.scalaVersion())
+              )
+            case _ => (T.task { Agg[Dep]() }, T.task { Seq() }, T.task { None })
+          }
         val scalacPluginDependencies = T.task {
           mod.resolveDeps(scalacPluginsIvyDeps)()
         }
