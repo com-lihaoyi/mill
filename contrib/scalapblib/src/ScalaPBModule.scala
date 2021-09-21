@@ -4,10 +4,9 @@ package contrib.scalapblib
 import coursier.MavenRepository
 import coursier.core.Version
 import mill.define.Sources
-import mill.api.PathRef
+import mill.api.{IO, Loose, PathRef}
 import mill.scalalib.Lib.resolveDependencies
 import mill.scalalib._
-import mill.api.Loose
 
 import java.util.zip.ZipInputStream
 import scala.util.Using
@@ -93,20 +92,15 @@ trait ScalaPBModule extends ScalaModule {
   def scalaPBUnpackProto: T[PathRef] = T {
     val cp = scalaPBProtoClasspath()
     val dest = T.dest
-    val buffer = new Array[Byte](8192)
     cp.iterator.foreach { ref =>
       Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
         var entry = Option(zip.getNextEntry)
         while (entry.nonEmpty) {
           val name = entry.get.getName
           if (name.endsWith(".proto")) {
-            val protoDest = os.Path(os.RelPath(name), dest)
+            val protoDest = dest / os.SubPath(name)
             Using(os.write.outputStream(protoDest, createFolders = true)) { o =>
-              var r = 0
-              while (r != -1) {
-                r = zip.read(buffer)
-                if (r != -1) o.write(buffer, 0, r)
-              }
+              IO.stream(zip, o)
             }
           }
           zip.closeEntry()
