@@ -177,7 +177,7 @@ case class GenIdeaImpl(
 
         val (scalacPluginsIvyDeps, allScalacOptions, scalaVersion: Task[Option[String]]) =
           mod match {
-            case mod: ScalaModule =>              (
+            case mod: ScalaModule => (
                 T.task(mod.scalacPluginIvyDeps()),
                 T.task(mod.allScalacOptions()),
                 T.task(mod.scalaVersion())
@@ -233,7 +233,8 @@ case class GenIdeaImpl(
             libraryClasspath = resolvedLibraryCp.map(_.path),
             facets = resolvedFacets,
             configFileContributions = resolvedConfigFileContributions,
-            compilerOutput = resolvedCompilerOutput.path
+            compilerOutput = resolvedCompilerOutput.path,
+            scalaVersion = None
           )
         }
       }
@@ -464,8 +465,8 @@ case class GenIdeaImpl(
               name = name,
               path = path,
               sources = sources,
-              scalaCompilerClassPath =
-                librariesProperties.getOrElse(path, Agg.empty)
+              scalaCompilerClassPath = librariesProperties.getOrElse(path, Agg.empty),
+              scalaVersion = None
             )
           )
       }
@@ -481,7 +482,8 @@ case class GenIdeaImpl(
             _,
             facets,
             _,
-            compilerOutput
+            compilerOutput,
+            _
           ) =>
         val Seq(
           resourcesPathRefs: Seq[PathRef],
@@ -711,7 +713,8 @@ case class GenIdeaImpl(
       name: String,
       path: os.Path,
       sources: Option[os.Path],
-      scalaCompilerClassPath: Agg[Path]
+      scalaCompilerClassPath: Agg[Path],
+      scalaVersion: Option[String]
   ): Elem = {
     val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
     <component name="libraryTable">
@@ -719,9 +722,18 @@ case class GenIdeaImpl(
         {
       if (isScalaLibrary) {
         <properties>
+        {
+          if (scalaVersion.isDefined) {
+            <language-level>Scala_{
+              mill.scalalib.api.Util.scalaBinaryVersion(scalaVersion.get).replace("[.]", "_")
+            }</language-level>
+          }
+        }
           <compiler-classpath>
             {
-          scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={relativeFileUrl(p)}/>)
+          scalaCompilerClassPath.iterator.toSeq.sortBy(_.wrapped).map(p =>
+            <root url={relativeFileUrl(p)}/>
+          )
         }
           </compiler-classpath>
         </properties>
@@ -919,7 +931,8 @@ object GenIdeaImpl {
       libraryClasspath: Agg[Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
-      compilerOutput: Path
+      compilerOutput: Path,
+      scalaVersion: Option[String]
   )
 
 }
