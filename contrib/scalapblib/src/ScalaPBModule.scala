@@ -94,18 +94,18 @@ trait ScalaPBModule extends ScalaModule {
     val dest = T.dest
     cp.iterator.foreach { ref =>
       Using(new ZipInputStream(ref.path.getInputStream)) { zip =>
-        var entry = Option(zip.getNextEntry)
-        while (entry.nonEmpty) {
-          val name = entry.get.getName
-          if (name.endsWith(".proto")) {
-            val protoDest = dest / os.SubPath(name)
-            Using(os.write.outputStream(protoDest, createFolders = true)) { o =>
-              IO.stream(zip, o)
-            }
+        while ({
+          Option(zip.getNextEntry) match {
+            case None => false
+            case Some(entry) =>
+              if (entry.getName.endsWith(".proto")) {
+                val protoDest = dest / os.SubPath(entry.getName)
+                Using(os.write.outputStream(protoDest, createFolders = true))(IO.stream(zip, _))
+              }
+              zip.closeEntry()
+              true
           }
-          zip.closeEntry()
-          entry = Option(zip.getNextEntry)
-        }
+        }) ()
       }
     }
     PathRef(dest)
