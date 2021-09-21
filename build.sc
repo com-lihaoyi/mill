@@ -927,11 +927,11 @@ object docs extends Module {
       )
       PathRef(workDir / "build" / "site")
     }
-    def sources: Source = T.source(millSourcePath)
+    def source: Source = T.source(millSourcePath)
     def supplementalFiles = T.source(millSourcePath / "supplemental-ui")
     def devAntoraSources: Target[PathRef] = T {
       val dest = T.dest
-      shared.mycopy(sources().path, dest, mergeFolders = true)
+      shared.mycopy(source().path, dest, mergeFolders = true)
       val lines = os.read(dest / "antora.yml").linesIterator.map {
         case l if l.startsWith("version:") =>
           s"version: 'master'" + "\n" + s"display-version: '${millVersion()}'"
@@ -985,7 +985,7 @@ object docs extends Module {
     }
     def generatePages(authorMode: Boolean) = T.task {
       // dependency to sources
-      sources()
+      source()
       val docSite = T.dest
       val playbook = docSite / "antora-playbook.yml"
       val siteDir = docSite / "site"
@@ -1023,7 +1023,7 @@ object docs extends Module {
       )
       os.write(siteDir / ".nojekyll", "")
       // sanitize devAntora source URLs
-      sanitizeDevUrls(siteDir, devAntoraSources().path, sources().path, baseDir)
+      sanitizeDevUrls(siteDir, devAntoraSources().path, source().path, baseDir)
       PathRef(siteDir)
     }
 //    def htmlCleanerIvyDeps = T{ Agg(ivy"net.sourceforge.htmlcleaner:htmlcleaner:2.24")}
