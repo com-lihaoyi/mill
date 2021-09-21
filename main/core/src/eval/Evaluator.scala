@@ -664,10 +664,10 @@ object Evaluator {
       rawValues: Seq[Result[Any]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
-      failing: MultiBiMap[Either[Task[_], Labelled[_]], Result.Failing[_]],
+      failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
       results: collection.Map[Task[_], Result[Any]]
   ) {
-    def values = rawValues.collect { case Result.Success(v) => v }
+    def values = rawValues.collect { case mill.api.Result.Success(v) => v }
   }
 
   def plan(rootModule: BaseModule, goals: Agg[Task[_]]) = {

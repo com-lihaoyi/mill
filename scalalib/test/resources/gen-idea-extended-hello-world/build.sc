@@ -5,7 +5,7 @@ import mill.scalalib.GenIdeaModule._
 import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {
-  def scalaVersion = "2.12.4"
+  def scalaVersion = "2.13.6"
   object test extends super.Tests with TestModule.Utest
 
   def generatedSources = T {
