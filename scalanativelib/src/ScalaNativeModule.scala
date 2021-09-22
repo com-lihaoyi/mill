@@ -74,6 +74,10 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       )
   }
 
+  override def mandatoryIvyDeps = T {
+    super.mandatoryIvyDeps() ++ nativeIvyDeps()
+  }
+
   def bridgeFullClassPath = T {
     Lib.resolveDependencies(
       Seq(coursier.LocalRepositories.ivy2Local, MavenRepository("https://repo1.maven.org/maven2")),

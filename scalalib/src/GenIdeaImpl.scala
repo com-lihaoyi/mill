@@ -151,8 +151,7 @@ case class GenIdeaImpl(
         }
 
         val allIvyDeps = T.task {
-          mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod
-            .transitiveCompileIvyDeps()
+          mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
         }
 
         val scalaCompilerClasspath = mod match {

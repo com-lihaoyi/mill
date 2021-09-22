@@ -73,11 +73,23 @@ trait JavaModule
   }
 
   /**
+   * Mandatory ivy dependencies that shouldn't be removed by
+   * overriding `ivyDeps`
+   */
+  def mandatoryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+
+  /**
    * Any ivy dependencies you want to add to this Module, in the format
    * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
    * for Java dependencies
    */
   def ivyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+
+  /**
+   * Aggregation of mandatoryIvyDeps and ivyDeps.
+   * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
+   */
+  def allIvyDeps: T[Agg[Dep]] = T { mandatoryIvyDeps() ++ ivyDeps() }
 
   /**
    * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
@@ -155,7 +167,7 @@ trait JavaModule
    * The transitive ivy dependencies of this module and all it's upstream modules
    */
   def transitiveIvyDeps: T[Agg[Dep]] = T {
-    ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    allIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**

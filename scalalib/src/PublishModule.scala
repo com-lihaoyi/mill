@@ -23,7 +23,7 @@ trait PublishModule extends JavaModule { outer =>
   }
 
   def publishXmlDeps: Task[Agg[Dependency]] = T.task {
-    val ivyPomDeps = ivyDeps().map(resolvePublishDependency().apply(_))
+    val ivyPomDeps = allIvyDeps().map(resolvePublishDependency().apply(_))
 
     val compileIvyPomDeps = compileIvyDeps()
       .map(resolvePublishDependency().apply(_))

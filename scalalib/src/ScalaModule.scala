@@ -159,6 +159,10 @@ trait ScalaModule extends JavaModule { outer =>
     scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
   }
 
+  override def mandatoryIvyDeps = T {
+    super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
+  }
+
   /**
    * Classpath of the Scala Compiler & any compiler plugins
    */
@@ -173,13 +177,13 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def resolvedIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      transitiveCompileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
     })()
   }
 
   override def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
     resolveDeps(T.task {
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
+      runIvyDeps() ++ transitiveIvyDeps()
     })()
   }
 
@@ -366,7 +370,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def resolvedAmmoniteReplIvyDeps = T {
     resolveDeps(T.task {
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
+      runIvyDeps() ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
     })()
   }
