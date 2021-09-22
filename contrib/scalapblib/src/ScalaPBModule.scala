@@ -18,7 +18,7 @@ trait ScalaPBModule extends ScalaModule {
 
   override def ivyDeps = T {
     super.ivyDeps() ++
-      Agg(ivy"com.thesamet.scalapb::scalapb-runtime:${scalaPBVersion()}") ++
+      Agg(ivy"com.thesamet.scalapb::scalapb-runtime::${scalaPBVersion()}") ++
       (if (!scalaPBGrpc()) Agg()
        else Agg(ivy"com.thesamet.scalapb::scalapb-runtime-grpc:${scalaPBVersion()}"))
   }
