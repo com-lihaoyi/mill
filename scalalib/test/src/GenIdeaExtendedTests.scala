@@ -1,5 +1,7 @@
 package mill.scalalib
 
+import scala.util.Try
+
 import mill.util.ScriptTestSuite
 import os.Path
 import utest._
@@ -16,7 +18,7 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
       val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
-      Seq(
+      val checks = Seq(
         os.sub / "mill_modules" / "helloworld.iml",
         os.sub / "mill_modules" / "helloworld.test.iml",
         os.sub / "mill_modules" / "helloworld.subscala3.iml",
@@ -25,16 +27,17 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
         os.sub / "modules.xml",
         os.sub / "misc.xml",
         os.sub / "compiler.xml"
-      ).foreach { resource =>
-        GenIdeaTests.assertIdeaXmlResourceMatchesFile(
-          workspaceSlug,
-          workspacePath,
-          resource
-        )
+      ).map { resource =>
+        Try {
+          GenIdeaTests.assertIdeaXmlResourceMatchesFile(
+            workspaceSlug,
+            workspacePath,
+            resource
+          )
+        }
       }
+      assert(checks.forall(_.isSuccess))
     }
   }
-
-
 
 }
