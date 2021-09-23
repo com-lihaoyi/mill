@@ -5,6 +5,7 @@ import java.util.jar.JarFile
 
 import scala.jdk.CollectionConverters._
 import scala.util.Using
+import scala.xml.NodeSeq
 
 import mill._
 import mill.define.Target
@@ -972,10 +973,29 @@ object HelloWorldTests extends TestSuite {
         )
 
         val pomXml = scala.xml.XML.loadFile(result.path.toString)
+        val scalaLibrary = pomXml \ "dependencies" \ "dependency"
+        assert(
+          (scalaLibrary \ "artifactId").text == "scala-library",
+          (scalaLibrary \ "groupId").text == "org.scala-lang"
+        )
+      }
+    }
 
-        val scalaLibrary = (pomXml \ "dependencies" \ "dependency" \ "artifactId").text
+    "ivy" - {
+      "should include scala-library dependency" - workspaceTest(HelloWorldWithPublish) { eval =>
+        val Right((result, evalCount)) = eval.apply(HelloWorldWithPublish.core.ivy)
 
-        assert (scalaLibrary == "scala-library")
+        assert(
+          os.exists(result.path),
+          evalCount > 0
+        )
+
+        val ivyXml = scala.xml.XML.loadFile(result.path.toString)
+        val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
+        assert(deps.exists(n =>
+          (n \ "@conf").text == "compile->default(compile)" &&
+          (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
+        ))
       }
     }
   }

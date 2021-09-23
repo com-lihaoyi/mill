@@ -73,8 +73,8 @@ trait JavaModule
   }
 
   /**
-   * Mandatory ivy dependencies that shouldn't be removed by
-   * overriding `ivyDeps`
+   * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
+   * overriding [[ivyDeps]], e.g. the scala-library in the [[ScalaModule]].
    */
   def mandatoryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
 
@@ -164,10 +164,11 @@ trait JavaModule
   def unmanagedClasspath: T[Agg[PathRef]] = T { Agg.empty[PathRef] }
 
   /**
-   * The transitive ivy dependencies of this module and all it's upstream modules
+   * The transitive ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[Dep]] = T {
-    allIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -284,8 +285,13 @@ trait JavaModule
       resolvedIvyDeps()
   }
 
+  /**
+   * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
+   */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
+    resolveDeps(T.task {
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
+    })()
   }
 
   /**
@@ -299,7 +305,9 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { runIvyDeps() ++ transitiveIvyDeps() })()
+    resolveDeps(T.task {
+      runIvyDeps() ++ transitiveIvyDeps()
+    })()
   }
 
   /**

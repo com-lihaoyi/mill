@@ -1,20 +1,16 @@
 package mill
 package scalanativelib
 
-import java.net.URLClassLoader
-
 import coursier.maven.MavenRepository
 import mill.api.Loose.Agg
-import mill.api.Result
 import mill.define.{Target, Task}
 import mill.modules.Jvm
 import mill.scalalib.{Dep, DepSyntax, Lib, SbtModule, ScalaModule, TestModule, TestRunner}
 import mill.scalanativelib.api._
-import sbt.testing.{AnnotatedFingerprint, SubclassFingerprint}
-import sbt.testing.Fingerprint
 import scala.jdk.CollectionConverters._
 import scala.jdk.OptionConverters._
-import upickle.default.{ReadWriter => RW, macroRW}
+
+import upickle.default.{macroRW, ReadWriter => RW}
 
 trait ScalaNativeModule extends ScalaModule { outer =>
   def scalaNativeVersion: T[String]
@@ -59,10 +55,6 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     )
   }
 
-  override def transitiveIvyDeps: T[Agg[Dep]] = T {
-    ivyDeps() ++ nativeIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
-  }
-
   def nativeLibIvy = T { ivy"org.scala-native::nativelib::${scalaNativeVersion()}" }
 
   def nativeIvyDeps = T {
@@ -74,6 +66,7 @@ trait ScalaNativeModule extends ScalaModule { outer =>
       )
   }
 
+  /** Adds [[nativeIvyDeps]] as mandatory dependencies. */
   override def mandatoryIvyDeps = T {
     super.mandatoryIvyDeps() ++ nativeIvyDeps()
   }
@@ -87,9 +80,11 @@ trait ScalaNativeModule extends ScalaModule { outer =>
     ).map(t => (scalaNativeWorkerClasspath().toSeq ++ t.toSeq).map(_.path))
   }
 
-  override def scalacPluginIvyDeps = super.scalacPluginIvyDeps() ++ Agg(
-    ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
-  )
+  override def scalacPluginIvyDeps: T[Agg[Dep]] = T {
+    super.scalacPluginIvyDeps() ++ Agg(
+      ivy"org.scala-native:::nscplugin:${scalaNativeVersion()}"
+    )
+  }
 
   def logLevel: Target[NativeLogLevel] = T { NativeLogLevel.Info }
 
