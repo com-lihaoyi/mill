@@ -73,11 +73,23 @@ trait JavaModule
   }
 
   /**
+   * Mandatory ivy dependencies that are typically always required and shouldn't be removed by
+   * overriding [[ivyDeps]], e.g. the scala-library in the [[ScalaModule]].
+   */
+  def mandatoryIvyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+
+  /**
    * Any ivy dependencies you want to add to this Module, in the format
    * ivy"org::name:version" for Scala dependencies or ivy"org:name:version"
    * for Java dependencies
    */
   def ivyDeps: T[Agg[Dep]] = T { Agg.empty[Dep] }
+
+  /**
+   * Aggregation of mandatoryIvyDeps and ivyDeps.
+   * In most cases, instead of overriding this Target you want to override `ivyDeps` instead.
+   */
+  def allIvyDeps: T[Agg[Dep]] = T { mandatoryIvyDeps() ++ ivyDeps() }
 
   /**
    * Same as `ivyDeps`, but only present at compile time. Useful for e.g.
@@ -152,10 +164,11 @@ trait JavaModule
   def unmanagedClasspath: T[Agg[PathRef]] = T { Agg.empty[PathRef] }
 
   /**
-   * The transitive ivy dependencies of this module and all it's upstream modules
+   * The transitive ivy dependencies of this module and all it's upstream modules.
+   * This is calculated from [[ivyDeps]], [[mandatoryIvyDeps]] and recursively from [[moduleDeps]].
    */
   def transitiveIvyDeps: T[Agg[Dep]] = T {
-    ivyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
+    ivyDeps() ++ mandatoryIvyDeps() ++ T.traverse(moduleDeps)(_.transitiveIvyDeps)().flatten
   }
 
   /**
@@ -272,8 +285,13 @@ trait JavaModule
       resolvedIvyDeps()
   }
 
+  /**
+   * Resolved dependencies based on [[transitiveIvyDeps]] and [[transitiveCompileIvyDeps]].
+   */
   def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { transitiveCompileIvyDeps() ++ transitiveIvyDeps() })()
+    resolveDeps(T.task {
+      transitiveCompileIvyDeps() ++ transitiveIvyDeps()
+    })()
   }
 
   /**
@@ -287,7 +305,9 @@ trait JavaModule
   }
 
   def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task { runIvyDeps() ++ transitiveIvyDeps() })()
+    resolveDeps(T.task {
+      runIvyDeps() ++ transitiveIvyDeps()
+    })()
   }
 
   /**

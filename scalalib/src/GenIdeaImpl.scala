@@ -128,28 +128,21 @@ case class GenIdeaImpl(
             res.items.toList.map(_.path)
         }
 
-    val buildDepsPaths = Try(
-      evaluator.rootModule.getClass.getClassLoader
-        .asInstanceOf[SpecialClassLoader]
-    )
-      .map {
-        _.allJars
-          .map(url => os.Path(url.getFile))
-          .filter(_.toIO.exists)
-      }
-      .getOrElse(Seq())
+    val buildDepsPaths =
+      Try(evaluator.rootModule.getClass.getClassLoader.asInstanceOf[SpecialClassLoader])
+        .map {
+          _.allJars
+            .map(url => os.Path(url.getFile))
+            .filter(_.toIO.exists)
+        }
+        .getOrElse(Seq())
 
     def resolveTasks: Seq[Task[ResolvedModule]] = modules.map {
       case (path, mod) => {
 
-        val scalaLibraryIvyDeps: Task[Agg[Dep]] = mod match {
-          case x: ScalaModule => x.scalaLibraryIvyDeps
-          case _ => T.task { Agg.empty[Dep] }
-        }
-
+        // same as input of resolvedIvyDeps
         val allIvyDeps = T.task {
-          mod.transitiveIvyDeps() ++ scalaLibraryIvyDeps() ++ mod
-            .transitiveCompileIvyDeps()
+          mod.transitiveIvyDeps() ++ mod.transitiveCompileIvyDeps()
         }
 
         val scalaCompilerClasspath = mod match {
@@ -161,11 +154,11 @@ case class GenIdeaImpl(
         }
 
         val externalLibraryDependencies = T.task {
-          mod.resolveDeps(scalaLibraryIvyDeps)()
+          mod.resolveDeps(mod.mandatoryIvyDeps)()
         }
 
         val externalDependencies = T.task {
-          mod.resolveDeps(allIvyDeps)() ++
+          mod.resolvedIvyDeps() ++
             T.traverse(mod.transitiveModuleDeps)(_.unmanagedClasspath)().flatten
         }
         val extCompileIvyDeps = mod.resolveDeps(mod.compileIvyDeps)
@@ -247,9 +240,9 @@ case class GenIdeaImpl(
     val moduleLabels = modules.map(_.swap).toMap
 
     val allResolved: Seq[Path] =
-      (resolvedModules.flatMap(_.classpath).map(_.value) ++
-        buildLibraryPaths ++
-        buildDepsPaths).distinct
+      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+        .distinct
+        .sorted
 
     val librariesProperties: Map[Path, (Agg[Path], Option[String])] = resolvedModules
       .flatMap(x => x.libraryClasspath.map(_ -> (x.compilerClasspath, x.scalaVersion)))
