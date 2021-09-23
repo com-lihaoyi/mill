@@ -3,13 +3,12 @@ package scalalib
 
 import coursier.{Dependency, Repository}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
-import mill.api.{PathRef, Result}
+import mill.api.{DummyInputStream, Loose, PathRef, Result}
 import mill.modules.Jvm
 import mill.modules.Jvm.createJar
 import mill.scalalib.api.Util.{isDotty, isDottyOrScala3, isScala3, isScala3Milestone}
 import Lib._
 import mill.api.Loose.Agg
-import mill.api.DummyInputStream
 
 /**
  * Core configuration required to compile a single Scala compilation target
@@ -155,8 +154,13 @@ trait ScalaModule extends JavaModule { outer =>
     resolveDeps(scalaDocPluginIvyDeps)()
   }
 
-  def scalaLibraryIvyDeps = T {
+  def scalaLibraryIvyDeps: T[Agg[Dep]] = T {
     scalaRuntimeIvyDeps(scalaOrganization(), scalaVersion())
+  }
+
+  /** Adds the Scala Library is a mandatory dependency. */
+  override def mandatoryIvyDeps: T[Agg[Dep]] = T {
+    super.mandatoryIvyDeps() ++ scalaLibraryIvyDeps()
   }
 
   /**
@@ -171,20 +175,7 @@ trait ScalaModule extends JavaModule { outer =>
     )()
   }
 
-  override def resolvedIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      transitiveCompileIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
-    })()
-  }
-
-  override def resolvedRunIvyDeps: T[Agg[PathRef]] = T {
-    resolveDeps(T.task {
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps()
-    })()
-  }
-
   override def compile: T[mill.scalalib.api.CompilationResult] = T.persistent {
-
     zincWorker
       .worker()
       .compileMixed(
@@ -203,7 +194,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def docSources: Sources = T.sources {
     // Scaladoc 3.0.0 is consuming tasty files
-    if(isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion())) Seq(compile().classes)
+    if (isScala3(scalaVersion()) && !isScala3Milestone(scalaVersion())) Seq(compile().classes)
     else allSources()
   }
 
@@ -366,7 +357,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   def resolvedAmmoniteReplIvyDeps = T {
     resolveDeps(T.task {
-      runIvyDeps() ++ scalaLibraryIvyDeps() ++ transitiveIvyDeps() ++
+      runIvyDeps() ++ transitiveIvyDeps() ++
         Agg(ivy"com.lihaoyi:::ammonite:${ammoniteVersion()}")
     })()
   }
@@ -420,7 +411,7 @@ trait ScalaModule extends JavaModule { outer =>
     ()
   }
 
-  override def manifest: T[Jvm.JarManifest] = T{
+  override def manifest: T[Jvm.JarManifest] = T {
     super.manifest().add("Scala-Version" -> scalaVersion())
   }
 }

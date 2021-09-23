@@ -215,6 +215,9 @@ corresponding version of Mill.
 
 _Changes since {prev-version}:_
 
+* New `JavaModule.mandatoryIvyDeps` target to provide essential dependencies like scala-library without forcing the user to call `super.ivyDeps`
+* `ScalaJSModule.scalaLibraryIvyDeps` no longer contains the scala-js-library, but only the scala-library; if you need that, use `ScalaJSModule.mandatoryIvyDeps` instead.
+
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
 and the {link-compare}/{prev-version}\...{version}[list of commits]._
