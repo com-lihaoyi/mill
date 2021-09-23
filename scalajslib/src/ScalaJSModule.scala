@@ -169,8 +169,10 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
       }
     }
   }
-  override def scalaLibraryIvyDeps = T {
-    super.scalaLibraryIvyDeps() ++ Seq(
+
+  /** Adds the Scala.js Library as mandatory dependency. */
+  override def mandatoryIvyDeps = T {
+    super.mandatoryIvyDeps() ++ Seq(
       ivy"org.scala-js::scalajs-library:${scalaJSVersion()}".withDottyCompat(scalaVersion())
     )
   }

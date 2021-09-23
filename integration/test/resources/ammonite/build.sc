@@ -22,9 +22,8 @@ trait AmmInternalModule extends mill.scalalib.CrossSbtModule{
     def testFrameworks = Seq("utest.runner.Framework")
     def forkArgs = Seq("-XX:MaxPermSize=2g", "-Xmx4g", "-Dfile.encoding=UTF8")
   }
-  def allIvyDeps = T{transitiveIvyDeps() ++ scalaLibraryIvyDeps()}
   def externalSources = T{
-    resolveDeps(allIvyDeps, sources = true)()
+    resolveDeps(transitiveIvyDeps, sources = true)()
   }
 }
 trait AmmModule extends AmmInternalModule with PublishModule{
