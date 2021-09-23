@@ -19,6 +19,7 @@ object GenIdeaExtendedTests extends ScriptTestSuite(false) {
       Seq(
         os.sub / "mill_modules" / "helloworld.iml",
         os.sub / "mill_modules" / "helloworld.test.iml",
+        os.sub / "mill_modules" / "helloworld.subscala3.iml",
         os.sub / "mill_modules" / "mill-build.iml",
         os.sub / "libraries" / "scala_library_2_13_6_jar.xml",
         os.sub / "modules.xml",
