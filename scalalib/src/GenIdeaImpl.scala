@@ -308,8 +308,14 @@ case class GenIdeaImpl(
       .groupBy(_.last)
       .filter(_._2.size > 1)
       .view
+      .mapValues(_.sorted)
       .mapValues(_.zipWithIndex)
-      .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
+      .flatMap(y =>
+        y._2.map {
+          case (path, 0) => path -> y._1
+          case (path, idx) => path -> s"${y._1} (${idx})"
+        }
+      )
       .toMap
 
     val pathToLibName = allResolved
