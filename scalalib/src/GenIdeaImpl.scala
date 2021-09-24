@@ -466,7 +466,7 @@ case class GenIdeaImpl(
               case _ if name.startsWith("scala-library-2.11.") => Some("Scala_2_11")
               case _ if name.startsWith("scala-library-2.10.") => Some("Scala_2_10")
               case _ if name.startsWith("scala-library-2.9.") => Some("Scala_2_9")
-              case _ if name.startsWith("dotty-version-0.27") => Some("Scala_0_27")
+              case _ if name.startsWith("dotty-library-0.27") => Some("Scala_0_27")
               case _ => None
             }
             Tuple2(
