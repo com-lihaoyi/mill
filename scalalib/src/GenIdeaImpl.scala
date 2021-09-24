@@ -8,9 +8,9 @@ import ammonite.runtime.SpecialClassLoader
 import coursier.core.compatibility.xmlParseDom
 import coursier.maven.Pom
 import coursier.{LocalRepositories, Repositories, Repository}
+import mill.Agg
 import mill.api.Ctx.{Home, Log}
-import mill.api.Strict.Agg
-import mill.api.{Loose, PathRef, Result, Strict}
+import mill.api.{PathRef, Result, Strict}
 import mill.define._
 import mill.eval.Evaluator
 import mill.modules.Util
@@ -149,7 +149,7 @@ case class GenIdeaImpl(
           case x: ScalaModule => x.scalaCompilerClasspath
           case _ =>
             T.task {
-              Loose.Agg.empty[PathRef]
+              Agg.empty[PathRef]
             }
         }
 
@@ -169,14 +169,13 @@ case class GenIdeaImpl(
         }
 
         val (scalacPluginsIvyDeps, allScalacOptions) = mod match {
-          case mod: ScalaModule =>
-            T.task {
-              mod.scalacPluginIvyDeps()
-            } -> T.task {
-              mod.allScalacOptions()
-            }
-          case _ => T.task(Loose.Agg[Dep]()) -> T.task(Seq())
+          case mod: ScalaModule => (
+              T.task(mod.scalacPluginIvyDeps()),
+              T.task(mod.allScalacOptions())
+            )
+          case _ => (T.task { Agg[Dep]() }, T.task { Seq() })
         }
+
         val scalacPluginDependencies = T.task {
           mod.resolveDeps(scalacPluginsIvyDeps)()
         }
@@ -194,7 +193,7 @@ case class GenIdeaImpl(
         }
 
         T.task {
-          val resolvedCp: Loose.Agg[Scoped[Path]] =
+          val resolvedCp: Agg[Scoped[Path]] =
             externalDependencies().map(_.path).map(Scoped(_, None)) ++
               extCompileIvyDeps()
                 .map(_.path)
@@ -202,11 +201,11 @@ case class GenIdeaImpl(
               extRunIvyDeps().map(_.path).map(Scoped(_, Some("RUNTIME")))
           // unused, but we want to trigger sources, to have them available (automatically)
           // TODO: make this a separate eval to handle resolve errors
-          val resolvedSrcs: Loose.Agg[PathRef] = externalSources()
-          val resolvedSp: Loose.Agg[PathRef] = scalacPluginDependencies()
-          val resolvedCompilerCp: Loose.Agg[PathRef] =
+          val resolvedSrcs: Agg[PathRef] = externalSources()
+          val resolvedSp: Agg[PathRef] = scalacPluginDependencies()
+          val resolvedCompilerCp: Agg[PathRef] =
             scalaCompilerClasspath()
-          val resolvedLibraryCp: Loose.Agg[PathRef] =
+          val resolvedLibraryCp: Agg[PathRef] =
             externalLibraryDependencies()
           val scalacOpts: Seq[String] = allScalacOptions()
           val resolvedFacets: Seq[JavaFacet] = facets()
@@ -232,22 +231,23 @@ case class GenIdeaImpl(
       }
     }
 
-    val resolved: Seq[ResolvedModule] =
+    val resolvedModules: Seq[ResolvedModule] =
       evalOrElse(evaluator, T.sequence(resolveTasks), Seq())
 
     val moduleLabels = modules.map(_.swap).toMap
 
     val allResolved: Seq[Path] =
-      (resolved.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
+      (resolvedModules.flatMap(_.classpath).map(_.value) ++ buildLibraryPaths ++ buildDepsPaths)
         .distinct
         .sorted
 
-    val librariesProperties = resolved
-      .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
-      .toMap
+    val librariesProperties: Map[Path, Agg[Path]] =
+      resolvedModules
+        .flatMap(x => x.libraryClasspath.map(_ -> x.compilerClasspath))
+        .toMap
 
     val (wholeFileConfigs, configFileContributions) =
-      resolved
+      resolvedModules
         .flatMap(_.configFileContributions)
         .partition(_.asWholeFile.isDefined)
 
@@ -308,8 +308,14 @@ case class GenIdeaImpl(
       .groupBy(_.last)
       .filter(_._2.size > 1)
       .view
+      .mapValues(_.sorted)
       .mapValues(_.zipWithIndex)
-      .flatMap(y => y._2.map(x => x._1 -> s"${y._1} (${x._2})"))
+      .flatMap(y =>
+        y._2.map {
+          case (path, 0) => path -> y._1
+          case (path, idx) => path -> s"${y._1} (${idx})"
+        }
+      )
       .toMap
 
     val pathToLibName = allResolved
@@ -408,8 +414,8 @@ case class GenIdeaImpl(
         .map(toResolvedJar)
         .collect { case Some(r) => r }
 
-    val compilerSettings = resolved
-      .foldLeft(Map[(Loose.Agg[os.Path], Seq[String]), Vector[JavaModule]]()) {
+    val compilerSettings = resolvedModules
+      .foldLeft(Map[(Agg[os.Path], Seq[String]), Vector[JavaModule]]()) {
         (r, q) =>
           val key = (q.pluginClasspath, q.scalaOptions)
           r + (key -> (r.getOrElse(key, Vector()) :+ q.module))
@@ -443,7 +449,6 @@ case class GenIdeaImpl(
 
     val libraries: Seq[(SubPath, Elem)] =
       resolvedLibraries(allResolved).flatMap { resolved =>
-        import resolved.path
         val names = libraryNames(resolved)
         val sources = resolved match {
           case CoursierResolved(_, _, s) => s
@@ -451,19 +456,33 @@ case class GenIdeaImpl(
           case OtherResolved(_) => None
         }
         for (name <- names)
-          yield Tuple2(
-            os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
-            libraryXmlTemplate(
-              name = name,
-              path = path,
-              sources = sources,
-              scalaCompilerClassPath =
-                librariesProperties.getOrElse(path, Loose.Agg.empty)
+          yield {
+            val compilerCp: Agg[Path] = librariesProperties.getOrElse(resolved.path, Agg.empty)
+            val languageLevel = name match {
+              case _ if compilerCp.iterator.isEmpty => None
+              case _ if name.startsWith("scala3-library_3-3.0.") => Some("Scala_3_0")
+              case _ if name.startsWith("scala-library-2.13.") => Some("Scala_2_13")
+              case _ if name.startsWith("scala-library-2.12.") => Some("Scala_2_12")
+              case _ if name.startsWith("scala-library-2.11.") => Some("Scala_2_11")
+              case _ if name.startsWith("scala-library-2.10.") => Some("Scala_2_10")
+              case _ if name.startsWith("scala-library-2.9.") => Some("Scala_2_9")
+              case _ if name.startsWith("dotty-library-0.27") => Some("Scala_0_27")
+              case _ => None
+            }
+            Tuple2(
+              os.sub / "libraries" / s"${ideaifyLibraryName(name)}.xml",
+              libraryXmlTemplate(
+                name = name,
+                path = resolved.path,
+                sources = sources,
+                scalaCompilerClassPath = compilerCp,
+                languageLevel = languageLevel
+              )
             )
-          )
+          }
       }
 
-    val moduleFiles: Seq[(SubPath, Elem)] = resolved.map {
+    val moduleFiles: Seq[(SubPath, Elem)] = resolvedModules.map {
       case ResolvedModule(
             path,
             resolvedDeps,
@@ -704,7 +723,8 @@ case class GenIdeaImpl(
       name: String,
       path: os.Path,
       sources: Option[os.Path],
-      scalaCompilerClassPath: Loose.Agg[Path]
+      scalaCompilerClassPath: Agg[Path],
+      languageLevel: Option[String]
   ): Elem = {
     val isScalaLibrary = scalaCompilerClassPath.iterator.nonEmpty
     <component name="libraryTable">
@@ -712,9 +732,14 @@ case class GenIdeaImpl(
         {
       if (isScalaLibrary) {
         <properties>
-          <compiler-classpath>
+        {
+          if (languageLevel.isDefined) <language-level>{languageLevel.get}</language-level>
+        }
+        <compiler-classpath>
             {
-          scalaCompilerClassPath.toList.sortBy(_.wrapped).map(p => <root url={relativeFileUrl(p)}/>)
+          scalaCompilerClassPath.iterator.toSeq.sortBy(_.wrapped).map(p =>
+            <root url={relativeFileUrl(p)}/>
+          )
         }
           </compiler-classpath>
         </properties>
@@ -820,7 +845,7 @@ case class GenIdeaImpl(
     </module>
   }
   def scalaCompilerTemplate(
-      settings: Map[(Loose.Agg[os.Path], Seq[String]), Seq[JavaModule]]
+      settings: Map[(Agg[os.Path], Seq[String]), Seq[JavaModule]]
   ) = {
 
     <project version={"" + ideaConfigVersion}>
@@ -904,12 +929,12 @@ object GenIdeaImpl {
 
   final case class ResolvedModule(
       path: Segments,
-      classpath: Loose.Agg[Scoped[Path]],
+      classpath: Agg[Scoped[Path]],
       module: JavaModule,
-      pluginClasspath: Loose.Agg[Path],
+      pluginClasspath: Agg[Path],
       scalaOptions: Seq[String],
-      compilerClasspath: Loose.Agg[Path],
-      libraryClasspath: Loose.Agg[Path],
+      compilerClasspath: Agg[Path],
+      libraryClasspath: Agg[Path],
       facets: Seq[JavaFacet],
       configFileContributions: Seq[IdeaConfigFile],
       compilerOutput: Path
