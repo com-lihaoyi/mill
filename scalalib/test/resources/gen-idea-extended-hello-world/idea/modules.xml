@@ -3,6 +3,7 @@
         <modules>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/mill-build.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/mill-build.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloworld.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloworld.iml"/>
+            <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloworld.subscala3.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloworld.subscala3.iml"/>
             <module fileurl="file://$PROJECT_DIR$/.idea/mill_modules/helloworld.test.iml" filepath="$PROJECT_DIR$/.idea/mill_modules/helloworld.test.iml"/>
         </modules>
     </component>

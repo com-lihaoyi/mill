@@ -5,11 +5,15 @@ import mill.scalalib.GenIdeaModule._
 import mill.scalalib.TestModule
 
 trait HelloWorldModule extends scalalib.ScalaModule {
-  def scalaVersion = "2.12.4"
+  override def scalaVersion = "2.13.6"
   object test extends super.Tests with TestModule.Utest
 
-  def generatedSources = T {
-    Seq(PathRef(T.ctx().dest / "classes"))
+  override def generatedSources = T {
+    Seq(PathRef(T.dest / "classes"))
+  }
+
+  object subScala3 extends scalalib.ScalaModule {
+    override def scalaVersion = "3.0.2"
   }
 
   def ideaJavaModuleFacets(ideaConfigVersion: Int): Command[Seq[JavaFacet]] =

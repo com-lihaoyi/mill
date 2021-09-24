@@ -89,20 +89,23 @@ object GenIdeaTests extends ScriptTestSuite(false) {
       val workspacePath = initWorkspace()
       eval("mill.scalalib.GenIdea/idea")
 
-      Seq(
+      val checks = Seq(
         os.sub / "mill_modules" / "helloworld.iml",
         os.sub / "mill_modules" / "helloworld.test.iml",
         os.sub / "mill_modules" / "mill-build.iml",
         os.sub / "libraries" / "scala_library_2_12_4_jar.xml",
         os.sub / "modules.xml",
         os.sub / "misc.xml"
-      ).foreach { resource =>
-        assertIdeaXmlResourceMatchesFile(
-          workspaceSlug,
-          workspacePath,
-          resource
-        )
+      ).map { resource =>
+        Try {
+          assertIdeaXmlResourceMatchesFile(
+            workspaceSlug,
+            workspacePath,
+            resource
+          )
+        }
       }
+      assert(checks.forall(_.isSuccess))
     }
   }
 
