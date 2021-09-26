@@ -105,8 +105,16 @@ object Deps {
   val jarjarabrams = ivy"com.eed3si9n.jarjarabrams::jarjar-abrams-core:0.3.1"
 }
 
-def millVersion = T { VcsVersion.vcsState().format() }
-def millLastTag = T { VcsVersion.vcsState().lastTag.get }
+def millVersion: T[String] = T { VcsVersion.vcsState().format() }
+def millLastTag: T[String] = T { VcsVersion.vcsState().lastTag.get }
+def millBinPlatform: T[String] = T {
+  val tag = millLastTag()
+  if(tag.contains("-M")) tag
+  else {
+    val pos = if(tag.startsWith("0.")) 2 else 1
+    tag.split("[.]", pos + 1).take(pos).mkString(".")
+  }
+}
 def baseDir = build.millSourcePath
 
 trait MillPublishModule extends PublishModule {
@@ -215,24 +223,34 @@ object main extends MillModule {
 
     def generatedSources = T {
       val dest = T.ctx.dest
-      writeBuildInfo(dest, scalaVersion(), publishVersion(), T.traverse(dev.moduleDeps)(_.publishSelfDependency)())
+      writeBuildInfo(
+        dir = dest,
+        scalaVersion = scalaVersion(),
+        millVersion = publishVersion(),
+        millBinPlatform = millBinPlatform(),
+        artifacts = T.traverse(dev.moduleDeps)(_.publishSelfDependency)()
+      )
       shared.generateCoreSources(dest)
       Seq(PathRef(dest))
     }
 
-    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String, artifacts: Seq[Artifact]) = {
+    def writeBuildInfo(dir : os.Path, scalaVersion: String, millVersion: String, millBinPlatform: String, artifacts: Seq[Artifact]) = {
       val code = s"""
         |package mill
         |
         |object BuildInfo {
+        |  /** Scala version used to compile mill core. */
         |  val scalaVersion = "$scalaVersion"
+        |  /** Mill version. */
         |  val millVersion = "$millVersion"
-        |  /** Dependency artifacts embedded in mill by default. */
+        |  /** Mill binary platform version. */
+        |  val millBinPlatform = "$millBinPlatform"
+        |  /** Dependency artifacts embedded in mill assembly by default. */
         |  val millEmbeddedDeps = ${artifacts.map(artifact => s""""${artifact.group}:${artifact.id}:${artifact.version}"""")}
         |}
       """.stripMargin.trim
 
-      os.write(dir / "BuildInfo.scala", code)
+      os.write(dir / "mill" / "BuildInfo.scala", code, createFolders = true)
     }
   }
 

@@ -7,5 +7,5 @@
 * xref:Cross_Builds.adoc[]
 * xref:Extending_Mill.adoc[]
 * xref:Mill_Internals.adoc[]
-* xref:Contrib_Modules.adoc[]
-* xref:Thirdparty_Modules.adoc[]
+* xref:Contrib_Plugins.adoc[]
+* xref:Thirdparty_Plugins.adoc[]

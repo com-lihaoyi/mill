@@ -131,15 +131,16 @@ http://ammonite.io/#ScalaScripts[Ammonite Scripts]
 
 == import $ivy
 
-If you want to pull in artifacts from the public repositories (e.g. Maven Central) for use in your build, you can simply use `import $ivy`:
+If you want to pull in artifacts from the public repositories (e.g. Maven Central) for use in your build, you can simply use `import $ivy`.
 
-.`build.sc`
+
+.Example `build.sc`: Using `scalatags` library to generate HTML
 [source,scala]
 ----
-import $ivy.`com.lihaoyi::scalatags:0.6.2`
+import $ivy.`com.lihaoyi::scalatags:0.6.2` // <1>
 
 def generatedHtml = T {
-  import scalatags.Text.all._
+  import scalatags.Text.all._ // <2>
   html(
     head(),
     body(
@@ -149,13 +150,71 @@ def generatedHtml = T {
   ).render  
 }
 ----
+<1> Import the scalatags library from Mavel Central repository.
+<2> Creates the `generatedHtml` target which is used here to generate a simple Hello World HTML document. It can be used however you would like: written to a file, further processed, etc.
 
-This creates the `generatedHtml` target which can then be used however you would like: written to a file, further processed, etc.
-
-If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
+Please also read the next section xref:_using_mill_plugins_import_ivy[]].
 
 For more information, see Ammonite's
 http://ammonite.io/#import$ivy[Ivy Dependencies documentation].
+
+
+== Using Mill Plugins (`import $ivy`)
+
+Mill plugins are ordinary jars and are loaded as any other external dependency with xref:_import_ivy[`import $ivy`].
+
+Mill plugins are typically bound to a specific version or version range of Mill.
+To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:
+
+=== Use the specific Mill Binary Platform notation
+
+[source,scala]
+----
+// for classic Scala dependencies
+import $ivy.`<group>::<plugin>::<version>` // <1>
+// for dependencies specific to the exact Scala version
+import $ivy.`<group>:::<plugin>::<version>` // <2>
+----
+<1> This is equivalent to
++
+[source,scala]
+----
+import $ivy.`<group>::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+----
+<1> This is equivalent to
++
+[source,scala]
+----
+import $ivy.`<group>:::<plugin>_mill$MILL_BIN_PLATFORM:<version>`
+----
+
+
+=== Use special placeholders in your `import $ivy`
+
+`$MILL_VERSION` ::
++
+--
+to substitute the currently used Mill version.
+This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.
+
+.Example: Use `mill-contrib-bloop` plugin matching the current Mill version
+----
+import $ivy:`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`
+----
+--
+
+`$MILL_BIN_PLATFORM` ::
++
+--
+to substitute the currently used Mill binary platform.
+
+.Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
+----
+import $ivy:`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
+----
+--
+
+TIP: If you want to publish re-usable libraries that _other_ people can use in their builds, simply publish your code as a library to maven central.
 
 == Evaluator Commands (experimental)
 
