@@ -1,8 +1,14 @@
-= Contrib Modules / Plugins
+= Contrib Plugins
+:page-aliases: Contrib_Modules.adoc
 
 The ((plugins)) in this section are developed/maintained in the mill git tree.
 
-When using one of these contribution modules, it is important that the versions you load match your mill version. To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
+For details about including plugins in your `build.sc` read xref:Extending_Mill.adoc#_using_mill_plugins_import_ivy[Using Mill Plugins].
+
+[CAUTION]
+--
+When using one of these contribution modules, it is important that the versions you load match your mill version.
+To facilitate this, Mill will automatically replace the `$MILL_VERSION` literal in your ivy imports with the correct value.
 
 For instance:
 
@@ -10,6 +16,7 @@ For instance:
 ----
 import $ivy.`com.lihaoyi::mill-contrib-bloop:$MILL_VERSION`
 ----
+--
 
 == Artifactory
 
