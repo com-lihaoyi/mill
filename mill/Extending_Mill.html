@@ -115,10 +115,10 @@
     <a class="nav-link" href="Mill_Internals.html">Mill Internals</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Contrib_Modules.html">Contrib Modules / Plugins</a>
+    <a class="nav-link" href="Contrib_Plugins.html">Contrib Plugins</a>
   </li>
   <li class="nav-item" data-depth="1">
-    <a class="nav-link" href="Thirdparty_Modules.html">Thirdparty Modules / Plugins</a>
+    <a class="nav-link" href="Thirdparty_Plugins.html">Thirdparty Plugins</a>
   </li>
 </ul>
   </li>
@@ -128,14 +128,14 @@
 <div class="nav-panel-explore" data-panel="explore">
   <div class="context">
     <span class="title">Mill Documentation</span>
-    <span class="version">0.10.0-M2-13-5266b7</span>
+    <span class="version">0.10.0-M2-14-facdf5</span>
   </div>
   <ul class="components">
     <li class="component is-current">
       <a class="title" href="index.html">Mill Documentation</a>
       <ul class="versions">
         <li class="version is-current is-latest">
-          <a href="index.html">0.10.0-M2-13-5266b7</a>
+          <a href="index.html">0.10.0-M2-14-facdf5</a>
         </li>
         <li class="version">
           <a href="0.10.0-M2/index.html">0.10.0-M2</a>
@@ -170,9 +170,9 @@
   </ul>
 </nav>
 <div class="page-versions">
-  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M2-13-5266b7</button>
+  <button class="version-menu-toggle" title="Show other versions of page">0.10.0-M2-14-facdf5</button>
   <div class="version-menu">
-    <a class="version is-current" href="Extending_Mill.html">0.10.0-M2-13-5266b7</a>
+    <a class="version is-current" href="Extending_Mill.html">0.10.0-M2-14-facdf5</a>
     <a class="version" href="0.10.0-M2/Extending_Mill.html">0.10.0-M2</a>
     <a class="version" href="0.9.9/Extending_Mill.html">0.9.9</a>
     <a class="version" href="0.9.8/Extending_Mill.html">0.9.8</a>
@@ -349,15 +349,15 @@ def printFoo() = T.command { println(foo.fooValue()) }</code></pre>
 <h2 id="_import_ivy"><a class="anchor" href="#_import_ivy"></a>import $ivy</h2>
 <div class="sectionbody">
 <div class="paragraph">
-<p>If you want to pull in artifacts from the public repositories (e.g. Maven Central) for use in your build, you can simply use <code>import $ivy</code>:</p>
+<p>If you want to pull in artifacts from the public repositories (e.g. Maven Central) for use in your build, you can simply use <code>import $ivy</code>.</p>
 </div>
 <div class="listingblock">
-<div class="title"><code>build.sc</code></div>
+<div class="title">Example <code>build.sc</code>: Using <code>scalatags</code> library to generate HTML</div>
 <div class="content">
-<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::scalatags:0.6.2`
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`com.lihaoyi::scalatags:0.6.2` <i class="conum" data-value="1"></i><b>(1)</b>
 
 def generatedHtml = T {
-  import scalatags.Text.all._
+  import scalatags.Text.all._ <i class="conum" data-value="2"></i><b>(2)</b>
   html(
     head(),
     body(
@@ -368,15 +368,121 @@ def generatedHtml = T {
 }</code></pre>
 </div>
 </div>
-<div class="paragraph">
-<p>This creates the <code>generatedHtml</code> target which can then be used however you would like: written to a file, further processed, etc.</p>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>Import the scalatags library from Mavel Central repository.</td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>Creates the <code>generatedHtml</code> target which is used here to generate a simple Hello World HTML document. It can be used however you would like: written to a file, further processed, etc.</td>
+</tr>
+</tbody></table>
 </div>
 <div class="paragraph">
-<p>If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.</p>
+<p>Please also read the next section <a href="#_using_mill_plugins_import_ivy">Using Mill Plugins (<code>import $ivy</code>)</a>].</p>
 </div>
 <div class="paragraph">
 <p>For more information, see Ammonite’s
 <a href="http://ammonite.io/#import$ivy">Ivy Dependencies documentation</a>.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="_using_mill_plugins_import_ivy"><a class="anchor" href="#_using_mill_plugins_import_ivy"></a>Using Mill Plugins (<code>import $ivy</code>)</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Mill plugins are ordinary jars and are loaded as any other external dependency with <a href="#_import_ivy"><code>import $ivy</code></a>.</p>
+</div>
+<div class="paragraph">
+<p>Mill plugins are typically bound to a specific version or version range of Mill.
+To ease the use of the correct versions and avoid runtime issues (caused by binary incompatible plugins, which are hard to debug) you can apply one of the following techniques:</p>
+</div>
+<div class="sect2">
+<h3 id="_use_the_specific_mill_binary_platform_notation"><a class="anchor" href="#_use_the_specific_mill_binary_platform_notation"></a>Use the specific Mill Binary Platform notation</h3>
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">// for classic Scala dependencies
+import $ivy.`&lt;group&gt;::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="1"></i><b>(1)</b>
+// for dependencies specific to the exact Scala version
+import $ivy.`&lt;group&gt;:::&lt;plugin&gt;::&lt;version&gt;` <i class="conum" data-value="2"></i><b>(2)</b></code></pre>
+</div>
+</div>
+<div class="colist arabic">
+<table>
+<tbody><tr>
+<td><i class="conum" data-value="1"></i><b>1</b></td>
+<td>This is equivalent to
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+</div>
+</div></td>
+</tr>
+<tr>
+<td><i class="conum" data-value="2"></i><b>2</b></td>
+<td>This is equivalent to
+<div class="listingblock">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-scala hljs" data-lang="scala">import $ivy.`&lt;group&gt;:::&lt;plugin&gt;_mill$MILL_BIN_PLATFORM:&lt;version&gt;`</code></pre>
+</div>
+</div></td>
+</tr>
+</tbody></table>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_use_special_placeholders_in_your_import_ivy"><a class="anchor" href="#_use_special_placeholders_in_your_import_ivy"></a>Use special placeholders in your <code>import $ivy</code></h3>
+<div class="dlist">
+<dl>
+<dt class="hdlist1"><code>$MILL_VERSION</code> </dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>to substitute the currently used Mill version.
+This is typical required for Mill contrib modules, which are developed in the Mill repository and highly bound to the current Mill version.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Use <code>mill-contrib-bloop</code> plugin matching the current Mill version</div>
+<div class="content">
+<pre>import $ivy:`com.lihaoyi:mill-contrib-bloop:$MILL_VERSION`</pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+<dt class="hdlist1"><code>$MILL_BIN_PLATFORM</code> </dt>
+<dd>
+<div class="openblock">
+<div class="content">
+<div class="paragraph">
+<p>to substitute the currently used Mill binary platform.</p>
+</div>
+<div class="listingblock">
+<div class="title">Example: Using <code>mill-vcs-version</code> plugin matching the current Mill Binary Platfrom</div>
+<div class="content">
+<pre>import $ivy:`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`</pre>
+</div>
+</div>
+</div>
+</div>
+</dd>
+</dl>
+</div>
+<div class="admonitionblock tip">
+<table>
+<tbody><tr>
+<td class="icon">
+<i class="fa icon-tip" title="Tip"></i>
+</td>
+<td class="content">
+If you want to publish re-usable libraries that <em>other</em> people can use in their builds, simply publish your code as a library to maven central.
+</td>
+</tr>
+</tbody></table>
+</div>
 </div>
 </div>
 </div>
