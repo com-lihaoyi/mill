@@ -67,7 +67,7 @@ object Deps {
     "org.scalameta" -> "trees_2.13"
   )
   val asciidoctorj = ivy"org.asciidoctor:asciidoctorj:2.4.3"
-  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.6-33-1c6f6712"
+  val bloopConfig = ivy"ch.epfl.scala::bloop-config:1.4.9"
   val coursier = ivy"io.get-coursier::coursier:2.0.16+73-gddc6d9cc9"
   val flywayCore = ivy"org.flywaydb:flyway-core:6.5.7"
   val graphvizJava = ivy"guru.nidi:graphviz-java:0.18.1"
