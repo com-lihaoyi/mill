@@ -28,9 +28,9 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
   def scalaJSWorkerClasspath = T {
     val workerKey = "MILL_SCALAJS_WORKER_" + scalaJSWorkerVersion().replace('.', '_')
     mill.modules.Util.millProjectModule(
-      workerKey,
-      s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
-      repositoriesTask(),
+      key = workerKey,
+      artifact = s"mill-scalajslib-worker-${scalaJSWorkerVersion()}",
+      repositories = repositoriesTask(),
       resolveFilter = _.toString.contains("mill-scalajslib-worker")
     )
   }
@@ -56,11 +56,12 @@ trait ScalaJSModule extends scalalib.ScalaModule { outer =>
           ivy"${ScalaJSBuildInfo.Deps.scalajsEnvPhantomJs}"
         )
     }
+    // we need to use the scala-library of the currently running mill
     resolveDependencies(
       repositoriesTask(),
-      Lib.depToDependency(_, "2.13.1", ""),
+      Lib.depToDependency(_, mill.BuildInfo.scalaVersion, ""),
       commonDeps ++ envDeps,
-      ctx = Some(implicitly[mill.util.Ctx.Log])
+      ctx = Some(T.log)
     )
   }
 
