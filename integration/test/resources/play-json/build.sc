@@ -44,35 +44,35 @@ trait PlayJsonModule extends BaseModule with PublishModule /*with MiMa */{
     }
   }
 
-  def scalacOptions  = Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8")
-  def javacOptions = Seq("-encoding", "UTF-8", "-Xlint:-options")
+  override def scalacOptions  = Seq("-deprecation", "-feature", "-unchecked", "-encoding", "utf8")
+  override def javacOptions = Seq("-encoding", "UTF-8", "-Xlint:-options")
 
   def publishVersion = playJsonVersion.current
 }
 
 abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
   def crossScalaVersion: String
-  def millSourcePath = os.pwd /  "play-json"
-  def artifactName = "play-json"
+  override def millSourcePath = os.pwd /  "play-json"
+  override def artifactName = "play-json"
 
-  def sources = T.sources(
+  override def sources = T.sources(
     millSourcePath / platformSegment / "src" / "main",
     millSourcePath / "shared" / "src" / "main"
   )
 
-  def ivyDeps = Agg(
+  override def ivyDeps = Agg(
     ivy"${scalaOrganization()}:scala-reflect:${scalaVersion()}",
     ivy"org.typelevel::macro-compat::1.1.1"
   )
 
   private val macroParadise = ivy"org.scalamacros:::paradise:2.1.0"
 
-  def compileIvyDeps = Agg(
+  override def compileIvyDeps = Agg(
     macroParadise,
     ivy"${scalaOrganization()}:scala-compiler:${scalaVersion()}"
   )
 
-  def scalacPluginIvyDeps = Agg(macroParadise)
+  override def scalacPluginIvyDeps = Agg(macroParadise)
 
 //  def mimaBinaryIssueFilters = Seq(
 //    // AbstractFunction1 is in scala.runtime and isn't meant to be used by end users
@@ -89,8 +89,7 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 //    ProblemFilters.exclude[ReversedMissingMethodProblem]("play.api.libs.json.JsonConfiguration.optionHandlers")
 //  )
 
-  def generatedSources = T {
-
+  override def generatedSources = T {
 
     val dir = T.ctx.dest
     os.makeDir.all(dir / "play-json")
@@ -144,11 +143,11 @@ abstract class PlayJson(val platformSegment: String) extends PlayJsonModule {
 
 object playJsonJvm extends Cross[PlayJsonJvm](ScalaVersions:_*)
 class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
-  def moduleDeps = Seq(playFunctionalJvm(crossScalaVersion))
+  override def moduleDeps = Seq(playFunctionalJvm(crossScalaVersion))
 
   val jacksonVersion = "2.9.3"
 
-  def ivyDeps = super.ivyDeps() ++ Agg(
+  override def ivyDeps = super.ivyDeps() ++ Agg(
     ivy"joda-time:joda-time:2.9.9",
     ivy"com.fasterxml.jackson.core:jackson-core:$jacksonVersion",
     ivy"com.fasterxml.jackson.core:jackson-annotations:$jacksonVersion",
@@ -158,7 +157,7 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
   )
 
   trait Tests extends super.Tests {
-    def ivyDeps =
+    override def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest:3.0.5-M1",
         ivy"org.scalacheck::scalacheck:1.13.5",
@@ -167,7 +166,7 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
         specs2Core()
       )
 
-    def sources = {
+    override def sources = {
       val docSpecs = os.walk(millSourcePath / os.up / "docs" / "manual" / "working" / "scalaGuide")
         .filter(os.isDir)
         .filter(_.last=="code")
@@ -190,20 +189,20 @@ class PlayJsonJvm(val crossScalaVersion: String) extends PlayJson("jvm") {
 
 object playJsonJs extends Cross[PlayJsonJs](ScalaVersions:_*)
 class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with ScalaJSModule {
-  def moduleDeps = Seq(playFunctionalJs(crossScalaVersion))
+  override def moduleDeps = Seq(playFunctionalJs(crossScalaVersion))
 
   def scalaJSVersion = "0.6.32"
 
   // TODO: remove super[PlayJson].Tests with super[ScalaJSModule].Tests hack
   object test extends super[PlayJson].Tests with super[ScalaJSModule].Tests with Scalariform with TestModule.ScalaTest /* with Headers*/ {
-    def ivyDeps =
+    override def ivyDeps =
       Agg(
         ivy"org.scalatest::scalatest::3.0.5-M1",
         ivy"org.scalacheck::scalacheck::1.13.5",
         ivy"com.chuusai::shapeless::2.3.3"
       )
 
-    def sources = T.sources(
+    override def sources = T.sources(
       millSourcePath / platformSegment / "src" / "test",
       millSourcePath / "shared" / "src" / "test"
     )
@@ -211,8 +210,8 @@ class PlayJsonJs(val crossScalaVersion: String) extends PlayJson("js") with Scal
 }
 
 trait PlayFunctional extends PlayJsonModule {
-  def millSourcePath = os.pwd / "play-functional"
-  def artifactName = "play-functional"
+  override def millSourcePath = os.pwd / "play-functional"
+  override def artifactName = "play-functional"
 }
 
 object playFunctionalJvm extends Cross[PlayFunctionalJvm](ScalaVersions:_*)
@@ -225,26 +224,26 @@ class PlayFunctionalJs(val crossScalaVersion: String) extends PlayFunctional wit
 
 object playJoda extends Cross[PlayJoda](ScalaVersions:_*)
 class PlayJoda(val crossScalaVersion: String) extends PlayJsonModule {
-  def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
+  override def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
 
-  def millSourcePath = os.pwd / "play-json-joda"
-  def artifactName = "play-json-joda"
+  override def millSourcePath = os.pwd / "play-json-joda"
+  override def artifactName = "play-json-joda"
 
-  def ivyDeps = Agg(
+  override def ivyDeps = Agg(
     ivy"joda-time:joda-time:2.9.9"
   )
 
   object test extends Tests with TestModule.Specs2 {
-    def ivyDeps = Agg(specs2Core())
+    override def ivyDeps = Agg(specs2Core())
   }
 
 }
 
 object benchmarks extends Cross[Benchmarks](ScalaVersions:_*)
 class Benchmarks(val crossScalaVersion: String) extends BaseModule with Jmh {
-  def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
+  override def moduleDeps = Seq(playJsonJvm(crossScalaVersion))
 
-  def millSourcePath = os.pwd / "benchmarks"
+  override def millSourcePath = os.pwd / "benchmarks"
 }
 
 // TODO: we should have a way to "take all modules in this build"

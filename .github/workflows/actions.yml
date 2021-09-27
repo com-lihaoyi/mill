@@ -21,10 +21,15 @@ jobs:
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.antora.githubPages
+          # Caffeine tests require a published testng contrib module
+          - |
+            ./mill -i contrib.testng.publishLocal
+            ./mill -i integration.test "mill.integration.local.CaffeineTests"
         include:
           - java-version: 8
             # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
             buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
+
 
     runs-on: ubuntu-latest
 
@@ -37,11 +42,13 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Run '${{ matrix.buildcmd }}'
+      - name: Prepare git config
         run: |
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
-          ${{ matrix.buildcmd }}
+
+      - name: Run '${{ matrix.buildcmd }}'
+        run: ${{ matrix.buildcmd }}
 
   test-windows:
     strategy:
