@@ -1,6 +1,3 @@
-// we need to load mill-contrib-testng installed into local ivy repo while CI is preparing this test
-//interp.repositories() ++= Seq(coursierapi.Repository.ivy2Local())
-
 import mill._, mill.scalalib._, mill.scalalib.publish._, mill.scalajslib._
 import $file.playJsonVersion
 import $file.reformat
