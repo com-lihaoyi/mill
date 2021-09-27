@@ -21,15 +21,15 @@ jobs:
           # - ./mill -i integration.test "mill.integration.local.JawnTests"
           - ./mill -i integration.test "mill.integration.local.{AcyclicTests,AmmoniteTests,DocAnnotationsTests}"
           - ./mill -i docs.antora.githubPages
+          # Caffeine tests require a published testng contrib module
+          - |
+            ./mill -i contrib.testng.publishLocal
+            ./mill -i integration.test "mill.integration.local.CaffeineTests"
         include:
           - java-version: 8
             # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
             buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
-          - java-version: 11
-            # Caffeine tests require a published testng contrib module
-            buildcmd: |
-              ./mill -i contrib.testng.publishLocal
-              ./mill -i integration.test "mill.integration.local.CaffeineTests"
+
 
     runs-on: ubuntu-latest
 
