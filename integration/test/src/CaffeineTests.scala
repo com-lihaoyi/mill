@@ -4,6 +4,57 @@ import utest._
 
 class CaffeineTests(fork: Boolean)
     extends IntegrationTestSuite("MILL_CAFFEINE_REPO", "caffeine", fork) {
+
+  override def initWorkspace() = {
+    val path = super.initWorkspace()
+    // Fixes for caffeine test suite under Java11
+    os.walk(workspacePath).foreach { p =>
+      p.last match {
+        case "AsMapTest.java" =>
+          println(s"Patching ${p} ...")
+          os.write.over(
+            p,
+            os.read.lines(p)
+              .map(
+                _.replace(
+                  "map.keySet().toArray(null);",
+                  "map.keySet().toArray((Integer[]) null);"
+                )
+                  .replace(
+                    "map.values().toArray(null);",
+                    "map.values().toArray((Integer[]) null);"
+                  )
+                  .replace(
+                    "map.entrySet().toArray(null);",
+                    "map.entrySet().toArray((Integer[]) null);"
+                  )
+              )
+              .mkString("\n")
+          )
+        case "EmptyCachesTest.java" =>
+          println(s"Patching ${p} ...")
+          os.write.over(
+            p,
+            os.read.lines(p)
+              .map(
+                _.replace("keys.toArray(null);", "keys.toArray((Object[]) null);")
+                  .replace(
+                    "values.toArray(null);",
+                    "values.toArray((Object[]) null);"
+                  )
+                  .replace(
+                    "entries.toArray(null);",
+                    "entries.toArray((Entry<Object, Object>[]) null);"
+                  )
+              )
+              .mkString("\n")
+          )
+        case _ => // no patching needed
+      }
+    }
+    path
+  }
+
   val tests = Tests {
     initWorkspace()
     'test - {
