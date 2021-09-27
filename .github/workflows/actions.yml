@@ -26,8 +26,10 @@ jobs:
             # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
             buildcmd: ./mill -i integration.test "mill.integration.local.UpickleTests"
           - java-version: 11
-            # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
-            buildcmd: ./mill -i integration.test "mill.integration.local.CaffeineTests"
+            # Caffeine tests require a published testng contrib module
+            buildcmd: |
+              ./mill -i contrib.testng.publishLocal
+              ./mill -i integration.test "mill.integration.local.CaffeineTests"
 
     runs-on: ubuntu-latest
 
@@ -40,11 +42,13 @@ jobs:
         with:
           java-version: ${{ matrix.java-version }}
 
-      - name: Run '${{ matrix.buildcmd }}'
+      - name: Prepare git config
         run: |
           git config --add user.name "Mill GithHub Actions"
           git config --add user.email "mill-ci@localhost"
-          ${{ matrix.buildcmd }}
+
+      - name: Run '${{ matrix.buildcmd }}'
+        run: ${{ matrix.buildcmd }}
 
   test-windows:
     strategy:
