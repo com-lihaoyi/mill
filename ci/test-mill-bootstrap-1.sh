@@ -8,8 +8,7 @@ git stash -a
 
 # First build
 ./mill -i "{__.publishLocal,dev.assembly}"
-mkdir -p target
-cp out/dev/assembly/dest/mill target/mill-1
+cp out/dev/assembly/dest/mill ~/mill-1
 
 # Clean up
 git stash -u
@@ -25,9 +24,8 @@ echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 ci/patch-mill-bootstrap.sh
 
 # Second build
-target/mill-1 -i "{__.publishLocal,dev.assembly}"
-mkdir -p target
-cp out/dev/assembly/dest/mill target/mill-2
+~/mill-1 -i "{__.publishLocal,dev.assembly}"
+cp out/dev/assembly/dest/mill ~/mill-2
 
 # Clean up
 git stash -u
@@ -39,4 +37,4 @@ rm -rf ~/.mill/ammonite
 ci/patch-mill-bootstrap.sh
 
 # Use second build to run tests using Mill
-target/mill-2 -i all contrib.__.test
+~/mill-2 -i all contrib.__.test
