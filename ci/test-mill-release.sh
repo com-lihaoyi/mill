@@ -13,7 +13,7 @@ ci/publish-local.sh
 git stash -u
 git stash -a
 
-rm -rf ~/.mill
+rm -rf ~/.mill/ammonite
 
 # Patch local build
 ci/patch-mill-bootstrap.sh
