@@ -8,7 +8,7 @@ git stash -a
 
 # First build
 ./mill -i "{__.publishLocal,dev.assembly}"
-cp out/dev/assembly/dest/mill ~/mill-1
+cp -v out/dev/assembly/dest/mill ~/mill-1
 
 # Clean up
 git stash -u
@@ -25,7 +25,7 @@ ci/patch-mill-bootstrap.sh
 
 # Second build
 ~/mill-1 -i "{__.publishLocal,dev.assembly}"
-cp out/dev/assembly/dest/mill ~/mill-2
+cp -v out/dev/assembly/dest/mill ~/mill-2
 
 # Clean up
 git stash -u
