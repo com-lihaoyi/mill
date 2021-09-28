@@ -210,7 +210,7 @@ to substitute the currently used Mill binary platform.
 
 .Example: Using `mill-vcs-version` plugin matching the current Mill Binary Platfrom
 ----
-import $ivy:`de.tototec::de.tobiasroeser.mill.vcs.version::0.1.2`
+import $ivy:`de.tototec::de.tobiasroeser.mill.vcs.version_mill$MILL_BIN_PLATFORM:0.1.2`
 ----
 --
 
