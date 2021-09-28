@@ -858,7 +858,7 @@ object dev extends MillModule {
   override def assembly = T{
     val isWin = scala.util.Properties.isWin
     val millPath = T.ctx.dest / (if (isWin) "mill.bat" else "mill")
-    os.move(super.assembly().path, millPath)
+    os.copy(super.assembly().path, millPath)
     PathRef(millPath)
   }
 
