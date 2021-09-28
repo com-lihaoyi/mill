@@ -9,7 +9,7 @@ git stash -a
 # Build Mill
 ./mill -i dev.assembly
 
-rm -rf ~/.mill
+rm -rf ~/.mill/ammonite
 
 # Patch local build
 ci/patch-mill-bootstrap.sh

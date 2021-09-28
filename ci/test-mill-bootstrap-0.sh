@@ -7,14 +7,14 @@ git stash -u
 git stash -a
 
 # First build
-./mill -i all __.publishLocal launcher
-cp out/launcher/dest/mill ~/mill-1
+./mill -i "{__.publishLocal,assembly}"
+cp out/assembly/dest/mill ~/mill-1
 
 # Clean up
 git stash -u
 git stash -a
 
-rm -rf ~/.mill
+rm -rf ~/.mill/ammonite
 
 # Differentiate first and second builds
 git config --global user.name "Your Name"
@@ -24,14 +24,14 @@ echo "Build 2" > info.txt && git add info.txt && git commit -m "Add info.txt"
 ci/patch-mill-bootstrap.sh
 
 # Second build
-~/mill-1 -i all __.publishLocal launcher
-cp out/launcher/dest/mill ~/mill-2
+~/mill-1 -i "{__.publishLocal,assembly}"
+cp out/assembly/dest/mill ~/mill-2
 
 # Clean up
 git stash -u
 git stash -a
 
-rm -rf ~/.mill
+rm -rf ~/.mill/ammonite
 
 # Patch local build
 ci/patch-mill-bootstrap.sh
