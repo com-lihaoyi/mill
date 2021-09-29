@@ -2,9 +2,11 @@ import $file.ci.shared
 import $file.ci.upload
 import $ivy.`org.scalaj::scalaj-http:2.4.2`
 import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.2`
+import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.4`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
+import com.github.lolgab.mill.mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -109,7 +111,9 @@ object Deps {
 }
 
 def millVersion: T[String] = T { VcsVersion.vcsState().format() }
-def millLastTag: T[String] = T { VcsVersion.vcsState().lastTag.get }
+def millLastTag: T[String] = T {
+  VcsVersion.vcsState().lastTag.getOrElse(sys.error("No (last) git tag found. Your git history seems incomplete!"))
+}
 def millBinPlatform: T[String] = T {
   val tag = millLastTag()
   if(tag.contains("-M")) tag
@@ -149,13 +153,14 @@ trait MillCoursierModule extends CoursierModule {
 trait MillApiModule
     extends MillPublishModule
     with ScalaModule
-    with MillCoursierModule {
+    with MillCoursierModule
+    with mima.Mima {
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-
+  override def mimaPreviousVersions: T[Seq[String]] = Seq("0.10.0-M2", millLastTag()).distinct
 }
 
 trait MillModule extends MillApiModule { outer =>
@@ -326,6 +331,17 @@ object scalalib extends MillModule {
     super.generatedSources() ++ Seq(PathRef(dest))
   }
 
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    // In Milestone-Phase we're allowed to break binary compatibility
+    Seq(
+      mima.ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.GenIdeaImpl.libraryXmlTemplate"),
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.ScalaModule.resolvedIvyDeps"),
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.ScalaModule.resolvedRunIvyDeps"),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$mandatoryIvyDeps")
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T{
     val genIdeaArgs =
@@ -434,6 +450,19 @@ object scalajslib extends MillModule {
 
   override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
 
+  // In Milestone-Phase we're allowed to break binary compatibility
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    Seq(
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem](
+        "mill.scalajslib.ScalaJSModule.scalaLibraryIvyDeps"
+      ),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$mandatoryIvyDeps"
+      )
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
     override def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -465,7 +494,6 @@ object scalajslib extends MillModule {
     }
   }
 }
-
 
 object contrib extends MillModule {
   object testng extends JavaModule with MillModule {
@@ -660,6 +688,15 @@ object scalanativelib extends MillModule {
     scalalib.backgroundwrapper.testArgs() ++
     (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
+  // In Milestone-Phase we're allowed to break binary compatibility
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    Seq(
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalanativelib.ScalaNativeModule.transitiveIvyDeps"),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$mandatoryIvyDeps")
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   object api extends MillPublishModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }

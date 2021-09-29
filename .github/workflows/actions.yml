@@ -25,6 +25,7 @@ jobs:
           - |
             ./mill -i contrib.testng.publishLocal
             ./mill -i integration.test "mill.integration.local.CaffeineTests"
+          - ./mill -i -k __.mimaReportBinaryIssues
         include:
           - java-version: 8
             # buildcmd: ./mill -i integration.test "mill.integration.local.{BetterFilesTests,UpickleTests}"
