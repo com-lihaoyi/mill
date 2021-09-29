@@ -1,0 +1,643 @@
+<svg width="3169pt" height="620pt"
+ viewBox="0.00 0.00 3169.04 620.00" xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink">
+<g id="graph0" class="graph" transform="scale(1 1) rotate(0) translate(4 616)">
+<title>example1</title>
+<polygon fill="#ffffff" stroke="transparent" points="-4,4 -4,-616 3165.043,-616 3165.043,4 -4,4"/>
+<!-- mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath -->
+<g id="node1" class="node">
+<title>mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="246.7413" cy="-162" rx="246.9828" ry="18"/>
+<text text-anchor="middle" x="246.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.classpath -->
+<g id="node2" class="node">
+<title>mill.scalalib.ZincWorkerModule.classpath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="687.7413" cy="-162" rx="175.9195" ry="18"/>
+<text text-anchor="middle" x="687.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.classpath</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.worker -->
+<g id="node3" class="node">
+<title>mill.scalalib.ZincWorkerModule.worker</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="613.7413" cy="-234" rx="167.8175" ry="18"/>
+<text text-anchor="middle" x="613.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">mill.scalalib.ZincWorkerModule.worker</text>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath -->
+<g id="edge1" class="edge">
+<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.compilerInterfaceClasspath</title>
+<path fill="none" stroke="#000000" d="M533.2016,-218.1993C477.1528,-207.2034 402.1559,-192.4901 342.9584,-180.8764"/>
+<polygon fill="#000000" stroke="#000000" points="343.3366,-177.3839 332.8499,-178.8932 341.989,-184.253 343.3366,-177.3839"/>
+</g>
+<!-- mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.classpath -->
+<g id="edge2" class="edge">
+<title>mill.scalalib.ZincWorkerModule.worker&#45;&gt;mill.scalalib.ZincWorkerModule.classpath</title>
+<path fill="none" stroke="#000000" d="M632.4146,-215.8314C641.4221,-207.0673 652.3682,-196.4171 662.1391,-186.9103"/>
+<polygon fill="#000000" stroke="#000000" points="664.6037,-189.3955 669.3303,-179.9134 659.7222,-184.3784 664.6037,-189.3955"/>
+</g>
+<!-- foo.upstreamCompileOutput -->
+<g id="node4" class="node">
+<title>foo.upstreamCompileOutput</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="921.7413" cy="-234" rx="121.6133" ry="18"/>
+<text text-anchor="middle" x="921.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.upstreamCompileOutput</text>
+</g>
+<!-- foo.sources -->
+<g id="node5" class="node">
+<title>foo.sources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2425.7413" cy="-90" rx="55.0585" ry="18"/>
+<text text-anchor="middle" x="2425.7413" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.sources</text>
+</g>
+<!-- foo.generatedSources -->
+<g id="node6" class="node">
+<title>foo.generatedSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2593.7413" cy="-90" rx="94.3447" ry="18"/>
+<text text-anchor="middle" x="2593.7413" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.generatedSources</text>
+</g>
+<!-- foo.allSources -->
+<g id="node7" class="node">
+<title>foo.allSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2589.7413" cy="-162" rx="66.5912" ry="18"/>
+<text text-anchor="middle" x="2589.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.allSources</text>
+</g>
+<!-- foo.allSources&#45;&gt;foo.sources -->
+<g id="edge3" class="edge">
+<title>foo.allSources&#45;&gt;foo.sources</title>
+<path fill="none" stroke="#000000" d="M2554.5592,-146.5542C2529.3281,-135.4771 2495.2035,-120.4956 2468.4156,-108.735"/>
+<polygon fill="#000000" stroke="#000000" points="2469.4717,-105.3763 2458.9083,-104.5611 2466.6578,-111.7858 2469.4717,-105.3763"/>
+</g>
+<!-- foo.allSources&#45;&gt;foo.generatedSources -->
+<g id="edge4" class="edge">
+<title>foo.allSources&#45;&gt;foo.generatedSources</title>
+<path fill="none" stroke="#000000" d="M2590.7506,-143.8314C2591.1784,-136.131 2591.6872,-126.9743 2592.1626,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2595.6581,-118.592 2592.7183,-108.4133 2588.6689,-118.2037 2595.6581,-118.592"/>
+</g>
+<!-- foo.allSourceFiles -->
+<g id="node8" class="node">
+<title>foo.allSourceFiles</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2222.7413" cy="-234" rx="81.6359" ry="18"/>
+<text text-anchor="middle" x="2222.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.allSourceFiles</text>
+</g>
+<!-- foo.allSourceFiles&#45;&gt;foo.allSources -->
+<g id="edge5" class="edge">
+<title>foo.allSourceFiles&#45;&gt;foo.allSources</title>
+<path fill="none" stroke="#000000" d="M2287.3575,-222.9467C2346.4465,-212.6167 2436.1912,-196.3686 2513.7413,-180 2519.1311,-178.8624 2524.7241,-177.6325 2530.3202,-176.3683"/>
+<polygon fill="#000000" stroke="#000000" points="2531.3882,-179.7144 2540.3532,-174.0683 2529.8239,-172.8914 2531.3882,-179.7144"/>
+</g>
+<!-- foo.transitiveLocalClasspath -->
+<g id="node9" class="node">
+<title>foo.transitiveLocalClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1805.7413" cy="-162" rx="121.5844" ry="18"/>
+<text text-anchor="middle" x="1805.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.transitiveLocalClasspath</text>
+</g>
+<!-- foo.resources -->
+<g id="node10" class="node">
+<title>foo.resources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2008.7413" cy="-162" rx="62.5615" ry="18"/>
+<text text-anchor="middle" x="2008.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.resources</text>
+</g>
+<!-- foo.unmanagedClasspath -->
+<g id="node11" class="node">
+<title>foo.unmanagedClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2197.7413" cy="-162" rx="108.2726" ry="18"/>
+<text text-anchor="middle" x="2197.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.unmanagedClasspath</text>
+</g>
+<!-- foo.scalaVersion -->
+<g id="node12" class="node">
+<title>foo.scalaVersion</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1423.7413" cy="-18" rx="76.3824" ry="18"/>
+<text text-anchor="middle" x="1423.7413" y="-13.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalaVersion</text>
+</g>
+<!-- foo.platformSuffix -->
+<g id="node13" class="node">
+<title>foo.platformSuffix</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1311.7413" cy="-162" rx="83.928" ry="18"/>
+<text text-anchor="middle" x="1311.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.platformSuffix</text>
+</g>
+<!-- foo.compileIvyDeps -->
+<g id="node14" class="node">
+<title>foo.compileIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2414.7413" cy="-162" rx="90.2926" ry="18"/>
+<text text-anchor="middle" x="2414.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.compileIvyDeps</text>
+</g>
+<!-- foo.scalaOrganization -->
+<g id="node15" class="node">
+<title>foo.scalaOrganization</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1423.7413" cy="-90" rx="96.0662" ry="18"/>
+<text text-anchor="middle" x="1423.7413" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalaOrganization</text>
+</g>
+<!-- foo.scalaOrganization&#45;&gt;foo.scalaVersion -->
+<g id="edge6" class="edge">
+<title>foo.scalaOrganization&#45;&gt;foo.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M1423.7413,-71.8314C1423.7413,-64.131 1423.7413,-54.9743 1423.7413,-46.4166"/>
+<polygon fill="#000000" stroke="#000000" points="1427.2414,-46.4132 1423.7413,-36.4133 1420.2414,-46.4133 1427.2414,-46.4132"/>
+</g>
+<!-- foo.scalaLibraryIvyDeps -->
+<g id="node16" class="node">
+<title>foo.scalaLibraryIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1558.7413" cy="-162" rx="107.0846" ry="18"/>
+<text text-anchor="middle" x="1558.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalaLibraryIvyDeps</text>
+</g>
+<!-- foo.scalaLibraryIvyDeps&#45;&gt;foo.scalaOrganization -->
+<g id="edge7" class="edge">
+<title>foo.scalaLibraryIvyDeps&#45;&gt;foo.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1526.4054,-144.7542C1507.9542,-134.9136 1484.6394,-122.479 1464.893,-111.9476"/>
+<polygon fill="#000000" stroke="#000000" points="1466.2839,-108.7228 1455.8133,-107.1051 1462.9898,-114.8992 1466.2839,-108.7228"/>
+</g>
+<!-- foo.ivyDeps -->
+<g id="node17" class="node">
+<title>foo.ivyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2769.7413" cy="-90" rx="58.5104" ry="18"/>
+<text text-anchor="middle" x="2769.7413" y="-85.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.ivyDeps</text>
+</g>
+<!-- foo.transitiveIvyDeps -->
+<g id="node18" class="node">
+<title>foo.transitiveIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2769.7413" cy="-162" rx="94.9436" ry="18"/>
+<text text-anchor="middle" x="2769.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.transitiveIvyDeps</text>
+</g>
+<!-- foo.transitiveIvyDeps&#45;&gt;foo.ivyDeps -->
+<g id="edge8" class="edge">
+<title>foo.transitiveIvyDeps&#45;&gt;foo.ivyDeps</title>
+<path fill="none" stroke="#000000" d="M2769.7413,-143.8314C2769.7413,-136.131 2769.7413,-126.9743 2769.7413,-118.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2773.2414,-118.4132 2769.7413,-108.4133 2766.2414,-118.4133 2773.2414,-118.4132"/>
+</g>
+<!-- foo.compileClasspath -->
+<g id="node19" class="node">
+<title>foo.compileClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2007.7413" cy="-234" rx="94.9629" ry="18"/>
+<text text-anchor="middle" x="2007.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.compileClasspath</text>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.transitiveLocalClasspath -->
+<g id="edge13" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.transitiveLocalClasspath</title>
+<path fill="none" stroke="#000000" d="M1962.9109,-218.0209C1933.2064,-207.4331 1893.9974,-193.4576 1862.1729,-182.1142"/>
+<polygon fill="#000000" stroke="#000000" points="1863.1468,-178.7457 1852.5521,-178.6851 1860.7965,-185.3394 1863.1468,-178.7457"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.resources -->
+<g id="edge14" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.resources</title>
+<path fill="none" stroke="#000000" d="M2007.9936,-215.8314C2008.1006,-208.131 2008.2277,-198.9743 2008.3466,-190.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2011.8462,-190.4609 2008.4855,-180.4133 2004.8469,-190.3637 2011.8462,-190.4609"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.unmanagedClasspath -->
+<g id="edge15" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.unmanagedClasspath</title>
+<path fill="none" stroke="#000000" d="M2050.381,-217.8418C2078.2218,-207.2916 2114.7876,-193.4351 2144.5291,-182.1646"/>
+<polygon fill="#000000" stroke="#000000" points="2145.8151,-185.4202 2153.9259,-178.6037 2143.3346,-178.8745 2145.8151,-185.4202"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.platformSuffix -->
+<g id="edge9" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1939.9072,-221.319C1927.8883,-219.3411 1915.4685,-217.4695 1903.7413,-216 1699.8233,-190.4479 1647.0733,-201.9972 1442.7413,-180 1425.8553,-178.1822 1407.7888,-175.9117 1390.6342,-173.6021"/>
+<polygon fill="#000000" stroke="#000000" points="1391.0364,-170.1247 1380.655,-172.2409 1390.0902,-177.0604 1391.0364,-170.1247"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.compileIvyDeps -->
+<g id="edge10" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.compileIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2077.8649,-221.7473C2140.0989,-210.8536 2233.4895,-194.4585 2314.7413,-180 2322.2513,-178.6636 2330.0774,-177.2651 2337.8986,-175.8636"/>
+<polygon fill="#000000" stroke="#000000" points="2338.5537,-179.3021 2347.7786,-174.0913 2337.3177,-172.412 2338.5537,-179.3021"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.scalaLibraryIvyDeps -->
+<g id="edge11" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.scalaLibraryIvyDeps</title>
+<path fill="none" stroke="#000000" d="M1937.8393,-221.7425C1926.448,-219.7907 1914.7702,-217.8174 1903.7413,-216 1878.9237,-211.9103 1741.3017,-190.4303 1647.5564,-175.8253"/>
+<polygon fill="#000000" stroke="#000000" points="1647.9108,-172.3384 1637.4912,-174.2574 1646.8333,-179.255 1647.9108,-172.3384"/>
+</g>
+<!-- foo.compileClasspath&#45;&gt;foo.transitiveIvyDeps -->
+<g id="edge12" class="edge">
+<title>foo.compileClasspath&#45;&gt;foo.transitiveIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2080.7325,-222.4518C2097.4617,-220.0703 2115.1929,-217.7563 2131.7413,-216 2368.2849,-190.8956 2429.5613,-208.3219 2665.7413,-180 2674.3335,-178.9697 2683.295,-177.7069 2692.197,-176.3325"/>
+<polygon fill="#000000" stroke="#000000" points="2692.8743,-179.7688 2702.1995,-174.7398 2691.7735,-172.8559 2692.8743,-179.7688"/>
+</g>
+<!-- foo.javacOptions -->
+<g id="node20" class="node">
+<title>foo.javacOptions</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1638.7413" cy="-234" rx="77.0496" ry="18"/>
+<text text-anchor="middle" x="1638.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.javacOptions</text>
+</g>
+<!-- foo.scalacOptions -->
+<g id="node21" class="node">
+<title>foo.scalacOptions</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1814.7413" cy="-234" rx="80.4766" ry="18"/>
+<text text-anchor="middle" x="1814.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalacOptions</text>
+</g>
+<!-- foo.scalaCompilerClasspath -->
+<g id="node22" class="node">
+<title>foo.scalaCompilerClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1423.7413" cy="-234" rx="119.7984" ry="18"/>
+<text text-anchor="middle" x="1423.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalaCompilerClasspath</text>
+</g>
+<!-- foo.scalaCompilerClasspath&#45;&gt;foo.platformSuffix -->
+<g id="edge16" class="edge">
+<title>foo.scalaCompilerClasspath&#45;&gt;foo.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1396.343,-216.3868C1381.4804,-206.8323 1362.9437,-194.9158 1347.0127,-184.6745"/>
+<polygon fill="#000000" stroke="#000000" points="1348.7747,-181.6464 1338.4702,-179.1829 1344.9894,-187.5346 1348.7747,-181.6464"/>
+</g>
+<!-- foo.scalaCompilerClasspath&#45;&gt;foo.scalaOrganization -->
+<g id="edge17" class="edge">
+<title>foo.scalaCompilerClasspath&#45;&gt;foo.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1423.7413,-215.7623C1423.7413,-191.201 1423.7413,-147.2474 1423.7413,-118.3541"/>
+<polygon fill="#000000" stroke="#000000" points="1427.2414,-118.0896 1423.7413,-108.0896 1420.2414,-118.0897 1427.2414,-118.0896"/>
+</g>
+<!-- foo.scalacPluginIvyDeps -->
+<g id="node23" class="node">
+<title>foo.scalacPluginIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1101.7413" cy="-162" rx="107.6873" ry="18"/>
+<text text-anchor="middle" x="1101.7413" y="-157.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalacPluginIvyDeps</text>
+</g>
+<!-- foo.scalacPluginClasspath -->
+<g id="node24" class="node">
+<title>foo.scalacPluginClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1173.7413" cy="-234" rx="112.8578" ry="18"/>
+<text text-anchor="middle" x="1173.7413" y="-229.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.scalacPluginClasspath</text>
+</g>
+<!-- foo.scalacPluginClasspath&#45;&gt;foo.platformSuffix -->
+<g id="edge18" class="edge">
+<title>foo.scalacPluginClasspath&#45;&gt;foo.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M1206.7957,-216.7542C1225.8806,-206.7969 1250.0557,-194.1838 1270.3915,-183.5738"/>
+<polygon fill="#000000" stroke="#000000" points="1272.1858,-186.5854 1279.4327,-178.8566 1268.9478,-180.3793 1272.1858,-186.5854"/>
+</g>
+<!-- foo.scalacPluginClasspath&#45;&gt;foo.scalaOrganization -->
+<g id="edge19" class="edge">
+<title>foo.scalacPluginClasspath&#45;&gt;foo.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M1088.3597,-222.1808C1022.3621,-209.5836 947.9614,-185.5813 984.7413,-144 1006.6848,-119.1919 1198.4347,-103.296 1321.1512,-95.5671"/>
+<polygon fill="#000000" stroke="#000000" points="1321.5681,-99.0481 1331.3318,-94.9346 1321.134,-92.0615 1321.5681,-99.0481"/>
+</g>
+<!-- foo.scalacPluginClasspath&#45;&gt;foo.scalacPluginIvyDeps -->
+<g id="edge20" class="edge">
+<title>foo.scalacPluginClasspath&#45;&gt;foo.scalacPluginIvyDeps</title>
+<path fill="none" stroke="#000000" d="M1155.9435,-216.2022C1147.1165,-207.3752 1136.3082,-196.5669 1126.672,-186.9307"/>
+<polygon fill="#000000" stroke="#000000" points="1129.1298,-184.4388 1119.5838,-179.8425 1124.18,-189.3885 1129.1298,-184.4388"/>
+</g>
+<!-- foo.compile -->
+<g id="node25" class="node">
+<title>foo.compile</title>
+<ellipse fill="none" stroke="#000000" cx="1559.7413" cy="-306" rx="57.3647" ry="18"/>
+<text text-anchor="middle" x="1559.7413" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.compile</text>
+</g>
+<!-- foo.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<g id="edge21" class="edge">
+<title>foo.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<path fill="none" stroke="#000000" d="M1503.2542,-302.6397C1375.9795,-294.9356 1057.0964,-274.8897 790.7413,-252 775.4684,-250.6875 759.465,-249.2074 743.5884,-247.674"/>
+<polygon fill="#000000" stroke="#000000" points="743.4748,-244.1464 733.1824,-246.6599 742.7958,-251.1134 743.4748,-244.1464"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.upstreamCompileOutput -->
+<g id="edge22" class="edge">
+<title>foo.compile&#45;&gt;foo.upstreamCompileOutput</title>
+<path fill="none" stroke="#000000" d="M1504.7997,-300.7356C1411.5455,-291.6712 1216.3665,-272.1418 1051.7413,-252 1041.2654,-250.7183 1030.3245,-249.3111 1019.4298,-247.8658"/>
+<polygon fill="#000000" stroke="#000000" points="1019.828,-244.388 1009.4521,-246.5303 1018.8993,-251.3261 1019.828,-244.388"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.allSourceFiles -->
+<g id="edge23" class="edge">
+<title>foo.compile&#45;&gt;foo.allSourceFiles</title>
+<path fill="none" stroke="#000000" d="M1615.8982,-301.6872C1715.8331,-293.7492 1931.0284,-275.4677 2111.7413,-252 2123.6144,-250.4581 2136.1691,-248.622 2148.3975,-246.721"/>
+<polygon fill="#000000" stroke="#000000" points="2149.2391,-250.1316 2158.5705,-245.1141 2148.1468,-243.2173 2149.2391,-250.1316"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.compileClasspath -->
+<g id="edge24" class="edge">
+<title>foo.compile&#45;&gt;foo.compileClasspath</title>
+<path fill="none" stroke="#000000" d="M1611.6501,-298.1108C1679.033,-287.8102 1800.2539,-269.0771 1903.7413,-252 1911.5818,-250.7062 1919.7505,-249.3342 1927.9111,-247.9476"/>
+<polygon fill="#000000" stroke="#000000" points="1928.57,-251.3858 1937.8386,-246.2533 1927.3923,-244.4856 1928.57,-251.3858"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.javacOptions -->
+<g id="edge25" class="edge">
+<title>foo.compile&#45;&gt;foo.javacOptions</title>
+<path fill="none" stroke="#000000" d="M1578.4632,-288.937C1588.4499,-279.8352 1600.9139,-268.4756 1611.9121,-258.4519"/>
+<polygon fill="#000000" stroke="#000000" points="1614.5717,-260.7636 1619.605,-251.4407 1609.8564,-255.5899 1614.5717,-260.7636"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.scalacOptions -->
+<g id="edge26" class="edge">
+<title>foo.compile&#45;&gt;foo.scalacOptions</title>
+<path fill="none" stroke="#000000" d="M1602.4225,-293.9488C1644.118,-282.176 1707.9618,-264.1495 1754.7551,-250.9373"/>
+<polygon fill="#000000" stroke="#000000" points="1755.7947,-254.2807 1764.4673,-248.195 1753.8925,-247.5441 1755.7947,-254.2807"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.scalaCompilerClasspath -->
+<g id="edge27" class="edge">
+<title>foo.compile&#45;&gt;foo.scalaCompilerClasspath</title>
+<path fill="none" stroke="#000000" d="M1530.2313,-290.3771C1511.3129,-280.3614 1486.4678,-267.2082 1465.5347,-256.1259"/>
+<polygon fill="#000000" stroke="#000000" points="1467.0059,-252.9446 1456.5303,-251.3589 1463.7306,-259.1311 1467.0059,-252.9446"/>
+</g>
+<!-- foo.compile&#45;&gt;foo.scalacPluginClasspath -->
+<g id="edge28" class="edge">
+<title>foo.compile&#45;&gt;foo.scalacPluginClasspath</title>
+<path fill="none" stroke="#000000" d="M1510.0688,-296.7347C1446.2492,-284.8305 1334.5289,-263.9915 1257.47,-249.6178"/>
+<polygon fill="#000000" stroke="#000000" points="1257.78,-246.1153 1247.3077,-247.7222 1256.4964,-252.9966 1257.78,-246.1153"/>
+</g>
+<!-- bar.upstreamCompileOutput -->
+<g id="node26" class="node">
+<title>bar.upstreamCompileOutput</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1554.7413" cy="-378" rx="121.0299" ry="18"/>
+<text text-anchor="middle" x="1554.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.upstreamCompileOutput</text>
+</g>
+<!-- bar.upstreamCompileOutput&#45;&gt;foo.compile -->
+<g id="edge29" class="edge">
+<title>bar.upstreamCompileOutput&#45;&gt;foo.compile</title>
+<path fill="none" stroke="#000000" d="M1556.003,-359.8314C1556.5377,-352.131 1557.1736,-342.9743 1557.7679,-334.4166"/>
+<polygon fill="#000000" stroke="#000000" points="1561.2613,-334.6317 1558.4626,-324.4133 1554.2781,-334.1467 1561.2613,-334.6317"/>
+</g>
+<!-- bar.sources -->
+<g id="node27" class="node">
+<title>bar.sources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1149.7413" cy="-378" rx="54.9752" ry="18"/>
+<text text-anchor="middle" x="1149.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.sources</text>
+</g>
+<!-- bar.generatedSources -->
+<g id="node28" class="node">
+<title>bar.generatedSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1316.7413" cy="-378" rx="93.7612" ry="18"/>
+<text text-anchor="middle" x="1316.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.generatedSources</text>
+</g>
+<!-- bar.allSources -->
+<g id="node29" class="node">
+<title>bar.allSources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1277.7413" cy="-450" rx="66.0077" ry="18"/>
+<text text-anchor="middle" x="1277.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.allSources</text>
+</g>
+<!-- bar.allSources&#45;&gt;bar.sources -->
+<g id="edge30" class="edge">
+<title>bar.allSources&#45;&gt;bar.sources</title>
+<path fill="none" stroke="#000000" d="M1248.6961,-433.6621C1230.2744,-423.2999 1206.2792,-409.8026 1186.5311,-398.6943"/>
+<polygon fill="#000000" stroke="#000000" points="1188.2236,-395.6306 1177.7919,-393.7784 1184.7917,-401.7316 1188.2236,-395.6306"/>
+</g>
+<!-- bar.allSources&#45;&gt;bar.generatedSources -->
+<g id="edge31" class="edge">
+<title>bar.allSources&#45;&gt;bar.generatedSources</title>
+<path fill="none" stroke="#000000" d="M1287.5826,-431.8314C1292.004,-423.6688 1297.3117,-413.87 1302.1798,-404.8827"/>
+<polygon fill="#000000" stroke="#000000" points="1305.3528,-406.3734 1307.0382,-395.9134 1299.1978,-403.0393 1305.3528,-406.3734"/>
+</g>
+<!-- bar.allSourceFiles -->
+<g id="node30" class="node">
+<title>bar.allSourceFiles</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1277.7413" cy="-522" rx="81.0524" ry="18"/>
+<text text-anchor="middle" x="1277.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.allSourceFiles</text>
+</g>
+<!-- bar.allSourceFiles&#45;&gt;bar.allSources -->
+<g id="edge32" class="edge">
+<title>bar.allSourceFiles&#45;&gt;bar.allSources</title>
+<path fill="none" stroke="#000000" d="M1277.7413,-503.8314C1277.7413,-496.131 1277.7413,-486.9743 1277.7413,-478.4166"/>
+<polygon fill="#000000" stroke="#000000" points="1281.2414,-478.4132 1277.7413,-468.4133 1274.2414,-478.4133 1281.2414,-478.4132"/>
+</g>
+<!-- foo.localClasspath -->
+<g id="node31" class="node">
+<title>foo.localClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1944.7413" cy="-378" rx="82.7819" ry="18"/>
+<text text-anchor="middle" x="1944.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">foo.localClasspath</text>
+</g>
+<!-- foo.localClasspath&#45;&gt;foo.compile -->
+<g id="edge33" class="edge">
+<title>foo.localClasspath&#45;&gt;foo.compile</title>
+<path fill="none" stroke="#000000" d="M1882.0275,-366.2717C1809.4239,-352.6939 1690.7149,-330.4938 1619.4244,-317.1615"/>
+<polygon fill="#000000" stroke="#000000" points="1619.7343,-313.6589 1609.2613,-315.2609 1618.4475,-320.5396 1619.7343,-313.6589"/>
+</g>
+<!-- bar.transitiveLocalClasspath -->
+<g id="node32" class="node">
+<title>bar.transitiveLocalClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2108.7413" cy="-450" rx="121.001" ry="18"/>
+<text text-anchor="middle" x="2108.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.transitiveLocalClasspath</text>
+</g>
+<!-- bar.transitiveLocalClasspath&#45;&gt;foo.localClasspath -->
+<g id="edge34" class="edge">
+<title>bar.transitiveLocalClasspath&#45;&gt;foo.localClasspath</title>
+<path fill="none" stroke="#000000" d="M2069.8756,-432.937C2046.1902,-422.5386 2015.7927,-409.1933 1990.8889,-398.2599"/>
+<polygon fill="#000000" stroke="#000000" points="1992.2021,-395.0141 1981.6387,-394.1989 1989.3882,-401.4236 1992.2021,-395.0141"/>
+</g>
+<!-- bar.resources -->
+<g id="node33" class="node">
+<title>bar.resources</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1907.7413" cy="-450" rx="62.4781" ry="18"/>
+<text text-anchor="middle" x="1907.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.resources</text>
+</g>
+<!-- bar.unmanagedClasspath -->
+<g id="node34" class="node">
+<title>bar.unmanagedClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1522.7413" cy="-450" rx="107.6892" ry="18"/>
+<text text-anchor="middle" x="1522.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.unmanagedClasspath</text>
+</g>
+<!-- bar.scalaVersion -->
+<g id="node35" class="node">
+<title>bar.scalaVersion</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2880.7413" cy="-306" rx="75.7987" ry="18"/>
+<text text-anchor="middle" x="2880.7413" y="-301.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalaVersion</text>
+</g>
+<!-- bar.platformSuffix -->
+<g id="node36" class="node">
+<title>bar.platformSuffix</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2769.7413" cy="-450" rx="83.3443" ry="18"/>
+<text text-anchor="middle" x="2769.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.platformSuffix</text>
+</g>
+<!-- bar.compileIvyDeps -->
+<g id="node37" class="node">
+<title>bar.compileIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1737.7413" cy="-450" rx="89.709" ry="18"/>
+<text text-anchor="middle" x="1737.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.compileIvyDeps</text>
+</g>
+<!-- bar.scalaOrganization -->
+<g id="node38" class="node">
+<title>bar.scalaOrganization</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2880.7413" cy="-378" rx="95.4826" ry="18"/>
+<text text-anchor="middle" x="2880.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalaOrganization</text>
+</g>
+<!-- bar.scalaOrganization&#45;&gt;bar.scalaVersion -->
+<g id="edge35" class="edge">
+<title>bar.scalaOrganization&#45;&gt;bar.scalaVersion</title>
+<path fill="none" stroke="#000000" d="M2880.7413,-359.8314C2880.7413,-352.131 2880.7413,-342.9743 2880.7413,-334.4166"/>
+<polygon fill="#000000" stroke="#000000" points="2884.2414,-334.4132 2880.7413,-324.4133 2877.2414,-334.4133 2884.2414,-334.4132"/>
+</g>
+<!-- bar.scalaLibraryIvyDeps -->
+<g id="node39" class="node">
+<title>bar.scalaLibraryIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2561.7413" cy="-450" rx="106.5013" ry="18"/>
+<text text-anchor="middle" x="2561.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalaLibraryIvyDeps</text>
+</g>
+<!-- bar.scalaLibraryIvyDeps&#45;&gt;bar.scalaOrganization -->
+<g id="edge36" class="edge">
+<title>bar.scalaLibraryIvyDeps&#45;&gt;bar.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M2625.912,-435.5163C2679.0086,-423.5322 2754.3676,-406.5232 2809.3597,-394.1112"/>
+<polygon fill="#000000" stroke="#000000" points="2810.3969,-397.4652 2819.3809,-391.8494 2808.8557,-390.637 2810.3969,-397.4652"/>
+</g>
+<!-- bar.ivyDeps -->
+<g id="node40" class="node">
+<title>bar.ivyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2428.7413" cy="-378" rx="57.927" ry="18"/>
+<text text-anchor="middle" x="2428.7413" y="-373.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.ivyDeps</text>
+</g>
+<!-- bar.transitiveIvyDeps -->
+<g id="node41" class="node">
+<title>bar.transitiveIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2342.7413" cy="-450" rx="94.3601" ry="18"/>
+<text text-anchor="middle" x="2342.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.transitiveIvyDeps</text>
+</g>
+<!-- bar.transitiveIvyDeps&#45;&gt;foo.transitiveIvyDeps -->
+<g id="edge37" class="edge">
+<title>bar.transitiveIvyDeps&#45;&gt;foo.transitiveIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2342.0851,-431.8374C2342.3109,-412.1461 2345.5128,-380.7589 2361.7413,-360 2445.2557,-253.1712 2601.0602,-200.4671 2694.0898,-177.4129"/>
+<polygon fill="#000000" stroke="#000000" points="2695.1086,-180.7674 2704.0024,-175.0097 2693.4593,-173.9644 2695.1086,-180.7674"/>
+</g>
+<!-- bar.transitiveIvyDeps&#45;&gt;bar.ivyDeps -->
+<g id="edge38" class="edge">
+<title>bar.transitiveIvyDeps&#45;&gt;bar.ivyDeps</title>
+<path fill="none" stroke="#000000" d="M2363.9997,-432.2022C2374.9923,-422.9991 2388.5575,-411.6423 2400.4262,-401.7056"/>
+<polygon fill="#000000" stroke="#000000" points="2402.8988,-404.2003 2408.3196,-395.0972 2398.4052,-398.833 2402.8988,-404.2003"/>
+</g>
+<!-- bar.compileClasspath -->
+<g id="node42" class="node">
+<title>bar.compileClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="1997.7413" cy="-522" rx="94.3794" ry="18"/>
+<text text-anchor="middle" x="1997.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.compileClasspath</text>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.transitiveLocalClasspath -->
+<g id="edge43" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.transitiveLocalClasspath</title>
+<path fill="none" stroke="#000000" d="M2024.6113,-504.5708C2039.1198,-495.1599 2057.223,-483.4173 2072.9156,-473.2383"/>
+<polygon fill="#000000" stroke="#000000" points="2074.8626,-476.1472 2081.3476,-467.7689 2071.0533,-470.2745 2074.8626,-476.1472"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.resources -->
+<g id="edge44" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.resources</title>
+<path fill="none" stroke="#000000" d="M1975.4941,-504.2022C1963.8796,-494.9106 1949.5209,-483.4237 1937.0155,-473.4194"/>
+<polygon fill="#000000" stroke="#000000" points="1939.108,-470.6112 1929.1128,-467.0972 1934.7351,-476.0773 1939.108,-470.6112"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.unmanagedClasspath -->
+<g id="edge45" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.unmanagedClasspath</title>
+<path fill="none" stroke="#000000" d="M1923.1245,-510.8795C1850.5009,-500.0317 1737.0265,-483.0174 1638.7413,-468 1629.9384,-466.655 1620.7611,-465.2447 1611.5936,-463.8306"/>
+<polygon fill="#000000" stroke="#000000" points="1612.0851,-460.3651 1601.668,-462.2976 1611.0165,-467.2831 1612.0851,-460.3651"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.platformSuffix -->
+<g id="edge39" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M2064.6241,-509.2051C2076.6158,-507.2273 2089.0234,-505.3851 2100.7413,-504 2355.9079,-473.8376 2422.8924,-500.7381 2677.7413,-468 2685.1491,-467.0484 2692.8575,-465.8595 2700.5205,-464.5491"/>
+<polygon fill="#000000" stroke="#000000" points="2701.3072,-467.9641 2710.5392,-462.766 2700.0806,-461.0724 2701.3072,-467.9641"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.compileIvyDeps -->
+<g id="edge40" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.compileIvyDeps</title>
+<path fill="none" stroke="#000000" d="M1944.1844,-507.1689C1902.447,-495.6108 1844.4052,-479.5377 1800.4916,-467.377"/>
+<polygon fill="#000000" stroke="#000000" points="1801.355,-463.9844 1790.7836,-464.6886 1799.4868,-470.7305 1801.355,-463.9844"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.scalaLibraryIvyDeps -->
+<g id="edge41" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.scalaLibraryIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2065.7841,-509.4258C2077.4246,-507.4706 2089.4144,-505.5788 2100.7413,-504 2253.4311,-482.7176 2292.8556,-487.8259 2445.7413,-468 2455.1164,-466.7843 2464.9025,-465.4181 2474.643,-463.996"/>
+<polygon fill="#000000" stroke="#000000" points="2475.3788,-467.4253 2484.758,-462.4977 2474.353,-460.5008 2475.3788,-467.4253"/>
+</g>
+<!-- bar.compileClasspath&#45;&gt;bar.transitiveIvyDeps -->
+<g id="edge42" class="edge">
+<title>bar.compileClasspath&#45;&gt;bar.transitiveIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2061.8246,-508.6261C2120.5242,-496.3757 2207.3909,-478.247 2268.9625,-465.3973"/>
+<polygon fill="#000000" stroke="#000000" points="2269.9271,-468.7715 2279.0012,-463.3023 2268.497,-461.9191 2269.9271,-468.7715"/>
+</g>
+<!-- bar.javacOptions -->
+<g id="node43" class="node">
+<title>bar.javacOptions</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2186.7413" cy="-522" rx="76.9661" ry="18"/>
+<text text-anchor="middle" x="2186.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.javacOptions</text>
+</g>
+<!-- bar.scalacOptions -->
+<g id="node44" class="node">
+<title>bar.scalacOptions</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2361.7413" cy="-522" rx="79.8931" ry="18"/>
+<text text-anchor="middle" x="2361.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalacOptions</text>
+</g>
+<!-- bar.scalaCompilerClasspath -->
+<g id="node45" class="node">
+<title>bar.scalaCompilerClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2669.7413" cy="-522" rx="119.2148" ry="18"/>
+<text text-anchor="middle" x="2669.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalaCompilerClasspath</text>
+</g>
+<!-- bar.scalaCompilerClasspath&#45;&gt;bar.platformSuffix -->
+<g id="edge46" class="edge">
+<title>bar.scalaCompilerClasspath&#45;&gt;bar.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M2694.4604,-504.2022C2707.3925,-494.8911 2723.3866,-483.3754 2737.3019,-473.3564"/>
+<polygon fill="#000000" stroke="#000000" points="2739.5813,-476.028 2745.6516,-467.3446 2735.4911,-470.3473 2739.5813,-476.028"/>
+</g>
+<!-- bar.scalaCompilerClasspath&#45;&gt;bar.scalaOrganization -->
+<g id="edge47" class="edge">
+<title>bar.scalaCompilerClasspath&#45;&gt;bar.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M2748.1946,-508.4375C2794.0253,-498.9393 2845.8877,-484.938 2861.7413,-468 2877.118,-451.5716 2881.3237,-425.962 2881.9973,-406.2552"/>
+<polygon fill="#000000" stroke="#000000" points="2885.4986,-406.0302 2882.0567,-396.0101 2878.4987,-405.9896 2885.4986,-406.0302"/>
+</g>
+<!-- bar.scalacPluginIvyDeps -->
+<g id="node46" class="node">
+<title>bar.scalacPluginIvyDeps</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="3053.7413" cy="-450" rx="107.1039" ry="18"/>
+<text text-anchor="middle" x="3053.7413" y="-445.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalacPluginIvyDeps</text>
+</g>
+<!-- bar.scalacPluginClasspath -->
+<g id="node47" class="node">
+<title>bar.scalacPluginClasspath</title>
+<ellipse fill="none" stroke="#000000" stroke-dasharray="1,5" cx="2918.7413" cy="-522" rx="112.2742" ry="18"/>
+<text text-anchor="middle" x="2918.7413" y="-517.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.scalacPluginClasspath</text>
+</g>
+<!-- bar.scalacPluginClasspath&#45;&gt;bar.platformSuffix -->
+<g id="edge48" class="edge">
+<title>bar.scalacPluginClasspath&#45;&gt;bar.platformSuffix</title>
+<path fill="none" stroke="#000000" d="M2883.0521,-504.7542C2862.0343,-494.598 2835.2987,-481.6788 2813.0762,-470.9404"/>
+<polygon fill="#000000" stroke="#000000" points="2814.3852,-467.6857 2803.8585,-466.4862 2811.3395,-473.9884 2814.3852,-467.6857"/>
+</g>
+<!-- bar.scalacPluginClasspath&#45;&gt;bar.scalaOrganization -->
+<g id="edge49" class="edge">
+<title>bar.scalacPluginClasspath&#45;&gt;bar.scalaOrganization</title>
+<path fill="none" stroke="#000000" d="M2913.9286,-503.7623C2907.4186,-479.0928 2895.7459,-434.8598 2888.1231,-405.9731"/>
+<polygon fill="#000000" stroke="#000000" points="2891.4507,-404.8656 2885.5149,-396.0896 2884.6824,-406.6517 2891.4507,-404.8656"/>
+</g>
+<!-- bar.scalacPluginClasspath&#45;&gt;bar.scalacPluginIvyDeps -->
+<g id="edge50" class="edge">
+<title>bar.scalacPluginClasspath&#45;&gt;bar.scalacPluginIvyDeps</title>
+<path fill="none" stroke="#000000" d="M2951.0771,-504.7542C2969.3937,-494.9854 2992.503,-482.6604 3012.1565,-472.1785"/>
+<polygon fill="#000000" stroke="#000000" points="3014.0249,-475.1488 3021.2014,-467.3546 3010.7308,-468.9723 3014.0249,-475.1488"/>
+</g>
+<!-- bar.compile -->
+<g id="node48" class="node">
+<title>bar.compile</title>
+<ellipse fill="none" stroke="#000000" cx="2091.7413" cy="-594" rx="56.7814" ry="18"/>
+<text text-anchor="middle" x="2091.7413" y="-589.8" font-family="Times,serif" font-size="14.00" fill="#000000">bar.compile</text>
+</g>
+<!-- bar.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker -->
+<g id="edge51" class="edge">
+<title>bar.compile&#45;&gt;mill.scalalib.ZincWorkerModule.worker</title>
+<path fill="none" stroke="#000000" d="M2034.6053,-593.4318C1791.5217,-590.2739 855.7413,-570.3043 855.7413,-450 855.7413,-450 855.7413,-450 855.7413,-378 855.7413,-307.4046 778.7467,-270.6338 711.616,-251.9902"/>
+<polygon fill="#000000" stroke="#000000" points="712.3577,-248.5657 701.7934,-249.3692 710.553,-255.3291 712.3577,-248.5657"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.upstreamCompileOutput -->
+<g id="edge52" class="edge">
+<title>bar.compile&#45;&gt;bar.upstreamCompileOutput</title>
+<path fill="none" stroke="#000000" d="M2034.7813,-592.502C1884.9725,-587.2438 1485.9582,-564.2925 1405.7413,-468 1378.1321,-434.8579 1427.6297,-410.6947 1476.8342,-395.8009"/>
+<polygon fill="#000000" stroke="#000000" points="1478.0241,-399.0999 1486.6483,-392.9458 1476.0686,-392.3786 1478.0241,-399.0999"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.allSourceFiles -->
+<g id="edge53" class="edge">
+<title>bar.compile&#45;&gt;bar.allSourceFiles</title>
+<path fill="none" stroke="#000000" d="M2035.1236,-591.9114C1913.4486,-586.9487 1618.1562,-572.3617 1372.7413,-540 1364.4279,-538.9038 1355.7417,-537.55 1347.1447,-536.0809"/>
+<polygon fill="#000000" stroke="#000000" points="1347.5774,-532.6032 1337.1213,-534.3119 1346.3608,-539.4967 1347.5774,-532.6032"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.compileClasspath -->
+<g id="edge54" class="edge">
+<title>bar.compile&#45;&gt;bar.compileClasspath</title>
+<path fill="none" stroke="#000000" d="M2069.9395,-577.3008C2057.723,-567.9434 2042.2817,-556.1161 2028.8176,-545.8031"/>
+<polygon fill="#000000" stroke="#000000" points="2030.8034,-542.9154 2020.7363,-539.6132 2026.5468,-548.4726 2030.8034,-542.9154"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.javacOptions -->
+<g id="edge55" class="edge">
+<title>bar.compile&#45;&gt;bar.javacOptions</title>
+<path fill="none" stroke="#000000" d="M2113.775,-577.3008C2126.2123,-567.8746 2141.9567,-555.942 2155.6342,-545.5759"/>
+<polygon fill="#000000" stroke="#000000" points="2157.9796,-548.19 2163.8353,-539.3603 2153.7515,-542.6112 2157.9796,-548.19"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.scalacOptions -->
+<g id="edge56" class="edge">
+<title>bar.compile&#45;&gt;bar.scalacOptions</title>
+<path fill="none" stroke="#000000" d="M2135.4215,-582.3519C2180.0565,-570.4493 2249.7642,-551.8606 2300.0257,-538.4575"/>
+<polygon fill="#000000" stroke="#000000" points="2301.0451,-541.808 2309.8056,-535.8495 2299.2414,-535.0444 2301.0451,-541.808"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.scalaCompilerClasspath -->
+<g id="edge57" class="edge">
+<title>bar.compile&#45;&gt;bar.scalaCompilerClasspath</title>
+<path fill="none" stroke="#000000" d="M2144.8244,-587.3876C2240.6451,-575.4514 2444.0089,-550.1189 2567.5878,-534.725"/>
+<polygon fill="#000000" stroke="#000000" points="2568.3261,-538.1602 2577.8168,-533.4508 2567.4608,-531.2139 2568.3261,-538.1602"/>
+</g>
+<!-- bar.compile&#45;&gt;bar.scalacPluginClasspath -->
+<g id="edge58" class="edge">
+<title>bar.compile&#45;&gt;bar.scalacPluginClasspath</title>
+<path fill="none" stroke="#000000" d="M2148.1521,-591.0555C2268.007,-584.4984 2556.7863,-567.1023 2797.7413,-540 2807.8173,-538.8667 2818.3434,-537.53 2828.8013,-536.1053"/>
+<polygon fill="#000000" stroke="#000000" points="2829.3677,-539.5603 2838.7902,-534.7161 2828.4034,-532.627 2829.3677,-539.5603"/>
+</g>
+</g>
+</svg>
