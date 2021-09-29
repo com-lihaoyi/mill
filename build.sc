@@ -28,8 +28,9 @@ object Settings {
   // the exact tags containing a doc root
   val docTags = Seq(
     "0.9.6", "0.9.7", "0.9.8", "0.9.9",
-    "0.10.0-M2"
+    "0.10.0-M2", "0.10.0-M3"
   )
+  val mimaBaseVersions = Seq("0.10.0-M3")
 }
 
 object Deps {
@@ -160,7 +161,7 @@ trait MillApiModule
 //  def compileIvyDeps = Agg(Deps.acyclic)
 //  def scalacOptions = Seq("-P:acyclic:force")
 //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
-  override def mimaPreviousVersions: T[Seq[String]] = Seq("0.10.0-M2", millLastTag()).distinct
+  override def mimaPreviousVersions: T[Seq[String]] = (Settings.mimaBaseVersions ++ Seq(millLastTag())).distinct
 }
 
 trait MillModule extends MillApiModule { outer =>
