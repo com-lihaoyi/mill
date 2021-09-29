@@ -331,6 +331,17 @@ object scalalib extends MillModule {
     super.generatedSources() ++ Seq(PathRef(dest))
   }
 
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    // In Milestone-Phase we're allowed to break binary compatibility
+    Seq(
+      mima.ProblemFilter.exclude[DirectMissingMethodProblem]("mill.scalalib.GenIdeaImpl.libraryXmlTemplate"),
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.ScalaModule.resolvedIvyDeps"),
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalalib.ScalaModule.resolvedRunIvyDeps"),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalalib.ScalaModule.mill$scalalib$ScalaModule$$super$mandatoryIvyDeps")
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   override def testIvyDeps = super.testIvyDeps() ++ Agg(Deps.scalaCheck)
   def testArgs = T{
     val genIdeaArgs =
@@ -439,6 +450,19 @@ object scalajslib extends MillModule {
 
   override def generatedSources: Target[Seq[PathRef]] = Seq(generatedBuildInfo())
 
+  // In Milestone-Phase we're allowed to break binary compatibility
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    Seq(
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem](
+        "mill.scalajslib.ScalaJSModule.scalaLibraryIvyDeps"
+      ),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$mandatoryIvyDeps"
+      )
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   object api extends MillApiModule {
     override def moduleDeps = Seq(main.api)
     override def ivyDeps = Agg(Deps.sbtTestInterface)
@@ -469,19 +493,6 @@ object scalajslib extends MillModule {
         )
     }
   }
-
-  override def mimaBinaryIssueFilters = T {
-    import com.typesafe.tools.mima.core._
-    Seq(
-      mima.ProblemFilter.exclude[NewMixinForwarderProblem](
-        "mill.scalajslib.ScalaJSModule.scalaLibraryIvyDeps"
-      ),
-      mima.ProblemFilter.exclude[ReversedMissingMethodProblem](
-        "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$mandatoryIvyDeps"
-      )
-    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
-  }
-
 }
 
 object contrib extends MillModule {
@@ -677,6 +688,15 @@ object scalanativelib extends MillModule {
     scalalib.backgroundwrapper.testArgs() ++
     (for((k, v) <- mapping.to(Seq)) yield s"-D$k=$v")
   }
+  // In Milestone-Phase we're allowed to break binary compatibility
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    Seq(
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem]("mill.scalanativelib.ScalaNativeModule.transitiveIvyDeps"),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem]("mill.scalanativelib.ScalaNativeModule.mill$scalanativelib$ScalaNativeModule$$super$mandatoryIvyDeps")
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
   object api extends MillPublishModule {
     override def ivyDeps = Agg(Deps.sbtTestInterface)
   }
