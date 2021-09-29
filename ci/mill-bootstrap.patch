@@ -11,7 +11,7 @@ index c93275a2..96ff97cf 100755
  import $ivy.`org.scalaj::scalaj-http:2.4.2`
 -import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.9:0.1.2`
 -import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.4`
-+import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10.0-M2::0.1.2`
++import $ivy.`de.tototec::de.tobiasroeser.mill.vcs.version_mill0.10.0-M2:0.1.2`
  import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
  import java.nio.file.attribute.PosixFilePermission
  
@@ -31,7 +31,7 @@ index c93275a2..96ff97cf 100755
  //  def compileIvyDeps = Agg(Deps.acyclic)
  //  def scalacOptions = Seq("-P:acyclic:force")
  //  def scalacPluginIvyDeps = Agg(Deps.acyclic)
--  override def mimaPreviousVersions: T[Seq[String]] = (Settings.mimaBaseVersions ++ Seq(millLastTag())).distinct
+-  override def mimaPreviousVersions: T[Seq[String]] = Settings.mimaBaseVersions
  }
  
  trait MillModule extends MillApiModule { outer =>
