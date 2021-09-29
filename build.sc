@@ -6,7 +6,7 @@ import $ivy.`com.github.lolgab::mill-mima_mill0.9:0.0.4`
 import $ivy.`net.sourceforge.htmlcleaner:htmlcleaner:2.24`
 import java.nio.file.attribute.PosixFilePermission
 
-import com.github.lolgab.mill.mima.Mima
+import com.github.lolgab.mill.mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
@@ -154,7 +154,7 @@ trait MillApiModule
     extends MillPublishModule
     with ScalaModule
     with MillCoursierModule
-    with Mima {
+    with mima.Mima {
   def scalaVersion = Deps.scalaVersion
   override def ammoniteVersion = Deps.ammonite.dep.version
 //  def compileIvyDeps = Agg(Deps.acyclic)
@@ -469,8 +469,20 @@ object scalajslib extends MillModule {
         )
     }
   }
-}
 
+  override def mimaBinaryIssueFilters = T {
+    import com.typesafe.tools.mima.core._
+    Seq(
+      mima.ProblemFilter.exclude[NewMixinForwarderProblem](
+        "mill.scalajslib.ScalaJSModule.scalaLibraryIvyDeps"
+      ),
+      mima.ProblemFilter.exclude[ReversedMissingMethodProblem](
+        "mill.scalajslib.ScalaJSModule.mill$scalajslib$ScalaJSModule$$super$mandatoryIvyDeps"
+      )
+    ).filter(_ => mimaPreviousVersions().contains("0.10.0-M2"))
+  }
+
+}
 
 object contrib extends MillModule {
   object testng extends JavaModule with MillModule {
