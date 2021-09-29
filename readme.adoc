@@ -8,15 +8,15 @@
 :link-compare: https://github.com/com-lihaoyi/mill/compare
 :link-pr: {link-github}/pull
 :link-issue: {link-github}/issues
-:example-scala-version: 2.13.1
+:example-scala-version: 3.0.2
 
 {link-github}/actions/workflows/actions.yml[image:{link-github}/actions/workflows/actions.yml/badge.svg[Build and Release]]
 {link-gitter}?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge[image:https://badges.gitter.im/Join%20Chat.svg[Gitter Chat]]
 https://www.patreon.com/lihaoyi[image:https://img.shields.io/badge/patreon-sponsor-ff69b4.svg[Patreon]]
 
 
-Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed
-by Gradle? Give Mill a try!
+Your shiny new Scala build tool! Confused by SBT? Frustrated by Maven? Perplexed by Gradle?
+Give Mill a try!
 
 == Documentation
 
@@ -207,16 +207,39 @@ corresponding version of Mill.
 
 == Changelog
 
-=== main
+=== 'main' branch
 :version: main
+:prev-version: 0.10.0-M3
+:milestone: 54
+:milestone-name: after 0.10.0-M3
+
+_Changes since {prev-version}:_
+
+_For details refer to
+{link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
+and the {link-compare}/{prev-version}\...{version}[list of commits]._
+
+
+=== 0.10.0-M3 - 2021-09-29
+:version: 0.10.0-M3
 :prev-version: 0.10.0-M2
 :milestone: 53
 :milestone-name: 0.10.0-M3
 
+*This is a milestone release.
+This release breaks binary compatibility for external plugins build for mill 0.9.x.
+The API is suspected to change before a 0.10.0 releae.*
+
 _Changes since {prev-version}:_
 
+* `ScalaModule with PublishModule`: the `scala-library` artifact is now always part of the dependencies in published `pom.xml`s and `ivy.xml`s
 * New `JavaModule.mandatoryIvyDeps` target to provide essential dependencies like scala-library without forcing the user to call `super.ivyDeps`
 * `ScalaJSModule.scalaLibraryIvyDeps` no longer contains the scala-js-library, but only the scala-library; if you need that, use `ScalaJSModule.mandatoryIvyDeps` instead.
+* `import $ivy` support `$MILL_BIN_PLATFORM` variable and a new sort notations for external plugins
+* We fixed and enabled lots of tests to run on Windows
+* Some generic targets like `plan` or `path` now also return their output
+* `GenIdea`: improved support for Scala 3 projects
+*
 
 _For details refer to
 {link-milestone}/{milestone}?closed=1[milestone {milestone-name}]
