@@ -58,6 +58,10 @@ object Util {
     IO.unpackZip(downloaded.path, dest)
   }
 
+  /**
+   * Deprecated helper method, intended to allow runtime resolution and in-development-tree testings of mill plugins possible.
+   * This design has issues and will probably replaced.
+   */
   def millProjectModule(
       key: String,
       artifact: String,
