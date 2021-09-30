@@ -77,17 +77,17 @@ object Util {
         )
       case None =>
         mill.modules.Jvm.resolveDependencies(
-          repositories,
-          Seq(
+          repositories = repositories,
+          deps = Seq(
             coursier.Dependency(
               coursier.Module(
                 coursier.Organization("com.lihaoyi"),
                 coursier.ModuleName(artifact + artifactSuffix)
               ),
-              millProperty("MILL_VERSION").getOrElse(BuildInfo.millVersion)
+              BuildInfo.millVersion
             )
           ),
-          Nil
+          force = Nil
         ).map(_.filter(x => resolveFilter(x.path)))
     }
   }

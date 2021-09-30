@@ -2,7 +2,7 @@ package mill.main
 
 import java.util.concurrent.LinkedBlockingQueue
 
-import mill.T
+import mill.{BuildInfo, T}
 import mill.api.{Ctx, PathRef, Result}
 import mill.define.{Command, NamedTask, Task}
 import mill.eval.Evaluator
@@ -69,8 +69,8 @@ trait MainModule extends mill.Module {
   /**
    * Show the mill version.
    */
-  def version() = mill.T.command {
-    val res = System.getProperty("MILL_VERSION")
+  def version(): Command[String] = mill.T.command {
+    val res = BuildInfo.millVersion
     println(res)
     res
   }
