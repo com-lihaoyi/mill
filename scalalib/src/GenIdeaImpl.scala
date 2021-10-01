@@ -89,13 +89,14 @@ case class GenIdeaImpl(
         Util.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
-            val moduleRepos = evalOrElse(
-              evaluator,
-              T.task {
-                T.traverse(modules)(_._2.repositoriesTask)()
-              },
-              Seq.empty[Seq[Repository]]
-            )
+            val moduleRepos =
+              evaluator.evaluate(Agg(T.traverse(modules)(_._2.repositoriesTask))) match {
+                case r if r.failing.items().nonEmpty =>
+                  throw GenIdeaException(
+                    s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
+                  )
+                case r => r.values.asInstanceOf[Seq[Seq[Repository]]]
+              }
 
             val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(
               LocalRepositories.ivy2Local,
@@ -232,7 +233,11 @@ case class GenIdeaImpl(
     }
 
     val resolvedModules: Seq[ResolvedModule] =
-      evalOrElse(evaluator, T.sequence(resolveTasks), Seq())
+      evaluator.evaluate(resolveTasks) match {
+        case r if r.failing.items().nonEmpty =>
+          throw GenIdeaException(s"Failure during resolving modules: ${Evaluator.formatFailing(r)}")
+        case r => r.values.asInstanceOf[Seq[ResolvedModule]]
+      }
 
     val moduleLabels = modules.map(_.swap).toMap
 
@@ -889,15 +894,8 @@ object GenIdeaImpl {
       .mkString
       .toLowerCase()
 
-  /**
-   * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
-   */
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
-    evaluator.evaluate(Agg(e)).values match {
-      case Seq() => default
-      case Seq(e: T) => e
-    }
-  }
+  @deprecated("See scaladoc of Evaluator.evalOrElse for more information.", "mill after 0.10.0-M3")
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = Evaluator.evalOrElse(evaluator, e, default)
 
   sealed trait ResolvedLibrary { def path: os.Path }
   final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])
@@ -939,5 +937,7 @@ object GenIdeaImpl {
       configFileContributions: Seq[IdeaConfigFile],
       compilerOutput: Path
   )
+
+  case class GenIdeaException(msg: String) extends RuntimeException
 
 }
