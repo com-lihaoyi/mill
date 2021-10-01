@@ -12,6 +12,8 @@ import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
 import mill.define.Target.ctx
 import mill.define.{Source, Sources, Target, Task}
+import mill.eval.Evaluator
+import mill.main.MainModule
 import mill.scalalib._
 import mill.scalalib.publish._
 import mill.modules.Jvm
@@ -30,7 +32,7 @@ object Settings {
     "0.9.6", "0.9.7", "0.9.8", "0.9.9",
     "0.10.0-M2", "0.10.0-M3"
   )
-  val mimaBaseVersions = Seq("0.10.0-M2")
+  val mimaBaseVersions = Seq("0.10.0-M2", "0.10.0-M3")
 }
 
 object Deps {
@@ -1199,4 +1201,20 @@ def uploadToGithub(authKey: String) = T.command{
   upload.apply(assembly().path, releaseTag, label + "-assembly", authKey, Settings.githubOrg, Settings.githubRepo)
 
   upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
+}
+
+def validate(ev: Evaluator) = T.command {
+  T.task(MainModule.evaluateTasks(
+    ev,
+    Seq("__.compile", "__.mimaReportBinaryIssues"),
+    multiSelect = true
+  )(identity))()
+
+  T.task(MainModule.evaluateTasks(
+    ev,
+    Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll", "__.sources"),
+    multiSelect = false
+  )(identity))()
+
+  ()
 }

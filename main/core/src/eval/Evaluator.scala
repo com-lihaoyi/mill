@@ -270,7 +270,7 @@ case class Evaluator(
   protected def evaluateGroupCached(
       terminal: Terminal,
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], Result[(Any, Int)]],
+      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       counterMsg: String,
       zincProblemReporter: Int => Option[BuildProblemReporter],
       testReporter: TestReporter,
@@ -330,8 +330,8 @@ case class Evaluator(
 
         workerCached.map((_, inputsHash)) orElse cached match {
           case Some((v, hashCode)) =>
-            val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
-            newResults(labelledNamedTask.task) = Result.Success((v, hashCode))
+            val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
+            newResults(labelledNamedTask.task) = mill.api.Result.Success((v, hashCode))
 
             Evaluated(newResults, Nil, true)
 
@@ -357,10 +357,10 @@ case class Evaluator(
               }
 
             newResults(labelledNamedTask.task) match {
-              case Result.Failure(_, Some((v, hashCode))) =>
+              case mill.api.Result.Failure(_, Some((v, hashCode))) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
-              case Result.Success((v, hashCode)) =>
+              case mill.api.Result.Success((v, hashCode)) =>
                 handleTaskResult(v, v.##, paths.meta, inputsHash, labelledNamedTask)
 
               case _ =>
@@ -416,7 +416,7 @@ case class Evaluator(
 
   protected def evaluateGroup(
       group: Agg[Task[_]],
-      results: collection.Map[Task[_], Result[(Any, Int)]],
+      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]],
       inputsHash: Int,
       paths: Option[Evaluator.Paths],
       maybeTargetLabel: Option[String],
@@ -424,10 +424,10 @@ case class Evaluator(
       reporter: Int => Option[BuildProblemReporter],
       testReporter: TestReporter,
       logger: Logger
-  ): (mutable.LinkedHashMap[Task[_], Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
+  ): (mutable.LinkedHashMap[Task[_], mill.api.Result[(Any, Int)]], mutable.Buffer[Task[_]]) = {
 
     val newEvaluated = mutable.Buffer.empty[Task[_]]
-    val newResults = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    val newResults = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
 
     val nonEvaluatedTargets = group.indexed.filterNot(results.contains)
 
@@ -437,7 +437,7 @@ case class Evaluator(
         target <- nonEvaluatedTargets
         item <- target.inputs.filterNot(group.contains)
       } yield results(item).map(_._1)
-      inputResults.forall(_.isInstanceOf[Result.Success[_]])
+      inputResults.forall(_.isInstanceOf[mill.api.Result.Success[_]])
     }
 
     val tickerPrefix = maybeTargetLabel.map { targetLabel =>
@@ -461,10 +461,10 @@ case class Evaluator(
       newEvaluated.append(task)
       val targetInputValues = task.inputs
         .map { x => newResults.getOrElse(x, results(x)) }
-        .collect { case Result.Success((v, hashCode)) => v }
+        .collect { case mill.api.Result.Success((v, hashCode)) => v }
 
       val res =
-        if (targetInputValues.length != task.inputs.length) Result.Skipped
+        if (targetInputValues.length != task.inputs.length) mill.api.Result.Skipped
         else {
           val args = new Ctx(
             targetInputValues.toArray[Any],
@@ -509,7 +509,7 @@ case class Evaluator(
                   try task.evaluate(args)
                   catch {
                     case NonFatal(e) =>
-                      Result.Exception(e, new OuterStack(new Exception().getStackTrace))
+                      mill.api.Result.Exception(e, new OuterStack(new Exception().getStackTrace))
                   }
                 }
               }
@@ -661,11 +661,11 @@ object Evaluator {
   }
 
   case class Results(
-      rawValues: Seq[Result[Any]],
+      rawValues: Seq[mill.api.Result[Any]],
       evaluated: Agg[Task[_]],
       transitive: Agg[Task[_]],
       failing: MultiBiMap[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]],
-      results: collection.Map[Task[_], Result[Any]]
+      results: collection.Map[Task[_], mill.api.Result[Any]]
   ) {
     def values = rawValues.collect { case mill.api.Result.Success(v) => v }
   }
@@ -739,12 +739,52 @@ object Evaluator {
 
   /**
    * Evaluate the given task `e`. In case, the task has no successful result(s), return the `default` value instead.
+   *
+   * Note: This method has no sensible error management! Errors are just ignored!
+   * The following pattern will probably suite your use case better:
+   *
+   * {{{
+   * evaluator.evaluate(Agg(task)) match {
+   *   case r if r.failing.items().nonEmpty =>
+   *     throw Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
+   *   case r => r.values.asInstanceOf[Seq[YourResultType]]
+   * }
+   * }}}
    */
+  @deprecated(
+    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern.",
+    "mill after 0.10.0-M3"
+  )
   def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
     evaluator.evaluate(Agg(e)).values match {
       case Seq() => default
       case Seq(e: T) => e
     }
+  }
+
+  def formatFailing(evaluated: Evaluator.Results): String = {
+    (for ((k, fs) <- evaluated.failing.items())
+      yield {
+        val ks = k match {
+          case Left(t) => t.toString
+          case Right(t) => t.segments.render
+        }
+        val fss = fs.map {
+          case mill.api.Result.Exception(t, outerStack) =>
+            var current = List(t)
+            while (current.head.getCause != null) {
+              current = current.head.getCause :: current
+            }
+            current.reverse
+              .flatMap(ex =>
+                Seq(ex.toString) ++
+                  ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
+              )
+              .mkString("\n")
+          case mill.api.Result.Failure(t, _) => t
+        }
+        s"$ks ${fss.iterator.mkString(", ")}"
+      }).mkString("\n")
   }
 
   private val dynamicTickerPrefix = new DynamicVariable("")
