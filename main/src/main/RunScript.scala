@@ -8,9 +8,9 @@ import ammonite.util.Util.CodeSource
 import ammonite.util.{Name, Res, Util}
 import mill.define
 import mill.define._
-import mill.eval.Evaluator
-import mill.util.{EitherOps, ParseArgs, PrintLogger, Watched}
-import mill.api.{Logger, PathRef, Result}
+import mill.eval.{Evaluator, Labelled}
+import mill.util.{EitherOps, MultiBiMap, ParseArgs, PrintLogger, Watched}
+import mill.api.{Logger, PathRef, Result, Strict}
 import mill.api.Strict.Agg
 import scala.collection.mutable
 import scala.reflect.ClassTag
@@ -244,28 +244,8 @@ object RunScript {
       .flatten
       .toSeq
 
-    val errorStr =
-      (for ((k, fs) <- evaluated.failing.items()) yield {
-        val ks = k match {
-          case Left(t) => t.toString
-          case Right(t) => t.segments.render
-        }
-        val fss = fs.map {
-          case Result.Exception(t, outerStack) =>
-            var current = List(t)
-            while (current.head.getCause != null) {
-              current = current.head.getCause :: current
-            }
-            current.reverse
-              .flatMap(ex =>
-                Seq(ex.toString) ++
-                  ex.getStackTrace.dropRight(outerStack.value.length).map("    " + _)
-              )
-              .mkString("\n")
-          case Result.Failure(t, _) => t
-        }
-        s"$ks ${fss.mkString(", ")}"
-      }).mkString("\n")
+
+    val errorStr = Evaluator.formatFailing(evaluated)
 
     evaluated.failing.keyCount match {
       case 0 =>
