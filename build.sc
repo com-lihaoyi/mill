@@ -10,7 +10,6 @@ import com.github.lolgab.mill.mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
-import mill.define.Target.ctx
 import mill.define.{Source, Sources, Target, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule

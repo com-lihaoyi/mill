@@ -550,9 +550,9 @@ object Jvm {
     if (errs.nonEmpty) {
       val header =
         s"""|
-          |Resolution failed for ${errs.length} modules:
-          |--------------------------------------------
-          |""".stripMargin
+            |Resolution failed for ${errs.length} modules:
+            |--------------------------------------------
+            |""".stripMargin
 
       val errLines = errs.map {
         case ((module, vsn), errMsgs) => s"  ${module.trim}:$vsn \n\t" + errMsgs.mkString("\n\t")
@@ -643,9 +643,26 @@ object Jvm {
 
     val fetch = coursier.core.ResolutionProcess.fetch(repositories, fetches.head, fetches.tail)
 
+    // Workaround for https://github.com/com-lihaoyi/mill/issues/1028
+    // retry snippet taken from: https://github.com/coursier/coursier/issues/2022#issuecomment-812553102
+    def fetchWithRetry(m: Int): Task[Resolution] = Task.tailRecM[Int, Resolution](m) { (n: Int) =>
+      if (n <= 0) start.process.run(fetch).map(Right(_))
+      else
+        start.process.run(fetch).attempt map {
+          case Right(r) => Right(r)
+          case Left(e) if e.getMessage.contains("concurrent download") =>
+            ctx.foreach(_.log.debug(
+              s"Detected a concurrent download issue in coursier, attempting a retry. Recovered exception message: ${e.getMessage}"
+            ))
+            Thread.sleep(100)
+            Left(n - 1)
+          case Left(e) => throw e
+        }
+    }
     import scala.concurrent.ExecutionContext.Implicits.global
-    val resolution = start.process.run(fetch).unsafeRun()
-    (deps.toSeq, resolution)
+    val resolution = fetchWithRetry(5).unsafeRun()
+
+    (deps.iterator.to(Seq), resolution)
   }
 
   /**
