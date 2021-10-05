@@ -34,7 +34,8 @@ class MainRunner(
     systemProperties: Map[String, String],
     threadCount: Option[Int],
     ringBell: Boolean,
-    wd: os.Path
+    wd: os.Path,
+    initialSystemProperties: Map[String, String]
 ) extends ammonite.MainRunner(
       cliConfig = config,
       outprintStream = outprintStream,
@@ -125,7 +126,8 @@ class MainRunner(
           env = env,
           keepGoing = keepGoing,
           systemProperties = systemProperties,
-          threadCount = threadCount
+          threadCount = threadCount,
+          initialSystemProperties = initialSystemProperties
         )
 
         result match {
@@ -136,7 +138,8 @@ class MainRunner(
               rootModule = eval.rootModule,
               classLoaderSig = eval.classLoaderSig,
               workerCache = eval.workerCache,
-              watched = interpWatched
+              watched = interpWatched,
+              setSystemProperties = systemProperties.keySet
             ))
             val watched = () => {
               val alreadyStale = evalWatches.exists(p => p.sig != PathRef(p.path, p.quick).sig)

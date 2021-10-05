@@ -271,7 +271,8 @@ object MillMain {
                   systemProperties = systemProps,
                   threadCount = threadCount,
                   ringBell = config.ringBell.value,
-                  wd = os.pwd
+                  wd = os.pwd,
+                  initialSystemProperties = initialSystemProperties
                 )
 
                 if (mill.main.client.Util.isJava9OrAbove) {

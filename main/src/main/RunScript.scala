@@ -35,14 +35,22 @@ object RunScript {
       env: Map[String, String],
       keepGoing: Boolean,
       systemProperties: Map[String, String],
-      threadCount: Option[Int]
+      threadCount: Option[Int],
+      initialSystemProperties: Map[String, String]
   ): (
       Res[(Evaluator, Seq[PathRef], Either[String, Seq[ujson.Value]])],
       Seq[(ammonite.interp.Watchable, Long)]
   ) = {
 
-    systemProperties.foreach { case (k, v) =>
-      System.setProperty(k, v)
+    for ((k, v) <- systemProperties) System.setProperty(k, v)
+    val systemPropertiesToUnset =
+      stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
+
+    for(k <- systemPropertiesToUnset) {
+      initialSystemProperties.get(k) match{
+        case None => System.clearProperty(k)
+        case Some(original) => System.setProperty(k, original)
+      }
     }
 
     val (evalState, interpWatched) = stateCache match {
@@ -60,7 +68,8 @@ object RunScript {
                     SpecialClassLoader
                   ].classpathSignature,
                   mutable.Map.empty[Segments, (Int, Any)],
-                  interp.watchedValues.toSeq
+                  interp.watchedValues.toSeq,
+                  systemProperties.keySet
                 )
             (eval, interp.watchedValues)
         }
