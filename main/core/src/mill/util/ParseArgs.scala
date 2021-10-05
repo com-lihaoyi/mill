@@ -1,14 +1,38 @@
 package mill.util
 
-import fastparse._, NoWhitespace._
+import scala.annotation.tailrec
+
+import fastparse._
+import NoWhitespace._
 import mill.define.{Segment, Segments}
+
+sealed trait SelectMode
+object SelectMode {
+
+  /** All args are treated as targets or commands. If a `--` is detected, subsequent args are parameters to all commands. */
+  object Multi extends SelectMode
+
+  /** Only the first arg is treated as target or command, subsequent args are parameters of the command. */
+  object Single extends SelectMode
+
+  /** Same as single, but a special `++` is use to start parsing another target/command. */
+  object MultiSingle extends SelectMode
+}
 
 object ParseArgs {
 
+  type TargetsWithParams = (Seq[(Option[Segments], Segments)], Seq[String])
+
+  /** Separator used in multiSelect-mode to separate targets from their args. */
+  val MultiArgsSeparator = "--"
+  /** Separator used in MultiSingle-select-mode to separate a target-args-tuple from the next target. */
+  val MultiSingleSeparator = "++"
+
+  @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
   def apply(
       scriptArgs: Seq[String],
       multiSelect: Boolean
-  ): Either[String, (List[(Option[Segments], Segments)], Seq[String])] = {
+  ): Either[String, TargetsWithParams] = {
     val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
     for {
       _ <- validateSelectors(selectors)
@@ -19,13 +43,35 @@ object ParseArgs {
     } yield (selectors.toList, args)
   }
 
+  def apply(
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, Seq[TargetsWithParams]] = {
+
+    // SelectMode.MultiSingle
+
+    @tailrec
+    def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
+      case Seq() => result
+      case r =>
+        val (next, r2) = r.span(_ != MultiSingleSeparator)
+        separated(result ++ Seq(next), r2.drop(1))
+    }
+    val parts: Seq[Seq[String]] = separated(Seq(), scriptArgs)
+    val parsed: Seq[Either[String, TargetsWithParams]] = parts.map(apply(_, false))
+
+    val res1: Either[String, Seq[TargetsWithParams]] = EitherOps.sequence(parsed)
+
+    res1
+  }
+
   def extractSelsAndArgs(
       scriptArgs: Seq[String],
       multiSelect: Boolean
   ): (Seq[String], Seq[String]) = {
 
     if (multiSelect) {
-      val dd = scriptArgs.indexOf("--")
+      val dd = scriptArgs.indexOf(MultiArgsSeparator)
       val selectors = if (dd == -1) scriptArgs else scriptArgs.take(dd)
       val args = if (dd == -1) Seq.empty else scriptArgs.drop(dd + 1)
 
