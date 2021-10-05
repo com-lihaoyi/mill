@@ -16,7 +16,8 @@ class EchoServer extends MillServerMain[Int] {
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String]
+      systemProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ) = {
 
     val reader = new BufferedReader(new InputStreamReader(stdin))
