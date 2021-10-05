@@ -82,7 +82,7 @@ object Deps {
     "net.java.dev.jna" -> "jna-platform"
   )
   object jetty {
-    val version = "8.2.0.v20160908"
+    val version = "11.0.6"
     val server = ivy"org.eclipse.jetty:jetty-server:${version}"
     val websocket =  ivy"org.eclipse.jetty:jetty-websocket:${version}"
   }
