@@ -605,7 +605,8 @@ object Evaluator {
       rootModule: mill.define.BaseModule,
       classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
       workerCache: mutable.Map[Segments, (Int, Any)],
-      watched: Seq[(ammonite.interp.Watchable, Long)]
+      watched: Seq[(ammonite.interp.Watchable, Long)],
+      setSystemProperties: Set[String]
   )
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.

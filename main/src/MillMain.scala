@@ -101,7 +101,8 @@ object MillMain {
       System.err,
       System.getenv().asScala.toMap,
       b => (),
-      initialSystemProperties = Map()
+      systemProperties = Map(),
+      initialSystemProperties = sys.props.toMap
     )
     System.exit(if (result) 0 else 1)
   }
@@ -115,6 +116,7 @@ object MillMain {
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
+      systemProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
   ): (Boolean, Option[Evaluator.State]) = {
 
@@ -211,7 +213,7 @@ object MillMain {
                   )
                 }
                 val systemProps =
-                  initialSystemProperties ++ config.extraSystemProperties
+                  systemProperties ++ config.extraSystemProperties
 
                 val threadCount = config.threadCountRaw match {
                   case None => Some(1)
@@ -271,7 +273,8 @@ object MillMain {
                   systemProperties = systemProps,
                   threadCount = threadCount,
                   ringBell = config.ringBell.value,
-                  wd = os.pwd
+                  wd = os.pwd,
+                  initialSystemProperties = initialSystemProperties
                 )
 
                 if (mill.main.client.Util.isJava9OrAbove) {

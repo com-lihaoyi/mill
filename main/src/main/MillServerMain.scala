@@ -29,7 +29,8 @@ trait MillServerMain[T] {
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String]
+      systemProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ): (Boolean, Option[T])
 }
 
@@ -66,7 +67,8 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
       stderr: PrintStream,
       env: Map[String, String],
       setIdle: Boolean => Unit,
-      systemProperties: Map[String, String]
+      systemProperties: Map[String, String],
+      initialSystemProperties: Map[String, String]
   ): (Boolean, Option[Evaluator.State]) = {
     MillMain.main0(
       args,
@@ -77,7 +79,8 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
       stderr,
       env,
       setIdle = setIdle,
-      systemProperties
+      systemProperties = systemProperties,
+      initialSystemProperties = initialSystemProperties
     )
   }
 }
@@ -92,6 +95,7 @@ class Server[T](
 
   val originalStdout = System.out
   def run() = {
+    val initialSystemProperties = sys.props.toMap
     Server.tryLockBlock(locks.processLock) {
       var running = true
       while (running) {
@@ -124,7 +128,7 @@ class Server[T](
             case None => running = false
             case Some(sock) =>
               try {
-                handleRun(sock)
+                handleRun(sock, initialSystemProperties)
                 serverSocket.close()
               } catch { case e: Throwable => e.printStackTrace(originalStdout) }
           }
@@ -136,7 +140,7 @@ class Server[T](
     }.getOrElse(throw new Exception("PID already present"))
   }
 
-  def handleRun(clientSocket: Socket) = {
+  def handleRun(clientSocket: Socket, initialSystemProperties: Map[String, String]) = {
 
     val currentOutErr = clientSocket.getOutputStream
     val stdout = new PrintStream(new ProxyOutputStream(currentOutErr, 1), true)
@@ -175,7 +179,8 @@ class Server[T](
             stderr,
             env.asScala.toMap,
             idle = _,
-            systemProperties.asScala.toMap
+            systemProperties.asScala.toMap,
+            initialSystemProperties
           )
 
           sm.stateCache = newStateCache

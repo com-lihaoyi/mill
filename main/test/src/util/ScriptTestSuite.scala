@@ -48,7 +48,8 @@ abstract class ScriptTestSuite(fork: Boolean) extends TestSuite {
     systemProperties = systemProperties,
     threadCount = threadCount,
     ringBell = false,
-    wd = wd
+    wd = wd,
+    initialSystemProperties = sys.props.toMap
   )
   def eval(s: String*): Boolean = {
     if (!fork) runner.runScript(workspacePath / buildPath, s.toList)
