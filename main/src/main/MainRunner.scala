@@ -26,7 +26,7 @@ class MainRunner(
     outprintStream: PrintStream,
     errPrintStream: PrintStream,
     stdIn: InputStream,
-    stateCache0: Option[Evaluator.State] = None,
+    stateCache0: Option[EvaluatorState] = None,
     env: Map[String, String],
     setIdle: Boolean => Unit,
     debugLog: Boolean,
@@ -134,7 +134,7 @@ class MainRunner(
           case Res.Success(data) =>
             val (eval, evalWatches, res) = data
 
-            stateCache = Some(Evaluator.State(
+            stateCache = Some(EvaluatorState(
               rootModule = eval.rootModule,
               classLoaderSig = eval.classLoaderSig,
               workerCache = eval.workerCache,

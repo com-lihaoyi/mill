@@ -30,7 +30,7 @@ object RunScript {
         ammonite.interp.Interpreter
       ],
       scriptArgs: Seq[String],
-      stateCache: Option[Evaluator.State],
+      stateCache: Option[EvaluatorState],
       log: PrintLogger,
       env: Map[String, String],
       keepGoing: Boolean,
@@ -62,7 +62,7 @@ object RunScript {
             interp.watch(path)
             val eval =
               for (rootModule <- evaluateRootModule(wd, path, interp, log))
-                yield Evaluator.State(
+                yield EvaluatorState(
                   rootModule,
                   rootModule.getClass.getClassLoader.asInstanceOf[
                     SpecialClassLoader
