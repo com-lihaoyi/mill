@@ -89,11 +89,11 @@ case class Evaluator(
       reporter: Int => Option[BuildProblemReporter] =
         (int: Int) => Option.empty[BuildProblemReporter],
       testReporter: TestReporter = DummyTestReporter
-  ) = {
+  ): Evaluator.Results = {
     val (sortedGroups, transitive) = Evaluator.plan(rootModule, goals)
 
     val evaluated = new Agg.Mutable[Task[_]]
-    val results = mutable.LinkedHashMap.empty[Task[_], Result[(Any, Int)]]
+    val results = mutable.LinkedHashMap.empty[Task[_], mill.api.Result[(Any, Int)]]
     var someTaskFailed: Boolean = false
 
     val timings = mutable.ArrayBuffer.empty[(Either[Task[_], Labelled[_]], Int, Boolean)]
@@ -145,14 +145,14 @@ case class Evaluator(
 
   def getFailing(
       sortedGroups: MultiBiMap[Either[Task[_], Labelled[Any]], Task[_]],
-      results: collection.Map[Task[_], Result[(Any, Int)]]
+      results: collection.Map[Task[_], mill.api.Result[(Any, Int)]]
   ) = {
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], Result.Failing[_]]
+    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
-        vs.items.flatMap(results.get).collect { case f: Result.Failing[_] => f.map(_._1) }
+        vs.items.flatMap(results.get).collect { case f: mill.api.Result.Failing[_] => f.map(_._1) }
       )
     }
     failing
@@ -601,13 +601,7 @@ object Evaluator {
   object Cached {
     implicit val rw: upickle.default.ReadWriter[Cached] = upickle.default.macroRW
   }
-  case class State(
-      rootModule: mill.define.BaseModule,
-      classLoaderSig: Seq[(Either[String, java.net.URL], Long)],
-      workerCache: mutable.Map[Segments, (Int, Any)],
-      watched: Seq[(ammonite.interp.Watchable, Long)],
-      setSystemProperties: Set[String]
-  )
+
   // This needs to be a ThreadLocal because we need to pass it into the body of
   // the TargetScopt#read call, which does not accept additional parameters.
   // Until we migrate our CLI parsing off of Scopt (so we can pass the BaseModule

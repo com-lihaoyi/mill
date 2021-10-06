@@ -1,20 +1,14 @@
 package mill.main
 
 import sun.misc.{Signal, SignalHandler}
-
 import java.io._
 import java.net.Socket
-import java.nio.charset.StandardCharsets
-import java.math.BigInteger
-import java.security.MessageDigest
 
 import scala.jdk.CollectionConverters._
 
 import org.scalasbt.ipcsocket._
-
 import mill.{BuildInfo, MillMain}
 import mill.main.client._
-import mill.eval.Evaluator
 import mill.api.DummyInputStream
 import mill.main.client.lock.{Lock, Locks}
 
@@ -34,7 +28,7 @@ trait MillServerMain[T] {
   ): (Boolean, Option[T])
 }
 
-object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
+object MillServerMain extends mill.main.MillServerMain[EvaluatorState] {
   def main(args0: Array[String]): Unit = {
     // Disable SIGINT interrupt signal in the Mill server.
     //
@@ -60,7 +54,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
 
   def main0(
       args: Array[String],
-      stateCache: Option[Evaluator.State],
+      stateCache: Option[EvaluatorState],
       mainInteractive: Boolean,
       stdin: InputStream,
       stdout: PrintStream,
@@ -69,7 +63,7 @@ object MillServerMain extends mill.main.MillServerMain[Evaluator.State] {
       setIdle: Boolean => Unit,
       systemProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
-  ): (Boolean, Option[Evaluator.State]) = {
+  ): (Boolean, Option[EvaluatorState]) = {
     MillMain.main0(
       args,
       stateCache,

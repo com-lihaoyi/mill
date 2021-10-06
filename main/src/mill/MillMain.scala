@@ -5,11 +5,12 @@ import java.util.Locale
 
 import scala.jdk.CollectionConverters._
 import scala.util.Properties
+
 import io.github.retronym.java9rtexport.Export
 import mainargs.{Flag, Leftover, arg}
 import ammonite.repl.tools.Util.PathRead
-import mill.eval.Evaluator
 import mill.api.DummyInputStream
+import mill.main.EvaluatorState
 
 case class MillConfig(
     ammoniteCore: ammonite.main.Config.Core,
@@ -109,7 +110,7 @@ object MillMain {
 
   def main0(
       args: Array[String],
-      stateCache: Option[Evaluator.State],
+      stateCache: Option[EvaluatorState],
       mainInteractive: Boolean,
       stdin: InputStream,
       stdout: PrintStream,
@@ -118,7 +119,7 @@ object MillMain {
       setIdle: Boolean => Unit,
       systemProperties: Map[String, String],
       initialSystemProperties: Map[String, String]
-  ): (Boolean, Option[Evaluator.State]) = {
+  ): (Boolean, Option[EvaluatorState]) = {
 
     val parser = mainargs.ParserForClass[MillConfig]
     val customName = "Mill Build Tool"
@@ -231,7 +232,7 @@ object MillMain {
                           |  os.Path(${pprint
                           .apply(
                             config.ammoniteCore.home.toIO.getCanonicalPath
-                              .replaceAllLiterally("$", "$$")
+                              .replace("$", "$$")
                           )
                           .plainText}),
                           |  ${config.disableTicker.value},

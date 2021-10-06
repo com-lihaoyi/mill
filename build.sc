@@ -185,17 +185,14 @@ trait MillModule extends MillApiModule { outer =>
   }
 }
 
-
 object main extends MillModule {
   override def moduleDeps = Seq(core, client)
   override def ivyDeps = Agg(
     Deps.windowsAnsi
   )
-
   override def compileIvyDeps = Agg(
     Deps.scalaReflect(scalaVersion())
   )
-
   override def generatedSources = T {
     Seq(PathRef(shared.generateCoreSources(T.ctx.dest)))
   }
