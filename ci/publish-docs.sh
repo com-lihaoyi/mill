@@ -14,8 +14,8 @@ ssh-add deploy_key
 rm deploy_key
 
 # Prepare git user
-git config --global user.email "haoyi.sg+travis@gmail.com"
-git config --global user.name "Mill GitHub Bot"
+git config user.email "haoyi.sg+travis@gmail.com"
+git config user.name "Mill GitHub Bot"
 
 PAGES_REPO=gh-pages
 
