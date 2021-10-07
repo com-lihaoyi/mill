@@ -3,3 +3,8 @@
 # Besides the `.scalafmt.conf` file change, all other changes are pure formatting changes.
 # Pull request: https://github.com/com-lihaoyi/mill/pull/1370
 9d4e55b2feac519497dbc62da70430174e32351b
+
+# Tobias Roeser <le.petit.fou@web.de>  2021-10-07 11:17:12
+# Reformatted with scalafmt 3.0.4
+ebdc12f4c383d9adefe83bffc8b43e01d74a475b
+
