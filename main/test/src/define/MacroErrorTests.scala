@@ -55,7 +55,7 @@ object MacroErrorTests extends TestSuite {
       "sources" - {
         val e = compileError("""
           object foo extends mill.util.TestUtil.BaseModule{
-            def z() = T.sources{ammonite.ops.pwd}
+            def z() = T.sources{os.pwd}
           }
           mill.define.Discover[foo.type]
         """)

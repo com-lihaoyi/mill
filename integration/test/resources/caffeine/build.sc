@@ -49,7 +49,7 @@ object caffeine extends CaffeineModule {
       javaPoet.forkArgs(),
       javaPoet.forkEnv(),
       Seq(out.toString),
-      workingDir = ammonite.ops.pwd
+      workingDir = os.pwd
     )
 
     Seq(PathRef(out))

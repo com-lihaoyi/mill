@@ -88,18 +88,18 @@ object HelloJavaTests extends TestSuite {
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava) + "}")
+      os.write.over(mainJava, os.read(mainJava) + "}")
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Left(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava) + "}")
+      os.write.over(coreJava, os.read(coreJava) + "}")
 
       val Left(_) = eval.apply(HelloJava.core.compile)
       val Left(_) = eval.apply(HelloJava.app.compile)
 
-      ammonite.ops.write.over(mainJava, ammonite.ops.read(mainJava).dropRight(1))
-      ammonite.ops.write.over(coreJava, ammonite.ops.read(coreJava).dropRight(1))
+      os.write.over(mainJava, os.read(mainJava).dropRight(1))
+      os.write.over(coreJava, os.read(coreJava).dropRight(1))
 
       val Right(_) = eval.apply(HelloJava.core.compile)
       val Right(_) = eval.apply(HelloJava.app.compile)
