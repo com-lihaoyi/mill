@@ -14,10 +14,10 @@ import mill.scalalib._
 import mill.scalalib.Lib.{depToDependency, resolveDependencies, scalaRuntimeIvyDeps}
 import mill.scalalib.api.Util
 import mill.scalanativelib._
-import mill.util.Ctx
+import mill.api.Ctx
 import os.{Path, exists}
-import scala.collection.JavaConverters._
 import scala.util.Try
+import scala.jdk.CollectionConverters._
 
 /**
  * Utilities for translating the mill build into
@@ -100,7 +100,13 @@ object ModuleUtils {
       scalaRuntimeIvyDeps(scalaOrganization, BuildInfo.scalaVersion)
 
     val repos = Evaluator
-      .evalOrElse(evaluator, T.traverse(modules)(_.repositoriesTask), Seq.empty)
+      .evalOrThrow(
+        evaluator,
+        exceptionFactory = r =>
+          new Exception(
+            s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
+          )
+      )(modules.map(_.repositoriesTask))
       .flatten
       .distinct
 

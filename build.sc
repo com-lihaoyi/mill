@@ -10,7 +10,7 @@ import com.github.lolgab.mill.mima
 import coursier.maven.MavenRepository
 import de.tobiasroeser.mill.vcs.version.VcsVersion
 import mill._
-import mill.define.{Source, Sources, Target, Task}
+import mill.define.{Command, Source, Sources, Target, Task}
 import mill.eval.Evaluator
 import mill.main.MainModule
 import mill.scalalib._
@@ -99,7 +99,7 @@ object Deps {
   val sbtTestInterface = ivy"org.scala-sbt:test-interface:1.0"
   val scalaCheck = ivy"org.scalacheck::scalacheck:1.15.4"
   def scalaCompiler(scalaVersion: String) = ivy"org.scala-lang:scala-compiler:${scalaVersion}"
-  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.4"
+  val scalafmtDynamic = ivy"org.scalameta::scalafmt-dynamic:3.0.6"
   val scalametaTrees = ivy"org.scalameta::trees:4.4.28"
   def scalaReflect(scalaVersion: String) = ivy"org.scala-lang:scala-reflect:${scalaVersion}"
   def scalacScoveragePlugin = ivy"org.scoverage:::scalac-scoverage-plugin:1.4.9"
@@ -1199,15 +1199,15 @@ def uploadToGithub(authKey: String) = T.command{
   upload.apply(launcher().path, releaseTag, label, authKey, Settings.githubOrg, Settings.githubRepo)
 }
 
-def validate(ev: Evaluator) = T.command {
+def validate(ev: Evaluator): Command[Unit] = T.command {
   T.task(MainModule.evaluateTasks(
-    ev,
+    ev.copy(failFast = false),
     Seq("__.compile", "__.mimaReportBinaryIssues"),
     multiSelect = true
   )(identity))()
 
   T.task(MainModule.evaluateTasks(
-    ev,
+    ev.copy(failFast = false),
     Seq("mill.scalalib.scalafmt.ScalafmtModule/checkFormatAll", "__.sources"),
     multiSelect = false
   )(identity))()

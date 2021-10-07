@@ -46,8 +46,8 @@ object RunScript {
     val systemPropertiesToUnset =
       stateCache.map(_.setSystemProperties).getOrElse(Set()) -- systemProperties.keySet
 
-    for(k <- systemPropertiesToUnset) {
-      initialSystemProperties.get(k) match{
+    for (k <- systemPropertiesToUnset) {
+      initialSystemProperties.get(k) match {
         case None => System.clearProperty(k)
         case Some(original) => System.setProperty(k, original)
       }
@@ -252,7 +252,6 @@ object RunScript {
       }
       .flatten
       .toSeq
-
 
     val errorStr = Evaluator.formatFailing(evaluated)
 

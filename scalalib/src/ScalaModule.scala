@@ -1,6 +1,8 @@
 package mill
 package scalalib
 
+import scala.annotation.nowarn
+
 import coursier.{Dependency, Repository}
 import mill.define.{Command, Sources, Target, Task, TaskModule}
 import mill.api.{DummyInputStream, Loose, PathRef, Result}
@@ -405,6 +407,7 @@ trait ScalaModule extends JavaModule { outer =>
 
   override def artifactId: T[String] = artifactName() + artifactSuffix()
 
+  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(): Command[Unit] = T.command {
     super.prepareOffline()()
     resolveDeps(scalacPluginIvyDeps)()

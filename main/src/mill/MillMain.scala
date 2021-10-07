@@ -173,19 +173,19 @@ object MillMain {
                 "MILL_VERSION",
                 "<unknown mill version>"
               )}
-                |Java version: ${p(
+                 |Java version: ${p(
                 "java.version",
                 "<unknown Java version"
               )}, vendor: ${p(
                 "java.vendor",
                 "<unknown Java vendor"
               )}, runtime: ${p("java.home", "<unknown runtime")}
-                |Default locale: ${Locale
+                 |Default locale: ${Locale
                 .getDefault()}, platform encoding: ${p(
                 "file.encoding",
                 "<unknown encoding>"
               )}
-                |OS name: "${p("os.name")}", version: ${p(
+                 |OS name: "${p("os.name")}", version: ${p(
                 "os.version"
               )}, arch: ${p("os.arch")}""".stripMargin
             )
@@ -228,28 +228,28 @@ object MillMain {
                       if (!useRepl) ""
                       else
                         s"""import $$file.build, build._
-                          |implicit val replApplyHandler = mill.main.ReplApplyHandler(
-                          |  os.Path(${pprint
+                           |implicit val replApplyHandler = mill.main.ReplApplyHandler(
+                           |  os.Path(${pprint
                           .apply(
                             config.ammoniteCore.home.toIO.getCanonicalPath
                               .replace("$", "$$")
                           )
                           .plainText}),
-                          |  ${config.disableTicker.value},
-                          |  interp.colors(),
-                          |  repl.pprinter(),
-                          |  build.millSelf.get,
-                          |  build.millDiscover,
-                          |  debugLog = ${config.debugLog.value},
-                          |  keepGoing = ${config.keepGoing.value},
-                          |  systemProperties = ${systemProps.toSeq
+                           |  ${config.disableTicker.value},
+                           |  interp.colors(),
+                           |  repl.pprinter(),
+                           |  build.millSelf.get,
+                           |  build.millDiscover,
+                           |  debugLog = ${config.debugLog.value},
+                           |  keepGoing = ${config.keepGoing.value},
+                           |  systemProperties = ${systemProps.toSeq
                           .map(p => s""""${p._1}" -> "${p._2}"""")
                           .mkString("Map[String,String](", ",", ")")},
-                          |  threadCount = ${threadCount}
-                          |)
-                          |repl.pprinter() = replApplyHandler.pprinter
-                          |import replApplyHandler.generatedEval._
-                          |""".stripMargin,
+                           |  threadCount = ${threadCount}
+                           |)
+                           |repl.pprinter() = replApplyHandler.pprinter
+                           |import replApplyHandler.generatedEval._
+                           |""".stripMargin,
                     noHomePredef = Flag()
                   ),
                   repl = ammonite.main.Config.Repl(

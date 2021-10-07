@@ -61,12 +61,12 @@ object BuildInfoTests extends TestSuite {
       "createSourcefile" - workspaceTest(BuildInfo) { eval =>
         val expected =
           s"""|
-            |object BuildInfo {
-            |  def scalaVersion = "2.12.4"
-            |
-            |  val toMap = Map[String, String](
-            |    "scalaVersion" -> scalaVersion)
-            |}""".stripMargin
+              |object BuildInfo {
+              |  def scalaVersion = "2.12.4"
+              |
+              |  val toMap = Map[String, String](
+              |    "scalaVersion" -> scalaVersion)
+              |}""".stripMargin
         val Right(((result, _), evalCount)) =
           eval.apply(BuildInfo.generatedBuildInfo)
         assert(

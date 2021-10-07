@@ -16,7 +16,8 @@ trait CrossModuleBase extends ScalaModule {
   def crossScalaVersion: String
   def scalaVersion = T { crossScalaVersion }
 
-  protected def scalaVersionDirectoryNames: Seq[String] = api.Util.matchingVersions(crossScalaVersion)
+  protected def scalaVersionDirectoryNames: Seq[String] =
+    api.Util.matchingVersions(crossScalaVersion)
 
   override def millSourcePath = super.millSourcePath / ammonite.ops.up
   override def artifactName: T[String] = millModuleSegments.parts.init.mkString("-")

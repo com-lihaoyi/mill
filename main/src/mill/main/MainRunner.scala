@@ -210,29 +210,30 @@ class MainRunner(
           s"Some(_root_.mill.define.Segments.labels($segsList))"
         } else "None"
 
-      val top = s"""
-        |package ${pkgName.head.encoded}
-        |package ${Util.encodeScalaSourcePath(pkgName.tail)}
-        |$imports
-        |import _root_.mill._
-        |object $wrapName
-        |extends _root_.mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
-        |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
-        |)
-        |with $wrapName{
-        |  // Stub to make sure Ammonite has something to call after it evaluates a script,
-        |  // even if it does nothing...
-        |  def $$main() = Iterator[String]()
-        |
-        |  // Need to wrap the returned Module in Some(...) to make sure it
-        |  // doesn't get picked up during reflective child-module discovery
-        |  def millSelf = Some(this)
-        |
-        |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
-        |}
-        |
-        |sealed trait $wrapName extends _root_.mill.main.MainModule{
-        |""".stripMargin
+      val top =
+        s"""
+           |package ${pkgName.head.encoded}
+           |package ${Util.encodeScalaSourcePath(pkgName.tail)}
+           |$imports
+           |import _root_.mill._
+           |object $wrapName
+           |extends _root_.mill.define.BaseModule(os.Path($literalPath), foreign0 = $foreign)(
+           |  implicitly, implicitly, implicitly, implicitly, mill.define.Caller(())
+           |)
+           |with $wrapName{
+           |  // Stub to make sure Ammonite has something to call after it evaluates a script,
+           |  // even if it does nothing...
+           |  def $$main() = Iterator[String]()
+           |
+           |  // Need to wrap the returned Module in Some(...) to make sure it
+           |  // doesn't get picked up during reflective child-module discovery
+           |  def millSelf = Some(this)
+           |
+           |  implicit lazy val millDiscover: _root_.mill.define.Discover[this.type] = _root_.mill.define.Discover[this.type]
+           |}
+           |
+           |sealed trait $wrapName extends _root_.mill.main.MainModule{
+           |""".stripMargin
       val bottom = "\n}"
 
       (top, bottom, 1)

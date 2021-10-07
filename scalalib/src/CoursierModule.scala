@@ -1,7 +1,9 @@
 package mill.scalalib
 
+import scala.annotation.nowarn
+
 import coursier.{Dependency, Repository, Resolve}
-import coursier.core.{Resolution}
+import coursier.core.Resolution
 import mill.{Agg, T}
 import mill.define.Task
 import mill.api.PathRef
@@ -46,7 +48,9 @@ trait CoursierModule extends mill.Module {
   /**
    * The repositories used to resolved dependencies with [[resolveDeps()]].
    */
-  def repositoriesTask: Task[Seq[Repository]] = T.task { repositories }
+  def repositoriesTask: Task[Seq[Repository]] = T.task {
+    repositories: @nowarn
+  }
 
   /**
    * Customize the coursier resolution resolution process.

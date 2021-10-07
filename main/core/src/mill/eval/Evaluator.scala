@@ -15,6 +15,7 @@ import mill.util
 import mill.util._
 import scala.collection.mutable
 import scala.jdk.CollectionConverters._
+import scala.reflect.ClassTag
 import scala.util.control.NonFatal
 
 case class Labelled[T](task: NamedTask[T], segments: Segments) {
@@ -148,7 +149,8 @@ case class Evaluator(
       results: collection.Map[Task[_], mill.api.Result[(Any, Int)]]
   ) = {
 
-    val failing = new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
+    val failing =
+      new util.MultiBiMap.Mutable[Either[Task[_], Labelled[_]], mill.api.Result.Failing[_]]
     for ((k, vs) <- sortedGroups.items()) {
       failing.addAll(
         k,
@@ -747,7 +749,7 @@ object Evaluator {
    * }}}
    */
   @deprecated(
-    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern.",
+    "This method has no sensible error management and should be avoided. See it's scaladoc for an alternative pattern or use evalOrThrow instead.",
     "mill after 0.10.0-M3"
   )
   def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = {
@@ -756,6 +758,33 @@ object Evaluator {
       case Seq(e: T) => e
     }
   }
+
+  class EvalOrThrow(evaluator: Evaluator, exceptionFactory: Results => Throwable) {
+    def apply[T: ClassTag](task: Task[T]): T =
+      evaluator.evaluate(Agg(task)) match {
+        case r if r.failing.items().nonEmpty =>
+          throw exceptionFactory(r)
+        case r =>
+          // Input is a single-item Agg, so we also expect a single-item result
+          val Seq(e: T) = r.values
+          e
+      }
+    def apply[T: ClassTag](tasks: Seq[Task[T]]): Seq[T] =
+      evaluator.evaluate(tasks) match {
+        case r if r.failing.items().nonEmpty =>
+          throw exceptionFactory(r)
+        case r => r.values.asInstanceOf[Seq[T]]
+      }
+  }
+
+  /**
+   * Evaluate given task(s) and return the successful result(s), or throw an exception.
+   */
+  def evalOrThrow(
+      evaluator: Evaluator,
+      exceptionFactory: Results => Throwable =
+        r => new Exception(s"Failure during task evaluation: ${Evaluator.formatFailing(r)}")
+  ): EvalOrThrow = new EvalOrThrow(evaluator, exceptionFactory)
 
   def formatFailing(evaluated: Evaluator.Results): String = {
     (for ((k, fs) <- evaluated.failing.items())

@@ -134,10 +134,10 @@ object BSP extends ExternalModule {
         case e: Exception =>
           T.log.error(
             s"""An exception occured while connecting to the client.
-              |Cause: ${e.getCause}
-              |Message: ${e.getMessage}
-              |Exception class: ${e.getClass}
-              |Stack Trace: ${e.getStackTrace}""".stripMargin
+               |Cause: ${e.getCause}
+               |Message: ${e.getMessage}
+               |Exception class: ${e.getClass}
+               |Stack Trace: ${e.getStackTrace}""".stripMargin
           )
       } finally {
         T.log.error("Shutting down executor")

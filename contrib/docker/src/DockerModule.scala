@@ -18,60 +18,67 @@ trait DockerModule { outer: JavaModule =>
     def labels: T[Map[String, String]] = Map.empty[String, String]
     def baseImage: T[String] = "gcr.io/distroless/java:latest"
     def pullBaseImage: T[Boolean] = T(baseImage().endsWith(":latest"))
+
     /**
-      * TCP Ports the container will listen to at runtime.
-      * 
-      * See also the Docker docs on 
-      * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
-      * more information.
-      */
+     * TCP Ports the container will listen to at runtime.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
+     * more information.
+     */
     def exposedPorts: T[Seq[Int]] = Seq.empty[Int]
+
     /**
-      * UDP Ports the container will listen to at runtime.
-      *
-      * See also the Docker docs on
-      * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
-      * more information.
-      */
+     * UDP Ports the container will listen to at runtime.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#expose ports]] for
+     * more information.
+     */
     def exposedUdpPorts: T[Seq[Int]] = Seq.empty[Int]
+
     /**
-      * The names of mount points. 
-      * 
-      * See also the Docker docs on
-      * [[https://docs.docker.com/engine/reference/builder/#volume volumes]]
-      * for more information.
-      */
+     * The names of mount points.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#volume volumes]]
+     * for more information.
+     */
     def volumes: T[Seq[String]] = Seq.empty[String]
+
     /**
-      * Environment variables to be set in the container.  
-      * 
-      * See also the Docker docs on
-      * [[https://docs.docker.com/engine/reference/builder/#env ENV]]
-      * for more information.
-      */
+     * Environment variables to be set in the container.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#env ENV]]
+     * for more information.
+     */
     def envVars: T[Map[String, String]] = Map.empty[String, String]
+
     /**
-      * Commands to add as RUN instructions.
-      * 
-      * See also the Docker docs on
-      * [[https://docs.docker.com/engine/reference/builder/#run RUN]]
-      * for more information.
-      */
+     * Commands to add as RUN instructions.
+     *
+     * See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#run RUN]]
+     * for more information.
+     */
     def run: T[Seq[String]] = Seq.empty[String]
+
     /**
-      * Any applicable string to the USER instruction.
-      * 
-      * An empty string will be ignored and will result in USER not being
-      * specified.  See also the Docker docs on
-      * [[https://docs.docker.com/engine/reference/builder/#user USER]]
-      * for more information.
-      */
+     * Any applicable string to the USER instruction.
+     *
+     * An empty string will be ignored and will result in USER not being
+     * specified.  See also the Docker docs on
+     * [[https://docs.docker.com/engine/reference/builder/#user USER]]
+     * for more information.
+     */
     def user: T[String] = ""
+
     /**
-      * The name of the executable to use, the default is "docker".
-      */
+     * The name of the executable to use, the default is "docker".
+     */
     def executable: T[String] = "docker"
-    
+
     private def baseImageCacheBuster: T[(Boolean, Double)] = T.input {
       val pull = pullBaseImage()
       if (pull) (pull, Math.random()) else (pull, 0d)
@@ -107,10 +114,10 @@ trait DockerModule { outer: JavaModule =>
       ).filter(_.nonEmpty).mkString(sys.props("line.separator"))
 
       s"""
-        |FROM ${baseImage()}
-        |$lines
-        |COPY $jarName /$jarName
-        |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
+         |FROM ${baseImage()}
+         |$lines
+         |COPY $jarName /$jarName
+         |ENTRYPOINT ["java", "-jar", "/$jarName"]""".stripMargin
     }
 
     final def build = T {
@@ -139,7 +146,9 @@ trait DockerModule { outer: JavaModule =>
 
     final def push() = T.command {
       val tags = build()
-      tags.foreach(t => os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit))
+      tags.foreach(t =>
+        os.proc(executable(), "push", t).call(stdout = os.Inherit, stderr = os.Inherit)
+      )
     }
   }
 }

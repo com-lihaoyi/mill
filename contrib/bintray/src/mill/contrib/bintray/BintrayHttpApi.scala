@@ -60,11 +60,12 @@ class BintrayHttpApi(
           "Content-Type" -> ContentTypes.json,
           "Authorization" -> Auth.basic
         ),
-        data = s"""{
-          |  "desc": "$description",
-          |  "released": "${releaseDate.format(DateTimeFormatter.ISO_INSTANT)}",
-          |  "name": "$version"
-          |}""".stripMargin
+        data =
+          s"""{
+             |  "desc": "$description",
+             |  "released": "${releaseDate.format(DateTimeFormatter.ISO_INSTANT)}",
+             |  "name": "$version"
+             |}""".stripMargin
       )
     }
 
