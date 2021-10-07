@@ -12,12 +12,11 @@ import mill.BuildInfo
  *
  * - interpret `$MILL_BIN_PLATFORM` as the mill binary platform version
  *
-  * - supports the format `org::name::version` for mill plugins;
-  *   which is equivalent to `org::name_mill$MILL_BIN_PLATFORM:version`
-  *
-  * - supports the format `org:::name::version` for mill plugins;
-  *   which is equivalent to `org:::name_mill$MILL_BIN_PLATFORM:version`
-  *
+ * - supports the format `org::name::version` for mill plugins;
+ *   which is equivalent to `org::name_mill$MILL_BIN_PLATFORM:version`
+ *
+ * - supports the format `org:::name::version` for mill plugins;
+ *   which is equivalent to `org:::name_mill$MILL_BIN_PLATFORM:version`
  */
 object MillIvyHook extends BaseIvy(plugin = false) {
   override def resolve(

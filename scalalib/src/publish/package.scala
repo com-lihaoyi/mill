@@ -1,4 +1,3 @@
 package mill.scalalib
 
-package object publish extends JsonFormatters {
-}
+package object publish extends JsonFormatters {}

@@ -71,7 +71,9 @@ trait ScoverageModule extends ScalaModule { outer: ScalaModule =>
   def scoverageToolsClasspath: T[Agg[PathRef]] = T {
     scoverageReportWorkerClasspath() ++
       resolveDeps(T.task {
-        Agg(ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}")
+        Agg(
+          ivy"org.scoverage:scalac-scoverage-plugin_${mill.BuildInfo.scalaVersion}:${outer.scoverageVersion()}"
+        )
       })()
   }
 

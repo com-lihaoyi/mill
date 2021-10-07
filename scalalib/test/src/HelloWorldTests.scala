@@ -994,7 +994,7 @@ object HelloWorldTests extends TestSuite {
         val deps: NodeSeq = (ivyXml \ "dependencies" \ "dependency")
         assert(deps.exists(n =>
           (n \ "@conf").text == "compile->default(compile)" &&
-          (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
+            (n \ "@name").text == "scala-library" && (n \ "@org").text == "org.scala-lang"
         ))
       }
     }
