@@ -1,5 +1,7 @@
 package mill.scalalib
 
+import scala.annotation.nowarn
+
 import coursier.Repository
 import mill.Agg
 import mill.T
@@ -149,13 +151,16 @@ trait ZincWorkerModule extends mill.Module with OfflineSupportModule { self: Cou
     } else dep
   }
 
-  override def prepareOffline(): Command[Unit] = T.command {
-    super.prepareOffline()()
-    classpath()
-    // worker()
-    ()
-  }
+  @nowarn("msg=pure expression does nothing")
+  override def prepareOffline(): Command[Unit] =
+    T.command {
+      super.prepareOffline()()
+      classpath()
+      // worker()
+      ()
+    }
 
+  @nowarn("msg=pure expression does nothing")
   def prepareOfflineCompiler(scalaVersion: String, scalaOrganization: String): Command[Unit] =
     T.command {
       classpath()

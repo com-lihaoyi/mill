@@ -1,6 +1,8 @@
 package mill
 package scalalib
 
+import scala.annotation.nowarn
+
 import coursier.Repository
 import mill.api.Loose.Agg
 import mill.api.{PathRef, Result}
@@ -706,6 +708,7 @@ trait JavaModule
 
   def forkWorkingDir: Target[Path] = T { os.pwd }
 
+  @nowarn("msg=pure expression does nothing")
   override def prepareOffline(): Command[Unit] = T.command {
     super.prepareOffline()()
     resolvedIvyDeps()
