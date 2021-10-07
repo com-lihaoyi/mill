@@ -89,14 +89,13 @@ case class GenIdeaImpl(
         Util.millProperty("MILL_BUILD_LIBRARIES") match {
           case Some(found) => found.split(',').map(os.Path(_)).distinct.toList
           case None =>
-            val moduleRepos =
-              evaluator.evaluate(Agg(T.traverse(modules)(_._2.repositoriesTask))) match {
-                case r if r.failing.items().nonEmpty =>
-                  throw GenIdeaException(
-                    s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
-                  )
-                case r => r.values.asInstanceOf[Seq[Seq[Repository]]]
-              }
+            val moduleRepos = Evaluator.evalOrThrow(
+              evaluator = evaluator,
+              exceptionFactory = r =>
+                GenIdeaException(
+                  s"Failure during resolving repositories: ${Evaluator.formatFailing(r)}"
+                )
+            )(modules.map(_._2.repositoriesTask))
 
             val repos = moduleRepos.foldLeft(Set.empty[Repository])(_ ++ _) ++ Set(
               LocalRepositories.ivy2Local,
@@ -895,7 +894,8 @@ object GenIdeaImpl {
       .toLowerCase()
 
   @deprecated("See scaladoc of Evaluator.evalOrElse for more information.", "mill after 0.10.0-M3")
-  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T = Evaluator.evalOrElse(evaluator, e, default)
+  def evalOrElse[T](evaluator: Evaluator, e: Task[T], default: => T): T =
+    Evaluator.evalOrElse(evaluator, e, default)
 
   sealed trait ResolvedLibrary { def path: os.Path }
   final case class CoursierResolved(path: os.Path, pom: os.Path, sources: Option[os.Path])
