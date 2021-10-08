@@ -19,7 +19,7 @@ trait CrossModuleBase extends ScalaModule {
   protected def scalaVersionDirectoryNames: Seq[String] =
     api.Util.matchingVersions(crossScalaVersion)
 
-  override def millSourcePath = super.millSourcePath / ammonite.ops.up
+  override def millSourcePath = super.millSourcePath / os.up
   override def artifactName: T[String] = millModuleSegments.parts.init.mkString("-")
   implicit def crossSbtModuleResolver: Resolver[CrossModuleBase] =
     new Resolver[CrossModuleBase] {

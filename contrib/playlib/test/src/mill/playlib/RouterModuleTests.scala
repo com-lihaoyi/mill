@@ -1,6 +1,5 @@
 package mill.playlib
 
-import ammonite.ops.{Path, cp, ls, mkdir, pwd, rm, _}
 import mill.T
 import mill.api.Result.Failure
 import mill.define.Cross
@@ -12,7 +11,7 @@ import utest.{TestSuite, Tests, assert, _}
 object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   trait HelloBase extends TestUtil.BaseModule {
-    override def millSourcePath: Path =
+    override def millSourcePath: os.Path =
       TestUtil.getSrcPathBase() / millOuterCtx.enclosing.split('.')
   }
 
@@ -29,10 +28,10 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
 
   }
 
-  val resourcePath: Path = pwd / "contrib" / "playlib" / "test" / "resources" / "hello-world"
-  val invalidResourcePath: Path = pwd / "contrib" / "playlib" / "test" / "resources" / "invalid"
-  val invalidSubResourcePath: Path =
-    pwd / "contrib" / "playlib" / "test" / "resources" / "invalidsub"
+  val resourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "hello-world"
+  val invalidResourcePath: os.Path = os.pwd / "contrib" / "playlib" / "test" / "resources" / "invalid"
+  val invalidSubResourcePath: os.Path =
+    os.pwd / "contrib" / "playlib" / "test" / "resources" / "invalidsub"
 
   def tests: Tests = Tests {
     test("compileRouter") {
@@ -40,15 +39,15 @@ object RouterModuleTests extends TestSuite with PlayTestSuite {
         workspaceTest(HelloWorld) { eval =>
           val eitherResult = eval.apply(HelloWorld.core(scalaVersion, playVersion).compileRouter)
           val Right((result, evalCount)) = eitherResult
-          val outputFiles = ls.rec(result.classes.path).filter(_.isFile)
-          val expectedClassfiles = Seq[RelPath](
-            RelPath("controllers/ReverseRoutes.scala"),
-            RelPath("controllers/routes.java"),
-            RelPath("router/Routes.scala"),
-            RelPath("router/RoutesPrefix.scala"),
-            RelPath("sub/Routes.scala"),
-            RelPath("sub/RoutesPrefix.scala"),
-            RelPath("controllers/javascript/JavaScriptReverseRoutes.scala")
+          val outputFiles = os.walk(result.classes.path).filter(os.isFile)
+          val expectedClassfiles = Seq[os.RelPath](
+            os.RelPath("controllers/ReverseRoutes.scala"),
+            os.RelPath("controllers/routes.java"),
+            os.RelPath("router/Routes.scala"),
+            os.RelPath("router/RoutesPrefix.scala"),
+            os.RelPath("sub/Routes.scala"),
+            os.RelPath("sub/RoutesPrefix.scala"),
+            os.RelPath("controllers/javascript/JavaScriptReverseRoutes.scala")
           ).map(
             eval.outPath / "core" / scalaVersion / playVersion / "compileRouter" / "dest" / _
           )

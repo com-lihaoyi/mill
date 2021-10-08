@@ -1,5 +1,4 @@
 import mill._, scalalib._, publish._
-import ammonite.ops._, ImplicitWd._
 
 val binCrossScalaVersions = Seq("2.11.12", "2.12.7")
 val fullCrossScalaVersions = Seq(
@@ -297,7 +296,7 @@ def generateConstantsFile(version: String = buildVersion,
   """
   println("Writing Constants.scala")
 
-  write(ctx.dest/"Constants.scala", versionTxt)
+  os.write(ctx.dest/"Constants.scala", versionTxt)
   ctx.dest/"Constants.scala"
 }
 
@@ -321,7 +320,7 @@ def generateDependenciesFile(scalaVersion: String,
     .mkString("\n")
 
   println(s"Writing $dest")
-  write(dest, content.getBytes("UTF-8"), createFolders = true)
+  os.write(dest, content.getBytes("UTF-8"), createFolders = true)
 
   dir
 }
