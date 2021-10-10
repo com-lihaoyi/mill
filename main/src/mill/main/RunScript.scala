@@ -96,7 +96,7 @@ object RunScript {
 
     val evaluated = for {
       evaluator <- evalRes
-      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, multiSelect = false))
+      (evalWatches, res) <- Res(evaluateTasks(evaluator, scriptArgs, SelectMode.Separated))
     } yield {
       (evaluator, evalWatches, res.map(_.flatMap(_._2)))
     }
@@ -175,7 +175,7 @@ object RunScript {
   }
 
   @deprecated(
-    "Use resolveTasks(Resolve[R], Evaluator, Seq[String], SelectMode) instead",
+    "Use resolveTasks[T, R](Resolve[R], Evaluator, Seq[String], SelectMode) instead",
     "mill after 0.10.0-M3"
   )
   def resolveTasks[T, R: ClassTag](
@@ -261,8 +261,23 @@ object RunScript {
       }
   }
 
-  def evaluateTasks[T](evaluator: Evaluator, scriptArgs: Seq[String], multiSelect: Boolean) = {
-    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, multiSelect))
+  @deprecated(
+    "Use evaluateTasks[T](Evaluator, Seq[String], SelectMode) instead",
+    "mill after 0.10.0-M3"
+  )
+  def evaluateTasks[T](
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] =
+    evaluateTasks(evaluator, scriptArgs, if (multiSelect) SelectMode.Multi else SelectMode.Single)
+
+  def evaluateTasks[T](
+      evaluator: Evaluator,
+      scriptArgs: Seq[String],
+      selectMode: SelectMode
+  ): Either[String, (Seq[PathRef], Either[String, Seq[(Any, Option[ujson.Value])]])] = {
+    for (targets <- resolveTasks(mill.main.ResolveTasks, evaluator, scriptArgs, selectMode))
       yield {
         val (watched, res) = evaluate(evaluator, Agg.from(targets.distinct))
 

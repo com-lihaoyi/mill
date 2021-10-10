@@ -15,8 +15,8 @@ object SelectMode {
   /** Only the first arg is treated as target or command, subsequent args are parameters of the command. */
   object Single extends SelectMode
 
-  /** Same as single, but a special `++` is use to start parsing another target/command. */
-  object MultiSingle extends SelectMode
+  /** Like a combination of [[Single]] and [[Multi]], behaving like [[Single]] but using a special separator (`++`) to start parsing another target/command. */
+  object Separated extends SelectMode
 }
 
 object ParseArgs {
@@ -25,7 +25,8 @@ object ParseArgs {
 
   /** Separator used in multiSelect-mode to separate targets from their args. */
   val MultiArgsSeparator = "--"
-  /** Separator used in MultiSingle-select-mode to separate a target-args-tuple from the next target. */
+
+  /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
   val MultiSingleSeparator = "++"
 
   @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
@@ -50,12 +51,21 @@ object ParseArgs {
 
     // SelectMode.MultiSingle
 
+    /**
+     * Partition the arguments in groups using a separator.
+     * To also use the separator as argument, masking it with a backslash (`\`) is supported.
+     */
     @tailrec
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
       case Seq() => result
       case r =>
         val (next, r2) = r.span(_ != MultiSingleSeparator)
-        separated(result ++ Seq(next), r2.drop(1))
+        separated(
+          result ++ Seq(next.map(x =>
+            if (x == """\""" + MultiSingleSeparator) MultiSingleSeparator else x
+          )),
+          r2.drop(1)
+        )
     }
     val parts: Seq[Seq[String]] = separated(Seq(), scriptArgs)
     val parsed: Seq[Either[String, TargetsWithParams]] = parts.map(apply(_, false))

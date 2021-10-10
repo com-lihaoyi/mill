@@ -60,13 +60,13 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsWithArgs" - check(
-        input = Seq("core.compile", "application.runMain", "--", "Main", "hello", "world"),
+        input = Seq("core.compile", "application.runMain", ParseArgs.MultiArgsSeparator, "Main", "hello", "world"),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "hello", "world"),
         multiSelect = true
       )
       "multiSelectorsWithArgsWithAllInArgs" - check(
-        input = Seq("core.compile", "application.runMain", "--", "Main", "--all", "world"),
+        input = Seq("core.compile", "application.runMain", ParseArgs.MultiArgsSeparator, "Main", "--all", "world"),
         expectedSelectors = Seq("core.compile", "application.runMain"),
         expectedArgs = Seq("Main", "--all", "world"),
         multiSelect = true
@@ -197,7 +197,7 @@ object ParseArgsTest extends TestSuite {
         multiSelect = true
       )
       "multiSelectorsBraceExpansionWithArgs" - check(
-        input = Seq("{core,application}.run", "--", "hello", "world"),
+        input = Seq("{core,application}.run", ParseArgs.MultiArgsSeparator, "hello", "world"),
         expectedSelectors = List(
           None -> List(Label("core"), Label("run")),
           None -> List(Label("application"), Label("run"))
@@ -257,8 +257,8 @@ object ParseArgsTest extends TestSuite {
       )
     }
 
-    test("apply(SelectMode=MultiSingle)") {
-      val selectMode = SelectMode.MultiSingle
+    test("apply(SelectMode.Separated)") {
+      val selectMode = SelectMode.Separated
       def parsed(args: String*) = ParseArgs(args, selectMode)
       test("rejectEmpty") {
         assert(parsed("") == Left("Selector cannot be empty"))
@@ -303,7 +303,7 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargets") {
         check(
-          Seq("core.compile", "++", "app.compile"),
+          Seq("core.compile", ParseArgs.MultiSingleSeparator, "app.compile"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("compile"))
@@ -311,6 +311,16 @@ object ParseArgsTest extends TestSuite {
             Seq(
               None -> Seq(Label("app"), Label("compile"))
             ) -> Seq.empty
+          )
+        )
+      }
+      test("multiTargetsSupportMaskingSeparator") {
+        check(
+          Seq("core.run", """\""" + ParseArgs.MultiSingleSeparator, "arg2"),
+          Seq(
+            Seq(
+              None -> Seq(Label("core"), Label("run"))
+            ) -> Seq("++", "arg2"),
           )
         )
       }
@@ -326,7 +336,7 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsWithArgs") {
         check(
-          Seq("core.run", "arg1", "arg2", "++", "core.runMain", "my.main"),
+          Seq("core.run", "arg1", "arg2", ParseArgs.MultiSingleSeparator, "core.runMain", "my.main"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
