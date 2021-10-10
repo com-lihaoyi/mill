@@ -303,7 +303,7 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargets") {
         check(
-          Seq("core.compile", ParseArgs.MultiSingleSeparator, "app.compile"),
+          Seq("core.compile", ParseArgs.TargetSeparator, "app.compile"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("compile"))
@@ -316,11 +316,11 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsSupportMaskingSeparator") {
         check(
-          Seq("core.run", """\""" + ParseArgs.MultiSingleSeparator, "arg2"),
+          Seq("core.run", """\""" + ParseArgs.TargetSeparator, "arg2"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
-            ) -> Seq("++", "arg2"),
+            ) -> Seq(ParseArgs.TargetSeparator, "arg2"),
           )
         )
       }
@@ -336,7 +336,7 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsWithArgs") {
         check(
-          Seq("core.run", "arg1", "arg2", ParseArgs.MultiSingleSeparator, "core.runMain", "my.main"),
+          Seq("core.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run"))
@@ -349,7 +349,7 @@ object ParseArgsTest extends TestSuite {
       }
       test("multiTargetsWithArgsAndBrace") {
         check(
-          Seq("{core,app,test._}.run", "arg1", "arg2", "++", "core.runMain", "my.main"),
+          Seq("{core,app,test._}.run", "arg1", "arg2", ParseArgs.TargetSeparator, "core.runMain", "my.main"),
           Seq(
             Seq(
               None -> Seq(Label("core"), Label("run")),

@@ -27,7 +27,7 @@ object ParseArgs {
   val MultiArgsSeparator = "--"
 
   /** Separator used in [[SelectMode.Separated]] mode to separate a target-args-tuple from the next target. */
-  val MultiSingleSeparator = "++"
+  val TargetSeparator = "+"
 
   @deprecated("Use apply(Seq[String], SelectMode) instead", "mill after 0.10.0-M3")
   def apply(
@@ -59,10 +59,10 @@ object ParseArgs {
     def separated(result: Seq[Seq[String]], rest: Seq[String]): Seq[Seq[String]] = rest match {
       case Seq() => result
       case r =>
-        val (next, r2) = r.span(_ != MultiSingleSeparator)
+        val (next, r2) = r.span(_ != TargetSeparator)
         separated(
           result ++ Seq(next.map(x =>
-            if (x == """\""" + MultiSingleSeparator) MultiSingleSeparator else x
+            if (x == """\""" + TargetSeparator) TargetSeparator else x
           )),
           r2.drop(1)
         )
