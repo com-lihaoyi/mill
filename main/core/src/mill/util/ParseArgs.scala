@@ -33,23 +33,12 @@ object ParseArgs {
   def apply(
       scriptArgs: Seq[String],
       multiSelect: Boolean
-  ): Either[String, TargetsWithParams] = {
-    val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
-    for {
-      _ <- validateSelectors(selectors)
-      expandedSelectors <- EitherOps
-        .sequence(selectors.map(expandBraces))
-        .map(_.flatten)
-      selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
-    } yield (selectors.toList, args)
-  }
+  ): Either[String, TargetsWithParams] = extractAndValidate(scriptArgs, multiSelect)
 
   def apply(
       scriptArgs: Seq[String],
       selectMode: SelectMode
   ): Either[String, Seq[TargetsWithParams]] = {
-
-    // SelectMode.MultiSingle
 
     /**
      * Partition the arguments in groups using a separator.
@@ -68,11 +57,26 @@ object ParseArgs {
         )
     }
     val parts: Seq[Seq[String]] = separated(Seq(), scriptArgs)
-    val parsed: Seq[Either[String, TargetsWithParams]] = parts.map(apply(_, false))
+    val parsed: Seq[Either[String, TargetsWithParams]] =
+      parts.map(extractAndValidate(_, selectMode == SelectMode.Multi))
 
     val res1: Either[String, Seq[TargetsWithParams]] = EitherOps.sequence(parsed)
 
     res1
+  }
+
+  private def extractAndValidate(
+      scriptArgs: Seq[String],
+      multiSelect: Boolean
+  ): Either[String, TargetsWithParams] = {
+    val (selectors, args) = extractSelsAndArgs(scriptArgs, multiSelect)
+    for {
+      _ <- validateSelectors(selectors)
+      expandedSelectors <- EitherOps
+        .sequence(selectors.map(expandBraces))
+        .map(_.flatten)
+      selectors <- EitherOps.sequence(expandedSelectors.map(extractSegments))
+    } yield (selectors.toList, args)
   }
 
   def extractSelsAndArgs(
